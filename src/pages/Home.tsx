@@ -2,6 +2,7 @@ import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { Heart, MapPin, Calendar, User, Music, ChevronRight, ShieldCheck, X, Home as HomeIcon, ChevronLeft, CloudSun, Utensils, Zap, PlusCircle, Languages, Bell } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import QuickPinchZoom, { make3dTransformValue } from 'react-quick-pinch-zoom';
+import { BAR_DATABASE } from '../lib/BarLib';
 
 const DAYS_KOR = ['일', '월', '화', '수', '목', '금', '토'];
 const MAIN_REGIONS = ['서울', '경기/인천', '경상', '전라', '충청', '강원/제주'];
@@ -86,6 +87,22 @@ const HomePage = ({
   showFilteredResults, setShowFilteredResults, isMenuOpen, setIsMenuOpen, showWeather, setShowWeather,
   showLatinModal, setShowLatinModal, latinCat, setLatinCat, selPatternId, setSelPatternId, regionalTheme, recordTraffic, venueCounts
 }) => {
+  const getSearchQuery = (party) => {
+    const bar = BAR_DATABASE.find(b =>
+      b.name.trim() === (party.locationName||'').trim() ||
+      b.aliases?.some(a => a.trim() === (party.locationName||'').trim())
+    )
+    
+    // 1순위: 정확한 주소 (DB 기반)
+    if (bar?.address) return bar.address
+    
+    // 2순위: 구/동 + 장소명 (데이터베이스 개별 필드)
+    if (party.address) return party.address
+    
+    // 3순위: 장소명만
+    return party.locationName || ''
+  }
+
   const [isPaused, setIsPaused] = useState(false)
   const [regionOrder, setRegionOrder] = useState(['서울', '경기/인천', '경상도', '전라도', '충청도', '강원/제주'])
   const [posterOffset, setPosterOffset] = useState(0)
@@ -696,8 +713,11 @@ const HomePage = ({
                                 <div 
                                   onClick={(e) => {
                                     e.stopPropagation();
-                                    const address = item.address || item.locationName;
-                                    window.open(`https://map.kakao.com/link/search/${encodeURIComponent(address)}`, '_blank');
+                                    const query = getSearchQuery(item);
+                                    window.open(
+                                      `https://map.kakao.com/link/search/${encodeURIComponent(query)}`,
+                                      '_blank'
+                                    )
                                   }}
                                   style={{ 
                                     display: 'flex', alignItems: 'center', gap: '4px',
