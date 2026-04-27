@@ -562,9 +562,10 @@ const HomePage = ({
                     const c = (p.cityName || '').trim();
                     const loc = (p.locationName || '').trim();
                     const addr = (p.address || '').trim();
+                    const t = (p.title || '').trim();
                     
-                    if (regionName === "서울") return r === '서울' || c === '서울' || loc.includes('서울') || addr.includes('서울');
-                    if (regionName === "경기/인천") return r === '경기/인천' || r.includes('경기') || r.includes('인천') || c.includes('경기') || c.includes('인천') || loc.includes('인천') || loc.includes('경기') || addr.includes('인천') || addr.includes('경기');
+                    if (regionName === "서울") return r === '서울' || c === '서울' || loc.includes('서울') || addr.includes('서울') || t.includes('서울');
+                    if (regionName === "경기/인천") return r.includes('경기') || r.includes('인천') || c.includes('경기') || c.includes('인천') || loc.includes('인천') || loc.includes('경기') || addr.includes('인천') || addr.includes('경기');
                     if (regionName === "충청도") return r.includes('충청') || c.includes('충남') || c.includes('충북') || c.includes('대전') || c.includes('세종') || loc.includes('대전') || loc.includes('천안');
                     if (regionName === "경상도") return r.includes('경상') || c.includes('경남') || c.includes('경북') || c.includes('부산') || c.includes('대구') || c.includes('울산') || loc.includes('부산') || loc.includes('대구');
                     if (regionName === "전라도") return r.includes('전라') || c.includes('전남') || c.includes('전북') || c.includes('광주') || loc.includes('광주') || loc.includes('전주');
@@ -572,33 +573,43 @@ const HomePage = ({
                     return false;
                   });
 
+                  const isThisRegionExpanded = expandedRegion === regionName;
+
                   return (
-                    <section key={regionName} style={{ marginBottom: '15px' }}>
+                    <section key={regionName} style={{ marginBottom: '15px', background: '#fff' }}>
                       <div 
-                        onClick={() => setExpandedRegion(expandedRegion === regionName ? null : regionName)}
+                        onClick={(e) => {
+                          e.preventDefault();
+                          e.stopPropagation();
+                          setExpandedRegion(isThisRegionExpanded ? null : regionName);
+                        }}
                         style={{ 
                           fontSize: '18px', fontWeight: '900', padding: '15px 15px 10px', 
                           color: '#333', display: 'flex', alignItems: 'center', gap: '8px',
-                          cursor: 'pointer'
+                          cursor: 'pointer', borderBottom: isThisRegionExpanded ? '1px solid #f0f0f0' : 'none'
                         }}
                       >
-                        <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#2196F3' }} />
+                        <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: isThisRegionExpanded ? '#FF3B30' : '#2196F3' }} />
                         {regionName}
-                        <span style={{ marginLeft: '4px', color: '#999', fontSize: '18px' }}>
-                          {expandedRegion === regionName ? '∨' : '›'}
+                        <span style={{ fontSize: '12px', color: '#999', fontWeight: '500', marginLeft: '6px' }}>
+                          ({regionParties.length})
                         </span>
-                        <span style={{ fontSize: '11px', color: '#999', fontWeight: '500', marginLeft: 'auto' }}>
-                          {expandedRegion === regionName ? '접기' : '전체보기'}
+                        <span style={{ marginLeft: '4px', color: '#999', fontSize: '18px' }}>
+                          {isThisRegionExpanded ? '∨' : '›'}
+                        </span>
+                        <span style={{ fontSize: '11px', color: isThisRegionExpanded ? '#FF3B30' : '#999', fontWeight: '700', marginLeft: 'auto' }}>
+                          {isThisRegionExpanded ? '접기' : '전체보기'}
                         </span>
                       </div>
 
-                      {expandedRegion === regionName && (
+                      {isThisRegionExpanded && (
                         <div style={{
                           display: 'grid',
                           gridTemplateColumns: 'repeat(2, 1fr)',
-                          gap: '10px',
-                          padding: '10px 16px 20px',
-                          backgroundColor: '#fff'
+                          gap: '12px',
+                          padding: '15px 15px 25px',
+                          backgroundColor: '#f8fafc',
+                          minHeight: '100px'
                         }}>
                           {regionParties.length > 0 ? (
                             regionParties.map(p => (
@@ -609,21 +620,22 @@ const HomePage = ({
                                   borderRadius: '12px',
                                   overflow: 'hidden',
                                   aspectRatio: '3/4',
-                                  background: '#f1f5f9',
+                                  background: '#fff',
                                   cursor: 'pointer',
-                                  boxShadow: '0 2px 8px rgba(0,0,0,0.1)'
+                                  boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
+                                  border: '1px solid #e2e8f0'
                                 }}
                               >
-                                {(p.poster_url || p.posterUrl)
-                                  ? <img src={p.poster_url || p.posterUrl}
-                                      style={{ width:'100%', height:'100%', objectFit:'cover' }} />
-                                  : <div style={{ width:'100%', height:'100%', display:'flex', alignItems:'center', justifyContent:'center', fontSize:'12px', color:'#94A3B8' }}>포스터 없음</div>
-                                }
+                                <img 
+                                  src={p.poster_url || p.posterUrl}
+                                  alt=""
+                                  style={{ width:'100%', height:'100%', objectFit:'cover' }} 
+                                />
                               </div>
                             ))
                           ) : (
-                            <div style={{ gridColumn: 'span 2', padding: '40px 0', textAlign: 'center', color: '#999', fontSize: '14px' }}>
-                              이 지역의 오늘 파티가 없습니다.
+                            <div style={{ gridColumn: 'span 2', padding: '40px 0', textAlign: 'center', color: '#94A3B8', fontSize: '14px', background: '#fff', borderRadius: '12px' }}>
+                              등록된 포스터가 없습니다.
                             </div>
                           )}
                         </div>
