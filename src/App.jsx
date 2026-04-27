@@ -25,7 +25,7 @@ const calculateDistance = (lat1, lon1, lat2, lon2) => {
 };
 
 const VENUE_COORDS = {
-  'dongam_01': { lat: 37.4715, lon: 126.7028, name: '동암역 (댄스 성지)', region: '인천' },
+  'elmar': { lat: 37.4872, lon: 126.7217, name: '엘마르', region: '인천' }, 'lbt': { lat: 37.4449, lon: 126.7052, name: 'LBT', region: '인천' }, 'rassin': { lat: 37.4612, lon: 126.6782, name: '라씬 카우보이', region: '인천' },
   'bupyeong_01': { lat: 37.4894, lon: 126.7224, name: '부평 엘마', region: '인천' },
   'songdo_01': { lat: 37.3813, lon: 126.6548, name: '송도 살사클럽', region: '인천' },
   'juan_01': { lat: 37.4651, lon: 126.6807, name: '주안 라틴로드', region: '인천' },
