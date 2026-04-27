@@ -476,6 +476,14 @@ const HomePage = ({
                     }}
                   >
                     <motion.div 
+                      drag="x"
+                      dragConstraints={{ left: -775, right: 0 }}
+                      onDragStart={() => setIsPaused(true)}
+                      onDragEnd={() => setIsPaused(false)}
+                      onMouseEnter={() => setIsPaused(true)}
+                      onMouseLeave={() => setIsPaused(false)}
+                      onTouchStart={() => setIsPaused(true)}
+                      onTouchEnd={() => setIsPaused(false)}
                       animate={isPaused ? {} : { x: [0, -775] }}
                       transition={{ 
                         duration: 20, 
@@ -486,7 +494,8 @@ const HomePage = ({
                         display: 'flex', 
                         gap: '15px', 
                         paddingLeft: '20px',
-                        width: 'max-content'
+                        width: 'max-content',
+                        cursor: 'grab'
                       }}
                     >
                       {/* 포스터 리스트 (무한 롤링을 위해 2번 반복) */}
