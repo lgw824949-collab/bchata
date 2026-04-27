@@ -27,6 +27,7 @@ const IncheonRoute = ({ parties, onClose }) => {
         const lat = latitude;
         const lon = longitude;
         const destName = party.locationName;
+        const destAddress = party.address || party.locationName;
         const destLat = party.locations?.lat || party.lat;
         const destLon = party.locations?.lon || party.lon;
 
@@ -34,22 +35,15 @@ const IncheonRoute = ({ parties, onClose }) => {
           const url = `https://map.kakao.com/link/from/내위치,${lat},${lon}/to/${destName},${destLat},${destLon}`;
           window.open(url, '_blank');
         } else {
-          window.open(`https://map.kakao.com/link/search/${encodeURIComponent(party.locationName)}`, '_blank');
+          window.open(`https://map.kakao.com/link/to/${encodeURIComponent(destAddress)}`, '_blank');
         }
       },
       (err) => {
         setLoading(false);
         console.error(err);
         alert("위치 정보를 가져올 수 없습니다. 권한을 확인해주세요.");
-        const destName = party.locationName;
-        const destLat = party.locations?.lat || party.lat;
-        const destLon = party.locations?.lon || party.lon;
-
-        if (destLat && destLon) {
-          window.open(`https://map.kakao.com/link/map/${destName},${destLat},${destLon}`, '_blank');
-        } else {
-          window.open(`https://map.kakao.com/link/search/${encodeURIComponent(party.locationName)}`, '_blank');
-        }
+        const destAddress = party.address || party.locationName;
+        window.open(`https://map.kakao.com/link/search/${encodeURIComponent(destAddress)}`, '_blank');
       },
       { enableHighAccuracy: true }
     );
