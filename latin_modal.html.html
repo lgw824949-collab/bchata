@@ -1,0 +1,565 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>라틴 영어 — 오늘밤빠</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Playfair+Display:ital,wght@1,400&family=Noto+Sans+KR:wght@400;500&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --red:#FF3B30;
+  --gold:#D4A017;
+  --dk:#0d0d0d;
+  --dk1:#111;
+  --dk2:#161616;
+  --dkb:#222;
+  --dt:#e8e8e8;
+  --dm:#666;
+}
+body{
+  font-family:'Noto Sans KR',sans-serif;
+  background:#f5f5f5;
+  min-height:100vh;
+}
+
+/* ════════════════════════════
+   앱 레이아웃 (기존 프로젝트와 교체)
+════════════════════════════ */
+.app-wrap{
+  max-width:480px;
+  margin:0 auto;
+  background:#fff;
+  min-height:100vh;
+  position:relative;
+}
+
+/* 상단 헤더 */
+.app-header{
+  display:flex;align-items:center;
+  padding:10px 16px;
+  border-bottom:1px solid #f0f0f0;
+  gap:10px;
+  position:sticky;top:0;
+  background:#fff;z-index:5;
+}
+.ham-icon{
+  display:flex;flex-direction:column;gap:5px;
+  cursor:pointer;padding:4px;
+}
+.ham-icon span{
+  display:block;width:22px;height:2px;
+  background:#333;border-radius:1px;
+}
+.app-logo{
+  width:38px;height:38px;
+  background:#1a1a1a;border-radius:10px;
+  display:flex;align-items:center;justify-content:center;
+}
+.app-logo-txt{
+  font-family:'Bebas Neue',sans-serif;
+  font-size:10px;color:#fff;
+  letter-spacing:1px;text-align:center;line-height:1.1;
+}
+.cal-scroll{
+  display:flex;flex:1;overflow-x:auto;
+}
+.cal-scroll::-webkit-scrollbar{display:none}
+.cal-day{
+  text-align:center;padding:4px 10px;
+  min-width:40px;flex-shrink:0;
+}
+.cal-day .wd{font-size:9px;color:#bbb}
+.cal-day .num{font-size:15px;font-weight:500;color:#333;line-height:1.4}
+.cal-day.today .wd{color:var(--red)}
+.cal-day.today .num{
+  background:var(--red);border-radius:50%;
+  width:28px;height:28px;
+  display:flex;align-items:center;justify-content:center;
+  font-size:13px;color:#fff;margin:0 auto;
+}
+.cal-day.weekend .num{color:var(--red)}
+
+/* 티커 */
+.ticker{
+  background:#111;color:#eee;
+  padding:8px 16px;font-size:12px;
+  overflow:hidden;white-space:nowrap;
+}
+
+/* 메뉴 리스트 */
+.menu-list{padding:4px 0}
+.menu-item{
+  display:flex;align-items:center;gap:16px;
+  padding:15px 20px;
+  cursor:pointer;
+  border-bottom:1px solid #f8f8f8;
+  transition:background 0.15s;
+}
+.menu-item:hover{background:#fafafa}
+.menu-item:active{background:#f5f5f5}
+.mi-icon{
+  width:30px;height:30px;
+  display:flex;align-items:center;justify-content:center;
+  font-size:18px;flex-shrink:0;
+}
+.mi-label{font-size:15px;color:#222;flex:1}
+.mi-arrow{color:#ccc;font-size:16px}
+
+/* 라틴 영어 아이템 강조 */
+.menu-item.latin-item .mi-label{color:var(--red);font-weight:500}
+.menu-item.latin-item .mi-arrow{color:var(--red)}
+
+/* ════════════════════════════
+   다크 모달 — 라틴 영어
+   바이브 코딩 핵심 컴포넌트
+════════════════════════════ */
+.overlay{
+  position:fixed;inset:0;
+  background:rgba(0,0,0,0);
+  z-index:100;
+  pointer-events:none;
+  transition:background 0.3s ease;
+}
+.overlay.open{
+  background:rgba(0,0,0,0.55);
+  pointer-events:all;
+}
+
+.modal{
+  position:fixed;
+  bottom:0;left:50%;
+  transform:translateX(-50%) translateY(100%);
+  width:100%;max-width:480px;
+  background:var(--dk1);
+  border-radius:20px 20px 0 0;
+  max-height:88vh;
+  display:flex;flex-direction:column;
+  z-index:101;
+  transition:transform 0.4s cubic-bezier(0.4,0,0.2,1);
+}
+.modal.open{
+  transform:translateX(-50%) translateY(0);
+}
+
+.modal-handle{
+  width:38px;height:3px;
+  background:#2a2a2a;border-radius:2px;
+  margin:12px auto 0;flex-shrink:0;
+}
+
+.modal-head{
+  display:flex;align-items:center;
+  padding:14px 18px 12px;
+  border-bottom:0.5px solid var(--dkb);
+  flex-shrink:0;gap:10px;
+}
+.modal-title{
+  font-family:'Bebas Neue',sans-serif;
+  font-size:24px;letter-spacing:2px;
+  color:var(--red);flex:1;
+}
+.modal-count{
+  font-size:11px;color:var(--dm);
+  letter-spacing:1px;
+}
+.modal-close{
+  width:30px;height:30px;
+  background:#1e1e1e;border-radius:50%;
+  border:0.5px solid var(--dkb);
+  cursor:pointer;color:#888;font-size:16px;
+  display:flex;align-items:center;justify-content:center;
+  transition:all 0.15s;flex-shrink:0;
+}
+.modal-close:hover{background:#2a2a2a;color:#fff}
+
+/* 검색 */
+.m-search{
+  padding:10px 16px 8px;
+  flex-shrink:0;
+}
+.m-search input{
+  width:100%;
+  background:#1a1a1a;
+  border:0.5px solid var(--dkb);
+  border-radius:22px;
+  padding:9px 16px;
+  font-family:'Noto Sans KR',sans-serif;
+  font-size:13px;color:var(--dt);
+  outline:none;
+  transition:border-color 0.2s;
+}
+.m-search input:focus{border-color:var(--red)}
+.m-search input::placeholder{color:var(--dm)}
+
+/* 카테고리 */
+.m-cats{
+  display:flex;gap:6px;
+  padding:0 16px 10px;
+  overflow-x:auto;flex-shrink:0;
+}
+.m-cats::-webkit-scrollbar{display:none}
+.mcat{
+  font-size:11px;letter-spacing:0.5px;
+  padding:5px 14px;border-radius:20px;
+  border:0.5px solid var(--dkb);
+  background:transparent;color:var(--dm);
+  cursor:pointer;white-space:nowrap;
+  font-family:'Noto Sans KR',sans-serif;
+  transition:all 0.15s;
+}
+.mcat:hover{border-color:#444;color:#aaa}
+.mcat.on{background:var(--red);border-color:var(--red);color:#fff}
+
+/* 카드 목록 */
+.m-list{
+  flex:1;overflow-y:auto;
+  padding:0 16px 24px;
+  display:flex;flex-direction:column;gap:6px;
+}
+.m-list::-webkit-scrollbar{width:3px}
+.m-list::-webkit-scrollbar-track{background:transparent}
+.m-list::-webkit-scrollbar-thumb{background:#2a2a2a;border-radius:2px}
+
+.mcard{
+  background:var(--dk2);
+  border:0.5px solid var(--dkb);
+  border-radius:10px;
+  padding:12px 14px;
+  cursor:pointer;
+  transition:border-color 0.15s;
+}
+.mcard:hover{border-color:#3a3a3a}
+.mcard.active{border-color:var(--red)}
+.mcard-top{
+  display:flex;align-items:baseline;
+  gap:8px;margin-bottom:4px;
+}
+.mcard-num{
+  font-family:'Bebas Neue',sans-serif;
+  font-size:12px;color:var(--red);letter-spacing:1px;
+}
+.mcard-cat{font-size:10px;color:var(--dm)}
+.mcard-en{
+  font-family:'Playfair Display',serif;
+  font-style:italic;font-size:14px;
+  color:var(--dt);margin-bottom:3px;line-height:1.4;
+}
+.mcard-kr{font-size:12px;color:var(--dm)}
+
+/* 상세 패널 (카드 내부 확장) */
+.mcard-detail{
+  margin:10px -14px -12px;
+  padding:10px 14px 12px;
+  background:#160808;
+  border-top:0.5px solid var(--red);
+  border-radius:0 0 10px 10px;
+  display:none;
+}
+.mcard.active .mcard-detail{display:block}
+.md-note{
+  font-size:11px;color:var(--dm);
+  line-height:1.6;margin-bottom:6px;
+}
+.md-ex{
+  font-size:11px;color:var(--gold);
+  font-style:italic;line-height:1.5;
+}
+.md-ex span{
+  color:#555;font-style:normal;
+  font-size:10px;margin-right:4px;
+}
+
+.m-empty{
+  text-align:center;padding:40px 20px;
+  color:var(--dm);font-size:13px;
+}
+</style>
+</head>
+<body>
+
+<div class="app-wrap">
+
+  <!-- 앱 헤더 -->
+  <div class="app-header">
+    <div class="ham-icon">
+      <span></span><span></span><span></span>
+    </div>
+    <div class="app-logo">
+      <div class="app-logo-txt">오늘<br>밤빠</div>
+    </div>
+    <div class="cal-scroll">
+      <div class="cal-day today">
+        <div class="wd">오늘</div>
+        <div class="num">26</div>
+      </div>
+      <div class="cal-day"><div class="wd">월</div><div class="num">27</div></div>
+      <div class="cal-day"><div class="wd">화</div><div class="num">28</div></div>
+      <div class="cal-day"><div class="wd">수</div><div class="num">29</div></div>
+      <div class="cal-day"><div class="wd">목</div><div class="num">30</div></div>
+      <div class="cal-day"><div class="wd">금</div><div class="num">1</div></div>
+      <div class="cal-day weekend"><div class="wd">토</div><div class="num">2</div></div>
+      <div class="cal-day weekend"><div class="wd">일</div><div class="num">3</div></div>
+    </div>
+  </div>
+
+  <!-- 티커 -->
+  <div class="ticker">날 떤 마감 임박... 실시간 인원 중계 중! 🕺💃</div>
+
+  <!-- 메뉴 리스트 -->
+  <div class="menu-list">
+    <div class="menu-item">
+      <div class="mi-icon">🌤</div>
+      <div class="mi-label">전국 지도 날씨</div>
+      <div class="mi-arrow">›</div>
+    </div>
+    <div class="menu-item">
+      <div class="mi-icon">🍴</div>
+      <div class="mi-label">뒷풀이 맛집</div>
+      <div class="mi-arrow">›</div>
+    </div>
+    <div class="menu-item">
+      <div class="mi-icon">⚡</div>
+      <div class="mi-label">부트캠프/워크샵</div>
+      <div class="mi-arrow">›</div>
+    </div>
+    <div class="menu-item">
+      <div class="mi-icon">➕</div>
+      <div class="mi-label">등록하기 (빠/소셜)</div>
+      <div class="mi-arrow">›</div>
+    </div>
+    <div class="menu-item">
+      <div class="mi-icon">➕</div>
+      <div class="mi-label">등록하기 (수업/종목)</div>
+      <div class="mi-arrow">›</div>
+    </div>
+
+    <!-- ★ 라틴 영어 — 클릭 시 모달 오픈 ★ -->
+    <div class="menu-item latin-item" id="latinBtn" onclick="openModal()">
+      <div class="mi-icon">🅰</div>
+      <div class="mi-label">라틴 영어</div>
+      <div class="mi-arrow">›</div>
+    </div>
+
+    <div class="menu-item">
+      <div class="mi-icon">🔔</div>
+      <div class="mi-label">공지사항</div>
+      <div class="mi-arrow">›</div>
+    </div>
+  </div>
+
+</div>
+
+<!-- ★ 오버레이 (배경 딤) ★ -->
+<div class="overlay" id="overlay" onclick="closeModal()"></div>
+
+<!-- ★ 다크 모달 — 라틴 영어 100 ★ -->
+<div class="modal" id="modal">
+  <div class="modal-handle"></div>
+
+  <div class="modal-head">
+    <span class="modal-title">라틴 영어 100</span>
+    <span class="modal-count" id="mCount">100 패턴</span>
+    <button class="modal-close" onclick="closeModal()">✕</button>
+  </div>
+
+  <div class="m-search">
+    <input type="text" id="mSearch" placeholder="영어 또는 한국어 검색..." oninput="mRender()">
+  </div>
+
+  <div class="m-cats" id="mCats"></div>
+
+  <div class="m-list" id="mList"></div>
+</div>
+
+<script>
+const PATTERNS = [
+  {n:1,cat:'인사',en:"Hey, shall we dance?",kr:"같이 춰볼까요?",note:"처음 만난 파트너에게 가장 자연스러운 첫마디",ex:"Hey, shall we dance? I love this song."},
+  {n:2,cat:'인사',en:"You're a great dancer!",kr:"춤 정말 잘 추시네요!",note:"칭찬은 파트너십의 시작",ex:"Wow, you're a great dancer!"},
+  {n:3,cat:'인사',en:"Is this your first time here?",kr:"여기 처음이에요?",note:"자연스럽게 대화 시작하기",ex:"Is this your first time here? I come every week."},
+  {n:4,cat:'인사',en:"I've seen you dance before.",kr:"전에 춤추는 거 봤어요.",note:"기억하고 있다는 표현으로 호감 전달",ex:"I've seen you dance before — you're amazing."},
+  {n:5,cat:'인사',en:"Mind if I join you?",kr:"같이 해도 될까요?",note:"그룹에 합류할 때 쓰는 공손한 표현",ex:"Mind if I join you for this song?"},
+  {n:6,cat:'댄스요청',en:"Would you like to dance?",kr:"춤 추시겠어요?",note:"격식 있는 댄스 요청",ex:"Excuse me, would you like to dance?"},
+  {n:7,cat:'댄스요청',en:"Can I have this dance?",kr:"이 곡 같이 춰요?",note:"클래식하고 로맨틱한 표현",ex:"Can I have this dance? It's my favorite song."},
+  {n:8,cat:'댄스요청',en:"Do you want to sit this one out?",kr:"이번 곡은 쉴래요?",note:"파트너가 쉬고 싶어 보일 때",ex:"Do you want to sit this one out?"},
+  {n:9,cat:'댄스요청',en:"One more dance?",kr:"한 곡 더 출까요?",note:"좋은 파트너에게 추가 요청",ex:"That was amazing — one more dance?"},
+  {n:10,cat:'댄스요청',en:"Save me a dance later?",kr:"나중에 한 곡 부탁해도 돼요?",note:"바쁜 파트너에게 예약하기",ex:"I know you're busy, but save me a dance later?"},
+  {n:11,cat:'리드팔로우',en:"Follow my lead.",kr:"제 리드를 따라오세요.",note:"리드할 때 자연스럽게",ex:"Relax and follow my lead."},
+  {n:12,cat:'리드팔로우',en:"I'll go slow, just relax.",kr:"천천히 할게요, 편하게 있으세요.",note:"초보 팔로어를 안심시킬 때",ex:"Don't worry, I'll go slow — just relax."},
+  {n:13,cat:'리드팔로우',en:"Can you feel that?",kr:"이거 느껴져요?",note:"바디무브먼트나 리드 신호 확인",ex:"Can you feel that connection?"},
+  {n:14,cat:'리드팔로우',en:"Try to stay close to me.",kr:"가까이 있으려고 해봐요.",note:"클로즈 포지션 가이드",ex:"Try to stay close to me on the downbeat."},
+  {n:15,cat:'리드팔로우',en:"Let me guide you.",kr:"제가 이끌게요.",note:"새로운 무브 전에",ex:"Let me guide you through this turn."},
+  {n:16,cat:'동작설명',en:"Step to the side.",kr:"옆으로 스텝.",note:"기본 사이드 스텝 지시",ex:"Step to the side on beat two."},
+  {n:17,cat:'동작설명',en:"Turn slowly.",kr:"천천히 돌아요.",note:"스핀 속도 조절",ex:"Turn slowly and keep your balance."},
+  {n:18,cat:'동작설명',en:"Weight on your left foot.",kr:"왼발에 무게 실어요.",note:"체중 이동 설명",ex:"Put your weight on your left foot first."},
+  {n:19,cat:'동작설명',en:"Keep your frame.",kr:"프레임 유지해요.",note:"아암 프레임 자세 유지",ex:"Keep your frame — don't drop your elbow."},
+  {n:20,cat:'동작설명',en:"Small steps, please.",kr:"작은 스텝으로 해요.",note:"스텝 크기 조절 요청",ex:"Small steps, please — we're in tight space."},
+  {n:21,cat:'피드백',en:"That felt really good!",kr:"정말 좋게 느껴졌어요!",note:"춤 후 긍정적 피드백",ex:"Wow, that felt really good!"},
+  {n:22,cat:'피드백',en:"Your timing is perfect.",kr:"타이밍이 완벽해요.",note:"타이밍 칭찬",ex:"Your timing is perfect on that break."},
+  {n:23,cat:'피드백',en:"You're so easy to dance with.",kr:"같이 춤추기 정말 편해요.",note:"최고의 댄서 칭찬",ex:"I mean it — you're so easy to dance with."},
+  {n:24,cat:'피드백',en:"May I give you a small tip?",kr:"작은 팁 드려도 될까요?",note:"교정 전 허락 구하기",ex:"May I give you a small tip about the turn?"},
+  {n:25,cat:'피드백',en:"Try bending your knees a little.",kr:"무릎을 조금 구부려봐요.",note:"자세 교정",ex:"Try bending your knees a little — it helps!"},
+  {n:26,cat:'음악',en:"I love this song.",kr:"이 노래 정말 좋아요.",note:"음악 공감대 형성",ex:"I love this song — great DJ tonight."},
+  {n:27,cat:'음악',en:"What's this song called?",kr:"이 노래 제목이 뭐예요?",note:"곡 정보 물어보기",ex:"What's this song called? I need to find it."},
+  {n:28,cat:'음악',en:"The beat is so strong tonight.",kr:"오늘 비트가 정말 강해요.",note:"음악 에너지 표현",ex:"The beat is so strong tonight — can you feel it?"},
+  {n:29,cat:'음악',en:"This is a sensual bachata.",kr:"이건 센슈얼 바차타예요.",note:"스타일 구분 설명",ex:"This is a sensual bachata — close hold."},
+  {n:30,cat:'음악',en:"Dominican or sensual?",kr:"도미니칸이에요 아니면 센슈얼이에요?",note:"스타일 확인",ex:"Dominican or sensual? I'll adjust my lead."},
+  {n:31,cat:'실수대처',en:"Oops, my mistake!",kr:"앗, 제 실수예요!",note:"실수를 웃으며 넘기기",ex:"Oops, my mistake! Let's try that again."},
+  {n:32,cat:'실수대처',en:"Sorry about that!",kr:"죄송해요!",note:"빠른 사과",ex:"Sorry about that — I lost the beat."},
+  {n:33,cat:'실수대처',en:"Let's reset.",kr:"다시 시작해요.",note:"동작 리셋 제안",ex:"Let's reset and catch the next phrase."},
+  {n:34,cat:'실수대처',en:"It happens to everyone.",kr:"누구나 그럴 수 있어요.",note:"파트너 실수 위로",ex:"Don't worry — it happens to everyone."},
+  {n:35,cat:'실수대처',en:"No worries at all!",kr:"전혀 괜찮아요!",note:"실수를 편하게 넘기기",ex:"No worries at all — just enjoy the music."},
+  {n:36,cat:'레벨확인',en:"How long have you been dancing?",kr:"춤 배운 지 얼마나 됐어요?",note:"레벨 파악하기",ex:"How long have you been dancing bachata?"},
+  {n:37,cat:'레벨확인',en:"Are you a beginner or intermediate?",kr:"초급이에요 중급이에요?",note:"직접적으로 레벨 물어보기",ex:"Are you a beginner or intermediate? I'll adjust."},
+  {n:38,cat:'레벨확인',en:"I'm still learning.",kr:"아직 배우는 중이에요.",note:"자신의 레벨 겸손하게 표현",ex:"I'm still learning — please be patient!"},
+  {n:39,cat:'레벨확인',en:"I've been dancing for two years.",kr:"2년 됐어요.",note:"경력 소개",ex:"I've been dancing for two years — mostly sensual."},
+  {n:40,cat:'레벨확인',en:"You're really advanced!",kr:"정말 고수네요!",note:"상대 실력 인정",ex:"Wow, you're really advanced — where do you train?"},
+  {n:41,cat:'스타일',en:"I usually dance linear style.",kr:"보통 리니어 스타일로 춰요.",note:"자신의 스타일 소개",ex:"I usually dance linear style — is that okay?"},
+  {n:42,cat:'스타일',en:"Do you know body waves?",kr:"바디 웨이브 알아요?",note:"무브 가능 여부 확인",ex:"Do you know body waves? I'd love to try."},
+  {n:43,cat:'스타일',en:"Can we try a dip?",kr:"딥 해봐도 돼요?",note:"딥 동의 구하기",ex:"Can we try a dip at the end?"},
+  {n:44,cat:'스타일',en:"I prefer close hold.",kr:"클로즈 홀드가 더 좋아요.",note:"포지션 선호 표현",ex:"I prefer close hold for sensual."},
+  {n:45,cat:'스타일',en:"Let's improvise!",kr:"즉흥으로 가봐요!",note:"자유로운 춤 제안",ex:"Forget the patterns — let's just improvise!"},
+  {n:46,cat:'소셜대화',en:"Do you come here often?",kr:"여기 자주 오세요?",note:"클래식한 소셜 오프너",ex:"Do you come here often? I haven't seen you before."},
+  {n:47,cat:'소셜대화',en:"Where did you learn to dance?",kr:"어디서 배웠어요?",note:"배경 물어보기",ex:"Where did you learn to dance like that?"},
+  {n:48,cat:'소셜대화',en:"Do you take classes?",kr:"클래스 다녀요?",note:"수업 여부 확인",ex:"Do you take classes, or are you self-taught?"},
+  {n:49,cat:'소셜대화',en:"This place has great vibes.",kr:"이곳 분위기 정말 좋다.",note:"장소 칭찬",ex:"This place has great vibes — love the crowd."},
+  {n:50,cat:'소셜대화',en:"Are you here with friends?",kr:"친구들이랑 왔어요?",note:"동반자 확인",ex:"Are you here with friends or by yourself?"},
+  {n:51,cat:'소셜대화',en:"I'm from Korea.",kr:"한국에서 왔어요.",note:"자기소개",ex:"I'm from Korea — visiting for the festival."},
+  {n:52,cat:'소셜대화',en:"Nice to meet you!",kr:"만나서 반가워요!",note:"기본 인사",ex:"Nice to meet you! I'm Jiwon."},
+  {n:53,cat:'소셜대화',en:"You should join our group class.",kr:"우리 그룹 수업에 와요.",note:"초대하기",ex:"You should join our group class on Friday."},
+  {n:54,cat:'소셜대화',en:"Let's grab a drink after.",kr:"나중에 음료 한잔 해요.",note:"댄스 이후 제안",ex:"Let's grab a drink after this song."},
+  {n:55,cat:'소셜대화',en:"Which style do you prefer?",kr:"어떤 스타일 좋아해요?",note:"선호 스타일 대화",ex:"Which style do you prefer — Dominican or sensual?"},
+  {n:56,cat:'요청거절',en:"Maybe next song.",kr:"다음 곡에 해요.",note:"부드러운 거절",ex:"I'm catching my breath — maybe next song?"},
+  {n:57,cat:'요청거절',en:"I need a short break.",kr:"잠깐 쉬어야 해요.",note:"쉬고 싶을 때",ex:"I need a short break — back in five minutes."},
+  {n:58,cat:'요청거절',en:"I'm sitting this one out.",kr:"이 곡은 쉴게요.",note:"정중한 거절",ex:"I'm sitting this one out — thank you though!"},
+  {n:59,cat:'요청거절',en:"I promised this dance to someone.",kr:"이 곡은 다른 분과 약속했어요.",note:"사전 약속 이유로 거절",ex:"I promised this dance to someone already."},
+  {n:60,cat:'요청거절',en:"Thank you, but I'm taking a break.",kr:"감사해요, 쉬는 중이에요.",note:"감사함을 표하며 거절",ex:"Thank you, but I'm taking a break right now."},
+  {n:61,cat:'안전배려',en:"Are you okay?",kr:"괜찮아요?",note:"파트너 상태 확인",ex:"Are you okay? That looked like it hurt."},
+  {n:62,cat:'안전배려',en:"I'll be more careful.",kr:"더 조심할게요.",note:"주의하겠다는 약속",ex:"Sorry about that — I'll be more careful."},
+  {n:63,cat:'안전배려',en:"Stop if anything hurts.",kr:"아프면 말해요.",note:"파트너 배려",ex:"Stop me anytime if anything hurts."},
+  {n:64,cat:'안전배려',en:"Is this okay for you?",kr:"이게 괜찮아요?",note:"동작 동의 확인",ex:"Is this hold okay for you?"},
+  {n:65,cat:'안전배려',en:"Let me know your limits.",kr:"어느 정도까지 괜찮은지 알려줘요.",note:"신체적 한계 존중",ex:"Let me know your limits and I'll adjust."},
+  {n:66,cat:'파티정보',en:"What time does it end?",kr:"몇 시에 끝나요?",note:"파티 종료 시간 확인",ex:"What time does the party end tonight?"},
+  {n:67,cat:'파티정보',en:"Is there a cover charge?",kr:"입장료 있어요?",note:"입장료 확인",ex:"Is there a cover charge at the door?"},
+  {n:68,cat:'파티정보',en:"Who's the DJ tonight?",kr:"오늘 DJ가 누구예요?",note:"DJ 정보 묻기",ex:"Who's the DJ tonight? The music is great."},
+  {n:69,cat:'파티정보',en:"Is there a performance later?",kr:"나중에 공연 있어요?",note:"공연 정보 확인",ex:"Is there a performance later tonight?"},
+  {n:70,cat:'파티정보',en:"When's the next social?",kr:"다음 소셜은 언제예요?",note:"다음 행사 일정",ex:"When's the next social? I'd love to come back."},
+  {n:71,cat:'심화표현',en:"You have beautiful musicality.",kr:"음악성이 정말 뛰어나요.",note:"고급 칭찬 표현",ex:"Wow, you have beautiful musicality."},
+  {n:72,cat:'심화표현',en:"I love how you interpret the music.",kr:"음악을 해석하는 방식이 너무 좋아요.",note:"표현력 칭찬",ex:"I love how you interpret the music with your body."},
+  {n:73,cat:'심화표현',en:"Your body movement is so natural.",kr:"바디 무브먼트가 정말 자연스러워요.",note:"무브먼트 칭찬",ex:"Your body movement is so natural and fluid."},
+  {n:74,cat:'심화표현',en:"Can you show me that footwork?",kr:"그 풋워크 보여줄 수 있어요?",note:"기술 배우고 싶을 때",ex:"Can you show me that footwork again?"},
+  {n:75,cat:'심화표현',en:"Let's play with the silence.",kr:"침묵을 가지고 놀아봐요.",note:"음악의 쉬는 구간 활용",ex:"Let's play with the silence in the breakdown."},
+  {n:76,cat:'심화표현',en:"Feel the tres golpes.",kr:"트레스 골페스 느껴봐요.",note:"바차타 특유의 리듬",ex:"Listen — feel the tres golpes right here."},
+  {n:77,cat:'심화표현',en:"Hit that accent with me.",kr:"그 악센트 같이 짚어봐요.",note:"음악 악센트 맞추기",ex:"Hit that accent with me on beat four."},
+  {n:78,cat:'심화표현',en:"Your hips are on fire!",kr:"힙이 장난이 아니에요!",note:"바차타 힙무브 칭찬",ex:"Wow, your hips are on fire tonight!"},
+  {n:79,cat:'심화표현',en:"That connection was magic.",kr:"그 커넥션 정말 마법 같았어요.",note:"최고의 댄스 후 표현",ex:"That last song — the connection was magic."},
+  {n:80,cat:'심화표현',en:"We're dancing as one.",kr:"우리가 하나가 된 것 같아요.",note:"완벽한 파트너십 표현",ex:"Right there — we're dancing as one."},
+  {n:81,cat:'감사마무리',en:"Thank you for the dance!",kr:"춤 같이 춰줘서 고마워요!",note:"가장 기본적인 마무리",ex:"Thank you for the dance — it was wonderful!"},
+  {n:82,cat:'감사마무리',en:"That was so much fun!",kr:"정말 즐거웠어요!",note:"즐거움 표현",ex:"That was so much fun — you're a great lead!"},
+  {n:83,cat:'감사마무리',en:"I hope we dance again.",kr:"또 같이 춰요.",note:"재춤 희망",ex:"I hope we dance again later tonight."},
+  {n:84,cat:'감사마무리',en:"You made my night!",kr:"덕분에 오늘 밤 최고예요!",note:"감동적인 감사 표현",ex:"Seriously, you made my night!"},
+  {n:85,cat:'감사마무리',en:"Let's exchange numbers?",kr:"연락처 교환해요?",note:"연락처 요청",ex:"Let's exchange numbers — I'd love to practice."},
+  {n:86,cat:'감사마무리',en:"Follow me on Instagram?",kr:"인스타 팔로우해요?",note:"SNS 연결",ex:"Follow me on Instagram? I post dance videos."},
+  {n:87,cat:'감사마무리',en:"See you on the floor!",kr:"댄스 플로어에서 봐요!",note:"가벼운 작별",ex:"Great dancing with you — see you on the floor!"},
+  {n:88,cat:'감사마무리',en:"You're an incredible partner.",kr:"정말 훌륭한 파트너예요.",note:"최고 수준의 칭찬",ex:"I mean it — you're an incredible partner."},
+  {n:89,cat:'감사마무리',en:"I learned a lot from you.",kr:"많이 배웠어요.",note:"배움 감사 표현",ex:"Thank you — I learned a lot from you tonight."},
+  {n:90,cat:'감사마무리',en:"Same time next week?",kr:"다음 주도 이 시간에 봐요?",note:"정기 약속 제안",ex:"Same time next week? I'll look for you."},
+  {n:91,cat:'긴급상황',en:"Watch out!",kr:"조심해요!",note:"충돌 위험 경고",ex:"Watch out — there's a couple behind you!"},
+  {n:92,cat:'긴급상황',en:"Are you hurt?",kr:"다쳤어요?",note:"부상 확인",ex:"Are you hurt? That was a hard bump."},
+  {n:93,cat:'긴급상황',en:"Let's move to a bigger space.",kr:"공간이 더 넓은 데로 이동해요.",note:"공간 확보",ex:"Let's move to a bigger space — it's crowded here."},
+  {n:94,cat:'긴급상황',en:"I need some water.",kr:"물 마셔야겠어요.",note:"수분 보충",ex:"Give me a moment — I need some water."},
+  {n:95,cat:'긴급상황',en:"Can we slow down?",kr:"속도 좀 줄여요?",note:"페이스 조절 요청",ex:"Can we slow down? I'm getting tired."},
+  {n:96,cat:'레슨요청',en:"Can you teach me that?",kr:"그거 가르쳐줄 수 있어요?",note:"기술 배우기 요청",ex:"Can you teach me that shoulder shimmy?"},
+  {n:97,cat:'레슨요청',en:"Where do you take classes?",kr:"어디서 수업 들어요?",note:"수업 정보 물어보기",ex:"Where do you take classes? You're so good."},
+  {n:98,cat:'레슨요청',en:"Do you teach privately?",kr:"개인 레슨도 해요?",note:"프라이빗 레슨 문의",ex:"Do you teach privately? I'd love to take lessons."},
+  {n:99,cat:'레슨요청',en:"What should I work on?",kr:"어떤 부분을 연습해야 해요?",note:"개선점 물어보기",ex:"What should I work on to get to the next level?"},
+  {n:100,cat:'레슨요청',en:"Can we practice together?",kr:"같이 연습해요?",note:"연습 파트너 제안",ex:"Can we practice together sometime this week?"},
+];
+
+const CATS = ['전체', ...[...new Set(PATTERNS.map(p => p.cat))]];
+let curCat = '전체', selId = null;
+
+/* 모달 오픈/클로즈 */
+function openModal() {
+  document.getElementById('overlay').classList.add('open');
+  document.getElementById('modal').classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+function closeModal() {
+  document.getElementById('overlay').classList.remove('open');
+  document.getElementById('modal').classList.remove('open');
+  document.body.style.overflow = '';
+}
+
+/* 렌더 */
+function mRender() {
+  const q = document.getElementById('mSearch').value.toLowerCase().trim();
+  let list = curCat === '전체' ? PATTERNS : PATTERNS.filter(p => p.cat === curCat);
+  if (q) list = list.filter(p => p.en.toLowerCase().includes(q) || p.kr.includes(q));
+
+  document.getElementById('mCount').textContent =
+    (q || curCat !== '전체') ? list.length + ' 결과' : '100 패턴';
+
+  if (!list.length) {
+    document.getElementById('mList').innerHTML =
+      '<div class="m-empty">검색 결과가 없어요</div>';
+    return;
+  }
+
+  document.getElementById('mList').innerHTML = list.map(p => {
+    const active = selId === p.n;
+    return `
+      <div class="mcard${active ? ' active' : ''}" onclick="mSel(${p.n})">
+        <div class="mcard-top">
+          <span class="mcard-num">#${String(p.n).padStart(2,'0')}</span>
+          <span class="mcard-cat">${p.cat}</span>
+        </div>
+        <div class="mcard-en">"${p.en}"</div>
+        <div class="mcard-kr">${p.kr}</div>
+        <div class="mcard-detail">
+          <div class="md-note">${p.note}</div>
+          <div class="md-ex"><span>예시</span>${p.ex}</div>
+        </div>
+      </div>`;
+  }).join('');
+}
+
+/* 카드 선택 */
+function mSel(n) {
+  selId = selId === n ? null : n;
+  mRender();
+  if (selId) {
+    setTimeout(() => {
+      const el = document.querySelector('.mcard.active');
+      if (el) el.scrollIntoView({behavior:'smooth', block:'nearest'});
+    }, 50);
+  }
+}
+
+/* 카테고리 탭 */
+function initCats() {
+  document.getElementById('mCats').innerHTML = CATS.map(c =>
+    `<button class="mcat${c === curCat ? ' on' : ''}" onclick="mCat('${c}')">${c}</button>`
+  ).join('');
+}
+
+function mCat(c) {
+  curCat = c; selId = null;
+  document.querySelectorAll('.mcat').forEach(el =>
+    el.classList.toggle('on', el.textContent === c)
+  );
+  mRender();
+  document.getElementById('mList').scrollTop = 0;
+}
+
+/* ESC 키로 닫기 */
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape') closeModal();
+});
+
+initCats();
+mRender();
+</script>
+</body>
+</html>
