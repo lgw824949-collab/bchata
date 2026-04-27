@@ -577,18 +577,25 @@ const HomePage = ({
                   const isThisRegionExpanded = expandedRegion === regionName;
 
                   return (
-                    <section key={regionName} style={{ marginBottom: '15px', background: '#fff', position: 'relative', zIndex: isThisRegionExpanded ? 100 : 1 }}>
-                      <div 
+                    <section key={regionName} style={{ marginBottom: '15px', background: '#fff' }}>
+                      <button 
                         onClick={(e) => {
                           e.preventDefault();
                           e.stopPropagation();
                           setExpandedRegion(isThisRegionExpanded ? null : regionName);
                         }}
+                        onMouseDown={(e) => { e.stopPropagation(); }}
+                        onTouchStart={(e) => { e.stopPropagation(); }}
                         style={{ 
+                          width: '100%',
+                          border: 'none',
+                          background: isThisRegionExpanded ? '#FFF5F5' : '#fff',
+                          textAlign: 'left',
                           fontSize: '18px', fontWeight: '950', padding: '18px 15px 12px', 
                           color: '#111', display: 'flex', alignItems: 'center', gap: '8px',
-                          cursor: 'pointer', borderBottom: isThisRegionExpanded ? '2px solid #FF3B30' : 'none',
-                          backgroundColor: isThisRegionExpanded ? '#FFF5F5' : 'transparent'
+                          cursor: 'pointer', borderBottom: isThisRegionExpanded ? '2px solid #FF3B30' : '1px solid #f0f0f0',
+                          outline: 'none',
+                          WebkitTapHighlightColor: 'transparent'
                         }}
                       >
                         <div style={{ width: '10px', height: '10px', borderRadius: '50%', background: isThisRegionExpanded ? '#FF3B30' : '#2196F3' }} />
@@ -604,7 +611,7 @@ const HomePage = ({
                             {isThisRegionExpanded ? '×' : '›'}
                           </span>
                         </span>
-                      </div>
+                      </button>
 
                       {isThisRegionExpanded && (
                         <div style={{
@@ -612,16 +619,15 @@ const HomePage = ({
                           gridTemplateColumns: 'repeat(2, 1fr)',
                           gap: '12px',
                           padding: '20px 15px 30px',
-                          backgroundColor: '#fff',
-                          minHeight: '200px',
-                          position: 'relative',
-                          zIndex: 1000
+                          backgroundColor: '#F8FAFC',
+                          minHeight: '200px'
                         }}>
                           {regionParties.length > 0 ? (
                             regionParties.map(p => (
                               <div
                                 key={p.id}
                                 onClick={(e) => {
+                                  e.preventDefault();
                                   e.stopPropagation();
                                   setSelectedPoster(p.poster_url || p.posterUrl);
                                 }}
@@ -629,7 +635,7 @@ const HomePage = ({
                                   borderRadius: '16px',
                                   overflow: 'hidden',
                                   aspectRatio: '3/4',
-                                  background: '#F8FAFC',
+                                  background: '#fff',
                                   cursor: 'pointer',
                                   boxShadow: '0 8px 24px rgba(0,0,0,0.12)',
                                   border: '1px solid #E2E8F0'
@@ -643,7 +649,7 @@ const HomePage = ({
                               </div>
                             ))
                           ) : (
-                            <div style={{ gridColumn: 'span 2', padding: '60px 0', textAlign: 'center', color: '#94A3B8', fontSize: '15px', background: '#F8FAFC', borderRadius: '16px', border: '1px dashed #CBD5E1' }}>
+                            <div style={{ gridColumn: 'span 2', padding: '60px 0', textAlign: 'center', color: '#94A3B8', fontSize: '15px', background: '#fff', borderRadius: '16px', border: '1px dashed #CBD5E1' }}>
                                이 지역에 등록된 오늘 파티 포스터가 없습니다.<br/>
                                (날짜와 지역 설정을 다시 확인해주세요)
                             </div>
