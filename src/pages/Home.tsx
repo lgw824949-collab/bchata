@@ -240,6 +240,8 @@ const HomePage = ({
   return (
     <div className="app-container" style={{ 
       height: '100vh',
+      border: '10px solid #00ff00', // DEBUG BOX
+      boxSizing: 'border-box',
       height: 'calc(var(--vh, 1vh) * 100)',
       display: 'flex',
       flexDirection: 'column', 
