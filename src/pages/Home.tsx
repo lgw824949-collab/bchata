@@ -582,11 +582,11 @@ const HomePage = ({
                       >
                         <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#2196F3' }} />
                         {regionName}
-                        <motion.div animate={{ rotate: expandedRegion === regionName ? 90 : 0 }}>
-                          <ChevronRight size={18} color="#999" />
-                        </motion.div>
+                        <span style={{ marginLeft: '4px', color: '#999', fontSize: '18px' }}>
+                          {expandedRegion === regionName ? '∨' : '›'}
+                        </span>
                         <span style={{ fontSize: '11px', color: '#999', fontWeight: '500', marginLeft: 'auto' }}>
-                          {expandedRegion === regionName ? '접기' : '펼쳐보기'}
+                          {expandedRegion === regionName ? '접기' : '전체보기'}
                         </span>
                       </div>
 
@@ -595,48 +595,30 @@ const HomePage = ({
                           display: 'grid',
                           gridTemplateColumns: 'repeat(2, 1fr)',
                           gap: '10px',
-                          padding: '0 16px 16px'
+                          padding: '10px 16px 20px'
                         }}>
                           {parties
-                            .filter(p => {
-                              if (p.date !== selectedDate) return false;
-                              const r = p.broadRegion || '';
-                              const city = p.cityName || '';
-                              if (regionName === "서울") return r === '서울' || city === '서울';
-                              if (regionName === "경기/인천") return r === '경기/인천' || city === '경기' || city === '인천';
-                              if (regionName === "충청도") return r === '충청' || city === '충남' || city === '충북' || city === '대전' || city === '세종';
-                              if (regionName === "경상도") return r === '경상' || city === '경남' || city === '경북' || city === '부산' || city === '대구' || city === '울산';
-                              if (regionName === "전라도") return r === '전라' || city === '전남' || city === '전북' || city === '광주';
-                              if (regionName === "강원/제주") return r === '강원/제주' || city === '강원' || city === '제주';
-                              return false;
-                            })
+                            .filter(p => p.broadRegion === regionName && p.date === selectedDate)
                             .map(p => (
-                              <div key={p.id} 
+                              <div
+                                key={p.id}
                                 onClick={() => setSelectedPoster(p.poster_url)}
-                                style={{ borderRadius: '12px', overflow: 'hidden', aspectRatio: '3/4', background: '#f1f5f9', boxShadow: '0 4px 10px rgba(0,0,0,0.05)', cursor: 'pointer' }}>
-                                {p.poster_url && (
-                                  <img src={p.poster_url} 
-                                    style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                                )}
+                                style={{
+                                  borderRadius: '12px',
+                                  overflow: 'hidden',
+                                  aspectRatio: '3/4',
+                                  background: '#f1f5f9',
+                                  cursor: 'pointer'
+                                }}
+                              >
+                                {p.poster_url
+                                  ? <img src={p.poster_url}
+                                      style={{ width:'100%', height:'100%', objectFit:'cover' }} />
+                                  : <div style={{ width:'100%', height:'100%', display:'flex', alignItems:'center', justifyContent:'center', fontSize:'12px', color:'#94A3B8' }}>포스터 없음</div>
+                                }
                               </div>
                             ))
                           }
-                          {parties.filter(p => {
-                            if (p.date !== selectedDate) return false;
-                            const r = p.broadRegion || '';
-                            const city = p.cityName || '';
-                            if (regionName === "서울") return r === '서울' || city === '서울';
-                            if (regionName === "경기/인천") return r === '경기/인천' || city === '경기' || city === '인천';
-                            if (regionName === "충청도") return r === '충청' || city === '충남' || city === '충북' || city === '대전' || city === '세종';
-                            if (regionName === "경상도") return r === '경상' || city === '경남' || city === '경북' || city === '부산' || city === '대구' || city === '울산';
-                            if (regionName === "전라도") return r === '전라' || city === '전남' || city === '전북' || city === '광주';
-                            if (regionName === "강원/제주") return r === '강원/제주' || city === '강원' || city === '제주';
-                            return false;
-                          }).length === 0 && (
-                            <div style={{ gridColumn: 'span 2', padding: '20px', textAlign: 'center', color: '#999', fontSize: '13px' }}>
-                              예정된 파티가 없습니다.
-                            </div>
-                          )}
                         </div>
                       )}
 
