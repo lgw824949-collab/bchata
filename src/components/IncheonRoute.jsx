@@ -38,7 +38,6 @@ const IncheonRoute = ({ parties, onClose }) => {
     navigator.geolocation.getCurrentPosition(
       (pos) => {
         setLoading(false)
-        const { latitude, longitude } = pos.coords
         window.open(
           `https://map.kakao.com/link/to/${encodeURIComponent(destAddress)}`,
           '_blank'
