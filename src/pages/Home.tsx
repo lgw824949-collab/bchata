@@ -558,15 +558,17 @@ const HomePage = ({
                 
                 return regions.map((regionName) => {
                   const regionParties = dayParties.filter(p => {
-                    const r = p.broadRegion || '';
-                    const city = p.cityName || '';
+                    const r = (p.broadRegion || '').trim();
+                    const c = (p.cityName || '').trim();
+                    const loc = (p.locationName || '').trim();
+                    const addr = (p.address || '').trim();
                     
-                    if (regionName === "서울") return r === '서울' || city === '서울';
-                    if (regionName === "경기/인천") return r === '경기/인천' || city === '경기' || city === '인천';
-                    if (regionName === "충청도") return r === '충청' || city === '충남' || city === '충북' || city === '대전' || city === '세종';
-                    if (regionName === "경상도") return r === '경상' || city === '경남' || city === '경북' || city === '부산' || city === '대구' || city === '울산';
-                    if (regionName === "전라도") return r === '전라' || city === '전남' || city === '전북' || city === '광주';
-                    if (regionName === "강원/제주") return r === '강원/제주' || city === '강원' || city === '제주';
+                    if (regionName === "서울") return r === '서울' || c === '서울' || loc.includes('서울') || addr.includes('서울');
+                    if (regionName === "경기/인천") return r === '경기/인천' || r.includes('경기') || r.includes('인천') || c.includes('경기') || c.includes('인천') || loc.includes('인천') || loc.includes('경기') || addr.includes('인천') || addr.includes('경기');
+                    if (regionName === "충청도") return r.includes('충청') || c.includes('충남') || c.includes('충북') || c.includes('대전') || c.includes('세종') || loc.includes('대전') || loc.includes('천안');
+                    if (regionName === "경상도") return r.includes('경상') || c.includes('경남') || c.includes('경북') || c.includes('부산') || c.includes('대구') || c.includes('울산') || loc.includes('부산') || loc.includes('대구');
+                    if (regionName === "전라도") return r.includes('전라') || c.includes('전남') || c.includes('전북') || c.includes('광주') || loc.includes('광주') || loc.includes('전주');
+                    if (regionName === "강원/제주") return r.includes('강원') || r.includes('제주') || c.includes('강원') || c.includes('제주');
                     return false;
                   });
 
@@ -595,29 +597,35 @@ const HomePage = ({
                           display: 'grid',
                           gridTemplateColumns: 'repeat(2, 1fr)',
                           gap: '10px',
-                          padding: '10px 16px 20px'
+                          padding: '10px 16px 20px',
+                          backgroundColor: '#fff'
                         }}>
-                          {regionParties
-                            .map(p => (
+                          {regionParties.length > 0 ? (
+                            regionParties.map(p => (
                               <div
                                 key={p.id}
-                                onClick={() => setSelectedPoster(p.poster_url)}
+                                onClick={() => setSelectedPoster(p.poster_url || p.posterUrl)}
                                 style={{
                                   borderRadius: '12px',
                                   overflow: 'hidden',
                                   aspectRatio: '3/4',
                                   background: '#f1f5f9',
-                                  cursor: 'pointer'
+                                  cursor: 'pointer',
+                                  boxShadow: '0 2px 8px rgba(0,0,0,0.1)'
                                 }}
                               >
-                                {p.poster_url
-                                  ? <img src={p.poster_url}
+                                {(p.poster_url || p.posterUrl)
+                                  ? <img src={p.poster_url || p.posterUrl}
                                       style={{ width:'100%', height:'100%', objectFit:'cover' }} />
                                   : <div style={{ width:'100%', height:'100%', display:'flex', alignItems:'center', justifyContent:'center', fontSize:'12px', color:'#94A3B8' }}>포스터 없음</div>
                                 }
                               </div>
                             ))
-                          }
+                          ) : (
+                            <div style={{ gridColumn: 'span 2', padding: '40px 0', textAlign: 'center', color: '#999', fontSize: '14px' }}>
+                              이 지역의 오늘 파티가 없습니다.
+                            </div>
+                          )}
                         </div>
                       )}
 
