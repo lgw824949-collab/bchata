@@ -53,11 +53,12 @@ const DynamicAnalysisModal = ({ isOpen, onClose, userCoords, isSajuCall }) => {
     if (!isOpen) return;
     const findTarget = async (lat, lon) => {
       const kakaoApiKey = import.meta.env.VITE_KAKAO_API_KEY;
-      const incheonBars = BAR_DATABASE.filter(b => b.region === '인천광역시' || b.address?.includes('인천'));
       
       try {
-        const barsWithCoords = await Promise.all(incheonBars.map(async (bar) => {
-          const res = await fetch(`https://dapi.kakao.com/v2/local/search/address.json?query=${encodeURIComponent(bar.address)}`, {
+        const barsWithCoords = await Promise.all(BAR_DATABASE.map(async (bar) => {
+          // 주소 우선순위: 1순위 BAR_DATABASE 주소, 2순위 party.address(없음), 3순위 locationName/name
+          const query = bar.address || bar.name;
+          const res = await fetch(`https://dapi.kakao.com/v2/local/search/address.json?query=${encodeURIComponent(query)}`, {
             headers: { Authorization: `KakaoAK ${kakaoApiKey}` }
           });
           const data = await res.json();
@@ -72,13 +73,37 @@ const DynamicAnalysisModal = ({ isOpen, onClose, userCoords, isSajuCall }) => {
         
         targets.forEach(venue => {
           const dist = calculateDistance(lat, lon, venue.lat, venue.lon);
-          if (dist < minDist) { minDist = dist; nearest = { ...venue, region: '인천' }; }
+          if (dist < minDist) { minDist = dist; nearest = venue; }
         });
 
         if (nearest) {
           setTargetDest(nearest);
           const d = calculateDistance(lat, lon, nearest.lat, nearest.lon);
-          setTracker({ distance: d.toFixed(1), duration: Math.ceil(d * 7) + 2 });
+          
+          let transport = "";
+          let transportMsg = "";
+          let duration = 0;
+          
+          if (d <= 1.0) {
+            transport = "도보";
+            duration = Math.ceil(d * 15);
+            transportMsg = `도보 ${duration}분`;
+          } else if (d <= 5.0) {
+            transport = "버스";
+            duration = Math.ceil(d * 4) + 5;
+            transportMsg = `버스 ${duration}분`;
+          } else {
+            transport = "지하철/버스";
+            duration = Math.ceil(d * 2.5) + 10;
+            transportMsg = `지하철+버스 ${duration}분`;
+          }
+
+          setTracker({ 
+            distance: d.toFixed(1), 
+            duration: duration,
+            transport: transport,
+            msg: `내 위치 → ${nearest.name} ${d.toFixed(1)}km (${transportMsg})`
+          });
         }
       } catch (err) {
         console.error("Kakao API Error:", err);
@@ -107,12 +132,30 @@ const DynamicAnalysisModal = ({ isOpen, onClose, userCoords, isSajuCall }) => {
         {!amguho ? (
           <>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '35px' }}><div style={{ background: '#3b82f6', color: '#fff', padding: '8px 16px', borderRadius: '50px', fontSize: '11px', fontWeight: '900' }}>REALTIME GPS</div><X size={24} onClick={onClose} style={{ cursor: 'pointer' }} /></div>
-            <h2 style={{ fontSize: '26px', fontWeight: '1000', marginBottom: '30px' }}>{isIncheon ? '성지 상륙 분석' : '최단 경로 최적화'} 🛰️<br/><span style={{ color: '#3b82f6' }}>{targetDest.name}</span></h2>
+            <h2 style={{ fontSize: '26px', fontWeight: '1000', marginBottom: '10px' }}>{isIncheon ? '성지 상륙 분석' : '최단 경로 최적화'} 🛰️</h2>
+            <p style={{ fontSize: '16px', fontWeight: '800', color: '#3b82f6', marginBottom: '30px' }}>{tracker.msg}</p>
+            
             <div style={{ padding: '30px', background: 'rgba(128,128,128,0.1)', borderRadius: '30px', display: 'flex', gap: '20px', marginBottom: '30px' }}>
               <div style={{ flex: 1 }}><p style={{ opacity: 0.5, fontSize: '12px' }}>실제 거리</p><p style={{ fontSize: '26px', fontWeight: '1000', color: '#3b82f6' }}>{tracker.distance}km</p></div>
-              <div style={{ flex: 1 }}><p style={{ opacity: 0.5, fontSize: '12px' }}>예상 소요</p><p style={{ fontSize: '26px', fontWeight: '1000' }}>{tracker.duration}분</p></div>
+              <div style={{ flex: 1 }}><p style={{ opacity: 0.5, fontSize: '12px' }}>추천 수단</p><p style={{ fontSize: '22px', fontWeight: '1000' }}>{tracker.transport}</p></div>
             </div>
-            <button onClick={() => isIncheon ? setAmguho(naturalIncheonDB[0]) : onClose()} style={{ width: '100%', padding: '22px', borderRadius: '25px', background: '#111', color: '#fff', border: 'none', fontSize: '18px', fontWeight: '1000' }}>{isIncheon ? '암구호 수신하기' : '확인 완료'}</button>
+            
+            <button 
+              onClick={() => {
+                if (isIncheon) {
+                  setAmguho(naturalIncheonDB[0]);
+                } else {
+                  const addr = targetDest.address || targetDest.name;
+                  const url = tracker.transport === '도보' 
+                    ? `https://map.kakao.com/link/walk/to/${encodeURIComponent(addr)}`
+                    : `https://map.kakao.com/link/to/${encodeURIComponent(addr)}`;
+                  window.open(url, '_blank');
+                }
+              }} 
+              style={{ width: '100%', padding: '22px', borderRadius: '25px', background: '#111', color: '#fff', border: 'none', fontSize: '18px', fontWeight: '1000' }}
+            >
+              {isIncheon ? '암구호 수신하기' : '길찾기 시작'}
+            </button>
           </>
         ) : (
           <div style={{ textAlign: 'center' }}><h3 style={{ fontSize: '22px', fontWeight: '1000', marginBottom: '30px' }}>성지 암구호</h3><div style={{ background: 'rgba(59, 130, 246, 0.1)', padding: '30px', borderRadius: '30px', border: '2px solid #3b82f6', marginBottom: '30px' }}><p style={{ color: '#60a5fa' }}>Q: {amguho.q}</p><p style={{ fontSize: '20px', fontWeight: '1000', marginTop: '10px' }}>A: {amguho.a}</p></div><button onClick={onClose} style={{ width: '100%', padding: '20px', borderRadius: '20px', background: '#fff', color: '#0f172a', fontWeight: '1000' }}>작전 시작</button></div>
