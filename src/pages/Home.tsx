@@ -554,7 +554,7 @@ const HomePage = ({
                   return (
                     <section key={regionName} style={{ marginBottom: '15px' }}>
                       <div 
-                        onClick={() => setSelectedRegionGrid(regionName)}
+                        onClick={() => setSelectedRegionGrid(selectedRegionGrid === regionName ? null : regionName)}
                         style={{ 
                           fontSize: '18px', fontWeight: '900', padding: '15px 15px 10px', 
                           color: '#333', display: 'flex', alignItems: 'center', gap: '8px',
@@ -996,7 +996,7 @@ const HomePage = ({
             }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
                 <button 
-                  onClick={() => window.location.href = '/'}
+                  onClick={() => setSelectedRegionGrid(null)}
                   style={{ background: 'none', border: 'none', padding: '4px', display: 'flex', alignItems: 'center', cursor: 'pointer', color: '#333' }}
                 >
                   <ChevronLeft size={28} />
@@ -1005,7 +1005,7 @@ const HomePage = ({
               </div>
               
               <button 
-                onClick={() => window.location.href = '/'}
+                onClick={() => setSelectedRegionGrid(null)}
                 style={{ 
                   background: '#f3f4f6', border: 'none', borderRadius: '12px', padding: '6px 12px',
                   display: 'flex', alignItems: 'center', gap: '6px', cursor: 'pointer', fontSize: '13px', fontWeight: 700, color: '#333'
@@ -1018,7 +1018,7 @@ const HomePage = ({
             <div 
               style={{ 
                 flex: 1, overflowY: 'auto', padding: '15px', display: 'grid', 
-                gridTemplateColumns: 'repeat(auto-fill, minmax(160px, 1fr))', 
+                gridTemplateColumns: 'repeat(2, 1fr)', 
                 gridAutoRows: 'min-content', gap: '15px', background: '#f8fafc'
               }}
             >
@@ -1053,12 +1053,16 @@ const HomePage = ({
                     />
                     <div style={{
                       position: 'absolute', bottom: 0, left: 0, right: 0, padding: '10px',
-                      background: 'linear-gradient(transparent, rgba(0,0,0,0.7))',
+                      background: 'linear-gradient(transparent, rgba(0,0,0,0.8))',
                       color: 'white', fontSize: '12px', fontWeight: 700,
-                      display: 'block', whiteSpace: 'nowrap',
-                      overflow: 'hidden', textOverflow: 'ellipsis'
+                      display: 'flex', flexDirection: 'column', gap: '2px'
                     }}>
-                      {party.title}
+                      <div style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                        {party.title}
+                      </div>
+                      <div style={{ fontSize: '10px', opacity: 0.9 }}>
+                        {party.date} ({DAYS_KOR[new Date(party.date).getDay()]})
+                      </div>
                     </div>
                   </motion.div>
                 ))}
