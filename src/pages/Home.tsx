@@ -501,10 +501,10 @@ const HomePage = ({
                             borderRadius: '12px',
                             overflow: 'hidden',
                             boxShadow: '0 8px 20px rgba(0,0,0,0.12)',
-                            backgroundColor: '#f9f9f9'
+                            backgroundColor: '#f9f9f9',
+                            cursor: 'pointer'
                           }}
                         >
-                          
                           <div style={{ width: '100%', height: '190px' }}>
                             <img 
                               src={item.poster_url} 
@@ -523,6 +523,24 @@ const HomePage = ({
                             background: 'linear-gradient(transparent, rgba(0,0,0,0.8))',
                             color: 'white'
                           }}>
+                            <div 
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                const locationName = (item.locationName || '').trim()
+                                const barInfo = BAR_DATABASE.find(b => 
+                                  b.name.trim() === locationName ||
+                                  b.aliases?.some(a => a.trim() === locationName) ||
+                                  locationName.includes(b.name.trim()) ||
+                                  b.name.trim().includes(locationName)
+                                )
+                                const destAddress = barInfo?.address || item.address || locationName
+                                window.open(`https://map.kakao.com/link/to/${encodeURIComponent(destAddress)}`, '_blank');
+                              }}
+                              style={{ display: 'flex', alignItems: 'center', gap: '3px', marginBottom: '2px' }}
+                            >
+                              <MapPin size={10} color="#FFD700" />
+                              <span style={{ fontSize: '10px', fontWeight: '800', color: '#FFD700' }}>{item.locationName}</span>
+                            </div>
                             <div style={{ fontSize: '11px', fontWeight: '800', display: 'block', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
                               {item.title}
                             </div>
@@ -948,8 +966,25 @@ const HomePage = ({
                           <div style={{ aspectRatio: '3/4', borderRadius: '12px', overflow: 'hidden', background: '#222', marginBottom: '8px' }}>
                             <img src={party.poster_url} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                           </div>
+                          <div 
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              const locationName = (party.locationName || '').trim()
+                              const barInfo = BAR_DATABASE.find(b => 
+                                b.name.trim() === locationName ||
+                                b.aliases?.some(a => a.trim() === locationName) ||
+                                locationName.includes(b.name.trim()) ||
+                                b.name.trim().includes(locationName)
+                              )
+                              const destAddress = barInfo?.address || party.address || locationName
+                              window.open(`https://map.kakao.com/link/to/${encodeURIComponent(destAddress)}`, '_blank');
+                            }}
+                            style={{ display: 'flex', alignItems: 'center', gap: '3px', marginBottom: '2px' }}
+                          >
+                            <MapPin size={10} color="#D4AF37" />
+                            <div style={{ fontSize: '11px', fontWeight: 700, color: '#D4AF37', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{party.locationName}</div>
+                          </div>
                           <div style={{ fontSize: '13px', fontWeight: 700, color: '#fff', display: 'block', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{party.title}</div>
-                          <div style={{ fontSize: '11px', color: '#666' }}>{party.locationName}</div>
                         </div>
                       ))}
                     {parties.filter(p => {
@@ -1064,11 +1099,33 @@ const HomePage = ({
                     <div style={{
                       position: 'absolute', bottom: 0, left: 0, right: 0, padding: '10px',
                       background: 'linear-gradient(transparent, rgba(0,0,0,0.7))',
-                      color: 'white', fontSize: '12px', fontWeight: 700,
-                      display: 'block', whiteSpace: 'nowrap',
-                      overflow: 'hidden', textOverflow: 'ellipsis'
+                      color: 'white', display: 'flex', flexDirection: 'column', gap: '2px'
                     }}>
-                      {party.title}
+                      <div 
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          const locationName = (party.locationName || '').trim()
+                          const barInfo = BAR_DATABASE.find(b => 
+                            b.name.trim() === locationName ||
+                            b.aliases?.some(a => a.trim() === locationName) ||
+                            locationName.includes(b.name.trim()) ||
+                            b.name.trim().includes(locationName)
+                          )
+                          const destAddress = barInfo?.address || party.address || locationName
+                          window.open(`https://map.kakao.com/link/to/${encodeURIComponent(destAddress)}`, '_blank');
+                        }}
+                        style={{ display: 'flex', alignItems: 'center', gap: '3px' }}
+                      >
+                        <MapPin size={10} color="#fff" />
+                        <span style={{ fontSize: '10px', fontWeight: 700 }}>{party.locationName}</span>
+                      </div>
+                      <div style={{
+                        fontSize: '12px', fontWeight: 700,
+                        display: 'block', whiteSpace: 'nowrap',
+                        overflow: 'hidden', textOverflow: 'ellipsis'
+                      }}>
+                        {party.title}
+                      </div>
                     </div>
                   </motion.div>
                 ))}
