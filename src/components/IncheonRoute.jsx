@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { X, Navigation, MapPin, Info } from 'lucide-react';
 import { motion } from 'framer-motion';
+import { BAR_DATABASE } from '../lib/BarLib';
 
 const IncheonRoute = ({ parties, onClose }) => {
   const [loading, setLoading] = useState(false);
@@ -24,26 +25,37 @@ const IncheonRoute = ({ parties, onClose }) => {
       (pos) => {
         setLoading(false);
         const { latitude, longitude } = pos.coords;
-        const lat = latitude;
-        const lon = longitude;
-        const destName = party.locationName;
-        const destAddress = party.address || party.locationName;
-        const destLat = party.locations?.lat || party.lat;
-        const destLon = party.locations?.lon || party.lon;
+        
+        const locationName = (party.locationName || '').trim()
+        const barInfo = BAR_DATABASE.find(b => 
+          b.name.trim() === locationName ||
+          b.aliases?.some(a => a.trim() === locationName) ||
+          locationName.includes(b.name.trim()) ||
+          b.name.trim().includes(locationName)
+        )
+        const destAddress = barInfo?.address || party.address || locationName
 
-        if (destLat && destLon) {
-          const url = `https://map.kakao.com/link/from/내위치,${lat},${lon}/to/${destName},${destLat},${destLon}`;
-          window.open(url, '_blank');
-        } else {
-          window.open(`https://map.kakao.com/link/to/${encodeURIComponent(destAddress)}`, '_blank');
-        }
+        console.log('찾은 BAR:', barInfo)
+        console.log('주소:', destAddress)
+
+        const url = `https://map.kakao.com/link/to/${encodeURIComponent(destAddress)}`;
+        window.open(url, '_blank');
       },
       (err) => {
         setLoading(false);
         console.error(err);
         alert("위치 정보를 가져올 수 없습니다. 권한을 확인해주세요.");
-        const destAddress = party.address || party.locationName;
-        window.open(`https://map.kakao.com/link/search/${encodeURIComponent(destAddress)}`, '_blank');
+        
+        const locationName = (party.locationName || '').trim()
+        const barInfo = BAR_DATABASE.find(b => 
+          b.name.trim() === locationName ||
+          b.aliases?.some(a => a.trim() === locationName) ||
+          locationName.includes(b.name.trim()) ||
+          b.name.trim().includes(locationName)
+        )
+        const destAddress = barInfo?.address || party.address || locationName
+        
+        window.open(`https://map.kakao.com/link/to/${encodeURIComponent(destAddress)}`, '_blank');
       },
       { enableHighAccuracy: true }
     );
