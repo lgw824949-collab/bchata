@@ -67,10 +67,13 @@ const DynamicAnalysisModal = ({ isOpen, onClose, userCoords, isSajuCall }) => {
         pos => findTarget(pos.coords.latitude, pos.coords.longitude),
         err => {
           console.error("GPS Current Position Error:", err);
+          // 에러 발생 시 엘마르(인천 성지)를 기본값으로 사용
+          findTarget(37.4872, 126.7217);
           if (err.code === err.PERMISSION_DENIED) {
-            alert("위치 권한이 거부되었습니다. 최적화된 경로 안내를 위해 위치 권한을 허용해주세요.");
+            alert("위치 권한이 거부되었습니다. 성지(엘마르) 기준으로 탐색합니다.");
           }
-        }
+        },
+        { enableHighAccuracy: true, timeout: 5000, maximumAge: 0 }
       );
     }
   }, [isOpen, userCoords]);
