@@ -168,7 +168,7 @@ function App() {
             onClick={e => e.stopPropagation()}
           />
           <button
-            onClick={() => window.location.href = '/'}
+            onClick={() => setSelectedPoster(null)}
             style={{ position:'fixed', top:'20px', left:'20px', background:'rgba(255,255,255,0.2)', border:'none', borderRadius:'50%', width:'40px', height:'40px', color:'#fff', fontSize:'20px', cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center' }}
           >
             ←
