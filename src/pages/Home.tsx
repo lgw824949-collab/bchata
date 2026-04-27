@@ -240,8 +240,6 @@ const HomePage = ({
   return (
     <div className="app-container" style={{ 
       height: '100vh',
-      border: '10px solid #00ff00', // DEBUG BOX
-      boxSizing: 'border-box',
       height: 'calc(var(--vh, 1vh) * 100)',
       display: 'flex',
       flexDirection: 'column', 
@@ -252,6 +250,8 @@ const HomePage = ({
       left: 0,
       background: '#fff' 
     }}>
+      {/* v1.0.1 - Deployment Verification Tag */}
+      <div style={{ position: 'fixed', top: '1px', right: '1px', fontSize: '8px', color: 'rgba(0,0,0,0.1)', zIndex: 1000000 }}>v1.0.1</div>
       
       {/* 📌 [영역 A: 상단 고정석] - 슬림 통합형 (고정형 레이아웃) */}
       <div style={{ 
