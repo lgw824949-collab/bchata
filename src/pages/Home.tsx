@@ -90,7 +90,7 @@ const HomePage = ({
   const [regionOrder, setRegionOrder] = useState(['서울', '경기/인천', '경상도', '전라도', '충청도', '강원/제주'])
   const [posterOffset, setPosterOffset] = useState(0)
   const [representativeIndex, setRepresentativeIndex] = useState(0)
-  const [selectedRegionGrid, setSelectedRegionGrid] = useState(null)
+  const [expandedRegion, setExpandedRegion] = useState(null)
   const pauseTimerRef = useRef(null)
   const contentRef = useRef(null)
 
@@ -556,7 +556,7 @@ const HomePage = ({
                   return (
                     <section key={regionName} style={{ marginBottom: '15px' }}>
                       <div 
-                        onClick={() => setSelectedRegionGrid(selectedRegionGrid === regionName ? null : regionName)}
+                        onClick={() => setExpandedRegion(expandedRegion === regionName ? null : regionName)}
                         style={{ 
                           fontSize: '18px', fontWeight: '900', padding: '15px 15px 10px', 
                           color: '#333', display: 'flex', alignItems: 'center', gap: '8px',
@@ -565,12 +565,66 @@ const HomePage = ({
                       >
                         <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#2196F3' }} />
                         {regionName}
-                        <ChevronRight size={18} color="#999" />
-                        <span style={{ fontSize: '11px', color: '#999', fontWeight: '500', marginLeft: 'auto' }}>전체보기</span>
+                        <motion.div animate={{ rotate: expandedRegion === regionName ? 90 : 0 }}>
+                          <ChevronRight size={18} color="#999" />
+                        </motion.div>
+                        <span style={{ fontSize: '11px', color: '#999', fontWeight: '500', marginLeft: 'auto' }}>
+                          {expandedRegion === regionName ? '접기' : '펼쳐보기'}
+                        </span>
                       </div>
 
+                      {expandedRegion === regionName && (
+                        <div style={{
+                          display: 'grid',
+                          gridTemplateColumns: 'repeat(2, 1fr)',
+                          gap: '10px',
+                          padding: '0 16px 16px'
+                        }}>
+                          {parties
+                            .filter(p => {
+                              if (p.date !== selectedDate) return false;
+                              const r = p.broadRegion || '';
+                              const city = p.cityName || '';
+                              if (regionName === "서울") return r === '서울' || city === '서울';
+                              if (regionName === "경기/인천") return r === '경기/인천' || city === '경기' || city === '인천';
+                              if (regionName === "충청도") return r === '충청' || city === '충남' || city === '충북' || city === '대전' || city === '세종';
+                              if (regionName === "경상도") return r === '경상' || city === '경남' || city === '경북' || city === '부산' || city === '대구' || city === '울산';
+                              if (regionName === "전라도") return r === '전라' || city === '전남' || city === '전북' || city === '광주';
+                              if (regionName === "강원/제주") return r === '강원/제주' || city === '강원' || city === '제주';
+                              return false;
+                            })
+                            .map(p => (
+                              <div key={p.id} 
+                                onClick={() => setSelectedPoster(p.poster_url)}
+                                style={{ borderRadius: '12px', overflow: 'hidden', aspectRatio: '3/4', background: '#f1f5f9', boxShadow: '0 4px 10px rgba(0,0,0,0.05)', cursor: 'pointer' }}>
+                                {p.poster_url && (
+                                  <img src={p.poster_url} 
+                                    style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                                )}
+                              </div>
+                            ))
+                          }
+                          {parties.filter(p => {
+                            if (p.date !== selectedDate) return false;
+                            const r = p.broadRegion || '';
+                            const city = p.cityName || '';
+                            if (regionName === "서울") return r === '서울' || city === '서울';
+                            if (regionName === "경기/인천") return r === '경기/인천' || city === '경기' || city === '인천';
+                            if (regionName === "충청도") return r === '충청' || city === '충남' || city === '충북' || city === '대전' || city === '세종';
+                            if (regionName === "경상도") return r === '경상' || city === '경남' || city === '경북' || city === '부산' || city === '대구' || city === '울산';
+                            if (regionName === "전라도") return r === '전라' || city === '전남' || city === '전북' || city === '광주';
+                            if (regionName === "강원/제주") return r === '강원/제주' || city === '강원' || city === '제주';
+                            return false;
+                          }).length === 0 && (
+                            <div style={{ gridColumn: 'span 2', padding: '20px', textAlign: 'center', color: '#999', fontSize: '13px' }}>
+                              예정된 파티가 없습니다.
+                            </div>
+                          )}
+                        </div>
+                      )}
+
                       <div className="party-horizontal-scroll" style={{ 
-                        display: 'flex', 
+                        display: expandedRegion === regionName ? 'none' : 'flex', 
                         overflowX: 'auto',
                         gap: '12px',
                         padding: '0 15px 20px',
@@ -969,109 +1023,7 @@ const HomePage = ({
               )}
             </motion.div>
           )}
-        </AnimatePresence>      {/* 지역별 포스터 그리드 오버레이 */}
-      <AnimatePresence>
-        {selectedRegionGrid && (
-          <motion.div
-            initial={{ opacity: 0, y: 50 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: 50 }}
-            style={{
-              position: 'fixed',
-              inset: 0,
-              backgroundColor: '#fff',
-              zIndex: 10002,
-              display: 'flex',
-              flexDirection: 'column'
-            }}
-          >
-            <div style={{ 
-              padding: '16px 20px', 
-              display: 'flex', 
-              alignItems: 'center', 
-              justifyContent: 'space-between',
-              borderBottom: '1px solid #eee',
-              backgroundColor: '#fff',
-              position: 'sticky',
-              top: 0,
-              zIndex: 10
-            }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                <button 
-                  onClick={() => setSelectedRegionGrid(null)}
-                  style={{ background: 'none', border: 'none', padding: '4px', display: 'flex', alignItems: 'center', cursor: 'pointer', color: '#333' }}
-                >
-                  <ChevronLeft size={28} />
-                </button>
-                <h2 style={{ fontSize: '18px', fontWeight: 900 }}>{selectedRegionGrid} 포스터</h2>
-              </div>
-              
-              <button 
-                onClick={() => setSelectedRegionGrid(null)}
-                style={{ 
-                  background: '#f3f4f6', border: 'none', borderRadius: '12px', padding: '6px 12px',
-                  display: 'flex', alignItems: 'center', gap: '6px', cursor: 'pointer', fontSize: '13px', fontWeight: 700, color: '#333'
-                }}
-              >
-                <HomeIcon size={16} /> 메인으로
-              </button>
-            </div>
 
-            <div 
-              style={{ 
-                flex: 1, overflowY: 'auto', padding: '0 16px 20px', display: 'grid', 
-                gridTemplateColumns: 'repeat(2, 1fr)', 
-                gridAutoRows: 'min-content', gap: '10px', background: '#f1f5f9'
-              }}
-            >
-              {parties
-                .filter(p => {
-                  if (p.date !== selectedDate) return false;
-                  const r = p.broadRegion || '';
-                  if (selectedRegionGrid === "서울") return r.includes('서울');
-                  if (selectedRegionGrid === "경기/인천") return r.includes('경기') || r.includes('인천');
-                  if (selectedRegionGrid === "충청도") return r.includes('충청') || r.includes('대전');
-                  if (selectedRegionGrid === "경상도") return r.includes('경상') || r.includes('부산') || r.includes('대구') || r.includes('울산');
-                  if (selectedRegionGrid === "전라도") return r.includes('전라') || r.includes('광주');
-                  if (selectedRegionGrid === "강원/제주") return r.includes('강원') || r.includes('제주');
-                  return false;
-                })
-                .map((party) => (
-                  <motion.div
-                    key={party.id}
-                    whileHover={{ y: -5 }}
-                    whileTap={{ scale: 0.98 }}
-                    onClick={() => setSelectedPoster(party.poster_url)}
-                    style={{
-                      aspectRatio: '3/4', borderRadius: '12px', overflow: 'hidden',
-                      boxShadow: '0 4px 12px rgba(0,0,0,0.08)', background: '#f1f5f9',
-                      position: 'relative', cursor: 'pointer', width: '100%'
-                    }}
-                  >
-                    <img 
-                      src={party.poster_url} 
-                      alt="포스터" 
-                      style={{ width: '100%', height: '100%', objectFit: 'cover' }} 
-                    />
-                    <div style={{
-                      position: 'absolute', bottom: 0, left: 0, right: 0, padding: '10px',
-                      background: 'linear-gradient(transparent, rgba(0,0,0,0.8))',
-                      color: 'white', fontSize: '12px', fontWeight: 700,
-                      display: 'flex', flexDirection: 'column', gap: '2px'
-                    }}>
-                      <div style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                        {party.title}
-                      </div>
-                      <div style={{ fontSize: '10px', opacity: 0.9 }}>
-                        {party.date} ({DAYS_KOR[new Date(party.date).getDay()]})
-                      </div>
-                    </div>
-                  </motion.div>
-                ))}
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
 
 
 
