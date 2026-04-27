@@ -24,19 +24,32 @@ const IncheonRoute = ({ parties, onClose }) => {
       (pos) => {
         setLoading(false);
         const { latitude, longitude } = pos.coords;
-        // 네이버 지도 길찾기 URL: https://map.naver.com/v5/directions
-        // 현재위치(슬래시 -) -> 목적지 주소
-        const destAddress = encodeURIComponent(party.address || party.locationName);
-        const url = `https://map.naver.com/v5/directions/-/${destAddress}`;
-        window.open(url, '_blank');
+        const lat = latitude;
+        const lon = longitude;
+        const destName = party.locationName;
+        const destLat = party.locations?.lat || party.lat;
+        const destLon = party.locations?.lon || party.lon;
+
+        if (destLat && destLon) {
+          const url = `https://map.kakao.com/link/from/내위치,${lat},${lon}/to/${destName},${destLat},${destLon}`;
+          window.open(url, '_blank');
+        } else {
+          window.open(`https://map.kakao.com/link/search/${encodeURIComponent(party.locationName)}`, '_blank');
+        }
       },
       (err) => {
         setLoading(false);
         console.error(err);
         alert("위치 정보를 가져올 수 없습니다. 권한을 확인해주세요.");
-        // 위치 정보를 가져오지 못해도 주소로 검색 연결
-        const destAddress = encodeURIComponent(party.address || party.locationName);
-        window.open(`https://map.naver.com/v5/search/${destAddress}`, '_blank');
+        const destName = party.locationName;
+        const destLat = party.locations?.lat || party.lat;
+        const destLon = party.locations?.lon || party.lon;
+
+        if (destLat && destLon) {
+          window.open(`https://map.kakao.com/link/map/${destName},${destLat},${destLon}`, '_blank');
+        } else {
+          window.open(`https://map.kakao.com/link/search/${encodeURIComponent(party.locationName)}`, '_blank');
+        }
       },
       { enableHighAccuracy: true }
     );
