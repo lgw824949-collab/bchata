@@ -533,8 +533,6 @@ const HomePage = ({
                 </div>
               )}
 
-              {/* 🛰️ [인천 특화] 프리미엄 큐레이션 배너 (HOT PICK 바로 아래 배치) */}
-              {IncheonBanner && <IncheonBanner />}
               {(() => {
                 const dayParties = parties.filter(p => p.date === selectedDate);
                 const regions = ["서울", "경기/인천", "충청도", "전라도", "경상도", "강원/제주"];
