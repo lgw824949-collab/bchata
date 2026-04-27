@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { Heart, MapPin, Calendar, User, Music, ChevronRight, ShieldCheck, X, Home as HomeIcon, ChevronLeft, CloudSun, Utensils, Zap, PlusCircle, Languages, Bell } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { BAR_DATABASE } from '../lib/BarLib';
 import QuickPinchZoom, { make3dTransformValue } from 'react-quick-pinch-zoom';
 
 const DAYS_KOR = ['일', '월', '화', '수', '목', '금', '토'];
@@ -642,8 +643,15 @@ const HomePage = ({
                                 <div 
                                   onClick={(e) => {
                                     e.stopPropagation();
-                                    const address = item.address || item.locationName;
-                                    window.open(`https://map.kakao.com/link/search/${encodeURIComponent(address)}`, '_blank');
+                                    const locationName = (item.locationName || '').trim()
+                                    const barInfo = BAR_DATABASE.find(b => 
+                                      b.name.trim() === locationName ||
+                                      b.aliases?.some(a => a.trim() === locationName) ||
+                                      locationName.includes(b.name.trim()) ||
+                                      b.name.trim().includes(locationName)
+                                    )
+                                    const destAddress = barInfo?.address || item.address || locationName
+                                    window.open(`https://map.kakao.com/link/search/${encodeURIComponent(destAddress)}`, '_blank');
                                   }}
                                   style={{ 
                                     display: 'flex', alignItems: 'center', gap: '4px',
