@@ -15,51 +15,45 @@ const IncheonRoute = ({ parties, onClose }) => {
   );
 
   const handleRoute = (party) => {
+    const locationName = (party.locationName || '').trim()
+    
+    const barInfo = BAR_DATABASE.find(b => 
+      b.name.trim() === locationName ||
+      b.aliases?.some(a => a.trim() === locationName) ||
+      locationName.includes(b.name.trim()) ||
+      b.name.trim().includes(locationName)
+    )
+    
+    const destAddress = barInfo?.address || party.address || locationName
+    
     if (!navigator.geolocation) {
-      alert("이 브라우저에서는 위치 서비스를 지원하지 않습니다.");
-      return;
+      window.open(
+        `https://map.kakao.com/link/search/${encodeURIComponent(destAddress)}`,
+        '_blank'
+      )
+      return
     }
 
-    setLoading(true);
+    setLoading(true)
     navigator.geolocation.getCurrentPosition(
       (pos) => {
-        setLoading(false);
-        const { latitude, longitude } = pos.coords;
-        
-        const locationName = (party.locationName || '').trim()
-        const barInfo = BAR_DATABASE.find(b => 
-          b.name.trim() === locationName ||
-          b.aliases?.some(a => a.trim() === locationName) ||
-          locationName.includes(b.name.trim()) ||
-          b.name.trim().includes(locationName)
+        setLoading(false)
+        const { latitude, longitude } = pos.coords
+        window.open(
+          `https://map.kakao.com/link/to/${encodeURIComponent(destAddress)}`,
+          '_blank'
         )
-        const destAddress = barInfo?.address || party.address || locationName
-
-        console.log('찾은 BAR:', barInfo)
-        console.log('주소:', destAddress)
-
-        const url = `https://map.kakao.com/link/to/${encodeURIComponent(destAddress)}`;
-        window.open(url, '_blank');
       },
       (err) => {
         setLoading(false);
-        console.error(err);
-        alert("위치 정보를 가져올 수 없습니다. 권한을 확인해주세요.");
-        
-        const locationName = (party.locationName || '').trim()
-        const barInfo = BAR_DATABASE.find(b => 
-          b.name.trim() === locationName ||
-          b.aliases?.some(a => a.trim() === locationName) ||
-          locationName.includes(b.name.trim()) ||
-          b.name.trim().includes(locationName)
+        window.open(
+          `https://map.kakao.com/link/search/${encodeURIComponent(destAddress)}`,
+          '_blank'
         )
-        const destAddress = barInfo?.address || party.address || locationName
-        
-        window.open(`https://map.kakao.com/link/to/${encodeURIComponent(destAddress)}`, '_blank');
       },
-      { enableHighAccuracy: true }
-    );
-  };
+      { enableHighAccuracy: true, timeout: 5000 }
+    )
+  }
 
   return (
     <motion.div 
