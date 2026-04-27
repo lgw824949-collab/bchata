@@ -10,6 +10,7 @@ import PostClub from './pages/PostClub'
 import Auth from './components/Auth'
 import SajuModal from './components/SajuModal'
 import IncheonRoute from './components/IncheonRoute'
+import { BAR_DATABASE } from './lib/BarLib';
 import QuickPinchZoom, { make3dTransformValue } from 'react-quick-pinch-zoom';
 
 // --- [BAMPPA PREMIUM ENGINE: GPS & NATIONWIDE INTELLIGENCE] ---
@@ -25,10 +26,9 @@ const calculateDistance = (lat1, lon1, lat2, lon2) => {
 };
 
 const VENUE_COORDS = {
-  'dongam_01': { lat: 37.4715, lon: 126.7028, name: '동암역 (댄스 성지)', region: '인천' },
-  'bupyeong_01': { lat: 37.4894, lon: 126.7224, name: '부평 엘마', region: '인천' },
-  'songdo_01': { lat: 37.3813, lon: 126.6548, name: '송도 살사클럽', region: '인천' },
-  'juan_01': { lat: 37.4651, lon: 126.6807, name: '주안 라틴로드', region: '인천' },
+  'elmar': { lat: 37.4872, lon: 126.7217, name: '엘마르', region: '인천' },
+  'lbt': { lat: 37.4449, lon: 126.7052, name: 'LBT', region: '인천' },
+  'rassin': { lat: 37.4612, lon: 126.6782, name: '라씬 카우보이', region: '인천' },
   'gangnam_01': { lat: 37.4979, lon: 127.0276, name: '강남 턴', region: '서울' },
   'hongdae_01': { lat: 37.5565, lon: 126.9239, name: '홍대 보니따', region: '서울' },
   'iteawon_01': { lat: 37.5345, lon: 126.9942, name: '이태원 맘보', region: '서울' },
@@ -51,15 +51,38 @@ const DynamicAnalysisModal = ({ isOpen, onClose, userCoords, isSajuCall }) => {
 
   useEffect(() => {
     if (!isOpen) return;
-    const findTarget = (lat, lon) => {
-      let nearest = null; let minDist = Infinity;
-      Object.values(VENUE_COORDS).forEach(venue => {
-        const dist = calculateDistance(lat, lon, venue.lat, venue.lon);
-        if (dist < minDist) { minDist = dist; nearest = venue; }
-      });
-      setTargetDest(nearest);
-      const d = calculateDistance(lat, lon, nearest.lat, nearest.lon);
-      setTracker({ distance: d.toFixed(1), duration: Math.ceil(d * 7) + 2 });
+    const findTarget = async (lat, lon) => {
+      const kakaoApiKey = import.meta.env.VITE_KAKAO_API_KEY;
+      const incheonBars = BAR_DATABASE.filter(b => b.region === '인천광역시' || b.address?.includes('인천'));
+      
+      try {
+        const barsWithCoords = await Promise.all(incheonBars.map(async (bar) => {
+          const res = await fetch(`https://dapi.kakao.com/v2/local/search/address.json?query=${encodeURIComponent(bar.address)}`, {
+            headers: { Authorization: `KakaoAK ${kakaoApiKey}` }
+          });
+          const data = await res.json();
+          if (data.documents?.length > 0) {
+            return { ...bar, lat: parseFloat(data.documents[0].y), lon: parseFloat(data.documents[0].x) };
+          }
+          return null;
+        }));
+
+        const targets = barsWithCoords.filter(b => b !== null);
+        let nearest = null; let minDist = Infinity;
+        
+        targets.forEach(venue => {
+          const dist = calculateDistance(lat, lon, venue.lat, venue.lon);
+          if (dist < minDist) { minDist = dist; nearest = { ...venue, region: '인천' }; }
+        });
+
+        if (nearest) {
+          setTargetDest(nearest);
+          const d = calculateDistance(lat, lon, nearest.lat, nearest.lon);
+          setTracker({ distance: d.toFixed(1), duration: Math.ceil(d * 7) + 2 });
+        }
+      } catch (err) {
+        console.error("Kakao API Error:", err);
+      }
     };
     if (userCoords) findTarget(userCoords.lat, userCoords.lon);
     else if (navigator.geolocation) {
