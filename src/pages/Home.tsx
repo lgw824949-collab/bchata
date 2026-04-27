@@ -84,7 +84,7 @@ const HomePage = ({
   resetToToday, showFullCalendar, setShowFullCalendar, allDatesInMonth, likedIds, toggleLike, logActivity, handleRegister, fourteenDays,
   showFilterPanel, setShowFilterPanel, filterRegion, setFilterRegion, filterGenre, setFilterGenre,
   showFilteredResults, setShowFilteredResults, isMenuOpen, setIsMenuOpen, showWeather, setShowWeather,
-  showLatinModal, setShowLatinModal, latinCat, setLatinCat, selPatternId, setSelPatternId, regionalTheme, recordTraffic, IncheonBanner, venueCounts, openAnalysis
+  showLatinModal, setShowLatinModal, latinCat, setLatinCat, selPatternId, setSelPatternId, regionalTheme, recordTraffic, venueCounts, openAnalysis
 }) => {
   const [isPaused, setIsPaused] = useState(false)
   const [regionOrder, setRegionOrder] = useState(['서울', '경기/인천', '경상도', '전라도', '충청도', '강원/제주'])

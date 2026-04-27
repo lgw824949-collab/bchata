@@ -138,20 +138,6 @@ const DynamicAnalysisModal = ({ isOpen, onClose, userCoords, isSajuCall }) => {
   );
 };
 
-const IncheonPremiumBanner = ({ onClick }) => (
-  <div style={{ padding: '0 16px', margin: '15px 0' }}>
-    <div onClick={(e) => { e.stopPropagation(); onClick(); }} style={{ background: 'rgba(15, 23, 42, 0.95)', backdropFilter: 'blur(25px)', borderRadius: '24px', padding: '16px 20px', border: '1px solid rgba(255, 255, 255, 0.1)', boxShadow: '0 15px 40px rgba(0,0,0,0.4)', cursor: 'pointer' }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        <div>
-          <div style={{ background: '#3b82f6', color: '#fff', fontSize: '9px', fontWeight: '900', padding: '4px 10px', borderRadius: '50px', marginBottom: '8px', display: 'inline-block' }}>NATIONWIDE LIVE</div>
-          <h3 style={{ color: '#fff', fontSize: '18px', fontWeight: '900', margin: '0 0 4px 0' }}>지능형 경로 최적화 서비스 🛰️</h3>
-          <p style={{ color: 'rgba(255, 255, 255, 0.8)', fontSize: '12px', margin: 0 }}>현재 위치 기반 최단 거리 성지 탐색 중 →</p>
-        </div>
-        <div style={{ background: 'rgba(59, 130, 246, 0.2)', padding: '12px', borderRadius: '18px', color: '#60a5fa' }}><Navigation size={20} /></div>
-      </div>
-    </div>
-  </div>
-);
 
 const BROAD_REGIONS = { '서울': '서울', '인천': '경기/인천', '경기': '경기/인천', '부산': '경상도', '대구': '경상도', '광주': '전라도', '대전': '충청도', '충남': '충청도', '충북': '충청도', '전남': '전라도', '전북': '전라도', '경남': '경상도', '경북': '경상도', '강원': '강원/제주', '제주': '강원/제주' };
 const SHORT_CITY_NAMES = { '인천': '인천', '서울': '서울', '경기': '경기', '부산': '부산', '대구': '대구', '광주': '광주', '대전': '대전' };
@@ -217,7 +203,7 @@ function App() {
       return { fullDate: formatDateToKSTString(d), date: String(d.getDate()), month: String(d.getMonth() + 1), dayName: DAYS_KOR[d.getDay()], isToday: i === 0, dayOfWeek: d.getDay() };
     }), weekData: [], allDatesInMonth: [], filteredParties: parties.filter(p => p.date === selectedDate),
     showFullCalendar: false, setShowFullCalendar: () => {}, likedIds: [], toggleLike: () => {},
-    setIsMenuOpen, IncheonBanner: () => <IncheonPremiumBanner onClick={() => openAnalysis(false)} />, venueCounts: {}, resetToToday: () => { setView('home'); setSelectedDate(todayData.dateStr); }, formatItemDate: (d, t) => `${d} ${t}`, formatFee: (f) => f, handleRegister: () => setView('register'), logActivity: () => {}, regionalTheme: { welcomeMsg: "전국 댄서들을 위한 실시간 정보", specialBanner: true }
+    setIsMenuOpen, IncheonBanner: null, venueCounts: {}, resetToToday: () => { setView('home'); setSelectedDate(todayData.dateStr); }, formatItemDate: (d, t) => `${d} ${t}`, formatFee: (f) => f, handleRegister: () => setView('register'), logActivity: () => {}, regionalTheme: { welcomeMsg: "전국 댄서들을 위한 실시간 정보", specialBanner: false }
   };
 
 

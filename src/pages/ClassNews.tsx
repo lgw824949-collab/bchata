@@ -48,7 +48,7 @@ const ClassNewsPage = ({
   parties, loading, selectedMonth, setSelectedMonth, selectedWeek, setSelectedWeek, 
   selectedDate, setSelectedDate, selectedRegion, setSelectedRegion, isExpanded, setIsExpanded,
   view, setView, setSelectedPoster, fetchParties, formatItemDate, formatFee, filteredParties, weekData,
-  resetToToday, showFullCalendar, setShowFullCalendar, allDatesInMonth, likedIds, toggleLike, logActivity, handleRegister, fourteenDays, recordTraffic, regionalTheme, venueCounts, IncheonBanner, openAnalysis, setIsMenuOpen
+  resetToToday, showFullCalendar, setShowFullCalendar, allDatesInMonth, likedIds, toggleLike, logActivity, handleRegister, fourteenDays, recordTraffic, regionalTheme, venueCounts, openAnalysis, setIsMenuOpen
 }) => {
   const [regionOrder, setRegionOrder] = useState(['서울', '경기/인천', '경상', '전라', '충청', '강원/제주'])
   const [posterOffset, setPosterOffset] = useState(0)
