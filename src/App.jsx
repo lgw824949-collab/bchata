@@ -169,9 +169,25 @@ function App() {
           />
           <button
             onClick={() => setSelectedPoster(null)}
-            style={{ position:'fixed', top:'20px', left:'20px', background:'rgba(255,255,255,0.2)', border:'none', borderRadius:'50%', width:'40px', height:'40px', color:'#fff', fontSize:'20px', cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center' }}
+            style={{
+              position: 'fixed',
+              top: '20px',
+              left: '20px',
+              background: 'rgba(255,255,255,0.95)',
+              border: 'none',
+              borderRadius: '50%',
+              width: '44px',
+              height: '44px',
+              fontSize: '22px',
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              boxShadow: '0 4px 15px rgba(0,0,0,0.3)',
+              zIndex: 100001
+            }}
           >
-            ←
+            ✕
           </button>
         </div>
       )}
