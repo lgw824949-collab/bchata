@@ -10,7 +10,6 @@ import PostClub from './pages/PostClub'
 import Auth from './components/Auth'
 import SajuModal from './components/SajuModal'
 import IncheonRoute from './components/IncheonRoute'
-import { BAR_DATABASE } from './lib/BarLib';
 import QuickPinchZoom, { make3dTransformValue } from 'react-quick-pinch-zoom';
 
 // --- [BAMPPA PREMIUM ENGINE: GPS & NATIONWIDE INTELLIGENCE] ---
@@ -52,38 +51,15 @@ const DynamicAnalysisModal = ({ isOpen, onClose, userCoords, isSajuCall }) => {
 
   useEffect(() => {
     if (!isOpen) return;
-    const findTarget = async (lat, lon) => {
-      const kakaoApiKey = import.meta.env.VITE_KAKAO_API_KEY;
-      const incheonBars = BAR_DATABASE.filter(b => b.region === '인천광역시' || b.address?.includes('인천'));
-      
-      try {
-        const barsWithCoords = await Promise.all(incheonBars.map(async (bar) => {
-          const res = await fetch(`https://dapi.kakao.com/v2/local/search/address.json?query=${encodeURIComponent(bar.address)}`, {
-            headers: { Authorization: `KakaoAK ${kakaoApiKey}` }
-          });
-          const data = await res.json();
-          if (data.documents?.length > 0) {
-            return { ...bar, lat: parseFloat(data.documents[0].y), lon: parseFloat(data.documents[0].x) };
-          }
-          return null;
-        }));
-
-        const targets = barsWithCoords.filter(b => b !== null);
-        let nearest = null; let minDist = Infinity;
-        
-        targets.forEach(venue => {
-          const dist = calculateDistance(lat, lon, venue.lat, venue.lon);
-          if (dist < minDist) { minDist = dist; nearest = { ...venue, region: '인천' }; }
-        });
-
-        if (nearest) {
-          setTargetDest(nearest);
-          const d = calculateDistance(lat, lon, nearest.lat, nearest.lon);
-          setTracker({ distance: d.toFixed(1), duration: Math.ceil(d * 7) + 2 });
-        }
-      } catch (err) {
-        console.error("Kakao API Error:", err);
-      }
+    const findTarget = (lat, lon) => {
+      let nearest = null; let minDist = Infinity;
+      Object.values(VENUE_COORDS).forEach(venue => {
+        const dist = calculateDistance(lat, lon, venue.lat, venue.lon);
+        if (dist < minDist) { minDist = dist; nearest = venue; }
+      });
+      setTargetDest(nearest);
+      const d = calculateDistance(lat, lon, nearest.lat, nearest.lon);
+      setTracker({ distance: d.toFixed(1), duration: Math.ceil(d * 7) + 2 });
     };
     if (userCoords) findTarget(userCoords.lat, userCoords.lon);
     else if (navigator.geolocation) {

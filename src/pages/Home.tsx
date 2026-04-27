@@ -1,7 +1,6 @@
 import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { Heart, MapPin, Calendar, User, Music, ChevronRight, ShieldCheck, X, Home as HomeIcon, ChevronLeft, CloudSun, Utensils, Zap, PlusCircle, Languages, Bell } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { BAR_DATABASE } from '../lib/BarLib';
 import QuickPinchZoom, { make3dTransformValue } from 'react-quick-pinch-zoom';
 
 const DAYS_KOR = ['일', '월', '화', '수', '목', '금', '토'];
@@ -476,14 +475,6 @@ const HomePage = ({
                     }}
                   >
                     <motion.div 
-                      drag="x"
-                      dragConstraints={{ left: -775, right: 0 }}
-                      onDragStart={() => setIsPaused(true)}
-                      onDragEnd={() => setIsPaused(false)}
-                      onMouseEnter={() => setIsPaused(true)}
-                      onMouseLeave={() => setIsPaused(false)}
-                      onTouchStart={() => setIsPaused(true)}
-                      onTouchEnd={() => setIsPaused(false)}
                       animate={isPaused ? {} : { x: [0, -775] }}
                       transition={{ 
                         duration: 20, 
@@ -494,8 +485,7 @@ const HomePage = ({
                         display: 'flex', 
                         gap: '15px', 
                         paddingLeft: '20px',
-                        width: 'max-content',
-                        cursor: 'grab'
+                        width: 'max-content'
                       }}
                     >
                       {/* 포스터 리스트 (무한 롤링을 위해 2번 반복) */}
@@ -510,10 +500,10 @@ const HomePage = ({
                             borderRadius: '12px',
                             overflow: 'hidden',
                             boxShadow: '0 8px 20px rgba(0,0,0,0.12)',
-                            backgroundColor: '#f9f9f9',
-                            cursor: 'pointer'
+                            backgroundColor: '#f9f9f9'
                           }}
                         >
+                          
                           <div style={{ width: '100%', height: '190px' }}>
                             <img 
                               src={item.poster_url} 
@@ -532,24 +522,6 @@ const HomePage = ({
                             background: 'linear-gradient(transparent, rgba(0,0,0,0.8))',
                             color: 'white'
                           }}>
-                            <div 
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                const locationName = (item.locationName || '').trim()
-                                const barInfo = BAR_DATABASE.find(b => 
-                                  b.name.trim() === locationName ||
-                                  b.aliases?.some(a => a.trim() === locationName) ||
-                                  locationName.includes(b.name.trim()) ||
-                                  b.name.trim().includes(locationName)
-                                )
-                                const destAddress = barInfo?.address || item.address || locationName
-                                window.open(`https://map.kakao.com/link/to/${encodeURIComponent(destAddress)}`, '_blank');
-                              }}
-                              style={{ display: 'flex', alignItems: 'center', gap: '3px', marginBottom: '2px' }}
-                            >
-                              <MapPin size={10} color="#FFD700" />
-                              <span style={{ fontSize: '10px', fontWeight: '800', color: '#FFD700' }}>{item.locationName}</span>
-                            </div>
                             <div style={{ fontSize: '11px', fontWeight: '800', display: 'block', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
                               {item.title}
                             </div>
@@ -670,15 +642,8 @@ const HomePage = ({
                                 <div 
                                   onClick={(e) => {
                                     e.stopPropagation();
-                                    const locationName = (item.locationName || '').trim()
-                                    const barInfo = BAR_DATABASE.find(b => 
-                                      b.name.trim() === locationName ||
-                                      b.aliases?.some(a => a.trim() === locationName) ||
-                                      locationName.includes(b.name.trim()) ||
-                                      b.name.trim().includes(locationName)
-                                    )
-                                    const destAddress = barInfo?.address || item.address || locationName
-                                    window.open(`https://map.kakao.com/link/search/${encodeURIComponent(destAddress)}`, '_blank');
+                                    const address = item.address || item.locationName;
+                                    window.open(`https://map.kakao.com/link/search/${encodeURIComponent(address)}`, '_blank');
                                   }}
                                   style={{ 
                                     display: 'flex', alignItems: 'center', gap: '4px',
@@ -975,25 +940,8 @@ const HomePage = ({
                           <div style={{ aspectRatio: '3/4', borderRadius: '12px', overflow: 'hidden', background: '#222', marginBottom: '8px' }}>
                             <img src={party.poster_url} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                           </div>
-                          <div 
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              const locationName = (party.locationName || '').trim()
-                              const barInfo = BAR_DATABASE.find(b => 
-                                b.name.trim() === locationName ||
-                                b.aliases?.some(a => a.trim() === locationName) ||
-                                locationName.includes(b.name.trim()) ||
-                                b.name.trim().includes(locationName)
-                              )
-                              const destAddress = barInfo?.address || party.address || locationName
-                              window.open(`https://map.kakao.com/link/to/${encodeURIComponent(destAddress)}`, '_blank');
-                            }}
-                            style={{ display: 'flex', alignItems: 'center', gap: '3px', marginBottom: '2px' }}
-                          >
-                            <MapPin size={10} color="#D4AF37" />
-                            <div style={{ fontSize: '11px', fontWeight: 700, color: '#D4AF37', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{party.locationName}</div>
-                          </div>
                           <div style={{ fontSize: '13px', fontWeight: 700, color: '#fff', display: 'block', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{party.title}</div>
+                          <div style={{ fontSize: '11px', color: '#666' }}>{party.locationName}</div>
                         </div>
                       ))}
                     {parties.filter(p => {
@@ -1108,33 +1056,11 @@ const HomePage = ({
                     <div style={{
                       position: 'absolute', bottom: 0, left: 0, right: 0, padding: '10px',
                       background: 'linear-gradient(transparent, rgba(0,0,0,0.7))',
-                      color: 'white', display: 'flex', flexDirection: 'column', gap: '2px'
+                      color: 'white', fontSize: '12px', fontWeight: 700,
+                      display: 'block', whiteSpace: 'nowrap',
+                      overflow: 'hidden', textOverflow: 'ellipsis'
                     }}>
-                      <div 
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          const locationName = (party.locationName || '').trim()
-                          const barInfo = BAR_DATABASE.find(b => 
-                            b.name.trim() === locationName ||
-                            b.aliases?.some(a => a.trim() === locationName) ||
-                            locationName.includes(b.name.trim()) ||
-                            b.name.trim().includes(locationName)
-                          )
-                          const destAddress = barInfo?.address || party.address || locationName
-                          window.open(`https://map.kakao.com/link/to/${encodeURIComponent(destAddress)}`, '_blank');
-                        }}
-                        style={{ display: 'flex', alignItems: 'center', gap: '3px' }}
-                      >
-                        <MapPin size={10} color="#fff" />
-                        <span style={{ fontSize: '10px', fontWeight: 700 }}>{party.locationName}</span>
-                      </div>
-                      <div style={{
-                        fontSize: '12px', fontWeight: 700,
-                        display: 'block', whiteSpace: 'nowrap',
-                        overflow: 'hidden', textOverflow: 'ellipsis'
-                      }}>
-                        {party.title}
-                      </div>
+                      {party.title}
                     </div>
                   </motion.div>
                 ))}
