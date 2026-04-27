@@ -10,6 +10,7 @@ import PostClub from './pages/PostClub'
 import Auth from './components/Auth'
 import SajuModal from './components/SajuModal'
 import IncheonRoute from './components/IncheonRoute'
+import { BAR_DATABASE } from './lib/BarLib';
 import QuickPinchZoom, { make3dTransformValue } from 'react-quick-pinch-zoom';
 
 // --- [BAMPPA PREMIUM ENGINE: GPS & NATIONWIDE INTELLIGENCE] ---
@@ -41,7 +42,7 @@ const VENUE_COORDS = {
 
 const naturalIncheonDB = [
   { t: "⚓ 상륙작전", q: "오늘 상륙인가요?", a: "벌써 점령했습니다!" },
-  { t: "💃 동암역", q: "동암 급행 타셨나요?", a: "당신께 급행 정착입니다!" }
+  { t: "💃 인천 성지", q: "인천 최고의 성지는?", a: "당신이 계신 곳이 곧 성지입니다!" }
 ];
 
 const DynamicAnalysisModal = ({ isOpen, onClose, userCoords, isSajuCall }) => {
@@ -51,15 +52,50 @@ const DynamicAnalysisModal = ({ isOpen, onClose, userCoords, isSajuCall }) => {
 
   useEffect(() => {
     if (!isOpen) return;
-    const findTarget = (lat, lon) => {
-      let nearest = null; let minDist = Infinity;
-      Object.values(VENUE_COORDS).forEach(venue => {
-        const dist = calculateDistance(lat, lon, venue.lat, venue.lon);
-        if (dist < minDist) { minDist = dist; nearest = venue; }
-      });
-      setTargetDest(nearest);
-      const d = calculateDistance(lat, lon, nearest.lat, nearest.lon);
-      setTracker({ distance: d.toFixed(1), duration: Math.ceil(d * 7) + 2 });
+    const findTarget = async (lat, lon) => {
+      const kakaoApiKey = import.meta.env.VITE_KAKAO_API_KEY;
+      const incheonBars = BAR_DATABASE.filter(b => b.region === '인천광역시' || b.address?.includes('인천'));
+      
+      try {
+        const barsWithCoords = await Promise.all(incheonBars.map(async (bar) => {
+          const res = await fetch(`https://dapi.kakao.com/v2/local/search/address.json?query=${encodeURIComponent(bar.address)}`, {
+            headers: { Authorization: `KakaoAK ${kakaoApiKey}` }
+          });
+          const data = await res.json();
+          if (data.documents?.length > 0) {
+            return { ...bar, lat: parseFloat(data.documents[0].y), lon: parseFloat(data.documents[0].x) };
+          }
+          return null;
+        }));
+
+        const targets = barsWithCoords.filter(b => b !== null);
+        let nearest = null; let minDist = Infinity;
+        
+        targets.forEach(venue => {
+          const dist = calculateDistance(lat, lon, venue.lat, venue.lon);
+          if (dist < minDist) { minDist = dist; nearest = { ...venue, region: '인천' }; }
+        });
+
+        if (nearest) {
+          setTargetDest(nearest);
+          const d = calculateDistance(lat, lon, nearest.lat, nearest.lon);
+          setTracker({ distance: d.toFixed(1), duration: Math.ceil(d * 7) + 2 });
+        } else {
+          // 폴백: VENUE_COORDS 내에서 찾기
+          let fallbackNearest = null; let fallbackMinDist = Infinity;
+          Object.values(VENUE_COORDS).forEach(venue => {
+            const dist = calculateDistance(lat, lon, venue.lat, venue.lon);
+            if (dist < fallbackMinDist) { fallbackMinDist = dist; fallbackNearest = venue; }
+          });
+          setTargetDest(fallbackNearest);
+          if (fallbackNearest) {
+            const d = calculateDistance(lat, lon, fallbackNearest.lat, fallbackNearest.lon);
+            setTracker({ distance: d.toFixed(1), duration: Math.ceil(d * 7) + 2 });
+          }
+        }
+      } catch (err) {
+        console.error("Kakao API Error:", err);
+      }
     };
     if (userCoords) findTarget(userCoords.lat, userCoords.lon);
     else if (navigator.geolocation) {
