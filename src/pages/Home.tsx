@@ -597,19 +597,7 @@ const HomePage = ({
                           gap: '10px',
                           padding: '10px 16px 20px'
                         }}>
-                          {parties
-                            .filter(p => {
-                              const r = p.broadRegion || ''
-                              const c = p.cityName || ''
-                              const date = p.date === selectedDate
-                              if (regionName === "서울") return date && (r === '서울' || c === '서울')
-                              if (regionName === "경기/인천") return date && (r === '경기/인천' || c === '경기' || c === '인천')
-                              if (regionName === "충청도") return date && (r === '충청' || c === '충남' || c === '충북' || c === '대전' || c === '세종')
-                              if (regionName === "경상도") return date && (r === '경상' || c === '경남' || c === '경북' || c === '부산' || c === '대구' || c === '울산')
-                              if (regionName === "전라도") return date && (r === '전라' || c === '전남' || c === '전북' || c === '광주')
-                              if (regionName === "강원/제주") return date && (r === '강원/제주' || c === '강원' || c === '제주')
-                              return false
-                            })
+                          {regionParties
                             .map(p => (
                               <div
                                 key={p.id}
