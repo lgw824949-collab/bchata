@@ -28,7 +28,7 @@ function App() {
   const kst = new Date(new Date().getTime() + (9 * 60 * 60 * 1000));
   const todayData = { year: kst.getFullYear(), month: kst.getMonth() + 1, date: kst.getDate(), dateStr: formatDateToKSTString(kst) };
 
-  const [showSplash, setShowSplash] = useState(true);
+
   const [parties, setParties] = useState([]);
   const [loading, setLoading] = useState(true);
   const [selectedDate, setSelectedDate] = useState(todayData.dateStr);
@@ -44,7 +44,7 @@ function App() {
   const [showSaju, setShowSaju] = useState(false);
   const [showLatinModal, setShowLatinModal] = useState(false);
 
-  useEffect(() => { setTimeout(() => setShowSplash(false), 2000); }, []);
+
 
   const fetchParties = async () => {
     setLoading(true);
@@ -86,7 +86,7 @@ function App() {
 
   return (
     <div style={{ width: '100%', maxWidth: '500px', margin: '0 auto', background: '#fff', minHeight: '100vh' }}>
-      <AnimatePresence>{showSplash && <motion.div exit={{ opacity: 0 }} style={{ position: 'fixed', inset: 0, zIndex: 999999, backgroundColor: '#000', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><motion.img src="/logo.png" initial={{ scale: 0.8, opacity: 0 }} animate={{ scale: 1.2, opacity: 1 }} style={{ width: '200px' }} /></motion.div>}</AnimatePresence>
+
       <AnimatePresence>{isAnalyzing && <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} style={{ position: 'fixed', inset: 0, zIndex: 1000000, background: 'rgba(0,0,0,0.9)', backdropFilter: 'blur(30px)', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}><motion.div animate={{ rotate: 360 }} transition={{ duration: 1, repeat: Infinity, ease: 'linear' }} style={{ width: '60px', height: '60px', border: '4px solid rgba(59,130,246,0.2)', borderTop: '4px solid #3b82f6', borderRadius: '50%', marginBottom: '20px' }} /><h2 style={{ color: '#fff', fontSize: '20px', fontWeight: '900' }}>실시간 지능형 분석 중...</h2></motion.div>}</AnimatePresence>
 
       <main>
