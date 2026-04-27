@@ -99,9 +99,11 @@ const HomePage = ({
   const initialDistanceRef = useRef(null);
   const hotPickRef = useRef(null);
   const carouselParties = useMemo(() => {
+    const EXCLUDE_KEYWORDS = ['강습', '수강', '모집', '워크숍', '동호회', '정모', '클래스', '레슨'];
     const all = parties || [];
     return [...all]
       .filter(p => p.poster_url)
+      .filter(p => !EXCLUDE_KEYWORDS.some(kw => p.title?.includes(kw)))
       .sort((a, b) => new Date(b.date) - new Date(a.date))
       .slice(0, 5);
   }, [parties]);
