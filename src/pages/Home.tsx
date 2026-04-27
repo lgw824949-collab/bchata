@@ -1019,9 +1019,9 @@ const HomePage = ({
 
             <div 
               style={{ 
-                flex: 1, overflowY: 'auto', padding: '15px', display: 'grid', 
+                flex: 1, overflowY: 'auto', padding: '0 16px 20px', display: 'grid', 
                 gridTemplateColumns: 'repeat(2, 1fr)', 
-                gridAutoRows: 'min-content', gap: '15px', background: '#f8fafc'
+                gridAutoRows: 'min-content', gap: '10px', background: '#f1f5f9'
               }}
             >
               {parties
@@ -1044,8 +1044,8 @@ const HomePage = ({
                     onClick={() => setSelectedPoster(party.poster_url)}
                     style={{
                       aspectRatio: '3/4', borderRadius: '12px', overflow: 'hidden',
-                      boxShadow: '0 4px 12px rgba(0,0,0,0.08)', background: '#eee',
-                      position: 'relative', cursor: 'pointer'
+                      boxShadow: '0 4px 12px rgba(0,0,0,0.08)', background: '#f1f5f9',
+                      position: 'relative', cursor: 'pointer', width: '100%'
                     }}
                   >
                     <img 
