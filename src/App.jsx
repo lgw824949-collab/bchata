@@ -9,134 +9,10 @@ import ClassNewsPage from './pages/ClassNews'
 import PostClub from './pages/PostClub'
 import Auth from './components/Auth'
 import SajuModal from './components/SajuModal'
-import IncheonRoute from './components/IncheonRoute'
 import { BAR_DATABASE } from './lib/BarLib';
 import QuickPinchZoom, { make3dTransformValue } from 'react-quick-pinch-zoom';
 
-// --- [BAMPPA PREMIUM ENGINE: GPS & NATIONWIDE INTELLIGENCE] ---
-const calculateDistance = (lat1, lon1, lat2, lon2) => {
-  const R = 6371; 
-  const dLat = (lat2 - lat1) * Math.PI / 180;
-  const dLon = (lon2 - lon1) * Math.PI / 180;
-  const a = Math.sin(dLat/2) * Math.sin(dLat/2) +
-            Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * 
-            Math.sin(dLon/2) * Math.sin(dLon/2);
-  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
-  return R * c; 
-};
 
-const VENUE_COORDS = {
-  'elmar': { lat: 37.4872, lon: 126.7217, name: '엘마르', region: '인천' }, 'lbt': { lat: 37.4449, lon: 126.7052, name: 'LBT', region: '인천' }, 'rassin': { lat: 37.4612, lon: 126.6782, name: '라씬 카우보이', region: '인천' },
-  'bupyeong_01': { lat: 37.4894, lon: 126.7224, name: '부평 엘마', region: '인천' },
-  'songdo_01': { lat: 37.3813, lon: 126.6548, name: '송도 살사클럽', region: '인천' },
-  'juan_01': { lat: 37.4651, lon: 126.6807, name: '주안 라틴로드', region: '인천' },
-  'gangnam_01': { lat: 37.4979, lon: 127.0276, name: '강남 턴', region: '서울' },
-  'hongdae_01': { lat: 37.5565, lon: 126.9239, name: '홍대 보니따', region: '서울' },
-  'iteawon_01': { lat: 37.5345, lon: 126.9942, name: '이태원 맘보', region: '서울' },
-  'busan_01': { lat: 35.1796, lon: 129.0756, name: '부산 서면 킹', region: '부산' },
-  'daegu_01': { lat: 35.8714, lon: 128.6014, name: '대구 동성로 라틴', region: '대구' },
-  'daejeon_01': { lat: 36.3504, lon: 127.3845, name: '대전 둔산 살사', region: '대전' },
-  'gwangju_01': { lat: 35.1595, lon: 126.8526, name: '광주 상무 클럽', region: '광주' },
-  'cheongju_01': { lat: 36.634, lon: 127.458, name: '청정 리코빠', region: '충북' }
-};
-
-const naturalIncheonDB = [
-  { t: "⚓ 상륙작전", q: "오늘 상륙인가요?", a: "벌써 점령했습니다!" },
-  { t: "💃 인천 성지", q: "인천 최고의 성지는?", a: "당신이 계신 곳이 곧 성지입니다!" }
-];
-
-const DynamicAnalysisModal = ({ isOpen, onClose, userCoords, isSajuCall }) => {
-  const [targetDest, setTargetDest] = useState(null);
-  const [tracker, setTracker] = useState({ distance: '0.0', duration: '0' });
-  const [amguho, setAmguho] = useState(null);
-
-  useEffect(() => {
-    if (!isOpen) return;
-    const findTarget = async (lat, lon) => {
-      const kakaoApiKey = import.meta.env.VITE_KAKAO_API_KEY;
-      const incheonBars = BAR_DATABASE.filter(b => b.region === '인천광역시' || b.address?.includes('인천'));
-      
-      try {
-        const barsWithCoords = await Promise.all(incheonBars.map(async (bar) => {
-          const res = await fetch(`https://dapi.kakao.com/v2/local/search/address.json?query=${encodeURIComponent(bar.address)}`, {
-            headers: { Authorization: `KakaoAK ${kakaoApiKey}` }
-          });
-          const data = await res.json();
-          if (data.documents?.length > 0) {
-            return { ...bar, lat: parseFloat(data.documents[0].y), lon: parseFloat(data.documents[0].x) };
-          }
-          return null;
-        }));
-
-        const targets = barsWithCoords.filter(b => b !== null);
-        let nearest = null; let minDist = Infinity;
-        
-        targets.forEach(venue => {
-          const dist = calculateDistance(lat, lon, venue.lat, venue.lon);
-          if (dist < minDist) { minDist = dist; nearest = { ...venue, region: '인천' }; }
-        });
-
-        if (nearest) {
-          setTargetDest(nearest);
-          const d = calculateDistance(lat, lon, nearest.lat, nearest.lon);
-          setTracker({ distance: d.toFixed(1), duration: Math.ceil(d * 7) + 2 });
-        } else {
-          // 폴백: VENUE_COORDS 내에서 찾기
-          let fallbackNearest = null; let fallbackMinDist = Infinity;
-          Object.values(VENUE_COORDS).forEach(venue => {
-            const dist = calculateDistance(lat, lon, venue.lat, venue.lon);
-            if (dist < fallbackMinDist) { fallbackMinDist = dist; fallbackNearest = venue; }
-          });
-          setTargetDest(fallbackNearest);
-          if (fallbackNearest) {
-            const d = calculateDistance(lat, lon, fallbackNearest.lat, fallbackNearest.lon);
-            setTracker({ distance: d.toFixed(1), duration: Math.ceil(d * 7) + 2 });
-          }
-        }
-      } catch (err) {
-        console.error("Kakao API Error:", err);
-      }
-    };
-    if (userCoords) findTarget(userCoords.lat, userCoords.lon);
-    else if (navigator.geolocation) {
-      navigator.geolocation.getCurrentPosition(
-        pos => findTarget(pos.coords.latitude, pos.coords.longitude),
-        err => {
-          console.error("GPS Current Position Error:", err);
-          // 에러 발생 시 엘마르(인천 성지)를 기본값으로 사용
-          findTarget(37.4872, 126.7217);
-          if (err.code === err.PERMISSION_DENIED) {
-            alert("위치 권한이 거부되었습니다. 성지(엘마르) 기준으로 탐색합니다.");
-          }
-        },
-        { enableHighAccuracy: true, timeout: 5000, maximumAge: 0 }
-      );
-    }
-  }, [isOpen, userCoords]);
-
-  if (!isOpen || !targetDest) return null;
-  const isIncheon = targetDest.region === '인천' && isSajuCall;
-
-  return (
-    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} style={{ position: 'fixed', inset: 0, zIndex: 1000000, backgroundColor: 'rgba(0,0,0,0.85)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px' }} onClick={onClose}>
-      <motion.div initial={{ scale: 0.95, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} onClick={(e) => e.stopPropagation()} style={{ width: '100%', maxWidth: '420px', background: isIncheon ? '#0f172a' : '#fff', borderRadius: '35px', padding: '40px 30px', boxShadow: '0 50px 100px rgba(0,0,0,0.7)', color: isIncheon ? '#fff' : '#000' }}>
-        {!amguho ? (
-          <>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '35px' }}><div style={{ background: '#3b82f6', color: '#fff', padding: '8px 16px', borderRadius: '50px', fontSize: '11px', fontWeight: '900' }}>REALTIME GPS</div><X size={24} onClick={onClose} style={{ cursor: 'pointer' }} /></div>
-            <h2 style={{ fontSize: '26px', fontWeight: '1000', marginBottom: '30px' }}>{isIncheon ? '성지 상륙 분석' : '최단 경로 최적화'} 🛰️<br/><span style={{ color: '#3b82f6' }}>{targetDest.name}</span></h2>
-            <div style={{ padding: '30px', background: 'rgba(128,128,128,0.1)', borderRadius: '30px', display: 'flex', gap: '20px', marginBottom: '30px' }}>
-              <div style={{ flex: 1 }}><p style={{ opacity: 0.5, fontSize: '12px' }}>실제 거리</p><p style={{ fontSize: '26px', fontWeight: '1000', color: '#3b82f6' }}>{tracker.distance}km</p></div>
-              <div style={{ flex: 1 }}><p style={{ opacity: 0.5, fontSize: '12px' }}>예상 소요</p><p style={{ fontSize: '26px', fontWeight: '1000' }}>{tracker.duration}분</p></div>
-            </div>
-            <button onClick={() => isIncheon ? setAmguho(naturalIncheonDB[0]) : onClose()} style={{ width: '100%', padding: '22px', borderRadius: '25px', background: '#111', color: '#fff', border: 'none', fontSize: '18px', fontWeight: '1000' }}>{isIncheon ? '암구호 수신하기' : '확인 완료'}</button>
-          </>
-        ) : (
-          <div style={{ textAlign: 'center' }}><h3 style={{ fontSize: '22px', fontWeight: '1000', marginBottom: '30px' }}>성지 암구호</h3><div style={{ background: 'rgba(59, 130, 246, 0.1)', padding: '30px', borderRadius: '30px', border: '2px solid #3b82f6', marginBottom: '30px' }}><p style={{ color: '#60a5fa' }}>Q: {amguho.q}</p><p style={{ fontSize: '20px', fontWeight: '1000', marginTop: '10px' }}>A: {amguho.a}</p></div><button onClick={onClose} style={{ width: '100%', padding: '20px', borderRadius: '20px', background: '#fff', color: '#0f172a', fontWeight: '1000' }}>작전 시작</button></div>
-        )}
-      </motion.div>
-    </motion.div>
-  );
-};
 
 
 const BROAD_REGIONS = { '서울': '서울', '인천': '경기/인천', '경기': '경기/인천', '부산': '경상도', '대구': '경상도', '광주': '전라도', '대전': '충청도', '충남': '충청도', '충북': '충청도', '전남': '전라도', '전북': '전라도', '경남': '경상도', '경북': '경상도', '강원': '강원/제주', '제주': '강원/제주' };
@@ -232,7 +108,6 @@ function App() {
                 <p style={{ fontSize: '12px', color: '#999', fontWeight: '800', marginBottom: '20px', letterSpacing: '1px' }}>PREMIUM SERVICES</p>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
                   {[
-                    { label: '📍 인천 경로 안내', action: () => setShowIncheon(true) },
                     { label: '🌤️ 전국 날씨 지도', action: () => setShowWeather(true) },
                     { label: '🔮 댄스 사주', action: () => setShowSaju(true) },
                     { label: '🇬🇧 라틴 영어', action: () => setShowLatinModal(true) },
@@ -277,10 +152,6 @@ function App() {
         )}
       </AnimatePresence>
 
-      <DynamicAnalysisModal isOpen={showIncheonModal} onClose={() => setShowIncheonModal(false)} userCoords={userCoords} isSajuCall={isSajuCall} />
-      <AnimatePresence>
-        {showIncheon && <IncheonRoute parties={parties} onClose={() => setShowIncheon(false)} />}
-      </AnimatePresence>
       <AnimatePresence>
         {showSaju && <SajuModal parties={parties} onClose={() => setShowSaju(false)} />}
       </AnimatePresence>
