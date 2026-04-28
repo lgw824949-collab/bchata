@@ -2,6 +2,7 @@ import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { Heart, MapPin, Calendar, User, Music, ChevronRight, ShieldCheck, X, Home as HomeIcon, ChevronLeft, CloudSun, Utensils, Zap, PlusCircle, Languages, Bell } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import QuickPinchZoom, { make3dTransformValue } from 'react-quick-pinch-zoom';
+import LiveCount from '../components/LiveCount'
 
 const DAYS_KOR = ['일', '월', '화', '수', '목', '금', '토'];
 const MAIN_REGIONS = ['서울', '경기/인천', '경상', '전라', '충청', '강원/제주'];
@@ -414,6 +415,8 @@ const HomePage = ({
               backgroundColor: '#f2f2f2',
               minHeight: '100vh'
             }}>
+              <LiveCount />
+
               {/* 🏆 [전국 공통] HOT PICK 5 (순위 포함) */}
               {carouselParties.length > 0 && (
                 <div className="hot-pick-container" style={{ 
