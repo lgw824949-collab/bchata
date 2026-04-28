@@ -315,9 +315,9 @@ export default function SajuModal({ onClose, parties=[] }) {
             <div style={{ marginBottom:20 }}>
               <div style={{ fontSize:13,fontWeight:700,color:'#334155',marginBottom:8 }}>생년월일</div>
               <div style={{ display:'flex',gap:8 }}>
-                <input className="saju-inp" type="number" placeholder="년도 (1990)" value={year} onChange={e=>setYear(e.target.value)} style={{...INP,flex:2}}/>
-                <input className="saju-inp" type="number" placeholder="월" min="1" max="12" value={month} onChange={e=>setMonth(e.target.value)} style={{...INP,flex:1}}/>
-                <input className="saju-inp" type="number" placeholder="일" min="1" max="31" value={day} onChange={e=>setDay(e.target.value)} style={{...INP,flex:1}}/>
+                <input className="saju-inp" type="number" placeholder="년도 (1990)" value={year} onChange={e=>setYear(e.target.value)} style={{...INP, flex: 2, minWidth: 0, boxSizing: 'border-box'}}/>
+                <input className="saju-inp" type="number" placeholder="월" min="1" max="12" value={month} onChange={e=>setMonth(e.target.value)} style={{...INP, flex: 1, minWidth: 0, boxSizing: 'border-box'}}/>
+                <input className="saju-inp" type="number" placeholder="일" min="1" max="31" value={day} onChange={e=>setDay(e.target.value)} style={{...INP, flex: 1, minWidth: 0, boxSizing: 'border-box'}}/>
               </div>
             </div>
 
