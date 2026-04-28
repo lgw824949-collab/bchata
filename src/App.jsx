@@ -2,6 +2,7 @@ import { useState, useEffect, useMemo, useRef } from 'react'
 import { Home as HomeIcon, Users, Plus, LogOut, Heart, X, MessageSquare, RefreshCw, CloudSun, Utensils, Zap, Languages, Bell, Star, Navigation, CreditCard, Settings, Map as MapIcon, BarChart, Gift, Coffee, User, Menu } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { supabase, logActivity } from './lib/supabase'
+import { PATTERNS, CATS_LATIN } from './data/latin_patterns_native'
 import RegisterForm from './RegisterForm'
 import AdminDashboard from './AdminDashboard'
 import HomePage from './pages/Home'
@@ -181,8 +182,90 @@ function App() {
     showFullCalendar: false, setShowFullCalendar: () => {}, likedIds: [], toggleLike: () => {},
     IncheonBanner: () => <IncheonPremiumBanner onClick={() => openAnalysis(false)} />, venueCounts: {}, resetToToday: () => { setView('home'); setSelectedDate(todayData.dateStr); }, formatItemDate: (d, t) => `${d} ${t}`, formatFee: (f) => f, handleRegister: () => setView('register'), logActivity: () => {}, regionalTheme: { welcomeMsg: "전국 댄서들을 위한 실시간 정보", specialBanner: true }
   };
+const LatinModal = ({ isOpen, onClose }) => {
+  const [searchTerm, setSearchTerm] = useState('');
+  const [curCat, setCurCat] = useState('전체');
+  const [selId, setSelId] = useState(null);
 
+  if (!isOpen) return null;
 
+  const cats = ['전체', ...CATS_LATIN];
+  const filtered = PATTERNS.filter(p => {
+    const matchesCat = curCat === '전체' || p.cat === curCat;
+    const matchesSearch = p.en.toLowerCase().includes(searchTerm.toLowerCase()) || p.kr.includes(searchTerm);
+    return matchesCat && matchesSearch;
+  });
+
+  return (
+    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} 
+      style={{ position: 'fixed', inset: 0, zIndex: 1000000, backgroundColor: 'rgba(0,0,0,0.55)', display: 'flex', alignItems: 'flex-end', justifyContent: 'center' }} 
+      onClick={onClose}
+    >
+      <motion.div initial={{ y: '100%' }} animate={{ y: 0 }} exit={{ y: '100%' }} 
+        onClick={(e) => e.stopPropagation()} 
+        style={{ width: '100%', maxWidth: '500px', background: '#111', borderRadius: '24px 24px 0 0', maxHeight: '88vh', display: 'flex', flexDirection: 'column' }}
+      >
+        <div style={{ width: '38px', height: '3px', background: '#2a2a2a', borderRadius: '2px', margin: '12px auto 0' }} />
+        
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '20px 20px 10px' }}>
+          <h2 style={{ fontSize: '24px', fontWeight: '900', color: '#FF3B30', margin: 0, fontFamily: "'Bebas Neue', sans-serif", letterSpacing: '2px' }}>LATIN ENGLISH 100</h2>
+          <button onClick={onClose} style={{ background: '#1e1e1e', border: '1px solid #222', borderRadius: '50%', width: '32px', height: '32px', color: '#888', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <X size={16} />
+          </button>
+        </div>
+
+        <div style={{ padding: '10px 20px' }}>
+          <input 
+            type="text" 
+            placeholder="Search patterns..." 
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            style={{ width: '100%', background: '#1a1a1a', border: '1px solid #222', borderRadius: '22px', padding: '10px 16px', color: '#fff', outline: 'none', fontSize: '13px' }}
+          />
+        </div>
+
+        <div style={{ display: 'flex', gap: '8px', padding: '10px 20px', overflowX: 'auto', whiteSpace: 'nowrap' }}>
+          {cats.map(c => (
+            <button key={c} onClick={() => { setCurCat(c); setSelId(null); }} 
+              style={{ padding: '6px 14px', borderRadius: '20px', border: '1px solid #222', background: curCat === c ? '#FF3B30' : 'transparent', color: curCat === c ? '#fff' : '#666', fontSize: '11px', cursor: 'pointer', transition: 'all 0.2s' }}
+            >
+              {c}
+            </button>
+          ))}
+        </div>
+
+        <div style={{ flex: 1, overflowY: 'auto', padding: '10px 20px 30px', display: 'flex', flexDirection: 'column', gap: '6px' }}>
+          {filtered.map(p => (
+            <div key={p.n} onClick={() => setSelId(selId === p.n ? null : p.n)} 
+              style={{ background: '#161616', border: `1px solid ${selId === p.n ? '#FF3B30' : '#222'}`, borderRadius: '10px', padding: '12px 14px', cursor: 'pointer' }}
+            >
+              <div style={{ display: 'flex', gap: '8px', marginBottom: '4px', alignItems: 'baseline' }}>
+                <span style={{ fontSize: '12px', color: '#FF3B30', fontWeight: '900', fontFamily: "'Bebas Neue', sans-serif", letterSpacing: '1px' }}>#{String(p.n).padStart(2, '0')}</span>
+                <span style={{ fontSize: '10px', color: '#666' }}>{p.cat}</span>
+              </div>
+              <div style={{ fontSize: '14px', fontStyle: 'italic', color: '#e8e8e8', marginBottom: '3px', lineHeight: '1.4', fontFamily: "'Playfair Display', serif" }}>"{p.en}"</div>
+              <div style={{ fontSize: '12px', color: '#666' }}>{p.kr}</div>
+              
+              <AnimatePresence>
+                {selId === p.n && (
+                  <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: 'auto', opacity: 1 }} exit={{ height: 0, opacity: 0 }} style={{ overflow: 'hidden' }}>
+                    <div style={{ marginTop: '10px', paddingTop: '10px', borderTop: '0.5px solid #FF3B30', background: '#160808', margin: '10px -14px -12px', padding: '10px 14px 12px', borderRadius: '0 0 10px 10px' }}>
+                      <div style={{ fontSize: '11px', color: '#666', marginBottom: '6px', lineHeight: '1.6' }}>{p.note}</div>
+                      <div style={{ fontSize: '11px', color: '#D4A017', fontStyle: 'italic', lineHeight: '1.5' }}>
+                        <span style={{ color: '#555', fontStyle: 'normal', marginRight: '4px', fontSize: '10px' }}>Example:</span>{p.ex}
+                      </div>
+                    </div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </div>
+          ))}
+          {filtered.length === 0 && <div style={{ textAlign: 'center', padding: '40px', color: '#666' }}>No results found</div>}
+        </div>
+      </motion.div>
+    </motion.div>
+  );
+};
 
   return (
     <div style={{ width: '100%', maxWidth: '500px', margin: '0 auto', background: '#fff', minHeight: '100vh' }}>
@@ -295,6 +378,9 @@ function App() {
       </AnimatePresence>
       <AnimatePresence>
         {showSaju && <SajuModal parties={parties} onClose={() => setShowSaju(false)} />}
+      </AnimatePresence>
+      <AnimatePresence>
+        {showLatinModal && <LatinModal isOpen={showLatinModal} onClose={() => setShowLatinModal(false)} />}
       </AnimatePresence>
       
       {selectedPoster && (
