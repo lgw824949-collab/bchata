@@ -44,6 +44,10 @@ function App() {
   const [showSaju, setShowSaju] = useState(false);
   const [showLatinModal, setShowLatinModal] = useState(false);
 
+  const weatherOpenTime = useRef(0);
+  const latinOpenTime = useRef(0);
+  const sajuOpenTime = useRef(0);
+
 
 
   const fetchParties = async () => {
@@ -102,12 +106,19 @@ function App() {
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
                   {[
                     { label: '🌤️ 전국 날씨 지도', action: () => { 
+                      weatherOpenTime.current = Date.now();
                       setView('home')
                       setShowWeather(true)
                       setIsMenuOpen(false)
                     } },
-                    { label: '🔮 댄스 사주', action: () => setShowSaju(true) },
-                    { label: '🇬🇧 라틴 영어', action: () => setShowLatinModal(true) },
+                    { label: '🔮 댄스 사주', action: () => {
+                      sajuOpenTime.current = Date.now();
+                      setShowSaju(true)
+                    } },
+                    { label: '🇬🇧 라틴 영어', action: () => {
+                      latinOpenTime.current = Date.now();
+                      setShowLatinModal(true)
+                    } },
                     { label: '📝 소셜/파티 등록하기', action: () => { setView('register') } },
                     { label: '📚 수업/정모 등록하기', action: () => { setView('post-lesson') } },
                     { label: '⚡ 부트캠프/워크샵', action: () => alert('준비 중') },
@@ -119,10 +130,7 @@ function App() {
                       onClick={(e) => {
                         e.preventDefault();
                         e.stopPropagation();
-                        setIsMenuOpen(false);
-                        setTimeout(() => {
-                          if (item.action) item.action();
-                        }, 350);
+                        if (item.action) item.action();
                       }}
                       style={{ 
                         padding: '18px 20px', 
@@ -154,21 +162,29 @@ function App() {
       </AnimatePresence>
 
       <AnimatePresence>
-        {showSaju && <SajuModal parties={parties} onClose={() => setShowSaju(false)} />}
+        {showSaju && <SajuModal parties={parties} onClose={() => {
+          if (Date.now() - sajuOpenTime.current > 500) setShowSaju(false);
+        }} />}
       </AnimatePresence>
 
       <AnimatePresence>
         {showWeather && (
-          <WeatherModal onClose={() => setShowWeather(false)} />
+          <WeatherModal onClose={() => {
+            if (Date.now() - weatherOpenTime.current > 500) setShowWeather(false);
+          }} />
         )}
       </AnimatePresence>
 
       <AnimatePresence>
         {showLatinModal && (
-          <div style={{ position: 'fixed', inset: 0, zIndex: 100000, display: 'flex', alignItems: 'center', justifyContent: 'center', backgroundColor: 'rgba(0,0,0,0.8)' }} onClick={() => setShowLatinModal(false)}>
+          <div style={{ position: 'fixed', inset: 0, zIndex: 100000, display: 'flex', alignItems: 'center', justifyContent: 'center', backgroundColor: 'rgba(0,0,0,0.8)' }} onClick={() => {
+            if (Date.now() - latinOpenTime.current > 500) setShowLatinModal(false);
+          }}>
             <div style={{ background: '#fff', padding: '20px', borderRadius: '12px', textAlign: 'center' }} onClick={e => e.stopPropagation()}>
               <h2>라틴 영어 모달 렌더링 확인</h2>
-              <button onClick={() => setShowLatinModal(false)} style={{ marginTop: '15px', padding: '10px 20px', border: 'none', background: '#3b82f6', color: '#fff', borderRadius: '8px', cursor: 'pointer', fontWeight: 'bold' }}>닫기</button>
+              <button onClick={() => {
+                if (Date.now() - latinOpenTime.current > 500) setShowLatinModal(false);
+              }} style={{ marginTop: '15px', padding: '10px 20px', border: 'none', background: '#3b82f6', color: '#fff', borderRadius: '8px', cursor: 'pointer', fontWeight: 'bold' }}>닫기</button>
             </div>
           </div>
         )}
