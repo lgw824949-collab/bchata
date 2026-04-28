@@ -167,28 +167,50 @@ function App() {
         }} />}
       </AnimatePresence>
 
-      <AnimatePresence>
-        {showWeather && (
-          <WeatherModal onClose={() => {
-            if (Date.now() - weatherOpenTime.current > 500) setShowWeather(false);
-          }} />
-        )}
-      </AnimatePresence>
+{showWeather && (
+  <WeatherModal onClose={() => setShowWeather(false)} />
+)}
 
-      <AnimatePresence>
-        {showLatinModal && (
-          <div style={{ position: 'fixed', inset: 0, zIndex: 100000, display: 'flex', alignItems: 'center', justifyContent: 'center', backgroundColor: 'rgba(0,0,0,0.8)' }} onClick={() => {
-            if (Date.now() - latinOpenTime.current > 500) setShowLatinModal(false);
-          }}>
-            <div style={{ background: '#fff', padding: '20px', borderRadius: '12px', textAlign: 'center' }} onClick={e => e.stopPropagation()}>
-              <h2>라틴 영어 모달 렌더링 확인</h2>
-              <button onClick={() => {
-                if (Date.now() - latinOpenTime.current > 500) setShowLatinModal(false);
-              }} style={{ marginTop: '15px', padding: '10px 20px', border: 'none', background: '#3b82f6', color: '#fff', borderRadius: '8px', cursor: 'pointer', fontWeight: 'bold' }}>닫기</button>
-            </div>
+{showLatinModal && (
+  <>
+    <motion.div
+      initial={{ opacity:0 }} animate={{ opacity:1 }} exit={{ opacity:0 }}
+      onClick={() => setShowLatinModal(false)}
+      style={{ position:'fixed', inset:0, background:'rgba(0,0,0,0.5)', zIndex:10008 }}
+    />
+    <motion.div
+      initial={{ y:'100%' }} animate={{ y:0 }} exit={{ y:'100%' }}
+      style={{ position:'fixed', bottom:0, left:0, width:'100%', height:'80vh', background:'#fff', zIndex:10009, borderRadius:'20px 20px 0 0', display:'flex', flexDirection:'column' }}
+    >
+      <div style={{ padding:'20px', display:'flex', justifyContent:'space-between', alignItems:'center', borderBottom:'1px solid #eee' }}>
+        <span style={{ fontSize:'20px', fontWeight:900 }}>라틴 영어 100</span>
+        <button onClick={() => setShowLatinModal(false)} style={{ background:'none', border:'none', fontSize:'20px', cursor:'pointer' }}>✕</button>
+      </div>
+      <div style={{ display:'flex', overflowX:'auto', gap:'10px', padding:'15px', borderBottom:'1px solid #f5f5f5' }}>
+        {CATS_LATIN.map(c => (
+          <button key={c} onClick={() => { setLatinCat(c); setSelPatternId(null); }}
+            style={{ padding:'8px 16px', borderRadius:'20px', whiteSpace:'nowrap', background: c === latinCat ? '#FF3B30' : '#f3f4f6', color: c === latinCat ? '#fff' : '#666', border:'none', fontWeight:700, cursor:'pointer' }}>
+            {c}
+          </button>
+        ))}
+      </div>
+      <div style={{ flex:1, overflowY:'auto', padding:'20px' }}>
+        {PATTERNS.filter(p => p.cat === latinCat).map(p => (
+          <div key={p.n} onClick={() => setSelPatternId(selPatternId === p.n ? null : p.n)}
+            style={{ padding:'16px', borderRadius:'12px', background:'#f9f9f9', marginBottom:'12px', cursor:'pointer' }}>
+            <div style={{ fontSize:'16px', fontWeight:800, color:'#FF3B30', marginBottom:'4px' }}>"{p.en.replace(/\d+\.\s?/g, '').replace(/\s*\/\s*/g, ' ')}"</div>
+            <div style={{ fontSize:'14px', color:'#333', fontWeight:600 }}>{p.kr}</div>
+            {selPatternId === p.n && (
+              <div style={{ marginTop:'12px', fontSize:'13px', color:'#666', padding:'10px', background:'#fff', borderRadius:'8px' }}>
+                Example: {p.ex}
+              </div>
+            )}
           </div>
-        )}
-      </AnimatePresence>
+        ))}
+      </div>
+    </motion.div>
+  </>
+)}
       
       {selectedPoster && (
         <div 
