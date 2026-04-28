@@ -638,33 +638,6 @@ const HomePage = ({
                                 minWidth: 0,
                                 flex: 1
                               }}>
-                                {/* 🏢 BAR 이름/로고 (클릭시 카카오맵) - 복구 */}
-                                <div 
-                                  onClick={(e) => {
-                                    e.stopPropagation();
-                                    const address = item.address || item.locationName;
-                                    window.open(`https://map.kakao.com/link/search/${encodeURIComponent(address)}`, '_blank');
-                                  }}
-                                  style={{ 
-                                    display: 'flex', alignItems: 'center', gap: '4px',
-                                    marginBottom: '6px', cursor: 'pointer'
-                                  }}
-                                >
-                                  <div style={{ 
-                                    width: '18px', height: '18px', borderRadius: '4px', 
-                                    background: '#2563EB', display: 'flex', alignItems: 'center', 
-                                    justifyContent: 'center', color: '#fff' 
-                                  }}>
-                                    <MapPin size={12} />
-                                  </div>
-                                  <span style={{ 
-                                    fontSize: '13px', fontWeight: '900', color: '#2563EB',
-                                    whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis'
-                                  }}>
-                                    {item.locationName}
-                                  </span>
-                                </div>
-
                                 {/* 1. 타이틀 (무조건 2줄) */}
                                 <div style={{ 
                                   fontSize: '15px', fontWeight: '900', color: '#111827', 
