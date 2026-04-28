@@ -60,7 +60,7 @@ const DynamicAnalysisModal = ({ isOpen, onClose, userCoords, isSajuCall }) => {
       });
       setTargetDest(nearest);
       const d = calculateDistance(lat, lon, nearest.lat, nearest.lon);
-      setTracker({ distance: d.toFixed(1), duration: Math.ceil(d * 7) + 2 });
+      setTracker({ distance: d.toFixed(1), duration: Math.ceil(d * 10) + 5 });
     };
     if (userCoords) findTarget(userCoords.lat, userCoords.lon);
     else if (navigator.geolocation) {
@@ -80,20 +80,20 @@ const DynamicAnalysisModal = ({ isOpen, onClose, userCoords, isSajuCall }) => {
   const isIncheon = targetDest.region === '인천' && isSajuCall;
 
   return (
-    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} style={{ position: 'fixed', inset: 0, zIndex: 1000000, backgroundColor: 'rgba(0,0,0,0.85)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px' }} onClick={onClose}>
-      <motion.div initial={{ scale: 0.95, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} onClick={(e) => e.stopPropagation()} style={{ width: '100%', maxWidth: '420px', background: isIncheon ? '#0f172a' : '#fff', borderRadius: '35px', padding: '40px 30px', boxShadow: '0 50px 100px rgba(0,0,0,0.7)', color: isIncheon ? '#fff' : '#000' }}>
+    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} style={{ position: 'fixed', inset: 0, zIndex: 1000000, backgroundColor: 'rgba(0,0,0,0.4)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px' }} onClick={onClose}>
+      <motion.div initial={{ scale: 0.95, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} onClick={(e) => e.stopPropagation()} style={{ width: '100%', maxWidth: '420px', background: '#FFFFFF', borderRadius: '35px', padding: '40px 30px', boxShadow: '0 50px 100px rgba(0,0,0,0.1)', color: '#1E293B' }}>
         {!amguho ? (
           <>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '35px' }}><div style={{ background: '#3b82f6', color: '#fff', padding: '8px 16px', borderRadius: '50px', fontSize: '11px', fontWeight: '900' }}>REALTIME GPS</div><X size={24} onClick={onClose} style={{ cursor: 'pointer' }} /></div>
-            <h2 style={{ fontSize: '26px', fontWeight: '1000', marginBottom: '30px' }}>{isIncheon ? '성지 상륙 분석' : '최단 경로 최적화'} 🛰️<br/><span style={{ color: '#3b82f6' }}>{targetDest.name}</span></h2>
-            <div style={{ padding: '30px', background: 'rgba(128,128,128,0.1)', borderRadius: '30px', display: 'flex', gap: '20px', marginBottom: '30px' }}>
-              <div style={{ flex: 1 }}><p style={{ opacity: 0.5, fontSize: '12px' }}>실제 거리</p><p style={{ fontSize: '26px', fontWeight: '1000', color: '#3b82f6' }}>{tracker.distance}km</p></div>
-              <div style={{ flex: 1 }}><p style={{ opacity: 0.5, fontSize: '12px' }}>예상 소요</p><p style={{ fontSize: '26px', fontWeight: '1000' }}>{tracker.duration}분</p></div>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '35px' }}><div style={{ background: '#E53935', color: '#fff', padding: '8px 16px', borderRadius: '50px', fontSize: '11px', fontWeight: '900' }}>REALTIME GPS</div><X size={24} onClick={onClose} style={{ cursor: 'pointer', color: '#64748B' }} /></div>
+            <h2 style={{ fontSize: '26px', fontWeight: '1000', marginBottom: '30px', color: '#1E293B' }}>{isIncheon ? '성지 상륙 분석' : '최단 경로 최적화'} 🛰️<br/><span style={{ color: '#E53935' }}>{targetDest.name}</span></h2>
+            <div style={{ padding: '30px', background: '#F8FAFC', borderRadius: '30px', display: 'flex', gap: '20px', marginBottom: '30px', border: '1px solid #E2E8F0' }}>
+              <div style={{ flex: 1 }}><p style={{ color: '#64748B', fontSize: '12px' }}>실제 거리</p><p style={{ fontSize: '26px', fontWeight: '1000', color: '#E53935' }}>{tracker.distance}km</p></div>
+              <div style={{ flex: 1 }}><p style={{ color: '#64748B', fontSize: '12px' }}>예상 소요</p><p style={{ fontSize: '26px', fontWeight: '1000', color: '#1E293B' }}>{tracker.duration}분</p></div>
             </div>
-            <button onClick={() => isIncheon ? setAmguho(naturalIncheonDB[0]) : onClose()} style={{ width: '100%', padding: '22px', borderRadius: '25px', background: '#111', color: '#fff', border: 'none', fontSize: '18px', fontWeight: '1000' }}>{isIncheon ? '암구호 수신하기' : '확인 완료'}</button>
+            <button onClick={() => isIncheon ? setAmguho(naturalIncheonDB[0]) : onClose()} style={{ width: '100%', padding: '22px', borderRadius: '25px', background: '#E53935', color: '#fff', border: 'none', fontSize: '18px', fontWeight: '1000', boxShadow: '0 10px 20px rgba(229, 57, 53, 0.2)' }}>{isIncheon ? '암구호 수신하기' : '확인 완료'}</button>
           </>
         ) : (
-          <div style={{ textAlign: 'center' }}><h3 style={{ fontSize: '22px', fontWeight: '1000', marginBottom: '30px' }}>성지 암구호</h3><div style={{ background: 'rgba(59, 130, 246, 0.1)', padding: '30px', borderRadius: '30px', border: '2px solid #3b82f6', marginBottom: '30px' }}><p style={{ color: '#60a5fa' }}>Q: {amguho.q}</p><p style={{ fontSize: '20px', fontWeight: '1000', marginTop: '10px' }}>A: {amguho.a}</p></div><button onClick={onClose} style={{ width: '100%', padding: '20px', borderRadius: '20px', background: '#fff', color: '#0f172a', fontWeight: '1000' }}>작전 시작</button></div>
+          <div style={{ textAlign: 'center' }}><h3 style={{ fontSize: '22px', fontWeight: '1000', marginBottom: '30px', color: '#1E293B' }}>성지 암구호</h3><div style={{ background: '#FFEBEE', padding: '30px', borderRadius: '30px', border: '2px solid #E53935', marginBottom: '30px' }}><p style={{ color: '#E53935', fontWeight: '700' }}>Q: {amguho.q}</p><p style={{ fontSize: '20px', fontWeight: '1000', marginTop: '10px', color: '#1E293B' }}>A: {amguho.a}</p></div><button onClick={onClose} style={{ width: '100%', padding: '20px', borderRadius: '20px', background: '#E53935', color: '#FFFFFF', fontWeight: '1000', border: 'none' }}>작전 시작</button></div>
         )}
       </motion.div>
     </motion.div>
@@ -102,14 +102,14 @@ const DynamicAnalysisModal = ({ isOpen, onClose, userCoords, isSajuCall }) => {
 
 const IncheonPremiumBanner = ({ onClick }) => (
   <div style={{ padding: '0 16px', margin: '15px 0' }}>
-    <div onClick={(e) => { e.stopPropagation(); onClick(); }} style={{ background: 'rgba(15, 23, 42, 0.95)', backdropFilter: 'blur(25px)', borderRadius: '24px', padding: '16px 20px', border: '1px solid rgba(255, 255, 255, 0.1)', boxShadow: '0 15px 40px rgba(0,0,0,0.4)', cursor: 'pointer' }}>
+    <div onClick={(e) => { e.stopPropagation(); onClick(); }} style={{ background: '#FFFFFF', borderRadius: '24px', padding: '16px 20px', border: '1px solid #E2E8F0', boxShadow: '0 15px 40px rgba(0,0,0,0.05)', cursor: 'pointer' }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
         <div>
-          <div style={{ background: '#3b82f6', color: '#fff', fontSize: '9px', fontWeight: '900', padding: '4px 10px', borderRadius: '50px', marginBottom: '8px', display: 'inline-block' }}>NATIONWIDE LIVE</div>
-          <h3 style={{ color: '#fff', fontSize: '18px', fontWeight: '900', margin: '0 0 4px 0' }}>지능형 경로 최적화 서비스 🛰️</h3>
-          <p style={{ color: 'rgba(255, 255, 255, 0.8)', fontSize: '12px', margin: 0 }}>현재 위치 기반 최단 거리 성지 탐색 중 →</p>
+          <div style={{ background: '#E53935', color: '#fff', fontSize: '9px', fontWeight: '900', padding: '4px 10px', borderRadius: '50px', marginBottom: '8px', display: 'inline-block' }}>NATIONWIDE LIVE</div>
+          <h3 style={{ color: '#1E293B', fontSize: '18px', fontWeight: '900', margin: '0 0 4px 0' }}>지능형 경로 최적화 서비스 🛰️</h3>
+          <p style={{ color: '#64748B', fontSize: '12px', margin: 0 }}>현재 위치 기반 최단 거리 성지 탐색 중 →</p>
         </div>
-        <div style={{ background: 'rgba(59, 130, 246, 0.2)', padding: '12px', borderRadius: '18px', color: '#60a5fa' }}><Navigation size={20} /></div>
+        <div style={{ background: '#FFEBEE', padding: '12px', borderRadius: '18px', color: '#E53935' }}><Navigation size={20} /></div>
       </div>
     </div>
   </div>
@@ -270,7 +270,7 @@ const LatinModal = ({ isOpen, onClose }) => {
   return (
     <div style={{ width: '100%', maxWidth: '500px', margin: '0 auto', background: '#fff', minHeight: '100vh' }}>
       <AnimatePresence>{showSplash && <motion.div exit={{ opacity: 0 }} style={{ position: 'fixed', inset: 0, zIndex: 999999, backgroundColor: '#000', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><motion.img src="/logo.png" initial={{ scale: 0.8, opacity: 0 }} animate={{ scale: 1.2, opacity: 1 }} style={{ width: '200px' }} /></motion.div>}</AnimatePresence>
-      <AnimatePresence>{isAnalyzing && <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} style={{ position: 'fixed', inset: 0, zIndex: 1000000, background: 'rgba(0,0,0,0.9)', backdropFilter: 'blur(30px)', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}><motion.div animate={{ rotate: 360 }} transition={{ duration: 1, repeat: Infinity, ease: 'linear' }} style={{ width: '60px', height: '60px', border: '4px solid rgba(59,130,246,0.2)', borderTop: '4px solid #3b82f6', borderRadius: '50%', marginBottom: '20px' }} /><h2 style={{ color: '#fff', fontSize: '20px', fontWeight: '900' }}>실시간 지능형 분석 중...</h2></motion.div>}</AnimatePresence>
+      <AnimatePresence>{isAnalyzing && <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} style={{ position: 'fixed', inset: 0, zIndex: 1000000, background: 'rgba(255,255,255,0.9)', backdropFilter: 'blur(30px)', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}><motion.div animate={{ rotate: 360 }} transition={{ duration: 1, repeat: Infinity, ease: 'linear' }} style={{ width: '60px', height: '60px', border: '4px solid #FFEBEE', borderTop: '4px solid #E53935', borderRadius: '50%', marginBottom: '20px' }} /><h2 style={{ color: '#1E293B', fontSize: '20px', fontWeight: '900' }}>실시간 지능형 분석 중...</h2></motion.div>}</AnimatePresence>
 
       {/* 햄버거 버튼 */}
       {!isMenuOpen && (
@@ -285,7 +285,7 @@ const LatinModal = ({ isOpen, onClose }) => {
             display: 'flex', alignItems: 'center', justifyContent: 'center'
           }}
         >
-          <Menu size={24} color="#111827" />
+          <Menu size={24} color="#E53935" />
         </motion.button>
       )}
 
@@ -299,11 +299,12 @@ const LatinModal = ({ isOpen, onClose }) => {
             transition={{ type: 'spring', damping: 25, stiffness: 200 }}
             style={{
               position: 'fixed', top: 0, bottom: 0, right: 0,
-              width: '66vw', maxWidth: '300px',
+              width: '75vw', maxWidth: '320px',
               zIndex: 1000000,
-              background: '#0F172A', padding: '24px',
+              background: '#FFFFFF', padding: '24px',
               display: 'flex', flexDirection: 'column',
-              overflowY: 'auto'
+              overflowY: 'auto',
+              borderLeft: '1px solid #E2E8F0'
             }}
           >
             {/* Header */}
@@ -311,33 +312,33 @@ const LatinModal = ({ isOpen, onClose }) => {
               <motion.button 
                 whileTap={{ scale: 0.9 }}
                 onClick={() => setIsMenuOpen(false)}
-                style={{ background: '#1E293B', border: 'none', borderRadius: '12px', padding: '10px', color: '#fff', cursor: 'pointer' }}
+                style={{ background: '#F8FAFC', border: '1px solid #E2E8F0', borderRadius: '12px', padding: '10px', color: '#E53935', cursor: 'pointer' }}
               >
                 <X size={24} />
               </motion.button>
             </div>
 
             <div style={{ marginBottom: '40px' }}>
-              <h2 style={{ color: '#F1F5F9', fontSize: '24px', fontWeight: 900, margin: 0 }}>Premium Services</h2>
+              <h2 style={{ color: '#1E293B', fontSize: '24px', fontWeight: 900, margin: 0 }}>Premium Services</h2>
               <p style={{ color: '#64748B', fontSize: '14px', marginTop: '4px' }}>지능형 댄스 라이프 플랫폼</p>
             </div>
 
             <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
               {[
-                { icon: <Utensils color="#F59E0B" />, text: "뒷풀이 맛집", action: () => { alert('준비 중') } },
-                { icon: <Star color="#8B5CF6" />, text: "댄스 사주", action: () => { if(typeof setShowSaju === 'function') { setShowSaju(true); setIsMenuOpen(false); } } },
-                { icon: <MessageSquare color="#10B981" />, text: "라틴 영어", action: () => { if(typeof setShowLatinModal === 'function') { setShowLatinModal(true); setIsMenuOpen(false); } } },
-                { icon: <CloudSun color="#3B82F6" />, text: "오늘 날씨", action: () => { if(typeof setShowWeather === 'function') { setView('home'); setShowWeather(true); setIsMenuOpen(false); } } },
-                { icon: <Bell color="#EF4444" />, text: "공지사항", action: () => { alert('준비 중') } }
+                { icon: <Utensils color="#E53935" />, text: "뒷풀이 맛집", action: () => { alert('준비 중') } },
+                { icon: <Star color="#E53935" />, text: "댄스 사주", action: () => { if(typeof setShowSaju === 'function') { setShowSaju(true); setIsMenuOpen(false); } } },
+                { icon: <MessageSquare color="#E53935" />, text: "라틴 영어", action: () => { if(typeof setShowLatinModal === 'function') { setShowLatinModal(true); setIsMenuOpen(false); } } },
+                { icon: <CloudSun color="#E53935" />, text: "오늘 날씨", action: () => { if(typeof setShowWeather === 'function') { setView('home'); setShowWeather(true); setIsMenuOpen(false); } } },
+                { icon: <Bell color="#E53935" />, text: "공지사항", action: () => { alert('준비 중') } }
               ].map((item, idx) => (
                 <motion.div
                   key={idx}
-                  whileHover={{ scale: 1.02, backgroundColor: '#2D3748' }}
+                  whileHover={{ scale: 1.02, backgroundColor: '#FFEBEE' }}
                   whileTap={{ scale: 0.98 }}
                   onClick={item.action}
                   style={{
-                    background: '#1E293B',
-                    border: '1px solid #334155',
+                    background: '#FFFFFF',
+                    border: '1px solid #E2E8F0',
                     borderRadius: '12px',
                     padding: '16px 20px',
                     display: 'flex',
@@ -350,13 +351,13 @@ const LatinModal = ({ isOpen, onClose }) => {
                   <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                     {item.icon}
                   </div>
-                  <span style={{ color: '#F1F5F9', fontSize: '15px', fontWeight: 800 }}>{item.text}</span>
+                  <span style={{ color: '#1E293B', fontSize: '15px', fontWeight: 800 }}>{item.text}</span>
                 </motion.div>
               ))}
             </div>
 
             <div style={{ marginTop: 'auto', paddingTop: '40px', textAlign: 'center' }}>
-              <p style={{ color: '#475569', fontSize: '12px' }}>© 2026 BAMPPA All Rights Reserved.</p>
+              <p style={{ color: '#94A3B8', fontSize: '12px' }}>© 2026 BAMPPA All Rights Reserved.</p>
             </div>
           </motion.div>
         )}
@@ -408,7 +409,7 @@ const LatinModal = ({ isOpen, onClose }) => {
           className={`nav-item ${view === 'home' ? 'active' : ''}`} 
           onClick={() => { setView('home'); window.scrollTo(0,0); }}
         >
-          <HomeIcon size={24} color={view === 'home' ? '#111827' : '#9CA3AF'} strokeWidth={view === 'home' ? 3 : 2} />
+          <HomeIcon size={24} color={view === 'home' ? '#E53935' : '#94A3B8'} strokeWidth={view === 'home' ? 3 : 2} />
           <span>소셜/파티</span>
         </div>
 
@@ -416,7 +417,7 @@ const LatinModal = ({ isOpen, onClose }) => {
           className={`nav-item ${view === 'likes' ? 'active' : ''}`} 
           onClick={() => { setView('likes'); window.scrollTo(0,0); }}
         >
-          <Heart size={24} color={view === 'likes' ? '#FF4B4B' : '#9CA3AF'} strokeWidth={view === 'likes' ? 3 : 2} fill={view === 'likes' ? '#FF4B4B' : 'none'} />
+          <Heart size={24} color={view === 'likes' ? '#E53935' : '#94A3B8'} strokeWidth={view === 'likes' ? 3 : 2} fill={view === 'likes' ? '#E53935' : 'none'} />
           <span>찜</span>
         </div>
 
@@ -427,7 +428,7 @@ const LatinModal = ({ isOpen, onClose }) => {
             style={{
               width:'52px', height:'52px',
               borderRadius:'50%',
-              background:'#111827',
+              background:'#E53935',
               border:'none', color:'#fff',
               display:'flex', alignItems:'center',
               justifyContent:'center', cursor:'pointer',
@@ -441,7 +442,7 @@ const LatinModal = ({ isOpen, onClose }) => {
           >
             <Plus size={28} strokeWidth={3} />
           </motion.button>
-          <span style={{ pointerEvents: 'auto' }}>등록</span>
+          <span style={{ pointerEvents: 'auto', color: '#1E293B' }}>등록</span>
         </div>
 
 
@@ -450,7 +451,7 @@ const LatinModal = ({ isOpen, onClose }) => {
           className={`nav-item ${view === 'social' ? 'active' : ''}`} 
           onClick={() => { setView('social'); window.scrollTo(0,0); }}
         >
-          <Users size={24} color={view === 'social' ? '#FF8C00' : '#9CA3AF'} strokeWidth={view === 'social' ? 3 : 2} />
+          <Users size={24} color={view === 'social' ? '#E53935' : '#94A3B8'} strokeWidth={view === 'social' ? 3 : 2} />
           <span>수업/정보</span>
         </div>
 
@@ -458,7 +459,7 @@ const LatinModal = ({ isOpen, onClose }) => {
           className={`nav-item`} 
           onClick={() => { window.open('https://open.kakao.com/o/gP43rNri', '_blank'); }}
         >
-          <MessageSquare size={24} color="#9CA3AF" strokeWidth={2} />
+          <MessageSquare size={24} color="#94A3B8" strokeWidth={2} />
           <span>실시간톡</span>
         </div>
       </nav>
