@@ -4,6 +4,46 @@
 
 import { useState } from 'react'
 import { X, ChevronDown } from 'lucide-react'
+import { BAR_DATABASE } from '../lib/BarLib'
+
+// ─── 거리 계산 (Haversine Formula) ───
+const getDistance = (lat1, lon1, lat2, lon2) => {
+  const R = 6371 // 지구 반지름 (km)
+  const dLat = (lat2 - lat1) * Math.PI / 180
+  const dLon = (lon2 - lon1) * Math.PI / 180
+  const a = Math.sin(dLat / 2) ** 2 +
+    Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * Math.sin(dLon / 2) ** 2
+  return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a))
+}
+
+// ─── 카카오 Geocoding (주소 → 좌표) ───
+const geocodeAddress = async (address) => {
+  try {
+    const response = await fetch(`https://dapi.kakao.com/v2/local/search/address.json?query=${encodeURIComponent(address)}`, {
+      headers: { Authorization: `KakaoAK ${import.meta.env.VITE_KAKAO_API_KEY}` }
+    })
+    const data = await response.json()
+    if (data.documents && data.documents.length > 0) {
+      return { 
+        lat: parseFloat(data.documents[0].y), 
+        lon: parseFloat(data.documents[0].x) 
+      }
+    }
+  } catch (e) {
+    console.error('Geocoding failed:', e)
+  }
+  return null
+}
+
+// ─── 바 장르 매핑 (Heuristic) ───
+const matchesGenre = (barName, genre) => {
+  const name = barName.toLowerCase()
+  if (genre === '살사') return name.includes('살사') || name.includes('턴') || name.includes('보니따') || name.includes('까리베') || name.includes('맘보') || name.includes('라틴')
+  if (genre === '바차타') return name.includes('바차타') || name.includes('엘마르') || name.includes('센슈얼') || name.includes('바바루') || name.includes('보니따')
+  if (genre === '주크바차타') return name.includes('주크') || name.includes('바차타')
+  if (genre === '키좀바') return name.includes('키좀바')
+  return true
+}
 
 // ─── 천간 ───
 const CHUN_GAN       = ['갑','을','병','정','무','기','경','신','임','계']
@@ -114,28 +154,81 @@ export default function SajuModal({ onClose, parties=[] }) {
 
   const isValid = gender && year && month && day && timeIdx !== ''
 
-  const analyze = () => {
+  const analyze = async () => {
     if (!isValid) return
     setLoading(true)
-    setTimeout(() => {
-      const y=parseInt(year), m=parseInt(month), d=parseInt(day), t=parseInt(timeIdx)
-      const yGJ = getYearGanJi(y)
-      const mGJ = getMonthJi(m)
-      const dGJ = getDayGanJi(y,m,d)
-      const tGJ = { gan:'', ji:JI_JI[t], ganOheng:'', jiOheng:JI_JI_OHENG[t], emoji:'🕐' }
-      const { count, main } = calcOheng([yGJ,mGJ,dGJ,tGJ])
-      const dance = OHENG_DANCE[main]
-      const bars = parties.filter(p => {
+
+    // 1. 기본 정보 계산
+    const y=parseInt(year), m=parseInt(month), d=parseInt(day), t=parseInt(timeIdx)
+    const yGJ = getYearGanJi(y)
+    const mGJ = getMonthJi(m)
+    const dGJ = getDayGanJi(y,m,d)
+    const tGJ = { gan:'', ji:JI_JI[t], ganOheng:'', jiOheng:JI_JI_OHENG[t], emoji:'🕐' }
+    const { count, main } = calcOheng([yGJ,mGJ,dGJ,tGJ])
+    const dance = OHENG_DANCE[main]
+
+    let recommendedBars = []
+    let useGps = false
+
+    // 2. GPS 기반 추천 시도 (1순위)
+    if (navigator.geolocation) {
+      try {
+        const position = await new Promise((resolve, reject) => {
+          navigator.geolocation.getCurrentPosition(resolve, reject, { timeout: 5000 })
+        })
+        
+        const { latitude: userLat, longitude: userLon } = position.coords
+        
+        // 장르에 맞는 바 필터링
+        const candidates = BAR_DATABASE.filter(bar => matchesGenre(bar.name, dance.genre))
+        
+        // 좌표 변환 및 거리 계산
+        const barsWithDist = await Promise.all(candidates.map(async (bar) => {
+          const coords = await geocodeAddress(bar.address)
+          if (!coords) return null
+          const dist = getDistance(userLat, userLon, coords.lat, coords.lon)
+          return { ...bar, distance: dist }
+        }))
+        
+        recommendedBars = barsWithDist
+          .filter(b => b !== null)
+          .sort((a, b) => a.distance - b.distance)
+          .slice(0, 3)
+          .map(b => ({
+            title: b.name,
+            locationName: b.address.split(' ').slice(0, 2).join(' '), // 짧은 주소
+            distanceText: `내 위치 → ${b.name} ${b.distance.toFixed(1)}km (도보 ${Math.round(b.distance * 12)}분)`,
+            isGps: true
+          }))
+        
+        if (recommendedBars.length > 0) useGps = true
+      } catch (e) {
+        console.warn('GPS recommendation failed, falling back to parties:', e)
+      }
+    }
+
+    // 3. Fallback: 파티 데이터 기반 추천 (2순위)
+    if (!useGps) {
+      recommendedBars = parties.filter(p => {
         if (dance.genre==='살사')       return (p.s_ratio||0)>=5
         if (dance.genre==='바차타')     return (p.b_ratio||0)>=5
         if (dance.genre==='주크바차타') return (p.j_ratio||0)>=3
         if (dance.genre==='키좀바')     return (p.k_ratio||0)>=3
         return true
-      }).slice(0,3)
-      setResult({ yearGJ:yGJ, monthGJ:mGJ, dayGJ:dGJ, timeGJ:tGJ, ohengCount:count, mainOheng:main, dance, recommendedBars:bars, gender })
-      setLoading(false)
-      setStep(2)
-    }, 1500)
+      }).slice(0,3).map(p => ({
+        ...p,
+        distanceText: null,
+        isGps: false
+      }))
+    }
+
+    setResult({ 
+      yearGJ:yGJ, monthGJ:mGJ, dayGJ:dGJ, timeGJ:tGJ, 
+      ohengCount:count, mainOheng:main, dance, 
+      recommendedBars, gender 
+    })
+    setLoading(false)
+    setStep(2)
   }
 
   const reset = () => {
@@ -365,16 +458,18 @@ export default function SajuModal({ onClose, parties=[] }) {
                 <div style={{ display:'flex',flexDirection:'column',gap:8 }}>
                   {result.recommendedBars.map((bar,i)=>(
                     <div key={i} style={{ padding:'12px 14px',borderRadius:12,background:'#F8FAFC',border:'1px solid #E2E8F0',display:'flex',alignItems:'center',gap:10 }}>
-                      {bar.poster_url
-                        ? <img src={bar.poster_url} style={{ width:48,height:48,borderRadius:8,objectFit:'cover',flexShrink:0 }}/>
+                      {bar.poster_url || bar.isGps
+                        ? <img src={bar.poster_url || 'https://images.unsplash.com/photo-1514525253361-bee8718a300c?auto=format&fit=crop&q=80&w=100'} style={{ width:48,height:48,borderRadius:8,objectFit:'cover',flexShrink:0 }}/>
                         : <div style={{ width:48,height:48,borderRadius:8,background:result.dance.bg,display:'flex',alignItems:'center',justifyContent:'center',fontSize:20,flexShrink:0 }}>{result.dance.emoji}</div>
                       }
                       <div style={{ flex:1,minWidth:0 }}>
                         <div style={{ fontSize:14,fontWeight:700,color:'#1E293B' }}>{bar.title}</div>
-                        <div style={{ fontSize:12,color:'#94A3B8',marginTop:2 }}>{bar.locationName} · {bar.date}</div>
+                        <div style={{ fontSize:12,color:'#94A3B8',marginTop:2 }}>
+                          {bar.distanceText || `${bar.locationName} · ${bar.date}`}
+                        </div>
                       </div>
                       <span style={{ fontSize:11,padding:'3px 9px',borderRadius:99,background:result.dance.bg,color:result.dance.color,fontWeight:700,flexShrink:0,border:`1px solid ${result.dance.border}` }}>
-                        {result.dance.emoji} 추천
+                        {bar.isGps ? '📍 가장 가까움' : `${result.dance.emoji} 추천`}
                       </span>
                     </div>
                   ))}
