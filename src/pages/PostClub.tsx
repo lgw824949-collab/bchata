@@ -164,7 +164,7 @@ const PostClub = ({ onBack, onSuccess }) => {
 
   if (submitted) {
     return (
-      <div style={{ textAlign: 'center', padding: '100px 24px', backgroundColor: 'white', minHeight: '100vh', overflowY: 'auto' }}>
+      <div style={{ textAlign: 'center', padding: '100px 24px', backgroundColor: 'white', minHeight: '100vh' }}>
         <div style={{ backgroundColor: THEME_COLOR, width: '80px', height: '80px', borderRadius: '40px', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 32px', boxShadow: `0 10px 25px ${THEME_COLOR}33` }}><Check size={40} color="white" /></div>
         <h2 style={{ fontSize: '26px', fontWeight: 900, color: '#111827', marginBottom: '12px' }}>등록 신청 완료!</h2>
         <p style={{ fontSize: '16px', color: '#6B7280', lineHeight: '1.6', marginBottom: '40px', fontWeight: 500 }}>
@@ -193,7 +193,7 @@ const PostClub = ({ onBack, onSuccess }) => {
   })();
 
   return (
-    <div style={{ backgroundColor: '#fff', height: '100vh', overflowY: 'auto', paddingBottom: '100px', WebkitOverflowScrolling: 'touch' }}>
+    <div style={{ backgroundColor: '#fff', minHeight: '100vh', paddingBottom: '100px' }}>
       <div style={{ display: 'flex', alignItems: 'center', padding: '16px', borderBottom: '1px solid #F3F4F6', position: 'sticky', top: 0, backgroundColor: 'white', zIndex: 10 }}>
         <button onClick={onBack} style={{ border: 'none', background: 'none', cursor: 'pointer', padding: 0 }}><ChevronLeft size={24} /></button>
         <span style={{ fontSize: '18px', fontWeight: 800, marginLeft: '8px' }}>수업/정모 등록하기</span>
