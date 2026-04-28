@@ -511,38 +511,7 @@ const HomePage = ({
                 </div>
               )}
 
-              <div style={{
-                display:'flex', gap:'10px',
-                padding:'12px 20px',
-                overflowX:'auto',
-              }}>
-                <button
-                  onClick={() => setShowSaju(true)}
-                  style={{
-                    flex:1, padding:'14px',
-                    background:'linear-gradient(135deg, #0D47A1, #42A5F5)',
-                    color:'#fff', border:'none',
-                    borderRadius:'14px', fontSize:'14px',
-                    fontWeight:900, cursor:'pointer',
-                    boxShadow:'0 4px 12px rgba(13,71,161,0.3)',
-                  }}
-                >
-                  🔮 댄스 사주
-                </button>
-                <button
-                  onClick={() => setShowLatinModal(true)}
-                  style={{
-                    flex:1, padding:'14px',
-                    background:'linear-gradient(135deg, #B71C1C, #EF5350)',
-                    color:'#fff', border:'none',
-                    borderRadius:'14px', fontSize:'14px',
-                    fontWeight:900, cursor:'pointer',
-                    boxShadow:'0 4px 12px rgba(183,28,28,0.3)',
-                  }}
-                >
-                  🇬🇧 라틴 영어
-                </button>
-              </div>
+
 
               {/* 🛰️ [인천 특화] 프리미엄 큐레이션 배너 (HOT PICK 바로 아래 배치) */}
               {IncheonBanner && <IncheonBanner />}
