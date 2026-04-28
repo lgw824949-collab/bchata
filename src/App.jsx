@@ -155,6 +155,28 @@ function App() {
       <AnimatePresence>
         {showSaju && <SajuModal parties={parties} onClose={() => setShowSaju(false)} />}
       </AnimatePresence>
+
+      <AnimatePresence>
+        {showWeather && (
+          <div style={{ position: 'fixed', inset: 0, zIndex: 100000, display: 'flex', alignItems: 'center', justifyContent: 'center', backgroundColor: 'rgba(0,0,0,0.8)' }} onClick={() => setShowWeather(false)}>
+            <div style={{ background: '#fff', padding: '20px', borderRadius: '12px', textAlign: 'center' }} onClick={e => e.stopPropagation()}>
+              <h2>날씨 모달 렌더링 확인</h2>
+              <button onClick={() => setShowWeather(false)} style={{ marginTop: '15px', padding: '10px 20px', border: 'none', background: '#3b82f6', color: '#fff', borderRadius: '8px', cursor: 'pointer', fontWeight: 'bold' }}>닫기</button>
+            </div>
+          </div>
+        )}
+      </AnimatePresence>
+
+      <AnimatePresence>
+        {showLatinModal && (
+          <div style={{ position: 'fixed', inset: 0, zIndex: 100000, display: 'flex', alignItems: 'center', justifyContent: 'center', backgroundColor: 'rgba(0,0,0,0.8)' }} onClick={() => setShowLatinModal(false)}>
+            <div style={{ background: '#fff', padding: '20px', borderRadius: '12px', textAlign: 'center' }} onClick={e => e.stopPropagation()}>
+              <h2>라틴 영어 모달 렌더링 확인</h2>
+              <button onClick={() => setShowLatinModal(false)} style={{ marginTop: '15px', padding: '10px 20px', border: 'none', background: '#3b82f6', color: '#fff', borderRadius: '8px', cursor: 'pointer', fontWeight: 'bold' }}>닫기</button>
+            </div>
+          </div>
+        )}
+      </AnimatePresence>
       
       {selectedPoster && (
         <div 
