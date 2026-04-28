@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo, useRef } from 'react'
-import { Home as HomeIcon, Users, Plus, LogOut, Heart, X, MessageSquare, RefreshCw, CloudSun, Utensils, Zap, Languages, Bell, Star, Navigation, CreditCard, Settings, Map as MapIcon, BarChart, Gift, Coffee, User } from 'lucide-react'
+import { Home as HomeIcon, Users, Plus, LogOut, Heart, X, MessageSquare, RefreshCw, CloudSun, Utensils, Zap, Languages, Bell, Star, Navigation, CreditCard, Settings, Map as MapIcon, BarChart, Gift, Coffee, User, Menu } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { supabase, logActivity } from './lib/supabase'
 import RegisterForm from './RegisterForm'
@@ -142,6 +142,7 @@ function App() {
   const [showWeather, setShowWeather] = useState(false);
   const [showSaju, setShowSaju] = useState(false);
   const [showLatinModal, setShowLatinModal] = useState(false);
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
 
   useEffect(() => { setTimeout(() => setShowSplash(false), 2000); }, []);
 
@@ -187,6 +188,94 @@ function App() {
     <div style={{ width: '100%', maxWidth: '500px', margin: '0 auto', background: '#fff', minHeight: '100vh' }}>
       <AnimatePresence>{showSplash && <motion.div exit={{ opacity: 0 }} style={{ position: 'fixed', inset: 0, zIndex: 999999, backgroundColor: '#000', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><motion.img src="/logo.png" initial={{ scale: 0.8, opacity: 0 }} animate={{ scale: 1.2, opacity: 1 }} style={{ width: '200px' }} /></motion.div>}</AnimatePresence>
       <AnimatePresence>{isAnalyzing && <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} style={{ position: 'fixed', inset: 0, zIndex: 1000000, background: 'rgba(0,0,0,0.9)', backdropFilter: 'blur(30px)', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}><motion.div animate={{ rotate: 360 }} transition={{ duration: 1, repeat: Infinity, ease: 'linear' }} style={{ width: '60px', height: '60px', border: '4px solid rgba(59,130,246,0.2)', borderTop: '4px solid #3b82f6', borderRadius: '50%', marginBottom: '20px' }} /><h2 style={{ color: '#fff', fontSize: '20px', fontWeight: '900' }}>실시간 지능형 분석 중...</h2></motion.div>}</AnimatePresence>
+
+      {/* 햄버거 버튼 */}
+      {!isMenuOpen && (
+        <motion.button 
+          whileTap={{ scale: 0.9 }}
+          onClick={() => setIsMenuOpen(true)}
+          style={{ 
+            position: 'fixed', top: '20px', right: '20px', zIndex: 1000,
+            background: 'rgba(255,255,255,0.95)', backdropFilter: 'blur(10px)',
+            border: 'none', borderRadius: '12px', padding: '10px',
+            boxShadow: '0 4px 15px rgba(0,0,0,0.1)', cursor: 'pointer',
+            display: 'flex', alignItems: 'center', justifyContent: 'center'
+          }}
+        >
+          <Menu size={24} color="#111827" />
+        </motion.button>
+      )}
+
+      {/* 프리미엄 햄버거 메뉴 */}
+      <AnimatePresence>
+        {isMenuOpen && (
+          <motion.div
+            initial={{ x: '100%' }}
+            animate={{ x: 0 }}
+            exit={{ x: '100%' }}
+            transition={{ type: 'spring', damping: 25, stiffness: 200 }}
+            style={{
+              position: 'fixed', inset: 0, zIndex: 1000000,
+              background: '#0F172A', padding: '24px',
+              display: 'flex', flexDirection: 'column',
+              overflowY: 'auto'
+            }}
+          >
+            {/* Header */}
+            <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: '32px' }}>
+              <motion.button 
+                whileTap={{ scale: 0.9 }}
+                onClick={() => setIsMenuOpen(false)}
+                style={{ background: '#1E293B', border: 'none', borderRadius: '12px', padding: '10px', color: '#fff', cursor: 'pointer' }}
+              >
+                <X size={24} />
+              </motion.button>
+            </div>
+
+            <div style={{ marginBottom: '40px' }}>
+              <h2 style={{ color: '#F1F5F9', fontSize: '24px', fontWeight: 900, margin: 0 }}>Premium Services</h2>
+              <p style={{ color: '#64748B', fontSize: '14px', marginTop: '4px' }}>지능형 댄스 라이프 플랫폼</p>
+            </div>
+
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+              {[
+                { icon: <Utensils color="#F59E0B" />, text: "뒷풀이 맛집", action: () => alert('준비 중') },
+                { icon: <Star color="#8B5CF6" />, text: "댄스 사주", action: () => { setShowSaju(true); setIsMenuOpen(false); } },
+                { icon: <MessageSquare color="#10B981" />, text: "라틴 영어", action: () => { setShowLatinModal(true); setIsMenuOpen(false); } },
+                { icon: <CloudSun color="#3B82F6" />, text: "오늘 날씨", action: () => { setShowWeather(true); setIsMenuOpen(false); } },
+                { icon: <Bell color="#EF4444" />, text: "공지사항", action: () => alert('준비 중') }
+              ].map((item, idx) => (
+                <motion.div
+                  key={idx}
+                  whileHover={{ scale: 1.02, backgroundColor: '#2D3748' }}
+                  whileTap={{ scale: 0.98 }}
+                  onClick={item.action}
+                  style={{
+                    background: '#1E293B',
+                    border: '1px solid #334155',
+                    borderRadius: '12px',
+                    padding: '16px 20px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '16px',
+                    cursor: 'pointer',
+                    transition: 'background-color 0.2s'
+                  }}
+                >
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                    {item.icon}
+                  </div>
+                  <span style={{ color: '#F1F5F9', fontSize: '15px', fontWeight: 800 }}>{item.text}</span>
+                </motion.div>
+              ))}
+            </div>
+
+            <div style={{ marginTop: 'auto', paddingTop: '40px', textAlign: 'center' }}>
+              <p style={{ color: '#475569', fontSize: '12px' }}>© 2026 BAMPPA All Rights Reserved.</p>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       <main>
         {view === 'home' || view === 'likes' ? <HomePage {...sharedProps} /> : 
