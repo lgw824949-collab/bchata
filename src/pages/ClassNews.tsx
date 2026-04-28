@@ -360,7 +360,7 @@ const ClassNewsPage = ({
                                                       now.getDate() === partyDate.getDate();
                                       
                                       if (isToday) {
-                                        const startTimeStr = item.time?.split('-')[0].trim() || '20:00';
+                                        const startTimeStr = (item.time || '').split('-')[0].trim() || '20:00';
                                         const [hours, minutes] = startTimeStr.split(':').map(Number);
                                         const partyStartTime = new Date(partyDate);
                                         partyStartTime.setHours(hours, minutes, 0);
@@ -400,7 +400,7 @@ const ClassNewsPage = ({
                                         })()}
                                       </span>
                                       <span>·</span>
-                                      <span style={{ color: '#2563EB', fontWeight: 'bold' }}>{item.time?.split('-')[0] || '20:00'}</span>
+                                      <span style={{ color: '#2563EB', fontWeight: 'bold' }}>{(item.time || '').split('-')[0] || '20:00'}</span>
                                       <span>·</span>
                                       <span 
                                         onClick={(e) => {

@@ -666,7 +666,7 @@ const HomePage = ({
                                   </div>
                                   <div style={{ fontSize: '14px', fontWeight: '900', color: '#111', lineHeight: '1.3', marginBottom: '8px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{item.title}</div>
                                   <div style={{ fontSize: '11px', color: '#64748B', fontWeight: '700' }}>
-                                    {item.time?.split('-')[0]} · {formatFee(item.entry_fee || '1.2만')}
+                                    {(item.time || '').split('-')[0]} · {formatFee(item.entry_fee || '1.2만')}
                                   </div>
                                 </div>
                               </div>
