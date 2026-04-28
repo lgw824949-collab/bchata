@@ -239,11 +239,11 @@ function App() {
 
             <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
               {[
-                { icon: <Utensils color="#F59E0B" />, text: "뒷풀이 맛집", action: () => alert('준비 중') },
-                { icon: <Star color="#8B5CF6" />, text: "댄스 사주", action: () => { setShowSaju(true); setIsMenuOpen(false); } },
-                { icon: <MessageSquare color="#10B981" />, text: "라틴 영어", action: () => { setShowLatinModal(true); setIsMenuOpen(false); } },
-                { icon: <CloudSun color="#3B82F6" />, text: "오늘 날씨", action: () => { setShowWeather(true); setIsMenuOpen(false); } },
-                { icon: <Bell color="#EF4444" />, text: "공지사항", action: () => alert('준비 중') }
+                { icon: <Utensils color="#F59E0B" />, text: "뒷풀이 맛집", action: () => { alert('준비 중') } },
+                { icon: <Star color="#8B5CF6" />, text: "댄스 사주", action: () => { if(typeof setShowSaju === 'function') { setShowSaju(true); setIsMenuOpen(false); } } },
+                { icon: <MessageSquare color="#10B981" />, text: "라틴 영어", action: () => { if(typeof setShowLatinModal === 'function') { setShowLatinModal(true); setIsMenuOpen(false); } } },
+                { icon: <CloudSun color="#3B82F6" />, text: "오늘 날씨", action: () => { if(typeof setShowWeather === 'function') { setView('home'); setShowWeather(true); setIsMenuOpen(false); } } },
+                { icon: <Bell color="#EF4444" />, text: "공지사항", action: () => { alert('준비 중') } }
               ].map((item, idx) => (
                 <motion.div
                   key={idx}
