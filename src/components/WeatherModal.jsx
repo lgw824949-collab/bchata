@@ -108,7 +108,8 @@ export default function WeatherModal({ onClose }) {
           {loading
             ? Array(7).fill(0).map((_, i) => (
                 <div key={i} style={{
-                  background:'#E2E8F0', borderRadius:14, height:100,
+                  background:'#E2E8F0', borderRadius:14, height:130,
+                  gridColumn: i === 6 ? '2/3' : 'auto',
                 }}/>
               ))
             : weatherData.map((r, i) => (
@@ -122,19 +123,20 @@ export default function WeatherModal({ onClose }) {
                     padding:'16px 10px',
                     textAlign:'center',
                     boxShadow:'0 2px 8px rgba(0,0,0,0.06)',
+                    gridColumn: i === 6 ? '2/3' : 'auto',
                   }}
                 >
                   <div style={{ fontSize:32, marginBottom:3 }}>
                     <span className={`anim-${r.anim}`}>{r.icon}</span>
                   </div>
                   <div style={{ fontSize:13, fontWeight:900, color:'#1E293B', marginBottom:1 }}>{r.name}</div>
-                  <div style={{ fontSize:24, fontWeight:900, color:'#1565C0' }}>{r.temp}°</div>
+                  <div style={{ fontSize:26, fontWeight:900, color:'#1565C0' }}>{r.temp}°</div>
                   <div style={{ fontSize:12, color:'#94A3B8', marginBottom:5 }}>{r.label}</div>
                   <div style={{
                     background: r.badgeBg,
                     color: r.badgeColor,
-                    borderRadius:99, padding:'4px 8px',
-                    fontSize:10, fontWeight:800,
+                    borderRadius:99, padding:'5px 10px',
+                    fontSize:11, fontWeight:800,
                     display:'inline-block',
                   }}>
                     {r.badge}
