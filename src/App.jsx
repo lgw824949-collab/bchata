@@ -293,12 +293,12 @@ const LatinModal = ({ isOpen, onClose }) => {
       <AnimatePresence>
         {isMenuOpen && (
           <motion.div
-            initial={{ x: '100%' }}
+            initial={{ x: '-100%' }}
             animate={{ x: 0 }}
-            exit={{ x: '100%' }}
+            exit={{ x: '-100%' }}
             transition={{ type: 'spring', damping: 25, stiffness: 200 }}
             style={{
-              position: 'fixed', top: 0, bottom: 0, right: 0,
+              position: 'fixed', top: 0, bottom: 0, left: 0,
               width: '75vw', maxWidth: '320px',
               zIndex: 1000000,
               background: '#FFFFFF', padding: '24px',
