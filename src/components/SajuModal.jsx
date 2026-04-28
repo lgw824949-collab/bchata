@@ -360,7 +360,7 @@ export default function SajuModal({ onClose, parties=[] }) {
 
             {/* BAR 추천 */}
             <div style={{ marginBottom:20 }}>
-              <div style={{ fontSize:15,fontWeight:900,marginBottom:10,color:'#1E293B',letterSpacing:'-0.2px' }}>🎯 오늘 밤 추천 BAR</div>
+              <div style={{ fontSize:15,fontWeight:900,marginBottom:10,color:'#1E293B',letterSpacing:'-0.2px' }}>🎯 추천 BAR</div>
               {result.recommendedBars.length > 0 ? (
                 <div style={{ display:'flex',flexDirection:'column',gap:8 }}>
                   {result.recommendedBars.map((bar,i)=>(
