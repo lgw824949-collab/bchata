@@ -210,7 +210,7 @@ function App() {
         style={{ position:'fixed', top:0, left:0, width:'280px', height:'100vh', background:'#fff', zIndex:2147483647, display:'flex', flexDirection:'column' }}
       >
         <div style={{ padding:'25px 20px', display:'flex', justifyContent:'space-between', alignItems:'center', borderBottom:'1px solid #f5f5f5' }}>
-          <img src="/logo.svg" style={{ height:'35px' }} />
+          <img src="/logo.png" style={{ height:'35px' }} />
           <button onClick={() => setIsMenuOpen(false)} style={{ background:'#f3f4f6', border:'none', borderRadius:'50%', width:'32px', height:'32px', cursor:'pointer' }}>✕</button>
         </div>
 
