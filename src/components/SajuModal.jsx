@@ -19,19 +19,18 @@ const getDistance = (lat1, lon1, lat2, lon2) => {
 // ─── 카카오 Geocoding (주소 → 좌표) ───
 const geocodeAddress = async (address) => {
   try {
-    const response = await fetch(`https://dapi.kakao.com/v2/local/search/address.json?query=${encodeURIComponent(address)}`, {
-      headers: { Authorization: `KakaoAK ${import.meta.env.VITE_KAKAO_API_KEY}` }
-    })
+    const response = await fetch(
+      `https://dapi.kakao.com/v2/local/search/keyword.json?query=${encodeURIComponent(address)}`,
+      { headers: { Authorization: `KakaoAK ${import.meta.env.VITE_KAKAO_API_KEY}` } }
+    )
     const data = await response.json()
-    if (data.documents && data.documents.length > 0) {
-      return { 
-        lat: parseFloat(data.documents[0].y), 
-        lon: parseFloat(data.documents[0].x) 
+    if (data.documents?.length > 0) {
+      return {
+        lat: parseFloat(data.documents[0].y),
+        lon: parseFloat(data.documents[0].x)
       }
     }
-  } catch (e) {
-    console.error('Geocoding failed:', e)
-  }
+  } catch(e) {}
   return null
 }
 
