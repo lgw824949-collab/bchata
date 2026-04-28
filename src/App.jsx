@@ -35,7 +35,6 @@ function App() {
   const [view, setView] = useState('home');
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [showIncheonModal, setShowIncheonModal] = useState(false);
-  const [isSajuCall, setIsSajuCall] = useState(false);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [userCoords, setUserCoords] = useState(null);
   const [selectedPoster, setSelectedPoster] = useState(null);
@@ -62,19 +61,12 @@ function App() {
 
   useEffect(() => { fetchParties(); }, []);
 
-  const openAnalysis = (saju = false) => {
-    // 사용자가 클릭했을 때만 위치 정보 요청
-    
-    setIsSajuCall(saju);
-    setIsAnalyzing(true);
-    setTimeout(() => { setIsAnalyzing(false); setShowIncheonModal(true); }, 1200);
-  };
 
   const sharedProps = {
     parties, lessons: [], loading, selectedMonth: todayData.month, setSelectedMonth: () => {}, selectedWeek: 1, setSelectedWeek: () => {}, 
     selectedDate, setSelectedDate, selectedRegion: '서울', setSelectedRegion: () => {}, 
     view, setView, setSelectedPoster, 
-    openAnalysis: () => openAnalysis(false), fourteenDays: Array.from({ length: 14 }).map((_, i) => {
+    fourteenDays: Array.from({ length: 14 }).map((_, i) => {
       const d = new Date(); d.setDate(d.getDate() + i);
       return { fullDate: formatDateToKSTString(d), date: String(d.getDate()), month: String(d.getMonth() + 1), dayName: DAYS_KOR[d.getDay()], isToday: i === 0, dayOfWeek: d.getDay() };
     }), weekData: [], allDatesInMonth: [], filteredParties: parties.filter(p => p.date === selectedDate),
