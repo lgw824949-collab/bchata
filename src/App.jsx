@@ -215,7 +215,9 @@ function App() {
             exit={{ x: '100%' }}
             transition={{ type: 'spring', damping: 25, stiffness: 200 }}
             style={{
-              position: 'fixed', inset: 0, zIndex: 1000000,
+              position: 'fixed', top: 0, bottom: 0, right: 0,
+              width: '66vw', maxWidth: '300px',
+              zIndex: 1000000,
               background: '#0F172A', padding: '24px',
               display: 'flex', flexDirection: 'column',
               overflowY: 'auto'
