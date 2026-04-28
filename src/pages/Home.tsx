@@ -2,7 +2,6 @@ import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { Heart, MapPin, Calendar, User, Music, ChevronRight, ShieldCheck, X, Home as HomeIcon, ChevronLeft, CloudSun, Utensils, Zap, PlusCircle, Languages, Bell } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import QuickPinchZoom, { make3dTransformValue } from 'react-quick-pinch-zoom';
-import { BAR_DATABASE } from '../lib/BarLib';
 
 const DAYS_KOR = ['일', '월', '화', '수', '목', '금', '토'];
 const MAIN_REGIONS = ['서울', '경기/인천', '경상', '전라', '충청', '강원/제주'];
@@ -85,29 +84,13 @@ const HomePage = ({
   resetToToday, showFullCalendar, setShowFullCalendar, allDatesInMonth, likedIds, toggleLike, logActivity, handleRegister, fourteenDays,
   showFilterPanel, setShowFilterPanel, filterRegion, setFilterRegion, filterGenre, setFilterGenre,
   showFilteredResults, setShowFilteredResults, isMenuOpen, setIsMenuOpen, showWeather, setShowWeather,
-  showLatinModal, setShowLatinModal, latinCat, setLatinCat, selPatternId, setSelPatternId, regionalTheme, recordTraffic, venueCounts
+  showLatinModal, setShowLatinModal, latinCat, setLatinCat, selPatternId, setSelPatternId, regionalTheme, recordTraffic, IncheonBanner, venueCounts, openAnalysis
 }) => {
-  const getSearchQuery = (party) => {
-    const bar = BAR_DATABASE.find(b =>
-      b.name.trim() === (party.locationName||'').trim() ||
-      b.aliases?.some(a => a.trim() === (party.locationName||'').trim())
-    )
-    
-    // 1순위: 정확한 주소 (DB 기반)
-    if (bar?.address) return bar.address
-    
-    // 2순위: 구/동 + 장소명 (데이터베이스 개별 필드)
-    if (party.address) return party.address
-    
-    // 3순위: 장소명만
-    return party.locationName || ''
-  }
-
   const [isPaused, setIsPaused] = useState(false)
   const [regionOrder, setRegionOrder] = useState(['서울', '경기/인천', '경상도', '전라도', '충청도', '강원/제주'])
   const [posterOffset, setPosterOffset] = useState(0)
   const [representativeIndex, setRepresentativeIndex] = useState(0)
-  const [expandedRegion, setExpandedRegion] = useState(null)
+  const [selectedRegionGrid, setSelectedRegionGrid] = useState(null)
   const pauseTimerRef = useRef(null)
   const contentRef = useRef(null)
 
@@ -116,11 +99,9 @@ const HomePage = ({
   const initialDistanceRef = useRef(null);
   const hotPickRef = useRef(null);
   const carouselParties = useMemo(() => {
-    const EXCLUDE_KEYWORDS = ['강습', '수강', '모집', '워크숍', '동호회', '정모', '클래스', '레슨'];
     const all = parties || [];
     return [...all]
       .filter(p => p.poster_url)
-      .filter(p => !EXCLUDE_KEYWORDS.some(kw => p.title?.includes(kw)))
       .sort((a, b) => new Date(b.date) - new Date(a.date))
       .slice(0, 5);
   }, [parties]);
@@ -250,8 +231,6 @@ const HomePage = ({
       left: 0,
       background: '#fff' 
     }}>
-      {/* v1.0.1 - Deployment Verification Tag */}
-      <div style={{ position: 'fixed', top: '1px', right: '1px', fontSize: '8px', color: 'rgba(0,0,0,0.1)', zIndex: 1000000 }}>v1.0.1</div>
       
       {/* 📌 [영역 A: 상단 고정석] - 슬림 통합형 (고정형 레이아웃) */}
       <div style={{ 
@@ -554,128 +533,197 @@ const HomePage = ({
                 </div>
               )}
 
+              {/* 🛰️ [인천 특화] 프리미엄 큐레이션 배너 (HOT PICK 바로 아래 배치) */}
+              {IncheonBanner && <IncheonBanner />}
               {(() => {
+                const dayParties = parties.filter(p => p.date === selectedDate);
                 const regions = ["서울", "경기/인천", "충청도", "전라도", "경상도", "강원/제주"];
                 
                 return regions.map((regionName) => {
-                  const regionParties = (parties || []).filter(p => {
-                    if (p.date !== selectedDate) return false;
-                    const r = (p.broadRegion || '').trim();
-                    const c = (p.cityName || '').trim();
-                    const loc = (p.locationName || '').trim();
-                    const addr = (p.address || '').trim();
-                    const t = (p.title || '').trim();
+                  const regionParties = dayParties.filter(p => {
+                    const r = p.broadRegion || '';
+                    const city = p.cityName || '';
                     
-                    if (regionName === "서울") return r === '서울' || c === '서울' || loc.includes('서울') || addr.includes('서울') || t.includes('서울');
-                    if (regionName === "경기/인천") return r.includes('경기') || r.includes('인천') || c.includes('경기') || c.includes('인천') || loc.includes('인천') || loc.includes('경기') || addr.includes('인천') || addr.includes('경기');
-                    if (regionName === "충청도") return r.includes('충청') || c.includes('충남') || c.includes('충북') || c.includes('대전') || c.includes('세종') || loc.includes('대전') || loc.includes('천안');
-                    if (regionName === "경상도") return r.includes('경상') || c.includes('경남') || c.includes('경북') || c.includes('부산') || c.includes('대구') || c.includes('울산') || loc.includes('부산') || loc.includes('대구');
-                    if (regionName === "전라도") return r.includes('전라') || c.includes('전남') || c.includes('전북') || c.includes('광주') || loc.includes('광주') || loc.includes('전주');
-                    if (regionName === "강원/제주") return r.includes('강원') || r.includes('제주') || c.includes('강원') || c.includes('제주');
+                    if (regionName === "서울") return r === '서울' || city === '서울';
+                    if (regionName === "경기/인천") return r === '경기/인천' || city === '경기' || city === '인천';
+                    if (regionName === "충청도") return r === '충청' || city === '충남' || city === '충북' || city === '대전' || city === '세종';
+                    if (regionName === "경상도") return r === '경상' || city === '경남' || city === '경북' || city === '부산' || city === '대구' || city === '울산';
+                    if (regionName === "전라도") return r === '전라' || city === '전남' || city === '전북' || city === '광주';
+                    if (regionName === "강원/제주") return r === '강원/제주' || city === '강원' || city === '제주';
                     return false;
                   });
 
-                  const isThisRegionExpanded = expandedRegion === regionName;
-
                   return (
-                    <section key={regionName} style={{ marginBottom: '15px', background: '#fff' }}>
-                      <button 
-                        onClick={(e) => {
-                          e.preventDefault();
-                          e.stopPropagation();
-                          setExpandedRegion(isThisRegionExpanded ? null : regionName);
-                        }}
-                        onMouseDown={(e) => { e.stopPropagation(); }}
-                        onTouchStart={(e) => { e.stopPropagation(); }}
+                    <section key={regionName} style={{ marginBottom: '15px' }}>
+                      <div 
+                        onClick={() => setSelectedRegionGrid(regionName)}
                         style={{ 
-                          width: '100%', border: 'none',
-                          background: isThisRegionExpanded ? '#FFF5F5' : '#fff',
-                          textAlign: 'left',
-                          fontSize: '18px', fontWeight: '950', padding: '18px 15px 12px', 
-                          color: '#111', display: 'flex', alignItems: 'center', gap: '8px',
-                          cursor: 'pointer', borderBottom: isThisRegionExpanded ? '2px solid #FF3B30' : '1px solid #f0f0f0',
-                          outline: 'none', WebkitTapHighlightColor: 'transparent'
+                          fontSize: '18px', fontWeight: '900', padding: '15px 15px 10px', 
+                          color: '#333', display: 'flex', alignItems: 'center', gap: '8px',
+                          cursor: 'pointer'
                         }}
                       >
-                        <div style={{ width: '10px', height: '10px', borderRadius: '50%', background: isThisRegionExpanded ? '#FF3B30' : '#2196F3' }} />
+                        <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#2196F3' }} />
                         {regionName}
-                        <span style={{ fontSize: '13px', color: '#999', fontWeight: '700', marginLeft: '6px' }}>
-                          ({regionParties.length}개)
-                        </span>
-                        <span style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: '4px' }}>
-                          <span style={{ fontSize: '12px', color: isThisRegionExpanded ? '#FF3B30' : '#999', fontWeight: '800' }}>
-                            {isThisRegionExpanded ? '닫기' : '전체보기'}
-                          </span>
-                          <span style={{ color: isThisRegionExpanded ? '#FF3B30' : '#ccc', fontSize: '20px' }}>
-                            {isThisRegionExpanded ? '×' : '›'}
-                          </span>
-                        </span>
-                      </button>
+                        <ChevronRight size={18} color="#999" />
+                        <span style={{ fontSize: '11px', color: '#999', fontWeight: '500', marginLeft: 'auto' }}>전체보기</span>
+                      </div>
 
-                      {isThisRegionExpanded ? (
-                        <div style={{
-                          display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '12px',
-                          padding: '20px 15px 30px', backgroundColor: '#F8FAFC', minHeight: '200px'
-                        }}>
-                          {regionParties.length > 0 ? (
-                            regionParties.map(p => (
-                              <div
-                                key={p.id}
-                                onClick={(e) => {
-                                  e.preventDefault(); e.stopPropagation();
-                                  setSelectedPoster(p.poster_url || p.posterUrl);
-                                }}
-                                style={{
-                                  borderRadius: '16px', overflow: 'hidden', aspectRatio: '3/4',
-                                  background: '#fff', cursor: 'pointer', boxShadow: '0 8px 24px rgba(0,0,0,0.12)', border: '1px solid #E2E8F0'
-                                }}
-                              >
-                                <img src={p.poster_url || p.posterUrl} alt="" style={{ width:'100%', height:'100%', objectFit:'cover' }} />
+                      <div className="party-horizontal-scroll" style={{ 
+                        display: 'flex', 
+                        overflowX: 'auto',
+                        gap: '12px',
+                        padding: '0 15px 20px',
+                        msOverflowStyle: 'none',
+                        scrollbarWidth: 'none',
+                        WebkitOverflowScrolling: 'touch'
+                      }}>
+                        {regionParties.length > 0 ? (
+                          regionParties.map((item) => (
+                            <div 
+                              key={item.id} 
+                              onClick={() => setSelectedPoster(item.poster_url)}
+                              style={{ 
+                                flex: '0 0 88vw',
+                                display: 'flex', 
+                                flexDirection: 'row',
+                                alignItems: 'center',
+                                justifyContent: 'space-between',
+                                backgroundColor: '#FFFFFF',
+                                borderRadius: '16px',
+                                overflow: 'hidden',
+                                boxShadow: '0 2px 10px rgba(0,0,0,0.05)',
+                                border: '1px solid #F1F5F9',
+                                cursor: 'pointer',
+                                height: '110px',
+                                marginBottom: '5px',
+                                paddingRight: '15px'
+                              }}
+                            >
+                              {/* 🖼️ 왼쪽에 포스터 (사이즈 축소) */}
+                              <div style={{ 
+                                position: 'relative', 
+                                width: '80px', 
+                                height: '110px',
+                                backgroundColor: '#f8f8f8',
+                                flexShrink: 0
+                              }}>
+                                <img 
+                                  src={item.poster_url} 
+                                  alt="포스터" 
+                                  style={{ 
+                                    width: '100%', 
+                                    height: '100%', 
+                                    objectFit: 'cover' 
+                                  }} 
+                                />
+                                {item.genre && (
+                                  <div style={{ 
+                                    position: 'absolute', top: '4px', left: '4px', 
+                                    backgroundColor: 'rgba(255,255,255,0.95)', color: '#1E293B', fontSize: '8px', 
+                                    fontWeight: '900', padding: '2px 4px', borderRadius: '4px',
+                                    boxShadow: '0 1px 3px rgba(0,0,0,0.1)'
+                                  }}>
+                                    {item.genre}
+                                  </div>
+                                )}
                               </div>
-                            ))
-                          ) : (
-                            <div style={{ gridColumn: 'span 2', padding: '60px 0', textAlign: 'center', color: '#94A3B8', fontSize: '15px', background: '#fff', borderRadius: '16px', border: '1px dashed #CBD5E1' }}>
-                               이 지역에 등록된 오늘 파티 포스터가 없습니다.
+
+                              {/* 📝 오른쪽에 텍스트 정보 (공간 최대 활용) */}
+                              <div style={{ 
+                                padding: '10px 14px', 
+                                display: 'flex', 
+                                flexDirection: 'column', 
+                                justifyContent: 'center',
+                                minWidth: 0,
+                                flex: 1
+                              }}>
+                                {/* 🏢 BAR 이름/로고 (클릭시 카카오맵) - 복구 */}
+                                <div 
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    const address = item.address || item.locationName;
+                                    window.open(`https://map.kakao.com/link/search/${encodeURIComponent(address)}`, '_blank');
+                                  }}
+                                  style={{ 
+                                    display: 'flex', alignItems: 'center', gap: '4px',
+                                    marginBottom: '6px', cursor: 'pointer'
+                                  }}
+                                >
+                                  <div style={{ 
+                                    width: '18px', height: '18px', borderRadius: '4px', 
+                                    background: '#2563EB', display: 'flex', alignItems: 'center', 
+                                    justifyContent: 'center', color: '#fff' 
+                                  }}>
+                                    <MapPin size={12} />
+                                  </div>
+                                  <span style={{ 
+                                    fontSize: '13px', fontWeight: '900', color: '#2563EB',
+                                    whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis'
+                                  }}>
+                                    {item.locationName}
+                                  </span>
+                                </div>
+
+                                {/* 1. 타이틀 (무조건 2줄) */}
+                                <div style={{ 
+                                  fontSize: '15px', fontWeight: '900', color: '#111827', 
+                                  lineHeight: '1.3', marginBottom: '10px',
+                                  display: 'block', whiteSpace: 'nowrap',
+                                  overflow: 'hidden', textOverflow: 'ellipsis',
+                                  wordBreak: 'keep-all'
+                                }}>
+                                  {item.title?.split('|')[0].replace('오늘밤빠', '').replace('밤빠', '').trim()}
+                                </div>
+                                
+                                {/* 2. 모든 메타 정보 (무조건 1줄) */}
+                                <div style={{ 
+                                  display: 'flex', alignItems: 'center', gap: '5px', 
+                                  fontSize: '11px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' 
+                                }}>
+                                  <span style={{ color: '#FF4B4B', fontWeight: '800' }}>
+                                    {(() => {
+                                      const d = new Date(item.date);
+                                      const days = ['일', '월', '화', '수', '목', '금', '토'];
+                                      return `${d.getMonth() + 1}/${d.getDate()}(${days[d.getDay()]})`;
+                                    })()}
+                                  </span>
+                                  <span style={{ color: '#E2E8F0' }}>·</span>
+                                  <span style={{ color: '#2563EB', fontWeight: '700' }}>{item.time?.split('-')[0].trim() || '20:00'}</span>
+                                  <span style={{ color: '#E2E8F0' }}>·</span>
+                                  <span style={{ display: 'flex', alignItems: 'center' }}>
+                                    <img src="/logo.png" style={{ height: '15px', width: 'auto' }} alt="밤빠" />
+                                  </span>
+                                  <span style={{ color: '#E2E8F0' }}>·</span>
+                                  <span style={{ color: '#D97706', fontWeight: '700' }}>
+                                    {(() => {
+                                      const fee = String(item.entry_fee || '1.2만');
+                                      return fee.includes('만') ? fee : (parseInt(fee.replace(/[^0-9]/g, ''))/10000).toFixed(1).replace('.0','') + '만';
+                                    })()}
+                                  </span>
+                                  <span style={{ color: '#E2E8F0' }}>·</span>
+                                  <span style={{ color: '#7C3AED', fontWeight: '700' }}>
+                                    {(() => {
+                                      const ratio = item.musicRatio || (item.genre === '바차타' ? 'B4 S2' : 'S4 B2');
+                                      return ratio.replace('S', '살사').replace('B', '바차타').replace('K', '키좀바').replace('Z', '쥬크');
+                                    })()}
+                                  </span>
+                                </div>
+                              </div>
+                              <div style={{ color: '#ccc' }}>
+                                <ChevronRight size={20} strokeWidth={1.5} />
+                              </div>
                             </div>
-                          )}
-                        </div>
-                      ) : (
-                        <div className="party-horizontal-scroll" style={{ 
-                          display: 'flex', overflowX: 'auto', gap: '12px', padding: '12px 15px 20px',
-                          msOverflowStyle: 'none', scrollbarWidth: 'none', WebkitOverflowScrolling: 'touch'
-                        }}>
-                          {regionParties.length > 0 ? (
-                            regionParties.map((item) => (
-                              <div 
-                                key={item.id} 
-                                onClick={() => setSelectedPoster(item.poster_url || item.posterUrl)}
-                                style={{ 
-                                  flex: '0 0 85vw', display: 'flex', alignItems: 'center',
-                                  backgroundColor: '#FFFFFF', borderRadius: '16px', overflow: 'hidden',
-                                  boxShadow: '0 2px 10px rgba(0,0,0,0.05)', border: '1px solid #F1F5F9',
-                                  cursor: 'pointer', height: '110px'
-                                }}
-                              >
-                                <div style={{ width: '80px', height: '110px', flexShrink: 0 }}>
-                                  <img src={item.poster_url || item.posterUrl} style={{ width: '100%', height: '100%', objectFit: 'cover' }} alt="" />
-                                </div>
-                                <div style={{ flex: 1, padding: '10px 14px', minWidth: 0 }}>
-                                  <div style={{ display: 'flex', alignItems: 'center', gap: '4px', marginBottom: '4px' }}>
-                                    <MapPin size={12} color="#2563EB" />
-                                    <span style={{ fontSize: '12px', fontWeight: '900', color: '#2563EB', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{item.locationName}</span>
-                                  </div>
-                                  <div style={{ fontSize: '14px', fontWeight: '900', color: '#111', lineHeight: '1.3', marginBottom: '8px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{item.title}</div>
-                                  <div style={{ fontSize: '11px', color: '#64748B', fontWeight: '700' }}>
-                                    {(item.time || '').split('-')[0]} · {formatFee(item.entry_fee || '1.2만')}
-                                  </div>
-                                </div>
-                              </div>
-                            ))
-                          ) : (
-                            <div style={{ padding: '30px 0', color: '#94A3B8', fontSize: '13px', textAlign: 'center', width: '100%' }}>이 지역은 아직 등록된 파티가 없습니다.</div>
-                          )}
-                        </div>
-                      )}
+                          ))
+                        ) : (
+                          <div style={{ 
+                            padding: '30px 0', color: '#94A3B8', fontSize: '13px', 
+                            textAlign: 'center', width: '100%', fontWeight: '500'
+                          }}>
+                            이 지역은 아직 등록된 파티가 없습니다.
+                          </div>
+                        )}
+                      </div>
                     </section>
                   );
                 });
@@ -921,7 +969,107 @@ const HomePage = ({
               )}
             </motion.div>
           )}
-        </AnimatePresence>
+        </AnimatePresence>      {/* 지역별 포스터 그리드 오버레이 */}
+      <AnimatePresence>
+        {selectedRegionGrid && (
+          <motion.div
+            initial={{ opacity: 0, y: 50 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: 50 }}
+            style={{
+              position: 'fixed',
+              inset: 0,
+              backgroundColor: '#fff',
+              zIndex: 10002,
+              display: 'flex',
+              flexDirection: 'column'
+            }}
+          >
+            <div style={{ 
+              padding: '16px 20px', 
+              display: 'flex', 
+              alignItems: 'center', 
+              justifyContent: 'space-between',
+              borderBottom: '1px solid #eee',
+              backgroundColor: '#fff',
+              position: 'sticky',
+              top: 0,
+              zIndex: 10
+            }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                <button 
+                  onClick={() => window.location.href = '/'}
+                  style={{ background: 'none', border: 'none', padding: '4px', display: 'flex', alignItems: 'center', cursor: 'pointer', color: '#333' }}
+                >
+                  <ChevronLeft size={28} />
+                </button>
+                <h2 style={{ fontSize: '18px', fontWeight: 900 }}>{selectedRegionGrid} 포스터</h2>
+              </div>
+              
+              <button 
+                onClick={() => window.location.href = '/'}
+                style={{ 
+                  background: '#f3f4f6', border: 'none', borderRadius: '12px', padding: '6px 12px',
+                  display: 'flex', alignItems: 'center', gap: '6px', cursor: 'pointer', fontSize: '13px', fontWeight: 700, color: '#333'
+                }}
+              >
+                <HomeIcon size={16} /> 메인으로
+              </button>
+            </div>
+
+            <div 
+              style={{ 
+                flex: 1, overflowY: 'auto', padding: '15px', display: 'grid', 
+                gridTemplateColumns: 'repeat(auto-fill, minmax(160px, 1fr))', 
+                gridAutoRows: 'min-content', gap: '15px', background: '#f8fafc'
+              }}
+            >
+              {parties
+                .filter(p => {
+                  if (p.date !== selectedDate) return false;
+                  const r = p.broadRegion || '';
+                  if (selectedRegionGrid === "서울") return r.includes('서울');
+                  if (selectedRegionGrid === "경기/인천") return r.includes('경기') || r.includes('인천');
+                  if (selectedRegionGrid === "충청도") return r.includes('충청') || r.includes('대전');
+                  if (selectedRegionGrid === "경상도") return r.includes('경상') || r.includes('부산') || r.includes('대구') || r.includes('울산');
+                  if (selectedRegionGrid === "전라도") return r.includes('전라') || r.includes('광주');
+                  if (selectedRegionGrid === "강원/제주") return r.includes('강원') || r.includes('제주');
+                  return false;
+                })
+                .map((party) => (
+                  <motion.div
+                    key={party.id}
+                    whileHover={{ y: -5 }}
+                    whileTap={{ scale: 0.98 }}
+                    onClick={() => setSelectedPoster(party.poster_url)}
+                    style={{
+                      aspectRatio: '3/4', borderRadius: '12px', overflow: 'hidden',
+                      boxShadow: '0 4px 12px rgba(0,0,0,0.08)', background: '#eee',
+                      position: 'relative', cursor: 'pointer'
+                    }}
+                  >
+                    <img 
+                      src={party.poster_url} 
+                      alt="포스터" 
+                      style={{ width: '100%', height: '100%', objectFit: 'cover' }} 
+                    />
+                    <div style={{
+                      position: 'absolute', bottom: 0, left: 0, right: 0, padding: '10px',
+                      background: 'linear-gradient(transparent, rgba(0,0,0,0.7))',
+                      color: 'white', fontSize: '12px', fontWeight: 700,
+                      display: 'block', whiteSpace: 'nowrap',
+                      overflow: 'hidden', textOverflow: 'ellipsis'
+                    }}>
+                      {party.title}
+                    </div>
+                  </motion.div>
+                ))}
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+
 
     </div>
   )
