@@ -563,9 +563,34 @@ export default function AdminDashboard({ onBack }) {
                       
                       <div style={{ display: 'flex', gap: '8px', marginTop: '16px' }}>
                         {item.status === 'pending' && (
-                          <button onClick={async () => {
-                            const { error } = await supabase.from('classes_info').update({ status: 'active' }).eq('id', item.id)
-                            if(!error) { alert('승인되었습니다.'); fetchClasses(); }
+                          <button onClick={async (e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            try {
+                              const { error } = await supabase.from('classes_info').update({ status: 'active' }).eq('id', item.id)
+                              if (error) {
+                                alert('승인 실패 (DB): ' + error.message);
+                                return;
+                              }
+                              
+                              // parties 테이블에도 등록하여 앱에 노출되도록 함
+                              const { error: insertErr } = await supabase.from('parties').insert([{
+                                title: `[${item.category_type === 'club' ? '동호회' : '강습/정모'}] ${item.title}`,
+                                date: item.start_date || new Date().toISOString().split('T')[0],
+                                day_of_week: item.day_of_week ? item.day_of_week.split(',')[0].trim() : '일',
+                                time: `${item.start_time || ''}~${item.end_time || ''}`,
+                                address: item.address || item.studio_name || '',
+                                fee: item.fee || '0',
+                                poster_url: item.poster_url || ''
+                              }]);
+
+                              if (insertErr) console.error('Parties insert error:', insertErr);
+
+                              alert('승인되었습니다.');
+                              fetchClasses();
+                            } catch (err) {
+                              alert('오류 발생: ' + err.message);
+                            }
                           }} style={{ flex: 2, backgroundColor: '#F59E0B', color: 'white', padding: '12px', borderRadius: '12px', fontWeight: 900, fontSize: '14px', border: 'none' }}>APPROVE</button>
                         )}
                         <button onClick={() => setEditingClass(item)} style={{ flex: 1, backgroundColor: '#1E293B', color: 'white', padding: '12px', borderRadius: '12px', border: 'none' }}><Edit3 size={18} /></button>
