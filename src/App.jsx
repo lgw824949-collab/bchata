@@ -9,6 +9,7 @@ import ClassNewsPage from './pages/ClassNews'
 import PostClub from './pages/PostClub'
 import Auth from './components/Auth'
 import SajuModal from './components/SajuModal'
+import WeatherModal from './components/WeatherModal'
 import { BAR_DATABASE } from './lib/BarLib';
 import QuickPinchZoom, { make3dTransformValue } from 'react-quick-pinch-zoom';
 
@@ -150,12 +151,7 @@ function App() {
 
       <AnimatePresence>
         {showWeather && (
-          <div style={{ position: 'fixed', inset: 0, zIndex: 100000, display: 'flex', alignItems: 'center', justifyContent: 'center', backgroundColor: 'rgba(0,0,0,0.8)' }} onClick={() => setShowWeather(false)}>
-            <div style={{ background: '#fff', padding: '20px', borderRadius: '12px', textAlign: 'center' }} onClick={e => e.stopPropagation()}>
-              <h2>날씨 모달 렌더링 확인</h2>
-              <button onClick={() => setShowWeather(false)} style={{ marginTop: '15px', padding: '10px 20px', border: 'none', background: '#3b82f6', color: '#fff', borderRadius: '8px', cursor: 'pointer', fontWeight: 'bold' }}>닫기</button>
-            </div>
-          </div>
+          <WeatherModal onClose={() => setShowWeather(false)} />
         )}
       </AnimatePresence>
 
