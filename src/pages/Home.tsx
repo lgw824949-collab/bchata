@@ -921,9 +921,7 @@ const HomePage = ({
               )}
             </motion.div>
           )}
-
-
-
+        </AnimatePresence>
 
     </div>
   )
