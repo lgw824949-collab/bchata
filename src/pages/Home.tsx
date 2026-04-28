@@ -503,6 +503,31 @@ const HomePage = ({
                             background: 'linear-gradient(transparent, rgba(0,0,0,0.8))',
                             color: 'white'
                           }}>
+                            <div
+                              onClick={(e) => {
+                                e.stopPropagation()
+                                const address = item.address || item.locationName
+                                window.open(
+                                  `https://map.kakao.com/link/search/${encodeURIComponent(address)}`,
+                                  '_blank'
+                                )
+                              }}
+                              style={{
+                                display:'flex', alignItems:'center', gap:6,
+                                marginBottom:4, cursor:'pointer',
+                              }}
+                            >
+                              <span style={{ fontSize:11 }}>📍</span>
+                              <span style={{
+                                fontSize:11, fontWeight:800,
+                                color:'#FFCDD2',
+                                textDecoration:'underline',
+                                textDecorationColor:'#E53935',
+                                letterSpacing:'-0.3px',
+                              }}>
+                                {item.locationName}
+                              </span>
+                            </div>
                             <div style={{ fontSize: '11px', fontWeight: '800', display: 'block', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
                               {item.title}
                             </div>
@@ -621,6 +646,34 @@ const HomePage = ({
                                 minWidth: 0,
                                 flex: 1
                               }}>
+                                {/* 장소 및 지도 링크 */}
+                                <div
+                                  onClick={(e) => {
+                                    e.stopPropagation()
+                                    const address = item.address || item.locationName
+                                    window.open(
+                                      `https://map.kakao.com/link/search/${encodeURIComponent(address)}`,
+                                      '_blank'
+                                    )
+                                  }}
+                                  style={{
+                                    display:'flex', alignItems:'center', gap:6,
+                                    marginBottom:6, cursor:'pointer',
+                                  }}
+                                >
+                                  <span style={{ fontSize:13 }}>📍</span>
+                                  <span style={{
+                                    fontSize:13, fontWeight:800,
+                                    color:'#E53935',
+                                    textDecoration:'underline',
+                                    textDecorationColor:'#FFCDD2',
+                                    letterSpacing:'-0.3px',
+                                  }}>
+                                    {item.locationName}
+                                  </span>
+                                  <span style={{ fontSize:11, color:'#94A3B8' }}>지도 →</span>
+                                </div>
+
                                 {/* 1. 타이틀 (무조건 2줄) */}
                                 <div style={{ 
                                   fontSize: '15px', fontWeight: '900', color: '#111827', 
