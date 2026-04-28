@@ -278,7 +278,7 @@ const LatinModal = ({ isOpen, onClose }) => {
           whileTap={{ scale: 0.9 }}
           onClick={() => setIsMenuOpen(true)}
           style={{ 
-            position: 'fixed', top: '20px', right: '20px', zIndex: 1000,
+            position: 'fixed', top: '20px', left: '20px', zIndex: 1000,
             background: 'rgba(255,255,255,0.95)', backdropFilter: 'blur(10px)',
             border: 'none', borderRadius: '12px', padding: '10px',
             boxShadow: '0 4px 15px rgba(0,0,0,0.1)', cursor: 'pointer',
