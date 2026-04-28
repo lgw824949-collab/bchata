@@ -335,7 +335,7 @@ const RegisterForm = ({ onBack, onSuccess }) => {
   })();
 
   return (
-    <div style={{ backgroundColor: '#fff', height: '100vh', overflowY: 'auto', paddingBottom: '100px', WebkitOverflowScrolling: 'touch' }}>
+    <div style={{ backgroundColor: '#fff', minHeight: '100vh', overflowY: 'visible', paddingBottom: '100px', WebkitOverflowScrolling: 'touch' }}>
       <div style={{ display: 'flex', alignItems: 'center', padding: '16px', borderBottom: '1px solid #F3F4F6', position: 'sticky', top: 0, backgroundColor: 'white', zIndex: 10 }}>
         <button onClick={onBack}><ChevronLeft size={24} /></button>
         <span style={{ fontSize: '18px', fontWeight: 800, marginLeft: '8px' }}>등록하기</span>
