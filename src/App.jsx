@@ -101,7 +101,11 @@ function App() {
                 <p style={{ fontSize: '12px', color: '#999', fontWeight: '800', marginBottom: '20px', letterSpacing: '1px' }}>PREMIUM SERVICES</p>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
                   {[
-                    { label: '🌤️ 전국 날씨 지도', action: () => setShowWeather(true) },
+                    { label: '🌤️ 전국 날씨 지도', action: () => { 
+                      setView('home')
+                      setShowWeather(true)
+                      setIsMenuOpen(false)
+                    } },
                     { label: '🔮 댄스 사주', action: () => setShowSaju(true) },
                     { label: '🇬🇧 라틴 영어', action: () => setShowLatinModal(true) },
                     { label: '📝 소셜/파티 등록하기', action: () => { setView('register') } },
