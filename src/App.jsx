@@ -11,6 +11,7 @@ import PostClub from './pages/PostClub'
 import Auth from './components/Auth'
 import SajuModal from './components/SajuModal'
 import IncheonRoute from './components/IncheonRoute'
+import WeatherModal from './components/WeatherModal'
 import QuickPinchZoom, { make3dTransformValue } from 'react-quick-pinch-zoom';
 
 // --- [BAMPPA PREMIUM ENGINE: GPS & NATIONWIDE INTELLIGENCE] ---
@@ -382,6 +383,9 @@ const LatinModal = ({ isOpen, onClose }) => {
       </AnimatePresence>
       <AnimatePresence>
         {showLatinModal && <LatinModal isOpen={showLatinModal} onClose={() => setShowLatinModal(false)} />}
+      </AnimatePresence>
+      <AnimatePresence>
+        {showWeather && <WeatherModal onClose={() => setShowWeather(false)} />}
       </AnimatePresence>
       
       {selectedPoster && (
