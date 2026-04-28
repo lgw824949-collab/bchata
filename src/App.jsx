@@ -132,7 +132,7 @@ function App() {
   const [loading, setLoading] = useState(true);
   const [selectedDate, setSelectedDate] = useState(todayData.dateStr);
   const [view, setView] = useState('home');
-  const [isMenuOpen, setIsMenuOpen] = useState(false);
+
   const [showIncheonModal, setShowIncheonModal] = useState(false);
   const [isSajuCall, setIsSajuCall] = useState(false);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
@@ -178,7 +178,7 @@ function App() {
       return { fullDate: formatDateToKSTString(d), date: String(d.getDate()), month: String(d.getMonth() + 1), dayName: DAYS_KOR[d.getDay()], isToday: i === 0, dayOfWeek: d.getDay() };
     }), weekData: [], allDatesInMonth: [], filteredParties: parties.filter(p => p.date === selectedDate),
     showFullCalendar: false, setShowFullCalendar: () => {}, likedIds: [], toggleLike: () => {},
-    setIsMenuOpen, IncheonBanner: () => <IncheonPremiumBanner onClick={() => openAnalysis(false)} />, venueCounts: {}, resetToToday: () => { setView('home'); setSelectedDate(todayData.dateStr); }, formatItemDate: (d, t) => `${d} ${t}`, formatFee: (f) => f, handleRegister: () => setView('register'), logActivity: () => {}, regionalTheme: { welcomeMsg: "전국 댄서들을 위한 실시간 정보", specialBanner: true }
+    IncheonBanner: () => <IncheonPremiumBanner onClick={() => openAnalysis(false)} />, venueCounts: {}, resetToToday: () => { setView('home'); setSelectedDate(todayData.dateStr); }, formatItemDate: (d, t) => `${d} ${t}`, formatFee: (f) => f, handleRegister: () => setView('register'), logActivity: () => {}, regionalTheme: { welcomeMsg: "전국 댄서들을 위한 실시간 정보", specialBanner: true }
   };
 
 
@@ -196,61 +196,7 @@ function App() {
          <AdminDashboard onBack={() => setView('home')} />}
       </main>
 
-      <AnimatePresence>
-        {isMenuOpen && (
-          <>
-            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={() => setIsMenuOpen(false)} style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.7)', zIndex: 2147483646, backdropFilter: 'blur(5px)' }} />
-            <motion.div initial={{ x: '-100%' }} animate={{ x: 0 }} exit={{ x: '-100%' }} style={{ position: 'fixed', top: 0, left: 0, width: '300px', height: '100vh', background: '#fff', zIndex: 2147483647, display: 'flex', flexDirection: 'column' }}>
-              <div style={{ padding: '30px 24px', borderBottom: '1px solid #f0f0f0', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}><img src="/logo.png" style={{ height: '28px' }} /><X size={24} onClick={() => setIsMenuOpen(false)} style={{ cursor: 'pointer' }} /></div>
-              
-              <div style={{ flex: 1, padding: '25px 20px' }}>
-                <p style={{ fontSize: '12px', color: '#999', fontWeight: '800', marginBottom: '20px', letterSpacing: '1px' }}>PREMIUM SERVICES</p>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-                  {[
-                    { label: '📍 인천 경로 안내', action: () => setShowIncheon(true) },
-                    { label: '🌤️ 전국 날씨 지도', action: () => setShowWeather(true) },
-                    { label: '🔮 댄스 사주', action: () => setShowSaju(true) },
-                    { label: '🇬🇧 라틴 영어', action: () => setShowLatinModal(true) },
-                    { label: '📝 소셜/파티 등록하기', action: () => { setView('register') } },
-                    { label: '📚 수업/정모 등록하기', action: () => { setView('post-lesson') } },
-                    { label: '⚡ 부트캠프/워크샵', action: () => alert('준비 중') },
-                    { label: '🔔 공지사항', action: () => alert('준비 중') },
-                  ].map((item, i) => (
-                    <motion.div 
-                      key={i}
-                      whileTap={{ scale: 0.98 }}
-                      onClick={() => {
-                        setIsMenuOpen(false);
-                        item.action();
-                      }}
-                      style={{ 
-                        padding: '18px 20px', 
-                        background: '#f8fafc', 
-                        borderRadius: '16px', 
-                        display: 'flex', 
-                        alignItems: 'center',
-                        cursor: 'pointer',
-                        border: '1px solid #f1f5f9'
-                      }}
-                    >
-                      <span style={{ fontSize: '15px', fontWeight: '800', color: '#334155' }}>{item.label}</span>
-                    </motion.div>
-                  ))}
-                </div>
-              </div>
 
-              <div style={{ padding: '20px', background: '#f9fafb', borderTop: '1px solid #f0f0f0' }}>
-                <div style={{ width: '100%', height: '120px', borderRadius: '15px', overflow: 'hidden', boxShadow: '0 10px 20px rgba(0,0,0,0.1)' }}>
-                  <img src="https://images.unsplash.com/photo-1545128485-c400e7702796?auto=format&fit=crop&q=80&w=400" style={{ width: '100%', height: '100%', objectFit: 'cover' }} alt="Promo" />
-                </div>
-                <div style={{ padding: '15px 0', fontSize: '10px', color: '#bbb', textAlign: 'center' }}>
-                  <p>© 2026 BAMPPA Intelligence Center. All rights reserved.</p>
-                </div>
-              </div>
-            </motion.div>
-          </>
-        )}
-      </AnimatePresence>
 
       <DynamicAnalysisModal isOpen={showIncheonModal} onClose={() => setShowIncheonModal(false)} userCoords={userCoords} isSajuCall={isSajuCall} />
       <AnimatePresence>
