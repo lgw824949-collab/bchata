@@ -116,9 +116,13 @@ function App() {
                     <motion.div 
                       key={i}
                       whileTap={{ scale: 0.98 }}
-                      onClick={() => {
+                      onClick={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
                         setIsMenuOpen(false);
-                        item.action();
+                        setTimeout(() => {
+                          if (item.action) item.action();
+                        }, 350);
                       }}
                       style={{ 
                         padding: '18px 20px', 
