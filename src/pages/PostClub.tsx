@@ -1,37 +1,39 @@
-import React, { useState } from 'react'
-import { ChevronLeft, Camera, Loader2, Check, Clock, Calendar, Plus, DollarSign } from 'lucide-react'
-import { motion, AnimatePresence } from 'framer-motion'
+import React, { useState, useEffect } from 'react'
+import { ChevronLeft, Camera, Loader2, Check, Plus } from 'lucide-react'
 import { supabase } from '../lib/supabase'
-import Tesseract from 'tesseract.js'
+import { findBarByName } from '../lib/BarLib'
 
-import { CLASS_CATEGORIES, DANCE_STYLES, REGIONS, DAYS } from '../lib/constants'
+const DANCE_STYLES = ['바차타', '살사', '주크', '키좀바', '기타']
+const CLASS_CATEGORIES = ['입문', '기초', '중급', '고급', '마스터', '기타']
+const REGIONS = ['서울', '경기도', '인천광역시', '경상도', '전라도', '충청도', '강원도', '제주도']
+const DAYS = ['월', '화', '수', '목', '금', '토', '일']
+const FEES = ['무료', '1만원', '1.5만원', '2만원', '기타']
 
-const PostClub = ({ onBack, user }) => {
-  const [loading, setLoading] = useState(false)
-  const [isOcrProcessing, setIsOcrProcessing] = useState(false)
-  const [preview, setPreview] = useState(null)
+const THEME_COLOR = '#FF8C00' // 동호회/강습 고유 테마 컬러 오렌지 유지
+
+const PostClub = ({ onBack, onSuccess }) => {
   const [file, setFile] = useState(null)
+  const [preview, setPreview] = useState(null)
+  const [loading, setLoading] = useState(false)
   const [submitted, setSubmitted] = useState(false)
 
   const [formData, setFormData] = useState({
     title: '',
     instructor: '',
-    category: '베이직/기초',
+    dance_style: '바차타',
+    category: '기초',
+    custom_category: '',
     days: [],
     startTime: '19:00',
     endTime: '21:00',
-    fee: '',
-    description: '',
-    startDate: new Date().toISOString().split('T')[0],
-    endDate: '',
     studio_name: '',
     address: '',
-    region: '서울',
-    dance_style: '바차타',
-    rule_confirmed: false
+    region: '',
+    fee: '1만원',
+    custom_fee: '',
+    startDate: new Date(new Date().getTime() + 9 * 60 * 60 * 1000).toISOString().split('T')[0],
+    endDate: ''
   })
-
-  const THEME_COLOR = '#FF8C00' // Distinctive Orange for Clubs
 
   const toggleDay = (day) => {
     setFormData(prev => ({
@@ -42,21 +44,45 @@ const PostClub = ({ onBack, user }) => {
     }))
   }
 
-  // Location Auto-lookup logic (consistent with RegisterForm)
-  const handleLocationNameChange = (name) => {
-    setFormData(prev => ({ ...prev, studio_name: name }))
-    if (name.length >= 2) {
-      const { findBarByName } = require('../lib/BarLib') // Import dynamically or ensure it's available
-      const matched = findBarByName(name)
-      if (matched) {
-        setFormData(prev => ({
-          ...prev,
-          address: matched.address,
-          region: matched.region || '서울' // Default or classify
-        }))
-      }
+  const classifyRegion = (address) => {
+    if (!address) return ''
+    if (address.includes('서울')) return '서울'
+    if (address.includes('인천')) return '인천광역시'
+    if (address.includes('경기') || address.includes('용인') || address.includes('수원') || address.includes('성남') || address.includes('고양')) return '경기도'
+    if (address.includes('부산') || address.includes('대구') || address.includes('울산') || address.includes('경북') || address.includes('경남') || address.includes('포항') || address.includes('창원')) return '경상도'
+    if (address.includes('광주') || address.includes('전북') || address.includes('전남') || address.includes('여수') || address.includes('순천')) return '전라도'
+    if (address.includes('대전') || address.includes('세종') || address.includes('충북') || address.includes('충남') || address.includes('충청')) return '충청도'
+    if (address.includes('강원')) return '강원도'
+    if (address.includes('제주')) return '제주도'
+    return ''
+  }
+
+  const handleLocationLookup = (name) => {
+    if (!name) return
+    const matched = findBarByName(name)
+    if (matched) {
+      setFormData(prev => ({
+        ...prev,
+        address: matched.address,
+        region: matched.region || classifyRegion(matched.address) || prev.region
+      }))
+      return true
+    }
+    return false
+  }
+
+  const handleKeyDown = (e) => {
+    if (e.key === 'Enter') {
+      e.preventDefault()
+      handleLocationLookup(formData.studio_name)
     }
   }
+
+  useEffect(() => {
+    if (formData.studio_name.length >= 2) {
+      handleLocationLookup(formData.studio_name)
+    }
+  }, [formData.studio_name])
 
   const handleFileChange = (e) => {
     const selectedFile = e.target.files[0]
@@ -66,12 +92,20 @@ const PostClub = ({ onBack, user }) => {
     }
   }
 
-  const handleSubmit = async () => {
+  const handleSubmit = async (e) => {
+    e.preventDefault()
     if (!file) return alert('포스터 이미지를 올려주세요.')
-    if (!formData.title) return alert('동호회/강습 명칭을 입력해주세요.')
-    if (formData.days.length === 0) return alert('요일을 선택해주세요.')
-    if (!formData.rule_confirmed) return alert('유의사항 확인이 필요합니다.')
+    if (!formData.title || !formData.studio_name || !formData.region) {
+      return alert('필수 정보를 모두 입력해주세요.')
+    }
+    if (formData.days.length === 0) return alert('활동 요일을 선택해주세요.')
     
+    const finalFee = formData.fee === '기타' ? formData.custom_fee : formData.fee;
+    if (!finalFee) return alert('참가비를 입력해주세요.')
+
+    const finalCategory = formData.category === '기타' ? formData.custom_category : formData.category;
+    if (formData.category === '기타' && !finalCategory) return alert('난이도를 입력해주세요.')
+
     setLoading(true)
     try {
       let posterUrl = ''
@@ -83,11 +117,28 @@ const PostClub = ({ onBack, user }) => {
         posterUrl = data.publicUrl
       }
 
+      // [Auto-Learning] 장소가 DB에 없으면 자동 추가
+      const { data: existingLoc } = await supabase
+        .from('locations')
+        .select('id')
+        .eq('name', formData.studio_name)
+        .maybeSingle()
+
+      if (!existingLoc) {
+        const targetRegion = formData.region || classifyRegion(formData.address) || '서울'
+        const { data: reg } = await supabase.from('regions').select('id').ilike('name', `%${targetRegion}%`).limit(1).maybeSingle()
+        await supabase.from('locations').insert([{
+          name: formData.studio_name,
+          address: formData.address,
+          region_id: reg?.id || 1
+        }])
+      }
+
       const { error } = await supabase.from('classes_info').insert([{
         title: formData.title,
         instructor: formData.instructor,
         genre: formData.dance_style,
-        level: formData.category,
+        level: finalCategory,
         day_of_week: formData.days.join(', '),
         start_time: formData.startTime,
         end_time: formData.endTime,
@@ -96,7 +147,7 @@ const PostClub = ({ onBack, user }) => {
         studio_name: formData.studio_name,
         address: formData.address,
         city: formData.region,
-        fee: formData.fee ? `${formData.fee}만원` : '참가비 문의',
+        fee: finalFee,
         poster_url: posterUrl,
         status: 'pending',
         category_type: 'club'
@@ -113,249 +164,338 @@ const PostClub = ({ onBack, user }) => {
 
   if (submitted) {
     return (
-      <div style={{ textAlign: 'center', padding: '100px 24px', background: 'white', minHeight: '100vh' }}>
-        <div style={{ width: '80px', height: '80px', borderRadius: '40px', background: '#FFF7ED', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 32px' }}>
-          <Check size={40} color={THEME_COLOR} />
-        </div>
-        <h2 style={{ fontSize: '24px', fontWeight: 800, color: '#111827', marginBottom: '12px' }}>등록 신청 완료!</h2>
-        <p style={{ fontSize: '15px', color: '#6B7280', lineHeight: '1.6', marginBottom: '40px' }}>
-          정상적으로 접수되었습니다.<br/>관리자 승인 후 즉시 노출됩니다.
+      <div style={{ textAlign: 'center', padding: '100px 24px', backgroundColor: 'white', minHeight: '100vh', overflowY: 'auto' }}>
+        <div style={{ backgroundColor: THEME_COLOR, width: '80px', height: '80px', borderRadius: '40px', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 32px', boxShadow: `0 10px 25px ${THEME_COLOR}33` }}><Check size={40} color="white" /></div>
+        <h2 style={{ fontSize: '26px', fontWeight: 900, color: '#111827', marginBottom: '12px' }}>등록 신청 완료!</h2>
+        <p style={{ fontSize: '16px', color: '#6B7280', lineHeight: '1.6', marginBottom: '40px', fontWeight: 500 }}>
+          정상적으로 접수되었습니다.<br />
+          관리자 승인 후 메인 화면에<br />
+          즉시 노출됩니다.
         </p>
-        <button onClick={onBack} style={{ width: '100%', height: '56px', borderRadius: '16px', background: THEME_COLOR, color: 'white', fontWeight: 800, fontSize: '16px', border: 'none' }}>확인</button>
+        <button onClick={onSuccess || onBack} style={{ width: '100%', padding: '20px', background: THEME_COLOR, color: 'white', borderRadius: '16px', fontWeight: 800, fontSize: '18px', boxShadow: '0 4px 12px rgba(0,0,0,0.1)', border: 'none' }}>확인</button>
       </div>
     )
   }
 
+  const TIME_SLOTS = (() => {
+    const slots = [];
+    for (let h = 10; h <= 23; h++) {
+      slots.push({ value: `${String(h).padStart(2,'0')}:00`, label: `${h < 12 ? '오전' : '오후'} ${h === 12 ? 12 : h % 12 || 12}:00` });
+      slots.push({ value: `${String(h).padStart(2,'0')}:30`, label: `${h < 12 ? '오전' : '오후'} ${h === 12 ? 12 : h % 12 || 12}:30` });
+    }
+    for (let h = 0; h <= 6; h++) {
+      const hh = String(h).padStart(2, '0');
+      const labelPrefix = h === 0 ? '자정' : '새벽';
+      slots.push({ value: `${hh}:00`, label: `${labelPrefix} ${h}:00` });
+      if (h < 6) slots.push({ value: `${hh}:30`, label: `${labelPrefix} ${h}:30` });
+    }
+    return slots;
+  })();
+
   return (
-    <div style={{ background: '#F9FAFB', height: '100vh', overflowY: 'auto', paddingBottom: '100px', fontFamily: "'Pretendard', sans-serif", WebkitOverflowScrolling: 'touch' }}>
-      <header style={{ position: 'sticky', top: 0, background: 'white', padding: '16px 20px', borderBottom: '1px solid #F3F4F6', display: 'flex', alignItems: 'center', zIndex: 100 }}>
-        <ChevronLeft onClick={onBack} size={28} style={{ cursor: 'pointer' }} />
-        <h1 style={{ flex: 1, textAlign: 'center', fontSize: '18px', fontWeight: 800, marginRight: '28px' }}>강습 · 정모 등록하기</h1>
-      </header>
+    <div style={{ backgroundColor: '#fff', height: '100vh', overflowY: 'auto', paddingBottom: '100px', WebkitOverflowScrolling: 'touch' }}>
+      <div style={{ display: 'flex', alignItems: 'center', padding: '16px', borderBottom: '1px solid #F3F4F6', position: 'sticky', top: 0, backgroundColor: 'white', zIndex: 10 }}>
+        <button onClick={onBack} style={{ border: 'none', background: 'none', cursor: 'pointer', padding: 0 }}><ChevronLeft size={24} /></button>
+        <span style={{ fontSize: '18px', fontWeight: 800, marginLeft: '8px' }}>수업/정모 등록하기</span>
+      </div>
 
-      <main style={{ padding: '20px', maxWidth: '600px', margin: '0 auto' }}>
-        <section style={{ marginBottom: '24px', display: 'flex', gap: '20px', alignItems: 'center' }}>
-          <div 
-            onClick={() => document.getElementById('club-poster').click()}
-            style={{ 
-              width: '120px', height: '160px', background: '#F3F4F6', borderRadius: '16px', border: '2px dashed #E5E7EB', 
-              display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', overflow: 'hidden', position: 'relative', flexShrink: 0
-            }}
-          >
-            {preview ? <img src={preview} alt="Preview" style={{ width: '100%', height: '100%', objectFit: 'contain' }} /> : (
-              <><Plus size={24} color="#9CA3AF" /><p style={{ marginTop: '8px', fontSize: '11px', color: '#9CA3AF', fontWeight: 600 }}>포스터 업로드</p></>
-            )}
+      <form onSubmit={handleSubmit} style={{ padding: '20px' }}>
+        <div style={{ marginBottom: '20px', textAlign: 'center' }}>
+          {preview ? (
+            <img src={preview} style={{ width: '100%', height: '240px', objectFit: 'contain', borderRadius: '16px', backgroundColor: '#F9FAFB' }} onClick={() => document.getElementById('club-poster').click()} />
+          ) : (
+            <div onClick={() => document.getElementById('club-poster').click()} style={{ height: '160px', border: '2px dashed #E5E7EB', borderRadius: '24px', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', color: '#9CA3AF' }}>
+              <Plus size={40} />
+              <p style={{ marginTop: '8px', fontSize: '14px', fontWeight: 600 }}>포스터 업로드</p>
+            </div>
+          )}
+          <input id="club-poster" type="file" accept="image/*" onChange={handleFileChange} style={{ display: 'none' }} />
+          <div style={{ marginTop: '12px', padding: '12px', backgroundColor: '#FFF7ED', borderRadius: '12px', border: '1px solid #FFEDD5' }}>
+            <p style={{ margin: 0, fontSize: '12px', color: '#9A3412', fontWeight: 600, lineHeight: 1.5 }}>
+              포스터에 '수강료', '강습비', '레슨비' 등의 표현 대신 반드시 '참가비' 또는 금액으로 표기해주세요.
+            </p>
           </div>
-          <div style={{ flex: 1, fontSize: '12px', color: '#999', lineHeight: '1.6' }}>
-            <p style={{ margin: 0 }}>"포스터에 일정 · 가격 · 강사 정보를 모두 담아주세요."</p>
-            <p style={{ margin: 0 }}>"수강료 · 강습비 · 렌트비 · 수업료는 참가비 또는 금액으로 통일해주세요."</p>
-          </div>
-          <input id="club-poster" type="file" accept="image/*" style={{ display: 'none' }} onChange={handleFileChange} />
-        </section>
+        </div>
 
-        <div style={{ background: 'white', padding: '24px', borderRadius: '28px', boxShadow: '0 4px 20px rgba(0,0,0,0.02)' }}>
-          <div style={{ marginBottom: '24px' }}>
-            <label style={sectionTitleStyle}>강습/동호회 명칭</label>
+        <div style={{ marginBottom: '16px' }}>
+          <label style={{ display: 'block', fontSize: '13px', fontWeight: 600, color: '#374151', marginBottom: '6px' }}>강습/모임 명칭 (필수)</label>
+          <input 
+            type="text" 
+            value={formData.title} 
+            onChange={e => setFormData({...formData, title: e.target.value})} 
+            placeholder="예: 강남 바차타 기초반, 살사사랑 정모" 
+            required 
+            style={{ width: '100%', padding: '16px', border: '1.5px solid #F3F4F6', borderRadius: '14px', fontSize: '16px', backgroundColor: '#F9FAFB', outline: 'none' }} 
+          />
+        </div>
+
+        <div style={{ marginBottom: '16px' }}>
+          <label style={{ display: 'block', fontSize: '13px', fontWeight: 600, color: '#374151', marginBottom: '6px' }}>강사명 또는 닉네임</label>
+          <input 
+            type="text" 
+            value={formData.instructor} 
+            onChange={e => setFormData({...formData, instructor: e.target.value})} 
+            placeholder="예: 강사 이름 또는 닉네임" 
+            style={{ width: '100%', padding: '16px', border: '1.5px solid #F3F4F6', borderRadius: '14px', fontSize: '16px', backgroundColor: '#F9FAFB', outline: 'none' }} 
+          />
+        </div>
+
+        <div style={{ marginBottom: '16px' }}>
+          <label style={{ fontSize: '13px', fontWeight: 600, color: '#374151', display: 'block', marginBottom: '8px' }}>댄스 장르</label>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: '6px' }}>
+            {DANCE_STYLES.map(style => (
+              <button
+                key={style}
+                type="button"
+                onClick={() => setFormData({...formData, dance_style: style})}
+                style={{
+                  padding: '10px 0',
+                  backgroundColor: formData.dance_style === style ? THEME_COLOR : '#F3F4F6',
+                  color: formData.dance_style === style ? 'white' : '#4B5563',
+                  border: 'none',
+                  borderRadius: '10px',
+                  fontSize: '11px',
+                  fontWeight: 700,
+                  transition: 'all 0.2s'
+                }}
+              >
+                {style}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        <div style={{ marginBottom: '16px' }}>
+          <label style={{ fontSize: '13px', fontWeight: 600, color: '#374151', display: 'block', marginBottom: '8px' }}>난이도</label>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '6px', marginBottom: '8px' }}>
+            {CLASS_CATEGORIES.map(cat => (
+              <button
+                key={cat}
+                type="button"
+                onClick={() => setFormData({...formData, category: cat})}
+                style={{
+                  padding: '10px 0',
+                  backgroundColor: formData.category === cat ? THEME_COLOR : '#F3F4F6',
+                  color: formData.category === cat ? 'white' : '#4B5563',
+                  border: 'none',
+                  borderRadius: '10px',
+                  fontSize: '12px',
+                  fontWeight: 700,
+                  transition: 'all 0.2s'
+                }}
+              >
+                {cat}
+              </button>
+            ))}
+          </div>
+          {formData.category === '기타' && (
             <input 
-              type="text" placeholder="예) 강남 바차타 기초반, 살사사랑 정모" value={formData.title}
-              onChange={e => setFormData({...formData, title: e.target.value})}
-              style={inputStyle} 
+              type="text" 
+              value={formData.custom_category} 
+              onChange={e => setFormData({...formData, custom_category: e.target.value})} 
+              placeholder="난이도 직접 입력" 
+              style={{ width: '100%', padding: '14px', border: '1.5px solid #F3F4F6', borderRadius: '12px', fontSize: '14px', backgroundColor: '#F9FAFB', outline: 'none' }} 
             />
-          </div>
+          )}
+        </div>
 
-          <div style={{ marginBottom: '24px' }}>
-            <label style={sectionTitleStyle}>강사명</label>
-            <input 
-              type="text" placeholder="예) 강사 이름 또는 닉네임" value={formData.instructor}
-              onChange={e => setFormData({...formData, instructor: e.target.value})}
-              style={inputStyle} 
-            />
+        <div style={{ marginBottom: '16px' }}>
+          <label style={{ fontSize: '13px', fontWeight: 600, color: '#374151', display: 'block', marginBottom: '8px' }}>활동 요일 (다중 선택 가능)</label>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: '4px' }}>
+            {DAYS.map(day => (
+              <button
+                key={day}
+                type="button"
+                onClick={() => toggleDay(day)}
+                style={{
+                  padding: '12px 0',
+                  backgroundColor: formData.days.includes(day) ? THEME_COLOR : '#F3F4F6',
+                  color: formData.days.includes(day) ? 'white' : '#4B5563',
+                  border: 'none',
+                  borderRadius: '10px',
+                  fontSize: '12px',
+                  fontWeight: 700,
+                  transition: 'all 0.2s'
+                }}
+              >
+                {day}
+              </button>
+            ))}
           </div>
+        </div>
 
-          <div style={{ marginBottom: '24px' }}>
-            <label style={sectionTitleStyle}>강습 유형 (카테고리)</label>
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '8px' }}>
-              {CLASS_CATEGORIES.map(cat => (
-                <button 
-                  key={cat} onClick={() => setFormData({...formData, category: cat})}
-                  style={{ 
-                    height: '44px', borderRadius: '10px', fontSize: '13px', fontWeight: 700, border: '1px solid',
-                    borderColor: formData.category === cat ? THEME_COLOR : '#F3F4F6',
-                    background: formData.category === cat ? THEME_COLOR : '#F9FAFB',
-                    color: formData.category === cat ? 'white' : '#6B7280'
-                  }}
-                >
-                  {cat}
-                </button>
-              ))}
-            </div>
+        <div style={{ display: 'flex', gap: '8px', marginBottom: '16px' }}>
+          <div style={{ flex: 1 }}>
+            <label style={{ fontSize: '11px', fontWeight: 600, color: '#6B7280', display: 'block', marginBottom: '4px' }}>시작 시간</label>
+            <select 
+              value={formData.startTime} 
+              onChange={e => setFormData({...formData, startTime: e.target.value})} 
+              style={{ width: '100%', padding: '14px 8px', border: '1.5px solid #F3F4F6', borderRadius: '12px', fontSize: '14px', backgroundColor: '#F9FAFB', outline: 'none' }}
+            >
+              {TIME_SLOTS.map(slot => <option key={`start-${slot.value}`} value={slot.value}>{slot.label}</option>)}
+            </select>
           </div>
-
-          <div style={{ marginBottom: '24px' }}>
-            <label style={sectionTitleStyle}>댄스 장르</label>
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '8px' }}>
-              {DANCE_STYLES.map(style => (
-                <button 
-                  key={style} type="button" onClick={() => setFormData({...formData, dance_style: style})}
-                  style={{ 
-                    height: '42px', borderRadius: '10px', fontSize: '13px', fontWeight: 700, border: '1px solid',
-                    borderColor: formData.dance_style === style ? THEME_COLOR : '#F3F4F6',
-                    background: formData.dance_style === style ? THEME_COLOR : '#F9FAFB',
-                    color: formData.dance_style === style ? 'white' : '#6B7280'
-                  }}
-                >
-                  {style}
-                </button>
-              ))}
-            </div>
+          <div style={{ flex: 1 }}>
+            <label style={{ fontSize: '11px', fontWeight: 600, color: '#6B7280', display: 'block', marginBottom: '4px' }}>종료 시간</label>
+            <select 
+              value={formData.endTime} 
+              onChange={e => setFormData({...formData, endTime: e.target.value})} 
+              style={{ width: '100%', padding: '14px 8px', border: '1.5px solid #F3F4F6', borderRadius: '12px', fontSize: '14px', backgroundColor: '#F9FAFB', outline: 'none' }}
+            >
+              {TIME_SLOTS.map(slot => <option key={`end-${slot.value}`} value={slot.value}>{slot.label}</option>)}
+            </select>
           </div>
+        </div>
 
-          <div style={{ marginBottom: '24px' }}>
-            <label style={sectionTitleStyle}>활동 지역</label>
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '8px' }}>
-              {REGIONS.map(reg => (
-                <button 
-                  key={reg} type="button" onClick={() => setFormData({...formData, region: reg})}
-                  style={{ 
-                    height: '42px', borderRadius: '10px', fontSize: '13px', fontWeight: 700, border: '1px solid',
-                    borderColor: formData.region === reg ? THEME_COLOR : '#F3F4F6',
-                    background: formData.region === reg ? THEME_COLOR : '#F9FAFB',
-                    color: formData.region === reg ? 'white' : '#6B7280'
-                  }}
-                >
-                  {reg}
-                </button>
-              ))}
-            </div>
+        <div style={{ marginBottom: '16px' }}>
+          <label style={{ display: 'block', fontSize: '13px', fontWeight: 600, color: '#374151', marginBottom: '6px' }}>장소 명칭 (자동완성)</label>
+          <input 
+            type="text" 
+            value={formData.studio_name} 
+            onChange={e => {
+              const name = e.target.value;
+              setFormData({...formData, studio_name: name});
+              if (name.length >= 2) {
+                handleLocationLookup(name);
+              }
+            }} 
+            onKeyDown={handleKeyDown} 
+            placeholder="장소명 (예: 강남 턴 바)" 
+            required 
+            style={{ width: '100%', padding: '16px', border: '1.5px solid #F3F4F6', borderRadius: '14px', fontSize: '16px', backgroundColor: '#F9FAFB', outline: 'none' }} 
+          />
+        </div>
+
+        <div style={{ marginBottom: '16px' }}>
+          <label style={{ display: 'block', fontSize: '13px', fontWeight: 600, color: '#374151', marginBottom: '6px' }}>상세 주소 (자동 연동)</label>
+          <input 
+            type="text" 
+            value={formData.address} 
+            onChange={e => {
+              const address = e.target.value;
+              const autoSelectedRegion = classifyRegion(address) || formData.region;
+              setFormData({
+                ...formData, 
+                address: address,
+                region: autoSelectedRegion
+              });
+            }} 
+            placeholder="상세 주소 (카카오 지도 연동용)" 
+            required 
+            style={{ width: '100%', padding: '16px', border: '1.5px solid #F3F4F6', borderRadius: '14px', fontSize: '15px', backgroundColor: '#F9FAFB', outline: 'none' }} 
+          />
+        </div>
+
+        <div style={{ marginBottom: '16px' }}>
+          <label style={{ fontSize: '13px', fontWeight: 600, color: '#374151', display: 'block', marginBottom: '8px' }}>지역 선택 (필수)</label>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '8px' }}>
+            {REGIONS.map(r => (
+              <button
+                key={r}
+                type="button"
+                onClick={() => setFormData({...formData, region: r})}
+                style={{
+                  padding: '10px 4px',
+                  backgroundColor: formData.region === r ? THEME_COLOR : '#F3F4F6',
+                  color: formData.region === r ? 'white' : '#4B5563',
+                  border: 'none',
+                  borderRadius: '10px',
+                  fontSize: '11px',
+                  fontWeight: 700,
+                  transition: 'all 0.2s'
+                }}
+              >
+                {r.replace('도', '').replace('광역시', '').replace('특별자치도', '')}
+              </button>
+            ))}
           </div>
+          {!formData.region && <p style={{ fontSize: '10px', color: '#EF4444', marginTop: '4px' }}>* 지역을 선택해주세요.</p>}
+        </div>
 
-          <div style={{ marginBottom: '24px' }}>
-            <label style={sectionTitleStyle}>정모/강습 요일</label>
-            <div style={{ display: 'flex', justifyContent: 'space-between', gap: '4px' }}>
-              {DAYS.map(day => (
-                <button 
-                  key={day} onClick={() => toggleDay(day)}
-                  style={{ 
-                    flex: 1, height: '40px', borderRadius: '12px', fontSize: '13px', fontWeight: 700, border: '1px solid',
-                    borderColor: formData.days.includes(day) ? THEME_COLOR : '#F3F4F6',
-                    background: formData.days.includes(day) ? THEME_COLOR : '#F9FAFB',
-                    color: formData.days.includes(day) ? 'white' : '#6B7280'
-                  }}
-                >
-                  {day}
-                </button>
-              ))}
-            </div>
+        <div style={{ marginBottom: '16px' }}>
+          <label style={{ fontSize: '13px', fontWeight: 600, color: '#374151', display: 'block', marginBottom: '8px' }}>참가비</label>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: '6px', marginBottom: '8px' }}>
+            {FEES.map(fee => (
+              <button
+                key={fee}
+                type="button"
+                onClick={() => {
+                  if (fee === '기타') {
+                    setFormData({...formData, fee: fee})
+                    document.getElementById('custom-fee-input')?.focus()
+                  } else {
+                    setFormData({...formData, fee: fee})
+                  }
+                }}
+                style={{ 
+                  padding: '10px 0', 
+                  backgroundColor: formData.fee === fee ? THEME_COLOR : '#F3F4F6', 
+                  color: formData.fee === fee ? 'white' : '#4B5563',
+                  border: 'none', 
+                  borderRadius: '10px', 
+                  fontSize: '11px', 
+                  fontWeight: 700,
+                  transition: 'all 0.2s'
+                }}
+              >
+                {fee}
+              </button>
+            ))}
           </div>
           
-          <div style={{ marginBottom: '24px' }}>
-            <label style={sectionTitleStyle}>장소 및 주소</label>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-              <input 
-                placeholder="장소명 (예: 강남 턴 바)" value={formData.studio_name}
-                onChange={e => setFormData({...formData, studio_name: e.target.value})}
-                style={inputStyle} 
-              />
-              <input 
-                placeholder="상세 주소 (카카오 지도 연동용)" value={formData.address}
-                onChange={e => setFormData({...formData, address: e.target.value})}
-                style={inputStyle} 
-              />
-            </div>
-          </div>
-
-          <div style={{ marginBottom: '24px' }}>
-            <label style={sectionTitleStyle}>운영 기간</label>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <input 
-                type="date" value={formData.startDate}
-                onChange={e => setFormData({...formData, startDate: e.target.value})}
-                style={{ ...inputStyle, flex: 1 }} 
-              />
-              <span style={{ color: '#9CA3AF' }}>~</span>
-              <input 
-                type="date" value={formData.endDate}
-                onChange={e => setFormData({...formData, endDate: e.target.value})}
-                style={{ ...inputStyle, flex: 1 }} 
-              />
-            </div>
-            <p style={{ fontSize: '12px', color: '#9CA3AF', marginTop: '6px' }}>* 종료일 미지정 시 '상시 운영'으로 노출됩니다.</p>
-          </div>
-
-          <div style={{ marginBottom: '24px' }}>
-            <label style={sectionTitleStyle}>활동 시간 (30분 단위)</label>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <select 
-                value={formData.startTime}
-                onChange={e => setFormData({...formData, startTime: e.target.value})}
-                style={{ ...inputStyle, flex: 1, textAlign: 'center', appearance: 'none', textAlignLast: 'center' }}
-              >
-                {Array.from({ length: 19 }).map((_, i) => {
-                  const totalMinutes = 12 * 60 + i * 30;
-                  const h = Math.floor(totalMinutes / 60).toString().padStart(2, '0');
-                  const m = (totalMinutes % 60 === 0 ? '00' : '30');
-                  const t = `${h}:${m}`;
-                  return <option key={t} value={t}>{t}</option>;
-                })}
-              </select>
-              <span style={{ color: '#9CA3AF' }}>~</span>
-              <select 
-                value={formData.endTime}
-                onChange={e => setFormData({...formData, endTime: e.target.value})}
-                style={{ ...inputStyle, flex: 1, textAlign: 'center', appearance: 'none', textAlignLast: 'center' }}
-              >
-                {Array.from({ length: 19 }).map((_, i) => {
-                  const totalMinutes = 12 * 60 + i * 30;
-                  const h = Math.floor(totalMinutes / 60).toString().padStart(2, '0');
-                  const m = (totalMinutes % 60 === 0 ? '00' : '30');
-                  const t = `${h}:${m}`;
-                  return <option key={t} value={t}>{t}</option>;
-                })}
-              </select>
-            </div>
-          </div>
-
-          <div style={{ marginBottom: '32px' }}>
-            <label style={sectionTitleStyle}>참가비</label>
+          {formData.fee === '기타' && (
             <input 
-              type="number" step="0.1" placeholder="예) 1.5 (만원 단위)" value={formData.fee}
-              onChange={e => setFormData({...formData, fee: e.target.value})}
-              style={inputStyle} 
+              id="custom-fee-input"
+              type="text" 
+              value={formData.custom_fee} 
+              onChange={e => setFormData({...formData, custom_fee: e.target.value})} 
+              style={{ 
+                width: '100%', 
+                padding: '14px', 
+                border: '1.5px solid #F3F4F6', 
+                borderRadius: '12px',
+                fontSize: '14px',
+                backgroundColor: '#F9FAFB',
+                outline: 'none'
+              }} 
+              placeholder="직접 입력 (예: 2만원)"
             />
-            <p style={{ fontSize: '12px', color: '#9CA3AF', marginTop: '6px' }}>* 숫자만 입력하세요 (1.5 = 15,000원)</p>
-          </div>
-
-          <div style={{ display: 'flex', gap: '12px', padding: '16px', background: '#FFF7ED', borderRadius: '16px', marginBottom: '32px', border: '1px solid #FFEDD5' }}>
-            <input 
-              type="checkbox" checked={formData.rule_confirmed}
-              onChange={e => setFormData({...formData, rule_confirmed: e.target.checked})}
-              style={{ width: '22px', height: '22px', accentColor: THEME_COLOR }}
-            />
-            <label style={{ fontSize: '13px', color: '#9A3412', fontWeight: 600, lineHeight: 1.5 }}>포스터 내 '참가비' 또는 '금액' 용어 사용 확인 (수강료/회비 등 기재 시 반려 가능)</label>
-          </div>
-
-          <button 
-            onClick={handleSubmit} disabled={loading}
-            style={{ 
-              width: '100%', height: '60px', borderRadius: '18px', background: THEME_COLOR, color: 'white', 
-              fontWeight: 800, fontSize: '17px', border: 'none', boxShadow: `0 8px 20px ${THEME_COLOR}33`,
-              opacity: loading ? 0.7 : 1
-            }}
-          >
-            {loading ? '등록 중...' : '동호회 강습 등록 완료'}
-          </button>
+          )}
         </div>
-      </main>
+
+        <div style={{ marginBottom: '24px' }}>
+          <label style={{ display: 'block', fontSize: '13px', fontWeight: 600, color: '#374151', marginBottom: '6px' }}>운영 기간</label>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <input 
+              type="date" value={formData.startDate}
+              onChange={e => setFormData({...formData, startDate: e.target.value})}
+              style={{ width: '100%', padding: '14px 8px', border: '1.5px solid #F3F4F6', borderRadius: '12px', fontSize: '13px', backgroundColor: '#F9FAFB', outline: 'none', flex: 1 }} 
+            />
+            <span style={{ color: '#9CA3AF' }}>~</span>
+            <input 
+              type="date" value={formData.endDate}
+              onChange={e => setFormData({...formData, endDate: e.target.value})}
+              style={{ width: '100%', padding: '14px 8px', border: '1.5px solid #F3F4F6', borderRadius: '12px', fontSize: '13px', backgroundColor: '#F9FAFB', outline: 'none', flex: 1 }} 
+            />
+          </div>
+          <p style={{ fontSize: '11px', color: '#9CA3AF', marginTop: '6px' }}>* 종료일 미지정 시 '상시 운영'으로 노출됩니다.</p>
+        </div>
+
+        <button 
+          type="submit" 
+          disabled={loading || !formData.title || !formData.studio_name || !formData.region || formData.days.length === 0} 
+          style={{ 
+            width: '100%', padding: '20px', background: THEME_COLOR, color: 'white', borderRadius: '16px', 
+            fontWeight: 800, fontSize: '18px', border: 'none',
+            opacity: (loading || !formData.title || !formData.studio_name || !formData.region || formData.days.length === 0) ? 0.5 : 1,
+            boxShadow: `0 4px 12px ${THEME_COLOR}33`
+          }}
+        >
+          등록 완료
+        </button>
+      </form>
     </div>
   )
-}
-
-const sectionTitleStyle = {
-  display: 'block', fontSize: '14px', fontWeight: 700, color: '#374151', marginBottom: '10px'
-}
-
-const inputStyle = {
-  width: '100%', height: '50px', padding: '0 16px', borderRadius: '12px', border: '1px solid #F3F4F6', background: '#F9FAFB', fontSize: '15px', outline: 'none', transition: 'all 0.2s'
 }
 
 export default PostClub
