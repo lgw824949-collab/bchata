@@ -243,7 +243,7 @@ function App() {
           <span>찜</span>
         </div>
 
-        <div className="nav-item central-action">
+        <div className="nav-item central-action" style={{ pointerEvents: 'none', position: 'relative', zIndex: 1001 }}>
           <motion.button
             whileHover={{ scale: 1.1 }}
             whileTap={{ scale: 0.9 }}
@@ -255,6 +255,7 @@ function App() {
               display:'flex', alignItems:'center',
               justifyContent:'center', cursor:'pointer',
               boxShadow:'0 4px 15px rgba(0,0,0,0.3)',
+              pointerEvents: 'auto'
             }}
             onClick={() => {
               if (view === 'social') setView('post-lesson')
@@ -263,7 +264,7 @@ function App() {
           >
             <Plus size={28} strokeWidth={3} />
           </motion.button>
-          <span>등록</span>
+          <span style={{ pointerEvents: 'auto' }}>등록</span>
         </div>
 
 
