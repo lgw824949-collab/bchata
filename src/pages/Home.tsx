@@ -251,29 +251,7 @@ const HomePage = ({
           alignItems: 'center', 
           padding: '0 15px'
         }}>
-          {/* 햄버거 메뉴 (클릭 영역 확장 및 우선순위 강화) */}
-          <div 
-            onClick={(e) => { 
-              e.stopPropagation(); 
-              setIsMenuOpen(true); 
-            }} 
-            style={{ 
-              cursor: 'pointer', 
-              fontSize: '28px', 
-              marginRight: '10px', 
-              padding: '15px 20px', 
-              marginLeft: '-20px', 
-              display: 'flex', 
-              alignItems: 'center', 
-              justifyContent: 'center',
-              position: 'relative',
-              zIndex: 100005,
-              pointerEvents: 'auto',
-              WebkitTapHighlightColor: 'transparent'
-            }}
-          >
-            ☰
-          </div>
+
           
           {/* 📅 가로 스트림형 날짜 선택 (7일치 노출) */}
           <div style={{ 
