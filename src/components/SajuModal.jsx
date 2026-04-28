@@ -16,23 +16,6 @@ const getDistance = (lat1, lon1, lat2, lon2) => {
   return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a))
 }
 
-// ─── 카카오 Geocoding (주소 → 좌표) ───
-const geocodeAddress = async (address) => {
-  try {
-    const response = await fetch(
-      `https://dapi.kakao.com/v2/local/search/keyword.json?query=${encodeURIComponent(address)}`,
-      { headers: { Authorization: `KakaoAK ${import.meta.env.VITE_KAKAO_API_KEY}` } }
-    )
-    const data = await response.json()
-    if (data.documents?.length > 0) {
-      return {
-        lat: parseFloat(data.documents[0].y),
-        lon: parseFloat(data.documents[0].x)
-      }
-    }
-  } catch(e) {}
-  return null
-}
 
 // ─── 바 장르 매핑 (Heuristic) ───
 const matchesGenre = (barName, genre) => {
@@ -181,22 +164,27 @@ export default function SajuModal({ onClose, parties=[] }) {
         // 장르에 맞는 바 필터링
         const candidates = BAR_DATABASE.filter(bar => matchesGenre(bar.name, dance.genre))
         
-        // 좌표 변환 및 거리 계산
-        const barsWithDist = await Promise.all(candidates.map(async (bar) => {
-          const coords = await geocodeAddress(bar.address)
-          if (!coords) return null
-          const dist = getDistance(userLat, userLon, coords.lat, coords.lon)
-          return { ...bar, distance: dist }
-        }))
-        
-        recommendedBars = barsWithDist
-          .filter(b => b !== null)
+        // 좌표 직접 사용하여 거리 계산
+        recommendedBars = candidates
+          .filter(bar => bar.lat && bar.lon)
+          .map(bar => {
+            const dist = getDistance(userLat, userLon, bar.lat, bar.lon)
+            const transport = dist < 1 ? '도보' : dist < 5 ? '버스' : '지하철'
+            const time = dist < 1 ? Math.round(dist * 12) : Math.round(dist * 3)
+            
+            return {
+              ...bar,
+              distance: dist,
+              distanceText: `내 위치 → ${bar.name} ${dist.toFixed(1)}km (${transport} ${time}분)`,
+              isGps: true
+            }
+          })
           .sort((a, b) => a.distance - b.distance)
           .slice(0, 3)
           .map(b => ({
             title: b.name,
             locationName: b.address.split(' ').slice(0, 2).join(' '), // 짧은 주소
-            distanceText: `내 위치 → ${b.name} ${b.distance.toFixed(1)}km (도보 ${Math.round(b.distance * 12)}분)`,
+            distanceText: b.distanceText,
             isGps: true
           }))
         
