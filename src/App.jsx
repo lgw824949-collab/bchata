@@ -243,6 +243,29 @@ function App() {
           <span>찜</span>
         </div>
 
+        <div className="nav-item central-action">
+          <motion.button
+            whileHover={{ scale: 1.1 }}
+            whileTap={{ scale: 0.9 }}
+            style={{
+              width:'52px', height:'52px',
+              borderRadius:'50%',
+              background:'#111827',
+              border:'none', color:'#fff',
+              display:'flex', alignItems:'center',
+              justifyContent:'center', cursor:'pointer',
+              boxShadow:'0 4px 15px rgba(0,0,0,0.3)',
+            }}
+            onClick={() => {
+              if (view === 'social') setView('post-lesson')
+              else setView('register')
+            }}
+          >
+            <Plus size={28} strokeWidth={3} />
+          </motion.button>
+          <span>등록</span>
+        </div>
+
 
 
         <div 
