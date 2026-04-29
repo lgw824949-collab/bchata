@@ -86,50 +86,56 @@ const LiveCount = () => {
     }
   }, [])
 
+  const abbreviateRegion = (region) => {
+    if (!region) return '';
+    return region
+      .replace('인천광역시', '인천')
+      .replace('서울특별시', '서울')
+      .replace('부산광역시', '부산')
+      .replace('경기도', '경기');
+  };
+
   const liveList = Object.entries(counts)
-    .filter(([_, count]) => count > 0)
+    .filter(([_, count]) => count >= 50)
     .sort((a, b) => b[1] - a[1])
-    .slice(0, 3)
+    .slice(0, 5)
 
   if (liveList.length === 0) return null
 
   return (
     <div style={{ 
       background: '#0F172A', 
-      padding: '12px 20px', 
+      padding: '8px 20px', 
       display: 'flex', 
       alignItems: 'center', 
       overflowX: 'auto', 
       whiteSpace: 'nowrap', 
       borderBottom: '1px solid #1E293B',
       scrollbarWidth: 'none',
-      msOverflowStyle: 'none'
+      msOverflowStyle: 'none',
+      gap: '24px'
     }}>
-      <style>{`.live-dot { animation: blink 1.5s infinite; } @keyframes blink { 0% { opacity: 1; } 50% { opacity: 0.3; } 100% { opacity: 1; } }`}</style>
-      <span style={{ 
-        color: '#EF4444', 
-        fontWeight: '900', 
-        fontSize: '11px', 
-        marginRight: '15px', 
-        display: 'flex', 
-        alignItems: 'center', 
-        gap: '6px',
-        letterSpacing: '1px'
-      }}>
-        <span className="live-dot" style={{ width: '8px', height: '8px', background: '#EF4444', borderRadius: '50%', boxShadow: '0 0 8px rgba(239, 68, 68, 0.5)' }}></span>
-        LIVE
-      </span>
-      <div style={{ display: 'flex', gap: '20px' }}>
-        {liveList.map(([key, count]) => {
-          const [region, barName] = key.split('|')
-          return (
-            <div key={key} style={{ fontSize: '13px', color: '#F1F5F9', fontWeight: '500' }}>
-              <span style={{ color: '#94A3B8', marginRight: '4px' }}>|</span>
-              {region} <span style={{ fontWeight: '900', color: '#FFFFFF' }}>{barName}</span> <span style={{ color: '#EF4444', fontWeight: '800' }}>{count}명</span> 파티 중!
-            </div>
-          )
-        })}
-      </div>
+      <style>{`
+        .live-dot { animation: blink 1.5s infinite; } 
+        @keyframes blink { 0% { opacity: 1; } 50% { opacity: 0.3; } 100% { opacity: 1; } }
+        .live-text { font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, system-ui, Roboto, sans-serif; }
+      `}</style>
+      
+      {liveList.map(([key, count]) => {
+        const [region, barName] = key.split('|')
+        const shortRegion = abbreviateRegion(region)
+        return (
+          <div key={key} className="live-text" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <span className="live-dot" style={{ color: '#E53935', fontSize: '10px' }}>●</span>
+            <span style={{ fontWeight: 900, fontSize: '14px', color: '#FFFFFF' }}>
+              {shortRegion && `${shortRegion} `}{barName}
+            </span>
+            <span style={{ fontWeight: 300, fontSize: '22px', color: '#E53935', marginLeft: '4px' }}>
+              {count}
+            </span>
+          </div>
+        )
+      })}
     </div>
   )
 }
