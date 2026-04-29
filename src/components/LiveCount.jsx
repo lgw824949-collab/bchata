@@ -9,12 +9,13 @@ const LiveCount = () => {
     const thirtyMinsAgo = new Date(Date.now() - 30 * 60 * 1000)
     const { data, error } = await supabase
       .from('bar_checkins')
-      .select('bar_name')
+      .select('bar_name, region')
       .gte('checked_in_at', thirtyMinsAgo.toISOString())
     
     if (data) {
       const grouped = data.reduce((acc, curr) => {
-        acc[curr.bar_name] = (acc[curr.bar_name] || 0) + 1
+        const key = `${curr.region}|${curr.bar_name}`
+        acc[key] = (acc[key] || 0) + 1
         return acc
       }, {})
       setCounts(grouped)
@@ -88,24 +89,25 @@ const LiveCount = () => {
   const liveList = Object.entries(counts)
     .filter(([_, count]) => count > 0)
     .sort((a, b) => b[1] - a[1])
+    .slice(0, 3)
 
   if (liveList.length === 0) return null
 
   return (
     <div style={{ 
-      background: '#FFFFFF', 
+      background: '#0F172A', 
       padding: '12px 20px', 
       display: 'flex', 
       alignItems: 'center', 
       overflowX: 'auto', 
       whiteSpace: 'nowrap', 
-      borderBottom: '1px solid #E2E8F0',
+      borderBottom: '1px solid #1E293B',
       scrollbarWidth: 'none',
       msOverflowStyle: 'none'
     }}>
       <style>{`.live-dot { animation: blink 1.5s infinite; } @keyframes blink { 0% { opacity: 1; } 50% { opacity: 0.3; } 100% { opacity: 1; } }`}</style>
       <span style={{ 
-        color: '#E53935', 
+        color: '#EF4444', 
         fontWeight: '900', 
         fontSize: '11px', 
         marginRight: '15px', 
@@ -114,15 +116,19 @@ const LiveCount = () => {
         gap: '6px',
         letterSpacing: '1px'
       }}>
-        <span className="live-dot" style={{ width: '8px', height: '8px', background: '#E53935', borderRadius: '50%' }}></span>
+        <span className="live-dot" style={{ width: '8px', height: '8px', background: '#EF4444', borderRadius: '50%', boxShadow: '0 0 8px rgba(239, 68, 68, 0.5)' }}></span>
         LIVE
       </span>
-      <div style={{ display: 'flex', gap: '18px' }}>
-        {liveList.map(([name, count]) => (
-          <div key={name} style={{ fontSize: '13px', color: '#1E293B', fontWeight: '800' }}>
-            {name} <span style={{ color: '#E53935', marginLeft: '2px' }}>{count}명</span>
-          </div>
-        ))}
+      <div style={{ display: 'flex', gap: '20px' }}>
+        {liveList.map(([key, count]) => {
+          const [region, barName] = key.split('|')
+          return (
+            <div key={key} style={{ fontSize: '13px', color: '#F1F5F9', fontWeight: '500' }}>
+              <span style={{ color: '#94A3B8', marginRight: '4px' }}>|</span>
+              {region} <span style={{ fontWeight: '900', color: '#FFFFFF' }}>{barName}</span> <span style={{ color: '#EF4444', fontWeight: '800' }}>{count}명</span> 파티 중!
+            </div>
+          )
+        })}
       </div>
     </div>
   )
