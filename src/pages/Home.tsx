@@ -192,6 +192,9 @@ const HomePage = ({
 
   useEffect(() => {
     const regionTimer = setInterval(() => {
+      // 10초마다 무조건 셔플 (사용자 조작 여부와 상관없이 형평성 유지)
+      setShuffleKey(prev => prev + 1);
+
       if (!isPaused) {
         setRegionOrder(prev => {
           const next = [...prev];
@@ -199,8 +202,6 @@ const HomePage = ({
           if (first) next.push(first);
           return next;
         });
-        // 10초마다 셔플 키 업데이트
-        setShuffleKey(prev => prev + 1);
       }
     }, 10000); 
 
@@ -629,12 +630,12 @@ const HomePage = ({
                     return false;
                   });
 
-                  // 10초마다 순서를 뒤섞는 페어 익스포저(Fair Exposure) 로직
+                  // 10초마다 순서를 강력하게 뒤섞는 페어 익스포저(Fair Exposure) 알고리즘
                   const shuffledParties = [...regionParties].sort((a, b) => {
-                    // ID와 shuffleKey를 조합하여 10초마다 새로운 결정론적 무작위 순서 생성
-                    const hashA = (parseInt(String(a.id).replace(/[^0-9]/g, '')) || 0) + (shuffleKey * 7);
-                    const hashB = (parseInt(String(b.id).replace(/[^0-9]/g, '')) || 0) + (shuffleKey * 7);
-                    return (hashA % 11) - (hashB % 11);
+                    // ID와 shuffleKey를 사인 함수에 넣어 매번 새로운 무작위 패턴 생성
+                    const valA = Math.sin((parseInt(String(a.id).replace(/[^0-9]/g, '')) || 0) + shuffleKey * 133.7);
+                    const valB = Math.sin((parseInt(String(b.id).replace(/[^0-9]/g, '')) || 0) + shuffleKey * 133.7);
+                    return valA - valB;
                   });
 
                   return (
