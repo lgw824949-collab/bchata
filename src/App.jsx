@@ -375,23 +375,22 @@ function App() {
                 src={selectedPoster} 
                 style={{ width:'100%', height:'100%', objectFit:'contain', display: 'block' }} 
                 alt="Poster" 
-                onClick={(e) => {
-                  e.stopPropagation();
-                  setSelectedPoster(null);
-                }}
               />
             </div>
           </QuickPinchZoom>
+          
+          {/* 확실한 닫기 버튼 */}
           <button
             onClick={() => setSelectedPoster(null)}
             style={{ 
-              position:'fixed', top:'25px', left:'25px', 
-              background:'rgba(0,0,0,0.6)', border:'1px solid rgba(255,255,255,0.3)', 
-              borderRadius:'50%', width:'48px', height:'48px', 
-              color:'#fff', fontSize:'24px', cursor:'pointer', 
+              position:'fixed', top:'30px', left:'25px', 
+              background:'rgba(0,0,0,0.7)', border:'1.5px solid rgba(255,255,255,0.5)', 
+              borderRadius:'50%', width:'52px', height:'52px', 
+              color:'#fff', fontSize:'28px', cursor:'pointer', 
               display:'flex', alignItems:'center', justifyContent:'center', 
-              zIndex: 100002,
-              backdropFilter: 'blur(5px)'
+              zIndex: 100005,
+              backdropFilter: 'blur(10px)',
+              boxShadow: '0 4px 15px rgba(0,0,0,0.5)'
             }}
           >
             ✕
