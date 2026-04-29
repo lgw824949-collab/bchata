@@ -43,6 +43,9 @@ const Restaurant = ({ onBack }) => {
         const response = await fetch(url);
         const json = await response.json();
 
+        // 데이터 필드 확인용 로그
+        console.log("첫번째 맛집 데이터:", json.body?.items?.[0]);
+
         // 소상공인 API 응답 구조: json.body.items
         if (json.body && json.body.items) {
           const list = json.body.items.map(item => ({
