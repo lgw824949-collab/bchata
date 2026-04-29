@@ -48,7 +48,8 @@ const ClassNewsPage = ({
   parties, loading, selectedMonth, setSelectedMonth, selectedWeek, setSelectedWeek, 
   selectedDate, setSelectedDate, selectedRegion, setSelectedRegion, isExpanded, setIsExpanded,
   view, setView, setSelectedPoster, fetchParties, formatItemDate, formatFee, filteredParties, weekData,
-  resetToToday, showFullCalendar, setShowFullCalendar, allDatesInMonth, likedIds, toggleLike, logActivity, handleRegister, fourteenDays, recordTraffic, regionalTheme, venueCounts, openAnalysis, setIsMenuOpen
+  resetToToday, showFullCalendar, setShowFullCalendar, allDatesInMonth, likedIds, toggleLike, logActivity, handleRegister, fourteenDays, recordTraffic, regionalTheme, venueCounts, openAnalysis, isMenuOpen, setIsMenuOpen,
+  setShowSaju, setShowWeather, setShowLatinModal
 }) => {
   const [regionOrder, setRegionOrder] = useState(['서울', '경기/인천', '경상', '전라', '충청', '강원/제주'])
   const [posterOffset, setPosterOffset] = useState(0)
@@ -103,6 +104,99 @@ const ClassNewsPage = ({
   }, [parties])
   return (
     <div style={{ height: '100vh', overflowY: 'auto', WebkitOverflowScrolling: 'touch', background: '#fff' }}>
+      {/* 햄버거 버튼 (그린 테마) */}
+      {!isMenuOpen && (
+        <motion.button 
+          whileTap={{ scale: 0.9 }}
+          onClick={() => setIsMenuOpen(true)}
+          style={{ 
+            position: 'fixed', top: '20px', left: '20px', zIndex: 100006,
+            background: '#2E7D32', border: 'none', borderRadius: '12px', padding: '10px',
+            boxShadow: '0 4px 15px rgba(0,0,0,0.1)', cursor: 'pointer',
+            display: 'flex', alignItems: 'center', justifyContent: 'center'
+          }}
+        >
+          <Menu size={24} color="#fff" />
+        </motion.button>
+      )}
+
+      {/* 그린 테마 햄버거 메뉴 패널 */}
+      <AnimatePresence>
+        {isMenuOpen && (
+          <motion.div
+            initial={{ x: '-100%' }}
+            animate={{ x: 0 }}
+            exit={{ x: '-100%' }}
+            transition={{ type: 'spring', damping: 25, stiffness: 200 }}
+            style={{
+              position: 'fixed', top: 0, bottom: 0, left: 0,
+              width: '75vw', maxWidth: '320px',
+              zIndex: 1000000,
+              background: '#FFFFFF',
+              display: 'flex', flexDirection: 'column',
+              overflowY: 'auto',
+              boxShadow: '10px 0 30px rgba(0,0,0,0.1)'
+            }}
+          >
+            {/* Header */}
+            <div style={{ 
+              background: '#2E7D32', padding: '40px 24px 30px',
+              display: 'flex', flexDirection: 'column', gap: '10px',
+              position: 'relative'
+            }}>
+              <motion.button 
+                whileTap={{ scale: 0.9 }}
+                onClick={() => setIsMenuOpen(false)}
+                style={{ 
+                  position: 'absolute', top: '20px', right: '20px',
+                  background: 'rgba(255,255,255,0.2)', border: 'none', borderRadius: '12px', 
+                  padding: '8px', color: '#fff', cursor: 'pointer' 
+                }}
+              >
+                <X size={20} />
+              </motion.button>
+              <h2 style={{ color: '#fff', fontSize: '22px', fontWeight: 900, margin: 0 }}>Class Services</h2>
+              <p style={{ color: 'rgba(255,255,255,0.8)', fontSize: '13px', margin: 0 }}>수업/정모 전용 프리미엄 메뉴</p>
+            </div>
+
+            <div style={{ padding: '30px 20px', display: 'flex', flexDirection: 'column', gap: '12px' }}>
+              {[
+                { icon: '🔮', text: "댄스 사주", action: () => { setShowSaju(true); setIsMenuOpen(false); } },
+                { icon: '🌤️', text: "오늘 날씨", action: () => { setShowWeather(true); setIsMenuOpen(false); } },
+                { icon: '🇬🇧', text: "라틴 영어", action: () => { setShowLatinModal(true); setIsMenuOpen(false); } },
+                { icon: '📝', text: "소셜/파티 등록", action: () => { setView('register'); setIsMenuOpen(false); } },
+                { icon: '📚', text: "수업/정모 등록", action: () => { setView('post-lesson'); setIsMenuOpen(false); } },
+              ].map((item, idx) => (
+                <motion.div
+                  key={idx}
+                  whileHover={{ scale: 1.02, backgroundColor: '#E8F5E9' }}
+                  whileTap={{ scale: 0.98 }}
+                  onClick={item.action}
+                  style={{
+                    background: '#FFFFFF',
+                    border: '1px solid #C8E6C9',
+                    borderRadius: '16px',
+                    padding: '16px 20px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '16px',
+                    cursor: 'pointer',
+                    transition: 'all 0.2s'
+                  }}
+                >
+                  <span style={{ fontSize: '20px' }}>{item.icon}</span>
+                  <span style={{ color: '#1B5E20', fontSize: '15px', fontWeight: 800 }}>{item.text}</span>
+                </motion.div>
+              ))}
+            </div>
+
+            <div style={{ marginTop: 'auto', padding: '30px 20px', textAlign: 'center', background: '#F9FAFB' }}>
+              <p style={{ color: '#94A3B8', fontSize: '11px', margin: 0 }}>© 2026 BAMPPA CLASS SERVICE</p>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
       <div className="tabs-container">
         {/* 
           ============================================================
@@ -126,29 +220,9 @@ const ClassNewsPage = ({
           top: 0,
           zIndex: 100000,
         }}>
-          {/* 1. 햄버거 메뉴 + 로고 */}
+          {/* 1. 로고 (햄버거는 위에 별도로 존재) */}
           <div style={{ display: 'flex', alignItems: 'center', marginRight: '20px', flexShrink: 0 }}>
-            <div 
-              onClick={(e) => { 
-                e.stopPropagation(); 
-                setIsMenuOpen(true); 
-              }} 
-              style={{ 
-                cursor: 'pointer', 
-                fontSize: '28px', 
-                marginRight: '10px', 
-                padding: '15px 20px', 
-                marginLeft: '-20px', 
-                display: 'flex', 
-                alignItems: 'center', 
-                justifyContent: 'center',
-                zIndex: 100005,
-                pointerEvents: 'auto',
-                WebkitTapHighlightColor: 'transparent'
-              }}
-            >
-              ☰
-            </div>
+            <div style={{ width: '44px' }} /> {/* 버튼 공간 확보 */}
             <img src="/logo.png" alt="밤빠" style={{ height: '45px', width: 'auto', filter: 'brightness(0.9)' }} />
           </div>
 
