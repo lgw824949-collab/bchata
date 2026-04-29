@@ -2,6 +2,23 @@ import React, { useState, useEffect } from 'react';
 import { ChevronLeft, MapPin, Navigation, Info, AlertCircle, Utensils } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
+const SkeletonCard = () => (
+  <div style={{
+    background: '#fff', borderRadius: '16px', padding: '18px', border: '1px solid #E2E8F0',
+    animation: 'pulse 1.5s infinite ease-in-out'
+  }}>
+    <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '12px' }}>
+      <div style={{ flex: 1 }}>
+        <div style={{ width: '60%', height: '16px', background: '#F1F5F9', borderRadius: '4px', marginBottom: '8px' }} />
+        <div style={{ width: '40%', height: '12px', background: '#F1F5F9', borderRadius: '4px' }} />
+      </div>
+      <div style={{ width: '40px', height: '20px', background: '#F1F5F9', borderRadius: '8px' }} />
+    </div>
+    <div style={{ width: '100%', height: '36px', background: '#F1F5F9', borderRadius: '12px', marginBottom: '16px' }} />
+    <div style={{ width: '100%', height: '40px', background: '#F1F5F9', borderRadius: '10px' }} />
+  </div>
+);
+
 const Restaurant = ({ onBack }) => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -37,13 +54,24 @@ const Restaurant = ({ onBack }) => {
     if (!coords) return;
 
     const fetchRestaurants = async () => {
+      // 5분 캐시 확인
+      const cacheKey = `res_cache_${coords.lat.toFixed(4)}_${coords.lon.toFixed(4)}`;
+      const cached = localStorage.getItem(cacheKey);
+      if (cached) {
+        const { data, timestamp } = JSON.parse(cached);
+        if (Date.now() - timestamp < 5 * 60 * 1000) {
+          setRestaurants(data);
+          setLoading(false);
+          return;
+        }
+      }
+
       setLoading(true);
       try {
         const url = `/api/restaurant?lat=${coords.lat}&lon=${coords.lon}`;
         const response = await fetch(url);
         const json = await response.json();
 
-        // 소상공인 API 응답 구조: json.body.items
         if (json.body && json.body.items) {
           const list = json.body.items.map(item => ({
             id: item.bizesId,
@@ -57,6 +85,8 @@ const Restaurant = ({ onBack }) => {
           })).sort((a, b) => a.distance - b.distance);
           
           setRestaurants(list);
+          // 데이터 캐싱
+          localStorage.setItem(cacheKey, JSON.stringify({ data: list, timestamp: Date.now() }));
         } else {
           setRestaurants([]);
         }
@@ -103,15 +133,12 @@ const Restaurant = ({ onBack }) => {
         <AnimatePresence mode="wait">
           {loading ? (
             <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-              style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '100%' }}
+              style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}
             >
-              <div style={{ 
-                width: '40px', height: '40px', border: '4px solid #F1F5F9', 
-                borderTop: '4px solid #F59E0B', borderRadius: '50%',
-                animation: 'spin 1s linear infinite'
-              }} />
-              <style>{`@keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }`}</style>
-              <p style={{ marginTop: '16px', color: '#64748B', fontWeight: 600 }}>주변 맛집을 찾는 중...</p>
+              <style>{`
+                @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.5; } 100% { opacity: 1; } }
+              `}</style>
+              {[1, 2, 3].map(i => <SkeletonCard key={i} />)}
             </motion.div>
           ) : error ? (
             <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} style={{ textAlign: 'center', padding: '40px 20px' }}>
