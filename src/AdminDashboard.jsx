@@ -662,6 +662,18 @@ export default function AdminDashboard({ onBack, refreshData }) {
                                 return;
                               }
                               
+                              // 지역명 표준화 (메인 화면 필터 매칭용)
+                              const normalizeRegion = (reg) => {
+                                if (!reg) return '서울';
+                                if (reg.includes('서울')) return '서울';
+                                if (reg.includes('경기') || reg.includes('인천')) return '경기/인천';
+                                if (reg.includes('충청') || reg.includes('대전') || reg.includes('세종')) return '충청도';
+                                if (reg.includes('전라') || reg.includes('광주')) return '전라도';
+                                if (reg.includes('경상') || reg.includes('부산') || reg.includes('대구') || reg.includes('울산')) return '경상도';
+                                if (reg.includes('강원') || reg.includes('제주')) return '강원/제주';
+                                return reg;
+                              };
+
                               // parties 테이블에도 등록하여 앱에 노출되도록 함
                               const { error: insertErr } = await supabase.from('parties').insert([{
                                 title: `[${item.category_type === 'club' ? '동호회' : '강습/정모'}] ${item.title}`,
@@ -670,7 +682,10 @@ export default function AdminDashboard({ onBack, refreshData }) {
                                 time: `${item.start_time || ''}~${item.end_time || ''}`,
                                 address: item.address || item.studio_name || '',
                                 fee: item.fee || '0',
-                                poster_url: item.poster_url || ''
+                                poster_url: item.poster_url || '',
+                                // 누락되었던 핵심 필드 추가
+                                broadRegion: normalizeRegion(item.region),
+                                cityName: item.city || item.region || '전국'
                               }]);
 
                               if (insertErr) console.error('Parties insert error:', insertErr);
