@@ -1,68 +1,25 @@
 import React, { useState, useEffect } from 'react';
-import { ChevronLeft, MapPin, Navigation, Info, AlertCircle } from 'lucide-react';
+import { ChevronLeft, MapPin, Navigation, Info } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { BAR_DATABASE } from '../data/barDatabase';
+
+const INCHEON_BARS = [
+  { id: 'elmar', name: '엘마르', address: '인천 부평구 십정동 420-1', lat: 37.4708, lon: 126.7003 },
+  { id: 'cowboy', name: '라씬 카우보이', address: '인천시 미추홀구 경원대로 851', lat: 37.4612, lon: 126.6782 },
+  { id: 'lbt', name: 'LBT', address: '인천 구월동 1391-8', lat: 37.4449, lon: 126.7052 },
+];
 
 const Parking = ({ onBack }) => {
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
-  const [bars, setBars] = useState({});
   const [selectedBar, setSelectedBar] = useState(null);
   const [parkingLots, setParkingLots] = useState([]);
-  const [fetchingParking, setFetchingParking] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
 
-  // 1. 바 목록 로딩 (로컬 마스터 데이터 사용)
-  useEffect(() => {
-    const loadBars = () => {
-      setLoading(true);
-      try {
-        const validBars = BAR_DATABASE.filter(bar => bar.lat && bar.lon);
-        // 지역별 그룹화 (주소 기준)
-        const groups = validBars.reduce((acc, bar) => {
-          const addr = bar.address || '';
-          let region = '기타';
-          
-          if (addr.includes('서울')) region = '서울';
-          else if (addr.includes('인천') || addr.includes('경기')) region = '인천/경기';
-          else if (addr.includes('부산') || addr.includes('경남') || addr.includes('대구') || addr.includes('경북') || addr.includes('경상')) region = '경상';
-          else if (addr.includes('광주') || addr.includes('전남') || addr.includes('전북') || addr.includes('전라')) region = '전라';
-          else if (addr.includes('대전') || addr.includes('충남') || addr.includes('충북') || addr.includes('충청') || addr.includes('세종') || addr.includes('천안') || addr.includes('청주')) region = '충청';
-          else if (addr.includes('강원')) region = '강원';
-          else if (addr.includes('제주')) region = '제주';
-
-          if (!acc[region]) acc[region] = [];
-          acc[region].push(bar);
-          return acc;
-        }, {});
-        
-        // 지역 정렬 순서 정의
-        const order = ['서울', '인천/경기', '경상', '전라', '충청', '강원', '제주'];
-        const sortedGroups = {};
-        order.forEach(key => {
-          if (groups[key]) sortedGroups[key] = groups[key];
-        });
-        
-        setBars(sortedGroups);
-      } catch (err) {
-        console.error(err);
-        setError('장소 정보를 불러오는 중 오류가 발생했습니다.');
-      } finally {
-        setLoading(false);
-      }
-    };
-    loadBars();
-  }, []);
-
-  // 2. 바 선택 시 주차장 호출
-  const handleSelectBar = async (bar) => {
+  const fetchParking = async (bar) => {
     setSelectedBar(bar);
-    setFetchingParking(true);
-    setParkingLots([]);
+    setLoading(true);
     setError(null);
-    
     try {
-      const url = `/api/parking?lat=${bar.lat}&lon=${bar.lon}`;
-      const response = await fetch(url);
+      const response = await fetch(`/api/parking?lat=${bar.lat}&lon=${bar.lon}`);
       const json = await response.json();
 
       if (json.ResrceOpenShareList && json.ResrceOpenShareList[1] && json.ResrceOpenShareList[1].row) {
@@ -75,7 +32,6 @@ const Parking = ({ onBack }) => {
           fee: item.utiliFee || '정보 없음',
           distance: calculateDistance(bar.lat, bar.lon, item.lattitud, item.longitud)
         })).sort((a, b) => a.distance - b.distance);
-        
         setParkingLots(list);
       } else {
         setParkingLots([]);
@@ -84,7 +40,7 @@ const Parking = ({ onBack }) => {
       console.error(err);
       setError('주차장 정보를 불러오는 중 오류가 발생했습니다.');
     } finally {
-      setFetchingParking(false);
+      setLoading(false);
     }
   };
 
@@ -116,58 +72,50 @@ const Parking = ({ onBack }) => {
           <ChevronLeft size={24} color="#1E293B" />
         </button>
         <h1 style={{ fontSize: '18px', fontWeight: 900, color: '#1E293B', margin: 0 }}>
-          {selectedBar ? `${selectedBar.name} 주변 주차장` : '🅿️ 주차장 찾기'}
+          {selectedBar ? `${selectedBar.name} 주변 주차장` : '🅿️ 바 근처 주차장 찾기'}
         </h1>
       </div>
 
       <div style={{ flex: 1, overflowY: 'auto', padding: '20px' }}>
         <AnimatePresence mode="wait">
           {!selectedBar ? (
-            // 바 목록
             <motion.div key="bar-list" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
               <div style={{ marginBottom: '24px' }}>
-                <h2 style={{ fontSize: '20px', fontWeight: 1000, color: '#1E293B', marginBottom: '8px' }}>어느 바 근처 주차장을 찾으세요?</h2>
-                <p style={{ color: '#64748B', fontSize: '14px' }}>방문하실 장소를 선택하면 주변 주차장을 안내해 드립니다.</p>
+                <h2 style={{ fontSize: '20px', fontWeight: 1000, color: '#1E293B', marginBottom: '8px' }}>방문하실 바를 선택해주세요</h2>
+                <p style={{ color: '#64748B', fontSize: '14px' }}>인천 지역 주요 댄스 바 주변 주차장을 안내해 드립니다.</p>
               </div>
 
-              {loading ? (
-                <div style={{ textAlign: 'center', padding: '40px' }}>로딩 중...</div>
-              ) : (
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
-                  {Object.entries(bars).map(([region, regionBars]) => (
-                    <div key={region}>
-                      <h3 style={{ fontSize: '14px', color: '#64748B', fontWeight: 800, marginBottom: '12px', paddingLeft: '4px' }}>
-                        {region}
-                      </h3>
-                      <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-                        {regionBars.map(bar => (
-                          <motion.div
-                            key={bar.name}
-                            whileTap={{ scale: 0.98 }}
-                            onClick={() => handleSelectBar(bar)}
-                            style={{
-                              background: '#fff', padding: '16px 20px', borderRadius: '16px',
-                              border: '1px solid #E2E8F0', cursor: 'pointer',
-                              display: 'flex', justifyContent: 'space-between', alignItems: 'center'
-                            }}
-                          >
-                            <div>
-                              <div style={{ fontSize: '16px', fontWeight: 900, color: '#1E293B' }}>{bar.name}</div>
-                              <div style={{ fontSize: '12px', color: '#94A3B8', marginTop: '2px' }}>{bar.address}</div>
-                            </div>
-                            <ChevronLeft size={20} color="#CBD5E1" style={{ transform: 'rotate(180deg)' }} />
-                          </motion.div>
-                        ))}
-                      </div>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                {INCHEON_BARS.map(bar => (
+                  <motion.div
+                    key={bar.id}
+                    whileTap={{ scale: 0.98 }}
+                    onClick={() => fetchParking(bar)}
+                    style={{
+                      background: '#fff', padding: '20px', borderRadius: '20px',
+                      border: '1px solid #E2E8F0', cursor: 'pointer',
+                      display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+                      boxShadow: '0 4px 12px rgba(0,0,0,0.03)'
+                    }}
+                  >
+                    <div>
+                      <div style={{ fontSize: '17px', fontWeight: 900, color: '#1E293B' }}>{bar.name}</div>
+                      <div style={{ fontSize: '13px', color: '#94A3B8', marginTop: '4px' }}>{bar.address}</div>
                     </div>
-                  ))}
-                </div>
-              )}
+                    <ChevronLeft size={20} color="#E53935" style={{ transform: 'rotate(180deg)' }} />
+                  </motion.div>
+                ))}
+              </div>
+
+              <div style={{ marginTop: '40px', textAlign: 'center', padding: '20px', background: '#F1F5F9', borderRadius: '16px' }}>
+                <p style={{ fontSize: '14px', color: '#64748B', fontWeight: 700, margin: 0 }}>
+                  🔜 다른 지역은 곧 서비스 예정입니다
+                </p>
+              </div>
             </motion.div>
           ) : (
-            // 주차장 목록
             <motion.div key="parking-list" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }}>
-              {fetchingParking ? (
+              {loading ? (
                 <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '100%', marginTop: '60px' }}>
                    <div style={{ 
                     width: '40px', height: '40px', border: '4px solid #F1F5F9', 
@@ -177,15 +125,19 @@ const Parking = ({ onBack }) => {
                   <style>{`@keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }`}</style>
                   <p style={{ marginTop: '16px', color: '#64748B', fontWeight: 600 }}>주변 주차장을 찾는 중...</p>
                 </div>
+              ) : error ? (
+                <div style={{ textAlign: 'center', padding: '40px 20px' }}>
+                  <p style={{ color: '#E53935', fontWeight: 700 }}>{error}</p>
+                </div>
               ) : parkingLots.length === 0 ? (
                 <div style={{ textAlign: 'center', padding: '60px 20px' }}>
                   <div style={{ fontSize: '48px', marginBottom: '16px' }}>😅</div>
-                  <p style={{ color: '#1E293B', fontWeight: 700, marginBottom: '8px' }}>반경 내 주차장 정보가 없어요</p>
+                  <p style={{ color: '#1E293B', fontWeight: 700, marginBottom: '8px' }}>주변에 검색된 공공 주차장이 없습니다</p>
                 </div>
               ) : (
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-                  <div style={{ fontSize: '12px', color: '#94A3B8', fontWeight: 700, marginBottom: '4px' }}>
-                    {selectedBar.name} 근처 검색 결과 {parkingLots.length}개
+                  <div style={{ fontSize: '13px', color: '#94A3B8', fontWeight: 700, marginBottom: '4px', paddingLeft: '4px' }}>
+                    {selectedBar.name} 근처 추천 주차장 {parkingLots.length}개
                   </div>
                   {parkingLots.map((lot, idx) => (
                     <motion.div
@@ -193,25 +145,21 @@ const Parking = ({ onBack }) => {
                       initial={{ opacity: 0, y: 10 }}
                       animate={{ opacity: 1, y: 0 }}
                       style={{
-                        background: '#fff', borderRadius: '16px', padding: '18px',
-                        border: '1px solid #E2E8F0', boxShadow: '0 2px 8px rgba(0,0,0,0.03)',
-                        position: 'relative'
+                        background: '#fff', borderRadius: '20px', padding: '20px',
+                        border: '1px solid #E2E8F0', boxShadow: '0 4px 15px rgba(0,0,0,0.05)'
                       }}
                     >
-                      {idx === 0 && <div style={{ position: 'absolute', top: '-10px', left: '-10px', fontSize: '24px' }}>🥇</div>}
-                      {idx === 1 && <div style={{ position: 'absolute', top: '-10px', left: '-10px', fontSize: '24px' }}>🥈</div>}
-                      {idx === 2 && <div style={{ position: 'absolute', top: '-10px', left: '-10px', fontSize: '24px' }}>🥉</div>}
                       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '12px' }}>
                         <div style={{ flex: 1 }}>
-                          <h3 style={{ fontSize: '16px', fontWeight: 900, color: '#1E293B', margin: '0 0 4px 0' }}>{lot.name}</h3>
-                          <div style={{ display: 'flex', alignItems: 'center', gap: '4px', color: '#64748B', fontSize: '12px' }}>
-                            <MapPin size={12} />
+                          <h3 style={{ fontSize: '17px', fontWeight: 900, color: '#1E293B', margin: '0 0 4px 0' }}>{lot.name}</h3>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '4px', color: '#64748B', fontSize: '13px' }}>
+                            <MapPin size={14} />
                             <span>{lot.address}</span>
                           </div>
                         </div>
                         <div style={{ 
-                          background: '#FFEBEE', color: '#E53935', fontSize: '11px', 
-                          fontWeight: 900, padding: '4px 10px', borderRadius: '8px', whiteSpace: 'nowrap' 
+                          background: '#FFEBEE', color: '#E53935', fontSize: '12px', 
+                          fontWeight: 900, padding: '6px 12px', borderRadius: '10px'
                         }}>
                           {lot.distance.toFixed(1)}km
                         </div>
@@ -221,7 +169,7 @@ const Parking = ({ onBack }) => {
                         background: '#F8FAFC', borderRadius: '12px', padding: '12px', 
                         display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '16px' 
                       }}>
-                        <Info size={14} color="#64748B" />
+                        <Info size={16} color="#64748B" />
                         <span style={{ fontSize: '13px', color: '#475569', fontWeight: 600 }}>
                           요금: <span style={{ color: '#1E293B' }}>{lot.fee}</span>
                         </span>
@@ -230,13 +178,14 @@ const Parking = ({ onBack }) => {
                       <button 
                         onClick={() => window.open(`https://map.kakao.com/link/search/${encodeURIComponent(lot.name + ' ' + lot.address)}`, '_blank')}
                         style={{
-                          width: '100%', padding: '12px', borderRadius: '10px',
+                          width: '100%', padding: '14px', borderRadius: '12px',
                           background: '#E53935', color: '#fff', border: 'none',
-                          fontSize: '14px', fontWeight: 900, display: 'flex',
-                          alignItems: 'center', justifyContent: 'center', gap: '8px'
+                          fontSize: '15px', fontWeight: 900, display: 'flex',
+                          alignItems: 'center', justifyContent: 'center', gap: '8px',
+                          boxShadow: '0 4px 12px rgba(229, 57, 53, 0.2)'
                         }}
                       >
-                        <Navigation size={16} />
+                        <Navigation size={18} />
                         카카오맵 길찾기
                       </button>
                     </motion.div>
@@ -254,6 +203,5 @@ const Parking = ({ onBack }) => {
     </div>
   );
 };
-
 
 export default Parking;
