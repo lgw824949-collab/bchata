@@ -188,6 +188,8 @@ const HomePage = ({
     }, 10000); // Resume after 10 seconds of inactivity
   };
 
+  const [shuffleKey, setShuffleKey] = useState(0);
+
   useEffect(() => {
     const regionTimer = setInterval(() => {
       if (!isPaused) {
@@ -197,8 +199,10 @@ const HomePage = ({
           if (first) next.push(first);
           return next;
         });
+        // 10초마다 셔플 키 업데이트
+        setShuffleKey(prev => prev + 1);
       }
-    }, 20000); 
+    }, 10000); 
 
     const posterTimer = setInterval(() => {
       if (!isPaused) {
@@ -600,6 +604,14 @@ const HomePage = ({
                     return false;
                   });
 
+                  // 10초마다 순서를 뒤섞는 페어 익스포저(Fair Exposure) 로직
+                  const shuffledParties = [...regionParties].sort((a, b) => {
+                    // ID와 shuffleKey를 조합하여 10초마다 새로운 결정론적 무작위 순서 생성
+                    const hashA = (parseInt(String(a.id).replace(/[^0-9]/g, '')) || 0) + (shuffleKey * 7);
+                    const hashB = (parseInt(String(b.id).replace(/[^0-9]/g, '')) || 0) + (shuffleKey * 7);
+                    return (hashA % 11) - (hashB % 11);
+                  });
+
                   return (
                     <section key={regionName} style={{ marginBottom: '15px' }}>
                       <div 
@@ -630,8 +642,8 @@ const HomePage = ({
                         scrollbarWidth: 'none',
                         WebkitOverflowScrolling: 'touch'
                       }}>
-                        {regionParties.length > 0 ? (
-                          regionParties.map((item) => (
+                        {shuffledParties.length > 0 ? (
+                          shuffledParties.map((item) => (
                             <div 
                               key={item.id} 
                               onClick={() => setSelectedPoster(item.poster_url)}
