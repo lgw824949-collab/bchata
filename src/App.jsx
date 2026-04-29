@@ -202,7 +202,8 @@ function App() {
         <motion.button 
           drag
           dragConstraints={{ left: -450, right: 0, top: 0, bottom: 800 }}
-          dragElastic={0.1}
+          dragMomentum={false}
+          dragElastic={0.05}
           whileDrag={{ scale: 1.1 }}
           whileTap={{ scale: 0.9 }}
           onClick={() => setIsMenuOpen(true)}
