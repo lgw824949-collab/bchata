@@ -43,9 +43,6 @@ const Restaurant = ({ onBack }) => {
         const response = await fetch(url);
         const json = await response.json();
 
-        // 데이터 필드 확인용 로그
-        console.log("첫번째 맛집 데이터:", json.body?.items?.[0]);
-
         // 소상공인 API 응답 구조: json.body.items
         if (json.body && json.body.items) {
           const list = json.body.items.map(item => ({
@@ -53,7 +50,7 @@ const Restaurant = ({ onBack }) => {
             name: item.bizesNm,
             branch: item.brchNm,
             category: item.indsMclsNm,
-            address: item.lnoAddr || item.rdnmAddr || '주소 정보 없음',
+            address: item.rdnmAdr || '주소 정보 없음',
             lat: parseFloat(item.lat),
             lon: parseFloat(item.lon),
             distance: calculateDistance(coords.lat, coords.lon, parseFloat(item.lat), parseFloat(item.lon))
