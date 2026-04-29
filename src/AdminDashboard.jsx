@@ -32,9 +32,9 @@ export default function AdminDashboard({ onBack }) {
   const handleLogin = (e) => {
     e.preventDefault()
     
-    // 환경 변수가 작동하지 않을 경우를 대비해 하드코딩된 값으로 강제 설정
-    const validId = import.meta.env.VITE_ADMIN_ID || 'lgw1004'
-    const validPw = import.meta.env.VITE_ADMIN_PW || '^^dlwlsdn1052181818'
+    // 환경 변수 무시하고 하드코딩된 값으로 강제 고정 (Vercel 환경 변수 충돌 방지)
+    const validId = 'lgw1004'
+    const validPw = '^^dlwlsdn1052181818'
 
     if (loginStep === 1) {
       if (adminId === validId) {
