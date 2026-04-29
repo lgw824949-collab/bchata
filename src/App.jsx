@@ -362,70 +362,40 @@ function App() {
         {showWeather && <WeatherModal onClose={() => setShowWeather(false)} />}
       </AnimatePresence>
       
-      {/* 포스터 줌인 모달 (Framer Motion 적용) */}
-      <AnimatePresence>
-        {selectedPoster && (
-          <motion.div 
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            onClick={() => setSelectedPoster(null)}
-            style={{ 
-              position:'fixed', inset:0, zIndex:100000, 
-              backgroundColor:'rgba(0,0,0,0.9)', 
-              display:'flex', alignItems:'center', justifyContent:'center',
-              backdropFilter: 'blur(5px)',
-              overflow: 'hidden',
-              touchAction: 'pinch-zoom'
-            }} 
-          >
-            <motion.div 
-              initial={{ scale: 0.8, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              exit={{ scale: 0.8, opacity: 0 }}
-              transition={{ type: 'spring', damping: 25, stiffness: 300 }}
-              onClick={e => e.stopPropagation()}
-              style={{ position: 'relative', width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
-            >
-            {/* 브라우저 네이티브 핀치줌 활용 */}
-            <div 
-              style={{ overflow: 'auto', WebkitOverflowScrolling: 'touch', width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
-            >
-              <img 
-                id="modal-zoom-img"
-                src={selectedPoster}
-                alt="Zoomed Poster"
-                style={{
-                  maxWidth: '100%',
-                  maxHeight: '90vh',
-                  objectFit: 'contain',
-                  borderRadius: '8px',
-                  boxShadow: '0 20px 50px rgba(0,0,0,0.5)',
-                  touchAction: 'pinch-zoom',
-                  userSelect: 'none'
-                }}
-              />
-            </div>
-
-              {/* 닫기 버튼 */}
-              <motion.button
-                whileTap={{ scale: 0.9 }}
-                onClick={() => setSelectedPoster(null)}
-                style={{ 
-                  position:'absolute', top:'40px', right:'25px', 
-                  background:'rgba(255,255,255,0.2)', border:'none', 
-                  borderRadius:'50%', width:'44px', height:'44px', 
-                  color:'#fff', fontSize:'24px', cursor:'pointer', 
-                  display:'flex', alignItems:'center', justifyContent:'center',
-                  zIndex: 100001
-                }}
-              >
-                <X size={24} />
-              </motion.button>
-            </motion.div>
-          </motion.div>
-        )}
-      </AnimatePresence>
+      {/* 포스터 줌인 모달 (네이티브 방식) */}
+      {selectedPoster && (
+        <div
+          onClick={() => setSelectedPoster(null)}
+          style={{ 
+            position:'fixed', inset:0, zIndex:100000, 
+            backgroundColor:'rgba(0,0,0,0.9)', 
+            display:'flex', alignItems:'center', justifyContent:'center',
+          }} 
+        >
+          <div onClick={e => e.stopPropagation()} style={{ position:'relative', width:'100%', height:'100%', display:'flex', alignItems:'center', justifyContent:'center', overflow:'scroll', WebkitOverflowScrolling:'touch' }}>
+            <img 
+              src={selectedPoster}
+              alt="Zoomed Poster"
+              style={{
+                width:'100%',
+                maxHeight:'90vh',
+                objectFit:'contain',
+                touchAction:'pinch-zoom',
+              }}
+            />
+            <button
+              onClick={() => setSelectedPoster(null)}
+              style={{ 
+                position:'absolute', top:'40px', right:'25px', 
+                background:'rgba(255,255,255,0.2)', border:'none', 
+                borderRadius:'50%', width:'44px', height:'44px', 
+                color:'#fff', fontSize:'24px', cursor:'pointer',
+                zIndex:100001
+              }}
+            >✕</button>
+          </div>
+        </div>
+      )}
 
       <nav className="bottom-nav">
         <div 
