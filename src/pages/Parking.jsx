@@ -22,6 +22,7 @@ const Parking = ({ onBack }) => {
           .order('name');
         
         if (err) throw err;
+        console.log("가져온 바 목록:", data);
         setBars(data || []);
       } catch (err) {
         console.error(err);
@@ -150,25 +151,28 @@ const Parking = ({ onBack }) => {
                 </div>
               ) : parkingLots.length === 0 ? (
                 <div style={{ textAlign: 'center', padding: '60px 20px' }}>
-                  <div style={{ fontSize: '48px', marginBottom: '16px' }}>📍</div>
-                  <p style={{ color: '#1E293B', fontWeight: 700, marginBottom: '8px' }}>주변에 공유주차장이 없습니다</p>
-                  <p style={{ color: '#64748B', fontSize: '14px' }}>반경 2km 이내에 등록된 주차장이 없네요.</p>
+                  <div style={{ fontSize: '48px', marginBottom: '16px' }}>😅</div>
+                  <p style={{ color: '#1E293B', fontWeight: 700, marginBottom: '8px' }}>반경 내 주차장 정보가 없어요</p>
                 </div>
               ) : (
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
                   <div style={{ fontSize: '12px', color: '#94A3B8', fontWeight: 700, marginBottom: '4px' }}>
                     {selectedBar.name} 근처 검색 결과 {parkingLots.length}개
                   </div>
-                  {parkingLots.map((lot) => (
+                  {parkingLots.map((lot, idx) => (
                     <motion.div
                       key={lot.id}
                       initial={{ opacity: 0, y: 10 }}
                       animate={{ opacity: 1, y: 0 }}
                       style={{
                         background: '#fff', borderRadius: '16px', padding: '18px',
-                        border: '1px solid #E2E8F0', boxShadow: '0 2px 8px rgba(0,0,0,0.03)'
+                        border: '1px solid #E2E8F0', boxShadow: '0 2px 8px rgba(0,0,0,0.03)',
+                        position: 'relative'
                       }}
                     >
+                      {idx === 0 && <div style={{ position: 'absolute', top: '-10px', left: '-10px', fontSize: '24px' }}>🥇</div>}
+                      {idx === 1 && <div style={{ position: 'absolute', top: '-10px', left: '-10px', fontSize: '24px' }}>🥈</div>}
+                      {idx === 2 && <div style={{ position: 'absolute', top: '-10px', left: '-10px', fontSize: '24px' }}>🥉</div>}
                       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '12px' }}>
                         <div style={{ flex: 1 }}>
                           <h3 style={{ fontSize: '16px', fontWeight: 900, color: '#1E293B', margin: '0 0 4px 0' }}>{lot.name}</h3>
