@@ -372,15 +372,15 @@ function App() {
             display:'flex', alignItems:'center', justifyContent:'center',
           }} 
         >
-          <div onClick={e => e.stopPropagation()} style={{ position:'relative', width:'100%', height:'100%', display:'flex', alignItems:'center', justifyContent:'center', overflow:'scroll', WebkitOverflowScrolling:'touch' }}>
+          <div onClick={e => e.stopPropagation()} style={{ position:'relative', width:'100%', height:'100%', display:'flex', alignItems:'center', justifyContent:'center', overflow:'hidden' }}>
             <img 
               src={selectedPoster}
               alt="Zoomed Poster"
               style={{
-                width:'100%',
+                maxWidth:'100%',
                 maxHeight:'90vh',
                 objectFit:'contain',
-                touchAction:'pinch-zoom',
+                touchAction:'manipulation',
               }}
             />
             <button
