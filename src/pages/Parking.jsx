@@ -7,6 +7,7 @@ const Parking = ({ onBack }) => {
   const [error, setError] = useState(null);
   const [parkingLots, setParkingLots] = useState([]);
   const [coords, setCoords] = useState(null);
+  const [isFallback, setIsFallback] = useState(false);
 
   // 1. 현위치 가져오기
   useEffect(() => {
@@ -19,11 +20,13 @@ const Parking = ({ onBack }) => {
     navigator.geolocation.getCurrentPosition(
       (pos) => {
         setCoords({ lat: pos.coords.latitude, lon: pos.coords.longitude });
+        setIsFallback(false);
       },
       (err) => {
-        console.error(err);
-        setError('위치 정보를 가져올 수 없습니다. 권한을 확인해주세요.');
-        setLoading(false);
+        console.warn('Geolocation error, falling back to Seoul:', err);
+        setCoords({ lat: 37.5665, lon: 126.9780 });
+        setIsFallback(true);
+        setError(null); // 권한 거부 시 에러 표시 대신 fallback 진행
       },
       { timeout: 10000 }
     );
@@ -149,6 +152,17 @@ const Parking = ({ onBack }) => {
             </motion.div>
           ) : (
             <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+              {isFallback && (
+                <div style={{ 
+                  background: '#FFFBEB', border: '1px solid #FEF3C7', borderRadius: '12px', 
+                  padding: '12px 16px', marginBottom: '8px', display: 'flex', alignItems: 'center', gap: '10px'
+                }}>
+                  <span style={{ fontSize: '16px' }}>📍</span>
+                  <span style={{ fontSize: '13px', color: '#B45309', fontWeight: 700 }}>
+                    현위치를 가져올 수 없어 서울 기준으로 표시합니다
+                  </span>
+                </div>
+              )}
               <div style={{ fontSize: '12px', color: '#94A3B8', fontWeight: 700, marginBottom: '4px' }}>
                 검색 결과 {parkingLots.length}개
               </div>
