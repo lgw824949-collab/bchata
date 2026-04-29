@@ -211,13 +211,13 @@ const LatinModal = ({ isOpen, onClose }) => {
     >
       <motion.div initial={{ y: '100%' }} animate={{ y: 0 }} exit={{ y: '100%' }} 
         onClick={(e) => e.stopPropagation()} 
-        style={{ width: '100%', maxWidth: '500px', background: '#111', borderRadius: '24px 24px 0 0', maxHeight: '88vh', display: 'flex', flexDirection: 'column' }}
+        style={{ width: '100%', maxWidth: '500px', background: '#FFFFFF', borderRadius: '24px 24px 0 0', maxHeight: '88vh', display: 'flex', flexDirection: 'column' }}
       >
-        <div style={{ width: '38px', height: '3px', background: '#2a2a2a', borderRadius: '2px', margin: '12px auto 0' }} />
+        <div style={{ width: '38px', height: '3px', background: '#E2E8F0', borderRadius: '2px', margin: '12px auto 0' }} />
         
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '20px 20px 10px' }}>
-          <h2 style={{ fontSize: '24px', fontWeight: '900', color: '#FF3B30', margin: 0, fontFamily: "'Bebas Neue', sans-serif", letterSpacing: '2px' }}>LATIN ENGLISH 100</h2>
-          <button onClick={onClose} style={{ background: '#1e1e1e', border: '1px solid #222', borderRadius: '50%', width: '32px', height: '32px', color: '#888', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          <h2 style={{ fontSize: '24px', fontWeight: '900', color: '#1D9E75', margin: 0, fontFamily: "'Bebas Neue', sans-serif", letterSpacing: '2px' }}>LATIN ENGLISH 100</h2>
+          <button onClick={onClose} style={{ background: '#F8FAFC', border: '1px solid #E2E8F0', borderRadius: '50%', width: '32px', height: '32px', color: '#64748B', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
             <X size={16} />
           </button>
         </div>
@@ -228,14 +228,14 @@ const LatinModal = ({ isOpen, onClose }) => {
             placeholder="Search patterns..." 
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            style={{ width: '100%', background: '#1a1a1a', border: '1px solid #222', borderRadius: '22px', padding: '10px 16px', color: '#fff', outline: 'none', fontSize: '13px' }}
+            style={{ width: '100%', background: '#F8FAFC', border: '1px solid #E2E8F0', borderRadius: '22px', padding: '10px 16px', color: '#1E293B', outline: 'none', fontSize: '13px' }}
           />
         </div>
 
         <div style={{ display: 'flex', gap: '8px', padding: '10px 20px', overflowX: 'auto', whiteSpace: 'nowrap' }}>
           {cats.map(c => (
             <button key={c} onClick={() => { setCurCat(c); setSelId(null); }} 
-              style={{ padding: '6px 14px', borderRadius: '20px', border: '1px solid #222', background: curCat === c ? '#FF3B30' : 'transparent', color: curCat === c ? '#fff' : '#666', fontSize: '11px', cursor: 'pointer', transition: 'all 0.2s' }}
+              style={{ padding: '6px 14px', borderRadius: '20px', border: '1px solid #E2E8F0', background: curCat === c ? '#1D9E75' : 'transparent', color: curCat === c ? '#fff' : '#64748B', fontSize: '11px', cursor: 'pointer', transition: 'all 0.2s' }}
             >
               {c}
             </button>
@@ -245,22 +245,22 @@ const LatinModal = ({ isOpen, onClose }) => {
         <div style={{ flex: 1, overflowY: 'auto', padding: '10px 20px 30px', display: 'flex', flexDirection: 'column', gap: '6px' }}>
           {filtered.map(p => (
             <div key={p.n} onClick={() => setSelId(selId === p.n ? null : p.n)} 
-              style={{ background: '#161616', border: `1px solid ${selId === p.n ? '#FF3B30' : '#222'}`, borderRadius: '10px', padding: '12px 14px', cursor: 'pointer' }}
+              style={{ background: '#FFFFFF', border: `1px solid ${selId === p.n ? '#1D9E75' : '#E2E8F0'}`, borderRadius: '10px', padding: '12px 14px', cursor: 'pointer' }}
             >
               <div style={{ display: 'flex', gap: '8px', marginBottom: '4px', alignItems: 'baseline' }}>
-                <span style={{ fontSize: '12px', color: '#FF3B30', fontWeight: '900', fontFamily: "'Bebas Neue', sans-serif", letterSpacing: '1px' }}>#{String(p.n).padStart(2, '0')}</span>
-                <span style={{ fontSize: '10px', color: '#666' }}>{p.cat}</span>
+                <span style={{ fontSize: '12px', color: '#1D9E75', fontWeight: '900', fontFamily: "'Bebas Neue', sans-serif", letterSpacing: '1px' }}>#{String(p.n).padStart(2, '0')}</span>
+                <span style={{ fontSize: '10px', color: '#94A3B8' }}>{p.cat}</span>
               </div>
-              <div style={{ fontSize: '14px', fontStyle: 'italic', color: '#e8e8e8', marginBottom: '3px', lineHeight: '1.4', fontFamily: "'Playfair Display', serif" }}>"{p.en}"</div>
-              <div style={{ fontSize: '12px', color: '#666' }}>{p.kr}</div>
+              <div style={{ fontSize: '14px', fontStyle: 'italic', color: '#1E293B', marginBottom: '3px', lineHeight: '1.4', fontFamily: "'Playfair Display', serif" }}>"{p.en}"</div>
+              <div style={{ fontSize: '12px', color: '#64748B' }}>{p.kr}</div>
               
               <AnimatePresence>
                 {selId === p.n && (
                   <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: 'auto', opacity: 1 }} exit={{ height: 0, opacity: 0 }} style={{ overflow: 'hidden' }}>
-                    <div style={{ marginTop: '10px', paddingTop: '10px', borderTop: '0.5px solid #FF3B30', background: '#160808', margin: '10px -14px -12px', padding: '10px 14px 12px', borderRadius: '0 0 10px 10px' }}>
-                      <div style={{ fontSize: '11px', color: '#666', marginBottom: '6px', lineHeight: '1.6' }}>{p.note}</div>
-                      <div style={{ fontSize: '11px', color: '#D4A017', fontStyle: 'italic', lineHeight: '1.5' }}>
-                        <span style={{ color: '#555', fontStyle: 'normal', marginRight: '4px', fontSize: '10px' }}>Example:</span>{p.ex}
+                    <div style={{ marginTop: '10px', paddingTop: '10px', borderTop: '0.5px solid #1D9E75', background: '#F8FAFC', margin: '10px -14px -12px', padding: '10px 14px 12px', borderRadius: '0 0 10px 10px' }}>
+                      <div style={{ fontSize: '11px', color: '#64748B', marginBottom: '6px', lineHeight: '1.6' }}>{p.note}</div>
+                      <div style={{ fontSize: '11px', color: '#1D9E75', fontStyle: 'italic', lineHeight: '1.5' }}>
+                        <span style={{ color: '#94A3B8', fontStyle: 'normal', marginRight: '4px', fontSize: '10px' }}>Example:</span>{p.ex}
                       </div>
                     </div>
                   </motion.div>
@@ -268,7 +268,7 @@ const LatinModal = ({ isOpen, onClose }) => {
               </AnimatePresence>
             </div>
           ))}
-          {filtered.length === 0 && <div style={{ textAlign: 'center', padding: '40px', color: '#666' }}>No results found</div>}
+          {filtered.length === 0 && <div style={{ textAlign: 'center', padding: '40px', color: '#64748B' }}>No results found</div>}
         </div>
       </motion.div>
     </motion.div>
