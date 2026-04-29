@@ -176,17 +176,52 @@ export default function SajuModal({ onClose, parties=[] }) {
 
     let recommendedBars = [...todayParties, ...futureParties].slice(0, 3)
 
-    // 3순위: 1, 2순위 없을 때만 BAR_DATABASE 장르 매칭
+    // 3순위: 1, 2순위 없을 때만 BAR_DATABASE GPS 거리 기반 추천
     if (recommendedBars.length === 0) {
-      recommendedBars = BAR_DATABASE
-        .filter(bar => matchesGenre(bar.name, dance.genre))
-        .slice(0, 3)
-        .map(bar => ({
-          title: bar.name,
-          address: bar.address,
-          type: 'db',
-          poster_url: null
-        }))
+      if (navigator.geolocation) {
+        try {
+          const position = await new Promise((resolve, reject) => {
+            navigator.geolocation.getCurrentPosition(resolve, reject, { timeout: 5000 })
+          })
+          const { latitude: userLat, longitude: userLon } = position.coords
+          recommendedBars = BAR_DATABASE
+            .filter(b => b.lat && b.lon && matchesGenre(b.name, dance.genre))
+            .map(b => {
+              const dist = getDistance(userLat, userLon, b.lat, b.lon)
+              return {
+                title: b.name,
+                address: b.address,
+                distance: dist,
+                distanceText: `${dist.toFixed(1)}km ${dist < 1 ? '도보 ' + Math.round(dist * 12) + '분' : '버스 ' + Math.round(dist * 3) + '분'}`,
+                type: 'db_gps',
+                poster_url: null
+              }
+            })
+            .sort((a, b) => a.distance - b.distance)
+            .slice(0, 3)
+        } catch (e) {
+          console.warn('GPS failed, fallback to genre match:', e)
+          recommendedBars = BAR_DATABASE
+            .filter(bar => matchesGenre(bar.name, dance.genre))
+            .slice(0, 3)
+            .map(bar => ({
+              title: bar.name,
+              address: bar.address,
+              type: 'db',
+              poster_url: null
+            }))
+        }
+      } else {
+        recommendedBars = BAR_DATABASE
+          .filter(bar => matchesGenre(bar.name, dance.genre))
+          .slice(0, 3)
+          .map(bar => ({
+            title: bar.name,
+            address: bar.address,
+            type: 'db',
+            poster_url: null
+          }))
+      }
     }
 
     setResult({ 
@@ -432,9 +467,9 @@ export default function SajuModal({ onClose, parties=[] }) {
                       <div style={{ flex:1,minWidth:0 }}>
                         <div style={{ fontSize:14,fontWeight:700,color:'#1E293B' }}>{bar.title}</div>
                         <div style={{ fontSize:12,color:'#94A3B8',marginTop:2 }}>
-                          {bar.type === 'db' 
-                            ? bar.address 
-                            : `${bar.location_name || ''} · ${bar.date}`
+                          {bar.type === 'today' || bar.type === 'future'
+                            ? `${bar.location_name || ''} · ${bar.date}`
+                            : (bar.distanceText || bar.address)
                           }
                         </div>
                       </div>
