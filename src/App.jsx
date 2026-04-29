@@ -337,11 +337,13 @@ function App() {
              <p style={{ color: '#64748B', marginTop: '8px' }}>준비 중입니다</p>
            </div>
          ) :
-         view === 'register' ? <RegisterForm onBack={() => setView('home')} onSuccess={() => { fetchParties(); setView('home'); }} /> : 
-         view === 'post-lesson' ? <PostClub onBack={() => setView('home')} /> :
-         view === 'parking' ? <Parking onBack={() => setView('home')} /> :
-         view === 'restaurant' ? <Restaurant onBack={() => setView('home')} /> :
-         <AdminDashboard onBack={() => setView('home')} />}
+         {
+           'register': <RegisterForm onBack={() => setView('home')} onSuccess={() => { fetchParties(); setView('home'); }} />,
+           'post-lesson': <PostClub onBack={() => setView('home')} />,
+           'parking': <Parking onBack={() => setView('home')} />,
+           'restaurant': <Restaurant onBack={() => setView('home')} />,
+           'admin': <AdminDashboard onBack={() => setView('home')} refreshData={fetchParties} />
+         }[view] || <AdminDashboard onBack={() => setView('home')} refreshData={fetchParties} />}
       </main>
 
 

@@ -4,7 +4,7 @@ import { ChevronLeft, Check, Trash2, ShieldCheck, Edit3, X, Save, RefreshCw } fr
 import { motion, AnimatePresence } from 'framer-motion'
 import { CLASS_CATEGORIES, DANCE_STYLES, REGIONS, DAYS } from './lib/constants'
 
-export default function AdminDashboard({ onBack }) {
+export default function AdminDashboard({ onBack, refreshData }) {
   const [isAdmin, setIsAdmin] = useState(false)
   const [loginStep, setLoginStep] = useState(1) // 1: ID, 2: Password
   const [adminId, setAdminId] = useState('')
@@ -254,6 +254,7 @@ export default function AdminDashboard({ onBack }) {
         await fetchOfficial()
       }
       
+      if (refreshData) refreshData()
       alert('수정이 완료되었습니다.')
     } catch (err) {
       // 실패 시 구체적인 이유(권한, 네트워크 등)를 화면에 표시
@@ -307,6 +308,7 @@ export default function AdminDashboard({ onBack }) {
       }
 
       await supabase.from('pending_parties').delete().eq('id', item.id)
+      if (refreshData) refreshData()
       alert('승인되었습니다!')
       fetchPending()
     } catch (err) {
@@ -334,7 +336,7 @@ export default function AdminDashboard({ onBack }) {
         setPendingParties(prev => prev.filter(p => p.id !== id))
       } else {
         setOfficialParties(prev => prev.filter(p => p.id !== id))
-      }
+      if (refreshData) refreshData()
     } catch (err) {
       alert('삭제 오류: ' + err.message)
     } finally {
@@ -569,7 +571,11 @@ export default function AdminDashboard({ onBack }) {
                           onClick={async (e) => {
                             if (isLesson) {
                               const { error } = await supabase.from('classes_info').update({ status: 'active' }).eq('id', item.id);
-                              if (!error) { alert('승인되었습니다.'); fetchPending(); }
+                              if (!error) { 
+                                if (refreshData) refreshData()
+                                alert('승인되었습니다.'); 
+                                fetchPending(); 
+                              }
                             } else {
                               handleApprove(e, item);
                             }
@@ -586,7 +592,11 @@ export default function AdminDashboard({ onBack }) {
                             if (isLesson) {
                               if (!window.confirm('삭제하시겠습니까?')) return;
                               const { error } = await supabase.from('classes_info').update({ status: 'archived' }).eq('id', item.id);
-                              if (!error) { alert('삭제되었습니다.'); fetchPending(); }
+                              if (!error) { 
+                                if (refreshData) refreshData()
+                                alert('삭제되었습니다.'); 
+                                fetchPending(); 
+                              }
                             } else {
                               handleDelete(item.id); 
                             }
@@ -665,6 +675,7 @@ export default function AdminDashboard({ onBack }) {
 
                               if (insertErr) console.error('Parties insert error:', insertErr);
 
+                              if (refreshData) refreshData()
                               alert('승인되었습니다.');
                               fetchClasses();
                             } catch (err) {
@@ -676,7 +687,11 @@ export default function AdminDashboard({ onBack }) {
                         <button onClick={async () => {
                           if(!window.confirm('삭제하시겠습니까?')) return
                           const { error } = await supabase.from('classes_info').update({ status: 'archived' }).eq('id', item.id)
-                          if(!error) { alert('삭제되었습니다.'); fetchClasses(); }
+                          if(!error) { 
+                            if (refreshData) refreshData()
+                            alert('삭제되었습니다.'); 
+                            fetchClasses(); 
+                          }
                         }} style={{ flex: 1, backgroundColor: 'rgba(239, 68, 68, 0.1)', color: '#EF4444', padding: '12px', borderRadius: '12px', border: '1px solid rgba(239, 68, 68, 0.2)' }}><Trash2 size={18} /></button>
                       </div>
                     </div>
