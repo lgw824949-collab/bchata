@@ -386,21 +386,31 @@ function App() {
               onClick={e => e.stopPropagation()}
               style={{ position: 'relative', width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
             >
-            {/* 순수 터치 이벤트 기반 핀치 줌 구현 */}
+            {/* 정밀 터치 이벤트 기반 핀치 줌 구현 */}
             <div 
-              style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden' }}
+              style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden', touchAction: 'none' }}
               onTouchStart={(e) => {
                 if (e.touches.length === 2) {
+                  e.preventDefault();
                   const d = Math.hypot(
                     e.touches[0].pageX - e.touches[1].pageX,
                     e.touches[0].pageY - e.touches[1].pageY
                   );
                   e.currentTarget.dataset.startDist = d.toString();
                   e.currentTarget.dataset.startScale = (modalScale || 1).toString();
+                } else if (e.touches.length === 1) {
+                  const now = Date.now();
+                  if (now - lastTapTime < 300) {
+                    // 더블탭 처리
+                    const newScale = modalScale > 1.1 ? 1 : 2;
+                    setModalScale(newScale);
+                  }
+                  setLastTapTime(now);
                 }
               }}
               onTouchMove={(e) => {
                 if (e.touches.length === 2 && e.currentTarget.dataset.startDist) {
+                  e.preventDefault();
                   const d = Math.hypot(
                     e.touches[0].pageX - e.touches[1].pageX,
                     e.touches[0].pageY - e.touches[1].pageY
@@ -415,15 +425,6 @@ function App() {
               <img 
                 id="modal-zoom-img"
                 src={selectedPoster} 
-                onClick={(e) => {
-                  e.stopPropagation();
-                  const now = Date.now();
-                  if (now - lastTapTime < 300) {
-                    // 더블탭: 1배와 2배 토글
-                    setModalScale(modalScale > 1.1 ? 1 : 2);
-                  }
-                  setLastTapTime(now);
-                }}
                 style={{ 
                   maxWidth: '100%', 
                   maxHeight: '90vh', 
@@ -431,9 +432,10 @@ function App() {
                   borderRadius: '8px',
                   boxShadow: '0 20px 50px rgba(0,0,0,0.5)',
                   transform: `scale(${modalScale})`,
-                  transition: 'transform 0.1s ease-out',
+                  transition: modalScale === 1 ? 'transform 0.3s ease' : 'none', // 1배로 돌아올 때만 부드럽게
                   userSelect: 'none',
-                  WebkitUserDrag: 'none'
+                  WebkitUserDrag: 'none',
+                  touchAction: 'none'
                 }} 
                 alt="Zoomed Poster" 
               />
