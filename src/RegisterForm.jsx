@@ -505,70 +505,77 @@ const RegisterForm = ({ onBack, onSuccess }) => {
         </div>
 
         <div style={{ marginBottom: '24px', backgroundColor: '#F9FAFB', padding: '16px', borderRadius: '16px' }}>
-          <label style={{ display: 'block', fontSize: '13px', fontWeight: 600, color: '#374151', marginBottom: '12px' }}>음악 비율 (S:B:J:K)</label>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '8px', alignItems: 'center' }}>
+          <label style={{ display: 'block', fontSize: '13px', fontWeight: 600, color: '#374151', marginBottom: '12px' }}>음악 비율 (B:S:J:K)</label>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '4px', alignItems: 'center' }}>
+            {/* B (Bachata) */}
             <div style={{ textAlign: 'center' }}>
-              <span style={{ fontSize: '10px', color: '#6B7280', display: 'block', marginBottom: '8px' }}>S Salsa</span>
-              <div style={{ display:'flex', alignItems:'center', justifyContent:'center', gap:'4px' }}>
-                <button 
-                  type="button"
-                  onClick={() => setFormData(prev => ({...prev, sRatio: Math.max(0, prev.sRatio - 1)}))}
-                  style={{ width:'28px', height:'28px', borderRadius:'8px', border:'1px solid #ddd', background:'#f3f4f6', fontSize:'14px', cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center' }}
-                >▼</button>
-                <span style={{ fontSize:'18px', fontWeight:900, color:'#2ECC71', minWidth:'20px', textAlign:'center' }}>{formData.sRatio}</span>
-                <button
-                  type="button"
-                  onClick={() => setFormData(prev => ({...prev, sRatio: Math.min(10, prev.sRatio + 1)}))}
-                  style={{ width:'28px', height:'28px', borderRadius:'8px', border:'1px solid #ddd', background:'#f3f4f6', fontSize:'14px', cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center' }}
-                >▲</button>
-              </div>
-            </div>
-            <div style={{ textAlign: 'center' }}>
-              <span style={{ fontSize: '10px', color: '#6B7280', display: 'block', marginBottom: '8px' }}>B Bachata</span>
-              <div style={{ display:'flex', alignItems:'center', justifyContent:'center', gap:'4px' }}>
-                <button 
-                  type="button"
-                  onClick={() => setFormData(prev => ({...prev, bRatio: Math.max(0, prev.bRatio - 1)}))}
-                  style={{ width:'28px', height:'28px', borderRadius:'8px', border:'1px solid #ddd', background:'#f3f4f6', fontSize:'14px', cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center' }}
-                >▼</button>
-                <span style={{ fontSize:'18px', fontWeight:900, color:'#E8856A', minWidth:'20px', textAlign:'center' }}>{formData.bRatio}</span>
+              <span style={{ fontSize: '12px', fontWeight: 900, color: '#E8856A', display: 'block', marginBottom: '8px' }}>B</span>
+              <div style={{ display:'flex', flexDirection: 'column', alignItems:'center', justifyContent:'center', gap:'6px' }}>
                 <button
                   type="button"
                   onClick={() => setFormData(prev => ({...prev, bRatio: Math.min(10, prev.bRatio + 1)}))}
-                  style={{ width:'28px', height:'28px', borderRadius:'8px', border:'1px solid #ddd', background:'#f3f4f6', fontSize:'14px', cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center' }}
+                  style={{ width:'100%', padding: '6px 0', borderRadius:'8px', border:'1px solid #ddd', background:'#fff', fontSize:'12px', cursor:'pointer' }}
                 >▲</button>
-              </div>
-            </div>
-            <div style={{ textAlign: 'center' }}>
-              <span style={{ fontSize: '10px', color: '#6B7280', display: 'block', marginBottom: '8px' }}>J Zouk</span>
-              <div style={{ display:'flex', alignItems:'center', justifyContent:'center', gap:'4px' }}>
+                <span style={{ fontSize:'20px', fontWeight:900, color:'#E8856A' }}>{formData.bRatio}</span>
                 <button 
                   type="button"
-                  onClick={() => setFormData(prev => ({...prev, jRatio: Math.max(0, prev.jRatio - 1)}))}
-                  style={{ width:'28px', height:'28px', borderRadius:'8px', border:'1px solid #ddd', background:'#f3f4f6', fontSize:'14px', cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center' }}
+                  onClick={() => setFormData(prev => ({...prev, bRatio: Math.max(0, prev.bRatio - 1)}))}
+                  style={{ width:'100%', padding: '6px 0', borderRadius:'8px', border:'1px solid #ddd', background:'#fff', fontSize:'12px', cursor:'pointer' }}
                 >▼</button>
-                <span style={{ fontSize:'18px', fontWeight:900, color:'#378ADD', minWidth:'20px', textAlign:'center' }}>{formData.jRatio}</span>
+              </div>
+            </div>
+
+            {/* S (Salsa) */}
+            <div style={{ textAlign: 'center' }}>
+              <span style={{ fontSize: '12px', fontWeight: 900, color: '#2ECC71', display: 'block', marginBottom: '8px' }}>S</span>
+              <div style={{ display:'flex', flexDirection: 'column', alignItems:'center', justifyContent:'center', gap:'6px' }}>
+                <button
+                  type="button"
+                  onClick={() => setFormData(prev => ({...prev, sRatio: Math.min(10, prev.sRatio + 1)}))}
+                  style={{ width:'100%', padding: '6px 0', borderRadius:'8px', border:'1px solid #ddd', background:'#fff', fontSize:'12px', cursor:'pointer' }}
+                >▲</button>
+                <span style={{ fontSize:'20px', fontWeight:900, color:'#2ECC71' }}>{formData.sRatio}</span>
+                <button 
+                  type="button"
+                  onClick={() => setFormData(prev => ({...prev, sRatio: Math.max(0, prev.sRatio - 1)}))}
+                  style={{ width:'100%', padding: '6px 0', borderRadius:'8px', border:'1px solid #ddd', background:'#fff', fontSize:'12px', cursor:'pointer' }}
+                >▼</button>
+              </div>
+            </div>
+
+            {/* J (Zouk) */}
+            <div style={{ textAlign: 'center' }}>
+              <span style={{ fontSize: '12px', fontWeight: 900, color: '#378ADD', display: 'block', marginBottom: '8px' }}>J</span>
+              <div style={{ display:'flex', flexDirection: 'column', alignItems:'center', justifyContent:'center', gap:'6px' }}>
                 <button
                   type="button"
                   onClick={() => setFormData(prev => ({...prev, jRatio: Math.min(10, prev.jRatio + 1)}))}
-                  style={{ width:'28px', height:'28px', borderRadius:'8px', border:'1px solid #ddd', background:'#f3f4f6', fontSize:'14px', cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center' }}
+                  style={{ width:'100%', padding: '6px 0', borderRadius:'8px', border:'1px solid #ddd', background:'#fff', fontSize:'12px', cursor:'pointer' }}
                 >▲</button>
-              </div>
-            </div>
-            <div style={{ textAlign: 'center' }}>
-              <span style={{ fontSize: '10px', color: '#6B7280', display: 'block', marginBottom: '8px' }}>K Kiz</span>
-              <div style={{ display:'flex', alignItems:'center', justifyContent:'center', gap:'4px' }}>
+                <span style={{ fontSize:'20px', fontWeight:900, color:'#378ADD' }}>{formData.jRatio}</span>
                 <button 
                   type="button"
-                  onClick={() => setFormData(prev => ({...prev, kRatio: Math.max(0, prev.kRatio - 1)}))}
-                  style={{ width:'28px', height:'28px', borderRadius:'8px', border:'1px solid #ddd', background:'#f3f4f6', fontSize:'14px', cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center' }}
+                  onClick={() => setFormData(prev => ({...prev, jRatio: Math.max(0, prev.jRatio - 1)}))}
+                  style={{ width:'100%', padding: '6px 0', borderRadius:'8px', border:'1px solid #ddd', background:'#fff', fontSize:'12px', cursor:'pointer' }}
                 >▼</button>
-                <span style={{ fontSize:'18px', fontWeight:900, color:'#7F77DD', minWidth:'20px', textAlign:'center' }}>{formData.kRatio}</span>
+              </div>
+            </div>
+
+            {/* K (Kizomba) */}
+            <div style={{ textAlign: 'center' }}>
+              <span style={{ fontSize: '12px', fontWeight: 900, color: '#7F77DD', display: 'block', marginBottom: '8px' }}>K</span>
+              <div style={{ display:'flex', flexDirection: 'column', alignItems:'center', justifyContent:'center', gap:'6px' }}>
                 <button
                   type="button"
                   onClick={() => setFormData(prev => ({...prev, kRatio: Math.min(10, prev.kRatio + 1)}))}
-                  style={{ width:'28px', height:'28px', borderRadius:'8px', border:'1px solid #ddd', background:'#f3f4f6', fontSize:'14px', cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center' }}
+                  style={{ width:'100%', padding: '6px 0', borderRadius:'8px', border:'1px solid #ddd', background:'#fff', fontSize:'12px', cursor:'pointer' }}
                 >▲</button>
+                <span style={{ fontSize:'20px', fontWeight:900, color:'#7F77DD' }}>{formData.kRatio}</span>
+                <button 
+                  type="button"
+                  onClick={() => setFormData(prev => ({...prev, kRatio: Math.max(0, prev.kRatio - 1)}))}
+                  style={{ width:'100%', padding: '6px 0', borderRadius:'8px', border:'1px solid #ddd', background:'#fff', fontSize:'12px', cursor:'pointer' }}
+                >▼</button>
               </div>
             </div>
           </div>
