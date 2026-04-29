@@ -29,11 +29,32 @@ export default function AdminDashboard({ onBack }) {
   // 비밀번호 체크
   const checkPassword = (e) => {
     e.preventDefault()
+    
+    // 잠금 확인
+    const lockUntil = localStorage.getItem('admin_lock_until')
+    if (lockUntil && Date.now() < parseInt(lockUntil)) {
+      const remaining = Math.ceil((parseInt(lockUntil) - Date.now()) / (60 * 1000))
+      alert(`⚠️ 5회 실패로 인해 잠금 상태입니다. ${remaining}분 후 다시 시도해주세요.`)
+      return
+    }
+
     if (password === '12345678') { 
       setIsAdmin(true)
+      localStorage.setItem('admin_login_time', Date.now().toString())
+      localStorage.removeItem('admin_login_attempts')
+      localStorage.removeItem('admin_lock_until')
       fetchPending()
     } else {
-      alert('비밀번호가 틀렸습니다.')
+      const attempts = (parseInt(localStorage.getItem('admin_login_attempts') || '0')) + 1
+      localStorage.setItem('admin_login_attempts', attempts.toString())
+      
+      if (attempts >= 5) {
+        const lockTime = Date.now() + 30 * 60 * 1000 // 30분 잠금
+        localStorage.setItem('admin_lock_until', lockTime.toString())
+        alert("⚠️ 5회 실패로 30분간 잠금됩니다")
+      } else {
+        alert(`비밀번호가 틀렸습니다. (남은 시도 횟수: ${5 - attempts})`)
+      }
     }
   }
 
@@ -105,7 +126,16 @@ export default function AdminDashboard({ onBack }) {
   }
 
   useEffect(() => {
+    // 세션 만료 체크 (2시간)
     if (isAdmin) {
+      const loginTime = localStorage.getItem('admin_login_time')
+      if (loginTime && Date.now() - parseInt(loginTime) > 2 * 60 * 60 * 1000) {
+        setIsAdmin(false)
+        localStorage.removeItem('admin_login_time')
+        alert('보안을 위해 세션이 만료되었습니다. 다시 로그인해주세요.')
+        return
+      }
+
       if (activeTab === 'pending') fetchPending()
       else if (activeTab === 'official') fetchOfficial()
       else if (activeTab === 'traffic') fetchAnalytics()
