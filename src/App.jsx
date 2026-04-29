@@ -179,6 +179,8 @@ function App() {
         setSelectedPoster(null);
       } else if (isMenuOpen) {
         setIsMenuOpen(false);
+      } else if (e.state && e.state.date) {
+        setSelectedDate(e.state.date);
       } else if (view !== 'home') {
         setView('home');
       }
@@ -188,10 +190,9 @@ function App() {
   }, [selectedPoster, isMenuOpen, view]);
 
   useEffect(() => {
-    if (selectedPoster || isMenuOpen || view !== 'home') {
-      window.history.pushState({ view, modal: !!selectedPoster }, '');
-    }
-  }, [selectedPoster, isMenuOpen, view]);
+    // 날짜 이동, 뷰 전환, 모달 오픈 시마다 히스토리 기록
+    window.history.pushState({ view, date: selectedDate, modal: !!selectedPoster }, '');
+  }, [selectedDate, view, selectedPoster, isMenuOpen]);
 
   const openAnalysis = (saju = false) => {
     // 사용자가 클릭했을 때만 위치 정보 요청
