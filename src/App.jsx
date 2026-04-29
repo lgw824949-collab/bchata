@@ -251,7 +251,7 @@ const LatinModal = ({ isOpen, onClose }) => {
                 <span style={{ fontSize: '12px', color: '#1D9E75', fontWeight: '900', fontFamily: "'Bebas Neue', sans-serif", letterSpacing: '1px' }}>#{String(p.n).padStart(2, '0')}</span>
                 <span style={{ fontSize: '10px', color: '#94A3B8' }}>{p.cat}</span>
               </div>
-              <div style={{ fontSize: '14px', fontStyle: 'italic', color: '#1E293B', marginBottom: '3px', lineHeight: '1.4', fontFamily: "'Playfair Display', serif" }}>"{p.en}"</div>
+              <div style={{ fontSize: '14px', fontStyle: 'italic', color: '#1E293B', marginBottom: '3px', lineHeight: '1.4', fontFamily: "'Pretendard', sans-serif", whiteSpace: 'normal', overflow: 'visible', wordBreak: 'keep-all' }}>"{p.en}"</div>
               <div style={{ fontSize: '12px', color: '#64748B' }}>{p.kr}</div>
               
               <AnimatePresence>
