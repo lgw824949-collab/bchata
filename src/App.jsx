@@ -387,75 +387,23 @@ function App() {
               onClick={e => e.stopPropagation()}
               style={{ position: 'relative', width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
             >
-            {/* 정밀 터치 이벤트 기반 핀치 줌 & 이동(Pan) 구현 */}
+            {/* 브라우저 네이티브 핀치줌 활용 */}
             <div 
-              style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden', touchAction: 'none' }}
-              onTouchStart={(e) => {
-                if (e.touches.length === 2) {
-                  e.preventDefault();
-                  const d = Math.hypot(
-                    e.touches[0].pageX - e.touches[1].pageX,
-                    e.touches[0].pageY - e.touches[1].pageY
-                  );
-                  e.currentTarget.dataset.startDist = d.toString();
-                  e.currentTarget.dataset.startScale = (modalScale || 1).toString();
-                } else if (e.touches.length === 1) {
-                  // 이동(Pan) 시작 좌표 저장
-                  e.currentTarget.dataset.lastX = e.touches[0].pageX.toString();
-                  e.currentTarget.dataset.lastY = e.touches[0].pageY.toString();
-                  
-                  const now = Date.now();
-                  if (now - lastTapTime < 300) {
-                    const isZoomed = modalScale > 1.1;
-                    setModalScale(isZoomed ? 1 : 2);
-                    if (!isZoomed) setModalPos({ x: 0, y: 0 }); // 확대 시 위치 초기화
-                  }
-                  setLastTapTime(now);
-                }
-              }}
-              onTouchMove={(e) => {
-                if (e.touches.length === 2 && e.currentTarget.dataset.startDist) {
-                  e.preventDefault();
-                  const d = Math.hypot(
-                    e.touches[0].pageX - e.touches[1].pageX,
-                    e.touches[0].pageY - e.touches[1].pageY
-                  );
-                  const startDist = parseFloat(e.currentTarget.dataset.startDist);
-                  const startScale = parseFloat(e.currentTarget.dataset.startScale);
-                  const newScale = Math.min(Math.max(startScale * (d / startDist), 1), 4);
-                  setModalScale(newScale);
-                } else if (e.touches.length === 1 && modalScale > 1) {
-                  // 1배보다 클 때만 이동 가능
-                  e.preventDefault();
-                  const deltaX = e.touches[0].pageX - parseFloat(e.currentTarget.dataset.lastX || '0');
-                  const deltaY = e.touches[0].pageY - parseFloat(e.currentTarget.dataset.lastY || '0');
-                  
-                  setModalPos(prev => ({
-                    x: prev.x + deltaX,
-                    y: prev.y + deltaY
-                  }));
-                  
-                  e.currentTarget.dataset.lastX = e.touches[0].pageX.toString();
-                  e.currentTarget.dataset.lastY = e.touches[0].pageY.toString();
-                }
-              }}
+              style={{ overflow: 'auto', WebkitOverflowScrolling: 'touch', width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
             >
               <img 
                 id="modal-zoom-img"
-                src={selectedPoster} 
-                style={{ 
-                  maxWidth: '100%', 
-                  maxHeight: '90vh', 
+                src={selectedPoster}
+                alt="Zoomed Poster"
+                style={{
+                  maxWidth: '100%',
+                  maxHeight: '90vh',
                   objectFit: 'contain',
                   borderRadius: '8px',
                   boxShadow: '0 20px 50px rgba(0,0,0,0.5)',
-                  transform: `translate(${modalPos.x}px, ${modalPos.y}px) scale(${modalScale})`,
-                  transition: modalScale === 1 ? 'transform 0.3s ease' : 'none',
-                  userSelect: 'none',
-                  WebkitUserDrag: 'none',
-                  touchAction: 'none'
-                }} 
-                alt="Zoomed Poster" 
+                  touchAction: 'pinch-zoom',
+                  userSelect: 'none'
+                }}
               />
             </div>
 
