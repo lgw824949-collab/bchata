@@ -289,10 +289,30 @@ function App() {
       </AnimatePresence>
 
       <main>
-        {view === 'home' || view === 'likes' ? <HomePage {...sharedProps} /> : 
-         view === 'social' ? <ClassNewsPage {...sharedProps} /> : 
+        {view === 'home' ? <HomePage {...sharedProps} /> : 
+         view === 'class' ? (
+           <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '80vh', color: '#1E293B' }}>
+             <span style={{ fontSize: '48px', marginBottom: '20px' }}>💃</span>
+             <h2 style={{ fontSize: '24px', fontWeight: 900 }}>수업/정모</h2>
+             <p style={{ color: '#64748B', marginTop: '8px' }}>준비 중입니다</p>
+           </div>
+         ) :
+         view === 'bootcamp' ? (
+           <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '80vh', color: '#1E293B' }}>
+             <span style={{ fontSize: '48px', marginBottom: '20px' }}>🏕️</span>
+             <h2 style={{ fontSize: '24px', fontWeight: 900 }}>부트캠프</h2>
+             <p style={{ color: '#64748B', marginTop: '8px' }}>준비 중입니다</p>
+           </div>
+         ) :
+         view === 'festival' ? (
+           <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '80vh', color: '#1E293B' }}>
+             <span style={{ fontSize: '48px', marginBottom: '20px' }}>🎪</span>
+             <h2 style={{ fontSize: '24px', fontWeight: 900 }}>전국페스티벌</h2>
+             <p style={{ color: '#64748B', marginTop: '8px' }}>준비 중입니다</p>
+           </div>
+         ) :
          view === 'register' ? <RegisterForm onBack={() => setView('home')} onSuccess={() => { fetchParties(); setView('home'); }} /> : 
-         view === 'post-lesson' ? <PostClub onBack={() => setView('social')} /> :
+         view === 'post-lesson' ? <PostClub onBack={() => setView('home')} /> :
          view === 'parking' ? <Parking onBack={() => setView('home')} /> :
          view === 'restaurant' ? <Restaurant onBack={() => setView('home')} /> :
          <AdminDashboard onBack={() => setView('home')} />}
@@ -336,16 +356,16 @@ function App() {
           className={`nav-item ${view === 'home' ? 'active' : ''}`} 
           onClick={() => { setView('home'); window.scrollTo(0,0); }}
         >
-          <HomeIcon size={24} color={view === 'home' ? '#E53935' : '#94A3B8'} strokeWidth={view === 'home' ? 3 : 2} />
-          <span>소셜/파티</span>
+          <span style={{ fontSize: '22px', marginBottom: '4px' }}>🎉</span>
+          <span style={{ fontSize: '10px', fontWeight: view === 'home' ? 900 : 500, color: view === 'home' ? '#E53935' : '#94A3B8' }}>소셜파티</span>
         </div>
 
         <div 
-          className={`nav-item ${view === 'likes' ? 'active' : ''}`} 
-          onClick={() => { setView('likes'); window.scrollTo(0,0); }}
+          className={`nav-item ${view === 'class' ? 'active' : ''}`} 
+          onClick={() => { setView('class'); window.scrollTo(0,0); }}
         >
-          <Heart size={24} color={view === 'likes' ? '#E53935' : '#94A3B8'} strokeWidth={view === 'likes' ? 3 : 2} fill={view === 'likes' ? '#E53935' : 'none'} />
-          <span>찜</span>
+          <span style={{ fontSize: '22px', marginBottom: '4px' }}>💃</span>
+          <span style={{ fontSize: '10px', fontWeight: view === 'class' ? 900 : 500, color: view === 'class' ? '#E53935' : '#94A3B8' }}>수업/정모</span>
         </div>
 
         <div className="nav-item central-action" style={{ pointerEvents: 'none', position: 'relative', zIndex: 1001 }}>
@@ -363,31 +383,28 @@ function App() {
               pointerEvents: 'auto'
             }}
             onClick={() => {
-              if (view === 'social') setView('post-lesson')
-              else setView('register')
+              setView('register')
             }}
           >
             <Plus size={28} strokeWidth={3} />
           </motion.button>
-          <span style={{ pointerEvents: 'auto', color: '#1E293B' }}>등록</span>
-        </div>
-
-
-
-        <div 
-          className={`nav-item ${view === 'social' ? 'active' : ''}`} 
-          onClick={() => { setView('social'); window.scrollTo(0,0); }}
-        >
-          <Users size={24} color={view === 'social' ? '#E53935' : '#94A3B8'} strokeWidth={view === 'social' ? 3 : 2} />
-          <span>수업/정보</span>
+          <span style={{ pointerEvents: 'auto', color: '#1E293B', fontSize: '10px' }}>등록</span>
         </div>
 
         <div 
-          className={`nav-item`} 
-          onClick={() => { window.open('https://open.kakao.com/o/gP43rNri', '_blank'); }}
+          className={`nav-item ${view === 'bootcamp' ? 'active' : ''}`} 
+          onClick={() => { setView('bootcamp'); window.scrollTo(0,0); }}
         >
-          <MessageSquare size={24} color="#94A3B8" strokeWidth={2} />
-          <span>실시간톡</span>
+          <span style={{ fontSize: '22px', marginBottom: '4px' }}>🏕️</span>
+          <span style={{ fontSize: '10px', fontWeight: view === 'bootcamp' ? 900 : 500, color: view === 'bootcamp' ? '#E53935' : '#94A3B8' }}>부트캠프</span>
+        </div>
+
+        <div 
+          className={`nav-item ${view === 'festival' ? 'active' : ''}`} 
+          onClick={() => { setView('festival'); window.scrollTo(0,0); }}
+        >
+          <span style={{ fontSize: '22px', marginBottom: '4px' }}>🎪</span>
+          <span style={{ fontSize: '10px', fontWeight: view === 'festival' ? 900 : 500, color: view === 'festival' ? '#E53935' : '#94A3B8' }}>전국페스티벌</span>
         </div>
       </nav>
     </div>
