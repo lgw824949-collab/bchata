@@ -253,8 +253,7 @@ function App() {
                 { icon: <Utensils color="#E53935" />, text: "뒷풀이 맛집", action: () => { setView('restaurant'); setIsMenuOpen(false); } },
                 { icon: <Star color="#E53935" />, text: "댄스 사주", action: () => { if(typeof setShowSaju === 'function') { setShowSaju(true); setIsMenuOpen(false); } } },
                 { icon: <CloudSun color="#E53935" />, text: "오늘 날씨", action: () => { setIsMenuOpen(false); setTimeout(() => setShowWeather(true), 300); } },
-                { icon: <Bell color="#E53935" />, text: "공지사항", action: () => { alert('준비 중') } },
-                { icon: <span style={{ fontSize: '18px' }}>🅿️</span>, text: "주차장", action: () => { setView('parking'); setIsMenuOpen(false); } }
+                { icon: <Bell color="#E53935" />, text: "공지사항", action: () => { alert('준비 중') } }
               ].map((item, idx) => (
                 <motion.div
                   key={idx}
