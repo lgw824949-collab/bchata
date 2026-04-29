@@ -1,20 +1,31 @@
+import { createClient } from '@supabase/supabase-js';
 
-import { createClient } from '@supabase/supabase-js'
-import dotenv from 'dotenv'
-dotenv.config()
+const supabaseUrl = 'https://biwziyyklaycbjrnitem.supabase.co';
+const supabaseKey = 'sb_publishable_TSfuOakU5BxoKeJrIoRDrw_kd6pz-k1';
+const supabase = createClient(supabaseUrl, supabaseKey);
 
-const supabaseUrl = process.env.VITE_SUPABASE_URL
-const supabaseAnonKey = process.env.VITE_SUPABASE_ANON_KEY
+async function checkTableStructure() {
+  try {
+    // Query one row to see all column names
+    const { data, error } = await supabase
+      .from('locations')
+      .select('*')
+      .limit(1);
 
-const supabase = createClient(supabaseUrl, supabaseAnonKey)
+    if (error) {
+      console.error('Error fetching locations:', error);
+      return;
+    }
 
-async function check() {
-  const { data, error } = await supabase.from('parties').select('*').limit(1)
-  if (error) {
-    console.log('Error:', error)
-  } else {
-    console.log('Columns:', Object.keys(data[0] || {}))
+    if (data && data.length > 0) {
+      console.log('Columns found:', Object.keys(data[0]));
+      console.log('Sample data:', data[0]);
+    } else {
+      console.log('No data found in locations table.');
+    }
+  } catch (err) {
+    console.error('Unexpected error:', err);
   }
 }
 
-check()
+checkTableStructure();

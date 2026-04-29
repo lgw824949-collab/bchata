@@ -1,28 +1,32 @@
 import React, { useState, useEffect } from 'react';
 import { ChevronLeft, MapPin, Navigation, Info, AlertCircle } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { supabase } from '../lib/supabase';
+import { BAR_DATABASE } from '../data/barDatabase';
 
 const Parking = ({ onBack }) => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [bars, setBars] = useState([]);
+  const [bars, setBars] = useState({});
   const [selectedBar, setSelectedBar] = useState(null);
   const [parkingLots, setParkingLots] = useState([]);
   const [fetchingParking, setFetchingParking] = useState(false);
 
-  // 1. 바 목록 가져오기
+  // 1. 바 목록 로딩 (로컬 마스터 데이터 사용)
   useEffect(() => {
-    const fetchBars = async () => {
+    const loadBars = () => {
+      setLoading(true);
       try {
-        const { data, error: err } = await supabase
-          .from('locations')
-          .select('*, regions(name)')
-          .order('name');
+        const validBars = BAR_DATABASE.filter(bar => bar.lat && bar.lon);
+        // 지역별 그룹화
+        const groups = validBars.reduce((acc, bar) => {
+          const r = bar.region || '기타';
+          if (!acc[r]) acc[r] = [];
+          acc[r].push(bar);
+          return acc;
+        }, {});
         
-        if (err) throw err;
-        console.log("가져온 바 목록:", data);
-        setBars(data || []);
+        console.log("로컬 데이터 로드 완료:", groups);
+        setBars(groups);
       } catch (err) {
         console.error(err);
         setError('장소 정보를 불러오는 중 오류가 발생했습니다.');
@@ -30,7 +34,7 @@ const Parking = ({ onBack }) => {
         setLoading(false);
       }
     };
-    fetchBars();
+    loadBars();
   }, []);
 
   // 2. 바 선택 시 주차장 호출
@@ -103,6 +107,7 @@ const Parking = ({ onBack }) => {
       <div style={{ flex: 1, overflowY: 'auto', padding: '20px' }}>
         <AnimatePresence mode="wait">
           {!selectedBar ? (
+            // 바 목록
             <motion.div key="bar-list" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
               <div style={{ marginBottom: '24px' }}>
                 <h2 style={{ fontSize: '20px', fontWeight: 1000, color: '#1E293B', marginBottom: '8px' }}>어느 바 근처 주차장을 찾으세요?</h2>
@@ -112,29 +117,39 @@ const Parking = ({ onBack }) => {
               {loading ? (
                 <div style={{ textAlign: 'center', padding: '40px' }}>로딩 중...</div>
               ) : (
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-                  {bars.map(bar => (
-                    <motion.div
-                      key={bar.id}
-                      whileTap={{ scale: 0.98 }}
-                      onClick={() => handleSelectBar(bar)}
-                      style={{
-                        background: '#fff', padding: '16px 20px', borderRadius: '16px',
-                        border: '1px solid #E2E8F0', cursor: 'pointer',
-                        display: 'flex', justifyContent: 'space-between', alignItems: 'center'
-                      }}
-                    >
-                      <div>
-                        <div style={{ fontSize: '16px', fontWeight: 900, color: '#1E293B' }}>{bar.name}</div>
-                        <div style={{ fontSize: '12px', color: '#94A3B8', marginTop: '2px' }}>{bar.regions?.name || '전국'}</div>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
+                  {Object.entries(bars).map(([region, regionBars]) => (
+                    <div key={region}>
+                      <h3 style={{ fontSize: '14px', color: '#64748B', fontWeight: 800, marginBottom: '12px', paddingLeft: '4px' }}>
+                        {region}
+                      </h3>
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                        {regionBars.map(bar => (
+                          <motion.div
+                            key={bar.name}
+                            whileTap={{ scale: 0.98 }}
+                            onClick={() => handleSelectBar(bar)}
+                            style={{
+                              background: '#fff', padding: '16px 20px', borderRadius: '16px',
+                              border: '1px solid #E2E8F0', cursor: 'pointer',
+                              display: 'flex', justifyContent: 'space-between', alignItems: 'center'
+                            }}
+                          >
+                            <div>
+                              <div style={{ fontSize: '16px', fontWeight: 900, color: '#1E293B' }}>{bar.name}</div>
+                              <div style={{ fontSize: '12px', color: '#94A3B8', marginTop: '2px' }}>{bar.address}</div>
+                            </div>
+                            <ChevronLeft size={20} color="#CBD5E1" style={{ transform: 'rotate(180deg)' }} />
+                          </motion.div>
+                        ))}
                       </div>
-                      <ChevronLeft size={20} color="#CBD5E1" style={{ transform: 'rotate(180deg)' }} />
-                    </motion.div>
+                    </div>
                   ))}
                 </div>
               )}
             </motion.div>
           ) : (
+            // 주차장 목록
             <motion.div key="parking-list" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }}>
               {fetchingParking ? (
                 <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '100%', marginTop: '60px' }}>
@@ -217,6 +232,17 @@ const Parking = ({ onBack }) => {
         </AnimatePresence>
       </div>
 
+      <div style={{ padding: '20px', textAlign: 'center', background: '#fff', borderTop: '1px solid #E2E8F0' }}>
+        <p style={{ fontSize: '11px', color: '#94A3B8', margin: 0 }}>데이터 제공: 공공데이터포털 (공유누리)</p>
+      </div>
+    </div>
+otion.div>
+              ))}
+            </div>
+          )}
+        </AnimatePresence>
+      </div>
+      
       <div style={{ padding: '20px', textAlign: 'center', background: '#fff', borderTop: '1px solid #E2E8F0' }}>
         <p style={{ fontSize: '11px', color: '#94A3B8', margin: 0 }}>데이터 제공: 공공데이터포털 (공유누리)</p>
       </div>
