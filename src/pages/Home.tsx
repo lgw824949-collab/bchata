@@ -1057,15 +1057,15 @@ const HomePage = ({
               </button>
             </div>
 
-            {/* 포스터 그리드 */}
+            {/* 포스터 그리드 (2x5 규격 최적화) */}
             <div 
               style={{ 
                 flex: 1, 
                 overflowY: 'auto', 
-                padding: '20px', 
+                padding: '10px', 
                 display: 'grid', 
                 gridTemplateColumns: 'repeat(2, 1fr)', 
-                gap: '15px', 
+                gap: '10px', 
                 background: '#f8fafc',
                 paddingBottom: '40px'
               }}
@@ -1087,10 +1087,10 @@ const HomePage = ({
 
                 if (filtered.length === 0) {
                   return (
-                    <div style={{ gridColumn: 'span 2', padding: '80px 20px', textAlign: 'center' }}>
+                    <div style={{ gridColumn: 'span 2', padding: '60px 20px', textAlign: 'center' }}>
                       <div style={{ fontSize: '48px', marginBottom: '16px' }}>📅</div>
-                      <h3 style={{ fontSize: '16px', fontWeight: 800, color: '#1e293b', marginBottom: '8px' }}>등록된 파티가 없습니다</h3>
-                      <p style={{ fontSize: '13px', color: '#64748b' }}>선택하신 날짜에 해당 지역의 파티 정보가 아직 등록되지 않았습니다.</p>
+                      <h3 style={{ fontSize: '15px', fontWeight: 800, color: '#1e293b', marginBottom: '8px' }}>등록된 파티가 없습니다</h3>
+                      <p style={{ fontSize: '12px', color: '#64748b' }}>파티 정보가 아직 등록되지 않았습니다.</p>
                     </div>
                   );
                 }
@@ -1098,13 +1098,13 @@ const HomePage = ({
                 return filtered.map((party) => (
                   <motion.div
                     key={party.id}
-                    initial={{ opacity: 0, scale: 0.9 }}
+                    initial={{ opacity: 0, scale: 0.95 }}
                     animate={{ opacity: 1, scale: 1 }}
-                    whileTap={{ scale: 0.95 }}
+                    whileTap={{ scale: 0.98 }}
                     onClick={() => setSelectedPoster(party.poster_url)}
                     style={{
-                      aspectRatio: '3/4', borderRadius: '16px', overflow: 'hidden',
-                      boxShadow: '0 4px 15px rgba(0,0,0,0.1)', background: '#fff',
+                      aspectRatio: '5/8', borderRadius: '10px', overflow: 'hidden',
+                      boxShadow: '0 2px 8px rgba(0,0,0,0.1)', background: '#fff',
                       position: 'relative', cursor: 'pointer', border: '1px solid #f1f5f9'
                     }}
                   >
@@ -1114,15 +1114,15 @@ const HomePage = ({
                       style={{ width: '100%', height: '100%', objectFit: 'cover' }} 
                     />
                     <div style={{
-                      position: 'absolute', bottom: 0, left: 0, right: 0, padding: '12px 10px',
+                      position: 'absolute', bottom: 0, left: 0, right: 0, padding: '8px 6px',
                       background: 'linear-gradient(transparent, rgba(0,0,0,0.85))',
                       color: 'white'
                     }}>
-                      <div style={{ fontSize: '10px', color: '#ffcd3c', fontWeight: 900, marginBottom: '2px' }}>
+                      <div style={{ fontSize: '9px', color: '#ffcd3c', fontWeight: 900, marginBottom: '1px' }}>
                         {party.locationName}
                       </div>
                       <div style={{ 
-                        fontSize: '12px', fontWeight: 800,
+                        fontSize: '11px', fontWeight: 800,
                         display: 'block', whiteSpace: 'nowrap',
                         overflow: 'hidden', textOverflow: 'ellipsis'
                       }}>
