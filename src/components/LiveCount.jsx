@@ -5,15 +5,63 @@ import { BAR_DATABASE } from '../data/barDatabase'
 const LiveCount = () => {
   const [counts, setCounts] = useState({})
   
+  // KST 기준 오늘 날짜 문자열 (YYYY-MM-DD)
+  const getTodayKST = () => {
+    const kst = new Date(Date.now() + (9 * 60 * 60 * 1000))
+    return kst.toISOString().split('T')[0]
+  }
+
+  // 현재 시간이 파티 시간대(버퍼 30분 포함)인지 확인하는 함수
+  const isNowInPartyTime = (dateStr, startTime, endTime) => {
+    const now = new Date()
+    const start = new Date(`${dateStr}T${startTime}:00`)
+    let end = new Date(`${dateStr}T${endTime}:00`)
+    
+    // 종료 시간이 시작 시간보다 빠르면 다음 날로 처리 (예: 21:00 ~ 02:00)
+    if (end < start) {
+      end.setDate(end.getDate() + 1)
+    }
+    
+    // 시작 30분 전부터 종료 시점까지를 유효 시간으로 인정
+    const startWithBuffer = new Date(start.getTime() - 30 * 60 * 1000)
+    return now >= startWithBuffer && now <= end
+  }
+
   const fetchCounts = async () => {
+    const todayStr = getTodayKST()
+    
+    // 1. 오늘 열리는 파티 일정 먼저 가져오기
+    const { data: parties } = await supabase
+      .from('parties')
+      .select('location_id, time, end_time, date, locations(name)')
+      .eq('date', todayStr)
+
+    if (!parties || parties.length === 0) {
+      setCounts({})
+      return
+    }
+
+    // 2. 현재 시간이 파티 시간대인 '라이브 장소' 리스트 추출
+    const liveBarNames = parties
+      .filter(p => isNowInPartyTime(p.date, p.time, p.end_time))
+      .map(p => p.locations?.name)
+      .filter(Boolean)
+
+    if (liveBarNames.length === 0) {
+      setCounts({})
+      return
+    }
+
+    // 3. 라이브 장소들에 대해서만 최근 30분 체크인 집계
     const thirtyMinsAgo = new Date(Date.now() - 30 * 60 * 1000)
-    const { data, error } = await supabase
+    const { data: checkins } = await supabase
       .from('bar_checkins')
       .select('bar_name, region')
+      .in('bar_name', liveBarNames)
       .gte('checked_in_at', thirtyMinsAgo.toISOString())
     
-    if (data) {
-      const grouped = data.reduce((acc, curr) => {
+    if (checkins) {
+      const grouped = checkins.reduce((acc, curr) => {
         const key = `${curr.region}|${curr.bar_name}`
         acc[key] = (acc[key] || 0) + 1
         return acc
@@ -25,7 +73,6 @@ const LiveCount = () => {
   useEffect(() => {
     fetchCounts()
 
-    // Supabase Realtime 구독
     const channel = supabase
       .channel('live_checkins')
       .on('postgres_changes', { 
@@ -37,12 +84,12 @@ const LiveCount = () => {
       })
       .subscribe()
 
-    // GPS 자동 체크인 로직
     const visitor_id = localStorage.getItem('bchata_visitor_id') || Math.random().toString(36).substring(2, 15)
     localStorage.setItem('bchata_visitor_id', visitor_id)
 
     const checkIn = async (pos) => {
       const { latitude: lat, longitude: lon } = pos.coords
+      const todayStr = getTodayKST()
       
       const getDist = (lat1, lon1, lat2, lon2) => {
         const R = 6371;
@@ -55,15 +102,26 @@ const LiveCount = () => {
         return R * c;
       }
 
-      // 1km 이내 BAR 탐색
       const nearBar = BAR_DATABASE.find(bar => getDist(lat, lon, bar.lat, bar.lon) < 1)
       
       if (nearBar) {
+        // [중요] 해당 장소에 현재 파티 일정이 있는지 확인
+        const { data: activeParty } = await supabase
+          .from('parties')
+          .select('time, end_time, date')
+          .eq('date', todayStr)
+          .eq('location_id', nearBar.id) // BAR_DATABASE의 id와 location_id 매칭 가정
+          .maybeSingle()
+
+        // 파티 시간이 아니면 체크인 기록 안 함
+        if (!activeParty || !isNowInPartyTime(activeParty.date, activeParty.time, activeParty.end_time)) {
+          return
+        }
+
         const lastCheckKey = `last_checkin_${nearBar.name}`
         const lastCheckTime = localStorage.getItem(lastCheckKey)
         const now = Date.now()
 
-        // 30분마다 한 번만 자동 체크인 허용
         if (!lastCheckTime || now - parseInt(lastCheckTime) > 30 * 60 * 1000) {
           await supabase.from('bar_checkins').insert({
             bar_name: nearBar.name,
