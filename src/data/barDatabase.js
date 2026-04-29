@@ -45,7 +45,7 @@ export const BAR_DATABASE = [
   { name: '라틴크루', address: '경기도 안산시 상록구 석바위로 49-1', region: '경기도', lat: 37.3125, lon: 126.8298 },
 
   // [인천]
-  { name: '엘마르', address: '인천 부평구 십정동 420-1', region: '인천광역시', aliases: ['엘마'], lat: 37.4872, lon: 126.7217 },
+  { name: '엘마르', address: '인천 부평구 십정동 420-1', region: '인천광역시', aliases: ['엘마'], lat: 37.4708, lon: 126.7003 },
   { name: '라씬 카우보이', address: '인천시 미추홀구 경원대로 851 4층', region: '인천광역시', lat: 37.4612, lon: 126.6782 },
   { name: 'LBT', address: '인천 구월동 1391-8 지하1층', region: '인천광역시', lat: 37.4449, lon: 126.7052 },
 
