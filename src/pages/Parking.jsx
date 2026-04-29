@@ -39,8 +39,7 @@ const Parking = ({ onBack }) => {
     const fetchParking = async () => {
       setLoading(true);
       try {
-        const apiKey = import.meta.env.VITE_PARKING_API_KEY;
-        const url = `https://apis.data.go.kr/1741000/ResrceOpenShareService/getResrceLctnList?serviceKey=${apiKey}&pageNo=1&numOfRows=20&type=json&resrceCtgryId=010800&lctnLattitud=${coords.lat}&lctnLongitud=${coords.lon}&radius=2`;
+        const url = `/api/parking?lat=${coords.lat}&lon=${coords.lon}`;
 
         const response = await fetch(url);
         const json = await response.json();
