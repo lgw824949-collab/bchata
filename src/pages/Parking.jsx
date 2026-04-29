@@ -17,16 +17,32 @@ const Parking = ({ onBack }) => {
       setLoading(true);
       try {
         const validBars = BAR_DATABASE.filter(bar => bar.lat && bar.lon);
-        // 지역별 그룹화
+        // 지역별 그룹화 (주소 기준)
         const groups = validBars.reduce((acc, bar) => {
-          const r = bar.region || '기타';
-          if (!acc[r]) acc[r] = [];
-          acc[r].push(bar);
+          const addr = bar.address || '';
+          let region = '기타';
+          
+          if (addr.includes('서울')) region = '서울';
+          else if (addr.includes('인천') || addr.includes('경기')) region = '인천/경기';
+          else if (addr.includes('부산') || addr.includes('경남') || addr.includes('대구') || addr.includes('경북') || addr.includes('경상')) region = '경상';
+          else if (addr.includes('광주') || addr.includes('전남') || addr.includes('전북') || addr.includes('전라')) region = '전라';
+          else if (addr.includes('대전') || addr.includes('충남') || addr.includes('충북') || addr.includes('충청') || addr.includes('세종') || addr.includes('천안') || addr.includes('청주')) region = '충청';
+          else if (addr.includes('강원')) region = '강원';
+          else if (addr.includes('제주')) region = '제주';
+
+          if (!acc[region]) acc[region] = [];
+          acc[region].push(bar);
           return acc;
         }, {});
         
-        console.log("로컬 데이터 로드 완료:", groups);
-        setBars(groups);
+        // 지역 정렬 순서 정의
+        const order = ['서울', '인천/경기', '경상', '전라', '충청', '강원', '제주'];
+        const sortedGroups = {};
+        order.forEach(key => {
+          if (groups[key]) sortedGroups[key] = groups[key];
+        });
+        
+        setBars(sortedGroups);
       } catch (err) {
         console.error(err);
         setError('장소 정보를 불러오는 중 오류가 발생했습니다.');
