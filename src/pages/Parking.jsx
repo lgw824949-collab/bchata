@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { ChevronLeft, MapPin, Navigation, Info, AlertCircle } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
-
 import { supabase } from '../lib/supabase';
 
 const Parking = ({ onBack }) => {
@@ -104,7 +103,6 @@ const Parking = ({ onBack }) => {
       <div style={{ flex: 1, overflowY: 'auto', padding: '20px' }}>
         <AnimatePresence mode="wait">
           {!selectedBar ? (
-            // 바 목록
             <motion.div key="bar-list" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
               <div style={{ marginBottom: '24px' }}>
                 <h2 style={{ fontSize: '20px', fontWeight: 1000, color: '#1E293B', marginBottom: '8px' }}>어느 바 근처 주차장을 찾으세요?</h2>
@@ -137,7 +135,6 @@ const Parking = ({ onBack }) => {
               )}
             </motion.div>
           ) : (
-            // 주차장 목록
             <motion.div key="parking-list" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }}>
               {fetchingParking ? (
                 <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '100%', marginTop: '60px' }}>
@@ -220,17 +217,6 @@ const Parking = ({ onBack }) => {
         </AnimatePresence>
       </div>
 
-      <div style={{ padding: '20px', textAlign: 'center', background: '#fff', borderTop: '1px solid #E2E8F0' }}>
-        <p style={{ fontSize: '11px', color: '#94A3B8', margin: 0 }}>데이터 제공: 공공데이터포털 (공유누리)</p>
-      </div>
-    </div>
-otion.div>
-              ))}
-            </div>
-          )}
-        </AnimatePresence>
-      </div>
-      
       <div style={{ padding: '20px', textAlign: 'center', background: '#fff', borderTop: '1px solid #E2E8F0' }}>
         <p style={{ fontSize: '11px', color: '#94A3B8', margin: 0 }}>데이터 제공: 공공데이터포털 (공유누리)</p>
       </div>
