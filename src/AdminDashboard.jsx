@@ -33,7 +33,7 @@ export default function AdminDashboard({ onBack }) {
     e.preventDefault()
     
     if (loginStep === 1) {
-      const validId = import.meta.env.VITE_ADMIN_ID || 'admin'
+      const validId = import.meta.env.VITE_ADMIN_ID
       if (adminId === validId) {
         setLoginStep(2)
       } else {
@@ -43,7 +43,7 @@ export default function AdminDashboard({ onBack }) {
     }
 
     // 2단계: 비밀번호 체크
-    const validPw = import.meta.env.VITE_ADMIN_PW || '12345678'
+    const validPw = import.meta.env.VITE_ADMIN_PW
     
     // 잠금 확인
     const lockUntil = localStorage.getItem('admin_lock_until')
