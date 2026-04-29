@@ -235,7 +235,15 @@ const LatinModal = ({ isOpen, onClose }) => {
           />
         </div>
 
-        <div style={{ display: 'flex', gap: '8px', padding: '10px 20px', overflowX: 'auto', whiteSpace: 'nowrap' }}>
+        <div 
+          className="tabs-scroll"
+          style={{ 
+            display: 'flex', gap: '8px', padding: '10px 20px', 
+            overflowX: 'auto', whiteSpace: 'nowrap',
+            scrollbarWidth: 'none', msOverflowStyle: 'none'
+          }}
+        >
+          <style>{`.tabs-scroll::-webkit-scrollbar { display: none; }`}</style>
           {cats.map(c => (
             <button key={c} onClick={() => { setCurCat(c); setSelId(null); }} 
               style={{ padding: '6px 14px', borderRadius: '20px', border: '1px solid #E2E8F0', background: curCat === c ? '#1D9E75' : 'transparent', color: curCat === c ? '#fff' : '#64748B', fontSize: '11px', cursor: 'pointer', transition: 'all 0.2s' }}
