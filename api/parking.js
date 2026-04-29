@@ -1,6 +1,6 @@
 export default async function handler(req, res) {
   const { lat, lon } = req.query;
-  const apiKey = process.env.PARKING_API_KEY;
+  const apiKey = process.env.VITE_PARKING_API_KEY;
   
   console.log("apiKey:", apiKey);
   console.log("lat:", lat, "lon:", lon);
