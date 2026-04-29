@@ -9,6 +9,7 @@ import HomePage from './pages/Home'
 import ClassNewsPage from './pages/ClassNews'
 import PostClub from './pages/PostClub'
 import Auth from './components/Auth'
+import Parking from './pages/Parking'
 import SajuModal from './components/SajuModal'
 import IncheonRoute from './components/IncheonRoute'
 import WeatherModal from './components/WeatherModal'
@@ -147,6 +148,12 @@ function App() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
 
   useEffect(() => { setTimeout(() => setShowSplash(false), 2000); }, []);
+
+  useEffect(() => {
+    if (window.location.pathname === '/parking') {
+      setView('parking');
+    }
+  }, []);
 
   const fetchParties = async () => {
     setLoading(true);
@@ -370,6 +377,7 @@ const LatinModal = ({ isOpen, onClose }) => {
          view === 'social' ? <ClassNewsPage {...sharedProps} /> : 
          view === 'register' ? <RegisterForm onBack={() => setView('home')} onSuccess={() => { fetchParties(); setView('home'); }} /> : 
          view === 'post-lesson' ? <PostClub onBack={() => setView('social')} /> :
+         view === 'parking' ? <Parking onBack={() => setView('home')} /> :
          <AdminDashboard onBack={() => setView('home')} />}
       </main>
 
