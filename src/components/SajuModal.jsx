@@ -156,10 +156,10 @@ export default function SajuModal({ onClose, parties=[] }) {
 
     const genreMatch = (p, targetGenre) => {
       if (targetGenre === '모든 장르') return true
-      if (targetGenre === '살사')       return (p.s_ratio||0)>=5
-      if (targetGenre === '바차타')     return (p.b_ratio||0)>=5
-      if (targetGenre === '주크바차타') return (p.j_ratio||0)>=3
-      if (targetGenre === '키좀바')     return (p.k_ratio||0)>=3
+      if (targetGenre === '살사')       return (p.s_ratio||0)>=1
+      if (targetGenre === '바차타')     return (p.b_ratio||0)>=1
+      if (targetGenre === '주크바차타') return (p.j_ratio||0)>=1
+      if (targetGenre === '키좀바')     return (p.k_ratio||0)>=1
       return false
     }
 
@@ -183,6 +183,12 @@ export default function SajuModal({ onClose, parties=[] }) {
       }))
 
     let recommendedBars = [...todayParties, ...futureParties].slice(0, 3)
+
+    if (recommendedBars.length === 0) {
+      const todayParties_all = parties.filter(p => p.date === today).map(p => ({ ...p, type: 'today', address: p.locations?.address || '' }))
+      const futureParties_all = parties.filter(p => p.date > today).sort((a, b) => a.date.localeCompare(b.date)).map(p => ({ ...p, type: 'future', address: p.locations?.address || '' }))
+      recommendedBars = [...todayParties_all, ...futureParties_all].slice(0, 3)
+    }
 
     // 3순위: 1, 2순위 없을 때만 BAR_DATABASE GPS 거리 기반 추천
     if (recommendedBars.length === 0) {
