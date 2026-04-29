@@ -6,6 +6,8 @@ import { CLASS_CATEGORIES, DANCE_STYLES, REGIONS, DAYS } from './lib/constants'
 
 export default function AdminDashboard({ onBack }) {
   const [isAdmin, setIsAdmin] = useState(false)
+  const [loginStep, setLoginStep] = useState(1) // 1: ID, 2: Password
+  const [adminId, setAdminId] = useState('')
   const [password, setPassword] = useState('')
   const [pendingParties, setPendingParties] = useState([])
   const [officialParties, setOfficialParties] = useState([])
@@ -26,9 +28,22 @@ export default function AdminDashboard({ onBack }) {
   const [editingParty, setEditingParty] = useState(null)
   const [editingClass, setEditingClass] = useState(null)
 
-  // 비밀번호 체크
-  const checkPassword = (e) => {
+  // 로그인 처리
+  const handleLogin = (e) => {
     e.preventDefault()
+    
+    if (loginStep === 1) {
+      const validId = import.meta.env.VITE_ADMIN_ID || 'admin'
+      if (adminId === validId) {
+        setLoginStep(2)
+      } else {
+        alert('존재하지 않는 아이디입니다.')
+      }
+      return
+    }
+
+    // 2단계: 비밀번호 체크
+    const validPw = import.meta.env.VITE_ADMIN_PW || '12345678'
     
     // 잠금 확인
     const lockUntil = localStorage.getItem('admin_lock_until')
@@ -38,7 +53,7 @@ export default function AdminDashboard({ onBack }) {
       return
     }
 
-    if (password === '12345678') { 
+    if (password === validPw) { 
       setIsAdmin(true)
       localStorage.setItem('admin_login_time', Date.now().toString())
       localStorage.removeItem('admin_login_attempts')
@@ -332,27 +347,51 @@ export default function AdminDashboard({ onBack }) {
         <ShieldCheck size={80} color="#00FF00" style={{ margin: '0 auto 32px', filter: 'drop-shadow(0 0 15px rgba(0,255,0,0.3))' }} />
         <h1 style={{ fontSize: '28px', fontWeight: 900, letterSpacing: '-0.03em' }}>BAMBPA COMMAND</h1>
         <p style={{ color: '#94A3B8', marginTop: '12px', fontSize: '15px' }}>Access Restricted to Authorized Personnel Only</p>
-        <form onSubmit={checkPassword} style={{ marginTop: '50px', maxWidth: '320px', margin: '50px auto 0' }}>
-          <input 
-            type="password" 
-            value={password} 
-            onChange={e => setPassword(e.target.value)} 
-            placeholder="ACCESS KEY" 
-            style={{ 
-              width: '100%', 
-              padding: '20px', 
-              borderRadius: '20px', 
-              border: '2px solid #334155', 
-              backgroundColor: '#0F172A',
-              color: 'white',
-              textAlign: 'center', 
-              fontSize: '20px',
-              fontWeight: 800,
-              letterSpacing: '0.2em',
-              outline: 'none',
-              boxShadow: 'inset 0 2px 4px rgba(0,0,0,0.5)'
-            }} 
-          />
+        <form onSubmit={handleLogin} style={{ marginTop: '50px', maxWidth: '320px', margin: '50px auto 0' }}>
+          {loginStep === 1 ? (
+            <input 
+              type="text" 
+              value={adminId} 
+              onChange={e => setAdminId(e.target.value)} 
+              placeholder="OPERATOR ID" 
+              autoFocus
+              style={{ 
+                width: '100%', 
+                padding: '20px', 
+                borderRadius: '20px', 
+                border: '2px solid #334155', 
+                backgroundColor: '#0F172A',
+                color: 'white',
+                textAlign: 'center', 
+                fontSize: '18px',
+                fontWeight: 800,
+                outline: 'none',
+                boxShadow: 'inset 0 2px 4px rgba(0,0,0,0.5)'
+              }} 
+            />
+          ) : (
+            <input 
+              type="password" 
+              value={password} 
+              onChange={e => setPassword(e.target.value)} 
+              placeholder="ACCESS KEY" 
+              autoFocus
+              style={{ 
+                width: '100%', 
+                padding: '20px', 
+                borderRadius: '20px', 
+                border: '2px solid #334155', 
+                backgroundColor: '#0F172A',
+                color: 'white',
+                textAlign: 'center', 
+                fontSize: '20px',
+                fontWeight: 800,
+                letterSpacing: '0.2em',
+                outline: 'none',
+                boxShadow: 'inset 0 2px 4px rgba(0,0,0,0.5)'
+              }} 
+            />
+          )}
           <button 
             type="submit" 
             style={{ 
@@ -369,8 +408,17 @@ export default function AdminDashboard({ onBack }) {
               boxShadow: '0 10px 20px rgba(0,255,0,0.2)'
             }}
           >
-            INITIALIZE
+            {loginStep === 1 ? 'NEXT STEP' : 'INITIALIZE'}
           </button>
+          {loginStep === 2 && (
+            <button 
+              type="button"
+              onClick={() => setLoginStep(1)}
+              style={{ marginTop: '15px', background: 'none', border: 'none', color: '#94A3B8', fontSize: '13px', cursor: 'pointer', textDecoration: 'underline' }}
+            >
+              Back to ID entry
+            </button>
+          )}
         </form>
       </div>
     )
