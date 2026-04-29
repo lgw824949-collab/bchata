@@ -15,6 +15,63 @@ import IncheonRoute from './components/IncheonRoute'
 import WeatherModal from './components/WeatherModal'
 import QuickPinchZoom, { make3dTransformValue } from 'react-quick-pinch-zoom';
 
+// [포스터 줌 전용 컴포넌트 - 전역 분리]
+const PosterModal = ({ src, onClose }) => {
+  const [scale, setScale] = useState(1);
+  const lastDist = useRef(null);
+
+  const onTouchMove = (e) => {
+    if (e.touches.length === 2) {
+      e.preventDefault();
+      const dx = e.touches[0].pageX - e.touches[1].pageX;
+      const dy = e.touches[0].pageY - e.touches[1].pageY;
+      const dist = Math.sqrt(dx*dx + dy*dy);
+      if (lastDist.current) {
+        const delta = dist / lastDist.current;
+        setScale(s => Math.min(Math.max(s * delta, 1), 4));
+      }
+      lastDist.current = dist;
+    }
+  };
+
+  const onTouchEnd = () => { lastDist.current = null; };
+
+  return (
+    <div onClick={onClose} style={{ position:'fixed', inset:0, zIndex:100000, backgroundColor:'rgba(0,0,0,0.9)', display:'flex', alignItems:'center', justifyContent:'center', touchAction: 'none' }}>
+      <div 
+        onClick={e => e.stopPropagation()} 
+        onTouchMove={onTouchMove} 
+        onTouchEnd={onTouchEnd} 
+        style={{ width:'100%', height:'100%', display:'flex', alignItems:'center', justifyContent:'center', touchAction: 'none' }}
+      >
+        <img 
+          src={src} 
+          alt="poster" 
+          style={{ 
+            maxWidth:'100%', 
+            maxHeight:'90vh', 
+            objectFit:'contain', 
+            transform:`scale(${scale})`, 
+            transformOrigin:'center', 
+            transition:'transform 0.1s',
+            userSelect: 'none'
+          }} 
+        />
+        <button 
+          onClick={onClose} 
+          style={{ 
+            position:'absolute', top:'40px', right:'25px', 
+            background:'rgba(255,255,255,0.2)', border:'none', 
+            borderRadius:'50%', width:'44px', height:'44px', 
+            color:'#fff', fontSize:'24px', cursor:'pointer',
+            zIndex: 100001
+          }}
+        >✕</button>
+      </div>
+    </div>
+  );
+};
+
 // --- [BAMPPA PREMIUM ENGINE: GPS & NATIONWIDE INTELLIGENCE] ---
 const calculateDistance = (lat1, lon1, lat2, lon2) => {
   const R = 6371; 
@@ -139,42 +196,6 @@ function App() {
   const [showIncheonModal, setShowIncheonModal] = useState(false);
   const [isSajuCall, setIsSajuCall] = useState(false);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
-
-// [포스터 줌 전용 컴포넌트]
-const PosterModal = ({ src, onClose }) => {
-  const [scale, setScale] = useState(1);
-  const lastDist = useRef(null);
-
-  const onTouchMove = (e) => {
-    if (e.touches.length === 2) {
-      e.preventDefault();
-      const dx = e.touches[0].clientX - e.touches[1].clientX;
-      const dy = e.touches[0].clientY - e.touches[1].clientY;
-      const dist = Math.sqrt(dx*dx + dy*dy);
-      if (lastDist.current) {
-        const delta = dist / lastDist.current;
-        setScale(s => Math.min(Math.max(s * delta, 1), 4));
-      }
-      lastDist.current = dist;
-    }
-  };
-
-  const onTouchEnd = () => { lastDist.current = null; };
-
-  return (
-    <div onClick={onClose} style={{ position:'fixed', inset:0, zIndex:100000, backgroundColor:'rgba(0,0,0,0.9)', display:'flex', alignItems:'center', justifyContent:'center' }}>
-      <div 
-        onClick={e => e.stopPropagation()} 
-        onTouchMove={onTouchMove} 
-        onTouchEnd={onTouchEnd} 
-        style={{ width:'100%', height:'100%', display:'flex', alignItems:'center', justifyContent:'center', touchAction: 'none' }}
-      >
-        <img src={src} alt="poster" style={{ maxWidth:'100%', maxHeight:'90vh', objectFit:'contain', transform:`scale(${scale})`, transformOrigin:'center', transition:'transform 0.1s', userSelect: 'none' }} />
-        <button onClick={onClose} style={{ position:'absolute', top:'40px', right:'25px', background:'rgba(255,255,255,0.2)', border:'none', borderRadius:'50%', width:'44px', height:'44px', color:'#fff', fontSize:'24px', cursor:'pointer' }}>✕</button>
-      </div>
-    </div>
-  );
-};
   const [userCoords, setUserCoords] = useState(null);
   const [selectedPoster, setSelectedPoster] = useState(null);
   const [modalScale, setModalScale] = useState(1);
