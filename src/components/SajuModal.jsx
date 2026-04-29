@@ -149,70 +149,50 @@ export default function SajuModal({ onClose, parties=[] }) {
     const { count, main } = calcOheng([yGJ,mGJ,dGJ,tGJ])
     const dance = OHENG_DANCE[main]
 
-    let recommendedBars = []
-    let useGps = false
+    // 2. 추천 우선순위 로직 수정
+    const now = new Date()
+    const kstDate = new Date(now.getTime() + (9 * 60 * 60 * 1000))
+    const today = kstDate.toISOString().split('T')[0]
 
-    // 2. GPS 기반 추천 시도 (1순위)
-    if (navigator.geolocation) {
-      try {
-        const position = await new Promise((resolve, reject) => {
-          navigator.geolocation.getCurrentPosition(resolve, reject, { timeout: 5000 })
-        })
-        
-        const { latitude: userLat, longitude: userLon } = position.coords
-        
-        // 장르에 맞는 바 필터링
-        const candidates = BAR_DATABASE.filter(bar => matchesGenre(bar.name, dance.genre))
-        
-        // 좌표 직접 사용하여 거리 계산
-        recommendedBars = candidates
-          .filter(bar => bar.lat && bar.lon)
-          .map(bar => {
-            const dist = getDistance(userLat, userLon, bar.lat, bar.lon)
-            const transport = dist < 1 ? '도보' : dist < 5 ? '버스' : '지하철'
-            const time = dist < 1 ? Math.round(dist * 12) : Math.round(dist * 3)
-            
-            return {
-              ...bar,
-              distance: dist,
-              distanceText: `내 위치 → ${bar.name} ${dist.toFixed(1)}km (${transport} ${time}분)`,
-              isGps: true
-            }
-          })
-          .sort((a, b) => a.distance - b.distance)
-          .slice(0, 3)
-          .map(b => ({
-            title: b.name,
-            locationName: b.address.split(' ').slice(0, 2).join(' '), // 짧은 주소
-            distanceText: b.distanceText,
-            isGps: true
-          }))
-        
-        if (recommendedBars.length > 0) useGps = true
-      } catch (e) {
-        console.warn('GPS recommendation failed, falling back to parties:', e)
-      }
+    const genreMatch = (p, targetGenre) => {
+      if (targetGenre === '모든 장르') return true
+      if (targetGenre === '살사')       return (p.s_ratio||0)>=5
+      if (targetGenre === '바차타')     return (p.b_ratio||0)>=5
+      if (targetGenre === '주크바차타') return (p.j_ratio||0)>=3
+      if (targetGenre === '키좀바')     return (p.k_ratio||0)>=3
+      return false
     }
 
-    // 3. Fallback: 파티 데이터 기반 추천 (2순위)
-    if (!useGps) {
-      recommendedBars = parties.filter(p => {
-        if (dance.genre==='살사')       return (p.s_ratio||0)>=5
-        if (dance.genre==='바차타')     return (p.b_ratio||0)>=5
-        if (dance.genre==='주크바차타') return (p.j_ratio||0)>=3
-        if (dance.genre==='키좀바')     return (p.k_ratio||0)>=3
-        return true
-      }).slice(0,3).map(p => ({
-        ...p,
-        distanceText: null,
-        isGps: false
-      }))
+    // 1순위: 오늘 날짜 등록된 파티
+    const todayParties = parties
+      .filter(p => p.date === today && genreMatch(p, dance.genre))
+      .map(p => ({ ...p, type: 'today' }))
+
+    // 2순위: 오늘 이후 가장 가까운 파티
+    const futureParties = parties
+      .filter(p => p.date > today && genreMatch(p, dance.genre))
+      .sort((a, b) => a.date.localeCompare(b.date))
+      .map(p => ({ ...p, type: 'future' }))
+
+    let recommendedBars = [...todayParties, ...futureParties].slice(0, 3)
+
+    // 3순위: 1, 2순위 없을 때만 BAR_DATABASE 장르 매칭
+    if (recommendedBars.length === 0) {
+      recommendedBars = BAR_DATABASE
+        .filter(bar => matchesGenre(bar.name, dance.genre))
+        .slice(0, 3)
+        .map(bar => ({
+          title: bar.name,
+          address: bar.address,
+          type: 'db',
+          poster_url: null
+        }))
     }
 
     setResult({ 
       yearGJ:yGJ, monthGJ:mGJ, dayGJ:dGJ, timeGJ:tGJ, 
       ohengCount:count, mainOheng:main, dance, 
-      recommendedBars, gender 
+      recommendedBars, gender, today
     })
     setLoading(false)
     setStep(2)
@@ -445,18 +425,21 @@ export default function SajuModal({ onClose, parties=[] }) {
                 <div style={{ display:'flex',flexDirection:'column',gap:8 }}>
                   {result.recommendedBars.map((bar,i)=>(
                     <div key={i} style={{ padding:'12px 14px',borderRadius:12,background:'#F8FAFC',border:'1px solid #E2E8F0',display:'flex',alignItems:'center',gap:10 }}>
-                      {bar.poster_url || bar.isGps
-                        ? <img src={bar.poster_url || 'https://images.unsplash.com/photo-1514525253361-bee8718a300c?auto=format&fit=crop&q=80&w=100'} style={{ width:48,height:48,borderRadius:8,objectFit:'cover',flexShrink:0 }}/>
+                      {bar.poster_url
+                        ? <img src={bar.poster_url} style={{ width:48,height:48,borderRadius:8,objectFit:'cover',flexShrink:0 }}/>
                         : <div style={{ width:48,height:48,borderRadius:8,background:result.dance.bg,display:'flex',alignItems:'center',justifyContent:'center',fontSize:20,flexShrink:0 }}>{result.dance.emoji}</div>
                       }
                       <div style={{ flex:1,minWidth:0 }}>
                         <div style={{ fontSize:14,fontWeight:700,color:'#1E293B' }}>{bar.title}</div>
                         <div style={{ fontSize:12,color:'#94A3B8',marginTop:2 }}>
-                          {bar.distanceText || `${bar.locationName} · ${bar.date}`}
+                          {bar.type === 'db' 
+                            ? bar.address 
+                            : `${bar.location_name || ''} · ${bar.date}`
+                          }
                         </div>
                       </div>
                       <span style={{ fontSize:11,padding:'3px 9px',borderRadius:99,background:result.dance.bg,color:result.dance.color,fontWeight:700,flexShrink:0,border:`1px solid ${result.dance.border}` }}>
-                        {bar.isGps ? '📍 가장 가까움' : `${result.dance.emoji} 추천`}
+                        {bar.type === 'today' ? '🔥 오늘 파티' : (bar.type === 'future' ? '📅 다가오는 파티' : `${result.dance.emoji} 추천`)}
                       </span>
                     </div>
                   ))}
