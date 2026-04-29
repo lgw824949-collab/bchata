@@ -117,6 +117,23 @@ const HomePage = ({
     loadRegionalWeather();
   }, []);
 
+  // --- 브라우저 뒤로가기 대응 (그리드 오버레이 전용) ---
+  useEffect(() => {
+    const handlePopState = () => {
+      if (selectedRegionGrid) {
+        setSelectedRegionGrid(null);
+      }
+    };
+    window.addEventListener('popstate', handlePopState);
+    return () => window.removeEventListener('popstate', handlePopState);
+  }, [selectedRegionGrid]);
+
+  useEffect(() => {
+    if (selectedRegionGrid) {
+      window.history.pushState({ grid: selectedRegionGrid }, '');
+    }
+  }, [selectedRegionGrid]);
+
   const [zoomScale, setZoomScale] = useState(1);
   const [isScrollingLocked, setIsScrollingLocked] = useState(false);
   const initialDistanceRef = useRef(null);

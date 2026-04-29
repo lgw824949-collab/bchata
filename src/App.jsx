@@ -172,6 +172,27 @@ function App() {
 
   useEffect(() => { fetchParties(); }, []);
 
+  // --- 브라우저 뒤로가기 버튼 제어 (History API) ---
+  useEffect(() => {
+    const handlePopState = (e) => {
+      if (selectedPoster) {
+        setSelectedPoster(null);
+      } else if (isMenuOpen) {
+        setIsMenuOpen(false);
+      } else if (view !== 'home') {
+        setView('home');
+      }
+    };
+    window.addEventListener('popstate', handlePopstate);
+    return () => window.removeEventListener('popstate', handlePopstate);
+  }, [selectedPoster, isMenuOpen, view]);
+
+  useEffect(() => {
+    if (selectedPoster || isMenuOpen || view !== 'home') {
+      window.history.pushState({ view, modal: !!selectedPoster }, '');
+    }
+  }, [selectedPoster, isMenuOpen, view]);
+
   const openAnalysis = (saju = false) => {
     // 사용자가 클릭했을 때만 위치 정보 요청
     
