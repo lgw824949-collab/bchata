@@ -330,7 +330,8 @@ const LatinModal = ({ isOpen, onClose }) => {
                 { icon: <Star color="#E53935" />, text: "댄스 사주", action: () => { if(typeof setShowSaju === 'function') { setShowSaju(true); setIsMenuOpen(false); } } },
                 { icon: <MessageSquare color="#E53935" />, text: "라틴 영어", action: () => { if(typeof setShowLatinModal === 'function') { setShowLatinModal(true); setIsMenuOpen(false); } } },
                 { icon: <CloudSun color="#E53935" />, text: "오늘 날씨", action: () => { setIsMenuOpen(false); setTimeout(() => setShowWeather(true), 300); } },
-                { icon: <Bell color="#E53935" />, text: "공지사항", action: () => { alert('준비 중') } }
+                { icon: <Bell color="#E53935" />, text: "공지사항", action: () => { alert('준비 중') } },
+                { icon: <span style={{ fontSize: '18px' }}>🅿️</span>, text: "주차장", action: () => { window.location.href = '/parking' } }
               ].map((item, idx) => (
                 <motion.div
                   key={idx}
