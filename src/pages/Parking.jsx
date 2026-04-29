@@ -252,18 +252,8 @@ const Parking = ({ onBack }) => {
         <p style={{ fontSize: '11px', color: '#94A3B8', margin: 0 }}>데이터 제공: 공공데이터포털 (공유누리)</p>
       </div>
     </div>
-otion.div>
-              ))}
-            </div>
-          )}
-        </AnimatePresence>
-      </div>
-      
-      <div style={{ padding: '20px', textAlign: 'center', background: '#fff', borderTop: '1px solid #E2E8F0' }}>
-        <p style={{ fontSize: '11px', color: '#94A3B8', margin: 0 }}>데이터 제공: 공공데이터포털 (공유누리)</p>
-      </div>
-    </div>
   );
 };
+
 
 export default Parking;
