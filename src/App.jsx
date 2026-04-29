@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo, useRef } from 'react'
-import { Home as HomeIcon, Users, Plus, LogOut, Heart, X, MessageSquare, RefreshCw, CloudSun, Utensils, Zap, Languages, Bell, Star, Navigation, CreditCard, Settings, Map as MapIcon, BarChart, Gift, Coffee, User, Menu } from 'lucide-react'
+import { Home as HomeIcon, Users, Plus, LogOut, Heart, X, MessageSquare, RefreshCw, CloudSun, Utensils, Zap, Languages, Bell, Star, Navigation, CreditCard, Settings, Map as MapIcon, BarChart, Gift, Coffee, User, Menu, Music2, GraduationCap, Tent, Flag } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { supabase, logActivity } from './lib/supabase'
 import RegisterForm from './RegisterForm'
@@ -356,7 +356,7 @@ function App() {
           className={`nav-item ${view === 'home' ? 'active' : ''}`} 
           onClick={() => { setView('home'); window.scrollTo(0,0); }}
         >
-          <span style={{ fontSize: '22px', marginBottom: '4px' }}>🎉</span>
+          <Music2 size={22} color={view === 'home' ? '#E53935' : '#94A3B8'} style={{ marginBottom: '4px' }} />
           <span style={{ fontSize: '10px', fontWeight: view === 'home' ? 900 : 500, color: view === 'home' ? '#E53935' : '#94A3B8' }}>소셜파티</span>
         </div>
 
@@ -364,7 +364,7 @@ function App() {
           className={`nav-item ${view === 'class' ? 'active' : ''}`} 
           onClick={() => { setView('class'); window.scrollTo(0,0); }}
         >
-          <span style={{ fontSize: '22px', marginBottom: '4px' }}>💃</span>
+          <GraduationCap size={22} color={view === 'class' ? '#E53935' : '#94A3B8'} style={{ marginBottom: '4px' }} />
           <span style={{ fontSize: '10px', fontWeight: view === 'class' ? 900 : 500, color: view === 'class' ? '#E53935' : '#94A3B8' }}>수업/정모</span>
         </div>
 
@@ -395,7 +395,7 @@ function App() {
           className={`nav-item ${view === 'bootcamp' ? 'active' : ''}`} 
           onClick={() => { setView('bootcamp'); window.scrollTo(0,0); }}
         >
-          <span style={{ fontSize: '22px', marginBottom: '4px' }}>🏕️</span>
+          <Tent size={22} color={view === 'bootcamp' ? '#E53935' : '#94A3B8'} style={{ marginBottom: '4px' }} />
           <span style={{ fontSize: '10px', fontWeight: view === 'bootcamp' ? 900 : 500, color: view === 'bootcamp' ? '#E53935' : '#94A3B8' }}>부트캠프</span>
         </div>
 
@@ -403,7 +403,7 @@ function App() {
           className={`nav-item ${view === 'festival' ? 'active' : ''}`} 
           onClick={() => { setView('festival'); window.scrollTo(0,0); }}
         >
-          <span style={{ fontSize: '22px', marginBottom: '4px' }}>🎪</span>
+          <Flag size={22} color={view === 'festival' ? '#E53935' : '#94A3B8'} style={{ marginBottom: '4px' }} />
           <span style={{ fontSize: '10px', fontWeight: view === 'festival' ? 900 : 500, color: view === 'festival' ? '#E53935' : '#94A3B8' }}>전국페스티벌</span>
         </div>
       </nav>
