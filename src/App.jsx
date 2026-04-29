@@ -10,6 +10,7 @@ import ClassNewsPage from './pages/ClassNews'
 import PostClub from './pages/PostClub'
 import Auth from './components/Auth'
 import Parking from './pages/Parking'
+import Restaurant from './pages/Restaurant'
 import SajuModal from './components/SajuModal'
 import IncheonRoute from './components/IncheonRoute'
 import WeatherModal from './components/WeatherModal'
@@ -152,6 +153,8 @@ function App() {
   useEffect(() => {
     if (window.location.pathname === '/parking') {
       setView('parking');
+    } else if (window.location.pathname === '/restaurant') {
+      setView('restaurant');
     }
   }, []);
 
@@ -333,7 +336,7 @@ const LatinModal = ({ isOpen, onClose }) => {
 
             <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
               {[
-                { icon: <Utensils color="#E53935" />, text: "뒷풀이 맛집", action: () => { alert('준비 중') } },
+                { icon: <Utensils color="#E53935" />, text: "뒷풀이 맛집", action: () => { setView('restaurant'); setIsMenuOpen(false); } },
                 { icon: <Star color="#E53935" />, text: "댄스 사주", action: () => { if(typeof setShowSaju === 'function') { setShowSaju(true); setIsMenuOpen(false); } } },
                 { icon: <MessageSquare color="#E53935" />, text: "라틴 영어", action: () => { if(typeof setShowLatinModal === 'function') { setShowLatinModal(true); setIsMenuOpen(false); } } },
                 { icon: <CloudSun color="#E53935" />, text: "오늘 날씨", action: () => { setIsMenuOpen(false); setTimeout(() => setShowWeather(true), 300); } },
@@ -378,6 +381,7 @@ const LatinModal = ({ isOpen, onClose }) => {
          view === 'register' ? <RegisterForm onBack={() => setView('home')} onSuccess={() => { fetchParties(); setView('home'); }} /> : 
          view === 'post-lesson' ? <PostClub onBack={() => setView('social')} /> :
          view === 'parking' ? <Parking onBack={() => setView('home')} /> :
+         view === 'restaurant' ? <Restaurant onBack={() => setView('home')} /> :
          <AdminDashboard onBack={() => setView('home')} />}
       </main>
 
