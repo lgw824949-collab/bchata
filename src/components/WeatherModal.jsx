@@ -1,27 +1,18 @@
 // src/components/WeatherModal.jsx
-// 전국 날씨 - 귀엽고 아담한 애니메이션 버전
+// 전국 날씨 - 기상청 API 직접 연동 버전
 
 import { useState, useEffect } from 'react'
 import { X } from 'lucide-react'
 
 const REGIONS = [
-  { name: '서울',     lat: 37.5665, lon: 126.9780 },
-  { name: '경기/인천', lat: 37.4138, lon: 127.5183 },
-  { name: '충청',     lat: 36.5184, lon: 127.1246 },
-  { name: '전라',     lat: 35.8242, lon: 127.1480 },
-  { name: '경상',     lat: 35.8714, lon: 128.6014 },
-  { name: '강원',     lat: 37.8228, lon: 128.1555 },
-  { name: '제주',     lat: 33.4996, lon: 126.5312 },
+  { name:'서울', nx:60, ny:127 },
+  { name:'경기/인천', nx:55, ny:124 },
+  { name:'충청', nx:67, ny:100 },
+  { name:'전라', nx:58, ny:74 },
+  { name:'경상', nx:89, ny:90 },
+  { name:'강원', nx:73, ny:134 },
+  { name:'제주', nx:52, ny:38 },
 ]
-
-const getWeather = (code) => {
-  if (code === 0)  return { icon:'🌞', anim:'spin',  label:'맑음',   badge:'파티 GO!',   badgeColor:'#FF8C00', badgeBg:'#FFF3CD' }
-  if (code <= 2)   return { icon:'⛅', anim:'sway',  label:'구름조금', badge:'춤추기 딱!', badgeColor:'#1565C0', badgeBg:'#E3F2FD' }
-  if (code <= 48)  return { icon:'☁️', anim:'sway',  label:'흐림',   badge:'실내 소셜!', badgeColor:'#64748B', badgeBg:'#F1F5F9' }
-  if (code <= 67)  return { icon:'🌧️', anim:'fall',  label:'비',    badge:'실내 파티!', badgeColor:'#1565C0', badgeBg:'#E3F2FD' }
-  if (code <= 77)  return { icon:'❄️', anim:'float', label:'눈',    badge:'설경 댄스!', badgeColor:'#6D28D9', badgeBg:'#F5F3FF' }
-  return           { icon:'⛈️', anim:'shake', label:'뇌우',  badge:'실내로!',   badgeColor:'#B91C1C', badgeBg:'#FEE2E2' }
-}
 
 const ANIM_STYLE = `
   @import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css');
@@ -48,24 +39,72 @@ export default function WeatherModal({ onClose }) {
   useEffect(() => {
     const fetchAll = async () => {
       try {
+        const now = new Date()
+        // KST 기준 날짜 계산 (UTC+9)
+        const kstDate = new Date(now.getTime() + (9 * 60 * 60 * 1000))
+        const baseDate = kstDate.toISOString().slice(0,10).replace(/-/g,'')
+        const baseTime = '0500'
+        const serviceKey = import.meta.env.VITE_KMA_API_KEY
+
         const results = await Promise.all(
           REGIONS.map(async (region) => {
-            const res = await fetch(
-              `https://api.open-meteo.com/v1/forecast?latitude=${region.lat}&longitude=${region.lon}&current_weather=true&timezone=Asia/Seoul`
-            )
-            const data = await res.json()
-            const temp = Math.round(data.current_weather.temperature)
-            const code = data.current_weather.weathercode
-            const weather = getWeather(code)
-            return { ...region, temp, ...weather }
+            const url = `https://apis.data.go.kr/1360000/VilageFcstInfoService_2.0/getVilageFcst?serviceKey=${serviceKey}&numOfRows=10&pageNo=1&dataType=JSON&base_date=${baseDate}&base_time=${baseTime}&nx=${region.nx}&ny=${region.ny}`
+            
+            try {
+              const res = await fetch(url)
+              const data = await res.json()
+              
+              if (data.response?.header?.resultCode !== '00') {
+                throw new Error(data.response?.header?.resultMsg)
+              }
+
+              const items = data.response.body.items.item
+              const tmp = items.find(i => i.category === 'TMP')?.fcstValue
+              const sky = items.find(i => i.category === 'SKY')?.fcstValue
+
+              // sky 코드: 1 → ☀️ 맑음, 3 → ⛅ 구름많음, 4 → ☁️ 흐림
+              let icon = '☀️'
+              let label = '맑음'
+              let anim = 'spin'
+              let badge = '파티 GO!'
+              let badgeColor = '#FF8C00'
+              let badgeBg = '#FFF3CD'
+
+              if (sky === '3') {
+                icon = '⛅'
+                label = '구름많음'
+                anim = 'sway'
+                badge = '춤추기 딱!'
+                badgeColor = '#1565C0'
+                badgeBg = '#E3F2FD'
+              } else if (sky === '4') {
+                icon = '☁️'
+                label = '흐림'
+                anim = 'sway'
+                badge = '실내 소셜!'
+                badgeColor = '#64748B'
+                badgeBg = '#F1F5F9'
+              }
+
+              return { ...region, temp: tmp, icon, label, anim, badge, badgeColor, badgeBg }
+            } catch (err) {
+              console.error(`Error fetching weather for ${region.name}:`, err)
+              return { 
+                ...region, 
+                temp: '--', 
+                icon: '☀️', 
+                label: '맑음', 
+                anim: 'spin', 
+                badge: '데이터 오류', 
+                badgeColor: '#64748B', 
+                badgeBg: '#F1F5F9' 
+              }
+            }
           })
         )
         setWeatherData(results)
-      } catch {
-        setWeatherData(REGIONS.map((r, i) => ({
-          ...r, temp: '--',
-          ...getWeather(0),
-        })))
+      } catch (err) {
+        console.error('Weather fetch error:', err)
       }
       setLoading(false)
     }
@@ -147,7 +186,7 @@ export default function WeatherModal({ onClose }) {
         </div>
 
         <div style={{ textAlign:'center', marginTop:10, fontSize:9, color:'#CBD5E1' }}>
-          Open-Meteo 실시간 데이터
+          기상청 단기예보 (05:00 기준)
         </div>
       </div>
     </>

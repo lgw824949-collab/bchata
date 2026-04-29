@@ -3,6 +3,7 @@ import { Heart, MapPin, Calendar, User, Music, ChevronRight, ShieldCheck, X, Hom
 import { motion, AnimatePresence } from 'framer-motion';
 import QuickPinchZoom, { make3dTransformValue } from 'react-quick-pinch-zoom';
 import LiveCount from '../components/LiveCount'
+import { KMA_REGION_COORDS, fetchWeatherForecast, parseKmaWeather, HOME_REGION_MAP } from '../utils/kmaApi'
 
 const DAYS_KOR = ['일', '월', '화', '수', '목', '금', '토'];
 const MAIN_REGIONS = ['서울', '경기/인천', '경상', '전라', '충청', '강원/제주'];
@@ -94,6 +95,27 @@ const HomePage = ({
   const [selectedRegionGrid, setSelectedRegionGrid] = useState(null)
   const pauseTimerRef = useRef(null)
   const contentRef = useRef(null)
+  const [weatherMap, setWeatherMap] = useState({})
+
+  useEffect(() => {
+    const loadRegionalWeather = async () => {
+      const weatherResults = {};
+      await Promise.all(
+        Object.entries(HOME_REGION_MAP).map(async ([homeName, kmaName]) => {
+          const coords = KMA_REGION_COORDS[kmaName];
+          if (coords) {
+            const data = await fetchWeatherForecast(coords.nx, coords.ny);
+            if (data) {
+              const parsed = parseKmaWeather(data.sky, data.pty);
+              weatherResults[homeName] = { icon: parsed.icon, temp: data.t1h };
+            }
+          }
+        })
+      );
+      setWeatherMap(weatherResults);
+    };
+    loadRegionalWeather();
+  }, []);
 
   const [zoomScale, setZoomScale] = useState(1);
   const [isScrollingLocked, setIsScrollingLocked] = useState(false);
@@ -573,6 +595,11 @@ const HomePage = ({
                       >
                         <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#2196F3' }} />
                         {regionName}
+                        {weatherMap[regionName] && (
+                          <span style={{ fontSize: '13px', fontWeight: '800', color: '#64748B', display: 'flex', alignItems: 'center', gap: '2px' }}>
+                            {weatherMap[regionName].icon} {weatherMap[regionName].temp}°
+                          </span>
+                        )}
                         <ChevronRight size={18} color="#999" />
                         <span style={{ fontSize: '11px', color: '#999', fontWeight: '500', marginLeft: 'auto' }}>전체보기</span>
                       </div>

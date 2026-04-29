@@ -5,6 +5,13 @@ import react from '@vitejs/plugin-react'
 export default defineConfig({
   plugins: [react()],
   server: {
-    port: 1234
+    port: 1234,
+    proxy: {
+      '/kma-api': {
+        target: 'http://apis.data.go.kr',
+        changeOrigin: true,
+        rewrite: (path) => path.replace(/^\/kma-api/, '')
+      }
+    }
   }
 })
