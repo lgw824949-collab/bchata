@@ -32,8 +32,11 @@ export default function AdminDashboard({ onBack }) {
   const handleLogin = (e) => {
     e.preventDefault()
     
+    // 환경 변수가 작동하지 않을 경우를 대비해 하드코딩된 값으로 강제 설정
+    const validId = import.meta.env.VITE_ADMIN_ID || 'lgw1004'
+    const validPw = import.meta.env.VITE_ADMIN_PW || '^^dlwlsdn1052181818'
+
     if (loginStep === 1) {
-      const validId = import.meta.env.VITE_ADMIN_ID
       if (adminId === validId) {
         setLoginStep(2)
       } else {
@@ -43,8 +46,6 @@ export default function AdminDashboard({ onBack }) {
     }
 
     // 2단계: 비밀번호 체크
-    const validPw = import.meta.env.VITE_ADMIN_PW
-    
     // 잠금 확인
     const lockUntil = localStorage.getItem('admin_lock_until')
     if (lockUntil && Date.now() < parseInt(lockUntil)) {

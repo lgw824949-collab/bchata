@@ -105,12 +105,12 @@ const LiveCount = () => {
       const nearBar = BAR_DATABASE.find(bar => getDist(lat, lon, bar.lat, bar.lon) < 1)
       
       if (nearBar) {
-        // [중요] 해당 장소에 현재 파티 일정이 있는지 확인
+        // [중요] 해당 장소에 현재 파티 일정이 있는지 확인 (이름으로 매칭)
         const { data: activeParty } = await supabase
           .from('parties')
-          .select('time, end_time, date')
+          .select('time, end_time, date, location_name')
           .eq('date', todayStr)
-          .eq('location_id', nearBar.id) // BAR_DATABASE의 id와 location_id 매칭 가정
+          .eq('location_name', nearBar.name)
           .maybeSingle()
 
         // 파티 시간이 아니면 체크인 기록 안 함
