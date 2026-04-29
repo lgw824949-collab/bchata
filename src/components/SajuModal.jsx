@@ -479,17 +479,6 @@ export default function SajuModal({ onClose, parties=[] }) {
                             📍 {bar.distanceText}
                           </div>
                         )}
-                        {!bar.distanceText && bar.address && (
-                          <div 
-                            style={{ fontSize:12, color:'#94A3B8', marginTop:4, cursor:'pointer' }}
-                            onClick={() => window.open(
-                              `https://map.kakao.com/link/search/${encodeURIComponent(bar.address)}`,
-                              '_blank'
-                            )}
-                          >
-                            {bar.address} 지도 →
-                          </div>
-                        )}
                         {(bar.type === 'today' || bar.type === 'future') && (
                           <div style={{ fontSize:11, color:'#94A3B8', marginTop:2 }}>
                              {bar.location_name} · {bar.date}
