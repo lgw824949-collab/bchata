@@ -587,7 +587,32 @@ const HomePage = ({
               {/* 🛰️ [인천 특화] 프리미엄 큐레이션 배너 (HOT PICK 바로 아래 배치) */}
               {IncheonBanner && <IncheonBanner />}
               {(() => {
-                const dayParties = parties.filter(p => p.date === selectedDate);
+                const kstNow = new Date(new Date().getTime() + (9 * 60 * 60 * 1000));
+                const curH = kstNow.getUTCHours();
+                const curM = kstNow.getUTCMinutes();
+                const curTotal = curH * 60 + curM;
+
+                const dayParties = parties.filter(p => {
+                  // 1. 해당 날짜에 시작하는 파티는 무조건 노출
+                  if (p.date === selectedDate) return true;
+
+                  // 2. 전날 시작해서 오늘 새벽에 끝나는 파티 처리
+                  const prevDate = new Date(new Date(selectedDate).getTime() - 86400000).toISOString().split('T')[0];
+                  if (p.date === prevDate && p.time && p.time.includes('-')) {
+                    const parts = p.time.split('-');
+                    const endPart = parts[1].trim();
+                    const [eh, em] = endPart.split(':').map(Number);
+                    
+                    if (!isNaN(eh)) {
+                      const endTotal = eh * 60 + (em || 0);
+                      // 종료 시간이 시작 시간보다 빠르면(새벽 종료), 현재 시간이 종료 전인지 확인
+                      const startPart = parts[0].trim();
+                      const [sh] = startPart.split(':').map(Number);
+                      if (eh < sh && curTotal < endTotal) return true;
+                    }
+                  }
+                  return false;
+                });
                 const regions = ["서울", "경기/인천", "충청도", "전라도", "경상도", "강원/제주"];
                 
                 return regions.map((regionName) => {
