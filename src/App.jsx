@@ -361,18 +361,38 @@ function App() {
       
       {selectedPoster && (
         <div 
-          style={{ position:'fixed', inset:0, zIndex:100000, display:'flex', alignItems:'center', justifyContent:'center', backgroundColor:'#000000' }} 
-          onClick={() => setSelectedPoster(null)}
+          style={{ position:'fixed', inset:0, zIndex:100000, backgroundColor:'#000000', overflow: 'hidden' }} 
         >
-          <img 
-            src={selectedPoster} 
-            style={{ width:'100%', height:'100%', objectFit:'contain' }} 
-            alt="Poster" 
-            onClick={e => e.stopPropagation()}
-          />
+          <QuickPinchZoom 
+            onUpdate={({ x, y, scale }) => {
+              const img = document.getElementById('modal-poster-img');
+              if (img) img.style.transform = make3dTransformValue({ x, y, scale });
+            }}
+          >
+            <div style={{ width: '100vw', height: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <img 
+                id="modal-poster-img"
+                src={selectedPoster} 
+                style={{ width:'100%', height:'100%', objectFit:'contain', display: 'block' }} 
+                alt="Poster" 
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setSelectedPoster(null);
+                }}
+              />
+            </div>
+          </QuickPinchZoom>
           <button
             onClick={() => setSelectedPoster(null)}
-            style={{ position:'fixed', top:'20px', left:'20px', background:'rgba(0,0,0,0.5)', border:'none', borderRadius:'50%', width:'44px', height:'44px', color:'#fff', fontSize:'24px', cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center', zIndex: 100001 }}
+            style={{ 
+              position:'fixed', top:'25px', left:'25px', 
+              background:'rgba(0,0,0,0.6)', border:'1px solid rgba(255,255,255,0.3)', 
+              borderRadius:'50%', width:'48px', height:'48px', 
+              color:'#fff', fontSize:'24px', cursor:'pointer', 
+              display:'flex', alignItems:'center', justifyContent:'center', 
+              zIndex: 100002,
+              backdropFilter: 'blur(5px)'
+            }}
           >
             ✕
           </button>
