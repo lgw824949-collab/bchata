@@ -183,8 +183,8 @@ function App() {
         setView('home');
       }
     };
-    window.addEventListener('popstate', handlePopstate);
-    return () => window.removeEventListener('popstate', handlePopstate);
+    window.addEventListener('popstate', handlePopState);
+    return () => window.removeEventListener('popstate', handlePopState);
   }, [selectedPoster, isMenuOpen, view]);
 
   useEffect(() => {
