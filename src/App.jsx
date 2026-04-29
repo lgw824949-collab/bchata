@@ -200,6 +200,10 @@ function App() {
       {/* 햄버거 버튼 */}
       {!isMenuOpen && (
         <motion.button 
+          drag
+          dragConstraints={{ left: -450, right: 0, top: 0, bottom: 800 }}
+          dragElastic={0.1}
+          whileDrag={{ scale: 1.1 }}
           whileTap={{ scale: 0.9 }}
           onClick={() => setIsMenuOpen(true)}
           style={{ 
