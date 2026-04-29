@@ -362,39 +362,12 @@ function App() {
         {showWeather && <WeatherModal onClose={() => setShowWeather(false)} />}
       </AnimatePresence>
       
-      {/* 포스터 줌인 모달 (네이티브 방식) */}
+      {/* 포스터 줌인 모달 (컴포넌트 방식) */}
       {selectedPoster && (
-        <div
-          onClick={() => setSelectedPoster(null)}
-          style={{ 
-            position:'fixed', inset:0, zIndex:100000, 
-            backgroundColor:'rgba(0,0,0,0.9)', 
-            display:'flex', alignItems:'center', justifyContent:'center',
-          }} 
-        >
-          <div onClick={e => e.stopPropagation()} style={{ position:'relative', width:'100%', height:'100%', display:'flex', alignItems:'center', justifyContent:'center', overflow:'hidden' }}>
-            <img 
-              src={selectedPoster}
-              alt="Zoomed Poster"
-              style={{
-                maxWidth:'100%',
-                maxHeight:'90vh',
-                objectFit:'contain',
-                touchAction:'manipulation',
-              }}
-            />
-            <button
-              onClick={() => setSelectedPoster(null)}
-              style={{ 
-                position:'absolute', top:'40px', right:'25px', 
-                background:'rgba(255,255,255,0.2)', border:'none', 
-                borderRadius:'50%', width:'44px', height:'44px', 
-                color:'#fff', fontSize:'24px', cursor:'pointer',
-                zIndex:100001
-              }}
-            >✕</button>
-          </div>
-        </div>
+        <PosterModal 
+          src={selectedPoster} 
+          onClose={() => setSelectedPoster(null)} 
+        />
       )}
 
       <nav className="bottom-nav">
