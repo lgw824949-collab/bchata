@@ -359,44 +359,70 @@ function App() {
         {showWeather && <WeatherModal onClose={() => setShowWeather(false)} />}
       </AnimatePresence>
       
-      {selectedPoster && (
-        <div 
-          style={{ position:'fixed', inset:0, zIndex:100000, backgroundColor:'#000000', overflow: 'hidden' }} 
-        >
-          <QuickPinchZoom 
-            onUpdate={({ x, y, scale }) => {
-              const img = document.getElementById('modal-poster-img');
-              if (img) img.style.transform = make3dTransformValue({ x, y, scale });
-            }}
-          >
-            <div style={{ width: '100vw', height: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-              <img 
-                id="modal-poster-img"
-                src={selectedPoster} 
-                style={{ width:'100%', height:'100%', objectFit:'contain', display: 'block' }} 
-                alt="Poster" 
-              />
-            </div>
-          </QuickPinchZoom>
-          
-          {/* 확실한 닫기 버튼 */}
-          <button
+      {/* 포스터 줌인 모달 (Framer Motion 적용) */}
+      <AnimatePresence>
+        {selectedPoster && (
+          <motion.div 
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
             onClick={() => setSelectedPoster(null)}
             style={{ 
-              position:'fixed', top:'30px', left:'25px', 
-              background:'rgba(0,0,0,0.7)', border:'1.5px solid rgba(255,255,255,0.5)', 
-              borderRadius:'50%', width:'52px', height:'52px', 
-              color:'#fff', fontSize:'28px', cursor:'pointer', 
-              display:'flex', alignItems:'center', justifyContent:'center', 
-              zIndex: 100005,
-              backdropFilter: 'blur(10px)',
-              boxShadow: '0 4px 15px rgba(0,0,0,0.5)'
-            }}
+              position:'fixed', inset:0, zIndex:100000, 
+              backgroundColor:'rgba(0,0,0,0.9)', 
+              display:'flex', alignItems:'center', justifyContent:'center',
+              backdropFilter: 'blur(5px)',
+              overflow: 'hidden',
+              touchAction: 'pinch-zoom'
+            }} 
           >
-            ✕
-          </button>
-        </div>
-      )}
+            <motion.div 
+              initial={{ scale: 0.8, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.8, opacity: 0 }}
+              transition={{ type: 'spring', damping: 25, stiffness: 300 }}
+              onClick={e => e.stopPropagation()}
+              style={{ position: 'relative', width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+            >
+              <QuickPinchZoom 
+                onUpdate={({ x, y, scale }) => {
+                  const img = document.getElementById('modal-zoom-img');
+                  if (img) img.style.transform = make3dTransformValue({ x, y, scale });
+                }}
+              >
+                <img 
+                  id="modal-zoom-img"
+                  src={selectedPoster} 
+                  style={{ 
+                    maxWidth: '100%', 
+                    maxHeight: '90vh', 
+                    objectFit: 'contain',
+                    borderRadius: '8px',
+                    boxShadow: '0 20px 50px rgba(0,0,0,0.5)'
+                  }} 
+                  alt="Zoomed Poster" 
+                />
+              </QuickPinchZoom>
+
+              {/* 닫기 버튼 */}
+              <motion.button
+                whileTap={{ scale: 0.9 }}
+                onClick={() => setSelectedPoster(null)}
+                style={{ 
+                  position:'absolute', top:'40px', right:'25px', 
+                  background:'rgba(255,255,255,0.2)', border:'none', 
+                  borderRadius:'50%', width:'44px', height:'44px', 
+                  color:'#fff', fontSize:'24px', cursor:'pointer', 
+                  display:'flex', alignItems:'center', justifyContent:'center',
+                  zIndex: 100001
+                }}
+              >
+                <X size={24} />
+              </motion.button>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       <nav className="bottom-nav">
         <div 
