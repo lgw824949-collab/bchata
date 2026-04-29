@@ -141,6 +141,8 @@ function App() {
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [userCoords, setUserCoords] = useState(null);
   const [selectedPoster, setSelectedPoster] = useState(null);
+  const [modalScale, setModalScale] = useState(1);
+  const [lastTapTime, setLastTapTime] = useState(0);
   const [showIncheon, setShowIncheon] = useState(false);
   const [showWeather, setShowWeather] = useState(false);
   const [showSaju, setShowSaju] = useState(false);
@@ -384,25 +386,58 @@ function App() {
               onClick={e => e.stopPropagation()}
               style={{ position: 'relative', width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
             >
-              <QuickPinchZoom 
-                onUpdate={({ x, y, scale }) => {
-                  const img = document.getElementById('modal-zoom-img');
-                  if (img) img.style.transform = make3dTransformValue({ x, y, scale });
+            {/* 순수 터치 이벤트 기반 핀치 줌 구현 */}
+            <div 
+              style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden' }}
+              onTouchStart={(e) => {
+                if (e.touches.length === 2) {
+                  const d = Math.hypot(
+                    e.touches[0].pageX - e.touches[1].pageX,
+                    e.touches[0].pageY - e.touches[1].pageY
+                  );
+                  e.currentTarget.dataset.startDist = d.toString();
+                  e.currentTarget.dataset.startScale = (modalScale || 1).toString();
+                }
+              }}
+              onTouchMove={(e) => {
+                if (e.touches.length === 2 && e.currentTarget.dataset.startDist) {
+                  const d = Math.hypot(
+                    e.touches[0].pageX - e.touches[1].pageX,
+                    e.touches[0].pageY - e.touches[1].pageY
+                  );
+                  const startDist = parseFloat(e.currentTarget.dataset.startDist);
+                  const startScale = parseFloat(e.currentTarget.dataset.startScale);
+                  const newScale = Math.min(Math.max(startScale * (d / startDist), 1), 4);
+                  setModalScale(newScale);
+                }
+              }}
+            >
+              <img 
+                id="modal-zoom-img"
+                src={selectedPoster} 
+                onClick={(e) => {
+                  e.stopPropagation();
+                  const now = Date.now();
+                  if (now - lastTapTime < 300) {
+                    // 더블탭: 1배와 2배 토글
+                    setModalScale(modalScale > 1.1 ? 1 : 2);
+                  }
+                  setLastTapTime(now);
                 }}
-              >
-                <img 
-                  id="modal-zoom-img"
-                  src={selectedPoster} 
-                  style={{ 
-                    maxWidth: '100%', 
-                    maxHeight: '90vh', 
-                    objectFit: 'contain',
-                    borderRadius: '8px',
-                    boxShadow: '0 20px 50px rgba(0,0,0,0.5)'
-                  }} 
-                  alt="Zoomed Poster" 
-                />
-              </QuickPinchZoom>
+                style={{ 
+                  maxWidth: '100%', 
+                  maxHeight: '90vh', 
+                  objectFit: 'contain',
+                  borderRadius: '8px',
+                  boxShadow: '0 20px 50px rgba(0,0,0,0.5)',
+                  transform: `scale(${modalScale})`,
+                  transition: 'transform 0.1s ease-out',
+                  userSelect: 'none',
+                  WebkitUserDrag: 'none'
+                }} 
+                alt="Zoomed Poster" 
+              />
+            </div>
 
               {/* 닫기 버튼 */}
               <motion.button
