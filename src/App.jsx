@@ -361,20 +361,20 @@ function App() {
       
       {selectedPoster && (
         <div 
-          style={{ position:'fixed', inset:0, zIndex:100000, display:'flex', alignItems:'center', justifyContent:'center', backgroundColor:'rgba(0,0,0,0.95)' }} 
+          style={{ position:'fixed', inset:0, zIndex:100000, display:'flex', alignItems:'center', justifyContent:'center', backgroundColor:'#000000' }} 
           onClick={() => setSelectedPoster(null)}
         >
           <img 
             src={selectedPoster} 
-            style={{ maxWidth:'90%', maxHeight:'90%', borderRadius:'12px' }} 
+            style={{ width:'100%', height:'100%', objectFit:'contain' }} 
             alt="Poster" 
             onClick={e => e.stopPropagation()}
           />
           <button
             onClick={() => setSelectedPoster(null)}
-            style={{ position:'fixed', top:'20px', left:'20px', background:'rgba(255,255,255,0.2)', border:'none', borderRadius:'50%', width:'40px', height:'40px', color:'#fff', fontSize:'20px', cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center' }}
+            style={{ position:'fixed', top:'20px', left:'20px', background:'rgba(0,0,0,0.5)', border:'none', borderRadius:'50%', width:'44px', height:'44px', color:'#fff', fontSize:'24px', cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center', zIndex: 100001 }}
           >
-            ←
+            ✕
           </button>
         </div>
       )}
