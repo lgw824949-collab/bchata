@@ -1009,24 +1009,26 @@ const HomePage = ({
       <AnimatePresence>
         {selectedRegionGrid && (
           <motion.div
-            initial={{ opacity: 0, y: 50 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: 50 }}
+            initial={{ opacity: 0, x: '100%' }}
+            animate={{ opacity: 1, x: 0 }}
+            exit={{ opacity: 0, x: '100%' }}
+            transition={{ type: 'spring', damping: 25, stiffness: 200 }}
             style={{
               position: 'fixed',
               inset: 0,
               backgroundColor: '#fff',
-              zIndex: 10002,
+              zIndex: 100002,
               display: 'flex',
               flexDirection: 'column'
             }}
           >
+            {/* 상단 헤더 */}
             <div style={{ 
               padding: '16px 20px', 
               display: 'flex', 
               alignItems: 'center', 
               justifyContent: 'space-between',
-              borderBottom: '1px solid #eee',
+              borderBottom: '1px solid #f1f5f9',
               backgroundColor: '#fff',
               position: 'sticky',
               top: 0,
@@ -1034,54 +1036,76 @@ const HomePage = ({
             }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
                 <button 
-                  onClick={() => window.location.href = '/'}
-                  style={{ background: 'none', border: 'none', padding: '4px', display: 'flex', alignItems: 'center', cursor: 'pointer', color: '#333' }}
+                  onClick={() => setSelectedRegionGrid(null)}
+                  style={{ background: '#f8fafc', border: 'none', borderRadius: '12px', width: '40px', height: '40px', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', color: '#1e293b' }}
                 >
-                  <ChevronLeft size={28} />
+                  <ChevronLeft size={24} strokeWidth={2.5} />
                 </button>
-                <h2 style={{ fontSize: '18px', fontWeight: 900 }}>{selectedRegionGrid} 포스터</h2>
+                <div>
+                  <h2 style={{ fontSize: '18px', fontWeight: 950, color: '#1e293b', margin: 0 }}>{selectedRegionGrid}</h2>
+                  <p style={{ fontSize: '12px', color: '#64748b', margin: 0 }}>{selectedDate} 파티 포스터</p>
+                </div>
               </div>
               
               <button 
-                onClick={() => window.location.href = '/'}
+                onClick={() => setSelectedRegionGrid(null)}
                 style={{ 
-                  background: '#f3f4f6', border: 'none', borderRadius: '12px', padding: '6px 12px',
-                  display: 'flex', alignItems: 'center', gap: '6px', cursor: 'pointer', fontSize: '13px', fontWeight: 700, color: '#333'
+                  background: 'none', border: 'none', padding: '8px', cursor: 'pointer', color: '#64748b'
                 }}
               >
-                <HomeIcon size={16} /> 메인으로
+                <X size={24} />
               </button>
             </div>
 
+            {/* 포스터 그리드 */}
             <div 
               style={{ 
-                flex: 1, overflowY: 'auto', padding: '15px', display: 'grid', 
-                gridTemplateColumns: 'repeat(auto-fill, minmax(160px, 1fr))', 
-                gridAutoRows: 'min-content', gap: '15px', background: '#f8fafc'
+                flex: 1, 
+                overflowY: 'auto', 
+                padding: '20px', 
+                display: 'grid', 
+                gridTemplateColumns: 'repeat(2, 1fr)', 
+                gap: '15px', 
+                background: '#f8fafc',
+                paddingBottom: '40px'
               }}
             >
-              {parties
-                .filter(p => {
+              {(() => {
+                const filtered = parties.filter(p => {
                   if (p.date !== selectedDate) return false;
                   const r = p.broadRegion || '';
-                  if (selectedRegionGrid === "서울") return r.includes('서울');
-                  if (selectedRegionGrid === "경기/인천") return r.includes('경기') || r.includes('인천');
-                  if (selectedRegionGrid === "충청도") return r.includes('충청') || r.includes('대전');
-                  if (selectedRegionGrid === "경상도") return r.includes('경상') || r.includes('부산') || r.includes('대구') || r.includes('울산');
-                  if (selectedRegionGrid === "전라도") return r.includes('전라') || r.includes('광주');
-                  if (selectedRegionGrid === "강원/제주") return r.includes('강원') || r.includes('제주');
+                  const city = p.cityName || '';
+                  
+                  if (selectedRegionGrid === "서울") return r === '서울' || city === '서울';
+                  if (selectedRegionGrid === "경기/인천") return r === '경기/인천' || city === '경기' || city === '인천';
+                  if (selectedRegionGrid === "충청도") return r === '충청' || city === '충남' || city === '충북' || city === '대전' || city === '세종';
+                  if (selectedRegionGrid === "경상도") return r === '경상' || city === '경남' || city === '경북' || city === '부산' || city === '대구' || city === '울산';
+                  if (selectedRegionGrid === "전라도") return r === '전라' || city === '전남' || city === '전북' || city === '광주';
+                  if (selectedRegionGrid === "강원/제주") return r === '강원/제주' || city === '강원' || city === '제주';
                   return false;
-                })
-                .map((party) => (
+                });
+
+                if (filtered.length === 0) {
+                  return (
+                    <div style={{ gridColumn: 'span 2', padding: '80px 20px', textAlign: 'center' }}>
+                      <div style={{ fontSize: '48px', marginBottom: '16px' }}>📅</div>
+                      <h3 style={{ fontSize: '16px', fontWeight: 800, color: '#1e293b', marginBottom: '8px' }}>등록된 파티가 없습니다</h3>
+                      <p style={{ fontSize: '13px', color: '#64748b' }}>선택하신 날짜에 해당 지역의 파티 정보가 아직 등록되지 않았습니다.</p>
+                    </div>
+                  );
+                }
+
+                return filtered.map((party) => (
                   <motion.div
                     key={party.id}
-                    whileHover={{ y: -5 }}
-                    whileTap={{ scale: 0.98 }}
+                    initial={{ opacity: 0, scale: 0.9 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    whileTap={{ scale: 0.95 }}
                     onClick={() => setSelectedPoster(party.poster_url)}
                     style={{
-                      aspectRatio: '3/4', borderRadius: '12px', overflow: 'hidden',
-                      boxShadow: '0 4px 12px rgba(0,0,0,0.08)', background: '#eee',
-                      position: 'relative', cursor: 'pointer'
+                      aspectRatio: '3/4', borderRadius: '16px', overflow: 'hidden',
+                      boxShadow: '0 4px 15px rgba(0,0,0,0.1)', background: '#fff',
+                      position: 'relative', cursor: 'pointer', border: '1px solid #f1f5f9'
                     }}
                   >
                     <img 
@@ -1090,16 +1114,24 @@ const HomePage = ({
                       style={{ width: '100%', height: '100%', objectFit: 'cover' }} 
                     />
                     <div style={{
-                      position: 'absolute', bottom: 0, left: 0, right: 0, padding: '10px',
-                      background: 'linear-gradient(transparent, rgba(0,0,0,0.7))',
-                      color: 'white', fontSize: '12px', fontWeight: 700,
-                      display: 'block', whiteSpace: 'nowrap',
-                      overflow: 'hidden', textOverflow: 'ellipsis'
+                      position: 'absolute', bottom: 0, left: 0, right: 0, padding: '12px 10px',
+                      background: 'linear-gradient(transparent, rgba(0,0,0,0.85))',
+                      color: 'white'
                     }}>
-                      {party.title}
+                      <div style={{ fontSize: '10px', color: '#ffcd3c', fontWeight: 900, marginBottom: '2px' }}>
+                        {party.locationName}
+                      </div>
+                      <div style={{ 
+                        fontSize: '12px', fontWeight: 800,
+                        display: 'block', whiteSpace: 'nowrap',
+                        overflow: 'hidden', textOverflow: 'ellipsis'
+                      }}>
+                        {party.title}
+                      </div>
                     </div>
                   </motion.div>
-                ))}
+                ));
+              })()}
             </div>
           </motion.div>
         )}
