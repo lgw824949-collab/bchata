@@ -166,13 +166,21 @@ export default function SajuModal({ onClose, parties=[] }) {
     // 1순위: 오늘 날짜 등록된 파티
     const todayParties = parties
       .filter(p => p.date === today && genreMatch(p, dance.genre))
-      .map(p => ({ ...p, type: 'today' }))
+      .map(p => ({ 
+        ...p, 
+        type: 'today',
+        address: p.locations?.address || '' 
+      }))
 
     // 2순위: 오늘 이후 가장 가까운 파티
     const futureParties = parties
       .filter(p => p.date > today && genreMatch(p, dance.genre))
       .sort((a, b) => a.date.localeCompare(b.date))
-      .map(p => ({ ...p, type: 'future' }))
+      .map(p => ({ 
+        ...p, 
+        type: 'future',
+        address: p.locations?.address || ''
+      }))
 
     let recommendedBars = [...todayParties, ...futureParties].slice(0, 3)
 
@@ -466,12 +474,27 @@ export default function SajuModal({ onClose, parties=[] }) {
                       }
                       <div style={{ flex:1,minWidth:0 }}>
                         <div style={{ fontSize:14,fontWeight:700,color:'#1E293B' }}>{bar.title}</div>
-                        <div style={{ fontSize:12,color:'#94A3B8',marginTop:2 }}>
-                          {bar.type === 'today' || bar.type === 'future'
-                            ? `${bar.location_name || ''} · ${bar.date}`
-                            : (bar.distanceText || bar.address)
-                          }
-                        </div>
+                        {bar.distanceText && (
+                          <div style={{ fontSize:12, color:'#E53935', fontWeight:700, marginTop:4 }}>
+                            📍 {bar.distanceText}
+                          </div>
+                        )}
+                        {!bar.distanceText && bar.address && (
+                          <div 
+                            style={{ fontSize:12, color:'#94A3B8', marginTop:4, cursor:'pointer' }}
+                            onClick={() => window.open(
+                              `https://map.kakao.com/link/search/${encodeURIComponent(bar.address)}`,
+                              '_blank'
+                            )}
+                          >
+                            {bar.address} 지도 →
+                          </div>
+                        )}
+                        {(bar.type === 'today' || bar.type === 'future') && (
+                          <div style={{ fontSize:11, color:'#94A3B8', marginTop:2 }}>
+                             {bar.location_name} · {bar.date}
+                          </div>
+                        )}
                       </div>
                       <span style={{ fontSize:11,padding:'3px 9px',borderRadius:99,background:result.dance.bg,color:result.dance.color,fontWeight:700,flexShrink:0,border:`1px solid ${result.dance.border}` }}>
                         {bar.type === 'today' ? '🔥 오늘 파티' : (bar.type === 'future' ? '📅 다가오는 파티' : `${result.dance.emoji} 추천`)}
