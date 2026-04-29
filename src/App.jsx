@@ -12,6 +12,7 @@ import Auth from './components/Auth'
 import SajuModal from './components/SajuModal'
 import IncheonRoute from './components/IncheonRoute'
 import WeatherModal from './components/WeatherModal'
+import ParkingModal from './components/ParkingModal'
 import QuickPinchZoom, { make3dTransformValue } from 'react-quick-pinch-zoom';
 
 // --- [BAMPPA PREMIUM ENGINE: GPS & NATIONWIDE INTELLIGENCE] ---
@@ -145,6 +146,7 @@ function App() {
   const [showSaju, setShowSaju] = useState(false);
   const [showLatinModal, setShowLatinModal] = useState(false);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [showParking, setShowParking] = useState(false);
 
   useEffect(() => { setTimeout(() => setShowSplash(false), 2000); }, []);
 
@@ -330,6 +332,7 @@ const LatinModal = ({ isOpen, onClose }) => {
                 { icon: <Star color="#E53935" />, text: "댄스 사주", action: () => { if(typeof setShowSaju === 'function') { setShowSaju(true); setIsMenuOpen(false); } } },
                 { icon: <MessageSquare color="#E53935" />, text: "라틴 영어", action: () => { if(typeof setShowLatinModal === 'function') { setShowLatinModal(true); setIsMenuOpen(false); } } },
                 { icon: <CloudSun color="#E53935" />, text: "오늘 날씨", action: () => { setIsMenuOpen(false); setTimeout(() => setShowWeather(true), 300); } },
+                { icon: <MapPin color="#E53935" />, text: "주변 공유주차장", action: () => { setShowParking(true); setIsMenuOpen(false); } },
                 { icon: <Bell color="#E53935" />, text: "공지사항", action: () => { alert('준비 중') } }
               ].map((item, idx) => (
                 <motion.div
@@ -386,6 +389,9 @@ const LatinModal = ({ isOpen, onClose }) => {
       </AnimatePresence>
       <AnimatePresence>
         {showWeather && <WeatherModal onClose={() => setShowWeather(false)} />}
+      </AnimatePresence>
+      <AnimatePresence>
+        {showParking && <ParkingModal onClose={() => setShowParking(false)} />}
       </AnimatePresence>
       
       {selectedPoster && (
