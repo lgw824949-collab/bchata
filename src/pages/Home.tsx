@@ -362,6 +362,14 @@ const HomePage = ({
                         }).map(party => (
                           <div key={party.id} onClick={() => setSelectedPoster(party.poster_url)} style={{ aspectRatio: '1 / 1.4', borderRadius: '12px', overflow: 'hidden', position: 'relative', background: '#F1F5F9', cursor: 'pointer' }}>
                             <img src={party.poster_url} style={{ width: '100%', height: '100%', objectFit: 'cover' }} alt="Poster" />
+                            
+                            {/* 음악 비중 배지 (Premium Overlay) */}
+                            <div style={{ position: 'absolute', top: '8px', right: '8px', display: 'flex', gap: '4px' }}>
+                              {party.s_ratio > 0 && <span style={{ background: 'rgba(229, 57, 53, 0.85)', color: 'white', padding: '2px 6px', borderRadius: '6px', fontSize: '9px', fontWeight: 900 }}>S{party.s_ratio}</span>}
+                              {party.b_ratio > 0 && <span style={{ background: 'rgba(212, 160, 23, 0.85)', color: 'white', padding: '2px 6px', borderRadius: '6px', fontSize: '9px', fontWeight: 900 }}>B{party.b_ratio}</span>}
+                              {party.k_ratio > 0 && <span style={{ background: 'rgba(103, 58, 183, 0.85)', color: 'white', padding: '2px 6px', borderRadius: '6px', fontSize: '9px', fontWeight: 900 }}>K{party.k_ratio}</span>}
+                            </div>
+
                             <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, padding: '8px', background: 'linear-gradient(transparent, rgba(0,0,0,0.9))', color: 'white' }}>
                               <div style={{ fontSize: '10px', color: '#FFEB3B', fontWeight: 900 }}>{party.locationName}</div>
                               <div style={{ fontSize: '12px', fontWeight: 800, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{party.title}</div>
