@@ -16,6 +16,25 @@ const Community = ({ setSelectedPoster, setView }) => {
 
   const regions = ['서울', '경기/인천', '경상도', '전라도', '충청도', '강원/제주'];
 
+  // --- 뒤로가기(Back) 핸들링 ---
+  useEffect(() => {
+    if (selectedPost || showUploadModal) {
+      window.history.pushState({ subView: 'community_overlay' }, '');
+    }
+  }, [selectedPost, showUploadModal]);
+
+  useEffect(() => {
+    const handlePopState = () => {
+      if (selectedPost) {
+        setSelectedPost(null);
+      } else if (showUploadModal) {
+        setShowUploadModal(false);
+      }
+    };
+    window.addEventListener('popstate', handlePopState);
+    return () => window.removeEventListener('popstate', handlePopState);
+  }, [selectedPost, showUploadModal]);
+
   const fetchPosts = async () => {
     setLoading(true);
     const oneDayAgo = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();

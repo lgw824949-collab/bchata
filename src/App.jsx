@@ -306,7 +306,7 @@ function App() {
     }
   }, []);
 
-  // 2. view 상태가 변경될 때마다 URL Hash 업데이트
+  // 2. view 상태가 변경될 때마다 URL Hash 업데이트 및 히스토리 관리
   useEffect(() => {
     const currentHash = window.location.hash.replace('#', '');
     if (view !== currentHash) {
@@ -314,9 +314,23 @@ function App() {
     }
   }, [view]);
 
-  // 3. 브라우저 뒤로가기/앞으로가기 (Hash 변경) 감지
+  // 3. 사진(포스터) 모달 열릴 때 히스토리 상태 추가 (뒤로가기 대응)
   useEffect(() => {
-    const handleHashChange = () => {
+    if (selectedPoster) {
+      window.history.pushState({ modal: 'poster' }, '');
+    }
+  }, [selectedPoster]);
+
+  // 4. 브라우저/휴대폰 뒤로가기 통합 감지 로직
+  useEffect(() => {
+    const handlePopState = (event) => {
+      // 1순위: 열려있는 사진 모달이 있다면 닫기만 하고 이동은 방지
+      if (selectedPoster) {
+        setSelectedPoster(null);
+        return;
+      }
+
+      // 2순위: 해시 기반 뷰 전환 처리
       const newHash = window.location.hash.replace('#', '');
       if (newHash && newHash !== view) {
         setView(newHash);
@@ -324,9 +338,10 @@ function App() {
         setView('home');
       }
     };
-    window.addEventListener('hashchange', handleHashChange);
-    return () => window.removeEventListener('hashchange', handleHashChange);
-  }, [view]);
+
+    window.addEventListener('popstate', handlePopState);
+    return () => window.removeEventListener('popstate', handlePopState);
+  }, [view, selectedPoster]);
 
   const fetchParties = async () => {
     setLoading(true);
