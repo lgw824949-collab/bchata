@@ -53,6 +53,25 @@ const Community = ({ setSelectedPoster, setView }) => {
     await supabase.from('community_posts').update({ likes_count: newLikes }).eq('id', postId);
   };
 
+  const handleShare = async (post) => {
+    const shareData = {
+      title: 'LIVE PICK 현장 리포트',
+      text: `[오늘밤빠] ${post.bar_name || '현장'} 분위기 확인하세요! : ${post.content}`,
+      url: window.location.href
+    };
+
+    try {
+      if (navigator.share) {
+        await navigator.share(shareData);
+      } else {
+        await navigator.clipboard.writeText(window.location.href);
+        alert('링크가 복사되었습니다!');
+      }
+    } catch (err) {
+      console.error('Share error:', err);
+    }
+  };
+
   const handleUpload = async () => {
     if (!newPost.image || !newPost.content) {
       alert('사진과 내용을 입력해주세요!');
@@ -185,7 +204,10 @@ const Community = ({ setSelectedPoster, setView }) => {
                   <div style={{ display: 'flex', alignItems: 'center', gap: '5px', color: '#64748B', fontWeight: 700 }}>
                     <Eye size={22} /> {post.view_count || 0}
                   </div>
-                  <button style={{ background: 'none', border: 'none', marginLeft: 'auto' }}>
+                  <button 
+                    onClick={() => handleShare(post)}
+                    style={{ background: 'none', border: 'none', marginLeft: 'auto', cursor: 'pointer' }}
+                  >
                     <Share2 size={22} color="#64748B" />
                   </button>
                 </div>
