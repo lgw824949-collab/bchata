@@ -442,7 +442,12 @@ const HomePage = ({
 
                               <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, padding: '10px 8px', background: 'linear-gradient(transparent, rgba(0,0,0,0.9))', color: 'white' }}>
                                 <div style={{ fontSize: '10px', color: '#FFEB3B', fontWeight: 900, marginBottom: '2px' }}>{party.locationName}</div>
-                                <div style={{ fontSize: '12px', fontWeight: 800, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{cleanTitle}</div>
+                                <div style={{ fontSize: '12px', fontWeight: 800, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', marginBottom: '2px' }}>{cleanTitle}</div>
+                                <div style={{ fontSize: '9px', fontWeight: 700, color: 'rgba(255,255,255,0.9)', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                                  <span>{(() => { const d = new Date(party.date); return `${d.getMonth() + 1}월 ${d.getDate()}일 (${DAYS_KOR[d.getDay()]})`; })()}</span>
+                                  <span style={{ color: 'rgba(255,255,255,0.4)' }}>|</span>
+                                  <span>{party.time?.split('-')[0].trim() || '21:00'}</span>
+                                </div>
                               </div>
                             </div>
                           );
