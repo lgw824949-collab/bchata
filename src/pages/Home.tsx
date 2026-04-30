@@ -63,22 +63,16 @@ const PartyCard = ({ item, onSelect }) => {
           {cleanTitle}
         </div>
 
-        {/* Line 3: 날짜 | 시간 | 가격 | 음악 비중 */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'nowrap', overflow: 'hidden', marginTop: '2px' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '12px', color: '#1E293B', fontWeight: '900' }}>
-            <span>
-              {(() => { const d = new Date(item.date); return `${d.getMonth() + 1}월 ${d.getDate()}일 (${DAYS_KOR[d.getDay()]})`; })()}
-            </span>
-            <span style={{ color: '#E2E8F0', fontWeight: 500 }}>|</span>
-            <span>{displayTime}</span>
-            <span style={{ color: '#E2E8F0', fontWeight: 500 }}>|</span>
-            <span style={{ color: '#E53935' }}>{displayFee}</span>
-          </div>
-          <div style={{ display: 'flex', gap: '4px', marginLeft: '6px' }}>
-            {item.s_ratio > 0 && <span style={{ background: '#E53935', color: 'white', padding: '2px 8px', borderRadius: '4px', fontSize: '11px', fontWeight: 950 }}>S{item.s_ratio}</span>}
-            {item.b_ratio > 0 && <span style={{ background: '#D4A017', color: 'white', padding: '2px 8px', borderRadius: '4px', fontSize: '11px', fontWeight: 950 }}>B{item.b_ratio}</span>}
-            {item.k_ratio > 0 && <span style={{ background: '#722ED1', color: 'white', padding: '2px 8px', borderRadius: '4px', fontSize: '11px', fontWeight: 950 }}>K{item.k_ratio}</span>}
-            {item.j_ratio > 0 && <span style={{ background: '#08979C', color: 'white', padding: '2px 8px', borderRadius: '4px', fontSize: '11px', fontWeight: 950 }}>J{item.j_ratio}</span>}
+        {/* Line 3: 4/30(목) 21:00 1.2만원 S3B2 (정규 포맷) */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '5px', whiteSpace: 'nowrap', overflow: 'hidden', marginTop: '4px', fontSize: '12px', fontWeight: '900', color: '#1E293B' }}>
+          <span>{(() => { const d = new Date(item.date); return `${d.getMonth() + 1}/${d.getDate()}(${DAYS_KOR[d.getDay()]})`; })()}</span>
+          <span>{displayTime}</span>
+          <span style={{ color: '#E53935' }}>{displayFee.includes('만') && !displayFee.includes('만원') ? displayFee.replace('만', '만원') : displayFee}</span>
+          <div style={{ display: 'flex', gap: '2px', marginLeft: '2px' }}>
+            {item.s_ratio > 0 && <span style={{ color: '#E53935' }}>S{item.s_ratio}</span>}
+            {item.b_ratio > 0 && <span style={{ color: '#D4A017' }}>B{item.b_ratio}</span>}
+            {item.k_ratio > 0 && <span style={{ color: '#722ED1' }}>K{item.k_ratio}</span>}
+            {item.j_ratio > 0 && <span style={{ color: '#08979C' }}>J{item.j_ratio}</span>}
           </div>
         </div>
       </div>
@@ -259,11 +253,11 @@ const HomePage = ({
                             <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, padding: '10px 8px', background: 'linear-gradient(transparent, rgba(0,0,0,0.95))', color: 'white' }}>
                               <div style={{ fontSize: '10px', color: '#FFEB3B', fontWeight: 950, marginBottom: '2px' }}>{item.locationName}</div>
                               <div style={{ fontSize: '11px', fontWeight: '950', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', marginBottom: '3px' }}>{item.title}</div>
-                              <div style={{ fontSize: '10px', fontWeight: 950, color: '#fff', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                              <div style={{ fontSize: '9px', fontWeight: 950, color: '#fff', display: 'flex', gap: '3px', whiteSpace: 'nowrap' }}>
                                 <span>{(() => { const d = new Date(item.date); return `${d.getMonth() + 1}/${d.getDate()}(${DAYS_KOR[d.getDay()]})`; })()}</span>
-                                <span style={{ color: 'rgba(255,255,255,0.5)' }}>|</span>
                                 <span>{item.time?.split('-')[0].trim() || '21:00'}</span>
-                                <span style={{ marginLeft: 'auto', background: '#E53935', padding: '1px 4px', borderRadius: '3px', fontSize: '9px' }}>S{item.s_ratio} B{item.b_ratio}</span>
+                                <span style={{ color: '#FFEB3B' }}>{item.fee?.includes('만') ? item.fee.replace('만', '만원') : item.fee}</span>
+                                <span>S{item.s_ratio}B{item.b_ratio}</span>
                               </div>
                             </div>
                         </div>
@@ -445,10 +439,11 @@ const HomePage = ({
                               <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, padding: '12px 10px', background: 'linear-gradient(transparent, rgba(0,0,0,0.95))', color: 'white' }}>
                                 <div style={{ fontSize: '11px', color: '#FFEB3B', fontWeight: 950, marginBottom: '3px' }}>{party.locationName}</div>
                                 <div style={{ fontSize: '13px', fontWeight: 950, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', marginBottom: '4px' }}>{cleanTitle}</div>
-                                <div style={{ fontSize: '11px', fontWeight: 900, color: '#fff', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                                  <span>{(() => { const d = new Date(party.date); return `${d.getMonth() + 1}월 ${d.getDate()}일 (${DAYS_KOR[d.getDay()]})`; })()}</span>
-                                  <span style={{ color: 'rgba(255,255,255,0.5)' }}>|</span>
+                                <div style={{ fontSize: '10px', fontWeight: 900, color: '#fff', display: 'flex', gap: '4px', whiteSpace: 'nowrap' }}>
+                                  <span>{(() => { const d = new Date(party.date); return `${d.getMonth() + 1}/${d.getDate()}(${DAYS_KOR[d.getDay()]})`; })()}</span>
                                   <span>{party.time?.split('-')[0].trim() || '21:00'}</span>
+                                  <span style={{ color: '#FFEB3B' }}>{party.fee?.includes('만') ? (party.fee.includes('만원') ? party.fee : party.fee.replace('만', '만원')) : party.fee}</span>
+                                  <span>S{party.s_ratio}B{party.b_ratio}</span>
                                 </div>
                               </div>
                             </div>
