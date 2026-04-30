@@ -24,7 +24,15 @@ const PosterImage = ({ src, onClick, alt = "파티 포스터" }) => {
 const PartyCard = ({ item, onSelect }) => {
   const cleanTitle = item.title?.split(' ㅣ ')[0] || '';
   const displayTime = item.time?.split('-')[0].trim() || '21:00';
-  const displayFee = (() => { const fee = String(item.fee || '1.2만'); return fee.includes('만') ? fee : fee; })();
+  const displayFee = (() => {
+    if (!item.fee) return '1.2만';
+    const f = String(item.fee);
+    if (f.includes('만')) return f.replace('원', '');
+    const num = parseInt(f.replace(/[^0-9]/g, ''));
+    if (isNaN(num)) return f;
+    if (num === 0) return '무료';
+    return (num / 10000).toFixed(1).replace('.0', '') + '만';
+  })();
 
   return (
     <div 
@@ -63,12 +71,12 @@ const PartyCard = ({ item, onSelect }) => {
           {cleanTitle}
         </div>
 
-        {/* Line 3: 4/30(목) 21:00 1.2만원 S3B2 (정규 포맷) */}
+        {/* Line 3: 4/30(목) 21:00 1.2만 S3B2 (정규 포맷) */}
         <div style={{ display: 'flex', alignItems: 'center', gap: '5px', whiteSpace: 'nowrap', overflow: 'hidden', marginTop: '4px', fontSize: '12px', fontWeight: '900', color: '#1E293B' }}>
           <span>{(() => { const d = new Date(item.date); return `${d.getMonth() + 1}/${d.getDate()}(${DAYS_KOR[d.getDay()]})`; })()}</span>
           <span>{displayTime}</span>
-          <span style={{ color: '#E53935' }}>{displayFee.includes('만') && !displayFee.includes('만원') ? displayFee.replace('만', '만원') : displayFee}</span>
-          <div style={{ display: 'flex', gap: '2px', marginLeft: '2px' }}>
+          <span style={{ color: '#E53935' }}>{displayFee}</span>
+          <div style={{ display: 'flex', gap: '0px', marginLeft: '2px' }}>
             {item.s_ratio > 0 && <span style={{ color: '#E53935' }}>S{item.s_ratio}</span>}
             {item.b_ratio > 0 && <span style={{ color: '#D4A017' }}>B{item.b_ratio}</span>}
             {item.k_ratio > 0 && <span style={{ color: '#722ED1' }}>K{item.k_ratio}</span>}
@@ -256,8 +264,8 @@ const HomePage = ({
                               <div style={{ fontSize: '9px', fontWeight: 950, color: '#fff', display: 'flex', gap: '3px', whiteSpace: 'nowrap' }}>
                                 <span>{(() => { const d = new Date(item.date); return `${d.getMonth() + 1}/${d.getDate()}(${DAYS_KOR[d.getDay()]})`; })()}</span>
                                 <span>{item.time?.split('-')[0].trim() || '21:00'}</span>
-                                <span style={{ color: '#FFEB3B' }}>{item.fee?.includes('만') ? item.fee.replace('만', '만원') : item.fee}</span>
-                                <span>S{item.s_ratio}B{item.b_ratio}</span>
+                                <span style={{ color: '#FFEB3B' }}>{(() => { if (!item.fee) return '1.2만'; const f = String(item.fee); if (f.includes('만')) return f.replace('원', ''); const num = parseInt(f.replace(/[^0-9]/g, '')); if (isNaN(num)) return f; return (num/10000).toFixed(1).replace('.0', '') + '만'; })()}</span>
+                                <span>S{item.s_ratio}B{item.b_ratio}K{item.k_ratio}J{item.j_ratio}</span>
                               </div>
                             </div>
                         </div>
@@ -442,8 +450,8 @@ const HomePage = ({
                                 <div style={{ fontSize: '10px', fontWeight: 900, color: '#fff', display: 'flex', gap: '4px', whiteSpace: 'nowrap' }}>
                                   <span>{(() => { const d = new Date(party.date); return `${d.getMonth() + 1}/${d.getDate()}(${DAYS_KOR[d.getDay()]})`; })()}</span>
                                   <span>{party.time?.split('-')[0].trim() || '21:00'}</span>
-                                  <span style={{ color: '#FFEB3B' }}>{party.fee?.includes('만') ? (party.fee.includes('만원') ? party.fee : party.fee.replace('만', '만원')) : party.fee}</span>
-                                  <span>S{party.s_ratio}B{party.b_ratio}</span>
+                                  <span style={{ color: '#FFEB3B' }}>{(() => { if (!party.fee) return '1.2만'; const f = String(party.fee); if (f.includes('만')) return f.replace('원', ''); const num = parseInt(f.replace(/[^0-9]/g, '')); if (isNaN(num)) return f; return (num/10000).toFixed(1).replace('.0', '') + '만'; })()}</span>
+                                  <span>S{party.s_ratio}B{party.b_ratio}K{party.k_ratio}J{party.j_ratio}</span>
                                 </div>
                               </div>
                             </div>
