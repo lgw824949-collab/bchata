@@ -311,9 +311,9 @@ const HomePage = ({
           }} className="date-stream-bar">
             {fourteenDays.map((item) => {
               const isSelected = selectedDate === item.fullDate;
-              let dayColor = '#999';
-              if (item.dayOfWeek === 0) dayColor = '#FF4D4D';
-              if (item.dayOfWeek === 6) dayColor = '#2196F3';
+              let dayColor = '#94A3B8';
+              if (item.dayOfWeek === 0) dayColor = '#E53935';
+              if (item.dayOfWeek === 6) dayColor = '#94A3B8';
 
               return (
                 <div 
@@ -332,7 +332,7 @@ const HomePage = ({
                   <span style={{ 
                     fontSize: '10px', 
                     fontWeight: '700',
-                    color: isSelected ? '#FF3B30' : '#bbb',
+                    color: isSelected ? '#E53935' : '#94A3B8',
                     marginBottom: '2px'
                   }}>
                     {item.dayName}
@@ -344,13 +344,13 @@ const HomePage = ({
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
-                    backgroundColor: isSelected ? '#FF3B30' : 'transparent',
-                    border: item.isToday && !isSelected ? '1px solid #FF3B30' : 'none'
+                    backgroundColor: isSelected ? '#E53935' : 'transparent',
+                    border: item.isToday && !isSelected ? '1px solid #E53935' : 'none'
                   }}>
                     <span style={{ 
                       fontSize: '15px', 
                       fontWeight: '800',
-                      color: isSelected ? '#fff' : (isSelected ? '#FF3B30' : dayColor)
+                      color: isSelected ? '#fff' : (isSelected ? '#E53935' : dayColor)
                     }}>
                       {item.date}
                     </span>
@@ -378,7 +378,7 @@ const HomePage = ({
             <button 
               onClick={() => setIsPaused(!isPaused)}
               style={{
-                background: isPaused ? '#FF3B30' : 'rgba(255,255,255,0.2)',
+                background: isPaused ? '#E53935' : 'rgba(255,255,255,0.2)',
                 border: 'none',
                 borderRadius: '12px',
                 color: '#fff',
@@ -470,9 +470,9 @@ const HomePage = ({
                   borderBottom: '1px solid #eee' 
                 }}>
                   <div style={{ padding: '0 20px 15px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                    <h2 style={{ fontSize: '18px', fontWeight: '950', letterSpacing: '-0.02em', color: '#111', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                      <span style={{ color: '#FF4B4B' }}>HOT</span> PICK 5 
-                      <span style={{ fontSize: '11px', fontWeight: '600', color: '#999', backgroundColor: '#f5f5f5', padding: '2px 8px', borderRadius: '10px' }}>전국 인기</span>
+                    <h2 style={{ fontSize: '18px', fontWeight: '950', letterSpacing: '-0.02em', color: '#1E293B', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                      <span style={{ color: '#E53935' }}>HOT</span> PICK 5 
+                      <span style={{ fontSize: '11px', fontWeight: '400', color: '#94A3B8', backgroundColor: '#f5f5f5', padding: '2px 8px', borderRadius: '10px' }}>전국 인기</span>
                     </h2>
                     <div style={{ display: 'flex', gap: '5px' }}>
                       <div 
@@ -563,16 +563,16 @@ const HomePage = ({
                             >
                               <span style={{ fontSize:11 }}>📍</span>
                               <span style={{
-                                fontSize:11, fontWeight:800,
-                                color:'#FFCDD2',
+                                fontSize:11, fontWeight:900,
+                                color:'#E53935',
                                 textDecoration:'underline',
-                                textDecorationColor:'#E53935',
+                                textDecorationColor:'rgba(229, 57, 53, 0.3)',
                                 letterSpacing:'-0.3px',
                               }}>
                                 {item.locationName}
                               </span>
                             </div>
-                            <div style={{ fontSize: '11px', fontWeight: '800', display: 'block', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                            <div style={{ fontSize: '11px', fontWeight: '700', color: '#1E293B', display: 'block', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
                               {item.title}
                             </div>
                           </div>
@@ -644,19 +644,19 @@ const HomePage = ({
                         onClick={() => setSelectedRegionGrid(regionName)}
                         style={{ 
                           fontSize: '18px', fontWeight: '900', padding: '15px 15px 10px', 
-                          color: '#333', display: 'flex', alignItems: 'center', gap: '8px',
+                          color: '#1E293B', display: 'flex', alignItems: 'center', gap: '8px',
                           cursor: 'pointer'
                         }}
                       >
-                        <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#2196F3' }} />
+                        <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#E53935' }} />
                         {regionName}
                         {weatherMap[regionName] && (
-                          <span style={{ fontSize: '13px', fontWeight: '800', color: '#64748B', display: 'flex', alignItems: 'center', gap: '2px' }}>
+                          <span style={{ fontSize: '13px', fontWeight: '400', color: '#94A3B8', display: 'flex', alignItems: 'center', gap: '2px' }}>
                             {weatherMap[regionName].icon} {weatherMap[regionName].temp}°
                           </span>
                         )}
-                        <ChevronRight size={18} color="#999" />
-                        <span style={{ fontSize: '11px', color: '#999', fontWeight: '500', marginLeft: 'auto' }}>전체보기</span>
+                        <ChevronRight size={18} color="#94A3B8" />
+                        <span style={{ fontSize: '11px', color: '#94A3B8', fontWeight: '400', marginLeft: 'auto' }}>전체보기</span>
                       </div>
 
                       <div className="party-horizontal-scroll" style={{ 
@@ -745,20 +745,20 @@ const HomePage = ({
                                 >
                                   <span style={{ fontSize:13 }}>📍</span>
                                   <span style={{
-                                    fontSize:13, fontWeight:800,
+                                    fontSize:13, fontWeight:900,
                                     color:'#E53935',
                                     textDecoration:'underline',
-                                    textDecorationColor:'#FFCDD2',
+                                    textDecorationColor:'rgba(229, 57, 53, 0.2)',
                                     letterSpacing:'-0.3px',
                                   }}>
                                     {item.locationName}
                                   </span>
-                                  <span style={{ fontSize:11, color:'#94A3B8' }}>지도 →</span>
+                                  <span style={{ fontSize:11, color:'#94A3B8', fontWeight: '400' }}>지도 →</span>
                                 </div>
 
                                 {/* 1. 타이틀 (무조건 2줄) */}
                                 <div style={{ 
-                                  fontSize: '15px', fontWeight: '900', color: '#111827', 
+                                  fontSize: '15px', fontWeight: '700', color: '#1E293B', 
                                   lineHeight: '1.3', marginBottom: '10px',
                                   display: 'block', whiteSpace: 'nowrap',
                                   overflow: 'hidden', textOverflow: 'ellipsis',
@@ -772,7 +772,7 @@ const HomePage = ({
                                   display: 'flex', alignItems: 'center', gap: '5px', 
                                   fontSize: '11px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' 
                                 }}>
-                                  <span style={{ color: '#FF4B4B', fontWeight: '800' }}>
+                                  <span style={{ color: '#E53935', fontWeight: '700' }}>
                                     {(() => {
                                       const d = new Date(item.date);
                                       const days = ['일', '월', '화', '수', '목', '금', '토'];
@@ -780,20 +780,16 @@ const HomePage = ({
                                     })()}
                                   </span>
                                   <span style={{ color: '#E2E8F0' }}>·</span>
-                                  <span style={{ color: '#2563EB', fontWeight: '700' }}>{item.time?.split('-')[0].trim() || '20:00'}</span>
+                                  <span style={{ color: '#E53935', fontWeight: '700' }}>{item.time?.split('-')[0].trim() || '20:00'}</span>
                                   <span style={{ color: '#E2E8F0' }}>·</span>
-                                  <span style={{ display: 'flex', alignItems: 'center' }}>
-                                    <img src="/logo.png" style={{ height: '15px', width: 'auto' }} alt="밤빠" />
-                                  </span>
-                                  <span style={{ color: '#E2E8F0' }}>·</span>
-                                  <span style={{ color: '#D97706', fontWeight: '700' }}>
+                                  <span style={{ color: '#94A3B8', fontWeight: '400' }}>
                                     {(() => {
                                       const fee = String(item.entry_fee || '1.2만');
                                       return fee.includes('만') ? fee : (parseInt(fee.replace(/[^0-9]/g, ''))/10000).toFixed(1).replace('.0','') + '만';
                                     })()}
                                   </span>
                                   <span style={{ color: '#E2E8F0' }}>·</span>
-                                  <span style={{ color: '#7C3AED', fontWeight: '700' }}>
+                                  <span style={{ color: '#94A3B8', fontWeight: '400' }}>
                                     {(() => {
                                       const ratio = item.musicRatio || (item.genre === '바차타' ? 'B4 S2' : 'S4 B2');
                                       return ratio.replace('S', '살사').replace('B', '바차타').replace('K', '키좀바').replace('Z', '쥬크');
