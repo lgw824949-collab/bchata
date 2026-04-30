@@ -64,21 +64,21 @@ const PartyCard = ({ item, onSelect }) => {
         </div>
 
         {/* Line 3: 날짜 | 시간 | 가격 | 음악 비중 */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'nowrap', overflow: 'hidden' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '5px', fontSize: '11px', color: '#64748B', fontWeight: '800' }}>
-            <span style={{ color: '#1E293B' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'nowrap', overflow: 'hidden', marginTop: '2px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '12px', color: '#1E293B', fontWeight: '900' }}>
+            <span>
               {(() => { const d = new Date(item.date); return `${d.getMonth() + 1}월 ${d.getDate()}일 (${DAYS_KOR[d.getDay()]})`; })()}
             </span>
-            <span style={{ color: '#E2E8F0' }}>|</span>
+            <span style={{ color: '#E2E8F0', fontWeight: 500 }}>|</span>
             <span>{displayTime}</span>
-            <span style={{ color: '#E2E8F0' }}>|</span>
-            <span style={{ color: '#D46B08' }}>{displayFee}</span>
+            <span style={{ color: '#E2E8F0', fontWeight: 500 }}>|</span>
+            <span style={{ color: '#E53935' }}>{displayFee}</span>
           </div>
-          <div style={{ display: 'flex', gap: '3px', marginLeft: '4px' }}>
-            {item.s_ratio > 0 && <span style={{ background: '#FFF1F0', color: '#E53935', padding: '1px 5px', borderRadius: '4px', fontSize: '9px', fontWeight: 900 }}>S{item.s_ratio}</span>}
-            {item.b_ratio > 0 && <span style={{ background: '#FFFBE6', color: '#D4A017', padding: '1px 5px', borderRadius: '4px', fontSize: '9px', fontWeight: 900 }}>B{item.b_ratio}</span>}
-            {item.k_ratio > 0 && <span style={{ background: '#F9F0FF', color: '#722ED1', padding: '1px 5px', borderRadius: '4px', fontSize: '9px', fontWeight: 900 }}>K{item.k_ratio}</span>}
-            {item.j_ratio > 0 && <span style={{ background: '#E6FFFB', color: '#08979C', padding: '1px 5px', borderRadius: '4px', fontSize: '9px', fontWeight: 900 }}>J{item.j_ratio}</span>}
+          <div style={{ display: 'flex', gap: '4px', marginLeft: '6px' }}>
+            {item.s_ratio > 0 && <span style={{ background: '#E53935', color: 'white', padding: '2px 8px', borderRadius: '4px', fontSize: '11px', fontWeight: 950 }}>S{item.s_ratio}</span>}
+            {item.b_ratio > 0 && <span style={{ background: '#D4A017', color: 'white', padding: '2px 8px', borderRadius: '4px', fontSize: '11px', fontWeight: 950 }}>B{item.b_ratio}</span>}
+            {item.k_ratio > 0 && <span style={{ background: '#722ED1', color: 'white', padding: '2px 8px', borderRadius: '4px', fontSize: '11px', fontWeight: 950 }}>K{item.k_ratio}</span>}
+            {item.j_ratio > 0 && <span style={{ background: '#08979C', color: 'white', padding: '2px 8px', borderRadius: '4px', fontSize: '11px', fontWeight: 950 }}>J{item.j_ratio}</span>}
           </div>
         </div>
       </div>
@@ -256,15 +256,16 @@ const HomePage = ({
                       {carouselParties.map((item) => (
                         <div key={item.id} onClick={() => setSelectedPoster(item.poster_url)} style={{ width: '140px', flexShrink: 0, borderRadius: '12px', overflow: 'hidden', boxShadow: '0 8px 20px rgba(0,0,0,0.12)', position: 'relative' }}>
                           <img src={item.poster_url} style={{ width: '100%', height: '190px', objectFit: 'cover' }} alt="Pick" />
-                          <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, padding: '10px 8px', background: 'linear-gradient(transparent, rgba(0,0,0,0.9))', color: 'white' }}>
-                            <div style={{ fontSize: '10px', color: '#FFEB3B', fontWeight: 900, marginBottom: '1px' }}>{item.locationName}</div>
-                            <div style={{ fontSize: '10px', fontWeight: '800', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', marginBottom: '2px' }}>{item.title}</div>
-                            <div style={{ fontSize: '8px', fontWeight: 700, color: 'rgba(255,255,255,0.85)', display: 'flex', alignItems: 'center', gap: '3px' }}>
-                              <span>{(() => { const d = new Date(item.date); return `${d.getMonth() + 1}월 ${d.getDate()}일 (${DAYS_KOR[d.getDay()]})`; })()}</span>
-                              <span style={{ color: 'rgba(255,255,255,0.3)' }}>|</span>
-                              <span>{item.time?.split('-')[0].trim() || '21:00'}</span>
+                            <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, padding: '10px 8px', background: 'linear-gradient(transparent, rgba(0,0,0,0.95))', color: 'white' }}>
+                              <div style={{ fontSize: '10px', color: '#FFEB3B', fontWeight: 950, marginBottom: '2px' }}>{item.locationName}</div>
+                              <div style={{ fontSize: '11px', fontWeight: '950', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', marginBottom: '3px' }}>{item.title}</div>
+                              <div style={{ fontSize: '10px', fontWeight: 950, color: '#fff', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                                <span>{(() => { const d = new Date(item.date); return `${d.getMonth() + 1}/${d.getDate()}(${DAYS_KOR[d.getDay()]})`; })()}</span>
+                                <span style={{ color: 'rgba(255,255,255,0.5)' }}>|</span>
+                                <span>{item.time?.split('-')[0].trim() || '21:00'}</span>
+                                <span style={{ marginLeft: 'auto', background: '#E53935', padding: '1px 4px', borderRadius: '3px', fontSize: '9px' }}>S{item.s_ratio} B{item.b_ratio}</span>
+                              </div>
                             </div>
-                          </div>
                         </div>
                       ))}
                     </motion.div>
@@ -434,23 +435,19 @@ const HomePage = ({
                             <div key={party.id} onClick={() => setSelectedPoster(party.poster_url)} style={{ aspectRatio: '1 / 1.4', borderRadius: '12px', overflow: 'hidden', position: 'relative', background: '#F1F5F9', cursor: 'pointer', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.1)' }}>
                               <img src={party.poster_url} style={{ width: '100%', height: '100%', objectFit: 'cover' }} alt="Poster" />
                               
-                              <div style={{ position: 'absolute', top: '8px', left: '8px', background: 'rgba(255, 255, 255, 0.9)', color: '#1E293B', padding: '2px 8px', borderRadius: '6px', fontSize: '10px', fontWeight: 800 }}>
-                                {displayRegion}
-                              </div>
-
+                              <div style={{ position: 'absolute', top: '8px', left: '8px', background: 'rgba(255, 255, 255, 0.9)', color: '#1E293B', padding: '2px 8px', borderRadius: '6px', fontSize: '10px', fontWeight: 800 }}>{displayRegion}</div>
                               <div style={{ position: 'absolute', top: '8px', right: '8px', display: 'flex', gap: '4px', flexWrap: 'wrap', justifyContent: 'flex-end' }}>
-                                {party.s_ratio > 0 && <span style={{ background: 'rgba(229, 57, 53, 0.85)', color: 'white', padding: '2px 6px', borderRadius: '6px', fontSize: '9px', fontWeight: 900 }}>S{party.s_ratio}</span>}
-                                {party.b_ratio > 0 && <span style={{ background: 'rgba(212, 160, 23, 0.85)', color: 'white', padding: '2px 6px', borderRadius: '6px', fontSize: '9px', fontWeight: 900 }}>B{party.b_ratio}</span>}
-                                {party.k_ratio > 0 && <span style={{ background: 'rgba(103, 58, 183, 0.85)', color: 'white', padding: '2px 6px', borderRadius: '6px', fontSize: '9px', fontWeight: 900 }}>K{party.k_ratio}</span>}
-                                {party.j_ratio > 0 && <span style={{ background: 'rgba(0, 150, 136, 0.85)', color: 'white', padding: '2px 6px', borderRadius: '6px', fontSize: '9px', fontWeight: 900 }}>J{party.j_ratio}</span>}
+                                {party.s_ratio > 0 && <span style={{ background: 'rgba(229, 57, 53, 0.95)', color: 'white', padding: '2px 6px', borderRadius: '6px', fontSize: '10px', fontWeight: 950 }}>S{party.s_ratio}</span>}
+                                {party.b_ratio > 0 && <span style={{ background: 'rgba(212, 160, 23, 0.95)', color: 'white', padding: '2px 6px', borderRadius: '6px', fontSize: '10px', fontWeight: 950 }}>B{party.b_ratio}</span>}
+                                {party.k_ratio > 0 && <span style={{ background: 'rgba(103, 58, 183, 0.95)', color: 'white', padding: '2px 6px', borderRadius: '6px', fontSize: '10px', fontWeight: 950 }}>K{party.k_ratio}</span>}
+                                {party.j_ratio > 0 && <span style={{ background: 'rgba(0, 150, 136, 0.95)', color: 'white', padding: '2px 6px', borderRadius: '6px', fontSize: '10px', fontWeight: 950 }}>J{party.j_ratio}</span>}
                               </div>
-
-                              <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, padding: '10px 8px', background: 'linear-gradient(transparent, rgba(0,0,0,0.9))', color: 'white' }}>
-                                <div style={{ fontSize: '10px', color: '#FFEB3B', fontWeight: 900, marginBottom: '2px' }}>{party.locationName}</div>
-                                <div style={{ fontSize: '12px', fontWeight: 800, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', marginBottom: '2px' }}>{cleanTitle}</div>
-                                <div style={{ fontSize: '9px', fontWeight: 700, color: 'rgba(255,255,255,0.9)', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                              <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, padding: '12px 10px', background: 'linear-gradient(transparent, rgba(0,0,0,0.95))', color: 'white' }}>
+                                <div style={{ fontSize: '11px', color: '#FFEB3B', fontWeight: 950, marginBottom: '3px' }}>{party.locationName}</div>
+                                <div style={{ fontSize: '13px', fontWeight: 950, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', marginBottom: '4px' }}>{cleanTitle}</div>
+                                <div style={{ fontSize: '11px', fontWeight: 900, color: '#fff', display: 'flex', alignItems: 'center', gap: '6px' }}>
                                   <span>{(() => { const d = new Date(party.date); return `${d.getMonth() + 1}월 ${d.getDate()}일 (${DAYS_KOR[d.getDay()]})`; })()}</span>
-                                  <span style={{ color: 'rgba(255,255,255,0.4)' }}>|</span>
+                                  <span style={{ color: 'rgba(255,255,255,0.5)' }}>|</span>
                                   <span>{party.time?.split('-')[0].trim() || '21:00'}</span>
                                 </div>
                               </div>
