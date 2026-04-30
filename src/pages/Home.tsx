@@ -172,6 +172,8 @@ const HomePage = ({
           </div>
         </div>
 
+        <FilterBar filterRegion={filterRegion} setFilterRegion={setFilterRegion} filterGenre={filterGenre} setFilterGenre={setFilterGenre} />
+
         <div style={{ padding: '2px 10px 8px' }}>
           <div style={{ height: '32px', background: '#000', borderRadius: '16px', display: 'flex', alignItems: 'center', overflow: 'hidden', padding: '0 12px' }}>
             <button onClick={() => setIsPaused(!isPaused)} style={{ background: isPaused ? '#E53935' : 'rgba(255,255,255,0.2)', border: 'none', borderRadius: '12px', color: '#fff', fontSize: '10px', fontWeight: '900', padding: '4px 8px', marginRight: '10px', cursor: 'pointer' }}>{isPaused ? '▶ PLAY' : '⏸ STOP'}</button>
@@ -180,8 +182,6 @@ const HomePage = ({
             </div>
           </div>
         </div>
-
-        <FilterBar filterRegion={filterRegion} setFilterRegion={setFilterRegion} filterGenre={filterGenre} setFilterGenre={setFilterGenre} />
       </div>
 
       <main ref={scrollRef} style={{ flex: 1, WebkitOverflowScrolling: 'touch', width: '100%', padding: '170px 0 0 0', background: '#fff', overflowY: 'auto' }}>
