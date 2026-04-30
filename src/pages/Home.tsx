@@ -659,11 +659,11 @@ const HomePage = ({
                         <span style={{ fontSize: '11px', color: '#94A3B8', fontWeight: '400', marginLeft: 'auto' }}>전체보기</span>
                       </div>
 
-                      <div className="party-grid" style={{ 
-                        display: 'grid', 
-                        gridTemplateColumns: '1fr 1fr', 
-                        gap: '10px', 
-                        padding: '0 12px 20px'
+                      <div className="party-vertical-list" style={{ 
+                        display: 'flex', 
+                        flexDirection: 'column',
+                        gap: '12px',
+                        padding: '0 15px 20px'
                       }}>
                         {shuffledParties.length > 0 ? (
                           shuffledParties.map((item) => (
@@ -672,21 +672,22 @@ const HomePage = ({
                               onClick={() => setSelectedPoster(item.poster_url)}
                               style={{ 
                                 display: 'flex', 
-                                flexDirection: 'row', 
-                                alignItems: 'center', 
-                                backgroundColor: '#FFFFFF', 
-                                borderRadius: '10px', 
-                                overflow: 'hidden', 
-                                border: '1px solid #F1F5F9', 
-                                cursor: 'pointer', 
-                                height: '75px'
+                                flexDirection: 'row',
+                                alignItems: 'center',
+                                backgroundColor: '#FFFFFF',
+                                borderRadius: '16px',
+                                overflow: 'hidden',
+                                border: '1px solid #F1F5F9',
+                                cursor: 'pointer',
+                                height: '110px',
+                                boxShadow: '0 1px 3px rgba(0,0,0,0.02)'
                               }}
                             >
-                              {/* 🖼️ 왼쪽에 포스터 (사이즈 축소) */}
+                              {/* 🖼️ 좌측 포스터 (이미지 시안 높이에 맞춤) */}
                               <div style={{ 
-                                width: '52px', 
-                                height: '75px', 
-                                backgroundColor: '#f8f8f8', 
+                                width: '80px', 
+                                height: '110px',
+                                backgroundColor: '#f8f8f8',
                                 flexShrink: 0
                               }}>
                                 <img 
@@ -698,84 +699,91 @@ const HomePage = ({
                                     objectFit: 'cover' 
                                   }} 
                                 />
-                                  {item.genre && (
-                                    <div style={{ 
-                                      position: 'absolute', top: '4px', left: '4px', 
-                                      backgroundColor: 'rgba(255,255,255,0.95)', color: '#1E293B', fontSize: '8px', 
-                                      fontWeight: '900', padding: '2px 4px', borderRadius: '4px',
-                                      boxShadow: '0 1px 3px rgba(0,0,0,0.1)'
-                                    }}>
-                                      {(() => {
-                                        const gMap = { '살사': 'Salsa', '바차타': 'Bachata', '키좀바': 'Kizomba', '줌바': 'Zumba', '주크': 'Zouk' };
-                                        return gMap[item.genre] || item.genre;
-                                      })()}
-                                    </div>
-                                  )}
                               </div>
 
-                              {/* 📝 오른쪽에 텍스트 정보 (공간 최대 활용) */}
+                              {/* 📝 우측 정보 (이미지 시안과 동일한 3줄 구성) */}
                               <div style={{ 
-                                padding: '4px 8px', 
+                                padding: '12px 16px', 
                                 display: 'flex', 
                                 flexDirection: 'column', 
-                                justifyContent: 'center', 
-                                minWidth: 0, 
+                                justifyContent: 'center',
+                                minWidth: 0,
                                 flex: 1,
-                                gap: '1px'
+                                gap: '4px'
                               }}>
-                                {/* 장소 및 지도 링크 */}
-                                <div style={{ display:'flex', alignItems:'center', gap: '4px' }}>
-                                  <span style={{ fontSize: '13px', fontWeight: 900, color: '#1E293B', fontFamily: "'Pretendard', sans-serif", whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                                {/* 1행: 장소 및 지도 */}
+                                <div style={{ display:'flex', alignItems:'center', gap: '8px' }}>
+                                  <span style={{ fontSize: '16px', fontWeight: 900, color: '#1E293B', fontFamily: "'Pretendard', sans-serif" }}>
                                     {item.locationName}
                                   </span>
-                                  <span style={{ fontSize: '10px', color: '#94A3B8', fontWeight: 400, fontFamily: "'Pretendard', sans-serif" }}>
+                                  <span style={{ fontSize: '12px', color: '#94A3B8', fontWeight: 400, fontFamily: "'Pretendard', sans-serif" }}>
                                     지도 →
                                   </span>
                                 </div>
 
-                                {/* 1. 타이틀 */}
+                                {/* 2행: 파티 제목 */}
                                 <div style={{ 
-                                  fontSize: '11px', 
+                                  fontSize: '15px', 
                                   fontWeight: 600, 
                                   color: '#1E293B', 
                                   display: 'block', 
                                   whiteSpace: 'nowrap',
                                   overflow: 'hidden', 
                                   textOverflow: 'ellipsis',
-                                  fontFamily: "'Pretendard', sans-serif"
+                                  fontFamily: "'Pretendard', sans-serif",
+                                  marginBottom: '4px'
                                 }}>
                                   {item.title?.replace(/\[.*?\]/g, '').replace('오늘밤빠', '').replace('밤빠', '').trim()}
                                 </div>
                                 
-                                {/* 2. 배지 시스템 (날짜, 시간, 참가비, 뱃지) */}
+                                {/* 3행: 필 배지 시스템 (이미지 시안 컬러 완벽 재현) */}
                                 <div style={{ 
                                   display: 'flex', 
                                   alignItems: 'center', 
-                                  gap: '3px', 
-                                  fontSize: '10px',
-                                  whiteSpace: 'nowrap', 
-                                  overflow: 'hidden', 
+                                  gap: '6px', 
+                                  flexWrap: 'nowrap',
+                                  overflow: 'hidden',
                                   fontFamily: "'Pretendard', sans-serif"
                                 }}>
-                                  <span style={{ color: '#E53935', fontWeight: 700 }}>
+                                  {/* 날짜 배지 */}
+                                  <span style={{ background: '#FFF1F0', color: '#E53935', padding: '2px 10px', borderRadius: '12px', fontSize: '11px', fontWeight: 700 }}>
                                     {(() => {
                                       const d = new Date(item.date);
-                                      return `${d.getMonth() + 1}/${d.getDate()}`;
+                                      const days = ['일', '월', '화', '수', '목', '금', '토'];
+                                      return `${d.getMonth() + 1}/${d.getDate()}(${days[d.getDay()]})`;
                                     })()}
                                   </span>
-                                  <span style={{ color: '#E2E8F0' }}>·</span>
-                                  <div style={{ display: 'flex', alignItems: 'center', gap: '2px' }}>
+
+                                  {/* 시간 배지 */}
+                                  <span style={{ background: '#E6F4FF', color: '#1677FF', padding: '2px 10px', borderRadius: '12px', fontSize: '11px', fontWeight: 700 }}>
+                                    {item.time?.split('-')[0].trim() || '20:00'}
+                                  </span>
+
+                                  {/* 참가비 배지 */}
+                                  <span style={{ background: '#FFFBE6', color: '#D46B08', padding: '2px 10px', borderRadius: '12px', fontSize: '11px', fontWeight: 800 }}>
+                                    {(() => {
+                                      const fee = String(item.entry_fee || '1.2만');
+                                      return fee.includes('만') ? fee : (parseInt(fee.replace(/[^0-9]/g, ''))/10000).toFixed(1).replace('.0','') + '만';
+                                    })()}
+                                  </span>
+
+                                  {/* 음악 비율 배지 */}
+                                  <div style={{ display: 'flex', alignItems: 'center', gap: '4px', background: '#FFFFFF', border: '1px solid #F0F0F0', padding: '2px 8px', borderRadius: '12px' }}>
                                     {(() => {
                                       const ratios = [
                                         { l: 'S', v: item.s_ratio || 0, c: '#E53935' },
                                         { l: 'B', v: item.b_ratio || 0, c: '#1D9E75' },
-                                        { l: 'K', v: item.k_ratio || 0, c: '#7C3AED' }
-                                      ].filter(r => r.v > 0).sort((a, b) => b.v - a.v).slice(0, 2);
+                                        { l: 'K', v: item.k_ratio || 0, c: '#7C3AED' },
+                                        { l: 'J', v: item.j_ratio || 0, c: '#F59E0B' }
+                                      ].filter(r => r.v > 0).sort((a, b) => b.v - a.v);
                                       
-                                      return ratios.map((r) => (
-                                        <span key={r.l} style={{ fontWeight: 800, color: r.c }}>
-                                          {r.l}{r.v}
-                                        </span>
+                                      return ratios.map((r, idx) => (
+                                        <React.Fragment key={r.l}>
+                                          <span style={{ fontSize: '11px', fontWeight: 900, color: r.c }}>
+                                            {r.l}{r.v}
+                                          </span>
+                                          {idx < ratios.length - 1 && <span style={{ fontSize: '8px', color: '#E2E8F0', margin: '0 2px' }}>·</span>}
+                                        </React.Fragment>
                                       ));
                                     })()}
                                   </div>
