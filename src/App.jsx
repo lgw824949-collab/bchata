@@ -19,24 +19,13 @@ import QuickPinchZoom, { make3dTransformValue } from 'react-quick-pinch-zoom';
 
 // [포스터 줌 전용 컴포넌트 - 전역 분리]
 const PosterModal = ({ src, onClose }) => {
-  const [scale, setScale] = useState(1);
-  const lastDist = useRef(null);
-
-  const onTouchMove = (e) => {
-    if (e.touches.length === 2) {
-      e.preventDefault();
-      const dx = e.touches[0].pageX - e.touches[1].pageX;
-      const dy = e.touches[0].pageY - e.touches[1].pageY;
-      const dist = Math.sqrt(dx*dx + dy*dy);
-      if (lastDist.current) {
-        const delta = dist / lastDist.current;
-        setScale(s => Math.min(Math.max(s * delta, 1), 4));
-      }
-      lastDist.current = dist;
+  const imgRef = useRef();
+  
+  const onUpdate = ({ x, y, scale }) => {
+    if (imgRef.current) {
+      imgRef.current.style.transform = make3dTransformValue({ x, y, scale });
     }
   };
-
-  const onTouchEnd = () => { lastDist.current = null; };
 
   const handleSave = async () => {
     try {
@@ -55,32 +44,44 @@ const PosterModal = ({ src, onClose }) => {
   };
 
   return (
-    <div onClick={onClose} style={{ position:'fixed', inset:0, zIndex:100000, backgroundColor:'rgba(0,0,0,0.9)', display:'flex', alignItems:'center', justifyContent:'center', touchAction: 'none' }}>
-      <div 
-        onClick={e => e.stopPropagation()} 
-        onTouchMove={onTouchMove} 
-        onTouchEnd={onTouchEnd} 
-        style={{ width:'100%', height:'100%', display:'flex', flexDirection: 'column', alignItems:'center', justifyContent:'center', touchAction: 'none' }}
-      >
-        <img 
-          src={src} 
-          alt="poster" 
-          style={{ 
-            maxWidth:'100%', 
-            maxHeight:'75vh', 
-            objectFit:'contain', 
-            transform:`scale(${scale})`, 
-            transformOrigin:'center', 
-            transition:'transform 0.1s',
-            userSelect: 'none',
-            marginBottom: '20px'
-          }} 
-        />
-        
+    <div style={{ position:'fixed', inset:0, zIndex:100000, backgroundColor:'rgba(0,0,0,0.95)', display:'flex', alignItems:'center', justifyContent:'center' }}>
+      {/* 닫기 버튼 */}
+      <button 
+        onClick={onClose} 
+        style={{ 
+          position:'absolute', top:'40px', right:'25px', 
+          background:'rgba(255,255,255,0.2)', border:'none', 
+          borderRadius:'50%', width:'44px', height:'44px', 
+          color:'#fff', fontSize:'24px', cursor:'pointer',
+          zIndex: 100001
+        }}
+      >✕</button>
+
+      {/* 줌 컨테이너 */}
+      <div style={{ width: '100%', height: '85vh', position: 'relative', overflow: 'hidden' }}>
+        <QuickPinchZoom onUpdate={onUpdate} wheelScaleFactor={500} tapZoomFactor={2}>
+          <img 
+            ref={imgRef}
+            src={src} 
+            alt="poster" 
+            style={{ 
+              width: '100%',
+              height: '100%',
+              objectFit: 'contain',
+              display: 'block',
+              willChange: 'transform',
+              userSelect: 'none'
+            }} 
+          />
+        </QuickPinchZoom>
+      </div>
+      
+      {/* 하단 저장 버튼 */}
+      <div style={{ position: 'absolute', bottom: '40px', left: '50%', transform: 'translateX(-50%)', zIndex: 100002 }}>
         <button 
           onClick={handleSave}
           style={{ 
-            background: 'rgba(0,0,0,0.5)',
+            background: 'rgba(255,255,255,0.1)',
             color: 'white',
             width: '48px',
             height: '48px',
@@ -90,23 +91,12 @@ const PosterModal = ({ src, onClose }) => {
             justifyContent: 'center',
             border: '1px solid rgba(255,255,255,0.3)',
             cursor: 'pointer',
-            boxShadow: '0 4px 15px rgba(0,0,0,0.3)',
-            zIndex: 100002
+            backdropFilter: 'blur(5px)',
+            boxShadow: '0 4px 15px rgba(0,0,0,0.3)'
           }}
         >
           <Download size={22} />
         </button>
-
-        <button 
-          onClick={onClose} 
-          style={{ 
-            position:'absolute', top:'40px', right:'25px', 
-            background:'rgba(255,255,255,0.2)', border:'none', 
-            borderRadius:'50%', width:'44px', height:'44px', 
-            color:'#fff', fontSize:'24px', cursor:'pointer',
-            zIndex: 100001
-          }}
-        >✕</button>
       </div>
     </div>
   );
