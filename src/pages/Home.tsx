@@ -858,17 +858,16 @@ const HomePage = ({
                                       ].filter(r => r.v > 0).sort((a, b) => b.v - a.v);
                                       
                                       if (ratios.length > 0) {
-                                            marginRight: '3px',
-                                            background: r.l==='S' ? '#E53935' : r.l==='B' ? '#1D9E75' : r.l==='K' ? '#7C3AED' : '#F59E0B',
-                                            color: 'white',
-                                            fontFamily: "'Pretendard', sans-serif"
-                                          }}>
-                                            {r.l}{r.v}
-                                          </span>
+                                        return ratios.map((r, idx) => (
+                                          <React.Fragment key={r.l}>
+                                            <span style={{ fontSize: '11px', fontWeight: 900, color: r.c }}>
+                                              {r.l}{r.v}
+                                            </span>
+                                            {idx < ratios.length - 1 && <span style={{ fontSize: '8px', color: '#E2E8F0', margin: '0 2px' }}>·</span>}
+                                          </React.Fragment>
                                         ));
                                       }
-                                      const fallback = item.musicRatio || (item.genre === '바차타' ? 'B4 S2' : 'S4 B2');
-                                      return <span style={{ color: '#94A3B8', fontWeight: 400, fontSize: '12px' }}>{fallback}</span>;
+                                      return <span style={{ fontSize: '10px', color: '#94A3B8' }}>{item.musicRatio}</span>;
                                     })()}
                                   </div>
                                 </div>
