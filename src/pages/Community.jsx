@@ -58,9 +58,23 @@ const Community = ({ setSelectedPoster, setView }) => {
 
   const handleLike = async (postId, e) => {
     if (e) e.stopPropagation();
+    
+    // 로컬 스토리지에서 좋아요 기록 확인
+    const likesKey = `likes_${postId}`;
+    const currentLikes = parseInt(localStorage.getItem(likesKey) || '0');
+    
+    if (currentLikes >= 3) {
+      alert('이미 충분히 응원하셨습니다! (최대 3회)');
+      return;
+    }
+
     const post = posts.find(p => p.id === postId);
     if (!post) return;
     const newLikes = (post.likes_count || 0) + 1;
+    
+    // 기기 로컬에 기록 저장
+    localStorage.setItem(likesKey, (currentLikes + 1).toString());
+
     setPosts(posts.map(p => p.id === postId ? { ...p, likes_count: newLikes } : p));
     if (selectedPost && selectedPost.id === postId) {
       setSelectedPost({ ...selectedPost, likes_count: newLikes });
