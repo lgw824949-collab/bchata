@@ -236,8 +236,9 @@ export default function AdminDashboard({ onBack, refreshData }) {
         title: editingParty.title,
         date: editingParty.date,
         time: editingParty.time,
-        day_of_week: getDayName(editingParty.date), // 요일 자동 재계산 반영
+        day_of_week: getDayName(editingParty.date),
         description: editingParty.description,
+        address: editingParty.address, // 주소 필드 추가
         fee: editingParty.fee,
         s_ratio: parseInt(editingParty.s_ratio) || 0,
         b_ratio: parseInt(editingParty.b_ratio) || 0,
