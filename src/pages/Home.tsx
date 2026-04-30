@@ -168,6 +168,93 @@ const RollingContainer = ({ items, onSelect }) => {
   );
 };
 
+const GridPartyCard = ({ item, onSelect }) => {
+  return (
+    <div 
+      onClick={() => onSelect(item.poster_url)}
+      style={{ 
+        display: 'flex', 
+        flexDirection: 'column',
+        backgroundColor: '#FFFFFF',
+        borderRadius: '12px',
+        overflow: 'hidden',
+        border: '1px solid #F1F5F9',
+        cursor: 'pointer',
+        height: '220px',
+        width: '100%',
+        boxShadow: '0 1px 2px rgba(0,0,0,0.02)'
+      }}
+    >
+      <div style={{ height: '130px', backgroundColor: '#f8f8f8', flexShrink: 0 }}>
+        <img src={item.poster_url} alt="포스터" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+      </div>
+      <div style={{ padding: '8px', display: 'flex', flexDirection: 'column', gap: '2px', flex: 1, justifyContent: 'center', minWidth: 0 }}>
+        <div style={{ fontSize: '13px', fontWeight: 900, color: '#1E293B', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{item.locationName}</div>
+        <div style={{ fontSize: '12px', fontWeight: 600, color: '#1E293B', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', marginBottom: '2px' }}>
+          {item.title?.replace(/\[.*?\]/g, '').replace('오늘밤빠', '').replace('밤빠', '').trim()}
+        </div>
+        <div style={{ display: 'flex', gap: '4px', flexWrap: 'nowrap', overflow: 'hidden' }}>
+          <span style={{ background: '#FFF1F0', color: '#E53935', padding: '1px 6px', borderRadius: '8px', fontSize: '9px', fontWeight: 700 }}>
+             {(() => {
+              const d = new Date(item.date);
+              return `${d.getMonth() + 1}/${d.getDate()}`;
+            })()}
+          </span>
+          <span style={{ background: '#E6F4FF', color: '#1677FF', padding: '1px 6px', borderRadius: '8px', fontSize: '9px', fontWeight: 700 }}>
+            {item.time?.split('-')[0].trim() || '20:00'}
+          </span>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+const GridRollingContainer = ({ items, onSelect }) => {
+  const [page, setPage] = useState(0);
+  const itemsPerPage = 10;
+  const totalPages = Math.ceil(items.length / itemsPerPage);
+
+  useEffect(() => {
+    if (totalPages <= 1) return;
+    const timer = setInterval(() => {
+      setPage((prev) => (prev + 1) % totalPages);
+    }, 5000);
+    return () => clearInterval(timer);
+  }, [totalPages]);
+
+  const currentItems = items.slice(page * itemsPerPage, (page + 1) * itemsPerPage);
+
+  return (
+    <div style={{ minHeight: '500px' }}>
+      <AnimatePresence mode="wait">
+        <motion.div
+          key={page}
+          initial={{ opacity: 0, x: 20 }}
+          animate={{ opacity: 1, x: 0 }}
+          exit={{ opacity: 0, x: -20 }}
+          transition={{ duration: 0.6 }}
+          style={{ 
+            display: 'grid', 
+            gridTemplateColumns: '1fr 1fr', 
+            gap: '12px' 
+          }}
+        >
+          {currentItems.map((item) => (
+            <GridPartyCard key={item.id} item={item} onSelect={onSelect} />
+          ))}
+        </motion.div>
+      </AnimatePresence>
+      {totalPages > 1 && (
+        <div style={{ display: 'flex', justifyContent: 'center', gap: '6px', marginTop: '25px' }}>
+          {Array.from({ length: totalPages }).map((_, i) => (
+            <div key={i} style={{ width: '6px', height: '6px', borderRadius: '50%', background: i === page ? '#E53935' : '#CBD5E1', transition: 'background 0.3s' }} />
+          ))}
+        </div>
+      )}
+    </div>
+  );
+};
+
 const SkeletonCard = () => (
   <div style={{ background: '#f3f4f6', borderRadius: '12px', height: '240px', width: '100%', position: 'relative', overflow: 'hidden' }}>
     <div className="shimmer-placeholder" style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', background: 'linear-gradient(90deg, #f3f4f6 0%, #e5e7eb 50%, #f3f4f6 100%)', backgroundSize: '200% 100%', animation: 'shimmer 1.5s infinite' }} />
