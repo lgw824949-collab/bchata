@@ -310,14 +310,16 @@ const HomePage = ({
                         // 1. 날짜 필터링
                         if (p.date !== selectedDate) return false;
                         
-                        // 2. 지역 필터링
+                        // 2. 지역 필터링 (주소 기반 명시적 매칭)
                         const addr = p.address || '';
-                        const reg = p.region || '';
                         let matchesRegion = false;
-                        if (filterRegion === '서울') matchesRegion = reg === '서울' || addr.includes('서울');
+                        if (filterRegion === '서울') matchesRegion = addr.includes('서울');
                         else if (filterRegion === '경기/인천') matchesRegion = addr.includes('경기') || addr.includes('인천');
+                        else if (filterRegion === '부산') matchesRegion = addr.includes('부산');
+                        else if (filterRegion === '대구') matchesRegion = addr.includes('대구');
+                        else if (filterRegion === '대전') matchesRegion = addr.includes('대전');
+                        else if (filterRegion === '광주') matchesRegion = addr.includes('광주');
                         else if (filterRegion === '기타') matchesRegion = true;
-                        else matchesRegion = addr.includes(filterRegion);
 
                         if (!matchesRegion) return false;
 
@@ -333,13 +335,17 @@ const HomePage = ({
                         parties.filter(p => {
                           if (p.date !== selectedDate) return false;
                           const addr = p.address || '';
-                          const reg = p.region || '';
                           let matchesRegion = false;
-                          if (filterRegion === '서울') matchesRegion = reg === '서울' || addr.includes('서울');
+                          if (filterRegion === '서울') matchesRegion = addr.includes('서울');
                           else if (filterRegion === '경기/인천') matchesRegion = addr.includes('경기') || addr.includes('인천');
+                          else if (filterRegion === '부산') matchesRegion = addr.includes('부산');
+                          else if (filterRegion === '대구') matchesRegion = addr.includes('대구');
+                          else if (filterRegion === '대전') matchesRegion = addr.includes('대전');
+                          else if (filterRegion === '광주') matchesRegion = addr.includes('광주');
                           else if (filterRegion === '기타') matchesRegion = true;
-                          else matchesRegion = addr.includes(filterRegion);
+                          
                           if (!matchesRegion) return false;
+
                           let matchesGenre = false;
                           if (filterGenre === 'Bachata') matchesGenre = (p.b_ratio || 0) > 0;
                           else if (filterGenre === 'Salsa') matchesGenre = (p.s_ratio || 0) > 0;
