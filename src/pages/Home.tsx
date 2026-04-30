@@ -279,6 +279,78 @@ const SkeletonCard = () => (
   </div>
 );
 
+const FilterBar = ({ 
+  filterRegion, setFilterRegion, 
+  filterGenre, setFilterGenre 
+}) => {
+  const regions = ['서울', '경기/인천', '경상도', '전라도', '충청도', '강원/제주'];
+  const genres = ['바차타', '살사', '쥬크', '키좀바'];
+
+  return (
+    <div style={{ padding: '0 15px 15px', background: '#fff' }}>
+      <div style={{ 
+        display: 'flex', 
+        overflowX: 'auto', 
+        gap: '8px', 
+        paddingBottom: '10px',
+        msOverflowStyle: 'none',
+        scrollbarWidth: 'none',
+        WebkitOverflowScrolling: 'touch'
+      }} className="filter-scroll">
+        {regions.map(r => (
+          <button
+            key={r}
+            onClick={() => setFilterRegion(filterRegion === r ? '' : r)}
+            style={{
+              padding: '8px 16px',
+              borderRadius: '20px',
+              fontSize: '13px',
+              fontWeight: 800,
+              whiteSpace: 'nowrap',
+              border: 'none',
+              background: filterRegion === r ? '#E53935' : '#F1F5F9',
+              color: filterRegion === r ? '#fff' : '#64748B',
+              boxShadow: filterRegion === r ? '0 4px 10px rgba(229, 57, 53, 0.2)' : 'none',
+              transition: 'all 0.2s'
+            }}
+          >
+            {r}
+          </button>
+        ))}
+      </div>
+      <div style={{ 
+        display: 'flex', 
+        overflowX: 'auto', 
+        gap: '8px',
+        msOverflowStyle: 'none',
+        scrollbarWidth: 'none',
+        WebkitOverflowScrolling: 'touch'
+      }} className="filter-scroll">
+        {genres.map(g => (
+          <button
+            key={g}
+            onClick={() => setFilterGenre(filterGenre === g ? '' : g)}
+            style={{
+              padding: '8px 16px',
+              borderRadius: '20px',
+              fontSize: '13px',
+              fontWeight: 800,
+              whiteSpace: 'nowrap',
+              border: 'none',
+              background: filterGenre === g ? '#1E293B' : '#F1F5F9',
+              color: filterGenre === g ? '#fff' : '#64748B',
+              boxShadow: filterGenre === g ? '0 4px 10px rgba(30, 41, 59, 0.2)' : 'none',
+              transition: 'all 0.2s'
+            }}
+          >
+            {g}
+          </button>
+        ))}
+      </div>
+    </div>
+  );
+};
+
 const HomePage = ({ 
   parties, lessons, loading, selectedMonth, setSelectedMonth, selectedWeek, setSelectedWeek, 
   selectedDate, setSelectedDate, selectedRegion, setSelectedRegion, isExpanded, setIsExpanded,
@@ -573,7 +645,7 @@ const HomePage = ({
         </div>
 
         {/* (2) 2층: 미니 LED 전광판 (라운딩 블랙) */}
-        <div style={{ padding: '5px 10px 10px' }}>
+        <div style={{ padding: '5px 10px 5px' }}>
           <div style={{ 
             height: '38px', 
             background: '#000', 
@@ -637,6 +709,14 @@ const HomePage = ({
             </div>
           </div>
         </div>
+
+        {/* (3) 3층: 긴급 필터바 */}
+        <FilterBar 
+          filterRegion={filterRegion} 
+          setFilterRegion={setFilterRegion} 
+          filterGenre={filterGenre} 
+          setFilterGenre={setFilterGenre} 
+        />
       </div>
 
       {/* 📌 [영역 B: 개별 스크롤석] - 화이트 스트리트 리스트 */}
@@ -648,7 +728,7 @@ const HomePage = ({
           flex: 1, 
           WebkitOverflowScrolling: 'touch',
           width: '100%',
-          padding: '130px 0 0 0', // 📌 헤더 높이만큼 여백 확보 (60px + 70px)
+          padding: '210px 0 0 0', // 📌 헤더 높이만큼 여백 확보 (60px + 50px + 100px 정도)
           background: '#fff',
           ...zoomContainerStyle
         }}
@@ -818,10 +898,21 @@ const HomePage = ({
                   }
                   return false;
                 });
-                const regions = ["서울", "경기/인천", "충청도", "전라도", "경상도", "강원/제주"];
+                const regions = filterRegion ? [filterRegion] : ["서울", "경기/인천", "충청도", "전라도", "경상도", "강원/제주"];
                 
                 return regions.map((regionName) => {
                   const regionParties = dayParties.filter(p => {
+                    // 장르 필터 적용 (바차타/Bachata, 살사/Salsa 등 유연하게 매칭)
+                    const genreMatch = !filterGenre || 
+                                     p.title?.toLowerCase().includes(filterGenre.toLowerCase()) || 
+                                     p.genre?.toLowerCase().includes(filterGenre.toLowerCase()) ||
+                                     (filterGenre === '바차타' && (p.title?.toLowerCase().includes('bachata') || p.genre?.toLowerCase().includes('bachata'))) ||
+                                     (filterGenre === '살사' && (p.title?.toLowerCase().includes('salsa') || p.genre?.toLowerCase().includes('salsa'))) ||
+                                     (filterGenre === '쥬크' && (p.title?.toLowerCase().includes('zouk') || p.genre?.toLowerCase().includes('zouk'))) ||
+                                     (filterGenre === '키좀바' && (p.title?.toLowerCase().includes('kizomba') || p.genre?.toLowerCase().includes('kizomba')));
+                    
+                    if (!genreMatch) return false;
+
                     const r = p.broadRegion || '';
                     const city = p.cityName || '';
                     
