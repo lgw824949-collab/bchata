@@ -1077,22 +1077,67 @@ const HomePage = ({
 
       <AnimatePresence>
         {showFullCalendar && (
-          <motion.div
-            initial={{ y: -50, opacity: 0 }} animate={{ y: 0, opacity: 1 }} exit={{ y: -50, opacity: 0 }}
-            style={{
-              position: 'fixed', top: '70px', right: '15px', width: '320px',
-              background: '#fff', borderRadius: '20px', padding: '20px',
-              boxShadow: '0 10px 30px rgba(0,0,0,0.2)', zIndex: 10005
-            }}
-          >
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '15px' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                <ChevronLeft size={20} onClick={() => setSelectedMonth(m => m > 1 ? m-1 : 12)} style={{ cursor: 'pointer' }} />
-                <span style={{ fontSize: '18px', fontWeight: 900 }}>{selectedMonth}월</span>
-                <ChevronRight size={20} onClick={() => setSelectedMonth(m => m < 12 ? m+1 : 1)} style={{ cursor: 'pointer' }} />
+          <>
+            {/* Background Overlay for closing */}
+            <motion.div 
+              initial={{ opacity: 0 }} 
+              animate={{ opacity: 1 }} 
+              exit={{ opacity: 0 }}
+              onClick={() => { setShowFullCalendar(false); setShowFilterPanel(false); }}
+              style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.6)', backdropFilter: 'blur(4px)', zIndex: 10004 }}
+            />
+            <motion.div
+              initial={{ y: -50, opacity: 0 }} 
+              animate={{ y: 0, opacity: 1 }} 
+              exit={{ y: -50, opacity: 0 }}
+              style={{
+                position: 'fixed', 
+                top: '50%', 
+                left: '50%',
+                transform: 'translate(-50%, -50%)',
+                width: '90%',
+                maxWidth: '350px',
+                background: '#fff', 
+                borderRadius: '24px', 
+                padding: '24px',
+                boxShadow: '0 20px 50px rgba(0,0,0,0.3)', 
+                zIndex: 10005
+              }}
+            >
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                  <button 
+                    onClick={() => setSelectedMonth(m => m > 1 ? m-1 : 12)}
+                    style={{ background: '#F1F5F9', border: 'none', borderRadius: '10px', width: '32px', height: '32px', cursor: 'pointer' }}
+                  >
+                    <ChevronLeft size={18} color="#64748B" />
+                  </button>
+                  <span style={{ fontSize: '20px', fontWeight: 950, color: '#1E293B' }}>{selectedMonth}월</span>
+                  <button 
+                    onClick={() => setSelectedMonth(m => m < 12 ? m+1 : 1)}
+                    style={{ background: '#F1F5F9', border: 'none', borderRadius: '10px', width: '32px', height: '32px', cursor: 'pointer' }}
+                  >
+                    <ChevronRight size={18} color="#64748B" />
+                  </button>
+                </div>
+                <button 
+                  onClick={() => { setShowFullCalendar(false); setShowFilterPanel(false); }} 
+                  style={{ 
+                    background: '#FFF1F0', 
+                    border: 'none', 
+                    borderRadius: '50%', 
+                    width: '36px', 
+                    height: '36px', 
+                    display: 'flex', 
+                    alignItems: 'center', 
+                    justifyContent: 'center',
+                    color: '#E53935',
+                    cursor: 'pointer'
+                  }}
+                >
+                  <X size={20} strokeWidth={3} />
+                </button>
               </div>
-              <button onClick={() => { setShowFullCalendar(false); setShowFilterPanel(false); }} style={{ border: 'none', background: 'none', fontSize: '18px' }}>✕</button>
-            </div>
             
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: '5px', textAlign: 'center' }}>
               {['일','월','화','수','목','금','토'].map(d => (

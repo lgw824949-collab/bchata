@@ -330,7 +330,13 @@ function App() {
         return;
       }
 
-      // 2순위: 해시 기반 뷰 전환 처리
+      // 2순위: 열려있는 달력이 있다면 닫기
+      if (showFullCalendar) {
+        setShowFullCalendar(false);
+        return;
+      }
+
+      // 3순위: 해시 기반 뷰 전환 처리
       const newHash = window.location.hash.replace('#', '');
       if (newHash && newHash !== view) {
         setView(newHash);
