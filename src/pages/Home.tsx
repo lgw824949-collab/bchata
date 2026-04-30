@@ -261,12 +261,9 @@ const HomePage = ({
                           key={day.fullDate} 
                           onClick={() => { 
                             setSelectedDate(day.fullDate); 
-                            if (isWeekend) {
-                              setShowFilterPanel(true);
-                              setFilterStep(1);
-                            } else {
-                              setShowFullCalendar(false);
-                            }
+                            // 모든 날짜 클릭 시 3단계 필터 플로우 활성화
+                            setShowFilterPanel(true);
+                            setFilterStep(1);
                           }} 
                           style={{ height: '46px', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', fontSize: '15px', fontWeight: isSelected ? 800 : 600, color: isSelected ? '#fff' : (day.dayName === '일' ? '#EF4444' : (isWeekend ? '#D4A017' : '#1E293B')), backgroundColor: isSelected ? (isWeekend ? '#D4A017' : '#E53935') : 'transparent', borderRadius: '14px', cursor: 'pointer' }}
                         >
