@@ -742,40 +742,63 @@ const HomePage = ({
                                     )
                                   }}
                                   style={{
-                                    display:'flex', alignItems:'center', gap:6,
-                                    marginBottom:6, cursor:'pointer',
+                                    display:'flex', 
+                                    alignItems:'center', 
+                                    gap: '6px',
+                                    marginBottom: '4px', 
+                                    cursor:'pointer',
                                   }}
                                 >
-                                  <span style={{ fontSize:13 }}>📍</span>
+                                  <span style={{ fontSize: '14px', lineHeight: 1 }}>📍</span>
                                   <span style={{
-                                    fontSize:'14px', fontWeight:900,
-                                    color:'#E53935',
-                                    textDecoration:'underline',
-                                    textDecorationColor:'rgba(229, 57, 53, 0.2)',
-                                    letterSpacing:'-0.3px',
-                                    fontFamily: "'Pretendard', sans-serif"
+                                    fontSize: '15px', 
+                                    fontWeight: 900,
+                                    color: '#E53935',
+                                    textDecoration: 'underline',
+                                    textDecorationColor: 'rgba(229, 57, 53, 0.2)',
+                                    letterSpacing: '-0.3px',
+                                    fontFamily: "'Pretendard', sans-serif",
+                                    lineHeight: 1.2
                                   }}>
                                     {item.locationName}
                                   </span>
-                                  <span style={{ fontSize:'12px', color:'#94A3B8', fontWeight: 400, fontFamily: "'Pretendard', sans-serif" }}>지도 →</span>
+                                  <span style={{ 
+                                    fontSize: '12px', 
+                                    color: '#94A3B8', 
+                                    fontWeight: 400, 
+                                    fontFamily: "'Pretendard', sans-serif",
+                                    marginLeft: '2px'
+                                  }}>
+                                    지도 →
+                                  </span>
                                 </div>
 
-                                {/* 1. 타이틀 (무조건 2줄) */}
+                                {/* 1. 타이틀 (지역 태그 제거) */}
                                 <div style={{ 
-                                  fontSize: '15px', fontWeight: 700, color: '#1E293B', 
-                                  lineHeight: '1.3', marginBottom: '10px',
-                                  display: 'block', whiteSpace: 'nowrap',
-                                  overflow: 'hidden', textOverflow: 'ellipsis',
+                                  fontSize: '15px', 
+                                  fontWeight: 700, 
+                                  color: '#1E293B', 
+                                  lineHeight: '1.2', 
+                                  marginBottom: '8px',
+                                  display: 'block', 
+                                  whiteSpace: 'nowrap',
+                                  overflow: 'hidden', 
+                                  textOverflow: 'ellipsis',
                                   wordBreak: 'keep-all',
                                   fontFamily: "'Pretendard', sans-serif"
                                 }}>
-                                  {item.title?.split('|')[0].replace('오늘밤빠', '').replace('밤빠', '').trim()}
+                                  {item.title?.replace(/\[.*?\]/g, '').replace('오늘밤빠', '').replace('밤빠', '').trim()}
                                 </div>
                                 
-                                {/* 2. 모든 메타 정보 (무조건 1줄) */}
+                                {/* 2. 모든 메타 정보 (날짜, 시간, 참가비, 뱃지) */}
                                 <div style={{ 
-                                  display: 'flex', alignItems: 'center', gap: '5px', 
-                                  fontSize: '13px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
+                                  display: 'flex', 
+                                  alignItems: 'center', 
+                                  gap: '6px', 
+                                  fontSize: '13px', 
+                                  whiteSpace: 'nowrap', 
+                                  overflow: 'hidden', 
+                                  textOverflow: 'ellipsis',
                                   fontFamily: "'Pretendard', sans-serif"
                                 }}>
                                   <span style={{ color: '#E53935', fontWeight: 700 }}>
@@ -785,17 +808,17 @@ const HomePage = ({
                                       return `${d.getMonth() + 1}/${d.getDate()}(${days[d.getDay()]})`;
                                     })()}
                                   </span>
-                                  <span style={{ color: '#94A3B8' }}>·</span>
+                                  <span style={{ color: '#CBD5E1' }}>·</span>
                                   <span style={{ color: '#1E293B', fontWeight: 700 }}>{item.time?.split('-')[0].trim() || '20:00'}</span>
-                                  <span style={{ color: '#94A3B8' }}>·</span>
+                                  <span style={{ color: '#CBD5E1' }}>·</span>
                                   <span style={{ color: '#1E293B', fontWeight: 800 }}>
                                     {(() => {
                                       const fee = String(item.entry_fee || '1.2만');
                                       return fee.includes('만') ? fee : (parseInt(fee.replace(/[^0-9]/g, ''))/10000).toFixed(1).replace('.0','') + '만';
                                     })()}
                                   </span>
-                                  <span style={{ color: '#94A3B8' }}>·</span>
-                                  <div style={{ display: 'flex', alignItems: 'center' }}>
+                                  <span style={{ color: '#CBD5E1' }}>·</span>
+                                  <div style={{ display: 'flex', alignItems: 'center', gap: '3px' }}>
                                     {(() => {
                                       const ratios = [
                                         { l: 'S', v: item.s_ratio || 0 },
@@ -809,11 +832,9 @@ const HomePage = ({
                                           <span key={r.l} style={{
                                             display: 'inline-flex',
                                             alignItems: 'center',
-                                            padding: '1px 6px',
-                                            borderRadius: '99px',
+                                            padding: '1px 5px',
+                                            borderRadius: '4px',
                                             fontSize: '10px',
-                                            fontWeight: 800,
-                                            letterSpacing: '0.3px',
                                             marginRight: '3px',
                                             background: r.l==='S' ? '#E53935' : r.l==='B' ? '#1D9E75' : r.l==='K' ? '#7C3AED' : '#F59E0B',
                                             color: 'white',
