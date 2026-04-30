@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo, useRef } from 'react';
-import { Heart, MapPin, Calendar, User, Music, ChevronRight, ShieldCheck, X, Home as HomeIcon, ChevronLeft, CloudSun, Utensils, Zap, PlusCircle, Languages, Bell, Globe } from 'lucide-react';
+import { Heart, MapPin, Calendar, User, Music, ChevronRight, ShieldCheck, X, Home as HomeIcon, ChevronLeft, CloudSun, Utensils, Zap, PlusCircle, Languages, Bell, Globe, Navigation } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { motion, AnimatePresence } from 'framer-motion';
 import QuickPinchZoom, { make3dTransformValue } from 'react-quick-pinch-zoom';
@@ -98,7 +98,21 @@ const PartyCard = ({ item, onSelect }) => {
       <div style={{ padding: '12px 16px', display: 'flex', flexDirection: 'column', justifyContent: 'center', minWidth: 0, flex: 1, gap: '4px' }}>
         <div style={{ display:'flex', alignItems:'center', gap: '8px' }}>
           <span style={{ fontSize: '16px', fontWeight: 900, color: '#1E293B', fontFamily: "'Pretendard', sans-serif" }}>{item.locationName}</span>
-          <span style={{ fontSize: '12px', color: '#94A3B8', fontWeight: 400, fontFamily: "'Pretendard', sans-serif" }}>지도 →</span>
+          <div 
+            onClick={(e) => {
+              e.stopPropagation();
+              const address = item.address || item.locationName;
+              window.open(`https://map.kakao.com/link/search/${encodeURIComponent(address)}`, '_blank');
+            }}
+            style={{ 
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              width: '24px', height: '24px', borderRadius: '50%',
+              backgroundColor: '#F8FAFC', border: '1px solid #E2E8F0',
+              cursor: 'pointer', color: '#E53935'
+            }}
+          >
+            <Navigation size={14} fill="currentColor" />
+          </div>
         </div>
         <div style={{ fontSize: '15px', fontWeight: 600, color: '#1E293B', display: 'block', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', fontFamily: "'Pretendard', sans-serif", marginBottom: '4px' }}>
           {item.title?.replace(/\[.*?\]/g, '').replace('오늘밤빠', '').replace('밤빠', '').trim()}
