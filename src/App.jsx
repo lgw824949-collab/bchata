@@ -36,43 +36,61 @@ const PosterModal = ({ src, onClose }) => {
 
   const onTouchEnd = () => { lastDist.current = null; };
 
+  const handleSave = async () => {
+    try {
+      const response = await fetch(src);
+      const blob = await response.blob();
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'poster.jpg';
+      a.click();
+      URL.revokeObjectURL(url);
+    } catch (err) {
+      console.error('Save failed:', err);
+      window.open(src, '_blank');
+    }
+  };
+
   return (
     <div onClick={onClose} style={{ position:'fixed', inset:0, zIndex:100000, backgroundColor:'rgba(0,0,0,0.9)', display:'flex', alignItems:'center', justifyContent:'center', touchAction: 'none' }}>
       <div 
         onClick={e => e.stopPropagation()} 
         onTouchMove={onTouchMove} 
         onTouchEnd={onTouchEnd} 
-        style={{ width:'100%', height:'100%', display:'flex', alignItems:'center', justifyContent:'center', touchAction: 'none' }}
+        style={{ width:'100%', height:'100%', display:'flex', flexDirection: 'column', alignItems:'center', justifyContent:'center', touchAction: 'none' }}
       >
         <img 
           src={src} 
           alt="poster" 
           style={{ 
             maxWidth:'100%', 
-            maxHeight:'90vh', 
+            maxHeight:'75vh', 
             objectFit:'contain', 
             transform:`scale(${scale})`, 
             transformOrigin:'center', 
             transition:'transform 0.1s',
-            userSelect: 'none'
+            userSelect: 'none',
+            marginBottom: '20px'
           }} 
         />
-        <a 
-          href={src}
-          download="poster.jpg"
-          target="_blank"
-          rel="noreferrer"
-          onClick={e => e.stopPropagation()}
+        
+        <button 
+          onClick={handleSave}
           style={{ 
-            position:'absolute', top:'40px', right:'80px',
-            background:'rgba(255,255,255,0.2)', border:'none',
-            borderRadius:'50%', width:'44px', height:'44px',
-            color:'#fff', fontSize:'20px', cursor:'pointer',
-            display:'flex', alignItems:'center', justifyContent:'center',
-            textDecoration:'none',
-            zIndex: 100001
+            background: '#E53935',
+            color: 'white',
+            padding: '12px 32px',
+            borderRadius: '24px',
+            fontSize: '15px',
+            fontWeight: '700',
+            border: 'none',
+            cursor: 'pointer',
+            boxShadow: '0 4px 15px rgba(0,0,0,0.3)',
+            zIndex: 100002
           }}
-        >⬇️</a>
+        >📥 저장</button>
+
         <button 
           onClick={onClose} 
           style={{ 
