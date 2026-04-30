@@ -1087,22 +1087,21 @@ const HomePage = ({
               style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.6)', backdropFilter: 'blur(4px)', zIndex: 10004 }}
             />
             <motion.div
-              initial={{ y: '100%' }} 
-              animate={{ y: 0 }} 
-              exit={{ y: '100%' }}
+              initial={{ y: '100%', opacity: 0 }} 
+              animate={{ y: 0, opacity: 1 }} 
+              exit={{ y: '100%', opacity: 0 }}
               transition={{ type: 'spring', damping: 25, stiffness: 200 }}
               style={{
                 position: 'fixed', 
-                bottom: 0,
-                left: 0,
-                right: 0,
-                width: '100%',
+                bottom: '90px', // 내비게이션 바(75px) + 여유공간
+                left: '10px',
+                right: '10px',
                 background: '#fff', 
-                borderTopLeftRadius: '32px', 
-                borderTopRightRadius: '32px',
-                padding: '24px 20px 40px', 
-                boxShadow: '0 -10px 40px rgba(0,0,0,0.2)', 
-                zIndex: 100005
+                borderRadius: '24px', 
+                padding: '20px 20px 24px', 
+                boxShadow: '0 10px 40px rgba(0,0,0,0.25)', 
+                zIndex: 100005,
+                border: '1px solid #f1f5f9'
               }}
             >
               {/* 바텀시트 핸들러 (디자인용) */}
