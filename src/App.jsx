@@ -252,6 +252,7 @@ function App() {
     return !localStorage.getItem('visited_bamppa');
   });
   const [parties, setParties] = useState([]);
+  const [displayParties, setDisplayParties] = useState([]);
   const [loading, setLoading] = useState(true);
   const [selectedDate, setSelectedDate] = useState(todayData.dateStr);
   const [view, setView] = useState(() => {
@@ -331,6 +332,46 @@ function App() {
 
   useEffect(() => { fetchParties(); }, []);
 
+  // --- 자동 번역 엔진 (Google Translate API) ---
+  useEffect(() => {
+    const translateAll = async () => {
+      if (i18n.language.startsWith('en') && parties.length > 0) {
+        const apiKey = import.meta.env.VITE_GOOGLE_TRANSLATE_API_KEY;
+        if (!apiKey) {
+          setDisplayParties(parties);
+          return;
+        }
+
+        try {
+          const titles = parties.map(p => p.title);
+          const res = await fetch(`https://translation.googleapis.com/language/translate/v2?key=${apiKey}`, {
+            method: 'POST',
+            body: JSON.stringify({ q: titles, target: 'en' }),
+            headers: { 'Content-Type': 'application/json' }
+          });
+          const result = await res.json();
+          
+          if (result.data && result.data.translations) {
+            const translatedTitles = result.data.translations.map(t => t.translatedText);
+            const translated = parties.map((p, i) => ({
+              ...p,
+              title: translatedTitles[i] || p.title
+            }));
+            setDisplayParties(translated);
+          } else {
+            setDisplayParties(parties);
+          }
+        } catch (e) {
+          console.error("Translation Error:", e);
+          setDisplayParties(parties);
+        }
+      } else {
+        setDisplayParties(parties);
+      }
+    };
+    translateAll();
+  }, [i18n.language, parties]);
+
   // --- 브라우저 뒤로가기 버튼 제어 (History API) ---
   useEffect(() => {
     const handlePopState = (e) => {
@@ -361,13 +402,13 @@ function App() {
   };
 
   const sharedProps = {
-    parties, lessons: [], loading, selectedMonth: todayData.month, setSelectedMonth: () => {}, selectedWeek: 1, setSelectedWeek: () => {}, 
+    parties: displayParties, lessons: [], loading, selectedMonth: todayData.month, setSelectedMonth: () => {}, selectedWeek: 1, setSelectedWeek: () => {}, 
     selectedDate, setSelectedDate, selectedRegion: '서울', setSelectedRegion: () => {}, 
     view, setView, setSelectedPoster, 
     openAnalysis: () => openAnalysis(false), fourteenDays: Array.from({ length: 14 }).map((_, i) => {
       const d = new Date(); d.setDate(d.getDate() + i);
       return { fullDate: formatDateToKSTString(d), date: String(d.getDate()), month: String(d.getMonth() + 1), dayName: DAYS_KOR[d.getDay()], isToday: i === 0, dayOfWeek: d.getDay() };
-    }), weekData: [], allDatesInMonth: [], filteredParties: parties.filter(p => p.date === selectedDate),
+    }), weekData: [], allDatesInMonth: [], filteredParties: displayParties.filter(p => p.date === selectedDate),
     showFullCalendar: false, setShowFullCalendar: () => {}, likedIds: [], toggleLike: () => {},
     IncheonBanner: () => <IncheonPremiumBanner t={t} onClick={() => openAnalysis(false)} />, venueCounts: {}, resetToToday: () => { setView('home'); setSelectedDate(todayData.dateStr); }, formatItemDate: (d, t) => `${d} ${t}`, formatFee: (f) => f, handleRegister: () => setView('register'), logActivity: () => {}, regionalTheme: { welcomeMsg: "전국 댄서들을 위한 실시간 정보", specialBanner: true }
   };
