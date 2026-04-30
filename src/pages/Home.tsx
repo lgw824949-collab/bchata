@@ -748,24 +748,26 @@ const HomePage = ({
                                 >
                                   <span style={{ fontSize:13 }}>📍</span>
                                   <span style={{
-                                    fontSize:13, fontWeight:900,
+                                    fontSize:'14px', fontWeight:900,
                                     color:'#E53935',
                                     textDecoration:'underline',
                                     textDecorationColor:'rgba(229, 57, 53, 0.2)',
                                     letterSpacing:'-0.3px',
+                                    fontFamily: "'Pretendard', sans-serif"
                                   }}>
                                     {item.locationName}
                                   </span>
-                                  <span style={{ fontSize:11, color:'#94A3B8', fontWeight: '400' }}>지도 →</span>
+                                  <span style={{ fontSize:'12px', color:'#94A3B8', fontWeight: 400, fontFamily: "'Pretendard', sans-serif" }}>지도 →</span>
                                 </div>
 
                                 {/* 1. 타이틀 (무조건 2줄) */}
                                 <div style={{ 
-                                  fontSize: '15px', fontWeight: '700', color: '#1E293B', 
+                                  fontSize: '15px', fontWeight: 700, color: '#1E293B', 
                                   lineHeight: '1.3', marginBottom: '10px',
                                   display: 'block', whiteSpace: 'nowrap',
                                   overflow: 'hidden', textOverflow: 'ellipsis',
-                                  wordBreak: 'keep-all'
+                                  wordBreak: 'keep-all',
+                                  fontFamily: "'Pretendard', sans-serif"
                                 }}>
                                   {item.title?.split('|')[0].replace('오늘밤빠', '').replace('밤빠', '').trim()}
                                 </div>
@@ -773,26 +775,27 @@ const HomePage = ({
                                 {/* 2. 모든 메타 정보 (무조건 1줄) */}
                                 <div style={{ 
                                   display: 'flex', alignItems: 'center', gap: '5px', 
-                                  fontSize: '11px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' 
+                                  fontSize: '13px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
+                                  fontFamily: "'Pretendard', sans-serif"
                                 }}>
-                                  <span style={{ color: '#E53935', fontWeight: '700' }}>
+                                  <span style={{ color: '#E53935', fontWeight: 700 }}>
                                     {(() => {
                                       const d = new Date(item.date);
                                       const days = ['일', '월', '화', '수', '목', '금', '토'];
                                       return `${d.getMonth() + 1}/${d.getDate()}(${days[d.getDay()]})`;
                                     })()}
                                   </span>
-                                  <span style={{ color: '#E2E8F0' }}>·</span>
-                                  <span style={{ color: '#E53935', fontWeight: '700' }}>{item.time?.split('-')[0].trim() || '20:00'}</span>
-                                  <span style={{ color: '#E2E8F0' }}>·</span>
-                                  <span style={{ color: '#94A3B8', fontWeight: '400' }}>
+                                  <span style={{ color: '#94A3B8' }}>·</span>
+                                  <span style={{ color: '#1E293B', fontWeight: 700 }}>{item.time?.split('-')[0].trim() || '20:00'}</span>
+                                  <span style={{ color: '#94A3B8' }}>·</span>
+                                  <span style={{ color: '#1E293B', fontWeight: 800 }}>
                                     {(() => {
                                       const fee = String(item.entry_fee || '1.2만');
                                       return fee.includes('만') ? fee : (parseInt(fee.replace(/[^0-9]/g, ''))/10000).toFixed(1).replace('.0','') + '만';
                                     })()}
                                   </span>
-                                  <span style={{ color: '#E2E8F0' }}>·</span>
-                                  <span style={{ color: '#94A3B8', fontWeight: '400' }}>
+                                  <span style={{ color: '#94A3B8' }}>·</span>
+                                  <span style={{ color: '#94A3B8', fontWeight: 400, fontSize: '12px' }}>
                                     {(() => {
                                       const ratios = [
                                         { l: 'S', v: item.s_ratio || 0 },
