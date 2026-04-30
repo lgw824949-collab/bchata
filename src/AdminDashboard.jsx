@@ -223,36 +223,17 @@ export default function AdminDashboard({ onBack, refreshData }) {
     if (!editingParty) return
     setLoading(true)
     try {
-      // [영어 번역 로직 추가]
-      let translatedTitle = editingParty.title_en || '';
-      try {
-        const apiKey = import.meta.env.VITE_GOOGLE_TRANSLATE_API_KEY;
-        const response = await fetch(`https://translation.googleapis.com/language/translate/v2?key=${apiKey}`, {
-          method: 'POST',
-          body: JSON.stringify({
-            q: editingParty.title,
-            target: 'en',
-            source: 'ko'
-          })
-        });
-        const result = await response.json();
-        translatedTitle = result?.data?.translations?.[0]?.translatedText || translatedTitle;
-      } catch (tErr) {
-        console.error('Update translation error:', tErr);
-      }
 
       const table = activeTab === 'pending' ? 'pending_parties' : 'parties'
       // 화면의 모든 input 값을 하나의 객체로 묶어 UPDATE 요청 준비
       const updateData = activeTab === 'pending' ? {
         title: editingParty.title,
-        title_en: translatedTitle,
         location_name: editingParty.location_name,
         date: editingParty.date,
         time: editingParty.time,
         fee: editingParty.fee
       } : {
         title: editingParty.title,
-        title_en: translatedTitle,
         date: editingParty.date,
         time: editingParty.time,
         day_of_week: getDayName(editingParty.date), // 요일 자동 재계산 반영
@@ -310,7 +291,6 @@ export default function AdminDashboard({ onBack, refreshData }) {
         .from('parties')
         .insert([{
           title: item.title,
-          title_en: item.title_en || '', // 대기 중 저장된 영어 제목 사용
           date: item.date,
           day_of_week: item.day_of_week,
           time: item.time,
