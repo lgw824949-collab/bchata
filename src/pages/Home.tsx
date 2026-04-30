@@ -665,8 +665,22 @@ const HomePage = ({
                         gap: '12px',
                         padding: '0 15px 20px'
                       }}>
-                        {shuffledParties.length > 0 ? (
-                          shuffledParties.map((item) => (
+                        {(() => {
+                          // 1. 해당 지역 및 날짜 필터링
+                          let filtered = parties.filter(p => p.region === regionName && p.date === selectedDate);
+                          
+                          // 2. 최신 등록순 정렬 (실시간 반영)
+                          filtered.sort((a, b) => new Date(b.created_at || 0).getTime() - new Date(a.created_at || 0).getTime());
+                          
+                          // 3. 지역별 노출 개수 제한 (서울: 3, 경기/인천: 3, 기타: 2)
+                          let limit = 2;
+                          if (regionName === '서울') limit = 3;
+                          else if (regionName === '경기' || regionName === '인천') limit = 3;
+                          
+                          const displayParties = filtered.slice(0, limit);
+
+                          return displayParties.length > 0 ? (
+                            displayParties.map((item) => (
                             <div 
                               key={item.id} 
                               onClick={() => setSelectedPoster(item.poster_url)}
@@ -798,7 +812,8 @@ const HomePage = ({
                           }}>
                             이 지역은 아직 등록된 파티가 없습니다.
                           </div>
-                        )}
+                        );
+                      })()}
                       </div>
                     </section>
                   );
