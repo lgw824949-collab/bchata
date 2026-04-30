@@ -18,17 +18,33 @@ const Community = ({ setSelectedPoster, setView }) => {
 
   const fetchPosts = async () => {
     setLoading(true);
-    let query = supabase
+    let { data, error } = await supabase
       .from('community_posts')
-      .select('*')
-      .order('created_at', { ascending: false });
+      .select('*');
     
-    if (selectedRegion !== '전체') {
-      query = query.eq('region', selectedRegion);
+    if (!error && data) {
+      if (selectedRegion === '전체') {
+        // 1. 랭킹 로직: 좋아요+조회수 기반 상위 3개 추출
+        const sortedByPopularity = [...data].sort((a, b) => (b.likes_count + b.view_count) - (a.likes_count + a.view_count));
+        const top3 = sortedByPopularity.slice(0, 3).map(p => ({ ...p, rank: true }));
+        const top3Ids = new Set(top3.map(p => p.id));
+        
+        // 2. 실시간 로직: 랭킹 제외 최신순 상위 3개 추출
+        const rest = data
+          .filter(p => !top3Ids.has(p.id))
+          .sort((a, b) => new Date(b.created_at) - new Date(a.created_at))
+          .slice(0, 3);
+        
+        // 총 6개 슬롯 구성
+        setPosts([...top3, ...rest]);
+      } else {
+        // 지역 필터: 해당 지역 최신순
+        const filtered = data
+          .filter(p => p.region === selectedRegion)
+          .sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+        setPosts(filtered);
+      }
     }
-
-    const { data, error } = await query;
-    if (!error) setPosts(data || []);
     setLoading(false);
   };
 
@@ -182,7 +198,7 @@ const Community = ({ setSelectedPoster, setView }) => {
             <p style={{ fontSize: '13px', color: '#94A3B8' }}>{selectedRegion} 지역의 첫 번째 소식을 전해주세요!</p>
           </div>
         ) : (
-          posts.map(post => (
+          posts.map((post, index) => (
             <motion.div 
               key={post.id}
               whileTap={{ scale: 0.98 }}
@@ -190,6 +206,47 @@ const Community = ({ setSelectedPoster, setView }) => {
               style={{ position: 'relative', borderRadius: '16px', overflow: 'hidden', aspectRatio: '1/1.2', background: '#fff', boxShadow: '0 4px 15px rgba(0,0,0,0.05)' }}
             >
               <img src={post.image_url} alt="feed" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+              
+              {/* Ranking Badge */}
+              {selectedRegion === '전체' && index < 3 && (
+                <div style={{ 
+                  position: 'absolute', 
+                  top: '10px', 
+                  left: '10px', 
+                  background: index === 0 ? '#FFD700' : index === 1 ? '#C0C0C0' : '#CD7F32', 
+                  color: '#fff', 
+                  padding: '4px 10px', 
+                  borderRadius: '10px', 
+                  fontSize: '11px', 
+                  fontWeight: 900,
+                  boxShadow: '0 2px 8px rgba(0,0,0,0.2)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '4px'
+                }}>
+                  <Star size={12} fill="#fff" />
+                  {index + 1}위
+                </div>
+              )}
+
+              {/* Real-time Badge */}
+              {selectedRegion === '전체' && index >= 3 && index < 6 && (
+                <div style={{ 
+                  position: 'absolute', 
+                  top: '10px', 
+                  left: '10px', 
+                  background: '#3B82F6', 
+                  color: '#fff', 
+                  padding: '4px 10px', 
+                  borderRadius: '10px', 
+                  fontSize: '10px', 
+                  fontWeight: 900,
+                  boxShadow: '0 2px 8px rgba(0,0,0,0.2)',
+                }}>
+                  실시간
+                </div>
+              )}
+
               <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, background: 'linear-gradient(transparent, rgba(0,0,0,0.7))', padding: '10px', display: 'flex', flexDirection: 'column', justifyContent: 'flex-end' }}>
                 <div style={{ color: '#fff', fontSize: '12px', fontWeight: 800, textShadow: '0 1px 2px rgba(0,0,0,0.5)' }}>{post.bar_name || post.region}</div>
                 <div style={{ color: 'rgba(255,255,255,0.8)', fontSize: '10px' }}>{getRelativeTime(post.created_at)}</div>
