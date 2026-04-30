@@ -848,19 +848,19 @@ const HomePage = ({
                         padding: '0 15px 20px'
                       }}>
                         {(() => {
-                          // 1. 해당 지역 및 날짜 필터링 (타임존 오류 방지를 위해 직접 비교)
-                          const filtered = parties
-                            .filter(p => p.region === regionName && p.date === selectedDate)
-                            .sort((a, b) => new Date(b.created_at || 0).getTime() - new Date(a.created_at || 0).getTime());
+                          // 1. 이미 앱 로직으로 필터링된 regionParties를 사용하여 최신순 정렬
+                          const sortedParties = [...regionParties].sort((a, b) => 
+                            new Date(b.created_at || 0).getTime() - new Date(a.created_at || 0).getTime()
+                          );
                           
                           // 2. 지역별 고정 개수 설정
                           let fixedLimit = 2;
-                          if (regionName === '서울' || regionName === '경기' || regionName === '인천') fixedLimit = 3;
+                          if (regionName === '서울' || regionName === '경기/인천') fixedLimit = 3;
                           
-                          const fixedParties = filtered.slice(0, fixedLimit);
-                          const rollingParties = filtered.slice(fixedLimit);
+                          const fixedItems = sortedParties.slice(0, fixedLimit);
+                          const rollingItems = sortedParties.slice(fixedLimit);
 
-                          if (filtered.length === 0) {
+                          if (sortedParties.length === 0) {
                             return (
                               <div style={{ padding: '30px 0', color: '#94A3B8', fontSize: '13px', textAlign: 'center', width: '100%', fontWeight: '500' }}>
                                 이 지역은 아직 등록된 파티가 없습니다.
@@ -870,14 +870,11 @@ const HomePage = ({
 
                           return (
                             <>
-                              {/* 고정 노출 영역 */}
-                              {fixedParties.map((item) => (
+                              {fixedItems.map((item) => (
                                 <PartyCard key={item.id} item={item} onSelect={setSelectedPoster} />
                               ))}
-
-                              {/* 롤링 노출 영역 (남은 데이터가 있을 때만) */}
-                              {rollingParties.length > 0 && (
-                                <RollingContainer items={rollingParties} onSelect={setSelectedPoster} />
+                              {rollingItems.length > 0 && (
+                                <RollingContainer items={rollingItems} onSelect={setSelectedPoster} />
                               )}
                             </>
                           );
