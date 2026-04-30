@@ -310,20 +310,47 @@ const HomePage = ({
                     </div>
                     <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '10px', marginBottom: '20px' }}>
                       {parties.filter(p => {
+                        // 1. 날짜 필터링
                         if (p.date !== selectedDate) return false;
-                        const r = p.broadRegion || '';
-                        const matchesRegion = filterRegion === '기타' ? true : r.includes(filterRegion.replace('/인천', ''));
-                        const matchesGenre = p.title?.toLowerCase().includes(filterGenre.toLowerCase()) || p.genre?.toLowerCase().includes(filterGenre.toLowerCase());
-                        return matchesRegion && matchesGenre;
+                        
+                        // 2. 지역 필터링
+                        const addr = p.address || '';
+                        const reg = p.region || '';
+                        let matchesRegion = false;
+                        if (filterRegion === '서울') matchesRegion = reg === '서울' || addr.includes('서울');
+                        else if (filterRegion === '경기/인천') matchesRegion = addr.includes('경기') || addr.includes('인천');
+                        else if (filterRegion === '기타') matchesRegion = true;
+                        else matchesRegion = addr.includes(filterRegion);
+
+                        if (!matchesRegion) return false;
+
+                        // 3. 장르 필터링 (비중 비율 필드 연동)
+                        let matchesGenre = false;
+                        if (filterGenre === 'Bachata') matchesGenre = (p.b_ratio || 0) > 0;
+                        else if (filterGenre === 'Salsa') matchesGenre = (p.s_ratio || 0) > 0;
+                        else if (filterGenre === 'Zouk') matchesGenre = (p.j_ratio || 0) > 0;
+                        else if (filterGenre === 'Kizomba') matchesGenre = (p.k_ratio || 0) > 0;
+                        
+                        return matchesGenre;
                       }).length > 0 ? (
                         parties.filter(p => {
                           if (p.date !== selectedDate) return false;
-                          const r = p.broadRegion || '';
-                          const matchesRegion = filterRegion === '기타' ? true : r.includes(filterRegion.replace('/인천', ''));
-                          const matchesGenre = p.title?.toLowerCase().includes(filterGenre.toLowerCase()) || p.genre?.toLowerCase().includes(filterGenre.toLowerCase());
-                          return matchesRegion && matchesGenre;
+                          const addr = p.address || '';
+                          const reg = p.region || '';
+                          let matchesRegion = false;
+                          if (filterRegion === '서울') matchesRegion = reg === '서울' || addr.includes('서울');
+                          else if (filterRegion === '경기/인천') matchesRegion = addr.includes('경기') || addr.includes('인천');
+                          else if (filterRegion === '기타') matchesRegion = true;
+                          else matchesRegion = addr.includes(filterRegion);
+                          if (!matchesRegion) return false;
+                          let matchesGenre = false;
+                          if (filterGenre === 'Bachata') matchesGenre = (p.b_ratio || 0) > 0;
+                          else if (filterGenre === 'Salsa') matchesGenre = (p.s_ratio || 0) > 0;
+                          else if (filterGenre === 'Zouk') matchesGenre = (p.j_ratio || 0) > 0;
+                          else if (filterGenre === 'Kizomba') matchesGenre = (p.k_ratio || 0) > 0;
+                          return matchesGenre;
                         }).map(party => (
-                          <div key={party.id} onClick={() => setSelectedPoster(party.poster_url)} style={{ aspectRatio: '1 / 1.4', borderRadius: '12px', overflow: 'hidden', position: 'relative', background: '#F1F5F9' }}>
+                          <div key={party.id} onClick={() => setSelectedPoster(party.poster_url)} style={{ aspectRatio: '1 / 1.4', borderRadius: '12px', overflow: 'hidden', position: 'relative', background: '#F1F5F9', cursor: 'pointer' }}>
                             <img src={party.poster_url} style={{ width: '100%', height: '100%', objectFit: 'cover' }} alt="Poster" />
                             <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, padding: '8px', background: 'linear-gradient(transparent, rgba(0,0,0,0.9))', color: 'white' }}>
                               <div style={{ fontSize: '10px', color: '#FFEB3B', fontWeight: 900 }}>{party.locationName}</div>
