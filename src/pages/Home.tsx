@@ -44,10 +44,10 @@ const PartyCard = ({ item, onSelect }) => {
         backgroundColor: '#FFFFFF', 
         borderRadius: '16px', 
         overflow: 'hidden', 
-        border: '1px solid #F1F5F9', 
+        border: '1px solid #EAEEF4', 
         cursor: 'pointer', 
         height: '115px', 
-        boxShadow: '0 1px 3px rgba(0,0,0,0.02)', 
+        boxShadow: '0 2px 8px rgba(0,0,0,0.06)', 
         width: '100%' 
       }}
     >
@@ -58,39 +58,39 @@ const PartyCard = ({ item, onSelect }) => {
 
       {/* 오른쪽: 정보 영역 (위치 -> 제목 -> 상세) */}
       <div style={{ padding: '10px 15px', display: 'flex', flexDirection: 'column', justifyContent: 'space-between', minWidth: 0, flex: 1, height: '100%' }}>
-        {/* Line 1: 위치 및 화살표 버튼 (사용자 요청: 맨 위로) */}
+        {/* Line 1: 위치 및 화살표 버튼 */}
         <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-          <span style={{ fontSize: '13px', fontWeight: '950', color: '#E53935' }}>{item.locationName}</span>
+          <span style={{ fontSize: '14px', fontWeight: '600', color: '#111827' }}>{item.locationName}</span>
           <div onClick={(e) => { e.stopPropagation(); const address = item.address || item.locationName; window.open(`https://map.kakao.com/link/search/${encodeURIComponent(address)}`, '_blank'); }} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '20px', height: '20px', borderRadius: '50%', backgroundColor: '#FFF1F0', cursor: 'pointer', color: '#E53935' }}>
             <Navigation size={10} fill="currentColor" />
           </div>
         </div>
 
         {/* Line 2: 파티 제목 */}
-        <div style={{ fontSize: '16px', fontWeight: '900', color: '#1E293B', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', lineHeight: '1.2' }}>
+        <div style={{ fontSize: '13px', fontWeight: '500', color: '#374151', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', lineHeight: '1.2' }}>
           {cleanTitle}
         </div>
 
-        {/* Line 3: 4/30(목) 21:00 1.2만 S3B2 (컬러 칩 디자인) */}
+        {/* Line 3: 상세 뱃지 */}
         <div style={{ display: 'flex', alignItems: 'center', gap: '4px', whiteSpace: 'nowrap', overflow: 'hidden', marginTop: '6px' }}>
-          {/* 날짜 칩 */}
-          <span style={{ background: '#F1F5F9', color: '#475569', padding: '2px 6px', borderRadius: '6px', fontSize: '11px', fontWeight: 900 }}>
+          {/* 날짜 뱃지 */}
+          <span style={{ background: '#FFF1F1', color: '#C0392B', borderRadius: '99px', padding: '3px 9px', fontSize: '11px', fontWeight: '600' }}>
             {(() => { const d = new Date(item.date); return `${d.getMonth() + 1}/${d.getDate()}(${DAYS_KOR[d.getDay()]})`; })()}
           </span>
-          {/* 시간 칩 */}
-          <span style={{ background: '#F8FAFC', color: '#1E293B', padding: '2px 6px', borderRadius: '6px', fontSize: '11px', fontWeight: 900 }}>
+          {/* 시간 뱃지 */}
+          <span style={{ background: '#EFF6FF', color: '#1D4ED8', borderRadius: '99px', padding: '3px 9px', fontSize: '11px', fontWeight: '600' }}>
             {displayTime}
           </span>
-          {/* 비용 칩 */}
-          <span style={{ background: '#FFF1F0', color: '#E53935', padding: '2px 6px', borderRadius: '6px', fontSize: '11px', fontWeight: 900 }}>
+          {/* 참가비 뱃지 */}
+          <span style={{ background: '#FFFBEB', color: '#B45309', borderRadius: '99px', padding: '3px 9px', fontSize: '11px', fontWeight: '600' }}>
             {displayFee}
           </span>
-          {/* 비중 배지 그룹 */}
-          <div style={{ display: 'flex', gap: '2px', marginLeft: '2px' }}>
-            {item.s_ratio > 0 && <span style={{ background: '#E53935', color: '#fff', padding: '2px 4px', borderRadius: '4px', fontSize: '10px', fontWeight: 900 }}>S{item.s_ratio}</span>}
-            {item.b_ratio > 0 && <span style={{ background: '#D4A017', color: '#fff', padding: '2px 4px', borderRadius: '4px', fontSize: '10px', fontWeight: 900 }}>B{item.b_ratio}</span>}
-            {item.k_ratio > 0 && <span style={{ background: '#722ED1', color: '#fff', padding: '2px 4px', borderRadius: '4px', fontSize: '10px', fontWeight: 900 }}>K{item.k_ratio}</span>}
-            {item.j_ratio > 0 && <span style={{ background: '#08979C', color: '#fff', padding: '2px 4px', borderRadius: '4px', fontSize: '10px', fontWeight: 900 }}>J{item.j_ratio}</span>}
+          {/* 음악비율 그룹박스 */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: '4px', background: '#F8FAFC', border: '1px solid #E5E7EB', borderRadius: '99px', padding: '3px 8px' }}>
+            {item.s_ratio > 0 && <span style={{ color: '#DC2626', fontWeight: '700', fontSize: '10px' }}>S{item.s_ratio}</span>}
+            {item.b_ratio > 0 && <span style={{ color: '#059669', fontWeight: '700', fontSize: '10px' }}>B{item.b_ratio}</span>}
+            {item.k_ratio > 0 && <span style={{ color: '#7C3AED', fontWeight: '700', fontSize: '10px' }}>K{item.k_ratio}</span>}
+            {item.j_ratio > 0 && <span style={{ color: '#F59E0B', fontWeight: '700', fontSize: '10px' }}>J{item.j_ratio}</span>}
           </div>
         </div>
       </div>
