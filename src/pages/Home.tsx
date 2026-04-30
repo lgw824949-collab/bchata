@@ -1087,55 +1087,40 @@ const HomePage = ({
               style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.6)', backdropFilter: 'blur(4px)', zIndex: 10004 }}
             />
             <motion.div
-              initial={{ y: -50, opacity: 0 }} 
-              animate={{ y: 0, opacity: 1 }} 
-              exit={{ y: -50, opacity: 0 }}
+              initial={{ y: '100%' }} 
+              animate={{ y: 0 }} 
+              exit={{ y: '100%' }}
+              transition={{ type: 'spring', damping: 25, stiffness: 200 }}
               style={{
                 position: 'fixed', 
-                top: '50%', 
+                bottom: 0,
                 left: '50%',
-                transform: 'translate(-50%, -50%)',
-                width: '90%',
-                maxWidth: '350px',
+                transform: 'translateX(-50%)',
+                width: '100%',
+                maxWidth: '500px',
                 background: '#fff', 
-                borderRadius: '24px', 
-                padding: '24px',
-                boxShadow: '0 20px 50px rgba(0,0,0,0.3)', 
+                borderTopLeftRadius: '32px', 
+                borderTopRightRadius: '32px',
+                padding: '24px 20px 40px', 
+                boxShadow: '0 -10px 40px rgba(0,0,0,0.15)', 
                 zIndex: 10005
               }}
             >
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                  <button 
-                    onClick={() => setSelectedMonth(m => m > 1 ? m-1 : 12)}
-                    style={{ background: '#F1F5F9', border: 'none', borderRadius: '10px', width: '32px', height: '32px', cursor: 'pointer' }}
-                  >
-                    <ChevronLeft size={18} color="#64748B" />
-                  </button>
-                  <span style={{ fontSize: '20px', fontWeight: 950, color: '#1E293B' }}>{selectedMonth}월</span>
-                  <button 
-                    onClick={() => setSelectedMonth(m => m < 12 ? m+1 : 1)}
-                    style={{ background: '#F1F5F9', border: 'none', borderRadius: '10px', width: '32px', height: '32px', cursor: 'pointer' }}
-                  >
-                    <ChevronRight size={18} color="#64748B" />
-                  </button>
+              {/* 바텀시트 핸들러 (디자인용) */}
+              <div style={{ width: '40px', height: '4px', background: '#E2E8F0', borderRadius: '2px', margin: '0 auto 20px' }} />
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+                  <span style={{ fontSize: '24px', fontWeight: 950, color: '#1E293B', letterSpacing: '-0.5px' }}>{selectedMonth}월</span>
+                  <div style={{ display: 'flex', gap: '8px' }}>
+                    <button onClick={() => setSelectedMonth(m => m > 1 ? m-1 : 12)} style={{ background: '#F8FAFC', border: '1px solid #F1F5F9', borderRadius: '10px', width: '36px', height: '36px', cursor: 'pointer' }}><ChevronLeft size={18} color="#64748B" /></button>
+                    <button onClick={() => setSelectedMonth(m => m < 12 ? m+1 : 1)} style={{ background: '#F8FAFC', border: '1px solid #F1F5F9', borderRadius: '10px', width: '36px', height: '36px', cursor: 'pointer' }}><ChevronRight size={18} color="#64748B" /></button>
+                  </div>
                 </div>
                 <button 
                   onClick={() => { setShowFullCalendar(false); setShowFilterPanel(false); }} 
-                  style={{ 
-                    background: '#FFF1F0', 
-                    border: 'none', 
-                    borderRadius: '50%', 
-                    width: '36px', 
-                    height: '36px', 
-                    display: 'flex', 
-                    alignItems: 'center', 
-                    justifyContent: 'center',
-                    color: '#E53935',
-                    cursor: 'pointer'
-                  }}
+                  style={{ background: '#F1F5F9', border: 'none', borderRadius: '50%', width: '40px', height: '40px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#64748B', cursor: 'pointer' }}
                 >
-                  <X size={20} strokeWidth={3} />
+                  <X size={22} strokeWidth={2.5} />
                 </button>
               </div>
             
