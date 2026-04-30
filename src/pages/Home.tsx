@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { Heart, MapPin, Calendar, User, Music, ChevronRight, ShieldCheck, X, Home as HomeIcon, ChevronLeft, CloudSun, Utensils, Zap, PlusCircle, Languages, Bell } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import { motion, AnimatePresence } from 'framer-motion';
 import QuickPinchZoom, { make3dTransformValue } from 'react-quick-pinch-zoom';
 import LiveCount from '../components/LiveCount'
@@ -270,6 +271,15 @@ const HomePage = ({
   showFilteredResults, setShowFilteredResults, isMenuOpen, setIsMenuOpen, showWeather, setShowWeather,
   showLatinModal, setShowLatinModal, setShowSaju, latinCat, setLatinCat, selPatternId, setSelPatternId, regionalTheme, recordTraffic, IncheonBanner, venueCounts, openAnalysis
 }) => {
+  const { t, i18n } = useTranslation();
+  const regionKeyMap = {
+    "서울": "seoul",
+    "경기/인천": "gyeonggi_incheon",
+    "충청도": "chungcheong",
+    "전라도": "jeolla",
+    "경상도": "gyeongsang",
+    "강원/제주": "gangwon_jeju"
+  };
   const [isPaused, setIsPaused] = useState(false)
   const [regionOrder, setRegionOrder] = useState(['서울', '경기/인천', '경상도', '전라도', '충청도', '강원/제주'])
   const [posterOffset, setPosterOffset] = useState(0)
@@ -654,7 +664,7 @@ const HomePage = ({
                   <div style={{ padding: '0 20px 15px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                     <h2 style={{ fontSize: '18px', fontWeight: '950', letterSpacing: '-0.02em', color: '#1E293B', display: 'flex', alignItems: 'center', gap: '8px' }}>
                       <span style={{ color: '#E53935' }}>HOT</span> PICK 5 
-                      <span style={{ fontSize: '11px', fontWeight: '400', color: '#94A3B8', backgroundColor: '#f5f5f5', padding: '2px 8px', borderRadius: '10px' }}>전국 인기</span>
+                      <span style={{ fontSize: '11px', fontWeight: '400', color: '#94A3B8', backgroundColor: '#f5f5f5', padding: '2px 8px', borderRadius: '10px' }}>{t('nationwide_popular')}</span>
                     </h2>
                     <div style={{ display: 'flex', gap: '5px' }}>
                       <div 
@@ -831,14 +841,14 @@ const HomePage = ({
                         }}
                       >
                         <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#E53935' }} />
-                        {regionName}
+                        {t('region_' + regionKeyMap[regionName])}
                         {weatherMap[regionName] && (
                           <span style={{ fontSize: '13px', fontWeight: '400', color: '#94A3B8', display: 'flex', alignItems: 'center', gap: '2px' }}>
                             {weatherMap[regionName].icon} {weatherMap[regionName].temp}°
                           </span>
                         )}
                         <ChevronRight size={18} color="#94A3B8" />
-                        <span style={{ fontSize: '11px', color: '#94A3B8', fontWeight: '400', marginLeft: 'auto' }}>전체보기</span>
+                        <span style={{ fontSize: '11px', color: '#94A3B8', fontWeight: '400', marginLeft: 'auto' }}>{t('view_all')}</span>
                       </div>
 
                       <div className="party-vertical-list" style={{ 
@@ -863,7 +873,7 @@ const HomePage = ({
                           if (sortedParties.length === 0) {
                             return (
                               <div style={{ padding: '30px 0', color: '#94A3B8', fontSize: '13px', textAlign: 'center', width: '100%', fontWeight: '500' }}>
-                                이 지역은 아직 등록된 파티가 없습니다.
+                                {t('no_parties')}
                               </div>
                             );
                           }
@@ -1110,7 +1120,7 @@ const HomePage = ({
                       return true;
                     }).length === 0 && (
                       <div style={{ gridColumn: 'span 2', padding: '60px 0', textAlign: 'center', color: '#666' }}>
-                        검색 결과가 없습니다.
+                        {t('no_parties')}
                       </div>
                     )}
                   </div>
@@ -1119,7 +1129,7 @@ const HomePage = ({
                     onClick={() => { setShowFullCalendar(false); setShowFilterPanel(false); setShowFilteredResults(false); }}
                     style={{ width: '100%', marginTop: '20px', padding: '14px', borderRadius: '12px', background: 'rgba(255,255,255,0.05)', color: '#fff', fontSize: '15px', fontWeight: 700, border: 'none' }}
                   >
-                    확인
+                    OK
                   </button>
                 </div>
               )}
@@ -1162,8 +1172,8 @@ const HomePage = ({
                   <ChevronLeft size={20} strokeWidth={2.5} />
                 </button>
                 <div>
-                  <h2 style={{ fontSize: '16px', fontWeight: 950, color: '#1e293b', margin: 0 }}>{selectedRegionGrid}</h2>
-                  <p style={{ fontSize: '10px', color: '#64748b', margin: 0 }}>{selectedDate} 파티</p>
+                  <h2 style={{ fontSize: '16px', fontWeight: 950, color: '#1e293b', margin: 0 }}>{t('region_' + regionKeyMap[selectedRegionGrid])}</h2>
+                  <p style={{ fontSize: '10px', color: '#64748b', margin: 0 }}>{selectedDate} Parties</p>
                 </div>
               </div>
               

@@ -236,6 +236,7 @@ export default function AdminDashboard({ onBack, refreshData }) {
         time: editingParty.time,
         day_of_week: getDayName(editingParty.date), // 요일 자동 재계산 반영
         description: editingParty.description,
+        fee: editingParty.fee,
         s_ratio: parseInt(editingParty.s_ratio) || 0,
         b_ratio: parseInt(editingParty.b_ratio) || 0,
         j_ratio: parseInt(editingParty.j_ratio) || 0,
@@ -729,7 +730,7 @@ export default function AdminDashboard({ onBack, refreshData }) {
                     <h3 style={{ fontSize: '16px', fontWeight: 900, margin: '0 0 6px 0', color: 'white' }}>{party.title}</h3>
                     <p style={{ fontSize: '14px', color: '#00FF00', fontWeight: 900, margin: '4px 0' }}>{party.locations?.name || 'TBA'}</p>
                     <p style={{ fontSize: '13px', color: '#94A3B8', margin: '4px 0' }}>📅 {party.date} ({party.day_of_week}) / ⏰ {party.time}</p>
-                    <p style={{ fontSize: '13px', color: '#94A3B8', margin: '4px 0' }}>💰 {party.description}</p>
+                    <p style={{ fontSize: '13px', color: '#94A3B8', margin: '4px 0' }}>💰 {party.fee || party.description}</p>
                     
                     <div style={{ display: 'flex', gap: '8px', marginTop: '16px' }}>
                       <button onClick={() => setEditingParty(party)} disabled={loading} style={{ flex: 1, backgroundColor: '#1E293B', color: 'white', padding: '12px', borderRadius: '12px', border: '1px solid #334155', fontWeight: 800, fontSize: '13px' }}>MODIFY</button>
@@ -792,7 +793,11 @@ export default function AdminDashboard({ onBack, refreshData }) {
                 <div style={{...inputGroupStyle, flex: 1}}><label style={labelStyle}>시간</label><input type="time" value={editingParty.time} onChange={e => setEditingParty({...editingParty, time: e.target.value})} style={inputStyle} /></div>
               </div>
 
-              <div style={inputGroupStyle}><label style={labelStyle}>{activeTab === 'pending' ? '회비 (참고용)' : '회비/설명'}</label><input value={activeTab === 'pending' ? (editingParty.fee || '') : editingParty.description} onChange={e => activeTab === 'pending' ? setEditingParty({...editingParty, fee: e.target.value}) : setEditingParty({...editingParty, description: e.target.value})} style={inputStyle} /></div>
+              <div style={inputGroupStyle}><label style={labelStyle}>참가비 (fee)</label><input value={editingParty.fee || ''} onChange={e => setEditingParty({...editingParty, fee: e.target.value})} style={inputStyle} /></div>
+              
+              {activeTab === 'official' && (
+                <div style={inputGroupStyle}><label style={labelStyle}>설명 (description)</label><input value={editingParty.description || ''} onChange={e => setEditingParty({...editingParty, description: e.target.value})} style={inputStyle} /></div>
+              )}
 
               <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
                 <div style={{...inputGroupStyle, flex: '1 1 20%' }}><label style={labelStyle}>S비율</label><input type="number" value={editingParty.s_ratio} onChange={e => setEditingParty({...editingParty, s_ratio: e.target.value})} style={inputStyle} /></div>

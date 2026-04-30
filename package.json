@@ -12,10 +12,13 @@
   "dependencies": {
     "@supabase/supabase-js": "^2.103.3",
     "framer-motion": "^12.38.0",
+    "i18next": "^26.0.8",
+    "i18next-browser-languagedetector": "^8.2.1",
     "lucide-react": "^1.8.0",
     "prop-types": "^15.8.1",
     "react": "^19.2.4",
     "react-dom": "^19.2.4",
+    "react-i18next": "^17.0.6",
     "react-quick-pinch-zoom": "^5.1.1",
     "tesseract.js": "^7.0.0"
   },

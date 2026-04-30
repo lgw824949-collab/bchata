@@ -1,5 +1,6 @@
 import { useState, useEffect, useMemo, useRef } from 'react'
-import { Home as HomeIcon, Users, Plus, LogOut, Heart, X, MessageSquare, RefreshCw, CloudSun, Utensils, Zap, Languages, Bell, Star, Navigation, CreditCard, Settings, Map as MapIcon, BarChart, Gift, Coffee, User, Menu, Music2, GraduationCap, Tent, Flag, Download } from 'lucide-react'
+import { Home as HomeIcon, Users, Plus, LogOut, Heart, X, MessageSquare, RefreshCw, CloudSun, Utensils, Zap, Languages, Bell, Star, Navigation, CreditCard, Settings, Map as MapIcon, BarChart, Gift, Coffee, User, Menu, Music2, GraduationCap, Tent, Flag, Download, Globe } from 'lucide-react'
+import { useTranslation } from 'react-i18next';
 import { motion, AnimatePresence } from 'framer-motion'
 import { supabase, logActivity } from './lib/supabase'
 import RegisterForm from './RegisterForm'
@@ -197,7 +198,7 @@ const DynamicAnalysisModal = ({ isOpen, onClose, userCoords, isSajuCall }) => {
   );
 };
 
-const IncheonPremiumBanner = ({ onClick }) => (
+const IncheonPremiumBanner = ({ onClick, t }) => (
   <div style={{ padding: '0 15px', margin: '8px 0' }}>
     <div 
       onClick={(e) => { e.stopPropagation(); onClick(); }} 
@@ -219,8 +220,8 @@ const IncheonPremiumBanner = ({ onClick }) => (
           <Navigation size={15} strokeWidth={3} />
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px', overflow: 'hidden' }}>
-          <span style={{ color: '#1E293B', fontSize: '14px', fontWeight: '900', whiteSpace: 'nowrap' }}>지능형 경로 최적화</span>
-          <span style={{ color: '#94A3B8', fontSize: '11px', fontWeight: '500', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>최단 거리 성지 탐색 →</span>
+          <span style={{ color: '#1E293B', fontSize: '14px', fontWeight: '900', whiteSpace: 'nowrap' }}>{t('intelligent_route')}</span>
+          <span style={{ color: '#94A3B8', fontSize: '11px', fontWeight: '500', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{t('shortest_distance')}</span>
         </div>
       </div>
       <div style={{ background: '#E53935', color: '#fff', fontSize: '8px', fontWeight: '950', padding: '2px 8px', borderRadius: '6px', flexShrink: 0 }}>LIVE</div>
@@ -238,6 +239,12 @@ const formatDateToKSTString = (date) => {
 };
 
 function App() {
+  const { t, i18n } = useTranslation();
+  const toggleLanguage = () => {
+    const newLang = i18n.language.startsWith('ko') ? 'en' : 'ko';
+    i18n.changeLanguage(newLang);
+  };
+
   const kst = new Date(new Date().getTime() + (9 * 60 * 60 * 1000));
   const todayData = { year: kst.getFullYear(), month: kst.getMonth() + 1, date: kst.getDate(), dateStr: formatDateToKSTString(kst) };
 
@@ -362,7 +369,7 @@ function App() {
       return { fullDate: formatDateToKSTString(d), date: String(d.getDate()), month: String(d.getMonth() + 1), dayName: DAYS_KOR[d.getDay()], isToday: i === 0, dayOfWeek: d.getDay() };
     }), weekData: [], allDatesInMonth: [], filteredParties: parties.filter(p => p.date === selectedDate),
     showFullCalendar: false, setShowFullCalendar: () => {}, likedIds: [], toggleLike: () => {},
-    IncheonBanner: () => <IncheonPremiumBanner onClick={() => openAnalysis(false)} />, venueCounts: {}, resetToToday: () => { setView('home'); setSelectedDate(todayData.dateStr); }, formatItemDate: (d, t) => `${d} ${t}`, formatFee: (f) => f, handleRegister: () => setView('register'), logActivity: () => {}, regionalTheme: { welcomeMsg: "전국 댄서들을 위한 실시간 정보", specialBanner: true }
+    IncheonBanner: () => <IncheonPremiumBanner t={t} onClick={() => openAnalysis(false)} />, venueCounts: {}, resetToToday: () => { setView('home'); setSelectedDate(todayData.dateStr); }, formatItemDate: (d, t) => `${d} ${t}`, formatFee: (f) => f, handleRegister: () => setView('register'), logActivity: () => {}, regionalTheme: { welcomeMsg: "전국 댄서들을 위한 실시간 정보", specialBanner: true }
   };
 
   return (
@@ -370,27 +377,44 @@ function App() {
       <AnimatePresence>{showSplash && <motion.div exit={{ opacity: 0 }} style={{ position: 'fixed', inset: 0, zIndex: 999999, backgroundColor: '#000', display: 'flex', alignItems: 'center', justifyContent: 'center' }}></motion.div>}</AnimatePresence>
       <AnimatePresence>{isAnalyzing && <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} style={{ position: 'fixed', inset: 0, zIndex: 1000000, background: 'rgba(255,255,255,0.9)', backdropFilter: 'blur(30px)', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}><motion.div animate={{ rotate: 360 }} transition={{ duration: 1, repeat: Infinity, ease: 'linear' }} style={{ width: '60px', height: '60px', border: '4px solid #FFEBEE', borderTop: '4px solid #E53935', borderRadius: '50%', marginBottom: '20px' }} /><h2 style={{ color: '#1E293B', fontSize: '20px', fontWeight: '900' }}>실시간 지능형 분석 중...</h2></motion.div>}</AnimatePresence>
 
-      {/* 햄버거 버튼 */}
-      {!isMenuOpen && (
+      {/* 햄버거 버튼 & 언어 전환 버튼 */}
+      <div style={{ position: 'absolute', top: '20px', right: '20px', zIndex: 50, display: 'flex', gap: '10px' }}>
         <motion.button 
-          drag
-          dragConstraints={{ left: -450, right: 0, top: 0, bottom: 800 }}
-          dragMomentum={false}
-          dragElastic={0.05}
-          whileDrag={{ scale: 1.1 }}
           whileTap={{ scale: 0.9 }}
-          onClick={() => setIsMenuOpen(true)}
+          onClick={toggleLanguage}
           style={{ 
-            position: 'absolute', top: '20px', right: '20px', zIndex: 50,
             background: 'rgba(255,255,255,0.95)', backdropFilter: 'blur(10px)',
             border: 'none', borderRadius: '12px', padding: '10px',
             boxShadow: '0 4px 15px rgba(0,0,0,0.1)', cursor: 'pointer',
-            display: 'flex', alignItems: 'center', justifyContent: 'center'
+            display: 'flex', alignItems: 'center', gap: '4px'
           }}
         >
-          <Menu size={24} color="#E53935" />
+          <Globe size={18} color="#E53935" />
+          <span style={{ fontSize: '12px', fontWeight: 900, color: '#1E293B' }}>
+            {i18n.language.startsWith('ko') ? 'EN' : 'KO'}
+          </span>
         </motion.button>
-      )}
+
+        {!isMenuOpen && (
+          <motion.button 
+            drag
+            dragConstraints={{ left: -450, right: 0, top: 0, bottom: 800 }}
+            dragMomentum={false}
+            dragElastic={0.05}
+            whileDrag={{ scale: 1.1 }}
+            whileTap={{ scale: 0.9 }}
+            onClick={() => setIsMenuOpen(true)}
+            style={{ 
+              background: 'rgba(255,255,255,0.95)', backdropFilter: 'blur(10px)',
+              border: 'none', borderRadius: '12px', padding: '10px',
+              boxShadow: '0 4px 15px rgba(0,0,0,0.1)', cursor: 'pointer',
+              display: 'flex', alignItems: 'center', justifyContent: 'center'
+            }}
+          >
+            <Menu size={24} color="#E53935" />
+          </motion.button>
+        )}
+      </div>
 
       {/* 프리미엄 햄버거 메뉴 */}
       <AnimatePresence>
@@ -422,16 +446,16 @@ function App() {
             </div>
 
             <div style={{ marginBottom: '40px' }}>
-              <h2 style={{ color: '#1E293B', fontSize: '24px', fontWeight: 900, margin: 0 }}>Premium Services</h2>
-              <p style={{ color: '#64748B', fontSize: '14px', marginTop: '4px' }}>지능형 댄스 라이프 플랫폼</p>
+              <h2 style={{ color: '#1E293B', fontSize: '24px', fontWeight: 900, margin: 0 }}>{t('premium_services')}</h2>
+              <p style={{ color: '#64748B', fontSize: '14px', marginTop: '4px' }}>{t('platform_desc')}</p>
             </div>
 
             <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
               {[
-                { icon: <Utensils color="#E53935" />, text: "뒷풀이 맛집", action: () => { setView('restaurant'); setIsMenuOpen(false); } },
-                { icon: <Star color="#E53935" />, text: "댄스 사주", action: () => { if(typeof setShowSaju === 'function') { setShowSaju(true); setIsMenuOpen(false); } } },
-                { icon: <CloudSun color="#E53935" />, text: "오늘 날씨", action: () => { setIsMenuOpen(false); setTimeout(() => setShowWeather(true), 300); } },
-                { icon: <Bell color="#E53935" />, text: "공지사항", action: () => { alert('준비 중') } }
+                { icon: <Utensils color="#E53935" />, text: t('restaurant'), action: () => { setView('restaurant'); setIsMenuOpen(false); } },
+                { icon: <Star color="#E53935" />, text: t('saju'), action: () => { if(typeof setShowSaju === 'function') { setShowSaju(true); setIsMenuOpen(false); } } },
+                { icon: <CloudSun color="#E53935" />, text: t('weather'), action: () => { setIsMenuOpen(false); setTimeout(() => setShowWeather(true), 300); } },
+                { icon: <Bell color="#E53935" />, text: t('notice'), action: () => { alert(t('coming_soon')) } }
               ].map((item, idx) => (
                 <motion.div
                   key={idx}
@@ -470,22 +494,22 @@ function App() {
          view === 'class' ? (
            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '80vh', color: '#1E293B' }}>
              <span style={{ fontSize: '48px', marginBottom: '20px' }}>💃</span>
-             <h2 style={{ fontSize: '24px', fontWeight: 900 }}>수업/정모</h2>
-             <p style={{ color: '#64748B', marginTop: '8px' }}>준비 중입니다</p>
+             <h2 style={{ fontSize: '24px', fontWeight: 900 }}>{t('nav_class')}</h2>
+             <p style={{ color: '#64748B', marginTop: '8px' }}>{t('coming_soon')}</p>
            </div>
          ) :
          view === 'bootcamp' ? (
            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '80vh', color: '#1E293B' }}>
              <span style={{ fontSize: '48px', marginBottom: '20px' }}>🏕️</span>
-             <h2 style={{ fontSize: '24px', fontWeight: 900 }}>부트캠프</h2>
-             <p style={{ color: '#64748B', marginTop: '8px' }}>준비 중입니다</p>
+             <h2 style={{ fontSize: '24px', fontWeight: 900 }}>{t('nav_bootcamp')}</h2>
+             <p style={{ color: '#64748B', marginTop: '8px' }}>{t('coming_soon')}</p>
            </div>
          ) :
          view === 'festival' ? (
            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '80vh', color: '#1E293B' }}>
              <span style={{ fontSize: '48px', marginBottom: '20px' }}>🎪</span>
-             <h2 style={{ fontSize: '24px', fontWeight: 900 }}>전국페스티벌</h2>
-             <p style={{ color: '#64748B', marginTop: '8px' }}>준비 중입니다</p>
+             <h2 style={{ fontSize: '24px', fontWeight: 900 }}>{t('nav_festival')}</h2>
+             <p style={{ color: '#64748B', marginTop: '8px' }}>{t('coming_soon')}</p>
            </div>
          ) :
          {
@@ -524,7 +548,7 @@ function App() {
           onClick={() => { setView('home'); window.scrollTo(0,0); }}
         >
           <Music2 size={22} color={view === 'home' ? '#E53935' : '#94A3B8'} style={{ marginBottom: '4px' }} />
-          <span style={{ fontSize: '10px', fontWeight: view === 'home' ? 900 : 500, color: view === 'home' ? '#E53935' : '#94A3B8' }}>소셜파티</span>
+          <span style={{ fontSize: '10px', fontWeight: view === 'home' ? 900 : 500, color: view === 'home' ? '#E53935' : '#94A3B8' }}>{t('nav_social')}</span>
         </div>
 
         <div 
@@ -532,7 +556,7 @@ function App() {
           onClick={() => { setView('class'); window.scrollTo(0,0); }}
         >
           <GraduationCap size={22} color={view === 'class' ? '#E53935' : '#94A3B8'} style={{ marginBottom: '4px' }} />
-          <span style={{ fontSize: '10px', fontWeight: view === 'class' ? 900 : 500, color: view === 'class' ? '#E53935' : '#94A3B8' }}>수업/정모</span>
+          <span style={{ fontSize: '10px', fontWeight: view === 'class' ? 900 : 500, color: view === 'class' ? '#E53935' : '#94A3B8' }}>{t('nav_class')}</span>
         </div>
 
         <div className="nav-item central-action" style={{ pointerEvents: 'none', position: 'relative', zIndex: 1001 }}>
@@ -555,7 +579,7 @@ function App() {
           >
             <Plus size={28} strokeWidth={3} />
           </motion.button>
-          <span style={{ pointerEvents: 'auto', color: '#1E293B', fontSize: '10px' }}>등록</span>
+          <span style={{ pointerEvents: 'auto', color: '#1E293B', fontSize: '10px' }}>{t('nav_register')}</span>
         </div>
 
         <div 
@@ -563,7 +587,7 @@ function App() {
           onClick={() => { setView('bootcamp'); window.scrollTo(0,0); }}
         >
           <Tent size={22} color={view === 'bootcamp' ? '#E53935' : '#94A3B8'} style={{ marginBottom: '4px' }} />
-          <span style={{ fontSize: '10px', fontWeight: view === 'bootcamp' ? 900 : 500, color: view === 'bootcamp' ? '#E53935' : '#94A3B8' }}>부트캠프</span>
+          <span style={{ fontSize: '10px', fontWeight: view === 'bootcamp' ? 900 : 500, color: view === 'bootcamp' ? '#E53935' : '#94A3B8' }}>{t('nav_bootcamp')}</span>
         </div>
 
         <div 
@@ -571,7 +595,7 @@ function App() {
           onClick={() => { setView('festival'); window.scrollTo(0,0); }}
         >
           <Flag size={22} color={view === 'festival' ? '#E53935' : '#94A3B8'} style={{ marginBottom: '4px' }} />
-          <span style={{ fontSize: '10px', fontWeight: view === 'festival' ? 900 : 500, color: view === 'festival' ? '#E53935' : '#94A3B8' }}>전국페스티벌</span>
+          <span style={{ fontSize: '10px', fontWeight: view === 'festival' ? 900 : 500, color: view === 'festival' ? '#E53935' : '#94A3B8' }}>{t('nav_festival')}</span>
         </div>
       </nav>
     </div>
