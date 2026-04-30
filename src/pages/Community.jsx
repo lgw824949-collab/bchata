@@ -198,9 +198,9 @@ const Community = ({ setSelectedPoster, setView }) => {
               key={post.id} 
               whileTap={{ scale: 0.96 }} 
               onClick={() => setSelectedPost(post)} 
-              style={{ position: 'relative', aspectRatio: selectedRegion === '전체' ? '1/1.2' : '3/4', background: '#111', overflow: 'hidden' }}
+              style={{ position: 'relative', aspectRatio: selectedRegion === '전체' ? '1/1.2' : '3/4', background: '#000', overflow: 'hidden', border: '1px solid rgba(255,255,255,0.05)' }}
             >
-              <img src={post.image_url} alt="feed" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+              <img src={post.image_url} alt="feed" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
               
               <div style={{ position: 'absolute', top: '6px', left: '6px' }}>
                 {index < 3 && (
