@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Heart, MessageCircle, Eye, Share2, Plus, X, Camera, MapPin, Search } from 'lucide-react';
+import { Heart, Eye, Share2, Plus, X, Camera, MapPin, Search } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import { useTranslation } from 'react-i18next';
 
@@ -11,28 +11,46 @@ const Community = ({ setSelectedPoster }) => {
   const [showUploadModal, setShowUploadModal] = useState(false);
   const [newPost, setNewPost] = useState({ content: '', region: '서울', bar_name: '', image: null });
   const [uploading, setUploading] = useState(false);
+  const [selectedRegion, setSelectedRegion] = useState('전체');
 
   const regions = ['서울', '경기/인천', '경상도', '전라도', '충청도', '강원/제주'];
 
   const fetchPosts = async () => {
     setLoading(true);
-    const { data, error } = await supabase
+    let query = supabase
       .from('community_posts')
       .select('*')
       .order('created_at', { ascending: false });
     
+    if (selectedRegion !== '전체') {
+      query = query.eq('region', selectedRegion);
+    }
+
+    const { data, error } = await query;
     if (!error) setPosts(data || []);
     setLoading(false);
   };
 
   useEffect(() => {
     fetchPosts();
-  }, []);
+  }, [selectedRegion]);
+
+  const getRelativeTime = (dateStr) => {
+    const now = new Date();
+    const past = new Date(dateStr);
+    const diff = Math.floor((now - past) / 1000 / 60);
+    if (diff < 1) return '방금 전';
+    if (diff < 60) return `${diff}분 전`;
+    if (diff < 1440) return `${Math.floor(diff/60)}시간 전`;
+    return `${Math.floor(diff/1440)}일 전`;
+  };
 
   const handleLike = async (postId) => {
-    // 좋아요 로직 (단순화: 클라이언트 사이드 업데이트 우선)
-    setPosts(posts.map(p => p.id === postId ? { ...p, likes_count: p.likes_count + 1 } : p));
-    await supabase.rpc('increment_likes', { post_id: postId });
+    const post = posts.find(p => p.id === postId);
+    if (!post) return;
+    const newLikes = (post.likes_count || 0) + 1;
+    setPosts(posts.map(p => p.id === postId ? { ...p, likes_count: newLikes } : p));
+    await supabase.from('community_posts').update({ likes_count: newLikes }).eq('id', postId);
   };
 
   const handleUpload = async () => {
@@ -42,14 +60,13 @@ const Community = ({ setSelectedPoster }) => {
     }
     setUploading(true);
     try {
-      // 1. 이미지 업로드 (Storage)
       const file = newPost.image;
       const fileExt = file.name.split('.').pop();
       const fileName = `${Math.random()}.${fileExt}`;
       const filePath = `community/${fileName}`;
 
       let { error: uploadError } = await supabase.storage
-        .from('posters') // 기존 posters 버킷 활용 또는 신규 생성 필요
+        .from('posters')
         .upload(filePath, file);
 
       if (uploadError) throw uploadError;
@@ -57,7 +74,6 @@ const Community = ({ setSelectedPoster }) => {
       const { data: urlData } = supabase.storage.from('posters').getPublicUrl(filePath);
       const publicUrl = urlData.publicUrl;
 
-      // 2. DB 저장
       const { error: dbError } = await supabase.from('community_posts').insert([{
         image_url: publicUrl,
         content: newPost.content,
@@ -82,72 +98,79 @@ const Community = ({ setSelectedPoster }) => {
 
   return (
     <div style={{ background: '#F8FAFC', minHeight: '100vh', padding: '15px 15px 100px' }}>
-      {/* Header */}
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
-        <h1 style={{ fontSize: '24px', fontWeight: 950, color: '#1E293B', letterSpacing: '-0.02em' }}>
-          <span style={{ color: '#E53935' }}>LIVE</span> PICK 피드
+      <div style={{ marginBottom: '24px' }}>
+        <h1 style={{ fontSize: '24px', fontWeight: 950, color: '#1E293B', letterSpacing: '-0.02em', marginBottom: '8px' }}>
+          <span style={{ color: '#E53935' }}>LIVE</span> PICK
         </h1>
-        <div style={{ display: 'flex', gap: '10px' }}>
-          <button style={{ background: '#fff', border: '1px solid #E2E8F0', borderRadius: '12px', padding: '8px' }}>
-            <Search size={20} color="#64748B" />
-          </button>
-        </div>
+        <p style={{ fontSize: '14px', color: '#64748B', lineHeight: '1.5', fontWeight: 600 }}>
+          "지금 거기 분위기 어때요?"<br />
+          실시간 현장 사진을 보고 오늘 밤 목적지를 정해보세요!
+        </p>
       </div>
 
-      {/* Region Filter */}
-      <div style={{ display: 'flex', overflowX: 'auto', gap: '8px', marginBottom: '20px', paddingBottom: '5px' }} className="hide-scrollbar">
+      <div style={{ display: 'flex', overflowX: 'auto', gap: '8px', marginBottom: '24px', paddingBottom: '5px' }} className="hide-scrollbar">
         {['전체', ...regions].map(r => (
-          <button key={r} style={{ padding: '8px 16px', borderRadius: '20px', fontSize: '13px', fontWeight: 700, whiteSpace: 'nowrap', border: 'none', background: r === '전체' ? '#E53935' : '#fff', color: r === '전체' ? '#fff' : '#64748B', boxShadow: '0 2px 8px rgba(0,0,0,0.05)' }}>
+          <button 
+            key={r} 
+            onClick={() => setSelectedRegion(r)}
+            style={{ 
+              padding: '10px 20px', 
+              borderRadius: '20px', 
+              fontSize: '13px', 
+              fontWeight: 700, 
+              whiteSpace: 'nowrap', 
+              border: 'none', 
+              background: r === selectedRegion ? '#E53935' : '#fff', 
+              color: r === selectedRegion ? '#fff' : '#64748B', 
+              boxShadow: '0 4px 12px rgba(0,0,0,0.05)',
+              transition: 'all 0.2s'
+            }}
+          >
             {r}
           </button>
         ))}
       </div>
 
-      {/* Feed List */}
       <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
         {loading ? (
-          <div style={{ textAlign: 'center', padding: '60px', color: '#64748B' }}>데이터를 불러오는 중...</div>
+          <div style={{ textAlign: 'center', padding: '60px', color: '#64748B' }}>현장 상황을 확인 중...</div>
         ) : posts.length === 0 ? (
-          <div style={{ textAlign: 'center', padding: '100px 20px', background: '#fff', borderRadius: '24px', boxShadow: '0 4px 20px rgba(0,0,0,0.03)' }}>
-            <Camera size={48} color="#E2E8F0" style={{ marginBottom: '16px' }} />
-            <h3 style={{ fontSize: '18px', fontWeight: 800, color: '#1E293B', marginBottom: '8px' }}>첫 번째 주인공이 되어보세요!</h3>
-            <p style={{ fontSize: '14px', color: '#64748B', lineHeight: '1.6' }}>
-              지금 파티 현장의 분위기를 사진으로 찍어<br />
-              전국의 댄서들과 실시간으로 공유해 보세요.
-            </p>
+          <div style={{ textAlign: 'center', padding: '80px 20px', background: '#fff', borderRadius: '24px', border: '1px dashed #E2E8F0' }}>
+            <Camera size={40} color="#E2E8F0" style={{ marginBottom: '16px' }} />
+            <h3 style={{ fontSize: '16px', fontWeight: 800, color: '#1E293B', marginBottom: '6px' }}>아직 리포트가 없어요</h3>
+            <p style={{ fontSize: '13px', color: '#94A3B8' }}>{selectedRegion} 지역의 첫 번째 소식을 전해주세요!</p>
           </div>
         ) : (
           posts.map(post => (
             <motion.div 
               key={post.id}
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
               style={{ background: '#fff', borderRadius: '24px', overflow: 'hidden', boxShadow: '0 10px 30px rgba(0,0,0,0.05)' }}
             >
-              {/* Post Header */}
               <div style={{ padding: '15px', display: 'flex', alignItems: 'center', gap: '10px' }}>
-                <div style={{ width: '40px', height: '40px', borderRadius: '50%', background: '#E53935', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontWeight: 800 }}>B</div>
-                <div>
-                  <div style={{ fontSize: '14px', fontWeight: 800, color: '#1E293B' }}>{post.bar_name || '오늘밤빠 멤버'}</div>
-                  <div style={{ fontSize: '11px', color: '#94A3B8', display: 'flex', alignItems: 'center', gap: '4px' }}>
-                    <MapPin size={10} /> {post.region} • {new Date(post.created_at).toLocaleDateString()}
+                <div style={{ width: '36px', height: '36px', borderRadius: '50%', background: '#F1F5F9', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#E53935', fontWeight: 800 }}>
+                  <MapPin size={18} />
+                </div>
+                <div style={{ flex: 1 }}>
+                  <div style={{ fontSize: '15px', fontWeight: 800, color: '#1E293B' }}>{post.bar_name || '익명의 댄서'}</div>
+                  <div style={{ fontSize: '12px', color: '#94A3B8' }}>
+                    {post.region} • <span style={{ color: '#E53935', fontWeight: 700 }}>{getRelativeTime(post.created_at)}</span>
                   </div>
                 </div>
               </div>
 
-              {/* Image */}
               <div onClick={() => setSelectedPoster(post.image_url)} style={{ position: 'relative', aspectRatio: '1/1', overflow: 'hidden', background: '#F1F5F9' }}>
                 <img src={post.image_url} alt="feed" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
               </div>
 
-              {/* Actions */}
               <div style={{ padding: '15px' }}>
                 <div style={{ display: 'flex', gap: '15px', marginBottom: '10px' }}>
                   <button onClick={() => handleLike(post.id)} style={{ background: 'none', border: 'none', display: 'flex', alignItems: 'center', gap: '5px', color: '#E53935', fontWeight: 700 }}>
-                    <Heart size={22} fill={post.likes_count > 0 ? '#E53935' : 'none'} /> {post.likes_count}
+                    <Heart size={22} fill={(post.likes_count || 0) > 0 ? '#E53935' : 'none'} /> {post.likes_count || 0}
                   </button>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '5px', color: '#64748B', fontWeight: 700 }}>
-                    <Eye size={22} /> {post.view_count}
+                    <Eye size={22} /> {post.view_count || 0}
                   </div>
                   <button style={{ background: 'none', border: 'none', marginLeft: 'auto' }}>
                     <Share2 size={22} color="#64748B" />
@@ -162,7 +185,6 @@ const Community = ({ setSelectedPoster }) => {
         )}
       </div>
 
-      {/* Floating Action Button */}
       <motion.button 
         whileTap={{ scale: 0.9 }}
         onClick={() => setShowUploadModal(true)}
@@ -171,7 +193,6 @@ const Community = ({ setSelectedPoster }) => {
         <Plus size={30} strokeWidth={3} />
       </motion.button>
 
-      {/* Upload Modal */}
       <AnimatePresence>
         {showUploadModal && (
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.8)', backdropFilter: 'blur(10px)', zIndex: 2000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px' }}>
