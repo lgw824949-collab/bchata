@@ -659,14 +659,11 @@ const HomePage = ({
                         <span style={{ fontSize: '11px', color: '#94A3B8', fontWeight: '400', marginLeft: 'auto' }}>전체보기</span>
                       </div>
 
-                      <div className="party-horizontal-scroll" style={{ 
-                        display: 'flex', 
-                        overflowX: 'auto',
-                        gap: '12px',
-                        padding: '0 15px 20px',
-                        msOverflowStyle: 'none',
-                        scrollbarWidth: 'none',
-                        WebkitOverflowScrolling: 'touch'
+                      <div className="party-grid" style={{ 
+                        display: 'grid', 
+                        gridTemplateColumns: '1fr 1fr', 
+                        gap: '10px', 
+                        padding: '0 12px 20px'
                       }}>
                         {shuffledParties.length > 0 ? (
                           shuffledParties.map((item) => (
@@ -676,20 +673,19 @@ const HomePage = ({
                               style={{ 
                                 display: 'flex', 
                                 flexDirection: 'row', 
-                                alignItems: 'stretch', 
+                                alignItems: 'center', 
                                 backgroundColor: '#FFFFFF', 
-                                borderRadius: '12px', 
+                                borderRadius: '10px', 
                                 overflow: 'hidden', 
                                 border: '1px solid #F1F5F9', 
                                 cursor: 'pointer', 
-                                marginBottom: '10px', 
-                                height: '90px'
+                                height: '75px'
                               }}
                             >
                               {/* 🖼️ 왼쪽에 포스터 (사이즈 축소) */}
                               <div style={{ 
-                                width: '70px', 
-                                height: '90px', 
+                                width: '52px', 
+                                height: '75px', 
                                 backgroundColor: '#f8f8f8', 
                                 flexShrink: 0
                               }}>
@@ -719,66 +715,33 @@ const HomePage = ({
 
                               {/* 📝 오른쪽에 텍스트 정보 (공간 최대 활용) */}
                               <div style={{ 
-                                padding: '8px 12px', 
+                                padding: '4px 8px', 
                                 display: 'flex', 
                                 flexDirection: 'column', 
                                 justifyContent: 'center', 
                                 minWidth: 0, 
                                 flex: 1,
-                                gap: '2px'
+                                gap: '1px'
                               }}>
                                 {/* 장소 및 지도 링크 */}
-                                <div
-                                  onClick={(e) => {
-                                    e.stopPropagation()
-                                    const address = item.address || item.locationName
-                                    window.open(
-                                      `https://map.kakao.com/link/search/${encodeURIComponent(address)}`,
-                                      '_blank'
-                                    )
-                                  }}
-                                  style={{
-                                    display:'flex', 
-                                    alignItems:'center', 
-                                    gap: '8px',
-                                    marginBottom: '2px', 
-                                    cursor:'pointer',
-                                  }}
-                                >
-                                  <span style={{
-                                    fontSize: '16px', 
-                                    fontWeight: 900,
-                                    color: '#1E293B',
-                                    fontFamily: "'Pretendard', sans-serif",
-                                    lineHeight: 1.2
-                                  }}>
+                                <div style={{ display:'flex', alignItems:'center', gap: '4px' }}>
+                                  <span style={{ fontSize: '13px', fontWeight: 900, color: '#1E293B', fontFamily: "'Pretendard', sans-serif", whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
                                     {item.locationName}
                                   </span>
-                                  <span style={{ 
-                                    fontSize: '12px', 
-                                    color: '#94A3B8', 
-                                    fontWeight: 400, 
-                                    fontFamily: "'Pretendard', sans-serif",
-                                    display: 'flex',
-                                    alignItems: 'center',
-                                    gap: '2px'
-                                  }}>
-                                    지도 <ChevronRight size={12} />
+                                  <span style={{ fontSize: '10px', color: '#94A3B8', fontWeight: 400, fontFamily: "'Pretendard', sans-serif" }}>
+                                    지도 →
                                   </span>
                                 </div>
 
                                 {/* 1. 타이틀 */}
                                 <div style={{ 
-                                  fontSize: '14px', 
+                                  fontSize: '11px', 
                                   fontWeight: 600, 
                                   color: '#1E293B', 
-                                  lineHeight: '1.4', 
-                                  marginBottom: '8px',
                                   display: 'block', 
                                   whiteSpace: 'nowrap',
                                   overflow: 'hidden', 
                                   textOverflow: 'ellipsis',
-                                  wordBreak: 'keep-all',
                                   fontFamily: "'Pretendard', sans-serif"
                                 }}>
                                   {item.title?.replace(/\[.*?\]/g, '').replace('오늘밤빠', '').replace('밤빠', '').trim()}
@@ -788,8 +751,8 @@ const HomePage = ({
                                 <div style={{ 
                                   display: 'flex', 
                                   alignItems: 'center', 
-                                  gap: '5px', 
-                                  fontSize: '12px', 
+                                  gap: '3px', 
+                                  fontSize: '10px',
                                   whiteSpace: 'nowrap', 
                                   overflow: 'hidden', 
                                   fontFamily: "'Pretendard', sans-serif"
@@ -797,43 +760,26 @@ const HomePage = ({
                                   <span style={{ color: '#E53935', fontWeight: 700 }}>
                                     {(() => {
                                       const d = new Date(item.date);
-                                      const days = ['일', '월', '화', '수', '목', '금', '토'];
-                                      return `${d.getMonth() + 1}/${d.getDate()}(${days[d.getDay()]})`;
+                                      return `${d.getMonth() + 1}/${d.getDate()}`;
                                     })()}
                                   </span>
                                   <span style={{ color: '#E2E8F0' }}>·</span>
-                                  <span style={{ color: '#1E293B', fontWeight: 500 }}>{item.time?.split('-')[0].trim() || '20:00'}</span>
-                                  <span style={{ color: '#E2E8F0' }}>·</span>
-                                  <span style={{ color: '#1E293B', fontWeight: 500 }}>
-                                    {(() => {
-                                      const fee = String(item.entry_fee || '1.2만');
-                                      return fee.includes('만') ? fee : (parseInt(fee.replace(/[^0-9]/g, ''))/10000).toFixed(1).replace('.0','') + '만';
-                                    })()}
-                                  </span>
-                                  <span style={{ color: '#E2E8F0' }}>·</span>
-                                  <div style={{ display: 'flex', alignItems: 'center', gap: '3px' }}>
+                                  <div style={{ display: 'flex', alignItems: 'center', gap: '2px' }}>
                                     {(() => {
                                       const ratios = [
                                         { l: 'S', v: item.s_ratio || 0, c: '#E53935' },
                                         { l: 'B', v: item.b_ratio || 0, c: '#1D9E75' },
-                                        { l: 'K', v: item.k_ratio || 0, c: '#7C3AED' },
-                                        { l: 'J', v: item.j_ratio || 0, c: '#F59E0B' }
-                                      ].filter(r => r.v > 0).sort((a, b) => b.v - a.v);
+                                        { l: 'K', v: item.k_ratio || 0, c: '#7C3AED' }
+                                      ].filter(r => r.v > 0).sort((a, b) => b.v - a.v).slice(0, 2);
                                       
-                                      return ratios.map((r, idx) => (
-                                        <React.Fragment key={r.l}>
-                                          <span style={{ fontSize: '11px', fontWeight: 800, color: r.c }}>
-                                            {r.l}{r.v}
-                                          </span>
-                                          {idx < ratios.length - 1 && <span style={{ fontSize: '9px', color: '#E2E8F0' }}></span>}
-                                        </React.Fragment>
+                                      return ratios.map((r) => (
+                                        <span key={r.l} style={{ fontWeight: 800, color: r.c }}>
+                                          {r.l}{r.v}
+                                        </span>
                                       ));
                                     })()}
                                   </div>
                                 </div>
-                              </div>
-                              <div style={{ color: '#ccc' }}>
-                                <ChevronRight size={20} strokeWidth={1.5} />
                               </div>
                             </div>
                           ))
