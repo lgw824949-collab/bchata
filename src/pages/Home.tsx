@@ -23,29 +23,30 @@ const PosterImage = ({ src, onClick, alt = "파티 포스터" }) => {
 
 const PartyCard = ({ item, onSelect }) => {
   return (
-    <div onClick={() => onSelect(item.poster_url)} style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', backgroundColor: '#FFFFFF', borderRadius: '16px', overflow: 'hidden', border: '1px solid #F1F5F9', cursor: 'pointer', height: '110px', boxShadow: '0 1px 3px rgba(0,0,0,0.02)', width: '100%' }}>
-      <div style={{ width: '80px', height: '110px', backgroundColor: '#f8f8f8', flexShrink: 0 }}>
-        <img src={item.poster_url} alt="포스터" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+    <div onClick={() => onSelect(item.poster_url)} style={{ display: 'flex', gap: '15px', padding: '12px', background: '#FFFFFF', borderRadius: '16px', border: '1px solid #F1F5F9', cursor: 'pointer', position: 'relative', width: '100%', boxSizing: 'border-box' }}>
+      <div style={{ width: '85px', height: '110px', borderRadius: '10px', overflow: 'hidden', flexShrink: 0, boxShadow: '0 4px 12px rgba(0,0,0,0.08)' }}>
+        <img src={item.poster_url} style={{ width: '100%', height: '100%', objectFit: 'cover' }} alt="Poster" />
       </div>
-      <div style={{ padding: '12px 16px', display: 'flex', flexDirection: 'column', justifyContent: 'center', minWidth: 0, flex: 1, gap: '4px' }}>
-        <div style={{ display:'flex', alignItems:'center', gap: '8px' }}>
-          <span style={{ fontSize: '16px', fontWeight: 950, color: '#1E293B' }}>{item.locationName}</span>
-          <div onClick={(e) => { e.stopPropagation(); const address = item.address || item.locationName; window.open(`https://map.kakao.com/link/search/${encodeURIComponent(address)}`, '_blank'); }} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '24px', height: '24px', borderRadius: '50%', backgroundColor: '#F8FAFC', border: '1px solid #E2E8F0', cursor: 'pointer', color: '#E53935' }}>
-            <Navigation size={14} fill="currentColor" />
-          </div>
+      <div style={{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'center', gap: '6px', minWidth: 0 }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
+          <div style={{ fontSize: '11px', fontWeight: '900', color: '#E53935', letterSpacing: '-0.02em' }}>{item.locationName}</div>
+          <h3 style={{ fontSize: '15px', fontWeight: '800', color: '#1E293B', lineHeight: '1.3', margin: 0, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{item.title}</h3>
         </div>
-        <div style={{ fontSize: '15px', fontWeight: 600, color: '#1E293B', display: 'block', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', marginBottom: '4px' }}>
-          {item.title?.replace(/\[.*?\]/g, '').replace('오늘밤빠', '').replace('밤빠', '').trim()}
-        </div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'nowrap', overflow: 'hidden' }}>
-          <span style={{ background: '#FFF1F0', color: '#E53935', padding: '2px 10px', borderRadius: '12px', fontSize: '11px', fontWeight: 700 }}>
+        
+        <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+          <span style={{ background: '#FFF1F0', color: '#E53935', padding: '2px 8px', borderRadius: '8px', fontSize: '10px', fontWeight: 700 }}>
             {(() => { const d = new Date(item.date); const days = ['일', '월', '화', '수', '목', '금', '토']; return `${d.getMonth() + 1}/${d.getDate()}(${days[d.getDay()]})`; })()}
           </span>
-          <span style={{ background: '#E6F4FF', color: '#1677FF', padding: '2px 10px', borderRadius: '12px', fontSize: '11px', fontWeight: 700 }}>{item.time?.split('-')[0].trim() || '20:00'}</span>
-          <span style={{ background: '#FFFBE6', color: '#D46B08', padding: '2px 10px', borderRadius: '12px', fontSize: '11px', fontWeight: 800 }}>
-            {(() => { const fee = String(item.fee || '1.2만'); if (fee === '무료' || fee.includes('무료')) return '무료'; return fee.includes('만') ? fee : (parseInt(fee.replace(/[^0-9]/g, ''))/10000).toFixed(1) + '만'; })()}
-          </span>
+          <span style={{ background: '#E6F4FF', color: '#1677FF', padding: '2px 8px', borderRadius: '8px', fontSize: '10px', fontWeight: 700 }}>{item.time?.split('-')[0].trim() || '20:00'}</span>
         </div>
+      </div>
+
+      {/* 음악 비중 배지 */}
+      <div style={{ position: 'absolute', top: '10px', right: '10px', display: 'flex', gap: '3px' }}>
+        {item.s_ratio > 0 && <span style={{ background: 'rgba(229, 57, 53, 0.9)', color: 'white', padding: '2px 5px', borderRadius: '5px', fontSize: '9px', fontWeight: 900 }}>S{item.s_ratio}</span>}
+        {item.b_ratio > 0 && <span style={{ background: 'rgba(212, 160, 23, 0.9)', color: 'white', padding: '2px 5px', borderRadius: '5px', fontSize: '9px', fontWeight: 900 }}>B{item.b_ratio}</span>}
+        {item.k_ratio > 0 && <span style={{ background: 'rgba(103, 58, 183, 0.9)', color: 'white', padding: '2px 5px', borderRadius: '5px', fontSize: '9px', fontWeight: 900 }}>K{item.k_ratio}</span>}
+        {item.j_ratio > 0 && <span style={{ background: 'rgba(0, 150, 136, 0.9)', color: 'white', padding: '2px 5px', borderRadius: '5px', fontSize: '9px', fontWeight: 900 }}>J{item.j_ratio}</span>}
       </div>
     </div>
   );
