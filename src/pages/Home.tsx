@@ -1138,26 +1138,32 @@ const HomePage = ({
                     onClick={() => {
                       setSelectedDate(day.fullDate);
                       if (isWeekend) {
-                        setShowFilterPanel(true);
+                        // 금/토요일은 파티가 많으므로 모달 내 상세 뷰 노출
+                        setShowFilteredResults(true);
                       } else {
-                        setShowFilterPanel(false);
+                        // 평일은 즉시 메인 페이지 연동
                         setShowFullCalendar(false);
+                        setShowFilterPanel(false);
+                        if (scrollRef.current) {
+                          scrollRef.current.scrollTo({ top: 0, behavior: 'smooth' });
+                        }
                       }
                     }}
                     style={{ 
-                      height: '36px', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
-                      fontSize: '14px', fontWeight: isSelected ? 800 : 500,
-                      color: isSelected ? '#fff' : (isWeekend ? '#D4A017' : (day.isCurrentMonth ? '#333' : '#ccc')),
-                      backgroundColor: isSelected ? '#FF3B30' : 'transparent',
-                      borderRadius: '8px', cursor: 'pointer', position: 'relative',
-                      border: isToday && !isSelected ? '1px solid #FF3B30' : 'none'
+                      height: '46px', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
+                      fontSize: '15px', fontWeight: isSelected ? 800 : 600,
+                      color: isSelected ? '#fff' : (day.dayName === '일' ? '#EF4444' : (isWeekend ? '#D4A017' : (day.isCurrentMonth ? '#1E293B' : '#CBD5E1'))),
+                      backgroundColor: isSelected ? (isWeekend ? '#D4A017' : '#E53935') : 'transparent',
+                      borderRadius: '14px', cursor: 'pointer', position: 'relative',
+                      transition: 'all 0.2s',
+                      border: isToday && !isSelected ? '1px solid #E2E8F0' : 'none'
                     }}
                   >
-                    {day.date}
+                    <span style={{ position: 'relative', zIndex: 2 }}>{day.date}</span>
                     {hasEvents && !isSelected && (
                       <div style={{ 
-                        width: '4px', height: '4px', borderRadius: '50%', position: 'absolute', bottom: '3px',
-                        backgroundColor: isWeekend ? '#D4A017' : '#22C55E'
+                        width: '4px', height: '4px', borderRadius: '50%', position: 'absolute', bottom: '6px',
+                        backgroundColor: isWeekend ? '#D4A017' : '#E53935'
                       }} />
                     )}
                   </div>
