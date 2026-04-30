@@ -221,7 +221,9 @@ function App() {
   const kst = new Date(new Date().getTime() + (9 * 60 * 60 * 1000));
   const todayData = { year: kst.getFullYear(), month: kst.getMonth() + 1, date: kst.getDate(), dateStr: formatDateToKSTString(kst) };
 
-  const [showSplash, setShowSplash] = useState(true);
+  const [showSplash, setShowSplash] = useState(() => {
+    return !localStorage.getItem('visited_bamppa');
+  });
   const [parties, setParties] = useState([]);
   const [loading, setLoading] = useState(true);
   const [selectedDate, setSelectedDate] = useState(todayData.dateStr);
@@ -243,7 +245,15 @@ function App() {
   const [showSaju, setShowSaju] = useState(false);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
 
-  useEffect(() => { setTimeout(() => setShowSplash(false), 2000); }, []);
+  useEffect(() => { 
+    if (showSplash) {
+      const timer = setTimeout(() => {
+        setShowSplash(false);
+        localStorage.setItem('visited_bamppa', 'true');
+      }, 2000); 
+      return () => clearTimeout(timer);
+    }
+  }, [showSplash]);
 
   useEffect(() => {
     // 1. 초기 접속 시 경로 또는 해시 처리
