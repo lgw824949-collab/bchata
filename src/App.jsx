@@ -57,6 +57,22 @@ const PosterModal = ({ src, onClose }) => {
             userSelect: 'none'
           }} 
         />
+        <a 
+          href={src}
+          download="poster.jpg"
+          target="_blank"
+          rel="noreferrer"
+          onClick={e => e.stopPropagation()}
+          style={{ 
+            position:'absolute', top:'40px', right:'80px',
+            background:'rgba(255,255,255,0.2)', border:'none',
+            borderRadius:'50%', width:'44px', height:'44px',
+            color:'#fff', fontSize:'20px', cursor:'pointer',
+            display:'flex', alignItems:'center', justifyContent:'center',
+            textDecoration:'none',
+            zIndex: 100001
+          }}
+        >⬇️</a>
         <button 
           onClick={onClose} 
           style={{ 
