@@ -207,17 +207,33 @@ const Community = ({ setSelectedPoster }) => {
                   ) : (
                     <>
                       <Camera size={40} color="#94A3B8" style={{ marginBottom: '10px' }} />
-                      <span style={{ fontSize: '14px', color: '#64748B' }}>현장 사진 선택</span>
+                      <span style={{ fontSize: '14px', color: '#64748B' }}>현장 사진 선택 (필수)</span>
                     </>
                   )}
                   <input id="file-upload" type="file" accept="image/*" hidden onChange={e => setNewPost({...newPost, image: e.target.files[0]})} />
                 </div>
 
+                {/* Quick Tags */}
+                <div>
+                  <p style={{ fontSize: '12px', fontWeight: 800, color: '#64748B', marginBottom: '8px' }}>빠른 태그 선택</p>
+                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
+                    {['🔥 핫해요', '💃 분위기 최고', '🎵 음악 맛집', '👨‍👩‍👧‍👦 북적북적', '✨ 쾌적해요', '🍹 칵테일 추천'].map(tag => (
+                      <button 
+                        key={tag}
+                        onClick={() => setNewPost({...newPost, content: newPost.content ? `${newPost.content} ${tag}` : tag})}
+                        style={{ padding: '6px 12px', borderRadius: '12px', background: '#F1F5F9', border: '1px solid #E2E8F0', fontSize: '12px', fontWeight: 700, color: '#475569', cursor: 'pointer' }}
+                      >
+                        {tag}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
                 <textarea 
-                  placeholder="지금 현장의 분위기는 어떤가요? (예: 보니따 바차타 분위기 최고!)"
+                  placeholder="예: [보니따] 현재 분위기 정말 뜨거워요! 바차타 비율도 좋고 사람도 많아서 춤추기 딱입니다. 🔥"
                   value={newPost.content}
                   onChange={e => setNewPost({...newPost, content: e.target.value})}
-                  style={{ width: '100%', height: '100px', border: '1px solid #E2E8F0', borderRadius: '16px', padding: '15px', fontSize: '14px', outline: 'none', resize: 'none' }}
+                  style={{ width: '100%', height: '100px', border: '1px solid #E2E8F0', borderRadius: '16px', padding: '15px', fontSize: '14px', outline: 'none', resize: 'none', lineHeight: '1.5' }}
                 />
 
                 <div style={{ display: 'flex', gap: '10px' }}>
