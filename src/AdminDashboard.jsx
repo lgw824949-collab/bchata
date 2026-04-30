@@ -336,6 +336,7 @@ export default function AdminDashboard({ onBack, refreshData }) {
         setPendingParties(prev => prev.filter(p => p.id !== id))
       } else {
         setOfficialParties(prev => prev.filter(p => p.id !== id))
+      }
       if (refreshData) refreshData()
     } catch (err) {
       alert('삭제 오류: ' + err.message)
