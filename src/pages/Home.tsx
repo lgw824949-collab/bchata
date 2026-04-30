@@ -664,7 +664,7 @@ const HomePage = ({
                     <span style={{ 
                       fontSize: '15px', 
                       fontWeight: '800',
-                      color: isSelected ? '#fff' : (isSelected ? '#E53935' : dayColor)
+                      color: isSelected ? '#fff' : (item.isToday ? '#E53935' : dayColor)
                     }}>
                       {item.date}
                     </span>

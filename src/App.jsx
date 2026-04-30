@@ -246,8 +246,15 @@ function App() {
     i18n.changeLanguage(newLang);
   };
 
-  const kst = new Date(new Date().getTime() + (9 * 60 * 60 * 1000));
-  const todayData = { year: kst.getFullYear(), month: kst.getMonth() + 1, date: kst.getDate(), dateStr: formatDateToKSTString(kst) };
+  // 환경에 관계없이 정확한 KST(한국 표준시) 날짜를 가져오는 로직
+  const getKSTDate = () => {
+    const now = new Date();
+    const kstString = now.toLocaleString('en-US', { timeZone: 'Asia/Seoul', year: 'numeric', month: '2-digit', day: '2-digit' });
+    const [m, d, y] = kstString.split('/');
+    return { year: parseInt(y), month: parseInt(m), date: parseInt(d), dateStr: `${y}-${m}-${d}` };
+  };
+
+  const todayData = getKSTDate();
 
   const [showSplash, setShowSplash] = useState(() => {
     return !localStorage.getItem('visited_bamppa');
