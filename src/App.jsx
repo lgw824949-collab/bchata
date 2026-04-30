@@ -198,16 +198,32 @@ const DynamicAnalysisModal = ({ isOpen, onClose, userCoords, isSajuCall }) => {
 };
 
 const IncheonPremiumBanner = ({ onClick }) => (
-  <div style={{ padding: '0 16px', margin: '15px 0' }}>
-    <div onClick={(e) => { e.stopPropagation(); onClick(); }} style={{ background: '#FFFFFF', borderRadius: '24px', padding: '16px 20px', border: '1px solid #E2E8F0', boxShadow: '0 15px 40px rgba(0,0,0,0.05)', cursor: 'pointer' }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        <div>
-          <div style={{ background: '#E53935', color: '#fff', fontSize: '9px', fontWeight: '900', padding: '4px 10px', borderRadius: '50px', marginBottom: '8px', display: 'inline-block' }}>NATIONWIDE LIVE</div>
-          <h3 style={{ color: '#1E293B', fontSize: '18px', fontWeight: '900', margin: '0 0 4px 0' }}>지능형 경로 최적화 서비스 🛰️</h3>
-          <p style={{ color: '#64748B', fontSize: '12px', margin: 0 }}>현재 위치 기반 최단 거리 성지 탐색 중 →</p>
+  <div style={{ padding: '0 15px', margin: '8px 0' }}>
+    <div 
+      onClick={(e) => { e.stopPropagation(); onClick(); }} 
+      style={{ 
+        background: 'linear-gradient(90deg, #FFFFFF, #FFF9F9)', 
+        borderRadius: '16px', 
+        padding: '10px 16px', 
+        border: '1px solid #FFE4E4', 
+        boxShadow: '0 4px 12px rgba(229, 57, 53, 0.03)', 
+        cursor: 'pointer',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        gap: '12px'
+      }}
+    >
+      <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flex: 1, minWidth: 0 }}>
+        <div style={{ background: '#FFEBEE', padding: '6px', borderRadius: '10px', color: '#E53935', flexShrink: 0 }}>
+          <Navigation size={15} strokeWidth={3} />
         </div>
-        <div style={{ background: '#FFEBEE', padding: '12px', borderRadius: '18px', color: '#E53935' }}><Navigation size={20} /></div>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', overflow: 'hidden' }}>
+          <span style={{ color: '#1E293B', fontSize: '14px', fontWeight: '900', whiteSpace: 'nowrap' }}>지능형 경로 최적화</span>
+          <span style={{ color: '#94A3B8', fontSize: '11px', fontWeight: '500', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>최단 거리 성지 탐색 →</span>
+        </div>
       </div>
+      <div style={{ background: '#E53935', color: '#fff', fontSize: '8px', fontWeight: '950', padding: '2px 8px', borderRadius: '6px', flexShrink: 0 }}>LIVE</div>
     </div>
   </div>
 );
