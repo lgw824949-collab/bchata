@@ -195,6 +195,26 @@ const HomePage = ({
                 <div style={{ margin: '0 0 15px', padding: '10px 0 20px', background: '#fff', borderBottom: '1px solid #eee' }}>
                   <div style={{ padding: '0 20px 15px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                     <h2 style={{ fontSize: '18px', fontWeight: '950', color: '#1E293B', display: 'flex', alignItems: 'center', gap: '8px' }}><span style={{ color: '#E53935' }}>HOT</span> PICK 5</h2>
+                    {/* 언어 토글 버튼 이동 배치 */}
+                    <motion.button
+                      whileTap={{ scale: 0.9 }}
+                      onClick={() => i18n.changeLanguage(i18n.language.startsWith('ko') ? 'en' : 'ko')}
+                      style={{
+                        background: '#F1F5F9',
+                        border: 'none',
+                        borderRadius: '12px',
+                        padding: '8px 12px',
+                        fontSize: '12px',
+                        fontWeight: '900',
+                        cursor: 'pointer',
+                        color: '#1E293B',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '6px'
+                      }}
+                    >
+                      {i18n.language.startsWith('ko') ? '🇺🇸 EN' : '🇰🇷 KO'}
+                    </motion.button>
                   </div>
                   <div style={{ width: '100%', overflow: 'hidden', padding: '10px 0' }}>
                     <motion.div animate={isPaused ? {} : { x: [0, -775] }} transition={{ duration: 20, repeat: Infinity, ease: "linear" }} style={{ display: 'flex', gap: '15px', paddingLeft: '20px', width: 'max-content' }}>

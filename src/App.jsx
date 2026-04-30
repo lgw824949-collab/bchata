@@ -457,23 +457,6 @@ function App() {
       </AnimatePresence>
       <AnimatePresence>{isAnalyzing && <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} style={{ position: 'fixed', inset: 0, zIndex: 1000000, background: 'rgba(255,255,255,0.9)', backdropFilter: 'blur(30px)', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}><motion.div animate={{ rotate: 360 }} transition={{ duration: 1, repeat: Infinity, ease: 'linear' }} style={{ width: '60px', height: '60px', border: '4px solid #FFEBEE', borderTop: '4px solid #E53935', borderRadius: '50%', marginBottom: '20px' }} /><h2 style={{ color: '#1E293B', fontSize: '20px', fontWeight: '900' }}>실시간 지능형 분석 중...</h2></motion.div>}</AnimatePresence>
 
-      {/* 언어 토글 버튼 추가 */}
-      <div style={{ position: 'fixed', top: '20px', right: '80px', zIndex: 1005 }}>
-        <motion.button
-          whileTap={{ scale: 0.9 }}
-          onClick={toggleLanguage}
-          style={{
-            background: 'rgba(255,255,255,0.95)', backdropFilter: 'blur(10px)',
-            border: '1px solid #F1F5F9', borderRadius: '14px', padding: '12px 16px',
-            boxShadow: '0 8px 25px rgba(0,0,0,0.12)', cursor: 'pointer',
-            display: 'flex', alignItems: 'center', gap: '8px',
-            fontSize: '13px', fontWeight: '900', color: '#1E293B'
-          }}
-        >
-          {i18n.language.startsWith('ko') ? '🇺🇸 EN' : '🇰🇷 KO'}
-        </motion.button>
-      </div>
-
       {/* 햄버거 메뉴 버튼 (드래그 기능 유지) */}
       {!isMenuOpen && (
         <motion.button 
