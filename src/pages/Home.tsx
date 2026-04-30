@@ -355,7 +355,7 @@ const HomePage = ({
   parties, lessons, loading, selectedMonth, setSelectedMonth, selectedWeek, setSelectedWeek, 
   selectedDate, setSelectedDate, selectedRegion, setSelectedRegion, isExpanded, setIsExpanded,
   view, setView, setSelectedPoster, fetchParties, formatItemDate, formatFee, filteredParties, weekData,
-  resetToToday, showFullCalendar, setShowFullCalendar, allDatesInMonth, likedIds, toggleLike, logActivity, handleRegister, fourteenDays,
+  resetToToday, showFullCalendar, setShowFullCalendar, likedIds, toggleLike, logActivity, handleRegister, fourteenDays,
   showFilterPanel, setShowFilterPanel, filterRegion, setFilterRegion, filterGenre, setFilterGenre,
   showFilteredResults, setShowFilteredResults, isMenuOpen, setIsMenuOpen, showWeather, setShowWeather,
   showLatinModal, setShowLatinModal, setShowSaju, latinCat, setLatinCat, selPatternId, setSelPatternId, regionalTheme, recordTraffic, IncheonBanner, venueCounts, openAnalysis
@@ -426,6 +426,33 @@ const HomePage = ({
       .sort((a, b) => new Date(b.date) - new Date(a.date))
       .slice(0, 5);
   }, [parties]);
+
+  // 달력 날짜 생성 로직 (현재 월 기준)
+  const allDatesInMonth = useMemo(() => {
+    const year = 2026; // 기준 연도
+    const month = selectedMonth;
+    const firstDayIndex = new Date(year, month - 1, 1).getDay(); // 0(일) ~ 6(토)
+    const lastDate = new Date(year, month, 0).getDate();
+    
+    const days = [];
+    // 1일 앞의 빈 칸 채우기
+    for (let i = 0; i < firstDayIndex; i++) {
+      days.push({ date: '', fullDate: '', dayName: '', isCurrentMonth: false });
+    }
+    // 실제 날짜 채우기
+    for (let d = 1; d <= lastDate; d++) {
+      const fullDate = `${year}-${String(month).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
+      const dateObj = new Date(year, month - 1, d);
+      const dayNames = ['일','월','화','수','목','금','토'];
+      days.push({ 
+        date: d, 
+        fullDate, 
+        dayName: dayNames[dateObj.getDay()], 
+        isCurrentMonth: true 
+      });
+    }
+    return days;
+  }, [selectedMonth]);
 
   const handlePinchZoom = (e) => {
     if (e.touches.length === 2) {
