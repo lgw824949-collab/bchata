@@ -273,6 +273,10 @@ function App() {
   const [showSaju, setShowSaju] = useState(false);
   const [showFullCalendar, setShowFullCalendar] = useState(false);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [filterRegion, setFilterRegion] = useState('전체');
+  const [filterGenre, setFilterGenre] = useState('전체');
+  const [showFilterPanel, setShowFilterPanel] = useState(false);
+  const [showFilteredResults, setShowFilteredResults] = useState(false);
 
   useEffect(() => { 
     if (showSplash) {
@@ -384,6 +388,8 @@ function App() {
       return { fullDate: formatDateToKSTString(d), date: String(d.getDate()), month: String(d.getMonth() + 1), dayName: DAYS_KOR[d.getDay()], isToday: i === 0, dayOfWeek: d.getDay() };
     }), weekData: [], allDatesInMonth: [], filteredParties: displayParties.filter(p => p.date === selectedDate),
     showFullCalendar, setShowFullCalendar, likedIds: [], toggleLike: () => {},
+    filterRegion, setFilterRegion, filterGenre, setFilterGenre,
+    showFilterPanel, setShowFilterPanel, showFilteredResults, setShowFilteredResults,
     IncheonBanner: () => <IncheonPremiumBanner t={t} onClick={() => openAnalysis(false)} />, venueCounts: {}, resetToToday: () => { setView('home'); setSelectedDate(todayData.dateStr); }, formatItemDate: (d, t) => `${d} ${t}`, formatFee: (f) => f, handleRegister: () => setView('register'), logActivity: () => {}, regionalTheme: { welcomeMsg: "전국 댄서들을 위한 실시간 정보", specialBanner: true }
   };
 
