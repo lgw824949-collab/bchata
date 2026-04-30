@@ -679,6 +679,13 @@ const HomePage = ({
                       >
                         <Calendar size={20} strokeWidth={2.5} />
                       </div>
+                      <div 
+                        onClick={() => i18n.changeLanguage(i18n.language.startsWith('ko') ? 'en' : 'ko')}
+                        style={{ padding: '5px', cursor: 'pointer', color: '#E53935', display: 'flex', alignItems: 'center', gap: '3px' }}
+                      >
+                        <Globe size={20} strokeWidth={2.5} />
+                        <span style={{ fontSize: '10px', fontWeight: 900 }}>{i18n.language.startsWith('ko') ? 'EN' : 'KO'}</span>
+                      </div>
                     </div>
                   </div>
 
