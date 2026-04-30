@@ -85,7 +85,7 @@ const Community = ({ setSelectedPoster }) => {
       {/* Header */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
         <h1 style={{ fontSize: '24px', fontWeight: 950, color: '#1E293B', letterSpacing: '-0.02em' }}>
-          운명의 <span style={{ color: '#E53935' }}>좌표</span> 피드
+          <span style={{ color: '#E53935' }}>LIVE</span> PICK 피드
         </h1>
         <div style={{ display: 'flex', gap: '10px' }}>
           <button style={{ background: '#fff', border: '1px solid #E2E8F0', borderRadius: '12px', padding: '8px' }}>
@@ -106,7 +106,16 @@ const Community = ({ setSelectedPoster }) => {
       {/* Feed List */}
       <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
         {loading ? (
-          <div style={{ textAlign: 'center', padding: '40px' }}>로딩 중...</div>
+          <div style={{ textAlign: 'center', padding: '60px', color: '#64748B' }}>데이터를 불러오는 중...</div>
+        ) : posts.length === 0 ? (
+          <div style={{ textAlign: 'center', padding: '100px 20px', background: '#fff', borderRadius: '24px', boxShadow: '0 4px 20px rgba(0,0,0,0.03)' }}>
+            <Camera size={48} color="#E2E8F0" style={{ marginBottom: '16px' }} />
+            <h3 style={{ fontSize: '18px', fontWeight: 800, color: '#1E293B', marginBottom: '8px' }}>첫 번째 주인공이 되어보세요!</h3>
+            <p style={{ fontSize: '14px', color: '#64748B', lineHeight: '1.6' }}>
+              지금 파티 현장의 분위기를 사진으로 찍어<br />
+              전국의 댄서들과 실시간으로 공유해 보세요.
+            </p>
+          </div>
         ) : (
           posts.map(post => (
             <motion.div 
