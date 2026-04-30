@@ -19,12 +19,19 @@ const SkeletonCard = () => (
   </div>
 );
 
+const DEFAULT_RESTAURANTS = [
+  { id: 'def-1', name: '홍대 고기집', address: '서울 마포구 홍익로', category: '한식', distance: 0, isDefault: true },
+  { id: 'def-2', name: '이태원 멕시칸', address: '서울 용산구 이태원로', category: '양식', distance: 0, isDefault: true },
+  { id: 'def-3', name: '강남 포차', address: '서울 강남구 테헤란로', category: '주점', distance: 0, isDefault: true },
+];
+
 const Restaurant = ({ onBack }) => {
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
-  const [restaurants, setRestaurants] = useState([]);
+  const [restaurants, setRestaurants] = useState(DEFAULT_RESTAURANTS);
   const [coords, setCoords] = useState(null);
   const [isFallback, setIsFallback] = useState(false);
+  const [isRefreshing, setIsRefreshing] = useState(false);
 
   // 1. 현위치 가져오기
   useEffect(() => {
@@ -61,12 +68,11 @@ const Restaurant = ({ onBack }) => {
         const { data, timestamp } = JSON.parse(cached);
         if (Date.now() - timestamp < 5 * 60 * 1000) {
           setRestaurants(data);
-          setLoading(false);
           return;
         }
       }
 
-      setLoading(true);
+      setIsRefreshing(true);
       try {
         const url = `/api/restaurant?lat=${coords.lat}&lon=${coords.lon}`;
         const response = await fetch(url);
@@ -85,16 +91,13 @@ const Restaurant = ({ onBack }) => {
           })).sort((a, b) => a.distance - b.distance);
           
           setRestaurants(list);
-          // 데이터 캐싱
           localStorage.setItem(cacheKey, JSON.stringify({ data: list, timestamp: Date.now() }));
-        } else {
-          setRestaurants([]);
         }
       } catch (err) {
-        console.error(err);
-        setError('맛집 정보를 불러오는 중 오류가 발생했습니다.');
+        console.error('Background fetch failed, keeping defaults:', err);
+        // API 실패 시 에러를 표시하지 않고 기본 데이터(또는 캐시된 데이터) 유지
       } finally {
-        setLoading(false);
+        setIsRefreshing(false);
       }
     };
 
@@ -178,7 +181,7 @@ const Restaurant = ({ onBack }) => {
                       </div>
                     </div>
                     <div style={{ background: '#FFF7ED', color: '#EA580C', fontSize: '11px', fontWeight: 900, padding: '4px 10px', borderRadius: '8px', whiteSpace: 'nowrap' }}>
-                      {res.distance.toFixed(1)}km
+                      {typeof res.distance === 'number' ? `${res.distance.toFixed(1)}km` : res.distance}
                     </div>
                   </div>
 
