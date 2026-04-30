@@ -23,7 +23,7 @@ const PosterImage = ({ src, onClick, alt = "파티 포스터" }) => {
 
 const PartyCard = ({ item, onSelect }) => {
   const cleanTitle = item.title?.split(' ㅣ ')[0] || '';
-  const displayTime = item.time?.split('-')[0].trim() || '20:00';
+  const displayTime = item.time?.split('-')[0].trim() || '21:00';
   const displayFee = (() => { const fee = String(item.fee || '1.2만'); return fee.includes('만') ? fee : fee; })();
 
   return (
@@ -43,39 +43,39 @@ const PartyCard = ({ item, onSelect }) => {
         width: '100%' 
       }}
     >
-      {/* 왼쪽: 포스터 영역 (고정 규격) */}
+      {/* 왼쪽: 포스터 영역 */}
       <div style={{ width: '85px', height: '115px', backgroundColor: '#f8f8f8', flexShrink: 0 }}>
         <img src={item.poster_url} alt="Poster" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
       </div>
 
-      {/* 오른쪽: 3줄 텍스트 정보 영역 */}
+      {/* 오른쪽: 정보 영역 (위치 -> 제목 -> 상세) */}
       <div style={{ padding: '10px 15px', display: 'flex', flexDirection: 'column', justifyContent: 'space-between', minWidth: 0, flex: 1, height: '100%' }}>
-        {/* Line 1: 제목 및 네비게이션 */}
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '5px' }}>
-          <div style={{ fontSize: '15px', fontWeight: '950', color: '#1E293B', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', lineHeight: '1.2' }}>
-            {cleanTitle}
-          </div>
-          <div onClick={(e) => { e.stopPropagation(); const address = item.address || item.locationName; window.open(`https://map.kakao.com/link/search/${encodeURIComponent(address)}`, '_blank'); }} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '22px', height: '22px', borderRadius: '50%', backgroundColor: '#F8FAFC', border: '1px solid #E2E8F0', flexShrink: 0, color: '#E53935' }}>
-            <Navigation size={12} fill="currentColor" />
+        {/* Line 1: 위치 및 화살표 버튼 (사용자 요청: 맨 위로) */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+          <span style={{ fontSize: '13px', fontWeight: '950', color: '#E53935' }}>{item.locationName}</span>
+          <div onClick={(e) => { e.stopPropagation(); const address = item.address || item.locationName; window.open(`https://map.kakao.com/link/search/${encodeURIComponent(address)}`, '_blank'); }} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '20px', height: '20px', borderRadius: '50%', backgroundColor: '#FFF1F0', cursor: 'pointer', color: '#E53935' }}>
+            <Navigation size={10} fill="currentColor" />
           </div>
         </div>
 
-        {/* Line 2: 장소 | 시간 | 가격 */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '12px', color: '#64748B', fontWeight: '700' }}>
-          <span style={{ color: '#1E293B' }}>{item.locationName}</span>
-          <span style={{ color: '#E2E8F0' }}>|</span>
-          <span>{displayTime}</span>
-          <span style={{ color: '#E2E8F0' }}>|</span>
-          <span style={{ color: '#D46B08' }}>{displayFee}</span>
+        {/* Line 2: 파티 제목 */}
+        <div style={{ fontSize: '16px', fontWeight: '900', color: '#1E293B', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', lineHeight: '1.2' }}>
+          {cleanTitle}
         </div>
 
-        {/* Line 3: 음악 비중 마킹 (사용자 강조 사항) */}
-        <div style={{ display: 'flex', gap: '4px', flexWrap: 'nowrap' }}>
-          {item.s_ratio > 0 && <span style={{ background: '#FFF1F0', color: '#E53935', padding: '2px 6px', borderRadius: '4px', fontSize: '10px', fontWeight: 900 }}>S{item.s_ratio}</span>}
-          {item.b_ratio > 0 && <span style={{ background: '#FFFBE6', color: '#D4A017', padding: '2px 8px', borderRadius: '4px', fontSize: '10px', fontWeight: 900 }}>B{item.b_ratio}</span>}
-          {item.k_ratio > 0 && <span style={{ background: '#F9F0FF', color: '#722ED1', padding: '2px 8px', borderRadius: '4px', fontSize: '10px', fontWeight: 900 }}>K{item.k_ratio}</span>}
-          {item.j_ratio > 0 && <span style={{ background: '#E6FFFB', color: '#08979C', padding: '2px 8px', borderRadius: '4px', fontSize: '10px', fontWeight: 900 }}>J{item.j_ratio}</span>}
-          {(!item.s_ratio && !item.b_ratio && !item.k_ratio && !item.j_ratio) && <span style={{ color: '#CBD5E1', fontSize: '10px', fontWeight: 700 }}>No ratio info</span>}
+        {/* Line 3: 시간 | 가격 | 음악 비중 */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'nowrap', overflow: 'hidden' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '5px', fontSize: '11px', color: '#64748B', fontWeight: '800' }}>
+            <span>{displayTime}</span>
+            <span style={{ color: '#E2E8F0' }}>|</span>
+            <span style={{ color: '#D46B08' }}>{displayFee}</span>
+          </div>
+          <div style={{ display: 'flex', gap: '3px', marginLeft: '4px' }}>
+            {item.s_ratio > 0 && <span style={{ background: '#FFF1F0', color: '#E53935', padding: '1px 5px', borderRadius: '4px', fontSize: '9px', fontWeight: 900 }}>S{item.s_ratio}</span>}
+            {item.b_ratio > 0 && <span style={{ background: '#FFFBE6', color: '#D4A017', padding: '1px 5px', borderRadius: '4px', fontSize: '9px', fontWeight: 900 }}>B{item.b_ratio}</span>}
+            {item.k_ratio > 0 && <span style={{ background: '#F9F0FF', color: '#722ED1', padding: '1px 5px', borderRadius: '4px', fontSize: '9px', fontWeight: 900 }}>K{item.k_ratio}</span>}
+            {item.j_ratio > 0 && <span style={{ background: '#E6FFFB', color: '#08979C', padding: '1px 5px', borderRadius: '4px', fontSize: '9px', fontWeight: 900 }}>J{item.j_ratio}</span>}
+          </div>
         </div>
       </div>
     </div>
