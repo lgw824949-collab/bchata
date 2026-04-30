@@ -11,27 +11,12 @@ const MAIN_REGIONS = ['서울', '경기/인천', '경상', '전라', '충청', '
 
 const PosterImage = ({ src, onClick, alt = "파티 포스터" }) => {
   const imgRef = useRef();
-  const onUpdate = ({ x, y, scale }) => {
-    if (imgRef.current) {
-      imgRef.current.style.transform = make3dTransformValue({ x, y, scale });
-    }
-  };
-
+  const onUpdate = ({ x, y, scale }) => { if (imgRef.current) imgRef.current.style.transform = make3dTransformValue({ x, y, scale }); };
   return (
     <div style={{ width: '100%', aspectRatio: '3/4', overflow: 'hidden', borderRadius: '12px', background: '#000', position: 'relative', boxShadow: '0 4px 12px rgba(0,0,0,0.15)' }}>
       <QuickPinchZoom onUpdate={onUpdate} wheelScaleFactor={500} tapZoomFactor={2}>
         <img ref={imgRef} src={src} alt={alt} onClick={onClick} style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block', willChange: 'transform' }} />
       </QuickPinchZoom>
-    </div>
-  );
-};
-
-const CachedImage = ({ src, alt, className, objectFit = 'cover' }) => {
-  const [isLoaded, setIsLoaded] = React.useState(false);
-  return (
-    <div style={{ position: 'relative', width: '100%', height: '100%', backgroundColor: '#F3F4F6', overflow: 'hidden' }}>
-      <img src={src} alt={alt} className={className} loading="lazy" decoding="async" onLoad={() => setIsLoaded(true)} style={{ opacity: isLoaded ? 1 : 0, transition: 'opacity 0.4s cubic-bezier(0.4, 0, 0.2, 1)', width: '100%', height: '100%', objectFit: objectFit, display: 'block' }} />
-      {!isLoaded && <div className="shimmer-placeholder" />}
     </div>
   );
 };
@@ -277,6 +262,9 @@ const HomePage = ({
                   </div>
                 ) : showFilterPanel ? (
                   <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '20px' }}>
+                      <button onClick={() => { setShowFilterPanel(false); setFilterRegion(''); setSelPatternId(''); setFilterGenre(''); }} style={{ background: '#F8FAFC', border: 'none', borderRadius: '10px', padding: '8px 12px', fontSize: '13px', fontWeight: 700, color: '#64748B', display: 'flex', alignItems: 'center', gap: '4px' }}><ChevronLeft size={16} /> 날짜 다시 선택</button>
+                    </div>
                     <div style={{ marginBottom: '20px' }}><div style={{ fontSize: '14px', fontWeight: 950, color: '#1E293B', marginBottom: '12px' }}>어느 지역으로 가시나요?</div><div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>{['서울', '경기·인천', '경상', '전라', '충청', '강원·제주'].map(r => <button key={r} onClick={() => { setFilterRegion(r); setSelPatternId(''); }} style={{ padding: '10px 18px', borderRadius: '14px', fontSize: '13px', fontWeight: 700, background: filterRegion === r ? '#E53935' : '#F8FAFC', color: filterRegion === r ? '#fff' : '#64748B', border: '1px solid #F1F5F9' }}>{r}</button>)}</div></div>
                     {filterRegion && <div style={{ marginBottom: '20px' }}><div style={{ fontSize: '14px', fontWeight: 950, color: '#1E293B', marginBottom: '12px' }}>상세 지역 선택</div><div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>{['전체', ...new Set(parties.filter(p => p.date === selectedDate && (filterRegion === '경기·인천' ? (p.broadRegion?.includes('경기') || p.broadRegion?.includes('인천')) : p.broadRegion?.includes(filterRegion))).map(p => p.locationName))].map(loc => <button key={loc} onClick={() => setSelPatternId(loc === '전체' ? '' : loc)} style={{ padding: '10px 18px', borderRadius: '14px', fontSize: '13px', fontWeight: 700, background: selPatternId === (loc === '전체' ? '' : loc) ? '#1E293B' : '#F8FAFC', color: selPatternId === (loc === '전체' ? '' : loc) ? '#fff' : '#64748B', border: '1px solid #F1F5F9' }}>{loc}</button>)}</div></div>}
                     <div style={{ marginBottom: '30px' }}><div style={{ fontSize: '14px', fontWeight: 950, color: '#1E293B', marginBottom: '12px' }}>어떤 춤을 추시나요?</div><div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>{['전체', '살사', '바차타', '쥬크', '키좀바'].map(g => <button key={g} onClick={() => setFilterGenre(g === '전체' ? '' : g)} style={{ padding: '10px 18px', borderRadius: '14px', fontSize: '13px', fontWeight: 700, background: filterGenre === (g === '전체' ? '' : g) ? '#D4A017' : '#F8FAFC', color: filterGenre === (g === '전체' ? '' : g) ? '#fff' : '#64748B', border: '1px solid #F1F5F9' }}>{g}</button>)}</div></div>
@@ -284,6 +272,9 @@ const HomePage = ({
                   </motion.div>
                 ) : (
                   <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '20px' }}>
+                      <button onClick={() => setShowFilteredResults(false)} style={{ background: '#F8FAFC', border: 'none', borderRadius: '10px', padding: '8px 12px', fontSize: '13px', fontWeight: 700, color: '#64748B', display: 'flex', alignItems: 'center', gap: '4px' }}><ChevronLeft size={16} /> 필터 다시 선택</button>
+                    </div>
                     <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '10px', marginBottom: '20px' }}>
                       {parties.filter(p => {
                         if (p.date !== selectedDate) return false;
