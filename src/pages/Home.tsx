@@ -73,6 +73,101 @@ const CachedImage = ({ src, alt, className, objectFit = 'cover' }) => {
 
 
 
+const PartyCard = ({ item, onSelect }) => {
+  return (
+    <div 
+      onClick={() => onSelect(item.poster_url)}
+      style={{ 
+        display: 'flex', 
+        flexDirection: 'row',
+        alignItems: 'center',
+        backgroundColor: '#FFFFFF',
+        borderRadius: '16px',
+        overflow: 'hidden',
+        border: '1px solid #F1F5F9',
+        cursor: 'pointer',
+        height: '110px',
+        boxShadow: '0 1px 3px rgba(0,0,0,0.02)',
+        width: '100%'
+      }}
+    >
+      <div style={{ width: '80px', height: '110px', backgroundColor: '#f8f8f8', flexShrink: 0 }}>
+        <img src={item.poster_url} alt="포스터" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+      </div>
+      <div style={{ padding: '12px 16px', display: 'flex', flexDirection: 'column', justifyContent: 'center', minWidth: 0, flex: 1, gap: '4px' }}>
+        <div style={{ display:'flex', alignItems:'center', gap: '8px' }}>
+          <span style={{ fontSize: '16px', fontWeight: 900, color: '#1E293B', fontFamily: "'Pretendard', sans-serif" }}>{item.locationName}</span>
+          <span style={{ fontSize: '12px', color: '#94A3B8', fontWeight: 400, fontFamily: "'Pretendard', sans-serif" }}>지도 →</span>
+        </div>
+        <div style={{ fontSize: '15px', fontWeight: 600, color: '#1E293B', display: 'block', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', fontFamily: "'Pretendard', sans-serif", marginBottom: '4px' }}>
+          {item.title?.replace(/\[.*?\]/g, '').replace('오늘밤빠', '').replace('밤빠', '').trim()}
+        </div>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'nowrap', overflow: 'hidden', fontFamily: "'Pretendard', sans-serif" }}>
+          <span style={{ background: '#FFF1F0', color: '#E53935', padding: '2px 10px', borderRadius: '12px', fontSize: '11px', fontWeight: 700 }}>
+            {(() => {
+              const d = new Date(item.date);
+              const days = ['일', '월', '화', '수', '목', '금', '토'];
+              return `${d.getMonth() + 1}/${d.getDate()}(${days[d.getDay()]})`;
+            })()}
+          </span>
+          <span style={{ background: '#E6F4FF', color: '#1677FF', padding: '2px 10px', borderRadius: '12px', fontSize: '11px', fontWeight: 700 }}>{item.time?.split('-')[0].trim() || '20:00'}</span>
+          <span style={{ background: '#FFFBE6', color: '#D46B08', padding: '2px 10px', borderRadius: '12px', fontSize: '11px', fontWeight: 800 }}>
+            {(() => {
+              const fee = String(item.entry_fee || '1.2만');
+              return fee.includes('만') ? fee : (parseInt(fee.replace(/[^0-9]/g, ''))/10000).toFixed(1).replace('.0','') + '만';
+            })()}
+          </span>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '4px', background: '#FFFFFF', border: '1px solid #F0F0F0', padding: '2px 8px', borderRadius: '12px' }}>
+            {(() => {
+              const ratios = [
+                { l: 'S', v: item.s_ratio || 0, c: '#E53935' },
+                { l: 'B', v: item.b_ratio || 0, c: '#1D9E75' },
+                { l: 'K', v: item.k_ratio || 0, c: '#7C3AED' },
+                { l: 'J', v: item.j_ratio || 0, c: '#F59E0B' }
+              ].filter(r => r.v > 0).sort((a, b) => b.v - a.v);
+              return ratios.map((r, idx) => (
+                <React.Fragment key={r.l}>
+                  <span style={{ fontSize: '11px', fontWeight: 900, color: r.c }}>{r.l}{r.v}</span>
+                  {idx < ratios.length - 1 && <span style={{ fontSize: '8px', color: '#E2E8F0', margin: '0 2px' }}>·</span>}
+                </React.Fragment>
+              ));
+            })()}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+const RollingContainer = ({ items, onSelect }) => {
+  const [index, setIndex] = useState(0);
+
+  useEffect(() => {
+    if (items.length <= 1) return;
+    const timer = setInterval(() => {
+      setIndex((prev) => (prev + 1) % items.length);
+    }, 3000);
+    return () => clearInterval(timer);
+  }, [items.length]);
+
+  return (
+    <div style={{ position: 'relative', height: '110px', width: '100%', overflow: 'hidden' }}>
+      <AnimatePresence mode="wait">
+        <motion.div
+          key={items[index].id}
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0, y: -20 }}
+          transition={{ duration: 0.5 }}
+          style={{ position: 'absolute', width: '100%' }}
+        >
+          <PartyCard item={items[index]} onSelect={onSelect} />
+        </motion.div>
+      </AnimatePresence>
+    </div>
+  );
+};
+
 const SkeletonCard = () => (
   <div style={{ background: '#f3f4f6', borderRadius: '12px', height: '240px', width: '100%', position: 'relative', overflow: 'hidden' }}>
     <div className="shimmer-placeholder" style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', background: 'linear-gradient(90deg, #f3f4f6 0%, #e5e7eb 50%, #f3f4f6 100%)', backgroundSize: '200% 100%', animation: 'shimmer 1.5s infinite' }} />
@@ -666,154 +761,41 @@ const HomePage = ({
                         padding: '0 15px 20px'
                       }}>
                         {(() => {
-                          // 1. 해당 지역 및 날짜 필터링
-                          let filtered = parties.filter(p => p.region === regionName && p.date === selectedDate);
+                          // 1. 해당 지역 및 날짜 필터링 및 최신순 정렬
+                          const filtered = parties
+                            .filter(p => p.region === regionName && p.date === selectedDate)
+                            .sort((a, b) => new Date(b.created_at || 0).getTime() - new Date(a.created_at || 0).getTime());
                           
-                          // 2. 최신 등록순 정렬 (실시간 반영)
-                          filtered.sort((a, b) => new Date(b.created_at || 0).getTime() - new Date(a.created_at || 0).getTime());
+                          // 2. 지역별 고정 개수 설정
+                          let fixedLimit = 2;
+                          if (regionName === '서울' || regionName === '경기' || regionName === '인천') fixedLimit = 3;
                           
-                          // 3. 지역별 노출 개수 제한 (서울: 3, 경기/인천: 3, 기타: 2)
-                          let limit = 2;
-                          if (regionName === '서울') limit = 3;
-                          else if (regionName === '경기' || regionName === '인천') limit = 3;
-                          
-                          const displayParties = filtered.slice(0, limit);
+                          const fixedParties = filtered.slice(0, fixedLimit);
+                          const rollingParties = filtered.slice(fixedLimit);
 
-                          return displayParties.length > 0 ? (
-                            displayParties.map((item) => (
-                            <div 
-                              key={item.id} 
-                              onClick={() => setSelectedPoster(item.poster_url)}
-                              style={{ 
-                                display: 'flex', 
-                                flexDirection: 'row',
-                                alignItems: 'center',
-                                backgroundColor: '#FFFFFF',
-                                borderRadius: '16px',
-                                overflow: 'hidden',
-                                border: '1px solid #F1F5F9',
-                                cursor: 'pointer',
-                                height: '110px',
-                                boxShadow: '0 1px 3px rgba(0,0,0,0.02)'
-                              }}
-                            >
-                              {/* 🖼️ 좌측 포스터 (이미지 시안 높이에 맞춤) */}
-                              <div style={{ 
-                                width: '80px', 
-                                height: '110px',
-                                backgroundColor: '#f8f8f8',
-                                flexShrink: 0
-                              }}>
-                                <img 
-                                  src={item.poster_url} 
-                                  alt="포스터" 
-                                  style={{ 
-                                    width: '100%', 
-                                    height: '100%', 
-                                    objectFit: 'cover' 
-                                  }} 
-                                />
+                          if (filtered.length === 0) {
+                            return (
+                              <div style={{ padding: '30px 0', color: '#94A3B8', fontSize: '13px', textAlign: 'center', width: '100%', fontWeight: '500' }}>
+                                이 지역은 아직 등록된 파티가 없습니다.
                               </div>
+                            );
+                          }
 
-                              {/* 📝 우측 정보 (이미지 시안과 동일한 3줄 구성) */}
-                              <div style={{ 
-                                padding: '12px 16px', 
-                                display: 'flex', 
-                                flexDirection: 'column', 
-                                justifyContent: 'center',
-                                minWidth: 0,
-                                flex: 1,
-                                gap: '4px'
-                              }}>
-                                {/* 1행: 장소 및 지도 */}
-                                <div style={{ display:'flex', alignItems:'center', gap: '8px' }}>
-                                  <span style={{ fontSize: '16px', fontWeight: 900, color: '#1E293B', fontFamily: "'Pretendard', sans-serif" }}>
-                                    {item.locationName}
-                                  </span>
-                                  <span style={{ fontSize: '12px', color: '#94A3B8', fontWeight: 400, fontFamily: "'Pretendard', sans-serif" }}>
-                                    지도 →
-                                  </span>
-                                </div>
+                          return (
+                            <>
+                              {/* 고정 노출 영역 */}
+                              {fixedParties.map((item) => (
+                                <PartyCard key={item.id} item={item} onSelect={setSelectedPoster} />
+                              ))}
 
-                                {/* 2행: 파티 제목 */}
-                                <div style={{ 
-                                  fontSize: '15px', 
-                                  fontWeight: 600, 
-                                  color: '#1E293B', 
-                                  display: 'block', 
-                                  whiteSpace: 'nowrap',
-                                  overflow: 'hidden', 
-                                  textOverflow: 'ellipsis',
-                                  fontFamily: "'Pretendard', sans-serif",
-                                  marginBottom: '4px'
-                                }}>
-                                  {item.title?.replace(/\[.*?\]/g, '').replace('오늘밤빠', '').replace('밤빠', '').trim()}
-                                </div>
-                                
-                                {/* 3행: 필 배지 시스템 (이미지 시안 컬러 완벽 재현) */}
-                                <div style={{ 
-                                  display: 'flex', 
-                                  alignItems: 'center', 
-                                  gap: '6px', 
-                                  flexWrap: 'nowrap',
-                                  overflow: 'hidden',
-                                  fontFamily: "'Pretendard', sans-serif"
-                                }}>
-                                  {/* 날짜 배지 */}
-                                  <span style={{ background: '#FFF1F0', color: '#E53935', padding: '2px 10px', borderRadius: '12px', fontSize: '11px', fontWeight: 700 }}>
-                                    {(() => {
-                                      const d = new Date(item.date);
-                                      const days = ['일', '월', '화', '수', '목', '금', '토'];
-                                      return `${d.getMonth() + 1}/${d.getDate()}(${days[d.getDay()]})`;
-                                    })()}
-                                  </span>
-
-                                  {/* 시간 배지 */}
-                                  <span style={{ background: '#E6F4FF', color: '#1677FF', padding: '2px 10px', borderRadius: '12px', fontSize: '11px', fontWeight: 700 }}>
-                                    {item.time?.split('-')[0].trim() || '20:00'}
-                                  </span>
-
-                                  {/* 참가비 배지 */}
-                                  <span style={{ background: '#FFFBE6', color: '#D46B08', padding: '2px 10px', borderRadius: '12px', fontSize: '11px', fontWeight: 800 }}>
-                                    {(() => {
-                                      const fee = String(item.entry_fee || '1.2만');
-                                      return fee.includes('만') ? fee : (parseInt(fee.replace(/[^0-9]/g, ''))/10000).toFixed(1).replace('.0','') + '만';
-                                    })()}
-                                  </span>
-
-                                  {/* 음악 비율 배지 */}
-                                  <div style={{ display: 'flex', alignItems: 'center', gap: '4px', background: '#FFFFFF', border: '1px solid #F0F0F0', padding: '2px 8px', borderRadius: '12px' }}>
-                                    {(() => {
-                                      const ratios = [
-                                        { l: 'S', v: item.s_ratio || 0, c: '#E53935' },
-                                        { l: 'B', v: item.b_ratio || 0, c: '#1D9E75' },
-                                        { l: 'K', v: item.k_ratio || 0, c: '#7C3AED' },
-                                        { l: 'J', v: item.j_ratio || 0, c: '#F59E0B' }
-                                      ].filter(r => r.v > 0).sort((a, b) => b.v - a.v);
-                                      
-                                      return ratios.map((r, idx) => (
-                                        <React.Fragment key={r.l}>
-                                          <span style={{ fontSize: '11px', fontWeight: 900, color: r.c }}>
-                                            {r.l}{r.v}
-                                          </span>
-                                          {idx < ratios.length - 1 && <span style={{ fontSize: '8px', color: '#E2E8F0', margin: '0 2px' }}>·</span>}
-                                        </React.Fragment>
-                                      ));
-                                    })()}
-                                  </div>
-                                </div>
-                              </div>
-                            </div>
-                          ))
-                        ) : (
-                          <div style={{ 
-                            padding: '30px 0', color: '#94A3B8', fontSize: '13px', 
-                            textAlign: 'center', width: '100%', fontWeight: '500'
-                          }}>
-                            이 지역은 아직 등록된 파티가 없습니다.
-                          </div>
-                        );
-                      })()}
+                              {/* 롤링 노출 영역 (남은 데이터가 있을 때만) */}
+                              {rollingParties.length > 0 && (
+                                <RollingContainer items={rollingParties} onSelect={setSelectedPoster} />
+                              )}
+                            </>
+                          );
+                        })()}
+                      </div>
                       </div>
                     </section>
                   );
