@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo, useRef } from 'react'
-import { Home as HomeIcon, Users, Plus, LogOut, Heart, X, MessageSquare, RefreshCw, CloudSun, Utensils, Zap, Languages, Bell, Star, Navigation, CreditCard, Settings, Map as MapIcon, BarChart, Gift, Coffee, User, Menu, Music2, GraduationCap, Tent, Flag, Download, Globe, ShieldCheck, Calendar } from 'lucide-react'
+import { Home as HomeIcon, Users, Plus, LogOut, Heart, X, MessageSquare, RefreshCw, CloudSun, Utensils, Zap, Languages, Bell, Star, Navigation, CreditCard, Settings, Map as MapIcon, BarChart, Gift, Coffee, User, Menu, Music2, GraduationCap, Tent, Flag, Download, Globe, ShieldCheck, Calendar, Camera } from 'lucide-react'
 import { useTranslation } from 'react-i18next';
 import { motion, AnimatePresence } from 'framer-motion'
 import { supabase, logActivity } from './lib/supabase'
