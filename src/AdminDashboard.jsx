@@ -796,7 +796,36 @@ export default function AdminDashboard({ onBack, refreshData }) {
                 <div style={{...inputGroupStyle, flex: 1}}><label style={labelStyle}>시간</label><input type="time" value={editingParty.time} onChange={e => setEditingParty({...editingParty, time: e.target.value})} style={inputStyle} /></div>
               </div>
 
-              <div style={inputGroupStyle}><label style={labelStyle}>참가비 (fee)</label><input value={editingParty.fee || ''} onChange={e => setEditingParty({...editingParty, fee: e.target.value})} style={inputStyle} /></div>
+              <div style={inputGroupStyle}>
+                <label style={labelStyle}>참가비 (Quick Selection)</label>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '8px', marginBottom: '8px' }}>
+                  {['무료', '10,000원', '12,000원', '15,000원', '18,000원', '20,000원', '25,000원'].map(f => (
+                    <button
+                      key={f}
+                      onClick={() => setEditingParty({...editingParty, fee: f})}
+                      style={{
+                        padding: '10px 4px',
+                        borderRadius: '10px',
+                        fontSize: '12px',
+                        fontWeight: 800,
+                        border: '2px solid',
+                        borderColor: editingParty.fee === f ? '#03C75A' : '#F1F5F9',
+                        background: editingParty.fee === f ? '#0F172A' : '#F8FAFC',
+                        color: editingParty.fee === f ? '#03C75A' : '#64748B',
+                        cursor: 'pointer'
+                      }}
+                    >
+                      {f === '무료' ? '무료' : f.replace('000원', '.0만')}
+                    </button>
+                  ))}
+                </div>
+                <input 
+                  value={editingParty.fee || ''} 
+                  onChange={e => setEditingParty({...editingParty, fee: e.target.value})} 
+                  placeholder="직접 입력 또는 위 버튼 선택"
+                  style={inputStyle} 
+                />
+              </div>
               
               {activeTab === 'official' && (
                 <div style={inputGroupStyle}><label style={labelStyle}>설명 (description)</label><input value={editingParty.description || ''} onChange={e => setEditingParty({...editingParty, description: e.target.value})} style={inputStyle} /></div>
