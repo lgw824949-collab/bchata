@@ -23,20 +23,26 @@ const Community = ({ setSelectedPoster, setView }) => {
       .select('*');
     
     if (!error && data) {
-      if (selectedRegion === '전체') {
-        const sortedByPopularity = [...data].sort((a, b) => (b.likes_count + b.view_count) - (a.likes_count + a.view_count));
+      let filteredData = selectedRegion === '전체' 
+        ? [...data] 
+        : data.filter(p => p.region === selectedRegion);
+
+      if (filteredData.length > 0) {
+        const sortedByPopularity = [...filteredData].sort((a, b) => (b.likes_count + b.view_count) - (a.likes_count + a.view_count));
         const top3 = sortedByPopularity.slice(0, 3);
         const top3Ids = new Set(top3.map(p => p.id));
-        const rest = data
+        
+        const restOfData = filteredData
           .filter(p => !top3Ids.has(p.id))
-          .sort((a, b) => new Date(b.created_at) - new Date(a.created_at))
-          .slice(0, 3);
+          .sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+        
+        // 전체는 2x3(6개), 지역은 3x5(15개)
+        const limit = selectedRegion === '전체' ? 3 : 12;
+        const rest = restOfData.slice(0, limit);
+        
         setPosts([...top3, ...rest]);
       } else {
-        const filtered = data
-          .filter(p => p.region === selectedRegion)
-          .sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
-        setPosts(filtered);
+        setPosts([]);
       }
     }
     setLoading(false);
@@ -170,14 +176,18 @@ const Community = ({ setSelectedPoster, setView }) => {
         ))}
       </div>
 
-      {/* Instagram Style 3-Column Grid */}
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '2px' }}>
+      {/* Strategic Grid System */}
+      <div style={{ 
+        display: 'grid', 
+        gridTemplateColumns: selectedRegion === '전체' ? '1fr 1fr' : '1fr 1fr 1fr', 
+        gap: '2px' 
+      }}>
         {loading ? (
-          <div style={{ gridColumn: 'span 3', textAlign: 'center', padding: '60px', color: '#94A3B8' }}>현장 분위기 로딩 중...</div>
+          <div style={{ gridColumn: selectedRegion === '전체' ? 'span 2' : 'span 3', textAlign: 'center', padding: '60px', color: '#94A3B8' }}>로딩 중...</div>
         ) : posts.length === 0 ? (
-          <div style={{ gridColumn: 'span 3', textAlign: 'center', padding: '80px 20px', background: 'rgba(255,255,255,0.05)', borderRadius: '16px', margin: '10px' }}>
+          <div style={{ gridColumn: selectedRegion === '전체' ? 'span 2' : 'span 3', textAlign: 'center', padding: '80px 20px', background: 'rgba(255,255,255,0.05)', borderRadius: '16px', margin: '10px' }}>
             <Camera size={40} color="rgba(255,255,255,0.1)" style={{ marginBottom: '16px' }} />
-            <h3 style={{ fontSize: '14px', fontWeight: 800, color: '#fff', marginBottom: '6px' }}>첫 번째 리포트를 전해주세요</h3>
+            <h3 style={{ fontSize: '14px', fontWeight: 800, color: '#fff' }}>리포트가 없습니다</h3>
           </div>
         ) : (
           posts.map((post, index) => (
@@ -185,21 +195,19 @@ const Community = ({ setSelectedPoster, setView }) => {
               key={post.id} 
               whileTap={{ scale: 0.96 }} 
               onClick={() => setSelectedPost(post)} 
-              style={{ position: 'relative', aspectRatio: '3/4', background: '#111', overflow: 'hidden' }}
+              style={{ position: 'relative', aspectRatio: selectedRegion === '전체' ? '1/1.2' : '3/4', background: '#111', overflow: 'hidden' }}
             >
               <img src={post.image_url} alt="feed" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
               
-              {/* Ranking/Real-time Badge Overlay */}
               <div style={{ position: 'absolute', top: '6px', left: '6px' }}>
-                {selectedRegion === '전체' && index < 3 && (
+                {index < 3 && (
                   <div style={{ background: '#FFD700', color: '#000', padding: '2px 6px', borderRadius: '4px', fontSize: '9px', fontWeight: 900 }}>{index + 1}위</div>
                 )}
-                {selectedRegion === '전체' && index >= 3 && index < 6 && (
+                {index >= 3 && (
                   <div style={{ background: '#3B82F6', color: '#fff', padding: '2px 6px', borderRadius: '4px', fontSize: '9px', fontWeight: 900 }}>LIVE</div>
                 )}
               </div>
 
-              {/* View Count Overlay */}
               <div style={{ position: 'absolute', bottom: '6px', left: '6px', display: 'flex', alignItems: 'center', gap: '3px', background: 'rgba(0,0,0,0.3)', padding: '2px 5px', borderRadius: '4px' }}>
                 <Eye size={10} color="#fff" />
                 <span style={{ color: '#fff', fontSize: '10px', fontWeight: 700 }}>{post.view_count > 999 ? `${(post.view_count/1000).toFixed(1)}K` : post.view_count}</span>
@@ -209,7 +217,7 @@ const Community = ({ setSelectedPoster, setView }) => {
         )}
       </div>
 
-      {/* Detail Modal (Dark Mode Optimized) */}
+      {/* Detail Modal */}
       <AnimatePresence>
         {selectedPost && (
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} style={{ position: 'fixed', inset: 0, background: '#000', zIndex: 3000, display: 'flex', flexDirection: 'column' }}>
@@ -218,7 +226,6 @@ const Community = ({ setSelectedPoster, setView }) => {
               <div style={{ fontSize: '15px', fontWeight: 800 }}>현장 리포트</div>
               <div style={{ width: '24px' }}></div>
             </div>
-            
             <div style={{ flex: 1, overflowY: 'auto' }}>
               <img src={selectedPost.image_url} style={{ width: '100%', aspectRatio: '1/1', objectFit: 'cover' }} />
               <div style={{ padding: '20px' }}>
@@ -247,12 +254,10 @@ const Community = ({ setSelectedPoster, setView }) => {
         )}
       </AnimatePresence>
 
-      {/* Floating Plus Button */}
       <motion.button whileTap={{ scale: 0.9 }} onClick={() => setShowUploadModal(true)} style={{ position: 'fixed', bottom: '30px', right: '20px', width: '56px', height: '56px', borderRadius: '50%', background: '#E53935', color: '#fff', border: 'none', boxShadow: '0 8px 25px rgba(229,57,53,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000 }}>
         <Plus size={28} strokeWidth={3} />
       </motion.button>
 
-      {/* Upload Modal (Dark) */}
       <AnimatePresence>
         {showUploadModal && (
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} style={{ position: 'fixed', inset: 0, background: '#000', zIndex: 4000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px' }}>
@@ -263,11 +268,6 @@ const Community = ({ setSelectedPoster, setView }) => {
                 <div onClick={() => document.getElementById('file-upload').click()} style={{ width: '100%', height: '140px', border: '1px dashed rgba(255,255,255,0.2)', borderRadius: '12px', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', background: 'rgba(255,255,255,0.03)', overflow: 'hidden' }}>
                   {newPost.image ? <img src={URL.createObjectURL(newPost.image)} style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : <><Camera size={30} color="rgba(255,255,255,0.3)" /><span style={{ fontSize: '12px', color: 'rgba(255,255,255,0.5)', marginTop: '8px' }}>사진 선택</span></>}
                   <input id="file-upload" type="file" accept="image/*" hidden onChange={e => setNewPost({...newPost, image: e.target.files[0]})} />
-                </div>
-                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
-                  {['🔥 핫해요', '💃 최고', '🎵 음악맛집', '👨‍👩‍👧‍👦 북적북적'].map(tag => (
-                    <button key={tag} onClick={() => setNewPost({...newPost, content: newPost.content ? `${newPost.content} ${tag}` : tag})} style={{ padding: '5px 10px', borderRadius: '8px', background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', fontSize: '11px', color: '#fff' }}>{tag}</button>
-                  ))}
                 </div>
                 <textarea placeholder="현장 분위기를 적어주세요..." value={newPost.content} onChange={e => setNewPost({...newPost, content: e.target.value})} style={{ width: '100%', height: '70px', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '12px', padding: '12px', fontSize: '14px', outline: 'none', resize: 'none', background: '#000', color: '#fff' }} />
                 <div style={{ display: 'flex', gap: '8px' }}>
