@@ -674,28 +674,23 @@ const HomePage = ({
                               key={item.id} 
                               onClick={() => setSelectedPoster(item.poster_url)}
                               style={{ 
-                                flex: '0 0 88vw',
                                 display: 'flex', 
-                                flexDirection: 'row',
-                                alignItems: 'center',
-                                justifyContent: 'space-between',
-                                backgroundColor: '#FFFFFF',
-                                borderRadius: '16px',
-                                overflow: 'hidden',
-                                boxShadow: '0 2px 10px rgba(0,0,0,0.05)',
-                                border: '1px solid #F1F5F9',
-                                cursor: 'pointer',
-                                height: '110px',
-                                marginBottom: '5px',
-                                paddingRight: '15px'
+                                flexDirection: 'row', 
+                                alignItems: 'stretch', 
+                                backgroundColor: '#FFFFFF', 
+                                borderRadius: '12px', 
+                                overflow: 'hidden', 
+                                border: '1px solid #F1F5F9', 
+                                cursor: 'pointer', 
+                                marginBottom: '10px', 
+                                height: '90px'
                               }}
                             >
                               {/* 🖼️ 왼쪽에 포스터 (사이즈 축소) */}
                               <div style={{ 
-                                position: 'relative', 
-                                width: '80px', 
-                                height: '110px',
-                                backgroundColor: '#f8f8f8',
+                                width: '70px', 
+                                height: '90px', 
+                                backgroundColor: '#f8f8f8', 
                                 flexShrink: 0
                               }}>
                                 <img 
@@ -724,12 +719,13 @@ const HomePage = ({
 
                               {/* 📝 오른쪽에 텍스트 정보 (공간 최대 활용) */}
                               <div style={{ 
-                                padding: '10px 14px', 
+                                padding: '8px 12px', 
                                 display: 'flex', 
                                 flexDirection: 'column', 
-                                justifyContent: 'center',
-                                minWidth: 0,
-                                flex: 1
+                                justifyContent: 'center', 
+                                minWidth: 0, 
+                                flex: 1,
+                                gap: '2px'
                               }}>
                                 {/* 장소 및 지도 링크 */}
                                 <div
@@ -792,63 +788,30 @@ const HomePage = ({
                                 <div style={{ 
                                   display: 'flex', 
                                   alignItems: 'center', 
-                                  gap: '6px', 
-                                  flexWrap: 'wrap',
+                                  gap: '5px', 
+                                  fontSize: '12px', 
+                                  whiteSpace: 'nowrap', 
+                                  overflow: 'hidden', 
                                   fontFamily: "'Pretendard', sans-serif"
                                 }}>
-                                  {/* 날짜 배지 */}
-                                  <span style={{ 
-                                    background: '#FFF1F0',
-                                    color: '#E53935',
-                                    padding: '2px 10px',
-                                    borderRadius: '12px',
-                                    fontSize: '11px',
-                                    fontWeight: 700
-                                  }}>
+                                  <span style={{ color: '#E53935', fontWeight: 700 }}>
                                     {(() => {
                                       const d = new Date(item.date);
                                       const days = ['일', '월', '화', '수', '목', '금', '토'];
                                       return `${d.getMonth() + 1}/${d.getDate()}(${days[d.getDay()]})`;
                                     })()}
                                   </span>
-
-                                  {/* 시간 배지 */}
-                                  <span style={{ 
-                                    background: '#E6F4FF',
-                                    color: '#1677FF',
-                                    padding: '2px 10px',
-                                    borderRadius: '12px',
-                                    fontSize: '11px',
-                                    fontWeight: 700
-                                  }}>
-                                    {item.time?.split('-')[0].trim() || '20:00'}
-                                  </span>
-
-                                  {/* 참가비 배지 */}
-                                  <span style={{ 
-                                    background: '#FFFBE6',
-                                    color: '#D46B08',
-                                    padding: '2px 10px',
-                                    borderRadius: '12px',
-                                    fontSize: '11px',
-                                    fontWeight: 800
-                                  }}>
+                                  <span style={{ color: '#E2E8F0' }}>·</span>
+                                  <span style={{ color: '#1E293B', fontWeight: 500 }}>{item.time?.split('-')[0].trim() || '20:00'}</span>
+                                  <span style={{ color: '#E2E8F0' }}>·</span>
+                                  <span style={{ color: '#1E293B', fontWeight: 500 }}>
                                     {(() => {
                                       const fee = String(item.entry_fee || '1.2만');
                                       return fee.includes('만') ? fee : (parseInt(fee.replace(/[^0-9]/g, ''))/10000).toFixed(1).replace('.0','') + '만';
                                     })()}
                                   </span>
-
-                                  {/* 장르 비율 배지 */}
-                                  <div style={{ 
-                                    display: 'flex', 
-                                    alignItems: 'center', 
-                                    gap: '4px',
-                                    background: '#FFFFFF',
-                                    border: '1px solid #F0F0F0',
-                                    padding: '2px 8px',
-                                    borderRadius: '12px'
-                                  }}>
+                                  <span style={{ color: '#E2E8F0' }}>·</span>
+                                  <div style={{ display: 'flex', alignItems: 'center', gap: '3px' }}>
                                     {(() => {
                                       const ratios = [
                                         { l: 'S', v: item.s_ratio || 0, c: '#E53935' },
@@ -857,17 +820,14 @@ const HomePage = ({
                                         { l: 'J', v: item.j_ratio || 0, c: '#F59E0B' }
                                       ].filter(r => r.v > 0).sort((a, b) => b.v - a.v);
                                       
-                                      if (ratios.length > 0) {
-                                        return ratios.map((r, idx) => (
-                                          <React.Fragment key={r.l}>
-                                            <span style={{ fontSize: '11px', fontWeight: 900, color: r.c }}>
-                                              {r.l}{r.v}
-                                            </span>
-                                            {idx < ratios.length - 1 && <span style={{ fontSize: '8px', color: '#E2E8F0', margin: '0 2px' }}>·</span>}
-                                          </React.Fragment>
-                                        ));
-                                      }
-                                      return <span style={{ fontSize: '10px', color: '#94A3B8' }}>{item.musicRatio}</span>;
+                                      return ratios.map((r, idx) => (
+                                        <React.Fragment key={r.l}>
+                                          <span style={{ fontSize: '11px', fontWeight: 800, color: r.c }}>
+                                            {r.l}{r.v}
+                                          </span>
+                                          {idx < ratios.length - 1 && <span style={{ fontSize: '9px', color: '#E2E8F0' }}></span>}
+                                        </React.Fragment>
+                                      ));
                                     })()}
                                   </div>
                                 </div>
