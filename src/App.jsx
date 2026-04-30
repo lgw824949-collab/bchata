@@ -6,6 +6,7 @@ import { supabase, logActivity } from './lib/supabase'
 import RegisterForm from './RegisterForm'
 import AdminDashboard from './AdminDashboard'
 import HomePage from './pages/Home'
+import Community from './pages/Community'
 import ClassNewsPage from './pages/ClassNews'
 import PostClub from './pages/PostClub'
 import Auth from './components/Auth'
@@ -456,6 +457,7 @@ function App() {
             <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
               {[
                 { icon: <Calendar color="#E53935" />, text: t('view_calendar'), action: () => { setShowFullCalendar(true); setIsMenuOpen(false); } },
+                { icon: <Camera color="#E53935" />, text: '현장 피드', action: () => { setView('community'); setIsMenuOpen(false); } },
                 { icon: <Utensils color="#E53935" />, text: t('restaurant'), action: () => { setView('restaurant'); setIsMenuOpen(false); } },
                 { icon: <Star color="#E53935" />, text: t('saju'), action: () => { if(typeof setShowSaju === 'function') { setShowSaju(true); setIsMenuOpen(false); } } },
                 { icon: <CloudSun color="#E53935" />, text: t('weather'), action: () => { setIsMenuOpen(false); setTimeout(() => setShowWeather(true), 300); } },
@@ -519,6 +521,7 @@ function App() {
          ) :
          {
            'register': <RegisterForm onBack={() => setView('home')} onSuccess={() => { fetchParties(); setView('home'); }} />,
+            'community': <Community setSelectedPoster={setSelectedPoster} />,
            'post-lesson': <PostClub onBack={() => setView('home')} />,
            'parking': <Parking onBack={() => setView('home')} />,
            'restaurant': <Restaurant onBack={() => setView('home')} />,
