@@ -848,14 +848,9 @@ const HomePage = ({
                         padding: '0 15px 20px'
                       }}>
                         {(() => {
-                          // 1. 해당 지역 및 날짜 필터링 (날짜 형식을 ISO YYYY-MM-DD로 통일하여 비교)
+                          // 1. 해당 지역 및 날짜 필터링 (타임존 오류 방지를 위해 직접 비교)
                           const filtered = parties
-                            .filter(p => {
-                              if (!p.date || p.region !== regionName) return false;
-                              const pDate = new Date(p.date).toISOString().split('T')[0];
-                              const sDate = new Date(selectedDate).toISOString().split('T')[0];
-                              return pDate === sDate;
-                            })
+                            .filter(p => p.region === regionName && p.date === selectedDate)
                             .sort((a, b) => new Date(b.created_at || 0).getTime() - new Date(a.created_at || 0).getTime());
                           
                           // 2. 지역별 고정 개수 설정
