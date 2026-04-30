@@ -288,65 +288,70 @@ const FilterBar = ({
   const genres = ['바차타', '살사', '쥬크', '키좀바'];
 
   return (
-    <div style={{ padding: '0 15px 15px', background: '#fff' }}>
-      <div style={{ 
-        display: 'flex', 
-        overflowX: 'auto', 
-        gap: '8px', 
-        paddingBottom: '10px',
-        msOverflowStyle: 'none',
-        scrollbarWidth: 'none',
-        WebkitOverflowScrolling: 'touch'
-      }} className="filter-scroll">
-        {regions.map(r => (
-          <button
-            key={r}
-            onClick={() => setFilterRegion(filterRegion === r ? '' : r)}
-            style={{
-              padding: '8px 16px',
-              borderRadius: '20px',
-              fontSize: '13px',
-              fontWeight: 800,
-              whiteSpace: 'nowrap',
-              border: 'none',
-              background: filterRegion === r ? '#E53935' : '#F1F5F9',
-              color: filterRegion === r ? '#fff' : '#64748B',
-              boxShadow: filterRegion === r ? '0 4px 10px rgba(229, 57, 53, 0.2)' : 'none',
-              transition: 'all 0.2s'
-            }}
-          >
-            {r}
-          </button>
-        ))}
+    <div style={{ padding: '0 15px 12px', background: '#fff', display: 'flex', flexDirection: 'column', gap: '8px' }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+        <div style={{ color: '#94A3B8' }}><MapPin size={16} /></div>
+        <div style={{ 
+          flex: 1,
+          display: 'flex', 
+          overflowX: 'auto', 
+          gap: '6px', 
+          msOverflowStyle: 'none',
+          scrollbarWidth: 'none',
+          WebkitOverflowScrolling: 'touch'
+        }} className="filter-scroll">
+          {regions.map(r => (
+            <button
+              key={r}
+              onClick={() => setFilterRegion(filterRegion === r ? '' : r)}
+              style={{
+                padding: '6px 12px',
+                borderRadius: '8px',
+                fontSize: '12px',
+                fontWeight: 700,
+                whiteSpace: 'nowrap',
+                border: 'none',
+                background: filterRegion === r ? '#E53935' : '#F1F5F9',
+                color: filterRegion === r ? '#fff' : '#64748B',
+                transition: 'all 0.2s'
+              }}
+            >
+              {r}
+            </button>
+          ))}
+        </div>
       </div>
-      <div style={{ 
-        display: 'flex', 
-        overflowX: 'auto', 
-        gap: '8px',
-        msOverflowStyle: 'none',
-        scrollbarWidth: 'none',
-        WebkitOverflowScrolling: 'touch'
-      }} className="filter-scroll">
-        {genres.map(g => (
-          <button
-            key={g}
-            onClick={() => setFilterGenre(filterGenre === g ? '' : g)}
-            style={{
-              padding: '8px 16px',
-              borderRadius: '20px',
-              fontSize: '13px',
-              fontWeight: 800,
-              whiteSpace: 'nowrap',
-              border: 'none',
-              background: filterGenre === g ? '#1E293B' : '#F1F5F9',
-              color: filterGenre === g ? '#fff' : '#64748B',
-              boxShadow: filterGenre === g ? '0 4px 10px rgba(30, 41, 59, 0.2)' : 'none',
-              transition: 'all 0.2s'
-            }}
-          >
-            {g}
-          </button>
-        ))}
+      <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+        <div style={{ color: '#94A3B8' }}><Music size={16} /></div>
+        <div style={{ 
+          flex: 1,
+          display: 'flex', 
+          overflowX: 'auto', 
+          gap: '6px',
+          msOverflowStyle: 'none',
+          scrollbarWidth: 'none',
+          WebkitOverflowScrolling: 'touch'
+        }} className="filter-scroll">
+          {genres.map(g => (
+            <button
+              key={g}
+              onClick={() => setFilterGenre(filterGenre === g ? '' : g)}
+              style={{
+                padding: '6px 12px',
+                borderRadius: '8px',
+                fontSize: '12px',
+                fontWeight: 700,
+                whiteSpace: 'nowrap',
+                border: 'none',
+                background: filterGenre === g ? '#1E293B' : '#F1F5F9',
+                color: filterGenre === g ? '#fff' : '#64748B',
+                transition: 'all 0.2s'
+              }}
+            >
+              {g}
+            </button>
+          ))}
+        </div>
       </div>
     </div>
   );
@@ -586,7 +591,7 @@ const HomePage = ({
       background: '#fff' 
     }}>
       
-      {/* 📌 [영역 A: 상단 고정석] - 슬림 통합형 (고정형 레이아웃) */}
+      {/* 📌 [영역 A: 상단 고정석] - 슬림 통합형 */}
       <div style={{ 
         position: 'fixed',
         top: 0,
@@ -596,14 +601,14 @@ const HomePage = ({
         maxWidth: '500px',
         zIndex: 100000, 
         background: '#ffffff', 
-        borderBottom: '1px solid #eee'
+        borderBottom: '1px solid #f1f5f9'
       }}>
-        {/* (1) 1층: 로고 + 날짜 통합바 */}
+        {/* (1) 1층: 날짜 선택바 */}
         <div style={{ 
-          height: '60px', 
+          height: '50px', 
           display: 'flex', 
           alignItems: 'center', 
-          padding: '0 15px'
+          padding: '0 10px'
         }}>
 
           
@@ -673,16 +678,16 @@ const HomePage = ({
         </div>
 
         {/* (2) 2층: 미니 LED 전광판 (라운딩 블랙) */}
-        <div style={{ padding: '5px 10px 5px' }}>
+        <div style={{ padding: '2px 10px 8px' }}>
           <div style={{ 
-            height: '38px', 
+            height: '32px', 
             background: '#000', 
-            borderRadius: '19px', 
+            borderRadius: '16px', 
             display: 'flex', 
             alignItems: 'center', 
             overflow: 'hidden',
             position: 'relative',
-            padding: '0 15px'
+            padding: '0 12px'
           }}>
             <button 
               onClick={() => setIsPaused(!isPaused)}
@@ -756,7 +761,7 @@ const HomePage = ({
           flex: 1, 
           WebkitOverflowScrolling: 'touch',
           width: '100%',
-          padding: '210px 0 0 0', // 📌 헤더 높이만큼 여백 확보 (60px + 50px + 100px 정도)
+          padding: '170px 0 0 0', // 📌 슬림해진 헤더 높이에 맞춰 여백 최적화 (50px + 32px + 80px 정도)
           background: '#fff',
           ...zoomContainerStyle
         }}
