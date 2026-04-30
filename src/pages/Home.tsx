@@ -128,8 +128,9 @@ const PartyCard = ({ item, onSelect }) => {
           <span style={{ background: '#E6F4FF', color: '#1677FF', padding: '2px 10px', borderRadius: '12px', fontSize: '11px', fontWeight: 700 }}>{item.time?.split('-')[0].trim() || '20:00'}</span>
           <span style={{ background: '#FFFBE6', color: '#D46B08', padding: '2px 10px', borderRadius: '12px', fontSize: '11px', fontWeight: 800 }}>
             {(() => {
-              const fee = String(item.entry_fee || '1.2만');
-              return fee.includes('만') ? fee : (parseInt(fee.replace(/[^0-9]/g, ''))/10000).toFixed(1).replace('.0','') + '만';
+              const fee = String(item.fee || '1.2만');
+              if (fee === '무료' || fee.includes('무료')) return '무료';
+              return fee.includes('만') ? fee : (parseInt(fee.replace(/[^0-9]/g, ''))/10000).toFixed(1) + '만';
             })()}
           </span>
           <div style={{ display: 'flex', alignItems: 'center', gap: '4px', background: '#FFFFFF', border: '1px solid #F0F0F0', padding: '2px 8px', borderRadius: '12px' }}>

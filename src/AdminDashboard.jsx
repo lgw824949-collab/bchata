@@ -815,7 +815,7 @@ export default function AdminDashboard({ onBack, refreshData }) {
                         cursor: 'pointer'
                       }}
                     >
-                      {f === '무료' ? '무료' : f.replace('000원', '.0만')}
+                      {f === '무료' ? '무료' : (parseInt(f.replace(/[^0-9]/g, '')) / 10000).toFixed(1).replace('.0', '') + '만'}
                     </button>
                   ))}
                 </div>
