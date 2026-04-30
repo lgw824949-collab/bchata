@@ -359,23 +359,41 @@ const HomePage = ({
                           else if (filterGenre === 'Zouk') matchesGenre = (p.j_ratio || 0) > 0;
                           else if (filterGenre === 'Kizomba') matchesGenre = (p.k_ratio || 0) > 0;
                           return matchesGenre;
-                        }).map(party => (
-                          <div key={party.id} onClick={() => setSelectedPoster(party.poster_url)} style={{ aspectRatio: '1 / 1.4', borderRadius: '12px', overflow: 'hidden', position: 'relative', background: '#F1F5F9', cursor: 'pointer' }}>
-                            <img src={party.poster_url} style={{ width: '100%', height: '100%', objectFit: 'cover' }} alt="Poster" />
-                            
-                            {/* 음악 비중 배지 (Premium Overlay) */}
-                            <div style={{ position: 'absolute', top: '8px', right: '8px', display: 'flex', gap: '4px' }}>
-                              {party.s_ratio > 0 && <span style={{ background: 'rgba(229, 57, 53, 0.85)', color: 'white', padding: '2px 6px', borderRadius: '6px', fontSize: '9px', fontWeight: 900 }}>S{party.s_ratio}</span>}
-                              {party.b_ratio > 0 && <span style={{ background: 'rgba(212, 160, 23, 0.85)', color: 'white', padding: '2px 6px', borderRadius: '6px', fontSize: '9px', fontWeight: 900 }}>B{party.b_ratio}</span>}
-                              {party.k_ratio > 0 && <span style={{ background: 'rgba(103, 58, 183, 0.85)', color: 'white', padding: '2px 6px', borderRadius: '6px', fontSize: '9px', fontWeight: 900 }}>K{party.k_ratio}</span>}
-                            </div>
+                        }).map(party => {
+                          const cleanTitle = party.title?.split(' ㅣ ')[0] || '';
+                          const addr = party.address || '';
+                          let displayRegion = '전국';
+                          if (addr.includes('서울')) displayRegion = '서울';
+                          else if (addr.includes('경기')) displayRegion = '경기';
+                          else if (addr.includes('인천')) displayRegion = '인천';
+                          else if (addr.includes('부산')) displayRegion = '부산';
+                          else if (addr.includes('대구')) displayRegion = '대구';
+                          else if (addr.includes('대전')) displayRegion = '대전';
+                          else if (addr.includes('광주')) displayRegion = '광주';
 
-                            <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, padding: '8px', background: 'linear-gradient(transparent, rgba(0,0,0,0.9))', color: 'white' }}>
-                              <div style={{ fontSize: '10px', color: '#FFEB3B', fontWeight: 900 }}>{party.locationName}</div>
-                              <div style={{ fontSize: '12px', fontWeight: 800, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{party.title}</div>
+                          return (
+                            <div key={party.id} onClick={() => setSelectedPoster(party.poster_url)} style={{ aspectRatio: '1 / 1.4', borderRadius: '12px', overflow: 'hidden', position: 'relative', background: '#F1F5F9', cursor: 'pointer', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.1)' }}>
+                              <img src={party.poster_url} style={{ width: '100%', height: '100%', objectFit: 'cover' }} alt="Poster" />
+                              
+                              {/* 상단 정보 배지 (규격화) */}
+                              <div style={{ position: 'absolute', top: '8px', left: '8px', background: 'rgba(255, 255, 255, 0.9)', color: '#1E293B', padding: '2px 8px', borderRadius: '6px', fontSize: '10px', fontWeight: 800 }}>
+                                {displayRegion}
+                              </div>
+
+                              <div style={{ position: 'absolute', top: '8px', right: '8px', display: 'flex', gap: '4px' }}>
+                                {party.s_ratio > 0 && <span style={{ background: 'rgba(229, 57, 53, 0.85)', color: 'white', padding: '2px 6px', borderRadius: '6px', fontSize: '9px', fontWeight: 900 }}>S{party.s_ratio}</span>}
+                                {party.b_ratio > 0 && <span style={{ background: 'rgba(212, 160, 23, 0.85)', color: 'white', padding: '2px 6px', borderRadius: '6px', fontSize: '9px', fontWeight: 900 }}>B{party.b_ratio}</span>}
+                                {party.k_ratio > 0 && <span style={{ background: 'rgba(103, 58, 183, 0.85)', color: 'white', padding: '2px 6px', borderRadius: '6px', fontSize: '9px', fontWeight: 900 }}>K{party.k_ratio}</span>}
+                              </div>
+
+                              {/* 하단 텍스트 정보 */}
+                              <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, padding: '10px 8px', background: 'linear-gradient(transparent, rgba(0,0,0,0.9))', color: 'white' }}>
+                                <div style={{ fontSize: '10px', color: '#FFEB3B', fontWeight: 900, marginBottom: '2px' }}>{party.locationName}</div>
+                                <div style={{ fontSize: '12px', fontWeight: 800, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{cleanTitle}</div>
+                              </div>
                             </div>
-                          </div>
-                        ))
+                          );
+                        })
                       ) : (
                         <div style={{ gridColumn: 'span 2', padding: '60px 0', textAlign: 'center', color: '#94A3B8', fontWeight: 700 }}>해당 조건의 파티가 없습니다</div>
                       )}
