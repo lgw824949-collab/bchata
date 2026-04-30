@@ -18,9 +18,12 @@ const Community = ({ setSelectedPoster, setView }) => {
 
   const fetchPosts = async () => {
     setLoading(true);
+    const oneDayAgo = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
+
     let { data, error } = await supabase
       .from('community_posts')
-      .select('*');
+      .select('*')
+      .gt('created_at', oneDayAgo); // 최근 24시간 데이터만 조회
     
     if (!error && data) {
       let filteredData = selectedRegion === '전체' 
