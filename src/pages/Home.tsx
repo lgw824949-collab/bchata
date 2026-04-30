@@ -795,7 +795,7 @@ const HomePage = ({
                                     })()}
                                   </span>
                                   <span style={{ color: '#94A3B8' }}>·</span>
-                                  <span style={{ color: '#94A3B8', fontWeight: 400, fontSize: '12px' }}>
+                                  <div style={{ display: 'flex', alignItems: 'center' }}>
                                     {(() => {
                                       const ratios = [
                                         { l: 'S', v: item.s_ratio || 0 },
@@ -804,10 +804,29 @@ const HomePage = ({
                                         { l: 'J', v: item.j_ratio || 0 }
                                       ].filter(r => r.v > 0).sort((a, b) => b.v - a.v);
                                       
-                                      if (ratios.length > 0) return ratios.map(r => `${r.l}${r.v}`).join(' ');
-                                      return item.musicRatio || (item.genre === '바차타' ? 'B4 S2' : 'S4 B2');
+                                      if (ratios.length > 0) {
+                                        return ratios.map(r => (
+                                          <span key={r.l} style={{
+                                            display: 'inline-flex',
+                                            alignItems: 'center',
+                                            padding: '1px 6px',
+                                            borderRadius: '99px',
+                                            fontSize: '10px',
+                                            fontWeight: 800,
+                                            letterSpacing: '0.3px',
+                                            marginRight: '3px',
+                                            background: r.l==='S' ? '#E53935' : r.l==='B' ? '#1D9E75' : r.l==='K' ? '#7C3AED' : '#F59E0B',
+                                            color: 'white',
+                                            fontFamily: "'Pretendard', sans-serif"
+                                          }}>
+                                            {r.l}{r.v}
+                                          </span>
+                                        ));
+                                      }
+                                      const fallback = item.musicRatio || (item.genre === '바차타' ? 'B4 S2' : 'S4 B2');
+                                      return <span style={{ color: '#94A3B8', fontWeight: 400, fontSize: '12px' }}>{fallback}</span>;
                                     })()}
-                                  </span>
+                                  </div>
                                 </div>
                               </div>
                               <div style={{ color: '#ccc' }}>
