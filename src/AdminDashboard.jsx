@@ -229,7 +229,8 @@ export default function AdminDashboard({ onBack, refreshData }) {
         title: editingParty.title,
         location_name: editingParty.location_name,
         date: editingParty.date,
-        time: editingParty.time
+        time: editingParty.time,
+        fee: editingParty.fee
       } : {
         title: editingParty.title,
         date: editingParty.date,
