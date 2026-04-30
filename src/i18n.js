@@ -10,12 +10,13 @@ const resources = {
       "nav_bootcamp": "부트캠프",
       "nav_festival": "전국페스티벌",
       "nav_register": "등록",
-      "hot_pick": "HOT PICK 5",
-      "nationwide_popular": "전국 인기",
-      "intelligent_route": "지능형 경로 최적화",
-      "shortest_distance": "최단 거리 성지 탐색 →",
+      "filter_where": "어디로 가시나요?",
+      "filter_genre": "어떤 장르가 꽂히세요?",
+      "map": "지도",
       "view_all": "전체보기",
-      "admin_dashboard": "관리자 모드",
+      "today": "오늘",
+      // 기타 필수 보조 번역
+      "hot_pick": "HOT PICK 5",
       "view_calendar": "달력",
       "no_parties": "이 지역은 아직 등록된 파티가 없습니다.",
       "back_to_today": "오늘로 돌아가기",
@@ -26,29 +27,27 @@ const resources = {
       "weather": "오늘 날씨",
       "notice": "공지사항",
       "coming_soon": "준비 중입니다",
+      "intelligent_route": "지능형 경로 최적화",
       "region_seoul": "서울",
-      "region_gyeonggi_incheon": "경기/인천",
-      "region_chungcheong": "충청도",
-      "region_jeolla": "전라도",
-      "region_gyeongsang": "경상도",
-      "region_gangwon_jeju": "강원/제주"
+      "region_gyeonggi_incheon": "경기/인천"
     }
   },
   en: {
     translation: {
       "nav_social": "Social Party",
-      "nav_class": "Class/Meetup",
+      "nav_class": "Classes",
       "nav_bootcamp": "Bootcamp",
       "nav_festival": "Festival",
-      "nav_register": "Post",
-      "hot_pick": "HOT PICK 5",
-      "nationwide_popular": "Nationwide",
-      "intelligent_route": "Intelligent Route",
-      "shortest_distance": "Finding nearest venue →",
+      "nav_register": "Register",
+      "filter_where": "Where are you going?",
+      "filter_genre": "What's your vibe?",
+      "map": "Map",
       "view_all": "View All",
-      "admin_dashboard": "Admin Mode",
+      "today": "Today",
+      // 기타 필수 보조 번역
+      "hot_pick": "HOT PICK 5",
       "view_calendar": "Calendar",
-      "no_parties": "No parties registered in this area yet.",
+      "no_parties": "No parties registered here yet.",
       "back_to_today": "Back to Today",
       "premium_services": "Premium Services",
       "platform_desc": "Intelligent Dance Life Platform",
@@ -57,12 +56,9 @@ const resources = {
       "weather": "Weather",
       "notice": "Notice",
       "coming_soon": "Coming Soon",
+      "intelligent_route": "Intelligent Route",
       "region_seoul": "Seoul",
-      "region_gyeonggi_incheon": "Incheon/Gyeonggi",
-      "region_chungcheong": "Chungcheong",
-      "region_jeolla": "Jeolla",
-      "region_gyeongsang": "Gyeongsang",
-      "region_gangwon_jeju": "Gangwon/Jeju"
+      "region_gyeonggi_incheon": "Incheon/Gyeonggi"
     }
   }
 };

@@ -195,7 +195,6 @@ const HomePage = ({
                 <div style={{ margin: '0 0 15px', padding: '10px 0 20px', background: '#fff', borderBottom: '1px solid #eee' }}>
                   <div style={{ padding: '0 20px 15px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                     <h2 style={{ fontSize: '18px', fontWeight: '950', color: '#1E293B', display: 'flex', alignItems: 'center', gap: '8px' }}><span style={{ color: '#E53935' }}>HOT</span> PICK 5</h2>
-                    <div onClick={() => i18n.changeLanguage(i18n.language.startsWith('ko') ? 'en' : 'ko')} style={{ padding: '5px', cursor: 'pointer', color: '#E53935', display: 'flex', alignItems: 'center', gap: '3px' }}><Globe size={20} strokeWidth={2.5} /><span style={{ fontSize: '10px', fontWeight: 900 }}>{i18n.language.startsWith('ko') ? 'EN' : 'KO'}</span></div>
                   </div>
                   <div style={{ width: '100%', overflow: 'hidden', padding: '10px 0' }}>
                     <motion.div animate={isPaused ? {} : { x: [0, -775] }} transition={{ duration: 20, repeat: Infinity, ease: "linear" }} style={{ display: 'flex', gap: '15px', paddingLeft: '20px', width: 'max-content' }}>
@@ -215,7 +214,7 @@ const HomePage = ({
               {IncheonBanner && <IncheonBanner />}
               {(() => {
                 const dayParties = parties.filter(p => p.date === selectedDate);
-                const regions = filterRegion ? [filterRegion] : ["서울", "경기/인천", "충청도", "전라도", "경상도", "강원/제주"];
+                const regions = filterRegion ? [filterRegion] : ["서울", "경기/인천", "경상도", "전라도", "충청도", "강원/제주"];
                 return regions.map((regionName) => {
                   const regionParties = dayParties.filter(p => {
                     const r = p.broadRegion || '';
@@ -279,7 +278,7 @@ const HomePage = ({
                         <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '20px' }}>
                           <button onClick={() => setShowFilterPanel(false)} style={{ background: '#F8FAFC', border: 'none', borderRadius: '10px', padding: '8px 12px', fontSize: '13px', fontWeight: 700, color: '#64748B', display: 'flex', alignItems: 'center', gap: '4px' }}><ChevronLeft size={16} /> 달력으로</button>
                         </div>
-                        <div style={{ fontSize: '18px', fontWeight: 950, color: '#1E293B', marginBottom: '15px' }}>어디로 가시나요?</div>
+                        <div style={{ fontSize: '18px', fontWeight: 950, color: '#1E293B', marginBottom: '15px' }}>{t('filter_where')}</div>
                         <div style={{ display: 'flex', overflowX: 'auto', gap: '10px', paddingBottom: '15px', msOverflowStyle: 'none', scrollbarWidth: 'none', WebkitOverflowScrolling: 'touch' }}>
                           {['서울', '경기/인천', '부산', '대구', '대전', '광주', '기타'].map(r => (
                             <button key={r} onClick={() => { setFilterRegion(r); setFilterStep(2); }} style={{ flexShrink: 0, padding: '14px 24px', borderRadius: '14px', background: filterRegion === r ? '#E53935' : '#F8FAFC', color: filterRegion === r ? '#fff' : '#64748B', fontWeight: 700, border: 'none', transition: 'all 0.2s' }}>{r}</button>
@@ -291,7 +290,7 @@ const HomePage = ({
                         <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '20px' }}>
                           <button onClick={() => setFilterStep(1)} style={{ background: '#F8FAFC', border: 'none', borderRadius: '10px', padding: '8px 12px', fontSize: '13px', fontWeight: 700, color: '#64748B', display: 'flex', alignItems: 'center', gap: '4px' }}><ChevronLeft size={16} /> 지역 다시 선택</button>
                         </div>
-                        <div style={{ fontSize: '18px', fontWeight: 950, color: '#1E293B', marginBottom: '15px' }}>어떤 장르가 꽂히세요?</div>
+                        <div style={{ fontSize: '18px', fontWeight: 950, color: '#1E293B', marginBottom: '15px' }}>{t('filter_genre')}</div>
                         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
                           {['Bachata', 'Salsa', 'Zouk', 'Kizomba'].map(g => (
                             <button key={g} onClick={() => { setFilterGenre(g); setShowFilteredResults(true); }} style={{ padding: '24px 15px', borderRadius: '18px', background: filterGenre === g ? '#1E293B' : '#F8FAFC', color: filterGenre === g ? '#fff' : '#64748B', fontWeight: 800, fontSize: '16px', border: 'none' }}>{g}</button>
