@@ -1,31 +1,23 @@
-import { createClient } from '@supabase/supabase-js';
+import { supabase } from '../src/lib/supabase.js';
 
-const supabaseUrl = 'https://biwziyyklaycbjrnitem.supabase.co';
-const supabaseKey = 'sb_publishable_TSfuOakU5BxoKeJrIoRDrw_kd6pz-k1';
-const supabase = createClient(supabaseUrl, supabaseKey);
+async function checkColumns() {
+  const { data, error } = await supabase.from('parties').select('*').limit(1);
+  if (error) {
+    console.error('Error fetching parties:', error);
+  } else if (data && data.length > 0) {
+    console.log('Columns in parties:', Object.keys(data[0]));
+  } else {
+    console.log('No data in parties to check columns.');
+  }
 
-async function checkTableStructure() {
-  try {
-    // Query one row to see all column names
-    const { data, error } = await supabase
-      .from('locations')
-      .select('*')
-      .limit(1);
-
-    if (error) {
-      console.error('Error fetching locations:', error);
-      return;
-    }
-
-    if (data && data.length > 0) {
-      console.log('Columns found:', Object.keys(data[0]));
-      console.log('Sample data:', data[0]);
-    } else {
-      console.log('No data found in locations table.');
-    }
-  } catch (err) {
-    console.error('Unexpected error:', err);
+  const { data: pData, error: pError } = await supabase.from('pending_parties').select('*').limit(1);
+  if (pError) {
+    console.error('Error fetching pending_parties:', pError);
+  } else if (pData && pData.length > 0) {
+    console.log('Columns in pending_parties:', Object.keys(pData[0]));
+  } else {
+    console.log('No data in pending_parties to check columns.');
   }
 }
 
-checkTableStructure();
+checkColumns();

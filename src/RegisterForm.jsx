@@ -208,6 +208,24 @@ const RegisterForm = ({ onBack, onSuccess }) => {
 
     setLoading(true)
     try {
+      // [영어 번역 로직 추가]
+      let translatedTitle = '';
+      try {
+        const apiKey = import.meta.env.VITE_GOOGLE_TRANSLATE_API_KEY;
+        const response = await fetch(`https://translation.googleapis.com/language/translate/v2?key=${apiKey}`, {
+          method: 'POST',
+          body: JSON.stringify({
+            q: formData.title,
+            target: 'en',
+            source: 'ko'
+          })
+        });
+        const result = await response.json();
+        translatedTitle = result?.data?.translations?.[0]?.translatedText || '';
+      } catch (tErr) {
+        console.error('Translation error:', tErr);
+      }
+
       // [중복 체크]
       const { data: pendingDup } = await supabase
         .from('pending_parties')
@@ -276,6 +294,7 @@ const RegisterForm = ({ onBack, onSuccess }) => {
 
       const { error } = await supabase.from('pending_parties').insert([{
         title: `[${formData.region}] ${finalProcessedTitle}`, // 지역 정보를 제목에 인코딩하여 전달 (DB 스키마 오류 방지)
+        title_en: translatedTitle, // 자동 번역된 영문 제목 저장
         location_name: formData.location_name,
         address: formData.address,
         fee: formData.fee,

@@ -333,44 +333,17 @@ function App() {
 
   useEffect(() => { fetchParties(); }, []);
 
-  // --- 자동 번역 엔진 (Google Translate API) ---
+  // --- 최적화된 번역 엔진 (DB 저장 데이터 우선 사용) ---
   useEffect(() => {
-    const translateAll = async () => {
-      if (i18n.language.startsWith('en') && parties.length > 0) {
-        const apiKey = import.meta.env.VITE_GOOGLE_TRANSLATE_API_KEY;
-        if (!apiKey) {
-          setDisplayParties(parties);
-          return;
-        }
-
-        try {
-          const titles = parties.map(p => p.title);
-          const res = await fetch(`https://translation.googleapis.com/language/translate/v2?key=${apiKey}`, {
-            method: 'POST',
-            body: JSON.stringify({ q: titles, target: 'en' }),
-            headers: { 'Content-Type': 'application/json' }
-          });
-          const result = await res.json();
-          
-          if (result.data && result.data.translations) {
-            const translatedTitles = result.data.translations.map(t => t.translatedText);
-            const translated = parties.map((p, i) => ({
-              ...p,
-              title: translatedTitles[i] || p.title
-            }));
-            setDisplayParties(translated);
-          } else {
-            setDisplayParties(parties);
-          }
-        } catch (e) {
-          console.error("Translation Error:", e);
-          setDisplayParties(parties);
-        }
-      } else {
-        setDisplayParties(parties);
-      }
-    };
-    translateAll();
+    if (i18n.language.startsWith('en')) {
+      const translated = parties.map(p => ({
+        ...p,
+        title: p.title_en || p.title // DB에 저장된 영문 제목이 있으면 사용, 없으면 원문 노출
+      }));
+      setDisplayParties(translated);
+    } else {
+      setDisplayParties(parties);
+    }
   }, [i18n.language, parties]);
 
   // --- 브라우저 뒤로가기 버튼 제어 (History API) ---
