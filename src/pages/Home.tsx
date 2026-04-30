@@ -707,16 +707,19 @@ const HomePage = ({
                                     objectFit: 'cover' 
                                   }} 
                                 />
-                                {item.genre && (
-                                  <div style={{ 
-                                    position: 'absolute', top: '4px', left: '4px', 
-                                    backgroundColor: 'rgba(255,255,255,0.95)', color: '#1E293B', fontSize: '8px', 
-                                    fontWeight: '900', padding: '2px 4px', borderRadius: '4px',
-                                    boxShadow: '0 1px 3px rgba(0,0,0,0.1)'
-                                  }}>
-                                    {item.genre}
-                                  </div>
-                                )}
+                                  {item.genre && (
+                                    <div style={{ 
+                                      position: 'absolute', top: '4px', left: '4px', 
+                                      backgroundColor: 'rgba(255,255,255,0.95)', color: '#1E293B', fontSize: '8px', 
+                                      fontWeight: '900', padding: '2px 4px', borderRadius: '4px',
+                                      boxShadow: '0 1px 3px rgba(0,0,0,0.1)'
+                                    }}>
+                                      {(() => {
+                                        const gMap = { '살사': 'Salsa', '바차타': 'Bachata', '키좀바': 'Kizomba', '줌바': 'Zumba', '주크': 'Zouk' };
+                                        return gMap[item.genre] || item.genre;
+                                      })()}
+                                    </div>
+                                  )}
                               </div>
 
                               {/* 📝 오른쪽에 텍스트 정보 (공간 최대 활용) */}
@@ -791,8 +794,15 @@ const HomePage = ({
                                   <span style={{ color: '#E2E8F0' }}>·</span>
                                   <span style={{ color: '#94A3B8', fontWeight: '400' }}>
                                     {(() => {
-                                      const ratio = item.musicRatio || (item.genre === '바차타' ? 'B4 S2' : 'S4 B2');
-                                      return ratio.replace('S', '살사').replace('B', '바차타').replace('K', '키좀바').replace('Z', '쥬크');
+                                      const ratios = [
+                                        { l: 'S', v: item.s_ratio || 0 },
+                                        { l: 'B', v: item.b_ratio || 0 },
+                                        { l: 'K', v: item.k_ratio || 0 },
+                                        { l: 'J', v: item.j_ratio || 0 }
+                                      ].filter(r => r.v > 0).sort((a, b) => b.v - a.v);
+                                      
+                                      if (ratios.length > 0) return ratios.map(r => `${r.l}${r.v}`).join(' ');
+                                      return item.musicRatio || (item.genre === '바차타' ? 'B4 S2' : 'S4 B2');
                                     })()}
                                   </span>
                                 </div>
