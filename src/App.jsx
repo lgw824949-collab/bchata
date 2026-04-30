@@ -239,6 +239,33 @@ const formatDateToKSTString = (date) => {
   return `${y}-${m}-${d}`;
 };
 
+const SplashScreen = ({ onComplete }) => (
+  <motion.div
+    initial={{ opacity: 1 }}
+    animate={{ 
+      scale: [1, 1, 2],
+      opacity: [1, 1, 0]
+    }}
+    transition={{ 
+      duration: 3, 
+      times: [0, 0.66, 1], // 0-2초 정지, 2-3초 확대/페이드아웃
+      ease: "easeInOut" 
+    }}
+    onAnimationComplete={onComplete}
+    style={{
+      position: 'fixed',
+      inset: 0,
+      zIndex: 999999,
+      backgroundColor: '#FFFFFF',
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center'
+    }}
+  >
+    <img src="/logo.png" alt="BAMPPA" style={{ width: '220px', height: 'auto' }} />
+  </motion.div>
+);
+
 function App() {
   const { t, i18n } = useTranslation();
   const toggleLanguage = () => {
@@ -257,7 +284,8 @@ function App() {
   const todayData = getKSTDate();
 
   const [showSplash, setShowSplash] = useState(() => {
-    return !localStorage.getItem('visited_bamppa');
+    // 세션당 한 번만 노출 (새로고침 시 노출 안 됨)
+    return !sessionStorage.getItem('splash_shown');
   });
   const [parties, setParties] = useState([]);
   const [displayParties, setDisplayParties] = useState([]);
@@ -289,11 +317,7 @@ function App() {
 
   useEffect(() => { 
     if (showSplash) {
-      const timer = setTimeout(() => {
-        setShowSplash(false);
-        localStorage.setItem('visited_bamppa', 'true');
-      }, 2000); 
-      return () => clearTimeout(timer);
+      sessionStorage.setItem('splash_shown', 'true');
     }
   }, [showSplash]);
 
@@ -428,7 +452,9 @@ function App() {
 
   return (
     <div style={{ width: '100%', maxWidth: '500px', margin: '0 auto', background: '#fff', minHeight: '100vh', position: 'relative' }}>
-      <AnimatePresence>{showSplash && <motion.div exit={{ opacity: 0 }} style={{ position: 'fixed', inset: 0, zIndex: 999999, backgroundColor: '#000', display: 'flex', alignItems: 'center', justifyContent: 'center' }}></motion.div>}</AnimatePresence>
+      <AnimatePresence>
+        {showSplash && <SplashScreen onComplete={() => setShowSplash(false)} />}
+      </AnimatePresence>
       <AnimatePresence>{isAnalyzing && <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} style={{ position: 'fixed', inset: 0, zIndex: 1000000, background: 'rgba(255,255,255,0.9)', backdropFilter: 'blur(30px)', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}><motion.div animate={{ rotate: 360 }} transition={{ duration: 1, repeat: Infinity, ease: 'linear' }} style={{ width: '60px', height: '60px', border: '4px solid #FFEBEE', borderTop: '4px solid #E53935', borderRadius: '50%', marginBottom: '20px' }} /><h2 style={{ color: '#1E293B', fontSize: '20px', fontWeight: '900' }}>실시간 지능형 분석 중...</h2></motion.div>}</AnimatePresence>
 
       {/* 햄버거 메뉴 버튼 (드래그 기능 유지) */}
