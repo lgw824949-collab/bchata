@@ -207,7 +207,10 @@ function App() {
   const [parties, setParties] = useState([]);
   const [loading, setLoading] = useState(true);
   const [selectedDate, setSelectedDate] = useState(todayData.dateStr);
-  const [view, setView] = useState('home');
+  const [view, setView] = useState(() => {
+    const hash = window.location.hash.replace('#', '');
+    return hash || 'home';
+  });
 
   const [showIncheonModal, setShowIncheonModal] = useState(false);
   const [isSajuCall, setIsSajuCall] = useState(false);
@@ -225,12 +228,37 @@ function App() {
   useEffect(() => { setTimeout(() => setShowSplash(false), 2000); }, []);
 
   useEffect(() => {
+    // 1. 초기 접속 시 경로 또는 해시 처리
     if (window.location.pathname === '/parking') {
       setView('parking');
+      window.location.hash = 'parking';
     } else if (window.location.pathname === '/restaurant') {
       setView('restaurant');
+      window.location.hash = 'restaurant';
     }
   }, []);
+
+  // 2. view 상태가 변경될 때마다 URL Hash 업데이트
+  useEffect(() => {
+    const currentHash = window.location.hash.replace('#', '');
+    if (view !== currentHash) {
+      window.location.hash = view;
+    }
+  }, [view]);
+
+  // 3. 브라우저 뒤로가기/앞으로가기 (Hash 변경) 감지
+  useEffect(() => {
+    const handleHashChange = () => {
+      const newHash = window.location.hash.replace('#', '');
+      if (newHash && newHash !== view) {
+        setView(newHash);
+      } else if (!newHash && view !== 'home') {
+        setView('home');
+      }
+    };
+    window.addEventListener('hashchange', handleHashChange);
+    return () => window.removeEventListener('hashchange', handleHashChange);
+  }, [view]);
 
   const fetchParties = async () => {
     setLoading(true);
@@ -257,18 +285,17 @@ function App() {
         setIsMenuOpen(false);
       } else if (e.state && e.state.date) {
         setSelectedDate(e.state.date);
-      } else if (view !== 'home') {
-        setView('home');
       }
+      // view 변경은 hashchange 리스너가 처리함
     };
     window.addEventListener('popstate', handlePopState);
     return () => window.removeEventListener('popstate', handlePopState);
-  }, [selectedPoster, isMenuOpen, view]);
+  }, [selectedPoster, isMenuOpen]);
 
   useEffect(() => {
-    // 날짜 이동, 뷰 전환, 모달 오픈 시마다 히스토리 기록
-    window.history.pushState({ view, date: selectedDate, modal: !!selectedPoster }, '');
-  }, [selectedDate, view, selectedPoster, isMenuOpen]);
+    // 날짜 이동, 모달 오픈 시 히스토리 기록 (view는 해시가 자동 처리)
+    window.history.replaceState({ view, date: selectedDate, modal: !!selectedPoster }, '');
+  }, [selectedDate, selectedPoster, isMenuOpen]);
 
   const openAnalysis = (saju = false) => {
     // 사용자가 클릭했을 때만 위치 정보 요청
