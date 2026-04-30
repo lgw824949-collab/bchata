@@ -1138,8 +1138,8 @@ const HomePage = ({
                     onClick={() => {
                       setSelectedDate(day.fullDate);
                       if (isWeekend) {
-                        // 금/토요일은 파티가 많으므로 모달 내 상세 뷰 노출
-                        setShowFilteredResults(true);
+                        // 금/토요일은 파티가 많으므로 사용자님이 만든 '검색 필터 패널' 노출
+                        setShowFilterPanel(true);
                       } else {
                         // 평일은 즉시 메인 페이지 연동
                         setShowFullCalendar(false);
