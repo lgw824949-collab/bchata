@@ -1,10 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Heart, Eye, Share2, Plus, X, Camera, MapPin, Search } from 'lucide-react';
+import { Heart, Eye, Share2, Plus, X, Camera, MapPin, Search, Home as HomeIcon } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import { useTranslation } from 'react-i18next';
 
-const Community = ({ setSelectedPoster }) => {
+const Community = ({ setSelectedPoster, setView }) => {
   const { t } = useTranslation();
   const [posts, setPosts] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -99,9 +99,22 @@ const Community = ({ setSelectedPoster }) => {
   return (
     <div style={{ background: '#F8FAFC', minHeight: '100vh', padding: '15px 15px 100px' }}>
       <div style={{ marginBottom: '24px' }}>
-        <h1 style={{ fontSize: '24px', fontWeight: 950, color: '#1E293B', letterSpacing: '-0.02em', marginBottom: '8px' }}>
-          <span style={{ color: '#E53935' }}>LIVE</span> PICK
-        </h1>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+          <h1 style={{ fontSize: '24px', fontWeight: 950, color: '#1E293B', letterSpacing: '-0.02em' }}>
+            <span style={{ color: '#E53935' }}>LIVE</span> PICK
+          </h1>
+          <div style={{ display: 'flex', gap: '10px' }}>
+            <button 
+              onClick={() => setView('home')} 
+              style={{ background: '#fff', border: '1px solid #E2E8F0', borderRadius: '12px', padding: '8px', cursor: 'pointer' }}
+            >
+              <HomeIcon size={20} color="#64748B" />
+            </button>
+            <button style={{ background: '#fff', border: '1px solid #E2E8F0', borderRadius: '12px', padding: '8px' }}>
+              <Search size={20} color="#64748B" />
+            </button>
+          </div>
+        </div>
         <p style={{ fontSize: '14px', color: '#64748B', lineHeight: '1.5', fontWeight: 600 }}>
           "지금 거기 분위기 어때요?"<br />
           실시간 현장 사진을 보고 오늘 밤 목적지를 정해보세요!
