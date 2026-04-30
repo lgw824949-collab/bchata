@@ -69,10 +69,10 @@ const FilterBar = ({ filterRegion, setFilterRegion, filterGenre, setFilterGenre 
   const regions = ['서울', '경기/인천', '경상도', '전라도', '충청도', '강원/제주'];
   const genres = ['바차타', '살사', '쥬크', '키좀바'];
   return (
-    <div style={{ padding: '0 15px 12px', background: '#fff', display: 'flex', flexDirection: 'column', gap: '8px' }}>
+    <div style={{ padding: '0 15px 12px', background: '#fff', display: 'flex', flexDirection: 'column', gap: '12px' }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
         <div style={{ color: '#94A3B8' }}><MapPin size={16} /></div>
-        <div style={{ flex: 1, display: 'flex', overflowX: 'auto', gap: '6px', msOverflowStyle: 'none', scrollbarWidth: 'none', WebkitOverflowScrolling: 'touch' }} className="filter-scroll">
+        <div style={{ flex: 1, display: 'flex', overflowX: 'auto', gap: '12px', msOverflowStyle: 'none', scrollbarWidth: 'none', WebkitOverflowScrolling: 'touch' }} className="filter-scroll">
           {regions.map(r => (
             <button key={r} onClick={() => setFilterRegion(filterRegion === r ? '' : r)} style={{ padding: '6px 12px', borderRadius: '8px', fontSize: '12px', fontWeight: 700, whiteSpace: 'nowrap', border: 'none', background: filterRegion === r ? '#E53935' : '#F1F5F9', color: filterRegion === r ? '#fff' : '#64748B', transition: 'all 0.2s' }}>{r}</button>
           ))}
@@ -80,7 +80,7 @@ const FilterBar = ({ filterRegion, setFilterRegion, filterGenre, setFilterGenre 
       </div>
       <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
         <div style={{ color: '#94A3B8' }}><Music size={16} /></div>
-        <div style={{ flex: 1, display: 'flex', overflowX: 'auto', gap: '6px', msOverflowStyle: 'none', scrollbarWidth: 'none', WebkitOverflowScrolling: 'touch' }} className="filter-scroll">
+        <div style={{ flex: 1, display: 'flex', overflowX: 'auto', gap: '12px', msOverflowStyle: 'none', scrollbarWidth: 'none', WebkitOverflowScrolling: 'touch' }} className="filter-scroll">
           {genres.map(g => (
             <button key={g} onClick={() => setFilterGenre(filterGenre === g ? '' : g)} style={{ padding: '6px 12px', borderRadius: '8px', fontSize: '12px', fontWeight: 700, whiteSpace: 'nowrap', border: 'none', background: filterGenre === g ? '#1E293B' : '#F1F5F9', color: filterGenre === g ? '#fff' : '#64748B', transition: 'all 0.2s' }}>{g}</button>
           ))}
