@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo, useRef } from 'react'
-import { Home as HomeIcon, Users, Plus, LogOut, Heart, X, MessageSquare, RefreshCw, CloudSun, Utensils, Zap, Languages, Bell, Star, Navigation, CreditCard, Settings, Map as MapIcon, BarChart, Gift, Coffee, User, Menu, Music2, GraduationCap, Tent, Flag, Download, Globe } from 'lucide-react'
+import { Home as HomeIcon, Users, Plus, LogOut, Heart, X, MessageSquare, RefreshCw, CloudSun, Utensils, Zap, Languages, Bell, Star, Navigation, CreditCard, Settings, Map as MapIcon, BarChart, Gift, Coffee, User, Menu, Music2, GraduationCap, Tent, Flag, Download, Globe, ShieldCheck, Calendar } from 'lucide-react'
 import { useTranslation } from 'react-i18next';
 import { motion, AnimatePresence } from 'framer-motion'
 import { supabase, logActivity } from './lib/supabase'
@@ -271,6 +271,7 @@ function App() {
   const [showIncheon, setShowIncheon] = useState(false);
   const [showWeather, setShowWeather] = useState(false);
   const [showSaju, setShowSaju] = useState(false);
+  const [showFullCalendar, setShowFullCalendar] = useState(false);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
 
   useEffect(() => { 
@@ -405,11 +406,11 @@ function App() {
     parties: displayParties, lessons: [], loading, selectedMonth: todayData.month, setSelectedMonth: () => {}, selectedWeek: 1, setSelectedWeek: () => {}, 
     selectedDate, setSelectedDate, selectedRegion: '서울', setSelectedRegion: () => {}, 
     view, setView, setSelectedPoster, 
-    openAnalysis: () => openAnalysis(false), fourteenDays: Array.from({ length: 14 }).map((_, i) => {
+    fourteenDays: Array.from({ length: 14 }).map((_, i) => {
       const d = new Date(); d.setDate(d.getDate() + i);
       return { fullDate: formatDateToKSTString(d), date: String(d.getDate()), month: String(d.getMonth() + 1), dayName: DAYS_KOR[d.getDay()], isToday: i === 0, dayOfWeek: d.getDay() };
     }), weekData: [], allDatesInMonth: [], filteredParties: displayParties.filter(p => p.date === selectedDate),
-    showFullCalendar: false, setShowFullCalendar: () => {}, likedIds: [], toggleLike: () => {},
+    showFullCalendar, setShowFullCalendar, likedIds: [], toggleLike: () => {},
     IncheonBanner: () => <IncheonPremiumBanner t={t} onClick={() => openAnalysis(false)} />, venueCounts: {}, resetToToday: () => { setView('home'); setSelectedDate(todayData.dateStr); }, formatItemDate: (d, t) => `${d} ${t}`, formatFee: (f) => f, handleRegister: () => setView('register'), logActivity: () => {}, regionalTheme: { welcomeMsg: "전국 댄서들을 위한 실시간 정보", specialBanner: true }
   };
 
@@ -477,6 +478,8 @@ function App() {
             <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
               {[
                 { icon: <Utensils color="#E53935" />, text: t('restaurant'), action: () => { setView('restaurant'); setIsMenuOpen(false); } },
+                { icon: <ShieldCheck color="#E53935" />, text: t('admin_dashboard'), action: () => { setView('admin'); setIsMenuOpen(false); } },
+                { icon: <Calendar color="#E53935" />, text: t('view_calendar'), action: () => { setShowFullCalendar(true); setIsMenuOpen(false); } },
                 { icon: <Star color="#E53935" />, text: t('saju'), action: () => { if(typeof setShowSaju === 'function') { setShowSaju(true); setIsMenuOpen(false); } } },
                 { icon: <CloudSun color="#E53935" />, text: t('weather'), action: () => { setIsMenuOpen(false); setTimeout(() => setShowWeather(true), 300); } },
                 { icon: <Bell color="#E53935" />, text: t('notice'), action: () => { alert(t('coming_soon')) } }

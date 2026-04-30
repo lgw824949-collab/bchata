@@ -682,18 +682,6 @@ const HomePage = ({
                     </h2>
                     <div style={{ display: 'flex', gap: '5px' }}>
                       <div 
-                        onClick={() => setView('admin')}
-                        style={{ padding: '5px', cursor: 'pointer', color: '#333' }}
-                      >
-                        <ShieldCheck size={20} strokeWidth={2.5} />
-                      </div>
-                      <div 
-                        onClick={() => setShowFullCalendar(!showFullCalendar)}
-                        style={{ padding: '5px', cursor: 'pointer', color: showFullCalendar ? '#FF3B30' : '#333' }}
-                      >
-                        <Calendar size={20} strokeWidth={2.5} />
-                      </div>
-                      <div 
                         onClick={() => i18n.changeLanguage(i18n.language.startsWith('ko') ? 'en' : 'ko')}
                         style={{ padding: '5px', cursor: 'pointer', color: '#E53935', display: 'flex', alignItems: 'center', gap: '3px' }}
                       >
