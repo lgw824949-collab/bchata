@@ -63,9 +63,13 @@ const PartyCard = ({ item, onSelect }) => {
           {cleanTitle}
         </div>
 
-        {/* Line 3: 시간 | 가격 | 음악 비중 */}
+        {/* Line 3: 날짜 | 시간 | 가격 | 음악 비중 */}
         <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'nowrap', overflow: 'hidden' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '5px', fontSize: '11px', color: '#64748B', fontWeight: '800' }}>
+            <span style={{ color: '#1E293B' }}>
+              {(() => { const d = new Date(item.date); return `${d.getMonth() + 1}월 ${d.getDate()}일 (${DAYS_KOR[d.getDay()]})`; })()}
+            </span>
+            <span style={{ color: '#E2E8F0' }}>|</span>
             <span>{displayTime}</span>
             <span style={{ color: '#E2E8F0' }}>|</span>
             <span style={{ color: '#D46B08' }}>{displayFee}</span>
