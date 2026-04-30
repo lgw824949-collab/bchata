@@ -310,6 +310,10 @@ const HomePage = ({
                         // 1. 날짜 필터링
                         if (p.date !== selectedDate) return false;
                         
+                        // 오늘 이전 파티는 표시 안 함
+                        const today = new Date().toISOString().split('T')[0];
+                        if (p.date < today) return false;
+                        
                         // 2. 지역 필터링 (주소 기반 명시적 매칭)
                         const addr = p.address || '';
                         let matchesRegion = false;
@@ -334,6 +338,9 @@ const HomePage = ({
                       }).length > 0 ? (
                         parties.filter(p => {
                           if (p.date !== selectedDate) return false;
+                          const today = new Date().toISOString().split('T')[0];
+                          if (p.date < today) return false;
+
                           const addr = p.address || '';
                           let matchesRegion = false;
                           if (filterRegion === '서울') matchesRegion = addr.includes('서울');
