@@ -275,6 +275,7 @@ function App() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [filterRegion, setFilterRegion] = useState('');
   const [filterGenre, setFilterGenre] = useState('');
+  const [selectedMonth, setSelectedMonth] = useState(todayData.month);
 
   useEffect(() => { 
     if (showSplash) {
@@ -379,7 +380,7 @@ function App() {
   };
 
   const sharedProps = {
-    parties: displayParties, lessons: [], loading, selectedMonth: todayData.month, setSelectedMonth: () => {}, selectedWeek: 1, setSelectedWeek: () => {}, 
+    parties: displayParties, lessons: [], loading, selectedMonth, setSelectedMonth, selectedWeek: 1, setSelectedWeek: () => {}, 
     selectedDate, setSelectedDate, selectedRegion: '서울', setSelectedRegion: () => {}, 
     view, setView, setSelectedPoster, 
     fourteenDays: Array.from({ length: 14 }).map((_, i) => {
@@ -454,12 +455,12 @@ function App() {
 
             <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
               {[
-                { icon: <Utensils color="#E53935" />, text: t('restaurant'), action: () => { setView('restaurant'); setIsMenuOpen(false); } },
-                { icon: <ShieldCheck color="#E53935" />, text: t('admin_dashboard'), action: () => { setView('admin'); setIsMenuOpen(false); } },
                 { icon: <Calendar color="#E53935" />, text: t('view_calendar'), action: () => { setShowFullCalendar(true); setIsMenuOpen(false); } },
+                { icon: <Utensils color="#E53935" />, text: t('restaurant'), action: () => { setView('restaurant'); setIsMenuOpen(false); } },
                 { icon: <Star color="#E53935" />, text: t('saju'), action: () => { if(typeof setShowSaju === 'function') { setShowSaju(true); setIsMenuOpen(false); } } },
                 { icon: <CloudSun color="#E53935" />, text: t('weather'), action: () => { setIsMenuOpen(false); setTimeout(() => setShowWeather(true), 300); } },
-                { icon: <Bell color="#E53935" />, text: t('notice'), action: () => { alert(t('coming_soon')) } }
+                { icon: <Bell color="#E53935" />, text: t('notice'), action: () => { alert(t('coming_soon')) } },
+                { icon: <ShieldCheck color="#E53935" />, text: t('admin_dashboard'), action: () => { setView('admin'); setIsMenuOpen(false); } },
               ].map((item, idx) => (
                 <motion.div
                   key={idx}
