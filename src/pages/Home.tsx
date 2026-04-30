@@ -908,10 +908,10 @@ const HomePage = ({
                     const genreMatch = !filterGenre || 
                                      title.includes(filterGenre.toLowerCase()) || 
                                      genre.includes(filterGenre.toLowerCase()) ||
-                                     (filterGenre === '바차타' && (title.includes('bachata') || genre.includes('bachata') || title.includes('홍턴') || title.includes('바차'))) ||
-                                     (filterGenre === '살사' && (title.includes('salsa') || genre.includes('salsa') || title.includes('살사'))) ||
-                                     (filterGenre === '쥬크' && (title.includes('zouk') || genre.includes('zouk') || title.includes('주크'))) ||
-                                     (filterGenre === '키좀바' && (title.includes('kizomba') || genre.includes('kizomba') || title.includes('키좀')));
+                                     (filterGenre === '바차타' && ((p.b_ratio || 0) > 0 || title.includes('bachata') || genre.includes('bachata') || title.includes('홍턴') || title.includes('바차'))) ||
+                                     (filterGenre === '살사' && ((p.s_ratio || 0) > 0 || title.includes('salsa') || genre.includes('salsa') || title.includes('살사'))) ||
+                                     (filterGenre === '쥬크' && ((p.j_ratio || 0) > 0 || title.includes('zouk') || genre.includes('zouk') || title.includes('주크'))) ||
+                                     (filterGenre === '키좀바' && ((p.k_ratio || 0) > 0 || title.includes('kizomba') || genre.includes('kizomba') || title.includes('키좀')));
                     
                     if (!genreMatch) return false;
 
