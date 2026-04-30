@@ -257,8 +257,13 @@ const HomePage = ({
                         <div key={item.id} onClick={() => setSelectedPoster(item.poster_url)} style={{ width: '140px', flexShrink: 0, borderRadius: '12px', overflow: 'hidden', boxShadow: '0 8px 20px rgba(0,0,0,0.12)', position: 'relative' }}>
                           <img src={item.poster_url} style={{ width: '100%', height: '190px', objectFit: 'cover' }} alt="Pick" />
                           <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, padding: '10px 8px', background: 'linear-gradient(transparent, rgba(0,0,0,0.9))', color: 'white' }}>
-                            <div style={{ fontSize: '11px', fontWeight: 900, color:'#E53935' }}>{item.locationName}</div>
-                            <div style={{ fontSize: '11px', fontWeight: '700', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{item.title}</div>
+                            <div style={{ fontSize: '10px', color: '#FFEB3B', fontWeight: 900, marginBottom: '1px' }}>{item.locationName}</div>
+                            <div style={{ fontSize: '10px', fontWeight: '800', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', marginBottom: '2px' }}>{item.title}</div>
+                            <div style={{ fontSize: '8px', fontWeight: 700, color: 'rgba(255,255,255,0.85)', display: 'flex', alignItems: 'center', gap: '3px' }}>
+                              <span>{(() => { const d = new Date(item.date); return `${d.getMonth() + 1}월 ${d.getDate()}일 (${DAYS_KOR[d.getDay()]})`; })()}</span>
+                              <span style={{ color: 'rgba(255,255,255,0.3)' }}>|</span>
+                              <span>{item.time?.split('-')[0].trim() || '21:00'}</span>
+                            </div>
                           </div>
                         </div>
                       ))}
