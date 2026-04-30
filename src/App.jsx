@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo, useRef } from 'react'
-import { Home as HomeIcon, Users, Plus, LogOut, Heart, X, MessageSquare, RefreshCw, CloudSun, Utensils, Zap, Languages, Bell, Star, Navigation, CreditCard, Settings, Map as MapIcon, BarChart, Gift, Coffee, User, Menu, Music2, GraduationCap, Tent, Flag } from 'lucide-react'
+import { Home as HomeIcon, Users, Plus, LogOut, Heart, X, MessageSquare, RefreshCw, CloudSun, Utensils, Zap, Languages, Bell, Star, Navigation, CreditCard, Settings, Map as MapIcon, BarChart, Gift, Coffee, User, Menu, Music2, GraduationCap, Tent, Flag, Download } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { supabase, logActivity } from './lib/supabase'
 import RegisterForm from './RegisterForm'
@@ -78,18 +78,22 @@ const PosterModal = ({ src, onClose }) => {
         <button 
           onClick={handleSave}
           style={{ 
-            background: '#E53935',
+            background: 'rgba(0,0,0,0.5)',
             color: 'white',
-            padding: '12px 32px',
-            borderRadius: '24px',
-            fontSize: '15px',
-            fontWeight: '700',
-            border: 'none',
+            width: '48px',
+            height: '48px',
+            borderRadius: '50%',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            border: '1px solid rgba(255,255,255,0.3)',
             cursor: 'pointer',
             boxShadow: '0 4px 15px rgba(0,0,0,0.3)',
             zIndex: 100002
           }}
-        >📥 저장</button>
+        >
+          <Download size={22} />
+        </button>
 
         <button 
           onClick={onClose} 
