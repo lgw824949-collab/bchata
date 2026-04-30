@@ -1260,7 +1260,7 @@ const HomePage = ({
                     {parties.filter(p => {
                       if (p.date !== selectedDate) return false;
                       const r = p.broadRegion || '';
-                      if (filterRegion === '경기·인천') {
+                      if (filterRegion === '경기/인천') {
                         if (!r.includes('경기') && !r.includes('인천')) return false;
                       } else if (!r.includes(filterRegion)) return false;
                       if (!p.title?.includes(filterGenre) && !p.genre?.includes(filterGenre)) return false;
