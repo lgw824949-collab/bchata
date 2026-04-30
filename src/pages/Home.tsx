@@ -23,34 +23,60 @@ const PosterImage = ({ src, onClick, alt = "파티 포스터" }) => {
 
 const PartyCard = ({ item, onSelect }) => {
   const cleanTitle = item.title?.split(' ㅣ ')[0] || '';
-  const displayFee = (() => {
-    const fee = String(item.fee || '1.2만');
-    if (fee === '무료' || fee.includes('무료')) return 'FREE';
-    return fee.includes('만') ? fee : (parseInt(fee.replace(/[^0-9]/g, ''))/10000).toFixed(1) + '만';
-  })();
+  const displayTime = item.time?.split('-')[0].trim() || '20:00';
+  const displayFee = (() => { const fee = String(item.fee || '1.2만'); return fee.includes('만') ? fee : fee; })();
 
   return (
-    <div onClick={() => onSelect(item.poster_url)} style={{ display: 'flex', flexDirection: 'column', gap: '8px', background: '#fff', borderRadius: '12px', overflow: 'hidden', cursor: 'pointer', position: 'relative' }}>
-      <div style={{ width: '100%', aspectRatio: '1 / 1.4', borderRadius: '10px', overflow: 'hidden', position: 'relative', boxShadow: '0 4px 10px rgba(0,0,0,0.1)' }}>
-        <img src={item.poster_url} style={{ width: '100%', height: '100%', objectFit: 'cover' }} alt="Poster" />
-        
-        {/* 음악 비중 배지 (시인성 극대화) */}
-        <div style={{ position: 'absolute', top: '5px', right: '5px', display: 'flex', flexDirection: 'column', gap: '3px', alignItems: 'flex-end' }}>
-          {item.s_ratio > 0 && <span style={{ background: '#E53935', color: '#fff', padding: '1px 5px', borderRadius: '4px', fontSize: '8px', fontWeight: 900, boxShadow: '0 2px 4px rgba(0,0,0,0.2)' }}>S{item.s_ratio}</span>}
-          {item.b_ratio > 0 && <span style={{ background: '#D4A017', color: '#fff', padding: '1px 5px', borderRadius: '4px', fontSize: '8px', fontWeight: 900, boxShadow: '0 2px 4px rgba(0,0,0,0.2)' }}>B{item.b_ratio}</span>}
-          {item.k_ratio > 0 && <span style={{ background: '#673AB7', color: '#fff', padding: '1px 5px', borderRadius: '4px', fontSize: '8px', fontWeight: 900, boxShadow: '0 2px 4px rgba(0,0,0,0.2)' }}>K{item.k_ratio}</span>}
-          {item.j_ratio > 0 && <span style={{ background: '#009688', color: '#fff', padding: '1px 5px', borderRadius: '4px', fontSize: '8px', fontWeight: 900, boxShadow: '0 2px 4px rgba(0,0,0,0.2)' }}>J{item.j_ratio}</span>}
-        </div>
-
-        {/* 하단 가격 배지 */}
-        <div style={{ position: 'absolute', bottom: '5px', left: '5px', background: 'rgba(0,0,0,0.7)', color: '#fff', padding: '2px 6px', borderRadius: '4px', fontSize: '9px', fontWeight: 900 }}>
-          {displayFee}
-        </div>
+    <div 
+      onClick={() => onSelect(item.poster_url)} 
+      style={{ 
+        display: 'flex', 
+        flexDirection: 'row', 
+        alignItems: 'center', 
+        backgroundColor: '#FFFFFF', 
+        borderRadius: '16px', 
+        overflow: 'hidden', 
+        border: '1px solid #F1F5F9', 
+        cursor: 'pointer', 
+        height: '115px', 
+        boxShadow: '0 1px 3px rgba(0,0,0,0.02)', 
+        width: '100%' 
+      }}
+    >
+      {/* 왼쪽: 포스터 영역 (고정 규격) */}
+      <div style={{ width: '85px', height: '115px', backgroundColor: '#f8f8f8', flexShrink: 0 }}>
+        <img src={item.poster_url} alt="Poster" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
       </div>
 
-      <div style={{ padding: '0 2px' }}>
-        <div style={{ fontSize: '10px', fontWeight: '900', color: '#E53935', marginBottom: '1px' }}>{item.locationName}</div>
-        <div style={{ fontSize: '11px', fontWeight: '800', color: '#1E293B', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{cleanTitle}</div>
+      {/* 오른쪽: 3줄 텍스트 정보 영역 */}
+      <div style={{ padding: '10px 15px', display: 'flex', flexDirection: 'column', justifyContent: 'space-between', minWidth: 0, flex: 1, height: '100%' }}>
+        {/* Line 1: 제목 및 네비게이션 */}
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '5px' }}>
+          <div style={{ fontSize: '15px', fontWeight: '950', color: '#1E293B', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', lineHeight: '1.2' }}>
+            {cleanTitle}
+          </div>
+          <div onClick={(e) => { e.stopPropagation(); const address = item.address || item.locationName; window.open(`https://map.kakao.com/link/search/${encodeURIComponent(address)}`, '_blank'); }} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '22px', height: '22px', borderRadius: '50%', backgroundColor: '#F8FAFC', border: '1px solid #E2E8F0', flexShrink: 0, color: '#E53935' }}>
+            <Navigation size={12} fill="currentColor" />
+          </div>
+        </div>
+
+        {/* Line 2: 장소 | 시간 | 가격 */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '12px', color: '#64748B', fontWeight: '700' }}>
+          <span style={{ color: '#1E293B' }}>{item.locationName}</span>
+          <span style={{ color: '#E2E8F0' }}>|</span>
+          <span>{displayTime}</span>
+          <span style={{ color: '#E2E8F0' }}>|</span>
+          <span style={{ color: '#D46B08' }}>{displayFee}</span>
+        </div>
+
+        {/* Line 3: 음악 비중 마킹 (사용자 강조 사항) */}
+        <div style={{ display: 'flex', gap: '4px', flexWrap: 'nowrap' }}>
+          {item.s_ratio > 0 && <span style={{ background: '#FFF1F0', color: '#E53935', padding: '2px 6px', borderRadius: '4px', fontSize: '10px', fontWeight: 900 }}>S{item.s_ratio}</span>}
+          {item.b_ratio > 0 && <span style={{ background: '#FFFBE6', color: '#D4A017', padding: '2px 8px', borderRadius: '4px', fontSize: '10px', fontWeight: 900 }}>B{item.b_ratio}</span>}
+          {item.k_ratio > 0 && <span style={{ background: '#F9F0FF', color: '#722ED1', padding: '2px 8px', borderRadius: '4px', fontSize: '10px', fontWeight: 900 }}>K{item.k_ratio}</span>}
+          {item.j_ratio > 0 && <span style={{ background: '#E6FFFB', color: '#08979C', padding: '2px 8px', borderRadius: '4px', fontSize: '10px', fontWeight: 900 }}>J{item.j_ratio}</span>}
+          {(!item.s_ratio && !item.b_ratio && !item.k_ratio && !item.j_ratio) && <span style={{ color: '#CBD5E1', fontSize: '10px', fontWeight: 700 }}>No ratio info</span>}
+        </div>
       </div>
     </div>
   );
@@ -249,15 +275,9 @@ const HomePage = ({
                     return r.includes(regionName.replace('도', '')) || city.includes(regionName.replace('도', ''));
                   });
                   return (
-                    <section key={regionName} style={{ marginBottom: '25px', background: '#fff' }}>
-                      <div style={{ fontSize: '18px', fontWeight: '900', padding: '15px 20px', display: 'flex', alignItems: 'center', gap: '8px' }}><div style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#E53935' }} />{regionName}<ChevronRight size={18} color="#94A3B8" /></div>
-                      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '12px', padding: '0 20px 25px' }}>
-                        {regionParties.length === 0 ? (
-                          <div style={{ gridColumn: 'span 3', padding: '40px 0', color: '#94A3B8', textAlign: 'center', fontSize: '13px' }}>{t('no_parties')}</div>
-                        ) : (
-                          regionParties.slice(0, 6).map(item => <PartyCard key={item.id} item={item} onSelect={setSelectedPoster} />)
-                        )}
-                      </div>
+                    <section key={regionName} style={{ marginBottom: '15px', background: '#fff' }}>
+                      <div style={{ fontSize: '18px', fontWeight: '900', padding: '15px', display: 'flex', alignItems: 'center', gap: '8px' }}><div style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#E53935' }} />{regionName}<ChevronRight size={18} color="#94A3B8" /></div>
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', padding: '0 15px 20px' }}>{regionParties.length === 0 ? <div style={{ padding: '30px', color: '#94A3B8', textAlign: 'center' }}>{t('no_parties')}</div> : regionParties.slice(0, 3).map(item => <PartyCard key={item.id} item={item} onSelect={setSelectedPoster} />)}</div>
                     </section>
                   );
                 });
