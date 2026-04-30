@@ -22,31 +22,35 @@ const PosterImage = ({ src, onClick, alt = "파티 포스터" }) => {
 };
 
 const PartyCard = ({ item, onSelect }) => {
+  const cleanTitle = item.title?.split(' ㅣ ')[0] || '';
+  const displayFee = (() => {
+    const fee = String(item.fee || '1.2만');
+    if (fee === '무료' || fee.includes('무료')) return 'FREE';
+    return fee.includes('만') ? fee : (parseInt(fee.replace(/[^0-9]/g, ''))/10000).toFixed(1) + '만';
+  })();
+
   return (
-    <div onClick={() => onSelect(item.poster_url)} style={{ display: 'flex', gap: '15px', padding: '12px', background: '#FFFFFF', borderRadius: '16px', border: '1px solid #F1F5F9', cursor: 'pointer', position: 'relative', width: '100%', boxSizing: 'border-box' }}>
-      <div style={{ width: '85px', height: '110px', borderRadius: '10px', overflow: 'hidden', flexShrink: 0, boxShadow: '0 4px 12px rgba(0,0,0,0.08)' }}>
+    <div onClick={() => onSelect(item.poster_url)} style={{ display: 'flex', flexDirection: 'column', gap: '8px', background: '#fff', borderRadius: '12px', overflow: 'hidden', cursor: 'pointer', position: 'relative' }}>
+      <div style={{ width: '100%', aspectRatio: '1 / 1.4', borderRadius: '10px', overflow: 'hidden', position: 'relative', boxShadow: '0 4px 10px rgba(0,0,0,0.1)' }}>
         <img src={item.poster_url} style={{ width: '100%', height: '100%', objectFit: 'cover' }} alt="Poster" />
-      </div>
-      <div style={{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'center', gap: '6px', minWidth: 0 }}>
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
-          <div style={{ fontSize: '11px', fontWeight: '900', color: '#E53935', letterSpacing: '-0.02em' }}>{item.locationName}</div>
-          <h3 style={{ fontSize: '15px', fontWeight: '800', color: '#1E293B', lineHeight: '1.3', margin: 0, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{item.title}</h3>
-        </div>
         
-        <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-          <span style={{ background: '#FFF1F0', color: '#E53935', padding: '2px 8px', borderRadius: '8px', fontSize: '10px', fontWeight: 700 }}>
-            {(() => { const d = new Date(item.date); const days = ['일', '월', '화', '수', '목', '금', '토']; return `${d.getMonth() + 1}/${d.getDate()}(${days[d.getDay()]})`; })()}
-          </span>
-          <span style={{ background: '#E6F4FF', color: '#1677FF', padding: '2px 8px', borderRadius: '8px', fontSize: '10px', fontWeight: 700 }}>{item.time?.split('-')[0].trim() || '20:00'}</span>
+        {/* 음악 비중 배지 (시인성 극대화) */}
+        <div style={{ position: 'absolute', top: '5px', right: '5px', display: 'flex', flexDirection: 'column', gap: '3px', alignItems: 'flex-end' }}>
+          {item.s_ratio > 0 && <span style={{ background: '#E53935', color: '#fff', padding: '1px 5px', borderRadius: '4px', fontSize: '8px', fontWeight: 900, boxShadow: '0 2px 4px rgba(0,0,0,0.2)' }}>S{item.s_ratio}</span>}
+          {item.b_ratio > 0 && <span style={{ background: '#D4A017', color: '#fff', padding: '1px 5px', borderRadius: '4px', fontSize: '8px', fontWeight: 900, boxShadow: '0 2px 4px rgba(0,0,0,0.2)' }}>B{item.b_ratio}</span>}
+          {item.k_ratio > 0 && <span style={{ background: '#673AB7', color: '#fff', padding: '1px 5px', borderRadius: '4px', fontSize: '8px', fontWeight: 900, boxShadow: '0 2px 4px rgba(0,0,0,0.2)' }}>K{item.k_ratio}</span>}
+          {item.j_ratio > 0 && <span style={{ background: '#009688', color: '#fff', padding: '1px 5px', borderRadius: '4px', fontSize: '8px', fontWeight: 900, boxShadow: '0 2px 4px rgba(0,0,0,0.2)' }}>J{item.j_ratio}</span>}
+        </div>
+
+        {/* 하단 가격 배지 */}
+        <div style={{ position: 'absolute', bottom: '5px', left: '5px', background: 'rgba(0,0,0,0.7)', color: '#fff', padding: '2px 6px', borderRadius: '4px', fontSize: '9px', fontWeight: 900 }}>
+          {displayFee}
         </div>
       </div>
 
-      {/* 음악 비중 배지 */}
-      <div style={{ position: 'absolute', top: '10px', right: '10px', display: 'flex', gap: '3px' }}>
-        {item.s_ratio > 0 && <span style={{ background: 'rgba(229, 57, 53, 0.9)', color: 'white', padding: '2px 5px', borderRadius: '5px', fontSize: '9px', fontWeight: 900 }}>S{item.s_ratio}</span>}
-        {item.b_ratio > 0 && <span style={{ background: 'rgba(212, 160, 23, 0.9)', color: 'white', padding: '2px 5px', borderRadius: '5px', fontSize: '9px', fontWeight: 900 }}>B{item.b_ratio}</span>}
-        {item.k_ratio > 0 && <span style={{ background: 'rgba(103, 58, 183, 0.9)', color: 'white', padding: '2px 5px', borderRadius: '5px', fontSize: '9px', fontWeight: 900 }}>K{item.k_ratio}</span>}
-        {item.j_ratio > 0 && <span style={{ background: 'rgba(0, 150, 136, 0.9)', color: 'white', padding: '2px 5px', borderRadius: '5px', fontSize: '9px', fontWeight: 900 }}>J{item.j_ratio}</span>}
+      <div style={{ padding: '0 2px' }}>
+        <div style={{ fontSize: '10px', fontWeight: '900', color: '#E53935', marginBottom: '1px' }}>{item.locationName}</div>
+        <div style={{ fontSize: '11px', fontWeight: '800', color: '#1E293B', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{cleanTitle}</div>
       </div>
     </div>
   );
@@ -245,9 +249,15 @@ const HomePage = ({
                     return r.includes(regionName.replace('도', '')) || city.includes(regionName.replace('도', ''));
                   });
                   return (
-                    <section key={regionName} style={{ marginBottom: '15px', background: '#fff' }}>
-                      <div style={{ fontSize: '18px', fontWeight: '900', padding: '15px', display: 'flex', alignItems: 'center', gap: '8px' }}><div style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#E53935' }} />{regionName}<ChevronRight size={18} color="#94A3B8" /></div>
-                      <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', padding: '0 15px 20px' }}>{regionParties.length === 0 ? <div style={{ padding: '30px', color: '#94A3B8', textAlign: 'center' }}>{t('no_parties')}</div> : regionParties.slice(0, 3).map(item => <PartyCard key={item.id} item={item} onSelect={setSelectedPoster} />)}</div>
+                    <section key={regionName} style={{ marginBottom: '25px', background: '#fff' }}>
+                      <div style={{ fontSize: '18px', fontWeight: '900', padding: '15px 20px', display: 'flex', alignItems: 'center', gap: '8px' }}><div style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#E53935' }} />{regionName}<ChevronRight size={18} color="#94A3B8" /></div>
+                      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '12px', padding: '0 20px 25px' }}>
+                        {regionParties.length === 0 ? (
+                          <div style={{ gridColumn: 'span 3', padding: '40px 0', color: '#94A3B8', textAlign: 'center', fontSize: '13px' }}>{t('no_parties')}</div>
+                        ) : (
+                          regionParties.slice(0, 6).map(item => <PartyCard key={item.id} item={item} onSelect={setSelectedPoster} />)
+                        )}
+                      </div>
                     </section>
                   );
                 });
