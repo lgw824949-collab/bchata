@@ -1331,8 +1331,9 @@ const HomePage = ({
                 </div>
               )}
             </motion.div>
-          )}
-        </AnimatePresence>      {/* 지역별 포스터 그리드 오버레이 */}
+          </>
+        )}
+      </AnimatePresence>      {/* 지역별 포스터 그리드 오버레이 */}
       <AnimatePresence>
         {selectedRegionGrid && (
           <motion.div
