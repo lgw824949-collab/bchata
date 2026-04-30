@@ -71,16 +71,26 @@ const PartyCard = ({ item, onSelect }) => {
           {cleanTitle}
         </div>
 
-        {/* Line 3: 4/30(목) 21:00 1.2만 S3B2 (정규 포맷) */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '5px', whiteSpace: 'nowrap', overflow: 'hidden', marginTop: '4px', fontSize: '12px', fontWeight: '900', color: '#1E293B' }}>
-          <span>{(() => { const d = new Date(item.date); return `${d.getMonth() + 1}/${d.getDate()}(${DAYS_KOR[d.getDay()]})`; })()}</span>
-          <span>{displayTime}</span>
-          <span style={{ color: '#E53935' }}>{displayFee}</span>
-          <div style={{ display: 'flex', gap: '0px', marginLeft: '2px' }}>
-            {item.s_ratio > 0 && <span style={{ color: '#E53935' }}>S{item.s_ratio}</span>}
-            {item.b_ratio > 0 && <span style={{ color: '#D4A017' }}>B{item.b_ratio}</span>}
-            {item.k_ratio > 0 && <span style={{ color: '#722ED1' }}>K{item.k_ratio}</span>}
-            {item.j_ratio > 0 && <span style={{ color: '#08979C' }}>J{item.j_ratio}</span>}
+        {/* Line 3: 4/30(목) 21:00 1.2만 S3B2 (컬러 칩 디자인) */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '4px', whiteSpace: 'nowrap', overflow: 'hidden', marginTop: '6px' }}>
+          {/* 날짜 칩 */}
+          <span style={{ background: '#F1F5F9', color: '#475569', padding: '2px 6px', borderRadius: '6px', fontSize: '11px', fontWeight: 900 }}>
+            {(() => { const d = new Date(item.date); return `${d.getMonth() + 1}/${d.getDate()}(${DAYS_KOR[d.getDay()]})`; })()}
+          </span>
+          {/* 시간 칩 */}
+          <span style={{ background: '#F8FAFC', color: '#1E293B', padding: '2px 6px', borderRadius: '6px', fontSize: '11px', fontWeight: 900 }}>
+            {displayTime}
+          </span>
+          {/* 비용 칩 */}
+          <span style={{ background: '#FFF1F0', color: '#E53935', padding: '2px 6px', borderRadius: '6px', fontSize: '11px', fontWeight: 900 }}>
+            {displayFee}
+          </span>
+          {/* 비중 배지 그룹 */}
+          <div style={{ display: 'flex', gap: '2px', marginLeft: '2px' }}>
+            {item.s_ratio > 0 && <span style={{ background: '#E53935', color: '#fff', padding: '2px 4px', borderRadius: '4px', fontSize: '10px', fontWeight: 900 }}>S{item.s_ratio}</span>}
+            {item.b_ratio > 0 && <span style={{ background: '#D4A017', color: '#fff', padding: '2px 4px', borderRadius: '4px', fontSize: '10px', fontWeight: 900 }}>B{item.b_ratio}</span>}
+            {item.k_ratio > 0 && <span style={{ background: '#722ED1', color: '#fff', padding: '2px 4px', borderRadius: '4px', fontSize: '10px', fontWeight: 900 }}>K{item.k_ratio}</span>}
+            {item.j_ratio > 0 && <span style={{ background: '#08979C', color: '#fff', padding: '2px 4px', borderRadius: '4px', fontSize: '10px', fontWeight: 900 }}>J{item.j_ratio}</span>}
           </div>
         </div>
       </div>
@@ -260,12 +270,12 @@ const HomePage = ({
                           <img src={item.poster_url} style={{ width: '100%', height: '190px', objectFit: 'cover' }} alt="Pick" />
                             <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, padding: '10px 8px', background: 'linear-gradient(transparent, rgba(0,0,0,0.95))', color: 'white' }}>
                               <div style={{ fontSize: '10px', color: '#FFEB3B', fontWeight: 950, marginBottom: '2px' }}>{item.locationName}</div>
-                              <div style={{ fontSize: '11px', fontWeight: '950', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', marginBottom: '3px' }}>{item.title}</div>
-                              <div style={{ fontSize: '9px', fontWeight: 950, color: '#fff', display: 'flex', gap: '3px', whiteSpace: 'nowrap' }}>
-                                <span>{(() => { const d = new Date(item.date); return `${d.getMonth() + 1}/${d.getDate()}(${DAYS_KOR[d.getDay()]})`; })()}</span>
-                                <span>{item.time?.split('-')[0].trim() || '21:00'}</span>
-                                <span style={{ color: '#FFEB3B' }}>{(() => { if (!item.fee) return '1.2만'; const f = String(item.fee); if (f.includes('만')) return f.replace('원', ''); const num = parseInt(f.replace(/[^0-9]/g, '')); if (isNaN(num)) return f; return (num/10000).toFixed(1).replace('.0', '') + '만'; })()}</span>
-                                <span>S{item.s_ratio}B{item.b_ratio}K{item.k_ratio}J{item.j_ratio}</span>
+                              <div style={{ fontSize: '11px', fontWeight: '950', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', marginBottom: '4px' }}>{item.title}</div>
+                              <div style={{ fontSize: '8px', fontWeight: 950, color: '#fff', display: 'flex', gap: '2px', whiteSpace: 'nowrap', overflow: 'hidden' }}>
+                                <span style={{ background: 'rgba(255,255,255,0.2)', padding: '1px 4px', borderRadius: '4px' }}>{(() => { const d = new Date(item.date); return `${d.getMonth() + 1}/${d.getDate()}(${DAYS_KOR[d.getDay()]})`; })()}</span>
+                                <span style={{ background: 'rgba(255,255,255,0.2)', padding: '1px 4px', borderRadius: '4px' }}>{item.time?.split('-')[0].trim() || '21:00'}</span>
+                                <span style={{ background: 'rgba(255,235,59,0.3)', color: '#FFEB3B', padding: '1px 4px', borderRadius: '4px' }}>{(() => { if (!item.fee) return '1.2만'; const f = String(item.fee); if (f.includes('만')) return f.replace('원', ''); const num = parseInt(f.replace(/[^0-9]/g, '')); if (isNaN(num)) return f; return (num/10000).toFixed(1).replace('.0', '') + '만'; })()}</span>
+                                <span style={{ background: 'rgba(229,57,53,0.5)', padding: '1px 4px', borderRadius: '4px' }}>S{item.s_ratio}B{item.b_ratio}</span>
                               </div>
                             </div>
                         </div>
@@ -446,12 +456,12 @@ const HomePage = ({
                               </div>
                               <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, padding: '12px 10px', background: 'linear-gradient(transparent, rgba(0,0,0,0.95))', color: 'white' }}>
                                 <div style={{ fontSize: '11px', color: '#FFEB3B', fontWeight: 950, marginBottom: '3px' }}>{party.locationName}</div>
-                                <div style={{ fontSize: '13px', fontWeight: 950, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', marginBottom: '4px' }}>{cleanTitle}</div>
-                                <div style={{ fontSize: '10px', fontWeight: 900, color: '#fff', display: 'flex', gap: '4px', whiteSpace: 'nowrap' }}>
-                                  <span>{(() => { const d = new Date(party.date); return `${d.getMonth() + 1}/${d.getDate()}(${DAYS_KOR[d.getDay()]})`; })()}</span>
-                                  <span>{party.time?.split('-')[0].trim() || '21:00'}</span>
-                                  <span style={{ color: '#FFEB3B' }}>{(() => { if (!party.fee) return '1.2만'; const f = String(party.fee); if (f.includes('만')) return f.replace('원', ''); const num = parseInt(f.replace(/[^0-9]/g, '')); if (isNaN(num)) return f; return (num/10000).toFixed(1).replace('.0', '') + '만'; })()}</span>
-                                  <span>S{party.s_ratio}B{party.b_ratio}K{party.k_ratio}J{party.j_ratio}</span>
+                                <div style={{ fontSize: '13px', fontWeight: 950, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', marginBottom: '5px' }}>{cleanTitle}</div>
+                                <div style={{ fontSize: '9px', fontWeight: 900, color: '#fff', display: 'flex', gap: '3px', whiteSpace: 'nowrap', overflow: 'hidden' }}>
+                                  <span style={{ background: 'rgba(255,255,255,0.2)', padding: '1px 4px', borderRadius: '4px' }}>{(() => { const d = new Date(party.date); return `${d.getMonth() + 1}/${d.getDate()}(${DAYS_KOR[d.getDay()]})`; })()}</span>
+                                  <span style={{ background: 'rgba(255,255,255,0.2)', padding: '1px 4px', borderRadius: '4px' }}>{party.time?.split('-')[0].trim() || '21:00'}</span>
+                                  <span style={{ background: 'rgba(255,235,59,0.3)', color: '#FFEB3B', padding: '1px 4px', borderRadius: '4px' }}>{(() => { if (!party.fee) return '1.2만'; const f = String(party.fee); if (f.includes('만')) return f.replace('원', ''); const num = parseInt(f.replace(/[^0-9]/g, '')); if (isNaN(num)) return f; return (num/10000).toFixed(1).replace('.0', '') + '만'; })()}</span>
+                                  <span style={{ background: 'rgba(229,57,53,0.5)', padding: '1px 4px', borderRadius: '4px' }}>S{party.s_ratio}B{party.b_ratio}</span>
                                 </div>
                               </div>
                             </div>
