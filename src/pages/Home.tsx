@@ -1094,16 +1094,15 @@ const HomePage = ({
               style={{
                 position: 'fixed', 
                 bottom: 0,
-                left: '50%',
-                transform: 'translateX(-50%)',
+                left: 0,
+                right: 0,
                 width: '100%',
-                maxWidth: '500px',
                 background: '#fff', 
                 borderTopLeftRadius: '32px', 
                 borderTopRightRadius: '32px',
                 padding: '24px 20px 40px', 
-                boxShadow: '0 -10px 40px rgba(0,0,0,0.15)', 
-                zIndex: 10005
+                boxShadow: '0 -10px 40px rgba(0,0,0,0.2)', 
+                zIndex: 100005
               }}
             >
               {/* 바텀시트 핸들러 (디자인용) */}
