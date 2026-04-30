@@ -157,9 +157,26 @@ const Community = ({ setSelectedPoster, setView }) => {
         </p>
       </div>
 
-      <div style={{ display: 'flex', overflowX: 'auto', gap: '8px', marginBottom: '24px', paddingBottom: '5px' }} className="hide-scrollbar">
+      {/* Region Filter */}
+      <div style={{ display: 'flex', overflowX: 'auto', gap: '6px', marginBottom: '16px', paddingBottom: '5px' }} className="hide-scrollbar">
         {['전체', ...regions].map(r => (
-          <button key={r} onClick={() => setSelectedRegion(r)} style={{ padding: '10px 20px', borderRadius: '20px', fontSize: '13px', fontWeight: 700, whiteSpace: 'nowrap', border: 'none', background: r === selectedRegion ? '#E53935' : '#fff', color: r === selectedRegion ? '#fff' : '#64748B', boxShadow: '0 4px 12px rgba(0,0,0,0.05)', transition: 'all 0.2s' }}>
+          <button 
+            key={r} 
+            onClick={() => setSelectedRegion(r)}
+            style={{ 
+              padding: '6px 14px', 
+              borderRadius: '10px', 
+              fontSize: '12px', 
+              fontWeight: 800, 
+              whiteSpace: 'nowrap', 
+              border: 'none', 
+              background: r === selectedRegion ? '#E53935' : '#fff', 
+              color: r === selectedRegion ? '#fff' : '#64748B', 
+              boxShadow: '0 2px 8px rgba(0,0,0,0.05)',
+              transition: 'all 0.2s',
+              cursor: 'pointer'
+            }}
+          >
             {r}
           </button>
         ))}
