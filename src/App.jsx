@@ -327,7 +327,8 @@ function App() {
         const loc = Array.isArray(p.locations) ? p.locations[0] : p.locations;
         const reg = loc?.regions ? (Array.isArray(loc.regions) ? loc.regions[0] : loc.regions) : null;
         const regionName = reg?.name || '전국';
-        return { ...p, broadRegion: BROAD_REGIONS[regionName] || '전국', cityName: SHORT_CITY_NAMES[regionName] || regionName.substring(0,2), locationName: loc?.name || '장소 미지정' };
+        const shortRegion = regionName.substring(0, 2);
+        return { ...p, broadRegion: BROAD_REGIONS[shortRegion] || '전국', cityName: SHORT_CITY_NAMES[shortRegion] || shortRegion, locationName: loc?.name || '장소 미지정' };
       });
       setParties(mapped);
     } catch (err) { console.error(err); } finally { setLoading(false); }

@@ -902,14 +902,16 @@ const HomePage = ({
                 
                 return regions.map((regionName) => {
                   const regionParties = dayParties.filter(p => {
-                    // 장르 필터 적용 (바차타/Bachata, 살사/Salsa 등 유연하게 매칭)
+                    // 장르 필터 적용 (한국어/영어 유연하게 매칭)
+                    const title = p.title?.toLowerCase() || '';
+                    const genre = p.genre?.toLowerCase() || '';
                     const genreMatch = !filterGenre || 
-                                     p.title?.toLowerCase().includes(filterGenre.toLowerCase()) || 
-                                     p.genre?.toLowerCase().includes(filterGenre.toLowerCase()) ||
-                                     (filterGenre === '바차타' && (p.title?.toLowerCase().includes('bachata') || p.genre?.toLowerCase().includes('bachata'))) ||
-                                     (filterGenre === '살사' && (p.title?.toLowerCase().includes('salsa') || p.genre?.toLowerCase().includes('salsa'))) ||
-                                     (filterGenre === '쥬크' && (p.title?.toLowerCase().includes('zouk') || p.genre?.toLowerCase().includes('zouk'))) ||
-                                     (filterGenre === '키좀바' && (p.title?.toLowerCase().includes('kizomba') || p.genre?.toLowerCase().includes('kizomba')));
+                                     title.includes(filterGenre.toLowerCase()) || 
+                                     genre.includes(filterGenre.toLowerCase()) ||
+                                     (filterGenre === '바차타' && (title.includes('bachata') || genre.includes('bachata') || title.includes('홍턴') || title.includes('바차'))) ||
+                                     (filterGenre === '살사' && (title.includes('salsa') || genre.includes('salsa') || title.includes('살사'))) ||
+                                     (filterGenre === '쥬크' && (title.includes('zouk') || genre.includes('zouk') || title.includes('주크'))) ||
+                                     (filterGenre === '키좀바' && (title.includes('kizomba') || genre.includes('kizomba') || title.includes('키좀')));
                     
                     if (!genreMatch) return false;
 
