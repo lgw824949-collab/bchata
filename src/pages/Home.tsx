@@ -118,25 +118,11 @@ const PartyCard = ({ item, onSelect }) => {
           {item.title?.replace(/\[.*?\]/g, '').replace('오늘밤빠', '').replace('밤빠', '').trim()}
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'nowrap', overflow: 'hidden', fontFamily: "'Pretendard', sans-serif" }}>
-          <span style={{ 
-            background: (() => {
-              const d = new Date(item.date);
-              const day = d.getDay();
-              return day === 5 ? '#FFE4E6' : day === 6 ? '#E0E7FF' : '#FFF1F0';
-            })(), 
-            color: (() => {
-              const d = new Date(item.date);
-              const day = d.getDay();
-              return day === 5 ? '#E11D48' : day === 6 ? '#2563EB' : '#E53935';
-            })(), 
-            padding: '2px 10px', borderRadius: '12px', fontSize: '11px', fontWeight: 900 
-          }}>
+          <span style={{ background: '#FFF1F0', color: '#E53935', padding: '2px 10px', borderRadius: '12px', fontSize: '11px', fontWeight: 700 }}>
             {(() => {
               const d = new Date(item.date);
               const days = ['일', '월', '화', '수', '목', '금', '토'];
-              const day = d.getDay();
-              const isWeekend = day === 5 || day === 6;
-              return `${d.getMonth() + 1}/${d.getDate()}(${days[day]})${isWeekend ? '🔥' : ''}`;
+              return `${d.getMonth() + 1}/${d.getDate()}(${days[d.getDay()]})`;
             })()}
           </span>
           <span style={{ background: '#E6F4FF', color: '#1677FF', padding: '2px 10px', borderRadius: '12px', fontSize: '11px', fontWeight: 700 }}>{item.time?.split('-')[0].trim() || '20:00'}</span>
@@ -199,42 +185,45 @@ const RollingContainer = ({ items, onSelect }) => {
 
 const GridPartyCard = ({ item, onSelect }) => {
   return (
-    <div 
+    <motion.div 
+      initial={{ opacity: 0, y: 10 }}
+      animate={{ opacity: 1, y: 0 }}
+      whileTap={{ scale: 0.98 }}
       onClick={() => onSelect(item.poster_url)}
       style={{ 
         display: 'flex', 
         flexDirection: 'column',
         backgroundColor: '#FFFFFF',
-        borderRadius: '12px',
+        borderRadius: '14px',
         overflow: 'hidden',
         border: '1px solid #F1F5F9',
         cursor: 'pointer',
-        height: '220px',
         width: '100%',
-        boxShadow: '0 1px 2px rgba(0,0,0,0.02)'
+        boxShadow: '0 2px 8px rgba(0,0,0,0.04)',
+        transition: 'box-shadow 0.2s ease'
       }}
     >
-      <div style={{ height: '130px', backgroundColor: '#f8f8f8', flexShrink: 0 }}>
+      <div style={{ aspectRatio: '1 / 1.4', backgroundColor: '#f8f9fa', flexShrink: 0, overflow: 'hidden' }}>
         <img src={item.poster_url} alt="포스터" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
       </div>
-      <div style={{ padding: '8px', display: 'flex', flexDirection: 'column', gap: '2px', flex: 1, justifyContent: 'center', minWidth: 0 }}>
-        <div style={{ fontSize: '13px', fontWeight: 900, color: '#1E293B', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{item.locationName}</div>
-        <div style={{ fontSize: '12px', fontWeight: 600, color: '#1E293B', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', marginBottom: '2px' }}>
+      <div style={{ padding: '10px 8px', display: 'flex', flexDirection: 'column', gap: '2px', flex: 1, justifyContent: 'center', minWidth: 0 }}>
+        <div style={{ fontSize: '12px', fontWeight: 900, color: '#E53935', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{item.locationName}</div>
+        <div style={{ fontSize: '13px', fontWeight: 700, color: '#1E293B', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', marginBottom: '2px', fontFamily: "'Pretendard', sans-serif" }}>
           {item.title?.replace(/\[.*?\]/g, '').replace('오늘밤빠', '').replace('밤빠', '').trim()}
         </div>
         <div style={{ display: 'flex', gap: '4px', flexWrap: 'nowrap', overflow: 'hidden' }}>
-          <span style={{ background: '#FFF1F0', color: '#E53935', padding: '1px 6px', borderRadius: '8px', fontSize: '9px', fontWeight: 700 }}>
+          <span style={{ background: '#FFF1F0', color: '#E53935', padding: '2px 6px', borderRadius: '6px', fontSize: '10px', fontWeight: 800 }}>
              {(() => {
               const d = new Date(item.date);
               return `${d.getMonth() + 1}/${d.getDate()}`;
             })()}
           </span>
-          <span style={{ background: '#E6F4FF', color: '#1677FF', padding: '1px 6px', borderRadius: '8px', fontSize: '9px', fontWeight: 700 }}>
+          <span style={{ background: '#F8FAFC', color: '#64748B', padding: '2px 6px', borderRadius: '6px', fontSize: '10px', fontWeight: 700 }}>
             {item.time?.split('-')[0].trim() || '20:00'}
           </span>
         </div>
       </div>
-    </div>
+    </motion.div>
   );
 };
 
@@ -258,10 +247,10 @@ const GridRollingContainer = ({ items, onSelect }) => {
       <AnimatePresence mode="wait">
         <motion.div
           key={page}
-          initial={{ opacity: 0, x: 20 }}
-          animate={{ opacity: 1, x: 0 }}
-          exit={{ opacity: 0, x: -20 }}
-          transition={{ duration: 0.6 }}
+          initial={{ opacity: 0, y: 15 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0, y: -15 }}
+          transition={{ type: 'tween', ease: 'easeOut', duration: 0.4 }}
           style={{ 
             display: 'grid', 
             gridTemplateColumns: '1fr 1fr', 
@@ -802,117 +791,7 @@ const HomePage = ({
 
               {/* 🛰️ [인천 특화] 프리미엄 큐레이션 배너 (HOT PICK 바로 아래 배치) */}
               {IncheonBanner && <IncheonBanner />}
-
-              {/* 🔍 [전역 검색 필터] 지역 및 장르 선택 바 */}
-              <div style={{ padding: '10px 15px', background: '#fff', borderBottom: '1px solid #f1f5f9', position: 'sticky', top: '0', zIndex: 900 }}>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-                  {/* 지역 필터 */}
-                  <div style={{ display: 'flex', gap: '8px', overflowX: 'auto', paddingBottom: '4px', scrollbarWidth: 'none' }}>
-                    {['전체', '서울', '경기/인천', '경상도', '전라도', '충청도', '강원/제주'].map(r => (
-                      <button 
-                        key={r}
-                        onClick={() => { setFilterRegion(r); setShowFilteredResults(r !== '전체' || filterGenre !== '전체'); }}
-                        style={{ 
-                          whiteSpace: 'nowrap', padding: '6px 14px', borderRadius: '15px', fontSize: '12px', fontWeight: 800,
-                          background: filterRegion === r ? '#E53935' : '#f8fafc',
-                          color: filterRegion === r ? '#fff' : '#64748b',
-                          border: filterRegion === r ? 'none' : '1px solid #e2e8f0',
-                          cursor: 'pointer', transition: 'all 0.2s'
-                        }}
-                      >
-                        {r}
-                      </button>
-                    ))}
-                  </div>
-                  {/* 장르 필터 */}
-                  <div style={{ display: 'flex', gap: '8px', overflowX: 'auto', paddingBottom: '4px', scrollbarWidth: 'none' }}>
-                    {['전체', '살사', '바차타', '쥬크', '키좀바'].map(g => (
-                      <button 
-                        key={g}
-                        onClick={() => { setFilterGenre(g); setShowFilteredResults(filterRegion !== '전체' || g !== '전체'); }}
-                        style={{ 
-                          whiteSpace: 'nowrap', padding: '6px 14px', borderRadius: '15px', fontSize: '12px', fontWeight: 800,
-                          background: filterGenre === g ? '#1D9E75' : '#f8fafc',
-                          color: filterGenre === g ? '#fff' : '#64748b',
-                          border: filterGenre === g ? 'none' : '1px solid #e2e8f0',
-                          cursor: 'pointer', transition: 'all 0.2s'
-                        }}
-                      >
-                        {g}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-              </div>
-
-              {/* 필터 결과 표시 (필터가 활성화된 경우) */}
-              {showFilteredResults && (
-                <div style={{ padding: '20px 15px', background: '#f8fafc', minHeight: '400px' }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '15px' }}>
-                    <h3 style={{ fontSize: '16px', fontWeight: 900, color: '#1e293b' }}>
-                      검색 결과 <span style={{ color: '#E53935' }}>{
-                        parties.filter(p => {
-                          const r = p.broadRegion || '';
-                          const city = p.cityName || '';
-                          const matchesRegion = filterRegion === '전체' || (
-                            filterRegion === '경기/인천' ? (r.includes('경기') || r.includes('인천') || city.includes('경기') || city.includes('인천')) :
-                            (r.includes(filterRegion) || city.includes(filterRegion))
-                          );
-                          const matchesGenre = filterGenre === '전체' || p.title?.includes(filterGenre) || p.genre?.includes(filterGenre);
-                          return matchesRegion && matchesGenre;
-                        }).length
-                      }</span>
-                    </h3>
-                    <button 
-                      onClick={() => { setFilterRegion('전체'); setFilterGenre('전체'); setShowFilteredResults(false); }}
-                      style={{ fontSize: '12px', color: '#64748b', background: 'none', border: 'none', textDecoration: 'underline', cursor: 'pointer' }}
-                    >
-                      초기화
-                    </button>
-                  </div>
-                  
-                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '12px' }}>
-                    {parties
-                      .filter(p => {
-                        const r = p.broadRegion || '';
-                        const city = p.cityName || '';
-                        const matchesRegion = filterRegion === '전체' || (
-                          filterRegion === '경기/인천' ? (r.includes('경기') || r.includes('인천') || city.includes('경기') || city.includes('인천')) :
-                          (r.includes(filterRegion) || city.includes(filterRegion))
-                        );
-                        const matchesGenre = filterGenre === '전체' || p.title?.includes(filterGenre) || p.genre?.includes(filterGenre);
-                        return matchesRegion && matchesGenre;
-                      })
-                      .map(party => (
-                        <div key={party.id} onClick={() => setSelectedPoster(party.poster_url)} style={{ cursor: 'pointer' }}>
-                          <div style={{ aspectRatio: '3/4', borderRadius: '12px', overflow: 'hidden', background: '#222', marginBottom: '8px', boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }}>
-                            <img src={party.poster_url} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                          </div>
-                          <div style={{ fontSize: '13px', fontWeight: 800, color: '#1e293b', display: 'block', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{party.title}</div>
-                          <div style={{ fontSize: '11px', color: '#64748b' }}>{party.locationName}</div>
-                        </div>
-                      ))}
-                  </div>
-                  {parties.filter(p => {
-                    const r = p.broadRegion || '';
-                    const city = p.cityName || '';
-                    const matchesRegion = filterRegion === '전체' || (
-                      filterRegion === '경기/인천' ? (r.includes('경기') || r.includes('인천') || city.includes('경기') || city.includes('인천')) :
-                      (r.includes(filterRegion) || city.includes(filterRegion))
-                    );
-                    const matchesGenre = filterGenre === '전체' || p.title?.includes(filterGenre) || p.genre?.includes(filterGenre);
-                    return matchesRegion && matchesGenre;
-                  }).length === 0 && (
-                    <div style={{ padding: '80px 0', textAlign: 'center' }}>
-                      <div style={{ fontSize: '40px', marginBottom: '15px' }}>🔍</div>
-                      <p style={{ color: '#64748b', fontWeight: 700 }}>검색 결과가 없습니다.</p>
-                    </div>
-                  )}
-                </div>
-              )}
-
-              {!showFilteredResults && (
-                (() => {
+              {(() => {
                 const kstNow = new Date(new Date().getTime() + (9 * 60 * 60 * 1000));
                 const curH = kstNow.getUTCHours();
                 const curM = kstNow.getUTCMinutes();
@@ -1026,7 +905,7 @@ const HomePage = ({
                     </section>
                   );
                 });
-              })())}
+              })()}
               {parties.filter(p => p.date === selectedDate).length === 0 && (
                 <div style={{ padding: '60px 20px', textAlign: 'center', color: '#999', fontSize: '15px' }}>
                   오늘 예정된 파티가 없습니다.
@@ -1104,22 +983,20 @@ const HomePage = ({
                     key={day.fullDate} 
                     onClick={() => {
                       setSelectedDate(day.fullDate);
-                      setShowFullCalendar(false);
-                      setShowFilterPanel(false);
-                      setShowFilteredResults(false);
-                      // 메인 피드로 스크롤 이동
-                      if (scrollRef.current) {
-                        scrollRef.current.scrollTo({ top: 0, behavior: 'smooth' });
+                      if (isWeekend) {
+                        setShowFilterPanel(true);
+                      } else {
+                        setShowFilterPanel(false);
+                        setShowFullCalendar(false);
                       }
                     }}
                     style={{ 
-                      height: '38px', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
-                      fontSize: '15px', fontWeight: isSelected ? 900 : 600,
-                      color: isSelected ? '#fff' : (day.dayName === '토' ? '#2563EB' : (day.dayName === '금' ? '#E53935' : (day.isCurrentMonth ? '#1E293B' : '#CBD5E1'))),
-                      backgroundColor: isSelected ? '#E53935' : 'transparent',
-                      borderRadius: '10px', cursor: 'pointer', position: 'relative',
-                      border: isToday && !isSelected ? '1.5px solid #E53935' : 'none',
-                      transition: 'all 0.2s'
+                      height: '36px', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
+                      fontSize: '14px', fontWeight: isSelected ? 800 : 500,
+                      color: isSelected ? '#fff' : (isWeekend ? '#D4A017' : (day.isCurrentMonth ? '#333' : '#ccc')),
+                      backgroundColor: isSelected ? '#FF3B30' : 'transparent',
+                      borderRadius: '8px', cursor: 'pointer', position: 'relative',
+                      border: isToday && !isSelected ? '1px solid #FF3B30' : 'none'
                     }}
                   >
                     {day.date}
@@ -1223,7 +1100,8 @@ const HomePage = ({
 
                   <div style={{ 
                     display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '12px', 
-                    maxHeight: '340px', overflowY: 'auto', paddingRight: '4px' 
+                    maxHeight: '400px', overflowY: 'auto', paddingRight: '4px',
+                    display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '10px'
                   }}>
                     {parties
                       .filter(p => {
@@ -1237,13 +1115,26 @@ const HomePage = ({
                       })
                       .slice(0, 10)
                       .map(party => (
-                        <div key={party.id} onClick={() => setSelectedPoster(party.poster_url)} style={{ cursor: 'pointer' }}>
-                          <div style={{ aspectRatio: '3/4', borderRadius: '12px', overflow: 'hidden', background: '#222', marginBottom: '8px' }}>
-                            <img src={party.poster_url} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                        <motion.div 
+                          key={party.id} 
+                          initial={{ opacity: 0, y: 10 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          transition={{ type: 'tween', ease: 'easeOut', duration: 0.3 }}
+                          onClick={() => setSelectedPoster(party.poster_url)} 
+                          style={{ cursor: 'pointer', position: 'relative', borderRadius: '12px', overflow: 'hidden', aspectRatio: '1 / 1.4', background: '#222' }}
+                        >
+                          <img src={party.poster_url} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                          <div style={{
+                            position: 'absolute', bottom: 0, left: 0, right: 0, padding: '8px',
+                            background: 'linear-gradient(transparent, rgba(0,0,0,0.9))',
+                            color: 'white'
+                          }}>
+                            <div style={{ fontSize: '10px', color: '#FFEB3B', fontWeight: 900 }}>{party.locationName}</div>
+                            <div style={{ fontSize: '12px', fontWeight: 800, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                              {party.title?.replace(/\[.*?\]/g, '').replace('오늘밤빠', '').replace('밤빠', '').trim()}
+                            </div>
                           </div>
-                          <div style={{ fontSize: '13px', fontWeight: 700, color: '#fff', display: 'block', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{party.title}</div>
-                          <div style={{ fontSize: '11px', color: '#666' }}>{party.locationName}</div>
-                        </div>
+                        </motion.div>
                       ))}
                     {parties.filter(p => {
                       if (p.date !== selectedDate) return false;
@@ -1274,10 +1165,10 @@ const HomePage = ({
       <AnimatePresence>
         {selectedRegionGrid && (
           <motion.div
-            initial={{ opacity: 0, x: '100%' }}
+            initial={{ opacity: 0, x: 50 }}
             animate={{ opacity: 1, x: 0 }}
-            exit={{ opacity: 0, x: '100%' }}
-            transition={{ type: 'spring', damping: 25, stiffness: 200 }}
+            exit={{ opacity: 0, x: 50 }}
+            transition={{ type: 'tween', ease: 'easeOut', duration: 0.35 }}
             style={{
               position: 'fixed',
               inset: 0,
@@ -1362,13 +1253,14 @@ const HomePage = ({
                 return filtered.map((party) => (
                   <motion.div
                     key={party.id}
-                    initial={{ opacity: 0, scale: 0.98 }}
-                    animate={{ opacity: 1, scale: 1 }}
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ type: 'tween', ease: 'easeOut', duration: 0.3 }}
                     whileTap={{ scale: 0.98 }}
                     onClick={() => setSelectedPoster(party.poster_url)}
                     style={{
-                      aspectRatio: '1 / 1.3', borderRadius: '8px', overflow: 'hidden',
-                      boxShadow: '0 2px 6px rgba(0,0,0,0.08)', background: '#fff',
+                      aspectRatio: '1 / 1.4', borderRadius: '12px', overflow: 'hidden',
+                      boxShadow: '0 4px 12px rgba(0,0,0,0.06)', background: '#fff',
                       position: 'relative', cursor: 'pointer', border: '1px solid #f1f5f9'
                     }}
                   >
@@ -1377,22 +1269,23 @@ const HomePage = ({
                       alt="포스터" 
                       style={{ width: '100%', height: '100%', objectFit: 'cover' }} 
                     />
-                    {/* 텍스트 오버레이 (이미지 위로 겹쳐서 세로 공간 확보) */}
+                    {/* 정돈된 텍스트 오버레이 */}
                     <div style={{
-                      position: 'absolute', bottom: 0, left: 0, right: 0, padding: '8px 6px',
-                      background: 'linear-gradient(transparent, rgba(0,0,0,0.85))',
+                      position: 'absolute', bottom: 0, left: 0, right: 0, padding: '10px 8px',
+                      background: 'linear-gradient(transparent, rgba(0,0,0,0.9))',
                       color: 'white',
                       pointerEvents: 'none'
                     }}>
-                      <div style={{ fontSize: '8px', color: '#ffcd3c', fontWeight: 900, marginBottom: '1px' }}>
+                      <div style={{ fontSize: '11px', color: '#FFEB3B', fontWeight: 900, marginBottom: '2px', fontFamily: "'Pretendard', sans-serif" }}>
                         {party.locationName}
                       </div>
                       <div style={{ 
-                        fontSize: '10px', fontWeight: 800,
+                        fontSize: '13px', fontWeight: 800,
                         display: 'block', whiteSpace: 'nowrap',
-                        overflow: 'hidden', textOverflow: 'ellipsis'
+                        overflow: 'hidden', textOverflow: 'ellipsis',
+                        fontFamily: "'Pretendard', sans-serif"
                       }}>
-                        {party.title}
+                        {party.title?.replace(/\[.*?\]/g, '').replace('오늘밤빠', '').replace('밤빠', '').trim()}
                       </div>
                     </div>
                   </motion.div>
