@@ -30,21 +30,27 @@ const LiveCount = () => {
   const fetchCounts = async () => {
     const todayStr = getTodayKST()
     
-    // 1. 오늘 열리는 파티 일정 먼저 가져오기
-    const { data: parties } = await supabase
-      .from('parties')
-      .select('location_id, time, end_time, date, locations(name)')
-      .eq('date', todayStr)
+    // 1. 오늘 열리는 파티와 장소 데이터 각각 호출 (400 에러 방지)
+    const [{ data: parties }, { data: locations }] = await Promise.all([
+      supabase.from('parties').select('*').eq('date', todayStr),
+      supabase.from('locations').select('id, name')
+    ]);
 
     if (!parties || parties.length === 0) {
       setCounts({})
       return
     }
 
+    // 장소 ID Map 생성
+    const locationMap = (locations || []).reduce((acc, loc) => {
+      acc[loc.id] = loc.name;
+      return acc;
+    }, {});
+
     // 2. 현재 시간이 파티 시간대인 '라이브 장소' 리스트 추출
     const liveBarNames = parties
       .filter(p => isNowInPartyTime(p.date, p.time, p.end_time))
-      .map(p => p.locations?.name)
+      .map(p => locationMap[p.location_id] || p.locationName)
       .filter(Boolean)
 
     if (liveBarNames.length === 0) {
@@ -105,12 +111,21 @@ const LiveCount = () => {
       const nearBar = BAR_DATABASE.find(bar => getDist(lat, lon, bar.lat, bar.lon) < 1)
       
       if (nearBar) {
-        // [중요] 해당 장소에 현재 파티 일정이 있는지 확인 (이름으로 매칭)
+        // 1. 해당 장소명의 ID를 먼저 찾기 (400 에러 방지)
+        const { data: locData } = await supabase
+          .from('locations')
+          .select('id')
+          .eq('name', nearBar.name)
+          .maybeSingle()
+
+        if (!locData) return;
+
+        // 2. 해당 장소 ID로 오늘 파티 일정이 있는지 확인
         const { data: activeParty } = await supabase
           .from('parties')
-          .select('time, end_time, date, location_name')
+          .select('*')
           .eq('date', todayStr)
-          .eq('location_name', nearBar.name)
+          .eq('location_id', locData.id)
           .maybeSingle()
 
         // 파티 시간이 아니면 체크인 기록 안 함

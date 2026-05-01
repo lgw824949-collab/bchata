@@ -89,7 +89,7 @@ export default function AdminDashboard({ onBack, refreshData }) {
   const fetchOfficial = async () => {
     const { data, error } = await supabase
       .from('parties')
-      .select('*, locations(name)')
+      .select('*')
       .order('date', { ascending: false })
     if (!error) setOfficialParties(data || [])
   }
@@ -753,7 +753,7 @@ export default function AdminDashboard({ onBack, refreshData }) {
                   <div style={{ flex: 1, minWidth: 0 }}>
                     <div style={{ fontSize: '10px', color: '#64748B', marginBottom: '4px', fontFamily: 'monospace' }}>#{party.id}</div>
                     <h3 style={{ fontSize: '16px', fontWeight: 900, margin: '0 0 6px 0', color: 'white' }}>{party.title}</h3>
-                    <p style={{ fontSize: '14px', color: '#00FF00', fontWeight: 900, margin: '4px 0' }}>{party.locations?.name || 'TBA'}</p>
+                    <p style={{ fontSize: '14px', color: '#00FF00', fontWeight: 900, margin: '4px 0' }}>{party.location_name || 'TBA'}</p>
                     <p style={{ fontSize: '13px', color: '#94A3B8', margin: '4px 0' }}>📅 {party.date} ({party.day_of_week}) / ⏰ {party.time}</p>
                     <p style={{ fontSize: '13px', color: '#94A3B8', margin: '4px 0' }}>💰 {party.fee || party.description}</p>
                     

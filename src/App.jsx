@@ -368,30 +368,45 @@ function App() {
   const fetchParties = async () => {
     setLoading(true);
     try {
-      const { data } = await supabase
-        .from('parties')
-        .select(`
-          *,
-          locations (
-            id,
-            name,
-            address,
-            regions (
-              id,
-              name
-            )
-          )
-        `)
-        .order('date', { ascending: true });
-      const mapped = (data || []).map(p => {
-        const loc = Array.isArray(p.locations) ? p.locations[0] : p.locations;
-        const reg = loc?.regions ? (Array.isArray(loc.regions) ? loc.regions[0] : loc.regions) : null;
-        const regionName = reg?.name || '전국';
-        const shortRegion = regionName.substring(0, 2);
-        return { ...p, broadRegion: BROAD_REGIONS[shortRegion] || '전국', cityName: SHORT_CITY_NAMES[shortRegion] || shortRegion, locationName: loc?.name || '장소 미지정' };
+      // 1. 파티와 장소 데이터를 각각 단순 쿼리로 호출 (400 에러 방지)
+      const [partiesRes, locationsRes] = await Promise.all([
+        supabase.from('parties').select('*').order('date', { ascending: true }),
+        supabase.from('locations').select('id, name')
+      ]);
+
+      const rawParties = partiesRes.data || [];
+      const rawLocations = locationsRes.data || [];
+
+      // 2. 장소 데이터를 ID 기반 Map으로 변환
+      const locationMap = rawLocations.reduce((acc, loc) => {
+        acc[loc.id] = loc.name;
+        return acc;
+      }, {});
+
+      const mapped = rawParties.map(p => {
+        // 장소명 매핑 (id 우선, 없으면 기존 필드 활용)
+        const locName = locationMap[p.location_id] || p.locationName || p.location_name || '장소 미지정';
+        
+        // 지역 분류 로직 (주소 + 장소명 + 도시명 통합 검색)
+        const fullSearchText = `${p.address || ''} ${locName} ${p.cityName || ''}`;
+        let broadRegion = '전국';
+        
+        if (fullSearchText.includes('서울')) broadRegion = '서울';
+        else if (fullSearchText.includes('경기') || fullSearchText.includes('인천')) broadRegion = '경기/인천';
+        else if (fullSearchText.includes('부산') || fullSearchText.includes('대구') || fullSearchText.includes('울산') || fullSearchText.includes('경남') || fullSearchText.includes('경북') || fullSearchText.includes('경상')) broadRegion = '경상도';
+        else if (fullSearchText.includes('광주') || fullSearchText.includes('전남') || fullSearchText.includes('전북') || fullSearchText.includes('전라')) broadRegion = '전라도';
+        else if (fullSearchText.includes('대전') || fullSearchText.includes('충남') || fullSearchText.includes('충북') || fullSearchText.includes('충청') || fullSearchText.includes('세종')) broadRegion = '충청도';
+        else if (fullSearchText.includes('강원') || fullSearchText.includes('제주')) broadRegion = '강원/제주';
+        
+        return { 
+          ...p, 
+          broadRegion, 
+          cityName: p.cityName || '전국', 
+          locationName: locName 
+        };
       });
       setParties(mapped);
-    } catch (err) { console.error(err); } finally { setLoading(false); }
+    } catch (err) { console.error('데이터 로딩 오류:', err); } finally { setLoading(false); }
   };
 
   useEffect(() => { fetchParties(); }, []);
