@@ -334,14 +334,11 @@ const HomePage = ({
               {(() => {
                 const today = new Date().toISOString().split('T')[0];
                 const dayParties = parties.filter(p => p.date >= today);
-                console.log('전체 파티:', parties.length);
-                console.log('오늘이후 파티:', dayParties.length);
-                console.log('filterRegion:', filterRegion);
-                console.log('filterGenre:', filterGenre);
+
                 const regions = filterRegion ? [filterRegion] : ["서울", "경기/인천", "경상도", "전라도", "충청도", "강원/제주"];
                 return regions.map((regionName) => {
                   const regionParties = dayParties.filter(p => {
-                    console.log(`[${regionName} 체크] 파티:`, p.title, 'broadRegion:', p.broadRegion, 'cityName:', p.cityName);
+
                     // 1. 지역 조건 매칭
                     if (!REGION_FILTER[regionName](p)) return false;
                     
@@ -351,9 +348,7 @@ const HomePage = ({
                     }
                     return true;
                   });
-                  if (regionName === '서울') {
-                    console.log('서울 필터결과:', regionParties.length);
-                  }
+
                   return (
                     <section key={regionName} style={{ marginBottom: '15px', background: '#fff' }}>
                       <div style={{ fontSize: '18px', fontWeight: '900', padding: '15px', display: 'flex', alignItems: 'center', gap: '8px' }}><div style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#E53935' }} />{regionName}<ChevronRight size={18} color="#94A3B8" /></div>
@@ -454,7 +449,7 @@ const HomePage = ({
                           return true;
                         });
 
-                        console.log('선택날짜:', selectedDate, '파티수:', filtered.length);
+
 
                         return filtered.length === 0 ? (
                           <div style={{ gridColumn: 'span 2', padding: '60px 0', textAlign: 'center', color: '#94A3B8', fontWeight: 700 }}>해당 조건의 파티가 없습니다 😅</div>
