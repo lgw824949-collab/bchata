@@ -57,19 +57,18 @@ const PartyCard = ({ item, onSelect }) => {
         display: 'flex', 
         flexDirection: 'row', 
         alignItems: 'center', 
-        backgroundColor: 'rgba(255,255,255,0.03)', 
+        backgroundColor: '#FFFFFF', 
         borderRadius: '16px', 
         overflow: 'hidden', 
-        border: '1px solid rgba(255,255,255,0.06)', 
+        border: '1px solid #EAEEF4', 
         cursor: 'pointer', 
         height: '115px', 
-        boxShadow: '0 8px 24px rgba(0,0,0,0.2)', 
-        width: '100%',
-        transition: 'all 0.2s'
+        boxShadow: '0 2px 8px rgba(0,0,0,0.06)', 
+        width: '100%' 
       }}
     >
       {/* 왼쪽: 포스터 영역 */}
-      <div style={{ width: '85px', height: '115px', backgroundColor: '#1e293b', flexShrink: 0 }}>
+      <div style={{ width: '85px', height: '115px', backgroundColor: '#f8f8f8', flexShrink: 0 }}>
         <img src={item.poster_url} alt="Poster" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
       </div>
 
@@ -77,33 +76,33 @@ const PartyCard = ({ item, onSelect }) => {
       <div style={{ padding: '10px 15px', display: 'flex', flexDirection: 'column', justifyContent: 'space-between', minWidth: 0, flex: 1, height: '100%' }}>
         {/* Line 1: 위치 및 화살표 버튼 */}
         <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-          <span style={{ fontSize: '14px', fontWeight: '600', color: '#F8FAFC' }}>{item.locationName}</span>
-          <div onClick={(e) => { e.stopPropagation(); const address = item.address || item.locationName; window.open(`https://map.kakao.com/link/search/${encodeURIComponent(address)}`, '_blank'); }} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '20px', height: '20px', borderRadius: '50%', backgroundColor: 'rgba(229, 57, 53, 0.15)', cursor: 'pointer', color: '#FF3D47' }}>
+          <span style={{ fontSize: '14px', fontWeight: '600', color: '#111827' }}>{item.locationName}</span>
+          <div onClick={(e) => { e.stopPropagation(); const address = item.address || item.locationName; window.open(`https://map.kakao.com/link/search/${encodeURIComponent(address)}`, '_blank'); }} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '20px', height: '20px', borderRadius: '50%', backgroundColor: '#FFF1F0', cursor: 'pointer', color: '#E53935' }}>
             <Navigation size={10} fill="currentColor" />
           </div>
         </div>
 
         {/* Line 2: 파티 제목 */}
-        <div style={{ fontSize: '13px', fontWeight: '500', color: '#94A3B8', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', lineHeight: '1.2' }}>
+        <div style={{ fontSize: '13px', fontWeight: '500', color: '#374151', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', lineHeight: '1.2' }}>
           {cleanTitle}
         </div>
 
         {/* Line 3: 상세 뱃지 */}
         <div style={{ display: 'flex', alignItems: 'center', gap: '4px', whiteSpace: 'nowrap', overflow: 'hidden', marginTop: '6px' }}>
           {/* 날짜 뱃지 */}
-          <span style={{ background: 'rgba(229, 57, 53, 0.1)', color: '#FF7077', borderRadius: '99px', padding: '3px 9px', fontSize: '11px', fontWeight: '600' }}>
+          <span style={{ background: '#FFF1F1', color: '#C0392B', borderRadius: '99px', padding: '3px 9px', fontSize: '11px', fontWeight: '600' }}>
             {(() => { const d = new Date(item.date); return `${d.getMonth() + 1}/${d.getDate()}(${DAYS_KOR[d.getDay()]})`; })()}
           </span>
           {/* 시간 뱃지 */}
-          <span style={{ background: 'rgba(59, 130, 246, 0.1)', color: '#60A5FA', borderRadius: '99px', padding: '3px 9px', fontSize: '11px', fontWeight: '600' }}>
+          <span style={{ background: '#EFF6FF', color: '#1D4ED8', borderRadius: '99px', padding: '3px 9px', fontSize: '11px', fontWeight: '600' }}>
             {displayTime}
           </span>
           {/* 참가비 뱃지 */}
-          <span style={{ background: 'rgba(245, 158, 11, 0.1)', color: '#FBBF24', borderRadius: '99px', padding: '3px 9px', fontSize: '11px', fontWeight: '600' }}>
+          <span style={{ background: '#FFFBEB', color: '#B45309', borderRadius: '99px', padding: '3px 9px', fontSize: '11px', fontWeight: '600' }}>
             {displayFee}
           </span>
           {/* 음악비율 그룹박스 */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: '4px', background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '99px', padding: '3px 8px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '4px', background: '#F8FAFC', border: '1px solid #E5E7EB', borderRadius: '99px', padding: '3px 8px' }}>
             {Object.entries(GENRE_MAP).map(([name, info]) => (
               item[info.key] > 0 && <span key={name} style={{ color: info.color, fontWeight: '700', fontSize: '10px' }}>{info.label}{item[info.key]}</span>
             ))}
@@ -132,7 +131,7 @@ const FilterBar = ({ filterRegion, setFilterRegion, filterGenre, setFilterGenre 
   const regions = ['서울', '경기/인천', '경상도', '전라도', '충청도', '강원/제주'];
   const genres = Object.keys(GENRE_MAP);
   return (
-    <div style={{ padding: '0 15px 12px', background: 'transparent', display: 'flex', flexDirection: 'column', gap: '12px' }}>
+    <div style={{ padding: '0 15px 12px', background: '#fff', display: 'flex', flexDirection: 'column', gap: '12px' }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
         <div style={{ color: '#94A3B8' }}><MapPin size={16} /></div>
         <div style={{ flex: 1, display: 'flex', overflowX: 'auto', gap: '12px', msOverflowStyle: 'none', scrollbarWidth: 'none', WebkitOverflowScrolling: 'touch' }} className="filter-scroll">
@@ -143,7 +142,7 @@ const FilterBar = ({ filterRegion, setFilterRegion, filterGenre, setFilterGenre 
                 console.log('지역 선택:', newVal);
                 setFilterRegion(newVal);
               }} 
-              style={{ padding: '6px 12px', borderRadius: '8px', fontSize: '12px', fontWeight: 700, whiteSpace: 'nowrap', border: '1px solid rgba(255,255,255,0.08)', background: filterRegion === r ? '#E53935' : 'rgba(255,255,255,0.05)', color: filterRegion === r ? '#fff' : '#94A3B8', transition: 'all 0.2s' }}
+              style={{ padding: '6px 12px', borderRadius: '8px', fontSize: '12px', fontWeight: 700, whiteSpace: 'nowrap', border: 'none', background: filterRegion === r ? '#E53935' : '#F1F5F9', color: filterRegion === r ? '#fff' : '#64748B', transition: 'all 0.2s' }}
             >
               {r}
             </button>
@@ -160,7 +159,7 @@ const FilterBar = ({ filterRegion, setFilterRegion, filterGenre, setFilterGenre 
                 console.log('장르 선택:', newVal);
                 setFilterGenre(newVal);
               }} 
-              style={{ padding: '6px 12px', borderRadius: '8px', fontSize: '12px', fontWeight: 700, whiteSpace: 'nowrap', border: '1px solid rgba(255,255,255,0.08)', background: filterGenre === g ? '#F8FAFC' : 'rgba(255,255,255,0.05)', color: filterGenre === g ? '#1A1033' : '#94A3B8', transition: 'all 0.2s' }}
+              style={{ padding: '6px 12px', borderRadius: '8px', fontSize: '12px', fontWeight: 700, whiteSpace: 'nowrap', border: 'none', background: filterGenre === g ? '#1E293B' : '#F1F5F9', color: filterGenre === g ? '#fff' : '#64748B', transition: 'all 0.2s' }}
             >
               {g}
             </button>
@@ -236,21 +235,21 @@ const HomePage = ({
   }, []);
 
   return (
-    <div className="app-container" style={{ height: 'calc(var(--vh, 1vh) * 100)', display: 'flex', flexDirection: 'column', overflow: 'hidden', position: 'fixed', width: '100%', top: 0, left: 0, background: 'transparent' }}>
+    <div className="app-container" style={{ height: 'calc(var(--vh, 1vh) * 100)', display: 'flex', flexDirection: 'column', overflow: 'hidden', position: 'fixed', width: '100%', top: 0, left: 0, background: '#fff' }}>
       
       {/* 📌 [영역 A: 상단 고정석] */}
-      <div style={{ position: 'fixed', top: 0, left: '50%', transform: 'translateX(-50%)', width: '100%', maxWidth: '500px', zIndex: 100000, background: 'rgba(26, 16, 51, 0.85)', backdropFilter: 'blur(15px)', borderBottom: '1px solid rgba(255,255,255,0.08)' }}>
+      <div style={{ position: 'fixed', top: 0, left: '50%', transform: 'translateX(-50%)', width: '100%', maxWidth: '500px', zIndex: 100000, background: '#ffffff', borderBottom: '1px solid #f1f5f9' }}>
         <div style={{ padding: '30px 16px 20px' }}>
-          <div style={{ fontSize: '11px', fontWeight: 800, color: '#FF3D47', letterSpacing: '0.02em', marginBottom: '8px', opacity: 0.9 }}>
+          <div style={{ fontSize: '11px', fontWeight: 800, color: '#E53935', letterSpacing: '0.02em', marginBottom: '8px', opacity: 0.8 }}>
             전국 소셜 댄스 파티 & 실시간 커뮤니티 플랫폼
           </div>
-          <div style={{ fontSize: '24px', fontWeight: 900, color: '#F8FAFC', letterSpacing: '-0.03em', lineHeight: 1.2, marginBottom: '2px' }}>
+          <div style={{ fontSize: '24px', fontWeight: 900, color: '#111', letterSpacing: '-0.03em', lineHeight: 1.2, marginBottom: '2px' }}>
             오늘 밤, 뭐 해?
           </div>
-          <div style={{ fontSize: '32px', fontWeight: 950, color: '#F8FAFC', letterSpacing: '-0.04em', lineHeight: 1.1 }}>
-            오늘 밤<span style={{ color: '#FF3D47', fontSize: '44px', marginLeft: '4px' }}>빠.</span>
+          <div style={{ fontSize: '32px', fontWeight: 950, color: '#111', letterSpacing: '-0.04em', lineHeight: 1.1 }}>
+            오늘 밤<span style={{ color: '#E53935', fontSize: '44px', marginLeft: '4px' }}>빠.</span>
           </div>
-          <div style={{ fontSize: '11px', color: '#94A3B8', marginTop: '8px', fontWeight: 700 }}>
+          <div style={{ fontSize: '11px', color: '#888', marginTop: '8px', fontWeight: 700 }}>
             소셜파티 · 수업 · 페스티벌 · 부트캠프
           </div>
         </div>
@@ -263,8 +262,8 @@ const HomePage = ({
               // 토요일(6)은 파란색
               const isSaturday = item.dayOfWeek === 6;
               
-              const dayColor = isSelected ? '#fff' : (isHoliday ? '#FF3D47' : (isSaturday ? '#60A5FA' : '#94A3B8'));
-              const labelColor = isSelected ? (isHoliday ? '#FF3D47' : (isSaturday ? '#60A5FA' : '#FF3D47')) : (isHoliday ? '#FF3D47' : (isSaturday ? '#60A5FA' : '#94A3B8'));
+              const dayColor = isSelected ? '#fff' : (isHoliday ? '#E53935' : (isSaturday ? '#2563EB' : '#94A3B8'));
+              const labelColor = isSelected ? (isHoliday ? '#E53935' : (isSaturday ? '#2563EB' : '#E53935')) : (isHoliday ? '#E53935' : (isSaturday ? '#2563EB' : '#94A3B8'));
 
               return (
                 <div key={item.fullDate} 
@@ -278,7 +277,7 @@ const HomePage = ({
                   style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minWidth: '13.5%', cursor: 'pointer' }}
                 >
                   <span style={{ fontSize: '10px', fontWeight: '700', color: labelColor, marginBottom: '2px' }}>{item.dayName}</span>
-                  <div style={{ width: '30px', height: '30px', borderRadius: '10px', display: 'flex', alignItems: 'center', justifyContent: 'center', backgroundColor: isSelected ? (isHoliday ? '#FF3D47' : (isSaturday ? '#60A5FA' : '#FF3D47')) : 'transparent', border: item.isToday && !isSelected ? '1px solid #FF3D47' : 'none' }}>
+                  <div style={{ width: '30px', height: '30px', borderRadius: '10px', display: 'flex', alignItems: 'center', justifyContent: 'center', backgroundColor: isSelected ? (isHoliday ? '#E53935' : (isSaturday ? '#2563EB' : '#E53935')) : 'transparent', border: item.isToday && !isSelected ? '1px solid #E53935' : 'none' }}>
                     <span style={{ fontSize: '15px', fontWeight: '800', color: isSelected ? '#fff' : dayColor }}>{item.date}</span>
                   </div>
                 </div>
@@ -290,39 +289,39 @@ const HomePage = ({
 
 
         <div style={{ padding: '2px 10px 8px' }}>
-          <div style={{ height: '32px', background: 'rgba(0,0,0,0.5)', border: '1px solid rgba(255,255,255,0.05)', borderRadius: '16px', display: 'flex', alignItems: 'center', overflow: 'hidden', padding: '0 12px' }}>
-            <button onClick={() => setIsPaused(!isPaused)} style={{ background: isPaused ? '#FF3D47' : 'rgba(255,255,255,0.1)', border: 'none', borderRadius: '12px', color: '#fff', fontSize: '10px', fontWeight: '900', padding: '4px 8px', marginRight: '10px', cursor: 'pointer' }}>{isPaused ? '▶ PLAY' : '⏸ STOP'}</button>
+          <div style={{ height: '32px', background: '#000', borderRadius: '16px', display: 'flex', alignItems: 'center', overflow: 'hidden', padding: '0 12px' }}>
+            <button onClick={() => setIsPaused(!isPaused)} style={{ background: isPaused ? '#E53935' : 'rgba(255,255,255,0.2)', border: 'none', borderRadius: '12px', color: '#fff', fontSize: '10px', fontWeight: '900', padding: '4px 8px', marginRight: '10px', cursor: 'pointer' }}>{isPaused ? '▶ PLAY' : '⏸ STOP'}</button>
             <div style={{ flex: 1, overflow: 'hidden' }}>
-              <motion.div animate={isPaused ? {} : { x: ['100%', '-100%'] }} transition={{ duration: 15, repeat: Infinity, ease: 'linear' }} style={{ whiteSpace: 'nowrap', color: isPaused ? '#FBBF24' : '#10B981', fontSize: '13px', fontWeight: '900' }}>📢 [실시간] 밤빠가 전하는 전국 소셜 파티 실시간 인원 중계 중! 🔥</motion.div>
+              <motion.div animate={isPaused ? {} : { x: ['100%', '-100%'] }} transition={{ duration: 15, repeat: Infinity, ease: 'linear' }} style={{ whiteSpace: 'nowrap', color: isPaused ? '#FFD700' : '#00FF00', fontSize: '13px', fontWeight: '900' }}>📢 [실시간] 밤빠가 전하는 전국 소셜 파티 실시간 인원 중계 중! 🔥</motion.div>
             </div>
           </div>
         </div>
       </div>
 
-      <main ref={scrollRef} style={{ flex: 1, WebkitOverflowScrolling: 'touch', width: '100%', padding: '250px 0 0 0', background: 'transparent', overflowY: 'auto' }}>
+      <main ref={scrollRef} style={{ flex: 1, WebkitOverflowScrolling: 'touch', width: '100%', padding: '250px 0 0 0', background: '#fff', overflowY: 'auto' }}>
         <div style={{ minHeight: '101%', paddingBottom: '80px' }}>
           {loading ? (
-            <div style={{ display: 'flex', flexDirection: 'column', marginTop: '120px' }}>{Array(6).fill(0).map((_, i) => <div key={i} style={{ height: '140px', width: '100%', background: 'rgba(255,255,255,0.03)', borderBottom: '1px solid rgba(255,255,255,0.05)' }} />)}</div>
+            <div style={{ display: 'flex', flexDirection: 'column', marginTop: '120px' }}>{Array(6).fill(0).map((_, i) => <div key={i} style={{ height: '140px', width: '100%', background: '#f9f9f9', borderBottom: '1px solid #eee' }} />)}</div>
           ) : (
-            <div style={{ width: '100%', padding: '0 0 20px 0', backgroundColor: 'transparent', minHeight: '100vh' }}>
+            <div style={{ width: '100%', padding: '0 0 20px 0', backgroundColor: '#f2f2f2', minHeight: '100vh' }}>
               <LiveCount />
               {carouselParties.length > 0 && (
-                <div style={{ margin: '0 0 15px', padding: '10px 0 20px', background: 'rgba(255,255,255,0.02)', borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
+                <div style={{ margin: '0 0 15px', padding: '10px 0 20px', background: '#fff', borderBottom: '1px solid #eee' }}>
                   <div style={{ padding: '0 20px 15px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                    <h2 style={{ fontSize: '18px', fontWeight: '950', color: '#F8FAFC', display: 'flex', alignItems: 'center', gap: '8px' }}><span style={{ color: '#FF3D47' }}>HOT</span> PICK 5</h2>
+                    <h2 style={{ fontSize: '18px', fontWeight: '950', color: '#1E293B', display: 'flex', alignItems: 'center', gap: '8px' }}><span style={{ color: '#E53935' }}>HOT</span> PICK 5</h2>
                     {/* 언어 토글 버튼 이동 배치 */}
                     <motion.button
                       whileTap={{ scale: 0.9 }}
                       onClick={() => i18n.changeLanguage(i18n.language.startsWith('ko') ? 'en' : 'ko')}
                       style={{
-                        background: 'rgba(255,255,255,0.05)',
-                        border: '1px solid rgba(255,255,255,0.1)',
+                        background: '#F1F5F9',
+                        border: 'none',
                         borderRadius: '12px',
                         padding: '8px 12px',
                         fontSize: '12px',
                         fontWeight: '900',
                         cursor: 'pointer',
-                        color: '#94A3B8',
+                        color: '#1E293B',
                         display: 'flex',
                         alignItems: 'center',
                         gap: '6px'
@@ -375,11 +374,11 @@ const HomePage = ({
                     <section 
                       key={regionName} 
                       ref={isFirst ? regionListRef : null}
-                      style={{ marginBottom: '15px', background: 'rgba(255,255,255,0.02)', borderBottom: '1px solid rgba(255,255,255,0.05)' }}
+                      style={{ marginBottom: '15px', background: '#fff' }}
                     >
                       <div style={{ fontSize: '18px', fontWeight: '900', padding: '15px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#F8FAFC' }}>
-                          <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#FF3D47' }} />
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                          <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#E53935' }} />
                           {regionName}
                         </div>
                         <button 
@@ -412,11 +411,11 @@ const HomePage = ({
         {showFullCalendar && (
           <>
             <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={() => { setShowFullCalendar(false); setShowFilterPanel(false); setShowFilteredResults(false); }} style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.6)', backdropFilter: 'blur(4px)', zIndex: 100004 }} />
-            <motion.div initial={{ y: '100%', opacity: 0 }} animate={{ y: 0, opacity: 1 }} exit={{ y: '100%', opacity: 0 }} transition={{ type: 'spring', damping: 25, stiffness: 200 }} style={{ position: 'fixed', bottom: '90px', left: '10px', right: '10px', background: 'rgba(26, 16, 51, 0.95)', backdropFilter: 'blur(20px)', borderRadius: '24px', padding: '20px', boxShadow: '0 20px 60px rgba(0,0,0,0.5)', zIndex: 100005, border: '1px solid rgba(255,255,255,0.1)', display: 'flex', flexDirection: 'column', maxHeight: '85vh' }}>
-              <div style={{ width: '40px', height: '4px', background: 'rgba(255,255,255,0.1)', borderRadius: '2px', margin: '0 auto 20px' }} />
+            <motion.div initial={{ y: '100%', opacity: 0 }} animate={{ y: 0, opacity: 1 }} exit={{ y: '100%', opacity: 0 }} transition={{ type: 'spring', damping: 25, stiffness: 200 }} style={{ position: 'fixed', bottom: '90px', left: '10px', right: '10px', background: '#fff', borderRadius: '24px', padding: '20px', boxShadow: '0 10px 40px rgba(0,0,0,0.25)', zIndex: 100005, border: '1px solid #f1f5f9', display: 'flex', flexDirection: 'column', maxHeight: '85vh' }}>
+              <div style={{ width: '40px', height: '4px', background: '#E2E8F0', borderRadius: '2px', margin: '0 auto 20px' }} />
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}><span style={{ fontSize: '24px', fontWeight: 950, color: '#F8FAFC' }}>{selectedMonth}월</span><div style={{ display: 'flex', gap: '8px' }}><button onClick={() => setSelectedMonth(m => m > 1 ? m-1 : 12)} style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '10px', width: '36px', height: '36px', color: '#fff' }}><ChevronLeft size={18} /></button><button onClick={() => setSelectedMonth(m => m < 12 ? m+1 : 1)} style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '10px', width: '36px', height: '36px', color: '#fff' }}><ChevronRight size={18} /></button></div></div>
-                <button onClick={() => { setShowFullCalendar(false); setShowFilterPanel(false); setShowFilteredResults(false); }} style={{ background: 'rgba(255,255,255,0.1)', border: 'none', borderRadius: '50%', width: '40px', height: '40px', color: '#FF3D47' }}><X size={22} /></button>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}><span style={{ fontSize: '24px', fontWeight: 950, color: '#1E293B' }}>{selectedMonth}월</span><div style={{ display: 'flex', gap: '8px' }}><button onClick={() => setSelectedMonth(m => m > 1 ? m-1 : 12)} style={{ background: '#F8FAFC', border: '1px solid #F1F5F9', borderRadius: '10px', width: '36px', height: '36px' }}><ChevronLeft size={18} /></button><button onClick={() => setSelectedMonth(m => m < 12 ? m+1 : 1)} style={{ background: '#F8FAFC', border: '1px solid #F1F5F9', borderRadius: '10px', width: '36px', height: '36px' }}><ChevronRight size={18} /></button></div></div>
+                <button onClick={() => { setShowFullCalendar(false); setShowFilterPanel(false); setShowFilteredResults(false); }} style={{ background: '#F1F5F9', border: 'none', borderRadius: '50%', width: '40px', height: '40px' }}><X size={22} /></button>
               </div>
               
               <div style={{ flex: 1, overflowY: 'auto', minHeight: '350px' }}>
@@ -540,7 +539,7 @@ const HomePage = ({
                         );
                       })()}
                     </div>
-                    <button onClick={() => { setShowFullCalendar(false); setShowFilterPanel(false); setShowFilteredResults(false); }} style={{ width: '100%', height: '54px', borderRadius: '16px', background: '#FF3D47', color: '#fff', fontSize: '16px', fontWeight: 800, border: 'none', boxShadow: '0 8px 24px rgba(229,57,53,0.3)' }}>확인 완료</button>
+                    <button onClick={() => { setShowFullCalendar(false); setShowFilterPanel(false); setShowFilteredResults(false); }} style={{ width: '100%', height: '54px', borderRadius: '16px', background: '#1E293B', color: '#fff', fontSize: '16px', fontWeight: 800, border: 'none' }}>확인 완료</button>
                   </motion.div>
                 )}
               </div>

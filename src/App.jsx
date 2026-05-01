@@ -169,20 +169,20 @@ const DynamicAnalysisModal = ({ isOpen, onClose, userCoords, isSajuCall }) => {
   const isIncheon = targetDest.region === '인천' && isSajuCall;
 
   return (
-    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} style={{ position: 'fixed', inset: 0, zIndex: 1000000, backgroundColor: 'rgba(0,0,0,0.6)', backdropFilter: 'blur(10px)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px' }} onClick={onClose}>
-      <motion.div initial={{ scale: 0.95, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} onClick={(e) => e.stopPropagation()} style={{ width: '100%', maxWidth: '420px', background: 'rgba(26, 16, 51, 0.9)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '35px', padding: '40px 30px', boxShadow: '0 50px 100px rgba(0,0,0,0.4)', color: '#F8FAFC', backdropFilter: 'blur(20px)' }}>
+    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} style={{ position: 'fixed', inset: 0, zIndex: 1000000, backgroundColor: 'rgba(0,0,0,0.4)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px' }} onClick={onClose}>
+      <motion.div initial={{ scale: 0.95, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} onClick={(e) => e.stopPropagation()} style={{ width: '100%', maxWidth: '420px', background: '#FFFFFF', borderRadius: '35px', padding: '40px 30px', boxShadow: '0 50px 100px rgba(0,0,0,0.1)', color: '#1E293B' }}>
         {!amguho ? (
           <>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '35px' }}><div style={{ background: '#FF3D47', color: '#fff', padding: '8px 16px', borderRadius: '50px', fontSize: '11px', fontWeight: '900', boxShadow: '0 4px 12px rgba(255,61,71,0.3)' }}>REALTIME GPS</div><X size={24} onClick={onClose} style={{ cursor: 'pointer', color: '#94A3B8' }} /></div>
-            <h2 style={{ fontSize: '26px', fontWeight: '1000', marginBottom: '30px', color: '#F8FAFC' }}>{isIncheon ? '성지 상륙 분석' : '최단 경로 최적화'} 🛰️<br/><span style={{ color: '#FF3D47' }}>{targetDest.name}</span></h2>
-            <div style={{ padding: '30px', background: 'rgba(255,255,255,0.03)', borderRadius: '30px', display: 'flex', gap: '20px', marginBottom: '30px', border: '1px solid rgba(255,255,255,0.05)' }}>
-              <div style={{ flex: 1 }}><p style={{ color: '#94A3B8', fontSize: '12px' }}>실제 거리</p><p style={{ fontSize: '26px', fontWeight: '1000', color: '#FF3D47' }}>{tracker.distance}km</p></div>
-              <div style={{ flex: 1 }}><p style={{ color: '#94A3B8', fontSize: '12px' }}>예상 소요</p><p style={{ fontSize: '26px', fontWeight: '1000', color: '#F8FAFC' }}>{tracker.duration}분</p></div>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '35px' }}><div style={{ background: '#E53935', color: '#fff', padding: '8px 16px', borderRadius: '50px', fontSize: '11px', fontWeight: '900' }}>REALTIME GPS</div><X size={24} onClick={onClose} style={{ cursor: 'pointer', color: '#64748B' }} /></div>
+            <h2 style={{ fontSize: '26px', fontWeight: '1000', marginBottom: '30px', color: '#1E293B' }}>{isIncheon ? '성지 상륙 분석' : '최단 경로 최적화'} 🛰️<br/><span style={{ color: '#E53935' }}>{targetDest.name}</span></h2>
+            <div style={{ padding: '30px', background: '#F8FAFC', borderRadius: '30px', display: 'flex', gap: '20px', marginBottom: '30px', border: '1px solid #E2E8F0' }}>
+              <div style={{ flex: 1 }}><p style={{ color: '#64748B', fontSize: '12px' }}>실제 거리</p><p style={{ fontSize: '26px', fontWeight: '1000', color: '#E53935' }}>{tracker.distance}km</p></div>
+              <div style={{ flex: 1 }}><p style={{ color: '#64748B', fontSize: '12px' }}>예상 소요</p><p style={{ fontSize: '26px', fontWeight: '1000', color: '#1E293B' }}>{tracker.duration}분</p></div>
             </div>
-            <button onClick={() => isIncheon ? setAmguho(naturalIncheonDB[0]) : onClose()} style={{ width: '100%', padding: '22px', borderRadius: '25px', background: '#FF3D47', color: '#fff', border: 'none', fontSize: '18px', fontWeight: '1000', boxShadow: '0 10px 30px rgba(255, 61, 71, 0.4)' }}>{isIncheon ? '암구호 수신하기' : '확인 완료'}</button>
+            <button onClick={() => isIncheon ? setAmguho(naturalIncheonDB[0]) : onClose()} style={{ width: '100%', padding: '22px', borderRadius: '25px', background: '#E53935', color: '#fff', border: 'none', fontSize: '18px', fontWeight: '1000', boxShadow: '0 10px 20px rgba(229, 57, 53, 0.2)' }}>{isIncheon ? '암구호 수신하기' : '확인 완료'}</button>
           </>
         ) : (
-          <div style={{ textAlign: 'center' }}><h3 style={{ fontSize: '22px', fontWeight: '1000', marginBottom: '30px', color: '#F8FAFC' }}>성지 암구호</h3><div style={{ background: 'rgba(255, 61, 71, 0.1)', padding: '30px', borderRadius: '30px', border: '2px solid #FF3D47', marginBottom: '30px' }}><p style={{ color: '#FF7077', fontWeight: '700' }}>Q: {amguho.q}</p><p style={{ fontSize: '20px', fontWeight: '1000', marginTop: '10px', color: '#F8FAFC' }}>A: {amguho.a}</p></div><button onClick={onClose} style={{ width: '100%', padding: '20px', borderRadius: '20px', background: '#FF3D47', color: '#FFFFFF', fontWeight: '1000', border: 'none', boxShadow: '0 10px 30px rgba(255, 61, 71, 0.4)' }}>작전 시작</button></div>
+          <div style={{ textAlign: 'center' }}><h3 style={{ fontSize: '22px', fontWeight: '1000', marginBottom: '30px', color: '#1E293B' }}>성지 암구호</h3><div style={{ background: '#FFEBEE', padding: '30px', borderRadius: '30px', border: '2px solid #E53935', marginBottom: '30px' }}><p style={{ color: '#E53935', fontWeight: '700' }}>Q: {amguho.q}</p><p style={{ fontSize: '20px', fontWeight: '1000', marginTop: '10px', color: '#1E293B' }}>A: {amguho.a}</p></div><button onClick={onClose} style={{ width: '100%', padding: '20px', borderRadius: '20px', background: '#E53935', color: '#FFFFFF', fontWeight: '1000', border: 'none' }}>작전 시작</button></div>
         )}
       </motion.div>
     </motion.div>
@@ -194,11 +194,11 @@ const IncheonPremiumBanner = ({ onClick, t }) => (
     <div 
       onClick={(e) => { e.stopPropagation(); onClick(); }} 
       style={{ 
-        background: 'rgba(255,255,255,0.03)', 
+        background: 'linear-gradient(90deg, #FFFFFF, #FFF9F9)', 
         borderRadius: '16px', 
         padding: '10px 16px', 
-        border: '1px solid rgba(255,255,255,0.08)', 
-        boxShadow: '0 4px 20px rgba(0,0,0,0.2)', 
+        border: '1px solid #FFE4E4', 
+        boxShadow: '0 4px 12px rgba(229, 57, 53, 0.03)', 
         cursor: 'pointer',
         display: 'flex',
         alignItems: 'center',
@@ -207,15 +207,15 @@ const IncheonPremiumBanner = ({ onClick, t }) => (
       }}
     >
       <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flex: 1, minWidth: 0 }}>
-        <div style={{ background: 'rgba(229, 57, 53, 0.15)', padding: '6px', borderRadius: '10px', color: '#FF3D47', flexShrink: 0 }}>
+        <div style={{ background: '#FFEBEE', padding: '6px', borderRadius: '10px', color: '#E53935', flexShrink: 0 }}>
           <Navigation size={15} strokeWidth={3} />
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px', overflow: 'hidden' }}>
-          <span style={{ color: '#F8FAFC', fontSize: '14px', fontWeight: '900', whiteSpace: 'nowrap' }}>{t('intelligent_route')}</span>
+          <span style={{ color: '#1E293B', fontSize: '14px', fontWeight: '900', whiteSpace: 'nowrap' }}>{t('intelligent_route')}</span>
           <span style={{ color: '#94A3B8', fontSize: '11px', fontWeight: '500', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{t('shortest_distance')}</span>
         </div>
       </div>
-      <div style={{ background: '#FF3D47', color: '#fff', fontSize: '8px', fontWeight: '950', padding: '2px 8px', borderRadius: '6px', flexShrink: 0, boxShadow: '0 0 10px rgba(255,61,71,0.5)' }}>LIVE</div>
+      <div style={{ background: '#E53935', color: '#fff', fontSize: '8px', fontWeight: '950', padding: '2px 8px', borderRadius: '6px', flexShrink: 0 }}>LIVE</div>
     </div>
   </div>
 );
@@ -246,13 +246,13 @@ const SplashScreen = ({ onComplete }) => (
       position: 'fixed',
       inset: 0,
       zIndex: 999999,
-      backgroundColor: '#1A1033',
+      backgroundColor: '#FFFFFF',
       display: 'flex',
       alignItems: 'center',
       justifyContent: 'center'
     }}
   >
-    <img src="/logo.png" alt="BAMPPA" style={{ width: '220px', height: 'auto', filter: 'brightness(1.2)' }} />
+    <img src="/logo.png" alt="BAMPPA" style={{ width: '220px', height: 'auto' }} />
   </motion.div>
 );
 
@@ -470,11 +470,11 @@ function App() {
   };
 
   return (
-    <div style={{ width: '100%', maxWidth: '500px', margin: '0 auto', background: 'transparent', minHeight: '100vh', position: 'relative' }}>
+    <div style={{ width: '100%', maxWidth: '500px', margin: '0 auto', background: '#fff', minHeight: '100vh', position: 'relative' }}>
       <AnimatePresence>
         {showSplash && <SplashScreen onComplete={() => setShowSplash(false)} />}
       </AnimatePresence>
-      <AnimatePresence>{isAnalyzing && <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} style={{ position: 'fixed', inset: 0, zIndex: 1000000, background: 'rgba(15,23,42,0.8)', backdropFilter: 'blur(30px)', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}><motion.div animate={{ rotate: 360 }} transition={{ duration: 1, repeat: Infinity, ease: 'linear' }} style={{ width: '60px', height: '60px', border: '4px solid rgba(255,255,255,0.1)', borderTop: '4px solid #FF3D47', borderRadius: '50%', marginBottom: '20px' }} /><h2 style={{ color: '#F8FAFC', fontSize: '20px', fontWeight: '900' }}>실시간 지능형 분석 중...</h2></motion.div>}</AnimatePresence>
+      <AnimatePresence>{isAnalyzing && <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} style={{ position: 'fixed', inset: 0, zIndex: 1000000, background: 'rgba(255,255,255,0.9)', backdropFilter: 'blur(30px)', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}><motion.div animate={{ rotate: 360 }} transition={{ duration: 1, repeat: Infinity, ease: 'linear' }} style={{ width: '60px', height: '60px', border: '4px solid #FFEBEE', borderTop: '4px solid #E53935', borderRadius: '50%', marginBottom: '20px' }} /><h2 style={{ color: '#1E293B', fontSize: '20px', fontWeight: '900' }}>실시간 지능형 분석 중...</h2></motion.div>}</AnimatePresence>
 
       {/* 햄버거 메뉴 버튼 (드래그 기능 유지) */}
       {!isMenuOpen && (
@@ -488,13 +488,13 @@ function App() {
           onClick={() => setIsMenuOpen(true)}
           style={{ 
             position: 'fixed', top: '20px', right: '20px', zIndex: 1005,
-            background: 'rgba(26, 16, 51, 0.8)', backdropFilter: 'blur(15px)',
-            border: '1px solid rgba(255,255,255,0.1)', borderRadius: '14px', padding: '12px',
-            boxShadow: '0 8px 30px rgba(0,0,0,0.3)', cursor: 'pointer',
+            background: 'rgba(255,255,255,0.95)', backdropFilter: 'blur(10px)',
+            border: '1px solid #F1F5F9', borderRadius: '14px', padding: '12px',
+            boxShadow: '0 8px 25px rgba(0,0,0,0.12)', cursor: 'pointer',
             display: 'flex', alignItems: 'center', justifyContent: 'center'
           }}
         >
-          <Menu size={24} color="#FF3D47" />
+          <Menu size={24} color="#E53935" />
         </motion.button>
       )}
 
@@ -510,11 +510,10 @@ function App() {
               position: 'fixed', top: 0, bottom: 0, left: 0,
               width: '75vw', maxWidth: '320px',
               zIndex: 1000000,
-              background: 'rgba(26, 16, 51, 0.95)', padding: '24px',
+              background: '#FFFFFF', padding: '24px',
               display: 'flex', flexDirection: 'column',
               overflowY: 'auto',
-              borderRight: '1px solid rgba(255,255,255,0.08)',
-              backdropFilter: 'blur(25px)'
+              borderLeft: '1px solid #E2E8F0'
             }}
           >
             {/* Header */}
@@ -522,35 +521,35 @@ function App() {
               <motion.button 
                 whileTap={{ scale: 0.9 }}
                 onClick={() => setIsMenuOpen(false)}
-                style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '12px', padding: '10px', color: '#FF3D47', cursor: 'pointer' }}
+                style={{ background: '#F8FAFC', border: '1px solid #E2E8F0', borderRadius: '12px', padding: '10px', color: '#E53935', cursor: 'pointer' }}
               >
                 <X size={24} />
               </motion.button>
             </div>
 
             <div style={{ marginBottom: '40px' }}>
-              <h2 style={{ color: '#F8FAFC', fontSize: '24px', fontWeight: 900, margin: 0 }}>{t('premium_services')}</h2>
-              <p style={{ color: '#94A3B8', fontSize: '14px', marginTop: '4px' }}>{t('platform_desc')}</p>
+              <h2 style={{ color: '#1E293B', fontSize: '24px', fontWeight: 900, margin: 0 }}>{t('premium_services')}</h2>
+              <p style={{ color: '#64748B', fontSize: '14px', marginTop: '4px' }}>{t('platform_desc')}</p>
             </div>
 
             <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
               {[
-                { icon: <Calendar color="#FF3D47" />, text: t('view_calendar'), action: () => { setShowFullCalendar(true); setIsMenuOpen(false); } },
-                { icon: <Camera color="#FF3D47" />, text: 'LIVE PICK', action: () => { setView('community'); setIsMenuOpen(false); } },
-                { icon: <Utensils color="#FF3D47" />, text: t('restaurant'), action: () => { setView('restaurant'); setIsMenuOpen(false); } },
-                { icon: <Star color="#FF3D47" />, text: t('saju'), action: () => { if(typeof setShowSaju === 'function') { setShowSaju(true); setIsMenuOpen(false); } } },
-                { icon: <CloudSun color="#FF3D47" />, text: t('weather'), action: () => { setIsMenuOpen(false); setTimeout(() => setShowWeather(true), 300); } },
-                { icon: <Bell color="#FF3D47" />, text: t('notice'), action: () => { alert(t('coming_soon')) } },
-                { icon: <ShieldCheck color="#FF3D47" />, text: t('admin_dashboard'), action: () => { setView('admin'); setIsMenuOpen(false); } },
+                { icon: <Calendar color="#E53935" />, text: t('view_calendar'), action: () => { setShowFullCalendar(true); setIsMenuOpen(false); } },
+                { icon: <Camera color="#E53935" />, text: 'LIVE PICK', action: () => { setView('community'); setIsMenuOpen(false); } },
+                { icon: <Utensils color="#E53935" />, text: t('restaurant'), action: () => { setView('restaurant'); setIsMenuOpen(false); } },
+                { icon: <Star color="#E53935" />, text: t('saju'), action: () => { if(typeof setShowSaju === 'function') { setShowSaju(true); setIsMenuOpen(false); } } },
+                { icon: <CloudSun color="#E53935" />, text: t('weather'), action: () => { setIsMenuOpen(false); setTimeout(() => setShowWeather(true), 300); } },
+                { icon: <Bell color="#E53935" />, text: t('notice'), action: () => { alert(t('coming_soon')) } },
+                { icon: <ShieldCheck color="#E53935" />, text: t('admin_dashboard'), action: () => { setView('admin'); setIsMenuOpen(false); } },
               ].map((item, idx) => (
                 <motion.div
                   key={idx}
-                  whileHover={{ scale: 1.02, backgroundColor: 'rgba(255,255,255,0.05)' }}
+                  whileHover={{ scale: 1.02, backgroundColor: '#FFEBEE' }}
                   whileTap={{ scale: 0.98 }}
                   onClick={item.action}
                   style={{
-                    background: 'rgba(255,255,255,0.03)',
-                    border: '1px solid rgba(255,255,255,0.08)',
+                    background: '#FFFFFF',
+                    border: '1px solid #E2E8F0',
                     borderRadius: '12px',
                     padding: '16px 20px',
                     display: 'flex',
@@ -563,13 +562,13 @@ function App() {
                   <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                     {item.icon}
                   </div>
-                  <span style={{ color: '#F8FAFC', fontSize: '15px', fontWeight: 800 }}>{item.text}</span>
+                  <span style={{ color: '#1E293B', fontSize: '15px', fontWeight: 800 }}>{item.text}</span>
                 </motion.div>
               ))}
             </div>
 
             <div style={{ marginTop: 'auto', paddingTop: '40px', textAlign: 'center' }}>
-              <p style={{ color: '#64748B', fontSize: '12px' }}>© 2026 BAMPPA All Rights Reserved.</p>
+              <p style={{ color: '#94A3B8', fontSize: '12px' }}>© 2026 BAMPPA All Rights Reserved.</p>
             </div>
           </motion.div>
         )}
@@ -577,27 +576,27 @@ function App() {
 
       <main>
         {view === 'home' ? <HomePage {...sharedProps} /> : 
-          view === 'class' ? (
-            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '80vh', color: '#F8FAFC' }}>
-              <span style={{ fontSize: '48px', marginBottom: '20px' }}>💃</span>
-              <h2 style={{ fontSize: '24px', fontWeight: 900 }}>{t('nav_class')}</h2>
-              <p style={{ color: '#94A3B8', marginTop: '8px' }}>{t('coming_soon')}</p>
-            </div>
-          ) :
-          view === 'bootcamp' ? (
-            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '80vh', color: '#F8FAFC' }}>
-              <span style={{ fontSize: '48px', marginBottom: '20px' }}>🏕️</span>
-              <h2 style={{ fontSize: '24px', fontWeight: 900 }}>{t('nav_bootcamp')}</h2>
-              <p style={{ color: '#94A3B8', marginTop: '8px' }}>{t('coming_soon')}</p>
-            </div>
-          ) :
-          view === 'festival' ? (
-            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '80vh', color: '#F8FAFC' }}>
-              <span style={{ fontSize: '48px', marginBottom: '20px' }}>🎪</span>
-              <h2 style={{ fontSize: '24px', fontWeight: 900 }}>{t('nav_festival')}</h2>
-              <p style={{ color: '#94A3B8', marginTop: '8px' }}>{t('coming_soon')}</p>
-            </div>
-          ) :
+         view === 'class' ? (
+           <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '80vh', color: '#1E293B' }}>
+             <span style={{ fontSize: '48px', marginBottom: '20px' }}>💃</span>
+             <h2 style={{ fontSize: '24px', fontWeight: 900 }}>{t('nav_class')}</h2>
+             <p style={{ color: '#64748B', marginTop: '8px' }}>{t('coming_soon')}</p>
+           </div>
+         ) :
+         view === 'bootcamp' ? (
+           <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '80vh', color: '#1E293B' }}>
+             <span style={{ fontSize: '48px', marginBottom: '20px' }}>🏕️</span>
+             <h2 style={{ fontSize: '24px', fontWeight: 900 }}>{t('nav_bootcamp')}</h2>
+             <p style={{ color: '#64748B', marginTop: '8px' }}>{t('coming_soon')}</p>
+           </div>
+         ) :
+         view === 'festival' ? (
+           <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '80vh', color: '#1E293B' }}>
+             <span style={{ fontSize: '48px', marginBottom: '20px' }}>🎪</span>
+             <h2 style={{ fontSize: '24px', fontWeight: 900 }}>{t('nav_festival')}</h2>
+             <p style={{ color: '#64748B', marginTop: '8px' }}>{t('coming_soon')}</p>
+           </div>
+         ) :
          {
            'register': <RegisterForm onBack={() => setView('home')} onSuccess={() => { fetchParties(); setView('home'); }} />,
             'community': <Community setSelectedPoster={setSelectedPoster} setView={setView} />,
@@ -635,16 +634,16 @@ function App() {
             className={`nav-item ${view === 'home' ? 'active' : ''}`} 
             onClick={() => { setView('home'); window.scrollTo(0,0); }}
           >
-            <Music2 size={22} color={view === 'home' ? '#FF3D47' : '#94A3B8'} style={{ marginBottom: '4px' }} />
-            <span style={{ fontSize: '10px', fontWeight: view === 'home' ? 900 : 500, color: view === 'home' ? '#FF3D47' : '#94A3B8' }}>{t('nav_social')}</span>
+            <Music2 size={22} color={view === 'home' ? '#E53935' : '#94A3B8'} style={{ marginBottom: '4px' }} />
+            <span style={{ fontSize: '10px', fontWeight: view === 'home' ? 900 : 500, color: view === 'home' ? '#E53935' : '#94A3B8' }}>{t('nav_social')}</span>
           </div>
 
           <div 
             className={`nav-item ${view === 'class' ? 'active' : ''}`} 
             onClick={() => { setView('class'); window.scrollTo(0,0); }}
           >
-            <GraduationCap size={22} color={view === 'class' ? '#FF3D47' : '#94A3B8'} style={{ marginBottom: '4px' }} />
-            <span style={{ fontSize: '10px', fontWeight: view === 'class' ? 900 : 500, color: view === 'class' ? '#FF3D47' : '#94A3B8' }}>{t('nav_class')}</span>
+            <GraduationCap size={22} color={view === 'class' ? '#E53935' : '#94A3B8'} style={{ marginBottom: '4px' }} />
+            <span style={{ fontSize: '10px', fontWeight: view === 'class' ? 900 : 500, color: view === 'class' ? '#E53935' : '#94A3B8' }}>{t('nav_class')}</span>
           </div>
 
           <div className="nav-item central-action" style={{ pointerEvents: 'none', position: 'relative', zIndex: 1001 }}>
@@ -654,11 +653,11 @@ function App() {
               style={{
                 width:'52px', height:'52px',
                 borderRadius:'50%',
-                background:'#FF3D47',
+                background:'#E53935',
                 border:'none', color:'#fff',
                 display:'flex', alignItems:'center',
                 justifyContent:'center', cursor:'pointer',
-                boxShadow:'0 8px 24px rgba(255,61,71,0.4)',
+                boxShadow:'0 4px 15px rgba(0,0,0,0.3)',
                 pointerEvents: 'auto'
               }}
               onClick={() => {
@@ -667,23 +666,23 @@ function App() {
             >
               <Plus size={28} strokeWidth={3} />
             </motion.button>
-            <span style={{ pointerEvents: 'auto', color: '#F8FAFC', fontSize: '10px' }}>{t('nav_register')}</span>
+            <span style={{ pointerEvents: 'auto', color: '#1E293B', fontSize: '10px' }}>{t('nav_register')}</span>
           </div>
 
           <div 
             className={`nav-item ${view === 'bootcamp' ? 'active' : ''}`} 
             onClick={() => { setView('bootcamp'); window.scrollTo(0,0); }}
           >
-            <Tent size={22} color={view === 'bootcamp' ? '#FF3D47' : '#94A3B8'} style={{ marginBottom: '4px' }} />
-            <span style={{ fontSize: '10px', fontWeight: view === 'bootcamp' ? 900 : 500, color: view === 'bootcamp' ? '#FF3D47' : '#94A3B8' }}>{t('nav_bootcamp')}</span>
+            <Tent size={22} color={view === 'bootcamp' ? '#E53935' : '#94A3B8'} style={{ marginBottom: '4px' }} />
+            <span style={{ fontSize: '10px', fontWeight: view === 'bootcamp' ? 900 : 500, color: view === 'bootcamp' ? '#E53935' : '#94A3B8' }}>{t('nav_bootcamp')}</span>
           </div>
 
           <div 
             className={`nav-item ${view === 'festival' ? 'active' : ''}`} 
             onClick={() => { setView('festival'); window.scrollTo(0,0); }}
           >
-            <Flag size={22} color={view === 'festival' ? '#FF3D47' : '#94A3B8'} style={{ marginBottom: '4px' }} />
-            <span style={{ fontSize: '10px', fontWeight: view === 'festival' ? 900 : 500, color: view === 'festival' ? '#FF3D47' : '#94A3B8' }}>{t('nav_festival')}</span>
+            <Flag size={22} color={view === 'festival' ? '#E53935' : '#94A3B8'} style={{ marginBottom: '4px' }} />
+            <span style={{ fontSize: '10px', fontWeight: view === 'festival' ? 900 : 500, color: view === 'festival' ? '#E53935' : '#94A3B8' }}>{t('nav_festival')}</span>
           </div>
         </nav>
       )}

@@ -320,15 +320,15 @@ const RegisterForm = ({ onBack, onSuccess }) => {
 
   if (submitted) {
     return (
-      <div style={{ textAlign: 'center', padding: '100px 24px', backgroundColor: 'transparent', minHeight: '100vh', overflowY: 'auto' }}>
-        <div style={{ backgroundColor: '#10B981', width: '80px', height: '80px', borderRadius: '40px', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 32px', boxShadow: '0 10px 30px rgba(16, 185, 129, 0.3)' }}><Check size={40} color="white" /></div>
-        <h2 style={{ fontSize: '26px', fontWeight: 900, color: '#F8FAFC', marginBottom: '12px' }}>등록 신청 완료!</h2>
-        <p style={{ fontSize: '16px', color: '#94A3B8', lineHeight: '1.6', marginBottom: '40px', fontWeight: 500 }}>
+      <div style={{ textAlign: 'center', padding: '100px 24px', backgroundColor: 'white', minHeight: '100vh', overflowY: 'auto' }}>
+        <div style={{ backgroundColor: '#2ECC71', width: '80px', height: '80px', borderRadius: '40px', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 32px', boxShadow: '0 10px 25px rgba(29, 158, 117, 0.2)' }}><Check size={40} color="white" /></div>
+        <h2 style={{ fontSize: '26px', fontWeight: 900, color: '#111827', marginBottom: '12px' }}>등록 신청 완료!</h2>
+        <p style={{ fontSize: '16px', color: '#6B7280', lineHeight: '1.6', marginBottom: '40px', fontWeight: 500 }}>
           정상적으로 접수되었습니다.<br />
           관리자 승인 후 메인 화면에<br />
           즉시 노출됩니다.
         </p>
-        <button onClick={onSuccess || onBack} style={{ width: '100%', padding: '20px', background: '#10B981', color: 'white', borderRadius: '16px', fontWeight: 800, fontSize: '18px', boxShadow: '0 8px 24px rgba(16, 185, 129, 0.2)', border: 'none' }}>확인</button>
+        <button onClick={onSuccess || onBack} style={{ width: '100%', padding: '20px', background: '#2ECC71', color: 'white', borderRadius: '16px', fontWeight: 800, fontSize: '18px', boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }}>확인</button>
       </div>
     )
   }
@@ -351,26 +351,26 @@ const RegisterForm = ({ onBack, onSuccess }) => {
   })();
 
   return (
-    <div style={{ backgroundColor: 'transparent', minHeight: '100vh', overflowY: 'visible', paddingBottom: '100px', WebkitOverflowScrolling: 'touch' }}>
-      <div style={{ display: 'flex', alignItems: 'center', padding: '16px', borderBottom: '1px solid rgba(255,255,255,0.08)', position: 'sticky', top: 0, backgroundColor: 'rgba(26, 16, 51, 0.85)', backdropFilter: 'blur(15px)', zIndex: 10, color: '#F8FAFC' }}>
-        <button onClick={onBack} style={{ background: 'none', border: 'none', color: '#F8FAFC', cursor: 'pointer' }}><ChevronLeft size={24} /></button>
+    <div style={{ backgroundColor: '#fff', minHeight: '100vh', overflowY: 'visible', paddingBottom: '100px', WebkitOverflowScrolling: 'touch' }}>
+      <div style={{ display: 'flex', alignItems: 'center', padding: '16px', borderBottom: '1px solid #F3F4F6', position: 'sticky', top: 0, backgroundColor: 'white', zIndex: 10 }}>
+        <button onClick={onBack}><ChevronLeft size={24} /></button>
         <span style={{ fontSize: '18px', fontWeight: 800, marginLeft: '8px' }}>등록하기</span>
       </div>
 
       <form onSubmit={handleSubmit} style={{ padding: '20px' }}>
         <div style={{ marginBottom: '20px', textAlign: 'center' }}>
-          {file ? <img src={URL.createObjectURL(file)} style={{ width: '100%', height: '240px', objectFit: 'contain', borderRadius: '16px', backgroundColor: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.1)' }} onClick={() => document.getElementById('poster-upload').click()} /> : <div onClick={() => document.getElementById('poster-upload').click()} style={{ height: '160px', border: '2px dashed rgba(255,255,255,0.2)', borderRadius: '24px', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', color: '#94A3B8', background: 'rgba(255,255,255,0.03)' }}><Plus size={40} /><p>포스터 업로드</p></div>}
+          {file ? <img src={URL.createObjectURL(file)} style={{ width: '100%', height: '240px', objectFit: 'contain', borderRadius: '16px', backgroundColor: '#F9FAFB' }} onClick={() => document.getElementById('poster-upload').click()} /> : <div onClick={() => document.getElementById('poster-upload').click()} style={{ height: '160px', border: '2px dashed #E5E7EB', borderRadius: '24px', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', color: '#9CA3AF' }}><Plus size={40} /><p>포스터 업로드</p></div>}
           <input type="file" id="poster-upload" accept="image/*" onChange={handleFileUpload} style={{ display: 'none' }} />
         </div>
 
         <div style={{ marginBottom: '24px', display: 'flex', flexDirection: 'column', gap: '8px' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            <label style={{ fontSize: '14px', fontWeight: 'bold', color: '#F8FAFC' }}>
+            <label style={{ fontSize: '14px', fontWeight: 'bold', color: '#374151' }}>
               포스터 제목 (최대 30자)
             </label>
             <span style={{ 
               fontSize: '12px', 
-              color: formData.title.length >= 25 ? '#FF3D47' : '#94A3B8',
+              color: formData.title.length >= 25 ? '#FF4500' : '#9CA3AF',
               fontWeight: formData.title.length >= 25 ? 'bold' : 'normal'
             }}>
               {formData.title.length}/30
@@ -386,22 +386,21 @@ const RegisterForm = ({ onBack, onSuccess }) => {
             style={{
               width: '100%',
               padding: '16px',
-              border: '1.5px solid rgba(255,255,255,0.1)',
+              border: '1.5px solid #F3F4F6',
               borderRadius: '14px',
               fontSize: '16px',
-              backgroundColor: 'rgba(255,255,255,0.03)',
-              color: '#F8FAFC',
+              backgroundColor: '#F9FAFB',
               outline: 'none',
               transition: 'all 0.2s'
             }}
           />
           
           <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-            <span style={{ fontSize: '12px', color: '#94A3B8' }}>
+            <span style={{ fontSize: '12px', color: '#6B7280' }}>
               💡 '맛집', '성지', '클럽' 키워드를 쓰면 클릭률이 올라가요!
             </span>
             {formData.title.length >= 25 && (
-              <p style={{ fontSize: '11px', color: '#FF3D47', margin: 0 }}>
+              <p style={{ fontSize: '11px', color: '#FF4500', margin: 0 }}>
                 ⚠️ 제목이 너무 길면 모바일에서 잘릴 수 있습니다.
               </p>
             )}
@@ -409,7 +408,7 @@ const RegisterForm = ({ onBack, onSuccess }) => {
         </div>
 
         <div style={{ marginBottom: '16px' }}>
-          <label style={{ display: 'block', fontSize: '13px', fontWeight: 600, color: '#F8FAFC', marginBottom: '6px' }}>장소 명칭 (필수)</label>
+          <label style={{ display: 'block', fontSize: '13px', fontWeight: 600, color: '#374151', marginBottom: '6px' }}>장소 명칭 (필수)</label>
           <input 
             type="text" 
             value={formData.location_name} 
@@ -423,13 +422,13 @@ const RegisterForm = ({ onBack, onSuccess }) => {
             onKeyDown={handleKeyDown} 
             placeholder="자동완성 값 직접 수정 가능" 
             required 
-            style={{ width: '100%', padding: '16px', border: '1.5px solid rgba(255,255,255,0.1)', borderRadius: '14px', fontSize: '16px', backgroundColor: 'rgba(255,255,255,0.03)', color: '#F8FAFC' }} 
+            style={{ width: '100%', padding: '16px', border: '1.5px solid #F3F4F6', borderRadius: '14px', fontSize: '16px' }} 
           />
-          <div style={{ fontSize: '11px', color: '#94A3B8', marginTop: '4px' }}>업체명이 다를 경우 직접 수정해주세요</div>
+          <div style={{ fontSize: '11px', color: '#999', marginTop: '4px' }}>업체명이 다를 경우 직접 수정해주세요</div>
         </div>
 
         <div style={{ marginBottom: '16px' }}>
-          <label style={{ display: 'block', fontSize: '13px', fontWeight: 600, color: '#F8FAFC', marginBottom: '6px' }}>상세 주소 (자동 연동)</label>
+          <label style={{ display: 'block', fontSize: '13px', fontWeight: 600, color: '#374151', marginBottom: '6px' }}>상세 주소 (자동 연동)</label>
           <input 
             type="text" 
             value={formData.address} 
@@ -445,13 +444,13 @@ const RegisterForm = ({ onBack, onSuccess }) => {
             }} 
             placeholder="주소가 다를 경우 직접 수정하세요" 
             required 
-            style={{ width: '100%', padding: '16px', border: '1.5px solid rgba(255,255,255,0.1)', borderRadius: '14px', fontSize: '15px', backgroundColor: 'rgba(255,255,255,0.03)', color: '#F8FAFC' }} 
+            style={{ width: '100%', padding: '16px', border: '1.5px solid #F3F4F6', borderRadius: '14px', fontSize: '15px' }} 
           />
-          <div style={{ fontSize: '11px', color: '#94A3B8', marginTop: '4px' }}>내용이 다를 경우 직접 수정해주세요</div>
+          <div style={{ fontSize: '11px', color: '#999', marginTop: '4px' }}>내용이 다를 경우 직접 수정해주세요</div>
         </div>
 
         <div style={{ marginBottom: '16px' }}>
-          <label style={{ fontSize: '13px', fontWeight: 600, color: '#F8FAFC', display: 'block', marginBottom: '8px' }}>참가비 선택</label>
+          <label style={{ fontSize: '13px', fontWeight: 600, color: '#374151', display: 'block', marginBottom: '8px' }}>참가비 선택</label>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '8px', marginBottom: '12px' }}>
             {['매너 음료', '10,000원', '12,000원', '15,000원', '18,000원', '20,000원', '25,000원', '기타'].map(fee => (
               <button
@@ -467,9 +466,9 @@ const RegisterForm = ({ onBack, onSuccess }) => {
                 }}
                 style={{ 
                   padding: '10px 4px', 
-                  backgroundColor: formData.fee === fee ? '#FF3D47' : 'rgba(255,255,255,0.05)', 
-                  color: formData.fee === fee ? 'white' : '#94A3B8',
-                  border: '1px solid rgba(255,255,255,0.08)', 
+                  backgroundColor: formData.fee === fee ? '#2ECC71' : '#F3F4F6', 
+                  color: formData.fee === fee ? 'white' : '#4B5563',
+                  border: 'none', 
                   borderRadius: '10px', 
                   fontSize: '11px', 
                   fontWeight: 700,
@@ -489,18 +488,17 @@ const RegisterForm = ({ onBack, onSuccess }) => {
             style={{ 
               width: '100%', 
               padding: '14px', 
-              border: '1.5px solid rgba(255,255,255,0.1)', 
+              border: '1.5px solid #F3F4F6', 
               borderRadius: '12px',
               fontSize: '14px',
-              backgroundColor: 'rgba(255,255,255,0.03)',
-              color: '#F8FAFC'
+              backgroundColor: '#F9FAFB'
             }} 
             placeholder="직접 입력 (예: 2만원)"
           />
         </div>
 
         <div style={{ marginBottom: '16px' }}>
-          <label style={{ fontSize: '13px', fontWeight: 600, color: '#F8FAFC', display: 'block', marginBottom: '8px' }}>지역 선택 (필수)</label>
+          <label style={{ fontSize: '13px', fontWeight: 600, color: '#374151', display: 'block', marginBottom: '8px' }}>지역 선택 (필수)</label>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '8px' }}>
             {['서울', '경기도', '인천광역시', '경상도', '전라도', '충청도', '강원도', '제주도'].map(r => (
               <button
@@ -509,9 +507,9 @@ const RegisterForm = ({ onBack, onSuccess }) => {
                 onClick={() => setFormData({...formData, region: r})}
                 style={{
                   padding: '10px 4px',
-                  backgroundColor: formData.region === r ? '#FF3D47' : 'rgba(255,255,255,0.05)',
-                  color: formData.region === r ? 'white' : '#94A3B8',
-                  border: '1px solid rgba(255,255,255,0.08)',
+                  backgroundColor: formData.region === r ? '#2ECC71' : '#F3F4F6',
+                  color: formData.region === r ? 'white' : '#4B5563',
+                  border: 'none',
                   borderRadius: '10px',
                   fontSize: '11px',
                   fontWeight: 700,
@@ -522,11 +520,11 @@ const RegisterForm = ({ onBack, onSuccess }) => {
               </button>
             ))}
           </div>
-          {!formData.region && <p style={{ fontSize: '10px', color: '#FF3D47', marginTop: '4px' }}>* 지역을 선택해주세요.</p>}
+          {!formData.region && <p style={{ fontSize: '10px', color: '#EF4444', marginTop: '4px' }}>* 지역을 선택해주세요.</p>}
         </div>
 
-        <div style={{ marginBottom: '24px', backgroundColor: 'rgba(255,255,255,0.02)', padding: '16px', borderRadius: '16px', border: '1px solid rgba(255,255,255,0.05)' }}>
-          <label style={{ display: 'block', fontSize: '13px', fontWeight: 600, color: '#F8FAFC', marginBottom: '12px' }}>음악 비율 (B:S:J:K)</label>
+        <div style={{ marginBottom: '24px', backgroundColor: '#F9FAFB', padding: '16px', borderRadius: '16px' }}>
+          <label style={{ display: 'block', fontSize: '13px', fontWeight: 600, color: '#374151', marginBottom: '12px' }}>음악 비율 (B:S:J:K)</label>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '4px', alignItems: 'center' }}>
             {/* B (Bachata) */}
             <div style={{ textAlign: 'center' }}>
@@ -535,13 +533,13 @@ const RegisterForm = ({ onBack, onSuccess }) => {
                 <button
                   type="button"
                   onClick={() => setFormData(prev => ({...prev, bRatio: Math.min(10, prev.bRatio + 1)}))}
-                  style={{ width:'100%', padding: '6px 0', borderRadius:'8px', border:'1px solid rgba(255,255,255,0.1)', background:'rgba(255,255,255,0.05)', fontSize:'12px', cursor:'pointer', color: '#fff' }}
+                  style={{ width:'100%', padding: '6px 0', borderRadius:'8px', border:'1px solid #ddd', background:'#fff', fontSize:'12px', cursor:'pointer' }}
                 >▲</button>
                 <span style={{ fontSize:'20px', fontWeight:900, color:'#E8856A' }}>{formData.bRatio}</span>
                 <button 
                   type="button"
                   onClick={() => setFormData(prev => ({...prev, bRatio: Math.max(0, prev.bRatio - 1)}))}
-                  style={{ width:'100%', padding: '6px 0', borderRadius:'8px', border:'1px solid rgba(255,255,255,0.1)', background:'rgba(255,255,255,0.05)', fontSize:'12px', cursor:'pointer', color: '#fff' }}
+                  style={{ width:'100%', padding: '6px 0', borderRadius:'8px', border:'1px solid #ddd', background:'#fff', fontSize:'12px', cursor:'pointer' }}
                 >▼</button>
               </div>
             </div>
@@ -553,13 +551,13 @@ const RegisterForm = ({ onBack, onSuccess }) => {
                 <button
                   type="button"
                   onClick={() => setFormData(prev => ({...prev, sRatio: Math.min(10, prev.sRatio + 1)}))}
-                  style={{ width:'100%', padding: '6px 0', borderRadius:'8px', border:'1px solid rgba(255,255,255,0.1)', background:'rgba(255,255,255,0.05)', fontSize:'12px', cursor:'pointer', color: '#fff' }}
+                  style={{ width:'100%', padding: '6px 0', borderRadius:'8px', border:'1px solid #ddd', background:'#fff', fontSize:'12px', cursor:'pointer' }}
                 >▲</button>
                 <span style={{ fontSize:'20px', fontWeight:900, color:'#2ECC71' }}>{formData.sRatio}</span>
                 <button 
                   type="button"
                   onClick={() => setFormData(prev => ({...prev, sRatio: Math.max(0, prev.sRatio - 1)}))}
-                  style={{ width:'100%', padding: '6px 0', borderRadius:'8px', border:'1px solid rgba(255,255,255,0.1)', background:'rgba(255,255,255,0.05)', fontSize:'12px', cursor:'pointer', color: '#fff' }}
+                  style={{ width:'100%', padding: '6px 0', borderRadius:'8px', border:'1px solid #ddd', background:'#fff', fontSize:'12px', cursor:'pointer' }}
                 >▼</button>
               </div>
             </div>
@@ -571,13 +569,13 @@ const RegisterForm = ({ onBack, onSuccess }) => {
                 <button
                   type="button"
                   onClick={() => setFormData(prev => ({...prev, jRatio: Math.min(10, prev.jRatio + 1)}))}
-                  style={{ width:'100%', padding: '6px 0', borderRadius:'8px', border:'1px solid rgba(255,255,255,0.1)', background:'rgba(255,255,255,0.05)', fontSize:'12px', cursor:'pointer', color: '#fff' }}
+                  style={{ width:'100%', padding: '6px 0', borderRadius:'8px', border:'1px solid #ddd', background:'#fff', fontSize:'12px', cursor:'pointer' }}
                 >▲</button>
                 <span style={{ fontSize:'20px', fontWeight:900, color:'#378ADD' }}>{formData.jRatio}</span>
                 <button 
                   type="button"
                   onClick={() => setFormData(prev => ({...prev, jRatio: Math.max(0, prev.jRatio - 1)}))}
-                  style={{ width:'100%', padding: '6px 0', borderRadius:'8px', border:'1px solid rgba(255,255,255,0.1)', background:'rgba(255,255,255,0.05)', fontSize:'12px', cursor:'pointer', color: '#fff' }}
+                  style={{ width:'100%', padding: '6px 0', borderRadius:'8px', border:'1px solid #ddd', background:'#fff', fontSize:'12px', cursor:'pointer' }}
                 >▼</button>
               </div>
             </div>
@@ -589,13 +587,13 @@ const RegisterForm = ({ onBack, onSuccess }) => {
                 <button
                   type="button"
                   onClick={() => setFormData(prev => ({...prev, kRatio: Math.min(10, prev.kRatio + 1)}))}
-                  style={{ width:'100%', padding: '6px 0', borderRadius:'8px', border:'1px solid rgba(255,255,255,0.1)', background:'rgba(255,255,255,0.05)', fontSize:'12px', cursor:'pointer', color: '#fff' }}
+                  style={{ width:'100%', padding: '6px 0', borderRadius:'8px', border:'1px solid #ddd', background:'#fff', fontSize:'12px', cursor:'pointer' }}
                 >▲</button>
                 <span style={{ fontSize:'20px', fontWeight:900, color:'#7F77DD' }}>{formData.kRatio}</span>
                 <button 
                   type="button"
                   onClick={() => setFormData(prev => ({...prev, kRatio: Math.max(0, prev.kRatio - 1)}))}
-                  style={{ width:'100%', padding: '6px 0', borderRadius:'8px', border:'1px solid rgba(255,255,255,0.1)', background:'rgba(255,255,255,0.05)', fontSize:'12px', cursor:'pointer', color: '#fff' }}
+                  style={{ width:'100%', padding: '6px 0', borderRadius:'8px', border:'1px solid #ddd', background:'#fff', fontSize:'12px', cursor:'pointer' }}
                 >▼</button>
               </div>
             </div>
@@ -603,30 +601,30 @@ const RegisterForm = ({ onBack, onSuccess }) => {
         </div>
 
         <div style={{ display: 'flex', gap: '8px', marginBottom: '24px' }}>
-          <div style={{ flex: 1.5 }}><label style={{ fontSize: '11px', fontWeight: 600, color: '#94A3B8', display: 'block', marginBottom: '4px' }}>날짜</label><input type="date" value={formData.date} onChange={e => setFormData({...formData, date: e.target.value})} required style={{ width: '100%', padding: '12px 8px', border: '1.5px solid rgba(255,255,255,0.1)', borderRadius: '12px', fontSize: '13px', backgroundColor: 'rgba(255,255,255,0.03)', color: '#F8FAFC' }} /></div>
+          <div style={{ flex: 1.5 }}><label style={{ fontSize: '11px', fontWeight: 600, color: '#6B7280', display: 'block', marginBottom: '4px' }}>날짜</label><input type="date" value={formData.date} onChange={e => setFormData({...formData, date: e.target.value})} required style={{ width: '100%', padding: '12px 8px', border: '1.5px solid #F3F4F6', borderRadius: '12px', fontSize: '13px' }} /></div>
           <div style={{ flex: 1 }}>
-            <label style={{ fontSize: '11px', fontWeight: 600, color: '#94A3B8', display: 'block', marginBottom: '4px' }}>시작</label>
+            <label style={{ fontSize: '11px', fontWeight: 600, color: '#6B7280', display: 'block', marginBottom: '4px' }}>시작</label>
             <select 
               value={formData.time} 
               onChange={e => setFormData({...formData, time: e.target.value})} 
-              style={{ width: '100%', padding: '12px 4px', border: '1.5px solid rgba(255,255,255,0.1)', borderRadius: '12px', fontSize: '12px', backgroundColor: 'rgba(26, 16, 51, 0.9)', color: '#F8FAFC' }}
+              style={{ width: '100%', padding: '12px 4px', border: '1.5px solid #F3F4F6', borderRadius: '12px', fontSize: '12px', backgroundColor: 'white' }}
             >
               {TIME_SLOTS.map(slot => <option key={`start-${slot.value}`} value={slot.value}>{slot.label}</option>)}
             </select>
           </div>
           <div style={{ flex: 1 }}>
-            <label style={{ fontSize: '11px', fontWeight: 600, color: '#94A3B8', display: 'block', marginBottom: '4px' }}>종료</label>
+            <label style={{ fontSize: '11px', fontWeight: 600, color: '#6B7280', display: 'block', marginBottom: '4px' }}>종료</label>
             <select 
               value={formData.end_time} 
               onChange={e => setFormData({...formData, end_time: e.target.value})} 
-              style={{ width: '100%', padding: '12px 4px', border: '1.5px solid rgba(255,255,255,0.1)', borderRadius: '12px', fontSize: '12px', backgroundColor: 'rgba(26, 16, 51, 0.9)', color: '#F8FAFC' }}
+              style={{ width: '100%', padding: '12px 4px', border: '1.5px solid #F3F4F6', borderRadius: '12px', fontSize: '12px', backgroundColor: 'white' }}
             >
               {TIME_SLOTS.map(slot => <option key={`end-${slot.value}`} value={slot.value}>{slot.label}</option>)}
             </select>
           </div>
         </div>
 
-        <button type="submit" disabled={loading || !formData.title || !formData.location_name || !formData.date || !formData.region} style={{ width: '100%', padding: '20px', background: '#FF3D47', color: 'white', borderRadius: '16px', fontWeight: 800, fontSize: '18px', border: 'none', boxShadow: '0 8px 30px rgba(229,57,53,0.4)', opacity: (loading || !formData.title || !formData.location_name || !formData.date || !formData.region) ? 0.5 : 1 }}>등록 완료</button>
+        <button type="submit" disabled={loading || !formData.title || !formData.location_name || !formData.date || !formData.region} style={{ width: '100%', padding: '20px', background: '#2ECC71', color: 'white', borderRadius: '16px', fontWeight: 800, fontSize: '18px', opacity: (loading || !formData.title || !formData.location_name || !formData.date || !formData.region) ? 0.5 : 1 }}>등록 완료</button>
       </form>
     </div>
   )
