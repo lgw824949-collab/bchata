@@ -2,24 +2,46 @@
   /* 아이폰 노치 및 하단 바 영역 보호 */
   --safe-top: env(safe-area-inset-top);
   --safe-bottom: env(safe-area-inset-bottom);
+
+  /* 🌌 BAMPPA Midnight Premium Theme Variables */
+  --color-primary: #FF3D47;      /* Vibrant Electric Red */
+  --color-primary-soft: rgba(255, 61, 71, 0.1);
+  --color-bg-start: #1A1033;    /* Deep Midnight Violet */
+  --color-bg-end: #0F172A;      /* Dark Space Navy */
+  --color-text-strong: #F8FAFC; /* Crisp White */
+  --color-text-mid: #94A3B8;    /* Silver Blue */
+  --color-text-soft: #64748B;   /* Slate */
+  --color-border: rgba(255, 255, 255, 0.08);
+  --glass-bg: rgba(255, 255, 255, 0.04);
+  --glass-blur: blur(16px);
+  
+  /* Design Tokens Mapping */
+  --bg-primary: var(--color-bg-start);
+  --bg-dark: #FFFFFF;
+  --accent: var(--color-primary);
+  --accent-soft: var(--color-primary-soft);
+  --text-main: var(--color-text-strong);
+  --text-muted: var(--color-text-mid);
+  --card-bg: var(--glass-bg);
+  --glass-border: var(--color-border);
+  --shadow-lg: 0 20px 40px rgba(0, 0, 0, 0.4);
+  --font-main: 'Pretendard Variable', Pretendard, -apple-system, BlinkMacSystemFont, system-ui, Roboto, sans-serif;
 }
 
-/* ✅ 전역 스크롤바 숨김 (모든 브라우저 및 기기) */
+/* ✅ 전역 스크롤바 숨김 */
 * {
-  -ms-overflow-style: none; /* IE, Edge */
-  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none;
+  scrollbar-width: none;
 }
-
-*::-webkit-scrollbar {
-  display: none; /* Chrome, Safari, Opera */
-}
+*::-webkit-scrollbar { display: none; }
 
 html, body {
   -webkit-text-size-adjust: none;
   margin: 0;
   padding: 0;
-  background-color: var(--color-bg);
+  background-color: var(--color-bg-start);
   min-height: 100vh;
+  color: var(--color-text-strong);
 }
 
 #root {
@@ -28,28 +50,20 @@ html, body {
   width: 100%;
 }
 
-html::-webkit-scrollbar,
-body::-webkit-scrollbar {
-  display: none;
-}
-
 .app-container {
   height: 100vh;
   overflow-y: auto;
-  /* ✅ 아이폰 전용: 손가락 끝에 붙는 부드러운 관성 스크롤 */
   -webkit-overflow-scrolling: touch; 
   scroll-behavior: smooth;
-  /* 핀치 줌(넓혔다 좁혔다) 허용 및 상하 스크롤 최적화 */
   touch-action: pan-y pinch-zoom; 
+  background: linear-gradient(180deg, var(--color-bg-start) 0%, var(--color-bg-end) 100%);
 }
 
-
-/* 터치 시 촌스러운 회색 음영 제거 */
-* { -webkit-tap-highlight-color: transparent; }
-
+/* 터치 시 회색 음영 제거 */
+* { -webkit-tap-highlight-color: transparent; box-sizing: border-box; }
 
 body {
-  font-family: 'Pretendard Variable', Pretendard, -apple-system, BlinkMacSystemFont, system-ui, Roboto, 'Helvetica Neue', 'Segoe UI', 'Apple SD Gothic Neo', 'Noto Sans KR', 'Malgun Gothic', sans-serif;
+  font-family: var(--font-main);
   letter-spacing: -0.02em;
   -webkit-font-smoothing: antialiased;
 }
@@ -358,8 +372,8 @@ body {
   height: 100dvh;
   overflow-y: auto;
   -webkit-overflow-scrolling: touch;
-  background: white;
-  box-shadow: 0 0 50px rgba(0,0,0,0.05);
+  background: transparent; /* Show global gradient */
+  box-shadow: 0 0 100px rgba(0,0,0,0.5);
   scroll-behavior: smooth;
   overscroll-behavior-y: contain;
 }
@@ -370,11 +384,13 @@ body {
 
 .tabs-container {
   padding-bottom: 8px;
-  border-bottom: 1px solid rgba(0,0,0,0.05);
+  border-bottom: 1px solid var(--color-border);
   position: sticky;
   top: env(safe-area-inset-top);
   z-index: 100;
-  background: white;
+  background: rgba(26, 16, 51, 0.85); /* Midnight Glass */
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
 }
 
 /* Calendar Navigation Polish */
@@ -388,19 +404,20 @@ body {
 .week-btn {
   padding: 4px 12px;
   border-radius: 10px;
-  background: #f1f5f9;
+  background: rgba(255,255,255,0.05);
   color: var(--text-muted);
   font-size: 11px;
   font-weight: 800;
   cursor: pointer;
   transition: all 0.2s;
-  border: 1px solid transparent;
+  border: 1px solid var(--color-border);
 }
 
 .week-btn.active {
-  background: var(--bg-dark);
+  background: var(--color-primary);
   color: white;
-  box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+  box-shadow: 0 4px 15px rgba(255, 61, 71, 0.3);
+  border-color: var(--color-primary);
 }
 
 .day-tabs {
@@ -429,16 +446,17 @@ body {
   display: flex;
   align-items: center;
   justify-content: center;
-  background: #f8fafc;
+  background: rgba(255,255,255,0.03);
   transition: all 0.3s;
-  border: 1px solid #f1f5f9;
+  border: 1px solid var(--color-border);
+  color: var(--color-text-mid);
 }
 
 .day-tab.active .date-num-wrapper {
-  background: var(--bg-dark);
+  background: var(--color-primary);
   color: white;
-  box-shadow: 0 8px 16px rgba(0,0,0,0.1);
-  border-color: var(--bg-dark);
+  box-shadow: 0 8px 16px rgba(255, 61, 71, 0.3);
+  border-color: var(--color-primary);
 }
 
 .date-num {
@@ -475,7 +493,10 @@ body {
   position: sticky;
   top: env(safe-area-inset-top);
   z-index: 100;
-  background: white;
+  background: rgba(26, 16, 51, 0.85);
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
+  border-bottom: 1px solid var(--color-border);
 }
 
 .brand-logo {
@@ -489,8 +510,8 @@ body {
   line-height: 1;
 }
 
-.logo-part-black { color: var(--bg-dark); }
-.logo-part-point { color: var(--accent); }
+.logo-part-black { color: var(--color-text-strong); }
+.logo-part-point { color: var(--color-primary); }
 
 .logo-tagline {
   font-size: 11px;
@@ -512,7 +533,7 @@ body {
 .month-label {
   font-size: 18px;
   font-weight: 800;
-  color: var(--bg-dark);
+  color: var(--color-text-strong);
   letter-spacing: -0.02em;
 }
 
@@ -541,19 +562,20 @@ body {
 .region-tab {
   padding: 8px 16px;
   border-radius: 20px;
-  background: #f1f5f9;
+  background: rgba(255,255,255,0.05);
   color: var(--text-muted);
   font-size: 13px;
   font-weight: 700;
   white-space: nowrap;
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  border: 1px solid transparent;
+  border: 1px solid var(--color-border);
 }
 
 .region-tab.active {
-  background: var(--bg-dark);
+  background: var(--color-primary);
   color: white;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+  box-shadow: 0 4px 15px rgba(255, 61, 71, 0.3);
+  border-color: var(--color-primary);
 }
 
 /* Card Grid Styling */
@@ -565,12 +587,12 @@ body {
 }
 
 .hnnss-card-new {
-  background: white;
+  background: rgba(255,255,255,0.03);
   border-radius: 20px;
   overflow: hidden;
-  border: 1px solid #f1f5f9;
+  border: 1px solid var(--color-border);
   transition: transform 0.3s, box-shadow 0.3s;
-  box-shadow: var(--shadow-sm);
+  box-shadow: 0 8px 24px rgba(0,0,0,0.2);
 }
 
 .hnnss-card-new:active { transform: scale(0.98); }
@@ -579,7 +601,7 @@ body {
   position: relative;
   aspect-ratio: 3/4;
   overflow: hidden;
-  background: #f1f5f9;
+  background: #1e293b;
 }
 
 .card-image {
@@ -630,7 +652,7 @@ body {
 .party-title {
   font-size: 14px;
   font-weight: 800;
-  color: var(--bg-dark);
+  color: var(--color-text-strong);
   margin-bottom: 8px;
   display: -webkit-box;
   -webkit-line-clamp: 1;
@@ -649,14 +671,14 @@ body {
   border-radius: 6px;
   font-size: 9px;
   font-weight: 700;
-  background: #f8fafc;
+  background: rgba(255,255,255,0.05);
   color: var(--text-muted);
 }
 
-.chip-region { background: var(--accent-soft); color: var(--accent); }
-.chip-fee { background: #fef2f2; color: #ef4444; }
-.chip-music { background: var(--color-bg-soft); color: var(--color-text-mid); }
-.chip-time { background: var(--color-bg-soft); color: var(--color-text-mid); }
+.chip-region { background: rgba(255, 61, 71, 0.15); color: #FF7077; }
+.chip-fee { background: rgba(59, 130, 246, 0.15); color: #60A5FA; }
+.chip-music { background: rgba(255,255,255,0.05); color: var(--color-text-mid); }
+.chip-time { background: rgba(255,255,255,0.05); color: var(--color-text-mid); }
 
 /* Bottom Nav Glassmorphism */
 .bottom-nav {
@@ -667,10 +689,10 @@ body {
   width: 100%;
   max-width: 500px;
   height: 72px;
-  background: rgba(255, 255, 255, 0.9);
-  backdrop-filter: blur(15px);
-  -webkit-backdrop-filter: blur(15px);
-  border-top: 1px solid rgba(0,0,0,0.05);
+  background: rgba(26, 16, 51, 0.8); /* Midnight Glass */
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
+  border-top: 1px solid var(--color-border);
   display: flex;
   justify-content: space-around;
   align-items: center;
@@ -690,7 +712,7 @@ body {
   flex: 1;
 }
 
-.nav-item.active { color: var(--bg-dark); }
+.nav-item.active { color: var(--color-text-strong); }
 
 /* Animation Classes */
 .animate-spin {
