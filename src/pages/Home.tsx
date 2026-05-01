@@ -185,6 +185,8 @@ const HomePage = ({
   const scrollRef = useRef(null);
   const regionListRef = useRef(null);
   const [filterStep, setFilterStep] = useState(1);
+  const [showGridModal, setShowGridModal] = useState(false);
+  const [gridRegion, setGridRegion] = useState('');
 
   useEffect(() => {
     const loadRegionalWeather = async () => {
@@ -371,8 +373,28 @@ const HomePage = ({
                       ref={isFirst ? regionListRef : null}
                       style={{ marginBottom: '15px', background: '#fff' }}
                     >
-                      <div style={{ fontSize: '18px', fontWeight: '900', padding: '15px', display: 'flex', alignItems: 'center', gap: '8px' }}><div style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#E53935' }} />{regionName}<ChevronRight size={18} color="#94A3B8" /></div>
-                      <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', padding: '0 15px 20px' }}>{regionParties.length === 0 ? <div style={{ padding: '30px', color: '#94A3B8', textAlign: 'center' }}>{t('no_parties')}</div> : regionParties.slice(0, 3).map(item => <PartyCard key={item.id} item={item} onSelect={setSelectedPoster} />)}</div>
+                      <div style={{ fontSize: '18px', fontWeight: '900', padding: '15px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                          <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#E53935' }} />
+                          {regionName}
+                        </div>
+                        <button 
+                          onClick={() => {
+                            setGridRegion(regionName);
+                            setShowGridModal(true);
+                          }}
+                          style={{ fontSize: '12px', fontWeight: '700', color: '#94A3B8', background: 'none', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '2px' }}
+                        >
+                          전체보기 <ChevronRight size={14} />
+                        </button>
+                      </div>
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', padding: '0 15px 20px' }}>
+                        {regionParties.length === 0 ? (
+                          <div style={{ padding: '30px', color: '#94A3B8', textAlign: 'center' }}>{t('no_parties')}</div>
+                        ) : (
+                          regionParties.slice(0, regionName === '서울' ? 3 : 2).map(item => <PartyCard key={item.id} item={item} onSelect={setSelectedPoster} />)
+                        )}
+                      </div>
                     </section>
                   );
                 });
@@ -516,6 +538,84 @@ const HomePage = ({
                     </div>
                     <button onClick={() => { setShowFullCalendar(false); setShowFilterPanel(false); setShowFilteredResults(false); }} style={{ width: '100%', height: '54px', borderRadius: '16px', background: '#1E293B', color: '#fff', fontSize: '16px', fontWeight: 800, border: 'none' }}>확인 완료</button>
                   </motion.div>
+                )}
+              </div>
+            </motion.div>
+          </>
+        )}
+      </AnimatePresence>
+
+      <AnimatePresence>
+        {showGridModal && (
+          <>
+            <motion.div 
+              initial={{ opacity: 0 }} 
+              animate={{ opacity: 1 }} 
+              exit={{ opacity: 0 }} 
+              onClick={() => setShowGridModal(false)} 
+              style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.85)', backdropFilter: 'blur(10px)', zIndex: 150000 }} 
+            />
+            <motion.div 
+              initial={{ y: '100%' }} 
+              animate={{ y: 0 }} 
+              exit={{ y: '100%' }} 
+              transition={{ type: 'spring', damping: 25, stiffness: 200 }}
+              style={{ 
+                position: 'fixed', 
+                inset: 0, 
+                background: '#000', 
+                zIndex: 150001, 
+                display: 'flex', 
+                flexDirection: 'column' 
+              }}
+            >
+              {/* 상단 바 */}
+              <div style={{ height: '60px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0 20px', borderBottom: '1px solid rgba(255,255,255,0.1)' }}>
+                <div style={{ color: '#fff', fontSize: '18px', fontWeight: '900', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#E53935' }} />
+                  {gridRegion} 전체보기
+                </div>
+                <button 
+                  onClick={() => setShowGridModal(false)}
+                  style={{ background: 'rgba(255,255,255,0.1)', border: 'none', borderRadius: '50%', width: '36px', height: '36px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff' }}
+                >
+                  <X size={20} />
+                </button>
+              </div>
+
+              {/* 그리드 본문 */}
+              <div style={{ flex: 1, overflowY: 'auto', padding: '2px' }}>
+                <div style={{ 
+                  display: 'grid', 
+                  gridTemplateColumns: gridRegion === '서울' ? 'repeat(3, 1fr)' : 'repeat(2, 1fr)', 
+                  gap: '2px' 
+                }}>
+                  {(() => {
+                    const filtered = filteredParties.filter(p => REGION_FILTER[gridRegion](p));
+                    return filtered.map(item => (
+                      <div 
+                        key={item.id} 
+                        onClick={() => {
+                          setShowGridModal(false);
+                          setSelectedPoster(item.poster_url);
+                        }}
+                        style={{ aspectRatio: '3/4', overflow: 'hidden', background: '#111', position: 'relative' }}
+                      >
+                        <img 
+                          src={item.poster_url} 
+                          alt="Poster" 
+                          style={{ width: '100%', height: '100%', objectFit: 'cover' }} 
+                        />
+                        {/* 간단 정보 오버레이 */}
+                        <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, padding: '8px 5px', background: 'linear-gradient(transparent, rgba(0,0,0,0.8))', color: '#fff' }}>
+                          <div style={{ fontSize: '10px', fontWeight: '800', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{item.locationName}</div>
+                        </div>
+                      </div>
+                    ));
+                  })()}
+                </div>
+                {filteredParties.filter(p => REGION_FILTER[gridRegion](p)).length === 0 && (
+                  <div style={{ padding: '100px 0', textAlign: 'center', color: '#64748B', fontWeight: '700' }}>해당 지역에 등록된 파티가 없습니다.</div>
                 )}
               </div>
             </motion.div>
