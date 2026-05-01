@@ -332,12 +332,9 @@ const HomePage = ({
               )}
               {IncheonBanner && <IncheonBanner />}
               {(() => {
-                const today = new Date().toISOString().split('T')[0];
-                const dayParties = parties.filter(p => p.date >= today);
-
                 const regions = filterRegion ? [filterRegion] : ["서울", "경기/인천", "경상도", "전라도", "충청도", "강원/제주"];
                 return regions.map((regionName) => {
-                  const regionParties = dayParties.filter(p => {
+                  const regionParties = filteredParties.filter(p => {
 
                     // 1. 지역 조건 매칭
                     if (!REGION_FILTER[regionName](p)) return false;
