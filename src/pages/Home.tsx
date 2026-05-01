@@ -252,6 +252,14 @@ const HomePage = ({
           <div style={{ flex: 1, display: 'flex', overflowX: 'auto', gap: '8px', padding: '5px 0', msOverflowStyle: 'none', scrollbarWidth: 'none', WebkitOverflowScrolling: 'touch' }} className="date-stream-bar">
             {fourteenDays.map((item) => {
               const isSelected = selectedDate === item.fullDate;
+              // 일요일(0) 또는 5월 5일(어린이날)은 빨간색
+              const isHoliday = item.dayOfWeek === 0 || (item.month === '5' && item.date === '5');
+              // 토요일(6)은 파란색
+              const isSaturday = item.dayOfWeek === 6;
+              
+              const dayColor = isSelected ? '#fff' : (isHoliday ? '#E53935' : (isSaturday ? '#2563EB' : '#94A3B8'));
+              const labelColor = isSelected ? (isHoliday ? '#E53935' : (isSaturday ? '#2563EB' : '#E53935')) : (isHoliday ? '#E53935' : (isSaturday ? '#2563EB' : '#94A3B8'));
+
               return (
                 <div key={item.fullDate} 
                   onClick={() => {
@@ -263,9 +271,9 @@ const HomePage = ({
                   }} 
                   style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minWidth: '13.5%', cursor: 'pointer' }}
                 >
-                  <span style={{ fontSize: '10px', fontWeight: '700', color: isSelected ? '#E53935' : '#94A3B8', marginBottom: '2px' }}>{item.dayName}</span>
-                  <div style={{ width: '30px', height: '30px', borderRadius: '10px', display: 'flex', alignItems: 'center', justifyContent: 'center', backgroundColor: isSelected ? '#E53935' : 'transparent', border: item.isToday && !isSelected ? '1px solid #E53935' : 'none' }}>
-                    <span style={{ fontSize: '15px', fontWeight: '800', color: isSelected ? '#fff' : (item.isToday ? '#E53935' : '#94A3B8') }}>{item.date}</span>
+                  <span style={{ fontSize: '10px', fontWeight: '700', color: labelColor, marginBottom: '2px' }}>{item.dayName}</span>
+                  <div style={{ width: '30px', height: '30px', borderRadius: '10px', display: 'flex', alignItems: 'center', justifyContent: 'center', backgroundColor: isSelected ? (isHoliday ? '#E53935' : (isSaturday ? '#2563EB' : '#E53935')) : 'transparent', border: item.isToday && !isSelected ? '1px solid #E53935' : 'none' }}>
+                    <span style={{ fontSize: '15px', fontWeight: '800', color: isSelected ? '#fff' : dayColor }}>{item.date}</span>
                   </div>
                 </div>
               );
