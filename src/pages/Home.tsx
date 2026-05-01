@@ -263,7 +263,7 @@ const HomePage = ({
           </div>
         </div>
 
-        <FilterBar filterRegion={filterRegion} setFilterRegion={setFilterRegion} filterGenre={filterGenre} setFilterGenre={setFilterGenre} />
+
 
         <div style={{ padding: '2px 10px 8px' }}>
           <div style={{ height: '32px', background: '#000', borderRadius: '16px', display: 'flex', alignItems: 'center', overflow: 'hidden', padding: '0 12px' }}>
