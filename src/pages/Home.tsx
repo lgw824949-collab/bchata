@@ -127,55 +127,12 @@ const RollingContainer = ({ items, onSelect }) => {
   );
 };
 
-const FilterBar = ({ filterRegion, setFilterRegion, filterGenre, setFilterGenre }) => {
-  const regions = ['서울', '경기/인천', '경상도', '전라도', '충청도', '강원/제주'];
-  const genres = Object.keys(GENRE_MAP);
-  return (
-    <div style={{ padding: '0 15px 12px', background: '#fff', display: 'flex', flexDirection: 'column', gap: '12px' }}>
-      <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-        <div style={{ color: '#94A3B8' }}><MapPin size={16} /></div>
-        <div style={{ flex: 1, display: 'flex', overflowX: 'auto', gap: '12px', msOverflowStyle: 'none', scrollbarWidth: 'none', WebkitOverflowScrolling: 'touch' }} className="filter-scroll">
-          {regions.map(r => (
-            <button key={r} 
-              onClick={() => {
-                const newVal = filterRegion === r ? '' : r;
-                console.log('지역 선택:', newVal);
-                setFilterRegion(newVal);
-              }} 
-              style={{ padding: '6px 12px', borderRadius: '8px', fontSize: '12px', fontWeight: 700, whiteSpace: 'nowrap', border: 'none', background: filterRegion === r ? '#E53935' : '#F1F5F9', color: filterRegion === r ? '#fff' : '#64748B', transition: 'all 0.2s' }}
-            >
-              {r}
-            </button>
-          ))}
-        </div>
-      </div>
-      <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-        <div style={{ color: '#94A3B8' }}><Music size={16} /></div>
-        <div style={{ flex: 1, display: 'flex', overflowX: 'auto', gap: '12px', msOverflowStyle: 'none', scrollbarWidth: 'none', WebkitOverflowScrolling: 'touch' }} className="filter-scroll">
-          {genres.map(g => (
-            <button key={g} 
-              onClick={() => {
-                const newVal = filterGenre === g ? '' : g;
-                console.log('장르 선택:', newVal);
-                setFilterGenre(newVal);
-              }} 
-              style={{ padding: '6px 12px', borderRadius: '8px', fontSize: '12px', fontWeight: 700, whiteSpace: 'nowrap', border: 'none', background: filterGenre === g ? '#1E293B' : '#F1F5F9', color: filterGenre === g ? '#fff' : '#64748B', transition: 'all 0.2s' }}
-            >
-              {g}
-            </button>
-          ))}
-        </div>
-      </div>
-    </div>
-  );
-};
-
 const HomePage = ({ 
   parties, lessons, loading, selectedMonth, setSelectedMonth, selectedWeek, setSelectedWeek, 
   selectedDate, setSelectedDate, selectedRegion, setSelectedRegion, isExpanded, setIsExpanded,
   view, setView, setSelectedPoster, fetchParties, formatItemDate, formatFee, filteredParties, weekData,
   resetToToday, showFullCalendar, setShowFullCalendar, likedIds, toggleLike, logActivity, handleRegister, fourteenDays,
-  showFilterPanel, setShowFilterPanel, filterRegion, setFilterRegion, filterGenre, setFilterGenre,
+  showFilterPanel, setShowFilterPanel,
   showFilteredResults, setShowFilteredResults, isMenuOpen, setIsMenuOpen, showWeather, setShowWeather,
   showLatinModal, setShowLatinModal, setShowSaju, latinCat, setLatinCat, selPatternId, setSelPatternId, regionalTheme, recordTraffic, IncheonBanner, venueCounts, openAnalysis
 }) => {
@@ -183,7 +140,6 @@ const HomePage = ({
   const [isPaused, setIsPaused] = useState(false);
   const [weatherMap, setWeatherMap] = useState({});
   const scrollRef = useRef(null);
-  const [filterStep, setFilterStep] = useState(1);
 
   useEffect(() => {
     const loadRegionalWeather = async () => {
@@ -263,8 +219,6 @@ const HomePage = ({
           </div>
         </div>
 
-        <FilterBar filterRegion={filterRegion} setFilterRegion={setFilterRegion} filterGenre={filterGenre} setFilterGenre={setFilterGenre} />
-
         <div style={{ padding: '2px 10px 8px' }}>
           <div style={{ height: '32px', background: '#000', borderRadius: '16px', display: 'flex', alignItems: 'center', overflow: 'hidden', padding: '0 12px' }}>
             <button onClick={() => setIsPaused(!isPaused)} style={{ background: isPaused ? '#E53935' : 'rgba(255,255,255,0.2)', border: 'none', borderRadius: '12px', color: '#fff', fontSize: '10px', fontWeight: '900', padding: '4px 8px', marginRight: '10px', cursor: 'pointer' }}>{isPaused ? '▶ PLAY' : '⏸ STOP'}</button>
@@ -275,7 +229,7 @@ const HomePage = ({
         </div>
       </div>
 
-      <main ref={scrollRef} style={{ flex: 1, WebkitOverflowScrolling: 'touch', width: '100%', padding: '250px 0 0 0', background: '#fff', overflowY: 'auto' }}>
+      <main ref={scrollRef} style={{ flex: 1, WebkitOverflowScrolling: 'touch', width: '100%', padding: '200px 0 0 0', background: '#fff', overflowY: 'auto' }}>
         <div style={{ minHeight: '101%', paddingBottom: '80px' }}>
           {loading ? (
             <div style={{ display: 'flex', flexDirection: 'column', marginTop: '120px' }}>{Array(6).fill(0).map((_, i) => <div key={i} style={{ height: '140px', width: '100%', background: '#f9f9f9', borderBottom: '1px solid #eee' }} />)}</div>
@@ -286,7 +240,6 @@ const HomePage = ({
                 <div style={{ margin: '0 0 15px', padding: '10px 0 20px', background: '#fff', borderBottom: '1px solid #eee' }}>
                   <div style={{ padding: '0 20px 15px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                     <h2 style={{ fontSize: '18px', fontWeight: '950', color: '#1E293B', display: 'flex', alignItems: 'center', gap: '8px' }}><span style={{ color: '#E53935' }}>HOT</span> PICK 5</h2>
-                    {/* 언어 토글 버튼 이동 배치 */}
                     <motion.button
                       whileTap={{ scale: 0.9 }}
                       onClick={() => i18n.changeLanguage(i18n.language.startsWith('ko') ? 'en' : 'ko')}
@@ -334,26 +287,9 @@ const HomePage = ({
               {(() => {
                 const today = new Date().toISOString().split('T')[0];
                 const dayParties = parties.filter(p => p.date >= today);
-                console.log('전체 파티:', parties.length);
-                console.log('오늘이후 파티:', dayParties.length);
-                console.log('filterRegion:', filterRegion);
-                console.log('filterGenre:', filterGenre);
-                const regions = filterRegion ? [filterRegion] : ["서울", "경기/인천", "경상도", "전라도", "충청도", "강원/제주"];
+                const regions = ["서울", "경기/인천", "경상도", "전라도", "충청도", "강원/제주"];
                 return regions.map((regionName) => {
-                  const regionParties = dayParties.filter(p => {
-                    console.log(`[${regionName} 체크] 파티:`, p.title, 'broadRegion:', p.broadRegion, 'cityName:', p.cityName);
-                    // 1. 지역 조건 매칭
-                    if (!REGION_FILTER[regionName](p)) return false;
-                    
-                    // 2. 장르 조건 매칭
-                    if (filterGenre && GENRE_MAP[filterGenre]) {
-                      if (!(p[GENRE_MAP[filterGenre].key] > 0)) return false;
-                    }
-                    return true;
-                  });
-                  if (regionName === '서울') {
-                    console.log('서울 필터결과:', regionParties.length);
-                  }
+                  const regionParties = dayParties.filter(p => REGION_FILTER[regionName](p));
                   return (
                     <section key={regionName} style={{ marginBottom: '15px', background: '#fff' }}>
                       <div style={{ fontSize: '18px', fontWeight: '900', padding: '15px', display: 'flex', alignItems: 'center', gap: '8px' }}><div style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#E53935' }} />{regionName}<ChevronRight size={18} color="#94A3B8" /></div>
@@ -370,16 +306,16 @@ const HomePage = ({
       <AnimatePresence>
         {showFullCalendar && (
           <>
-            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={() => { setShowFullCalendar(false); setShowFilterPanel(false); setShowFilteredResults(false); }} style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.6)', backdropFilter: 'blur(4px)', zIndex: 100004 }} />
+            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={() => { setShowFullCalendar(false); setShowFilteredResults(false); }} style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.6)', backdropFilter: 'blur(4px)', zIndex: 100004 }} />
             <motion.div initial={{ y: '100%', opacity: 0 }} animate={{ y: 0, opacity: 1 }} exit={{ y: '100%', opacity: 0 }} transition={{ type: 'spring', damping: 25, stiffness: 200 }} style={{ position: 'fixed', bottom: '90px', left: '10px', right: '10px', background: '#fff', borderRadius: '24px', padding: '20px', boxShadow: '0 10px 40px rgba(0,0,0,0.25)', zIndex: 100005, border: '1px solid #f1f5f9', display: 'flex', flexDirection: 'column', maxHeight: '85vh' }}>
               <div style={{ width: '40px', height: '4px', background: '#E2E8F0', borderRadius: '2px', margin: '0 auto 20px' }} />
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}><span style={{ fontSize: '24px', fontWeight: 950, color: '#1E293B' }}>{selectedMonth}월</span><div style={{ display: 'flex', gap: '8px' }}><button onClick={() => setSelectedMonth(m => m > 1 ? m-1 : 12)} style={{ background: '#F8FAFC', border: '1px solid #F1F5F9', borderRadius: '10px', width: '36px', height: '36px' }}><ChevronLeft size={18} /></button><button onClick={() => setSelectedMonth(m => m < 12 ? m+1 : 1)} style={{ background: '#F8FAFC', border: '1px solid #F1F5F9', borderRadius: '10px', width: '36px', height: '36px' }}><ChevronRight size={18} /></button></div></div>
-                <button onClick={() => { setShowFullCalendar(false); setShowFilterPanel(false); setShowFilteredResults(false); }} style={{ background: '#F1F5F9', border: 'none', borderRadius: '50%', width: '40px', height: '40px' }}><X size={22} /></button>
+                <button onClick={() => { setShowFullCalendar(false); setShowFilteredResults(false); }} style={{ background: '#F1F5F9', border: 'none', borderRadius: '50%', width: '40px', height: '40px' }}><X size={22} /></button>
               </div>
               
               <div style={{ flex: 1, overflowY: 'auto', minHeight: '350px' }}>
-                {!showFilterPanel && !showFilteredResults ? (
+                {!showFilteredResults ? (
                   <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: '5px', textAlign: 'center' }}>
                     {['일','월','화','수','목','금','토'].map(d => <div key={d} style={{ fontSize: '12px', fontWeight: 700, color: d === '일' ? '#FF4D4D' : d === '토' ? '#D4A017' : '#999', padding: '5px 0' }}>{d}</div>)}
                     {allDatesInMonth.map((day) => {
@@ -391,9 +327,7 @@ const HomePage = ({
                           key={day.fullDate} 
                           onClick={() => { 
                             setSelectedDate(day.fullDate); 
-                            // 모든 날짜 클릭 시 3단계 필터 플로우 활성화
-                            setShowFilterPanel(true);
-                            setFilterStep(1);
+                            setShowFilteredResults(true);
                           }} 
                           style={{ height: '46px', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', fontSize: '15px', fontWeight: isSelected ? 800 : 600, color: isSelected ? '#fff' : (day.dayName === '일' ? '#EF4444' : (isWeekend ? '#D4A017' : '#1E293B')), backgroundColor: isSelected ? (isWeekend ? '#D4A017' : '#E53935') : 'transparent', borderRadius: '14px', cursor: 'pointer' }}
                         >
@@ -402,60 +336,16 @@ const HomePage = ({
                       );
                     })}
                   </div>
-                ) : showFilterPanel && !showFilteredResults ? (
-                  <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }}>
-                    {filterStep === 1 ? (
-                      <>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '20px' }}>
-                          <button onClick={() => setShowFilterPanel(false)} style={{ background: '#F8FAFC', border: 'none', borderRadius: '10px', padding: '8px 12px', fontSize: '13px', fontWeight: 700, color: '#64748B', display: 'flex', alignItems: 'center', gap: '4px' }}><ChevronLeft size={16} /> 달력으로</button>
-                        </div>
-                        <div style={{ fontSize: '18px', fontWeight: 950, color: '#1E293B', marginBottom: '15px' }}>{t('filter_where')}</div>
-                        <div style={{ display: 'flex', overflowX: 'auto', gap: '10px', paddingBottom: '15px', msOverflowStyle: 'none', scrollbarWidth: 'none', WebkitOverflowScrolling: 'touch' }}>
-                          {['서울', '경기/인천', '부산', '대구', '대전', '광주', '기타'].map(r => (
-                            <button key={r} onClick={() => { setFilterRegion(r); setFilterStep(2); }} style={{ flexShrink: 0, padding: '14px 24px', borderRadius: '14px', background: filterRegion === r ? '#E53935' : '#F8FAFC', color: filterRegion === r ? '#fff' : '#64748B', fontWeight: 700, border: 'none', transition: 'all 0.2s' }}>{r}</button>
-                          ))}
-                        </div>
-                      </>
-                    ) : (
-                      <>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '20px' }}>
-                          <button onClick={() => setFilterStep(1)} style={{ background: '#F8FAFC', border: 'none', borderRadius: '10px', padding: '8px 12px', fontSize: '13px', fontWeight: 700, color: '#64748B', display: 'flex', alignItems: 'center', gap: '4px' }}><ChevronLeft size={16} /> 지역 다시 선택</button>
-                        </div>
-                        <div style={{ fontSize: '18px', fontWeight: 950, color: '#1E293B', marginBottom: '15px' }}>{t('filter_genre')}</div>
-                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
-                          {['Bachata', 'Salsa', 'Zouk', 'Kizomba'].map(g => (
-                            <button key={g} onClick={() => { setFilterGenre(g); setShowFilteredResults(true); }} style={{ padding: '24px 15px', borderRadius: '18px', background: filterGenre === g ? '#1E293B' : '#F8FAFC', color: filterGenre === g ? '#fff' : '#64748B', fontWeight: 800, fontSize: '16px', border: 'none' }}>{g}</button>
-                          ))}
-                        </div>
-                      </>
-                    )}
-                  </motion.div>
                 ) : (
                   <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '20px' }}>
-                      <button onClick={() => { setShowFilteredResults(false); setFilterStep(2); }} style={{ background: '#F8FAFC', border: 'none', borderRadius: '10px', padding: '8px 12px', fontSize: '13px', fontWeight: 700, color: '#64748B', display: 'flex', alignItems: 'center', gap: '4px' }}><ChevronLeft size={16} /> 장르 다시 선택</button>
+                      <button onClick={() => { setShowFilteredResults(false); }} style={{ background: '#F8FAFC', border: 'none', borderRadius: '10px', padding: '8px 12px', fontSize: '13px', fontWeight: 700, color: '#64748B', display: 'flex', alignItems: 'center', gap: '4px' }}><ChevronLeft size={16} /> 달력으로</button>
                     </div>
                     <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '10px', marginBottom: '20px' }}>
                       {(() => {
-                        const today = new Date().toISOString().split('T')[0];
-                        const filtered = parties.filter(p => {
-                          // 오늘 이후만
-                          if (p.date < today) return false;
-                          
-                          // 지역 필터 적용
-                          if (filterRegion && REGION_FILTER[filterRegion]) {
-                            if (!REGION_FILTER[filterRegion](p)) return false;
-                          }
-
-                          // 장르 필터 적용
-                          if (filterGenre && GENRE_MAP[filterGenre]) {
-                            if (!(p[GENRE_MAP[filterGenre].key] > 0)) return false;
-                          }
-                          return true;
-                        });
-
+                        const filtered = parties.filter(p => p.date === selectedDate);
                         return filtered.length === 0 ? (
-                          <div style={{ gridColumn: 'span 2', padding: '60px 0', textAlign: 'center', color: '#94A3B8', fontWeight: 700 }}>해당 조건의 파티가 없습니다 😅</div>
+                          <div style={{ gridColumn: 'span 2', padding: '60px 0', textAlign: 'center', color: '#94A3B8', fontWeight: 700 }}>해당 날짜의 파티가 없습니다 😅</div>
                         ) : (
                           filtered.map(party => {
                             const cleanTitle = party.title?.split(' ㅣ ')[0] || '';
@@ -497,7 +387,7 @@ const HomePage = ({
                         );
                       })()}
                     </div>
-                    <button onClick={() => { setShowFullCalendar(false); setShowFilterPanel(false); setShowFilteredResults(false); }} style={{ width: '100%', height: '54px', borderRadius: '16px', background: '#1E293B', color: '#fff', fontSize: '16px', fontWeight: 800, border: 'none' }}>확인 완료</button>
+                    <button onClick={() => { setShowFullCalendar(false); setShowFilteredResults(false); }} style={{ width: '100%', height: '54px', borderRadius: '16px', background: '#1E293B', color: '#fff', fontSize: '16px', fontWeight: 800, border: 'none' }}>확인 완료</button>
                   </motion.div>
                 )}
               </div>
@@ -505,42 +395,8 @@ const HomePage = ({
           </>
         )}
       </AnimatePresence>
-
-      {/* 📌 [그리드 모달: 필터 선택 시 활성화] */}
-      {(filterRegion || filterGenre) && (
-        <div style={{ position: 'fixed', inset: 0, zIndex: 99999, background: '#000', display: 'flex', flexDirection: 'column' }}>
-          {/* 상단바 */}
-          <div style={{ height: '50px', background: '#000', display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0 15px', borderBottom: '1px solid #333' }}>
-            <div style={{ color: '#fff', fontSize: '16px', fontWeight: '800' }}>{filterRegion || filterGenre}</div>
-            <div onClick={() => { setFilterRegion(''); setFilterGenre(''); }} style={{ color: '#fff', cursor: 'pointer' }}>
-              <X size={24} />
-            </div>
-          </div>
-          
-          {/* 본문: 포스터 그리드 */}
-          <div style={{ flex: 1, overflowY: 'auto', background: '#000' }}>
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '2px', width: '100%' }}>
-              {(() => {
-                const today = new Date().toISOString().split('T')[0];
-                return parties
-                  .filter(p => p.date >= today)
-                  .filter(p => !filterRegion || REGION_FILTER[filterRegion]?.(p))
-                  .filter(p => {
-                    if (!filterGenre || !GENRE_MAP[filterGenre]) return true;
-                    return (p[GENRE_MAP[filterGenre].key] || 0) > 0;
-                  })
-                  .map(p => (
-                    <div key={p.id} onClick={() => setSelectedPoster(p.poster_url)} style={{ aspectRatio: '3/4', width: '100%' }}>
-                      <img src={p.poster_url} alt="poster" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                    </div>
-                  ));
-              })()}
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   )
 }
 
-export default HomePage
+export default HomePage;
