@@ -502,42 +502,6 @@ const HomePage = ({
           </>
         )}
       </AnimatePresence>
-
-      <AnimatePresence>
-        {selectedPoster && (
-          <motion.div 
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            onClick={() => setSelectedPoster(null)}
-            style={{
-              position: 'fixed',
-              inset: 0,
-              background: '#000',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              zIndex: 200000,
-              padding: 0
-            }}
-          >
-            <motion.img 
-              initial={{ scale: 0.9, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              exit={{ scale: 0.9, opacity: 0 }}
-              src={selectedPoster} 
-              style={{ 
-                width: '100%', 
-                height: '100%', 
-                objectFit: 'contain'
-              }} 
-            />
-            <div style={{ position: 'absolute', top: '25px', right: '20px', color: 'white', cursor: 'pointer', background: 'rgba(0,0,0,0.5)', borderRadius: '50%', padding: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-              <X size={32} />
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
     </div>
   )
 }

@@ -58,7 +58,7 @@ const PosterModal = ({ src, onClose }) => {
       >✕</button>
 
       {/* 줌 컨테이너 */}
-      <div style={{ width: '100%', height: '85vh', position: 'relative', overflow: 'hidden' }}>
+      <div style={{ width: '100%', height: '100vh', position: 'relative', overflow: 'hidden' }}>
         <QuickPinchZoom onUpdate={onUpdate} wheelScaleFactor={500} tapZoomFactor={2}>
           <img 
             ref={imgRef}
