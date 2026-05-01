@@ -114,7 +114,7 @@ const RollingContainer = ({ items, onSelect }) => {
 
 const FilterBar = ({ filterRegion, setFilterRegion, filterGenre, setFilterGenre }) => {
   const regions = ['서울', '경기/인천', '경상', '전라', '충청', '강원/제주'];
-  const genres = ['Bachata', 'Salsa', 'Zouk', 'Kizomba'];
+  const genres = ['바차타', '살사', '쥬크', '키좀바'];
   return (
     <div style={{ padding: '0 15px 12px', background: '#fff', display: 'flex', flexDirection: 'column', gap: '12px' }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
@@ -315,10 +315,10 @@ const HomePage = ({
 
                     // 2. 장르 조건 매칭 (선택된 장르가 있을 경우만)
                     if (!filterGenre) return true;
-                    if (filterGenre === 'Bachata') return (p.b_ratio || 0) > 0;
-                    if (filterGenre === 'Salsa') return (p.s_ratio || 0) > 0;
-                    if (filterGenre === 'Zouk') return (p.j_ratio || 0) > 0;
-                    if (filterGenre === 'Kizomba') return (p.k_ratio || 0) > 0;
+                    if (filterGenre === '바차타') return (p.b_ratio || 0) > 0;
+                    if (filterGenre === '살사') return (p.s_ratio || 0) > 0;
+                    if (filterGenre === '쥬크') return (p.j_ratio || 0) > 0;
+                    if (filterGenre === '키좀바') return (p.k_ratio || 0) > 0;
                     return false;
                   });
                   return (
@@ -422,10 +422,10 @@ const HomePage = ({
                           if (!matchesRegion) return false;
 
                           // 장르 필터 (음악비율 기반)
-                          if (filterGenre === 'Bachata') return (p.b_ratio || 0) > 0;
-                          if (filterGenre === 'Salsa') return (p.s_ratio || 0) > 0;
-                          if (filterGenre === 'Zouk') return (p.j_ratio || 0) > 0;
-                          if (filterGenre === 'Kizomba') return (p.k_ratio || 0) > 0;
+                          if (filterGenre === '바차타') return (p.b_ratio || 0) > 0;
+                          if (filterGenre === '살사') return (p.s_ratio || 0) > 0;
+                          if (filterGenre === '쥬크') return (p.j_ratio || 0) > 0;
+                          if (filterGenre === '키좀바') return (p.k_ratio || 0) > 0;
                           return false;
                         });
 
