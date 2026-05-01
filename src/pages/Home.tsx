@@ -8,11 +8,11 @@ import { KMA_REGION_COORDS, fetchWeatherForecast, parseKmaWeather, HOME_REGION_M
 
 const DAYS_KOR = ['일', '월', '화', '수', '목', '금', '토'];
 
-const GENRE_FILTER = {
-  '바차타': (p) => (p.b_ratio || 0) > 0,
-  '살사': (p) => (p.s_ratio || 0) > 0,
-  '쥬크': (p) => (p.j_ratio || 0) > 0,
-  '키좀바': (p) => (p.k_ratio || 0) > 0,
+const GENRE_MAP = {
+  '바차타': { key: 'b_ratio', label: 'B', color: '#059669' },
+  '살사':   { key: 's_ratio', label: 'S', color: '#DC2626' },
+  '쥬크':   { key: 'j_ratio', label: 'J', color: '#F59E0B' },
+  '키좀바': { key: 'k_ratio', label: 'K', color: '#7C3AED' },
 };
 
 const REGION_FILTER = {
@@ -103,10 +103,9 @@ const PartyCard = ({ item, onSelect }) => {
           </span>
           {/* 음악비율 그룹박스 */}
           <div style={{ display: 'flex', alignItems: 'center', gap: '4px', background: '#F8FAFC', border: '1px solid #E5E7EB', borderRadius: '99px', padding: '3px 8px' }}>
-            {item.s_ratio > 0 && <span style={{ color: '#DC2626', fontWeight: '700', fontSize: '10px' }}>S{item.s_ratio}</span>}
-            {item.b_ratio > 0 && <span style={{ color: '#059669', fontWeight: '700', fontSize: '10px' }}>B{item.b_ratio}</span>}
-            {item.k_ratio > 0 && <span style={{ color: '#7C3AED', fontWeight: '700', fontSize: '10px' }}>K{item.k_ratio}</span>}
-            {item.j_ratio > 0 && <span style={{ color: '#F59E0B', fontWeight: '700', fontSize: '10px' }}>J{item.j_ratio}</span>}
+            {Object.entries(GENRE_MAP).map(([name, info]) => (
+              item[info.key] > 0 && <span key={name} style={{ color: info.color, fontWeight: '700', fontSize: '10px' }}>{info.label}{item[info.key]}</span>
+            ))}
           </div>
         </div>
       </div>
@@ -130,7 +129,7 @@ const RollingContainer = ({ items, onSelect }) => {
 
 const FilterBar = ({ filterRegion, setFilterRegion, filterGenre, setFilterGenre }) => {
   const regions = ['서울', '경기/인천', '경상도', '전라도', '충청도', '강원/제주'];
-  const genres = ['바차타', '살사', '쥬크', '키좀바'];
+  const genres = Object.keys(GENRE_MAP);
   return (
     <div style={{ padding: '0 15px 12px', background: '#fff', display: 'flex', flexDirection: 'column', gap: '12px' }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
@@ -302,7 +301,9 @@ const HomePage = ({
                                 <span style={{ background: 'rgba(255,255,255,0.2)', padding: '1px 4px', borderRadius: '4px' }}>{(() => { const d = new Date(item.date); return `${d.getMonth() + 1}/${d.getDate()}(${DAYS_KOR[d.getDay()]})`; })()}</span>
                                 <span style={{ background: 'rgba(255,255,255,0.2)', padding: '1px 4px', borderRadius: '4px' }}>{item.time?.split('-')[0].trim() || '21:00'}</span>
                                 <span style={{ background: 'rgba(255,235,59,0.3)', color: '#FFEB3B', padding: '1px 4px', borderRadius: '4px' }}>{(() => { if (!item.fee) return '1.2만'; const f = String(item.fee); if (f.includes('만')) return f.replace('원', ''); const num = parseInt(f.replace(/[^0-9]/g, '')); if (isNaN(num)) return f; return (num/10000).toFixed(1).replace('.0', '') + '만'; })()}</span>
-                                <span style={{ background: 'rgba(229,57,53,0.5)', padding: '1px 4px', borderRadius: '4px' }}>S{item.s_ratio}B{item.b_ratio}</span>
+                                <span style={{ background: 'rgba(255,255,255,0.2)', padding: '1px 4px', borderRadius: '4px' }}>
+                                  {Object.entries(GENRE_MAP).filter(([_, info]) => item[info.key] > 0).map(([_, info]) => `${info.label}${item[info.key]}`).join('')}
+                                </span>
                               </div>
                             </div>
                         </div>
@@ -326,8 +327,8 @@ const HomePage = ({
                     if (!REGION_FILTER[regionName](p)) return false;
                     
                     // 2. 장르 조건 매칭
-                    if (filterGenre && GENRE_FILTER[filterGenre]) {
-                      if (!GENRE_FILTER[filterGenre](p)) return false;
+                    if (filterGenre && GENRE_MAP[filterGenre]) {
+                      if (!(p[GENRE_MAP[filterGenre].key] > 0)) return false;
                     }
                     return true;
                   });
@@ -425,8 +426,8 @@ const HomePage = ({
                           }
 
                           // 장르 필터 적용
-                          if (filterGenre && GENRE_FILTER[filterGenre]) {
-                            if (!GENRE_FILTER[filterGenre](p)) return false;
+                          if (filterGenre && GENRE_MAP[filterGenre]) {
+                            if (!(p[GENRE_MAP[filterGenre].key] > 0)) return false;
                           }
                           return true;
                         });
@@ -452,10 +453,9 @@ const HomePage = ({
                                 
                                 <div style={{ position: 'absolute', top: '8px', left: '8px', background: 'rgba(255, 255, 255, 0.9)', color: '#1E293B', padding: '2px 8px', borderRadius: '6px', fontSize: '10px', fontWeight: 800 }}>{displayRegion}</div>
                                 <div style={{ position: 'absolute', top: '8px', right: '8px', display: 'flex', gap: '4px', flexWrap: 'wrap', justifyContent: 'flex-end' }}>
-                                  {party.s_ratio > 0 && <span style={{ background: 'rgba(229, 57, 53, 0.95)', color: 'white', padding: '2px 6px', borderRadius: '6px', fontSize: '10px', fontWeight: 950 }}>S{party.s_ratio}</span>}
-                                  {party.b_ratio > 0 && <span style={{ background: 'rgba(212, 160, 23, 0.95)', color: 'white', padding: '2px 6px', borderRadius: '6px', fontSize: '10px', fontWeight: 950 }}>B{party.b_ratio}</span>}
-                                  {party.k_ratio > 0 && <span style={{ background: 'rgba(103, 58, 183, 0.95)', color: 'white', padding: '2px 6px', borderRadius: '6px', fontSize: '10px', fontWeight: 950 }}>K{party.k_ratio}</span>}
-                                  {party.j_ratio > 0 && <span style={{ background: 'rgba(0, 150, 136, 0.95)', color: 'white', padding: '2px 6px', borderRadius: '6px', fontSize: '10px', fontWeight: 950 }}>J{party.j_ratio}</span>}
+                                  {Object.entries(GENRE_MAP).map(([name, info]) => (
+                                    party[info.key] > 0 && <span key={name} style={{ background: `${info.color}F2`, color: 'white', padding: '2px 6px', borderRadius: '6px', fontSize: '10px', fontWeight: 950 }}>{info.label}{party[info.key]}</span>
+                                  ))}
                                 </div>
                                 <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, padding: '12px 10px', background: 'linear-gradient(transparent, rgba(0,0,0,0.95))', color: 'white' }}>
                                   <div style={{ fontSize: '11px', color: '#FFEB3B', fontWeight: 950, marginBottom: '3px' }}>{party.locationName}</div>
@@ -464,7 +464,9 @@ const HomePage = ({
                                     <span style={{ background: 'rgba(255,255,255,0.2)', padding: '1px 4px', borderRadius: '4px' }}>{(() => { const d = new Date(party.date); return `${d.getMonth() + 1}/${d.getDate()}(${DAYS_KOR[d.getDay()]})`; })()}</span>
                                     <span style={{ background: 'rgba(255,255,255,0.2)', padding: '1px 4px', borderRadius: '4px' }}>{party.time?.split('-')[0].trim() || '21:00'}</span>
                                     <span style={{ background: 'rgba(255,235,59,0.3)', color: '#FFEB3B', padding: '1px 4px', borderRadius: '4px' }}>{(() => { if (!party.fee) return '1.2만'; const f = String(party.fee); if (f.includes('만')) return f.replace('원', ''); const num = parseInt(f.replace(/[^0-9]/g, '')); if (isNaN(num)) return f; return (num/10000).toFixed(1).replace('.0', '') + '만'; })()}</span>
-                                    <span style={{ background: 'rgba(229,57,53,0.5)', padding: '1px 4px', borderRadius: '4px' }}>S{party.s_ratio}B{party.b_ratio}</span>
+                                    <span style={{ background: 'rgba(255,255,255,0.2)', padding: '1px 4px', borderRadius: '4px' }}>
+                                      {Object.entries(GENRE_MAP).filter(([_, info]) => party[info.key] > 0).map(([_, info]) => `${info.label}${party[info.key]}`).join('')}
+                                    </span>
                                   </div>
                                 </div>
                               </div>
