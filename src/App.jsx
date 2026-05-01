@@ -368,7 +368,22 @@ function App() {
   const fetchParties = async () => {
     setLoading(true);
     try {
-      const { data } = await supabase.from('parties').select('*, locations(*, regions(*))').order('date', { ascending: true });
+      const { data } = await supabase
+        .from('parties')
+        .select(`
+          *,
+          locations (
+            id,
+            name,
+            address,
+            regions (
+              id,
+              name
+            )
+          )
+        `)
+        .eq('status', 'approved')
+        .order('date', { ascending: true });
       const mapped = (data || []).map(p => {
         const loc = Array.isArray(p.locations) ? p.locations[0] : p.locations;
         const reg = loc?.regions ? (Array.isArray(loc.regions) ? loc.regions[0] : loc.regions) : null;
