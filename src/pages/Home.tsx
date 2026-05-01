@@ -505,6 +505,40 @@ const HomePage = ({
           </>
         )}
       </AnimatePresence>
+
+      {/* 📌 [그리드 모달: 필터 선택 시 활성화] */}
+      {(filterRegion || filterGenre) && (
+        <div style={{ position: 'fixed', inset: 0, zIndex: 99999, background: '#000', display: 'flex', flexDirection: 'column' }}>
+          {/* 상단바 */}
+          <div style={{ height: '50px', background: '#000', display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0 15px', borderBottom: '1px solid #333' }}>
+            <div style={{ color: '#fff', fontSize: '16px', fontWeight: '800' }}>{filterRegion || filterGenre}</div>
+            <div onClick={() => { setFilterRegion(''); setFilterGenre(''); }} style={{ color: '#fff', cursor: 'pointer' }}>
+              <X size={24} />
+            </div>
+          </div>
+          
+          {/* 본문: 포스터 그리드 */}
+          <div style={{ flex: 1, overflowY: 'auto', background: '#000' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '2px', width: '100%' }}>
+              {(() => {
+                const today = new Date().toISOString().split('T')[0];
+                return parties
+                  .filter(p => p.date >= today)
+                  .filter(p => !filterRegion || REGION_FILTER[filterRegion]?.(p))
+                  .filter(p => {
+                    if (!filterGenre || !GENRE_MAP[filterGenre]) return true;
+                    return (p[GENRE_MAP[filterGenre].key] || 0) > 0;
+                  })
+                  .map(p => (
+                    <div key={p.id} onClick={() => setSelectedPoster(p.poster_url)} style={{ aspectRatio: '3/4', width: '100%' }}>
+                      <img src={p.poster_url} alt="poster" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                    </div>
+                  ));
+              })()}
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }
