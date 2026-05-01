@@ -208,7 +208,7 @@ const HomePage = ({
             오늘밤<span style={{ color: '#1D9E75' }}>빠</span>
           </div>
           <div style={{ fontSize: '20px', fontWeight: 800, color: '#111', letterSpacing: '-0.03em', lineHeight: 1.2, marginBottom: '6px' }}>
-            오늘 뭐해?
+            전국 라틴<span style={{ color: '#1D9E75' }}>파티</span> 한눈에
           </div>
           <div style={{ fontSize: '11px', color: '#888', marginBottom: '14px' }}>
             소셜파티 · 수업 · 페스티벌 · 부트캠프
