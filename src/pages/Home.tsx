@@ -203,6 +203,17 @@ const HomePage = ({
       
       {/* 📌 [영역 A: 상단 고정석] */}
       <div style={{ position: 'fixed', top: 0, left: '50%', transform: 'translateX(-50%)', width: '100%', maxWidth: '500px', zIndex: 100000, background: '#ffffff', borderBottom: '1px solid #f1f5f9' }}>
+        <div style={{ padding: '20px 20px 0' }}>
+          <div style={{ fontSize: '24px', fontWeight: 900, marginBottom: '16px', color: '#fff' }}>오늘밤<span style={{ color: '#1D9E75' }}>빠</span></div>
+          <div style={{ marginBottom: '14px' }}>
+            <div style={{ fontSize: '22px', fontWeight: 800, color: '#fff', letterSpacing: '-0.03em', lineHeight: 1.2, marginBottom: '4px' }}>
+              전국 라틴<span style={{ color: '#1D9E75' }}>파티</span><br />한눈에
+            </div>
+            <div style={{ fontSize: '10px', color: '#444' }}>
+              소셜파티 · 수업 · 페스티벌 · 부트캠프
+            </div>
+          </div>
+        </div>
         <div style={{ height: '50px', display: 'flex', alignItems: 'center', padding: '0 10px' }}>
           <div style={{ flex: 1, display: 'flex', overflowX: 'auto', gap: '8px', padding: '5px 0', msOverflowStyle: 'none', scrollbarWidth: 'none', WebkitOverflowScrolling: 'touch' }} className="date-stream-bar">
             {fourteenDays.map((item) => {
