@@ -236,7 +236,7 @@ const HomePage = ({
       
       {/* 📌 [영역 A: 상단 고정석] */}
       <div style={{ position: 'fixed', top: 0, left: '50%', transform: 'translateX(-50%)', width: '100%', maxWidth: '500px', zIndex: 100000, background: '#ffffff', borderBottom: '1px solid #f1f5f9' }}>
-        <div style={{ padding: '60px 16px 25px', transform: 'rotate(-15deg) translateY(5px)', transformOrigin: 'left center' }}>
+        <div style={{ padding: '40px 16px 15px', transform: 'rotate(-15deg) translateY(0px)', transformOrigin: 'left center' }}>
           <div style={{ fontSize: '22px', fontWeight: 900, color: '#111', letterSpacing: '-0.03em', lineHeight: 1.2, marginBottom: '4px' }}>
             오늘 밤, 뭐 해?
           </div>
