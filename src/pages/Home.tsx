@@ -238,7 +238,7 @@ const HomePage = ({
       <div style={{ position: 'fixed', top: 0, left: '50%', transform: 'translateX(-50%)', width: '100%', maxWidth: '500px', zIndex: 100000, background: '#ffffff', borderBottom: '1px solid #f1f5f9' }}>
         <div style={{ padding: '30px 16px 15px', transform: 'rotate(-15deg)', transformOrigin: 'left center' }}>
           <div style={{ fontSize: '24px', fontWeight: 900, color: '#111', letterSpacing: '-0.03em', lineHeight: 1.2, marginBottom: '2px' }}>
-            오늘 뭐해
+            오늘 뭐해?
           </div>
           <div style={{ fontSize: '28px', fontWeight: 950, color: '#111', letterSpacing: '-0.04em', lineHeight: 1.1 }}>
             오늘 밤<span style={{ color: '#E53935', fontSize: '38px', marginLeft: '5px', display: 'inline-block', transform: 'rotate(15deg)' }}>빠</span>
