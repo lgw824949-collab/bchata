@@ -391,42 +391,14 @@ const HomePage = ({
                       <button onClick={() => { setShowFilteredResults(false); setFilterStep(2); }} style={{ background: '#F8FAFC', border: 'none', borderRadius: '10px', padding: '8px 12px', fontSize: '13px', fontWeight: 700, color: '#64748B', display: 'flex', alignItems: 'center', gap: '4px' }}><ChevronLeft size={16} /> 장르 다시 선택</button>
                     </div>
                     <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '10px', marginBottom: '20px' }}>
-                      {parties.filter(p => {
-                        // 1. 날짜 필터링
-                        if (p.date !== selectedDate) return false;
-                        
-                        // 오늘 이전 파티는 표시 안 함
+                      {(() => {
                         const today = new Date().toISOString().split('T')[0];
-                        if (p.date < today) return false;
-                        
-                        // 2. 지역 필터링 (주소 기반 명시적 매칭)
-                        const addr = p.address || '';
-                        let matchesRegion = false;
-                        if (filterRegion === '서울') matchesRegion = addr.includes('서울');
-                        else if (filterRegion === '경기/인천') matchesRegion = addr.includes('경기') || addr.includes('인천');
-                        else if (filterRegion === '부산') matchesRegion = addr.includes('부산');
-                        else if (filterRegion === '대구') matchesRegion = addr.includes('대구');
-                        else if (filterRegion === '대전') matchesRegion = addr.includes('대전');
-                        else if (filterRegion === '광주') matchesRegion = addr.includes('광주');
-                        else if (filterRegion === '기타') matchesRegion = true;
-
-                        if (!matchesRegion) return false;
-
-                        // 3. 장르 필터링 (비중 비율 필드 연동)
-                        let matchesGenre = false;
-                        if (filterGenre === 'Bachata') matchesGenre = (p.b_ratio || 0) > 0;
-                        else if (filterGenre === 'Salsa') matchesGenre = (p.s_ratio || 0) > 0;
-                        else if (filterGenre === 'Zouk') matchesGenre = (p.j_ratio || 0) > 0;
-                        else if (filterGenre === 'Kizomba') matchesGenre = (p.k_ratio || 0) > 0;
-                        
-                        return matchesGenre;
-                      }).length > 0 ? (
-                        parties.filter(p => {
-                          if (p.date !== selectedDate) return false;
-                          const today = new Date().toISOString().split('T')[0];
+                        const filtered = parties.filter(p => {
+                          // 오늘 이후만
                           if (p.date < today) return false;
-
-                          const addr = p.address || '';
+                          
+                          // 지역 필터 (address 기반)
+                          const addr = p.address || p.locations?.address || '';
                           let matchesRegion = false;
                           if (filterRegion === '서울') matchesRegion = addr.includes('서울');
                           else if (filterRegion === '경기/인천') matchesRegion = addr.includes('경기') || addr.includes('인천');
@@ -435,54 +407,57 @@ const HomePage = ({
                           else if (filterRegion === '대전') matchesRegion = addr.includes('대전');
                           else if (filterRegion === '광주') matchesRegion = addr.includes('광주');
                           else if (filterRegion === '기타') matchesRegion = true;
-                          
                           if (!matchesRegion) return false;
 
-                          let matchesGenre = false;
-                          if (filterGenre === 'Bachata') matchesGenre = (p.b_ratio || 0) > 0;
-                          else if (filterGenre === 'Salsa') matchesGenre = (p.s_ratio || 0) > 0;
-                          else if (filterGenre === 'Zouk') matchesGenre = (p.j_ratio || 0) > 0;
-                          else if (filterGenre === 'Kizomba') matchesGenre = (p.k_ratio || 0) > 0;
-                          return matchesGenre;
-                        }).map(party => {
-                          const cleanTitle = party.title?.split(' ㅣ ')[0] || '';
-                          const addr = party.address || '';
-                          let displayRegion = '전국';
-                          if (addr.includes('서울')) displayRegion = '서울';
-                          else if (addr.includes('경기')) displayRegion = '경기';
-                          else if (addr.includes('인천')) displayRegion = '인천';
-                          else if (addr.includes('부산')) displayRegion = '부산';
-                          else if (addr.includes('대구')) displayRegion = '대구';
-                          else if (addr.includes('대전')) displayRegion = '대전';
-                          else if (addr.includes('광주')) displayRegion = '광주';
+                          // 장르 필터 (음악비율 기반)
+                          if (filterGenre === 'Bachata') return (p.b_ratio || 0) > 0;
+                          if (filterGenre === 'Salsa') return (p.s_ratio || 0) > 0;
+                          if (filterGenre === 'Zouk') return (p.j_ratio || 0) > 0;
+                          if (filterGenre === 'Kizomba') return (p.k_ratio || 0) > 0;
+                          return false;
+                        });
 
-                          return (
-                            <div key={party.id} onClick={() => setSelectedPoster(party.poster_url)} style={{ aspectRatio: '1 / 1.4', borderRadius: '12px', overflow: 'hidden', position: 'relative', background: '#F1F5F9', cursor: 'pointer', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.1)' }}>
-                              <img src={party.poster_url} style={{ width: '100%', height: '100%', objectFit: 'cover' }} alt="Poster" />
-                              
-                              <div style={{ position: 'absolute', top: '8px', left: '8px', background: 'rgba(255, 255, 255, 0.9)', color: '#1E293B', padding: '2px 8px', borderRadius: '6px', fontSize: '10px', fontWeight: 800 }}>{displayRegion}</div>
-                              <div style={{ position: 'absolute', top: '8px', right: '8px', display: 'flex', gap: '4px', flexWrap: 'wrap', justifyContent: 'flex-end' }}>
-                                {party.s_ratio > 0 && <span style={{ background: 'rgba(229, 57, 53, 0.95)', color: 'white', padding: '2px 6px', borderRadius: '6px', fontSize: '10px', fontWeight: 950 }}>S{party.s_ratio}</span>}
-                                {party.b_ratio > 0 && <span style={{ background: 'rgba(212, 160, 23, 0.95)', color: 'white', padding: '2px 6px', borderRadius: '6px', fontSize: '10px', fontWeight: 950 }}>B{party.b_ratio}</span>}
-                                {party.k_ratio > 0 && <span style={{ background: 'rgba(103, 58, 183, 0.95)', color: 'white', padding: '2px 6px', borderRadius: '6px', fontSize: '10px', fontWeight: 950 }}>K{party.k_ratio}</span>}
-                                {party.j_ratio > 0 && <span style={{ background: 'rgba(0, 150, 136, 0.95)', color: 'white', padding: '2px 6px', borderRadius: '6px', fontSize: '10px', fontWeight: 950 }}>J{party.j_ratio}</span>}
-                              </div>
-                              <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, padding: '12px 10px', background: 'linear-gradient(transparent, rgba(0,0,0,0.95))', color: 'white' }}>
-                                <div style={{ fontSize: '11px', color: '#FFEB3B', fontWeight: 950, marginBottom: '3px' }}>{party.locationName}</div>
-                                <div style={{ fontSize: '13px', fontWeight: 950, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', marginBottom: '5px' }}>{cleanTitle}</div>
-                                <div style={{ fontSize: '9px', fontWeight: 900, color: '#fff', display: 'flex', gap: '3px', whiteSpace: 'nowrap', overflow: 'hidden' }}>
-                                  <span style={{ background: 'rgba(255,255,255,0.2)', padding: '1px 4px', borderRadius: '4px' }}>{(() => { const d = new Date(party.date); return `${d.getMonth() + 1}/${d.getDate()}(${DAYS_KOR[d.getDay()]})`; })()}</span>
-                                  <span style={{ background: 'rgba(255,255,255,0.2)', padding: '1px 4px', borderRadius: '4px' }}>{party.time?.split('-')[0].trim() || '21:00'}</span>
-                                  <span style={{ background: 'rgba(255,235,59,0.3)', color: '#FFEB3B', padding: '1px 4px', borderRadius: '4px' }}>{(() => { if (!party.fee) return '1.2만'; const f = String(party.fee); if (f.includes('만')) return f.replace('원', ''); const num = parseInt(f.replace(/[^0-9]/g, '')); if (isNaN(num)) return f; return (num/10000).toFixed(1).replace('.0', '') + '만'; })()}</span>
-                                  <span style={{ background: 'rgba(229,57,53,0.5)', padding: '1px 4px', borderRadius: '4px' }}>S{party.s_ratio}B{party.b_ratio}</span>
+                        return filtered.length === 0 ? (
+                          <div style={{ gridColumn: 'span 2', padding: '60px 0', textAlign: 'center', color: '#94A3B8', fontWeight: 700 }}>해당 조건의 파티가 없습니다 😅</div>
+                        ) : (
+                          filtered.map(party => {
+                            const cleanTitle = party.title?.split(' ㅣ ')[0] || '';
+                            const addr = party.address || '';
+                            let displayRegion = '전국';
+                            if (addr.includes('서울')) displayRegion = '서울';
+                            else if (addr.includes('경기')) displayRegion = '경기';
+                            else if (addr.includes('인천')) displayRegion = '인천';
+                            else if (addr.includes('부산')) displayRegion = '부산';
+                            else if (addr.includes('대구')) displayRegion = '대구';
+                            else if (addr.includes('대전')) displayRegion = '대전';
+                            else if (addr.includes('광주')) displayRegion = '광주';
+
+                            return (
+                              <div key={party.id} onClick={() => setSelectedPoster(party.poster_url)} style={{ aspectRatio: '1 / 1.4', borderRadius: '12px', overflow: 'hidden', position: 'relative', background: '#F1F5F9', cursor: 'pointer', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.1)' }}>
+                                <img src={party.poster_url} style={{ width: '100%', height: '100%', objectFit: 'cover' }} alt="Poster" />
+                                
+                                <div style={{ position: 'absolute', top: '8px', left: '8px', background: 'rgba(255, 255, 255, 0.9)', color: '#1E293B', padding: '2px 8px', borderRadius: '6px', fontSize: '10px', fontWeight: 800 }}>{displayRegion}</div>
+                                <div style={{ position: 'absolute', top: '8px', right: '8px', display: 'flex', gap: '4px', flexWrap: 'wrap', justifyContent: 'flex-end' }}>
+                                  {party.s_ratio > 0 && <span style={{ background: 'rgba(229, 57, 53, 0.95)', color: 'white', padding: '2px 6px', borderRadius: '6px', fontSize: '10px', fontWeight: 950 }}>S{party.s_ratio}</span>}
+                                  {party.b_ratio > 0 && <span style={{ background: 'rgba(212, 160, 23, 0.95)', color: 'white', padding: '2px 6px', borderRadius: '6px', fontSize: '10px', fontWeight: 950 }}>B{party.b_ratio}</span>}
+                                  {party.k_ratio > 0 && <span style={{ background: 'rgba(103, 58, 183, 0.95)', color: 'white', padding: '2px 6px', borderRadius: '6px', fontSize: '10px', fontWeight: 950 }}>K{party.k_ratio}</span>}
+                                  {party.j_ratio > 0 && <span style={{ background: 'rgba(0, 150, 136, 0.95)', color: 'white', padding: '2px 6px', borderRadius: '6px', fontSize: '10px', fontWeight: 950 }}>J{party.j_ratio}</span>}
+                                </div>
+                                <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, padding: '12px 10px', background: 'linear-gradient(transparent, rgba(0,0,0,0.95))', color: 'white' }}>
+                                  <div style={{ fontSize: '11px', color: '#FFEB3B', fontWeight: 950, marginBottom: '3px' }}>{party.locationName}</div>
+                                  <div style={{ fontSize: '13px', fontWeight: 950, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', marginBottom: '5px' }}>{cleanTitle}</div>
+                                  <div style={{ fontSize: '9px', fontWeight: 900, color: '#fff', display: 'flex', gap: '3px', whiteSpace: 'nowrap', overflow: 'hidden' }}>
+                                    <span style={{ background: 'rgba(255,255,255,0.2)', padding: '1px 4px', borderRadius: '4px' }}>{(() => { const d = new Date(party.date); return `${d.getMonth() + 1}/${d.getDate()}(${DAYS_KOR[d.getDay()]})`; })()}</span>
+                                    <span style={{ background: 'rgba(255,255,255,0.2)', padding: '1px 4px', borderRadius: '4px' }}>{party.time?.split('-')[0].trim() || '21:00'}</span>
+                                    <span style={{ background: 'rgba(255,235,59,0.3)', color: '#FFEB3B', padding: '1px 4px', borderRadius: '4px' }}>{(() => { if (!party.fee) return '1.2만'; const f = String(party.fee); if (f.includes('만')) return f.replace('원', ''); const num = parseInt(f.replace(/[^0-9]/g, '')); if (isNaN(num)) return f; return (num/10000).toFixed(1).replace('.0', '') + '만'; })()}</span>
+                                    <span style={{ background: 'rgba(229,57,53,0.5)', padding: '1px 4px', borderRadius: '4px' }}>S{party.s_ratio}B{party.b_ratio}</span>
+                                  </div>
                                 </div>
                               </div>
-                            </div>
-                          );
-                        })
-                      ) : (
-                        <div style={{ gridColumn: 'span 2', padding: '60px 0', textAlign: 'center', color: '#94A3B8', fontWeight: 700 }}>해당 조건의 파티가 없습니다</div>
-                      )}
+                            );
+                          })
+                        );
+                      })()}
                     </div>
                     <button onClick={() => { setShowFullCalendar(false); setShowFilterPanel(false); setShowFilteredResults(false); }} style={{ width: '100%', height: '54px', borderRadius: '16px', background: '#1E293B', color: '#fff', fontSize: '16px', fontWeight: 800, border: 'none' }}>확인 완료</button>
                   </motion.div>
