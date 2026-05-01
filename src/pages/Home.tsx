@@ -344,6 +344,7 @@ const HomePage = ({
                     <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '10px', marginBottom: '20px' }}>
                       {(() => {
                         const filtered = parties.filter(p => p.date === selectedDate);
+                        console.log('선택날짜:', selectedDate, '파티수:', filtered.length);
                         return filtered.length === 0 ? (
                           <div style={{ gridColumn: 'span 2', padding: '60px 0', textAlign: 'center', color: '#94A3B8', fontWeight: 700 }}>해당 날짜의 파티가 없습니다 😅</div>
                         ) : (
