@@ -313,9 +313,12 @@ const HomePage = ({
               )}
               {IncheonBanner && <IncheonBanner />}
               {(() => {
-                console.log('DEBUG: Received parties count =', parties?.length);
                 const today = new Date().toISOString().split('T')[0];
                 const dayParties = parties.filter(p => p.date >= today);
+                console.log('전체 파티:', parties.length);
+                console.log('오늘이후 파티:', dayParties.length);
+                console.log('filterRegion:', filterRegion);
+                console.log('filterGenre:', filterGenre);
                 const regions = filterRegion ? [filterRegion] : ["서울", "경기/인천", "경상도", "전라도", "충청도", "강원/제주"];
                 return regions.map((regionName) => {
                   const regionParties = dayParties.filter(p => {
