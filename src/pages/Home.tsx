@@ -303,11 +303,23 @@ const HomePage = ({
                 const regions = filterRegion ? [filterRegion] : ["서울", "경기/인천", "경상도", "전라도", "충청도", "강원/제주"];
                 return regions.map((regionName) => {
                   const regionParties = dayParties.filter(p => {
+                    // 1. 지역 조건 매칭
                     const r = p.broadRegion || '';
                     const city = p.cityName || '';
-                    if (regionName === "서울") return r === '서울' || city === '서울';
-                    if (regionName === "경기/인천") return r === '경기/인천' || city === '경기' || city === '인천';
-                    return r.includes(regionName.replace('도', '')) || city.includes(regionName.replace('도', ''));
+                    let matchesRegion = false;
+                    if (regionName === "서울") matchesRegion = r === '서울' || city === '서울';
+                    else if (regionName === "경기/인천") matchesRegion = r === '경기/인천' || city === '경기' || city === '인천';
+                    else matchesRegion = r.includes(regionName.replace('도', '')) || city.includes(regionName.replace('도', ''));
+                    
+                    if (!matchesRegion) return false;
+
+                    // 2. 장르 조건 매칭 (선택된 장르가 있을 경우만)
+                    if (!filterGenre) return true;
+                    if (filterGenre === '바차타') return (p.b_ratio || 0) > 0;
+                    if (filterGenre === '살사') return (p.s_ratio || 0) > 0;
+                    if (filterGenre === '쥬크') return (p.j_ratio || 0) > 0;
+                    if (filterGenre === '키좀바') return (p.k_ratio || 0) > 0;
+                    return false;
                   });
                   return (
                     <section key={regionName} style={{ marginBottom: '15px', background: '#fff' }}>
