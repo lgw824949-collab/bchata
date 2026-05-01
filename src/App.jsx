@@ -382,7 +382,6 @@ function App() {
             )
           )
         `)
-        .eq('status', 'approved')
         .order('date', { ascending: true });
       const mapped = (data || []).map(p => {
         const loc = Array.isArray(p.locations) ? p.locations[0] : p.locations;
