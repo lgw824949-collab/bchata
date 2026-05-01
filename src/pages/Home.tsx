@@ -183,6 +183,7 @@ const HomePage = ({
   const [isPaused, setIsPaused] = useState(false);
   const [weatherMap, setWeatherMap] = useState({});
   const scrollRef = useRef(null);
+  const regionListRef = useRef(null);
   const [filterStep, setFilterStep] = useState(1);
 
   useEffect(() => {
@@ -252,7 +253,16 @@ const HomePage = ({
             {fourteenDays.map((item) => {
               const isSelected = selectedDate === item.fullDate;
               return (
-                <div key={item.fullDate} onClick={() => setSelectedDate(item.fullDate)} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minWidth: '13.5%', cursor: 'pointer' }}>
+                <div key={item.fullDate} 
+                  onClick={() => {
+                    setSelectedDate(item.fullDate);
+                    // 날짜 클릭 시 서울 지역 목록으로 스크롤
+                    if (regionListRef.current) {
+                      regionListRef.current.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                    }
+                  }} 
+                  style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minWidth: '13.5%', cursor: 'pointer' }}
+                >
                   <span style={{ fontSize: '10px', fontWeight: '700', color: isSelected ? '#E53935' : '#94A3B8', marginBottom: '2px' }}>{item.dayName}</span>
                   <div style={{ width: '30px', height: '30px', borderRadius: '10px', display: 'flex', alignItems: 'center', justifyContent: 'center', backgroundColor: isSelected ? '#E53935' : 'transparent', border: item.isToday && !isSelected ? '1px solid #E53935' : 'none' }}>
                     <span style={{ fontSize: '15px', fontWeight: '800', color: isSelected ? '#fff' : (item.isToday ? '#E53935' : '#94A3B8') }}>{item.date}</span>
@@ -346,8 +356,13 @@ const HomePage = ({
                     return true;
                   });
 
+                  const isFirst = regionName === '서울';
                   return (
-                    <section key={regionName} style={{ marginBottom: '15px', background: '#fff' }}>
+                    <section 
+                      key={regionName} 
+                      ref={isFirst ? regionListRef : null}
+                      style={{ marginBottom: '15px', background: '#fff' }}
+                    >
                       <div style={{ fontSize: '18px', fontWeight: '900', padding: '15px', display: 'flex', alignItems: 'center', gap: '8px' }}><div style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#E53935' }} />{regionName}<ChevronRight size={18} color="#94A3B8" /></div>
                       <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', padding: '0 15px 20px' }}>{regionParties.length === 0 ? <div style={{ padding: '30px', color: '#94A3B8', textAlign: 'center' }}>{t('no_parties')}</div> : regionParties.slice(0, 3).map(item => <PartyCard key={item.id} item={item} onSelect={setSelectedPoster} />)}</div>
                     </section>
