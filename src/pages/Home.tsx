@@ -16,13 +16,12 @@ const GENRE_FILTER = {
 };
 
 const REGION_FILTER = {
-  '서울': (p) => (p.address||'').includes('서울') || (p.broadRegion||'').includes('서울'),
-  '경기/인천': (p) => (p.address||'').includes('경기') || (p.address||'').includes('인천') || (p.broadRegion||'').includes('경기') || (p.broadRegion||'').includes('인천'),
-  '경상도': (p) => (p.address||'').includes('경상') || (p.address||'').includes('부산') || (p.address||'').includes('대구'),
-  '전라도': (p) => (p.address||'').includes('전라') || (p.address||'').includes('광주'),
-  '충청도': (p) => (p.address||'').includes('충청') || (p.address||'').includes('대전'),
-  '강원/제주': (p) => (p.address||'').includes('강원') || (p.address||'').includes('제주'),
-  '기타': (p) => true,
+  '서울': (p) => p.broadRegion === '서울',
+  '경기/인천': (p) => p.broadRegion === '경기/인천',
+  '경상도': (p) => p.broadRegion === '경상도',
+  '전라도': (p) => p.broadRegion === '전라도',
+  '충청도': (p) => p.broadRegion === '충청도',
+  '강원/제주': (p) => p.broadRegion === '강원/제주',
 };
 const MAIN_REGIONS = ['서울', '경기/인천', '경상', '전라', '충청', '강원/제주'];
 
