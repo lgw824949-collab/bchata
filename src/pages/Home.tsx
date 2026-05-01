@@ -208,7 +208,7 @@ const HomePage = ({
             오늘밤<span style={{ color: '#1D9E75' }}>빠</span>
           </div>
           <div style={{ fontSize: '20px', fontWeight: 800, color: '#111', letterSpacing: '-0.03em', lineHeight: 1.2, marginBottom: '6px' }}>
-            전국 라틴<span style={{ color: '#1D9E75' }}>파티</span> 한눈에
+            오늘 뭐해?
           </div>
           <div style={{ fontSize: '11px', color: '#888', marginBottom: '14px' }}>
             소셜파티 · 수업 · 페스티벌 · 부트캠프
@@ -242,7 +242,7 @@ const HomePage = ({
         </div>
       </div>
 
-      <main ref={scrollRef} style={{ flex: 1, WebkitOverflowScrolling: 'touch', width: '100%', padding: '170px 0 0 0', background: '#fff', overflowY: 'auto' }}>
+      <main ref={scrollRef} style={{ flex: 1, WebkitOverflowScrolling: 'touch', width: '100%', padding: '250px 0 0 0', background: '#fff', overflowY: 'auto' }}>
         <div style={{ minHeight: '101%', paddingBottom: '80px' }}>
           {loading ? (
             <div style={{ display: 'flex', flexDirection: 'column', marginTop: '120px' }}>{Array(6).fill(0).map((_, i) => <div key={i} style={{ height: '140px', width: '100%', background: '#f9f9f9', borderBottom: '1px solid #eee' }} />)}</div>
@@ -297,7 +297,9 @@ const HomePage = ({
               )}
               {IncheonBanner && <IncheonBanner />}
               {(() => {
-                const dayParties = parties.filter(p => p.date === selectedDate);
+                console.log('DEBUG: Received parties count =', parties?.length);
+                const today = new Date().toISOString().split('T')[0];
+                const dayParties = parties.filter(p => p.date >= today);
                 const regions = filterRegion ? [filterRegion] : ["서울", "경기/인천", "경상도", "전라도", "충청도", "강원/제주"];
                 return regions.map((regionName) => {
                   const regionParties = dayParties.filter(p => {
