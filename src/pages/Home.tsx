@@ -239,15 +239,15 @@ const HomePage = ({
       
       {/* 📌 [영역 A: 상단 고정석] */}
       <div style={{ position: 'fixed', top: 0, left: '50%', transform: 'translateX(-50%)', width: '100%', maxWidth: '500px', zIndex: 100000, background: '#ffffff', borderBottom: '1px solid #f1f5f9' }}>
-        <div style={{ padding: '45px 16px 20px', transform: 'rotate(-15deg)', transformOrigin: 'left center' }}>
-          <div style={{ fontSize: '10px', fontWeight: 800, color: '#E53935', letterSpacing: '0.1em', marginBottom: '8px', textTransform: 'uppercase', opacity: 0.9 }}>
+        <div style={{ padding: '30px 16px 20px' }}>
+          <div style={{ fontSize: '11px', fontWeight: 800, color: '#E53935', letterSpacing: '0.02em', marginBottom: '8px', opacity: 0.8 }}>
             전국 소셜 댄스 파티 & 실시간 커뮤니티 플랫폼
           </div>
-          <div style={{ fontSize: '24px', fontWeight: 900, color: '#111', letterSpacing: '-0.03em', lineHeight: 1.1, marginBottom: '2px' }}>
+          <div style={{ fontSize: '24px', fontWeight: 900, color: '#111', letterSpacing: '-0.03em', lineHeight: 1.2, marginBottom: '2px' }}>
             오늘 밤, 뭐 해?
           </div>
-          <div style={{ fontSize: '30px', fontWeight: 950, color: '#111', letterSpacing: '-0.04em', lineHeight: 1.0 }}>
-            오늘 밤<span style={{ color: '#E53935', fontSize: '42px', marginLeft: '6px', display: 'inline-block', transform: 'rotate(15deg)', textShadow: '2px 2px 0px rgba(229, 57, 53, 0.1)' }}>빠.</span>
+          <div style={{ fontSize: '32px', fontWeight: 950, color: '#111', letterSpacing: '-0.04em', lineHeight: 1.1 }}>
+            오늘 밤<span style={{ color: '#E53935', fontSize: '44px', marginLeft: '4px' }}>빠.</span>
           </div>
           <div style={{ fontSize: '11px', color: '#888', marginTop: '8px', fontWeight: 700 }}>
             소셜파티 · 수업 · 페스티벌 · 부트캠프
