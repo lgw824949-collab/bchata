@@ -454,6 +454,8 @@ const HomePage = ({
                           return true;
                         });
 
+                        console.log('선택날짜:', selectedDate, '파티수:', filtered.length);
+
                         return filtered.length === 0 ? (
                           <div style={{ gridColumn: 'span 2', padding: '60px 0', textAlign: 'center', color: '#94A3B8', fontWeight: 700 }}>해당 조건의 파티가 없습니다 😅</div>
                         ) : (
