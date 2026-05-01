@@ -7,6 +7,23 @@ import LiveCount from '../components/LiveCount'
 import { KMA_REGION_COORDS, fetchWeatherForecast, parseKmaWeather, HOME_REGION_MAP } from '../utils/kmaApi'
 
 const DAYS_KOR = ['일', '월', '화', '수', '목', '금', '토'];
+
+const GENRE_FILTER = {
+  '바차타': (p) => (p.b_ratio || 0) > 0,
+  '살사': (p) => (p.s_ratio || 0) > 0,
+  '쥬크': (p) => (p.j_ratio || 0) > 0,
+  '키좀바': (p) => (p.k_ratio || 0) > 0,
+};
+
+const REGION_FILTER = {
+  '서울': (p) => (p.address||'').includes('서울') || (p.broadRegion||'').includes('서울'),
+  '경기/인천': (p) => (p.address||'').includes('경기') || (p.address||'').includes('인천') || (p.broadRegion||'').includes('경기') || (p.broadRegion||'').includes('인천'),
+  '경상도': (p) => (p.address||'').includes('경상') || (p.address||'').includes('부산') || (p.address||'').includes('대구'),
+  '전라도': (p) => (p.address||'').includes('전라') || (p.address||'').includes('광주'),
+  '충청도': (p) => (p.address||'').includes('충청') || (p.address||'').includes('대전'),
+  '강원/제주': (p) => (p.address||'').includes('강원') || (p.address||'').includes('제주'),
+  '기타': (p) => true,
+};
 const MAIN_REGIONS = ['서울', '경기/인천', '경상', '전라', '충청', '강원/제주'];
 
 const PosterImage = ({ src, onClick, alt = "파티 포스터" }) => {
@@ -113,7 +130,7 @@ const RollingContainer = ({ items, onSelect }) => {
 };
 
 const FilterBar = ({ filterRegion, setFilterRegion, filterGenre, setFilterGenre }) => {
-  const regions = ['서울', '경기/인천', '경상', '전라', '충청', '강원/제주'];
+  const regions = ['서울', '경기/인천', '경상도', '전라도', '충청도', '강원/제주'];
   const genres = ['바차타', '살사', '쥬크', '키좀바'];
   return (
     <div style={{ padding: '0 15px 12px', background: '#fff', display: 'flex', flexDirection: 'column', gap: '12px' }}>
@@ -304,22 +321,13 @@ const HomePage = ({
                 return regions.map((regionName) => {
                   const regionParties = dayParties.filter(p => {
                     // 1. 지역 조건 매칭
-                    const r = p.broadRegion || '';
-                    const city = p.cityName || '';
-                    let matchesRegion = false;
-                    if (regionName === "서울") matchesRegion = r === '서울' || city === '서울';
-                    else if (regionName === "경기/인천") matchesRegion = r === '경기/인천' || city === '경기' || city === '인천';
-                    else matchesRegion = r.includes(regionName.replace('도', '')) || city.includes(regionName.replace('도', ''));
+                    if (!REGION_FILTER[regionName](p)) return false;
                     
-                    if (!matchesRegion) return false;
-
-                    // 2. 장르 조건 매칭 (선택된 장르가 있을 경우만)
-                    if (!filterGenre) return true;
-                    if (filterGenre === '바차타') return (p.b_ratio || 0) > 0;
-                    if (filterGenre === '살사') return (p.s_ratio || 0) > 0;
-                    if (filterGenre === '쥬크') return (p.j_ratio || 0) > 0;
-                    if (filterGenre === '키좀바') return (p.k_ratio || 0) > 0;
-                    return false;
+                    // 2. 장르 조건 매칭
+                    if (filterGenre && GENRE_FILTER[filterGenre]) {
+                      if (!GENRE_FILTER[filterGenre](p)) return false;
+                    }
+                    return true;
                   });
                   return (
                     <section key={regionName} style={{ marginBottom: '15px', background: '#fff' }}>
@@ -409,24 +417,16 @@ const HomePage = ({
                           // 오늘 이후만
                           if (p.date < today) return false;
                           
-                          // 지역 필터 (address 기반)
-                          const addr = p.address || p.locations?.address || '';
-                          let matchesRegion = false;
-                          if (filterRegion === '서울') matchesRegion = addr.includes('서울');
-                          else if (filterRegion === '경기/인천') matchesRegion = addr.includes('경기') || addr.includes('인천');
-                          else if (filterRegion === '부산') matchesRegion = addr.includes('부산');
-                          else if (filterRegion === '대구') matchesRegion = addr.includes('대구');
-                          else if (filterRegion === '대전') matchesRegion = addr.includes('대전');
-                          else if (filterRegion === '광주') matchesRegion = addr.includes('광주');
-                          else if (filterRegion === '기타') matchesRegion = true;
-                          if (!matchesRegion) return false;
+                          // 지역 필터 적용
+                          if (filterRegion && REGION_FILTER[filterRegion]) {
+                            if (!REGION_FILTER[filterRegion](p)) return false;
+                          }
 
-                          // 장르 필터 (음악비율 기반)
-                          if (filterGenre === '바차타') return (p.b_ratio || 0) > 0;
-                          if (filterGenre === '살사') return (p.s_ratio || 0) > 0;
-                          if (filterGenre === '쥬크') return (p.j_ratio || 0) > 0;
-                          if (filterGenre === '키좀바') return (p.k_ratio || 0) > 0;
-                          return false;
+                          // 장르 필터 적용
+                          if (filterGenre && GENRE_FILTER[filterGenre]) {
+                            if (!GENRE_FILTER[filterGenre](p)) return false;
+                          }
+                          return true;
                         });
 
                         return filtered.length === 0 ? (
