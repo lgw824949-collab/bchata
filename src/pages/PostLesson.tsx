@@ -31,7 +31,7 @@ const PostLesson = ({ onBack, user }) => {
     region: '서울'
   })
 
-  const REGIONS = ['서울', '경기/인천', '경상도', '전라도', '충청도', '강원/제주']
+  const REGIONS = ['서울', '경기/인천', '경상', '전라', '충청', '강원/제주']
 
   const toggleDay = (day) => {
     setFormData(prev => ({
