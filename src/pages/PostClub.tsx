@@ -5,7 +5,7 @@ import { findBarByName } from '../lib/BarLib'
 
 const DANCE_STYLES = ['바차타', '살사', '주크', '키좀바', '기타']
 const CLASS_CATEGORIES = ['입문', '기초', '중급', '고급', '마스터', '기타']
-const REGIONS = ['서울', '경기도', '인천광역시', '경상도', '전라도', '충청도', '강원도', '제주도']
+const REGIONS = ['서울', '경기/인천', '경상도', '전라도', '충청도', '강원/제주']
 const DAYS = ['월', '화', '수', '목', '금', '토', '일']
 const FEES = ['무료', '1만원', '1.5만원', '2만원', '기타']
 
@@ -47,13 +47,11 @@ const PostClub = ({ onBack, onSuccess }) => {
   const classifyRegion = (address) => {
     if (!address) return ''
     if (address.includes('서울')) return '서울'
-    if (address.includes('인천')) return '인천광역시'
-    if (address.includes('경기') || address.includes('용인') || address.includes('수원') || address.includes('성남') || address.includes('고양')) return '경기도'
-    if (address.includes('부산') || address.includes('대구') || address.includes('울산') || address.includes('경북') || address.includes('경남') || address.includes('포항') || address.includes('창원')) return '경상도'
-    if (address.includes('광주') || address.includes('전북') || address.includes('전남') || address.includes('여수') || address.includes('순천')) return '전라도'
-    if (address.includes('대전') || address.includes('세종') || address.includes('충북') || address.includes('충남') || address.includes('충청')) return '충청도'
-    if (address.includes('강원')) return '강원도'
-    if (address.includes('제주')) return '제주도'
+    if (address.includes('경기') || address.includes('인천')) return '경기/인천'
+    if (address.includes('부산') || address.includes('대구') || address.includes('울산') || address.includes('경상')) return '경상도'
+    if (address.includes('광주') || address.includes('전라')) return '전라도'
+    if (address.includes('대전') || address.includes('세종') || address.includes('충청')) return '충청도'
+    if (address.includes('강원') || address.includes('제주')) return '강원/제주'
     return ''
   }
 
@@ -405,7 +403,7 @@ const PostClub = ({ onBack, onSuccess }) => {
                   transition: 'all 0.2s'
                 }}
               >
-                {r.replace('도', '').replace('광역시', '').replace('특별자치도', '')}
+                {r}
               </button>
             ))}
           </div>
