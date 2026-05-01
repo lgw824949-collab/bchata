@@ -239,19 +239,18 @@ const HomePage = ({
       
       {/* 📌 [영역 A: 상단 고정석] */}
       <div style={{ position: 'fixed', top: 0, left: '50%', transform: 'translateX(-50%)', width: '100%', maxWidth: '500px', zIndex: 100000, background: '#ffffff', borderBottom: '1px solid #f1f5f9' }}>
-        <div style={{ padding: '30px 16px 20px' }}>
-          <div style={{ fontSize: '11px', fontWeight: 800, color: '#E53935', letterSpacing: '0.02em', marginBottom: '8px', opacity: 0.8 }}>
-            전국 소셜 댄스 파티 & 실시간 커뮤니티 플랫폼
+        <div style={{ background: '#080808', padding: '32px 24px' }}>
+          <p style={{ fontSize: '11px', color: '#555', margin: '0 0 2px', letterSpacing: '1px' }}>전국 소셜댄스 파티 플랫폼</p>
+          <p style={{ fontSize: '13px', color: '#39FF14', fontWeight: 700, margin: '0 0 8px' }}>퇴근 후 당신의 밤이 달라집니다</p>
+          <div>
+            <span style={{ fontSize: '50px', fontWeight: 900, color: '#fff', letterSpacing: '-3px', lineHeight: 1 }}>오늘밤</span>
+            <span style={{ fontSize: '50px', fontWeight: 900, color: '#39FF14', letterSpacing: '-3px', lineHeight: 1 }}>빠</span>
           </div>
-          <div style={{ fontSize: '24px', fontWeight: 900, color: '#111', letterSpacing: '-0.03em', lineHeight: 1.2, marginBottom: '2px' }}>
-            오늘 밤, 뭐 해?
-          </div>
-          <div style={{ fontSize: '32px', fontWeight: 950, color: '#111', letterSpacing: '-0.04em', lineHeight: 1.1 }}>
-            오늘 밤<span style={{ color: '#E53935', fontSize: '44px', marginLeft: '4px' }}>빠.</span>
-          </div>
-          <div style={{ fontSize: '11px', color: '#888', marginTop: '8px', fontWeight: 700 }}>
-            소셜파티 · 수업 · 페스티벌 · 부트캠프
-          </div>
+          <div style={{ width: '40px', height: '2px', background: '#39FF14', margin: '14px 0 10px' }} />
+          <p style={{ fontSize: '11px', color: '#444', margin: 0, lineHeight: 1.7 }}>
+            만원대 소셜파티 · 전국 실시간 정보<br/>
+            처음도 괜찮아요, 혼자와도 괜찮아요
+          </p>
         </div>
         <div style={{ height: '50px', display: 'flex', alignItems: 'center', padding: '0 10px' }}>
           <div style={{ flex: 1, display: 'flex', overflowX: 'auto', gap: '8px', padding: '5px 0', msOverflowStyle: 'none', scrollbarWidth: 'none', WebkitOverflowScrolling: 'touch' }} className="date-stream-bar">
