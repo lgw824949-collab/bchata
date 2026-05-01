@@ -236,14 +236,14 @@ const HomePage = ({
       
       {/* 📌 [영역 A: 상단 고정석] */}
       <div style={{ position: 'fixed', top: 0, left: '50%', transform: 'translateX(-50%)', width: '100%', maxWidth: '500px', zIndex: 100000, background: '#ffffff', borderBottom: '1px solid #f1f5f9' }}>
-        <div style={{ padding: '16px 16px 0' }}>
-          <div style={{ fontSize: '22px', fontWeight: 800, color: '#111', letterSpacing: '-0.03em', lineHeight: 1.2, marginBottom: '4px' }}>
-            오늘밤<span style={{ color: '#1D9E75' }}>빠</span>
+        <div style={{ padding: '30px 16px 15px', transform: 'rotate(-15deg)', transformOrigin: 'left center' }}>
+          <div style={{ fontSize: '24px', fontWeight: 900, color: '#111', letterSpacing: '-0.03em', lineHeight: 1.2, marginBottom: '2px' }}>
+            오늘 뭐해
           </div>
-          <div style={{ fontSize: '20px', fontWeight: 800, color: '#111', letterSpacing: '-0.03em', lineHeight: 1.2, marginBottom: '6px' }}>
-            오늘 뭐해?
+          <div style={{ fontSize: '28px', fontWeight: 950, color: '#111', letterSpacing: '-0.04em', lineHeight: 1.1 }}>
+            오늘 밤<span style={{ color: '#E53935', fontSize: '38px', marginLeft: '5px', display: 'inline-block', transform: 'rotate(15deg)' }}>빠</span>
           </div>
-          <div style={{ fontSize: '11px', color: '#888', marginBottom: '14px' }}>
+          <div style={{ fontSize: '11px', color: '#888', marginTop: '8px', fontWeight: 700 }}>
             소셜파티 · 수업 · 페스티벌 · 부트캠프
           </div>
         </div>
@@ -351,21 +351,7 @@ const HomePage = ({
 
                   return (
                     <section key={regionName} style={{ marginBottom: '15px', background: '#fff' }}>
-                      <div 
-                        onClick={() => {
-                          setFilterRegion(regionName);
-                          // 달력 모달의 결과 화면과 유사한 연출이 필요할 수 있으나, 일단 필터 설정만 함
-                        }}
-                        style={{ fontSize: '18px', fontWeight: '900', padding: '15px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', cursor: 'pointer' }}
-                      >
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                          <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#E53935' }} />
-                          {regionName}
-                        </div>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '4px', color: '#94A3B8', fontSize: '13px', fontWeight: 700 }}>
-                          전체보기 <ChevronRight size={16} />
-                        </div>
-                      </div>
+                      <div style={{ fontSize: '18px', fontWeight: '900', padding: '15px', display: 'flex', alignItems: 'center', gap: '8px' }}><div style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#E53935' }} />{regionName}<ChevronRight size={18} color="#94A3B8" /></div>
                       <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', padding: '0 15px 20px' }}>{regionParties.length === 0 ? <div style={{ padding: '30px', color: '#94A3B8', textAlign: 'center' }}>{t('no_parties')}</div> : regionParties.slice(0, 3).map(item => <PartyCard key={item.id} item={item} onSelect={setSelectedPoster} />)}</div>
                     </section>
                   );
