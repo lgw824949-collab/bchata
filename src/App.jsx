@@ -57,16 +57,16 @@ const PosterModal = ({ src, onClose }) => {
         }}
       >✕</button>
 
-      {/* 줌 컨테이너 */}
-      <div style={{ width: '100%', height: '100vh', position: 'relative', overflow: 'hidden' }}>
+      {/* 줌 컨테이너 (가용 화면 전체 사용) */}
+      <div style={{ width: '100%', height: '100%', position: 'relative', overflow: 'hidden', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
         <QuickPinchZoom onUpdate={onUpdate} wheelScaleFactor={500} tapZoomFactor={2}>
           <img 
             ref={imgRef}
             src={src} 
             alt="poster" 
             style={{ 
-              width: '100%',
-              height: '100%',
+              maxWidth: '100%',
+              maxHeight: '100%',
               objectFit: 'contain',
               display: 'block',
               willChange: 'transform',
