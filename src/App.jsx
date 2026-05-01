@@ -370,25 +370,25 @@ function App() {
     try {
       const { data } = await supabase
         .from('parties')
-        .select(`
-          *,
-          locations (
-            id,
-            name,
-            address,
-            regions (
-              id,
-              name
-            )
-          )
-        `)
+        .select('*')
         .order('date', { ascending: true });
+
       const mapped = (data || []).map(p => {
-        const loc = Array.isArray(p.locations) ? p.locations[0] : p.locations;
-        const reg = loc?.regions ? (Array.isArray(loc.regions) ? loc.regions[0] : loc.regions) : null;
-        const regionName = reg?.name || '전국';
-        const shortRegion = regionName.substring(0, 2);
-        return { ...p, broadRegion: BROAD_REGIONS[shortRegion] || '전국', cityName: SHORT_CITY_NAMES[shortRegion] || shortRegion, locationName: loc?.name || '장소 미지정' };
+        const addr = p.address || '';
+        let broadRegion = '전국';
+        if (addr.includes('서울')) broadRegion = '서울';
+        else if (addr.includes('경기') || addr.includes('인천')) broadRegion = '경기/인천';
+        else if (addr.includes('부산') || addr.includes('대구') || addr.includes('경상')) broadRegion = '경상도';
+        else if (addr.includes('광주') || addr.includes('전라')) broadRegion = '전라도';
+        else if (addr.includes('대전') || addr.includes('충청')) broadRegion = '충청도';
+        else if (addr.includes('강원') || addr.includes('제주')) broadRegion = '강원/제주';
+
+        return {
+          ...p,
+          broadRegion,
+          cityName: broadRegion,
+          locationName: p.address || '장소 미지정'
+        };
       });
       setParties(mapped);
     } catch (err) { console.error(err); } finally { setLoading(false); }
