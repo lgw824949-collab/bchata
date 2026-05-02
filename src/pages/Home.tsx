@@ -85,6 +85,16 @@ const PartyCard = ({ item, onSelect }) => {
     window.open(url, '_blank');
   };
 
+  const todayStr = useMemo(() => {
+    const d = new Date();
+    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+  }, []);
+
+  const isAfter9AM = useMemo(() => {
+    const now = new Date();
+    return now.getHours() >= 9;
+  }, []);
+
   return (
     <div 
       onClick={() => onSelect(item.poster_url)} 
@@ -108,11 +118,11 @@ const PartyCard = ({ item, onSelect }) => {
       </div>
 
       {/* 2. 정보 영역 (3행 초고밀도 조합) */}
-      <div style={{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'center', minWidth: 0, padding: '0 12px' }}>
-        {/* 1행: 장소명 (지명 삭제) + 빨간 화살표 */}
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1px' }}>
-          <span style={{ fontSize: '12px', fontWeight: '800', color: '#64748B' }}>
-            {item.locationName.replace(/^\[.*?\]\s*|서울\s*|전국\s*/g, '')}
+      <div style={{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'center', minWidth: 0, padding: '0 15px' }}>
+        {/* 1행: [지역] 요일 · 시간 + 빨간 화살표 */}
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '2px' }}>
+          <span style={{ fontSize: '13px', fontWeight: '800', color: '#64748B' }}>
+            [{item.broadRegion || '전국'}] {DAYS_KOR[new Date(item.date).getDay()]}요일 · {displayTime}
           </span>
           <div onClick={openMap} style={{ color: '#FF1744', cursor: 'pointer', padding: '2px' }}>
             <Navigation size={14} fill="currentColor" />
@@ -416,16 +426,10 @@ const HomePage = ({
                     const text = `${p.broadRegion || ''} ${p.address || ''} ${p.locationName || ''}`.toLowerCase();
                     if (regionName === '서울') return p.broadRegion === '서울' || text.includes('서울') || text.includes('강남') || text.includes('홍대');
                     if (regionName === '경기/인천') return p.broadRegion === '경기/인천' || text.includes('경기') || text.includes('인천');
-                    if (regionName === '경상도') return p.broadRegion === '경상도' || text.includes('부산') || text.includes('대구') || text.includes('울산') || text.includes('경상');
-                    if (regionName === '전라도') return p.broadRegion === '전라도' || text.includes('광주') || text.includes('전라');
-                    if (regionName === '충청도') return p.broadRegion === '충청도' || text.includes('대전') || text.includes('충청');
-                    if (regionName === '강원/제주') return p.broadRegion === '강원/제주' || text.includes('강원') || text.includes('제주');
-                    return p.broadRegion === regionName;
-                  }).filter(p => {
-                    // 1. 지역 조건 매칭
-                    const filterFn = REGION_FILTER[regionName];
-                    if (filterFn && !filterFn(p)) return false;
-                    
+                  const regionParties = (parties || [])
+                          .filter(p => p.date === todayStr && isAfter9AM) // 9시 전에는 노출 차단!
+                          .filter(p => REGION_FILTER[regionName](p))
+                          .filter(p => {
                     // 2. 장르 조건 매칭
                     if (filterGenre && GENRE_MAP[filterGenre]) {
                       if (!(p[GENRE_MAP[filterGenre].key] > 0)) return false;
