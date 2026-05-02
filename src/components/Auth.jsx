@@ -255,7 +255,7 @@ const Auth = ({ onAuthSuccess, onMasterSuccess, onBack, initialMode = 'login' })
           font-weight: 700;
         }
         .auth-message.error { color: #E11D48; }
-        .auth-message.success { color: #059669; }
+        .auth-message.success { color: #FF1744; }
         .auth-footer {
           margin-top: 24px;
           text-align: center;

@@ -185,16 +185,16 @@ const DynamicAnalysisModal = ({ isOpen, onClose, userCoords, isSajuCall }) => {
       <motion.div initial={{ scale: 0.95, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} onClick={(e) => e.stopPropagation()} style={{ width: '100%', maxWidth: '420px', background: '#FFFFFF', borderRadius: '35px', padding: '40px 30px', boxShadow: '0 50px 100px rgba(0,0,0,0.1)', color: '#1E293B' }}>
         {!amguho ? (
           <>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '35px' }}><div style={{ background: '#059669', color: '#fff', padding: '8px 16px', borderRadius: '50px', fontSize: '11px', fontWeight: '900' }}>REALTIME GPS</div><ChevronLeft size={28} onClick={onClose} style={{ cursor: 'pointer', color: '#64748B' }} /></div>
-            <h2 style={{ fontSize: '26px', fontWeight: '1000', marginBottom: '30px', color: '#1E293B' }}>{isIncheon ? '성지 상륙 분석' : '최단 경로 최적화'} 🛰️<br/><span style={{ color: '#059669' }}>{targetDest.name}</span></h2>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '35px' }}><div style={{ background: '#FF1744', color: '#fff', padding: '8px 16px', borderRadius: '50px', fontSize: '11px', fontWeight: '900' }}>REALTIME GPS</div><ChevronLeft size={28} onClick={onClose} style={{ cursor: 'pointer', color: '#64748B' }} /></div>
+            <h2 style={{ fontSize: '26px', fontWeight: '1000', marginBottom: '30px', color: '#1E293B' }}>{isIncheon ? '성지 상륙 분석' : '최단 경로 최적화'} 🛰️<br/><span style={{ color: '#FF1744' }}>{targetDest.name}</span></h2>
             <div style={{ padding: '30px', background: '#F8FAFC', borderRadius: '30px', display: 'flex', gap: '20px', marginBottom: '30px', border: '1px solid #E2E8F0' }}>
-              <div style={{ flex: 1 }}><p style={{ color: '#64748B', fontSize: '12px' }}>실제 거리</p><p style={{ fontSize: '26px', fontWeight: '1000', color: '#059669' }}>{tracker.distance}km</p></div>
+              <div style={{ flex: 1 }}><p style={{ color: '#64748B', fontSize: '12px' }}>실제 거리</p><p style={{ fontSize: '26px', fontWeight: '1000', color: '#FF1744' }}>{tracker.distance}km</p></div>
               <div style={{ flex: 1 }}><p style={{ color: '#64748B', fontSize: '12px' }}>예상 소요</p><p style={{ fontSize: '26px', fontWeight: '1000', color: '#1E293B' }}>{tracker.duration}분</p></div>
             </div>
-            <button onClick={() => isIncheon ? setAmguho(naturalIncheonDB[0]) : onClose()} style={{ width: '100%', padding: '22px', borderRadius: '25px', background: '#059669', color: '#fff', border: 'none', fontSize: '18px', fontWeight: '1000', boxShadow: '0 10px 20px rgba(5, 150, 105, 0.2)' }}>{isIncheon ? '암구호 수신하기' : '확인 완료'}</button>
+            <button onClick={() => isIncheon ? setAmguho(naturalIncheonDB[0]) : onClose()} style={{ width: '100%', padding: '22px', borderRadius: '25px', background: '#FF1744', color: '#fff', border: 'none', fontSize: '18px', fontWeight: '1000', boxShadow: '0 10px 20px rgba(255, 23, 68, 0.2)' }}>{isIncheon ? '암구호 수신하기' : '확인 완료'}</button>
           </>
         ) : (
-          <div style={{ textAlign: 'center' }}><h3 style={{ fontSize: '22px', fontWeight: '1000', marginBottom: '30px', color: '#1E293B' }}>성지 암구호</h3><div style={{ background: '#f0fdf4', padding: '30px', borderRadius: '30px', border: '2px solid #059669', marginBottom: '30px' }}><p style={{ color: '#059669', fontWeight: '700' }}>Q: {amguho.q}</p><p style={{ fontSize: '20px', fontWeight: '1000', marginTop: '10px', color: '#1E293B' }}>A: {amguho.a}</p></div><button onClick={onClose} style={{ width: '100%', padding: '20px', borderRadius: '20px', background: '#059669', color: '#FFFFFF', fontWeight: '1000', border: 'none' }}>작전 시작</button></div>
+          <div style={{ textAlign: 'center' }}><h3 style={{ fontSize: '22px', fontWeight: '1000', marginBottom: '30px', color: '#1E293B' }}>성지 암구호</h3><div style={{ background: '#FEF2F2', padding: '30px', borderRadius: '30px', border: '2px solid #FF1744', marginBottom: '30px' }}><p style={{ color: '#FF1744', fontWeight: '700' }}>Q: {amguho.q}</p><p style={{ fontSize: '20px', fontWeight: '1000', marginTop: '10px', color: '#1E293B' }}>A: {amguho.a}</p></div><button onClick={onClose} style={{ width: '100%', padding: '20px', borderRadius: '20px', background: '#FF1744', color: '#FFFFFF', fontWeight: '1000', border: 'none' }}>작전 시작</button></div>
         )}
       </motion.div>
     </motion.div>
@@ -206,7 +206,7 @@ const IncheonPremiumBanner = ({ onClick, t }) => (
     <div 
       onClick={(e) => { e.stopPropagation(); onClick(); }} 
       style={{ 
-        background: 'linear-gradient(90deg, #FFFFFF, #f0fdf4)', 
+        background: 'linear-gradient(90deg, #FFFFFF, #FEF2F2)', 
         borderRadius: '16px', 
         padding: '10px 16px', 
         border: '1px solid #dcfce7', 
@@ -219,7 +219,7 @@ const IncheonPremiumBanner = ({ onClick, t }) => (
       }}
     >
       <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flex: 1, minWidth: 0 }}>
-        <div style={{ background: '#f0fdf4', padding: '6px', borderRadius: '10px', color: '#059669', flexShrink: 0 }}>
+        <div style={{ background: '#FEF2F2', padding: '6px', borderRadius: '10px', color: '#FF1744', flexShrink: 0 }}>
           <Navigation size={15} strokeWidth={3} />
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px', overflow: 'hidden' }}>
@@ -227,7 +227,7 @@ const IncheonPremiumBanner = ({ onClick, t }) => (
           <span style={{ color: '#94A3B8', fontSize: '11px', fontWeight: '500', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{t('shortest_distance')}</span>
         </div>
       </div>
-      <div style={{ background: '#059669', color: '#fff', fontSize: '8px', fontWeight: '950', padding: '2px 8px', borderRadius: '6px', flexShrink: 0 }}>LIVE</div>
+      <div style={{ background: '#FF1744', color: '#fff', fontSize: '8px', fontWeight: '950', padding: '2px 8px', borderRadius: '6px', flexShrink: 0 }}>LIVE</div>
     </div>
   </div>
 );
@@ -502,7 +502,7 @@ function App() {
             display: 'flex', alignItems: 'center', justifyContent: 'center'
           }}
         >
-          <Menu size={24} color="#059669" />
+          <Menu size={24} color="#FF1744" />
         </motion.button>
       )}
 
@@ -529,7 +529,7 @@ function App() {
               <motion.button 
                 whileTap={{ scale: 0.9 }}
                 onClick={handleCloseModal}
-                style={{ background: '#F8FAFC', border: '1px solid #E2E8F0', borderRadius: '12px', padding: '10px', color: '#059669', cursor: 'pointer' }}
+                style={{ background: '#F8FAFC', border: '1px solid #E2E8F0', borderRadius: '12px', padding: '10px', color: '#FF1744', cursor: 'pointer' }}
               >
                 <X size={24} />
               </motion.button>
@@ -542,17 +542,17 @@ function App() {
 
             <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
               {[
-                { icon: <Calendar color="#059669" />, text: t('view_calendar'), action: () => { setIsMenuOpen(false); handleOpenModal(setShowFullCalendar, true); } },
-                { icon: <Camera color="#059669" />, text: 'LIVE PICK', action: () => { setView('community'); setIsMenuOpen(false); } },
-                { icon: <Utensils color="#059669" />, text: t('restaurant'), action: () => { setView('restaurant'); setIsMenuOpen(false); } },
-                { icon: <Star color="#059669" />, text: t('saju'), action: () => { if(typeof setShowSaju === 'function') { handleOpenModal(setShowSaju, true); setIsMenuOpen(false); } } },
-                { icon: <CloudSun color="#059669" />, text: t('weather'), action: () => { setIsMenuOpen(false); setTimeout(() => handleOpenModal(setShowWeather, true), 300); } },
-                { icon: <Bell color="#059669" />, text: t('notice'), action: () => { alert(t('coming_soon')) } },
-                { icon: <ShieldCheck color="#059669" />, text: t('admin_dashboard'), action: () => { setView('admin'); setIsMenuOpen(false); } },
+                { icon: <Calendar color="#FF1744" />, text: t('view_calendar'), action: () => { setIsMenuOpen(false); handleOpenModal(setShowFullCalendar, true); } },
+                { icon: <Camera color="#FF1744" />, text: 'LIVE PICK', action: () => { setView('community'); setIsMenuOpen(false); } },
+                { icon: <Utensils color="#FF1744" />, text: t('restaurant'), action: () => { setView('restaurant'); setIsMenuOpen(false); } },
+                { icon: <Star color="#FF1744" />, text: t('saju'), action: () => { if(typeof setShowSaju === 'function') { handleOpenModal(setShowSaju, true); setIsMenuOpen(false); } } },
+                { icon: <CloudSun color="#FF1744" />, text: t('weather'), action: () => { setIsMenuOpen(false); setTimeout(() => handleOpenModal(setShowWeather, true), 300); } },
+                { icon: <Bell color="#FF1744" />, text: t('notice'), action: () => { alert(t('coming_soon')) } },
+                { icon: <ShieldCheck color="#FF1744" />, text: t('admin_dashboard'), action: () => { setView('admin'); setIsMenuOpen(false); } },
               ].map((item, idx) => (
                 <motion.div
                   key={idx}
-                  whileHover={{ scale: 1.02, backgroundColor: '#f0fdf4' }}
+                  whileHover={{ scale: 1.02, backgroundColor: '#FEF2F2' }}
                   whileTap={{ scale: 0.98 }}
                   onClick={item.action}
                   style={{

@@ -9,10 +9,10 @@ import { KMA_REGION_COORDS, fetchWeatherForecast, parseKmaWeather, HOME_REGION_M
 const DAYS_KOR = ['일', '월', '화', '수', '목', '금', '토'];
 
 const GENRE_MAP = {
-  '바차타': { key: 'b_ratio', label: 'B', color: '#059669' },
-  '살사':   { key: 's_ratio', label: 'S', color: '#059669' },
-  '쥬크':   { key: 'j_ratio', label: 'J', color: '#059669' },
-  '키좀바': { key: 'k_ratio', label: 'K', color: '#059669' },
+  '바차타': { key: 'b_ratio', label: 'B', color: '#FF1744' },
+  '살사':   { key: 's_ratio', label: 'S', color: '#FF1744' },
+  '쥬크':   { key: 'j_ratio', label: 'J', color: '#FF1744' },
+  '키좀바': { key: 'k_ratio', label: 'K', color: '#FF1744' },
 };
 
 const REGION_FILTER = {
@@ -97,7 +97,7 @@ const PartyCard = ({ item, onSelect }) => {
         {/* Line 3: 상세 뱃지 */}
         <div style={{ display: 'flex', alignItems: 'center', gap: '4px', whiteSpace: 'nowrap', overflow: 'hidden', marginTop: '6px' }}>
           {/* 날짜 뱃지 */}
-          <span style={{ background: '#f0fdf4', color: '#059669', borderRadius: '99px', padding: '3px 9px', fontSize: '11px', fontWeight: '600' }}>
+          <span style={{ background: '#FEF2F2', color: '#FF1744', borderRadius: '99px', padding: '3px 9px', fontSize: '11px', fontWeight: '600' }}>
             {(() => { const d = new Date(item.date); return `${d.getMonth() + 1}/${d.getDate()}(${DAYS_KOR[d.getDay()]})`; })()}
           </span>
           {/* 시간 뱃지 */}
@@ -105,7 +105,7 @@ const PartyCard = ({ item, onSelect }) => {
             {displayTime}
           </span>
           {/* 참가비 뱃지 */}
-          <span style={{ background: '#059669', color: '#fff', borderRadius: '99px', padding: '3px 9px', fontSize: '11px', fontWeight: '800' }}>
+          <span style={{ background: '#FF1744', color: '#fff', borderRadius: '99px', padding: '3px 9px', fontSize: '11px', fontWeight: '800' }}>
             {displayFee}
           </span>
           {/* 음악비율 그룹박스 */}
@@ -149,7 +149,7 @@ const FilterBar = ({ filterRegion, setFilterRegion, filterGenre, setFilterGenre 
                 console.log('지역 선택:', newVal);
                 setFilterRegion(newVal);
               }} 
-              style={{ padding: '6px 12px', borderRadius: '8px', fontSize: '12px', fontWeight: 700, whiteSpace: 'nowrap', border: 'none', background: filterRegion === r ? '#059669' : '#F1F5F9', color: filterRegion === r ? '#fff' : '#64748B', transition: 'all 0.2s' }}
+              style={{ padding: '6px 12px', borderRadius: '8px', fontSize: '12px', fontWeight: 700, whiteSpace: 'nowrap', border: 'none', background: filterRegion === r ? '#FF1744' : '#F1F5F9', color: filterRegion === r ? '#fff' : '#64748B', transition: 'all 0.2s' }}
             >
               {r}
             </button>
@@ -166,7 +166,7 @@ const FilterBar = ({ filterRegion, setFilterRegion, filterGenre, setFilterGenre 
                 console.log('장르 선택:', newVal);
                 setFilterGenre(newVal);
               }} 
-              style={{ padding: '6px 12px', borderRadius: '8px', fontSize: '12px', fontWeight: 700, whiteSpace: 'nowrap', border: 'none', background: filterGenre === g ? '#059669' : '#F1F5F9', color: filterGenre === g ? '#fff' : '#64748B', transition: 'all 0.2s' }}
+              style={{ padding: '6px 12px', borderRadius: '8px', fontSize: '12px', fontWeight: 700, whiteSpace: 'nowrap', border: 'none', background: filterGenre === g ? '#FF1744' : '#F1F5F9', color: filterGenre === g ? '#fff' : '#64748B', transition: 'all 0.2s' }}
             >
               {g}
             </button>
@@ -251,22 +251,22 @@ const HomePage = ({
           <div style={{ position: 'absolute', top: '-10px', right: '-10px', width: '80px', height: '80px', border: '1px solid #f1f5f9', borderRadius: '50%' }}></div>
           
           <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', marginBottom: '24px' }}>
-            <span style={{ fontSize: '10px', color: '#059669', fontWeight: 800, letterSpacing: '2px', textTransform: 'uppercase' }}>
+            <span style={{ fontSize: '10px', color: '#FF1744', fontWeight: 800, letterSpacing: '2px', textTransform: 'uppercase' }}>
               Social Culture Experience
             </span>
             <h1 style={{ fontSize: '48px', fontWeight: 950, color: '#0f172a', letterSpacing: '-3px', lineHeight: 0.9, margin: 0 }}>
-              오늘밤<span style={{ color: '#059669', fontStyle: 'italic', marginLeft: '-2px' }}>빠</span>
+              오늘밤<span style={{ color: '#FF1744', fontStyle: 'italic', marginLeft: '-2px' }}>빠</span>
             </h1>
           </div>
 
           <div style={{ display: 'flex', alignItems: 'flex-start', gap: '16px' }}>
-            <div style={{ width: '2px', height: '40px', background: '#059669', marginTop: '4px' }}></div>
+            <div style={{ width: '2px', height: '40px', background: '#FF1744', marginTop: '4px' }}></div>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
               <p style={{ fontSize: '16px', fontWeight: 800, color: '#1e293b', margin: 0, letterSpacing: '-0.5px' }}>
                 바차타 · 살사 · 소셜
               </p>
               <p style={{ fontSize: '13px', color: '#64748b', fontWeight: 500, margin: 0, lineHeight: 1.4 }}>
-                만원대로 즐기는 도심 속 <span style={{ color: '#059669', fontWeight: 700 }}>전율의 밤</span>
+                만원대로 즐기는 도심 속 <span style={{ color: '#FF1744', fontWeight: 700 }}>전율의 밤</span>
               </p>
             </div>
           </div>
@@ -285,8 +285,8 @@ const HomePage = ({
               // 토요일(6)은 파란색
               const isSaturday = item.dayOfWeek === 6;
               
-              const dayColor = isSelected ? '#fff' : (isHoliday ? '#059669' : (isSaturday ? '#059669' : '#94A3B8'));
-              const labelColor = isSelected ? '#059669' : (isHoliday ? '#059669' : (isSaturday ? '#059669' : '#94A3B8'));
+              const dayColor = isSelected ? '#fff' : (isHoliday ? '#FF1744' : (isSaturday ? '#FF1744' : '#94A3B8'));
+              const labelColor = isSelected ? '#FF1744' : (isHoliday ? '#FF1744' : (isSaturday ? '#FF1744' : '#94A3B8'));
 
               return (
                 <div key={item.fullDate} 
@@ -300,7 +300,7 @@ const HomePage = ({
                   style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minWidth: '13.5%', cursor: 'pointer' }}
                 >
                   <span style={{ fontSize: '10px', fontWeight: '700', color: labelColor, marginBottom: '2px' }}>{item.dayName}</span>
-                  <div style={{ width: '30px', height: '30px', borderRadius: '10px', display: 'flex', alignItems: 'center', justifyContent: 'center', backgroundColor: isSelected ? '#059669' : 'transparent', border: item.isToday && !isSelected ? '1px solid #059669' : 'none' }}>
+                  <div style={{ width: '30px', height: '30px', borderRadius: '10px', display: 'flex', alignItems: 'center', justifyContent: 'center', backgroundColor: isSelected ? '#FF1744' : 'transparent', border: item.isToday && !isSelected ? '1px solid #FF1744' : 'none' }}>
                     <span style={{ fontSize: '15px', fontWeight: '800', color: isSelected ? '#fff' : dayColor }}>{item.date}</span>
                   </div>
                 </div>
@@ -313,7 +313,7 @@ const HomePage = ({
 
         <div style={{ padding: '2px 10px 8px' }}>
           <div style={{ height: '32px', background: '#0f172a', borderRadius: '16px', display: 'flex', alignItems: 'center', overflow: 'hidden', padding: '0 12px' }}>
-            <button onClick={() => setIsPaused(!isPaused)} style={{ background: isPaused ? '#059669' : 'rgba(255,255,255,0.2)', border: 'none', borderRadius: '12px', color: '#fff', fontSize: '10px', fontWeight: '900', padding: '4px 8px', marginRight: '10px', cursor: 'pointer' }}>{isPaused ? '▶ PLAY' : '⏸ STOP'}</button>
+            <button onClick={() => setIsPaused(!isPaused)} style={{ background: isPaused ? '#FF1744' : 'rgba(255,255,255,0.2)', border: 'none', borderRadius: '12px', color: '#fff', fontSize: '10px', fontWeight: '900', padding: '4px 8px', marginRight: '10px', cursor: 'pointer' }}>{isPaused ? '▶ PLAY' : '⏸ STOP'}</button>
             <div style={{ flex: 1, overflow: 'hidden' }}>
               <motion.div animate={isPaused ? {} : { x: ['100%', '-100%'] }} transition={{ duration: 15, repeat: Infinity, ease: 'linear' }} style={{ whiteSpace: 'nowrap', color: '#fff', fontSize: '13px', fontWeight: '900' }}>📢 [실시간] 밤빠가 전하는 전국 소셜 파티 실시간 인원 중계 중! 🔥</motion.div>
             </div>
@@ -331,7 +331,7 @@ const HomePage = ({
               {carouselParties.length > 0 && (
                 <div style={{ margin: '0 0 15px', padding: '10px 0 20px', background: '#fff', borderBottom: '1px solid #eee' }}>
                   <div style={{ padding: '0 20px 15px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                    <h2 style={{ fontSize: '18px', fontWeight: '950', color: '#1E293B', display: 'flex', alignItems: 'center', gap: '8px' }}><span style={{ color: '#059669' }}>HOT</span> PICK 5</h2>
+                    <h2 style={{ fontSize: '18px', fontWeight: '950', color: '#1E293B', display: 'flex', alignItems: 'center', gap: '8px' }}><span style={{ color: '#FF1744' }}>HOT</span> PICK 5</h2>
                     {/* 언어 토글 버튼 이동 배치 */}
                     <motion.button
                       whileTap={{ scale: 0.9 }}
@@ -402,7 +402,7 @@ const HomePage = ({
                     >
                       <div style={{ fontSize: '18px', fontWeight: '900', padding: '15px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                         <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                          <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#059669' }} />
+                          <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#FF1744' }} />
                           {regionName}
                         </div>
                         <button 
@@ -447,7 +447,7 @@ const HomePage = ({
               <div style={{ flex: 1, overflowY: 'auto', minHeight: '350px' }}>
                 {!showFilterPanel && !showFilteredResults ? (
                   <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: '5px', textAlign: 'center' }}>
-                    {['일','월','화','수','목','금','토'].map(d => <div key={d} style={{ fontSize: '12px', fontWeight: 700, color: d === '일' ? '#059669' : d === '토' ? '#059669' : '#999', padding: '5px 0' }}>{d}</div>)}
+                    {['일','월','화','수','목','금','토'].map(d => <div key={d} style={{ fontSize: '12px', fontWeight: 700, color: d === '일' ? '#FF1744' : d === '토' ? '#FF1744' : '#999', padding: '5px 0' }}>{d}</div>)}
                     {allDatesInMonth.map((day) => {
                       if (!day.date) return <div key={Math.random()} />;
                       const isWeekend = day.dayName === '금' || day.dayName === '토';
@@ -462,7 +462,7 @@ const HomePage = ({
                             handleOpenModal(setShowFilterPanel, true);
                             setFilterStep(1);
                           }} 
-                          style={{ height: '46px', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', fontSize: '15px', fontWeight: isSelected ? 800 : 600, color: isSelected ? '#fff' : (day.dayName === '일' ? '#059669' : (isWeekend ? '#059669' : '#1E293B')), backgroundColor: isSelected ? '#059669' : 'transparent', borderRadius: '14px', cursor: day.fullDate < todayStr ? 'default' : 'pointer', opacity: day.fullDate < todayStr ? 0.3 : 1 }}
+                          style={{ height: '46px', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', fontSize: '15px', fontWeight: isSelected ? 800 : 600, color: isSelected ? '#fff' : (day.dayName === '일' ? '#FF1744' : (isWeekend ? '#FF1744' : '#1E293B')), backgroundColor: isSelected ? '#FF1744' : 'transparent', borderRadius: '14px', cursor: day.fullDate < todayStr ? 'default' : 'pointer', opacity: day.fullDate < todayStr ? 0.3 : 1 }}
                         >
                           {day.date}
                         </div>
@@ -479,7 +479,7 @@ const HomePage = ({
                         <div style={{ fontSize: '18px', fontWeight: 950, color: '#1E293B', marginBottom: '15px' }}>{t('filter_where')}</div>
                         <div style={{ display: 'flex', overflowX: 'auto', gap: '10px', paddingBottom: '15px', msOverflowStyle: 'none', scrollbarWidth: 'none', WebkitOverflowScrolling: 'touch' }}>
                           {['서울', '경기/인천', '부산', '대구', '대전', '광주', '기타'].map(r => (
-                            <button key={r} onClick={() => { setFilterRegion(r); handleOpenModal(setFilterStep, 2); }} style={{ flexShrink: 0, padding: '14px 24px', borderRadius: '14px', background: filterRegion === r ? '#059669' : '#F8FAFC', color: filterRegion === r ? '#fff' : '#64748B', fontWeight: 700, border: 'none', transition: 'all 0.2s' }}>{r}</button>
+                            <button key={r} onClick={() => { setFilterRegion(r); handleOpenModal(setFilterStep, 2); }} style={{ flexShrink: 0, padding: '14px 24px', borderRadius: '14px', background: filterRegion === r ? '#FF1744' : '#F8FAFC', color: filterRegion === r ? '#fff' : '#64748B', fontWeight: 700, border: 'none', transition: 'all 0.2s' }}>{r}</button>
                           ))}
                         </div>
                       </>
@@ -613,7 +613,7 @@ const HomePage = ({
                     <ChevronLeft size={28} />
                   </button>
                   <div style={{ color: '#fff', fontSize: '18px', fontWeight: '900', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                    <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#059669' }} />
+                    <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#FF1744' }} />
                     {gridRegion} 전체보기
                   </div>
                 </div>
