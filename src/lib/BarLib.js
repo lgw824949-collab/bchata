@@ -25,7 +25,7 @@ export const BAR_DATABASE = [
   { name: '꼼애야 2차', address: '서울특별시 마포구 동교로 209-4', region: '서울' },
 
   // [경기 - 수원]
-  { name: '쿠바', address: '경기도 수원시 팔달구 인계동 1042-7, 3층', region: '경기도' },
+  { name: '돌체비타', address: '경기도 수원시 팔달구 인계동 1042-7, 3층', region: '경기도', aliases: ['쿠바'] },
   { name: '원스', address: '경기도 수원시 팔달구 인계동 1024-5, 4층', region: '경기도' },
 
   // [경기 - 안산]
@@ -77,6 +77,7 @@ export const BAR_DATABASE = [
   { name: '엘하비댄스스튜디오', address: '경상남도 김해시 분성로 302번길 12, 2층', region: '경상도' },
   { name: '맘보', address: '부산진구 중앙대로 691번길 52 지하1층', region: '경상도' },
   { name: '제이 바', address: '부산광역시 해운대구 우동 456', region: '경상도' },
+  { name: '포항댄스사랑', address: '경상북도 포항시 남구 중앙로 112, 4층', region: '경상도', aliases: ['포댄사'] },
 
   // [전라 - 광주/여수]
   { name: '부에나비스타바', address: '광주광역시 동구 문화전당로23번길 38-1', region: '전라도' },
