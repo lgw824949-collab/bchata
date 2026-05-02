@@ -493,11 +493,7 @@ const HomePage = ({
                     </div>
                     <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '10px', marginBottom: '20px' }}>
                       {(() => {
-                        const today = new Date().toISOString().split('T')[0];
-                        const filtered = parties.filter(p => {
-                          // 오늘 이후만
-                          if (p.date < today) return false;
-                          
+                        const filtered = filteredParties.filter(p => {
                           // 지역 필터 적용
                           const filterFn = REGION_FILTER[filterRegion];
                           if (filterRegion && filterFn) {
