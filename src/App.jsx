@@ -547,6 +547,7 @@ function App() {
                 { icon: <Utensils color="#FF1744" />, text: t('restaurant'), action: () => { setView('restaurant'); setIsMenuOpen(false); } },
                 { icon: <Star color="#FF1744" />, text: t('saju'), action: () => { if(typeof setShowSaju === 'function') { handleOpenModal(setShowSaju, true); setIsMenuOpen(false); } } },
                 { icon: <CloudSun color="#FF1744" />, text: t('weather'), action: () => { setIsMenuOpen(false); setTimeout(() => handleOpenModal(setShowWeather, true), 300); } },
+                { icon: <MessageSquare color="#FF1744" />, text: '실시간 오픈톡', action: () => { window.open('https://open.kakao.com/o/gP43rNri', '_blank'); setIsMenuOpen(false); } },
                 { icon: <Bell color="#FF1744" />, text: t('notice'), action: () => { alert(t('coming_soon')) } },
                 { icon: <ShieldCheck color="#FF1744" />, text: t('admin_dashboard'), action: () => { setView('admin'); setIsMenuOpen(false); } },
               ].map((item, idx) => (
