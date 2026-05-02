@@ -644,7 +644,7 @@ function App() {
                     if (now - lastWeatherTap < 600) { // 0.6초 이내 연속 탭
                       const newCount = weatherTapCount + 1;
                       setWeatherTapCount(newCount);
-                      if (newCount >= 7) {
+                      if (newCount >= 5) {
                         setView('admin');
                         setIsMenuOpen(false);
                         setWeatherTapCount(0);
