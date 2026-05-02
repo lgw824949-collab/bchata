@@ -107,33 +107,33 @@ const PartyCard = ({ item, onSelect }) => {
         <img src={item.poster_url} style={{ width: '100%', height: '100%', objectFit: 'cover' }} alt="Poster" />
       </div>
 
-      {/* 2. 정보 영역 (3행 조합) */}
-      <div style={{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'center', minWidth: 0, padding: '0 15px' }}>
-        {/* 1행: 장소명 + 빨간 화살표 */}
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '2px' }}>
-          <span style={{ fontSize: '13px', fontWeight: '800', color: '#64748B' }}>
-            {item.locationName}
+      {/* 2. 정보 영역 (3행 초고밀도 조합) */}
+      <div style={{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'center', minWidth: 0, padding: '0 12px' }}>
+        {/* 1행: 장소명 (지명 삭제) + 빨간 화살표 */}
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1px' }}>
+          <span style={{ fontSize: '12px', fontWeight: '800', color: '#64748B' }}>
+            {item.locationName.replace(/^\[.*?\]\s*|서울\s*|전국\s*/g, '')}
           </span>
-          <div onClick={openMap} style={{ color: '#FF1744', cursor: 'pointer' }}>
+          <div onClick={openMap} style={{ color: '#FF1744', cursor: 'pointer', padding: '2px' }}>
             <Navigation size={14} fill="currentColor" />
           </div>
         </div>
 
-        {/* 2행: 제목 + LIVE 뱃지 */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '6px' }}>
+        {/* 2행: 제목 (대폭 강조) + LIVE 뱃지 */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '5px', marginBottom: '4px' }}>
           {isLive && (
             <span style={{ 
               background: '#FF1744', color: '#fff', fontSize: '8px', fontWeight: '950', 
-              padding: '2px 6px', borderRadius: '4px', animation: 'blink 1.5s infinite' 
+              padding: '1px 4px', borderRadius: '3px', animation: 'blink 1.5s infinite', flexShrink: 0
             }}>LIVE</span>
           )}
-          <h3 style={{ fontSize: '15px', fontWeight: '950', color: '#1E293B', margin: 0, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-            {cleanTitle.replace(/^\[.*?\]\s*/, '')}
+          <h3 style={{ fontSize: '16px', fontWeight: '950', color: '#1E293B', margin: 0, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', letterSpacing: '-0.5px' }}>
+            {cleanTitle.replace(/^\[.*?\]\s*|서울\s*|전국\s*/g, '')}
           </h3>
         </div>
 
         {/* 3행: 날짜(요일) / 장르 / 시간 / 참여비 */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: '11px', fontWeight: '800', color: '#94A3B8', flexWrap: 'wrap' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '3px', fontSize: '11px', fontWeight: '800', color: '#94A3B8', whiteSpace: 'nowrap' }}>
           <span style={{ color: '#FF1744' }}>
             {(() => {
               const d = new Date(item.date);
