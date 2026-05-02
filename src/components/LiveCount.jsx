@@ -168,10 +168,25 @@ const LiveCount = () => {
       .replace('경기도', '경기');
   };
 
-  const liveList = Object.entries(counts)
-    .filter(([_, count]) => count >= 50)
-    .sort((a, b) => b[1] - a[1])
-    .slice(0, 5)
+  const liveList = useMemo(() => {
+    const HONGDAE_BARS = ['보니따', '홍턴', '부에나2차', '까리베 2차', '마콘도', '팰리스클럽', '안단테', '놀이터 2차', '하바나', '아난타라', '솔SOL빠2차', '꼼애야 2차'];
+    let hongdaeTotal = 0;
+    const list = Object.entries(counts)
+      .filter(([key, count]) => {
+        const barName = key.split('|')[1];
+        if (HONGDAE_BARS.some(h => barName.includes(h))) {
+          hongdaeTotal += count;
+        }
+        return count >= 50;
+      })
+      .sort((a, b) => b[1] - a[1])
+      .slice(0, 5);
+
+    if (hongdaeTotal > 0) {
+      list.unshift(['서울|🔥 홍턴(홍대)', hongdaeTotal]);
+    }
+    return list;
+  }, [counts]);
 
   if (liveList.length === 0) return null
 
