@@ -468,20 +468,32 @@ const HomePage = ({
                       <div style={{ 
                         display: 'grid', 
                         gridTemplateColumns: 'repeat(3, 1fr)', 
-                        gap: '10px', 
+                        gap: '12px', 
                         padding: '0 15px 20px' 
                       }}>
                         {regionParties.length === 0 ? (
-                          <div style={{ gridColumn: 'span 3', padding: '30px', color: '#94A3B8', textAlign: 'center', fontSize: '13px' }}>{t('no_parties')}</div>
+                          <div style={{ gridColumn: 'span 3', padding: '30px', background: '#F8FAFC', borderRadius: '16px', textAlign: 'center', color: '#94A3B8', fontSize: '13px', fontWeight: '700' }}>{t('no_parties')}</div>
                         ) : (() => {
                           const offset = shuffleOffset % regionParties.length;
                           const rotated = [...regionParties.slice(offset), ...regionParties.slice(0, offset)];
                           const maxCount = regionName === '서울' ? 4 : 3;
                           return rotated.slice(0, maxCount).map(item => (
-                            <div key={item.id} onClick={() => handleOpenModal(setSelectedPoster, item.poster_url)} style={{ position: 'relative', width: '100%', aspectRatio: '3/4.2', borderRadius: '10px', overflow: 'hidden', boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }}>
-                              <img src={item.poster_url} style={{ width: '100%', height: '100%', objectFit: 'cover' }} alt="Poster" />
-                              <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, padding: '6px 4px', background: 'linear-gradient(transparent, rgba(0,0,0,0.8))', color: '#fff' }}>
-                                <div style={{ fontSize: '9px', fontWeight: '900', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{item.locationName}</div>
+                            <div key={item.id} onClick={() => handleOpenModal(setSelectedPoster, item.poster_url)} style={{ cursor: 'pointer' }}>
+                              {/* 1. 포스터 */}
+                              <div style={{ position: 'relative', width: '100%', aspectRatio: '3/4.2', borderRadius: '12px', overflow: 'hidden', boxShadow: '0 4px 12px rgba(0,0,0,0.1)', marginBottom: '8px' }}>
+                                <img src={item.poster_url} style={{ width: '100%', height: '100%', objectFit: 'cover' }} alt="Poster" />
+                              </div>
+                              {/* 2. 텍스트 정보 (포스터 아래) */}
+                              <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
+                                <div style={{ fontSize: '12px', fontWeight: '900', color: '#1E293B', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                                  {item.organizer || item.locationName}
+                                </div>
+                                <div style={{ fontSize: '11px', fontWeight: '700', color: '#64748B', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                                  {item.title}
+                                </div>
+                                <div style={{ fontSize: '10px', color: '#94A3B8', fontWeight: '600' }}>
+                                  {item.time?.split('~')[0]} · {item.locationName}
+                                </div>
                               </div>
                             </div>
                           ));
