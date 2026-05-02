@@ -242,91 +242,80 @@ const HomePage = ({
   }, []);
 
   return (
-    <div className="app-container" style={{ height: 'calc(var(--vh, 1vh) * 100)', display: 'flex', flexDirection: 'column', overflow: 'hidden', position: 'fixed', width: '100%', top: 0, left: 0, background: '#fff' }}>
+    <div className="app-container" style={{ width: '100%', maxWidth: '500px', margin: '0 auto', background: '#fff', minHeight: '100vh', paddingBottom: '100px' }}>
       
-      {/* 📌 [영역 A: 상단 고정석] */}
-      <div style={{ position: 'fixed', top: 0, left: '50%', transform: 'translateX(-50%)', width: '100%', maxWidth: '500px', zIndex: 100000, background: '#ffffff', borderBottom: '1px solid #f1f5f9' }}>
-        <div style={{ padding: '40px 24px 28px', background: '#ffffff', position: 'relative', overflow: 'hidden' }}>
-          {/* 배경의 아주 연한 디자인 요소 */}
-          <div style={{ position: 'absolute', top: '-10px', right: '-10px', width: '80px', height: '80px', border: '1px solid #f1f5f9', borderRadius: '50%' }}></div>
-          
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', marginBottom: '24px' }}>
-            <span style={{ fontSize: '10px', color: '#FF1744', fontWeight: 800, letterSpacing: '2px', textTransform: 'uppercase' }}>
-              Social Culture Experience
-            </span>
-            <h1 style={{ fontSize: '48px', fontWeight: 950, color: '#0f172a', letterSpacing: '-3px', lineHeight: 0.9, margin: 0 }}>
-              오늘밤<span style={{ color: '#FF1744', fontStyle: 'italic', marginLeft: '-2px' }}>빠</span>
-            </h1>
-          </div>
-
-          <div style={{ display: 'flex', alignItems: 'flex-start', gap: '16px' }}>
-            <div style={{ width: '2px', height: '40px', background: '#FF1744', marginTop: '4px' }}></div>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
-              <p style={{ fontSize: '16px', fontWeight: 800, color: '#1e293b', margin: 0, letterSpacing: '-0.5px' }}>
-                바차타 · 살사 · 소셜
-              </p>
-              <p style={{ fontSize: '13px', color: '#64748b', fontWeight: 500, margin: 0, lineHeight: 1.4 }}>
-                만원대로 즐기는 도심 속 <span style={{ color: '#FF1744', fontWeight: 700 }}>전율의 밤</span>
-              </p>
-            </div>
-          </div>
-
-          <div style={{ position: 'absolute', top: '44px', right: '24px', display: 'flex', flexDirection: 'column', alignItems: 'flex-end' }}>
-            <span style={{ fontSize: '8px', color: '#cbd5e1', fontWeight: 900, letterSpacing: '1px', marginBottom: '4px' }}>EST. 2024</span>
-            <div style={{ width: '24px', height: '1px', background: '#cbd5e1' }}></div>
+      {/* 📌 [영역 A: 브랜드 헤더 - 스크롤되어 사라짐] */}
+      <div style={{ padding: '40px 24px 28px', background: '#ffffff', position: 'relative', overflow: 'hidden' }}>
+        <div style={{ position: 'absolute', top: '-10px', right: '-10px', width: '80px', height: '80px', border: '1px solid #f1f5f9', borderRadius: '50%' }}></div>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', marginBottom: '24px' }}>
+          <span style={{ fontSize: '10px', color: '#FF1744', fontWeight: 800, letterSpacing: '2px', textTransform: 'uppercase' }}>
+            Social Culture Experience
+          </span>
+          <h1 style={{ fontSize: '48px', fontWeight: 950, color: '#0f172a', letterSpacing: '-3px', lineHeight: 0.9, margin: 0 }}>
+            오늘밤<span style={{ color: '#FF1744', fontStyle: 'italic', marginLeft: '-2px' }}>빠</span>
+          </h1>
+        </div>
+        <div style={{ display: 'flex', alignItems: 'flex-start', gap: '16px' }}>
+          <div style={{ width: '2px', height: '40px', background: '#FF1744', marginTop: '4px' }}></div>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
+            <p style={{ fontSize: '16px', fontWeight: 800, color: '#1e293b', margin: 0, letterSpacing: '-0.5px' }}>
+              바차타 · 살사 · 소셜
+            </p>
+            <p style={{ fontSize: '13px', color: '#64748b', fontWeight: 500, margin: 0, lineHeight: 1.4 }}>
+              만원대로 즐기는 도심 속 <span style={{ color: '#FF1744', fontWeight: 700 }}>전율의 밤</span>
+            </p>
           </div>
         </div>
-        <div style={{ height: '50px', display: 'flex', alignItems: 'center', padding: '0 10px' }}>
-          <div style={{ flex: 1, display: 'flex', overflowX: 'auto', gap: '8px', padding: '5px 0', msOverflowStyle: 'none', scrollbarWidth: 'none', WebkitOverflowScrolling: 'touch' }} className="date-stream-bar">
-            {fourteenDays.map((item) => {
-              const isSelected = selectedDate === item.fullDate;
-              // 일요일(0) 또는 5월 5일(어린이날)은 빨간색
-              const isHoliday = item.dayOfWeek === 0 || (item.month === '5' && item.date === '5');
-              // 토요일(6)은 파란색
-              const isSaturday = item.dayOfWeek === 6;
-              
-              const dayColor = isSelected ? '#fff' : (isHoliday ? '#FF1744' : (isSaturday ? '#FF1744' : '#94A3B8'));
-              const labelColor = isSelected ? '#FF1744' : (isHoliday ? '#FF1744' : (isSaturday ? '#FF1744' : '#94A3B8'));
+        <div style={{ position: 'absolute', top: '44px', right: '24px', display: 'flex', flexDirection: 'column', alignItems: 'flex-end' }}>
+          <span style={{ fontSize: '8px', color: '#cbd5e1', fontWeight: 900, letterSpacing: '1px', marginBottom: '4px' }}>EST. 2024</span>
+          <div style={{ width: '24px', height: '1px', background: '#cbd5e1' }}></div>
+        </div>
+      </div>
 
-              return (
-                <div key={item.fullDate} 
-                  onClick={() => {
-                    setSelectedDate(item.fullDate);
-                    // 날짜 클릭 시 서울 지역 목록으로 스크롤
-                    if (regionListRef.current) {
-                      regionListRef.current.scrollIntoView({ behavior: 'smooth', block: 'start' });
-                    }
-                  }} 
-                  style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minWidth: '13.5%', cursor: 'pointer' }}
-                >
-                  <span style={{ fontSize: '10px', fontWeight: '700', color: labelColor, marginBottom: '2px' }}>{item.dayName}</span>
-                  <div style={{ width: '30px', height: '30px', borderRadius: '10px', display: 'flex', alignItems: 'center', justifyContent: 'center', backgroundColor: isSelected ? '#FF1744' : 'transparent', border: item.isToday && !isSelected ? '1px solid #FF1744' : 'none' }}>
-                    <span style={{ fontSize: '15px', fontWeight: '800', color: isSelected ? '#fff' : dayColor }}>{item.date}</span>
-                  </div>
+      {/* 📌 [영역 B: 날짜 선택바 - 상단 고정(Sticky)] */}
+      <div style={{ position: 'sticky', top: 0, zIndex: 1000, background: '#ffffff', borderBottom: '1px solid #f1f5f9', boxShadow: '0 4px 12px rgba(0,0,0,0.03)', padding: '0 10px' }}>
+        <div style={{ flex: 1, display: 'flex', overflowX: 'auto', gap: '8px', padding: '10px 0', msOverflowStyle: 'none', scrollbarWidth: 'none', WebkitOverflowScrolling: 'touch' }} className="date-stream-bar">
+          {fourteenDays.map((item) => {
+            const isSelected = selectedDate === item.fullDate;
+            const isHoliday = item.dayOfWeek === 0 || (item.month === '5' && item.date === '5');
+            const isSaturday = item.dayOfWeek === 6;
+            const dayColor = isSelected ? '#fff' : (isHoliday ? '#FF1744' : (isSaturday ? '#FF1744' : '#94A3B8'));
+            const labelColor = isSelected ? '#FF1744' : (isHoliday ? '#FF1744' : (isSaturday ? '#FF1744' : '#94A3B8'));
+            return (
+              <div key={item.fullDate} 
+                onClick={() => {
+                  setSelectedDate(item.fullDate);
+                  if (regionListRef.current) {
+                    regionListRef.current.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                  }
+                }} 
+                style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minWidth: '13.5%', cursor: 'pointer' }}
+              >
+                <span style={{ fontSize: '10px', fontWeight: '700', color: labelColor, marginBottom: '2px' }}>{item.dayName}</span>
+                <div style={{ width: '30px', height: '30px', borderRadius: '10px', display: 'flex', alignItems: 'center', justifyContent: 'center', backgroundColor: isSelected ? '#FF1744' : 'transparent', border: item.isToday && !isSelected ? '1px solid #FF1744' : 'none' }}>
+                  <span style={{ fontSize: '15px', fontWeight: '800', color: isSelected ? '#fff' : dayColor }}>{item.date}</span>
                 </div>
-              );
-            })}
-          </div>
+              </div>
+            );
+          })}
         </div>
+      </div>
 
-
-
-        <div style={{ padding: '2px 10px 8px' }}>
-          <div style={{ height: '32px', background: '#0f172a', borderRadius: '16px', display: 'flex', alignItems: 'center', overflow: 'hidden', padding: '0 12px' }}>
-            <button onClick={() => setIsPaused(!isPaused)} style={{ background: isPaused ? '#FF1744' : 'rgba(255,255,255,0.2)', border: 'none', borderRadius: '12px', color: '#fff', fontSize: '10px', fontWeight: '900', padding: '4px 8px', marginRight: '10px', cursor: 'pointer' }}>{isPaused ? '▶ PLAY' : '⏸ STOP'}</button>
-            <div style={{ flex: 1, overflow: 'hidden' }}>
-              <motion.div animate={isPaused ? {} : { x: ['100%', '-100%'] }} transition={{ duration: 15, repeat: Infinity, ease: 'linear' }} style={{ whiteSpace: 'nowrap', color: '#fff', fontSize: '13px', fontWeight: '900' }}>📢 [실시간] 밤빠가 전하는 전국 소셜 파티 실시간 인원 중계 중! 🔥</motion.div>
-            </div>
+      <div style={{ padding: '12px 10px 8px' }}>
+        <div style={{ height: '32px', background: '#0f172a', borderRadius: '16px', display: 'flex', alignItems: 'center', overflow: 'hidden', padding: '0 12px' }}>
+          <button onClick={() => setIsPaused(!isPaused)} style={{ background: isPaused ? '#FF1744' : 'rgba(255,255,255,0.2)', border: 'none', borderRadius: '12px', color: '#fff', fontSize: '10px', fontWeight: '900', padding: '4px 8px', marginRight: '10px', cursor: 'pointer' }}>{isPaused ? '▶ PLAY' : '⏸ STOP'}</button>
+          <div style={{ flex: 1, overflow: 'hidden' }}>
+            <motion.div animate={isPaused ? {} : { x: ['100%', '-100%'] }} transition={{ duration: 15, repeat: Infinity, ease: 'linear' }} style={{ whiteSpace: 'nowrap', color: '#fff', fontSize: '13px', fontWeight: '900' }}>📢 [실시간] 밤빠가 전하는 전국 소셜 파티 실시간 인원 중계 중! 🔥</motion.div>
           </div>
         </div>
       </div>
 
-      <main ref={scrollRef} style={{ flex: 1, WebkitOverflowScrolling: 'touch', width: '100%', padding: '250px 0 0 0', background: '#fff', overflowY: 'auto' }}>
-        <div style={{ minHeight: '101%', paddingBottom: '80px' }}>
+      <div ref={scrollRef} style={{ width: '100%', background: '#fff' }}>
+        <div style={{ minHeight: '101%' }}>
           {loading ? (
             <div style={{ display: 'flex', flexDirection: 'column', marginTop: '120px' }}>{Array(6).fill(0).map((_, i) => <div key={i} style={{ height: '140px', width: '100%', background: '#f9f9f9', borderBottom: '1px solid #eee' }} />)}</div>
           ) : (
-            <div style={{ width: '100%', padding: '0 0 20px 0', backgroundColor: '#f2f2f2', minHeight: '100vh' }}>
+            <div style={{ width: '100%', padding: '0 0 20px 0', backgroundColor: '#f2f2f2' }}>
               <LiveCount />
               {carouselParties.length > 0 && (
                 <div style={{ margin: '0 0 15px', padding: '10px 0 20px', background: '#fff', borderBottom: '1px solid #eee' }}>
@@ -429,7 +418,7 @@ const HomePage = ({
             </div>
           )}
         </div>
-      </main>
+      </div>
 
       <AnimatePresence>
         {showFullCalendar && (
