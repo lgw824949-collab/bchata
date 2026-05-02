@@ -508,7 +508,7 @@ const HomePage = ({
                         </div>
                         <div style={{ fontSize: '18px', fontWeight: 950, color: '#1E293B', marginBottom: '15px' }}>{t('filter_genre')}</div>
                         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
-                          {['Bachata', 'Salsa', 'Zouk', 'Kizomba'].map(g => (
+                          {['바차타', '살사', '쥬크', '키좀바'].map(g => (
                             <button key={g} onClick={() => { setFilterGenre(g); handleOpenModal(setShowFilteredResults, true); }} style={{ padding: '24px 15px', borderRadius: '18px', background: filterGenre === g ? '#1E293B' : '#F8FAFC', color: filterGenre === g ? '#fff' : '#64748B', fontWeight: 800, fontSize: '16px', border: 'none' }}>{g}</button>
                           ))}
                         </div>

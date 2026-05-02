@@ -531,7 +531,7 @@ function App() {
                 onClick={handleCloseModal}
                 style={{ background: '#F8FAFC', border: '1px solid #E2E8F0', borderRadius: '12px', padding: '10px', color: '#FF1744', cursor: 'pointer' }}
               >
-                <X size={24} />
+                <ChevronLeft size={24} />
               </motion.button>
             </div>
 
