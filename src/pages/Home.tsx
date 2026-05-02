@@ -22,6 +22,13 @@ const REGION_FILTER = {
   '전라도': (p) => p.broadRegion === '전라도',
   '충청도': (p) => p.broadRegion === '충청도',
   '강원/제주': (p) => p.broadRegion === '강원/제주',
+  // 별칭/도시별 매핑 (필터링 충돌 방지)
+  '인천': (p) => p.broadRegion === '경기/인천',
+  '부산': (p) => p.broadRegion === '경상도',
+  '대구': (p) => p.broadRegion === '경상도',
+  '대전': (p) => p.broadRegion === '충청도',
+  '광주': (p) => p.broadRegion === '전라도',
+  '기타': (p) => true
 };
 const MAIN_REGIONS = ['서울', '경기/인천', '경상', '전라', '충청', '강원/제주'];
 
@@ -90,15 +97,15 @@ const PartyCard = ({ item, onSelect }) => {
         {/* Line 3: 상세 뱃지 */}
         <div style={{ display: 'flex', alignItems: 'center', gap: '4px', whiteSpace: 'nowrap', overflow: 'hidden', marginTop: '6px' }}>
           {/* 날짜 뱃지 */}
-          <span style={{ background: '#FFF1F1', color: '#C0392B', borderRadius: '99px', padding: '3px 9px', fontSize: '11px', fontWeight: '600' }}>
+          <span style={{ background: '#f0fdf4', color: '#059669', borderRadius: '99px', padding: '3px 9px', fontSize: '11px', fontWeight: '600' }}>
             {(() => { const d = new Date(item.date); return `${d.getMonth() + 1}/${d.getDate()}(${DAYS_KOR[d.getDay()]})`; })()}
           </span>
           {/* 시간 뱃지 */}
-          <span style={{ background: '#EFF6FF', color: '#1D4ED8', borderRadius: '99px', padding: '3px 9px', fontSize: '11px', fontWeight: '600' }}>
+          <span style={{ background: '#f1f5f9', color: '#64748B', borderRadius: '99px', padding: '3px 9px', fontSize: '11px', fontWeight: '600' }}>
             {displayTime}
           </span>
           {/* 참가비 뱃지 */}
-          <span style={{ background: '#f0fdf4', color: '#059669', borderRadius: '99px', padding: '3px 9px', fontSize: '11px', fontWeight: '800' }}>
+          <span style={{ background: '#059669', color: '#fff', borderRadius: '99px', padding: '3px 9px', fontSize: '11px', fontWeight: '800' }}>
             {displayFee}
           </span>
           {/* 음악비율 그룹박스 */}
@@ -376,7 +383,8 @@ const HomePage = ({
                   const regionParties = filteredParties.filter(p => {
 
                     // 1. 지역 조건 매칭
-                    if (!REGION_FILTER[regionName](p)) return false;
+                    const filterFn = REGION_FILTER[regionName];
+                    if (filterFn && !filterFn(p)) return false;
                     
                     // 2. 장르 조건 매칭
                     if (filterGenre && GENRE_MAP[filterGenre]) {
@@ -431,8 +439,8 @@ const HomePage = ({
               <div style={{ width: '40px', height: '4px', background: '#E2E8F0', borderRadius: '2px', margin: '0 auto 20px' }} />
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}><span style={{ fontSize: '24px', fontWeight: 950, color: '#1E293B' }}>{selectedMonth}월</span><div style={{ display: 'flex', gap: '8px' }}><button onClick={() => setSelectedMonth(m => m > 1 ? m-1 : 12)} style={{ background: '#F8FAFC', border: '1px solid #F1F5F9', borderRadius: '10px', width: '36px', height: '36px' }}><ChevronLeft size={18} /></button><button onClick={() => setSelectedMonth(m => m < 12 ? m+1 : 1)} style={{ background: '#F8FAFC', border: '1px solid #F1F5F9', borderRadius: '10px', width: '36px', height: '36px' }}><ChevronRight size={18} /></button></div></div>
-                <button onClick={handleCloseModal} style={{ background: '#F1F5F9', border: 'none', borderRadius: '50%', width: '44px', height: '44px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                  <X size={22} />
+                <button onClick={handleCloseModal} style={{ background: '#F1F5F9', border: 'none', borderRadius: '50%', width: '44px', height: '44px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#1E293B' }}>
+                  <ChevronLeft size={28} />
                 </button>
               </div>
               
@@ -502,8 +510,9 @@ const HomePage = ({
                           if (p.date < today) return false;
                           
                           // 지역 필터 적용
-                          if (filterRegion && REGION_FILTER[filterRegion]) {
-                            if (!REGION_FILTER[filterRegion](p)) return false;
+                          const filterFn = REGION_FILTER[filterRegion];
+                          if (filterRegion && filterFn) {
+                            if (!filterFn(p)) return false;
                           }
 
                           // 장르 필터 적용
@@ -601,7 +610,7 @@ const HomePage = ({
                   onClick={handleCloseModal}
                   style={{ background: 'rgba(255,255,255,0.15)', border: 'none', borderRadius: '50%', width: '44px', height: '44px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff' }}
                 >
-                  <X size={24} />
+                  <ChevronLeft size={28} />
                 </button>
               </div>
 
@@ -613,7 +622,10 @@ const HomePage = ({
                   gap: '2px' 
                 }}>
                   {(() => {
-                    const filtered = filteredParties.filter(p => REGION_FILTER[gridRegion](p));
+                    const filtered = filteredParties.filter(p => {
+                      const filterFn = REGION_FILTER[gridRegion];
+                      return filterFn ? filterFn(p) : true;
+                    });
                     return filtered.map(item => (
                       <div 
                         key={item.id} 
