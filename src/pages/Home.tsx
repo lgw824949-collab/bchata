@@ -239,21 +239,13 @@ const HomePage = ({
       
       {/* 📌 [영역 A: 상단 고정석] */}
       <div style={{ position: 'fixed', top: 0, left: '50%', transform: 'translateX(-50%)', width: '100%', maxWidth: '500px', zIndex: 100000, background: '#ffffff', borderBottom: '1px solid #f1f5f9' }}>
-        <div style={{ background: '#080808', padding: '32px 24px' }}>
-          <p style={{ fontSize: '11px', color: '#555', margin: '0 0 2px', letterSpacing: '1px' }}>만원대 소셜 파티</p>
-          <p style={{ fontSize: '13px', color: '#39FF14', fontWeight: 700, margin: '0 0 8px' }}>그 전율, 오늘 밤 느껴보세요</p>
+        <div style={{ padding: '28px 24px' }}>
+          <p style={{ fontSize: '12px', color: '#1D9E75', fontWeight: 600, margin: '0 0 6px' }}>그 전율, 오늘 밤 느껴보세요</p>
           <div>
-            <span style={{ fontSize: '50px', fontWeight: 900, color: '#fff', letterSpacing: '-3px', lineHeight: 1 }}>오늘밤</span>
-            <span style={{ fontSize: '50px', fontWeight: 900, color: '#39FF14', letterSpacing: '-3px', lineHeight: 1 }}>빠</span>
+            <span style={{ fontSize: '48px', fontWeight: 900, color: '#111', letterSpacing: '-3px', lineHeight: 1, textShadow: '0 0 30px rgba(0,0,0,0.1)' }}>오늘밤</span>
+            <span style={{ fontSize: '48px', fontWeight: 900, color: '#1D9E75', letterSpacing: '-3px', lineHeight: 1, textShadow: '0 0 20px rgba(29,158,117,0.4)' }}>빠</span>
           </div>
-          <div style={{ width: '40px', height: '2px', background: '#39FF14', margin: '14px 0 12px' }} />
-          <div style={{ display: 'flex', gap: '16px', alignItems: 'center' }}>
-            <span style={{ fontSize: '11px', color: '#39FF14', letterSpacing: '2px', fontWeight: 600 }}>BACHATA</span>
-            <span style={{ fontSize: '8px', color: '#333' }}>●</span>
-            <span style={{ fontSize: '11px', color: '#39FF14', letterSpacing: '2px', fontWeight: 600 }}>SALSA</span>
-            <span style={{ fontSize: '8px', color: '#333' }}>●</span>
-            <span style={{ fontSize: '11px', color: '#39FF14', letterSpacing: '2px', fontWeight: 600 }}>SOCIAL</span>
-          </div>
+          <p style={{ fontSize: '10px', color: '#bbb', margin: '10px 0 0', letterSpacing: '2px' }}>BACHATA · SALSA · SOCIAL</p>
         </div>
         <div style={{ height: '50px', display: 'flex', alignItems: 'center', padding: '0 10px' }}>
           <div style={{ flex: 1, display: 'flex', overflowX: 'auto', gap: '8px', padding: '5px 0', msOverflowStyle: 'none', scrollbarWidth: 'none', WebkitOverflowScrolling: 'touch' }} className="date-stream-bar">
