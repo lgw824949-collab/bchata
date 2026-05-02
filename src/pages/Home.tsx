@@ -418,7 +418,7 @@ const HomePage = ({
               )}
               {IncheonBanner && <IncheonBanner />}
               {(() => {
-                const regions = filterRegion ? [filterRegion] : ["서울", "경기/인천", "경상도", "전라도", "충청도", "강원/제주"];
+                const regions = ["서울", "경기/인천", "경상도", "전라도", "충청도", "강원/제주"];
                 return regions.map((regionName) => {
                   const regionParties = filteredParties.filter(p => {
 
@@ -461,7 +461,7 @@ const HomePage = ({
                         ) : (() => {
                           const offset = shuffleOffset % regionParties.length;
                           const rotated = [...regionParties.slice(offset), ...regionParties.slice(0, offset)];
-                          return rotated.slice(0, regionName === '서울' ? 3 : 2).map(item => (
+                          return rotated.slice(0, regionName === '서울' ? 4 : 3).map(item => (
                             <PartyCard key={item.id} item={item} onSelect={(url) => handleOpenModal(setSelectedPoster, url)} />
                           ));
                         })()}
@@ -680,7 +680,7 @@ const HomePage = ({
               <div style={{ flex: 1, overflowY: 'auto', padding: '2px' }}>
                 <div style={{ 
                   display: 'grid', 
-                  gridTemplateColumns: gridRegion === '서울' ? 'repeat(3, 1fr)' : 'repeat(2, 1fr)', 
+                  gridTemplateColumns: 'repeat(3, 1fr)', 
                   gap: '2px' 
                 }}>
                   {(() => {

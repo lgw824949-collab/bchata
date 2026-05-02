@@ -28,7 +28,8 @@ const PostClass = ({ onBack }) => {
     studio_name: '',
     address: '',
     region: '서울',
-    dance_style: '바차타'
+    dance_style: '바차타',
+    week_type: '1주차'
   })
 
   const DANCE_STYLES = ['바차타', '살사', '쥬크', '키좀바']
@@ -106,7 +107,8 @@ const PostClass = ({ onBack }) => {
         city: formData.region,
         poster_url: finalPosterUrl,
         status: 'pending',
-        category_type: 'class'
+        category_type: 'class',
+        week_type: formData.week_type
       }])
       if (error) throw error
       setSubmitted(true)
@@ -175,6 +177,27 @@ const PostClass = ({ onBack }) => {
           <motion.div key="s4" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} style={{ padding: '24px' }}>
             <label style={stepTitleStyle}>📅 강습 일정 및 기간</label>
             
+            <div style={{ marginBottom: '24px' }}>
+              <p style={labelStyle}>진행 주차 (필수)</p>
+              <div style={{ display: 'flex', gap: '8px', overflowX: 'auto', paddingBottom: '4px' }} className="no-scrollbar">
+                {['1주차', '2주차', '3주차', '4주차', '5주차'].map(w => (
+                  <button 
+                    key={w} 
+                    onClick={() => setFormData({...formData, week_type: w})} 
+                    style={{ 
+                      flexShrink: 0, padding: '10px 16px', borderRadius: '12px', 
+                      fontSize: '13px', fontWeight: '800', border: 'none', 
+                      background: formData.week_type === w ? THEME_COLOR : '#F1F5F9', 
+                      color: formData.week_type === w ? '#fff' : '#64748B',
+                      transition: 'all 0.2s'
+                    }}
+                  >
+                    {w}
+                  </button>
+                ))}
+              </div>
+            </div>
+
             <div style={{ marginBottom: '24px' }}>
               <p style={labelStyle}>강습 기간 (시작일 ~ 종료일)</p>
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
