@@ -304,12 +304,19 @@ function App() {
   const [filterRegion, setFilterRegion] = useState('');
   const [filterGenre, setFilterGenre] = useState('');
   const [selectedMonth, setSelectedMonth] = useState(todayData.month);
+  const [showGridModal, setShowGridModal] = useState(false);
+  const [gridRegion, setGridRegion] = useState('');
+  const [filterStep, setFilterStep] = useState(1);
 
-  useEffect(() => { 
-    if (showSplash) {
-      sessionStorage.setItem('splash_shown', 'true');
-    }
-  }, [showSplash]);
+  // [BAMPPA Navigation Engine]
+  const handleOpenModal = (setter, value = true) => {
+    window.history.pushState({ modal: true }, '');
+    setter(value);
+  };
+
+  const handleCloseModal = () => {
+    window.history.back();
+  };
 
   useEffect(() => {
     // 1. 초기 접속 시 경로 또는 해시 처리
@@ -330,29 +337,36 @@ function App() {
     }
   }, [view]);
 
-  // 3. 사진(포스터) 모달 열릴 때 히스토리 상태 추가 (뒤로가기 대응)
+  // 3. 모든 모달 상태 감시 및 히스토리 푸시 (뒤로가기 대응)
   useEffect(() => {
-    if (selectedPoster) {
-      window.history.pushState({ modal: 'poster' }, '');
+    const isAnyModalOpen = selectedPoster || showFullCalendar || isMenuOpen || showWeather || showSaju || showIncheonModal || showFilterPanel || showFilteredResults || showGridModal || showIncheon || filterStep > 1;
+    
+    // 모달이 열리거나 필터 단계가 진행될 때 pushState를 쌓음
+    if (isAnyModalOpen) {
+      window.history.pushState({ modal: true }, '');
     }
-  }, [selectedPoster]);
+  }, [selectedPoster, showFullCalendar, isMenuOpen, showWeather, showSaju, showIncheonModal, showFilterPanel, showFilteredResults, showGridModal, showIncheon, filterStep]);
 
-  // 4. 브라우저/휴대폰 뒤로가기 통합 감지 로직
+  // 4. 브라우저/휴대폰 뒤로가기 통합 감지 및 강제 제어 로직 (모든 요소 대응)
   useEffect(() => {
     const handlePopState = (event) => {
-      // 1순위: 열려있는 사진 모달이 있다면 닫기만 하고 이동은 방지
-      if (selectedPoster) {
-        setSelectedPoster(null);
-        return;
-      }
+      // 열려있는 순서의 역순(우선순위)으로 닫기만 하고 이동은 방지
+      if (selectedPoster) { setSelectedPoster(null); return; }
+      if (showGridModal) { setShowGridModal(false); return; }
+      if (showFilteredResults) { setShowFilteredResults(false); return; }
+      
+      // 필터 단계 처리 (2단계 -> 1단계)
+      if (filterStep > 1) { setFilterStep(1); return; }
+      
+      if (showFilterPanel) { setShowFilterPanel(false); return; }
+      if (showFullCalendar) { setShowFullCalendar(false); return; }
+      if (isMenuOpen) { setIsMenuOpen(false); return; }
+      if (showWeather) { setShowWeather(false); return; }
+      if (showSaju) { setShowSaju(false); return; }
+      if (showIncheonModal) { setShowIncheonModal(false); return; }
+      if (showIncheon) { setShowIncheon(false); return; }
 
-      // 2순위: 열려있는 달력이 있다면 닫기
-      if (showFullCalendar) {
-        setShowFullCalendar(false);
-        return;
-      }
-
-      // 3순위: 해시 기반 뷰 전환 처리
+      // 모달이 없는 경우 해시 기반 뷰 전환 처리
       const newHash = window.location.hash.replace('#', '');
       if (newHash && newHash !== view) {
         setView(newHash);
@@ -363,7 +377,7 @@ function App() {
 
     window.addEventListener('popstate', handlePopState);
     return () => window.removeEventListener('popstate', handlePopState);
-  }, [view, selectedPoster]);
+  }, [view, selectedPoster, showFullCalendar, isMenuOpen, showWeather, showSaju, showIncheonModal, showFilterPanel, showFilteredResults, showGridModal, showIncheon]);
 
   const fetchParties = async () => {
     setLoading(true);
@@ -424,26 +438,10 @@ function App() {
     }
   }, [i18n.language, parties]);
 
-  // --- 브라우저 뒤로가기 버튼 제어 (History API) ---
   useEffect(() => {
-    const handlePopState = (e) => {
-      if (selectedPoster) {
-        setSelectedPoster(null);
-      } else if (isMenuOpen) {
-        setIsMenuOpen(false);
-      } else if (e.state && e.state.date) {
-        setSelectedDate(e.state.date);
-      }
-      // view 변경은 hashchange 리스너가 처리함
-    };
-    window.addEventListener('popstate', handlePopState);
-    return () => window.removeEventListener('popstate', handlePopState);
-  }, [selectedPoster, isMenuOpen]);
-
-  useEffect(() => {
-    // 날짜 이동, 모달 오픈 시 히스토리 기록 (view는 해시가 자동 처리)
-    window.history.replaceState({ view, date: selectedDate, modal: !!selectedPoster }, '');
-  }, [selectedDate, selectedPoster, isMenuOpen]);
+    // 날짜 이동 시 히스토리 기록 (view는 해시가 자동 처리)
+    window.history.replaceState({ view, date: selectedDate }, '');
+  }, [selectedDate]);
 
   const openAnalysis = (saju = false) => {
     // 사용자가 클릭했을 때만 위치 정보 요청
@@ -466,6 +464,8 @@ function App() {
     showFilteredResults, setShowFilteredResults,
     likedIds: [], toggleLike: () => {},
     filterRegion, setFilterRegion, filterGenre, setFilterGenre,
+    showGridModal, setShowGridModal, gridRegion, setGridRegion, filterStep, setFilterStep,
+    handleOpenModal, handleCloseModal,
     IncheonBanner: () => <IncheonPremiumBanner t={t} onClick={() => openAnalysis(false)} />, venueCounts: {}, resetToToday: () => { setView('home'); setSelectedDate(todayData.dateStr); }, formatItemDate: (d, t) => `${d} ${t}`, formatFee: (f) => f, handleRegister: () => setView('register'), logActivity: () => {}, regionalTheme: { welcomeMsg: "전국 댄서들을 위한 실시간 정보", specialBanner: true }
   };
 
@@ -485,7 +485,7 @@ function App() {
           dragElastic={0.05}
           whileDrag={{ scale: 1.1 }}
           whileTap={{ scale: 0.9 }}
-          onClick={() => setIsMenuOpen(true)}
+          onClick={() => handleOpenModal(setIsMenuOpen, true)}
           style={{ 
             position: 'fixed', top: '20px', right: '20px', zIndex: 1005,
             background: 'rgba(255,255,255,0.95)', backdropFilter: 'blur(10px)',
@@ -520,7 +520,7 @@ function App() {
             <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: '32px' }}>
               <motion.button 
                 whileTap={{ scale: 0.9 }}
-                onClick={() => setIsMenuOpen(false)}
+                onClick={handleCloseModal}
                 style={{ background: '#F8FAFC', border: '1px solid #E2E8F0', borderRadius: '12px', padding: '10px', color: '#E53935', cursor: 'pointer' }}
               >
                 <X size={24} />
@@ -534,11 +534,11 @@ function App() {
 
             <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
               {[
-                { icon: <Calendar color="#E53935" />, text: t('view_calendar'), action: () => { setShowFullCalendar(true); setIsMenuOpen(false); } },
+                { icon: <Calendar color="#E53935" />, text: t('view_calendar'), action: () => { handleOpenModal(setShowFullCalendar, true); setIsMenuOpen(false); } },
                 { icon: <Camera color="#E53935" />, text: 'LIVE PICK', action: () => { setView('community'); setIsMenuOpen(false); } },
                 { icon: <Utensils color="#E53935" />, text: t('restaurant'), action: () => { setView('restaurant'); setIsMenuOpen(false); } },
-                { icon: <Star color="#E53935" />, text: t('saju'), action: () => { if(typeof setShowSaju === 'function') { setShowSaju(true); setIsMenuOpen(false); } } },
-                { icon: <CloudSun color="#E53935" />, text: t('weather'), action: () => { setIsMenuOpen(false); setTimeout(() => setShowWeather(true), 300); } },
+                { icon: <Star color="#E53935" />, text: t('saju'), action: () => { if(typeof setShowSaju === 'function') { handleOpenModal(setShowSaju, true); setIsMenuOpen(false); } } },
+                { icon: <CloudSun color="#E53935" />, text: t('weather'), action: () => { setIsMenuOpen(false); setTimeout(() => handleOpenModal(setShowWeather, true), 300); } },
                 { icon: <Bell color="#E53935" />, text: t('notice'), action: () => { alert(t('coming_soon')) } },
                 { icon: <ShieldCheck color="#E53935" />, text: t('admin_dashboard'), action: () => { setView('admin'); setIsMenuOpen(false); } },
               ].map((item, idx) => (
@@ -624,7 +624,7 @@ function App() {
       {selectedPoster && (
         <PosterModal 
           src={selectedPoster} 
-          onClose={() => setSelectedPoster(null)} 
+          onClose={handleCloseModal} 
         />
       )}
 
