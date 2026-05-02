@@ -9,10 +9,10 @@ import { KMA_REGION_COORDS, fetchWeatherForecast, parseKmaWeather, HOME_REGION_M
 const DAYS_KOR = ['일', '월', '화', '수', '목', '금', '토'];
 
 const GENRE_MAP = {
-  '바차타': { key: 'b_ratio', label: 'B', color: '#FF1744' },
-  '살사':   { key: 's_ratio', label: 'S', color: '#FF1744' },
-  '쥬크':   { key: 'j_ratio', label: 'J', color: '#FF1744' },
-  '키좀바': { key: 'k_ratio', label: 'K', color: '#FF1744' },
+  '바차타': { key: 'b_ratio', label: 'B', label_en: 'Bachata', color: '#FF1744' },
+  '살사':   { key: 's_ratio', label: 'S', label_en: 'Salsa', color: '#FF1744' },
+  '쥬크':   { key: 'j_ratio', label: 'J', label_en: 'Zouk', color: '#FF1744' },
+  '키좀바': { key: 'k_ratio', label: 'K', label_en: 'Kizomba', color: '#FF1744' },
 };
 
 const REGION_FILTER = {
@@ -165,6 +165,12 @@ const RollingContainer = ({ items, onSelect }) => {
 };
 
 const FilterBar = ({ filterRegion, setFilterRegion, filterGenre, setFilterGenre }) => {
+  const { i18n } = useTranslation();
+  const isEn = i18n.language.startsWith('en');
+  const REGION_MAP_EN = {
+    '서울': 'Seoul', '경기/인천': 'Gyeonggi/Incheon', '경상도': 'Gyeongsang', 
+    '전라도': 'Jeolla', '충청도': 'Chungcheong', '강원/제주': 'Gangwon/Jeju'
+  };
   const regions = ['서울', '경기/인천', '경상도', '전라도', '충청도', '강원/제주'];
   const genres = Object.keys(GENRE_MAP);
   return (
@@ -181,7 +187,7 @@ const FilterBar = ({ filterRegion, setFilterRegion, filterGenre, setFilterGenre 
               }} 
               style={{ padding: '6px 12px', borderRadius: '8px', fontSize: '12px', fontWeight: 700, whiteSpace: 'nowrap', border: 'none', background: filterRegion === r ? '#FF1744' : '#F1F5F9', color: filterRegion === r ? '#fff' : '#64748B', transition: 'all 0.2s' }}
             >
-              {r}
+              {isEn ? REGION_MAP_EN[r] : r}
             </button>
           ))}
         </div>
@@ -198,7 +204,7 @@ const FilterBar = ({ filterRegion, setFilterRegion, filterGenre, setFilterGenre 
               }} 
               style={{ padding: '6px 12px', borderRadius: '8px', fontSize: '12px', fontWeight: 700, whiteSpace: 'nowrap', border: 'none', background: filterGenre === g ? '#FF1744' : '#F1F5F9', color: filterGenre === g ? '#fff' : '#64748B', transition: 'all 0.2s' }}
             >
-              {g}
+              {isEn ? GENRE_MAP[g].label_en : g}
             </button>
           ))}
         </div>

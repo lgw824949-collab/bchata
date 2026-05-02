@@ -16,6 +16,24 @@ import SajuModal from './components/SajuModal'
 import IncheonRoute from './components/IncheonRoute'
 import WeatherModal from './components/WeatherModal'
 import QuickPinchZoom, { make3dTransformValue } from 'react-quick-pinch-zoom';
+import { BAR_DATABASE, findBarByName } from './lib/BarLib';
+
+// [번역 비용 최적화를 위한 정적 맵핑]
+const REGION_MAP_EN = {
+  '전국': 'Nationwide',
+  '서울': 'Seoul',
+  '경기/인천': 'Gyeonggi/Incheon',
+  '경상도': 'Gyeongsang',
+  '전라도': 'Jeolla',
+  '충청도': 'Chungcheong',
+  '강원/제주': 'Gangwon/Jeju'
+};
+
+const CITY_MAP_EN = {
+  '서울': 'Seoul', '인천': 'Incheon', '대구': 'Daegu', '부산': 'Busan', '광주': 'Gwangju', 
+  '대전': 'Daejeon', '울산': 'Ulsan', '세종': 'Sejong', '수원': 'Suwon', '성남': 'Seongnam',
+  '의정부': 'Uijeongbu', '안산': 'Ansan', '고양': 'Goyang', '용인': 'Yongin', '부천': 'Bucheon'
+};
 
 // [포스터 줌 전용 컴포넌트 - 전역 분리]
 const PosterModal = ({ src, onClose }) => {
@@ -421,11 +439,19 @@ function App() {
         else if (fullSearchText.includes('대전') || fullSearchText.includes('충남') || fullSearchText.includes('충북') || fullSearchText.includes('충청') || fullSearchText.includes('세종')) broadRegion = '충청도';
         else if (fullSearchText.includes('강원') || fullSearchText.includes('제주')) broadRegion = '강원/제주';
         
+        const barInfo = findBarByName(locName);
+        const locationNameEn = barInfo?.name_en || locName;
+        const broadRegionEn = REGION_MAP_EN[broadRegion] || broadRegion;
+        const cityNameEn = CITY_MAP_EN[p.cityName] || p.cityName || 'Nationwide';
+
         return { 
           ...p, 
           broadRegion, 
+          broadRegionEn,
           cityName: p.cityName || '전국', 
-          locationName: locName 
+          cityNameEn,
+          locationName: locName,
+          locationNameEn
         };
       });
       setParties(mapped);
@@ -442,7 +468,10 @@ function App() {
     if (i18n.language.startsWith('en')) {
       const translated = upcomingParties.map(p => ({
         ...p,
-        title: p.title_en || p.title
+        title: p.title_en || p.title,
+        locationName: p.locationNameEn || p.locationName,
+        broadRegion: p.broadRegionEn || p.broadRegion,
+        cityName: p.cityNameEn || p.cityName
       }));
       setDisplayParties(translated);
     } else {
