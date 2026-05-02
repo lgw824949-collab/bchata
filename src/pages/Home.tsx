@@ -95,65 +95,57 @@ const PartyCard = ({ item, onSelect }) => {
         backgroundColor: '#FFFFFF', 
         borderRadius: '16px', 
         overflow: 'hidden', 
-        border: '1px solid #EAEEF4', 
+        border: '1px solid #F1F5F9', 
         cursor: 'pointer', 
-        height: '115px', 
-        boxShadow: '0 2px 8px rgba(0,0,0,0.06)', 
-        width: '100%' 
+        height: '110px', 
+        marginBottom: '12px', 
+        boxShadow: '0 4px 6px -1px rgba(0,0,0,0.05)'
       }}
     >
-      {/* 왼쪽: 포스터 영역 */}
-      <div style={{ width: '85px', height: '115px', backgroundColor: '#f8f8f8', flexShrink: 0, position: 'relative' }}>
-        <img src={item.poster_url} alt="Poster" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-        {isLive && (
-          <div style={{ position: 'absolute', top: '5px', left: '5px', background: '#FF1744', color: 'white', fontSize: '9px', fontWeight: '950', padding: '2px 5px', borderRadius: '4px', boxShadow: '0 2px 4px rgba(0,0,0,0.2)', display: 'flex', alignItems: 'center', gap: '3px' }}>
-            <span style={{ width: '5px', height: '5px', background: 'white', borderRadius: '50%', display: 'inline-block' }}></span>
-            LIVE
-          </div>
-        )}
+      {/* 1. 포스터 (왼쪽 고정) */}
+      <div style={{ width: '80px', height: '100%', flexShrink: 0 }}>
+        <img src={item.poster_url} style={{ width: '100%', height: '100%', objectFit: 'cover' }} alt="Poster" />
       </div>
 
-      {/* 오른쪽: 정보 영역 (위치 -> 제목 -> 상세) */}
-      <div style={{ padding: '10px 15px', display: 'flex', flexDirection: 'column', justifyContent: 'space-between', minWidth: 0, flex: 1, height: '100%' }}>
-        {/* Line 1: 위치 및 화살표 버튼 */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-          <span style={{ fontSize: '14px', fontWeight: '600', color: '#111827' }}>{item.displayLocationName || item.locationName}</span>
-          <div onClick={openMap} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '20px', height: '20px', borderRadius: '50%', backgroundColor: '#FFF1F0', cursor: 'pointer', color: '#E53935' }}>
-            <Navigation size={10} fill="currentColor" />
+      {/* 2. 정보 영역 (3행 조합) */}
+      <div style={{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'center', minWidth: 0, padding: '0 15px' }}>
+        {/* 1행: 장소명 + 빨간 화살표 */}
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '2px' }}>
+          <span style={{ fontSize: '13px', fontWeight: '800', color: '#64748B' }}>
+            {item.locationName}
+          </span>
+          <div onClick={openMap} style={{ color: '#FF1744', cursor: 'pointer' }}>
+            <Navigation size={14} fill="currentColor" />
           </div>
         </div>
 
-        {/* Line 2: 파티 제목 */}
-        <div style={{ fontSize: '13px', fontWeight: '500', color: '#374151', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', lineHeight: '1.2' }}>
-          {cleanTitle}
+        {/* 2행: 제목 + LIVE 뱃지 */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '6px' }}>
+          {isLive && (
+            <span style={{ 
+              background: '#FF1744', color: '#fff', fontSize: '8px', fontWeight: '950', 
+              padding: '2px 6px', borderRadius: '4px', animation: 'blink 1.5s infinite' 
+            }}>LIVE</span>
+          )}
+          <h3 style={{ fontSize: '15px', fontWeight: '950', color: '#1E293B', margin: 0, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+            {cleanTitle.replace(/^\[.*?\]\s*/, '')}
+          </h3>
         </div>
 
-        {/* Line 3: 상세 뱃지 */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '4px', whiteSpace: 'nowrap', overflow: 'hidden', marginTop: '6px' }}>
-          {/* 지역/도시 정보 */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: '4px', marginRight: '4px' }}>
-             <span style={{ fontSize: '11px', fontWeight: '800', color: '#64748B' }}>{item.displayBroadRegion || item.broadRegion}</span>
-             <span style={{ color: '#E2E8F0' }}>·</span>
-             <span style={{ fontSize: '11px', fontWeight: '800', color: '#64748B' }}>{item.displayCityName || item.cityName}</span>
-          </div>
-          {/* 날짜 뱃지 */}
-          <span style={{ background: '#FEF2F2', color: '#FF1744', borderRadius: '99px', padding: '3px 9px', fontSize: '11px', fontWeight: '600' }}>
-            {(() => { const d = new Date(item.date); return `${d.getMonth() + 1}/${d.getDate()}(${DAYS_KOR[d.getDay()]})`; })()}
+        {/* 3행: 날짜(요일) / 장르 / 시간 / 참여비 */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: '11px', fontWeight: '800', color: '#94A3B8', flexWrap: 'wrap' }}>
+          <span style={{ color: '#FF1744' }}>
+            {(() => {
+              const d = new Date(item.date);
+              return `${d.getMonth() + 1}/${d.getDate()}(${DAYS_KOR[d.getDay()]})`;
+            })()}
           </span>
-          {/* 시간 뱃지 */}
-          <span style={{ background: '#f1f5f9', color: '#64748B', borderRadius: '99px', padding: '3px 9px', fontSize: '11px', fontWeight: '600' }}>
-            {displayTime}
-          </span>
-          {/* 참가비 텍스트 */}
-          <span style={{ color: '#475569', fontSize: '11px', fontWeight: '800', marginLeft: '2px' }}>
-            {displayFee}
-          </span>
-          {/* 음악비율 그룹박스 */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: '4px', background: '#F8FAFC', border: '1px solid #E5E7EB', borderRadius: '99px', padding: '3px 8px' }}>
-            {Object.entries(GENRE_MAP).map(([name, info]) => (
-              item[info.key] > 0 && <span key={name} style={{ color: info.color, fontWeight: '700', fontSize: '10px' }}>{info.label}{item[info.key]}</span>
-            ))}
-          </div>
+          <span>/</span>
+          <span style={{ color: '#2ECC71' }}>{item.genre || '바차타'}</span>
+          <span>/</span>
+          <span>{displayTime}</span>
+          <span>/</span>
+          <span style={{ color: '#1E293B' }}>{displayFee}</span>
         </div>
       </div>
     </div>
