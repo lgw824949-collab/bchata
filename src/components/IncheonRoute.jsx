@@ -1,9 +1,12 @@
 import React, { useState } from 'react';
 import { X, Navigation, MapPin, Info } from 'lucide-react';
 import { motion } from 'framer-motion';
+import { useTranslation } from 'react-i18next';
 import { BAR_DATABASE } from '../lib/BarLib';
 
 const IncheonRoute = ({ parties, onClose }) => {
+  const { t, i18n } = useTranslation();
+  const isEn = i18n.language.startsWith('en');
   const [loading, setLoading] = useState(false);
 
   // 인천 지역 파티 필터링
@@ -27,10 +30,10 @@ const IncheonRoute = ({ parties, onClose }) => {
     const destAddress = barInfo?.address || party.address || locationName
     
     if (!navigator.geolocation) {
-      window.open(
-        `https://map.kakao.com/link/search/${encodeURIComponent(destAddress)}`,
-        '_blank'
-      )
+      const url = isEn 
+        ? `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(destAddress)}`
+        : `https://map.kakao.com/link/search/${encodeURIComponent(destAddress)}`;
+      window.open(url, '_blank');
       return
     }
 
@@ -38,17 +41,17 @@ const IncheonRoute = ({ parties, onClose }) => {
     navigator.geolocation.getCurrentPosition(
       (pos) => {
         setLoading(false)
-        window.open(
-          `https://map.kakao.com/link/to/${encodeURIComponent(destAddress)}`,
-          '_blank'
-        )
+        const url = isEn 
+          ? `https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(destAddress)}`
+          : `https://map.kakao.com/link/to/${encodeURIComponent(destAddress)}`;
+        window.open(url, '_blank');
       },
       (err) => {
         setLoading(false);
-        window.open(
-          `https://map.kakao.com/link/search/${encodeURIComponent(destAddress)}`,
-          '_blank'
-        )
+        const url = isEn 
+          ? `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(destAddress)}`
+          : `https://map.kakao.com/link/search/${encodeURIComponent(destAddress)}`;
+        window.open(url, '_blank');
       },
       { enableHighAccuracy: true, timeout: 5000 }
     )
@@ -137,7 +140,7 @@ const IncheonRoute = ({ parties, onClose }) => {
                         }}
                       >
                         <Navigation size={16} />
-                        {loading ? '위치 확인 중...' : '경로 안내'}
+                        {loading ? (isEn ? 'Checking...' : '위치 확인 중...') : (isEn ? 'Route' : '경로 안내')}
                       </button>
                     </div>
                   </div>

@@ -1,6 +1,7 @@
 import React, { useMemo, useState, useEffect, useRef } from 'react'
 import { ChevronLeft, ChevronRight, User, Calendar, Home as HomeIcon, Music, MapPin, Heart, ShieldCheck } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
+import { useTranslation } from 'react-i18next'
 
 const MAIN_REGIONS = ['전국', '서울', '경기/인천', '경상', '전라', '충청', '강원/제주']
 const DAYS_KOR = ['일', '월', '화', '수', '목', '금', '토']
@@ -50,6 +51,8 @@ const ClassNewsPage = ({
   view, setView, setSelectedPoster, fetchParties, formatItemDate, formatFee, filteredParties, weekData,
   resetToToday, showFullCalendar, setShowFullCalendar, allDatesInMonth, likedIds, toggleLike, logActivity, handleRegister, fourteenDays, recordTraffic, regionalTheme, venueCounts, openAnalysis, setIsMenuOpen
 }) => {
+  const { t, i18n } = useTranslation()
+  const isEn = i18n.language.startsWith('en')
   const [regionOrder, setRegionOrder] = useState(['서울', '경기/인천', '경상', '전라', '충청', '강원/제주'])
   const [posterOffset, setPosterOffset] = useState(0)
   const [isPaused, setIsPaused] = useState(false)
@@ -407,7 +410,10 @@ const ClassNewsPage = ({
                                           e.stopPropagation();
                                           const address = item.locations?.address || '';
                                           const searchQuery = address ? `${address} ${item.locationName}` : item.locationName;
-                                          window.open(`https://map.kakao.com/link/search/${encodeURIComponent(searchQuery)}`, '_blank');
+                                          const url = isEn 
+                                            ? `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(searchQuery)}`
+                                            : `https://map.kakao.com/link/search/${encodeURIComponent(searchQuery)}`;
+                                          window.open(url, '_blank');
                                         }}
                                         style={{ color: '#059669', fontWeight: 'bold', textDecoration: 'underline' }}
                                       >

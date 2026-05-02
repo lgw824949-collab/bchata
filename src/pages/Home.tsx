@@ -68,6 +68,19 @@ const PartyCard = ({ item, onSelect }) => {
     return (num / 10000).toFixed(1).replace('.0', '') + '만';
   })();
 
+  const { i18n } = useTranslation();
+  const isEn = i18n.language.startsWith('en');
+
+  const openMap = (e) => {
+    e.stopPropagation();
+    const address = item.address || item.locationName;
+    const query = encodeURIComponent(address);
+    const url = isEn 
+      ? `https://www.google.com/maps/search/?api=1&query=${query}`
+      : `https://map.kakao.com/link/search/${query}`;
+    window.open(url, '_blank');
+  };
+
   return (
     <div 
       onClick={() => onSelect(item.poster_url)} 
@@ -101,7 +114,7 @@ const PartyCard = ({ item, onSelect }) => {
         {/* Line 1: 위치 및 화살표 버튼 */}
         <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
           <span style={{ fontSize: '14px', fontWeight: '600', color: '#111827' }}>{item.locationName}</span>
-          <div onClick={(e) => { e.stopPropagation(); const address = item.address || item.locationName; window.open(`https://map.kakao.com/link/search/${encodeURIComponent(address)}`, '_blank'); }} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '20px', height: '20px', borderRadius: '50%', backgroundColor: '#FFF1F0', cursor: 'pointer', color: '#E53935' }}>
+          <div onClick={openMap} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '20px', height: '20px', borderRadius: '50%', backgroundColor: '#FFF1F0', cursor: 'pointer', color: '#E53935' }}>
             <Navigation size={10} fill="currentColor" />
           </div>
         </div>

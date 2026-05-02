@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { ChevronLeft, MapPin, Navigation, Info, AlertCircle, Utensils } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { useTranslation } from 'react-i18next';
 
 const SkeletonCard = () => (
   <div style={{
@@ -26,6 +27,8 @@ const DEFAULT_RESTAURANTS = [
 ];
 
 const Restaurant = ({ onBack }) => {
+  const { t, i18n } = useTranslation();
+  const isEn = i18n.language.startsWith('en');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [restaurants, setRestaurants] = useState(DEFAULT_RESTAURANTS);
@@ -190,10 +193,16 @@ const Restaurant = ({ onBack }) => {
                     <span style={{ fontSize: '13px', color: '#475569', fontWeight: 600 }}>{res.category}</span>
                   </div>
 
-                  <button onClick={() => window.open(`https://map.kakao.com/link/search/${encodeURIComponent(res.name + ' ' + res.address)}`, '_blank')}
+                  <button onClick={() => {
+                    const query = encodeURIComponent(res.name + ' ' + res.address);
+                    const url = isEn 
+                      ? `https://www.google.com/maps/search/?api=1&query=${query}`
+                      : `https://map.kakao.com/link/search/${query}`;
+                    window.open(url, '_blank');
+                  }}
                     style={{ width: '100%', padding: '12px', borderRadius: '10px', background: '#F59E0B', color: '#fff', border: 'none', fontSize: '14px', fontWeight: 900, display: 'flex', alignItems: 'center', justifyCenter: 'center', gap: '8px', justifyContent: 'center' }}
                   >
-                    <Navigation size={16} />카카오맵 길찾기
+                    <Navigation size={16} />{isEn ? 'Open in Google Maps' : '카카오맵 길찾기'}
                   </button>
                 </motion.div>
               ))}
