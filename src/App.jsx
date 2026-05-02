@@ -587,7 +587,7 @@ function App() {
             display: 'flex', alignItems: 'center', justifyContent: 'center'
           }}
         >
-          <Menu size={24} color="#FF1744" />
+          <Menu size={24} color={view === 'class' ? '#2ECC71' : '#FF1744'} />
         </motion.button>
       )}
 
@@ -614,7 +614,7 @@ function App() {
               <motion.button 
                 whileTap={{ scale: 0.9 }}
                 onClick={handleCloseModal}
-                style={{ background: '#F8FAFC', border: '1px solid #E2E8F0', borderRadius: '12px', padding: '10px', color: '#FF1744', cursor: 'pointer' }}
+                style={{ background: '#F8FAFC', border: '1px solid #E2E8F0', borderRadius: '12px', padding: '10px', color: view === 'class' ? '#2ECC71' : '#FF1744', cursor: 'pointer' }}
               >
                 <ChevronLeft size={24} />
               </motion.button>
@@ -627,14 +627,14 @@ function App() {
 
             <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
               {[
-                { icon: <Calendar color="#FF1744" />, text: t('view_calendar'), action: () => { setIsMenuOpen(false); handleOpenModal(setShowFullCalendar, true); } },
-                { icon: <Camera color="#FF1744" />, text: 'LIVE PICK', action: () => { setView('community'); setIsMenuOpen(false); } },
-                { icon: <Utensils color="#FF1744" />, text: t('restaurant'), action: () => { setView('restaurant'); setIsMenuOpen(false); } },
-                { icon: <Star color="#FF1744" />, text: t('saju'), action: () => { if(typeof setShowSaju === 'function') { handleOpenModal(setShowSaju, true); setIsMenuOpen(false); } } },
-                { icon: <CloudSun color="#FF1744" />, text: t('weather'), action: () => { setIsMenuOpen(false); setTimeout(() => handleOpenModal(setShowWeather, true), 300); } },
-                { icon: <MessageSquare color="#FF1744" />, text: '실시간 오픈톡', action: () => { window.open('https://open.kakao.com/o/gP43rNri', '_blank'); setIsMenuOpen(false); } },
-                { icon: <Bell color="#FF1744" />, text: t('notice'), action: () => { alert(t('coming_soon')) } },
-                { icon: <ShieldCheck color="#FF1744" />, text: t('admin_dashboard'), action: () => { setView('admin'); setIsMenuOpen(false); } },
+                { icon: <Calendar color={view === 'class' ? '#2ECC71' : '#FF1744'} />, text: t('view_calendar'), action: () => { setIsMenuOpen(false); handleOpenModal(setShowFullCalendar, true); } },
+                { icon: <Camera color={view === 'class' ? '#2ECC71' : '#FF1744'} />, text: 'LIVE PICK', action: () => { setView('community'); setIsMenuOpen(false); } },
+                { icon: <Utensils color={view === 'class' ? '#2ECC71' : '#FF1744'} />, text: t('restaurant'), action: () => { setView('restaurant'); setIsMenuOpen(false); } },
+                { icon: <Star color={view === 'class' ? '#2ECC71' : '#FF1744'} />, text: t('saju'), action: () => { if(typeof setShowSaju === 'function') { handleOpenModal(setShowSaju, true); setIsMenuOpen(false); } } },
+                { icon: <CloudSun color={view === 'class' ? '#2ECC71' : '#FF1744'} />, text: t('weather'), action: () => { setIsMenuOpen(false); setTimeout(() => handleOpenModal(setShowWeather, true), 300); } },
+                { icon: <MessageSquare color={view === 'class' ? '#2ECC71' : '#FF1744'} />, text: '실시간 오픈톡', action: () => { window.open('https://open.kakao.com/o/gP43rNri', '_blank'); setIsMenuOpen(false); } },
+                { icon: <Bell color={view === 'class' ? '#2ECC71' : '#FF1744'} />, text: t('notice'), action: () => { alert(t('coming_soon')) } },
+                { icon: <ShieldCheck color={view === 'class' ? '#2ECC71' : '#FF1744'} />, text: t('admin_dashboard'), action: () => { setView('admin'); setIsMenuOpen(false); } },
               ].map((item, idx) => (
                 <motion.div
                   key={idx}
@@ -704,6 +704,59 @@ function App() {
       </AnimatePresence>
       <AnimatePresence>
         {showWeather && <WeatherModal onClose={() => setShowWeather(false)} />}
+      </AnimatePresence>
+
+      <AnimatePresence>
+        {showFullCalendar && (
+          <>
+            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={handleCloseModal} style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.6)', backdropFilter: 'blur(4px)', zIndex: 170000 }} />
+            <motion.div initial={{ y: '100%', opacity: 0 }} animate={{ y: 0, opacity: 1 }} exit={{ y: '100%', opacity: 0 }} transition={{ type: 'spring', damping: 25, stiffness: 200 }} style={{ position: 'fixed', bottom: '90px', left: '10px', right: '10px', background: '#fff', borderRadius: '24px', padding: '20px', boxShadow: '0 10px 40px rgba(0,0,0,0.25)', zIndex: 170001, border: '1px solid #f1f5f9', display: 'flex', flexDirection: 'column', maxHeight: '85vh' }}>
+              <div style={{ width: '40px', height: '4px', background: '#E2E8F0', borderRadius: '2px', margin: '0 auto 20px' }} />
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}><span style={{ fontSize: '24px', fontWeight: 950, color: '#1E293B' }}>{selectedMonth}월</span><div style={{ display: 'flex', gap: '8px' }}><button onClick={() => setSelectedMonth(m => m > 1 ? m-1 : 12)} style={{ background: '#F8FAFC', border: '1px solid #F1F5F9', borderRadius: '10px', width: '36px', height: '36px' }}><ChevronLeft size={18} /></button><button onClick={() => setSelectedMonth(m => m < 12 ? m+1 : 1)} style={{ background: '#F8FAFC', border: '1px solid #F1F5F9', borderRadius: '10px', width: '36px', height: '36px' }}><ChevronRight size={18} /></button></div></div>
+                <button onClick={handleCloseModal} style={{ background: '#F1F5F9', border: 'none', borderRadius: '50%', width: '44px', height: '44px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#1E293B' }}>
+                  <ChevronLeft size={28} />
+                </button>
+              </div>
+              
+              <div style={{ flex: 1, overflowY: 'auto', minHeight: '350px' }}>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: '5px', textAlign: 'center' }}>
+                  {['일','월','화','수','목','금','토'].map(d => <div key={d} style={{ fontSize: '12px', fontWeight: 700, color: d === '일' ? '#FF1744' : d === '토' ? '#FF1744' : '#999', padding: '5px 0' }}>{d}</div>)}
+                  {(() => {
+                    const firstDay = new Date(todayData.year, selectedMonth - 1, 1).getDay();
+                    const lastDate = new Date(todayData.year, selectedMonth, 0).getDate();
+                    const days = [];
+                    for (let i = 0; i < firstDay; i++) days.push({ date: null });
+                    for (let i = 1; i <= lastDate; i++) {
+                      const fullDate = `${todayData.year}-${String(selectedMonth).padStart(2, '0')}-${String(i).padStart(2, '0')}`;
+                      const d = new Date(todayData.year, selectedMonth - 1, i);
+                      days.push({ date: i, fullDate, dayName: DAYS_KOR[d.getDay()] });
+                    }
+                    return days.map((day, idx) => {
+                      if (!day.date) return <div key={idx} />;
+                      const isSelected = selectedDate === day.fullDate;
+                      const themeColor = view === 'class' ? '#2ECC71' : '#FF1744';
+                      return (
+                        <div 
+                          key={day.fullDate} 
+                          onClick={() => { setSelectedDate(day.fullDate); handleCloseModal(); }} 
+                          style={{ height: '46px', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', fontSize: '15px', fontWeight: isSelected ? 800 : 600, color: isSelected ? '#fff' : (day.dayName === '일' ? '#FF1744' : (day.dayName === '토' ? '#FF1744' : '#1E293B')), backgroundColor: isSelected ? themeColor : 'transparent', borderRadius: '14px', cursor: 'pointer' }}
+                        >
+                          {day.date}
+                        </div>
+                      );
+                    });
+                  })()}
+                </div>
+              </div>
+              <div style={{ marginTop: '20px', padding: '15px', background: view === 'class' ? '#F0FFF4' : '#FFF5F5', borderRadius: '16px' }}>
+                <p style={{ fontSize: '14px', fontWeight: 800, color: view === 'class' ? '#2ECC71' : '#FF1744' }}>
+                  {view === 'class' ? '어떤 수업을 듣고 싶으세요?' : '어디로 가시나요?'}
+                </p>
+              </div>
+            </motion.div>
+          </>
+        )}
       </AnimatePresence>
       <AnimatePresence>
       </AnimatePresence>
