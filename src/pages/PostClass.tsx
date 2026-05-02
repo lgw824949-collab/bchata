@@ -100,7 +100,7 @@ const PostClass = ({ onBack }) => {
         end_time: formData.end_time,
         day_of_week: formData.selected_days.join(', '),
         start_date: formData.startDate,
-        duration: formData.endDate ? `~ ${formData.endDate}` : '기간 미지정',
+        duration: formData.endDate ? `${formData.startDate} ~ ${formData.endDate}` : `${formData.startDate} ~ 기간 미지정`,
         studio_name: formData.studio_name,
         address: formData.address,
         city: formData.region,
@@ -168,7 +168,16 @@ const PostClass = ({ onBack }) => {
       case 4:
         return (
           <motion.div key="s4" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} style={{ padding: '24px' }}>
-            <label style={stepTitleStyle}>📅 강습 일정 확인</label>
+            <label style={stepTitleStyle}>📅 강습 일정 및 기간</label>
+            
+            <div style={{ marginBottom: '24px' }}>
+              <p style={labelStyle}>강습 기간 (시작일 ~ 종료일)</p>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
+                <input type="date" style={inputStyle} value={formData.startDate} onChange={e => setFormData({...formData, startDate: e.target.value})} />
+                <input type="date" style={inputStyle} value={formData.endDate} onChange={e => setFormData({...formData, endDate: e.target.value})} placeholder="종료일" />
+              </div>
+            </div>
+
             <p style={labelStyle}>강습 요일 (중복 선택 가능)</p>
             <div style={{ display: 'flex', justifyContent: 'space-between', gap: '5px', marginBottom: '24px' }}>
               {DAYS.map(d => <button key={d} onClick={() => setFormData(p => ({...p, selected_days: p.selected_days.includes(d) ? p.selected_days.filter(x => x !== d) : [...p.selected_days, d]}))} style={{ ...dayBtnStyle, background: formData.selected_days.includes(d) ? THEME_COLOR : '#F7FAFC', color: formData.selected_days.includes(d) ? '#fff' : '#4A5568' }}>{d}</button>)}
