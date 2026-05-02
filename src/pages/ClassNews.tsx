@@ -1,516 +1,296 @@
-import React, { useMemo, useState, useEffect, useRef } from 'react'
-import { ChevronLeft, ChevronRight, User, Calendar, Home as HomeIcon, Music, MapPin, Heart, ShieldCheck } from 'lucide-react'
-import { motion, AnimatePresence } from 'framer-motion'
-import { useTranslation } from 'react-i18next'
+import React, { useState, useEffect, useMemo, useRef } from 'react';
+import { Heart, MapPin, Calendar, User, Music, ChevronRight, ShieldCheck, X, Home as HomeIcon, ChevronLeft, CloudSun, Utensils, Zap, PlusCircle, Languages, Bell, Globe, Navigation, GraduationCap } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
+import { motion, AnimatePresence } from 'framer-motion';
+import QuickPinchZoom, { make3dTransformValue } from 'react-quick-pinch-zoom';
+import { KMA_REGION_COORDS, fetchWeatherForecast, parseKmaWeather, HOME_REGION_MAP } from '../utils/kmaApi'
 
-const MAIN_REGIONS = ['전국', '서울', '경기/인천', '경상', '전라', '충청', '강원/제주']
-const DAYS_KOR = ['일', '월', '화', '수', '목', '금', '토']
+const DAYS_KOR = ['일', '월', '화', '수', '목', '금', '토'];
 
-const SkeletonCard = () => (
-  <div className="skeleton-card">
-    <div className="skeleton-img skeleton" />
-    <div className="skeleton-text">
-      <div className="skeleton-title skeleton" />
-      <div className="skeleton-body skeleton" />
-      <div className="skeleton-small skeleton" />
-    </div>
-  </div>
-)
+const GENRE_MAP = {
+  '바차타': { key: 'genre', label: 'B', label_en: 'Bachata', color: '#FF1744' },
+  '살사':   { key: 'genre', label: 'S', label_en: 'Salsa', color: '#FF1744' },
+  '쥬크':   { key: 'genre', label: 'J', label_en: 'Zouk', color: '#FF1744' },
+  '키좀바': { key: 'genre', label: 'K', label_en: 'Kizomba', color: '#FF1744' },
+};
 
-const CachedImage = ({ src, alt, className, objectFit = 'contain' }) => {
-  const [isLoaded, setIsLoaded] = React.useState(false);
-  
+const REGION_MAP_EN = {
+  '서울': 'Seoul', '경기/인천': 'Gyeonggi/Incheon', '경상도': 'Gyeongsang', 
+  '전라도': 'Jeolla', '충청도': 'Chungcheong', '강원/제주': 'Gangwon/Jeju'
+};
+
+const ClassCard = ({ item, onSelect }) => {
+  const { i18n, t } = useTranslation();
+  const isEn = i18n.language.startsWith('en');
+
+  const cleanTitle = item.title?.split(' ㅣ ')[0] || '';
+  const displayTime = item.start_time || '19:00';
+  const displayFee = (() => {
+    if (!item.fee) return '1.5만';
+    const f = String(item.fee);
+    if (f.includes('만')) return f.replace('원', '');
+    const num = parseInt(f.replace(/[^0-9]/g, ''));
+    if (isNaN(num)) return f;
+    if (num === 0) return '무료';
+    return (num / 10000).toFixed(1).replace('.0', '') + '만';
+  })();
+
+  const openMap = (e) => {
+    e.stopPropagation();
+    const address = item.address || item.studio_name;
+    const query = encodeURIComponent(address);
+    const url = isEn 
+      ? `https://www.google.com/maps/search/?api=1&query=${query}`
+      : `https://map.kakao.com/link/search/${query}`;
+    window.open(url, '_blank');
+  };
+
   return (
-    <div style={{ position: 'relative', width: '100%', height: '100%', backgroundColor: '#f8f8f8', overflow: 'hidden' }}>
-      <img 
-        src={src} 
-        alt={alt} 
-        className={className} 
-        loading="lazy" 
-        decoding="async"
-        onLoad={() => setIsLoaded(true)}
-        style={{ 
-          opacity: isLoaded ? 1 : 0, 
-          transition: 'opacity 0.4s cubic-bezier(0.4, 0, 0.2, 1)',
-          width: '100%',
-          height: '100%',
-          objectFit: objectFit,
-          display: 'block'
-        }}
-      />
-      {!isLoaded && <div className="shimmer-placeholder" />}
+    <div 
+      onClick={() => onSelect(item.poster_url)} 
+      style={{ 
+        display: 'flex', 
+        flexDirection: 'row', 
+        alignItems: 'center', 
+        backgroundColor: '#FFFFFF', 
+        borderRadius: '16px', 
+        overflow: 'hidden', 
+        border: '1px solid #EAEEF4', 
+        cursor: 'pointer', 
+        height: '115px', 
+        boxShadow: '0 2px 8px rgba(0,0,0,0.06)', 
+        width: '100%' 
+      }}
+    >
+      {/* 왼쪽: 포스터 영역 */}
+      <div style={{ width: '85px', height: '115px', backgroundColor: '#f8f8f8', flexShrink: 0, position: 'relative' }}>
+        <img src={item.poster_url} alt="Poster" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+        <div style={{ position: 'absolute', top: '5px', left: '5px', background: '#2ECC71', color: 'white', fontSize: '9px', fontWeight: '950', padding: '2px 5px', borderRadius: '4px', boxShadow: '0 2px 4px rgba(0,0,0,0.2)' }}>
+          CLASS
+        </div>
+      </div>
+
+      {/* 오른쪽: 정보 영역 */}
+      <div style={{ padding: '10px 15px', display: 'flex', flexDirection: 'column', justifyContent: 'space-between', minWidth: 0, flex: 1, height: '100%' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+          <span style={{ fontSize: '14px', fontWeight: '600', color: '#111827' }}>{item.studio_name}</span>
+          <div onClick={openMap} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '20px', height: '20px', borderRadius: '50%', backgroundColor: '#F0FFF4', cursor: 'pointer', color: '#2ECC71' }}>
+            <Navigation size={10} fill="currentColor" />
+          </div>
+        </div>
+
+        <div style={{ fontSize: '13px', fontWeight: '500', color: '#374151', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', lineHeight: '1.2' }}>
+          {cleanTitle}
+        </div>
+
+        <div style={{ display: 'flex', alignItems: 'center', gap: '4px', whiteSpace: 'nowrap', overflow: 'hidden', marginTop: '6px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '4px', marginRight: '4px' }}>
+             <span style={{ fontSize: '11px', fontWeight: '800', color: '#64748B' }}>{item.city}</span>
+          </div>
+          <span style={{ background: '#F0FFF4', color: '#2ECC71', borderRadius: '99px', padding: '3px 9px', fontSize: '11px', fontWeight: '600' }}>
+            {item.day_of_week}
+          </span>
+          <span style={{ background: '#f1f5f9', color: '#64748B', borderRadius: '99px', padding: '3px 9px', fontSize: '11px', fontWeight: '600' }}>
+            {displayTime}
+          </span>
+          <span style={{ color: '#475569', fontSize: '11px', fontWeight: '800', marginLeft: '2px' }}>
+            {displayFee}
+          </span>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '4px', background: '#F8FAFC', border: '1px solid #E5E7EB', borderRadius: '99px', padding: '3px 8px' }}>
+            <span style={{ color: '#FF1744', fontWeight: '700', fontSize: '10px' }}>{item.level}</span>
+          </div>
+        </div>
+      </div>
     </div>
   );
 };
 
-
+const FilterBar = ({ filterRegion, setFilterRegion, filterGenre, setFilterGenre }) => {
+  const { i18n } = useTranslation();
+  const isEn = i18n.language.startsWith('en');
+  const regions = ['서울', '경기/인천', '경상도', '전라도', '충청도', '강원/제주'];
+  const genres = Object.keys(GENRE_MAP);
+  return (
+    <div style={{ padding: '0 15px 12px', background: '#fff', display: 'flex', flexDirection: 'column', gap: '12px' }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+        <div style={{ color: '#94A3B8' }}><MapPin size={16} /></div>
+        <div style={{ flex: 1, display: 'flex', overflowX: 'auto', gap: '12px', msOverflowStyle: 'none', scrollbarWidth: 'none', WebkitOverflowScrolling: 'touch' }} className="filter-scroll">
+          {regions.map(r => (
+            <button key={r} 
+              onClick={() => setFilterRegion(filterRegion === r ? '' : r)} 
+              style={{ padding: '6px 12px', borderRadius: '8px', fontSize: '12px', fontWeight: 700, whiteSpace: 'nowrap', border: 'none', background: filterRegion === r ? '#FF1744' : '#F1F5F9', color: filterRegion === r ? '#fff' : '#64748B', transition: 'all 0.2s' }}
+            >
+              {isEn ? REGION_MAP_EN[r] : r}
+            </button>
+          ))}
+        </div>
+      </div>
+      <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+        <div style={{ color: '#94A3B8' }}><Music size={16} /></div>
+        <div style={{ flex: 1, display: 'flex', overflowX: 'auto', gap: '12px', msOverflowStyle: 'none', scrollbarWidth: 'none', WebkitOverflowScrolling: 'touch' }} className="filter-scroll">
+          {genres.map(g => (
+            <button key={g} 
+              onClick={() => setFilterGenre(filterGenre === g ? '' : g)} 
+              style={{ padding: '6px 12px', borderRadius: '8px', fontSize: '12px', fontWeight: 700, whiteSpace: 'nowrap', border: 'none', background: filterGenre === g ? '#FF1744' : '#F1F5F9', color: filterGenre === g ? '#fff' : '#64748B', transition: 'all 0.2s' }}
+            >
+              {isEn ? GENRE_MAP[g].label_en : g}
+            </button>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+};
 
 const ClassNewsPage = ({ 
-  parties, loading, selectedMonth, setSelectedMonth, selectedWeek, setSelectedWeek, 
-  selectedDate, setSelectedDate, selectedRegion, setSelectedRegion, isExpanded, setIsExpanded,
-  view, setView, setSelectedPoster, fetchParties, formatItemDate, formatFee, filteredParties, weekData,
-  resetToToday, showFullCalendar, setShowFullCalendar, allDatesInMonth, likedIds, toggleLike, logActivity, handleRegister, fourteenDays, recordTraffic, regionalTheme, venueCounts, openAnalysis, setIsMenuOpen
+  lessons, loading, selectedDate, setSelectedDate, view, setView, setSelectedPoster, handleOpenModal, handleCloseModal, fourteenDays
 }) => {
-  const { t, i18n } = useTranslation()
-  const isEn = i18n.language.startsWith('en')
-  const [regionOrder, setRegionOrder] = useState(['서울', '경기/인천', '경상', '전라', '충청', '강원/제주'])
-  const [posterOffset, setPosterOffset] = useState(0)
-  const [isPaused, setIsPaused] = useState(false)
-  const pauseTimerRef = useRef(null)
-
-  const handleInteraction = () => {
-    setIsPaused(true);
-    if (pauseTimerRef.current) clearTimeout(pauseTimerRef.current);
-    pauseTimerRef.current = setTimeout(() => {
-      setIsPaused(false);
-    }, 10000); // Resume after 10 seconds of inactivity
-  };
+  const { t, i18n } = useTranslation();
+  const isEn = i18n.language.startsWith('en');
+  const [filterRegion, setFilterRegion] = useState('');
+  const [filterGenre, setFilterGenre] = useState('');
+  const [isPaused, setIsPaused] = useState(false);
+  const [shuffleOffset, setShuffleOffset] = useState(0);
+  const regionListRef = useRef(null);
 
   useEffect(() => {
-    const regionTimer = setInterval(() => {
-      if (!isPaused) {
-        setRegionOrder(prev => {
-          const next = [...prev];
-          const first = next.shift();
-          if (first) next.push(first);
-          return next;
-        });
-      }
-    }, 20000); 
+    const interval = setInterval(() => {
+      setShuffleOffset(prev => prev + 1);
+    }, 20000);
+    return () => clearInterval(interval);
+  }, []);
 
-    const posterTimer = setInterval(() => {
-      if (!isPaused) {
-        setPosterOffset(prev => prev + 1);
-      }
-    }, 10000); 
+  const carouselLessons = useMemo(() => {
+    const all = lessons || [];
+    return [...all].filter(l => l.poster_url).sort((a, b) => new Date(b.start_date) - new Date(a.start_date)).slice(0, 5);
+  }, [lessons]);
 
-    return () => {
-      clearInterval(regionTimer);
-      clearInterval(posterTimer);
-      if (pauseTimerRef.current) clearTimeout(pauseTimerRef.current);
-    };
-  }, [isPaused]);
+  const filteredLessons = useMemo(() => {
+    return (lessons || []).filter(l => {
+      if (filterRegion && l.city !== filterRegion) return false;
+      if (filterGenre && l.genre !== filterGenre) return false;
+      return true;
+    });
+  }, [lessons, filterRegion, filterGenre]);
 
-  const currentYear = 2026
-  const currentWeekDays = (weekData && weekData[selectedWeek - 1]) ? weekData[selectedWeek - 1].days : []
-
-  const displayParties = useMemo(() => {
-    return filteredParties || []
-  }, [filteredParties])
-
-  const carouselParties = useMemo(() => {
-    // Always show top 5 nationwide for maximum exclusivity and simplicity
-    const all = parties || []
-    const list = [...all].sort((a, b) => (b.views || b.id) - (a.views || a.id)).slice(0, 5)
-    return list.filter(p => p.poster_url)
-  }, [parties])
   return (
-    <div style={{ height: '100vh', overflowY: 'auto', WebkitOverflowScrolling: 'touch', background: '#fff' }}>
-      <div className="tabs-container">
-        {/* 
-          ============================================================
-          🔒 LOCKED COMPONENT — DO NOT MODIFY ANYTHING IN THIS BLOCK
-          심볼명: 밤빠 브랜드 심볼
-          파일: logo.png
-          경고: ID, 클래스, 인라인 스타일, src, 크기 일체 수정 금지
-          AI 수정 금지 / No AI edits / 담당자 외 변경 불가
-          ============================================================
-        */}
-        {/* 📌 [소셜 파티와 동일한 초슬림 단일 헤더] */}
-        <header id="__LOCKED__main-header" style={{
-          width: '100%',
-          maxWidth: '500px',
-          display: 'flex',
-          alignItems: 'center',
-          padding: '8px 15px',
-          background: 'white',
-          borderBottom: '1px solid #f1f5f9',
-          position: 'fixed',
-          top: 0,
-          zIndex: 100000,
-        }}>
-          {/* 1. 햄버거 메뉴 + 로고 */}
-          <div style={{ display: 'flex', alignItems: 'center', marginRight: '20px', flexShrink: 0 }}>
-            <div 
-              onClick={(e) => { 
-                e.stopPropagation(); 
-                setIsMenuOpen(true); 
-              }} 
-              style={{ 
-                cursor: 'pointer', 
-                fontSize: '28px', 
-                marginRight: '10px', 
-                padding: '15px 20px', 
-                marginLeft: '-20px', 
-                display: 'flex', 
-                alignItems: 'center', 
-                justifyContent: 'center',
-                zIndex: 100005,
-                pointerEvents: 'auto',
-                WebkitTapHighlightColor: 'transparent'
-              }}
-            >
-              ☰
-            </div>
-            <img src="/logo.png" alt="밤빠" style={{ height: '45px', width: 'auto', filter: 'brightness(0.9)' }} />
-          </div>
-
-          {/* 2. 날짜 선택 (가로 롤링) - 한 줄로 통합 */}
-          <div style={{ 
-            display: 'flex', overflowX: 'auto', gap: '15px', whiteSpace: 'nowrap',
-            msOverflowStyle: 'none', scrollbarWidth: 'none', flex: 1, padding: '5px 0'
-          }} className="no-scrollbar">
-            {fourteenDays.map((item, i) => {
-              const isSelected = selectedDate === item.fullDate;
-              let dayColor = '#333';
-              if (item.dayOfWeek === 0) dayColor = '#FF4D4D';
-              if (item.dayOfWeek === 6) dayColor = '#2196F3';
-
-              return (
-                <div 
-                  key={i} 
-                  onClick={() => setSelectedDate(item.fullDate)}
-                  style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minWidth: '40px', cursor: 'pointer', position: 'relative' }}
-                >
-                  <span style={{ fontSize: '11px', fontWeight: '700', color: isSelected ? '#FF4D4D' : '#999', marginBottom: '2px' }}>
-                    {item.isToday ? '오늘' : item.dayName}
-                  </span>
-                  <div style={{
-                    width: '32px', height: '32px', borderRadius: '50%',
-                    display: 'flex', alignItems: 'center', justifyContent: 'center',
-                    backgroundColor: isSelected ? '#FF4D4D' : 'transparent',
-                    border: item.isToday && !isSelected ? '1px solid #FF4D4D' : 'none',
-                    transition: 'all 0.2s'
-                  }}>
-                    <span style={{ fontSize: '16px', fontWeight: '800', color: isSelected ? '#fff' : dayColor }}>
-                      {item.date}
-                    </span>
-                  </div>
-                </div>
-              )
-            })}
-          </div>
-
-          {/* 3. 우측 여백 (더욱 슬림하게 유지) */}
-          <div style={{ marginLeft: '10px' }} />
-        </header>
-
-        {/* (2) 2층: 네온 광고판 (실시간 집계 엔진) */}
-        <div style={{ 
-          background: '#000', 
-          padding: '8px 15px', 
-          display: 'flex', 
-          alignItems: 'center',
-          height: '40px'
-        }}>
-          <button 
-            onClick={() => setIsPaused(!isPaused)}
-            style={{
-              background: isPaused ? '#FF3B30' : 'rgba(255,255,255,0.2)',
-              border: 'none',
-              borderRadius: '8px',
-              color: '#fff',
-              fontSize: '10px',
-              fontWeight: '900',
-              padding: '4px 8px',
-              marginRight: '10px',
-              cursor: 'pointer',
-              flexShrink: 0
-            }}
-          >
-            {isPaused ? '▶ PLAY' : '⏸ STOP'}
-          </button>
-          <div style={{ flex: 1, overflow: 'hidden' }}>
-            <motion.div 
-              animate={isPaused ? {} : { x: ['100%', '-100%'] }}
-              transition={{ duration: 15, repeat: Infinity, ease: 'linear' }}
-              style={{ 
-                whiteSpace: 'nowrap', 
-                color: '#00FF00', 
-                fontSize: '13px', 
-                fontWeight: '900',
-                fontFamily: 'monospace'
-              }}
-            >
-              {(() => {
-                const hotVenues = Object.entries(venueCounts || {})
-                  .filter(([id, count]) => count > 0)
-                  .map(([id, count]) => {
-                    const party = parties.find(p => {
-                      const loc = Array.isArray(p.locations) ? p.locations[0] : p.locations;
-                      return loc?.id === id;
-                    });
-                    return `[${party?.cityName || '인천'} ${party?.locationName || '빠'} ${count}명]`;
-                  });
-                
-                return hotVenues.length > 0 
-                  ? `🛰️ 실시간 핫플: ${hotVenues.join(' ')} 접속 중! 🔥`
-                  : `📢 [실시간] 밤빠가 전하는 전국 소셜 파티 실시간 인원 중계 중! 🔥`;
-              })()}
-            </motion.div>
+    <div className="app-container" style={{ width: '100%', maxWidth: '500px', margin: '0 auto', background: '#fff', minHeight: '100vh', paddingBottom: '100px' }}>
+      
+      {/* 📌 [영역 A: 브랜드 헤더] */}
+      <div style={{ padding: '40px 24px 28px', background: '#ffffff', position: 'relative', overflow: 'hidden' }}>
+        <div style={{ position: 'absolute', top: '-10px', right: '-10px', width: '80px', height: '80px', border: '1px solid #f1f5f9', borderRadius: '50%' }}></div>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', marginBottom: '24px' }}>
+          <span style={{ fontSize: '10px', color: '#2ECC71', fontWeight: 800, letterSpacing: '2px', textTransform: 'uppercase' }}>
+            Dance Academy & Lessons
+          </span>
+          <h1 style={{ fontSize: '48px', fontWeight: 950, color: '#0f172a', letterSpacing: '-3px', lineHeight: 0.9, margin: 0 }}>
+            오늘밤<span style={{ color: '#2ECC71', fontStyle: 'italic', marginLeft: '-2px' }}>클래스</span>
+          </h1>
+        </div>
+        <div style={{ display: 'flex', alignItems: 'flex-start', gap: '16px' }}>
+          <div style={{ width: '2px', height: '40px', background: '#2ECC71', marginTop: '4px' }}></div>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
+            <p style={{ fontSize: '16px', fontWeight: 800, color: '#1e293b', margin: 0, letterSpacing: '-0.5px' }}>
+              아카데미 · 강습 · 워크샵
+            </p>
+            <p style={{ fontSize: '13px', color: '#64748b', fontWeight: 500, margin: 0, lineHeight: 1.4 }}>
+              기초부터 심화까지 전국의 모든 <span style={{ color: '#2ECC71', fontWeight: 700 }}>댄스 클래스</span>
+            </p>
           </div>
         </div>
-
       </div>
 
-      <main style={{ padding: '100px 0 80px 0', overflowY: 'auto', flex: 1 }}>
-        <div className="list-header">
-           오늘의 강습 & 소식
-        </div>
-        <div className="list-content">
-          {loading ? (
-            <div className="grid-skeleton">
-              {Array(4).fill(0).map((_, i) => <SkeletonCard key={i} />)}
-            </div>
-          ) : (
-            <AnimatePresence mode="popLayout">
-              {displayParties.length > 0 ? (
-                <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
-                  {carouselParties.length > 0 && (
-                    <div className="poster-ticker-container" style={{ margin: '20px 0 30px', padding: '16px 0', overflow: 'hidden', position: 'relative', background: 'rgba(255,255,255,0.03)', borderRadius: '24px', border: '1px solid rgba(255,255,255,0.05)' }}>
-                      <div style={{ padding: '0 20px 16px', fontSize: '15px', fontVariantNumeric: 'tabular-nums', fontWeight: 900, color: '#1f2937', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                        <span style={{ display: 'inline-block', width: '8px', height: '8px', backgroundColor: '#f97316', borderRadius: '50%', boxShadow: '0 0 10px rgba(249, 115, 22, 0.5)' }} /> 
-                        <span style={{ letterSpacing: '-0.02em' }}>HOT PICK 5</span>
-                      </div>
-                      <motion.div 
-                        className="poster-ticker"
-                        animate={{ x: [0, -(carouselParties.length * 132)] }}
-                        transition={{ 
-                          duration: carouselParties.length * 3.5,
-                          repeat: Infinity, 
-                          ease: "linear" 
-                        }}
-                        style={{ display: 'flex', gap: '12px', padding: '0 20px' }}
-                      >
-                        {[...carouselParties, ...carouselParties].map((item, i) => (
-                          <motion.div 
-                            key={`${item.id}-${i}`} 
-                            className="carousel-item"
-                            whileHover={{ 
-                              scale: 1.05, 
-                              y: -10,
-                              boxShadow: "0 20px 40px rgba(0,0,0,0.3)"
-                            }}
-                            whileTap={{ scale: 0.98 }}
-                            transition={{ type: "spring", stiffness: 400, damping: 17 }}
-                            onClick={() => openAnalysis()}
-                            onMouseEnter={handleInteraction}
-                            onTouchStart={handleInteraction}
-                            style={{ cursor: 'pointer', width: '120px', flexShrink: 0, borderRadius: '12px', overflow: 'hidden', boxShadow: '0 4px 12px rgba(0,0,0,0.08)', position: 'relative' }}
-                          >
-                            <CachedImage src={item.poster_url} alt="" className="card-image" />
-                          </motion.div>
-                        ))}
-                      </motion.div>
-                    </div>
-                  )}
-
-                  <div className="region-group-list">
-                    <AnimatePresence mode="popLayout">
-                      {regionOrder.map((regionName) => {
-                        const regionParties = displayParties.filter(p => {
-                          const r = p.broadRegion || '';
-                          if (regionName === "서울") return r.includes('서울');
-                          if (regionName === "경기/인천") return r.includes('경기') || r.includes('인천');
-                          if (regionName === "충청도") return r.includes('충청') || r.includes('대전');
-                          if (regionName === "경상도") return r.includes('경상') || r.includes('부산') || r.includes('대구') || r.includes('울산');
-                          if (regionName === "전라도") return r.includes('전라') || r.includes('광주');
-                          if (regionName === "강원/제주") return r.includes('강원') || r.includes('제주');
-                          return r.includes(regionName);
-                        });
-
-                        if (regionParties.length === 0 && view === 'likes') return null;
-                        
-                        return (
-                          <motion.div 
-                            layout
-                            key={regionName} 
-                            className="region-section"
-                            style={{ marginBottom: '10px' }}
-                          >
-                            <div style={{ 
-                              fontSize: '18px', fontWeight: '900', padding: '15px 15px 10px', 
-                              color: '#333', display: 'flex', alignItems: 'center', gap: '8px',
-                              background: '#fff'
-                            }}>
-                              <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#2196F3' }} />
-                              {regionName}
-                            </div>
-
-                            <div className="vertical-class-list">
-                            {regionParties.length > 0 ? (
-                              regionParties.map((item) => (
-                                <motion.div 
-                                  layout
-                                  key={item.id} 
-                                  onClick={() => openAnalysis()}
-                                  style={{ 
-                                    display: 'flex', padding: '14px 16px', gap: '14px', 
-                                    background: '#fff', borderBottom: '1px solid #f1f5f9',
-                                    cursor: 'pointer', position: 'relative', alignItems: 'center'
-                                  }}
-                                >
-                                  {/* 1. 왼쪽 80x80 포스터 */}
-                                  {/* 1. 왼쪽 80x80 포스터 */}
-                                  <div style={{ width: '80px', height: '80px', borderRadius: '8px', overflow: 'hidden', flexShrink: 0, position: 'relative' }}>
-                                    <CachedImage src={item.poster_url} alt="" />
-                                    {/* LIVE 뱃지 로직 */}
-                                    {(() => {
-                                      const now = new Date();
-                                      const partyDate = new Date(item.date);
-                                      const isToday = now.getFullYear() === partyDate.getFullYear() && 
-                                                      now.getMonth() === partyDate.getMonth() && 
-                                                      now.getDate() === partyDate.getDate();
-                                      
-                                      if (isToday) {
-                                        const startTimeStr = (item.time || '').split('-')[0].trim() || '20:00';
-                                        const [hours, minutes] = startTimeStr.split(':').map(Number);
-                                        const partyStartTime = new Date(partyDate);
-                                        partyStartTime.setHours(hours, minutes, 0);
-                                        
-                                        const liveStart = new Date(partyStartTime.getTime() - 30 * 60 * 1000);
-                                        const liveEnd = new Date(partyStartTime.getTime() + 4 * 60 * 60 * 1000); // 4시간 동안
-                                        
-                                        if (now >= liveStart && now <= liveEnd) {
-                                          return (
-                                            <div style={{ 
-                                              position: 'absolute', top: '5px', right: '5px', 
-                                              backgroundColor: '#FF0000', color: '#fff', fontSize: '9px', 
-                                              fontWeight: 'bold', padding: '2px 4px', borderRadius: '3px', 
-                                              zIndex: 5, boxShadow: '0 0 6px rgba(255,0,0,0.3)'
-                                            }}>
-                                              LIVE
-                                            </div>
-                                          );
-                                        }
-                                      }
-                                      return null;
-                                    })()}
-                                  </div>
-                                  
-                                  {/* 2. 오른쪽 텍스트 정보 (뉴스 피드 스타일) */}
-                                  <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', padding: '14px' }}>
-                                    {/* (Row 1) 날짜 · 시간 · 장소 */}
-                                    <div style={{ 
-                                      display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: '5px',
-                                      fontSize: '12px', color: '#888', marginBottom: '6px'
-                                    }}>
-                                      <span style={{ color: '#FF4B4B', fontWeight: 'bold' }}>
-                                        {(() => {
-                                          const d = new Date(item.date);
-                                          const dayName = ['일','월','화','수','목','금','토'][d.getDay()];
-                                          return `${d.getMonth()+1}/${d.getDate()}(${dayName})`;
-                                        })()}
-                                      </span>
-                                      <span>·</span>
-                                      <span style={{ color: '#2563EB', fontWeight: 'bold' }}>{(item.time || '').split('-')[0] || '20:00'}</span>
-                                      <span>·</span>
-                                      <span 
-                                        onClick={(e) => {
-                                          e.stopPropagation();
-                                          const address = item.locations?.address || '';
-                                          const searchQuery = address ? `${address} ${item.locationName}` : item.locationName;
-                                          const url = isEn 
-                                            ? `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(searchQuery)}`
-                                            : `https://map.kakao.com/link/search/${encodeURIComponent(searchQuery)}`;
-                                          window.open(url, '_blank');
-                                        }}
-                                        style={{ color: '#059669', fontWeight: 'bold', textDecoration: 'underline' }}
-                                      >
-                                        {item.locationName}
-                                      </span>
-                                    </div>
-
-                                    {/* (Row 2) 강습 제목 */}
-                                    <div style={{ 
-                                      fontSize: '16px', fontWeight: '900', color: '#111', 
-                                      lineHeight: '1.4', marginBottom: '8px',
-                                      display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical',
-                                      overflow: 'hidden', textOverflow: 'ellipsis'
-                                    }}>
-                                      {item.title}
-                                    </div>
-                                    
-                                    {/* (Row 3) 상세 정보 칩 */}
-                                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
-                                      {item.instructor && (
-                                        <span style={{ fontSize: '11px', padding: '2px 8px', background: '#f8fafc', border: '1px solid #e2e8f0', color: '#64748b', borderRadius: '6px', fontWeight: 800 }}>
-                                          {item.instructor}
-                                        </span>
-                                      )}
-                                      {item.level && (
-                                        <span style={{ fontSize: '11px', padding: '2px 8px', background: '#eff6ff', border: '1px solid #bfdbfe', color: '#2563eb', borderRadius: '6px', fontWeight: 800 }}>
-                                          {item.level}
-                                        </span>
-                                      )}
-                                      <span style={{ fontSize: '11px', padding: '2px 8px', background: '#fffbeb', border: '1px solid #fde68a', color: '#d97706', borderRadius: '6px', fontWeight: 800 }}>
-                                        {formatFee(item.fee)}
-                                      </span>
-                                      {item.genre && (
-                                        <span style={{ fontSize: '11px', padding: '2px 8px', background: '#f5f3ff', border: '1px solid #ddd6fe', color: '#7c3aed', borderRadius: '6px', fontWeight: 800 }}>
-                                          {item.genre}
-                                        </span>
-                                      )}
-                                    </div>
-                                  </div>
-
-                                  <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', alignItems: 'center' }}>
-                                    {/* 찜 버튼 */}
-                                    <div 
-                                      onClick={(e) => { e.stopPropagation(); toggleLike(item.id); }}
-                                    >
-                                      <Heart size={20} fill={likedIds.some(id => String(id) === String(item.id)) ? '#FF4B4B' : 'none'} color={likedIds.some(id => String(id) === String(item.id)) ? '#FF4B4B' : '#ccc'} strokeWidth={3} />
-                                    </div>
-                                    <div style={{ color: '#ccc' }}>
-                                      <ChevronRight size={20} strokeWidth={1.5} />
-                                    </div>
-                                  </div>
-                                </motion.div>
-                              ))
-                             ) : (
-                               <div style={{ 
-                                 display: 'flex', padding: '14px 16px', gap: '14px', 
-                                 background: '#fff', borderBottom: '1px solid #f1f5f9',
-                                 alignItems: 'center', opacity: 0.6
-                               }}>
-                                 <div style={{ 
-                                   width: '80px', height: '80px', borderRadius: '8px', overflow: 'hidden', flexShrink: 0,
-                                   background: '#f8f9fa', display: 'flex', alignItems: 'center', justifyContent: 'center', border: '1px solid #eee'
-                                 }}>
-                                   <img src="/logo.png" alt="" style={{ width: '70%', height: '70%', objectFit: 'contain' }} />
-                                 </div>
-                                 
-                                 <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column' }}>
-                                   <div style={{ fontSize: '12px', color: '#888', fontWeight: 'bold', marginBottom: '6px' }}>정보 준비중</div>
-                                   <div style={{ fontSize: '16px', fontWeight: '900', color: '#333', lineHeight: '1.4', marginBottom: '8px' }}>
-                                     해당 지역의 새로운 소식을 준비하고 있습니다
-                                   </div>
-                                   <div style={{ display: 'flex', gap: '6px' }}>
-                                     <span style={{ fontSize: '11px', padding: '2px 8px', background: '#f8fafc', border: '1px solid #e2e8f0', color: '#94a3b8', borderRadius: '6px', fontWeight: 800 }}>
-                                       Today Bamba
-                                     </span>
-                                   </div>
-                                 </div>
-                               </div>
-                             )}
-                          </div>
-                          </motion.div>
-                        )
-                      })}
-                    </AnimatePresence>
-                  </div>
-                </motion.div>
-              ) : (
-                <div style={{ textAlign: 'center', padding: '60px 0', color: '#9CA3AF' }}>
-                  등록된 강습 정보가 없습니다.
+      {/* 📌 [영역 B: 날짜 선택바] */}
+      <div style={{ position: 'sticky', top: 0, zIndex: 1000, background: '#ffffff', borderBottom: '1px solid #f1f5f9', boxShadow: '0 4px 12px rgba(0,0,0,0.03)', padding: '0 10px' }}>
+        <div style={{ flex: 1, display: 'flex', overflowX: 'auto', gap: '8px', padding: '10px 0', msOverflowStyle: 'none', scrollbarWidth: 'none', WebkitOverflowScrolling: 'touch' }} className="date-stream-bar">
+          {fourteenDays.map((item) => {
+            const isSelected = selectedDate === item.fullDate;
+            return (
+              <div key={item.fullDate} 
+                onClick={() => setSelectedDate(item.fullDate)} 
+                style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minWidth: '13.5%', cursor: 'pointer' }}
+              >
+                <span style={{ fontSize: '10px', fontWeight: '700', color: isSelected ? '#2ECC71' : '#94A3B8', marginBottom: '2px' }}>{item.dayName}</span>
+                <div style={{ width: '30px', height: '30px', borderRadius: '10px', display: 'flex', alignItems: 'center', justifyContent: 'center', backgroundColor: isSelected ? '#2ECC71' : 'transparent', border: item.isToday && !isSelected ? '1px solid #2ECC71' : 'none' }}>
+                  <span style={{ fontSize: '15px', fontWeight: '800', color: isSelected ? '#fff' : '#94A3B8' }}>{item.date}</span>
                 </div>
-              )}
-            </AnimatePresence>
-          )}
+              </div>
+            );
+          })}
         </div>
-      </main>
-    </div>
-  )
-}
+      </div>
 
-export default ClassNewsPage
+      <div style={{ padding: '12px 10px 8px' }}>
+        <div style={{ height: '32px', background: '#0f172a', borderRadius: '16px', display: 'flex', alignItems: 'center', overflow: 'hidden', padding: '0 12px' }}>
+          <div style={{ flex: 1, overflow: 'hidden' }}>
+            <motion.div animate={{ x: ['100%', '-100%'] }} transition={{ duration: 15, repeat: Infinity, ease: 'linear' }} style={{ whiteSpace: 'nowrap', color: '#fff', fontSize: '13px', fontWeight: '900' }}>📢 [실시간] 전국의 댄스 아카데미 및 개인 강습 정보 실시간 업데이트 중! 🔥</motion.div>
+          </div>
+        </div>
+      </div>
+
+      <FilterBar filterRegion={filterRegion} setFilterRegion={setFilterRegion} filterGenre={filterGenre} setFilterGenre={setFilterGenre} />
+
+      <div style={{ width: '100%', padding: '0 0 20px 0', backgroundColor: '#f2f2f2' }}>
+        {carouselLessons.length > 0 && (
+          <div style={{ margin: '0 0 15px', padding: '10px 0 20px', background: '#fff', borderBottom: '1px solid #eee' }}>
+            <div style={{ padding: '0 20px 15px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+              <h2 style={{ fontSize: '18px', fontWeight: '950', color: '#1E293B', display: 'flex', alignItems: 'center', gap: '8px' }}><span style={{ color: '#2ECC71' }}>NEW</span> CLASS 5</h2>
+            </div>
+            <div style={{ width: '100%', overflow: 'hidden', padding: '10px 0' }}>
+              <motion.div animate={{ x: [0, -775] }} transition={{ duration: 20, repeat: Infinity, ease: "linear" }} style={{ display: 'flex', gap: '15px', paddingLeft: '20px', width: 'max-content' }}>
+                {carouselLessons.map((item) => (
+                  <div key={item.id} onClick={() => handleOpenModal(setSelectedPoster, item.poster_url)} style={{ width: '140px', flexShrink: 0, borderRadius: '12px', overflow: 'hidden', boxShadow: '0 8px 20px rgba(0,0,0,0.12)', position: 'relative' }}>
+                    <img src={item.poster_url} style={{ width: '100%', height: '190px', objectFit: 'cover' }} alt="Pick" />
+                    <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, padding: '10px 8px', background: 'linear-gradient(transparent, rgba(0,0,0,0.95))', color: 'white' }}>
+                      <div style={{ fontSize: '10px', color: '#FFEB3B', fontWeight: 950, marginBottom: '2px' }}>{item.studio_name}</div>
+                      <div style={{ fontSize: '11px', fontWeight: '950', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', marginBottom: '4px' }}>{item.title}</div>
+                    </div>
+                  </div>
+                ))}
+              </motion.div>
+            </div>
+          </div>
+        )}
+
+        {(() => {
+          const regions = filterRegion ? [filterRegion] : ["서울", "경기/인천", "경상도", "전라도", "충청도", "강원/제주"];
+          return regions.map((regionName) => {
+            const regionLessons = filteredLessons.filter(l => {
+              if (regionName === '서울' && l.city === '서울') return true;
+              if (regionName === '경기/인천' && (l.city === '경기' || l.city === '인천' || l.city === '경기/인천')) return true;
+              if (regionName === '경상도' && (l.city?.includes('경') || l.city?.includes('부') || l.city?.includes('대'))) return true;
+              if (regionName === '전라도' && (l.city?.includes('전') || l.city?.includes('광'))) return true;
+              if (regionName === '충청도' && (l.city?.includes('충') || l.city?.includes('대'))) return true;
+              if (regionName === '강원/제주' && (l.city?.includes('강') || l.city?.includes('제'))) return true;
+              return false;
+            });
+
+            if (regionLessons.length === 0 && filterRegion) return null;
+
+            return (
+              <section key={regionName} style={{ marginBottom: '15px', background: '#fff' }}>
+                <div style={{ fontSize: '18px', fontWeight: '900', padding: '15px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#2ECC71' }} />
+                    {isEn ? (REGION_MAP_EN[regionName] || regionName) : regionName}
+                  </div>
+                </div>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', padding: '0 15px 20px' }}>
+                  {regionLessons.length === 0 ? (
+                    <div style={{ padding: '30px', color: '#94A3B8', textAlign: 'center' }}>{t('no_classes') || '등록된 수업이 없습니다.'}</div>
+                  ) : (
+                    regionLessons.map(item => (
+                      <ClassCard key={item.id} item={item} onSelect={(url) => handleOpenModal(setSelectedPoster, url)} />
+                    ))
+                  )}
+                </div>
+              </section>
+            );
+          });
+        })()}
+      </div>
+    </div>
+  );
+};
+
+export default ClassNewsPage;

@@ -311,6 +311,7 @@ function App() {
     }
   });
   const [parties, setParties] = useState([]);
+  const [lessons, setLessons] = useState([]);
   const [displayParties, setDisplayParties] = useState([]);
   const [loading, setLoading] = useState(true);
   const [selectedDate, setSelectedDate] = useState(todayData.dateStr);
@@ -409,13 +410,15 @@ function App() {
     setLoading(true);
     try {
       // 1. 파티와 장소 데이터를 각각 단순 쿼리로 호출 (400 에러 방지)
-      const [partiesRes, locationsRes] = await Promise.all([
+      const [partiesRes, locationsRes, lessonsRes] = await Promise.all([
         supabase.from('parties').select('*').order('date', { ascending: true }),
-        supabase.from('locations').select('id, name')
+        supabase.from('locations').select('id, name'),
+        supabase.from('classes_info').select('*').eq('status', 'active').order('start_date', { ascending: true })
       ]);
 
       const rawParties = partiesRes.data || [];
       const rawLocations = locationsRes.data || [];
+      const rawLessons = lessonsRes.data || [];
 
       // 2. 장소 데이터를 ID 기반 Map으로 변환
       const locationMap = rawLocations.reduce((acc, loc) => {
@@ -423,7 +426,7 @@ function App() {
         return acc;
       }, {});
 
-      const mapped = rawParties.map(p => {
+      const mappedParties = rawParties.map(p => {
         // 장소명 매핑 (id 우선, 없으면 기존 필드 활용)
         const locName = locationMap[p.location_id] || p.locationName || p.location_name || '장소 미지정';
         
@@ -453,7 +456,8 @@ function App() {
           locationNameEn
         };
       });
-      setParties(mapped);
+      setParties(mappedParties);
+      setLessons(rawLessons);
     } catch (err) { console.error('데이터 로딩 오류:', err); } finally { setLoading(false); }
   };
 
@@ -500,7 +504,7 @@ function App() {
   };
 
   const sharedProps = {
-    parties: displayParties, lessons: [], loading, selectedMonth, setSelectedMonth, selectedWeek: 1, setSelectedWeek: () => {}, 
+    parties: displayParties, lessons, loading, selectedMonth, setSelectedMonth, selectedWeek: 1, setSelectedWeek: () => {}, 
     selectedDate, setSelectedDate, selectedRegion: '서울', setSelectedRegion: () => {}, 
     view, setView, setSelectedPoster, 
     fourteenDays: Array.from({ length: 14 }).map((_, i) => {
