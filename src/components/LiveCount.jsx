@@ -135,68 +135,97 @@ const LiveCount = () => {
     return region.replace('인천광역시', '인천').replace('서울특별시', '서울').replace('부산광역시', '부산').replace('경기도', '경기');
   };
 
-  const liveList = useMemo(() => {
-    const HONGDAE_BARS = ['보니따', '홍턴', '부에나2차', '까리베 2차', '마콘도', '팰리스클럽', '안단테', '놀이터 2차', '하바나', '아난타라', '솔SOL빠2차', '꼼애야 2차'];
-    let hongdaeTotal = 0;
-    
-    // 홍대 인원 합산 (부스터 적용)
+  const areaSummary = useMemo(() => {
+    const AREAS = {
+      '홍대 성지': ['보니따', '홍턴', '부에나', '까리베', '마콘도', '팰리스', '안단테', '놀이터', '하바나', '아난타라', '솔SOL', '꼼애야', '맘보'],
+      '상암 성지': ['상암', '디지털미디어시티'],
+      '강남 성지': ['강남', '신사', '역삼', '선릉']
+    };
+
+    const summaries = {};
     Object.entries(counts).forEach(([key, count]) => {
       const parts = key.split('|');
       const barName = parts[1] || '';
-      if (HONGDAE_BARS.some(h => barName.includes(h))) {
-        hongdaeTotal += Math.round(count * (boosters.hongdae || 1.0));
+      
+      for (const [area, keywords] of Object.entries(AREAS)) {
+        if (keywords.some(k => barName.includes(k))) {
+          let multiplier = boosters.others || 1.0;
+          if (area === '홍대 성지') multiplier = boosters.hongdae || 1.0;
+          if (area === '강남 성지') multiplier = boosters.gangnam || 1.0;
+          
+          summaries[area] = (summaries[area] || 0) + Math.round(count * multiplier);
+        }
       }
     });
 
+    return Object.entries(summaries).map(([area, total]) => ({
+      area,
+      total,
+      message: total > 100 ? '🔥 열기 폭발!' : total > 50 ? '✨ 열기 고조!' : '🏃 집결 중!'
+    }));
+  }, [counts, boosters]);
+
+  const liveList = useMemo(() => {
+    const HONGDAE_BARS = ['보니따', '홍턴', '부에나2차', '까리베 2차', '마콘도', '팰리스클럽', '안단테', '놀이터 2차', '하바나', '아난타라', '솔SOL빠2차', '꼼애야 2차'];
     const list = Object.entries(counts)
       .map(([key, count]) => {
         const parts = key.split('|');
         const region = parts[0] || '';
         const barName = parts[1] || '';
         
-        // 지역별 부스터 결정
         let multiplier = boosters.others || 1.0;
         if (HONGDAE_BARS.some(h => barName.includes(h))) multiplier = boosters.hongdae || 1.0;
         else if (region.includes('서울') || region.includes('강남')) multiplier = boosters.gangnam || 1.0;
         
         return [key, Math.round(count * multiplier)];
       })
-      .filter(([_, count]) => count >= 10) // 부스터 적용 후 10명 이상인 것만 (좀 더 풍성하게)
+      .filter(([_, count]) => count >= 10)
       .sort((a, b) => b[1] - a[1])
       .slice(0, 5);
 
-    if (hongdaeTotal > 0) {
-      list.unshift(['서울|🔥 홍턴(홍대)', hongdaeTotal]);
-    }
     return list;
   }, [counts, boosters]);
 
-  if (liveList.length === 0) return null
-
   return (
-    <div style={{ background: '#0F172A', padding: '8px 20px', display: 'flex', alignItems: 'center', overflowX: 'auto', whiteSpace: 'nowrap', borderBottom: '1px solid #1E293B', scrollbarWidth: 'none', msOverflowStyle: 'none', gap: '24px' }}>
+    <div style={{ background: '#0F172A', padding: '10px 0', borderBottom: '1px solid #1E293B', overflow: 'hidden' }}>
       <style>{`
         .live-dot { animation: blink 1.5s infinite; } 
         @keyframes blink { 0% { opacity: 1; } 50% { opacity: 0.3; } 100% { opacity: 1; } }
-        .live-text { font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, system-ui, Roboto, sans-serif; }
+        .ticker-container { display: flex; animation: scroll 30s linear infinite; gap: 40px; }
+        @keyframes scroll { 0% { transform: translateX(100%); } 100% { transform: translateX(-150%); } }
+        .live-text { font-family: 'Pretendard', sans-serif; white-space: nowrap; }
       `}</style>
-      {liveList.map(([key, count]) => {
-        const parts = key.split('|');
-        const region = parts[0] || '';
-        const barName = parts[1] || '';
-        const shortRegion = abbreviateRegion(region);
-        return (
-          <div key={key} className="live-text" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <span className="live-dot" style={{ color: '#FF1744', fontSize: '10px' }}>●</span>
-            <span style={{ fontWeight: 900, fontSize: '14px', color: '#FFFFFF' }}>
-              {shortRegion && `${shortRegion} `}{barName}
+
+      <div className="ticker-container">
+        {/* 1. 성지 구역 요약 (광고판 중계) */}
+        {areaSummary.map(item => (
+          <div key={item.area} className="live-text" style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+            <span style={{ background: '#FF1744', color: '#fff', fontSize: '10px', fontWeight: '950', padding: '2px 8px', borderRadius: '4px' }}>BROADCAST</span>
+            <span style={{ fontWeight: 900, fontSize: '15px', color: '#FFFFFF' }}>
+              [{item.area}] 반경 1km 내 <span style={{ color: '#FF1744' }}>{item.total}명</span> 집결 중!
             </span>
-            <span style={{ fontWeight: 300, fontSize: '22px', color: '#FF1744', marginLeft: '4px' }}>
-              {count}
-            </span>
+            <span style={{ fontSize: '13px', fontWeight: '800', color: '#2ECC71' }}>{item.message}</span>
           </div>
-        )
-      })}
+        ))}
+
+        {/* 2. 개별 바 인원 현황 */}
+        {liveList.map(([key, count]) => {
+          const parts = key.split('|');
+          const barName = parts[1] || '';
+          const shortRegion = abbreviateRegion(parts[0]);
+          return (
+            <div key={key} className="live-text" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <span className="live-dot" style={{ color: '#FF1744', fontSize: '10px' }}>●</span>
+              <span style={{ fontWeight: 800, fontSize: '14px', color: '#94A3B8' }}>
+                {shortRegion} {barName}
+              </span>
+              <span style={{ fontWeight: 900, fontSize: '18px', color: '#FFFFFF', marginLeft: '4px' }}>
+                {count}
+              </span>
+            </div>
+          )
+        })}
+      </div>
     </div>
   )
 }
