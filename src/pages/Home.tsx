@@ -239,13 +239,29 @@ const HomePage = ({
       
       {/* 📌 [영역 A: 상단 고정석] */}
       <div style={{ position: 'fixed', top: 0, left: '50%', transform: 'translateX(-50%)', width: '100%', maxWidth: '500px', zIndex: 100000, background: '#ffffff', borderBottom: '1px solid #f1f5f9' }}>
-        <div style={{ padding: '28px 24px' }}>
-          <p style={{ fontSize: '12px', color: '#1D9E75', fontWeight: 600, margin: '0 0 6px' }}>그 전율, 오늘 밤 느껴보세요</p>
-          <div>
-            <span style={{ fontSize: '48px', fontWeight: 900, color: '#111', letterSpacing: '-3px', lineHeight: 1, textShadow: '0 0 30px rgba(0,0,0,0.1)' }}>오늘밤</span>
-            <span style={{ fontSize: '48px', fontWeight: 900, color: '#1D9E75', letterSpacing: '-3px', lineHeight: 1, textShadow: '0 0 20px rgba(29,158,117,0.4)' }}>빠</span>
+        <div style={{ padding: '32px 24px 20px', background: '#ffffff', position: 'relative' }}>
+          <div style={{ position: 'absolute', top: '24px', right: '24px' }}>
+            <div style={{ background: '#F0FDF4', padding: '4px 12px', borderRadius: '20px', border: '1px solid #DCFCE7' }}>
+              <span style={{ fontSize: '10px', color: '#166534', fontWeight: 800, letterSpacing: '0.5px' }}>PREMIUM SOCIAL</span>
+            </div>
           </div>
-          <p style={{ fontSize: '10px', color: '#bbb', margin: '10px 0 0', letterSpacing: '2px' }}>BACHATA · SALSA · SOCIAL</p>
+          
+          <p style={{ fontSize: '12px', color: '#1D9E75', fontWeight: 800, margin: '0 0 8px', letterSpacing: '0.5px' }}>
+            만원대로 즐기는 도심 속 전율
+          </p>
+          
+          <div style={{ marginBottom: '12px' }}>
+            <h1 style={{ fontSize: '44px', fontWeight: 900, color: '#0f172a', letterSpacing: '-2.5px', lineHeight: 1.1, margin: 0 }}>
+              오늘밤<span style={{ color: '#1D9E75' }}>빠</span>
+            </h1>
+          </div>
+          
+          <p style={{ fontSize: '14px', color: '#475569', fontWeight: 500, margin: '0 0 16px', lineHeight: '1.5' }}>
+            <span style={{ fontWeight: 800, color: '#1e293b' }}>바차타 · 살사 · 소셜</span><br/>
+            누구나 쉽게 참여하는 새로운 소셜 문화
+          </p>
+          
+          <div style={{ height: '2px', width: '32px', background: '#1D9E75', borderRadius: '2px' }}></div>
         </div>
         <div style={{ height: '50px', display: 'flex', alignItems: 'center', padding: '0 10px' }}>
           <div style={{ flex: 1, display: 'flex', overflowX: 'auto', gap: '8px', padding: '5px 0', msOverflowStyle: 'none', scrollbarWidth: 'none', WebkitOverflowScrolling: 'touch' }} className="date-stream-bar">
