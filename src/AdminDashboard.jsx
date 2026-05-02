@@ -662,89 +662,82 @@ export default function AdminDashboard({ onBack, refreshData }) {
             </button>
           </div>
         ) : activeTab === 'pending' ? (
-          (() => {
-            const pendingLessons = classItems.filter(i => i.status === 'pending');
-            const allPending = [...pendingParties, ...pendingLessons].sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
-
-            if (allPending.length === 0) {
-              return <div style={{ textAlign: 'center', padding: '100px 0', color: '#64748B' }}>NO_PENDING_DATA</div>;
-            }
-
-            return allPending.map(item => {
-              const isLesson = !!item.category_type || item.genre || item.start_time; // 레슨/동호회 판별
-              
-              return (
-                <div key={item.id} style={{ backgroundColor: '#0F172A', borderRadius: '24px', padding: '20px', marginBottom: '16px', border: isLesson ? '2px solid #F59E0B' : '1px solid #1E293B', boxShadow: '0 10px 20px rgba(0,0,0,0.2)' }}>
-                  <div style={{ display: 'flex', gap: '16px' }}>
-                    {item.poster_url && <img src={item.poster_url} style={{ width: '80px', height: '110px', objectFit: 'cover', borderRadius: '15px' }} />}
-                    <div style={{ flex: 1, minWidth: 0 }}>
-                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '4px' }}>
-                        <div style={{ fontSize: '10px', color: '#64748B', fontFamily: 'monospace' }}>#{item.id}</div>
-                        <div style={{ fontSize: '10px', fontWeight: 900, color: isLesson ? '#F59E0B' : '#00FF00', padding: '2px 8px', borderRadius: '50px', background: 'rgba(255,255,255,0.05)' }}>
-                          {isLesson ? 'ACADEMY/CLUB' : 'PARTY'}
+          <div className="pending-management-ui">
+            {/* 1. 수업/동호회 대기 목록 */}
+            <div style={{ marginBottom: '40px' }}>
+              <h2 style={{ fontSize: '20px', fontWeight: 900, color: '#F59E0B', marginBottom: '16px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <ShieldCheck size={24} /> ACADEMY/CLUB WAITING
+              </h2>
+              {classItems.filter(i => i.status === 'pending').length === 0 ? (
+                <div style={{ padding: '40px', background: 'rgba(255,255,255,0.02)', borderRadius: '24px', textAlign: 'center', color: '#64748B' }}>No pending classes.</div>
+              ) : (
+                classItems.filter(i => i.status === 'pending').map(item => (
+                  <div key={item.id} style={{ backgroundColor: '#0F172A', borderRadius: '24px', padding: '20px', marginBottom: '16px', border: '2px solid #F59E0B', boxShadow: '0 10px 20px rgba(0,0,0,0.2)' }}>
+                    <div style={{ display: 'flex', gap: '16px' }}>
+                      {item.poster_url && <img src={item.poster_url} style={{ width: '80px', height: '110px', objectFit: 'cover', borderRadius: '15px' }} />}
+                      <div style={{ flex: 1, minWidth: 0 }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '4px' }}>
+                          <div style={{ fontSize: '10px', color: '#64748B' }}>#{item.id}</div>
+                          <div style={{ fontSize: '10px', fontWeight: 900, color: '#F59E0B', padding: '2px 8px', borderRadius: '50px', background: 'rgba(245,158,11,0.1)' }}>PENDING</div>
                         </div>
-                      </div>
-                      <h3 style={{ fontSize: '16px', fontWeight: 900, margin: '0 0 6px 0', color: 'white' }}>{item.title}</h3>
-                      
-                      {isLesson ? (
-                        <>
-                          <p style={{ fontSize: '13px', color: '#94A3B8', margin: '4px 0' }}>👤 {item.instructor || 'TBA'}</p>
-                          <p style={{ fontSize: '13px', color: '#94A3B8', margin: '4px 0' }}>📅 {item.day_of_week} / ⏰ {item.start_time}~{item.end_time}</p>
-                          <p style={{ fontSize: '13px', color: '#F59E0B', fontWeight: 700, margin: '4px 0' }}>📍 {item.studio_name || item.address}</p>
-                        </>
-                      ) : (
-                        <>
-                          <p style={{ fontSize: '13px', color: '#94A3B8', margin: '4px 0' }}>📍 {item.location_name}</p>
-                          <p style={{ fontSize: '13px', color: '#94A3B8', margin: '4px 0' }}>📅 {item.date} / ⏰ {item.time}</p>
-                          <div style={{ backgroundColor: 'rgba(0,255,0,0.1)', color: '#00FF00', padding: '10px 14px', borderRadius: '12px', fontSize: '12px', marginTop: '12px', fontWeight: 700, border: '1px solid rgba(0,255,0,0.2)' }}>{item.ai_reason || '정기 제보'}</div>
-                        </>
-                      )}
-                      
-                      <div style={{ display: 'flex', gap: '8px', marginTop: '16px' }}>
-                        <button 
-                          onClick={async (e) => {
-                            if (isLesson) {
-                              const { error } = await supabase.from('classes_info').update({ status: 'active' }).eq('id', item.id);
-                              if (!error) { 
-                                if (refreshData) refreshData()
-                                alert('승인되었습니다.'); 
-                                fetchPending(); 
-                              }
-                            } else {
-                              handleApprove(e, item);
-                            }
-                          }} 
-                          disabled={loading} 
-                          style={{ flex: 2, backgroundColor: isLesson ? '#F59E0B' : '#00FF00', color: isLesson ? 'white' : 'black', padding: '12px', borderRadius: '12px', fontWeight: 900, fontSize: '14px', border: 'none' }}
-                        >
-                          APPROVE
-                        </button>
-                        <button onClick={() => isLesson ? setEditingClass(item) : setEditingParty(item)} disabled={loading} style={{ flex: 1, backgroundColor: '#1E293B', color: 'white', padding: '12px', borderRadius: '12px', border: 'none' }}><Edit3 size={18} /></button>
-                        <button 
-                          onClick={async (e) => { 
-                            e.stopPropagation(); 
-                            if (isLesson) {
-                              if (!window.confirm('삭제하시겠습니까?')) return;
-                              const { error } = await supabase.from('classes_info').update({ status: 'archived' }).eq('id', item.id);
-                              if (!error) { 
-                                if (refreshData) refreshData()
-                                alert('삭제되었습니다.'); 
-                                fetchPending(); 
-                              }
-                            } else {
-                              handleDelete(item.id); 
-                            }
-                          }} 
-                          disabled={loading} 
-                          style={{ flex: 1, backgroundColor: 'rgba(239, 68, 68, 0.1)', color: '#EF4444', padding: '12px', borderRadius: '12px', border: '1px solid rgba(239, 68, 68, 0.2)' }}
-                        ><Trash2 size={18} /></button>
+                        <h3 style={{ fontSize: '16px', fontWeight: 900, margin: '0 0 6px 0', color: 'white' }}>{item.title}</h3>
+                        <p style={{ fontSize: '13px', color: '#94A3B8', margin: '4px 0' }}>👤 {item.instructor || 'TBA'}</p>
+                        <p style={{ fontSize: '13px', color: '#94A3B8', margin: '4px 0' }}>📅 {item.day_of_week} / ⏰ {item.start_time}~{item.end_time}</p>
+                        <p style={{ fontSize: '13px', color: '#F59E0B', fontWeight: 700, margin: '4px 0' }}>📍 {item.studio_name || item.address}</p>
+                        
+                        <div style={{ display: 'flex', gap: '8px', marginTop: '16px' }}>
+                          <button onClick={async (e) => {
+                            const { error } = await supabase.from('classes_info').update({ status: 'active' }).eq('id', item.id);
+                            if (!error) { if (refreshData) refreshData(); alert('승인되었습니다.'); fetchPending(); }
+                          }} style={{ flex: 2, backgroundColor: '#F59E0B', color: 'white', padding: '12px', borderRadius: '12px', fontWeight: 900, fontSize: '14px', border: 'none' }}>APPROVE CLASS</button>
+                          <button onClick={() => setEditingClass(item)} style={{ flex: 1, backgroundColor: '#1E293B', color: 'white', padding: '12px', borderRadius: '12px', border: 'none' }}><Edit3 size={18} /></button>
+                          <button onClick={async () => {
+                            if (!window.confirm('삭제하시겠습니까?')) return;
+                            await supabase.from('classes_info').update({ status: 'archived' }).eq('id', item.id);
+                            fetchPending();
+                          }} style={{ flex: 1, backgroundColor: 'rgba(239, 68, 68, 0.1)', color: '#EF4444', padding: '12px', borderRadius: '12px', border: 'none' }}><Trash2 size={18} /></button>
+                        </div>
                       </div>
                     </div>
                   </div>
-                </div>
-              );
-            });
-          })()
+                ))
+              )}
+            </div>
+
+            {/* 2. 소셜 파티 대기 목록 */}
+            <div>
+              <h2 style={{ fontSize: '20px', fontWeight: 900, color: '#00FF00', marginBottom: '16px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <RefreshCw size={24} /> SOCIAL PARTY WAITING
+              </h2>
+              {pendingParties.length === 0 ? (
+                <div style={{ padding: '40px', background: 'rgba(255,255,255,0.02)', borderRadius: '24px', textAlign: 'center', color: '#64748B' }}>No pending parties.</div>
+              ) : (
+                pendingParties.map(item => (
+                  <div key={item.id} style={{ backgroundColor: '#0F172A', borderRadius: '24px', padding: '20px', marginBottom: '16px', border: '1px solid #1E293B', boxShadow: '0 10px 20px rgba(0,0,0,0.2)' }}>
+                    <div style={{ display: 'flex', gap: '16px' }}>
+                      {item.poster_url && <img src={item.poster_url} style={{ width: '80px', height: '110px', objectFit: 'cover', borderRadius: '15px' }} />}
+                      <div style={{ flex: 1, minWidth: 0 }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '4px' }}>
+                          <div style={{ fontSize: '10px', color: '#64748B' }}>#{item.id}</div>
+                          <div style={{ fontSize: '10px', fontWeight: 900, color: '#00FF00', padding: '2px 8px', borderRadius: '50px', background: 'rgba(0,255,0,0.05)' }}>PARTY</div>
+                        </div>
+                        <h3 style={{ fontSize: '16px', fontWeight: 900, margin: '0 0 6px 0', color: 'white' }}>{item.title}</h3>
+                        <p style={{ fontSize: '13px', color: '#94A3B8', margin: '4px 0' }}>📍 {item.location_name}</p>
+                        <p style={{ fontSize: '13px', color: '#94A3B8', margin: '4px 0' }}>📅 {item.date} / ⏰ {item.time}</p>
+                        <div style={{ backgroundColor: 'rgba(0,255,0,0.1)', color: '#00FF00', padding: '10px 14px', borderRadius: '12px', fontSize: '12px', marginTop: '12px', fontWeight: 700, border: '1px solid rgba(0,255,0,0.2)' }}>{item.ai_reason || '정기 제보'}</div>
+                        
+                        <div style={{ display: 'flex', gap: '8px', marginTop: '16px' }}>
+                          <button onClick={(e) => handleApprove(e, item)} style={{ flex: 2, backgroundColor: '#00FF00', color: 'black', padding: '12px', borderRadius: '12px', fontWeight: 900, fontSize: '14px', border: 'none' }}>APPROVE PARTY</button>
+                          <button onClick={() => setEditingParty(item)} style={{ flex: 1, backgroundColor: '#1E293B', color: 'white', padding: '12px', borderRadius: '12px', border: 'none' }}><Edit3 size={18} /></button>
+                          <button onClick={() => handleDelete(item.id)} style={{ flex: 1, backgroundColor: 'rgba(239, 68, 68, 0.1)', color: '#EF4444', padding: '12px', borderRadius: '12px', border: 'none' }}><Trash2 size={18} /></button>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                ))
+              )}
+            </div>
+          </div>
         ) : activeTab === 'lesson' ? (
           <div className="lesson-management-ui">
             <div style={{ display: 'flex', gap: '8px', marginBottom: '20px' }}>
