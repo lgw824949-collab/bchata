@@ -80,6 +80,7 @@ export const BAR_DATABASE = [
 
   // [전라 - 광주/여수]
   { name: '부에나비스타바', address: '광주광역시 동구 문화전당로23번길 38-1', region: '전라도' },
+  { name: '마얀', address: '광주광역시 동구 황금동 84번지 3층', region: '전라도' },
   { name: '엘카리베', address: '전라남도 여수시 소라면 죽림중앙로 13-12 4층', region: '전라도' },
 ]
 
@@ -87,8 +88,11 @@ export const findBarByName = (text) => {
   if (!text) return null
   
   // 검색어 정규화 (공백 제거, 대소문자 무시, 관용적 수식어 제거)
-  const normalize = (s) => s.replace(/\s/g, '').toLowerCase()
-    .replace(/(바|빠|bar|클럽|studio|스튜디오|dance|댄스|살사)/g, '')
+  const normalize = (s) => {
+    const basic = s.replace(/\s/g, '').toLowerCase();
+    if (basic.length <= 2) return basic; // 2글자 이하는 관용구 제거 안함 (바야, 마얀 등 보존)
+    return basic.replace(/(바|빠|bar|클럽|studio|스튜디오|dance|댄스|살사)/g, '');
+  };
 
   const cleanSearch = text.replace(/\s/g, '').toLowerCase()
   const coreSearch = normalize(text)
