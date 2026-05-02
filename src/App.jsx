@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo, useRef } from 'react'
-import { Home as HomeIcon, Users, Plus, LogOut, Heart, X, MessageSquare, RefreshCw, CloudSun, Utensils, Zap, Languages, Bell, Star, Navigation, CreditCard, Settings, Map as MapIcon, BarChart, Gift, Coffee, User, Menu, Music2, GraduationCap, Tent, Flag, Download, Globe, ShieldCheck, Calendar, Camera } from 'lucide-react'
+import { Home as HomeIcon, Users, Plus, LogOut, Heart, X, MessageSquare, RefreshCw, CloudSun, Utensils, Zap, Languages, Bell, Star, Navigation, CreditCard, Settings, Map as MapIcon, BarChart, Gift, Coffee, User, Menu, Music2, GraduationCap, Tent, Flag, Download, Globe, ShieldCheck, Calendar, Camera, ChevronLeft, ChevronRight } from 'lucide-react'
 import { useTranslation } from 'react-i18next';
 import { motion, AnimatePresence } from 'framer-motion'
 import { supabase, logActivity } from './lib/supabase'
@@ -44,19 +44,30 @@ const PosterModal = ({ src, onClose }) => {
   };
 
   return (
-    <div style={{ position:'fixed', inset:0, zIndex:2000000, backgroundColor:'rgba(0,0,0,0.95)', display:'flex', alignItems:'center', justifyContent:'center' }}>
+    <div style={{ 
+      position:'fixed', 
+      inset:0, 
+      zIndex:2000000, 
+      backgroundColor:'rgba(0,0,0,0.98)', 
+      display:'flex', 
+      alignItems:'center', 
+      justifyContent:'center',
+      height: '100dvh', // 모바일 브라우저 주소창 고려
+      paddingTop: 'env(safe-area-inset-top)',
+      paddingBottom: 'env(safe-area-inset-bottom)'
+    }}>
       {/* 닫기 버튼 */}
       <button 
         onClick={onClose} 
         style={{ 
-          position:'absolute', top:'40px', right:'25px', 
-          background:'rgba(255,255,255,0.3)', border:'none', 
-          borderRadius:'50%', width:'48px', height:'48px', 
+          position:'absolute', top:'calc(40px + env(safe-area-inset-top))', left:'20px', 
+          background:'rgba(255,255,255,0.2)', border:'none', 
+          borderRadius:'50%', width:'52px', height:'52px', 
           color:'#fff', display:'flex', alignItems:'center', justifyContent:'center', cursor:'pointer',
           zIndex: 2000001,
-          backdropFilter: 'blur(10px)'
+          backdropFilter: 'blur(15px)'
         }}
-      ><ChevronLeft size={28} /></button>
+      ><ChevronLeft size={32} /></button>
 
       {/* 줌 컨테이너 (가용 화면 전체 사용) */}
       <div style={{ width: '100%', height: '100%', position: 'relative', overflow: 'hidden', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
@@ -78,7 +89,7 @@ const PosterModal = ({ src, onClose }) => {
       </div>
       
       {/* 하단 저장 버튼 */}
-      <div style={{ position: 'absolute', bottom: '40px', left: '50%', transform: 'translateX(-50%)', zIndex: 100002 }}>
+      <div style={{ position: 'absolute', bottom: 'calc(40px + env(safe-area-inset-bottom))', left: '50%', transform: 'translateX(-50%)', zIndex: 100002 }}>
         <button 
           onClick={handleSave}
           style={{ 

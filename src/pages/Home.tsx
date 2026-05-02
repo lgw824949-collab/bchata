@@ -597,21 +597,26 @@ const HomePage = ({
                 background: '#000', 
                 zIndex: 180001, 
                 display: 'flex', 
-                flexDirection: 'column' 
+                flexDirection: 'column',
+                height: '100dvh',
+                paddingTop: 'env(safe-area-inset-top)',
+                paddingBottom: 'env(safe-area-inset-bottom)'
               }}
             >
               {/* 상단 바 */}
-              <div style={{ height: '60px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0 20px', borderBottom: '1px solid rgba(255,255,255,0.1)' }}>
-                <div style={{ color: '#fff', fontSize: '18px', fontWeight: '900', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                  <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#059669' }} />
-                  {gridRegion} 전체보기
+              <div style={{ height: '70px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0 20px', borderBottom: '1px solid rgba(255,255,255,0.1)' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
+                  <button 
+                    onClick={handleCloseModal}
+                    style={{ background: 'rgba(255,255,255,0.15)', border: 'none', borderRadius: '50%', width: '48px', height: '48px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff' }}
+                  >
+                    <ChevronLeft size={28} />
+                  </button>
+                  <div style={{ color: '#fff', fontSize: '18px', fontWeight: '900', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#059669' }} />
+                    {gridRegion} 전체보기
+                  </div>
                 </div>
-                <button 
-                  onClick={handleCloseModal}
-                  style={{ background: 'rgba(255,255,255,0.15)', border: 'none', borderRadius: '50%', width: '44px', height: '44px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff' }}
-                >
-                  <ChevronLeft size={28} />
-                </button>
               </div>
 
               {/* 그리드 본문 */}
@@ -647,7 +652,10 @@ const HomePage = ({
                     ));
                   })()}
                 </div>
-                {filteredParties.filter(p => REGION_FILTER[gridRegion](p)).length === 0 && (
+                {filteredParties.filter(p => {
+                  const filterFn = REGION_FILTER[gridRegion];
+                  return filterFn ? filterFn(p) : true;
+                }).length === 0 && (
                   <div style={{ padding: '100px 0', textAlign: 'center', color: '#64748B', fontWeight: '700' }}>해당 지역에 등록된 파티가 없습니다.</div>
                 )}
               </div>
