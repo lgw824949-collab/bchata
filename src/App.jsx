@@ -469,13 +469,20 @@ function App() {
       const translated = upcomingParties.map(p => ({
         ...p,
         title: p.title_en || p.title,
-        locationName: p.locationNameEn || p.locationName,
-        broadRegion: p.broadRegionEn || p.broadRegion,
-        cityName: p.cityNameEn || p.cityName
+        // UI용 영어 필드만 따로 매핑하고 원본 필드는 유지 (필터링 유지)
+        displayLocationName: p.locationNameEn || p.locationName,
+        displayBroadRegion: p.broadRegionEn || p.broadRegion,
+        displayCityName: p.cityNameEn || p.cityName
       }));
       setDisplayParties(translated);
     } else {
-      setDisplayParties(upcomingParties);
+      const origin = upcomingParties.map(p => ({
+        ...p,
+        displayLocationName: p.locationName,
+        displayBroadRegion: p.broadRegion,
+        displayCityName: p.cityName
+      }));
+      setDisplayParties(origin);
     }
   }, [i18n.language, parties]);
 

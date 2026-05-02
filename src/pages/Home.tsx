@@ -113,7 +113,7 @@ const PartyCard = ({ item, onSelect }) => {
       <div style={{ padding: '10px 15px', display: 'flex', flexDirection: 'column', justifyContent: 'space-between', minWidth: 0, flex: 1, height: '100%' }}>
         {/* Line 1: 위치 및 화살표 버튼 */}
         <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-          <span style={{ fontSize: '14px', fontWeight: '600', color: '#111827' }}>{item.locationName}</span>
+          <span style={{ fontSize: '14px', fontWeight: '600', color: '#111827' }}>{item.displayLocationName || item.locationName}</span>
           <div onClick={openMap} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '20px', height: '20px', borderRadius: '50%', backgroundColor: '#FFF1F0', cursor: 'pointer', color: '#E53935' }}>
             <Navigation size={10} fill="currentColor" />
           </div>
@@ -126,6 +126,12 @@ const PartyCard = ({ item, onSelect }) => {
 
         {/* Line 3: 상세 뱃지 */}
         <div style={{ display: 'flex', alignItems: 'center', gap: '4px', whiteSpace: 'nowrap', overflow: 'hidden', marginTop: '6px' }}>
+          {/* 지역/도시 정보 */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: '4px', marginRight: '4px' }}>
+             <span style={{ fontSize: '11px', fontWeight: '800', color: '#64748B' }}>{item.displayBroadRegion || item.broadRegion}</span>
+             <span style={{ color: '#E2E8F0' }}>·</span>
+             <span style={{ fontSize: '11px', fontWeight: '800', color: '#64748B' }}>{item.displayCityName || item.cityName}</span>
+          </div>
           {/* 날짜 뱃지 */}
           <span style={{ background: '#FEF2F2', color: '#FF1744', borderRadius: '99px', padding: '3px 9px', fontSize: '11px', fontWeight: '600' }}>
             {(() => { const d = new Date(item.date); return `${d.getMonth() + 1}/${d.getDate()}(${DAYS_KOR[d.getDay()]})`; })()}
