@@ -287,7 +287,11 @@ function App() {
 
   const [showSplash, setShowSplash] = useState(() => {
     // 세션당 한 번만 노출 (새로고침 시 노출 안 됨)
-    return !sessionStorage.getItem('splash_shown');
+    try {
+      return !sessionStorage.getItem('splash_shown');
+    } catch (e) {
+      return true;
+    }
   });
   const [parties, setParties] = useState([]);
   const [displayParties, setDisplayParties] = useState([]);
@@ -480,7 +484,16 @@ function App() {
   return (
     <div style={{ width: '100%', maxWidth: '500px', margin: '0 auto', background: '#fff', minHeight: '100vh', position: 'relative' }}>
       <AnimatePresence>
-        {showSplash && <SplashScreen onComplete={() => setShowSplash(false)} />}
+        {showSplash && (
+          <SplashScreen 
+            onComplete={() => {
+              try {
+                sessionStorage.setItem('splash_shown', 'true');
+              } catch (e) {}
+              setShowSplash(false);
+            }} 
+          />
+        )}
       </AnimatePresence>
       <AnimatePresence>{isAnalyzing && <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} style={{ position: 'fixed', inset: 0, zIndex: 1000000, background: 'rgba(255,255,255,0.9)', backdropFilter: 'blur(30px)', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}><motion.div animate={{ rotate: 360 }} transition={{ duration: 1, repeat: Infinity, ease: 'linear' }} style={{ width: '60px', height: '60px', border: '4px solid #FFEBEE', borderTop: '4px solid #E53935', borderRadius: '50%', marginBottom: '20px' }} /><h2 style={{ color: '#1E293B', fontSize: '20px', fontWeight: '900' }}>실시간 지능형 분석 중...</h2></motion.div>}</AnimatePresence>
 
