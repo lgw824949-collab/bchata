@@ -26,13 +26,14 @@ const ClassCard = ({ item, onSelect }) => {
   const cleanTitle = item.title?.split(' ㅣ ')[0] || '';
   const displayTime = item.start_time || '19:00';
   
-  const isNew = (() => {
-    if (!item.created_at) return false;
-    const now = new Date();
-    const created = new Date(item.created_at);
-    const diff = (now - created) / (1000 * 60 * 60 * 24);
-    return diff <= 3; // 3일 이내 등록된 경우 NEW
-  })();
+  const formatDate = (dateStr) => {
+    if (!dateStr) return '';
+    const d = new Date(dateStr);
+    const m = d.getMonth() + 1;
+    const date = d.getDate();
+    const dayName = DAYS_KOR[d.getDay()];
+    return `${m}/${date}(${dayName})`;
+  };
 
   const displayFee = (() => {
     if (!item.fee) return '1.5만';
@@ -40,75 +41,36 @@ const ClassCard = ({ item, onSelect }) => {
     if (f.includes('만')) return f.replace('원', '');
     const num = parseInt(f.replace(/[^0-9]/g, ''));
     if (isNaN(num)) return f;
-    if (num === 0) return '무료';
     return (num / 10000).toFixed(1).replace('.0', '') + '만';
   })();
-
-  const openMap = (e) => {
-    e.stopPropagation();
-    const address = item.address || item.studio_name;
-    const query = encodeURIComponent(address);
-    const url = isEn 
-      ? `https://www.google.com/maps/search/?api=1&query=${query}`
-      : `https://map.kakao.com/link/search/${query}`;
-    window.open(url, '_blank');
-  };
 
   return (
     <div 
       onClick={() => onSelect(item.poster_url)} 
       style={{ 
-        display: 'flex', 
-        flexDirection: 'row', 
-        alignItems: 'center', 
-        backgroundColor: '#FFFFFF', 
-        borderRadius: '16px', 
-        overflow: 'hidden', 
-        border: '1px solid #EAEEF4', 
-        cursor: 'pointer', 
-        height: '115px', 
-        boxShadow: '0 2px 8px rgba(0,0,0,0.06)', 
-        width: '100%' 
+        position: 'relative',
+        borderRadius: '12px',
+        overflow: 'hidden',
+        background: '#000',
+        aspectRatio: '1 / 1.4',
+        cursor: 'pointer',
+        boxShadow: '0 4px 12px rgba(0,0,0,0.15)'
       }}
     >
-      {/* 왼쪽: 포스터 영역 */}
-      <div style={{ width: '85px', height: '115px', backgroundColor: '#f8f8f8', flexShrink: 0, position: 'relative' }}>
-        <img src={item.poster_url} alt="Poster" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-        <div style={{ position: 'absolute', top: '5px', left: '5px', background: '#2ECC71', color: 'white', fontSize: '9px', fontWeight: '950', padding: '2px 5px', borderRadius: '4px', boxShadow: '0 2px 4px rgba(0,0,0,0.2)', display: 'flex', gap: '3px' }}>
-          {isNew && <span style={{ color: '#FFEB3B' }}>NEW</span>}
-          CLASS
-        </div>
+      <img src={item.poster_url} alt="Poster" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+      
+      {/* 날짜 오버레이 (상단 왼쪽) */}
+      <div style={{ position: 'absolute', top: '8px', left: '8px', background: '#2ECC71', color: '#fff', fontSize: '10px', fontWeight: '900', padding: '3px 7px', borderRadius: '6px', boxShadow: '0 2px 5px rgba(0,0,0,0.2)' }}>
+        {formatDate(item.start_date)}
       </div>
 
-      {/* 오른쪽: 정보 영역 */}
-      <div style={{ padding: '10px 15px', display: 'flex', flexDirection: 'column', justifyContent: 'space-between', minWidth: 0, flex: 1, height: '100%' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-          <span style={{ fontSize: '14px', fontWeight: '600', color: '#111827' }}>{item.studio_name}</span>
-          <div onClick={openMap} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '20px', height: '20px', borderRadius: '50%', backgroundColor: '#F0FFF4', cursor: 'pointer', color: '#2ECC71' }}>
-            <Navigation size={10} fill="currentColor" />
-          </div>
-        </div>
-
-        <div style={{ fontSize: '13px', fontWeight: '500', color: '#374151', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', lineHeight: '1.2' }}>
-          {cleanTitle}
-        </div>
-
-        <div style={{ display: 'flex', alignItems: 'center', gap: '4px', whiteSpace: 'nowrap', overflow: 'hidden', marginTop: '6px' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '4px', marginRight: '4px' }}>
-             <span style={{ fontSize: '11px', fontWeight: '800', color: '#64748B' }}>{item.city}</span>
-          </div>
-          <span style={{ background: '#F0FFF4', color: '#2ECC71', borderRadius: '99px', padding: '3px 9px', fontSize: '11px', fontWeight: '600' }}>
-            {item.day_of_week}
-          </span>
-          <span style={{ background: '#f1f5f9', color: '#64748B', borderRadius: '99px', padding: '3px 9px', fontSize: '11px', fontWeight: '600' }}>
-            {displayTime}
-          </span>
-          <span style={{ color: '#475569', fontSize: '11px', fontWeight: '800', marginLeft: '2px' }}>
-            {displayFee}
-          </span>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '4px', background: '#F8FAFC', border: '1px solid #E5E7EB', borderRadius: '99px', padding: '3px 8px' }}>
-            <span style={{ color: '#FF1744', fontWeight: '700', fontSize: '10px' }}>{item.level}</span>
-          </div>
+      {/* 정보 오버레이 (하단) */}
+      <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, padding: '10px 8px', background: 'linear-gradient(transparent, rgba(0,0,0,0.95))', color: '#fff' }}>
+        <div style={{ fontSize: '10px', color: '#FFEB3B', fontWeight: '900', marginBottom: '2px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{item.studio_name}</div>
+        <div style={{ fontSize: '12px', fontWeight: '950', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', marginBottom: '4px' }}>{cleanTitle}</div>
+        <div style={{ display: 'flex', gap: '4px', fontSize: '8px', fontWeight: '800' }}>
+          <span style={{ background: 'rgba(255,255,255,0.2)', padding: '1px 4px', borderRadius: '4px' }}>{displayTime}</span>
+          <span style={{ background: 'rgba(255,255,255,0.2)', padding: '1px 4px', borderRadius: '4px' }}>{displayFee}</span>
         </div>
       </div>
     </div>
@@ -291,13 +253,18 @@ const ClassNewsPage = ({
                     {isEn ? (REGION_MAP_EN[regionName] || regionName) : regionName}
                   </div>
                 </div>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', padding: '0 15px 20px' }}>
+                <div style={{ 
+                  display: 'grid', 
+                  gridTemplateColumns: 'repeat(3, 1fr)', 
+                  gap: '5px', 
+                  padding: '0 5px 20px' 
+                }}>
                   {regionLessons.length === 0 ? (
-                    <div style={{ padding: '30px', color: '#94A3B8', textAlign: 'center' }}>{t('no_classes') || '등록된 수업이 없습니다.'}</div>
+                    <div style={{ gridColumn: 'span 3', padding: '30px', color: '#94A3B8', textAlign: 'center' }}>{t('no_classes') || '등록된 수업이 없습니다.'}</div>
                   ) : (() => {
                     const offset = shuffleOffset % regionLessons.length;
                     const rotated = [...regionLessons.slice(offset), ...regionLessons.slice(0, offset)];
-                    return rotated.slice(0, regionName === '서울' ? 4 : 3).map(item => (
+                    return rotated.map(item => (
                       <ClassCard key={item.id} item={item} onSelect={(url) => handleOpenModal(setSelectedPoster, url)} />
                     ));
                   })()}
