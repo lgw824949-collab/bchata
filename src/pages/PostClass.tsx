@@ -126,6 +126,11 @@ const PostClass = ({ onBack }) => {
                 <>
                   <Plus size={40} color={THEME_COLOR} style={{ marginBottom: '16px' }} />
                   <p style={{ fontWeight: 700, color: '#2D3748' }}>탭하여 강습 포스터 업로드</p>
+                  <div style={{ marginTop: '12px', padding: '8px 16px', background: '#FFF5F5', borderRadius: '12px', border: '1px solid #FED7D7' }}>
+                    <p style={{ fontSize: '11px', color: '#C53030', fontWeight: 800, margin: 0, textAlign: 'center' }}>
+                      ⚠️ 중요: '참여비' 혹은 '금액'으로 기재되어야 등록이 가능합니다.
+                    </p>
+                  </div>
                 </>
               )}
               {isOcrProcessing && <div style={{ position: 'absolute', inset: 0, background: 'rgba(255,255,255,0.8)', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}><Loader2 className="animate-spin" size={32} color={THEME_COLOR} /><p style={{ marginTop: '10px', fontWeight: 700, color: THEME_COLOR }}>AI 분석 중...</p></div>}
