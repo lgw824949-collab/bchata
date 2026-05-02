@@ -44,18 +44,19 @@ const PosterModal = ({ src, onClose }) => {
   };
 
   return (
-    <div style={{ position:'fixed', inset:0, zIndex:100000, backgroundColor:'rgba(0,0,0,0.95)', display:'flex', alignItems:'center', justifyContent:'center' }}>
+    <div style={{ position:'fixed', inset:0, zIndex:2000000, backgroundColor:'rgba(0,0,0,0.95)', display:'flex', alignItems:'center', justifyContent:'center' }}>
       {/* 닫기 버튼 */}
       <button 
         onClick={onClose} 
         style={{ 
           position:'absolute', top:'40px', right:'25px', 
-          background:'rgba(255,255,255,0.2)', border:'none', 
-          borderRadius:'50%', width:'44px', height:'44px', 
-          color:'#fff', fontSize:'24px', cursor:'pointer',
-          zIndex: 100001
+          background:'rgba(255,255,255,0.3)', border:'none', 
+          borderRadius:'50%', width:'48px', height:'48px', 
+          color:'#fff', display:'flex', alignItems:'center', justifyContent:'center', cursor:'pointer',
+          zIndex: 2000001,
+          backdropFilter: 'blur(10px)'
         }}
-      >✕</button>
+      ><X size={28} /></button>
 
       {/* 줌 컨테이너 (가용 화면 전체 사용) */}
       <div style={{ width: '100%', height: '100%', position: 'relative', overflow: 'hidden', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
@@ -173,16 +174,16 @@ const DynamicAnalysisModal = ({ isOpen, onClose, userCoords, isSajuCall }) => {
       <motion.div initial={{ scale: 0.95, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} onClick={(e) => e.stopPropagation()} style={{ width: '100%', maxWidth: '420px', background: '#FFFFFF', borderRadius: '35px', padding: '40px 30px', boxShadow: '0 50px 100px rgba(0,0,0,0.1)', color: '#1E293B' }}>
         {!amguho ? (
           <>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '35px' }}><div style={{ background: '#E53935', color: '#fff', padding: '8px 16px', borderRadius: '50px', fontSize: '11px', fontWeight: '900' }}>REALTIME GPS</div><X size={24} onClick={onClose} style={{ cursor: 'pointer', color: '#64748B' }} /></div>
-            <h2 style={{ fontSize: '26px', fontWeight: '1000', marginBottom: '30px', color: '#1E293B' }}>{isIncheon ? '성지 상륙 분석' : '최단 경로 최적화'} 🛰️<br/><span style={{ color: '#E53935' }}>{targetDest.name}</span></h2>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '35px' }}><div style={{ background: '#059669', color: '#fff', padding: '8px 16px', borderRadius: '50px', fontSize: '11px', fontWeight: '900' }}>REALTIME GPS</div><X size={24} onClick={onClose} style={{ cursor: 'pointer', color: '#64748B' }} /></div>
+            <h2 style={{ fontSize: '26px', fontWeight: '1000', marginBottom: '30px', color: '#1E293B' }}>{isIncheon ? '성지 상륙 분석' : '최단 경로 최적화'} 🛰️<br/><span style={{ color: '#059669' }}>{targetDest.name}</span></h2>
             <div style={{ padding: '30px', background: '#F8FAFC', borderRadius: '30px', display: 'flex', gap: '20px', marginBottom: '30px', border: '1px solid #E2E8F0' }}>
-              <div style={{ flex: 1 }}><p style={{ color: '#64748B', fontSize: '12px' }}>실제 거리</p><p style={{ fontSize: '26px', fontWeight: '1000', color: '#E53935' }}>{tracker.distance}km</p></div>
+              <div style={{ flex: 1 }}><p style={{ color: '#64748B', fontSize: '12px' }}>실제 거리</p><p style={{ fontSize: '26px', fontWeight: '1000', color: '#059669' }}>{tracker.distance}km</p></div>
               <div style={{ flex: 1 }}><p style={{ color: '#64748B', fontSize: '12px' }}>예상 소요</p><p style={{ fontSize: '26px', fontWeight: '1000', color: '#1E293B' }}>{tracker.duration}분</p></div>
             </div>
-            <button onClick={() => isIncheon ? setAmguho(naturalIncheonDB[0]) : onClose()} style={{ width: '100%', padding: '22px', borderRadius: '25px', background: '#E53935', color: '#fff', border: 'none', fontSize: '18px', fontWeight: '1000', boxShadow: '0 10px 20px rgba(229, 57, 53, 0.2)' }}>{isIncheon ? '암구호 수신하기' : '확인 완료'}</button>
+            <button onClick={() => isIncheon ? setAmguho(naturalIncheonDB[0]) : onClose()} style={{ width: '100%', padding: '22px', borderRadius: '25px', background: '#059669', color: '#fff', border: 'none', fontSize: '18px', fontWeight: '1000', boxShadow: '0 10px 20px rgba(5, 150, 105, 0.2)' }}>{isIncheon ? '암구호 수신하기' : '확인 완료'}</button>
           </>
         ) : (
-          <div style={{ textAlign: 'center' }}><h3 style={{ fontSize: '22px', fontWeight: '1000', marginBottom: '30px', color: '#1E293B' }}>성지 암구호</h3><div style={{ background: '#FFEBEE', padding: '30px', borderRadius: '30px', border: '2px solid #E53935', marginBottom: '30px' }}><p style={{ color: '#E53935', fontWeight: '700' }}>Q: {amguho.q}</p><p style={{ fontSize: '20px', fontWeight: '1000', marginTop: '10px', color: '#1E293B' }}>A: {amguho.a}</p></div><button onClick={onClose} style={{ width: '100%', padding: '20px', borderRadius: '20px', background: '#E53935', color: '#FFFFFF', fontWeight: '1000', border: 'none' }}>작전 시작</button></div>
+          <div style={{ textAlign: 'center' }}><h3 style={{ fontSize: '22px', fontWeight: '1000', marginBottom: '30px', color: '#1E293B' }}>성지 암구호</h3><div style={{ background: '#f0fdf4', padding: '30px', borderRadius: '30px', border: '2px solid #059669', marginBottom: '30px' }}><p style={{ color: '#059669', fontWeight: '700' }}>Q: {amguho.q}</p><p style={{ fontSize: '20px', fontWeight: '1000', marginTop: '10px', color: '#1E293B' }}>A: {amguho.a}</p></div><button onClick={onClose} style={{ width: '100%', padding: '20px', borderRadius: '20px', background: '#059669', color: '#FFFFFF', fontWeight: '1000', border: 'none' }}>작전 시작</button></div>
         )}
       </motion.div>
     </motion.div>
@@ -194,11 +195,11 @@ const IncheonPremiumBanner = ({ onClick, t }) => (
     <div 
       onClick={(e) => { e.stopPropagation(); onClick(); }} 
       style={{ 
-        background: 'linear-gradient(90deg, #FFFFFF, #FFF9F9)', 
+        background: 'linear-gradient(90deg, #FFFFFF, #f0fdf4)', 
         borderRadius: '16px', 
         padding: '10px 16px', 
-        border: '1px solid #FFE4E4', 
-        boxShadow: '0 4px 12px rgba(229, 57, 53, 0.03)', 
+        border: '1px solid #dcfce7', 
+        boxShadow: '0 4px 12px rgba(5, 150, 105, 0.03)', 
         cursor: 'pointer',
         display: 'flex',
         alignItems: 'center',
@@ -207,7 +208,7 @@ const IncheonPremiumBanner = ({ onClick, t }) => (
       }}
     >
       <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flex: 1, minWidth: 0 }}>
-        <div style={{ background: '#FFEBEE', padding: '6px', borderRadius: '10px', color: '#E53935', flexShrink: 0 }}>
+        <div style={{ background: '#f0fdf4', padding: '6px', borderRadius: '10px', color: '#059669', flexShrink: 0 }}>
           <Navigation size={15} strokeWidth={3} />
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px', overflow: 'hidden' }}>
@@ -215,7 +216,7 @@ const IncheonPremiumBanner = ({ onClick, t }) => (
           <span style={{ color: '#94A3B8', fontSize: '11px', fontWeight: '500', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{t('shortest_distance')}</span>
         </div>
       </div>
-      <div style={{ background: '#E53935', color: '#fff', fontSize: '8px', fontWeight: '950', padding: '2px 8px', borderRadius: '6px', flexShrink: 0 }}>LIVE</div>
+      <div style={{ background: '#059669', color: '#fff', fontSize: '8px', fontWeight: '950', padding: '2px 8px', borderRadius: '6px', flexShrink: 0 }}>LIVE</div>
     </div>
   </div>
 );
@@ -630,16 +631,16 @@ function App() {
             className={`nav-item ${view === 'home' ? 'active' : ''}`} 
             onClick={() => { setView('home'); window.scrollTo(0,0); }}
           >
-            <Music2 size={22} color={view === 'home' ? '#E53935' : '#94A3B8'} style={{ marginBottom: '4px' }} />
-            <span style={{ fontSize: '10px', fontWeight: view === 'home' ? 900 : 500, color: view === 'home' ? '#E53935' : '#94A3B8' }}>{t('nav_social')}</span>
+            <Music2 size={22} color={view === 'home' ? '#059669' : '#94A3B8'} style={{ marginBottom: '4px' }} />
+            <span style={{ fontSize: '10px', fontWeight: view === 'home' ? 900 : 500, color: view === 'home' ? '#059669' : '#94A3B8' }}>{t('nav_social')}</span>
           </div>
 
           <div 
             className={`nav-item ${view === 'class' ? 'active' : ''}`} 
             onClick={() => { setView('class'); window.scrollTo(0,0); }}
           >
-            <GraduationCap size={22} color={view === 'class' ? '#E53935' : '#94A3B8'} style={{ marginBottom: '4px' }} />
-            <span style={{ fontSize: '10px', fontWeight: view === 'class' ? 900 : 500, color: view === 'class' ? '#E53935' : '#94A3B8' }}>{t('nav_class')}</span>
+            <GraduationCap size={22} color={view === 'class' ? '#059669' : '#94A3B8'} style={{ marginBottom: '4px' }} />
+            <span style={{ fontSize: '10px', fontWeight: view === 'class' ? 900 : 500, color: view === 'class' ? '#059669' : '#94A3B8' }}>{t('nav_class')}</span>
           </div>
 
           <div className="nav-item central-action" style={{ pointerEvents: 'none', position: 'relative', zIndex: 1001 }}>
@@ -649,7 +650,7 @@ function App() {
               style={{
                 width:'52px', height:'52px',
                 borderRadius:'50%',
-                background:'#E53935',
+                background:'#059669',
                 border:'none', color:'#fff',
                 display:'flex', alignItems:'center',
                 justifyContent:'center', cursor:'pointer',
@@ -669,16 +670,16 @@ function App() {
             className={`nav-item ${view === 'bootcamp' ? 'active' : ''}`} 
             onClick={() => { setView('bootcamp'); window.scrollTo(0,0); }}
           >
-            <Tent size={22} color={view === 'bootcamp' ? '#E53935' : '#94A3B8'} style={{ marginBottom: '4px' }} />
-            <span style={{ fontSize: '10px', fontWeight: view === 'bootcamp' ? 900 : 500, color: view === 'bootcamp' ? '#E53935' : '#94A3B8' }}>{t('nav_bootcamp')}</span>
+            <Tent size={22} color={view === 'bootcamp' ? '#059669' : '#94A3B8'} style={{ marginBottom: '4px' }} />
+            <span style={{ fontSize: '10px', fontWeight: view === 'bootcamp' ? 900 : 500, color: view === 'bootcamp' ? '#059669' : '#94A3B8' }}>{t('nav_bootcamp')}</span>
           </div>
 
           <div 
             className={`nav-item ${view === 'festival' ? 'active' : ''}`} 
             onClick={() => { setView('festival'); window.scrollTo(0,0); }}
           >
-            <Flag size={22} color={view === 'festival' ? '#E53935' : '#94A3B8'} style={{ marginBottom: '4px' }} />
-            <span style={{ fontSize: '10px', fontWeight: view === 'festival' ? 900 : 500, color: view === 'festival' ? '#E53935' : '#94A3B8' }}>{t('nav_festival')}</span>
+            <Flag size={22} color={view === 'festival' ? '#059669' : '#94A3B8'} style={{ marginBottom: '4px' }} />
+            <span style={{ fontSize: '10px', fontWeight: view === 'festival' ? 900 : 500, color: view === 'festival' ? '#059669' : '#94A3B8' }}>{t('nav_festival')}</span>
           </div>
         </nav>
       )}
