@@ -642,16 +642,16 @@ function App() {
             className={`nav-item ${view === 'home' ? 'active' : ''}`} 
             onClick={() => { setView('home'); window.scrollTo(0,0); }}
           >
-            <Music2 size={22} color={view === 'home' ? '#059669' : '#94A3B8'} style={{ marginBottom: '4px' }} />
-            <span style={{ fontSize: '10px', fontWeight: view === 'home' ? 900 : 500, color: view === 'home' ? '#059669' : '#94A3B8' }}>{t('nav_social')}</span>
+            <Music2 size={22} color={view === 'home' ? '#FF1744' : '#94A3B8'} style={{ marginBottom: '4px' }} />
+            <span style={{ fontSize: '10px', fontWeight: view === 'home' ? 900 : 500, color: view === 'home' ? '#FF1744' : '#94A3B8' }}>{t('nav_social')}</span>
           </div>
 
           <div 
             className={`nav-item ${view === 'class' ? 'active' : ''}`} 
             onClick={() => { setView('class'); window.scrollTo(0,0); }}
           >
-            <GraduationCap size={22} color={view === 'class' ? '#059669' : '#94A3B8'} style={{ marginBottom: '4px' }} />
-            <span style={{ fontSize: '10px', fontWeight: view === 'class' ? 900 : 500, color: view === 'class' ? '#059669' : '#94A3B8' }}>{t('nav_class')}</span>
+            <GraduationCap size={22} color={view === 'class' ? '#FF1744' : '#94A3B8'} style={{ marginBottom: '4px' }} />
+            <span style={{ fontSize: '10px', fontWeight: view === 'class' ? 900 : 500, color: view === 'class' ? '#FF1744' : '#94A3B8' }}>{t('nav_class')}</span>
           </div>
 
           <div className="nav-item central-action" style={{ pointerEvents: 'none', position: 'relative', zIndex: 1001 }}>
@@ -661,11 +661,11 @@ function App() {
               style={{
                 width:'52px', height:'52px',
                 borderRadius:'50%',
-                background:'#059669',
+                background: 'linear-gradient(135deg, #FF1744 0%, #D32F2F 100%)',
                 border:'none', color:'#fff',
                 display:'flex', alignItems:'center',
                 justifyContent:'center', cursor:'pointer',
-                boxShadow:'0 4px 15px rgba(0,0,0,0.3)',
+                boxShadow:'0 8px 25px rgba(255, 23, 68, 0.4)',
                 pointerEvents: 'auto'
               }}
               onClick={() => {
@@ -681,16 +681,16 @@ function App() {
             className={`nav-item ${view === 'bootcamp' ? 'active' : ''}`} 
             onClick={() => { setView('bootcamp'); window.scrollTo(0,0); }}
           >
-            <Tent size={22} color={view === 'bootcamp' ? '#059669' : '#94A3B8'} style={{ marginBottom: '4px' }} />
-            <span style={{ fontSize: '10px', fontWeight: view === 'bootcamp' ? 900 : 500, color: view === 'bootcamp' ? '#059669' : '#94A3B8' }}>{t('nav_bootcamp')}</span>
+            <Tent size={22} color={view === 'bootcamp' ? '#FF1744' : '#94A3B8'} style={{ marginBottom: '4px' }} />
+            <span style={{ fontSize: '10px', fontWeight: view === 'bootcamp' ? 900 : 500, color: view === 'bootcamp' ? '#FF1744' : '#94A3B8' }}>{t('nav_bootcamp')}</span>
           </div>
 
           <div 
             className={`nav-item ${view === 'festival' ? 'active' : ''}`} 
             onClick={() => { setView('festival'); window.scrollTo(0,0); }}
           >
-            <Flag size={22} color={view === 'festival' ? '#059669' : '#94A3B8'} style={{ marginBottom: '4px' }} />
-            <span style={{ fontSize: '10px', fontWeight: view === 'festival' ? 900 : 500, color: view === 'festival' ? '#059669' : '#94A3B8' }}>{t('nav_festival')}</span>
+            <Flag size={22} color={view === 'festival' ? '#FF1744' : '#94A3B8'} style={{ marginBottom: '4px' }} />
+            <span style={{ fontSize: '10px', fontWeight: view === 'festival' ? 900 : 500, color: view === 'festival' ? '#FF1744' : '#94A3B8' }}>{t('nav_festival')}</span>
           </div>
         </nav>
       )}
