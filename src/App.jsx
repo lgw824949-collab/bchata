@@ -456,8 +456,31 @@ function App() {
           locationNameEn
         };
       });
+      const mappedLessons = rawLessons.map(l => {
+        const fullSearchText = `${l.address || ''} ${l.studio_name || ''} ${l.city || ''}`;
+        let broadRegion = '전국';
+        
+        if (fullSearchText.includes('서울')) broadRegion = '서울';
+        else if (fullSearchText.includes('경기') || fullSearchText.includes('인천')) broadRegion = '경기/인천';
+        else if (fullSearchText.includes('부산') || fullSearchText.includes('대구') || fullSearchText.includes('울산') || fullSearchText.includes('경남') || fullSearchText.includes('경북') || fullSearchText.includes('경상')) broadRegion = '경상도';
+        else if (fullSearchText.includes('광주') || fullSearchText.includes('전남') || fullSearchText.includes('전북') || fullSearchText.includes('전라')) broadRegion = '전라도';
+        else if (fullSearchText.includes('대전') || fullSearchText.includes('충남') || fullSearchText.includes('충북') || fullSearchText.includes('충청') || fullSearchText.includes('세종')) broadRegion = '충청도';
+        else if (fullSearchText.includes('강원') || fullSearchText.includes('제주')) broadRegion = '강원/제주';
+
+        const broadRegionEn = REGION_MAP_EN[broadRegion] || broadRegion;
+        const cityNameEn = CITY_MAP_EN[l.city] || l.city || 'Nationwide';
+
+        return {
+          ...l,
+          broadRegion,
+          displayBroadRegion: broadRegionEn,
+          displayCityName: cityNameEn,
+          displayLocationName: l.studio_name
+        };
+      });
+
       setParties(mappedParties);
-      setLessons(rawLessons);
+      setLessons(mappedLessons);
     } catch (err) { console.error('데이터 로딩 오류:', err); } finally { setLoading(false); }
   };
 

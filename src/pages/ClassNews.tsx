@@ -181,7 +181,7 @@ const ClassNewsPage = ({
         if (endDate && endDate < todayStr) return false;
       }
       // 시작일이 오늘 이후인 것은 노출, 하지만 아예 과거에 시작해서 종료일이 없는 경우도 고려
-      if (filterRegion && l.city !== filterRegion) return false;
+      if (filterRegion && l.broadRegion !== filterRegion) return false;
       if (filterGenre && l.genre !== filterGenre) return false;
       return true;
     });
@@ -269,15 +269,7 @@ const ClassNewsPage = ({
         {(() => {
           const regions = filterRegion ? [filterRegion] : ["서울", "경기/인천", "경상도", "전라도", "충청도", "강원/제주"];
           return regions.map((regionName) => {
-            const regionLessons = filteredLessons.filter(l => {
-              if (regionName === '서울' && l.city === '서울') return true;
-              if (regionName === '경기/인천' && (l.city === '경기' || l.city === '인천' || l.city === '경기/인천')) return true;
-              if (regionName === '경상도' && (l.city?.includes('경') || l.city?.includes('부') || l.city?.includes('대'))) return true;
-              if (regionName === '전라도' && (l.city?.includes('전') || l.city?.includes('광'))) return true;
-              if (regionName === '충청도' && (l.city?.includes('충') || l.city?.includes('대'))) return true;
-              if (regionName === '강원/제주' && (l.city?.includes('강') || l.city?.includes('제'))) return true;
-              return false;
-            });
+            const regionLessons = filteredLessons.filter(l => l.broadRegion === regionName);
 
             if (regionLessons.length === 0 && filterRegion) return null;
 
