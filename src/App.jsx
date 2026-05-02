@@ -636,13 +636,7 @@ function App() {
 
       <main>
         {view === 'home' ? <HomePage {...sharedProps} /> : 
-         view === 'class' ? (
-           <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '80vh', color: '#1E293B' }}>
-             <span style={{ fontSize: '48px', marginBottom: '20px' }}>💃</span>
-             <h2 style={{ fontSize: '24px', fontWeight: 900 }}>{t('nav_class')}</h2>
-             <p style={{ color: '#64748B', marginTop: '8px' }}>{t('coming_soon')}</p>
-           </div>
-         ) :
+         view === 'class' ? <ClassNewsPage {...sharedProps} /> :
          view === 'bootcamp' ? (
            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '80vh', color: '#1E293B' }}>
              <span style={{ fontSize: '48px', marginBottom: '20px' }}>🏕️</span>
