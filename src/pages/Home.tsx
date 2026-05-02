@@ -434,6 +434,8 @@ const HomePage = ({
                   });
 
                   const isFirst = regionName === '서울';
+                  const maxDisplay = regionName === '서울' ? 4 : 3;
+
                   return (
                     <section 
                       key={regionName} 
@@ -455,14 +457,25 @@ const HomePage = ({
                           {isEn ? 'View All' : '전체보기'} <ChevronRight size={14} />
                         </button>
                       </div>
-                      <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', padding: '0 15px 20px' }}>
+                      <div style={{ 
+                        display: 'grid', 
+                        gridTemplateColumns: 'repeat(3, 1fr)', 
+                        gap: '10px', 
+                        padding: '0 15px 20px' 
+                      }}>
                         {regionParties.length === 0 ? (
-                          <div style={{ padding: '30px', color: '#94A3B8', textAlign: 'center' }}>{t('no_parties')}</div>
+                          <div style={{ gridColumn: 'span 3', padding: '30px', color: '#94A3B8', textAlign: 'center', fontSize: '13px' }}>{t('no_parties')}</div>
                         ) : (() => {
                           const offset = shuffleOffset % regionParties.length;
                           const rotated = [...regionParties.slice(offset), ...regionParties.slice(0, offset)];
-                          return rotated.slice(0, regionName === '서울' ? 4 : 3).map(item => (
-                            <PartyCard key={item.id} item={item} onSelect={(url) => handleOpenModal(setSelectedPoster, url)} />
+                          const maxCount = regionName === '서울' ? 4 : 3;
+                          return rotated.slice(0, maxCount).map(item => (
+                            <div key={item.id} onClick={() => handleOpenModal(setSelectedPoster, item.poster_url)} style={{ position: 'relative', width: '100%', aspectRatio: '3/4.2', borderRadius: '10px', overflow: 'hidden', boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }}>
+                              <img src={item.poster_url} style={{ width: '100%', height: '100%', objectFit: 'cover' }} alt="Poster" />
+                              <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, padding: '6px 4px', background: 'linear-gradient(transparent, rgba(0,0,0,0.8))', color: '#fff' }}>
+                                <div style={{ fontSize: '9px', fontWeight: '900', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{item.locationName}</div>
+                              </div>
+                            </div>
                           ));
                         })()}
                       </div>
