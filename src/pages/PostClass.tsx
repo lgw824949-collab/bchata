@@ -159,7 +159,7 @@ const PostClass = ({ onBack }) => {
             </div>
             <p style={labelStyle}>강습 레벨</p>
             <div style={{ display: 'flex', gap: '10px', marginBottom: '20px' }}>
-              {CLASS_LEVELS.map(l => <button key={l} onClick={() => setFormData({...formData, class_level: l})} style={{ ...chipStyle, flex: 1, background: formData.class_level === l ? THEME_COLOR : '#F7FAFC', color: formData.class_level === l ? '#fff' : '#4A5568' }}>{l}</button>)}
+              {LEVELS.map(l => <button key={l} onClick={() => setFormData({...formData, class_level: l})} style={{ ...chipStyle, flex: 1, background: formData.class_level === l ? THEME_COLOR : '#F7FAFC', color: formData.class_level === l ? '#fff' : '#4A5568' }}>{l}</button>)}
             </div>
             <p style={labelStyle}>강습 한 줄 설명</p>
             <input style={{ ...inputStyle, border: `2px solid ${THEME_COLOR}33` }} value={formData.class_detail} onChange={e => setFormData({...formData, class_detail: e.target.value})} placeholder="어떤 수업인가요? (예: 골반의 움직임을 배웁니다)" />
