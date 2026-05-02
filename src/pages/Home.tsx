@@ -45,6 +45,17 @@ const PosterImage = ({ src, onClick, alt = "파티 포스터" }) => {
 };
 
 const PartyCard = ({ item, onSelect }) => {
+  const isLive = (() => {
+    const now = new Date();
+    const pDate = new Date(item.date);
+    if (now.toDateString() !== pDate.toDateString()) return false;
+    const startStr = item.time?.split('-')[0].trim() || '21:00';
+    const [h, m] = startStr.split(':').map(Number);
+    const startDate = new Date(now);
+    startDate.setHours(h, m, 0, 0);
+    return now >= startDate;
+  })();
+
   const cleanTitle = item.title?.split(' ㅣ ')[0] || '';
   const displayTime = item.time?.split('-')[0].trim() || '21:00';
   const displayFee = (() => {
@@ -75,8 +86,14 @@ const PartyCard = ({ item, onSelect }) => {
       }}
     >
       {/* 왼쪽: 포스터 영역 */}
-      <div style={{ width: '85px', height: '115px', backgroundColor: '#f8f8f8', flexShrink: 0 }}>
+      <div style={{ width: '85px', height: '115px', backgroundColor: '#f8f8f8', flexShrink: 0, position: 'relative' }}>
         <img src={item.poster_url} alt="Poster" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+        {isLive && (
+          <div style={{ position: 'absolute', top: '5px', left: '5px', background: '#FF1744', color: 'white', fontSize: '9px', fontWeight: '950', padding: '2px 5px', borderRadius: '4px', boxShadow: '0 2px 4px rgba(0,0,0,0.2)', display: 'flex', alignItems: 'center', gap: '3px' }}>
+            <span style={{ width: '5px', height: '5px', background: 'white', borderRadius: '50%', display: 'inline-block' }}></span>
+            LIVE
+          </div>
+        )}
       </div>
 
       {/* 오른쪽: 정보 영역 (위치 -> 제목 -> 상세) */}
@@ -539,6 +556,23 @@ const HomePage = ({
                             return (
                               <div key={party.id} onClick={() => handleOpenModal(setSelectedPoster, party.poster_url)} style={{ aspectRatio: '1 / 1.4', borderRadius: '12px', overflow: 'hidden', position: 'relative', background: '#F1F5F9', cursor: 'pointer', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.1)' }}>
                                 <img src={party.poster_url} style={{ width: '100%', height: '100%', objectFit: 'cover' }} alt="Poster" />
+                                {(() => {
+                                  const now = new Date();
+                                  const pDate = new Date(party.date);
+                                  const startStr = party.time?.split('-')[0].trim() || '21:00';
+                                  const [h, m] = startStr.split(':').map(Number);
+                                  const startDate = new Date(now);
+                                  startDate.setHours(h, m, 0, 0);
+                                  if (now.toDateString() === pDate.toDateString() && now >= startDate) {
+                                    return (
+                                      <div style={{ position: 'absolute', top: '35px', left: '8px', background: '#FF1744', color: 'white', fontSize: '9px', fontWeight: '950', padding: '2px 5px', borderRadius: '4px', boxShadow: '0 2px 4px rgba(0,0,0,0.2)', display: 'flex', alignItems: 'center', gap: '3px', zIndex: 10 }}>
+                                        <span style={{ width: '5px', height: '5px', background: 'white', borderRadius: '50%', display: 'inline-block' }}></span>
+                                        LIVE
+                                      </div>
+                                    );
+                                  }
+                                  return null;
+                                })()}
                                 
                                 <div style={{ position: 'absolute', top: '8px', left: '8px', background: 'rgba(255, 255, 255, 0.9)', color: '#1E293B', padding: '2px 8px', borderRadius: '6px', fontSize: '10px', fontWeight: 800 }}>{displayRegion}</div>
                                 <div style={{ position: 'absolute', top: '8px', right: '8px', display: 'flex', gap: '4px', flexWrap: 'wrap', justifyContent: 'flex-end' }}>
