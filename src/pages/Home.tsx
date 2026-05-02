@@ -422,20 +422,16 @@ const HomePage = ({
               {(() => {
                 const regions = ["서울", "경기/인천", "경상도", "전라도", "충청도", "강원/제주"];
                 return regions.map((regionName) => {
-                  const regionParties = parties.filter(p => {
-                    const text = `${p.broadRegion || ''} ${p.address || ''} ${p.locationName || ''}`.toLowerCase();
-                    if (regionName === '서울') return p.broadRegion === '서울' || text.includes('서울') || text.includes('강남') || text.includes('홍대');
-                    if (regionName === '경기/인천') return p.broadRegion === '경기/인천' || text.includes('경기') || text.includes('인천');
                   const regionParties = (parties || [])
-                          .filter(p => p.date === todayStr && isAfter9AM) // 9시 전에는 노출 차단!
-                          .filter(p => REGION_FILTER[regionName](p))
-                          .filter(p => {
-                    // 2. 장르 조건 매칭
-                    if (filterGenre && GENRE_MAP[filterGenre]) {
-                      if (!(p[GENRE_MAP[filterGenre].key] > 0)) return false;
-                    }
-                    return true;
-                  });
+                    .filter(p => p.date === todayStr && isAfter9AM) // 9시 전에는 노출 차단!
+                    .filter(p => REGION_FILTER[regionName](p))
+                    .filter(p => {
+                      // 2. 장르 조건 매칭
+                      if (filterGenre && GENRE_MAP[filterGenre]) {
+                        if (!(p[GENRE_MAP[filterGenre].key] > 0)) return false;
+                      }
+                      return true;
+                    });
 
                   const isFirst = regionName === '서울';
                   const maxDisplay = regionName === '서울' ? 4 : 3;
