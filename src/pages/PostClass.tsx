@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react'
-import { ChevronLeft, Camera, Loader2, Sparkles, AlertCircle, ExternalLink, Check, Instagram, MapPin, DollarSign, User } from 'lucide-react'
-import { motion } from 'framer-motion'
+import { ChevronLeft, Camera, Loader2, Sparkles, AlertCircle, ExternalLink, Check, X, MapPin, DollarSign, User, Plus, Music, GraduationCap } from 'lucide-react'
+import { motion, AnimatePresence } from 'framer-motion'
 import { supabase } from '../lib/supabase'
 import Tesseract from 'tesseract.js'
 
@@ -10,6 +10,8 @@ const PostClass = ({ onBack }) => {
   const [preview, setPreview] = useState(null)
   const [file, setFile] = useState(null)
   const [submitted, setSubmitted] = useState(false)
+  const [step, setStep] = useState(1)
+  const TOTAL_STEPS = 5
 
   const [formData, setFormData] = useState({
     title: '',
@@ -21,7 +23,6 @@ const PostClass = ({ onBack }) => {
     selected_days: [],
     rule_confirmed: false,
     fee: '',
-    description: '',
     startDate: new Date().toISOString().split('T')[0],
     endDate: '',
     studio_name: '',
@@ -30,53 +31,37 @@ const PostClass = ({ onBack }) => {
     dance_style: '바차타'
   })
 
-  const DANCE_STYLES = ['바차타', '살사', '주크', '키좀바']
+  const DANCE_STYLES = ['바차타', '살사', '쥬크', '키좀바']
   const REGIONS = ['서울', '경기/인천', '경상', '전라', '충청', '강원/제주']
-
   const CLASS_LEVELS = ['초급', '중급', '고급'];
-
-  const DAYS = [
-    { label: '월', value: '월' }, { label: '화', value: '화' }, { label: '수', value: '수' },
-    { label: '목', value: '목' }, { label: '금', value: '금' }, { label: '토', value: '토' },
-    { label: '일', value: '일' }
-  ]
-
+  const DAYS = ['월', '화', '수', '목', '금', '토', '일']
   const THEME_COLOR = '#2ECC71'
-  const BEIGE_BG = '#FDFBF7'
 
-  const toggleDay = (day) => {
-    setFormData(prev => ({
-      ...prev,
-      selected_days: prev.selected_days.includes(day)
-        ? prev.selected_days.filter(d => d !== day)
-        : [...prev.selected_days, day]
-    }))
-  }
-
-  const handleOcr = async (imageFile) => {
+  const handleFileUpload = async (e) => {
+    const selectedFile = e.target.files[0]
+    if (!selectedFile) return
+    setFile(selectedFile)
+    setPreview(URL.createObjectURL(selectedFile))
+    
     setIsOcrProcessing(true)
     try {
-      const result = await Tesseract.recognize(imageFile, 'kor+eng')
+      const result = await Tesseract.recognize(selectedFile, 'kor+eng')
       const { words } = result.data
-      const bannedWords = ['수강료', '강습료', '레슨비', '교육비', '수업료', '입금', '은행']
-      let foundBannedInImage = false
+      const bannedWords = ['수강료', '강습료', '레슨비', '교육비', '수업료']
+      let foundBanned = false
 
       const canvas = document.createElement('canvas')
       const ctx = canvas.getContext('2d')
       const img = new Image()
-      img.src = URL.createObjectURL(imageFile)
+      img.src = URL.createObjectURL(selectedFile)
       await new Promise(resolve => img.onload = resolve)
-
-      canvas.width = img.width
-      canvas.height = img.height
-      ctx.drawImage(img, 0, 0)
+      canvas.width = img.width; canvas.height = img.height; ctx.drawImage(img, 0, 0)
 
       words.forEach(word => {
-        const cleanText = word.text.trim()
-        if (bannedWords.some(bw => cleanText.includes(bw))) {
-          foundBannedInImage = true
+        if (bannedWords.some(bw => word.text.includes(bw))) {
+          foundBanned = true
           const { x0, y0, x1, y1 } = word.bbox
-          ctx.fillStyle = 'rgba(255, 255, 255, 0.9)'
+          ctx.fillStyle = 'rgba(255, 255, 255, 0.95)'
           ctx.fillRect(x0 - 2, y0 - 2, (x1 - x0) + 4, (y1 - y0) + 4)
           ctx.fillStyle = THEME_COLOR
           ctx.font = `bold ${Math.floor((y1 - y0) * 0.9)}px sans-serif`
@@ -84,36 +69,26 @@ const PostClass = ({ onBack }) => {
         }
       })
 
-      if (foundBannedInImage) {
+      if (foundBanned) {
         canvas.toBlob((blob) => {
-          const editedFile = new File([blob], `edited_${imageFile.name}`, { type: 'image/jpeg' })
+          const editedFile = new File([blob], `edited_${selectedFile.name}`, { type: 'image/jpeg' })
           setFile(editedFile)
           setPreview(URL.createObjectURL(editedFile))
         }, 'image/jpeg', 0.9)
       }
-    } catch (err) {
-      console.error('OCR Error:', err)
-    } finally {
-      setIsOcrProcessing(false)
-    }
+    } catch (err) { console.error('OCR Error:', err) } finally { setIsOcrProcessing(false) }
   }
 
   const handleSubmit = async () => {
-    if (!file) return alert('포스터 사진을 업로드해주세요.')
-    if (!formData.title) return alert('강습명을 입력해주세요.')
-    if (formData.selected_days.length === 0) return alert('요일을 선택해주세요.')
-    if (!formData.rule_confirmed) return alert('유의사항 확인이 필요합니다.')
+    if (!file || !formData.title || !formData.instructor) return alert('필수 정보를 확인해주세요.')
     setLoading(true)
-
     try {
       let finalPosterUrl = ''
-      if (file) {
-        const fileName = `${Date.now()}_post.jpg`
-        const { error: uploadError } = await supabase.storage.from('posters').upload(`posters/${fileName}`, file)
-        if (uploadError) throw uploadError
-        const { data } = supabase.storage.from('posters').getPublicUrl(`posters/${fileName}`)
-        finalPosterUrl = data.publicUrl
-      }
+      const fileName = `${Date.now()}_class.jpg`
+      const { error: uploadError } = await supabase.storage.from('posters').upload(`posters/${fileName}`, file)
+      if (uploadError) throw uploadError
+      const { data } = supabase.storage.from('posters').getPublicUrl(`posters/${fileName}`)
+      finalPosterUrl = data.publicUrl
 
       const { error } = await supabase.from('classes_info').insert([{
         title: formData.title,
@@ -133,309 +108,130 @@ const PostClass = ({ onBack }) => {
         status: 'pending',
         category_type: 'class'
       }])
-
       if (error) throw error
       setSubmitted(true)
-    } catch (err) {
-      alert('등록 실패: ' + err.message)
-    } finally {
-      setLoading(false)
-    }
+    } catch (err) { alert('등록 실패: ' + err.message) } finally { setLoading(false) }
   }
 
-  const handleFileChange = (e) => {
-    const selectedFile = e.target.files[0]
-    if (selectedFile) {
-      setFile(selectedFile)
-      setPreview(URL.createObjectURL(selectedFile))
-      handleOcr(selectedFile)
+  const renderStep = () => {
+    switch(step) {
+      case 1:
+        return (
+          <motion.div key="s1" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} style={{ padding: '24px' }}>
+            <label style={stepTitleStyle}>📸 강습 포스터 선택</label>
+            <div onClick={() => document.getElementById('class-upload').click()} style={{ height: '350px', border: `2px dashed ${THEME_COLOR}55`, borderRadius: '24px', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', background: '#F0FFF4', overflow: 'hidden', cursor: 'pointer' }}>
+              {preview ? (
+                <img src={preview} style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
+              ) : (
+                <>
+                  <Plus size={40} color={THEME_COLOR} style={{ marginBottom: '16px' }} />
+                  <p style={{ fontWeight: 700, color: '#2D3748' }}>탭하여 강습 포스터 업로드</p>
+                </>
+              )}
+              {isOcrProcessing && <div style={{ position: 'absolute', inset: 0, background: 'rgba(255,255,255,0.8)', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}><Loader2 className="animate-spin" size={32} color={THEME_COLOR} /><p style={{ marginTop: '10px', fontWeight: 700, color: THEME_COLOR }}>AI 분석 중...</p></div>}
+            </div>
+            <input type="file" id="class-upload" accept="image/*" onChange={handleFileUpload} style={{ display: 'none' }} />
+          </motion.div>
+        )
+      case 2:
+        return (
+          <motion.div key="s2" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} style={{ padding: '24px' }}>
+            <label style={stepTitleStyle}>✍️ 강습명 및 강사명</label>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+              <div>
+                <p style={labelStyle}>강습 제목</p>
+                <input style={inputStyle} value={formData.title} onChange={e => setFormData({...formData, title: e.target.value})} placeholder="예: [초급] 바차타 베이직 마스터" />
+              </div>
+              <div>
+                <p style={labelStyle}>강사명 (또는 닉네임)</p>
+                <input style={inputStyle} value={formData.instructor} onChange={e => setFormData({...formData, instructor: e.target.value})} placeholder="예: 벤틀리 & 제니" />
+              </div>
+            </div>
+          </motion.div>
+        )
+      case 3:
+        return (
+          <motion.div key="s3" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} style={{ padding: '24px' }}>
+            <label style={stepTitleStyle}>💃 장르 및 레벨 선택</label>
+            <p style={labelStyle}>댄스 장르</p>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '10px', marginBottom: '24px' }}>
+              {DANCE_STYLES.map(s => <button key={s} onClick={() => setFormData({...formData, dance_style: s})} style={{ ...chipStyle, background: formData.dance_style === s ? THEME_COLOR : '#F7FAFC', color: formData.dance_style === s ? '#fff' : '#4A5568' }}>{s}</button>)}
+            </div>
+            <p style={labelStyle}>강습 레벨</p>
+            <div style={{ display: 'flex', gap: '10px', marginBottom: '20px' }}>
+              {CLASS_LEVELS.map(l => <button key={l} onClick={() => setFormData({...formData, class_level: l})} style={{ ...chipStyle, flex: 1, background: formData.class_level === l ? THEME_COLOR : '#F7FAFC', color: formData.class_level === l ? '#fff' : '#4A5568' }}>{l}</button>)}
+            </div>
+            <p style={labelStyle}>강습 한 줄 설명</p>
+            <input style={{ ...inputStyle, border: `2px solid ${THEME_COLOR}33` }} value={formData.class_detail} onChange={e => setFormData({...formData, class_detail: e.target.value})} placeholder="어떤 수업인가요? (예: 골반의 움직임을 배웁니다)" />
+          </motion.div>
+        )
+      case 4:
+        return (
+          <motion.div key="s4" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} style={{ padding: '24px' }}>
+            <label style={stepTitleStyle}>📅 강습 일정 확인</label>
+            <p style={labelStyle}>강습 요일 (중복 선택 가능)</p>
+            <div style={{ display: 'flex', justifyContent: 'space-between', gap: '5px', marginBottom: '24px' }}>
+              {DAYS.map(d => <button key={d} onClick={() => setFormData(p => ({...p, selected_days: p.selected_days.includes(d) ? p.selected_days.filter(x => x !== d) : [...p.selected_days, d]}))} style={{ ...dayBtnStyle, background: formData.selected_days.includes(d) ? THEME_COLOR : '#F7FAFC', color: formData.selected_days.includes(d) ? '#fff' : '#4A5568' }}>{d}</button>)}
+            </div>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '15px' }}>
+              <div><p style={labelStyle}>시작 시간</p><input type="time" style={inputStyle} value={formData.start_time} onChange={e => setFormData({...formData, start_time: e.target.value})} /></div>
+              <div><p style={labelStyle}>종료 시간</p><input type="time" style={inputStyle} value={formData.end_time} onChange={e => setFormData({...formData, end_time: e.target.value})} /></div>
+            </div>
+          </motion.div>
+        )
+      case 5:
+        return (
+          <motion.div key="s5" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} style={{ padding: '24px' }}>
+            <label style={stepTitleStyle}>📍 장소 및 참여비</label>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
+              <div><p style={labelStyle}>지역</p><div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '8px' }}>{REGIONS.map(r => <button key={r} onClick={() => setFormData({...formData, region: r})} style={{ ...chipStyle, background: formData.region === r ? THEME_COLOR : '#F7FAFC', color: formData.region === r ? '#fff' : '#4A5568' }}>{r}</button>)}</div></div>
+              <div><p style={labelStyle}>장소명</p><input style={inputStyle} value={formData.studio_name} onChange={e => setFormData({...formData, studio_name: e.target.value})} placeholder="예: 홍대 댄스스튜디오" /></div>
+              <div><p style={labelStyle}>상세 주소</p><input style={inputStyle} value={formData.address} onChange={e => setFormData({...formData, address: e.target.value})} placeholder="예: 서울 마포구 ..." /></div>
+              <div><p style={labelStyle}>참여비 (숫자만)</p><input type="number" style={inputStyle} value={formData.fee} onChange={e => setFormData({...formData, fee: e.target.value})} placeholder="예: 1.5" /></div>
+            </div>
+          </motion.div>
+        )
+      default: return null
     }
   }
 
   if (submitted) {
     return (
-      <div style={{ textAlign: 'center', padding: '100px 24px', backgroundColor: '#F7FDF9', minHeight: '100vh' }}>
-        <div style={{ backgroundColor: THEME_COLOR, width: '80px', height: '80px', borderRadius: '40px', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 32px', boxShadow: '0 10px 25px rgba(46, 204, 113, 0.2)' }}><Check size={40} color="white" /></div>
-        <h2 style={{ fontSize: '26px', fontWeight: 900, color: '#111827', marginBottom: '12px' }}>강습 등록 완료</h2>
-        <p style={{ fontSize: '16px', color: '#6B7280', lineHeight: '1.6', marginBottom: '40px' }}>
-          정상적으로 접수되었습니다.<br />관리자 승인 후 강습 목록에 노출됩니다.
-        </p>
-        <button onClick={onBack} style={{ width: '100%', padding: '20px', background: THEME_COLOR, color: 'white', borderRadius: '16px', fontWeight: 800, fontSize: '18px', border: 'none', cursor: 'pointer' }}>확인</button>
+      <div style={{ textAlign: 'center', padding: '100px 24px', background: '#F0FFF4', minHeight: '100vh' }}>
+        <div style={{ backgroundColor: THEME_COLOR, width: '80px', height: '80px', borderRadius: '40px', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 32px' }}><Check size={40} color="white" /></div>
+        <h2 style={{ fontSize: '26px', fontWeight: 900, color: '#1A202C' }}>강습 등록 신청 완료</h2>
+        <p style={{ marginTop: '12px', color: '#4A5568', lineHeight: 1.6 }}>관리자 승인 후 즉시 노출됩니다.</p>
+        <button onClick={onBack} style={{ marginTop: '40px', width: '100%', padding: '20px', background: THEME_COLOR, color: 'white', borderRadius: '16px', fontWeight: 800, fontSize: '18px', border: 'none' }}>확인</button>
       </div>
     )
   }
 
   return (
-    <div style={{ backgroundColor: '#F8F9FA', minHeight: '100vh', padding: '32px 20px 120px 20px', fontFamily: "'Pretendard', sans-serif" }}>
-      <div style={{ display: 'flex', alignItems: 'center', marginBottom: '40px', maxWidth: '600px', margin: '0 auto 40px' }}>
-        <button onClick={onBack} style={{ background: 'white', border: 'none', borderRadius: '14px', padding: '10px', cursor: 'pointer', boxShadow: '0 4px 12px rgba(0,0,0,0.05)' }}>
-          <ChevronLeft size={28} />
-        </button>
-        <h1 style={{ flex: 1, textAlign: 'center', fontSize: '22px', fontWeight: 800, marginRight: '48px', color: '#111', letterSpacing: '-0.03em' }}>초간편 강습 등록</h1>
-      </div>
-
-      <div style={{ maxWidth: '600px', margin: '0 auto', display: 'flex', flexDirection: 'column', gap: '40px' }}>
-        <div style={cardStyle}>
-          <div style={{ marginBottom: '32px' }}>
-            <label style={sectionTitleStyle}>포스터 사진 업로드</label>
-            <div
-              onClick={() => document.getElementById('poster-upload').click()}
-              style={{
-                height: '280px', borderRadius: '24px', border: `2px dashed ${isOcrProcessing ? THEME_COLOR : '#DDD'}`,
-                backgroundColor: '#FFF', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', overflow: 'hidden', position: 'relative', transition: 'all 0.2s'
-              }}
-            >
-              {preview ? <img src={preview} style={{ width: '100%', height: '100%', objectFit: 'contain' }} /> : <><Camera size={44} color="#999" /><p style={{ marginTop: '12px', fontSize: '15px', color: '#999', fontWeight: 500 }}>사진 선택하기</p></>}
-              {isOcrProcessing && (
-                <div style={{ position: 'absolute', inset: 0, backgroundColor: 'rgba(255,255,255,0.85)', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', backdropFilter: 'blur(4px)' }}>
-                  <Loader2 className="animate-spin" size={36} color={THEME_COLOR} /><p style={{ marginTop: '12px', fontWeight: 700, color: THEME_COLOR, fontSize: '16px' }}>AI 분석 중...</p>
-                </div>
-              )}
-            </div>
-            <input id="poster-upload" type="file" accept="image/*" onChange={handleFileChange} style={{ display: 'none' }} />
-          </div>
-          
-          <div style={{ marginBottom: '32px' }}>
-            <label style={sectionTitleStyle}>댄스 장르</label>
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '10px' }}>
-              {DANCE_STYLES.map(style => (
-                <button 
-                  key={style}
-                  type="button"
-                  onClick={() => setFormData({...formData, dance_style: style})}
-                  style={{ 
-                    height: '45px', 
-                    borderRadius: '12px', 
-                    border: '1.5px solid', 
-                    borderColor: formData.dance_style === style ? THEME_COLOR : '#EEE',
-                    background: formData.dance_style === style ? `${THEME_COLOR}10` : 'white',
-                    color: formData.dance_style === style ? THEME_COLOR : '#666',
-                    fontWeight: formData.dance_style === style ? 700 : 500,
-                    fontSize: '14px'
-                  }}
-                >
-                  {style}
-                </button>
-              ))}
-            </div>
-          </div>
-
-          <div style={{ marginBottom: '32px' }}>
-            <label style={{ display: 'block', fontSize: '16px', fontWeight: 700, color: '#333', marginBottom: '12px' }}>참여비 (숫자만 입력해 주세요)</label>
-            <input 
-              type="number" 
-              placeholder="예) 1.5" 
-              value={formData.fee}
-              onChange={e => setFormData({...formData, fee: e.target.value})}
-              style={{ ...inputStyle, border: '1.5px solid #EEE' }} 
-            />
-            <p style={{ fontSize: '11px', color: '#999', marginTop: '6px' }}>* 원활한 노출을 위해 '참여비'로 표기되거나 숫자만 입력됩니다.</p>
-          </div>
-
-          <div style={{ marginBottom: '32px' }}>
-            <label style={{ display: 'block', fontSize: '16px', fontWeight: 700, color: '#333', marginBottom: '12px' }}>강습 기간</label>
-            <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
-              <input 
-                type="date" 
-                value={formData.startDate}
-                onChange={e => setFormData({...formData, startDate: e.target.value})}
-                style={{ ...inputStyle, flex: 1, border: '1.5px solid #EEE' }} 
-              />
-              <span style={{ color: '#999' }}>~</span>
-              <input 
-                type="date" 
-                value={formData.endDate}
-                onChange={e => setFormData({...formData, endDate: e.target.value})}
-                style={{ ...inputStyle, flex: 1, border: '1.5px solid #EEE' }} 
-              />
-            </div>
-          </div>
-
-          <div style={{ marginBottom: '32px' }}>
-            <label style={sectionTitleStyle}>활동 지역</label>
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '10px' }}>
-              {REGIONS.map(reg => (
-                <button 
-                  key={reg}
-                  onClick={() => setFormData({...formData, region: reg})}
-                  style={{ 
-                    height: '45px', 
-                    borderRadius: '12px', 
-                    border: '1.5px solid', 
-                    borderColor: formData.region === reg ? THEME_COLOR : '#EEE',
-                    background: formData.region === reg ? `${THEME_COLOR}10` : 'white',
-                    color: formData.region === reg ? THEME_COLOR : '#666',
-                    fontWeight: formData.region === reg ? 700 : 500,
-                    fontSize: '14px'
-                  }}
-                >
-                  {reg}
-                </button>
-              ))}
-            </div>
-          </div>
-
-          <div style={{ marginBottom: '32px' }}>
-            <label style={sectionTitleStyle}>장소 및 주소</label>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-              <input 
-                placeholder="장소명 (미정 시 '추후 공지' 입력)" 
-                value={formData.studio_name}
-                onChange={e => setFormData({...formData, studio_name: e.target.value})}
-                style={{ ...inputStyle, border: '1.5px solid #EEE' }} 
-              />
-              <p style={{ fontSize: '11px', color: '#999', marginTop: '-5px', marginBottom: '5px' }}>* 장소가 아직 정해지지 않았다면 '추후 공지'라고 적어주세요.</p>
-              <input 
-                placeholder="상세 주소 (카카오 지도 연동용)" 
-                value={formData.address}
-                onChange={e => setFormData({...formData, address: e.target.value})}
-                style={{ ...inputStyle, border: '1.5px solid #EEE' }} 
-              />
-            </div>
-          </div>
-
-          <div style={{ marginBottom: '32px' }}>
-            <label style={sectionTitleStyle}>강습명</label>
-            <input 
-              style={{ ...inputStyle, border: 'none', borderBottom: `2px solid ${THEME_COLOR}`, borderRadius: 0, padding: '12px 0', height: 'auto', fontSize: '22px', fontWeight: 800 }}
-              placeholder="강습 이름을 입력하세요"
-              value={formData.title}
-              onChange={e => setFormData({ ...formData, title: e.target.value })}
-            />
-          </div>
-
-          <div style={{ marginBottom: '32px' }}>
-            <label style={sectionTitleStyle}>강사명</label>
-            <input 
-              style={{ ...inputStyle, border: '1.5px solid #EEE' }}
-              placeholder="강사 성함 또는 닉네임을 입력하세요"
-              value={formData.instructor}
-              onChange={e => setFormData({ ...formData, instructor: e.target.value })}
-            />
-          </div>
-
-          <div style={{ marginBottom: '32px' }}>
-            <label style={sectionTitleStyle}>강습 레벨 및 상세 내용</label>
-            <div style={{ display: 'flex', gap: '10px', marginBottom: '12px' }}>
-              {CLASS_LEVELS.map(level => (
-                <button
-                  key={level} type="button" onClick={() => setFormData({ ...formData, class_level: level })}
-                  style={{
-                    flex: 1, height: '48px', borderRadius: '12px', border: formData.class_level === level ? 'none' : '1.5px solid #EEE',
-                    backgroundColor: formData.class_level === level ? THEME_COLOR : '#FFF',
-                    color: formData.class_level === level ? '#FFF' : '#444',
-                    fontWeight: 700, fontSize: '14px', transition: '0.2s',
-                    boxShadow: formData.class_level === level ? `0 4px 12px ${THEME_COLOR}33` : 'none'
-                  }}
-                >
-                  {level}
-                </button>
-              ))}
-            </div>
-            <input 
-              style={{ ...inputStyle, border: `2px solid ${THEME_COLOR}44`, background: '#FFF' }}
-              placeholder="수업의 특징을 한 줄로 적어주세요 (예: 베이직 스텝 & 바디 무브먼트)"
-              value={formData.class_detail}
-              onChange={e => setFormData({ ...formData, class_detail: e.target.value })}
-            />
-          </div>
-
-          <div style={{ marginBottom: '32px' }}>
-            <label style={sectionTitleStyle}>강습 요일</label>
-            <div style={{ display: 'flex', justifyContent: 'space-between', gap: '8px' }}>
-              {DAYS.map(day => (
-                <button
-                  key={day.value} type="button" onClick={() => toggleDay(day.value)}
-                  style={{
-                    flex: 1, height: '48px', borderRadius: '12px', border: formData.selected_days.includes(day.value) ? 'none' : '1.5px solid #EEE',
-                    backgroundColor: formData.selected_days.includes(day.value) ? THEME_COLOR : '#FFF',
-                    color: formData.selected_days.includes(day.value) ? '#FFF' : '#444',
-                    fontWeight: 700, fontSize: '14px', transition: '0.2s',
-                    boxShadow: formData.selected_days.includes(day.value) ? `0 4px 12px ${THEME_COLOR}33` : 'none'
-                  }}
-                >
-                  {day.label}
-                </button>
-              ))}
-            </div>
-          </div>
-
-          <div style={{ marginBottom: '32px', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
-            <Field label="시작 시간">
-              <input 
-                type="time" style={{ ...inputStyle, height: '52px', textAlign: 'center', fontSize: '18px', fontWeight: 700 }} 
-                value={formData.start_time} onChange={e => setFormData({ ...formData, start_time: e.target.value })}
-              />
-            </Field>
-            <Field label="종료 시간">
-              <input 
-                type="time" style={{ ...inputStyle, height: '52px', textAlign: 'center', fontSize: '18px', fontWeight: 700 }} 
-                value={formData.end_time} onChange={e => setFormData({ ...formData, end_time: e.target.value })}
-              />
-            </Field>
-          </div>
-
-          <div style={{ display: 'flex', alignItems: 'flex-start', gap: '12px', padding: '20px', backgroundColor: '#F8FAFC', borderRadius: '16px', border: '1px solid #EDF2F7' }}>
-            <input 
-              type="checkbox" checked={formData.rule_confirmed}
-              onChange={e => setFormData({ ...formData, rule_confirmed: e.target.checked })}
-              style={{ width: '22px', height: '22px', accentColor: THEME_COLOR, cursor: 'pointer' }}
-            />
-            <label style={{ fontSize: '14px', color: '#4A5568', fontWeight: 600, lineHeight: 1.5, cursor: 'pointer' }}>포스터 내 '참여비' 또는 숫자 위주의 표기 방식을 확인했습니다.</label>
-          </div>
+    <div style={{ position: 'fixed', inset: 0, zIndex: 10000, display: 'flex', alignItems: 'flex-end', justifyContent: 'center' }}>
+      <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={onBack} style={{ position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.6)', backdropFilter: 'blur(5px)' }} />
+      <motion.div initial={{ y: '100%' }} animate={{ y: 0 }} exit={{ y: '100%' }} transition={{ type: 'spring', damping: 25, stiffness: 300 }} style={{ position: 'relative', width: '100%', maxWidth: '500px', background: '#fff', borderRadius: '32px 32px 0 0', maxHeight: '95vh', overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
+        <div style={{ padding: '20px', borderBottom: '1px solid #EDF2F7', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+          <button onClick={() => { if(step > 1) setStep(step - 1); else onBack(); }} style={{ border: 'none', background: 'none' }}><ChevronLeft size={24} color="#1A202C" /></button>
+          <span style={{ fontWeight: 900, fontSize: '18px', color: '#1A202C' }}>강습 등록 신청 ({step}/{TOTAL_STEPS})</span>
+          <button onClick={onBack} style={{ border: 'none', background: 'none' }}><X size={24} color="#A0AEC0" /></button>
         </div>
-
-        <div style={{ position: 'fixed', bottom: 0, left: 0, right: 0, padding: '24px', background: 'rgba(255,255,255,0.9)', backdropFilter: 'blur(10px)', borderTop: '1px solid #EEE', zIndex: 100 }}>
-          <button 
-            type="button" 
-            onClick={handleSubmit}
-            disabled={loading}
-            style={{ width: '100%', maxWidth: '600px', margin: '0 auto', display: 'block', height: '64px', backgroundColor: THEME_COLOR, color: 'white', borderRadius: '16px', fontWeight: 800, fontSize: '18px', border: 'none', boxShadow: `0 8px 24px ${THEME_COLOR}44`, cursor: 'pointer' }}
-          >
-            {loading ? '등록 중...' : '강습 등록 완료'}
-          </button>
+        <div style={{ height: '4px', background: '#EDF2F7', width: '100%' }}><motion.div animate={{ width: `${(step / TOTAL_STEPS) * 100}%` }} style={{ height: '100%', background: THEME_COLOR }} /></div>
+        <div style={{ flex: 1, overflowY: 'auto' }}>
+          <AnimatePresence mode="wait">{renderStep()}</AnimatePresence>
         </div>
-      </div>
+        <div style={{ padding: '20px', borderTop: '1px solid #EDF2F7', display: 'flex', gap: '12px' }}>
+          {step > 1 && <button onClick={() => setStep(step - 1)} style={{ flex: 1, height: '60px', borderRadius: '18px', background: '#EDF2F7', color: '#4A5568', fontWeight: 900, border: 'none' }}>이전</button>}
+          <button onClick={() => { if(step < TOTAL_STEPS) setStep(step + 1); else handleSubmit(); }} disabled={loading} style={{ flex: 2, height: '60px', borderRadius: '18px', background: THEME_COLOR, color: 'white', fontWeight: 900, fontSize: '18px', border: 'none', boxShadow: `0 8px 20px ${THEME_COLOR}33` }}>{loading ? '처리 중...' : (step === TOTAL_STEPS ? '등록 신청' : '다음 단계')}</button>
+        </div>
+      </motion.div>
     </div>
   )
 }
 
-const cardStyle = {
-  backgroundColor: 'white',
-  borderRadius: '24px',
-  padding: '32px 24px',
-  boxShadow: '0 4px 20px rgba(0,0,0,0.03)',
-}
-
-const sectionTitleStyle = {
-  fontFamily: "'Pretendard', sans-serif",
-  fontSize: '18px',
-  fontWeight: 700,
-  color: '#222',
-  marginBottom: '16px',
-  display: 'block',
-  letterSpacing: '-0.03em'
-}
-
-const Field = ({ label, children, style }) => (
-  <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', ...style }}>
-    <label style={{ fontSize: '14px', fontWeight: 700, color: '#718096' }}>{label}</label>
-    {children}
-  </div>
-)
-
-const inputStyle = {
-  width: '100%',
-  height: '52px',
-  padding: '0 16px',
-  borderRadius: '12px',
-  border: '1px solid #DDD',
-  backgroundColor: '#FFF',
-  fontSize: '16px',
-  outline: 'none',
-  transition: 'all 0.2s',
-  boxSizing: 'border-box',
-  letterSpacing: '-0.02em'
-}
+const stepTitleStyle = { display: 'block', fontSize: '20px', fontWeight: 950, color: '#1A202C', marginBottom: '24px' }
+const labelStyle = { fontSize: '14px', fontWeight: 800, color: '#718096', marginBottom: '8px' }
+const inputStyle = { width: '100%', padding: '18px', border: '2px solid #EDF2F7', borderRadius: '16px', fontSize: '16px', background: '#F7FAFC', outline: 'none' }
+const chipStyle = { padding: '12px 0', border: 'none', borderRadius: '12px', fontSize: '12px', fontWeight: 800, transition: 'all 0.2s' }
+const dayBtnStyle = { flex: 1, height: '45px', border: 'none', borderRadius: '10px', fontSize: '14px', fontWeight: 800 }
 
 export default PostClass
