@@ -468,7 +468,7 @@ const HomePage = ({
                       <div style={{ 
                         display: 'grid', 
                         gridTemplateColumns: 'repeat(3, 1fr)', 
-                        gap: '12px', 
+                        gap: '10px', 
                         padding: '0 15px 20px' 
                       }}>
                         {regionParties.length === 0 ? (
@@ -478,21 +478,21 @@ const HomePage = ({
                           const rotated = [...regionParties.slice(offset), ...regionParties.slice(0, offset)];
                           const maxCount = regionName === '서울' ? 4 : 3;
                           return rotated.slice(0, maxCount).map(item => (
-                            <div key={item.id} onClick={() => handleOpenModal(setSelectedPoster, item.poster_url)} style={{ cursor: 'pointer' }}>
+                            <div key={item.id} onClick={() => handleOpenModal(setSelectedPoster, item.poster_url)} style={{ width: '100%', minWidth: 0 }}>
                               {/* 1. 포스터 */}
-                              <div style={{ position: 'relative', width: '100%', aspectRatio: '3/4.2', borderRadius: '12px', overflow: 'hidden', boxShadow: '0 4px 12px rgba(0,0,0,0.1)', marginBottom: '8px' }}>
+                              <div style={{ width: '100%', aspectRatio: '3/4.2', borderRadius: '8px', overflow: 'hidden', boxShadow: '0 2px 8px rgba(0,0,0,0.1)', marginBottom: '6px' }}>
                                 <img src={item.poster_url} style={{ width: '100%', height: '100%', objectFit: 'cover' }} alt="Poster" />
                               </div>
-                              {/* 2. 텍스트 정보 (포스터 아래) */}
-                              <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
-                                <div style={{ fontSize: '12px', fontWeight: '900', color: '#1E293B', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                              {/* 2. 텍스트 정보 (3행 정렬) */}
+                              <div style={{ padding: '0 2px' }}>
+                                <div style={{ fontSize: '11px', fontWeight: '950', color: '#1E293B', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
                                   {item.organizer || item.locationName}
                                 </div>
-                                <div style={{ fontSize: '11px', fontWeight: '700', color: '#64748B', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                                <div style={{ fontSize: '9px', fontWeight: '700', color: '#64748B', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', margin: '1px 0' }}>
                                   {item.title}
                                 </div>
-                                <div style={{ fontSize: '10px', color: '#94A3B8', fontWeight: '600' }}>
-                                  {item.time?.split('~')[0]} · {item.locationName}
+                                <div style={{ fontSize: '9px', color: '#94A3B8', fontWeight: '600' }}>
+                                  {item.time?.split('~')[0]} · {item.locationName?.slice(0, 4)}
                                 </div>
                               </div>
                             </div>
