@@ -110,10 +110,10 @@ const PartyCard = ({ item, onSelect }) => {
 
       {/* 2. 정보 영역 (3행 초고밀도 조합) */}
       <div style={{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'center', minWidth: 0, padding: '0 15px' }}>
-        {/* 1행: [지역] 요일 · 시간 + 빨간 화살표 */}
+        {/* 1행: 장소명 + 빨간 화살표 */}
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '2px' }}>
           <span style={{ fontSize: '13px', fontWeight: '800', color: '#64748B' }}>
-            [{item.broadRegion || '전국'}] {DAYS_KOR[new Date(item.date).getDay()]}요일 · {displayTime}
+            {item.locationName.replace(/^\[.*?\]\s*/, '')}
           </span>
           <div onClick={openMap} style={{ color: '#FF1744', cursor: 'pointer', padding: '2px' }}>
             <Navigation size={14} fill="currentColor" />
@@ -133,7 +133,7 @@ const PartyCard = ({ item, onSelect }) => {
           </h3>
         </div>
 
-        {/* 3행: 날짜(요일) / 장르 / 시간 / 참여비 */}
+        {/* 3행: 날짜(요일) / 비율 / 시간 / 참여비 */}
         <div style={{ display: 'flex', alignItems: 'center', gap: '3px', fontSize: '11px', fontWeight: '800', color: '#94A3B8', whiteSpace: 'nowrap' }}>
           <span style={{ color: '#FF1744' }}>
             {(() => {
@@ -142,7 +142,12 @@ const PartyCard = ({ item, onSelect }) => {
             })()}
           </span>
           <span>/</span>
-          <span style={{ color: '#2ECC71' }}>{item.genre || '바차타'}</span>
+          <span style={{ color: '#2ECC71' }}>
+            {Object.entries(GENRE_MAP)
+              .filter(([_, info]) => item[info.key] > 0)
+              .map(([_, info]) => `${info.label}${item[info.key]}`)
+              .join(' ')}
+          </span>
           <span>/</span>
           <span>{displayTime}</span>
           <span>/</span>
