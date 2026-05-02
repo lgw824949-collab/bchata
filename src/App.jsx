@@ -345,6 +345,7 @@ function App() {
   const [filterStep, setFilterStep] = useState(1);
   const [weatherTapCount, setWeatherTapCount] = useState(0);
   const [lastWeatherTap, setLastWeatherTap] = useState(0);
+  const weatherTimeoutRef = useRef(null);
 
   // [BAMPPA Navigation Engine]
   const handleOpenModal = (setter, value = true) => {
@@ -638,7 +639,9 @@ function App() {
                   text: t('weather'), 
                   action: () => { 
                     const now = Date.now();
-                    if (now - lastWeatherTap < 800) { // 0.8초 이내 연속 탭
+                    if (weatherTimeoutRef.current) clearTimeout(weatherTimeoutRef.current);
+                    
+                    if (now - lastWeatherTap < 600) { // 0.6초 이내 연속 탭
                       const newCount = weatherTapCount + 1;
                       setWeatherTapCount(newCount);
                       if (newCount >= 7) {
@@ -652,13 +655,14 @@ function App() {
                     }
                     setLastWeatherTap(now);
                     
-                    // 일반 클릭 시에는 0.5초 대기 후 날씨창 (연속 탭 방해 금지)
-                    setTimeout(() => {
-                      if (Date.now() - now > 500 && weatherTapCount < 2) {
+                    // 0.5초 동안 다음 탭이 없으면 날씨창 열기
+                    weatherTimeoutRef.current = setTimeout(() => {
+                      if (weatherTapCount < 2) {
                         setIsMenuOpen(false);
                         handleOpenModal(setShowWeather, true);
+                        setWeatherTapCount(0);
                       }
-                    }, 600);
+                    }, 500);
                   } 
                 },
                 { icon: <MessageSquare color={view === 'class' ? '#2ECC71' : '#FF1744'} />, text: '실시간 오픈톡', action: () => { window.open('https://open.kakao.com/o/gP43rNri', '_blank'); setIsMenuOpen(false); } },
