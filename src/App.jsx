@@ -702,12 +702,6 @@ function App() {
         {showWeather && <WeatherModal onClose={() => setShowWeather(false)} />}
       </AnimatePresence>
       <AnimatePresence>
-        {view === 'register' && (
-          <RegisterForm 
-            onBack={() => setView('home')} 
-            onSuccess={() => { fetchParties(); setView('home'); }} 
-          />
-        )}
       </AnimatePresence>
       
       {/* 포스터 줌인 모달 (컴포넌트 방식) */}
@@ -732,8 +726,8 @@ function App() {
             className={`nav-item ${view === 'class' ? 'active' : ''}`} 
             onClick={() => { setView('class'); window.scrollTo(0,0); }}
           >
-            <GraduationCap size={22} color={view === 'class' ? '#FF1744' : '#94A3B8'} style={{ marginBottom: '4px' }} />
-            <span style={{ fontSize: '10px', fontWeight: view === 'class' ? 900 : 500, color: view === 'class' ? '#FF1744' : '#94A3B8' }}>{t('nav_class')}</span>
+            <GraduationCap size={22} color={view === 'class' ? '#2ECC71' : '#94A3B8'} style={{ marginBottom: '4px' }} />
+            <span style={{ fontSize: '10px', fontWeight: view === 'class' ? 900 : 500, color: view === 'class' ? '#2ECC71' : '#94A3B8' }}>{t('nav_class')}</span>
           </div>
 
           <div className="nav-item central-action" style={{ pointerEvents: 'none', position: 'relative', zIndex: 1001 }}>
@@ -743,7 +737,7 @@ function App() {
               style={{
                 width:'52px', height:'52px',
                 borderRadius:'50%',
-                background: 'linear-gradient(135deg, #FF1744 0%, #D32F2F 100%)',
+                background: view === 'class' ? 'linear-gradient(135deg, #2ECC71 0%, #27AE60 100%)' : 'linear-gradient(135deg, #FF1744 0%, #D32F2F 100%)',
                 border:'none', color:'#fff',
                 display:'flex', alignItems:'center',
                 justifyContent:'center', cursor:'pointer',
@@ -751,7 +745,7 @@ function App() {
                 pointerEvents: 'auto'
               }}
               onClick={() => {
-                setView('register')
+                handleRegister(view === 'class' ? 'class' : 'party')
               }}
             >
               <Plus size={28} strokeWidth={3} />
