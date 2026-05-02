@@ -13,14 +13,15 @@ const PostClass = ({ onBack }) => {
 
   const [formData, setFormData] = useState({
     title: '',
-    class_type: '베이직',
+    instructor: '',
+    class_level: '초급',
+    class_detail: '',
     start_time: '19:00',
     end_time: '21:00',
     selected_days: [],
     rule_confirmed: false,
     fee: '',
     description: '',
-    custom_class_type: '',
     startDate: new Date().toISOString().split('T')[0],
     endDate: '',
     studio_name: '',
@@ -32,10 +33,7 @@ const PostClass = ({ onBack }) => {
   const DANCE_STYLES = ['바차타', '살사', '주크', '키좀바']
   const REGIONS = ['서울', '경기/인천', '경상', '전라', '충청', '강원/제주']
 
-  const CLASS_TYPES = [
-    '한곡반', '릴스반', '베이직', '공연반', '마스터반', '레이디스타일링', 
-    '맨스타일링', '풋워크', '부트캠프', '워크샾', '기초반', '중급반', '고급반', '기타'
-  ];
+  const CLASS_LEVELS = ['초급', '중급', '고급'];
 
   const DAYS = [
     { label: '월', value: '월' }, { label: '화', value: '화' }, { label: '수', value: '수' },
@@ -119,8 +117,10 @@ const PostClass = ({ onBack }) => {
 
       const { error } = await supabase.from('classes_info').insert([{
         title: formData.title,
+        instructor: formData.instructor,
         genre: formData.dance_style,
-        level: formData.class_type === '기타' ? formData.custom_class_type : formData.class_type,
+        level: formData.class_level,
+        class_detail: formData.class_detail,
         start_time: formData.start_time,
         end_time: formData.end_time,
         day_of_week: formData.selected_days.join(', '),
@@ -304,33 +304,39 @@ const PostClass = ({ onBack }) => {
           </div>
 
           <div style={{ marginBottom: '32px' }}>
-            <label style={sectionTitleStyle}>강습 유형</label>
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '12px' }}>
-              {CLASS_TYPES.map(cat => (
+            <label style={sectionTitleStyle}>강사명</label>
+            <input 
+              style={{ ...inputStyle, border: '1.5px solid #EEE' }}
+              placeholder="강사 성함 또는 닉네임을 입력하세요"
+              value={formData.instructor}
+              onChange={e => setFormData({ ...formData, instructor: e.target.value })}
+            />
+          </div>
+
+          <div style={{ marginBottom: '32px' }}>
+            <label style={sectionTitleStyle}>강습 레벨 및 상세 내용</label>
+            <div style={{ display: 'flex', gap: '10px', marginBottom: '12px' }}>
+              {CLASS_LEVELS.map(level => (
                 <button
-                  key={cat} type="button" onClick={() => setFormData({ ...formData, class_type: cat })}
+                  key={level} type="button" onClick={() => setFormData({ ...formData, class_level: level })}
                   style={{
-                    height: '48px', borderRadius: '12px', border: formData.class_type === cat ? 'none' : '1.5px solid #EEE',
-                    backgroundColor: formData.class_type === cat ? THEME_COLOR : '#FFF',
-                    color: formData.class_type === cat ? '#FFF' : '#444',
+                    flex: 1, height: '48px', borderRadius: '12px', border: formData.class_level === level ? 'none' : '1.5px solid #EEE',
+                    backgroundColor: formData.class_level === level ? THEME_COLOR : '#FFF',
+                    color: formData.class_level === level ? '#FFF' : '#444',
                     fontWeight: 700, fontSize: '14px', transition: '0.2s',
-                    boxShadow: formData.class_type === cat ? `0 4px 12px ${THEME_COLOR}33` : 'none'
+                    boxShadow: formData.class_level === level ? `0 4px 12px ${THEME_COLOR}33` : 'none'
                   }}
                 >
-                  {cat}
+                  {level}
                 </button>
               ))}
             </div>
-            {formData.class_type === '기타' && (
-              <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} style={{ marginTop: '12px' }}>
-                <input 
-                  style={{ ...inputStyle, border: `2.5px solid ${THEME_COLOR}`, background: '#FFF' }}
-                  placeholder="직접 입력 (예: 소셜 파티)"
-                  value={formData.custom_class_type || ''}
-                  onChange={e => setFormData({ ...formData, custom_class_type: e.target.value })}
-                />
-              </motion.div>
-            )}
+            <input 
+              style={{ ...inputStyle, border: `2px solid ${THEME_COLOR}44`, background: '#FFF' }}
+              placeholder="수업의 특징을 한 줄로 적어주세요 (예: 베이직 스텝 & 바디 무브먼트)"
+              value={formData.class_detail}
+              onChange={e => setFormData({ ...formData, class_detail: e.target.value })}
+            />
           </div>
 
           <div style={{ marginBottom: '32px' }}>
