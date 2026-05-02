@@ -319,6 +319,7 @@ function App() {
     const hash = window.location.hash.replace('#', '');
     return hash || 'home';
   });
+  const [registerType, setRegisterType] = useState('party');
 
   const [showIncheonModal, setShowIncheonModal] = useState(false);
   const [isSajuCall, setIsSajuCall] = useState(false);
@@ -370,9 +371,6 @@ function App() {
       window.location.hash = view;
     }
   }, [view]);
-
-  // [BAMPPA Navigation Engine]
-  // 3. (REMOVED automatic pushState to prevent history loop)
 
   // 4. 브라우저/휴대폰 뒤로가기 통합 감지 및 강제 제어 로직 (모든 요소 대응)
   useEffect(() => {
@@ -545,7 +543,9 @@ function App() {
     filterRegion, setFilterRegion, filterGenre, setFilterGenre,
     showGridModal, setShowGridModal, gridRegion, setGridRegion, filterStep, setFilterStep,
     handleOpenModal, handleCloseModal,
-    IncheonBanner: () => <IncheonPremiumBanner t={t} onClick={() => openAnalysis(false)} />, venueCounts: {}, resetToToday: () => { setView('home'); setSelectedDate(todayData.dateStr); }, formatItemDate: (d, t) => `${d} ${t}`, formatFee: (f) => f, handleRegister: () => setView('register'), logActivity: () => {}, regionalTheme: { welcomeMsg: "전국 댄서들을 위한 실시간 정보", specialBanner: true }
+    IncheonBanner: () => <IncheonPremiumBanner t={t} onClick={() => openAnalysis(false)} />, venueCounts: {}, resetToToday: () => { setView('home'); setSelectedDate(todayData.dateStr); }, formatItemDate: (d, t) => `${d} ${t}`, formatFee: (f) => f, 
+    handleRegister: (type = 'party') => { setRegisterType(type); setView('register'); }, 
+    logActivity: () => {}, regionalTheme: { welcomeMsg: "전국 댄서들을 위한 실시간 정보", specialBanner: true }
   };
 
   return (
@@ -685,6 +685,7 @@ function App() {
             'post-lesson': <PostClub onBack={() => setView('home')} />,
             'parking': <Parking onBack={() => setView('home')} />,
             'restaurant': <Restaurant onBack={() => setView('home')} />,
+            'register': registerType === 'class' ? <PostClass onBack={() => setView('home')} /> : <RegisterForm onBack={() => setView('home')} />,
             'admin': <AdminDashboard onBack={() => setView('home')} refreshData={fetchParties} />
           }[view] || <AdminDashboard onBack={() => setView('home')} refreshData={fetchParties} />}
       </main>
