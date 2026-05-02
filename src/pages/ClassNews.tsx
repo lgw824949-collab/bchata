@@ -152,6 +152,14 @@ const ClassNewsPage = ({
   const [isPaused, setIsPaused] = useState(false);
   const [shuffleOffset, setShuffleOffset] = useState(0);
   const regionListRef = useRef(null);
+  
+  const todayStr = useMemo(() => {
+    const now = new Date();
+    const y = now.getFullYear();
+    const m = String(now.getMonth() + 1).padStart(2, '0');
+    const d = String(now.getDate()).padStart(2, '0');
+    return `${y}-${m}-${d}`;
+  }, []);
 
   useEffect(() => {
     const interval = setInterval(() => {
@@ -167,11 +175,17 @@ const ClassNewsPage = ({
 
   const filteredLessons = useMemo(() => {
     return (lessons || []).filter(l => {
+      // 기간이 지난 수업 필터링 (종료일 기준)
+      if (l.duration && l.duration.includes('~')) {
+        const endDate = l.duration.split('~')[1].trim();
+        if (endDate && endDate < todayStr) return false;
+      }
+      // 시작일이 오늘 이후인 것은 노출, 하지만 아예 과거에 시작해서 종료일이 없는 경우도 고려
       if (filterRegion && l.city !== filterRegion) return false;
       if (filterGenre && l.genre !== filterGenre) return false;
       return true;
     });
-  }, [lessons, filterRegion, filterGenre]);
+  }, [lessons, filterRegion, filterGenre, todayStr]);
 
   return (
     <div className="app-container" style={{ width: '100%', maxWidth: '500px', margin: '0 auto', background: '#fff', minHeight: '100vh', paddingBottom: '100px' }}>
