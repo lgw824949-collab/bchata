@@ -281,8 +281,36 @@ const RegisterForm = ({ onBack, onSuccess }) => {
                 </div>
               ))}
             </div>
-            <p style={{ fontSize: '14px', fontWeight: 800, color: '#64748B', marginBottom: '8px' }}>입장료</p>
-            <input type="text" value={formData.fee} onChange={e => setFormData({...formData, fee: e.target.value})} placeholder="예: 20,000원" style={{ width: '100%', padding: '18px', border: '2px solid #F1F5F9', borderRadius: '16px', fontSize: '16px', background: '#F8FAFC', fontWeight: 700 }} />
+            <p style={{ fontSize: '14px', fontWeight: 800, color: '#64748B', marginBottom: '12px' }}>입장료 선택</p>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '8px', marginBottom: '16px' }}>
+              {['8,000원', '10,000원', '12,000원', '15,000원', '18,000원', '20,000원', '25,000원', '30,000원'].map(price => (
+                <button 
+                  key={price} 
+                  type="button" 
+                  onClick={() => setFormData({...formData, fee: price})} 
+                  style={{ 
+                    padding: '12px 0', 
+                    border: 'none', 
+                    borderRadius: '12px', 
+                    fontSize: '12px', 
+                    fontWeight: 800, 
+                    background: formData.fee === price ? '#FF1744' : '#F1F5F9', 
+                    color: formData.fee === price ? '#fff' : '#64748B',
+                    transition: 'all 0.2s'
+                  }}
+                >
+                  {price.replace(',000원', '천').replace('0,000원', '만').replace('20,000원', '2만').replace('25,000원', '2.5만').replace('30,000원', '3만')}
+                  {price === '8,000원' ? '8천' : price === '10,000원' ? '1만' : price === '12,000원' ? '1.2만' : price === '15,000원' ? '1.5만' : price === '18,000원' ? '1.8만' : ''}
+                </button>
+              ))}
+            </div>
+            <input 
+              type="text" 
+              value={formData.fee} 
+              onChange={e => setFormData({...formData, fee: e.target.value})} 
+              placeholder="또는 직접 입력 (예: 2만원)" 
+              style={{ width: '100%', padding: '18px', border: '2px solid #F1F5F9', borderRadius: '16px', fontSize: '16px', background: '#F8FAFC', fontWeight: 700 }} 
+            />
           </motion.div>
         );
       case 5:
