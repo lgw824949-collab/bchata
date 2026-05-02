@@ -31,6 +31,10 @@ const REGION_FILTER = {
   '기타': (p) => true
 };
 const MAIN_REGIONS = ['서울', '경기/인천', '경상', '전라', '충청', '강원/제주'];
+const REGION_MAP_EN = {
+  '서울': 'Seoul', '경기/인천': 'Gyeonggi/Incheon', '경상도': 'Gyeongsang', 
+  '전라도': 'Jeolla', '충청도': 'Chungcheong', '강원/제주': 'Gangwon/Jeju'
+};
 
 const PosterImage = ({ src, onClick, alt = "파티 포스터" }) => {
   const imgRef = useRef();
@@ -173,10 +177,6 @@ const RollingContainer = ({ items, onSelect }) => {
 const FilterBar = ({ filterRegion, setFilterRegion, filterGenre, setFilterGenre }) => {
   const { i18n } = useTranslation();
   const isEn = i18n.language.startsWith('en');
-  const REGION_MAP_EN = {
-    '서울': 'Seoul', '경기/인천': 'Gyeonggi/Incheon', '경상도': 'Gyeongsang', 
-    '전라도': 'Jeolla', '충청도': 'Chungcheong', '강원/제주': 'Gangwon/Jeju'
-  };
   const regions = ['서울', '경기/인천', '경상도', '전라도', '충청도', '강원/제주'];
   const genres = Object.keys(GENRE_MAP);
   return (
@@ -442,7 +442,7 @@ const HomePage = ({
                       <div style={{ fontSize: '18px', fontWeight: '900', padding: '15px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                         <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                           <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#FF1744' }} />
-                          {regionName}
+                          {isEn ? (REGION_MAP_EN[regionName] || regionName) : regionName}
                         </div>
                         <button 
                           onClick={() => {
@@ -451,7 +451,7 @@ const HomePage = ({
                           }}
                           style={{ fontSize: '12px', fontWeight: '700', color: '#94A3B8', background: 'none', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '2px' }}
                         >
-                          전체보기 <ChevronRight size={14} />
+                          {t('view_all')} <ChevronRight size={14} />
                         </button>
                       </div>
                       <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', padding: '0 15px 20px' }}>
