@@ -465,34 +465,35 @@ const HomePage = ({
                           {isEn ? 'View All' : '전체보기'} <ChevronRight size={14} />
                         </button>
                       </div>
-                      <div style={{ 
-                        display: 'grid', 
-                        gridTemplateColumns: 'repeat(3, 1fr)', 
-                        gap: '10px', 
-                        padding: '0 15px 20px' 
-                      }}>
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', padding: '0 15px 20px' }}>
                         {regionParties.length === 0 ? (
-                          <div style={{ gridColumn: 'span 3', padding: '30px', background: '#F8FAFC', borderRadius: '16px', textAlign: 'center', color: '#94A3B8', fontSize: '13px', fontWeight: '700' }}>{t('no_parties')}</div>
+                          <div style={{ padding: '40px', background: '#F8FAFC', borderRadius: '16px', textAlign: 'center', color: '#94A3B8', fontSize: '13px', fontWeight: '700' }}>{t('no_parties')}</div>
                         ) : (() => {
                           const offset = shuffleOffset % regionParties.length;
                           const rotated = [...regionParties.slice(offset), ...regionParties.slice(0, offset)];
                           const maxCount = regionName === '서울' ? 4 : 3;
                           return rotated.slice(0, maxCount).map(item => (
-                            <div key={item.id} onClick={() => handleOpenModal(setSelectedPoster, item.poster_url)} style={{ width: '100%', minWidth: 0 }}>
-                              {/* 1. 포스터 */}
-                              <div style={{ width: '100%', aspectRatio: '3/4.2', borderRadius: '8px', overflow: 'hidden', boxShadow: '0 2px 8px rgba(0,0,0,0.1)', marginBottom: '6px' }}>
+                            <div key={item.id} onClick={() => handleOpenModal(setSelectedPoster, item.poster_url)} style={{ display: 'flex', gap: '15px', background: '#fff', borderRadius: '16px', padding: '12px', border: '1px solid #F1F5F9', boxShadow: '0 2px 8px rgba(0,0,0,0.05)', cursor: 'pointer' }}>
+                              {/* 1. 포스터 (왼쪽) */}
+                              <div style={{ width: '80px', height: '110px', flexShrink: 0, borderRadius: '10px', overflow: 'hidden' }}>
                                 <img src={item.poster_url} style={{ width: '100%', height: '100%', objectFit: 'cover' }} alt="Poster" />
                               </div>
-                              {/* 2. 텍스트 정보 (3행 정렬) */}
-                              <div style={{ padding: '0 2px' }}>
-                                <div style={{ fontSize: '11px', fontWeight: '950', color: '#1E293B', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                                  {item.organizer || item.locationName}
+                              {/* 2. 기사형 텍스트 정보 (오른쪽) */}
+                              <div style={{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'center', minWidth: 0 }}>
+                                <div style={{ fontSize: '15px', fontWeight: '950', color: '#1E293B', marginBottom: '4px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                                  [{regionName}] {item.title}
                                 </div>
-                                <div style={{ fontSize: '9px', fontWeight: '700', color: '#64748B', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', margin: '1px 0' }}>
-                                  {item.title}
+                                <div style={{ fontSize: '13px', fontWeight: '700', color: '#64748B', marginBottom: '8px' }}>
+                                  👤 {item.organizer || item.locationName}
                                 </div>
-                                <div style={{ fontSize: '9px', color: '#94A3B8', fontWeight: '600' }}>
-                                  {item.time?.split('~')[0]} · {item.locationName?.slice(0, 4)}
+                                <div style={{ fontSize: '11px', color: '#94A3B8', fontWeight: '800', display: 'flex', flexWrap: 'wrap', gap: '4px', alignItems: 'center' }}>
+                                  <span style={{ color: '#FF1744' }}>{item.date?.slice(5)}</span>
+                                  <span>/</span>
+                                  <span style={{ color: '#2ECC71' }}>{item.genre || '바차타'}</span>
+                                  <span>/</span>
+                                  <span>{item.time?.split('~')[0]}</span>
+                                  <span>/</span>
+                                  <span style={{ color: '#1E293B' }}>{item.fee || '1.2만'}</span>
                                 </div>
                               </div>
                             </div>
