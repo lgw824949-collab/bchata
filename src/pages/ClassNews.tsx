@@ -12,24 +12,30 @@ const ClassCard = ({ item, onSelect }) => {
     window.open(`https://map.kakao.com/link/search/${query}`, '_blank');
   };
 
+  const formatDate = (dateStr) => {
+    if (!dateStr) return '';
+    const d = new Date(dateStr);
+    return `${d.getMonth() + 1}/${d.getDate()}(${DAYS_KOR[d.getDay()]})`;
+  };
+
   return (
     <motion.div 
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
       onClick={() => onSelect(item.poster_url)}
       style={{ 
-        display: 'flex', gap: '12px', padding: '12px', background: '#fff', 
-        borderRadius: '16px', border: '1px solid #F1F5F9', marginBottom: '10px',
+        display: 'flex', gap: '12px', padding: '10px 12px', background: '#fff', 
+        borderRadius: '16px', border: '1px solid #F1F5F9', marginBottom: '8px',
         boxShadow: '0 4px 6px -1px rgba(0,0,0,0.05)', cursor: 'pointer'
       }}
     >
       {/* 왼쪽: 포스터 */}
-      <div style={{ width: '80px', height: '110px', flexShrink: 0, borderRadius: '10px', overflow: 'hidden', background: '#f8f8f8' }}>
+      <div style={{ width: '80px', height: '100px', flexShrink: 0, borderRadius: '10px', overflow: 'hidden', background: '#f8f8f8' }}>
         <img src={item.poster_url} style={{ width: '100%', height: '100%', objectFit: 'cover' }} alt="Poster" />
       </div>
 
       {/* 오른쪽: 정보 (3열 레이아웃) */}
-      <div style={{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'space-between', minWidth: 0, padding: '2px 0' }}>
+      <div style={{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'center', minWidth: 0, gap: '2px' }}>
         {/* 1열: 강사명 & 지도 📍 */}
         <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
           <span style={{ fontSize: '15px', fontWeight: '900', color: '#1E293B' }}>{item.instructor}</span>
@@ -41,16 +47,18 @@ const ClassCard = ({ item, onSelect }) => {
           {item.title}
         </h3>
 
-        {/* 3열: 상세 정보 (한 줄에 통합) */}
+        {/* 3열: 상세 정보 (한 줄에 통합: 날짜 / 장르 / 레벨 / 요일 시간 / 비용) */}
         <div style={{ display: 'flex', alignItems: 'center', gap: '4px', flexWrap: 'wrap', fontSize: '11px', fontWeight: '800' }}>
+          <span style={{ color: '#64748B' }}>{formatDate(item.start_date)}</span>
+          <span style={{ color: '#CBD5E1' }}>/</span>
           <span style={{ color: '#2ECC71' }}>{item.genre}</span>
-          <span style={{ color: '#94A3B8' }}>·</span>
+          <span style={{ color: '#CBD5E1' }}>/</span>
           <span style={{ color: '#FF1744' }}>{item.level}</span>
-          <span style={{ color: '#94A3B8' }}>·</span>
+          <span style={{ color: '#CBD5E1' }}>/</span>
           <span style={{ color: '#64748B' }}>
             {item.day_of_week?.split(',')[0]} {item.start_time?.split(':')[0]}:{item.start_time?.split(':')[1]}
           </span>
-          <span style={{ color: '#94A3B8' }}>·</span>
+          <span style={{ color: '#CBD5E1' }}>/</span>
           <span style={{ color: '#1E293B' }}>
             {(() => { if (!item.fee) return '1.2만'; const f = String(item.fee); const num = parseInt(f.replace(/[^0-9]/g, '')); if (isNaN(num)) return f; return (num/10000).toFixed(1).replace('.0', '') + '만'; })()}
           </span>
@@ -155,21 +163,25 @@ const ClassNewsPage = ({ setSelectedPoster }) => {
           (() => {
             const regions = ["서울", "경기/인천", "경상도", "전라도", "충청도", "강원/제주"];
             return regions.map(regionName => {
-              // 지역 매칭 로직 강화 (city 또는 broadRegion 확인)
-              const regionLessons = filtered.filter(l => 
-                l.city === regionName || 
-                l.broadRegion === regionName || 
-                (regionName === "서울" && (l.city?.includes("서울") || l.region?.includes("서울"))) ||
-                (regionName === "경기/인천" && (l.city?.includes("경기") || l.city?.includes("인천") || l.region?.includes("경기") || l.region?.includes("인천")))
-              );
+              // 지역 매칭 로직 강화 (city, broadRegion, region 등 모든 필드 확인)
+              const regionLessons = filtered.filter(l => {
+                const combined = `${l.city || ''} ${l.broadRegion || ''} ${l.region || ''} ${l.address || ''}`;
+                if (regionName === "서울") return combined.includes("서울") || combined.includes("강남") || combined.includes("홍대");
+                if (regionName === "경기/인천") return combined.includes("경기") || combined.includes("인천") || combined.includes("부천") || combined.includes("수원");
+                if (regionName === "경상도") return combined.includes("경상") || combined.includes("부산") || combined.includes("대구") || combined.includes("울산");
+                if (regionName === "전라도") return combined.includes("전라") || combined.includes("광주");
+                if (regionName === "충청도") return combined.includes("충청") || combined.includes("대전") || combined.includes("세종");
+                if (regionName === "강원/제주") return combined.includes("강원") || combined.includes("제주");
+                return false;
+              });
               
               if (regionLessons.length === 0) return null;
 
               return (
-                <section key={regionName} style={{ marginBottom: '30px' }}>
-                  <div style={{ padding: '0 20px 12px', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                    <div style={{ width: '4px', height: '16px', background: '#2ECC71', borderRadius: '2px' }} />
-                    <h2 style={{ fontSize: '18px', fontWeight: '900', color: '#1E293B', margin: 0 }}>{regionName}</h2>
+                <section key={regionName} style={{ marginBottom: '24px' }}>
+                  <div style={{ padding: '0 20px 10px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <div style={{ width: '4px', height: '14px', background: '#2ECC71', borderRadius: '2px' }} />
+                    <h2 style={{ fontSize: '17px', fontWeight: '900', color: '#1E293B', margin: 0 }}>{regionName}</h2>
                     <span style={{ fontSize: '12px', color: '#94A3B8', fontWeight: '700' }}>{regionLessons.length}</span>
                   </div>
                   <div style={{ padding: '0 20px' }}>
