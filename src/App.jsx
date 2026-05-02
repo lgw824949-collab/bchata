@@ -527,6 +527,10 @@ function App() {
     setTimeout(() => { setIsAnalyzing(false); setShowIncheonModal(true); }, 1200);
   };
 
+  const handleRegister = (type = 'party') => {
+    setView(type === 'class' ? 'register-class' : 'register-party');
+  };
+
   const sharedProps = {
     parties: displayParties, lessons, loading, selectedMonth, setSelectedMonth, selectedWeek: 1, setSelectedWeek: () => {}, 
     selectedDate, setSelectedDate, selectedRegion: '서울', setSelectedRegion: () => {}, 
@@ -545,7 +549,7 @@ function App() {
     showGridModal, setShowGridModal, gridRegion, setGridRegion, filterStep, setFilterStep,
     handleOpenModal, handleCloseModal,
     IncheonBanner: () => <IncheonPremiumBanner t={t} onClick={() => openAnalysis(false)} />, venueCounts: {}, resetToToday: () => { setView('home'); setSelectedDate(todayData.dateStr); }, formatItemDate: (d, t) => `${d} ${t}`, formatFee: (f) => f, 
-    handleRegister: (type = 'party') => { setView(type === 'class' ? 'register-class' : 'register-party'); }, 
+    handleRegister, 
     logActivity: () => {}, regionalTheme: { welcomeMsg: "전국 댄서들을 위한 실시간 정보", specialBanner: true }
   };
 
