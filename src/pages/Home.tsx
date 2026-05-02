@@ -194,6 +194,14 @@ const HomePage = ({
   const todayStr = useMemo(() => new Date().toISOString().split('T')[0], []);
   const scrollRef = useRef(null);
   const regionListRef = useRef(null);
+  const [shuffleOffset, setShuffleOffset] = useState(0);
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setShuffleOffset(prev => prev + 1);
+    }, 20000);
+    return () => clearInterval(interval);
+  }, []);
 
   useEffect(() => {
     const loadRegionalWeather = async () => {
@@ -407,9 +415,13 @@ const HomePage = ({
                       <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', padding: '0 15px 20px' }}>
                         {regionParties.length === 0 ? (
                           <div style={{ padding: '30px', color: '#94A3B8', textAlign: 'center' }}>{t('no_parties')}</div>
-                        ) : (
-                          regionParties.slice(0, regionName === '서울' ? 3 : 2).map(item => <PartyCard key={item.id} item={item} onSelect={(url) => handleOpenModal(setSelectedPoster, url)} />)
-                        )}
+                        ) : (() => {
+                          const offset = shuffleOffset % regionParties.length;
+                          const rotated = [...regionParties.slice(offset), ...regionParties.slice(0, offset)];
+                          return rotated.slice(0, regionName === '서울' ? 3 : 2).map(item => (
+                            <PartyCard key={item.id} item={item} onSelect={(url) => handleOpenModal(setSelectedPoster, url)} />
+                          ));
+                        })()}
                       </div>
                     </section>
                   );
