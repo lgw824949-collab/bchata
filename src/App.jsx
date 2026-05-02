@@ -544,7 +544,7 @@ function App() {
     showGridModal, setShowGridModal, gridRegion, setGridRegion, filterStep, setFilterStep,
     handleOpenModal, handleCloseModal,
     IncheonBanner: () => <IncheonPremiumBanner t={t} onClick={() => openAnalysis(false)} />, venueCounts: {}, resetToToday: () => { setView('home'); setSelectedDate(todayData.dateStr); }, formatItemDate: (d, t) => `${d} ${t}`, formatFee: (f) => f, 
-    handleRegister: (type = 'party') => { setRegisterType(type); setView('register'); }, 
+    handleRegister: (type = 'party') => { setView(type === 'class' ? 'register-class' : 'register-party'); }, 
     logActivity: () => {}, regionalTheme: { welcomeMsg: "전국 댄서들을 위한 실시간 정보", specialBanner: true }
   };
 
@@ -684,7 +684,8 @@ function App() {
             'community': <Community setSelectedPoster={setSelectedPoster} setView={setView} />,
             'parking': <Parking onBack={() => setView('home')} />,
             'restaurant': <Restaurant onBack={() => setView('home')} />,
-            'register': registerType === 'class' ? <PostClass onBack={() => setView('home')} /> : <RegisterForm onBack={() => setView('home')} />,
+            'register-party': <RegisterForm onBack={() => setView('home')} />,
+            'register-class': <PostClass onBack={() => setView('home')} />,
             'admin': <AdminDashboard onBack={() => setView('home')} refreshData={fetchParties} />
           }[view] || <AdminDashboard onBack={() => setView('home')} refreshData={fetchParties} />}
       </main>
