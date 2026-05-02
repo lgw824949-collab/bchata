@@ -231,6 +231,7 @@ const HomePage = ({
   handleOpenModal, handleCloseModal
 }) => {
   const { t, i18n } = useTranslation();
+  const isEn = i18n.language.startsWith('en');
   const [isPaused, setIsPaused] = useState(false);
   const [weatherMap, setWeatherMap] = useState({});
   const todayStr = useMemo(() => new Date().toISOString().split('T')[0], []);
@@ -451,7 +452,7 @@ const HomePage = ({
                           }}
                           style={{ fontSize: '12px', fontWeight: '700', color: '#94A3B8', background: 'none', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '2px' }}
                         >
-                          {t('view_all')} <ChevronRight size={14} />
+                          {isEn ? 'View All' : '전체보기'} <ChevronRight size={14} />
                         </button>
                       </div>
                       <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', padding: '0 15px 20px' }}>
