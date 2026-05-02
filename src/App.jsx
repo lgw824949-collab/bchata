@@ -720,34 +720,144 @@ function App() {
               </div>
               
               <div style={{ flex: 1, overflowY: 'auto', minHeight: '350px' }}>
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: '5px', textAlign: 'center' }}>
-                  {['일','월','화','수','목','금','토'].map(d => <div key={d} style={{ fontSize: '12px', fontWeight: 700, color: d === '일' ? '#FF1744' : d === '토' ? '#FF1744' : '#999', padding: '5px 0' }}>{d}</div>)}
-                  {(() => {
-                    const firstDay = new Date(todayData.year, selectedMonth - 1, 1).getDay();
-                    const lastDate = new Date(todayData.year, selectedMonth, 0).getDate();
-                    const days = [];
-                    for (let i = 0; i < firstDay; i++) days.push({ date: null });
-                    for (let i = 1; i <= lastDate; i++) {
-                      const fullDate = `${todayData.year}-${String(selectedMonth).padStart(2, '0')}-${String(i).padStart(2, '0')}`;
-                      const d = new Date(todayData.year, selectedMonth - 1, i);
-                      days.push({ date: i, fullDate, dayName: DAYS_KOR[d.getDay()] });
-                    }
-                    return days.map((day, idx) => {
-                      if (!day.date) return <div key={idx} />;
-                      const isSelected = selectedDate === day.fullDate;
-                      const themeColor = view === 'class' ? '#2ECC71' : '#FF1744';
-                      return (
-                        <div 
-                          key={day.fullDate} 
-                          onClick={() => { setSelectedDate(day.fullDate); handleCloseModal(); }} 
-                          style={{ height: '46px', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', fontSize: '15px', fontWeight: isSelected ? 800 : 600, color: isSelected ? '#fff' : (day.dayName === '일' ? '#FF1744' : (day.dayName === '토' ? '#FF1744' : '#1E293B')), backgroundColor: isSelected ? themeColor : 'transparent', borderRadius: '14px', cursor: 'pointer' }}
-                        >
-                          {day.date}
+                {!showFilterPanel && !showFilteredResults ? (
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: '5px', textAlign: 'center' }}>
+                    {['일','월','화','수','목','금','토'].map(d => <div key={d} style={{ fontSize: '12px', fontWeight: 700, color: d === '일' ? '#FF1744' : d === '토' ? '#FF1744' : '#999', padding: '5px 0' }}>{d}</div>)}
+                    {(() => {
+                      const firstDay = new Date(todayData.year, selectedMonth - 1, 1).getDay();
+                      const lastDate = new Date(todayData.year, selectedMonth, 0).getDate();
+                      const days = [];
+                      for (let i = 0; i < firstDay; i++) days.push({ date: null });
+                      for (let i = 1; i <= lastDate; i++) {
+                        const fullDate = `${todayData.year}-${String(selectedMonth).padStart(2, '0')}-${String(i).padStart(2, '0')}`;
+                        const d = new Date(todayData.year, selectedMonth - 1, i);
+                        days.push({ date: i, fullDate, dayName: DAYS_KOR[d.getDay()] });
+                      }
+                      return days.map((day, idx) => {
+                        if (!day.date) return <div key={idx} />;
+                        const isSelected = selectedDate === day.fullDate;
+                        const themeColor = view === 'class' ? '#2ECC71' : '#FF1744';
+                        const todayStr = getKSTDate().dateStr;
+                        return (
+                          <div 
+                            key={day.fullDate} 
+                            onClick={() => { 
+                              if (day.fullDate < todayStr) return;
+                              setSelectedDate(day.fullDate); 
+                              handleOpenModal(setShowFilterPanel, true);
+                              setFilterStep(1);
+                              setShowFilteredResults(false);
+                            }} 
+                            style={{ height: '46px', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', fontSize: '15px', fontWeight: isSelected ? 800 : 600, color: isSelected ? '#fff' : (day.dayName === '일' ? '#FF1744' : (day.dayName === '토' ? '#FF1744' : '#1E293B')), backgroundColor: isSelected ? themeColor : 'transparent', borderRadius: '14px', cursor: day.fullDate < todayStr ? 'default' : 'pointer', opacity: day.fullDate < todayStr ? 0.3 : 1 }}
+                          >
+                            {day.date}
+                          </div>
+                        );
+                      });
+                    })()}
+                  </div>
+                ) : showFilterPanel && !showFilteredResults ? (
+                  <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '20px' }}>
+                      <button onClick={() => { setShowFullCalendar(false); setShowFilterPanel(false); setShowFilteredResults(false); setFilterStep(1); }} style={{ background: '#F8FAFC', border: 'none', borderRadius: '10px', padding: '8px 12px', fontSize: '13px', fontWeight: 700, color: view === 'class' ? '#2ECC71' : '#FF1744', display: 'flex', alignItems: 'center', gap: '4px' }}><X size={16} /> 닫기</button>
+                      {filterStep > 1 && <button onClick={() => setFilterStep(prev => prev - 1)} style={{ background: '#F8FAFC', border: 'none', borderRadius: '10px', padding: '8px 12px', fontSize: '13px', fontWeight: 700, color: '#64748B', display: 'flex', alignItems: 'center', gap: '4px' }}><ChevronLeft size={16} /> 이전</button>}
+                    </div>
+                    
+                    <div style={{ fontSize: '18px', fontWeight: 950, color: '#1E293B', marginBottom: '15px' }}>
+                      {view === 'class' ? (filterStep === 1 ? '어떤 장르의 수업을 원하시나요?' : '어느 지역에서 듣고 싶으세요?') : (filterStep === 1 ? '어디로 가시나요?' : '어떤 장르가 꽂히세요?')}
+                    </div>
+
+                    {view === 'class' ? (
+                      filterStep === 1 ? (
+                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+                          {['바차타', '살사', '쥬크', '키좀바'].map(g => (
+                            <button key={g} onClick={() => { setFilterGenre(g); setFilterStep(2); }} style={{ padding: '24px 15px', borderRadius: '18px', background: filterGenre === g ? '#2ECC71' : '#F8FAFC', color: filterGenre === g ? '#fff' : '#64748B', fontWeight: 800, fontSize: '16px', border: 'none' }}>{g}</button>
+                          ))}
                         </div>
-                      );
-                    });
-                  })()}
-                </div>
+                      ) : (
+                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '10px' }}>
+                          {['서울', '경기/인천', '부산', '대구', '대전', '광주', '기타'].map(r => (
+                            <button key={r} onClick={() => { setFilterRegion(r); setShowFilteredResults(true); }} style={{ padding: '16px', borderRadius: '14px', background: filterRegion === r ? '#2ECC71' : '#F8FAFC', color: filterRegion === r ? '#fff' : '#64748B', fontWeight: 700, border: 'none' }}>{r}</button>
+                          ))}
+                        </div>
+                      )
+                    ) : (
+                      filterStep === 1 ? (
+                        <div style={{ display: 'flex', overflowX: 'auto', gap: '10px', paddingBottom: '15px' }}>
+                          {['서울', '경기/인천', '부산', '대구', '대전', '광주', '기타'].map(r => (
+                            <button key={r} onClick={() => { setFilterRegion(r); setFilterStep(2); }} style={{ flexShrink: 0, padding: '14px 24px', borderRadius: '14px', background: filterRegion === r ? '#FF1744' : '#F8FAFC', color: filterRegion === r ? '#fff' : '#64748B', fontWeight: 700, border: 'none' }}>{r}</button>
+                          ))}
+                        </div>
+                      ) : (
+                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+                          {['바차타', '살사', '쥬크', '키좀바'].map(g => (
+                            <button key={g} onClick={() => { setFilterGenre(g); setShowFilteredResults(true); }} style={{ padding: '24px 15px', borderRadius: '18px', background: filterGenre === g ? '#1E293B' : '#F8FAFC', color: filterGenre === g ? '#fff' : '#64748B', fontWeight: 800, fontSize: '16px', border: 'none' }}>{g}</button>
+                          ))}
+                        </div>
+                      )
+                    )}
+                  </motion.div>
+                ) : (
+                  <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '20px' }}>
+                      <button onClick={() => setShowFilteredResults(false)} style={{ background: '#F8FAFC', border: 'none', borderRadius: '10px', padding: '8px 12px', fontSize: '13px', fontWeight: 700, color: '#64748B', display: 'flex', alignItems: 'center', gap: '4px' }}><ChevronLeft size={16} /> 조건 다시 선택</button>
+                    </div>
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(1, 1fr)', gap: '12px', marginBottom: '20px' }}>
+                      {view === 'class' ? (
+                        lessons.filter(l => {
+                          const matchesRegion = filterRegion ? l.broadRegion === filterRegion : true;
+                          const matchesGenre = filterGenre ? l.genre === filterGenre : true;
+                          const matchesDate = l.day_of_week.includes(DAYS_KOR[new Date(selectedDate).getDay()]);
+                          return matchesRegion && matchesGenre && matchesDate;
+                        }).length === 0 ? (
+                          <div style={{ padding: '60px 0', textAlign: 'center', color: '#94A3B8', fontWeight: 700 }}>해당 조건의 수업이 없습니다 😅</div>
+                        ) : (
+                          lessons.filter(l => {
+                            const matchesRegion = filterRegion ? l.broadRegion === filterRegion : true;
+                            const matchesGenre = filterGenre ? l.genre === filterGenre : true;
+                            const matchesDate = l.day_of_week.includes(DAYS_KOR[new Date(selectedDate).getDay()]);
+                            return matchesRegion && matchesGenre && matchesDate;
+                          }).map(item => (
+                            <div key={item.id} onClick={() => setSelectedPoster(item.poster_url)} style={{ background: '#F8FAFC', borderRadius: '16px', padding: '12px', display: 'flex', gap: '15px', border: '1px solid #EDF2F7', cursor: 'pointer' }}>
+                              <img src={item.poster_url} style={{ width: '80px', height: '100px', objectFit: 'cover', borderRadius: '10px' }} alt="Poster" />
+                              <div style={{ flex: 1 }}>
+                                <div style={{ fontSize: '11px', color: '#2ECC71', fontWeight: 800 }}>{item.displayBroadRegion}</div>
+                                <div style={{ fontSize: '14px', fontWeight: 900, color: '#1E293B', marginTop: '2px' }}>{item.title}</div>
+                                <div style={{ fontSize: '12px', color: '#64748B', marginTop: '4px' }}>{item.instructor} | {item.level}</div>
+                                <div style={{ fontSize: '11px', color: '#94A3B8', marginTop: '6px' }}>{item.day_of_week} {item.start_time}</div>
+                              </div>
+                            </div>
+                          ))
+                        )
+                      ) : (
+                        displayParties.filter(p => {
+                          const matchesRegion = filterRegion ? (p.broadRegion === filterRegion || p.address?.includes(filterRegion)) : true;
+                          const matchesGenre = filterGenre ? p[GENRE_MAP[filterGenre]?.key] > 0 : true;
+                          return p.date === selectedDate && matchesRegion && matchesGenre;
+                        }).length === 0 ? (
+                          <div style={{ padding: '60px 0', textAlign: 'center', color: '#94A3B8', fontWeight: 700 }}>해당 조건의 파티가 없습니다 😅</div>
+                        ) : (
+                          displayParties.filter(p => {
+                            const matchesRegion = filterRegion ? (p.broadRegion === filterRegion || p.address?.includes(filterRegion)) : true;
+                            const matchesGenre = filterGenre ? p[GENRE_MAP[filterGenre]?.key] > 0 : true;
+                            return p.date === selectedDate && matchesRegion && matchesGenre;
+                          }).map(item => (
+                            <div key={item.id} onClick={() => setSelectedPoster(item.poster_url)} style={{ background: '#F8FAFC', borderRadius: '16px', padding: '12px', display: 'flex', gap: '15px', border: '1px solid #EDF2F7', cursor: 'pointer' }}>
+                              <img src={item.poster_url} style={{ width: '80px', height: '100px', objectFit: 'cover', borderRadius: '10px' }} alt="Poster" />
+                              <div style={{ flex: 1 }}>
+                                <div style={{ fontSize: '11px', color: '#FF1744', fontWeight: 800 }}>{item.displayBroadRegion}</div>
+                                <div style={{ fontSize: '14px', fontWeight: 900, color: '#1E293B', marginTop: '2px' }}>{item.title}</div>
+                                <div style={{ fontSize: '12px', color: '#64748B', marginTop: '4px' }}>{item.displayLocationName}</div>
+                                <div style={{ fontSize: '11px', color: '#94A3B8', marginTop: '6px' }}>{item.time}</div>
+                              </div>
+                            </div>
+                          ))
+                        )
+                      )}
+                    </div>
+                    <button onClick={handleCloseModal} style={{ width: '100%', height: '54px', borderRadius: '16px', background: view === 'class' ? '#2ECC71' : '#1E293B', color: '#fff', fontSize: '16px', fontWeight: 800, border: 'none' }}>확인 완료</button>
+                  </motion.div>
+                )}
               </div>
               <div style={{ marginTop: '20px', padding: '15px', background: view === 'class' ? '#F0FFF4' : '#FFF5F5', borderRadius: '16px' }}>
                 <p style={{ fontSize: '14px', fontWeight: 800, color: view === 'class' ? '#2ECC71' : '#FF1744' }}>
