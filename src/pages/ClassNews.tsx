@@ -18,6 +18,16 @@ const ClassCard = ({ item, onSelect }) => {
     return `${d.getMonth() + 1}/${d.getDate()}(${DAYS_KOR[d.getDay()]})`;
   };
 
+  // 레벨 텍스트 정규화 (공연 마스터 등 긴 텍스트 방지)
+  const normalizeLevel = (lv) => {
+    if (!lv) return '입문';
+    if (lv.includes('입문')) return '입문';
+    if (lv.includes('초급')) return '초급';
+    if (lv.includes('중급')) return '중급';
+    if (lv.includes('상급') || lv.includes('고급')) return '상급';
+    return lv.slice(0, 2); // 최대 2글자만 노출
+  };
+
   return (
     <motion.div 
       initial={{ opacity: 0, y: 10 }}
@@ -53,7 +63,7 @@ const ClassCard = ({ item, onSelect }) => {
           <span style={{ color: '#CBD5E1' }}>/</span>
           <span style={{ color: '#2ECC71' }}>{item.genre}</span>
           <span style={{ color: '#CBD5E1' }}>/</span>
-          <span style={{ color: '#FF1744' }}>{item.level}</span>
+          <span style={{ color: '#FF1744' }}>{normalizeLevel(item.level)}</span>
           <span style={{ color: '#CBD5E1' }}>/</span>
           <span style={{ color: '#64748B' }}>
             {item.day_of_week?.split(',')[0]} {item.start_time?.split(':')[0]}:{item.start_time?.split(':')[1]}
@@ -163,15 +173,15 @@ const ClassNewsPage = ({ setSelectedPoster }) => {
           (() => {
             const regions = ["서울", "경기/인천", "경상도", "전라도", "충청도", "강원/제주"];
             return regions.map(regionName => {
-              // 지역 매칭 로직 강화 (city, broadRegion, region 등 모든 필드 확인)
+              // 지역 매칭 로직 대폭 강화 (모든 텍스트 필드 포함)
               const regionLessons = filtered.filter(l => {
-                const combined = `${l.city || ''} ${l.broadRegion || ''} ${l.region || ''} ${l.address || ''}`;
-                if (regionName === "서울") return combined.includes("서울") || combined.includes("강남") || combined.includes("홍대");
-                if (regionName === "경기/인천") return combined.includes("경기") || combined.includes("인천") || combined.includes("부천") || combined.includes("수원");
-                if (regionName === "경상도") return combined.includes("경상") || combined.includes("부산") || combined.includes("대구") || combined.includes("울산");
-                if (regionName === "전라도") return combined.includes("전라") || combined.includes("광주");
-                if (regionName === "충청도") return combined.includes("충청") || combined.includes("대전") || combined.includes("세종");
-                if (regionName === "강원/제주") return combined.includes("강원") || combined.includes("제주");
+                const text = `${l.city || ''} ${l.broadRegion || ''} ${l.region || ''} ${l.address || ''} ${l.studio_name || ''}`.toLowerCase();
+                if (regionName === "서울") return text.includes("서울") || text.includes("강남") || text.includes("홍대") || text.includes("잠실") || text.includes("성수");
+                if (regionName === "경기/인천") return text.includes("경기") || text.includes("인천") || text.includes("부천") || text.includes("수원") || text.includes("의정부") || text.includes("안양");
+                if (regionName === "경상도") return text.includes("경상") || text.includes("경남") || text.includes("경북") || text.includes("부산") || text.includes("대구") || text.includes("울산") || text.includes("창원") || text.includes("포항");
+                if (regionName === "전라도") return text.includes("전라") || text.includes("전남") || text.includes("전북") || text.includes("광주") || text.includes("전주") || text.includes("목포");
+                if (regionName === "충청도") return text.includes("충청") || text.includes("충남") || text.includes("충북") || text.includes("대전") || text.includes("세종") || text.includes("천안") || text.includes("청주");
+                if (regionName === "강원/제주") return text.includes("강원") || text.includes("제주") || text.includes("춘천") || text.includes("원주") || text.includes("서귀포");
                 return false;
               });
               
