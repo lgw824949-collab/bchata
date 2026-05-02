@@ -1059,6 +1059,27 @@ export default function AdminDashboard({ onBack, refreshData }) {
               <div style={inputGroupStyle}><label style={labelStyle}>장소/스튜디오</label><input value={editingClass.studio_name} onChange={e => setEditingClass({...editingClass, studio_name: e.target.value})} style={inputStyle} /></div>
               <div style={inputGroupStyle}><label style={labelStyle}>주소</label><input value={editingClass.address} onChange={e => setEditingClass({...editingClass, address: e.target.value})} style={inputStyle} /></div>
               
+              <div style={inputGroupStyle}>
+                <label style={labelStyle}>진행 주차 (Week)</label>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '6px' }}>
+                  {['1주차', '2주차', '3주차', '4주차', '5주차'].map(w => (
+                    <button 
+                      key={w}
+                      onClick={() => setEditingClass({...editingClass, week_type: w})}
+                      style={{ 
+                        padding: '8px 4px', fontSize: '11px', borderRadius: '8px', border: '1px solid',
+                        borderColor: editingClass.week_type === w ? '#2ECC71' : '#E5E7EB',
+                        background: editingClass.week_type === w ? '#2ECC71' : 'white',
+                        color: editingClass.week_type === w ? 'white' : '#666',
+                        fontWeight: 700
+                      }}
+                    >
+                      {w}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
               <div style={{ display: 'flex', gap: '10px' }}>
                 <div style={{...inputGroupStyle, flex: 1}}><label style={labelStyle}>시작 시간</label><input type="time" value={editingClass.start_time} onChange={e => setEditingClass({...editingClass, start_time: e.target.value})} style={inputStyle} /></div>
                 <div style={{...inputGroupStyle, flex: 1}}><label style={labelStyle}>종료 시간</label><input type="time" value={editingClass.end_time} onChange={e => setEditingClass({...editingClass, end_time: e.target.value})} style={inputStyle} /></div>
