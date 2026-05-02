@@ -172,36 +172,67 @@ const ClassNewsPage = ({ setSelectedPoster }) => {
         ) : (
           (() => {
             const regions = ["서울", "경기/인천", "경상도", "전라도", "충청도", "강원/제주"];
-            return regions.map(regionName => {
-              // 지역 매칭 로직 대폭 강화 (모든 텍스트 필드 포함)
-              const regionLessons = filtered.filter(l => {
+            
+            // 1. 각 지역별로 분류된 수업 데이터 생성
+            const grouped = regions.reduce((acc, name) => {
+              acc[name] = filtered.filter(l => {
                 const text = `${l.city || ''} ${l.broadRegion || ''} ${l.region || ''} ${l.address || ''} ${l.studio_name || ''}`.toLowerCase();
-                if (regionName === "서울") return text.includes("서울") || text.includes("강남") || text.includes("홍대") || text.includes("잠실") || text.includes("성수");
-                if (regionName === "경기/인천") return text.includes("경기") || text.includes("인천") || text.includes("부천") || text.includes("수원") || text.includes("의정부") || text.includes("안양");
-                if (regionName === "경상도") return text.includes("경상") || text.includes("경남") || text.includes("경북") || text.includes("부산") || text.includes("대구") || text.includes("울산") || text.includes("창원") || text.includes("포항");
-                if (regionName === "전라도") return text.includes("전라") || text.includes("전남") || text.includes("전북") || text.includes("광주") || text.includes("전주") || text.includes("목포");
-                if (regionName === "충청도") return text.includes("충청") || text.includes("충남") || text.includes("충북") || text.includes("대전") || text.includes("세종") || text.includes("천안") || text.includes("청주");
-                if (regionName === "강원/제주") return text.includes("강원") || text.includes("제주") || text.includes("춘천") || text.includes("원주") || text.includes("서귀포");
+                if (name === "서울") return text.includes("서울") || text.includes("강남") || text.includes("홍대") || text.includes("잠실") || text.includes("성수") || text.includes("신림") || text.includes("건대");
+                if (name === "경기/인천") return text.includes("경기") || text.includes("인천") || text.includes("부천") || text.includes("수원") || text.includes("의정부") || text.includes("안양") || text.includes("고양") || text.includes("일산") || text.includes("성남") || text.includes("분당") || text.includes("평택") || text.includes("시흥");
+                if (name === "경상도") return text.includes("경상") || text.includes("경남") || text.includes("경북") || text.includes("부산") || text.includes("대구") || text.includes("울산") || text.includes("창원") || text.includes("포항") || text.includes("구미") || text.includes("진주") || text.includes("양산") || text.includes("거제") || text.includes("안동");
+                if (name === "전라도") return text.includes("전라") || text.includes("전남") || text.includes("전북") || text.includes("광주") || text.includes("전주") || text.includes("목포") || text.includes("여수") || text.includes("순천") || text.includes("군산") || text.includes("익산");
+                if (name === "충청도") return text.includes("충청") || text.includes("충남") || text.includes("충북") || text.includes("대전") || text.includes("세종") || text.includes("천안") || text.includes("청주") || text.includes("아산") || text.includes("충주") || text.includes("당진") || text.includes("공주");
+                if (name === "강원/제주") return text.includes("강원") || text.includes("제주") || text.includes("춘천") || text.includes("원주") || text.includes("강릉") || text.includes("서귀포") || text.includes("속초");
                 return false;
               });
-              
-              if (regionLessons.length === 0) return null;
+              return acc;
+            }, {});
 
-              return (
-                <section key={regionName} style={{ marginBottom: '24px' }}>
-                  <div style={{ padding: '0 20px 10px', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                    <div style={{ width: '4px', height: '14px', background: '#2ECC71', borderRadius: '2px' }} />
-                    <h2 style={{ fontSize: '17px', fontWeight: '900', color: '#1E293B', margin: 0 }}>{regionName}</h2>
-                    <span style={{ fontSize: '12px', color: '#94A3B8', fontWeight: '700' }}>{regionLessons.length}</span>
-                  </div>
-                  <div style={{ padding: '0 20px' }}>
-                    {regionLessons.map(item => (
-                      <ClassCard key={item.id} item={item} onSelect={setSelectedPoster} />
-                    ))}
-                  </div>
-                </section>
-              );
-            });
+            // 2. 분류되지 않은 나머지 수업들 (기타 지역)
+            const matchedIds = new Set(Object.values(grouped).flat().map(item => item.id));
+            const others = filtered.filter(item => !matchedIds.has(item.id));
+
+            return (
+              <>
+                {regions.map(regionName => {
+                  const regionLessons = grouped[regionName];
+                  return (
+                    <section key={regionName} style={{ marginBottom: '30px' }}>
+                      <div style={{ padding: '0 20px 12px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                        <div style={{ width: '4px', height: '16px', background: '#2ECC71', borderRadius: '2px' }} />
+                        <h2 style={{ fontSize: '18px', fontWeight: '900', color: '#1E293B', margin: 0 }}>{regionName}</h2>
+                        <span style={{ fontSize: '12px', color: '#94A3B8', fontWeight: '700' }}>{regionLessons.length}</span>
+                      </div>
+                      <div style={{ padding: '0 20px' }}>
+                        {regionLessons.length === 0 ? (
+                          <div style={{ padding: '20px', background: '#fff', borderRadius: '16px', border: '1px dashed #E2E8F0', textAlign: 'center', color: '#94A3B8', fontSize: '13px', fontWeight: '700' }}>해당 지역에 등록된 수업이 없습니다 😅</div>
+                        ) : (
+                          regionLessons.map(item => (
+                            <ClassCard key={item.id} item={item} onSelect={setSelectedPoster} />
+                          ))
+                        )}
+                      </div>
+                    </section>
+                  );
+                })}
+
+                {/* 기타 지역 (분류되지 않은 데이터 구제) */}
+                {others.length > 0 && (
+                  <section style={{ marginBottom: '30px' }}>
+                    <div style={{ padding: '0 20px 12px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                      <div style={{ width: '4px', height: '16px', background: '#64748B', borderRadius: '2px' }} />
+                      <h2 style={{ fontSize: '18px', fontWeight: '900', color: '#1E293B', margin: 0 }}>기타 지역</h2>
+                      <span style={{ fontSize: '12px', color: '#94A3B8', fontWeight: '700' }}>{others.length}</span>
+                    </div>
+                    <div style={{ padding: '0 20px' }}>
+                      {others.map(item => (
+                        <ClassCard key={item.id} item={item} onSelect={setSelectedPoster} />
+                      ))}
+                    </div>
+                  </section>
+                )}
+              </>
+            );
           })()
         )}
         {!loading && filtered.length === 0 && (

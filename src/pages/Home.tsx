@@ -420,8 +420,16 @@ const HomePage = ({
               {(() => {
                 const regions = ["서울", "경기/인천", "경상도", "전라도", "충청도", "강원/제주"];
                 return regions.map((regionName) => {
-                  const regionParties = filteredParties.filter(p => {
-
+                  const regionParties = parties.filter(p => {
+                    const text = `${p.broadRegion || ''} ${p.address || ''} ${p.locationName || ''}`.toLowerCase();
+                    if (regionName === '서울') return p.broadRegion === '서울' || text.includes('서울') || text.includes('강남') || text.includes('홍대');
+                    if (regionName === '경기/인천') return p.broadRegion === '경기/인천' || text.includes('경기') || text.includes('인천');
+                    if (regionName === '경상도') return p.broadRegion === '경상도' || text.includes('부산') || text.includes('대구') || text.includes('울산') || text.includes('경상');
+                    if (regionName === '전라도') return p.broadRegion === '전라도' || text.includes('광주') || text.includes('전라');
+                    if (regionName === '충청도') return p.broadRegion === '충청도' || text.includes('대전') || text.includes('충청');
+                    if (regionName === '강원/제주') return p.broadRegion === '강원/제주' || text.includes('강원') || text.includes('제주');
+                    return p.broadRegion === regionName;
+                  }).filter(p => {
                     // 1. 지역 조건 매칭
                     const filterFn = REGION_FILTER[regionName];
                     if (filterFn && !filterFn(p)) return false;
