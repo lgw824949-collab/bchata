@@ -221,7 +221,7 @@ const PostClass = ({ onBack }) => {
           </div>
 
           <div style={{ marginBottom: '32px' }}>
-            <label style={{ display: 'block', fontSize: '16px', fontWeight: 700, color: '#333', marginBottom: '12px' }}>참가비</label>
+            <label style={{ display: 'block', fontSize: '16px', fontWeight: 700, color: '#333', marginBottom: '12px' }}>참여비 (숫자만 입력해 주세요)</label>
             <input 
               type="number" 
               placeholder="예) 1.5" 
@@ -229,6 +229,7 @@ const PostClass = ({ onBack }) => {
               onChange={e => setFormData({...formData, fee: e.target.value})}
               style={{ ...inputStyle, border: '1.5px solid #EEE' }} 
             />
+            <p style={{ fontSize: '11px', color: '#999', marginTop: '6px' }}>* 원활한 노출을 위해 '참여비'로 표기되거나 숫자만 입력됩니다.</p>
           </div>
 
           <div style={{ marginBottom: '32px' }}>
@@ -380,7 +381,7 @@ const PostClass = ({ onBack }) => {
               onChange={e => setFormData({ ...formData, rule_confirmed: e.target.checked })}
               style={{ width: '22px', height: '22px', accentColor: THEME_COLOR, cursor: 'pointer' }}
             />
-            <label style={{ fontSize: '14px', color: '#4A5568', fontWeight: 600, lineHeight: 1.5, cursor: 'pointer' }}>포스터 내 '참여비' 용어 사용을 확인했습니다. (레슨비/강습료 기재 시 반려될 수 있습니다.)</label>
+            <label style={{ fontSize: '14px', color: '#4A5568', fontWeight: 600, lineHeight: 1.5, cursor: 'pointer' }}>포스터 내 '참여비' 또는 숫자 위주의 표기 방식을 확인했습니다.</label>
           </div>
         </div>
 
