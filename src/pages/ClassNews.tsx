@@ -29,29 +29,31 @@ const ClassCard = ({ item, onSelect }) => {
       </div>
 
       {/* 오른쪽: 정보 (3열 레이아웃) */}
-      <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '4px', minWidth: 0 }}>
-        {/* 1열: 강사명 + 지도 이모지 */}
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <div style={{ fontSize: '15px', fontWeight: '900', color: '#1E293B' }}>{item.instructor}</div>
-          <button onClick={openMap} style={{ background: 'none', border: 'none', fontSize: '18px', cursor: 'pointer', padding: '0 4px' }}>📍</button>
+      <div style={{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'space-between', minWidth: 0, padding: '2px 0' }}>
+        {/* 1열: 강사명 & 지도 📍 */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+          <span style={{ fontSize: '15px', fontWeight: '900', color: '#1E293B' }}>{item.instructor}</span>
+          <span onClick={openMap} style={{ fontSize: '18px', cursor: 'pointer' }}>📍</span>
         </div>
 
         {/* 2열: 제목 */}
-        <div style={{ fontSize: '13px', fontWeight: '700', color: '#475569', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+        <h3 style={{ fontSize: '13px', fontWeight: '700', color: '#475569', margin: 0, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
           {item.title}
-        </div>
-        
-        {/* 3열: 뱃지 (장르/레벨) */}
-        <div style={{ display: 'flex', gap: '4px' }}>
-          <span style={{ background: '#F0FFF4', color: '#2ECC71', padding: '1px 6px', borderRadius: '4px', fontSize: '10px', fontWeight: '800' }}>{item.genre}</span>
-          <span style={{ background: '#FFF5F5', color: '#FF1744', padding: '1px 6px', borderRadius: '4px', fontSize: '10px', fontWeight: '800' }}>{item.level}</span>
-        </div>
+        </h3>
 
-        {/* 4열: 요일/시간/지역/비용 */}
-        <div style={{ marginTop: 'auto', display: 'flex', flexWrap: 'wrap', gap: '6px', fontSize: '11px', color: '#64748B', fontWeight: '600' }}>
-          <span style={{ display: 'flex', alignItems: 'center', gap: '2px' }}><Clock size={10} /> {item.day_of_week} {item.start_time}</span>
-          <span style={{ display: 'flex', alignItems: 'center', gap: '2px' }}><MapPin size={10} /> {item.city}</span>
-          <span style={{ color: '#2ECC71', fontWeight: '900' }}>{item.fee}</span>
+        {/* 3열: 상세 정보 (한 줄에 통합) */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '4px', flexWrap: 'wrap', fontSize: '11px', fontWeight: '800' }}>
+          <span style={{ color: '#2ECC71' }}>{item.genre}</span>
+          <span style={{ color: '#94A3B8' }}>·</span>
+          <span style={{ color: '#FF1744' }}>{item.level}</span>
+          <span style={{ color: '#94A3B8' }}>·</span>
+          <span style={{ color: '#64748B' }}>
+            {item.day_of_week?.split(',')[0]} {item.start_time?.split(':')[0]}:{item.start_time?.split(':')[1]}
+          </span>
+          <span style={{ color: '#94A3B8' }}>·</span>
+          <span style={{ color: '#1E293B' }}>
+            {(() => { if (!item.fee) return '1.2만'; const f = String(item.fee); const num = parseInt(f.replace(/[^0-9]/g, '')); if (isNaN(num)) return f; return (num/10000).toFixed(1).replace('.0', '') + '만'; })()}
+          </span>
         </div>
       </div>
     </motion.div>
@@ -61,7 +63,7 @@ const ClassCard = ({ item, onSelect }) => {
 const ClassNewsPage = ({ setSelectedPoster }) => {
   const [lessons, setLessons] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [selectedWeek, setSelectedWeek] = useState('전체');
+  const [selectedWeek, setSelectedWeek] = useState('1주차');
   const [filterGenre, setFilterGenre] = useState('전체');
   const [filterLevel, setFilterLevel] = useState('전체');
 
@@ -87,7 +89,7 @@ const ClassNewsPage = ({ setSelectedPoster }) => {
 
   const filtered = useMemo(() => {
     return lessons.filter(l => {
-      const weekMatch = selectedWeek === '전체' || (l.week_type === selectedWeek);
+      const weekMatch = l.week_type === selectedWeek;
       const genreMatch = filterGenre === '전체' || l.genre === filterGenre;
       const levelMatch = filterLevel === '전체' || l.level === filterLevel;
       return weekMatch && genreMatch && levelMatch;
@@ -109,7 +111,7 @@ const ClassNewsPage = ({ setSelectedPoster }) => {
         <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
           {/* 1단: 주차 필터 (동그라미 버튼) */}
           <div style={{ display: 'flex', gap: '8px', overflowX: 'auto', paddingBottom: '2px' }} className="no-scrollbar">
-            {['전체', '1주차', '2주차', '3주차', '4주차', '5주차'].map(w => (
+            {['1주차', '2주차', '3주차', '4주차', '5주차'].map(w => (
               <button 
                 key={w} 
                 onClick={() => setSelectedWeek(w)} 
@@ -123,22 +125,22 @@ const ClassNewsPage = ({ setSelectedPoster }) => {
                   transition: 'all 0.2s'
                 }}
               >
-                {w === '전체' ? 'ALL' : w.replace('주차', 'WK')}
+                {w.replace('주차', 'WK')}
               </button>
             ))}
           </div>
 
           {/* 2단: 장르 필터 */}
           <div style={{ display: 'flex', gap: '8px', overflowX: 'auto', paddingBottom: '2px' }} className="no-scrollbar">
-            {['전체', '바차타', '살사', '키좀바', '쥬크'].map(g => (
-              <button key={g} onClick={() => setFilterGenre(g)} style={{ flexShrink: 0, padding: '6px 14px', borderRadius: '99px', fontSize: '12px', fontWeight: '700', border: 'none', background: filterGenre === g ? '#2ECC71' : '#F1F5F9', color: filterGenre === g ? '#fff' : '#64748B' }}>{g}</button>
+            {['바차타', '살사', '키좀바', '쥬크'].map(g => (
+              <button key={g} onClick={() => setFilterGenre(filterGenre === g ? '전체' : g)} style={{ flexShrink: 0, padding: '6px 14px', borderRadius: '99px', fontSize: '12px', fontWeight: '700', border: 'none', background: filterGenre === g ? '#2ECC71' : '#F1F5F9', color: filterGenre === g ? '#fff' : '#64748B' }}>{g}</button>
             ))}
           </div>
 
           {/* 3단: 레벨 필터 */}
           <div style={{ display: 'flex', gap: '8px', overflowX: 'auto' }} className="no-scrollbar">
-            {['전체', '입문', '초급', '중급', '상급'].map(l => (
-              <button key={l} onClick={() => setFilterLevel(l)} style={{ flexShrink: 0, padding: '6px 14px', borderRadius: '99px', fontSize: '12px', fontWeight: '700', border: 'none', background: filterLevel === l ? '#1E293B' : '#F1F5F9', color: filterLevel === l ? '#fff' : '#64748B' }}>{l}</button>
+            {['입문', '초급', '중급', '상급'].map(l => (
+              <button key={l} onClick={() => setFilterLevel(filterLevel === l ? '전체' : l)} style={{ flexShrink: 0, padding: '6px 14px', borderRadius: '99px', fontSize: '12px', fontWeight: '700', border: 'none', background: filterLevel === l ? '#1E293B' : '#F1F5F9', color: filterLevel === l ? '#fff' : '#64748B' }}>{l}</button>
             ))}
           </div>
         </div>
