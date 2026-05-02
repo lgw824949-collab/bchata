@@ -33,7 +33,7 @@ const PostClass = ({ onBack }) => {
 
   const DANCE_STYLES = ['바차타', '살사', '쥬크', '키좀바']
   const REGIONS = ['서울', '경기/인천', '경상', '전라', '충청', '강원/제주']
-  const CLASS_LEVELS = ['초급', '중급', '고급'];
+  const LEVELS = ['입문', '초급', '중급', '상급'];
   const DAYS = ['월', '화', '수', '목', '금', '토', '일']
   const THEME_COLOR = '#2ECC71'
 
