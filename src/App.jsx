@@ -337,15 +337,8 @@ function App() {
     }
   }, [view]);
 
-  // 3. 모든 모달 상태 감시 및 히스토리 푸시 (뒤로가기 대응)
-  useEffect(() => {
-    const isAnyModalOpen = selectedPoster || showFullCalendar || isMenuOpen || showWeather || showSaju || showIncheonModal || showFilterPanel || showFilteredResults || showGridModal || showIncheon || filterStep > 1;
-    
-    // 모달이 열리거나 필터 단계가 진행될 때 pushState를 쌓음
-    if (isAnyModalOpen) {
-      window.history.pushState({ modal: true }, '');
-    }
-  }, [selectedPoster, showFullCalendar, isMenuOpen, showWeather, showSaju, showIncheonModal, showFilterPanel, showFilteredResults, showGridModal, showIncheon, filterStep]);
+  // [BAMPPA Navigation Engine]
+  // 3. (REMOVED automatic pushState to prevent history loop)
 
   // 4. 브라우저/휴대폰 뒤로가기 통합 감지 및 강제 제어 로직 (모든 요소 대응)
   useEffect(() => {
@@ -427,14 +420,17 @@ function App() {
 
   // --- 최적화된 번역 엔진 (DB 저장 데이터 우선 사용) ---
   useEffect(() => {
+    const todayStr = new Date().toISOString().split('T')[0];
+    const upcomingParties = parties.filter(p => p.date >= todayStr);
+    
     if (i18n.language.startsWith('en')) {
-      const translated = parties.map(p => ({
+      const translated = upcomingParties.map(p => ({
         ...p,
-        title: p.title_en || p.title // DB에 저장된 영문 제목이 있으면 사용, 없으면 원문 노출
+        title: p.title_en || p.title
       }));
       setDisplayParties(translated);
     } else {
-      setDisplayParties(parties);
+      setDisplayParties(upcomingParties);
     }
   }, [i18n.language, parties]);
 
@@ -534,7 +530,7 @@ function App() {
 
             <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
               {[
-                { icon: <Calendar color="#059669" />, text: t('view_calendar'), action: () => { handleOpenModal(setShowFullCalendar, true); setIsMenuOpen(false); } },
+                { icon: <Calendar color="#059669" />, text: t('view_calendar'), action: () => { setIsMenuOpen(false); handleOpenModal(setShowFullCalendar, true); } },
                 { icon: <Camera color="#059669" />, text: 'LIVE PICK', action: () => { setView('community'); setIsMenuOpen(false); } },
                 { icon: <Utensils color="#059669" />, text: t('restaurant'), action: () => { setView('restaurant'); setIsMenuOpen(false); } },
                 { icon: <Star color="#059669" />, text: t('saju'), action: () => { if(typeof setShowSaju === 'function') { handleOpenModal(setShowSaju, true); setIsMenuOpen(false); } } },

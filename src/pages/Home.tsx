@@ -184,6 +184,7 @@ const HomePage = ({
   const { t, i18n } = useTranslation();
   const [isPaused, setIsPaused] = useState(false);
   const [weatherMap, setWeatherMap] = useState({});
+  const todayStr = useMemo(() => new Date().toISOString().split('T')[0], []);
   const scrollRef = useRef(null);
   const regionListRef = useRef(null);
 
@@ -445,12 +446,13 @@ const HomePage = ({
                         <div 
                           key={day.fullDate} 
                           onClick={() => { 
+                            if (day.fullDate < todayStr) return;
                             setSelectedDate(day.fullDate); 
-                            // 모든 날짜 클릭 시 3단계 필터 플로우 활성화
+                            // 모든 날짜 클릭 시 3단계 필터 필터 플로우 활성화
                             handleOpenModal(setShowFilterPanel, true);
                             setFilterStep(1);
                           }} 
-                          style={{ height: '46px', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', fontSize: '15px', fontWeight: isSelected ? 800 : 600, color: isSelected ? '#fff' : (day.dayName === '일' ? '#059669' : (isWeekend ? '#059669' : '#1E293B')), backgroundColor: isSelected ? '#059669' : 'transparent', borderRadius: '14px', cursor: 'pointer' }}
+                          style={{ height: '46px', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', fontSize: '15px', fontWeight: isSelected ? 800 : 600, color: isSelected ? '#fff' : (day.dayName === '일' ? '#059669' : (isWeekend ? '#059669' : '#1E293B')), backgroundColor: isSelected ? '#059669' : 'transparent', borderRadius: '14px', cursor: day.fullDate < todayStr ? 'default' : 'pointer', opacity: day.fullDate < todayStr ? 0.3 : 1 }}
                         >
                           {day.date}
                         </div>
