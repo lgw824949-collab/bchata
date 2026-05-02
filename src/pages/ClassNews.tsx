@@ -25,6 +25,15 @@ const ClassCard = ({ item, onSelect }) => {
 
   const cleanTitle = item.title?.split(' ㅣ ')[0] || '';
   const displayTime = item.start_time || '19:00';
+  
+  const isNew = (() => {
+    if (!item.created_at) return false;
+    const now = new Date();
+    const created = new Date(item.created_at);
+    const diff = (now - created) / (1000 * 60 * 60 * 24);
+    return diff <= 3; // 3일 이내 등록된 경우 NEW
+  })();
+
   const displayFee = (() => {
     if (!item.fee) return '1.5만';
     const f = String(item.fee);
@@ -65,7 +74,8 @@ const ClassCard = ({ item, onSelect }) => {
       {/* 왼쪽: 포스터 영역 */}
       <div style={{ width: '85px', height: '115px', backgroundColor: '#f8f8f8', flexShrink: 0, position: 'relative' }}>
         <img src={item.poster_url} alt="Poster" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-        <div style={{ position: 'absolute', top: '5px', left: '5px', background: '#2ECC71', color: 'white', fontSize: '9px', fontWeight: '950', padding: '2px 5px', borderRadius: '4px', boxShadow: '0 2px 4px rgba(0,0,0,0.2)' }}>
+        <div style={{ position: 'absolute', top: '5px', left: '5px', background: '#2ECC71', color: 'white', fontSize: '9px', fontWeight: '950', padding: '2px 5px', borderRadius: '4px', boxShadow: '0 2px 4px rgba(0,0,0,0.2)', display: 'flex', gap: '3px' }}>
+          {isNew && <span style={{ color: '#FFEB3B' }}>NEW</span>}
           CLASS
         </div>
       </div>
@@ -284,11 +294,13 @@ const ClassNewsPage = ({
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', padding: '0 15px 20px' }}>
                   {regionLessons.length === 0 ? (
                     <div style={{ padding: '30px', color: '#94A3B8', textAlign: 'center' }}>{t('no_classes') || '등록된 수업이 없습니다.'}</div>
-                  ) : (
-                    regionLessons.map(item => (
+                  ) : (() => {
+                    const offset = shuffleOffset % regionLessons.length;
+                    const rotated = [...regionLessons.slice(offset), ...regionLessons.slice(0, offset)];
+                    return rotated.slice(0, regionName === '서울' ? 4 : 3).map(item => (
                       <ClassCard key={item.id} item={item} onSelect={(url) => handleOpenModal(setSelectedPoster, url)} />
-                    ))
-                  )}
+                    ));
+                  })()}
                 </div>
               </section>
             );
