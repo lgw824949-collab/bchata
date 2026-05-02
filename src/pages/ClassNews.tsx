@@ -151,25 +151,35 @@ const ClassNewsPage = ({ setSelectedPoster }) => {
         {loading ? (
           <div style={{ padding: '100px 0', textAlign: 'center' }}><Loader2 className="animate-spin" size={32} color="#2ECC71" style={{ margin: '0 auto' }} /></div>
         ) : (
-          regions.map(regionName => {
-            const regionLessons = filtered.filter(l => l.city === regionName || l.broadRegion === regionName);
-            if (regionLessons.length === 0) return null;
+          (() => {
+            const regions = ["서울", "경기/인천", "경상도", "전라도", "충청도", "강원/제주"];
+            return regions.map(regionName => {
+              // 지역 매칭 로직 강화 (city 또는 broadRegion 확인)
+              const regionLessons = filtered.filter(l => 
+                l.city === regionName || 
+                l.broadRegion === regionName || 
+                (regionName === "서울" && (l.city?.includes("서울") || l.region?.includes("서울"))) ||
+                (regionName === "경기/인천" && (l.city?.includes("경기") || l.city?.includes("인천") || l.region?.includes("경기") || l.region?.includes("인천")))
+              );
+              
+              if (regionLessons.length === 0) return null;
 
-            return (
-              <section key={regionName} style={{ marginBottom: '30px' }}>
-                <div style={{ padding: '0 20px 12px', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                  <div style={{ width: '4px', height: '16px', background: '#2ECC71', borderRadius: '2px' }} />
-                  <h2 style={{ fontSize: '18px', fontWeight: '900', color: '#1E293B', margin: 0 }}>{regionName}</h2>
-                  <span style={{ fontSize: '12px', color: '#94A3B8', fontWeight: '700' }}>{regionLessons.length}</span>
-                </div>
-                <div style={{ padding: '0 20px' }}>
-                  {regionLessons.map(item => (
-                    <ClassCard key={item.id} item={item} onSelect={setSelectedPoster} />
-                  ))}
-                </div>
-              </section>
-            );
-          })
+              return (
+                <section key={regionName} style={{ marginBottom: '30px' }}>
+                  <div style={{ padding: '0 20px 12px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <div style={{ width: '4px', height: '16px', background: '#2ECC71', borderRadius: '2px' }} />
+                    <h2 style={{ fontSize: '18px', fontWeight: '900', color: '#1E293B', margin: 0 }}>{regionName}</h2>
+                    <span style={{ fontSize: '12px', color: '#94A3B8', fontWeight: '700' }}>{regionLessons.length}</span>
+                  </div>
+                  <div style={{ padding: '0 20px' }}>
+                    {regionLessons.map(item => (
+                      <ClassCard key={item.id} item={item} onSelect={setSelectedPoster} />
+                    ))}
+                  </div>
+                </section>
+              );
+            });
+          })()
         )}
         {!loading && filtered.length === 0 && (
           <div style={{ padding: '100px 0', textAlign: 'center', color: '#94A3B8', fontWeight: '700' }}>등록된 수업이 없습니다 😅</div>
