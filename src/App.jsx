@@ -21,12 +21,8 @@ import { BAR_DATABASE, findBarByName } from './lib/BarLib';
 // [번역 비용 최적화를 위한 정적 맵핑]
 const REGION_MAP_EN = {
   '전국': 'Nationwide',
-  '서울': 'Seoul',
-  '경기/인천': 'Gyeonggi/Incheon',
-  '경상도': 'Gyeongsang',
-  '전라도': 'Jeolla',
-  '충청도': 'Chungcheong',
-  '강원/제주': 'Gangwon/Jeju'
+  '서울': 'Seoul', '경기/인천': 'Gyeonggi/Incheon', '경상도': 'Gyeongsang', 
+  '전라도': 'Jeolla', '충청도': 'Chungcheong', '강원/제주': 'Gangwon/Jeju'
 };
 
 const CITY_MAP_EN = {
@@ -298,7 +294,10 @@ function App() {
     const now = new Date();
     const kstString = now.toLocaleString('en-US', { timeZone: 'Asia/Seoul', year: 'numeric', month: '2-digit', day: '2-digit' });
     const [m, d, y] = kstString.split('/');
-    return { year: parseInt(y), month: parseInt(m), date: parseInt(d), dateStr: `${y}-${m}-${d}` };
+    // 0 패딩 보장 (MM, DD)
+    const mm = m.padStart(2, '0');
+    const dd = d.padStart(2, '0');
+    return { year: parseInt(y), month: parseInt(mm), date: parseInt(dd), dateStr: `${y}-${mm}-${dd}` };
   };
 
   const todayData = getKSTDate();
@@ -462,10 +461,11 @@ function App() {
 
   // --- 최적화된 번역 엔진 (DB 저장 데이터 우선 사용) ---
   useEffect(() => {
-    const todayStr = new Date().toISOString().split('T')[0];
+    const todayStr = getKSTDate().dateStr;
     const upcomingParties = parties.filter(p => p.date >= todayStr);
     
-    if (i18n.language.startsWith('en')) {
+    const currentLang = i18n.language || 'ko';
+    if (currentLang.startsWith('en')) {
       const translated = upcomingParties.map(p => ({
         ...p,
         title: p.title_en || p.title,
