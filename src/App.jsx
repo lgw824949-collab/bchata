@@ -494,7 +494,7 @@ function App() {
             display: 'flex', alignItems: 'center', justifyContent: 'center'
           }}
         >
-          <Menu size={24} color="#E53935" />
+          <Menu size={24} color="#059669" />
         </motion.button>
       )}
 
@@ -521,7 +521,7 @@ function App() {
               <motion.button 
                 whileTap={{ scale: 0.9 }}
                 onClick={handleCloseModal}
-                style={{ background: '#F8FAFC', border: '1px solid #E2E8F0', borderRadius: '12px', padding: '10px', color: '#E53935', cursor: 'pointer' }}
+                style={{ background: '#F8FAFC', border: '1px solid #E2E8F0', borderRadius: '12px', padding: '10px', color: '#059669', cursor: 'pointer' }}
               >
                 <X size={24} />
               </motion.button>
@@ -534,17 +534,17 @@ function App() {
 
             <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
               {[
-                { icon: <Calendar color="#E53935" />, text: t('view_calendar'), action: () => { handleOpenModal(setShowFullCalendar, true); setIsMenuOpen(false); } },
-                { icon: <Camera color="#E53935" />, text: 'LIVE PICK', action: () => { setView('community'); setIsMenuOpen(false); } },
-                { icon: <Utensils color="#E53935" />, text: t('restaurant'), action: () => { setView('restaurant'); setIsMenuOpen(false); } },
-                { icon: <Star color="#E53935" />, text: t('saju'), action: () => { if(typeof setShowSaju === 'function') { handleOpenModal(setShowSaju, true); setIsMenuOpen(false); } } },
-                { icon: <CloudSun color="#E53935" />, text: t('weather'), action: () => { setIsMenuOpen(false); setTimeout(() => handleOpenModal(setShowWeather, true), 300); } },
-                { icon: <Bell color="#E53935" />, text: t('notice'), action: () => { alert(t('coming_soon')) } },
-                { icon: <ShieldCheck color="#E53935" />, text: t('admin_dashboard'), action: () => { setView('admin'); setIsMenuOpen(false); } },
+                { icon: <Calendar color="#059669" />, text: t('view_calendar'), action: () => { handleOpenModal(setShowFullCalendar, true); setIsMenuOpen(false); } },
+                { icon: <Camera color="#059669" />, text: 'LIVE PICK', action: () => { setView('community'); setIsMenuOpen(false); } },
+                { icon: <Utensils color="#059669" />, text: t('restaurant'), action: () => { setView('restaurant'); setIsMenuOpen(false); } },
+                { icon: <Star color="#059669" />, text: t('saju'), action: () => { if(typeof setShowSaju === 'function') { handleOpenModal(setShowSaju, true); setIsMenuOpen(false); } } },
+                { icon: <CloudSun color="#059669" />, text: t('weather'), action: () => { setIsMenuOpen(false); setTimeout(() => handleOpenModal(setShowWeather, true), 300); } },
+                { icon: <Bell color="#059669" />, text: t('notice'), action: () => { alert(t('coming_soon')) } },
+                { icon: <ShieldCheck color="#059669" />, text: t('admin_dashboard'), action: () => { setView('admin'); setIsMenuOpen(false); } },
               ].map((item, idx) => (
                 <motion.div
                   key={idx}
-                  whileHover={{ scale: 1.02, backgroundColor: '#FFEBEE' }}
+                  whileHover={{ scale: 1.02, backgroundColor: '#f0fdf4' }}
                   whileTap={{ scale: 0.98 }}
                   onClick={item.action}
                   style={{

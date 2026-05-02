@@ -199,11 +199,11 @@ const LiveCount = () => {
         const shortRegion = abbreviateRegion(region)
         return (
           <div key={key} className="live-text" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <span className="live-dot" style={{ color: '#E53935', fontSize: '10px' }}>●</span>
+            <span className="live-dot" style={{ color: '#059669', fontSize: '10px' }}>●</span>
             <span style={{ fontWeight: 900, fontSize: '14px', color: '#FFFFFF' }}>
               {shortRegion && `${shortRegion} `}{barName}
             </span>
-            <span style={{ fontWeight: 300, fontSize: '22px', color: '#E53935', marginLeft: '4px' }}>
+            <span style={{ fontWeight: 300, fontSize: '22px', color: '#059669', marginLeft: '4px' }}>
               {count}
             </span>
           </div>
