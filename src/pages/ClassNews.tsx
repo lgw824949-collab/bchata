@@ -63,7 +63,7 @@ const ClassCard = ({ item, onSelect }) => {
 const ClassNewsPage = ({ setSelectedPoster }) => {
   const [lessons, setLessons] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [selectedWeek, setSelectedWeek] = useState('1주차');
+  const [selectedWeek, setSelectedWeek] = useState('전체');
   const [filterGenre, setFilterGenre] = useState('전체');
   const [filterLevel, setFilterLevel] = useState('전체');
 
@@ -89,9 +89,10 @@ const ClassNewsPage = ({ setSelectedPoster }) => {
 
   const filtered = useMemo(() => {
     return lessons.filter(l => {
-      const weekMatch = l.week_type === selectedWeek;
-      const genreMatch = filterGenre === '전체' || l.genre === filterGenre;
-      const levelMatch = filterLevel === '전체' || l.level === filterLevel;
+      // 1. 주차 필터: 선택된 주차와 맞거나, 혹은 아무것도 선택되지 않았을 때(전체) 다 보여줌
+      const weekMatch = !selectedWeek || selectedWeek === '전체' || l.week_type === selectedWeek;
+      const genreMatch = !filterGenre || filterGenre === '전체' || l.genre === filterGenre;
+      const levelMatch = !filterLevel || filterLevel === '전체' || l.level === filterLevel;
       return weekMatch && genreMatch && levelMatch;
     });
   }, [lessons, selectedWeek, filterGenre, filterLevel]);
