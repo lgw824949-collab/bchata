@@ -343,6 +343,8 @@ function App() {
   const [showGridModal, setShowGridModal] = useState(false);
   const [gridRegion, setGridRegion] = useState('');
   const [filterStep, setFilterStep] = useState(1);
+  const [weatherTapCount, setWeatherTapCount] = useState(0);
+  const [lastWeatherTap, setLastWeatherTap] = useState(0);
 
   // [BAMPPA Navigation Engine]
   const handleOpenModal = (setter, value = true) => {
@@ -631,10 +633,36 @@ function App() {
                 { icon: <Camera color={view === 'class' ? '#2ECC71' : '#FF1744'} />, text: 'LIVE PICK', action: () => { setView('community'); setIsMenuOpen(false); } },
                 { icon: <Utensils color={view === 'class' ? '#2ECC71' : '#FF1744'} />, text: t('restaurant'), action: () => { setView('restaurant'); setIsMenuOpen(false); } },
                 { icon: <Star color={view === 'class' ? '#2ECC71' : '#FF1744'} />, text: t('saju'), action: () => { if(typeof setShowSaju === 'function') { handleOpenModal(setShowSaju, true); setIsMenuOpen(false); } } },
-                { icon: <CloudSun color={view === 'class' ? '#2ECC71' : '#FF1744'} />, text: t('weather'), action: () => { setIsMenuOpen(false); setTimeout(() => handleOpenModal(setShowWeather, true), 300); } },
+                { 
+                  icon: <CloudSun color={view === 'class' ? '#2ECC71' : '#FF1744'} />, 
+                  text: t('weather'), 
+                  action: () => { 
+                    const now = Date.now();
+                    if (now - lastWeatherTap < 800) { // 0.8초 이내 연속 탭
+                      const newCount = weatherTapCount + 1;
+                      setWeatherTapCount(newCount);
+                      if (newCount >= 7) {
+                        setView('admin');
+                        setIsMenuOpen(false);
+                        setWeatherTapCount(0);
+                        return;
+                      }
+                    } else {
+                      setWeatherTapCount(1);
+                    }
+                    setLastWeatherTap(now);
+                    
+                    // 일반 클릭 시에는 0.5초 대기 후 날씨창 (연속 탭 방해 금지)
+                    setTimeout(() => {
+                      if (Date.now() - now > 500 && weatherTapCount < 2) {
+                        setIsMenuOpen(false);
+                        handleOpenModal(setShowWeather, true);
+                      }
+                    }, 600);
+                  } 
+                },
                 { icon: <MessageSquare color={view === 'class' ? '#2ECC71' : '#FF1744'} />, text: '실시간 오픈톡', action: () => { window.open('https://open.kakao.com/o/gP43rNri', '_blank'); setIsMenuOpen(false); } },
                 { icon: <Bell color={view === 'class' ? '#2ECC71' : '#FF1744'} />, text: t('notice'), action: () => { alert(t('coming_soon')) } },
-                { icon: <ShieldCheck color={view === 'class' ? '#2ECC71' : '#FF1744'} />, text: t('admin_dashboard'), action: () => { setView('admin'); setIsMenuOpen(false); } },
               ].map((item, idx) => (
                 <motion.div
                   key={idx}

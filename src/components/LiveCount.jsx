@@ -4,6 +4,7 @@ import { BAR_DATABASE } from '../data/barDatabase'
 
 const LiveCount = () => {
   const [counts, setCounts] = useState({})
+  const [boosters, setBoosters] = useState({ hongdae: 1.0, gangnam: 1.0, others: 1.0 })
   
   const getTodayKST = () => {
     const kst = new Date(Date.now() + (9 * 60 * 60 * 1000))
@@ -68,11 +69,28 @@ const LiveCount = () => {
     }
   }
 
+  const fetchBoosters = async () => {
+    try {
+      const { data } = await supabase.from('live_boosters').select('*')
+      if (data) {
+        const mapped = data.reduce((acc, curr) => {
+          acc[curr.region] = curr.multiplier
+          return acc
+        }, { hongdae: 1.0, gangnam: 1.0, others: 1.0 })
+        setBoosters(mapped)
+      }
+    } catch (err) {
+      console.error('Booster fetch error:', err)
+    }
+  }
+
   useEffect(() => {
     fetchCounts()
+    fetchBoosters()
     const channel = supabase
       .channel('live_checkins')
       .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'bar_checkins' }, () => fetchCounts())
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'live_boosters' }, () => fetchBoosters())
       .subscribe()
 
     const visitor_id = localStorage.getItem('bchata_visitor_id') || Math.random().toString(36).substring(2, 15)
@@ -121,17 +139,29 @@ const LiveCount = () => {
     const HONGDAE_BARS = ['보니따', '홍턴', '부에나2차', '까리베 2차', '마콘도', '팰리스클럽', '안단테', '놀이터 2차', '하바나', '아난타라', '솔SOL빠2차', '꼼애야 2차'];
     let hongdaeTotal = 0;
     
-    // 홍대 인원 합산 (필터링 전 모든 데이터 기준)
+    // 홍대 인원 합산 (부스터 적용)
     Object.entries(counts).forEach(([key, count]) => {
       const parts = key.split('|');
       const barName = parts[1] || '';
       if (HONGDAE_BARS.some(h => barName.includes(h))) {
-        hongdaeTotal += count;
+        hongdaeTotal += Math.round(count * (boosters.hongdae || 1.0));
       }
     });
 
     const list = Object.entries(counts)
-      .filter(([_, count]) => count >= 50)
+      .map(([key, count]) => {
+        const parts = key.split('|');
+        const region = parts[0] || '';
+        const barName = parts[1] || '';
+        
+        // 지역별 부스터 결정
+        let multiplier = boosters.others || 1.0;
+        if (HONGDAE_BARS.some(h => barName.includes(h))) multiplier = boosters.hongdae || 1.0;
+        else if (region.includes('서울') || region.includes('강남')) multiplier = boosters.gangnam || 1.0;
+        
+        return [key, Math.round(count * multiplier)];
+      })
+      .filter(([_, count]) => count >= 10) // 부스터 적용 후 10명 이상인 것만 (좀 더 풍성하게)
       .sort((a, b) => b[1] - a[1])
       .slice(0, 5);
 
@@ -139,7 +169,7 @@ const LiveCount = () => {
       list.unshift(['서울|🔥 홍턴(홍대)', hongdaeTotal]);
     }
     return list;
-  }, [counts]);
+  }, [counts, boosters]);
 
   if (liveList.length === 0) return null
 

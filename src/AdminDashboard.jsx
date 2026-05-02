@@ -27,6 +27,14 @@ export default function AdminDashboard({ onBack, refreshData }) {
   const [loading, setLoading] = useState(false)
   const [editingParty, setEditingParty] = useState(null)
   const [editingClass, setEditingClass] = useState(null)
+  
+  // 부스터 관련 상태
+  const [boosters, setBoosters] = useState({
+    hongdae: 1.0,
+    gangnam: 1.0,
+    others: 1.0
+  })
+  const [isBoosterLoading, setIsBoosterLoading] = useState(false)
 
   // 로그인 처리
   const handleLogin = (e) => {
@@ -156,9 +164,50 @@ export default function AdminDashboard({ onBack, refreshData }) {
       else if (activeTab === 'official') fetchOfficial()
       else if (activeTab === 'traffic') fetchAnalytics()
       else if (activeTab === 'lesson') fetchClasses()
+      else if (activeTab === 'booster') fetchBoosters()
       performAutoCleanup()
     }
   }, [activeTab, isAdmin])
+
+  const fetchBoosters = async () => {
+    setIsBoosterLoading(true)
+    try {
+      const { data, error } = await supabase.from('live_boosters').select('*')
+      if (!error && data) {
+        const mapped = data.reduce((acc, curr) => {
+          acc[curr.region] = curr.multiplier
+          return acc
+        }, { hongdae: 1.0, gangnam: 1.0, others: 1.0 })
+        setBoosters(mapped)
+      } else if (error && error.code === 'PGRST116') {
+        // 테이블이 없는 경우 조용히 넘어감 (나중에 생성)
+        console.log('live_boosters table not found yet')
+      }
+    } catch (err) {
+      console.error('Fetch boosters error:', err)
+    } finally {
+      setIsBoosterLoading(false)
+    }
+  }
+
+  const saveBooster = async (region, value) => {
+    try {
+      const { error } = await supabase
+        .from('live_boosters')
+        .upsert({ region, multiplier: parseFloat(value), updated_at: new Date() }, { onConflict: 'region' })
+      
+      if (!error) {
+        setBoosters(prev => ({ ...prev, [region]: parseFloat(value) }))
+      } else {
+        // 테이블이 없을 경우 대비하여 localStorage에도 저장 (일시적)
+        localStorage.setItem(`booster_${region}`, value)
+        setBoosters(prev => ({ ...prev, [region]: parseFloat(value) }))
+        alert('DB 저장 실패 (테이블 미생성). 현재 기기에만 임시 적용됩니다.')
+      }
+    } catch (err) {
+      console.error('Save booster error:', err)
+    }
+  }
 
   const fetchAnalytics = async () => {
     setLoading(true)
@@ -492,10 +541,68 @@ export default function AdminDashboard({ onBack, refreshData }) {
         >
           ACADEMY ({classItems.filter(i => i.status === 'pending').length})
         </button>
+        <button 
+          onClick={() => setActiveTab('booster')}
+          style={{ flexShrink: 0, padding: '12px 20px', borderRadius: '15px', border: 'none', background: activeTab === 'booster' ? '#FF1744' : '#1E293B', color: 'white', fontWeight: 800, fontSize: '13px' }}
+        >
+          LIVE BOOSTER 🔥
+        </button>
       </div>
 
       <div className="admin-content" style={{ padding: '0 16px 40px' }}>
-        {activeTab === 'traffic' ? (
+        {activeTab === 'booster' ? (
+          <div className="booster-ui" style={{ background: '#0F172A', padding: '24px', borderRadius: '28px', border: '1px solid #1E293B' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '30px' }}>
+              <div style={{ width: '12px', height: '12px', background: '#FF1744', borderRadius: '50%', boxShadow: '0 0 15px rgba(255, 23, 68, 0.5)' }} />
+              <h3 style={{ fontSize: '20px', fontWeight: 950, color: 'white', margin: 0 }}>LIVE CROWD BOOSTER</h3>
+            </div>
+
+            <p style={{ color: '#94A3B8', fontSize: '14px', marginBottom: '30px', lineHeight: 1.6 }}>
+              현장 분위기에 맞춰 실시간 표시 인원을 조절하세요.<br/>
+              설정된 배수만큼 사용자 화면에 숫자가 뻥튀기(?) 되어 표시됩니다.
+            </p>
+
+            {[
+              { id: 'hongdae', label: '🔥 홍대 권역 (Hong-ten Area)', color: '#FF1744' },
+              { id: 'gangnam', label: '💎 강남 권역 (Gangnam Area)', color: '#6366F1' },
+              { id: 'others', label: '🌍 기타 모든 지역 (Others)', color: '#94A3B8' }
+            ].map(region => (
+              <div key={region.id} style={{ marginBottom: '35px', padding: '20px', background: 'rgba(255,255,255,0.03)', borderRadius: '20px', border: '1px solid rgba(255,255,255,0.05)' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '15px' }}>
+                  <span style={{ fontSize: '15px', fontWeight: 800, color: 'white' }}>{region.label}</span>
+                  <span style={{ fontSize: '18px', fontWeight: 950, color: region.color }}>{boosters[region.id].toFixed(1)}x</span>
+                </div>
+                <input 
+                  type="range" 
+                  min="1" 
+                  max="10" 
+                  step="0.5" 
+                  value={boosters[region.id]} 
+                  onChange={(e) => saveBooster(region.id, e.target.value)}
+                  style={{ 
+                    width: '100%', 
+                    height: '6px', 
+                    borderRadius: '3px', 
+                    appearance: 'none', 
+                    background: `linear-gradient(to right, ${region.color} 0%, ${region.color} ${(boosters[region.id]-1)*11}%, #334155 ${(boosters[region.id]-1)*11}%, #334155 100%)`,
+                    outline: 'none'
+                  }}
+                />
+                <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '10px', color: '#64748B', fontSize: '11px', fontWeight: 700 }}>
+                  <span>NORMAL (1x)</span>
+                  <span>HOT (5x)</span>
+                  <span>INSANE (10x)</span>
+                </div>
+              </div>
+            ))}
+
+            <div style={{ marginTop: '20px', padding: '15px', background: 'rgba(0,255,0,0.05)', borderRadius: '16px', border: '1px solid rgba(0,255,0,0.1)' }}>
+              <p style={{ color: '#00FF00', fontSize: '12px', fontWeight: 800, textAlign: 'center', margin: 0 }}>
+                💡 설정값은 전국의 모든 사용자에게 즉시 반영됩니다.
+              </p>
+            </div>
+          </div>
+        ) : activeTab === 'traffic' ? (
           <div className="traffic-tower-ui">
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '12px', marginBottom: '24px' }}>
               <div style={{ background: 'linear-gradient(135deg, #00FF00 0%, #00CC00 100%)', color: 'black', padding: '24px', borderRadius: '24px', textAlign: 'center', boxShadow: '0 10px 30px rgba(0,255,0,0.1)' }}>
