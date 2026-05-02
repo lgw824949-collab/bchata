@@ -665,7 +665,7 @@ function App() {
 
       <main>
         {view === 'home' ? <HomePage {...sharedProps} /> : 
-         view === 'class' ? <ClassNewsPage {...sharedProps} /> :
+         view === 'class' ? <ClassNewsPage {...sharedProps} handleRegister={() => sharedProps.handleRegister('class')} /> :
          view === 'bootcamp' ? (
            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '80vh', color: '#1E293B' }}>
              <span style={{ fontSize: '48px', marginBottom: '20px' }}>🏕️</span>
@@ -682,7 +682,6 @@ function App() {
          ) :
          {
             'community': <Community setSelectedPoster={setSelectedPoster} setView={setView} />,
-            'post-lesson': <PostClub onBack={() => setView('home')} />,
             'parking': <Parking onBack={() => setView('home')} />,
             'restaurant': <Restaurant onBack={() => setView('home')} />,
             'register': registerType === 'class' ? <PostClass onBack={() => setView('home')} /> : <RegisterForm onBack={() => setView('home')} />,
