@@ -434,7 +434,8 @@ function App() {
         const fullSearchText = `${p.address || ''} ${locName} ${p.cityName || ''}`;
         let broadRegion = '전국';
         
-        if (fullSearchText.includes('서울')) broadRegion = '서울';
+        if (fullSearchText.includes('엘마로')) broadRegion = '경기/인천';
+        else if (fullSearchText.includes('서울')) broadRegion = '서울';
         else if (fullSearchText.includes('경기') || fullSearchText.includes('인천')) broadRegion = '경기/인천';
         else if (fullSearchText.includes('부산') || fullSearchText.includes('대구') || fullSearchText.includes('울산') || fullSearchText.includes('경남') || fullSearchText.includes('경북') || fullSearchText.includes('경상')) broadRegion = '경상도';
         else if (fullSearchText.includes('광주') || fullSearchText.includes('전남') || fullSearchText.includes('전북') || fullSearchText.includes('전라')) broadRegion = '전라도';
@@ -460,7 +461,8 @@ function App() {
         const fullSearchText = `${l.address || ''} ${l.studio_name || ''} ${l.city || ''}`;
         let broadRegion = '전국';
         
-        if (fullSearchText.includes('서울')) broadRegion = '서울';
+        if (fullSearchText.includes('엘마로')) broadRegion = '경기/인천';
+        else if (fullSearchText.includes('서울')) broadRegion = '서울';
         else if (fullSearchText.includes('경기') || fullSearchText.includes('인천')) broadRegion = '경기/인천';
         else if (fullSearchText.includes('부산') || fullSearchText.includes('대구') || fullSearchText.includes('울산') || fullSearchText.includes('경남') || fullSearchText.includes('경북') || fullSearchText.includes('경상')) broadRegion = '경상도';
         else if (fullSearchText.includes('광주') || fullSearchText.includes('전남') || fullSearchText.includes('전북') || fullSearchText.includes('전라')) broadRegion = '전라도';
