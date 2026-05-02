@@ -465,15 +465,37 @@ const HomePage = ({
                           {isEn ? 'View All' : '전체보기'} <ChevronRight size={14} />
                         </button>
                       </div>
-                      <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', padding: '0 15px 20px' }}>
+                      <div style={{ 
+                        display: 'grid', 
+                        gridTemplateColumns: 'repeat(3, 1fr)', 
+                        gap: '10px', 
+                        padding: '0 15px 20px' 
+                      }}>
                         {regionParties.length === 0 ? (
-                          <div style={{ padding: '40px', background: '#F8FAFC', borderRadius: '16px', textAlign: 'center', color: '#94A3B8', fontSize: '13px', fontWeight: '700' }}>{t('no_parties')}</div>
+                          <div style={{ gridColumn: 'span 3', padding: '30px', background: '#F8FAFC', borderRadius: '16px', textAlign: 'center', color: '#94A3B8', fontSize: '13px', fontWeight: '700' }}>{t('no_parties')}</div>
                         ) : (() => {
                           const offset = shuffleOffset % regionParties.length;
                           const rotated = [...regionParties.slice(offset), ...regionParties.slice(0, offset)];
-                          const maxCount = regionName === '서울' ? 4 : 3;
+                          const maxCount = regionName === '서울' ? 3 : 2; // 소셜 파티: 서울 3, 지방 2 원칙
                           return rotated.slice(0, maxCount).map(item => (
-                            <PartyCard key={item.id} item={item} onSelect={(url) => handleOpenModal(setSelectedPoster, url)} />
+                            <div key={item.id} onClick={() => handleOpenModal(setSelectedPoster, item.poster_url)} style={{ width: '100%', minWidth: 0, cursor: 'pointer' }}>
+                              {/* 1. 포스터 */}
+                              <div style={{ width: '100%', aspectRatio: '3/4.2', borderRadius: '10px', overflow: 'hidden', boxShadow: '0 2px 8px rgba(0,0,0,0.1)', marginBottom: '6px' }}>
+                                <img src={item.poster_url} style={{ width: '100%', height: '100%', objectFit: 'cover' }} alt="Poster" />
+                              </div>
+                              {/* 2. 텍스트 정보 (3행 정렬) */}
+                              <div style={{ padding: '0 2px' }}>
+                                <div style={{ fontSize: '11px', fontWeight: '950', color: '#1E293B', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                                  {item.locationName}
+                                </div>
+                                <div style={{ fontSize: '9px', fontWeight: '700', color: '#64748B', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', margin: '1px 0' }}>
+                                  {item.title}
+                                </div>
+                                <div style={{ fontSize: '9px', color: '#94A3B8', fontWeight: '600' }}>
+                                  {item.time?.split('~')[0]} · {item.cityName?.slice(0, 4)}
+                                </div>
+                              </div>
+                            </div>
                           ));
                         })()}
                       </div>
