@@ -1,8 +1,8 @@
 import { useState, useEffect } from 'react'
-import { Plus, ChevronLeft, Check, X } from 'lucide-react'
+import { Plus, ChevronLeft, Check, X, MapPin } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { supabase } from './lib/supabase'
-import { findBarByName } from './lib/BarLib'
+import { findBarByName, BAR_DATABASE } from './lib/BarLib'
 
 const METRO_REGIONS = ['서울', '인천', '경기', '부산', '대구', '광주', '대전', '울산', '세종', '강원', '충북', '충남', '전북', '전남', '경북', '경남', '제주']
 
@@ -33,6 +33,7 @@ const RegisterForm = ({ onBack, onSuccess }) => {
   const [loading, setLoading] = useState(false)
   const [submitted, setSubmitted] = useState(false)
   const [step, setStep] = useState(1)
+  const [suggestions, setSuggestions] = useState([])
   const TOTAL_STEPS = 5
 
   const DAYS_KOR = ['일', '월', '화', '수', '목', '금', '토']
@@ -56,7 +57,6 @@ const RegisterForm = ({ onBack, onSuccess }) => {
     const uploadedFile = event.target.files[0]
     if (!uploadedFile) return
     setFile(uploadedFile)
-    // [AI ANALYSIS REMOVED AS PER USER REQUEST]
   }
 
   const classifyRegion = (address) => {
@@ -72,20 +72,39 @@ const RegisterForm = ({ onBack, onSuccess }) => {
     return ''
   }
 
-  const handleLocationNameChange = async (name) => {
+  const handleLocationNameChange = (name) => {
     setFormData(prev => ({ ...prev, location_name: name }))
     
-    if (name.length >= 2) {
-      const localMatch = findBarByName(name)
-      if (localMatch) {
+    if (name.length >= 1) {
+      const filtered = BAR_DATABASE.filter(bar => 
+        bar.name.toLowerCase().includes(name.toLowerCase()) || 
+        (bar.aliases && bar.aliases.some(a => a.toLowerCase().includes(name.toLowerCase())))
+      ).slice(0, 5)
+      setSuggestions(filtered)
+
+      // 정확히 일치하는 경우 자동 입력
+      const exactMatch = findBarByName(name)
+      if (exactMatch && exactMatch.name === name) {
         setFormData(prev => ({ 
           ...prev, 
-          address: localMatch.address,
-          region: localMatch.region || classifyRegion(localMatch.address)
+          address: exactMatch.address,
+          region: exactMatch.region || classifyRegion(exactMatch.address)
         }))
-        return
+        setSuggestions([])
       }
+    } else {
+      setSuggestions([])
     }
+  }
+
+  const selectSuggestion = (bar) => {
+    setFormData(prev => ({
+      ...prev,
+      location_name: bar.name,
+      address: bar.address,
+      region: bar.region || classifyRegion(bar.address)
+    }))
+    setSuggestions([])
   }
 
   const handleSubmit = async (e) => {
@@ -211,13 +230,32 @@ const RegisterForm = ({ onBack, onSuccess }) => {
         return (
           <motion.div key="step3" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} style={{ padding: '24px' }}>
             <label style={{ display: 'block', fontSize: '20px', fontWeight: 900, color: '#1E293B', marginBottom: '24px' }}>📍 장소 및 지역 선택</label>
-            <div style={{ marginBottom: '20px' }}>
+            <div style={{ marginBottom: '20px', position: 'relative' }}>
               <p style={{ fontSize: '14px', fontWeight: 800, color: '#64748B', marginBottom: '8px' }}>장소 이름</p>
               <input type="text" value={formData.location_name} onChange={e => handleLocationNameChange(e.target.value)} placeholder="예: 홍대 보니따" style={{ width: '100%', padding: '18px', border: '2px solid #F1F5F9', borderRadius: '16px', fontSize: '16px', background: '#F8FAFC' }} />
+              
+              {/* Autocomplete Suggestions */}
+              <AnimatePresence>
+                {suggestions.length > 0 && (
+                  <motion.div initial={{ opacity:0, y:-10 }} animate={{ opacity:1, y:0 }} exit={{ opacity:0 }} style={{ position: 'absolute', top: '100%', left: 0, right: 0, zIndex: 100, background: '#fff', borderRadius: '16px', boxShadow: '0 10px 30px rgba(0,0,0,0.1)', marginTop: '8px', border: '1px solid #F1F5F9', overflow: 'hidden' }}>
+                    {suggestions.map((bar, i) => (
+                      <div key={i} onClick={() => selectSuggestion(bar)} style={{ padding: '16px', borderBottom: i === suggestions.length - 1 ? 'none' : '1px solid #F1F5F9', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '12px' }}>
+                        <div style={{ background: '#FEF2F2', padding: '8px', borderRadius: '8px' }}>
+                          <MapPin size={16} color="#FF1744" />
+                        </div>
+                        <div>
+                          <p style={{ fontWeight: 800, fontSize: '15px', color: '#1E293B' }}>{bar.name}</p>
+                          <p style={{ fontSize: '12px', color: '#94A3B8', marginTop: '2px' }}>{bar.address}</p>
+                        </div>
+                      </div>
+                    ))}
+                  </motion.div>
+                )}
+              </AnimatePresence>
             </div>
             <div style={{ marginBottom: '24px' }}>
               <p style={{ fontSize: '14px', fontWeight: 800, color: '#64748B', marginBottom: '8px' }}>상세 주소</p>
-              <input type="text" value={formData.address} onChange={e => setFormData({...formData, address: e.target.value})} placeholder="정확한 주소를 입력해주세요" style={{ width: '100%', padding: '18px', border: '2px solid #F1F5F9', borderRadius: '16px', fontSize: '15px', background: '#F8FAFC' }} />
+              <input type="text" value={formData.address} onChange={e => setFormData({...formData, address: e.target.value})} placeholder="장소 선택 시 주소가 자동 입력됩니다" style={{ width: '100%', padding: '18px', border: '2px solid #F1F5F9', borderRadius: '16px', fontSize: '15px', background: '#F8FAFC' }} />
             </div>
             <p style={{ fontSize: '14px', fontWeight: 800, color: '#64748B', marginBottom: '12px' }}>대분류 지역</p>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '8px' }}>
