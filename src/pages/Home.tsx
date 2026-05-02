@@ -110,10 +110,10 @@ const PartyCard = ({ item, onSelect }) => {
 
       {/* 2. 정보 영역 (3행 초고밀도 조합) */}
       <div style={{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'center', minWidth: 0, padding: '0 15px' }}>
-        {/* 1행: 장소명 + 빨간 화살표 */}
+        {/* 1행: 장소명 (순수 장소명만!) + 빨간 화살표 */}
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '2px' }}>
           <span style={{ fontSize: '13px', fontWeight: '800', color: '#64748B' }}>
-            {item.locationName.replace(/^\[.*?\]\s*/, '')}
+            {item.locationName.replace(/^\[.*?\]\s*|서울\s*|토요일\s*|일요일\s*|·\s*\d{2}:\d{2}/g, '').trim() || '장소 미지정'}
           </span>
           <div onClick={openMap} style={{ color: '#FF1744', cursor: 'pointer', padding: '2px' }}>
             <Navigation size={14} fill="currentColor" />
