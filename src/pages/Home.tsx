@@ -113,9 +113,7 @@ const PartyCard = ({ item, onSelect }) => {
         {/* 1행: 장소명 (순수 장소명만!) + 빨간 화살표 */}
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '2px' }}>
           <span style={{ fontSize: '13px', fontWeight: '800', color: '#64748B' }}>
-            {(item.displayLocationName || item.locationName || '')
-              .replace(/\[.*?\]|\d{1,2}:\d{2}|요일|서울|경기|인천|·/g, '')
-              .trim() || '장소 미지정'}
+            {item.locationName || item.studio_name || item.address || '장소 미지정'}
           </span>
           <div onClick={openMap} style={{ color: '#FF1744', cursor: 'pointer', padding: '2px' }}>
             <Navigation size={14} fill="currentColor" />
