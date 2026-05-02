@@ -197,6 +197,11 @@ const LiveCount = () => {
       `}</style>
 
       <div className="ticker-container">
+        {areaSummary.length === 0 && liveList.length === 0 && (
+          <span className="live-text" style={{ color: '#94A3B8', fontSize: '13px' }}>
+            🎵 밤빠가 전하는 전국 소셜 파티 실시간 인원 중계 중! 🔥
+          </span>
+        )}
         {/* 1. 성지 구역 요약 (광고판 중계) */}
         {areaSummary.map(item => (
           <div key={item.area} className="live-text" style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
