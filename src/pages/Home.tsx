@@ -591,7 +591,7 @@ const HomePage = ({
                                   startDate.setHours(h, m, 0, 0);
                                   if (now.toDateString() === pDate.toDateString() && now >= startDate) {
                                     return (
-                                      <div style={{ position: 'absolute', top: '35px', left: '8px', background: '#FF1744', color: 'white', fontSize: '9px', fontWeight: '950', padding: '2px 5px', borderRadius: '4px', boxShadow: '0 2px 4px rgba(0,0,0,0.2)', display: 'flex', alignItems: 'center', gap: '3px', zIndex: 10 }}>
+                                      <div style={{ position: 'absolute', top: '8px', left: '8px', background: '#FF1744', color: 'white', fontSize: '9px', fontWeight: '950', padding: '2px 5px', borderRadius: '4px', boxShadow: '0 2px 4px rgba(0,0,0,0.2)', display: 'flex', alignItems: 'center', gap: '3px', zIndex: 10 }}>
                                         <span style={{ width: '5px', height: '5px', background: 'white', borderRadius: '50%', display: 'inline-block' }}></span>
                                         LIVE
                                       </div>

@@ -434,13 +434,12 @@ function App() {
         
         // 지역 분류 로직 (주소 + 장소명 + 도시명 통합 검색)
         const fullSearchText = `${p.address || ''} ${locName} ${p.cityName || ''}`;
-        let broadRegion = '전국';
+        let broadRegion = '서울'; // 기본값 서울 설정
         
-        if (fullSearchText.includes('엘마로')) broadRegion = '경기/인천';
-        else if (fullSearchText.includes('서울')) broadRegion = '서울';
-        else if (fullSearchText.includes('경기') || fullSearchText.includes('인천')) broadRegion = '경기/인천';
-        else if (fullSearchText.includes('부산') || fullSearchText.includes('대구') || fullSearchText.includes('울산') || fullSearchText.includes('경남') || fullSearchText.includes('경북') || fullSearchText.includes('경상')) broadRegion = '경상도';
-        else if (fullSearchText.includes('광주') || fullSearchText.includes('전남') || fullSearchText.includes('전북') || fullSearchText.includes('전라')) broadRegion = '전라도';
+        if (fullSearchText.includes('서울') || fullSearchText.includes('강남') || fullSearchText.includes('홍대') || fullSearchText.includes('잠실') || fullSearchText.includes('성수')) broadRegion = '서울';
+        else if (fullSearchText.includes('경기') || fullSearchText.includes('인천') || fullSearchText.includes('부천') || fullSearchText.includes('수원') || fullSearchText.includes('엘마로')) broadRegion = '경기/인천';
+        else if (fullSearchText.includes('부산') || fullSearchText.includes('대구') || fullSearchText.includes('울산') || fullSearchText.includes('경상') || fullSearchText.includes('경남') || fullSearchText.includes('경북')) broadRegion = '경상도';
+        else if (fullSearchText.includes('광주') || fullSearchText.includes('전라') || fullSearchText.includes('전남') || fullSearchText.includes('전북')) broadRegion = '전라도';
         else if (fullSearchText.includes('대전') || fullSearchText.includes('충남') || fullSearchText.includes('충북') || fullSearchText.includes('충청') || fullSearchText.includes('세종')) broadRegion = '충청도';
         else if (fullSearchText.includes('강원') || fullSearchText.includes('제주')) broadRegion = '강원/제주';
         
