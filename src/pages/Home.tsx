@@ -85,15 +85,6 @@ const PartyCard = ({ item, onSelect }) => {
     window.open(url, '_blank');
   };
 
-  const todayStr = useMemo(() => {
-    const d = new Date();
-    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
-  }, []);
-
-  const isAfter9AM = useMemo(() => {
-    const now = new Date();
-    return now.getHours() >= 9;
-  }, []);
 
   return (
     <div 
@@ -236,7 +227,14 @@ const HomePage = ({
   const isEn = i18n.language.startsWith('en');
   const [isPaused, setIsPaused] = useState(false);
   const [weatherMap, setWeatherMap] = useState({});
-  const todayStr = useMemo(() => new Date().toISOString().split('T')[0], []);
+  const todayStr = useMemo(() => {
+    const d = new Date();
+    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+  }, []);
+  const isAfter9AM = useMemo(() => {
+    const now = new Date();
+    return now.getHours() >= 9;
+  }, []);
   const scrollRef = useRef(null);
   const regionListRef = useRef(null);
   const [shuffleOffset, setShuffleOffset] = useState(0);
