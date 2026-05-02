@@ -606,16 +606,13 @@ function App() {
            </div>
          ) :
          {
-           'register': <RegisterForm onBack={() => setView('home')} onSuccess={() => { fetchParties(); setView('home'); }} />,
             'community': <Community setSelectedPoster={setSelectedPoster} setView={setView} />,
-           'post-lesson': <PostClub onBack={() => setView('home')} />,
-           'parking': <Parking onBack={() => setView('home')} />,
-           'restaurant': <Restaurant onBack={() => setView('home')} />,
-           'admin': <AdminDashboard onBack={() => setView('home')} refreshData={fetchParties} />
-         }[view] || <AdminDashboard onBack={() => setView('home')} refreshData={fetchParties} />}
+            'post-lesson': <PostClub onBack={() => setView('home')} />,
+            'parking': <Parking onBack={() => setView('home')} />,
+            'restaurant': <Restaurant onBack={() => setView('home')} />,
+            'admin': <AdminDashboard onBack={() => setView('home')} refreshData={fetchParties} />
+          }[view] || <AdminDashboard onBack={() => setView('home')} refreshData={fetchParties} />}
       </main>
-
-
 
       <DynamicAnalysisModal isOpen={showIncheonModal} onClose={() => setShowIncheonModal(false)} userCoords={userCoords} isSajuCall={isSajuCall} />
       <AnimatePresence>
@@ -626,6 +623,14 @@ function App() {
       </AnimatePresence>
       <AnimatePresence>
         {showWeather && <WeatherModal onClose={() => setShowWeather(false)} />}
+      </AnimatePresence>
+      <AnimatePresence>
+        {view === 'register' && (
+          <RegisterForm 
+            onBack={() => setView('home')} 
+            onSuccess={() => { fetchParties(); setView('home'); }} 
+          />
+        )}
       </AnimatePresence>
       
       {/* 포스터 줌인 모달 (컴포넌트 방식) */}
