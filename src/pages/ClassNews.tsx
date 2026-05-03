@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { Navigation, MapPin, Music, Award, Clock, DollarSign, Loader2 } from 'lucide-react';
+import { Navigation, MapPin, Music, Award, Clock, DollarSign, Loader2, ChevronLeft, ChevronRight } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { supabase } from '../lib/supabase';
 
