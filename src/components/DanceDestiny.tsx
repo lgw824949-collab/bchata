@@ -204,10 +204,28 @@ export default function DanceDestiny({ onClose, parties=[] }: { onClose: () => v
       instructorStyle = `에너지가 넘치고 강렬한 카리스마를 가진 강사 스타일이 어울려요. ${main}의 열정을 자극하는 빡세고 디테일한 피드백을 통해 한계를 돌파해보세요.`
     }
 
+    // 5. 강사 유형 결정 로직
+    let instructorType = ""
+    if (q2 === '체계적이고 꼼꼼하게' || q4 === '정확한 기술과 베이직') {
+      instructorType = "체계형 (기초/원리 중심)"
+    } else if (q2 === '열정적이고 빡센 분위기' || q4 === '화려한 패턴과 무대매너') {
+      instructorType = "에너지형 (열정/퍼포먼스 중심)"
+    } else if (q4 === '음악과의 교감과 감성' || main === '水') {
+      instructorType = "감성형 (음악/느낌 중심)"
+    } else if (q2 === '다 같이 친해지는 분위기' || q4 === '파트너와의 소통과 연결' || main === '土') {
+      instructorType = "소통형 (파트너십/즐거움 중심)"
+    } else {
+      // 최종 Fallback (오행 기반)
+      if (main === '木' || main === '金') instructorType = "체계형 (기초/원리 중심)"
+      else if (main === '火') instructorType = "에너지형 (열정/퍼포먼스 중심)"
+      else instructorType = "소통형 (파트너십/즐거움 중심)"
+    }
+
     setResult({ 
       yearGJ:yGJ, monthGJ:mGJ, dayGJ:dGJ, timeGJ:tGJ, 
       ohengCount:count, mainOheng:main, dance, 
       instructorStyle, matchedClasses, gender, today: todayStr,
+      instructorType,
       answers: { q1, q2, q3, q4 }
     })
     setLoading(false)
@@ -266,7 +284,7 @@ export default function DanceDestiny({ onClose, parties=[] }: { onClose: () => v
           </div>
           <div>
             <div style={{ fontSize:22,fontWeight:900,letterSpacing:'-0.5px', display:'flex', alignItems:'center', gap:8 }}>
-              <Sparkles size={24} /> 댄스 운명 좌표
+              <Sparkles size={24} /> 나의 댄스 강사 유형 찾기
             </div>
             <div style={{ fontSize:12,color:'rgba(255,255,255,0.7)',marginTop:6 }}>사주와 성향을 결합한 정밀 분석</div>
           </div>
@@ -424,7 +442,7 @@ export default function DanceDestiny({ onClose, parties=[] }: { onClose: () => v
                 {result.gender}성 · {result.mainOheng} 기운 분석
               </div>
               <div style={{ fontSize:26, fontWeight:900, color:'#111', marginBottom:16 }}>
-                추천 장르: {result.dance.genre}
+                나에게 맞는 강사 유형: {result.instructorType}
               </div>
               <p style={{ fontSize:15, color:'#444', lineHeight:1.6, marginBottom:20 }}>{result.dance.reason}</p>
               
