@@ -307,9 +307,6 @@ const HomePage = ({
           <span style={{ fontSize: '10px', color: '#FF1744', fontWeight: 800, letterSpacing: '2px', textTransform: 'uppercase' }}>
             Social Culture Experience
           </span>
-          <h1 style={{ fontSize: '48px', fontWeight: 950, color: '#0f172a', letterSpacing: '-3px', lineHeight: 0.9, margin: 0 }}>
-            오늘밤<span style={{ color: '#FF1744', fontStyle: 'italic', marginLeft: '-2px' }}>빠</span>
-          </h1>
         </div>
         <div style={{ display: 'flex', alignItems: 'flex-start', gap: '16px' }}>
           <div style={{ width: '2px', height: '40px', background: '#FF1744', marginTop: '4px' }}></div>
