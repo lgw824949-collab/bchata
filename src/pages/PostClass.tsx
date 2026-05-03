@@ -44,9 +44,10 @@ export default function PostClass({ onBack }) {
         .from('posters')
         .getPublicUrl(filePath);
 
-      console.log('Uploaded Poster URL:', publicUrl);
+      console.log('✅ POSTER UPLOAD SUCCESS:', publicUrl);
       setFormData({ ...formData, poster_url: publicUrl });
     } catch (error) {
+      console.error('❌ UPLOAD ERROR:', error);
       alert('업로드 실패: ' + error.message);
     } finally {
       setLoading(false);
@@ -109,9 +110,14 @@ export default function PostClass({ onBack }) {
               <button 
                 disabled={loading} 
                 onClick={() => setStep(2)}
-                style={{ width: '100%', padding: '20px', borderRadius: '18px', background: formData.poster_url ? '#2ECC71' : '#E2E8F0', color: '#fff', fontSize: '16px', fontWeight: 800, border: 'none', marginTop: '40px', cursor: 'pointer' }}
+                style={{ 
+                  width: '100%', padding: '20px', borderRadius: '18px', 
+                  background: loading ? '#E2E8F0' : '#2ECC71', 
+                  color: '#fff', fontSize: '16px', fontWeight: 800, border: 'none', 
+                  marginTop: '40px', cursor: loading ? 'default' : 'pointer' 
+                }}
               >
-                다음 단계로
+                {loading ? '업로드 중...' : '다음 단계로'}
               </button>
             </motion.div>
           )}
