@@ -30,7 +30,8 @@ const PostClass = ({ onBack }) => {
     region: '서울',
     dance_style: '바차타',
     week_type: '1주차',
-    duration: '상시'
+    duration: '상시',
+    district: ''
   })
 
   const DANCE_STYLES = ['바차타', '살사', '쥬크', '키좀바']
@@ -106,6 +107,7 @@ const PostClass = ({ onBack }) => {
         studio_name: formData.studio_name,
         address: formData.address,
         city: formData.region,
+        district: formData.district,
         poster_url: finalPosterUrl,
         status: 'pending',
         category_type: 'class',
@@ -255,6 +257,7 @@ const PostClass = ({ onBack }) => {
             <label style={stepTitleStyle}>📍 장소 및 참여비</label>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
               <div><p style={labelStyle}>지역</p><div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '8px' }}>{REGIONS.map(r => <button key={r} onClick={() => setFormData({...formData, region: r})} style={{ ...chipStyle, background: formData.region === r ? THEME_COLOR : '#F7FAFC', color: formData.region === r ? '#fff' : '#4A5568' }}>{r}</button>)}</div></div>
+              <div><p style={labelStyle}>구/동 (예: 홍대, 강남, 건대)</p><input style={inputStyle} value={formData.district} onChange={e => setFormData({...formData, district: e.target.value})} placeholder="예: 홍대" /></div>
               <div><p style={labelStyle}>장소명</p><input style={inputStyle} value={formData.studio_name} onChange={e => setFormData({...formData, studio_name: e.target.value})} placeholder="예: 홍대 댄스스튜디오" /></div>
               <div><p style={labelStyle}>상세 주소</p><input style={inputStyle} value={formData.address} onChange={e => setFormData({...formData, address: e.target.value})} placeholder="예: 서울 마포구 ..." /></div>
               <div><p style={labelStyle}>참여비 (숫자만)</p><input type="number" style={inputStyle} value={formData.fee} onChange={e => setFormData({...formData, fee: e.target.value})} placeholder="예: 1.5" /></div>
