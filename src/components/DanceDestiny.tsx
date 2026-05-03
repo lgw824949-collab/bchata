@@ -192,7 +192,7 @@ export default function DanceDestiny({ onClose, parties=[] }: { onClose: () => v
         }
       })
 
-    // 4. 강사 스타일 문구 생성
+    // 4. 강사 스타일 문구 생성 (Fallback용)
     let instructorStyle = ""
     if (q2 === '체계적이고 꼼꼼하게') {
       instructorStyle = `기초부터 탄탄하게 잡아주는 정석적인 강사 스타일이 맞아요. ${main}의 기운을 가진 당신은 정확한 원리를 이해할 때 가장 큰 성장을 이룹니다.`
@@ -204,7 +204,7 @@ export default function DanceDestiny({ onClose, parties=[] }: { onClose: () => v
       instructorStyle = `에너지가 넘치고 강렬한 카리스마를 가진 강사 스타일이 어울려요. ${main}의 열정을 자극하는 빡세고 디테일한 피드백을 통해 한계를 돌파해보세요.`
     }
 
-    // 5. 강사 유형 결정 로직
+    // 5. 강사 유형 결정 로직 (Fallback용)
     let instructorType = ""
     if (q2 === '체계적이고 꼼꼼하게' || q4 === '정확한 기술과 베이직') {
       instructorType = "체계형 (기초/원리 중심)"
@@ -221,6 +221,64 @@ export default function DanceDestiny({ onClose, parties=[] }: { onClose: () => v
       else instructorType = "소통형 (파트너십/즐거움 중심)"
     }
 
+    try {
+      // 6. Gemini API 실시간 분석
+      const apiKey = import.meta.env.VITE_GEMINI_API_KEY
+      if (apiKey) {
+        const prompt = `당신은 댄스 강사 유형 분석 전문가입니다.
+아래 정보를 바탕으로 이 사람에게 맞는 댄스 강사 유형을 분석해주세요.
+
+- 사주 오행: ${OHENG_NAMES[main]} (${main})
+- 태어난 시: ${JI_JI[t]}시
+- 춤을 배우는 목적: ${q1}
+- 선호하는 수업 분위기: ${q2}
+- 현재 댄스 실력: ${q3}
+- 선호 장르: ${q4}
+
+결과 형식(JSON):
+{
+  "type": "체계형/감성형/에너지형/소통형 중 하나",
+  "title": "한줄 요약 타이틀",
+  "analysis": "사주와 연계된 상세 분석 내용 (3-4줄)",
+  "keywords": ["키워드1", "키워드2", "키워드3"]
+}
+
+주의: 반드시 JSON 형식으로만 답변하세요.`
+
+        const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            contents: [{ parts: [{ text: prompt }] }]
+          })
+        })
+
+        const data = await response.json()
+        const text = data.candidates?.[0]?.content?.parts?.[0]?.text || ''
+        
+        // JSON 추출 (마크다운 코드 블록 제거 등)
+        const jsonMatch = text.match(/\{[\s\S]*\}/)
+        if (jsonMatch) {
+          const aiResult = JSON.parse(jsonMatch[0])
+          setResult({ 
+            yearGJ:yGJ, monthGJ:mGJ, dayGJ:dGJ, timeGJ:tGJ, 
+            ohengCount:count, mainOheng:main, dance, 
+            instructorStyle: aiResult.analysis, 
+            matchedClasses, gender, today: todayStr,
+            instructorType: `${aiResult.type} (${aiResult.title})`,
+            aiKeywords: aiResult.keywords,
+            answers: { q1, q2, q3, q4 }
+          })
+          setLoading(false)
+          setStep(3)
+          return
+        }
+      }
+    } catch (err) {
+      console.error('Gemini API Error:', err)
+    }
+
+    // Fallback 로직 (기존 하드코딩)
     setResult({ 
       yearGJ:yGJ, monthGJ:mGJ, dayGJ:dGJ, timeGJ:tGJ, 
       ohengCount:count, mainOheng:main, dance, 
@@ -447,7 +505,7 @@ export default function DanceDestiny({ onClose, parties=[] }: { onClose: () => v
               <p style={{ fontSize:15, color:'#444', lineHeight:1.6, marginBottom:20 }}>{result.dance.reason}</p>
               
               <div style={{ display:'flex', gap:6, justifyContent:'center', flexWrap:'wrap' }}>
-                {result.dance.traits.map((t: string)=>(
+                {(result.aiKeywords || result.dance.traits).map((t: string)=>(
                   <span key={t} style={{ padding:'6px 14px', borderRadius:99, background:result.dance.color, color:'#fff', fontSize:13, fontWeight:700 }}>#{t}</span>
                 ))}
               </div>
