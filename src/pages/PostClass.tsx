@@ -56,7 +56,12 @@ export default function PostClass({ onBack }) {
 
   // 최종 등록 로직
   const handleSubmit = async () => {
-    if (!formData.title || !formData.genre || !formData.level) return alert('필수 정보를 모두 입력해주세요.');
+    console.log('🚀 SUBMIT CLICKED', formData);
+    
+    // 필수 정보 누락 시 경고
+    if (!formData.title || !formData.genre || !formData.level) {
+      return alert('필수 정보(제목, 장르, 난이도)를 모두 입력해주세요.');
+    }
     
     setLoading(true);
     try {
@@ -69,6 +74,7 @@ export default function PostClass({ onBack }) {
       alert('등록 신청이 완료되었습니다.\n관리자 승인 후 게시됩니다.');
       onBack();
     } catch (error) {
+      console.error('❌ SUBMIT ERROR:', error);
       alert('등록 오류: ' + error.message);
     } finally {
       setLoading(false);
@@ -76,14 +82,14 @@ export default function PostClass({ onBack }) {
   };
 
   return (
-    <div style={{ background: '#fff', minHeight: '100vh', paddingBottom: '100px' }}>
+    <div style={{ background: '#fff', minHeight: '100vh', paddingBottom: '180px' }}>
       {/* Header */}
-      <div style={{ display: 'flex', alignItems: 'center', padding: '20px', position: 'sticky', top: 0, background: '#fff', zIndex: 10 }}>
+      <div style={{ display: 'flex', alignItems: 'center', padding: '20px', position: 'sticky', top: 0, background: '#fff', zIndex: 10000 }}>
         <button onClick={onBack} style={{ background: 'none', border: 'none', cursor: 'pointer' }}><ChevronLeft size={28} /></button>
         <h2 style={{ fontSize: '18px', fontWeight: 900, marginLeft: '12px' }}>클래스 등록 신청</h2>
       </div>
 
-      {/* Progress Bar (2단계 고정) */}
+      {/* Progress Bar */}
       <div style={{ height: '4px', background: '#F1F5F9', width: '100%' }}>
         <motion.div animate={{ width: `${(step / 2) * 100}%` }} style={{ height: '100%', background: '#2ECC71' }} />
       </div>
@@ -197,7 +203,8 @@ export default function PostClass({ onBack }) {
                   background: '#2ECC71', color: '#fff', fontSize: '18px', fontWeight: 900, 
                   border: 'none', marginTop: '30px', cursor: 'pointer', 
                   display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px',
-                  opacity: loading ? 0.5 : 1
+                  opacity: loading ? 0.5 : 1,
+                  position: 'relative', zIndex: 9999 // 내비게이션 바보다 위에 오도록 설정
                 }}
               >
                 {loading ? '처리 중...' : <><Check size={22}/> 신청 완료하기</>}
