@@ -435,7 +435,7 @@ function App() {
       const [partiesRes, locationsRes, lessonsRes] = await Promise.all([
         supabase.from('parties').select('*').order('date', { ascending: true }),
         supabase.from('locations').select('id, name'),
-        supabase.from('classes_info').select('*').eq('status', 'active').order('start_date', { ascending: true })
+        supabase.from('classes_info').select('*').eq('status', 'approved').eq('category_type', 'class').order('start_date', { ascending: true })
       ]);
 
       const rawParties = partiesRes.data || [];
@@ -722,7 +722,7 @@ function App() {
 
       <main>
         {view === 'home' ? <HomePage {...sharedProps} /> : 
-         view === 'class' ? <ClassNewsPage {...sharedProps} handleRegister={() => sharedProps.handleRegister('class')} /> :
+         view === 'class' ? <ClassNewsPage lessons={lessons} {...sharedProps} handleRegister={() => sharedProps.handleRegister('class')} /> :
          view === 'bootcamp' ? (
            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '80vh', color: '#1E293B' }}>
              <span style={{ fontSize: '48px', marginBottom: '20px' }}>🏕️</span>
