@@ -223,7 +223,7 @@ const PostClub = ({ onBack, onSuccess }) => {
             type="text" 
             value={formData.title} 
             onChange={e => setFormData({...formData, title: e.target.value})} 
-            placeholder="예: 강남 바차타 기초반, 살사사랑 정모" 
+            placeholder="" 
             required 
             style={{ width: '100%', padding: '16px', border: '1.5px solid #F3F4F6', borderRadius: '14px', fontSize: '16px', backgroundColor: '#F9FAFB', outline: 'none' }} 
           />

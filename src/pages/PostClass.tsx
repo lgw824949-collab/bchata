@@ -147,7 +147,7 @@ const PostClass = ({ onBack }) => {
             <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
               <div>
                 <p style={labelStyle}>강습 제목</p>
-                <input style={inputStyle} value={formData.title} onChange={e => setFormData({...formData, title: e.target.value})} placeholder="예: [초급] 바차타 베이직 마스터" />
+                <input style={inputStyle} value={formData.title} onChange={e => setFormData({...formData, title: e.target.value})} placeholder="" />
               </div>
               <div>
                 <p style={labelStyle}>강사명 (또는 닉네임)</p>

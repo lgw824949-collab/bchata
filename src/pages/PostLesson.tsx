@@ -202,7 +202,7 @@ const PostLesson = ({ onBack, user }) => {
                 <label style={{ display: 'block', fontSize: '14px', fontWeight: 700, color: '#4B5563', marginBottom: '8px' }}>강습/동호회 명칭</label>
                 <input 
                   type="text" 
-                  placeholder="예) 바차타 패턴 원리반" 
+                  placeholder="" 
                   value={formData.title}
                   onChange={e => setFormData({...formData, title: e.target.value})}
                   style={{ width: '100%', height: '48px', padding: '0 16px', borderRadius: '12px', border: '1px solid #E5E7EB', fontSize: '15px', outline: 'none' }} 
