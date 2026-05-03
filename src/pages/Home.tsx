@@ -122,9 +122,20 @@ const PartyCard = ({ item, onSelect }) => {
           <span style={{ fontSize: '13px', fontWeight: '800', color: '#64748B' }}>
             {item.locationName || item.studio_name || item.address || '장소 미지정'}
           </span>
-          <div onClick={openMap} style={{ color: '#FF1744', cursor: 'pointer', padding: '2px' }}>
-            <Navigation size={14} fill="currentColor" />
-          </div>
+          <Navigation 
+            size={14} 
+            color="#FF1744" 
+            fill="#FF1744" 
+            style={{ flexShrink: 0, cursor: 'pointer' }} 
+            onClick={(e) => {
+              e.stopPropagation();
+              const addr = item.address || item.locationName;
+              window.open(
+                `https://map.kakao.com/link/search/${encodeURIComponent(addr)}`,
+                '_blank'
+              )
+            }}
+          />
         </div>
 
         {/* 2행: 제목 (대폭 강조) + LIVE 뱃지 */}
