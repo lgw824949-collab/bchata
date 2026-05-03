@@ -1,11 +1,11 @@
 // src/components/DanceDestiny.tsx
-// 전면 재작성: 모달 기반 / Gemini API 전용 분석 / 내비게이션 최적화
-// parties, BAR, 강사 라인업 등 모든 외부 데이터 렌더링 삭제
+// 최종 완성본: 강사 매칭 최적화 / Gemini API 연동 / 404 에러 방지 및 로컬 롤백 포함
+// 추천 클래스 & 강사 라인업 복구 완료
 
 import React, { useState } from 'react'
 import { X, ChevronDown, Sparkles, ChevronLeft } from 'lucide-react'
 
-// ─── 사주 상수 (Gemini 프롬프트용 데이터 추출) ───
+// --- 사주 상수 ---
 const CHUN_GAN = ['갑','을','병','정','무','기','경','신','임','계']
 const CHUN_GAN_OHENG = ['木','木','火','火','土','土','金','金','水','水']
 const JI_JI = ['자','축','인','묘','진','사','오','미','신','유','술','해']
@@ -27,8 +27,15 @@ const TIME_LIST = [
 ]
 
 const OHENG_NAMES: Record<string, string> = { '木':'나무', '火':'불', '土':'흙', '金':'쇠', '水':'물' }
+const OHENG_DANCE: Record<string, any> = {
+  '火': { genre:'살사', emoji:'🔥', color:'#E53935', bg:'#FFF0F0', border:'#FFCDD2', traits:['열정적','강렬함','카리스마'] },
+  '水': { genre:'바차타', emoji:'🌊', color:'#1565C0', bg:'#E3F2FD', border:'#BBDEFB', traits:['감성적','유연함','섬세함'] },
+  '木': { genre:'주크바차타', emoji:'🌿', color:'#2E7D32', bg:'#E8F5E9', border:'#C8E6C9', traits:['유연함','창의성','균형감'] },
+  '金': { genre:'키좀바', emoji:'💎', color:'#6D28D9', bg:'#F5F3FF', border:'#DDD6FE', traits:['절제','정밀함','신뢰감'] },
+  '土': { genre:'모든 장르', emoji:'⛰️', color:'#92400E', bg:'#FEF3C7', border:'#FDE68A', traits:['안정감','포용력','신뢰'] },
+}
 
-// ─── 사주 계산 함수 ───
+// --- 유틸 함수 ---
 function getYearGJ(y: number) {
   const g = ((y-4)%10+10)%10, j = ((y-4)%12+12)%12
   return { gan:CHUN_GAN[g], ji:JI_JI[j], ganOheng:CHUN_GAN_OHENG[g], jiOheng:JI_JI_OHENG[j] }
@@ -52,14 +59,13 @@ function calcMainOheng(saju: any[]) {
   return Object.entries(cnt).sort((a,b)=>b[1]-a[1])[0][0]
 }
 
-// ─── 공통 스타일 ───
 const INP: React.CSSProperties = {
   padding:'12px 14px', borderRadius:12, border:'1.5px solid #E2E8F0',
   fontSize:14, outline:'none', background:'#FAFBFF', color:'#111', width:'100%',
   fontFamily:"'Pretendard',sans-serif",
 }
 
-export default function DanceDestiny({ onClose }: { onClose: () => void }) {
+export default function DanceDestiny({ onClose, parties=[] }: { onClose: () => void, parties?: any[] }) {
   const [step, setStep]       = useState(1)
   const [gender, setGender]   = useState('')
   const [year, setYear]       = useState('')
@@ -82,22 +88,60 @@ export default function DanceDestiny({ onClose }: { onClose: () => void }) {
     if (!isBasicValid || !isQuestionsValid) return
     setLoading(true)
 
+    const y=parseInt(year), m=parseInt(month), d=parseInt(day), t=parseInt(timeIdx)
+    const saju = [getYearGJ(y), getMonthJi(m), getDayGJ(y,m,d), { ji:JI_JI[t], jiOheng:JI_JI_OHENG[t] }]
+    const main = calcMainOheng(saju)
+    const dance = { ...OHENG_DANCE[main] }
+
+    // 추천 클래스 매칭 로직
+    const now = new Date()
+    const kstDate = new Date(now.getTime() + (9 * 60 * 60 * 1000))
+    const todayStr = kstDate.toISOString().split('T')[0]
+
+    const genreMatch = (p: any, targetGenre: string) => {
+      if (targetGenre === '모든 장르') return true
+      const title = (p.title || '').toLowerCase()
+      if (targetGenre === '살사') return title.includes('살사') || (p.s_ratio||0) >= 1
+      if (targetGenre === '바차타') return title.includes('바차타') || (p.b_ratio||0) >= 1
+      if (targetGenre === '주크바차타') return title.includes('주크') || (p.j_ratio||0) >= 1
+      if (targetGenre === '키좀바') return title.includes('키좀바') || (p.k_ratio||0) >= 1
+      return false
+    }
+
+    const matchedClasses = parties
+      .filter(p => p.date >= todayStr && genreMatch(p, dance.genre))
+      .sort((a, b) => a.date.localeCompare(b.date))
+      .slice(0, 3)
+      .map(p => ({
+        title: p.title,
+        instructor: p.teacher || p.instructor || '강사 정보 없음',
+        location: p.locations?.name || p.location_name || '장소 정보 없음',
+        date: p.date,
+        poster_url: p.poster_url
+      }))
+
+    // 로컬 분석 Fallback (AI 실패 시 대비)
+    let instructorType = ""
+    let instructorStyle = ""
+    if (q2 === '체계적이고 꼼꼼하게') {
+      instructorType = "체계형 (기초/원리 중심)"; instructorStyle = `기초부터 탄탄하게 잡아주는 정석적인 강사 스타일이 맞아요. ${OHENG_NAMES[main]}의 기운을 가진 당신은 정확한 원리를 이해할 때 큰 성취감을 느낍니다.`
+    } else if (q2 === '쉽고 재미있게') {
+      instructorType = "소통형 (파트너십/즐거움 중심)"; instructorStyle = `유머러스하고 유쾌한 분위기를 만드는 강사 스타일이 어울려요. 즐거운 분위기 속에서 당신의 잠재력이 가장 잘 발휘됩니다.`
+    } else if (q2 === '다 같이 친해지는 분위기') {
+      instructorType = "감성형 (음악/느낌 중심)"; instructorStyle = `커뮤니티와 소통을 중시하는 외향적인 강사 스타일이 맞아요. 사람들과 교류하며 에너지를 얻는 당신에게 최고의 환경입니다.`
+    } else {
+      instructorType = "에너지형 (열정/퍼포먼스 중심)"; instructorStyle = `에너지가 넘치고 강렬한 카리스마를 가진 강사 스타일이 어울려요. 당신의 열정을 자극하는 피드백이 성장의 원동력이 됩니다.`
+    }
+
     try {
-      const y=parseInt(year), m=parseInt(month), d=parseInt(day), t=parseInt(timeIdx)
-      const saju = [getYearGJ(y), getMonthJi(m), getDayGJ(y,m,d), { ji:JI_JI[t], jiOheng:JI_JI_OHENG[t] }]
-      const main = calcMainOheng(saju)
       const apiKey = import.meta.env.VITE_GEMINI_API_KEY
-      console.log('API KEY:', apiKey)
-
-      const prompt = `당신은 댄스 강사 유형 분석 전문가입니다.
-아래 정보를 바탕으로 이 사람에게 맞는 댄스 강사 유형을 분석해주세요.
-
-- 사주 오행: ${OHENG_NAMES[main]} (${main})
-- 태어난 시: ${JI_JI[t]}시
-- 춤을 배우는 목적: ${q1}
-- 선호하는 수업 분위기: ${q2}
-- 현재 댄스 실력: ${q3}
-- 선호 장르: ${q4}
+      if (apiKey) {
+        const prompt = `당신은 댄스 강사 유형 분석 전문가입니다. 아래 정보를 바탕으로 이 사람에게 맞는 댄스 강사 유형을 분석해주세요.
+- 사주 오행: ${OHENG_NAMES[main]}
+- 춤 배우는 목적: ${q1}
+- 선호 분위기: ${q2}
+- 춤 실력: ${q3}
+- 선호 가치: ${q4}
 
 결과 형식(JSON):
 {
@@ -106,59 +150,59 @@ export default function DanceDestiny({ onClose }: { onClose: () => void }) {
   "analysis": "사주와 연계된 상세 분석 내용 (3-4줄)",
   "keywords": ["키워드1", "키워드2", "키워드3"]
 }
-
 반드시 JSON 형식으로만 답변하세요.`
 
-      const response = await fetch(`https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash:generateContent?key=${apiKey}`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }] })
-      })
+        const endpoint = "https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent";
+        const response = await fetch(`${endpoint}?key=${apiKey.trim()}`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }] })
+        })
 
-      const data = await response.json()
-      console.log('API 응답 상세:', JSON.stringify(data, null, 2))
-      const text = data.candidates?.[0]?.content?.parts?.[0]?.text || ''
-      const jsonMatch = text.match(/\{[\s\S]*\}/)
-      
-      if (jsonMatch) {
-        const aiData = JSON.parse(jsonMatch[0])
-        setResult(aiData)
-        setStep(3)
-      } else {
-        alert('분석 결과를 불러오지 못했습니다. 다시 시도해주세요.')
+        const data = await response.json()
+        const text = data.candidates?.[0]?.content?.parts?.[0]?.text || ''
+        const jsonMatch = text.match(/\{[\s\S]*\}/)
+        
+        if (jsonMatch) {
+          const ai = JSON.parse(jsonMatch[0])
+          setResult({
+            dance, mainOheng: main, gender, today: todayStr,
+            instructorType: `${ai.type} (${ai.title})`,
+            instructorStyle: ai.analysis,
+            aiKeywords: ai.keywords,
+            matchedClasses
+          })
+          setStep(3); setLoading(false); return
+        }
       }
     } catch (err) {
-      console.error(err)
-      alert('오류가 발생했습니다.')
-    } finally {
-      setLoading(false)
+      console.error('Gemini API Error, falling back to local analysis:', err)
     }
-  }
 
-  const reset = () => {
-    setStep(1); setResult(null);
-    setYear(''); setMonth(''); setDay(''); setTimeIdx(''); setGender('');
-    setQ1(''); setQ2(''); setQ3(''); setQ4('');
+    // AI 실패 시 로컬 결과 적용
+    setResult({
+      dance, mainOheng: main, gender, today: todayStr,
+      instructorType, instructorStyle, matchedClasses
+    })
+    setStep(3); setLoading(false)
   }
 
   return (
     <div style={{ position:'fixed', inset:0, zIndex:10000, display:'flex', alignItems:'flex-end', justifyContent:'center' }}>
-      {/* 배경 딤처리 */}
-      <div onClick={onClose} style={{ position:'absolute', inset:0, background:'rgba(0,0,0,0.6)', backdropFilter:'blur(4px)' }} />
+      <div onClick={onClose} style={{ position:'absolute', inset:0, background:'rgba(0,0,0,0.65)', backdropFilter:'blur(4px)' }} />
 
-      {/* 모달 바디 */}
       <div style={{
         position:'relative', width:'100%', maxWidth:'500px', background:'#fff',
-        borderRadius:'32px 32px 0 0', maxHeight:'92vh', overflowY:'auto',
-        boxShadow:'0 -10px 40px rgba(0,0,0,0.2)', transition:'transform 0.3s ease-out'
+        borderRadius:'32px 32px 0 0', maxHeight:'94vh', overflowY:'auto',
+        boxShadow:'0 -10px 40px rgba(0,0,0,0.2)'
       }}>
         
-        {/* 공통 헤더 */}
+        {/* 헤더 */}
         <div style={{
           position:'sticky', top:0, zIndex:10, background:'linear-gradient(135deg,#0D47A1 0%,#1565C0 100%)',
-          padding:'20px', color:'#fff', borderRadius:'32px 32px 0 0'
+          padding:'20px 20px 40px', color:'#fff', borderRadius:'32px 32px 0 0'
         }}>
-          <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center' }}>
+          <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:12 }}>
             <button onClick={() => step === 1 ? onClose() : setStep(step - 1)} style={{ background:'none', border:'none', color:'#fff', cursor:'pointer', padding:8 }}>
               <ChevronLeft size={24} />
             </button>
@@ -169,13 +213,15 @@ export default function DanceDestiny({ onClose }: { onClose: () => void }) {
               <X size={18} />
             </button>
           </div>
+          <svg style={{ position:'absolute', bottom:0, left:0, width:'100%' }} viewBox="0 0 400 50" preserveAspectRatio="none">
+            <path d="M0,50 C110,20 210,60 400,50 L400,50 L0,50 Z" fill="#ffffff"/>
+          </svg>
         </div>
 
-        <div style={{ padding:'24px 20px 40px' }}>
-          {/* STEP 1: 기본 정보 */}
+        <div style={{ padding:'10px 20px 40px' }}>
           {step === 1 && (
             <div style={{ animation:'fadeIn 0.3s' }}>
-              <h3 style={{ fontSize:18, fontWeight:800, marginBottom:20, color:'#1e293b' }}>정보를 입력해주세요</h3>
+              <h3 style={{ fontSize:16, fontWeight:800, marginBottom:20, color:'#1e293b' }}>정보를 입력해주세요</h3>
               <div style={{ display:'flex', gap:10, marginBottom:16 }}>
                 {['남','여'].map(g => (
                   <button key={g} onClick={()=>setGender(g)} style={{
@@ -202,26 +248,25 @@ export default function DanceDestiny({ onClose }: { onClose: () => void }) {
                 width:'100%', padding:18, borderRadius:16, border:'none', fontSize:17, fontWeight:900,
                 background: isBasicValid ? 'linear-gradient(135deg,#1565C0,#42A5F5)' : '#E2E8F0',
                 color:'#fff', cursor:isBasicValid?'pointer':'not-allowed'
-              }}>다음 단계로</button>
+              }}>다음 단계로 (1/2)</button>
             </div>
           )}
 
-          {/* STEP 2: 질문 */}
           {step === 2 && (
             <div style={{ animation:'fadeIn 0.3s' }}>
-              <h3 style={{ fontSize:18, fontWeight:800, marginBottom:20, color:'#1e293b' }}>당신의 성향은?</h3>
+              <h3 style={{ fontSize:16, fontWeight:800, marginBottom:20, color:'#1e293b' }}>당신의 성향은?</h3>
               {[
                 { label:'Q1. 배우는 목적', val:q1, set:setQ1, opts:['소셜파티','퍼포먼스/대회','취미','다이어트'] },
                 { label:'Q2. 선호 분위기', val:q2, set:setQ2, opts:['체계적/꼼꼼','쉽고 재미있게','다 같이 친목','열정/빡센'] },
                 { label:'Q3. 춤 실력', val:q3, set:setQ3, opts:['왕초보','기본기 초보','중급','고수'] },
-                { label:'Q4. 중요 가치', val:q4, set:setQ4, opts:['기술/베이직','음악/감성','소통/연결','패턴/무대'] },
+                { label:'Q4. 선호 가치', val:q4, set:setQ4, opts:['기술/베이직','음악/감성','소통/연결','패턴/무대'] },
               ].map((q, idx) => (
                 <div key={idx} style={{ marginBottom:20 }}>
-                  <div style={{ fontSize:14, fontWeight:700, color:'#64748b', marginBottom:10 }}>{q.label}</div>
+                  <div style={{ fontSize:13, fontWeight:700, color:'#64748b', marginBottom:10 }}>{q.label}</div>
                   <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:8 }}>
                     {q.opts.map(opt => (
                       <button key={opt} onClick={()=>q.set(opt)} style={{
-                        padding:12, borderRadius:10, fontSize:13, fontWeight:600,
+                        padding:12, borderRadius:10, fontSize:12, fontWeight:600,
                         border: q.val===opt ? '1.5px solid #1565C0' : '1px solid #E2E8F0',
                         background: q.val===opt ? '#F0F7FF' : '#fff',
                         color: q.val===opt ? '#1565C0' : '#64748b',
@@ -234,33 +279,46 @@ export default function DanceDestiny({ onClose }: { onClose: () => void }) {
                 width:'100%', padding:18, borderRadius:16, border:'none', fontSize:17, fontWeight:900,
                 background: isQuestionsValid ? 'linear-gradient(135deg,#1565C0,#42A5F5)' : '#E2E8F0',
                 color:'#fff', cursor:isQuestionsValid?'pointer':'not-allowed'
-              }}>{loading ? '🔮 운명 분석 중...' : '🔮 나의 댄스 운명 확인하기'}</button>
+              }}>{loading ? '🔮 분석 중...' : '🔮 강사 유형 확인하기'}</button>
             </div>
           )}
 
-          {/* STEP 3: 결과 */}
           {step === 3 && result && (
             <div style={{ animation:'fadeIn 0.5s' }}>
-              <div style={{ textAlign:'center', marginBottom:30, padding:24, borderRadius:24, background:'#F8FAFC', border:'2px solid #E2E8F0' }}>
-                <div style={{ fontSize:40, marginBottom:16 }}>✨</div>
-                <div style={{ fontSize:22, fontWeight:900, color:'#1e293b', marginBottom:8 }}>{result.type}</div>
-                <div style={{ fontSize:16, fontWeight:700, color:'#1565C0' }}>"{result.title}"</div>
+              <div style={{ textAlign:'center', marginBottom:24, padding:24, borderRadius:24, background:result.dance.bg, border:`2px solid ${result.dance.border}` }}>
+                <div style={{ fontSize:40, marginBottom:16 }}>{result.dance.emoji}</div>
+                <div style={{ fontSize:22, fontWeight:900, color:'#1e293b', marginBottom:8 }}>{result.instructorType}</div>
+                <div style={{ fontSize:14, color:result.dance.color, fontWeight:700 }}>{result.gender}성 · {OHENG_NAMES[result.mainOheng]} 기운 분석</div>
               </div>
               
               <div style={{ marginBottom:30 }}>
-                <h4 style={{ fontSize:16, fontWeight:900, color:'#1e293b', marginBottom:12 }}>👨‍🏫 나에게 맞는 강사 스타일</h4>
-                <div style={{ padding:20, borderRadius:20, background:'#fff', border:'1.5px solid #E2E8F0', lineHeight:1.6, color:'#334155', fontSize:15 }}>
-                  {result.analysis}
+                <h4 style={{ fontSize:15, fontWeight:900, color:'#1e293b', marginBottom:12 }}>👨‍🏫 나에게 맞는 강사 스타일</h4>
+                <div style={{ padding:20, borderRadius:20, background:'#f8fafc', border:'1.5px solid #E2E8F0', lineHeight:1.6, color:'#334155', fontSize:15 }}>
+                  {result.instructorStyle}
                 </div>
               </div>
 
-              <div style={{ display:'flex', gap:8, flexWrap:'wrap', justifyContent:'center', marginBottom:30 }}>
-                {result.keywords?.map((k:string) => (
-                  <span key={k} style={{ padding:'8px 16px', borderRadius:99, background:'#F1F5F9', color:'#475569', fontSize:13, fontWeight:700 }}>#{k}</span>
-                ))}
-              </div>
+              {result.matchedClasses && result.matchedClasses.length > 0 && (
+                <div style={{ marginBottom:30 }}>
+                  <h4 style={{ fontSize:15, fontWeight:900, color:'#1e293b', marginBottom:12 }}>✨ 추천 클래스 & 강사 라인업</h4>
+                  <div style={{ display:'flex', flexDirection:'column', gap:10 }}>
+                    {result.matchedClasses.map((cls: any, i: number)=>(
+                      <div key={i} style={{ padding:16, borderRadius:16, background:'#fff', border:'1px solid #f1f5f9', display:'flex', alignItems:'center', gap:12, boxShadow:'0 2px 8px rgba(0,0,0,0.03)' }}>
+                        <div style={{ width:56, height:56, borderRadius:12, background:'#f8fafc', border:'1px solid #e2e8f0', overflow:'hidden', display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0 }}>
+                          {cls.poster_url ? <img src={cls.poster_url} style={{ width:'100%', height:'100%', objectFit:'cover' }} /> : <span style={{ fontSize:20 }}>👤</span>}
+                        </div>
+                        <div style={{ flex:1 }}>
+                          <div style={{ fontSize:14, fontWeight:800, color:'#1e293b' }}>{cls.title}</div>
+                          <div style={{ fontSize:12, color:'#64748b', marginTop:2 }}>{cls.instructor} | {cls.location}</div>
+                          <div style={{ fontSize:11, color:'#94a3b8', marginTop:2 }}>{cls.date}</div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
 
-              <button onClick={reset} style={{ width:'100%', padding:16, borderRadius:14, background:'#F1F5F9', color:'#64748b', border:'none', fontSize:15, fontWeight:700, cursor:'pointer' }}>
+              <button onClick={() => { setStep(1); setResult(null); }} style={{ width:'100%', padding:16, borderRadius:14, background:'#f1f5f9', color:'#64748b', border:'none', fontSize:15, fontWeight:700, cursor:'pointer' }}>
                 🔄 다시 분석하기
               </button>
             </div>
