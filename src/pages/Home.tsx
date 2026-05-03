@@ -285,7 +285,8 @@ const HomePage = ({
   showFilteredResults, setShowFilteredResults, isMenuOpen, setIsMenuOpen, showWeather, setShowWeather,
   showLatinModal, setShowLatinModal, setShowSaju, latinCat, setLatinCat, selPatternId, setSelPatternId, regionalTheme, recordTraffic, IncheonBanner, venueCounts, openAnalysis,
   showGridModal, setShowGridModal, gridRegion, setGridRegion, filterStep, setFilterStep,
-  handleOpenModal, handleCloseModal
+  handleOpenModal, handleCloseModal,
+  lessons
 }) => {
   const { t, i18n } = useTranslation();
   const isEn = i18n.language.startsWith('en');

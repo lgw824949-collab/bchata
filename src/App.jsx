@@ -715,7 +715,7 @@ function App() {
       </AnimatePresence>
 
       <main>
-        {view === 'home' ? <HomePage {...sharedProps} /> : 
+        {view === 'home' ? <HomePage {...sharedProps} lessons={lessons} /> : 
          view === 'class' ? <ClassNewsPage {...sharedProps} handleRegister={() => sharedProps.handleRegister('class')} /> :
          view === 'bootcamp' ? (
            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '80vh', color: '#1E293B' }}>
