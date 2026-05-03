@@ -49,22 +49,33 @@ const PosterImage = ({ src, onClick, alt = "파티 포스터" }) => {
 };
 
 const PartyCard = ({ item, onSelect }) => {
-  const isLive = (() => {
+  const isTimeLive = (() => {
     const now = new Date();
     const pDate = new Date(item.date);
     
-    // 시작 시각 설정 (기본 20:00)
+    // 1. 시작 시간 추출
     const startStr = (item.time?.split('-')[0] || '20:00').trim();
     const [sH, sM] = startStr.split(':').length === 2 ? startStr.split(':').map(Number) : [20, 0];
-    
     const startDate = new Date(pDate);
     startDate.setHours(sH, sM, 0, 0);
 
-    // 종료 시각 설정 (시작 후 7시간 뒤, 예: 새벽 3시)
-    const endDate = new Date(startDate);
-    endDate.setHours(startDate.getHours() + 7);
+    // 2. 마감 시간 추출 및 설정
+    const endStr = item.time?.includes('-') ? item.time.split('-')[1].trim() : null;
+    let endDate = new Date(startDate);
 
-    return now >= startDate && now <= endDate;
+    if (endStr && endStr.includes(':')) {
+      const [eH, eM] = endStr.split(':').map(Number);
+      endDate.setHours(eH, eM + 30, 0, 0);
+      // 만약 마감 시간이 다음 날 새벽이라면 날짜 보정
+      if (endDate < startDate) endDate.setDate(endDate.getDate() + 1);
+    } else {
+      // 마감 시간 없으면 시작 + 4시간 + 30분
+      endDate.setHours(startDate.getHours() + 4, startDate.getMinutes() + 30, 0, 0);
+    }
+
+    // 3. 시작 30분 전부터 체크
+    const startWithBuffer = new Date(startDate.getTime() - 30 * 60 * 1000);
+    return now >= startWithBuffer && now <= endDate;
   })();
 
   const cleanTitle = item.title?.split(' ㅣ ')[0] || '';
@@ -140,7 +151,7 @@ const PartyCard = ({ item, onSelect }) => {
 
         {/* 2행: 제목 (대폭 강조) + LIVE 뱃지 */}
         <div style={{ display: 'flex', alignItems: 'center', gap: '5px', marginBottom: '4px' }}>
-          {isLive && (
+          {isTimeLive && (
             <span style={{ 
               background: '#FF1744', color: '#fff', fontSize: '8px', fontWeight: '950', 
               padding: '1px 4px', borderRadius: '3px', animation: 'blink 1.5s infinite', flexShrink: 0
