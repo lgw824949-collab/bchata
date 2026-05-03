@@ -87,6 +87,7 @@ export default function DanceDestiny({ onClose }: { onClose: () => void }) {
       const saju = [getYearGJ(y), getMonthJi(m), getDayGJ(y,m,d), { ji:JI_JI[t], jiOheng:JI_JI_OHENG[t] }]
       const main = calcMainOheng(saju)
       const apiKey = import.meta.env.VITE_GEMINI_API_KEY
+      console.log('API KEY:', apiKey)
 
       const prompt = `당신은 댄스 강사 유형 분석 전문가입니다.
 아래 정보를 바탕으로 이 사람에게 맞는 댄스 강사 유형을 분석해주세요.
@@ -115,6 +116,7 @@ export default function DanceDestiny({ onClose }: { onClose: () => void }) {
       })
 
       const data = await response.json()
+      console.log('API 응답:', data)
       const text = data.candidates?.[0]?.content?.parts?.[0]?.text || ''
       const jsonMatch = text.match(/\{[\s\S]*\}/)
       
