@@ -342,6 +342,8 @@ const HomePage = ({
   const { t, i18n } = useTranslation();
   const isEn = i18n.language.startsWith('en');
   const [isPaused, setIsPaused] = useState(false);
+  const [classGenre, setClassGenre] = useState('전체');
+  const [classLevel, setClassLevel] = useState('전체');
   const [weatherMap, setWeatherMap] = useState({});
   const todayStr = useMemo(() => {
     const d = new Date();
@@ -571,14 +573,49 @@ const HomePage = ({
                 });
               })()}
 
-              {/* 📌 [영역 D: 5월 클래스 섹션 - 소셜 섹션 코드 100% 복제] */}
-              <div style={{ marginTop: '20px' }}>
-                <div style={{ padding: '0 20px 10px' }}>
-                  <h2 style={{ fontSize: '18px', fontWeight: '950', color: '#1E293B', margin: 0 }}>
+              {/* 📌 [영역 D: 5월 클래스 섹션 - 캐러셀 + 필터링] */}
+              <div style={{ marginTop: '20px', background: '#fff', paddingBottom: '30px' }}>
+                <div style={{ padding: '20px 20px 10px' }}>
+                  <h2 style={{ fontSize: '18px', fontWeight: '950', color: '#1E293B', margin: '0 0 15px' }}>
                     <span style={{ color: '#2ECC71' }}>{selectedMonth}월</span> 클래스
                   </h2>
+
+                  {/* 장르 필터 Pills */}
+                  <div style={{ display: 'flex', overflowX: 'auto', gap: '8px', marginBottom: '12px', msOverflowStyle: 'none', scrollbarWidth: 'none' }} className="no-scrollbar">
+                    {['전체', '바차타', '살사', '키좀바', '쥬크'].map(g => (
+                      <button
+                        key={g}
+                        onClick={() => setClassGenre(g)}
+                        style={{
+                          padding: '6px 14px', borderRadius: '20px', fontSize: '12px', fontWeight: '800', border: 'none',
+                          background: classGenre === g ? '#2ECC71' : '#F1F5F9',
+                          color: classGenre === g ? '#fff' : '#64748B',
+                          whiteSpace: 'nowrap', transition: 'all 0.2s'
+                        }}
+                      >
+                        {g}
+                      </button>
+                    ))}
+                  </div>
+
+                  {/* 레벨 필터 Pills */}
+                  <div style={{ display: 'flex', overflowX: 'auto', gap: '8px', marginBottom: '15px', msOverflowStyle: 'none', scrollbarWidth: 'none' }} className="no-scrollbar">
+                    {['전체', '입문', '초급', '중급', '상급'].map(l => (
+                      <button
+                        key={l}
+                        onClick={() => setClassLevel(l)}
+                        style={{
+                          padding: '6px 14px', borderRadius: '20px', fontSize: '12px', fontWeight: '800', border: 'none',
+                          background: classLevel === l ? '#1E293B' : '#F1F5F9',
+                          color: classLevel === l ? '#fff' : '#64748B',
+                          whiteSpace: 'nowrap', transition: 'all 0.2s'
+                        }}
+                      >
+                        {l}
+                      </button>
+                    ))}
+                  </div>
                 </div>
-                
 
                 {(() => {
                   const regions = ["서울", "경기/인천", "경상도", "전라도", "충청도", "강원/제주"];
@@ -590,32 +627,107 @@ const HomePage = ({
                                (l.category_type === 'class') && 
                                (l.status === 'approved');
                       })
-                      .filter(l => REGION_FILTER[regionName](l));
+                      .filter(l => REGION_FILTER[regionName](l))
+                      .filter(l => {
+                        const genreMatch = classGenre === '전체' || l.genre === classGenre;
+                        const levelMatch = classLevel === '전체' || l.level === classLevel;
+                        return genreMatch && levelMatch;
+                      });
 
                     if (regionLessons.length === 0) return null;
-
-                    const maxCount = regionName === '서울' ? 4 : 3;
 
                     return (
                       <section 
                         key={`class-region-${regionName}`} 
-                        style={{ marginBottom: '15px', background: '#fff' }}
+                        style={{ marginBottom: '20px' }}
                       >
-                        <div style={{ fontSize: '18px', fontWeight: '900', padding: '15px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                            <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#FF1744' }} />
+                        <div style={{ fontSize: '16px', fontWeight: '900', padding: '0 20px 12px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                            <div style={{ width: '4px', height: '14px', borderRadius: '2px', background: '#2ECC71' }} />
                             {isEn ? (REGION_MAP_EN[regionName] || regionName) : regionName}
+                            <span style={{ fontSize: '11px', color: '#94A3B8', fontWeight: '700', marginLeft: '4px' }}>{regionLessons.length}</span>
                           </div>
                           <button 
                             onClick={() => setView('class')}
-                            style={{ fontSize: '12px', fontWeight: '700', color: '#94A3B8', background: 'none', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '2px' }}
+                            style={{ fontSize: '12px', fontWeight: '700', color: '#94A3B8', background: 'none', border: 'none', cursor: 'pointer' }}
                           >
-                            {isEn ? 'View All' : '전체보기'} <ChevronRight size={14} />
+                            {isEn ? 'View All' : '전체보기'} ›
                           </button>
                         </div>
-                        <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', padding: '0 15px 20px' }}>
-                          {regionLessons.slice(0, maxCount).map(item => (
-                            <ClassCard key={item.id} item={item} onSelect={(url) => handleOpenModal(setSelectedPoster, url)} />
+
+                        {/* 가로 스와이프 캐러셀 영역 */}
+                        <div 
+                          style={{ 
+                            display: 'flex', 
+                            overflowX: 'auto', 
+                            gap: '12px', 
+                            padding: '0 20px 10px',
+                            scrollSnapType: 'x mandatory',
+                            WebkitOverflowScrolling: 'touch',
+                            msOverflowStyle: 'none',
+                            scrollbarWidth: 'none'
+                          }} 
+                          className="no-scrollbar"
+                        >
+                          {regionLessons.slice(0, 20).map(item => (
+                            <div 
+                              key={item.id}
+                              style={{ flexShrink: 0, width: '280px', scrollSnapAlign: 'start' }}
+                            >
+                              <div 
+                                onClick={() => handleOpenModal(setSelectedPoster, item.poster_url)} 
+                                style={{ 
+                                  display: 'flex', 
+                                  flexDirection: 'row', 
+                                  alignItems: 'center', 
+                                  backgroundColor: '#FFFFFF', 
+                                  borderRadius: '16px', 
+                                  overflow: 'hidden', 
+                                  border: '1px solid #F1F5F9', 
+                                  cursor: 'pointer', 
+                                  height: '110px', 
+                                  boxShadow: '0 4px 6px -1px rgba(0,0,0,0.05)'
+                                }}
+                              >
+                                {/* 포스터 (좌측 80px) */}
+                                <div style={{ width: '80px', height: '110px', flexShrink: 0, overflow: 'hidden' }}>
+                                  <img src={item.poster_url} style={{ width: '100%', height: '100%', objectFit: 'cover' }} alt="Poster" />
+                                </div>
+
+                                {/* 정보 영역 (우측) */}
+                                <div style={{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'center', minWidth: 0, padding: '0 15px' }}>
+                                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '2px' }}>
+                                    <span style={{ fontSize: '13px', fontWeight: '800', color: '#64748B', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                                      {item.studio_name || item.address || '장소 미지정'}
+                                    </span>
+                                    <Navigation size={14} color="#FF1744" fill="#FF1744" />
+                                  </div>
+
+                                  <div style={{ display: 'flex', alignItems: 'center', gap: '5px', marginBottom: '4px', minWidth: 0 }}>
+                                    <span style={{ fontSize: '10px', fontWeight: '900', color: '#fff', background: '#2ECC71', padding: '1px 5px', borderRadius: '3px', flexShrink: 0 }}>
+                                      {item.level}
+                                    </span>
+                                    <h3 style={{ fontSize: '16px', fontWeight: '950', color: '#1E293B', margin: 0, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', letterSpacing: '-0.5px' }}>
+                                      {item.title}
+                                    </h3>
+                                  </div>
+
+                                  <div style={{ display: 'flex', alignItems: 'center', gap: '3px', fontSize: '11px', fontWeight: '800', color: '#94A3B8', whiteSpace: 'nowrap', overflow: 'hidden' }}>
+                                    <span style={{ color: '#FF1744' }}>{item.genre}</span>
+                                    <span>/</span>
+                                    <span>{item.day_of_week} {item.start_time?.slice(0,5)}</span>
+                                    <span>/</span>
+                                    <span style={{ color: '#1E293B' }}>
+                                      {(() => {
+                                        if (!item.start_date) return '';
+                                        const d = new Date(item.start_date);
+                                        return `${d.getMonth() + 1}/${d.getDate()} 시작`;
+                                      })()}
+                                    </span>
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
                           ))}
                         </div>
                       </section>
