@@ -48,7 +48,7 @@ const RegisterForm = ({ onBack, onSuccess }) => {
 
   const handleTitleChange = (e) => {
     const value = e.target.value;
-    if (value.length <= 40) {
+    if (value.length <= 16) {
       setFormData(prev => ({ ...prev, title: value }));
     }
   };
@@ -221,9 +221,10 @@ const RegisterForm = ({ onBack, onSuccess }) => {
               value={formData.title} 
               onChange={handleTitleChange} 
               placeholder="예: 강남 턴 바차타 정모 맛집!" 
+              maxLength={16}
               style={{ width: '100%', height: '120px', padding: '20px', border: '2px solid #F1F5F9', borderRadius: '20px', fontSize: '18px', fontWeight: 700, background: '#F8FAFC', outline: 'none', resize: 'none' }} 
             />
-            <p style={{ marginTop: '12px', fontSize: '13px', color: '#94A3B8' }}>* 지역과 제목을 알기 쉽게 적어주세요 (최대 40자)</p>
+            <p style={{ marginTop: '12px', fontSize: '13px', color: '#94A3B8' }}>* 지역과 제목을 알기 쉽게 적어주세요 (최대 16자)</p>
           </motion.div>
         );
       case 3:
