@@ -80,54 +80,54 @@ const PartyCard = ({ item, onSelect, liveCount = 0 }) => {
   return (
     <div 
       style={{ 
-        display: 'flex', 
+        display: 'grid',
+        gridTemplateColumns: '50px 115px 1fr 100px',
         alignItems: 'center',
         backgroundColor: '#FFFFFF', 
-        borderRadius: '12px', 
-        padding: '10px 16px',
+        padding: '12px 16px',
         gap: '12px',
         borderBottom: '1px solid #F1F5F9',
         cursor: 'pointer',
         width: '100%',
-        minHeight: '70px'
+        minHeight: '75px'
       }}
     >
-      {/* 포스터 (썸네일) */}
+      {/* 0열: 포스터 (썸네일) */}
       <div 
         onClick={() => onSelect(item.poster_url)} 
-        style={{ width: '50px', height: '50px', flexShrink: 0, borderRadius: '8px', overflow: 'hidden', boxShadow: '0 2px 6px rgba(0,0,0,0.06)' }}
+        style={{ width: '50px', height: '50px', borderRadius: '8px', overflow: 'hidden', boxShadow: '0 2px 6px rgba(0,0,0,0.06)' }}
       >
         <img src={item.poster_url} style={{ width: '100%', height: '100%', objectFit: 'cover' }} alt="Poster" />
       </div>
 
-      {/* 1열: 라틴 LIVE -> 지도 */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexShrink: 0 }}>
-        <span style={{ fontSize: '11px', fontWeight: '950', color: '#1E293B', whiteSpace: 'nowrap' }}>{item.locationName || '라틴'}</span>
+      {/* 1열: 장소명 & 라이브 & 화살표 (수직 정렬 보장) */}
+      <div style={{ display: 'flex', alignItems: 'center', gap: '5px', overflow: 'hidden' }}>
+        <span style={{ fontSize: '12px', fontWeight: '950', color: '#1E293B', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: '50px' }}>
+          {item.locationName || '장소미정'}
+        </span>
         {isLive && (
           <div style={{ 
             background: '#FF1744', color: '#fff', fontSize: '8px', fontWeight: '950',
-            padding: '1.5px 4px', borderRadius: '3px', display: 'flex', alignItems: 'center', gap: '2px', whiteSpace: 'nowrap'
+            padding: '1.5px 4px', borderRadius: '3px', whiteSpace: 'nowrap', flexShrink: 0
           }}>
             LIVE ● {liveCount || 0}
           </div>
         )}
-        <div style={{ marginLeft: '4px', display: 'flex', alignItems: 'center' }}>
-          <Navigation size={12} color="#FF1744" fill="#FF1744" />
-        </div>
+        <Navigation size={12} color="#FF1744" fill="#FF1744" style={{ flexShrink: 0, marginLeft: 'auto' }} />
       </div>
 
-      {/* 2열: 타이틀 (한 줄로 쭉!) */}
+      {/* 2열: 타이틀 */}
       <div 
         onClick={() => onSelect(item.poster_url)} 
-        style={{ flex: 1, minWidth: 0 }}
+        style={{ minWidth: 0, padding: '0 5px' }}
       >
-        <h3 style={{ fontSize: '13px', fontWeight: '800', color: '#1E293B', margin: 0, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+        <h3 style={{ fontSize: '13px', fontWeight: '800', color: '#1E293B', margin: 0, lineHeight: '1.4', wordBreak: 'keep-all' }}>
           {cleanTitle.replace(/^\[.*?\]\s*|서울\s*|전국\s*/g, '')}
         </h3>
       </div>
 
-      {/* 3열: 날짜 요일 금액 비율 (옆으로 나란히!) */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexShrink: 0 }}>
+      {/* 3열: 날짜 요일 금액 비율 (수직 정렬 보장) */}
+      <div style={{ display: 'flex', alignItems: 'center', gap: '8px', justifyContent: 'flex-end' }}>
         <div style={{ fontSize: '11px', fontWeight: '800', color: '#64748B', whiteSpace: 'nowrap' }}>
           {(() => { const d = new Date(item.date); return `${d.getMonth() + 1}/${d.getDate()}(${DAYS_KOR[d.getDay()]})`; })()}
         </div>
