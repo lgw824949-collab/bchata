@@ -152,7 +152,7 @@ const ClassNewsPage = ({ lessons: allLessons, loading: lessonsLoading, selectedM
         <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
           {/* 1단: 주차 필터 (달력 기반 동적 생성) */}
           <div style={{ display: 'flex', gap: '8px', overflowX: 'auto', paddingBottom: '2px' }} className="no-scrollbar">
-            {['전체', ...weekButtons].map(w => (
+            {weekButtons.map(w => (
               <button 
                 key={w} 
                 onClick={() => setSelectedWeek(w)} 
@@ -166,7 +166,7 @@ const ClassNewsPage = ({ lessons: allLessons, loading: lessonsLoading, selectedM
                   transition: 'all 0.2s'
                 }}
               >
-                {w === '전체' ? 'ALL' : w.replace('주차', 'WK')}
+                {w}
               </button>
             ))}
           </div>
