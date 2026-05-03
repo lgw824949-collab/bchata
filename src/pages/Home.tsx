@@ -81,58 +81,53 @@ const PartyCard = ({ item, onSelect, liveCount = 0 }) => {
     <div 
       style={{ 
         display: 'grid',
-        gridTemplateColumns: '50px 115px 1fr 100px',
+        gridTemplateColumns: '44px 1fr auto',
         alignItems: 'center',
         backgroundColor: '#FFFFFF', 
-        padding: '12px 16px',
+        padding: '10px 16px',
         gap: '12px',
         borderBottom: '1px solid #F1F5F9',
         cursor: 'pointer',
         width: '100%',
-        minHeight: '75px'
+        minHeight: '65px'
       }}
     >
-      {/* 0열: 포스터 (썸네일) */}
+      {/* 0열: 포스터 */}
       <div 
         onClick={() => onSelect(item.poster_url)} 
-        style={{ width: '50px', height: '50px', borderRadius: '8px', overflow: 'hidden', boxShadow: '0 2px 6px rgba(0,0,0,0.06)' }}
+        style={{ width: '44px', height: '44px', borderRadius: '8px', overflow: 'hidden', boxShadow: '0 2px 6px rgba(0,0,0,0.06)' }}
       >
         <img src={item.poster_url} style={{ width: '100%', height: '100%', objectFit: 'cover' }} alt="Poster" />
       </div>
 
-      {/* 1열: 장소명 & 라이브 & 화살표 (수직 정렬 보장) */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: '5px', overflow: 'hidden' }}>
-        <span style={{ fontSize: '12px', fontWeight: '950', color: '#1E293B', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: '50px' }}>
-          {item.locationName || '장소미정'}
-        </span>
-        {isLive && (
-          <div style={{ 
-            background: '#FF1744', color: '#fff', fontSize: '8px', fontWeight: '950',
-            padding: '1.5px 4px', borderRadius: '3px', whiteSpace: 'nowrap', flexShrink: 0
-          }}>
-            LIVE ● {liveCount || 0}
-          </div>
-        )}
-        <Navigation size={12} color="#FF1744" fill="#FF1744" style={{ flexShrink: 0, marginLeft: 'auto' }} />
-      </div>
-
-      {/* 2열: 타이틀 */}
-      <div 
-        onClick={() => onSelect(item.poster_url)} 
-        style={{ minWidth: 0, padding: '0 5px' }}
-      >
-        <h3 style={{ fontSize: '13px', fontWeight: '800', color: '#1E293B', margin: 0, lineHeight: '1.4', wordBreak: 'keep-all' }}>
+      {/* 1열: 장소명 + 제목 (세로 쌓기) */}
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '2px', minWidth: 0 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+          <span style={{ fontSize: '11px', fontWeight: '900', color: '#1E293B' }}>
+            {item.locationName || '장소미정'}
+          </span>
+          {isLive && (
+            <div style={{ 
+              background: '#FF1744', color: '#fff', fontSize: '7px', fontWeight: '950',
+              padding: '1px 4px', borderRadius: '3px', whiteSpace: 'nowrap'
+            }}>
+              LIVE ● {liveCount || 0}
+            </div>
+          )}
+          <Navigation size={10} color="#FF1744" fill="#FF1744" />
+        </div>
+        <h3 style={{ fontSize: '12px', fontWeight: '800', color: '#1E293B', margin: 0, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
           {cleanTitle.replace(/^\[.*?\]\s*|서울\s*|전국\s*/g, '')}
         </h3>
       </div>
 
-      {/* 3열: 날짜 요일 금액 비율 (수직 정렬 보장) */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: '8px', justifyContent: 'flex-end' }}>
-        <div style={{ fontSize: '11px', fontWeight: '800', color: '#64748B', whiteSpace: 'nowrap' }}>
+      {/* 2열: 날짜/금액/비율 (세로 쌓기) */}
+      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '2px' }}>
+        <div style={{ fontSize: '10px', fontWeight: '800', color: '#64748B' }}>
           {(() => { const d = new Date(item.date); return `${d.getMonth() + 1}/${d.getDate()}(${DAYS_KOR[d.getDay()]})`; })()}
         </div>
-        <div style={{ fontSize: '12px', fontWeight: '950', color: '#FF1744', whiteSpace: 'nowrap' }}>{displayFee}</div>
-        <div style={{ fontSize: '8px', color: '#94A3B8', fontWeight: '900', background: '#F1F5F9', padding: '1px 3px', borderRadius: '3px', whiteSpace: 'nowrap' }}>
+        <div style={{ fontSize: '11px', fontWeight: '950', color: '#FF1744' }}>{displayFee}</div>
+        <div style={{ fontSize: '7px', color: '#94A3B8', fontWeight: '900', background: '#F8FAFC', padding: '1px 3px', borderRadius: '3px' }}>
           {Object.entries(GENRE_MAP).filter(([_, info]) => item[info.key] > 0).map(([_, info]) => `${info.label}${item[info.key]}`).join('')}
         </div>
       </div>
