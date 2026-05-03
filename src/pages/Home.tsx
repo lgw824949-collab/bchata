@@ -196,6 +196,9 @@ const ClassCard = ({ item, onSelect }) => {
     '고급': '#E74C3C'
   };
   const badgeColor = levelColors[item.level] || '#64748B';
+  const weekText = item.week_type?.includes('주차') 
+    ? item.week_type.replace('주차', '주 과정') 
+    : (item.week_type || '상시 운영');
 
   return (
     <div 
@@ -203,47 +206,56 @@ const ClassCard = ({ item, onSelect }) => {
       style={{ 
         display: 'flex', 
         flexDirection: 'row', 
-        alignItems: 'center', 
+        gap: '12px', 
         backgroundColor: '#FFFFFF', 
         borderRadius: '16px', 
         overflow: 'hidden', 
         border: '1px solid #F1F5F9', 
         cursor: 'pointer', 
-        height: '110px', 
-        marginBottom: '12px', 
+        padding: '12px',
+        marginBottom: '10px', 
         boxShadow: '0 4px 6px -1px rgba(0,0,0,0.05)'
       }}
     >
-      {/* 1. 포스터 (왼쪽 고정) */}
-      <div style={{ width: '80px', height: '100%', flexShrink: 0 }}>
-        <img src={item.poster_url} style={{ width: '100%', height: '100%', objectFit: 'cover' }} alt="Poster" />
+      {/* 좌: 정사각형 썸네일 */}
+      <div style={{ width: '85px', height: '85px', borderRadius: '12px', overflow: 'hidden', flexShrink: 0 }}>
+        <img src={item.poster_url} style={{ width: '100%', height: '100%', objectFit: 'cover' }} alt="Thumbnail" />
       </div>
 
-      {/* 2. 정보 영역 (소셜 섹션과 동일 구조) */}
-      <div style={{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'center', minWidth: 0, padding: '0 15px' }}>
-        {/* 1행: 스튜디오명 */}
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '2px' }}>
-          <span style={{ fontSize: '13px', fontWeight: '800', color: '#64748B' }}>
-            {item.studio_name || '장소 미지정'}
-          </span>
-          <Navigation size={14} color="#2ECC71" fill="#2ECC71" style={{ flexShrink: 0 }} />
+      {/* 우: 정보 (4층 구조) */}
+      <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minWidth: 0, justifyContent: 'center' }}>
+        {/* 1층: 레벨 뱃지 + 장르 */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '4px' }}>
+          <span style={{ background: badgeColor, color: '#fff', fontSize: '9px', fontWeight: '900', padding: '1px 6px', borderRadius: '4px' }}>{item.level || '입문'}</span>
+          <span style={{ color: '#FF1744', fontSize: '11px', fontWeight: '800' }}>{item.genre}</span>
         </div>
 
-        {/* 2행: 제목 */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '5px', marginBottom: '4px' }}>
-          <h3 style={{ fontSize: '16px', fontWeight: '950', color: '#1E293B', margin: 0, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', letterSpacing: '-0.5px' }}>
-            {item.title}
-          </h3>
+        {/* 2층: 제목 (2줄 제한) */}
+        <h3 style={{ 
+          fontSize: '15px', 
+          fontWeight: '900', 
+          color: '#1E293B', 
+          margin: '0 0 6px', 
+          lineHeight: '1.3',
+          display: '-webkit-box',
+          WebkitLineClamp: 2,
+          WebkitBoxOrient: 'vertical',
+          overflow: 'hidden'
+        }}>
+          {item.title}
+        </h3>
+
+        {/* 3층: 요일 시간 / 스튜디오 */}
+        <div style={{ fontSize: '11px', color: '#64748B', fontWeight: '700', marginBottom: '2px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+          {item.day_of_week} · {item.start_time?.slice(0,5)} / {item.studio_name}
         </div>
 
-        {/* 3행: 레벨 / 장르 / 요일 시간 */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: '11px', fontWeight: '800', color: '#94A3B8', whiteSpace: 'nowrap' }}>
-          <span style={{ background: badgeColor, color: '#fff', fontSize: '9px', padding: '1px 5px', borderRadius: '4px' }}>{item.level || '입문'}</span>
-          <span style={{ color: '#FF1744' }}>{item.genre}</span>
-          <span>/</span>
-          <span>{item.day_of_week}</span>
-          <span>/</span>
-          <span>{item.start_time?.slice(0,5)}~{item.end_time?.slice(0,5)}</span>
+        {/* 4층: 시작일 · 기간 */}
+        <div style={{ fontSize: '11px', color: '#94A3B8', fontWeight: '800' }}>
+          {(() => {
+            const d = new Date(item.start_date);
+            return `${d.getMonth() + 1}/${d.getDate()} 시작`;
+          })()} · {weekText}
         </div>
       </div>
     </div>
@@ -551,37 +563,61 @@ const HomePage = ({
                 });
               })()}
 
-              {/* 📌 [영역 D: 5월 클래스 섹션 - 소셜 섹션 레이아웃 복제] */}
-              <section style={{ marginBottom: '15px', background: '#fff' }}>
-                <div style={{ fontSize: '18px', fontWeight: '900', padding: '15px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                    <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#2ECC71' }} />
-                    {selectedMonth}월 클래스
-                  </div>
-                  <span style={{ fontSize: '12px', fontWeight: '700', color: '#94A3B8' }}>
-                    {lessons.filter(l => {
-                      const d = new Date(l.start_date);
-                      return (d.getMonth() + 1 === selectedMonth) && (l.category_type === 'class');
-                    }).length}개의 수업
-                  </span>
+              {/* 📌 [영역 D: 5월 클래스 섹션 - 지역별 리스트 교체] */}
+              <div style={{ marginTop: '20px' }}>
+                <div style={{ padding: '0 20px 10px' }}>
+                  <h2 style={{ fontSize: '18px', fontWeight: '950', color: '#1E293B', margin: 0 }}>
+                    <span style={{ color: '#2ECC71' }}>{selectedMonth}월</span> 클래스 소식
+                  </h2>
                 </div>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', padding: '0 15px 20px' }}>
-                  {(() => {
-                    const filteredClasses = lessons.filter(l => {
-                      const d = new Date(l.start_date);
-                      return (d.getMonth() + 1 === selectedMonth) && (l.category_type === 'class');
-                    });
+                {(() => {
+                  const regions = ["서울", "경기/인천", "경상도", "전라도", "충청도", "강원/제주"];
+                  return regions.map((regionName) => {
+                    const regionLessons = (lessons || [])
+                      .filter(l => {
+                        const d = new Date(l.start_date);
+                        return (d.getMonth() + 1 === selectedMonth) && (l.category_type === 'class');
+                      })
+                      .filter(l => {
+                        // 지역 필터 로직 (소셜과 동일 지향)
+                        const text = `${l.city || ''} ${l.broadRegion || ''} ${l.address || ''} ${l.studio_name || ''}`.toLowerCase();
+                        if (regionName === "서울") return text.includes("서울") || text.includes("강남") || text.includes("홍대") || text.includes("잠실") || text.includes("성수") || text.includes("신림") || text.includes("건대");
+                        if (regionName === "경기/인천") return text.includes("경기") || text.includes("인천") || text.includes("부천") || text.includes("수원") || text.includes("의정부") || text.includes("안양") || text.includes("고양") || text.includes("일산") || text.includes("성남") || text.includes("분당");
+                        if (regionName === "경상도") return text.includes("경상") || text.includes("경남") || text.includes("경북") || text.includes("부산") || text.includes("대구") || text.includes("울산") || text.includes("창원");
+                        if (regionName === "전라도") return text.includes("전라") || text.includes("전남") || text.includes("전북") || text.includes("광주") || text.includes("전주");
+                        if (regionName === "충청도") return text.includes("충청") || text.includes("충남") || text.includes("충북") || text.includes("대전") || text.includes("세종");
+                        if (regionName === "강원/제주") return text.includes("강원") || text.includes("제주");
+                        return false;
+                      });
 
-                    return filteredClasses.length === 0 ? (
-                      <div style={{ padding: '40px', background: '#F8FAFC', borderRadius: '16px', textAlign: 'center', color: '#94A3B8', fontSize: '13px', fontWeight: '700' }}>해당 월에 등록된 클래스가 없습니다.</div>
-                    ) : (
-                      filteredClasses.map(item => (
-                        <ClassCard key={item.id} item={item} onSelect={(url) => handleOpenModal(setSelectedPoster, url)} />
-                      ))
+                    if (regionLessons.length === 0) return null;
+
+                    const maxCount = regionName === '서울' ? 4 : 3;
+
+                    return (
+                      <section key={`class-region-${regionName}`} style={{ marginBottom: '15px', background: '#fff' }}>
+                        <div style={{ fontSize: '18px', fontWeight: '900', padding: '15px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                            <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#2ECC71' }} />
+                            {regionName}
+                          </div>
+                          <button 
+                            onClick={() => setView('class')}
+                            style={{ fontSize: '12px', fontWeight: '700', color: '#94A3B8', background: 'none', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '2px' }}
+                          >
+                            전체보기 <ChevronRight size={14} />
+                          </button>
+                        </div>
+                        <div style={{ display: 'flex', flexDirection: 'column', padding: '0 15px 20px' }}>
+                          {regionLessons.slice(0, maxCount).map(item => (
+                            <ClassCard key={item.id} item={item} onSelect={(url) => handleOpenModal(setSelectedPoster, url)} />
+                          ))}
+                        </div>
+                      </section>
                     );
-                  })()}
-                </div>
-              </section>
+                  });
+                })()}
+              </div>
             </div>
           )}
         </div>
