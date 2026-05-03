@@ -726,15 +726,15 @@ function App() {
          view === 'bootcamp' ? (
            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '80vh', color: '#1E293B' }}>
              <span style={{ fontSize: '48px', marginBottom: '20px' }}>🏕️</span>
-             <h2 style={{ fontSize: '24px', fontWeight: 900 }}>{t('nav_bootcamp')}</h2>
-             <p style={{ color: '#64748B', marginTop: '8px' }}>{t('coming_soon')}</p>
+             <h2 style={{ fontSize: '24px', fontWeight: 900 }}>부트캠프</h2>
+             <p style={{ color: '#64748B', marginTop: '8px' }}>Coming Soon</p>
            </div>
          ) :
          view === 'festival' ? (
            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '80vh', color: '#1E293B' }}>
              <span style={{ fontSize: '48px', marginBottom: '20px' }}>🎪</span>
-             <h2 style={{ fontSize: '24px', fontWeight: 900 }}>{t('nav_festival')}</h2>
-             <p style={{ color: '#64748B', marginTop: '8px' }}>{t('coming_soon')}</p>
+             <h2 style={{ fontSize: '24px', fontWeight: 900 }}>페스티벌</h2>
+             <p style={{ color: '#64748B', marginTop: '8px' }}>Coming Soon</p>
            </div>
          ) :
          {
@@ -942,7 +942,7 @@ function App() {
             onClick={() => { setView('home'); window.scrollTo(0,0); }}
           >
             <Music2 size={22} color={view === 'home' ? '#FF1744' : '#94A3B8'} style={{ marginBottom: '4px' }} />
-            <span style={{ fontSize: '10px', fontWeight: view === 'home' ? 900 : 500, color: view === 'home' ? '#FF1744' : '#94A3B8' }}>{t('nav_social')}</span>
+            <span style={{ fontSize: '10px', fontWeight: view === 'home' ? 900 : 500, color: view === 'home' ? '#FF1744' : '#94A3B8' }}>소셜/파티</span>
           </div>
 
           <div 
@@ -973,7 +973,7 @@ function App() {
             >
               <Plus size={28} strokeWidth={3} />
             </motion.button>
-            <span style={{ pointerEvents: 'auto', color: '#1E293B', fontSize: '10px' }}>{t('nav_register')}</span>
+            <span style={{ pointerEvents: 'auto', color: '#1E293B', fontSize: '10px' }}>등록</span>
           </div>
 
           <div 
@@ -981,7 +981,7 @@ function App() {
             onClick={() => { setView('bootcamp'); window.scrollTo(0,0); }}
           >
             <Tent size={22} color={view === 'bootcamp' ? '#FF1744' : '#94A3B8'} style={{ marginBottom: '4px' }} />
-            <span style={{ fontSize: '10px', fontWeight: view === 'bootcamp' ? 900 : 500, color: view === 'bootcamp' ? '#FF1744' : '#94A3B8' }}>{t('nav_bootcamp')}</span>
+            <span style={{ fontSize: '10px', fontWeight: view === 'bootcamp' ? 900 : 500, color: view === 'bootcamp' ? '#FF1744' : '#94A3B8' }}>부트캠프</span>
           </div>
 
           <div 
@@ -989,7 +989,7 @@ function App() {
             onClick={() => { setView('festival'); window.scrollTo(0,0); }}
           >
             <Flag size={22} color={view === 'festival' ? '#FF1744' : '#94A3B8'} style={{ marginBottom: '4px' }} />
-            <span style={{ fontSize: '10px', fontWeight: view === 'festival' ? 900 : 500, color: view === 'festival' ? '#FF1744' : '#94A3B8' }}>{t('nav_festival')}</span>
+            <span style={{ fontSize: '10px', fontWeight: view === 'festival' ? 900 : 500, color: view === 'festival' ? '#FF1744' : '#94A3B8' }}>페스티벌</span>
           </div>
         </nav>
       )}
