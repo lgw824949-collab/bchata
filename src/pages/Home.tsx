@@ -187,6 +187,69 @@ const PartyCard = ({ item, onSelect }) => {
   );
 };
 
+const ClassCard = ({ item, onSelect }) => {
+  const levelColors = {
+    '입문': '#2ECC71',
+    '초급': '#3498DB',
+    '중급': '#F39C12',
+    '상급': '#E74C3C',
+    '고급': '#E74C3C'
+  };
+  const badgeColor = levelColors[item.level] || '#64748B';
+
+  return (
+    <div 
+      onClick={() => onSelect(item.poster_url)} 
+      style={{ 
+        display: 'flex', 
+        flexDirection: 'row', 
+        alignItems: 'center', 
+        backgroundColor: '#FFFFFF', 
+        borderRadius: '16px', 
+        overflow: 'hidden', 
+        border: '1px solid #F1F5F9', 
+        cursor: 'pointer', 
+        height: '110px', 
+        marginBottom: '12px', 
+        boxShadow: '0 4px 6px -1px rgba(0,0,0,0.05)'
+      }}
+    >
+      {/* 1. 포스터 (왼쪽 고정) */}
+      <div style={{ width: '80px', height: '100%', flexShrink: 0 }}>
+        <img src={item.poster_url} style={{ width: '100%', height: '100%', objectFit: 'cover' }} alt="Poster" />
+      </div>
+
+      {/* 2. 정보 영역 (소셜 섹션과 동일 구조) */}
+      <div style={{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'center', minWidth: 0, padding: '0 15px' }}>
+        {/* 1행: 스튜디오명 */}
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '2px' }}>
+          <span style={{ fontSize: '13px', fontWeight: '800', color: '#64748B' }}>
+            {item.studio_name || '장소 미지정'}
+          </span>
+          <Navigation size={14} color="#2ECC71" fill="#2ECC71" style={{ flexShrink: 0 }} />
+        </div>
+
+        {/* 2행: 제목 */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '5px', marginBottom: '4px' }}>
+          <h3 style={{ fontSize: '16px', fontWeight: '950', color: '#1E293B', margin: 0, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', letterSpacing: '-0.5px' }}>
+            {item.title}
+          </h3>
+        </div>
+
+        {/* 3행: 레벨 / 장르 / 요일 시간 */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: '11px', fontWeight: '800', color: '#94A3B8', whiteSpace: 'nowrap' }}>
+          <span style={{ background: badgeColor, color: '#fff', fontSize: '9px', padding: '1px 5px', borderRadius: '4px' }}>{item.level || '입문'}</span>
+          <span style={{ color: '#FF1744' }}>{item.genre}</span>
+          <span>/</span>
+          <span>{item.day_of_week}</span>
+          <span>/</span>
+          <span>{item.start_time?.slice(0,5)}~{item.end_time?.slice(0,5)}</span>
+        </div>
+      </div>
+    </div>
+  );
+};
+
 const RollingContainer = ({ items, onSelect }) => {
   const [index, setIndex] = useState(0);
   useEffect(() => { if (items.length <= 1) return; const timer = setInterval(() => { setIndex((prev) => (prev + 1) % items.length); }, 3000); return () => clearInterval(timer); }, [items.length]);
@@ -487,6 +550,38 @@ const HomePage = ({
                   );
                 });
               })()}
+
+              {/* 📌 [영역 D: 5월 클래스 섹션 - 소셜 섹션 레이아웃 복제] */}
+              <section style={{ marginBottom: '15px', background: '#fff' }}>
+                <div style={{ fontSize: '18px', fontWeight: '900', padding: '15px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#2ECC71' }} />
+                    {selectedMonth}월 클래스
+                  </div>
+                  <span style={{ fontSize: '12px', fontWeight: '700', color: '#94A3B8' }}>
+                    {lessons.filter(l => {
+                      const d = new Date(l.start_date);
+                      return (d.getMonth() + 1 === selectedMonth) && (l.category_type === 'class');
+                    }).length}개의 수업
+                  </span>
+                </div>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', padding: '0 15px 20px' }}>
+                  {(() => {
+                    const filteredClasses = lessons.filter(l => {
+                      const d = new Date(l.start_date);
+                      return (d.getMonth() + 1 === selectedMonth) && (l.category_type === 'class');
+                    });
+
+                    return filteredClasses.length === 0 ? (
+                      <div style={{ padding: '40px', background: '#F8FAFC', borderRadius: '16px', textAlign: 'center', color: '#94A3B8', fontSize: '13px', fontWeight: '700' }}>해당 월에 등록된 클래스가 없습니다.</div>
+                    ) : (
+                      filteredClasses.map(item => (
+                        <ClassCard key={item.id} item={item} onSelect={(url) => handleOpenModal(setSelectedPoster, url)} />
+                      ))
+                    );
+                  })()}
+                </div>
+              </section>
             </div>
           )}
         </div>
