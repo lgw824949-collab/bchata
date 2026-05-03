@@ -327,7 +327,7 @@ const HomePage = ({
               바차타 · 살사 · 소셜
             </h2>
             <p style={{ fontSize: '14px', color: '#475569', fontWeight: 600, margin: '4px 0 0', lineHeight: 1.4, letterSpacing: '-0.3px' }}>
-              만원대로 즐기는 도심 속 <span style={{ color: '#FF1744', fontWeight: 800 }}>전율의 밤</span>
+              만원대면 충분해요 <span style={{ color: '#FF1744', fontWeight: 800 }}>전율의 밤</span>
             </p>
           </div>
         </div>
