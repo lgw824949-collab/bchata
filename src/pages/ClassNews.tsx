@@ -78,59 +78,80 @@ const ClassCard = ({ item, onSelect }) => {
   );
 };
 
-const ClassNewsPage = ({ setSelectedPoster }) => {
-  const [lessons, setLessons] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [selectedWeek, setSelectedWeek] = useState('전체');
+// 📍 달력 기준 주차 계산기 (일요일 시작 기준)
+const getCalendarWeek = (dateStr) => {
+  if (!dateStr) return '1주차';
+  const d = new Date(dateStr);
+  const firstDay = new Date(d.getFullYear(), d.getMonth(), 1).getDay();
+  const weekNum = Math.ceil((d.getDate() + firstDay) / 7);
+  return `${weekNum}주차`;
+};
+
+// 📍 해당 월의 총 주차 수 계산
+const getTotalWeeks = (year, month) => {
+  const lastDate = new Date(year, month, 0).getDate();
+  const firstDay = new Date(year, month - 1, 1).getDay();
+  return Math.ceil((lastDate + firstDay) / 7);
+};
+
+const ClassNewsPage = ({ lessons: allLessons, loading: lessonsLoading, selectedMonth, setSelectedMonth, setSelectedPoster }) => {
+  const [selectedWeek, setSelectedWeek] = useState('1주차');
   const [filterGenre, setFilterGenre] = useState('전체');
   const [filterLevel, setFilterLevel] = useState('전체');
 
-  useEffect(() => {
-    const fetchLessons = async () => {
-      setLoading(true);
-      try {
-        const { data, error } = await supabase
-          .from('classes_info')
-          .select('*')
-          .eq('status', 'active')
-          .order('created_at', { ascending: false });
-        
-        if (!error) setLessons(data || []);
-      } catch (err) {
-        console.error('Error fetching classes:', err);
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchLessons();
-  }, []);
+  const totalWeeks = useMemo(() => getTotalWeeks(2026, selectedMonth), [selectedMonth]);
+  const weekButtons = useMemo(() => Array.from({ length: totalWeeks }, (_, i) => `${i + 1}주차`), [totalWeeks]);
 
   const filtered = useMemo(() => {
-    return lessons.filter(l => {
-      // 1. 주차 필터: 선택된 주차와 맞거나, 혹은 아무것도 선택되지 않았을 때(전체) 다 보여줌
-      const weekMatch = !selectedWeek || selectedWeek === '전체' || l.week_type === selectedWeek;
+    return (allLessons || []).filter(l => {
+      const d = new Date(l.start_date);
+      // 1. 월 필터링
+      if (d.getMonth() + 1 !== selectedMonth) return false;
+
+      // 2. 주차 필터링 (달력 기준 자동 계산)
+      const currentWeek = getCalendarWeek(l.start_date);
+      const weekMatch = selectedWeek === '전체' || currentWeek === selectedWeek;
+      
       const genreMatch = !filterGenre || filterGenre === '전체' || l.genre === filterGenre;
       const levelMatch = !filterLevel || filterLevel === '전체' || l.level === filterLevel;
       return weekMatch && genreMatch && levelMatch;
     });
-  }, [lessons, selectedWeek, filterGenre, filterLevel]);
+  }, [allLessons, selectedMonth, selectedWeek, filterGenre, filterLevel]);
 
   const regions = ["서울", "경기/인천", "경상도", "전라도", "충청도", "강원/제주"];
 
   return (
     <div style={{ width: '100%', maxWidth: '500px', margin: '0 auto', background: '#F8FAFC', minHeight: '100vh', paddingBottom: '100px' }}>
-      {/* 상단 헤더 */}
-      <div style={{ padding: '30px 20px 20px', background: '#fff' }}>
-        <h1 style={{ fontSize: '28px', fontWeight: '950', color: '#0f172a', margin: 0 }}>오늘밤 <span style={{ color: '#2ECC71' }}>클래스</span></h1>
-        <p style={{ fontSize: '13px', color: '#64748b', marginTop: '4px' }}>나에게 딱 맞는 댄스 수업 찾기</p>
+      {/* 상단 헤더 & 월 선택 */}
+      <div style={{ padding: '30px 20px 20px', background: '#fff', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        <div>
+          <h1 style={{ fontSize: '28px', fontWeight: '950', color: '#0f172a', margin: 0 }}>
+            {selectedMonth}월 <span style={{ color: '#2ECC71' }}>클래스</span>
+          </h1>
+          <p style={{ fontSize: '13px', color: '#64748b', marginTop: '4px' }}>나에게 딱 맞는 댄스 수업 찾기</p>
+        </div>
+        <div style={{ display: 'flex', gap: '8px' }}>
+          <button 
+            onClick={() => setSelectedMonth(m => m > 1 ? m - 1 : 12)} 
+            style={{ background: '#F8FAFC', border: '1px solid #F1F5F9', borderRadius: '10px', width: '36px', height: '36px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+          >
+            <ChevronLeft size={18} />
+          </button>
+          <button 
+            onClick={() => setSelectedMonth(m => m < 12 ? m + 1 : 1)} 
+            style={{ background: '#F8FAFC', border: '1px solid #F1F5F9', borderRadius: '10px', width: '36px', height: '36px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+          >
+            <ChevronRight size={18} />
+          </button>
+        </div>
       </div>
 
       {/* 3단 필터 영역 */}
       <div style={{ position: 'sticky', top: 0, zIndex: 100, background: '#fff', padding: '10px 20px', borderBottom: '1px solid #F1F5F9', boxShadow: '0 4px 12px rgba(0,0,0,0.03)' }}>
         <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-          {/* 1단: 주차 필터 (동그라미 버튼) */}
+          {/* 1단: 주차 필터 (달력 기반 동적 생성) */}
           <div style={{ display: 'flex', gap: '8px', overflowX: 'auto', paddingBottom: '2px' }} className="no-scrollbar">
-            {['1주차', '2주차', '3주차', '4주차', '5주차'].map(w => (
+            {['전체', ...weekButtons].map(w => (
               <button 
                 key={w} 
                 onClick={() => setSelectedWeek(w)} 
@@ -144,7 +165,7 @@ const ClassNewsPage = ({ setSelectedPoster }) => {
                   transition: 'all 0.2s'
                 }}
               >
-                {w.replace('주차', 'WK')}
+                {w === '전체' ? 'ALL' : w.replace('주차', 'WK')}
               </button>
             ))}
           </div>
@@ -165,9 +186,8 @@ const ClassNewsPage = ({ setSelectedPoster }) => {
         </div>
       </div>
 
-      {/* 수업 리스트 (지역별 섹션) */}
       <div style={{ padding: '20px 0' }}>
-        {loading ? (
+        {lessonsLoading ? (
           <div style={{ padding: '100px 0', textAlign: 'center' }}><Loader2 className="animate-spin" size={32} color="#2ECC71" style={{ margin: '0 auto' }} /></div>
         ) : (
           (() => {
@@ -235,7 +255,7 @@ const ClassNewsPage = ({ setSelectedPoster }) => {
             );
           })()
         )}
-        {!loading && filtered.length === 0 && (
+        {!lessonsLoading && filtered.length === 0 && (
           <div style={{ padding: '100px 0', textAlign: 'center', color: '#94A3B8', fontWeight: '700' }}>등록된 수업이 없습니다 😅</div>
         )}
       </div>
