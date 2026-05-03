@@ -219,14 +219,21 @@ const PostClub = ({ onBack, onSuccess }) => {
 
         <div style={{ marginBottom: '16px' }}>
           <label style={{ display: 'block', fontSize: '13px', fontWeight: 600, color: '#374151', marginBottom: '6px' }}>강습/모임 명칭 (필수)</label>
-          <input 
-            type="text" 
-            value={formData.title} 
-            onChange={e => setFormData({...formData, title: e.target.value})} 
-            placeholder="" 
-            required 
-            style={{ width: '100%', padding: '16px', border: '1.5px solid #F3F4F6', borderRadius: '14px', fontSize: '16px', backgroundColor: '#F9FAFB', outline: 'none' }} 
-          />
+          <div style={{ position: 'relative' }}>
+            <input 
+              type="text" 
+              value={formData.title} 
+              onChange={e => setFormData({...formData, title: e.target.value})} 
+              placeholder="예: 강남턴 바차타 파티" 
+              maxLength={16}
+              required 
+              style={{ width: '100%', padding: '16px', paddingRight: '60px', border: '1.5px solid #F3F4F6', borderRadius: '14px', fontSize: '16px', backgroundColor: '#F9FAFB', outline: 'none' }} 
+            />
+            <div style={{ position: 'absolute', right: '16px', bottom: '16px', fontSize: '12px', fontWeight: 700, color: formData.title.length >= 16 ? '#EF4444' : '#9CA3AF' }}>
+              {formData.title.length}/16
+            </div>
+          </div>
+          <p style={{ margin: '6px 0 0', fontSize: '11px', color: '#6B7280', fontWeight: 500 }}>16자 이내로 입력해주세요</p>
         </div>
 
         <div style={{ marginBottom: '16px' }}>

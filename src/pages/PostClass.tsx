@@ -147,7 +147,19 @@ const PostClass = ({ onBack }) => {
             <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
               <div>
                 <p style={labelStyle}>강습 제목</p>
-                <input style={inputStyle} value={formData.title} onChange={e => setFormData({...formData, title: e.target.value})} placeholder="" />
+                <div style={{ position: 'relative' }}>
+                  <input 
+                    style={{ ...inputStyle, paddingRight: '60px' }} 
+                    value={formData.title} 
+                    onChange={e => setFormData({...formData, title: e.target.value})} 
+                    placeholder="예: 강남턴 바차타 파티" 
+                    maxLength={16}
+                  />
+                  <div style={{ position: 'absolute', right: '16px', bottom: '18px', fontSize: '12px', fontWeight: 800, color: formData.title.length >= 16 ? '#E53E3E' : '#A0AEC0' }}>
+                    {formData.title.length}/16
+                  </div>
+                </div>
+                <p style={{ margin: '6px 0 0', fontSize: '11px', color: '#718096', fontWeight: 600 }}>16자 이내로 입력해주세요</p>
               </div>
               <div>
                 <p style={labelStyle}>강사명 (또는 닉네임)</p>

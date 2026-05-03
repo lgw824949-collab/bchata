@@ -200,13 +200,20 @@ const PostLesson = ({ onBack, user }) => {
 
               <div style={{ background: 'white', padding: '24px', borderRadius: '24px', border: '1px solid #F3F4F6' }}>
                 <label style={{ display: 'block', fontSize: '14px', fontWeight: 700, color: '#4B5563', marginBottom: '8px' }}>강습/동호회 명칭</label>
-                <input 
-                  type="text" 
-                  placeholder="" 
-                  value={formData.title}
-                  onChange={e => setFormData({...formData, title: e.target.value})}
-                  style={{ width: '100%', height: '48px', padding: '0 16px', borderRadius: '12px', border: '1px solid #E5E7EB', fontSize: '15px', outline: 'none' }} 
-                />
+                <div style={{ position: 'relative' }}>
+                  <input 
+                    type="text" 
+                    placeholder="예: 강남턴 바차타 파티" 
+                    maxLength={16}
+                    value={formData.title}
+                    onChange={e => setFormData({...formData, title: e.target.value})}
+                    style={{ width: '100%', height: '48px', padding: '0 60px 0 16px', borderRadius: '12px', border: '1px solid #E5E7EB', fontSize: '15px', outline: 'none' }} 
+                  />
+                  <div style={{ position: 'absolute', right: '16px', top: '50%', transform: 'translateY(-50%)', fontSize: '12px', fontWeight: 700, color: formData.title.length >= 16 ? '#EF4444' : '#9CA3AF' }}>
+                    {formData.title.length}/16
+                  </div>
+                </div>
+                <p style={{ margin: '8px 0 0', fontSize: '12px', color: '#6B7280', fontWeight: 500 }}>16자 이내로 입력해주세요</p>
               </div>
             </motion.div>
           )}
