@@ -191,52 +191,49 @@ const ClassCard = ({ item, onSelect }) => {
   const { i18n } = useTranslation();
   const isEn = i18n.language.startsWith('en');
 
-  const weekLabel = () => {
+  const weekLabel = (() => {
     if (!item.week_type) return '상시 운영';
     const num = parseInt(item.week_type);
     return isNaN(num) ? item.week_type : `${num}주 과정`;
-  };
+  })();
 
-  const startLabel = () => {
+  const startLabel = (() => {
     if (!item.start_date) return '';
     const d = new Date(item.start_date);
     return `${d.getMonth() + 1}/${d.getDate()} 시작`;
-  };
+  })();
 
   return (
-    <div 
-      onClick={() => onSelect(item.poster_url)} 
-      style={{ 
-        display: 'flex', 
-        flexDirection: 'row', 
-        alignItems: 'center', 
-        backgroundColor: '#FFFFFF', 
-        borderRadius: '16px', 
-        overflow: 'hidden', 
-        border: '1px solid #F1F5F9', 
-        cursor: 'pointer', 
-        height: '110px', 
-        marginBottom: '12px', 
+    <div
+      onClick={() => onSelect(item.poster_url)}
+      style={{
+        display: 'flex',
+        flexDirection: 'row',
+        alignItems: 'center',
+        backgroundColor: '#FFFFFF',
+        borderRadius: '16px',
+        overflow: 'hidden',
+        border: '1px solid #F1F5F9',
+        cursor: 'pointer',
+        height: '110px',
+        marginBottom: '12px',
         boxShadow: '0 4px 6px -1px rgba(0,0,0,0.05)'
       }}
     >
-      {/* 1. 포스터 (왼쪽 고정) */}
       <div style={{ width: '80px', height: '100%', flexShrink: 0 }}>
         <img src={item.poster_url} style={{ width: '100%', height: '100%', objectFit: 'cover' }} alt="Poster" />
       </div>
 
-      {/* 2. 정보 영역 */}
       <div style={{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'center', minWidth: 0, padding: '0 15px' }}>
-        {/* 1행: 장소명 + 회전표 */}
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '2px' }}>
           <span style={{ fontSize: '13px', fontWeight: '800', color: '#64748B' }}>
             {item.studio_name || item.address || '장소 미지정'}
           </span>
-          <Navigation 
-            size={14} 
-            color="#FF1744" 
-            fill="#FF1744" 
-            style={{ flexShrink: 0, cursor: 'pointer' }} 
+          <Navigation
+            size={14}
+            color="#FF1744"
+            fill="#FF1744"
+            style={{ flexShrink: 0, cursor: 'pointer' }}
             onClick={(e) => {
               e.stopPropagation();
               const addr = item.address || item.studio_name;
@@ -245,7 +242,6 @@ const ClassCard = ({ item, onSelect }) => {
           />
         </div>
 
-        {/* 2행: 제목 */}
         <div style={{ display: 'flex', alignItems: 'center', gap: '5px', marginBottom: '4px' }}>
           <span style={{ fontSize: '11px', fontWeight: '800', color: '#fff', background: '#2ECC71', padding: '1px 6px', borderRadius: '3px', flexShrink: 0 }}>
             {item.level}
@@ -255,13 +251,12 @@ const ClassCard = ({ item, onSelect }) => {
           </h3>
         </div>
 
-        {/* 3행: 장르 / 요일 - 시간 / 기간 */}
         <div style={{ display: 'flex', alignItems: 'center', gap: '3px', fontSize: '11px', fontWeight: '800', color: '#94A3B8', whiteSpace: 'nowrap' }}>
           <span style={{ color: '#FF1744' }}>{item.genre}</span>
           <span>/</span>
-          <span>{item.day_of_week} {item.start_time}-{item.end_time}</span>
+          <span>{item.day_of_week} {item.start_time}~{item.end_time}</span>
           <span>/</span>
-          <span style={{ color: '#1E293B' }}>{startLabel()} · {weekLabel()}</span>
+          <span style={{ color: '#1E293B' }}>{startLabel} · {weekLabel}</span>
         </div>
       </div>
     </div>
