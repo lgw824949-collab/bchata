@@ -51,24 +51,19 @@ export default function PostClass({ onBack }) {
     }
   };
 
-  // 최종 등록 로직 (DB 스키마 강제 매칭)
   const handleSubmit = async () => {
-    if (!formData.title) return alert('강습 제목을 입력해주세요.');
-    
     setLoading(true);
     try {
-      // PostLesson.tsx의 성공 로직에 따라 모든 필수 필드 구성
       const insertData = {
         title: formData.title,
         genre: formData.genre,
         level: formData.level,
         duration: formData.duration || '기간 미지정',
-        fee: formData.fee ? `${formData.fee}원` : '참가비 문의',
+        fee: formData.fee ? String(formData.fee) : '문의',
         city: formData.city,
         poster_url: formData.poster_url,
         category_type: 'class',
         status: 'pending',
-        // 누락 시 DB 에러 발생하는 필드들 기본값 채움
         day_of_week: '요일 미지정',
         start_time: '19:00',
         end_time: '21:00',
@@ -76,17 +71,13 @@ export default function PostClass({ onBack }) {
         studio_name: '장소 미지정',
         address: '상세주소 미지정'
       };
-
       const { error } = await supabase
         .from('classes_info')
         .insert([insertData]);
-
       if (error) throw error;
-
       alert('등록 신청이 완료되었습니다.\n관리자 승인 후 게시됩니다.');
       onBack();
     } catch (error) {
-      console.error('❌ SUBMIT ERROR:', error);
       alert('등록 실패: ' + error.message);
     } finally {
       setLoading(false);
