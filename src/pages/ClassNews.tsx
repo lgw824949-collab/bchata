@@ -256,9 +256,6 @@ const ClassNewsPage = ({ lessons: allLessons, loading: lessonsLoading, selectedM
             );
           })()
         )}
-        {!lessonsLoading && filtered.length === 0 && (
-          <div style={{ padding: '100px 0', textAlign: 'center', color: '#94A3B8', fontWeight: '700' }}>등록된 수업이 없습니다 😅</div>
-        )}
       </div>
     </div>
   );
