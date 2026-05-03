@@ -101,11 +101,11 @@ export default function AdminDashboard({ onBack, refreshData }) {
       .order('date', { ascending: false })
     if (!error) setOfficialParties(data || [])
   }
-
   const fetchClasses = async () => {
     const { data, error } = await supabase
       .from('classes_info')
       .select('*')
+      .eq('category_type', 'class')
       .neq('status', 'archived')
       .order('created_at', { ascending: false })
     if (!error) setClassItems(data || [])
@@ -667,7 +667,7 @@ export default function AdminDashboard({ onBack, refreshData }) {
             {/* 1. 수업/동호회 대기 목록 */}
             <div style={{ marginBottom: '40px' }}>
               <h2 style={{ fontSize: '20px', fontWeight: 900, color: '#F59E0B', marginBottom: '16px', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <ShieldCheck size={24} /> ACADEMY/CLUB WAITING
+                <ShieldCheck size={24} /> ACADEMY WAITING
               </h2>
               {classItems.filter(i => i.status === 'pending').length === 0 ? (
                 <div style={{ padding: '40px', background: 'rgba(255,255,255,0.02)', borderRadius: '24px', textAlign: 'center', color: '#64748B' }}>No pending classes.</div>
@@ -708,7 +708,6 @@ export default function AdminDashboard({ onBack, refreshData }) {
                           >
                             APPROVE CLASS
                           </button>
-                          <button disabled={loading} onClick={() => setEditingClass(item)} style={{ flex: 1, backgroundColor: '#1E293B', color: 'white', padding: '12px', borderRadius: '12px', border: 'none' }}><Edit3 size={18} /></button>
                           <button 
                             disabled={loading}
                             onClick={async () => {
@@ -773,115 +772,60 @@ export default function AdminDashboard({ onBack, refreshData }) {
           </div>
         ) : activeTab === 'lesson' ? (
           <div className="lesson-management-ui">
-            <div style={{ display: 'flex', gap: '8px', marginBottom: '20px' }}>
-              <button 
-                onClick={() => setClassTab('class')}
-                style={{ flex: 1, padding: '12px', borderRadius: '15px', border: 'none', background: classTab === 'class' ? '#F59E0B' : '#1E293B', color: 'white', fontWeight: 800, fontSize: '12px' }}
-              >
-                CLASS ({classItems.filter(i => (i.category_type === 'class' || !i.category_type) && i.status === 'pending').length})
-              </button>
-              <button 
-                onClick={() => setClassTab('club')}
-                style={{ flex: 1, padding: '12px', borderRadius: '15px', border: 'none', background: classTab === 'club' ? '#F59E0B' : '#1E293B', color: 'white', fontWeight: 800, fontSize: '12px' }}
-              >
-                CLUB ({classItems.filter(i => i.category_type === 'club' && i.status === 'pending').length})
-              </button>
-            </div>
-
-            {classItems.filter(item => {
-              if (classTab === 'class') return item.category_type === 'class' || !item.category_type
-              return item.category_type === 'club'
-            }).length === 0 ? (
+            {classItems.length === 0 ? (
               <div style={{ textAlign: 'center', padding: '100px 0', color: '#64748B' }}>NO_LESSON_DATA</div>
             ) : (
-              classItems.filter(item => {
-                if (classTab === 'class') return item.category_type === 'class' || !item.category_type
-                return item.category_type === 'club'
-              }).map(item => (
+              classItems.map(item => (
                 <div key={item.id} style={{ backgroundColor: '#0F172A', borderRadius: '24px', padding: '20px', marginBottom: '16px', border: item.status === 'pending' ? '2px solid #F59E0B' : '1px solid #1E293B' }}>
                   <div style={{ display: 'flex', gap: '16px' }}>
                     {item.poster_url && <img src={item.poster_url} style={{ width: '80px', height: '110px', objectFit: 'cover', borderRadius: '15px' }} />}
                     <div style={{ flex: 1, minWidth: 0 }}>
-                      <div style={{ fontSize: '11px', color: item.status === 'active' ? '#00FF00' : '#F59E0B', fontWeight: 900, marginBottom: '4px', letterSpacing: '0.05em' }}>{item.status.toUpperCase()}</div>
+                      <div style={{ fontSize: '11px', color: item.status === 'approved' ? '#00FF00' : '#F59E0B', fontWeight: 900, marginBottom: '4px', letterSpacing: '0.05em' }}>{item.status.toUpperCase()}</div>
                       <h3 style={{ fontSize: '16px', fontWeight: 900, margin: '0 0 6px 0', color: 'white' }}>{item.title}</h3>
                       <p style={{ fontSize: '13px', color: '#94A3B8', margin: '4px 0' }}>👤 {item.instructor || 'TBA'}</p>
                       <p style={{ fontSize: '13px', color: '#94A3B8', margin: '4px 0' }}>📅 {item.day_of_week} / ⏰ {item.start_time}~{item.end_time}</p>
-                      <p style={{ fontSize: '13px', color: '#F59E0B', fontWeight: 700, margin: '4px 0' }}>
-                        📍 {item.studio_name ? `[${item.studio_name}] ` : ''}{item.address || 'MISSING_ADDRESS'}
-                      </p>
+                      <p style={{ fontSize: '13px', color: '#F59E0B', fontWeight: 700, margin: '4px 0' }}>📍 {item.studio_name || item.address}</p>
                       
                       <div style={{ display: 'flex', gap: '8px', marginTop: '16px' }}>
                         {item.status === 'pending' && (
                           <button 
                             disabled={loading}
                             onClick={async (e) => {
-                              e.preventDefault();
-                              e.stopPropagation();
                               if (loading) return;
                               setLoading(true);
                               try {
-                                const { error } = await supabase.from('classes_info').update({ status: 'approved' }).eq('id', item.id)
+                                const { error } = await supabase.from('classes_info').update({ status: 'approved' }).eq('id', item.id);
                                 if (error) throw error;
-                                
-                                const normalizeRegion = (reg) => {
-                                  if (!reg) return '서울';
-                                  if (reg.includes('서울')) return '서울';
-                                  if (reg.includes('경기') || reg.includes('인천')) return '경기/인천';
-                                  if (reg.includes('충청') || reg.includes('대전') || reg.includes('세종')) return '충청도';
-                                  if (reg.includes('전라') || reg.includes('광주')) return '전라도';
-                                  if (reg.includes('경상') || reg.includes('부산') || reg.includes('대구') || reg.includes('울산')) return '경상도';
-                                  if (reg.includes('강원') || reg.includes('제주')) return '강원/제주';
-                                  return reg;
-                                };
-
-                                const { error: insertErr } = await supabase.from('parties').insert([{
-                                  title: `[${item.category_type === 'club' ? '동호회' : '강습/정모'}] ${item.title}`,
-                                  date: item.start_date || new Date().toISOString().split('T')[0],
-                                  day_of_week: item.day_of_week ? item.day_of_week.split(',')[0].trim() : '일',
-                                  time: `${item.start_time || ''}~${item.end_time || ''}`,
-                                  address: item.address || item.studio_name || '',
-                                  fee: item.fee || '0',
-                                  poster_url: item.poster_url || '',
-                                  broadRegion: normalizeRegion(item.region),
-                                  cityName: item.city || item.region || '전국',
-                                  status: 'approved'
-                                }]);
-
-                                if (insertErr) throw insertErr;
-
                                 alert('승인되었습니다.');
                                 await fetchClasses();
                                 if (refreshData) refreshData();
                               } catch (err) {
-                                alert('승인 처리 중 오류: ' + err.message);
+                                alert('오류: ' + err.message);
                               } finally {
                                 setLoading(false);
                               }
                             }} 
-                            style={{ flex: 2, backgroundColor: '#F59E0B', color: 'white', padding: '12px', borderRadius: '12px', fontWeight: 900, fontSize: '14px', border: 'none', opacity: loading ? 0.5 : 1 }}
+                            style={{ flex: 2, backgroundColor: '#F59E0B', color: 'white', padding: '12px', borderRadius: '12px', fontWeight: 900, border: 'none' }}
                           >
                             APPROVE
                           </button>
                         )}
-                        <button disabled={loading} onClick={() => setEditingClass(item)} style={{ flex: 1, backgroundColor: '#1E293B', color: 'white', padding: '12px', borderRadius: '12px', border: 'none' }}><Edit3 size={18} /></button>
                         <button 
                           disabled={loading}
                           onClick={async () => {
-                            if(!window.confirm('DB에서 완전히 삭제하시겠습니까?')) return
+                            if (!window.confirm('삭제하시겠습니까?')) return;
                             setLoading(true);
                             try {
-                              const { error } = await supabase.from('classes_info').delete().eq('id', item.id)
-                              if(error) throw error;
-                              alert('완전 삭제되었습니다.');
-                              await fetchClasses(); 
-                              if (refreshData) refreshData();
+                              const { error } = await supabase.from('classes_info').delete().eq('id', item.id);
+                              if (error) throw error;
+                              await fetchClasses();
                             } catch (err) {
-                              alert('삭제 실패: ' + err.message);
+                              alert('실패: ' + err.message);
                             } finally {
                               setLoading(false);
                             }
                           }} 
-                          style={{ flex: 1, backgroundColor: 'rgba(239, 68, 68, 0.1)', color: '#EF4444', padding: '12px', borderRadius: '12px', border: '1px solid rgba(239, 68, 68, 0.2)' }}
+                          style={{ flex: 1, backgroundColor: 'rgba(239, 68, 68, 0.1)', color: '#EF4444', padding: '12px', borderRadius: '12px', border: 'none' }}
                         >
                           <Trash2 size={18} />
                         </button>
@@ -1016,145 +960,6 @@ export default function AdminDashboard({ onBack, refreshData }) {
         </div>
       )}
 
-      {editingClass && (
-        <div style={{ position: 'fixed', inset: 0, backgroundColor: 'rgba(0,0,0,0.7)', backdropFilter: 'blur(5px)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 3000, padding: '20px' }}>
-          <div style={{ backgroundColor: 'white', width: '100%', maxWidth: '500px', borderRadius: '24px', padding: '24px', maxHeight: '90vh', overflowY: 'auto' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '20px', alignItems: 'center' }}>
-              <h3 style={{ fontSize: '18px', fontWeight: 800 }}>강습 정보 수정</h3>
-              <button onClick={() => setEditingClass(null)} style={{ background: '#F3F4F6', border: 'none', borderRadius: '50%', padding: '4px' }}><X size={20} /></button>
-            </div>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-              <div style={inputGroupStyle}><label style={labelStyle}>강습명</label><input value={editingClass.title} onChange={e => setEditingClass({...editingClass, title: e.target.value})} style={inputStyle} /></div>
-              
-              <div style={inputGroupStyle}>
-                <label style={labelStyle}>강습 유형</label>
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '6px' }}>
-                  {CLASS_CATEGORIES.map(cat => (
-                    <button 
-                      key={cat}
-                      onClick={() => setEditingClass({...editingClass, level: cat})}
-                      style={{ 
-                        padding: '8px 4px', fontSize: '11px', borderRadius: '8px', border: '1px solid',
-                        borderColor: editingClass.level === cat ? '#FF8C00' : '#E5E7EB',
-                        background: editingClass.level === cat ? '#FF8C00' : 'white',
-                        color: editingClass.level === cat ? 'white' : '#666',
-                        fontWeight: 700
-                      }}
-                    >
-                      {cat}
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              <div style={inputGroupStyle}>
-                <label style={labelStyle}>댄스 장르</label>
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '6px' }}>
-                  {DANCE_STYLES.map(style => (
-                    <button 
-                      key={style}
-                      onClick={() => setEditingClass({...editingClass, genre: style})}
-                      style={{ 
-                        padding: '8px 4px', fontSize: '11px', borderRadius: '8px', border: '1px solid',
-                        borderColor: editingClass.genre === style ? '#FF8C00' : '#E5E7EB',
-                        background: editingClass.genre === style ? '#FF8C00' : 'white',
-                        color: editingClass.genre === style ? 'white' : '#666',
-                        fontWeight: 700
-                      }}
-                    >
-                      {style}
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              <div style={inputGroupStyle}>
-                <label style={labelStyle}>요일 선택</label>
-                <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                  {DAYS.map(day => {
-                    const isSelected = editingClass.day_of_week?.includes(day)
-                    return (
-                      <button 
-                        key={day}
-                        onClick={() => {
-                          const currentDays = editingClass.day_of_week ? editingClass.day_of_week.split(', ') : []
-                          const newDays = isSelected 
-                            ? currentDays.filter(d => d !== day)
-                            : [...currentDays, day].sort((a,b) => DAYS.indexOf(a) - DAYS.indexOf(b))
-                          setEditingClass({...editingClass, day_of_week: newDays.join(', ')})
-                        }}
-                        style={{ 
-                          width: '32px', height: '32px', borderRadius: '16px', fontSize: '11px', border: '1px solid',
-                          borderColor: isSelected ? '#FF8C00' : '#E5E7EB',
-                          background: isSelected ? '#FF8C00' : 'white',
-                          color: isSelected ? 'white' : '#666',
-                          fontWeight: 700
-                        }}
-                      >
-                        {day}
-                      </button>
-                    )
-                  })}
-                </div>
-              </div>
-
-              <div style={inputGroupStyle}><label style={labelStyle}>강사/동호회</label><input value={editingClass.instructor} onChange={e => setEditingClass({...editingClass, instructor: e.target.value})} style={inputStyle} /></div>
-              <div style={inputGroupStyle}><label style={labelStyle}>장소/스튜디오</label><input value={editingClass.studio_name} onChange={e => setEditingClass({...editingClass, studio_name: e.target.value})} style={inputStyle} /></div>
-              <div style={inputGroupStyle}><label style={labelStyle}>주소</label><input value={editingClass.address} onChange={e => setEditingClass({...editingClass, address: e.target.value})} style={inputStyle} /></div>
-              
-              <div style={inputGroupStyle}>
-                <label style={labelStyle}>진행 주차 (Week)</label>
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '6px' }}>
-                  {['1주차', '2주차', '3주차', '4주차', '5주차'].map(w => (
-                    <button 
-                      key={w}
-                      onClick={() => setEditingClass({...editingClass, week_type: w})}
-                      style={{ 
-                        padding: '8px 4px', fontSize: '11px', borderRadius: '8px', border: '1px solid',
-                        borderColor: editingClass.week_type === w ? '#2ECC71' : '#E5E7EB',
-                        background: editingClass.week_type === w ? '#2ECC71' : 'white',
-                        color: editingClass.week_type === w ? 'white' : '#666',
-                        fontWeight: 700
-                      }}
-                    >
-                      {w}
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              <div style={{ display: 'flex', gap: '10px' }}>
-                <div style={{...inputGroupStyle, flex: 1}}><label style={labelStyle}>시작 시간</label><input type="time" value={editingClass.start_time} onChange={e => setEditingClass({...editingClass, start_time: e.target.value})} style={inputStyle} /></div>
-                <div style={{...inputGroupStyle, flex: 1}}><label style={labelStyle}>종료 시간</label><input type="time" value={editingClass.end_time} onChange={e => setEditingClass({...editingClass, end_time: e.target.value})} style={inputStyle} /></div>
-              </div>
-              
-              <div style={inputGroupStyle}><label style={labelStyle}>참가비</label><input value={editingClass.fee} onChange={e => setEditingClass({...editingClass, fee: e.target.value})} style={inputStyle} /></div>
-              
-              <button 
-                disabled={loading}
-                onClick={async () => {
-                  if (loading) return;
-                  setLoading(true);
-                  try {
-                    const { error } = await supabase.from('classes_info').update(editingClass).eq('id', editingClass.id)
-                    if (error) throw error;
-                    alert('수정 내용이 저장되었습니다.');
-                    setEditingClass(null);
-                    await fetchClasses();
-                  } catch (err) {
-                    alert('저장 실패: ' + err.message);
-                  } finally {
-                    setLoading(false);
-                  }
-                }} 
-                style={{ width: '100%', padding: '16px', background: '#FF8C00', color: 'white', borderRadius: '12px', fontWeight: 800, marginTop: '10px', opacity: loading ? 0.5 : 1 }}
-              >
-                {loading ? '저장 중...' : '수정 내용 저장'}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   )
 }

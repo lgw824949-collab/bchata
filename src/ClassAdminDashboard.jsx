@@ -1,272 +1,185 @@
-
 import React, { useState, useEffect } from 'react'
-import { ChevronLeft, Check, Trash2, Edit3, Save, X } from 'lucide-react'
 import { supabase } from './lib/supabase'
+import { ChevronLeft, Check, Trash2, Clock, Calendar, MapPin, User, RefreshCw, AlertCircle } from 'lucide-react'
+import { motion, AnimatePresence } from 'framer-motion'
 
 const ClassAdminDashboard = ({ onBack }) => {
-  const [items, setItems] = useState([])
+  const [activeTab, setActiveTab] = useState('pending')
+  const [classes, setClasses] = useState([])
   const [loading, setLoading] = useState(true)
-  const [editingId, setEditingId] = useState(null)
-  const [editData, setEditData] = useState({})
-  const [activeTab, setActiveTab] = useState('class') // 'class' or 'club'
 
-  useEffect(() => {
-    fetchItems()
-  }, [])
-
-  const fetchItems = async () => {
+  // 데이터 가져오기
+  const fetchClasses = async () => {
     setLoading(true)
-    const { data, error } = await supabase
-      .from('classes_info')
-      .select('*')
-      .neq('status', 'archived')
-      .order('created_at', { ascending: false })
-    
-    if (error) console.error(error)
-    else setItems(data || [])
-    setLoading(false)
+    try {
+      const { data, error } = await supabase
+        .from('classes_info')
+        .select('*')
+        .eq('category_type', 'class')
+        .order('created_at', { ascending: false })
+
+      if (error) throw error
+      setClasses(data || [])
+    } catch (err) {
+      console.error('Error fetching classes:', err.message)
+    } finally {
+      setLoading(false)
+    }
   }
 
-  const filteredItems = items.filter(item => {
-    if (activeTab === 'class') return item.category_type === 'class' || !item.category_type
-    return item.category_type === 'club'
-  })
+  useEffect(() => {
+    fetchClasses()
+  }, [])
 
-  const pendingCount = (type) => items.filter(i => (type === 'class' ? (i.category_type === 'class' || !i.category_type) : i.category_type === 'club') && i.status === 'pending').length
-
-  const handleApprove = async (e, id) => {
-    e.preventDefault();
-    e.stopPropagation();
-    if (loading) return;
-    setLoading(true);
+  // 승인 처리
+  const handleApprove = async (id) => {
+    if (!window.confirm('이 클래스를 승인하시겠습니까?')) return
     try {
       const { error } = await supabase
         .from('classes_info')
         .update({ status: 'approved' })
         .eq('id', id)
-      
-      if (error) throw error;
-      alert('승인이 완료되었습니다.');
-      await fetchItems();
+
+      if (error) throw error
+      alert('승인되었습니다.')
+      fetchClasses()
     } catch (err) {
-      console.error('Approve error:', err);
-      alert('승인 중 오류 발생: ' + err.message);
-    } finally {
-      setLoading(false);
+      alert('승인 실패: ' + err.message)
     }
   }
 
-  const handleDelete = async (e, id) => {
-    e.preventDefault();
-    e.stopPropagation();
-    if (loading) return;
-    
-    if (!window.confirm('정말 이 게시물을 DB에서 완전히 삭제하시겠습니까?')) return
-    
-    setLoading(true);
+  // 삭제 처리
+  const handleDelete = async (id) => {
+    if (!window.confirm('정말로 이 클래스를 삭제하시겠습니까? DB에서 완전히 제거됩니다.')) return
     try {
       const { error } = await supabase
         .from('classes_info')
         .delete()
         .eq('id', id)
-      
-      if (error) throw error;
-      alert('완전 삭제되었습니다.');
-      await fetchItems();
+
+      if (error) throw error
+      alert('삭제되었습니다.')
+      fetchClasses()
     } catch (err) {
-      console.error('Delete error:', err);
-      alert('삭제 처리 중 오류가 발생했습니다: ' + err.message);
-    } finally {
-      setLoading(false);
+      alert('삭제 실패: ' + err.message)
     }
   }
 
-  const startEdit = (item) => {
-    setEditingId(item.id)
-    setEditData({ ...item })
-  }
-
-  const handleSave = async () => {
-    if (loading) return;
-    setLoading(true);
-    try {
-      const { error } = await supabase
-        .from('classes_info')
-        .update(editData)
-        .eq('id', editingId)
-      
-      if (error) throw error;
-      setItems(items.map(item => item.id === editingId ? { ...editData } : item))
-      setEditingId(null)
-      alert('수정되었습니다.')
-      await fetchItems();
-    } catch (err) {
-      alert('저장 실패: ' + err.message);
-    } finally {
-      setLoading(false);
-    }
+  // 탭별 데이터 필터링
+  const filteredClasses = classes.filter(item => item.status === activeTab)
+  const counts = {
+    pending: classes.filter(i => i.status === 'pending').length,
+    approved: classes.filter(i => i.status === 'approved').length,
+    expired: classes.filter(i => i.status === 'expired').length
   }
 
   return (
-    <div style={{ padding: '20px', backgroundColor: '#F9FAFB', minHeight: '100vh', paddingBottom: '100px' }}>
-      <div style={{ display: 'flex', alignItems: 'center', marginBottom: '16px' }}>
-        <button onClick={onBack} disabled={loading} style={{ background: 'none', border: 'none', cursor: 'pointer', marginRight: '12px', opacity: loading ? 0.5 : 1 }}>
-          <ChevronLeft size={24} />
-        </button>
-        <h1 style={{ fontSize: '20px', fontWeight: 800 }}>강습/동호회 관리자</h1>
-        <button 
-          onClick={() => fetchItems()} 
-          disabled={loading}
-          style={{ marginLeft: 'auto', fontSize: '11px', background: 'white', color: '#03C75A', padding: '4px 10px', borderRadius: '20px', fontWeight: 700, border: '1.5px solid #03C75A', opacity: loading ? 0.5 : 1 }}
-        >
-          갱신
-        </button>
+    <div style={{ backgroundColor: '#0F172A', minHeight: '100vh', color: '#F8FAFC', paddingBottom: '60px' }}>
+      {/* 헤더 */}
+      <header style={{ position: 'sticky', top: 0, zIndex: 100, backgroundColor: '#1E293B', borderBottom: '1px solid #334155', padding: '16px 20px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+          <button onClick={onBack} style={{ background: 'none', border: 'none', color: '#94A3B8', cursor: 'pointer' }}><ChevronLeft size={28} /></button>
+          <h1 style={{ fontSize: '20px', fontWeight: 900, margin: 0 }}>클래스 관리자</h1>
+        </div>
+        <button onClick={fetchClasses} style={{ background: 'none', border: 'none', color: '#38BDF8', cursor: 'pointer' }}><RefreshCw size={22} className={loading ? 'animate-spin' : ''} /></button>
+      </header>
+
+      {/* 탭 네비게이션 */}
+      <div style={{ display: 'flex', padding: '12px', gap: '8px', overflowX: 'auto', backgroundColor: '#0F172A' }}>
+        {[
+          { id: 'pending', label: '대기중', color: '#F59E0B' },
+          { id: 'approved', label: '승인됨', color: '#10B981' },
+          { id: 'expired', label: '만료됨', color: '#94A3B8' }
+        ].map(tab => (
+          <button
+            key={tab.id}
+            onClick={() => setActiveTab(tab.id)}
+            style={{
+              flex: 1, minWidth: '100px', padding: '12px', borderRadius: '14px', border: 'none', cursor: 'pointer',
+              backgroundColor: activeTab === tab.id ? tab.color : '#1E293B',
+              color: activeTab === tab.id ? '#fff' : '#94A3B8',
+              fontWeight: 800, fontSize: '13px', transition: 'all 0.2s',
+              display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px'
+            }}
+          >
+            {tab.label}
+            <span style={{ fontSize: '11px', opacity: 0.8, backgroundColor: activeTab === tab.id ? 'rgba(0,0,0,0.2)' : 'rgba(255,255,255,0.1)', padding: '2px 6px', borderRadius: '6px' }}>{counts[tab.id]}</span>
+          </button>
+        ))}
       </div>
 
-      {/* 탭 내비게이션 */}
-      <div style={{ display: 'flex', gap: '8px', marginBottom: '24px' }}>
-        <button 
-          onClick={() => setActiveTab('class')}
-          disabled={loading}
-          style={{ 
-            flex: 1, 
-            padding: '12px', 
-            borderRadius: '12px', 
-            border: 'none', 
-            background: activeTab === 'class' ? '#FF8C00' : 'white',
-            color: activeTab === 'class' ? 'white' : '#666',
-            fontWeight: 800,
-            fontSize: '14px',
-            boxShadow: activeTab === 'class' ? '0 4px 12px rgba(255, 140, 0, 0.2)' : '0 2px 4px rgba(0,0,0,0.05)',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            gap: '6px',
-            opacity: loading ? 0.5 : 1
-          }}
-        >
-          강습 홍보 
-          <span style={{ fontSize: '11px', opacity: 0.8 }}>({pendingCount('class')})</span>
-        </button>
-        <button 
-          onClick={() => setActiveTab('club')}
-          disabled={loading}
-          style={{ 
-            flex: 1, 
-            padding: '12px', 
-            borderRadius: '12px', 
-            border: 'none', 
-            background: activeTab === 'club' ? '#FF8C00' : 'white',
-            color: activeTab === 'club' ? 'white' : '#666',
-            fontWeight: 800,
-            fontSize: '14px',
-            boxShadow: activeTab === 'club' ? '0 4px 12px rgba(255, 140, 0, 0.2)' : '0 2px 4px rgba(0,0,0,0.05)',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            gap: '6px',
-            opacity: loading ? 0.5 : 1
-          }}
-        >
-          동호회 강습
-          <span style={{ fontSize: '11px', opacity: 0.8 }}>({pendingCount('club')})</span>
-        </button>
-      </div>
+      {/* 리스트 영역 */}
+      <div style={{ padding: '16px' }}>
+        {loading ? (
+          <div style={{ textAlign: 'center', padding: '100px 0', color: '#64748B' }}>데이터를 불러오는 중...</div>
+        ) : filteredClasses.length === 0 ? (
+          <div style={{ textAlign: 'center', padding: '100px 20px', color: '#64748B' }}>
+            <AlertCircle size={48} style={{ marginBottom: '16px', opacity: 0.3 }} />
+            <p style={{ fontWeight: 700 }}>해당되는 클래스가 없습니다.</p>
+          </div>
+        ) : (
+          <div style={{ display: 'grid', gap: '16px' }}>
+            <AnimatePresence>
+              {filteredClasses.map(item => (
+                <motion.div
+                  key={item.id}
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, scale: 0.95 }}
+                  style={{ backgroundColor: '#1E293B', borderRadius: '20px', overflow: 'hidden', border: '1px solid #334155' }}
+                >
+                  <div style={{ display: 'flex', gap: '16px', padding: '16px' }}>
+                    {/* 썸네일 */}
+                    <div style={{ width: '80px', height: '110px', borderRadius: '12px', overflow: 'hidden', flexShrink: 0, backgroundColor: '#0F172A' }}>
+                      {item.poster_url ? (
+                        <img src={item.poster_url} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                      ) : (
+                        <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><User size={24} color="#334155" /></div>
+                      )}
+                    </div>
 
-      {loading && items.length === 0 ? (
-        <div style={{ textAlign: 'center', padding: '100px' }}>로딩 중...</div>
-      ) : filteredItems.length === 0 ? (
-        <div style={{ textAlign: 'center', padding: '100px', color: '#999' }}>{activeTab === 'class' ? '강습' : '동호회'} 신청 내역이 없습니다.</div>
-      ) : (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-          {filteredItems.map(item => (
-            <div key={item.id} style={{ 
-              backgroundColor: 'white', 
-              borderRadius: '16px', 
-              padding: '16px', 
-              boxShadow: '0 4px 12px rgba(0,0,0,0.05)',
-              border: item.status === 'pending' ? '2px solid #FF8C00' : '1px solid #E5E7EB',
-              opacity: item.status === 'approved' ? 0.6 : 1
-            }}>
-              {editingId === item.id ? (
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-                  <input style={inputStyle} value={editData.title} onChange={e => setEditData({...editData, title: e.target.value})} placeholder="제목" />
-                  <input style={inputStyle} value={editData.instructor} onChange={e => setEditData({...editData, instructor: e.target.value})} placeholder="강사명" />
-                  <input style={inputStyle} value={editData.address} onChange={e => setEditData({...editData, address: e.target.value})} placeholder="주소" />
-                  <div style={{ display: 'flex', gap: '8px' }}>
-                    <button onClick={handleSave} disabled={loading} style={{ flex: 1, padding: '12px', background: '#03C75A', color: 'white', border: 'none', borderRadius: '8px', fontWeight: 700, opacity: loading ? 0.5 : 1 }}>저장</button>
-                    <button onClick={() => setEditingId(null)} disabled={loading} style={{ flex: 1, padding: '12px', background: '#9CA3AF', color: 'white', border: 'none', borderRadius: '8px', fontWeight: 700, opacity: loading ? 0.5 : 1 }}>취소</button>
-                  </div>
-                </div>
-              ) : (
-                <>
-                  <div style={{ display: 'flex', gap: '12px', marginBottom: '12px' }}>
-                    {item.poster_url && <img src={item.poster_url} style={{ width: '60px', height: '80px', objectFit: 'cover', borderRadius: '8px', cursor: 'pointer' }} onClick={() => window.open(item.poster_url, '_blank')} />}
-                    <div style={{ flex: 1 }}>
-                      <div style={{ fontSize: '11px', color: item.status === 'approved' ? '#03C75A' : '#FF8C00', fontWeight: 800, marginBottom: '2px' }}>{item.status.toUpperCase()}</div>
-                      <h3 style={{ fontSize: '15px', fontWeight: 800, marginBottom: '4px' }}>{item.title}</h3>
-                      <div style={{ fontSize: '12px', color: '#666' }}>{item.instructor} 강사 | {item.day_of_week}요일 {item.time}</div>
-                      <div style={{ fontSize: '11px', color: '#999', marginTop: '4px' }}>📍 {item.address}</div>
+                    {/* 정보 */}
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '4px' }}>
+                        <span style={{ fontSize: '11px', color: '#38BDF8', fontWeight: 900 }}>{item.genre} · {item.level}</span>
+                        <div style={{ padding: '4px 8px', borderRadius: '6px', fontSize: '10px', fontWeight: 900, backgroundColor: item.status === 'pending' ? 'rgba(245,158,11,0.1)' : 'rgba(16,185,129,0.1)', color: item.status === 'pending' ? '#F59E0B' : '#10B981' }}>{item.status.toUpperCase()}</div>
+                      </div>
+                      <h3 style={{ fontSize: '17px', fontWeight: 900, margin: '0 0 8px 0', color: '#F8FAFC', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{item.title}</h3>
+                      
+                      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '4px', fontSize: '12px', color: '#94A3B8' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}><User size={13} /> {item.instructor}</div>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}><MapPin size={13} /> {item.city} {item.studio_name}</div>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}><Clock size={13} /> {item.day_of_week} {item.start_time}~{item.end_time}</div>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}><Calendar size={13} /> {item.start_date} ({item.duration})</div>
+                      </div>
                     </div>
                   </div>
-                  <div style={{ display: 'flex', gap: '8px' }}>
+
+                  {/* 하단 액션 버튼 */}
+                  <div style={{ display: 'flex', borderTop: '1px solid #334155' }}>
                     {item.status === 'pending' && (
                       <button 
-                        disabled={loading}
-                        type="button"
-                        onClick={(e) => handleApprove(e, item.id)} 
-                        style={{ flex: 2, padding: '10px', background: '#FF8C00', color: 'white', border: 'none', borderRadius: '8px', fontWeight: 800, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '4px', opacity: loading ? 0.5 : 1 }}
+                        onClick={() => handleApprove(item.id)}
+                        style={{ flex: 1, padding: '14px', background: 'none', border: 'none', borderRight: '1px solid #334155', color: '#10B981', fontWeight: 900, fontSize: '14px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px' }}
                       >
                         <Check size={18} /> 승인하기
                       </button>
                     )}
                     <button 
-                      disabled={loading}
-                      type="button"
-                      onClick={(e) => { e.stopPropagation(); startEdit(item); }} 
-                      style={{ flex: 1, padding: '10px', background: '#F3F4F6', border: 'none', borderRadius: '8px', color: '#4B5563', opacity: loading ? 0.5 : 1 }}
+                      onClick={() => handleDelete(item.id)}
+                      style={{ flex: 1, padding: '14px', background: 'none', border: 'none', color: '#EF4444', fontWeight: 900, fontSize: '14px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px' }}
                     >
-                      <Edit3 size={18} />
-                    </button>
-                    <button 
-                      type="button"
-                      onClick={(e) => handleDelete(e, item.id)} 
-                      disabled={loading}
-                      style={{ 
-                        flex: 1, 
-                        padding: '12px', 
-                        background: '#FEE2E2', 
-                        border: 'none', 
-                        borderRadius: '12px', 
-                        color: '#EF4444', 
-                        cursor: loading ? 'not-allowed' : 'pointer',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        transition: 'all 0.2s',
-                        opacity: loading ? 0.5 : 1
-                      }}
-                    >
-                      <Trash2 size={20} style={{ pointerEvents: 'none' }} />
+                      <Trash2 size={18} /> {item.status === 'pending' ? '거절/삭제' : '삭제'}
                     </button>
                   </div>
-                </>
-              )}
-            </div>
-          ))}
-        </div>
-      )
-      )}
+                </motion.div>
+              ))}
+            </AnimatePresence>
+          </div>
+        )}
+      </div>
     </div>
   )
-}
-
-const inputStyle = {
-  padding: '12px',
-  borderRadius: '8px',
-  border: '1.5px solid #E5E7EB',
-  fontSize: '14px',
-  width: '100%'
 }
 
 export default ClassAdminDashboard

@@ -48,6 +48,35 @@ const PosterImage = ({ src, onClick, alt = "파티 포스터" }) => {
   );
 };
 
+const ClassCard = ({ item, onSelect }) => {
+  return (
+    <div 
+      onClick={() => onSelect(item.poster_url)}
+      style={{ 
+        width: '160px', 
+        backgroundColor: '#FFFFFF', 
+        borderRadius: '20px', 
+        overflow: 'hidden', 
+        border: '1px solid #F1F5F9',
+        boxShadow: '0 10px 25px -5px rgba(0,0,0,0.05)',
+        cursor: 'pointer'
+      }}
+    >
+      <div style={{ width: '100%', height: '220px', position: 'relative' }}>
+        <img src={item.poster_url} style={{ width: '100%', height: '100%', objectFit: 'cover' }} alt="Poster" />
+        <div style={{ position: 'absolute', top: '10px', right: '10px', background: 'rgba(0,0,0,0.6)', backdropFilter: 'blur(10px)', color: 'white', padding: '4px 10px', borderRadius: '12px', fontSize: '10px', fontWeight: '900' }}>
+          {item.genre}
+        </div>
+      </div>
+      <div style={{ padding: '12px' }}>
+        <div style={{ fontSize: '10px', color: '#D4A017', fontWeight: '900', marginBottom: '4px' }}>{item.level}</div>
+        <h3 style={{ fontSize: '14px', fontWeight: '900', color: '#1E293B', margin: '0 0 4px 0', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{item.title}</h3>
+        <p style={{ fontSize: '11px', color: '#64748B', margin: 0 }}>👤 {item.instructor}</p>
+      </div>
+    </div>
+  );
+};
+
 const PartyCard = ({ item, onSelect }) => {
   const isTimeLive = (() => {
     const now = new Date();
@@ -187,55 +216,6 @@ const PartyCard = ({ item, onSelect }) => {
   );
 };
 
-const ClassCard = ({ item, onSelect }) => (
-  <div
-    onClick={() => onSelect(item.poster_url)}
-    style={{
-      display: 'flex',
-      flexDirection: 'row',
-      alignItems: 'stretch',
-      backgroundColor: '#FFFFFF',
-      borderRadius: '16px',
-      overflow: 'hidden',
-      border: '1px solid #F1F5F9',
-      cursor: 'pointer',
-      width: '260px',
-      minWidth: '260px',
-      height: '110px',
-      boxShadow: '0 4px 6px -1px rgba(0,0,0,0.05)'
-    }}
-  >
-    <div style={{ width: '75px', minWidth: '75px', height: '110px', overflow: 'hidden', flexShrink: 0 }}>
-      <img src={item.poster_url} style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} alt="poster" />
-    </div>
-    <div style={{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'center', minWidth: 0, padding: '0 10px' }}>
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '3px' }}>
-        <span style={{ fontSize: '11px', fontWeight: '800', color: '#64748B', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-          {item.studio_name || '장소 미지정'}
-        </span>
-        <Navigation size={12} color="#FF3B30" fill="#FF3B30"
-          style={{ flexShrink: 0, cursor: 'pointer', marginLeft: '4px' }}
-          onClick={(e) => {
-            e.stopPropagation();
-            window.open(`https://map.kakao.com/link/search/${encodeURIComponent(item.address || item.studio_name)}`, '_blank');
-          }}
-        />
-      </div>
-      <div style={{ display: 'flex', alignItems: 'center', gap: '4px', marginBottom: '4px' }}>
-        <span style={{ fontSize: '10px', fontWeight: '800', color: '#fff', background: '#D4A017', padding: '1px 5px', borderRadius: '3px', flexShrink: 0 }}>
-          {item.level}
-        </span>
-        <span style={{ fontSize: '13px', fontWeight: '950', color: '#1E293B', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', letterSpacing: '-0.3px' }}>
-          {item.title}
-        </span>
-      </div>
-      <div style={{ fontSize: '10px', fontWeight: '700', color: '#94A3B8', display: 'flex', flexDirection: 'column', gap: '1px' }}>
-        <span><span style={{ color: '#FF3B30' }}>{item.genre}</span> · {item.day_of_week} {item.start_time}~{item.end_time}</span>
-        <span>{item.start_date ? `${new Date(item.start_date).getMonth()+1}/${new Date(item.start_date).getDate()} 시작` : ''} · {item.duration || '상시 운영'}</span>
-      </div>
-    </div>
-  </div>
-);
 
 const RollingContainer = ({ items, onSelect }) => {
   const [index, setIndex] = useState(0);
@@ -297,7 +277,7 @@ const FilterBar = ({ filterRegion, setFilterRegion, filterGenre, setFilterGenre 
 };
 
 const HomePage = ({ 
-  parties, lessons, loading, selectedMonth, setSelectedMonth, selectedWeek, setSelectedWeek, 
+  parties, loading, selectedMonth, setSelectedMonth, selectedWeek, setSelectedWeek, 
   selectedDate, setSelectedDate, selectedRegion, setSelectedRegion, isExpanded, setIsExpanded,
   view, setView, setSelectedPoster, fetchParties, formatItemDate, formatFee, filteredParties, weekData,
   resetToToday, showFullCalendar, setShowFullCalendar, likedIds, toggleLike, logActivity, handleRegister, fourteenDays,
@@ -310,8 +290,6 @@ const HomePage = ({
   const { t, i18n } = useTranslation();
   const isEn = i18n.language.startsWith('en');
   const [isPaused, setIsPaused] = useState(false);
-  const [classGenre, setClassGenre] = useState('전체');
-  const [classLevel, setClassLevel] = useState('전체');
   const [weatherMap, setWeatherMap] = useState({});
   const todayStr = useMemo(() => {
     const d = new Date();
@@ -490,103 +468,86 @@ const HomePage = ({
               {IncheonBanner && <IncheonBanner />}
               {(() => {
                 const regions = ["서울", "경기/인천", "경상도", "전라도", "충청도", "강원/제주"];
-                return regions.map((regionName) => {
+                const socialList = regions.map((regionName) => {
                   const regionParties = (parties || [])
                     .filter(p => p.date === selectedDate)
                     .filter(p => REGION_FILTER[regionName](p))
                     .filter(p => {
-                      // 2. 장르 조건 매칭
                       if (filterGenre && GENRE_MAP[filterGenre]) {
                         if (!(p[GENRE_MAP[filterGenre].key] > 0)) return false;
                       }
                       return true;
                     });
 
+                  if (regionParties.length === 0) return null;
+
                   const isFirst = regionName === '서울';
-                  const maxDisplay = regionName === '서울' ? 4 : 3;
+                  const maxCount = regionName === '서울' ? 3 : 2;
 
                   return (
-                    <section 
-                      key={regionName} 
-                      ref={isFirst ? regionListRef : null}
-                      style={{ marginBottom: '15px', background: '#fff' }}
-                    >
+                    <section key={`social-${regionName}`} ref={isFirst ? regionListRef : null} style={{ marginBottom: '15px', background: '#fff' }}>
                       <div style={{ fontSize: '18px', fontWeight: '900', padding: '15px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                         <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                           <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#FF1744' }} />
                           {isEn ? (REGION_MAP_EN[regionName] || regionName) : regionName}
                         </div>
-                        <button 
-                          onClick={() => {
-                            setGridRegion(regionName);
-                            handleOpenModal(setShowGridModal, true);
-                          }}
-                          style={{ fontSize: '12px', fontWeight: '700', color: '#94A3B8', background: 'none', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '2px' }}
-                        >
+                        <button onClick={() => { setGridRegion(regionName); handleOpenModal(setShowGridModal, true); }}
+                          style={{ fontSize: '12px', fontWeight: '700', color: '#94A3B8', background: 'none', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '2px' }}>
                           {isEn ? 'View All' : '전체보기'} <ChevronRight size={14} />
                         </button>
                       </div>
                       <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', padding: '0 15px 20px' }}>
-                        {regionParties.length === 0 ? (
-                          <div style={{ padding: '40px', background: '#F8FAFC', borderRadius: '16px', textAlign: 'center', color: '#94A3B8', fontSize: '13px', fontWeight: '700' }}>{t('no_parties')}</div>
-                        ) : (() => {
-                          const maxCount = regionName === '서울' ? 3 : 2;
-                          return regionParties.slice(0, maxCount).map(item => (
-                            <PartyCard key={item.id} item={item} onSelect={(url) => handleOpenModal(setSelectedPoster, url)} />
-                          ));
-                        })()}
+                        {regionParties.slice(0, maxCount).map(item => (
+                          <PartyCard key={item.id} item={item} onSelect={(url) => handleOpenModal(setSelectedPoster, url)} />
+                        ))}
                       </div>
                     </section>
                   );
                 });
+
+                // 소셜 파티가 하나도 없는 경우에만 안내 문구 표시
+                const hasAnySocial = socialList.some(item => item !== null);
+                return hasAnySocial ? socialList : (
+                  <div style={{ padding: '40px', background: '#fff', textAlign: 'center', color: '#94A3B8', fontSize: '13px', fontWeight: '700' }}>{t('no_parties')}</div>
+                );
               })()}
 
-              {/* 클래스 섹션 */}
+              {/* 클래스 섹션 추가 (소셜 아래) */}
               {(() => {
-                const regions = ["서울","경기/인천","경상도","전라도","충청도","강원/제주"];
-                const filtered = (lessons || []).filter(l =>
-                  l.category_type === 'class' && l.status === 'approved'
+                const classRegions = ["서울","경기,인천","경상도","충청도","전라도","강원,제주"];
+                const allLessons = (lessons || []).filter(l => 
+                  l.category_type === 'class' && (l.status === 'approved' || l.status === 'active')
                 );
-                return regions.map(regionName => {
-                  const regionLessons = filtered.filter(l => {
+                
+                return classRegions.map(regionName => {
+                  const regionLessons = allLessons.filter(l => {
                     const text = `${l.city||''} ${l.address||''} ${l.studio_name||''}`.toLowerCase();
                     if (regionName === "서울") return text.includes("서울")||text.includes("강남")||text.includes("홍대")||text.includes("잠실")||text.includes("성수")||text.includes("신림")||text.includes("건대");
-                    if (regionName === "경기/인천") return text.includes("경기")||text.includes("인천")||text.includes("수원")||text.includes("부천")||text.includes("안양")||text.includes("고양")||text.includes("일산")||text.includes("성남")||text.includes("분당")||text.includes("의정부");
+                    if (regionName === "경기,인천") return text.includes("경기")||text.includes("인천")||text.includes("수원")||text.includes("부천")||text.includes("안양")||text.includes("고양")||text.includes("일산")||text.includes("성남")||text.includes("분당")||text.includes("의정부");
                     if (regionName === "경상도") return text.includes("경상")||text.includes("경남")||text.includes("경북")||text.includes("부산")||text.includes("대구")||text.includes("울산")||text.includes("창원");
-                    if (regionName === "전라도") return text.includes("전라")||text.includes("전남")||text.includes("전북")||text.includes("광주")||text.includes("전주");
                     if (regionName === "충청도") return text.includes("충청")||text.includes("충남")||text.includes("충북")||text.includes("대전")||text.includes("세종");
-                    if (regionName === "강원/제주") return text.includes("강원")||text.includes("제주");
+                    if (regionName === "전라도") return text.includes("전라")||text.includes("전남")||text.includes("전북")||text.includes("광주")||text.includes("전주");
+                    if (regionName === "강원,제주") return text.includes("강원")||text.includes("제주");
                     return false;
                   });
+
                   if (regionLessons.length === 0) return null;
+
                   return (
-                    <section key={regionName} style={{ marginBottom: '15px', background: '#fff' }}>
+                    <section key={`class-${regionName}`} style={{ marginBottom: '15px', background: '#fff', borderTop: '8px solid #f2f2f2', paddingTop: '10px' }}>
                       <div style={{ fontSize: '18px', fontWeight: '900', padding: '15px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                         <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                           <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#D4A017' }} />
-                          {regionName}
+                          {regionName} 강습
                         </div>
                         <button onClick={() => setView('class')}
                           style={{ fontSize: '12px', fontWeight: '700', color: '#94A3B8', background: 'none', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '2px' }}>
                           전체보기 <ChevronRight size={14} />
                         </button>
                       </div>
-                      <div
-                        className="no-scrollbar"
-                        style={{
-                          display: 'flex',
-                          flexDirection: 'row',
-                          overflowX: 'auto',
-                          WebkitOverflowScrolling: 'touch',
-                          scrollSnapType: 'x mandatory',
-                          msOverflowStyle: 'none',
-                          scrollbarWidth: 'none',
-                          gap: '12px',
-                          padding: '0 15px 20px'
-                        }}
-                      >
-                        {regionLessons.slice(0, 20).map(item => (
-                          <div key={item.id} style={{ scrollSnapAlign: 'start', flexShrink: 0 }}>
+                      <div className="no-scrollbar" style={{ display: 'flex', overflowX: 'auto', gap: '12px', padding: '0 15px 25px' }}>
+                        {regionLessons.map(item => (
+                          <div key={item.id} style={{ flexShrink: 0 }}>
                             <ClassCard item={item} onSelect={(url) => handleOpenModal(setSelectedPoster, url)} />
                           </div>
                         ))}
@@ -595,6 +556,7 @@ const HomePage = ({
                   );
                 });
               })()}
+
 
               </div>
             )}
