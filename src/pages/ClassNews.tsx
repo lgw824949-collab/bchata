@@ -99,7 +99,8 @@ const ClassNewsPage = ({ lessons: allLessons, loading: lessonsLoading, selectedM
   const [filterGenre, setFilterGenre] = useState('전체');
   const [filterLevel, setFilterLevel] = useState('전체');
 
-  const totalWeeks = useMemo(() => getTotalWeeks(2026, selectedMonth), [selectedMonth]);
+  const currentYear = new Date().getFullYear();
+  const totalWeeks = useMemo(() => getTotalWeeks(currentYear, selectedMonth), [selectedMonth, currentYear]);
   const weekButtons = useMemo(() => Array.from({ length: totalWeeks }, (_, i) => `${i + 1}주차`), [totalWeeks]);
 
   const filtered = useMemo(() => {
