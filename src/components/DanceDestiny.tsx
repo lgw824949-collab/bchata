@@ -150,51 +150,25 @@ export default function DanceDestiny({ onClose, parties=[] }: { onClose: () => v
     if (q3 === '이제 막 시작한 왕초보') dance.tip = '초보자를 위한 베이직 수업이 있는 곳부터 시작해보세요.'
     if (q4 === '음악과의 교감과 감성') dance.traits.push('예술가적 감성')
 
-    // 3. 추천 BAR 로직
-    const now = new Date()
-    const kstDate = new Date(now.getTime() + (9 * 60 * 60 * 1000))
-    const todayStr = kstDate.toISOString().split('T')[0]
-
-    const genreMatch = (p: any, targetGenre: string) => {
-      if (targetGenre === '모든 장르') return true
-      if (targetGenre === '살사')       return (p.s_ratio||0)>=1
-      if (targetGenre === '바차타')     return (p.b_ratio||0)>=1
-      if (targetGenre === '주크바차타') return (p.j_ratio||0)>=1
-      if (targetGenre === '키좀바')     return (p.k_ratio||0)>=1
-      return false
-    }
-
-    const matchedParties = parties
-      .filter(p => p.date >= todayStr && genreMatch(p, dance.genre))
-      .sort((a, b) => a.date.localeCompare(b.date))
-      .slice(0, 3)
-
-    let recommendedBars = matchedParties.map(p => ({
-      title: p.title,
-      address: p.locations?.address || '',
-      date: p.date,
-      type: p.date === todayStr ? 'today' : 'future',
-      poster_url: p.poster_url
-    }))
-
-    if (recommendedBars.length === 0) {
-      recommendedBars = BAR_DATABASE
-        .filter(b => matchesGenre(b.name, dance.genre))
-        .slice(0, 3)
-        .map(b => ({
-          title: b.name,
-          address: b.address,
-          type: 'db',
-          poster_url: null
-        }))
+    // 3. 강사 스타일 매칭 로직
+    let instructorStyle = ""
+    if (q2 === '체계적이고 꼼꼼하게') {
+      instructorStyle = `기초부터 탄탄하게 잡아주는 정석적인 강사 스타일이 맞아요. ${main}의 기운을 가진 당신은 정확한 원리를 이해할 때 가장 큰 성장을 이룹니다.`
+    } else if (q2 === '쉽고 재미있게') {
+      instructorStyle = `유머러스하고 유쾌한 분위기를 만드는 강사 스타일이 어울려요. ${main}의 특성을 살려 부담 없이 즐겁게 시작할 수 있는 수업을 추천합니다.`
+    } else if (q2 === '다 같이 친해지는 분위기') {
+      instructorStyle = `커뮤니티와 소통을 중시하는 외향적인 강사 스타일이 맞아요. ${main}의 포용력을 발휘해 다른 사람들과 교류하며 배우는 환경에서 빛을 발합니다.`
+    } else {
+      instructorStyle = `에너지가 넘치고 강렬한 카리스마를 가진 강사 스타일이 어울려요. ${main}의 열정을 자극하는 빡세고 디테일한 피드백을 통해 한계를 돌파해보세요.`
     }
 
     setResult({ 
       yearGJ:yGJ, monthGJ:mGJ, dayGJ:dGJ, timeGJ:tGJ, 
       ohengCount:count, mainOheng:main, dance, 
-      recommendedBars, gender, today: todayStr,
+      instructorStyle, gender, today: todayStr,
       answers: { q1, q2, q3, q4 }
     })
+    setLoading(false)
     setStep(3)
   }
 
@@ -414,22 +388,18 @@ export default function DanceDestiny({ onClose, parties=[] }: { onClose: () => v
               </div>
             </div>
 
-            {/* 추천 BAR */}
+            {/* 강사 스타일 추천 */}
             <div style={{ marginBottom:30 }}>
-              <div style={{ fontSize:16, fontWeight:900, marginBottom:12, color:'#1e293b' }}>🎯 당신을 기다리는 장소</div>
-              <div style={{ display:'flex', flexDirection:'column', gap:10 }}>
-                {result.recommendedBars.map((bar: any, i: number)=>(
-                  <div key={i} style={{ padding:16, borderRadius:16, background:'#f8fafc', border:'1px solid #e2e8f0', display:'flex', alignItems:'center', gap:12 }}>
-                    <div style={{ width:50, height:50, borderRadius:12, background:result.dance.bg, display:'flex', alignItems:'center', justifyContent:'center', fontSize:24, flexShrink:0 }}>
-                      {bar.poster_url ? <img src={bar.poster_url} style={{width:'100%', height:'100%', borderRadius:12, objectFit:'cover'}} /> : result.dance.emoji}
-                    </div>
-                    <div style={{ flex:1 }}>
-                      <div style={{ fontSize:15, fontWeight:800, color:'#1e293b' }}>{bar.title}</div>
-                      <div style={{ fontSize:12, color:'#94a3b8', marginTop:2 }}>{bar.address}</div>
-                    </div>
-                    {bar.type === 'today' && <span style={{ fontSize:11, padding:'4px 8px', borderRadius:6, background:'#fee2e2', color:'#ef4444', fontWeight:800 }}>HOT</span>}
-                  </div>
-                ))}
+              <div style={{ fontSize:16, fontWeight:900, marginBottom:12, color:'#1e293b', display:'flex', alignItems:'center', gap:6 }}>
+                👨‍🏫 나에게 맞는 강사 스타일
+              </div>
+              <div style={{ padding:20, borderRadius:20, background:'#f8fafc', border:'1px solid #e2e8f0', lineHeight:1.6 }}>
+                <div style={{ fontSize:15, color:'#334155', fontWeight:600 }}>
+                  "{result.instructorStyle}"
+                </div>
+                <div style={{ fontSize:12, color:'#94a3b8', marginTop:10 }}>
+                  *선택하신 '{result.answers.q2}' 분위기와 {result.mainOheng} 기운의 성향을 결합한 분석입니다.
+                </div>
               </div>
             </div>
 
