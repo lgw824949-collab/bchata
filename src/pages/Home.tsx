@@ -235,8 +235,8 @@ const ClassCard = ({ item, onSelect }) => {
           </span>
           <Navigation
             size={14}
-            color="#FF1744"
-            fill="#FF1744"
+            color="#FF3B30"
+            fill="#FF3B30"
             style={{ flexShrink: 0, cursor: 'pointer' }}
             onClick={(e) => {
               e.stopPropagation();
@@ -248,7 +248,7 @@ const ClassCard = ({ item, onSelect }) => {
 
         {/* 2행: 레벨 + 제목 */}
         <div style={{ display: 'flex', alignItems: 'center', gap: '5px', marginBottom: '4px', minWidth: 0 }}>
-          <span style={{ fontSize: '10px', fontWeight: '900', color: '#fff', background: '#2ECC71', padding: '1px 5px', borderRadius: '3px', flexShrink: 0 }}>
+          <span style={{ fontSize: '10px', fontWeight: '900', color: '#fff', background: '#D4A017', padding: '1px 5px', borderRadius: '3px', flexShrink: 0 }}>
             {item.level}
           </span>
           <h3 style={{ fontSize: '16px', fontWeight: '950', color: '#1E293B', margin: 0, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', letterSpacing: '-0.5px' }}>
@@ -258,9 +258,9 @@ const ClassCard = ({ item, onSelect }) => {
 
         {/* 3행: 장르 / 시간 / 시작일 */}
         <div style={{ display: 'flex', alignItems: 'center', gap: '3px', fontSize: '11px', fontWeight: '800', color: '#94A3B8', whiteSpace: 'nowrap', overflow: 'hidden' }}>
-          <span style={{ color: '#FF1744' }}>{item.genre}</span>
+          <span style={{ color: '#FF3B30' }}>{item.genre}</span>
           <span>/</span>
-          <span>{item.day_of_week} {item.start_time?.slice(0,5)}~{item.end_time?.slice(0,5)}</span>
+          <span style={{ color: '#1E293B' }}>{item.day_of_week} {item.start_time?.slice(0,5)}~{item.end_time?.slice(0,5)}</span>
           <span>/</span>
           <span style={{ color: '#1E293B' }}>{startLabel} · {weekLabel}</span>
         </div>
@@ -700,11 +700,11 @@ const HomePage = ({
                                     <span style={{ fontSize: '13px', fontWeight: '800', color: '#64748B', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
                                       {item.studio_name || item.address || '장소 미지정'}
                                     </span>
-                                    <Navigation size={14} color="#FF1744" fill="#FF1744" />
+                                    <Navigation size={14} color="#FF3B30" fill="#FF3B30" />
                                   </div>
 
                                   <div style={{ display: 'flex', alignItems: 'center', gap: '5px', marginBottom: '4px', minWidth: 0 }}>
-                                    <span style={{ fontSize: '10px', fontWeight: '900', color: '#fff', background: '#2ECC71', padding: '1px 5px', borderRadius: '3px', flexShrink: 0 }}>
+                                    <span style={{ fontSize: '10px', fontWeight: '900', color: '#fff', background: '#D4A017', padding: '1px 5px', borderRadius: '3px', flexShrink: 0 }}>
                                       {item.level}
                                     </span>
                                     <h3 style={{ fontSize: '16px', fontWeight: '950', color: '#1E293B', margin: 0, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', letterSpacing: '-0.5px' }}>
@@ -713,9 +713,9 @@ const HomePage = ({
                                   </div>
 
                                   <div style={{ display: 'flex', alignItems: 'center', gap: '3px', fontSize: '11px', fontWeight: '800', color: '#94A3B8', whiteSpace: 'nowrap', overflow: 'hidden' }}>
-                                    <span style={{ color: '#FF1744' }}>{item.genre}</span>
+                                    <span style={{ color: '#FF3B30' }}>{item.genre}</span>
                                     <span>/</span>
-                                    <span>{item.day_of_week} {item.start_time?.slice(0,5)}</span>
+                                    <span style={{ color: '#1E293B' }}>{item.day_of_week} {item.start_time?.slice(0,5)}</span>
                                     <span>/</span>
                                     <span style={{ color: '#1E293B' }}>
                                       {(() => {
