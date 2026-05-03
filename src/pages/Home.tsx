@@ -330,11 +330,11 @@ const HomePage = ({
     <div className="app-container" style={{ width: '100%', maxWidth: '500px', margin: '0 auto', background: '#fff', minHeight: '100vh', paddingBottom: '100px' }}>
       
       {/* 📌 [영역 A: 브랜드 헤더 - 최종 확정] */}
-      <div style={{ padding: '60px 24px' }}>
+      <div style={{ padding: '40px 24px 24px' }}>
         <p style={{ fontSize: '11px', color: '#E53935', letterSpacing: '0.3em', fontWeight: 300, margin: '0 0 16px' }}>SOCIAL CULTURE EXPERIENCE</p>
         <p style={{ fontSize: '13px', color: '#666', margin: '0 0 8px', fontWeight: 300, letterSpacing: '0.05em' }}>오늘 저녁, 혼자 집에 있을 건가요?</p>
         <p style={{ fontSize: '32px', fontWeight: 900, color: '#111', margin: 0, letterSpacing: '-1.5px', lineHeight: 1.3 }}>전국 어디서든</p>
-        <p style={{ fontSize: '32px', fontWeight: 900, color: '#E53935', margin: '0 0 24px', letterSpacing: '-1.5px', lineHeight: 1.3 }}>만원이면 충분해요</p>
+        <p style={{ fontSize: '32px', fontWeight: 900, color: '#E53935', margin: '0 0 12px', letterSpacing: '-1.5px', lineHeight: 1.3 }}>만원이면 충분해요</p>
         <div style={{ borderLeft: '3px solid #E53935', paddingLeft: '16px' }}>
           <p style={{ fontSize: '13px', color: '#444', margin: 0, fontWeight: 300, lineHeight: 1.8 }}>바차타 · 살사 · 소셜</p>
           <p style={{ fontSize: '13px', color: '#444', margin: 0, fontWeight: 300, lineHeight: 1.8 }}>도심 속 전율의 밤</p>
@@ -343,7 +343,7 @@ const HomePage = ({
 
       {/* 📌 [영역 B: 날짜 선택바 - 상단 고정(Sticky)] */}
       <div style={{ position: 'sticky', top: 0, zIndex: 1000, background: '#ffffff', borderBottom: '1px solid #f1f5f9', boxShadow: '0 4px 12px rgba(0,0,0,0.03)', padding: '0 10px' }}>
-        <div style={{ flex: 1, display: 'flex', overflowX: 'auto', gap: '8px', padding: '10px 0', msOverflowStyle: 'none', scrollbarWidth: 'none', WebkitOverflowScrolling: 'touch' }} className="date-stream-bar">
+        <div style={{ flex: 1, display: 'flex', overflowX: 'auto', gap: '8px', padding: '6px 0', msOverflowStyle: 'none', scrollbarWidth: 'none', WebkitOverflowScrolling: 'touch' }} className="date-stream-bar">
           {fourteenDays.map((item) => {
             const isSelected = selectedDate === item.fullDate;
             const isHoliday = item.dayOfWeek === 0 || (item.month === '5' && item.date === '5');
