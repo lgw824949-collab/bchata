@@ -217,16 +217,20 @@ const ClassCard = ({ item, onSelect }) => {
         cursor: 'pointer',
         height: '110px',
         marginBottom: '12px',
-        boxShadow: '0 4px 6px -1px rgba(0,0,0,0.05)'
+        boxShadow: '0 4px 6px -1px rgba(0,0,0,0.05)',
+        width: '100%'
       }}
     >
-      <div style={{ width: '80px', height: '100%', flexShrink: 0 }}>
+      {/* 1. 포스터 (좌측 고정 - 80px) */}
+      <div style={{ width: '80px', height: '110px', flexShrink: 0, overflow: 'hidden' }}>
         <img src={item.poster_url} style={{ width: '100%', height: '100%', objectFit: 'cover' }} alt="Poster" />
       </div>
 
+      {/* 2. 정보 영역 (우측 - 3행 구조) */}
       <div style={{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'center', minWidth: 0, padding: '0 15px' }}>
+        {/* 1행: 장소명 + 네비 아이콘 */}
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '2px' }}>
-          <span style={{ fontSize: '13px', fontWeight: '800', color: '#64748B' }}>
+          <span style={{ fontSize: '13px', fontWeight: '800', color: '#64748B', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
             {item.studio_name || item.address || '장소 미지정'}
           </span>
           <Navigation
@@ -242,8 +246,9 @@ const ClassCard = ({ item, onSelect }) => {
           />
         </div>
 
-        <div style={{ display: 'flex', alignItems: 'center', gap: '5px', marginBottom: '4px' }}>
-          <span style={{ fontSize: '11px', fontWeight: '800', color: '#fff', background: '#2ECC71', padding: '1px 6px', borderRadius: '3px', flexShrink: 0 }}>
+        {/* 2행: 레벨 + 제목 */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '5px', marginBottom: '4px', minWidth: 0 }}>
+          <span style={{ fontSize: '10px', fontWeight: '900', color: '#fff', background: '#2ECC71', padding: '1px 5px', borderRadius: '3px', flexShrink: 0 }}>
             {item.level}
           </span>
           <h3 style={{ fontSize: '16px', fontWeight: '950', color: '#1E293B', margin: 0, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', letterSpacing: '-0.5px' }}>
@@ -251,10 +256,11 @@ const ClassCard = ({ item, onSelect }) => {
           </h3>
         </div>
 
-        <div style={{ display: 'flex', alignItems: 'center', gap: '3px', fontSize: '11px', fontWeight: '800', color: '#94A3B8', whiteSpace: 'nowrap' }}>
+        {/* 3행: 장르 / 시간 / 시작일 */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '3px', fontSize: '11px', fontWeight: '800', color: '#94A3B8', whiteSpace: 'nowrap', overflow: 'hidden' }}>
           <span style={{ color: '#FF1744' }}>{item.genre}</span>
           <span>/</span>
-          <span>{item.day_of_week} {item.start_time}~{item.end_time}</span>
+          <span>{item.day_of_week} {item.start_time?.slice(0,5)}~{item.end_time?.slice(0,5)}</span>
           <span>/</span>
           <span style={{ color: '#1E293B' }}>{startLabel} · {weekLabel}</span>
         </div>
