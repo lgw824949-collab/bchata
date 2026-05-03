@@ -19,6 +19,14 @@ import WeatherModal from './components/WeatherModal'
 import QuickPinchZoom, { make3dTransformValue } from 'react-quick-pinch-zoom';
 import { BAR_DATABASE, findBarByName } from './lib/BarLib';
 
+const GENRE_MAP = {
+  '바차타': { key: 'b_ratio', label: 'B', color: '#059669' },
+  '살사':   { key: 's_ratio', label: 'S', color: '#DC2626' },
+  '쥬크':   { key: 'j_ratio', label: 'J', color: '#F59E0B' },
+  '키좀바': { key: 'k_ratio', label: 'K', color: '#7C3AED' },
+};
+
+
 // [번역 비용 최적화를 위한 정적 맵핑]
 const REGION_MAP_EN = {
   '전국': 'Nationwide',
