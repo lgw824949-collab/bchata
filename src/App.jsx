@@ -754,7 +754,7 @@ function App() {
       <AnimatePresence>
         {showSaju && (
           view === 'class' 
-            ? <DanceDestiny parties={parties} onClose={() => setShowSaju(false)} />
+            ? <DanceDestiny lessons={lessons} onClose={() => setShowSaju(false)} />
             : <SajuModal parties={parties} onClose={() => setShowSaju(false)} />
         )}
       </AnimatePresence>

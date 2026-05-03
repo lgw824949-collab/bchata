@@ -65,7 +65,7 @@ const INP: React.CSSProperties = {
   fontFamily:"'Pretendard',sans-serif",
 }
 
-export default function DanceDestiny({ onClose, parties=[] }: { onClose: () => void, parties?: any[] }) {
+export default function DanceDestiny({ onClose, lessons=[] }: { onClose: () => void, lessons?: any[] }) {
   const [step, setStep]       = useState(1)
   const [gender, setGender]   = useState('')
   const [year, setYear]       = useState('')
@@ -93,31 +93,32 @@ export default function DanceDestiny({ onClose, parties=[] }: { onClose: () => v
     const main = calcMainOheng(saju)
     const dance = { ...OHENG_DANCE[main] }
 
-    // 추천 클래스 매칭 로직
+    // 추천 클래스 매칭 로직 (실제 수업 데이터인 lessons 기반으로 전면 개편)
     const now = new Date()
     const kstDate = new Date(now.getTime() + (9 * 60 * 60 * 1000))
     const todayStr = kstDate.toISOString().split('T')[0]
 
-    const genreMatch = (p: any, targetGenre: string) => {
+    const genreMatch = (l: any, targetGenre: string) => {
       if (targetGenre === '모든 장르') return true
-      const title = (p.title || '').toLowerCase()
-      if (targetGenre === '살사') return title.includes('살사') || (p.s_ratio||0) >= 1
-      if (targetGenre === '바차타') return title.includes('바차타') || (p.b_ratio||0) >= 1
-      if (targetGenre === '주크바차타') return title.includes('주크') || (p.j_ratio||0) >= 1
-      if (targetGenre === '키좀바') return title.includes('키좀바') || (p.k_ratio||0) >= 1
+      const title = (l.title || '').toLowerCase()
+      const genre = (l.genre || '').toLowerCase()
+      if (targetGenre === '살사') return title.includes('살사') || genre.includes('살사')
+      if (targetGenre === '바차타') return title.includes('바차타') || genre.includes('바차타')
+      if (targetGenre === '주크바차타') return title.includes('주크') || genre.includes('주크')
+      if (targetGenre === '키좀바') return title.includes('키좀바') || genre.includes('키좀바')
       return false
     }
 
-    const matchedClasses = parties
-      .filter(p => p.date >= todayStr && genreMatch(p, dance.genre))
-      .sort((a, b) => a.date.localeCompare(b.date))
+    const matchedClasses = lessons
+      .filter(l => l.start_date >= todayStr && genreMatch(l, dance.genre))
+      .sort((a, b) => a.start_date.localeCompare(b.start_date))
       .slice(0, 3)
-      .map(p => ({
-        title: p.title,
-        instructor: p.teacher || p.instructor || '강사 정보 없음',
-        location: p.locations?.name || p.location_name || '장소 정보 없음',
-        date: p.date,
-        poster_url: p.poster_url
+      .map(l => ({
+        title: l.title,
+        instructor: l.instructor || l.teacher || '전문 강사',
+        location: l.studio_name || l.location_name || '댄스 스튜디오',
+        date: l.start_date,
+        poster_url: l.poster_url
       }))
 
     // 로컬 분석 Fallback (AI 실패 시 대비)
