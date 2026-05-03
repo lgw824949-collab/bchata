@@ -245,9 +245,9 @@ const ClassCard = ({ item, onSelect }) => {
           {item.title}
         </h3>
 
-        {/* 3층: 요일 시간 / 스튜디오 */}
+        {/* 3층: 요일 · 시간 (범위) */}
         <div style={{ fontSize: '11px', color: '#64748B', fontWeight: '700', marginBottom: '2px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-          {item.day_of_week} · {item.start_time?.slice(0,5)} / {item.studio_name}
+          {item.day_of_week} · {item.start_time?.slice(0,5)} ~ {item.end_time?.slice(0,5)}
         </div>
 
         {/* 4층: 시작일 · 기간 */}
@@ -563,7 +563,7 @@ const HomePage = ({
                 });
               })()}
 
-              {/* 📌 [영역 D: 5월 클래스 섹션 - 지역별 리스트 교체] */}
+              {/* 📌 [영역 D: 5월 클래스 섹션 - 지역별 리스트 교체 (최종 정밀 필터)] */}
               <div style={{ marginTop: '20px' }}>
                 <div style={{ padding: '0 20px 10px' }}>
                   <h2 style={{ fontSize: '18px', fontWeight: '950', color: '#1E293B', margin: 0 }}>
@@ -576,10 +576,12 @@ const HomePage = ({
                     const regionLessons = (lessons || [])
                       .filter(l => {
                         const d = new Date(l.start_date);
-                        return (d.getMonth() + 1 === selectedMonth) && (l.category_type === 'class');
+                        return (d.getMonth() + 1 === selectedMonth) && 
+                               (l.category_type === 'class') && 
+                               (l.status === 'approved');
                       })
                       .filter(l => {
-                        // 지역 필터 로직 (소셜과 동일 지향)
+                        // 지역 필터 로직
                         const text = `${l.city || ''} ${l.broadRegion || ''} ${l.address || ''} ${l.studio_name || ''}`.toLowerCase();
                         if (regionName === "서울") return text.includes("서울") || text.includes("강남") || text.includes("홍대") || text.includes("잠실") || text.includes("성수") || text.includes("신림") || text.includes("건대");
                         if (regionName === "경기/인천") return text.includes("경기") || text.includes("인천") || text.includes("부천") || text.includes("수원") || text.includes("의정부") || text.includes("안양") || text.includes("고양") || text.includes("일산") || text.includes("성남") || text.includes("분당");
