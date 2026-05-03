@@ -195,8 +195,7 @@ export default function DanceDestiny({ onClose, parties=[] }: { onClose: () => v
       recommendedBars, gender, today: todayStr,
       answers: { q1, q2, q3, q4 }
     })
-    setLoading(false)
-    setStep(2)
+    setStep(3)
   }
 
   const reset = () => {
@@ -251,7 +250,7 @@ export default function DanceDestiny({ onClose, parties=[] }: { onClose: () => v
           </svg>
         </div>
 
-        {/* ══ STEP 1: 입력 ══ */}
+        {/* ══ STEP 1: 기본 정보 입력 ══ */}
         {step===1 && (
           <div style={{ padding:'10px 20px 40px' }}>
             
@@ -294,7 +293,20 @@ export default function DanceDestiny({ onClose, parties=[] }: { onClose: () => v
               </div>
             </div>
 
-            {/* 댄스 성향 질문 4개 */}
+            <button onClick={() => setStep(2)} disabled={!isBasicValid} style={{
+              width:'100%', padding:'18px', borderRadius:16,
+              background: isBasicValid ? 'linear-gradient(135deg,#1565C0,#42A5F5)' : '#E2E8F0',
+              color: '#fff', border:'none', fontSize:17, fontWeight:900, cursor:isBasicValid?'pointer':'not-allowed',
+              boxShadow: isBasicValid ? '0 8px 25px rgba(21,101,192,0.3)' : 'none',
+            }}>
+              다음 단계로 (1/2)
+            </button>
+          </div>
+        )}
+
+        {/* ══ STEP 2: 댄스 성향 질문 ══ */}
+        {step===2 && (
+          <div style={{ padding:'10px 20px 40px' }}>
             <div style={{ marginBottom:40 }}>
               <div style={{ fontSize:15, fontWeight:800, color:'#1e293b', marginBottom:16, display:'flex', alignItems:'center', gap:6 }}>
                 <div style={{ width:4, height:16, background:'#1565C0', borderRadius:2 }}></div>
@@ -370,11 +382,15 @@ export default function DanceDestiny({ onClose, parties=[] }: { onClose: () => v
             }}>
               {loading ? '🔮 운명의 좌표 계산 중...' : '🔮 나의 댄스 운명 확인하기'}
             </button>
+
+            <button onClick={() => setStep(1)} style={{
+              width:'100%', marginTop:12, padding:'12px', background:'none', border:'none', color:'#94A3B8', fontSize:14, fontWeight:600, cursor:'pointer'
+            }}>이전 단계로</button>
           </div>
         )}
 
-        {/* ══ STEP 2: 결과 ══ */}
-        {step===2 && result && (
+        {/* ══ STEP 3: 결과 ══ */}
+        {step===3 && result && (
           <div style={{ padding:'10px 20px 50px' }}>
             
             {/* 결과 카드 */}
