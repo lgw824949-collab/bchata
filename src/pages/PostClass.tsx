@@ -44,6 +44,7 @@ export default function PostClass({ onBack }) {
         .from('posters')
         .getPublicUrl(filePath);
 
+      console.log('Uploaded Poster URL:', publicUrl);
       setFormData({ ...formData, poster_url: publicUrl });
     } catch (error) {
       alert('업로드 실패: ' + error.message);
@@ -106,7 +107,7 @@ export default function PostClass({ onBack }) {
               </div>
 
               <button 
-                disabled={!formData.poster_url || loading} 
+                disabled={loading} 
                 onClick={() => setStep(2)}
                 style={{ width: '100%', padding: '20px', borderRadius: '18px', background: formData.poster_url ? '#2ECC71' : '#E2E8F0', color: '#fff', fontSize: '16px', fontWeight: 800, border: 'none', marginTop: '40px', cursor: 'pointer' }}
               >
