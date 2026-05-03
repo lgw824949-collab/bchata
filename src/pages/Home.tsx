@@ -205,45 +205,62 @@ const ClassCard = ({ item, onSelect }) => {
       onClick={() => onSelect(item.poster_url)} 
       style={{ 
         display: 'flex', 
-        flexDirection: 'column', 
+        flexDirection: 'row', 
+        alignItems: 'center', 
+        backgroundColor: '#FFFFFF', 
+        borderRadius: '16px', 
+        overflow: 'hidden', 
+        border: '1px solid #F1F5F9', 
         cursor: 'pointer', 
-        width: '100%',
-        gap: '6px'
+        height: '110px', 
+        marginBottom: '12px', 
+        boxShadow: '0 4px 6px -1px rgba(0,0,0,0.05)'
       }}
     >
-      {/* 1. 포스터 (정사각형 + 뱃지 오버레이) */}
-      <div style={{ position: 'relative', width: '100%', aspectRatio: '1/1', borderRadius: '12px', overflow: 'hidden', boxShadow: '0 4px 10px rgba(0,0,0,0.08)' }}>
-        <img src={item.poster_url} style={{ width: '100%', height: '100%', objectFit: 'cover' }} alt="Class" />
-        <div style={{ position: 'absolute', top: '6px', left: '6px', display: 'flex', flexDirection: 'column', gap: '3px' }}>
-          <span style={{ background: badgeColor, color: '#fff', fontSize: '8px', fontWeight: '900', padding: '1px 4px', borderRadius: '3px' }}>{item.level || '입문'}</span>
-          <span style={{ background: 'rgba(255,23,68,0.9)', color: '#fff', fontSize: '8px', fontWeight: '900', padding: '1px 4px', borderRadius: '3px' }}>{item.genre}</span>
-        </div>
+      {/* 1. 포스터 (좌측 고정 - 사진 2 스타일) */}
+      <div style={{ width: '80px', height: '100%', flexShrink: 0 }}>
+        <img src={item.poster_url} style={{ width: '100%', height: '100%', objectFit: 'cover' }} alt="Poster" />
       </div>
 
-      {/* 2. 텍스트 정보 (초고밀도) */}
-      <div style={{ display: 'flex', flexDirection: 'column', padding: '0 2px' }}>
+      {/* 2. 정보 영역 (3행 구조 - 사진 2 스타일) */}
+      <div style={{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'center', minWidth: 0, padding: '0 15px' }}>
+        {/* 1행: 장르 */}
+        <div style={{ fontSize: '13px', fontWeight: '800', color: '#64748B', marginBottom: '2px' }}>
+          {item.genre}
+        </div>
+
+        {/* 2행: 제목 (강조) */}
         <h3 style={{ 
-          fontSize: '13px', 
-          fontWeight: '900', 
+          fontSize: '16px', 
+          fontWeight: '950', 
           color: '#1E293B', 
-          margin: '0 0 2px', 
-          lineHeight: '1.2',
-          display: '-webkit-box',
-          WebkitLineClamp: 2,
-          WebkitBoxOrient: 'vertical',
-          overflow: 'hidden',
-          letterSpacing: '-0.5px'
+          margin: '0 0 4px', 
+          whiteSpace: 'nowrap', 
+          overflow: 'hidden', 
+          textOverflow: 'ellipsis', 
+          letterSpacing: '-0.5px' 
         }}>
           {item.title}
         </h3>
-        <div style={{ fontSize: '10px', color: '#64748B', fontWeight: '800', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-          {item.day_of_week} {item.start_time?.slice(0,5)}
-        </div>
-        <div style={{ fontSize: '9px', color: '#94A3B8', fontWeight: '700' }}>
-          {(() => {
-            const d = new Date(item.start_date);
-            return `${d.getMonth() + 1}/${d.getDate()} 시작`;
-          })()} {weekText && `· ${weekText}`}
+
+        {/* 3행: 날짜 / 레벨 / 시간 / 주차 (사진 2와 동일 구성) */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: '11px', fontWeight: '800', color: '#94A3B8', whiteSpace: 'nowrap' }}>
+          <span style={{ color: '#2ECC71' }}>
+            {(() => {
+              const d = new Date(item.start_date);
+              return `${d.getMonth() + 1}/${d.getDate()}(${DAYS_KOR[d.getDay()]})`;
+            })()}
+          </span>
+          <span>/</span>
+          <span style={{ background: badgeColor, color: '#fff', fontSize: '9px', padding: '1px 5px', borderRadius: '4px' }}>{item.level || '입문'}</span>
+          <span>/</span>
+          <span>{item.start_time?.slice(0,5)}</span>
+          {weekText && (
+            <>
+              <span>/</span>
+              <span style={{ color: '#1E293B' }}>{weekText}</span>
+            </>
+          )}
         </div>
       </div>
     </div>
@@ -619,7 +636,7 @@ const HomePage = ({
 
                     if (regionLessons.length === 0) return null;
 
-                    const maxCount = regionName === '서울' ? 6 : 3;
+                    const maxCount = regionName === '서울' ? 4 : 3;
 
                     return (
                       <section key={`class-region-${regionName}`} style={{ marginBottom: '15px', background: '#fff' }}>
@@ -635,12 +652,7 @@ const HomePage = ({
                             전체보기 <ChevronRight size={14} />
                           </button>
                         </div>
-                        <div style={{ 
-                          display: 'grid', 
-                          gridTemplateColumns: 'repeat(3, 1fr)', 
-                          gap: '12px', 
-                          padding: '0 15px 20px' 
-                        }}>
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', padding: '0 15px 20px' }}>
                           {regionLessons.slice(0, maxCount).map(item => (
                             <ClassCard key={item.id} item={item} onSelect={(url) => handleOpenModal(setSelectedPoster, url)} />
                           ))}
