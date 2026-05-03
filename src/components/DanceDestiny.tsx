@@ -72,6 +72,7 @@ export default function DanceDestiny({ onClose, lessons=[] }: { onClose: () => v
   const [month, setMonth]     = useState('')
   const [day, setDay]         = useState('')
   const [timeIdx, setTimeIdx] = useState('')
+  const [region, setRegion]   = useState('')
   
   const [q1, setQ1] = useState('')
   const [q2, setQ2] = useState('')
@@ -81,7 +82,7 @@ export default function DanceDestiny({ onClose, lessons=[] }: { onClose: () => v
   const [result, setResult]   = useState<any>(null)
   const [loading, setLoading] = useState(false)
 
-  const isBasicValid = gender && year && month && day && timeIdx !== ''
+  const isBasicValid = gender && year && month && day && timeIdx !== '' && region
   const isQuestionsValid = q1 && q2 && q3 && q4
 
   const analyze = async () => {
@@ -93,7 +94,7 @@ export default function DanceDestiny({ onClose, lessons=[] }: { onClose: () => v
     const main = calcMainOheng(saju)
     const dance = { ...OHENG_DANCE[main] }
 
-    // 추천 클래스 매칭 로직 (실제 수업 데이터인 lessons 기반으로 전면 개편)
+    // 추천 클래스 매칭 로직 (장르 + 지역 필터링 강화)
     const now = new Date()
     const kstDate = new Date(now.getTime() + (9 * 60 * 60 * 1000))
     const todayStr = kstDate.toISOString().split('T')[0]
@@ -110,7 +111,13 @@ export default function DanceDestiny({ onClose, lessons=[] }: { onClose: () => v
     }
 
     const matchedClasses = lessons
-      .filter(l => l.start_date >= todayStr && genreMatch(l, dance.genre))
+      .filter(l => {
+        const isFuture = l.start_date >= todayStr;
+        const isGenreMatch = genreMatch(l, dance.genre);
+        // 지역 필터링: 사용자 선택 지역과 수업의 broadRegion 매칭
+        const isRegionMatch = !region || l.broadRegion === region;
+        return isFuture && isGenreMatch && isRegionMatch;
+      })
       .sort((a, b) => a.start_date.localeCompare(b.start_date))
       .slice(0, 3)
       .map(l => ({
@@ -238,10 +245,20 @@ export default function DanceDestiny({ onClose, lessons=[] }: { onClose: () => v
                 <input type="number" placeholder="월" value={month} onChange={e=>setMonth(e.target.value)} style={INP} />
                 <input type="number" placeholder="일" value={day} onChange={e=>setDay(e.target.value)} style={INP} />
               </div>
-              <div style={{ position:'relative', marginBottom:30 }}>
+              <div style={{ position: 'relative', marginBottom: 16 }}>
                 <select value={timeIdx} onChange={e=>setTimeIdx(e.target.value)} style={{ ...INP, appearance:'none' }}>
                   <option value="">태어난 시간 선택</option>
                   {TIME_LIST.map(t => <option key={t.value} value={t.value}>{t.label}</option>)}
+                </select>
+                <ChevronDown size={18} style={{ position:'absolute', right:14, top:'50%', transform:'translateY(-50%)', color:'#94A3B8' }} />
+              </div>
+
+              <div style={{ position: 'relative', marginBottom: 30 }}>
+                <select value={region} onChange={e=>setRegion(e.target.value)} style={{ ...INP, appearance:'none' }}>
+                  <option value="">활동 지역 선택</option>
+                  {['서울', '경기/인천', '경상도', '전라도', '충청도', '강원/제주'].map(r => (
+                    <option key={r} value={r}>{r}</option>
+                  ))}
                 </select>
                 <ChevronDown size={18} style={{ position:'absolute', right:14, top:'50%', transform:'translateY(-50%)', color:'#94A3B8' }} />
               </div>
