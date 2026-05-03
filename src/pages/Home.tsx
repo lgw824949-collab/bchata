@@ -647,7 +647,67 @@ const HomePage = ({
                         </div>
                         <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', padding: '0 15px 20px' }}>
                           {regionLessons.slice(0, maxCount).map(item => (
-                            <ClassCard key={item.id} item={item} onSelect={(url) => handleOpenModal(setSelectedPoster, url)} />
+                            <div 
+                              key={item.id}
+                              onClick={() => handleOpenModal(setSelectedPoster, item.poster_url)} 
+                              style={{ 
+                                display: 'flex', 
+                                flexDirection: 'row', 
+                                alignItems: 'center', 
+                                backgroundColor: '#FFFFFF', 
+                                borderRadius: '16px', 
+                                overflow: 'hidden', 
+                                border: '1px solid #F1F5F9', 
+                                cursor: 'pointer', 
+                                height: '110px', 
+                                marginBottom: '12px', 
+                                boxShadow: '0 4px 6px -1px rgba(0,0,0,0.05)'
+                              }}
+                            >
+                              {/* 1. 포스터 */}
+                              <div style={{ width: '80px', height: '100%', flexShrink: 0 }}>
+                                <img src={item.poster_url} style={{ width: '100%', height: '100%', objectFit: 'cover' }} alt="Poster" />
+                              </div>
+
+                              {/* 2. 정보 영역 (3행 초고밀도 조합 - PartyCard 구조 복제) */}
+                              <div style={{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'center', minWidth: 0, padding: '0 15px' }}>
+                                {/* 1행: 장소명 + 네비 아이콘 */}
+                                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '2px' }}>
+                                  <span style={{ fontSize: '13px', fontWeight: '800', color: '#64748B' }}>
+                                    {item.studio_name || '장소 미지정'}
+                                  </span>
+                                  <Navigation 
+                                    size={14} 
+                                    color="#FF1744" 
+                                    fill="#FF1744" 
+                                    style={{ flexShrink: 0 }} 
+                                  />
+                                </div>
+
+                                {/* 2행: 제목 */}
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '5px', marginBottom: '4px' }}>
+                                  <h3 style={{ fontSize: '16px', fontWeight: '950', color: '#1E293B', margin: 0, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', letterSpacing: '-0.5px' }}>
+                                    {item.title}
+                                  </h3>
+                                </div>
+
+                                {/* 3행: 장르 / 레벨 / 시간 / 시작일 */}
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '3px', fontSize: '11px', fontWeight: '800', color: '#94A3B8', whiteSpace: 'nowrap' }}>
+                                  <span style={{ color: '#FF1744' }}>{item.genre}</span>
+                                  <span>/</span>
+                                  <span style={{ color: '#2ECC71' }}>{item.level}</span>
+                                  <span>/</span>
+                                  <span>{item.day_of_week} {item.start_time?.slice(0,5)}~{item.end_time?.slice(0,5)}</span>
+                                  <span>/</span>
+                                  <span style={{ color: '#1E293B' }}>
+                                    {(() => {
+                                      const d = new Date(item.start_date);
+                                      return `${d.getMonth() + 1}/${d.getDate()} 시작`;
+                                    })()}
+                                  </span>
+                                </div>
+                              </div>
+                            </div>
                           ))}
                         </div>
                       </section>
