@@ -89,13 +89,13 @@ const ClassNewsPage = ({ lessons: allLessons, loading: lessonsLoading, selectedM
 
   const filtered = useMemo(() => {
     return (allLessons || []).filter(l => {
-      const d = new Date(l.start_date);
-      if (d.getMonth() + 1 !== selectedMonth) return false;
-      const genreMatch = !filterGenre || filterGenre === '전체' || l.genre === filterGenre;
-      const levelMatch = !filterLevel || filterLevel === '전체' || l.level === filterLevel;
+      if (l.category_type !== 'class') return false;
+      if (l.status !== 'approved') return false;
+      const genreMatch = filterGenre === '전체' || l.genre === filterGenre;
+      const levelMatch = filterLevel === '전체' || l.level === filterLevel;
       return genreMatch && levelMatch;
     });
-  }, [allLessons, selectedMonth, filterGenre, filterLevel]);
+  }, [allLessons, filterGenre, filterLevel]);
 
   const regions = ["서울", "경기,인천", "경상도", "충청도", "전라도", "강원,제주"];
 
