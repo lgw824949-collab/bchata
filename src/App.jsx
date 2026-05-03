@@ -14,6 +14,7 @@ import Auth from './components/Auth'
 import Parking from './pages/Parking'
 import Restaurant from './pages/Restaurant'
 import DanceDestiny from './components/DanceDestiny'
+import SajuModal from './components/SajuModal'
 import IncheonRoute from './components/IncheonRoute'
 import WeatherModal from './components/WeatherModal'
 import QuickPinchZoom, { make3dTransformValue } from 'react-quick-pinch-zoom';
@@ -751,7 +752,11 @@ function App() {
         {showIncheon && <IncheonRoute parties={parties} onClose={() => setShowIncheon(false)} />}
       </AnimatePresence>
       <AnimatePresence>
-        {showSaju && <DanceDestiny parties={parties} onClose={() => setShowSaju(false)} />}
+        {showSaju && (
+          view === 'class' 
+            ? <DanceDestiny parties={parties} onClose={() => setShowSaju(false)} />
+            : <SajuModal parties={parties} onClose={() => setShowSaju(false)} />
+        )}
       </AnimatePresence>
       <AnimatePresence>
         {showWeather && <WeatherModal onClose={() => setShowWeather(false)} />}
