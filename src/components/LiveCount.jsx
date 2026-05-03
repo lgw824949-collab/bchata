@@ -4,7 +4,6 @@ import { BAR_DATABASE } from '../data/barDatabase'
 
 const LiveCount = () => {
   const [counts, setCounts] = useState({})
-  const [boosters, setBoosters] = useState({ hongdae: 1.0, gangnam: 1.0, others: 1.0 })
   
   const getTodayKST = () => {
     const kst = new Date(Date.now() + (9 * 60 * 60 * 1000))
@@ -69,28 +68,11 @@ const LiveCount = () => {
     }
   }
 
-  const fetchBoosters = async () => {
-    try {
-      const { data } = await supabase.from('live_boosters').select('*')
-      if (data) {
-        const mapped = data.reduce((acc, curr) => {
-          acc[curr.region] = curr.multiplier
-          return acc
-        }, { hongdae: 1.0, gangnam: 1.0, others: 1.0 })
-        setBoosters(mapped)
-      }
-    } catch (err) {
-      console.error('Booster fetch error:', err)
-    }
-  }
-
   useEffect(() => {
     fetchCounts()
-    fetchBoosters()
     const channel = supabase
       .channel('live_checkins')
       .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'bar_checkins' }, () => fetchCounts())
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'live_boosters' }, () => fetchBoosters())
       .subscribe()
 
     const visitor_id = localStorage.getItem('bchata_visitor_id') || Math.random().toString(36).substring(2, 15)
@@ -149,11 +131,7 @@ const LiveCount = () => {
       
       for (const [area, keywords] of Object.entries(AREAS)) {
         if (keywords.some(k => barName.includes(k))) {
-          let multiplier = boosters.others || 1.0;
-          if (area === '홍대 성지') multiplier = boosters.hongdae || 1.0;
-          if (area === '강남 성지') multiplier = boosters.gangnam || 1.0;
-          
-          summaries[area] = (summaries[area] || 0) + Math.round(count * multiplier);
+          summaries[area] = (summaries[area] || 0) + count;
         }
       }
     });
@@ -163,28 +141,20 @@ const LiveCount = () => {
       total,
       message: total > 100 ? '🔥 열기 폭발!' : total > 50 ? '✨ 열기 고조!' : '🏃 집결 중!'
     }));
-  }, [counts, boosters]);
+  }, [counts]);
 
   const liveList = useMemo(() => {
-    const HONGDAE_BARS = ['보니따', '홍턴', '부에나2차', '까리베 2차', '마콘도', '팰리스클럽', '안단테', '놀이터 2차', '하바나', '아난타라', '솔SOL빠2차', '꼼애야 2차'];
     const list = Object.entries(counts)
       .map(([key, count]) => {
-        const parts = key.split('|');
-        const region = parts[0] || '';
-        const barName = parts[1] || '';
-        
-        let multiplier = boosters.others || 1.0;
-        if (HONGDAE_BARS.some(h => barName.includes(h))) multiplier = boosters.hongdae || 1.0;
-        else if (region.includes('서울') || region.includes('강남')) multiplier = boosters.gangnam || 1.0;
-        
-        return [key, Math.round(count * multiplier)];
+        return [key, count];
       })
       .filter(([_, count]) => count >= 10)
       .sort((a, b) => b[1] - a[1])
       .slice(0, 5);
 
     return list;
-  }, [counts, boosters]);
+  }, [counts]);
+
 
   return (
     <div style={{ background: '#0F172A', padding: '10px 0', borderBottom: '1px solid #1E293B', overflow: 'hidden' }}>
