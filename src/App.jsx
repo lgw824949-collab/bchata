@@ -742,7 +742,7 @@ function App() {
             'parking': <Parking onBack={() => setView('home')} />,
             'restaurant': <Restaurant onBack={() => setView('home')} />,
             'register-party': <RegisterForm onBack={() => setView('home')} />,
-            'register-class': <PostClass onBack={() => setView('home')} />,
+            'register-class': <PostClass onBack={() => setView('class')} />,
             'admin': <AdminDashboard onBack={() => setView('home')} refreshData={fetchParties} />
           }[view] || <AdminDashboard onBack={() => setView('home')} refreshData={fetchParties} />}
       </main>
@@ -935,7 +935,7 @@ function App() {
         />
       )}
 
-      {view !== 'community' && (
+      {view !== 'community' && view !== 'register-class' && view !== 'register-party' && (
         <nav className="bottom-nav">
           <div 
             className={`nav-item ${view === 'home' ? 'active' : ''}`} 
