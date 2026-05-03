@@ -94,18 +94,18 @@ export default function DanceDestiny({ onClose, lessons=[] }: { onClose: () => v
     const main = calcMainOheng(saju)
     const dance = { ...OHENG_DANCE[main] }
 
-    // 추천 클래스 매칭 로직 (장르 + 지역 필터링 강화)
+    // 추천 클래스 매칭 로직 (선택 장르 + 지역 필터링 엄격 적용)
     const now = new Date()
     const kstDate = new Date(now.getTime() + (9 * 60 * 60 * 1000))
     const todayStr = kstDate.toISOString().split('T')[0]
 
     const genreMatch = (l: any, targetGenre: string) => {
-      if (targetGenre === '모든 장르') return true
       const title = (l.title || '').toLowerCase()
       const genre = (l.genre || '').toLowerCase()
+      // 사용자가 선택한 장르가 제목이나 장르 필드에 반드시 포함되어야 함
       if (targetGenre === '살사') return title.includes('살사') || genre.includes('살사')
       if (targetGenre === '바차타') return title.includes('바차타') || genre.includes('바차타')
-      if (targetGenre === '주크바차타') return title.includes('주크') || genre.includes('주크')
+      if (targetGenre === '쥬크') return title.includes('쥬크') || title.includes('주크') || genre.includes('주크') || genre.includes('쥬크')
       if (targetGenre === '키좀바') return title.includes('키좀바') || genre.includes('키좀바')
       return false
     }
@@ -113,8 +113,8 @@ export default function DanceDestiny({ onClose, lessons=[] }: { onClose: () => v
     const matchedClasses = lessons
       .filter(l => {
         const isFuture = l.start_date >= todayStr;
-        const isGenreMatch = genreMatch(l, dance.genre);
-        // 지역 필터링: 사용자 선택 지역과 수업의 broadRegion 매칭
+        // 사주 기반이 아닌, 사용자가 직접 선택한 장르(q4)를 최우선으로 매칭
+        const isGenreMatch = genreMatch(l, q4);
         const isRegionMatch = !region || l.broadRegion === region;
         return isFuture && isGenreMatch && isRegionMatch;
       })
@@ -277,7 +277,7 @@ export default function DanceDestiny({ onClose, lessons=[] }: { onClose: () => v
                 { label:'Q1. 배우는 목적', val:q1, set:setQ1, opts:['소셜파티','퍼포먼스/대회','취미','다이어트'] },
                 { label:'Q2. 선호 분위기', val:q2, set:setQ2, opts:['체계적/꼼꼼','쉽고 재미있게','다 같이 친목','열정/빡센'] },
                 { label:'Q3. 춤 실력', val:q3, set:setQ3, opts:['왕초보','기본기 초보','중급','고수'] },
-                { label:'Q4. 선호 가치', val:q4, set:setQ4, opts:['기술/베이직','음악/감성','소통/연결','패턴/무대'] },
+                { label:'Q4. 선호 장르', val:q4, set:setQ4, opts:['바차타', '살사', '쥬크', '키좀바'] },
               ].map((q, idx) => (
                 <div key={idx} style={{ marginBottom:20 }}>
                   <div style={{ fontSize:13, fontWeight:700, color:'#64748b', marginBottom:10 }}>{q.label}</div>
@@ -316,9 +316,9 @@ export default function DanceDestiny({ onClose, lessons=[] }: { onClose: () => v
                 </div>
               </div>
 
-              {result.matchedClasses && result.matchedClasses.length > 0 && (
-                <div style={{ marginBottom:30 }}>
-                  <h4 style={{ fontSize:15, fontWeight:900, color:'#1e293b', marginBottom:12 }}>✨ 추천 클래스 & 강사 라인업</h4>
+              <div style={{ marginBottom:30 }}>
+                <h4 style={{ fontSize:15, fontWeight:900, color:'#1e293b', marginBottom:12 }}>✨ 추천 클래스 & 강사 라인업</h4>
+                {result.matchedClasses && result.matchedClasses.length > 0 ? (
                   <div style={{ display:'flex', flexDirection:'column', gap:10 }}>
                     {result.matchedClasses.map((cls: any, i: number)=>(
                       <div key={i} style={{ padding:16, borderRadius:16, background:'#fff', border:'1px solid #f1f5f9', display:'flex', alignItems:'center', gap:12, boxShadow:'0 2px 8px rgba(0,0,0,0.03)' }}>
@@ -333,8 +333,18 @@ export default function DanceDestiny({ onClose, lessons=[] }: { onClose: () => v
                       </div>
                     ))}
                   </div>
-                </div>
-              )}
+                ) : (
+                  <div style={{ padding: '30px 20px', textAlign: 'center', background: '#f8fafc', borderRadius: '20px', border: '1px dashed #cbd5e1' }}>
+                    <div style={{ fontSize: '24px', marginBottom: '10px' }}>🔍</div>
+                    <div style={{ fontSize: '14px', fontWeight: 700, color: '#64748b' }}>
+                      선택하신 '{q4}' 수업이<br />현재 지역에 준비 중입니다.
+                    </div>
+                    <div style={{ fontSize: '12px', color: '#94a3b8', marginTop: '6px' }}>
+                      다른 지역이나 장르를 선택해 보세요!
+                    </div>
+                  </div>
+                )}
+              </div>
 
               <button onClick={() => { setStep(1); setResult(null); }} style={{ width:'100%', padding:16, borderRadius:14, background:'#f1f5f9', color:'#64748b', border:'none', fontSize:15, fontWeight:700, cursor:'pointer' }}>
                 🔄 다시 분석하기
