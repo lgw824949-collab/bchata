@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo, useRef } from 'react';
-import { Heart, MapPin, Calendar, User, Music, ChevronRight, ShieldCheck, X, Home as HomeIcon, ChevronLeft, CloudSun, Utensils, Zap, PlusCircle, Languages, Bell, Globe, Navigation } from 'lucide-react';
+import { Heart, MapPin, Calendar, Clock, User, Music, ChevronRight, ShieldCheck, X, Home as HomeIcon, ChevronLeft, CloudSun, Utensils, Zap, PlusCircle, Languages, Bell, Globe, Navigation } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { motion, AnimatePresence } from 'framer-motion';
 import QuickPinchZoom, { make3dTransformValue } from 'react-quick-pinch-zoom';
@@ -487,6 +487,113 @@ const HomePage = ({
                   );
                 });
               })()}
+
+              {/* 📌 [영역 D: 5월 클래스 섹션 - 소셜 파티 감성 개편] */}
+              <section style={{ marginTop: '30px', padding: '0 15px 40px', background: '#fff' }}>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '20px' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#2ECC71' }} />
+                    <h2 style={{ fontSize: '18px', fontWeight: '950', color: '#1E293B', margin: 0 }}>{selectedMonth}월 클래스</h2>
+                  </div>
+                  <span style={{ fontSize: '12px', fontWeight: '700', color: '#94A3B8' }}>{lessons.filter(l => new Date(l.start_date).getMonth() + 1 === selectedMonth).length}개의 수업</span>
+                </div>
+
+                <div style={{ 
+                  display: 'grid', 
+                  gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))', 
+                  gap: '15px' 
+                }}>
+                  {lessons
+                    .filter(l => new Date(l.start_date).getMonth() + 1 === selectedMonth)
+                    .map((item) => {
+                      const levelColors = {
+                        '입문': '#2ECC71',
+                        '초급': '#3498DB',
+                        '중급': '#F39C12',
+                        '상급': '#E74C3C',
+                        '고급': '#E74C3C'
+                      };
+                      const badgeColor = levelColors[item.level] || '#64748B';
+                      const weekText = item.week_type?.includes('주차') 
+                        ? item.week_type.replace('주차', '주 과정') 
+                        : (item.week_type || '상시 운영');
+
+                      return (
+                        <div 
+                          key={item.id} 
+                          onClick={() => handleOpenModal(setSelectedPoster, item.poster_url)}
+                          style={{ 
+                            background: '#fff', 
+                            borderRadius: '20px', 
+                            overflow: 'hidden', 
+                            border: '1px solid #F1F5F9',
+                            boxShadow: '0 4px 15px rgba(0,0,0,0.05)',
+                            cursor: 'pointer',
+                            display: 'flex',
+                            flexDirection: 'column'
+                          }}
+                        >
+                          {/* 포스터 이미지 */}
+                          <div style={{ width: '100%', aspectRatio: '4/5', background: '#F1F5F9', overflow: 'hidden' }}>
+                            {item.poster_url ? (
+                              <img src={item.poster_url} style={{ width: '100%', height: '100%', objectFit: 'cover' }} alt="Poster" />
+                            ) : (
+                              <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#CBD5E1' }}>
+                                <Music size={32} />
+                              </div>
+                            )}
+                          </div>
+
+                          {/* 정보 영역 */}
+                          <div style={{ padding: '15px' }}>
+                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+                              <span style={{ 
+                                background: badgeColor, 
+                                color: '#fff', 
+                                fontSize: '10px', 
+                                fontWeight: '900', 
+                                padding: '2px 8px', 
+                                borderRadius: '6px' 
+                              }}>{item.level || '입문'}</span>
+                              <span style={{ fontSize: '11px', fontWeight: '800', color: '#FF1744' }}>{item.genre}</span>
+                            </div>
+                            
+                            <h3 style={{ 
+                              fontSize: '14px', 
+                              fontWeight: '900', 
+                              color: '#1E293B', 
+                              margin: '0 0 10px',
+                              height: '40px',
+                              display: '-webkit-box',
+                              WebkitLineClamp: 2,
+                              WebkitBoxOrient: 'vertical',
+                              overflow: 'hidden',
+                              lineHeight: '1.4'
+                            }}>{item.title}</h3>
+
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                              <div style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: '11px', color: '#64748B', fontWeight: '700' }}>
+                                <MapPin size={12} /> {item.studio_name}
+                              </div>
+                              <div style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: '11px', color: '#64748B', fontWeight: '700' }}>
+                                <Clock size={12} /> {item.day_of_week} · {item.start_time?.slice(0,5)}~{item.end_time?.slice(0,5)}
+                              </div>
+                              <div style={{ fontSize: '11px', color: '#94A3B8', fontWeight: '800', marginTop: '4px' }}>
+                                {(() => {
+                                  const d = new Date(item.start_date);
+                                  return `${d.getMonth() + 1}/${d.getDate()} 시작 · ${weekText}`;
+                                })()}
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      );
+                    })}
+                </div>
+                {lessons.filter(l => new Date(l.start_date).getMonth() + 1 === selectedMonth).length === 0 && (
+                  <div style={{ padding: '60px 0', textAlign: 'center', color: '#94A3B8', fontWeight: '700' }}>해당 월에 등록된 클래스가 없습니다 😅</div>
+                )}
+              </section>
             </div>
           )}
         </div>
