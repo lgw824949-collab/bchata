@@ -935,7 +935,7 @@ function App() {
         />
       )}
 
-      {view !== 'community' && view !== 'register-class' && view !== 'register-party' && (
+      {view !== 'community' && (
         <nav className="bottom-nav">
           <div 
             className={`nav-item ${view === 'home' ? 'active' : ''}`} 

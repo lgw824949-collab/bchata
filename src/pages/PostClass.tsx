@@ -45,7 +45,7 @@ export default function PostClass({ onBack }) {
         .getPublicUrl(filePath);
 
       console.log('✅ POSTER UPLOAD SUCCESS:', publicUrl);
-      setFormData({ ...formData, poster_url: publicUrl });
+      setFormData(prev => ({ ...prev, poster_url: publicUrl }));
     } catch (error) {
       console.error('❌ UPLOAD ERROR:', error);
       alert('업로드 실패: ' + error.message);
@@ -56,7 +56,7 @@ export default function PostClass({ onBack }) {
 
   // 최종 등록 로직
   const handleSubmit = async () => {
-    if (!formData.city) return alert('지역을 선택해주세요.');
+    if (!formData.city) return alert('진행 지역을 선택해주세요.');
     if (!formData.title || !formData.genre || !formData.level) return alert('필수 정보를 모두 입력해주세요.');
     
     setLoading(true);
@@ -77,14 +77,14 @@ export default function PostClass({ onBack }) {
   };
 
   return (
-    <div style={{ background: '#fff', minHeight: '100vh', paddingBottom: '50px' }}>
+    <div style={{ background: '#fff', minHeight: '100vh', paddingBottom: '100px' }}>
       {/* Header */}
       <div style={{ display: 'flex', alignItems: 'center', padding: '20px', position: 'sticky', top: 0, background: '#fff', zIndex: 10 }}>
         <button onClick={onBack} style={{ background: 'none', border: 'none', cursor: 'pointer' }}><ChevronLeft size={28} /></button>
         <h2 style={{ fontSize: '18px', fontWeight: 900, marginLeft: '12px' }}>클래스 등록 신청</h2>
       </div>
 
-      {/* Progress Bar (2단계 기준) */}
+      {/* Progress Bar (2단계 고정) */}
       <div style={{ height: '4px', background: '#F1F5F9', width: '100%' }}>
         <motion.div animate={{ width: `${(step / 2) * 100}%` }} style={{ height: '100%', background: '#2ECC71' }} />
       </div>
@@ -109,100 +109,102 @@ export default function PostClass({ onBack }) {
                 {loading && <div style={{ position: 'absolute', inset: 0, background: 'rgba(255,255,255,0.7)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 800 }}>업로드 중...</div>}
               </div>
 
-              <button 
+              <motion.button 
+                whileTap={{ scale: 0.98 }}
                 disabled={loading} 
                 onClick={() => setStep(2)}
                 style={{ 
                   width: '100%', padding: '20px', borderRadius: '18px', 
                   background: loading ? '#E2E8F0' : '#2ECC71', 
-                  color: '#fff', fontSize: '16px', fontWeight: 800, border: 'none', 
+                  color: '#fff', fontSize: '18px', fontWeight: 900, border: 'none', 
                   marginTop: '40px', cursor: loading ? 'default' : 'pointer' 
                 }}
               >
                 {loading ? '업로드 중...' : '다음 단계로'}
-              </button>
+              </motion.button>
             </motion.div>
           )}
 
           {step === 2 && (
             <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} key="step2">
-              <h3 style={{ fontSize: '22px', fontWeight: 950, marginBottom: '30px' }}>강습 상세 정보를<br/>입력해주세요 ✍️</h3>
+              <h3 style={{ fontSize: '22px', fontWeight: 950, marginBottom: '30px' }}>강습 정보를<br/>입력해주세요 ✍️</h3>
               
               <div style={{ display: 'flex', flexDirection: 'column', gap: '32px' }}>
                 {/* 제목 */}
                 <div>
-                  <label style={{ fontSize: '13px', fontWeight: 800, color: '#64748B', display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '10px' }}><Tag size={14}/> 강습 제목 (최대 16자)</label>
-                  <input maxLength={16} value={formData.title} onChange={e => setFormData({...formData, title: e.target.value})} placeholder="예: 바차타 입문반 1기 모집" style={inputStyle} />
+                  <label style={{ fontSize: '13px', fontWeight: 800, color: '#64748B', display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '12px' }}><Tag size={14}/> 강습 제목 (최대 16자)</label>
+                  <input maxLength={16} value={formData.title} onChange={e => setFormData(p => ({...p, title: e.target.value}))} placeholder="예: 바차타 입문반 1기 모집" style={inputStyle} />
                 </div>
 
                 {/* 장르 */}
                 <div>
-                  <label style={{ fontSize: '13px', fontWeight: 800, color: '#64748B', display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '10px' }}><Music size={14}/> 장르 선택</label>
-                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '8px' }}>
+                  <label style={{ fontSize: '13px', fontWeight: 800, color: '#64748B', display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '12px' }}><Music size={14}/> 장르 선택</label>
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '10px' }}>
                     {genres.map(g => (
-                      <button key={g} onClick={() => setFormData({...formData, genre: g})} style={{ ...chipStyle, background: formData.genre === g ? '#2ECC71' : '#F1F5F9', color: formData.genre === g ? '#fff' : '#64748B' }}>{g}</button>
+                      <motion.button key={g} whileTap={{ scale: 0.95 }} onClick={() => setFormData(p => ({...p, genre: g}))} style={{ ...chipStyle, background: formData.genre === g ? '#2ECC71' : '#F1F5F9', color: formData.genre === g ? '#fff' : '#64748B' }}>{g}</motion.button>
                     ))}
                   </div>
                 </div>
 
-                {/* 지역 선택 (3단계에서 통합됨) */}
+                {/* 지역 */}
                 <div>
-                  <label style={{ fontSize: '13px', fontWeight: 800, color: '#64748B', display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '10px' }}><MapPin size={14}/> 진행 지역</label>
-                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '8px' }}>
+                  <label style={{ fontSize: '13px', fontWeight: 800, color: '#64748B', display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '12px' }}><MapPin size={14}/> 진행 지역</label>
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '10px' }}>
                     {regions.map(r => (
-                      <button key={r} onClick={() => setFormData({...formData, city: r})} style={{ ...chipStyle, fontSize: '12px', padding: '10px 4px', background: formData.city === r ? '#2ECC71' : '#F1F5F9', color: formData.city === r ? '#fff' : '#64748B' }}>{r}</button>
+                      <motion.button key={r} whileTap={{ scale: 0.95 }} onClick={() => setFormData(p => ({...p, city: r}))} style={{ ...chipStyle, fontSize: '12px', padding: '12px 4px', background: formData.city === r ? '#2ECC71' : '#F1F5F9', color: formData.city === r ? '#fff' : '#64748B' }}>{r}</motion.button>
                     ))}
                   </div>
                 </div>
 
-                {/* 레벨 */}
+                {/* 난이도 */}
                 <div>
-                  <label style={{ fontSize: '13px', fontWeight: 800, color: '#64748B', display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '10px' }}><Award size={14}/> 난이도</label>
+                  <label style={{ fontSize: '13px', fontWeight: 800, color: '#64748B', display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '12px' }}><Award size={14}/> 난이도</label>
                   <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '8px' }}>
                     {levels.map(l => (
-                      <button key={l} onClick={() => setFormData({...formData, level: l})} style={{ ...chipStyle, background: formData.level === l ? '#1E293B' : '#F1F5F9', color: formData.level === l ? '#fff' : '#64748B', fontSize: '12px' }}>{l}</button>
+                      <motion.button key={l} whileTap={{ scale: 0.95 }} onClick={() => setFormData(p => ({...p, level: l}))} style={{ ...chipStyle, background: formData.level === l ? '#1E293B' : '#F1F5F9', color: formData.level === l ? '#fff' : '#64748B', fontSize: '12px' }}>{l}</motion.button>
                     ))}
                   </div>
                 </div>
 
                 {/* 기간 */}
                 <div>
-                  <label style={{ fontSize: '13px', fontWeight: 800, color: '#64748B', display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '10px' }}><Clock size={14}/> 강습 기간</label>
-                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
+                  <label style={{ fontSize: '13px', fontWeight: 800, color: '#64748B', display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '12px' }}><Clock size={14}/> 강습 기간</label>
+                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: '10px' }}>
                     {durations.map(d => (
-                      <button key={d} onClick={() => setFormData({...formData, duration: d})} style={{ ...chipStyle, padding: '10px 16px', background: formData.duration === d ? '#FF8C00' : '#F1F5F9', color: formData.duration === d ? '#fff' : '#64748B' }}>{d}</button>
+                      <motion.button key={d} whileTap={{ scale: 0.95 }} onClick={() => setFormData(p => ({...p, duration: d}))} style={{ ...chipStyle, padding: '12px 20px', background: formData.duration === d ? '#FF8C00' : '#F1F5F9', color: formData.duration === d ? '#fff' : '#64748B' }}>{d}</motion.button>
                     ))}
                   </div>
                 </div>
 
                 {/* 참여비 */}
                 <div>
-                  <label style={{ fontSize: '13px', fontWeight: 800, color: '#64748B', display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '10px' }}><DollarSign size={14}/> 참여비 (원 단위)</label>
-                  <input type="number" value={formData.fee} onChange={e => setFormData({...formData, fee: e.target.value})} placeholder="예: 80000" style={inputStyle} />
+                  <label style={{ fontSize: '13px', fontWeight: 800, color: '#64748B', display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '12px' }}><DollarSign size={14}/> 참여비 (원 단위)</label>
+                  <input type="number" value={formData.fee} onChange={e => setFormData(p => ({...p, fee: e.target.value}))} placeholder="예: 80000" style={inputStyle} />
                 </div>
               </div>
 
-              <div style={{ marginTop: '40px', padding: '20px', background: '#F0FFF4', borderRadius: '18px', border: '1px solid #C6F6D5' }}>
+              <div style={{ marginTop: '50px', padding: '20px', background: '#F0FFF4', borderRadius: '18px', border: '1px solid #C6F6D5' }}>
                 <p style={{ color: '#276749', fontSize: '13px', fontWeight: 700, lineHeight: '1.6' }}>
-                  ✅ 등록하신 내용은 관리자의 승인을 거쳐 게시됩니다. 부적절한 홍보 내용은 승인이 거절될 수 있습니다.
+                  ✅ 등록 신청 시 관리자 승인을 거쳐 게시됩니다.
                 </p>
               </div>
 
-              <button 
+              <motion.button 
+                whileTap={{ scale: 0.98 }}
                 disabled={!formData.title || !formData.genre || !formData.level || !formData.duration || !formData.fee || !formData.city || loading} 
                 onClick={handleSubmit}
                 style={{ 
-                  width: '100%', padding: '20px', borderRadius: '18px', 
+                  width: '100%', padding: '22px', borderRadius: '18px', 
                   background: '#2ECC71', color: '#fff', fontSize: '18px', fontWeight: 900, 
                   border: 'none', marginTop: '30px', cursor: 'pointer', 
                   display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px',
                   opacity: (!formData.title || !formData.genre || !formData.level || !formData.duration || !formData.fee || !formData.city || loading) ? 0.5 : 1
                 }}
               >
-                {loading ? '신청 중...' : <><Check size={20}/> 신청 완료하기</>}
-              </button>
+                {loading ? '처리 중...' : <><Check size={22}/> 신청 완료하기</>}
+              </motion.button>
               
-              <button onClick={() => setStep(1)} style={{ width: '100%', marginTop: '20px', background: 'none', border: 'none', color: '#94A3B8', fontWeight: 700, cursor: 'pointer' }}>이전 단계(포스터 수정)</button>
+              <button onClick={() => setStep(1)} style={{ width: '100%', marginTop: '24px', background: 'none', border: 'none', color: '#94A3B8', fontWeight: 700, cursor: 'pointer', paddingBottom: '40px' }}>이전 단계로</button>
             </motion.div>
           )}
         </AnimatePresence>
@@ -213,18 +215,18 @@ export default function PostClass({ onBack }) {
 
 const inputStyle = {
   width: '100%',
-  padding: '16px 20px',
-  borderRadius: '14px',
-  border: '1.5px solid #E2E8F0',
+  padding: '18px 20px',
+  borderRadius: '16px',
+  border: '2px solid #E2E8F0',
   fontSize: '16px',
   fontWeight: 600,
   outline: 'none',
-  transition: 'border-color 0.2s'
+  transition: 'all 0.2s'
 };
 
 const chipStyle = {
-  padding: '12px',
-  borderRadius: '12px',
+  padding: '14px',
+  borderRadius: '14px',
   border: 'none',
   fontSize: '14px',
   fontWeight: 800,
