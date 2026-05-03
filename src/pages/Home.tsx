@@ -212,16 +212,17 @@ const ClassCard = ({ item, onSelect }) => {
         border: '1px solid #F1F5F9',
         cursor: 'pointer',
         height: '110px',
-        marginBottom: '12px',
-        boxShadow: '0 4px 6px -1px rgba(0,0,0,0.05)'
+        boxShadow: '0 4px 6px -1px rgba(0,0,0,0.05)',
+        width: '100%',
+        minWidth: '280px'
       }}
     >
-      <div style={{ width: '80px', height: '110px', flexShrink: 0 }}>
+      <div style={{ width: '80px', minWidth: '80px', maxWidth: '80px', height: '110px', flexShrink: 0 }}>
         <img src={item.poster_url} style={{ width: '100%', height: '100%', objectFit: 'cover' }} alt="Poster" />
       </div>
-      <div style={{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'center', minWidth: 0, padding: '0 15px' }}>
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '4px' }}>
-          <span style={{ fontSize: '13px', fontWeight: '800', color: '#64748B' }}>
+      <div style={{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'center', minWidth: 0, padding: '0 15px', overflow: 'hidden' }}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '4px', width: '100%' }}>
+          <span style={{ fontSize: '13px', fontWeight: '800', color: '#64748B', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
             {item.studio_name || item.address || '장소 미지정'}
           </span>
           <Navigation size={14} color="#FF3B30" fill="#FF3B30"
@@ -233,7 +234,7 @@ const ClassCard = ({ item, onSelect }) => {
             }}
           />
         </div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '5px', marginBottom: '6px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '5px', marginBottom: '6px', width: '100%', overflow: 'hidden' }}>
           <span style={{ fontSize: '11px', fontWeight: '800', color: '#fff', background: '#D4A017', padding: '1px 6px', borderRadius: '3px', flexShrink: 0 }}>
             {item.level}
           </span>
@@ -241,18 +242,18 @@ const ClassCard = ({ item, onSelect }) => {
             {item.title}
           </h3>
         </div>
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '2px', fontSize: '11px', fontWeight: '700', color: '#94A3B8' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-            <MapPin size={11} color="#94A3B8" />
-            <span>{item.studio_name}</span>
-            <span style={{ color: '#FF3B30', marginLeft: '4px' }}>{item.genre}</span>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '2px', fontSize: '11px', fontWeight: '700', color: '#94A3B8', width: '100%', overflow: 'hidden' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '4px', whiteSpace: 'nowrap', overflow: 'hidden' }}>
+            <MapPin size={11} color="#94A3B8" style={{ flexShrink: 0 }} />
+            <span style={{ overflow: 'hidden', textOverflow: 'ellipsis' }}>{item.studio_name}</span>
+            <span style={{ color: '#FF3B30', marginLeft: '4px', flexShrink: 0 }}>{item.genre}</span>
           </div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-            <Clock size={11} color="#94A3B8" />
+          <div style={{ display: 'flex', alignItems: 'center', gap: '4px', whiteSpace: 'nowrap', overflow: 'hidden' }}>
+            <Clock size={11} color="#94A3B8" style={{ flexShrink: 0 }} />
             <span>{item.day_of_week} · {item.start_time}~{item.end_time}</span>
           </div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-            <CalendarDays size={11} color="#94A3B8" />
+          <div style={{ display: 'flex', alignItems: 'center', gap: '4px', whiteSpace: 'nowrap', overflow: 'hidden' }}>
+            <CalendarDays size={11} color="#94A3B8" style={{ flexShrink: 0 }} />
             <span>{startLabel} · {weekLabel}</span>
           </div>
         </div>
