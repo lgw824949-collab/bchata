@@ -3,7 +3,7 @@
 // 기존 SajuModal.jsx 로직을 기반으로 질문 4개를 추가함
 
 import React, { useState } from 'react'
-import { X, ChevronDown, Sparkles } from 'lucide-react'
+import { X, ChevronDown, Sparkles, ChevronLeft } from 'lucide-react'
 import { motion } from 'framer-motion'
 import { BAR_DATABASE } from '../lib/BarLib'
 
@@ -204,20 +204,29 @@ export default function DanceDestiny({ onClose, parties=[] }: { onClose: () => v
           padding:'24px 20px 45px',
           color: '#fff'
         }}>
-          <div style={{ display:'flex', justifyContent:'space-between', alignItems:'flex-start' }}>
-            <div>
-              <div style={{ fontSize:22,fontWeight:900,letterSpacing:'-0.5px', display:'flex', alignItems:'center', gap:8 }}>
-                <Sparkles size={24} /> 댄스 운명 좌표
-              </div>
-              <div style={{ fontSize:12,color:'rgba(255,255,255,0.7)',marginTop:6 }}>사주와 성향을 결합한 정밀 분석</div>
-            </div>
+          <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:16 }}>
+            <button onClick={() => {
+              if (step === 1) onClose()
+              else setStep(step - 1)
+            }} style={{
+              background:'none', border:'none', color:'#fff', fontSize:15, fontWeight:700,
+              display:'flex', alignItems:'center', gap:4, cursor:'pointer', padding:0
+            }}>
+              <ChevronLeft size={20} /> 뒤로
+            </button>
             <button onClick={onClose} style={{
               background:'rgba(255,255,255,0.2)',border:'none',
-              borderRadius:'50%',width:36,height:36,cursor:'pointer',
+              borderRadius:'50%',width:32,height:32,cursor:'pointer',
               display:'flex',alignItems:'center',justifyContent:'center',
             }}>
-              <X size={20} color="#fff"/>
+              <X size={18} color="#fff"/>
             </button>
+          </div>
+          <div>
+            <div style={{ fontSize:22,fontWeight:900,letterSpacing:'-0.5px', display:'flex', alignItems:'center', gap:8 }}>
+              <Sparkles size={24} /> 댄스 운명 좌표
+            </div>
+            <div style={{ fontSize:12,color:'rgba(255,255,255,0.7)',marginTop:6 }}>사주와 성향을 결합한 정밀 분석</div>
           </div>
           <svg style={{ position:'absolute',bottom:0,left:0,width:'100%' }} viewBox="0 0 400 50" preserveAspectRatio="none">
             <path d="M0,50 C110,20 210,60 400,50 L400,50 L0,50 Z" fill="#ffffff"/>
@@ -356,10 +365,6 @@ export default function DanceDestiny({ onClose, parties=[] }: { onClose: () => v
             }}>
               {loading ? '🔮 운명의 좌표 계산 중...' : '🔮 나의 댄스 운명 확인하기'}
             </button>
-
-            <button onClick={() => setStep(1)} style={{
-              width:'100%', marginTop:12, padding:'12px', background:'none', border:'none', color:'#94A3B8', fontSize:14, fontWeight:600, cursor:'pointer'
-            }}>이전 단계로</button>
           </div>
         )}
 
