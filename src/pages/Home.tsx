@@ -82,37 +82,41 @@ const PartyCard = ({ item, onSelect, liveCount = 0 }) => {
       onClick={() => onSelect(item.poster_url)} 
       style={{ 
         display: 'flex', 
-        flexDirection: 'column', 
+        alignItems: 'center',
         backgroundColor: '#FFFFFF', 
         borderRadius: '12px', 
         overflow: 'hidden', 
         border: '1px solid #F1F5F9', 
         cursor: 'pointer', 
         boxShadow: '0 2px 4px rgba(0,0,0,0.04)',
-        position: 'relative'
+        position: 'relative',
+        padding: '8px',
+        gap: '12px',
+        height: '90px'
       }}
     >
-      <div style={{ width: '100%', aspectRatio: '1/1', position: 'relative', overflow: 'hidden' }}>
-        <img src={item.poster_url} style={{ width: '100%', height: '100%', objectFit: 'cover' }} alt="Poster" />
+      <div style={{ width: '70px', height: '70px', position: 'relative', flexShrink: 0 }}>
+        <img src={item.poster_url} style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: '8px' }} alt="Poster" />
         {isLive && (
           <div style={{ 
-            position: 'absolute', top: '5px', left: '5px',
-            background: 'rgba(255, 23, 68, 0.9)', color: '#fff', fontSize: '9px', fontWeight: '950',
-            padding: '2px 6px', borderRadius: '4px', display: 'flex', alignItems: 'center', gap: '3px',
-            boxShadow: '0 2px 4px rgba(0,0,0,0.2)'
+            position: 'absolute', top: '-4px', left: '-4px',
+            background: 'rgba(255, 23, 68, 0.9)', color: '#fff', fontSize: '8px', fontWeight: '950',
+            padding: '1px 4px', borderRadius: '3px', display: 'flex', alignItems: 'center', gap: '2px',
+            boxShadow: '0 2px 4px rgba(0,0,0,0.2)',
+            zIndex: 10
           }}>
-            LIVE <span style={{ fontSize: '7px' }}>●</span> {liveCount || 0}
+            LIVE <span style={{ fontSize: '6px' }}>●</span> {liveCount || 0}
           </div>
         )}
       </div>
-      <div style={{ padding: '6px', minWidth: 0 }}>
-        <div style={{ fontSize: '10px', fontWeight: '800', color: '#64748B', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+      <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
+        <div style={{ fontSize: '10px', fontWeight: '800', color: '#64748B', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', marginBottom: '2px' }}>
           {item.locationName || '장소미정'}
         </div>
-        <h3 style={{ fontSize: '11px', fontWeight: '900', color: '#1E293B', margin: '2px 0', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+        <h3 style={{ fontSize: '12px', fontWeight: '900', color: '#1E293B', margin: '0 0 4px', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden', lineHeight: '1.3' }}>
           {cleanTitle.replace(/^\[.*?\]\s*|서울\s*|전국\s*/g, '')}
         </h3>
-        <div style={{ fontSize: '10px', fontWeight: '900', color: '#FF1744' }}>{displayFee}</div>
+        <div style={{ fontSize: '11px', fontWeight: '950', color: '#FF1744' }}>{displayFee}</div>
       </div>
     </div>
   );
