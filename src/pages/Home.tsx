@@ -52,12 +52,19 @@ const PartyCard = ({ item, onSelect }) => {
   const isLive = (() => {
     const now = new Date();
     const pDate = new Date(item.date);
-    if (now.toDateString() !== pDate.toDateString()) return false;
-    const startStr = item.time?.split('-')[0].trim() || '21:00';
-    const [h, m] = startStr.split(':').map(Number);
-    const startDate = new Date(now);
-    startDate.setHours(h, m, 0, 0);
-    return now >= startDate;
+    
+    // 시작 시각 설정 (기본 20:00)
+    const startStr = (item.time?.split('-')[0] || '20:00').trim();
+    const [sH, sM] = startStr.split(':').length === 2 ? startStr.split(':').map(Number) : [20, 0];
+    
+    const startDate = new Date(pDate);
+    startDate.setHours(sH, sM, 0, 0);
+
+    // 종료 시각 설정 (시작 후 7시간 뒤, 예: 새벽 3시)
+    const endDate = new Date(startDate);
+    endDate.setHours(startDate.getHours() + 7);
+
+    return now >= startDate && now <= endDate;
   })();
 
   const cleanTitle = item.title?.split(' ㅣ ')[0] || '';
@@ -301,29 +308,34 @@ const HomePage = ({
     <div className="app-container" style={{ width: '100%', maxWidth: '500px', margin: '0 auto', background: '#fff', minHeight: '100vh', paddingBottom: '100px' }}>
       
       {/* 📌 [영역 A: 브랜드 헤더 - 스크롤되어 사라짐] */}
-      <div style={{ padding: '40px 24px 28px', background: '#ffffff', position: 'relative', overflow: 'hidden' }}>
-        <div style={{ position: 'absolute', top: '-10px', right: '-10px', width: '80px', height: '80px', border: '1px solid #f1f5f9', borderRadius: '50%' }}></div>
+      <motion.div 
+        initial={{ opacity: 0, y: -20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.8, ease: "easeOut" }}
+        style={{ padding: '48px 24px 32px', background: 'linear-gradient(180deg, #FFFFFF 0%, #F8FAFC 100%)', position: 'relative', overflow: 'hidden' }}
+      >
+        <div style={{ position: 'absolute', top: '-20px', right: '-20px', width: '120px', height: '120px', background: 'radial-gradient(circle, rgba(255, 23, 68, 0.05) 0%, transparent 70%)', borderRadius: '50%' }}></div>
         <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', marginBottom: '24px' }}>
-          <span style={{ fontSize: '10px', color: '#FF1744', fontWeight: 800, letterSpacing: '2px', textTransform: 'uppercase' }}>
+          <span style={{ fontSize: '11px', color: '#FF1744', fontWeight: 900, letterSpacing: '3px', textTransform: 'uppercase', opacity: 0.8 }}>
             Social Culture Experience
           </span>
         </div>
         <div style={{ display: 'flex', alignItems: 'flex-start', gap: '16px' }}>
-          <div style={{ width: '2px', height: '40px', background: '#FF1744', marginTop: '4px' }}></div>
+          <div style={{ width: '4px', height: '44px', background: 'linear-gradient(180deg, #FF1744 0%, #D32F2F 100%)', borderRadius: '2px', marginTop: '2px' }}></div>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
-            <p style={{ fontSize: '16px', fontWeight: 800, color: '#1e293b', margin: 0, letterSpacing: '-0.5px' }}>
+            <h2 style={{ fontSize: '24px', fontWeight: 950, color: '#0F172A', margin: 0, letterSpacing: '-1px', lineHeight: 1.2 }}>
               바차타 · 살사 · 소셜
-            </p>
-            <p style={{ fontSize: '13px', color: '#64748b', fontWeight: 500, margin: 0, lineHeight: 1.4 }}>
-              만원대로 즐기는 도심 속 <span style={{ color: '#FF1744', fontWeight: 700 }}>전율의 밤</span>
+            </h2>
+            <p style={{ fontSize: '14px', color: '#475569', fontWeight: 600, margin: '4px 0 0', lineHeight: 1.4, letterSpacing: '-0.3px' }}>
+              만원대로 즐기는 도심 속 <span style={{ color: '#FF1744', fontWeight: 800 }}>전율의 밤</span>
             </p>
           </div>
         </div>
-        <div style={{ position: 'absolute', top: '44px', right: '24px', display: 'flex', flexDirection: 'column', alignItems: 'flex-end' }}>
+        <div style={{ position: 'absolute', top: '44px', right: '24px', display: 'flex', flexDirection: 'column', alignItems: 'flex-end', pointerEvents: 'none' }}>
           <span style={{ fontSize: '8px', color: '#cbd5e1', fontWeight: 900, letterSpacing: '1px', marginBottom: '4px' }}>EST. 2024</span>
           <div style={{ width: '24px', height: '1px', background: '#cbd5e1' }}></div>
         </div>
-      </div>
+      </motion.div>
 
       {/* 📌 [영역 B: 날짜 선택바 - 상단 고정(Sticky)] */}
       <div style={{ position: 'sticky', top: 0, zIndex: 1000, background: '#ffffff', borderBottom: '1px solid #f1f5f9', boxShadow: '0 4px 12px rgba(0,0,0,0.03)', padding: '0 10px' }}>
@@ -337,7 +349,8 @@ const HomePage = ({
             return (
               <div key={item.fullDate} 
                 onClick={() => {
-                  setSelectedDate(item.fullDate);
+                  console.log('클릭한 날짜:', item.fullDate);
+                  setSelectedDate(item.fullDate); 
                   if (regionListRef.current) {
                     regionListRef.current.scrollIntoView({ behavior: 'smooth', block: 'start' });
                   }
@@ -422,7 +435,7 @@ const HomePage = ({
                 const regions = ["서울", "경기/인천", "경상도", "전라도", "충청도", "강원/제주"];
                 return regions.map((regionName) => {
                   const regionParties = (parties || [])
-                    .filter(p => p.date === todayStr && isAfter9AM) // 9시 전에는 노출 차단!
+                    .filter(p => p.date === selectedDate)
                     .filter(p => REGION_FILTER[regionName](p))
                     .filter(p => {
                       // 2. 장르 조건 매칭
@@ -460,10 +473,8 @@ const HomePage = ({
                         {regionParties.length === 0 ? (
                           <div style={{ padding: '40px', background: '#F8FAFC', borderRadius: '16px', textAlign: 'center', color: '#94A3B8', fontSize: '13px', fontWeight: '700' }}>{t('no_parties')}</div>
                         ) : (() => {
-                          const offset = shuffleOffset % regionParties.length;
-                          const rotated = [...regionParties.slice(offset), ...regionParties.slice(0, offset)];
-                          const maxCount = regionName === '서울' ? 3 : 2; // 소셜 파티: 서울 3, 지방 2 원칙
-                          return rotated.slice(0, maxCount).map(item => (
+                          const maxCount = regionName === '서울' ? 3 : 2;
+                          return regionParties.slice(0, maxCount).map(item => (
                             <PartyCard key={item.id} item={item} onSelect={(url) => handleOpenModal(setSelectedPoster, url)} />
                           ));
                         })()}
