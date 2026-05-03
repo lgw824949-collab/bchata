@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo, useRef } from 'react';
-import { Heart, MapPin, Calendar, Clock, User, Music, ChevronRight, ShieldCheck, X, Home as HomeIcon, ChevronLeft, CloudSun, Utensils, Zap, PlusCircle, Languages, Bell, Globe, Navigation } from 'lucide-react';
+import { Heart, MapPin, Calendar, Clock, User, Music, ChevronRight, ShieldCheck, X, Home as HomeIcon, ChevronLeft, CloudSun, Utensils, Zap, PlusCircle, Languages, Bell, Globe, Navigation, CalendarDays } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { motion, AnimatePresence } from 'framer-motion';
 import QuickPinchZoom, { make3dTransformValue } from 'react-quick-pinch-zoom';
@@ -189,20 +189,16 @@ const PartyCard = ({ item, onSelect }) => {
 
 const ClassCard = ({ item, onSelect }) => {
   const { i18n } = useTranslation();
-  const isEn = i18n.language.startsWith('en');
-
   const weekLabel = (() => {
     if (!item.week_type) return '상시 운영';
     const num = parseInt(item.week_type);
     return isNaN(num) ? item.week_type : `${num}주 과정`;
   })();
-
   const startLabel = (() => {
     if (!item.start_date) return '';
     const d = new Date(item.start_date);
     return `${d.getMonth() + 1}/${d.getDate()} 시작`;
   })();
-
   return (
     <div
       onClick={() => onSelect(item.poster_url)}
@@ -217,26 +213,18 @@ const ClassCard = ({ item, onSelect }) => {
         cursor: 'pointer',
         height: '110px',
         marginBottom: '12px',
-        boxShadow: '0 4px 6px -1px rgba(0,0,0,0.05)',
-        width: '100%'
+        boxShadow: '0 4px 6px -1px rgba(0,0,0,0.05)'
       }}
     >
-      {/* 1. 포스터 (좌측 고정 - 80px) */}
-      <div style={{ width: '80px', height: '110px', flexShrink: 0, overflow: 'hidden' }}>
+      <div style={{ width: '80px', height: '110px', flexShrink: 0 }}>
         <img src={item.poster_url} style={{ width: '100%', height: '100%', objectFit: 'cover' }} alt="Poster" />
       </div>
-
-      {/* 2. 정보 영역 (우측 - 3행 구조) */}
       <div style={{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'center', minWidth: 0, padding: '0 15px' }}>
-        {/* 1행: 장소명 + 네비 아이콘 */}
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '2px' }}>
-          <span style={{ fontSize: '13px', fontWeight: '800', color: '#64748B', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '4px' }}>
+          <span style={{ fontSize: '13px', fontWeight: '800', color: '#64748B' }}>
             {item.studio_name || item.address || '장소 미지정'}
           </span>
-          <Navigation
-            size={14}
-            color="#FF3B30"
-            fill="#FF3B30"
+          <Navigation size={14} color="#FF3B30" fill="#FF3B30"
             style={{ flexShrink: 0, cursor: 'pointer' }}
             onClick={(e) => {
               e.stopPropagation();
@@ -245,24 +233,28 @@ const ClassCard = ({ item, onSelect }) => {
             }}
           />
         </div>
-
-        {/* 2행: 레벨 + 제목 */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '5px', marginBottom: '4px', minWidth: 0 }}>
-          <span style={{ fontSize: '10px', fontWeight: '900', color: '#fff', background: '#D4A017', padding: '1px 5px', borderRadius: '3px', flexShrink: 0 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '5px', marginBottom: '6px' }}>
+          <span style={{ fontSize: '11px', fontWeight: '800', color: '#fff', background: '#D4A017', padding: '1px 6px', borderRadius: '3px', flexShrink: 0 }}>
             {item.level}
           </span>
-          <h3 style={{ fontSize: '16px', fontWeight: '950', color: '#1E293B', margin: 0, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', letterSpacing: '-0.5px' }}>
+          <h3 style={{ fontSize: '15px', fontWeight: '950', color: '#1E293B', margin: 0, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', letterSpacing: '-0.5px' }}>
             {item.title}
           </h3>
         </div>
-
-        {/* 3행: 장르 / 시간 / 시작일 */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '3px', fontSize: '11px', fontWeight: '800', color: '#94A3B8', whiteSpace: 'nowrap', overflow: 'hidden' }}>
-          <span style={{ color: '#FF3B30' }}>{item.genre}</span>
-          <span>/</span>
-          <span style={{ color: '#1E293B' }}>{item.day_of_week} {item.start_time?.slice(0,5)}~{item.end_time?.slice(0,5)}</span>
-          <span>/</span>
-          <span style={{ color: '#1E293B' }}>{startLabel} · {weekLabel}</span>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '2px', fontSize: '11px', fontWeight: '700', color: '#94A3B8' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+            <MapPin size={11} color="#94A3B8" />
+            <span>{item.studio_name}</span>
+            <span style={{ color: '#FF3B30', marginLeft: '4px' }}>{item.genre}</span>
+          </div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+            <Clock size={11} color="#94A3B8" />
+            <span>{item.day_of_week} · {item.start_time}~{item.end_time}</span>
+          </div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+            <CalendarDays size={11} color="#94A3B8" />
+            <span>{startLabel} · {weekLabel}</span>
+          </div>
         </div>
       </div>
     </div>
@@ -458,7 +450,7 @@ const HomePage = ({
 
       <div style={{ padding: '12px 10px 8px' }}>
         <div style={{ height: '32px', background: '#0f172a', borderRadius: '16px', display: 'flex', alignItems: 'center', overflow: 'hidden', padding: '0 12px' }}>
-          <button onClick={() => setIsPaused(!isPaused)} style={{ background: isPaused ? '#FF1744' : 'rgba(255,255,255,0.2)', border: 'none', borderRadius: '12px', color: '#fff', fontSize: '10px', fontWeight: '900', padding: '4px 8px', marginRight: '10px', cursor: 'pointer' }}>{isPaused ? '▶ PLAY' : '⏸ STOP'}</button>
+          <button onClick={() => setIsPaused(!isPaused)} style={{ background: isPaused ? '#FF1744' : 'rgba(255,255,255,0.2)', border: 'none', borderRadius: '12px', color: '#fff', fontSize: '10px', fontWeight: '950', padding: '4px 8px', marginRight: '10px', cursor: 'pointer' }}>{isPaused ? '▶ PLAY' : '⏸ STOP'}</button>
           <div style={{ flex: 1, overflow: 'hidden' }}>
             <LiveCount />
           </div>
@@ -670,63 +662,8 @@ const HomePage = ({
                           className="no-scrollbar"
                         >
                           {regionLessons.slice(0, 20).map(item => (
-                            <div 
-                              key={item.id}
-                              style={{ flexShrink: 0, width: '280px', scrollSnapAlign: 'start' }}
-                            >
-                              <div 
-                                onClick={() => handleOpenModal(setSelectedPoster, item.poster_url)} 
-                                style={{ 
-                                  display: 'flex', 
-                                  flexDirection: 'row', 
-                                  alignItems: 'center', 
-                                  backgroundColor: '#FFFFFF', 
-                                  borderRadius: '16px', 
-                                  overflow: 'hidden', 
-                                  border: '1px solid #F1F5F9', 
-                                  cursor: 'pointer', 
-                                  height: '110px', 
-                                  boxShadow: '0 4px 6px -1px rgba(0,0,0,0.05)'
-                                }}
-                              >
-                                {/* 포스터 (좌측 80px) */}
-                                <div style={{ width: '80px', height: '110px', flexShrink: 0, overflow: 'hidden' }}>
-                                  <img src={item.poster_url} style={{ width: '100%', height: '100%', objectFit: 'cover' }} alt="Poster" />
-                                </div>
-
-                                {/* 정보 영역 (우측) */}
-                                <div style={{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'center', minWidth: 0, padding: '0 15px' }}>
-                                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '2px' }}>
-                                    <span style={{ fontSize: '13px', fontWeight: '800', color: '#64748B', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                                      {item.studio_name || item.address || '장소 미지정'}
-                                    </span>
-                                    <Navigation size={14} color="#FF3B30" fill="#FF3B30" />
-                                  </div>
-
-                                  <div style={{ display: 'flex', alignItems: 'center', gap: '5px', marginBottom: '4px', minWidth: 0 }}>
-                                    <span style={{ fontSize: '10px', fontWeight: '900', color: '#fff', background: '#D4A017', padding: '1px 5px', borderRadius: '3px', flexShrink: 0 }}>
-                                      {item.level}
-                                    </span>
-                                    <h3 style={{ fontSize: '16px', fontWeight: '950', color: '#1E293B', margin: 0, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', letterSpacing: '-0.5px' }}>
-                                      {item.title}
-                                    </h3>
-                                  </div>
-
-                                  <div style={{ display: 'flex', alignItems: 'center', gap: '3px', fontSize: '11px', fontWeight: '800', color: '#94A3B8', whiteSpace: 'nowrap', overflow: 'hidden' }}>
-                                    <span style={{ color: '#FF3B30' }}>{item.genre}</span>
-                                    <span>/</span>
-                                    <span style={{ color: '#1E293B' }}>{item.day_of_week} {item.start_time?.slice(0,5)}</span>
-                                    <span>/</span>
-                                    <span style={{ color: '#1E293B' }}>
-                                      {(() => {
-                                        if (!item.start_date) return '';
-                                        const d = new Date(item.start_date);
-                                        return `${d.getMonth() + 1}/${d.getDate()} 시작`;
-                                      })()}
-                                    </span>
-                                  </div>
-                                </div>
-                              </div>
+                            <div key={item.id} style={{ flexShrink: 0, width: '280px', scrollSnapAlign: 'start' }}>
+                              <ClassCard item={item} onSelect={(url) => handleOpenModal(setSelectedPoster, url)} />
                             </div>
                           ))}
                         </div>
