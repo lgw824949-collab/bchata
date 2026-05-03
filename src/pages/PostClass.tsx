@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { supabase } from '../lib/supabase';
-import { ChevronLeft, Camera, Check, Upload, MapPin, Tag, Clock, Award, DollarSign } from 'lucide-react';
+import { ChevronLeft, Camera, Check, Upload, MapPin, Tag, Clock, Award, DollarSign, Music } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
 export default function PostClass({ onBack }) {
