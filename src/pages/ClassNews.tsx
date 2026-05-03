@@ -1,5 +1,5 @@
 import React, { useState, useMemo, useRef } from 'react';
-import { MapPin, Music, ChevronLeft, ChevronRight, Clock, Calendar } from 'lucide-react';
+import { MapPin, ChevronLeft, ChevronRight, Clock, Calendar } from 'lucide-react';
 import { motion } from 'framer-motion';
 
 const DAYS_KOR = ['일', '월', '화', '수', '목', '금', '토'];
@@ -37,8 +37,8 @@ const ClassCard = ({ item, onSelect }) => {
         {item.poster_url ? (
           <img src={item.poster_url} style={{ width: '100%', height: '100%', objectFit: 'cover' }} alt="Poster" />
         ) : (
-          <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#CBD5E1' }}>
-            <Music size={32} />
+          <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#CBD5E1', fontSize: '12px', fontWeight: 800 }}>
+            No Poster
           </div>
         )}
         
@@ -98,36 +98,6 @@ const ClassNewsPage = ({ lessons: allLessons, loading: lessonsLoading, selectedM
   }, [allLessons, filterGenre, filterLevel]);
 
   const regions = ["서울", "경기,인천", "경상도", "충청도", "전라도", "강원,제주"];
-
-  // 드래그 스크롤을 위한 핸들러
-  const handleDragScroll = (e) => {
-    const slider = e.currentTarget;
-    let isDown = false;
-    let startX;
-    let scrollLeft;
-
-    slider.addEventListener('mousedown', (e) => {
-      isDown = true;
-      slider.classList.add('active');
-      startX = e.pageX - slider.offsetLeft;
-      scrollLeft = slider.scrollLeft;
-    });
-    slider.addEventListener('mouseleave', () => {
-      isDown = false;
-      slider.classList.remove('active');
-    });
-    slider.addEventListener('mouseup', () => {
-      isDown = false;
-      slider.classList.remove('active');
-    });
-    slider.addEventListener('mousemove', (e) => {
-      if(!isDown) return;
-      e.preventDefault();
-      const x = e.pageX - slider.offsetLeft;
-      const walk = (x - startX) * 2;
-      slider.scrollLeft = scrollLeft - walk;
-    });
-  };
 
   return (
     <div style={{ width: '100%', maxWidth: '500px', margin: '0 auto', background: '#fff', minHeight: '100vh', paddingBottom: '100px' }}>
