@@ -17,7 +17,7 @@ import SajuModal from './components/SajuModal'
 import IncheonRoute from './components/IncheonRoute'
 import WeatherModal from './components/WeatherModal'
 import QuickPinchZoom, { make3dTransformValue } from 'react-quick-pinch-zoom';
-import { BAR_DATABASE, findBarByName } from './lib/BarLib';
+import { BAR_DATABASE, findBarByName } from './data/barDatabase';
 
 const GENRE_MAP = {
   '바차타': { key: 'b_ratio', label: 'B', color: '#059669' },
@@ -149,20 +149,7 @@ const calculateDistance = (lat1, lon1, lat2, lon2) => {
   return R * c; 
 };
 
-const VENUE_COORDS = {
-  'dongam_01': { lat: 37.4715, lon: 126.7028, name: '동암역 (댄스 성지)', region: '인천' },
-  'bupyeong_01': { lat: 37.4894, lon: 126.7224, name: '부평 엘마', region: '인천' },
-  'songdo_01': { lat: 37.3813, lon: 126.6548, name: '송도 살사클럽', region: '인천' },
-  'juan_01': { lat: 37.4651, lon: 126.6807, name: '주안 라틴로드', region: '인천' },
-  'gangnam_01': { lat: 37.4979, lon: 127.0276, name: '강남 턴', region: '서울' },
-  'hongdae_01': { lat: 37.5565, lon: 126.9239, name: '홍대 보니따', region: '서울' },
-  'iteawon_01': { lat: 37.5345, lon: 126.9942, name: '이태원 맘보', region: '서울' },
-  'busan_01': { lat: 35.1796, lon: 129.0756, name: '부산 서면 킹', region: '부산' },
-  'daegu_01': { lat: 35.8714, lon: 128.6014, name: '대구 동성로 라틴', region: '대구' },
-  'daejeon_01': { lat: 36.3504, lon: 127.3845, name: '대전 둔산 살사', region: '대전' },
-  'gwangju_01': { lat: 35.1595, lon: 126.8526, name: '광주 상무 클럽', region: '광주' },
-  'cheongju_01': { lat: 36.634, lon: 127.458, name: '청정 리코빠', region: '충북' }
-};
+
 
 const naturalIncheonDB = [
   { t: "⚓ 상륙작전", q: "오늘 상륙인가요?", a: "벌써 점령했습니다!" },
@@ -178,12 +165,17 @@ const DynamicAnalysisModal = ({ isOpen, onClose, userCoords, isSajuCall }) => {
   useEffect(() => {
     if (!isOpen) return;
     const findTarget = (lat, lon) => {
-      const venues = Object.values(VENUE_COORDS).map(venue => ({
-        ...venue,
-        dist: calculateDistance(lat, lon, venue.lat, venue.lon)
-      }))
-      .sort((a, b) => a.dist - b.dist)
-      .slice(0, 5);
+      const venues = BAR_DATABASE
+        .filter(b => b.lat && b.lon)
+        .map(b => ({
+          name: b.name,
+          lat: b.lat,
+          lon: b.lon,
+          region: b.region,
+          dist: calculateDistance(lat, lon, b.lat, b.lon)
+        }))
+        .sort((a, b) => a.dist - b.dist)
+        .slice(0, 5);
 
       setTargetDest(venues[0]);
       setNearbyVenues(venues);
