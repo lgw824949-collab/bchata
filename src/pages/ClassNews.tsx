@@ -103,6 +103,14 @@ const ClassNewsPage = ({ lessons: allLessons, loading: lessonsLoading, selectedM
   const totalWeeks = useMemo(() => getTotalWeeks(currentYear, selectedMonth), [selectedMonth, currentYear]);
   const weekButtons = useMemo(() => Array.from({ length: totalWeeks }, (_, i) => `${i + 1}주차`), [totalWeeks]);
 
+  // 📍 상단 HOT PICK 5 데이터 추출 (포스터가 있는 최신 수업 5개)
+  const carouselLessons = useMemo(() => {
+    return [...(allLessons || [])]
+      .filter(l => l.poster_url)
+      .sort((a, b) => new Date(b.created_at || 0).getTime() - new Date(a.created_at || 0).getTime())
+      .slice(0, 5);
+  }, [allLessons]);
+
   const filtered = useMemo(() => {
     return (allLessons || []).filter(l => {
       const d = new Date(l.start_date);
@@ -191,7 +199,43 @@ const ClassNewsPage = ({ lessons: allLessons, loading: lessonsLoading, selectedM
         {lessonsLoading ? (
           <div style={{ padding: '100px 0', textAlign: 'center' }}><Loader2 className="animate-spin" size={32} color="#2ECC71" style={{ margin: '0 auto' }} /></div>
         ) : (
-          (() => {
+          <>
+            {/* 📍 [영역 C: HOT PICK 5 롤링 배너] */}
+            {carouselLessons.length > 0 && (
+              <div style={{ margin: '0 0 25px', padding: '10px 0 25px', background: '#fff', borderBottom: '1px solid #F1F5F9' }}>
+                <div style={{ padding: '0 20px 15px' }}>
+                  <h2 style={{ fontSize: '18px', fontWeight: '950', color: '#1E293B', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <span style={{ color: '#2ECC71' }}>HOT</span> PICK 5
+                  </h2>
+                </div>
+                <div style={{ width: '100%', overflow: 'hidden' }}>
+                  <motion.div 
+                    animate={{ x: [0, -800] }} 
+                    transition={{ duration: 25, repeat: Infinity, ease: "linear" }}
+                    style={{ display: 'flex', gap: '15px', paddingLeft: '20px', width: 'max-content' }}
+                  >
+                    {/* 5개 포스터를 반복해서 보여주어 끊김 없는 롤링 구현 */}
+                    {[...carouselLessons, ...carouselLessons].map((item, idx) => (
+                      <div 
+                        key={`${item.id}-${idx}`} 
+                        onClick={() => setSelectedPoster(item.poster_url)}
+                        style={{ 
+                          width: '140px', flexShrink: 0, borderRadius: '12px', overflow: 'hidden', 
+                          boxShadow: '0 8px 20px rgba(0,0,0,0.1)', position: 'relative', cursor: 'pointer' 
+                        }}
+                      >
+                        <img src={item.poster_url} style={{ width: '100%', height: '180px', objectFit: 'cover' }} alt="Hot Class" />
+                        <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, padding: '10px', background: 'linear-gradient(transparent, rgba(0,0,0,0.8))', color: '#fff' }}>
+                          <div style={{ fontSize: '11px', fontWeight: '900' }}>{item.instructor}</div>
+                          <div style={{ fontSize: '10px', opacity: 0.8, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{item.title}</div>
+                        </div>
+                      </div>
+                    ))}
+                  </motion.div>
+                </div>
+              </div>
+            )}
+            {(() => {
             const regions = ["서울", "경기/인천", "경상도", "전라도", "충청도", "강원/제주"];
             
             // 1. 각 지역별로 분류된 수업 데이터 생성
@@ -254,8 +298,9 @@ const ClassNewsPage = ({ lessons: allLessons, loading: lessonsLoading, selectedM
                 )}
               </>
             );
-          })()
-        )}
+          })()}
+        </>
+      )}
       </div>
     </div>
   );
