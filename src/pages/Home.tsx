@@ -188,17 +188,20 @@ const PartyCard = ({ item, onSelect }) => {
 };
 
 const ClassCard = ({ item, onSelect }) => {
-  const levelColors = {
-    '입문': '#2ECC71',
-    '초급': '#3498DB',
-    '중급': '#F39C12',
-    '상급': '#E74C3C',
-    '고급': '#E74C3C'
+  const { i18n } = useTranslation();
+  const isEn = i18n.language.startsWith('en');
+
+  const weekLabel = () => {
+    if (!item.week_type) return '상시 운영';
+    const num = parseInt(item.week_type);
+    return isNaN(num) ? item.week_type : `${num}주 과정`;
   };
-  const badgeColor = levelColors[item.level] || '#64748B';
-  const weekText = item.week_type?.includes('주차') 
-    ? item.week_type.replace('주차', '주') 
-    : (item.week_type || '');
+
+  const startLabel = () => {
+    if (!item.start_date) return '';
+    const d = new Date(item.start_date);
+    return `${d.getMonth() + 1}/${d.getDate()} 시작`;
+  };
 
   return (
     <div 
@@ -217,50 +220,48 @@ const ClassCard = ({ item, onSelect }) => {
         boxShadow: '0 4px 6px -1px rgba(0,0,0,0.05)'
       }}
     >
-      {/* 1. 포스터 (좌측 고정 - 사진 2 스타일) */}
+      {/* 1. 포스터 (왼쪽 고정) */}
       <div style={{ width: '80px', height: '100%', flexShrink: 0 }}>
         <img src={item.poster_url} style={{ width: '100%', height: '100%', objectFit: 'cover' }} alt="Poster" />
       </div>
 
-      {/* 2. 정보 영역 (3행 구조 - 사진 2 스타일) */}
+      {/* 2. 정보 영역 */}
       <div style={{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'center', minWidth: 0, padding: '0 15px' }}>
-        {/* 1행: 장르 */}
-        <div style={{ fontSize: '13px', fontWeight: '800', color: '#64748B', marginBottom: '2px' }}>
-          {item.genre}
+        {/* 1행: 장소명 + 회전표 */}
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '2px' }}>
+          <span style={{ fontSize: '13px', fontWeight: '800', color: '#64748B' }}>
+            {item.studio_name || item.address || '장소 미지정'}
+          </span>
+          <Navigation 
+            size={14} 
+            color="#FF1744" 
+            fill="#FF1744" 
+            style={{ flexShrink: 0, cursor: 'pointer' }} 
+            onClick={(e) => {
+              e.stopPropagation();
+              const addr = item.address || item.studio_name;
+              window.open(`https://map.kakao.com/link/search/${encodeURIComponent(addr)}`, '_blank');
+            }}
+          />
         </div>
 
-        {/* 2행: 제목 (강조) */}
-        <h3 style={{ 
-          fontSize: '16px', 
-          fontWeight: '950', 
-          color: '#1E293B', 
-          margin: '0 0 4px', 
-          whiteSpace: 'nowrap', 
-          overflow: 'hidden', 
-          textOverflow: 'ellipsis', 
-          letterSpacing: '-0.5px' 
-        }}>
-          {item.title}
-        </h3>
-
-        {/* 3행: 날짜 / 레벨 / 시간 / 주차 (사진 2와 동일 구성) */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: '11px', fontWeight: '800', color: '#94A3B8', whiteSpace: 'nowrap' }}>
-          <span style={{ color: '#2ECC71' }}>
-            {(() => {
-              const d = new Date(item.start_date);
-              return `${d.getMonth() + 1}/${d.getDate()}(${DAYS_KOR[d.getDay()]})`;
-            })()}
+        {/* 2행: 제목 */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '5px', marginBottom: '4px' }}>
+          <span style={{ fontSize: '11px', fontWeight: '800', color: '#fff', background: '#2ECC71', padding: '1px 6px', borderRadius: '3px', flexShrink: 0 }}>
+            {item.level}
           </span>
+          <h3 style={{ fontSize: '16px', fontWeight: '950', color: '#1E293B', margin: 0, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', letterSpacing: '-0.5px' }}>
+            {item.title}
+          </h3>
+        </div>
+
+        {/* 3행: 장르 / 요일 - 시간 / 기간 */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '3px', fontSize: '11px', fontWeight: '800', color: '#94A3B8', whiteSpace: 'nowrap' }}>
+          <span style={{ color: '#FF1744' }}>{item.genre}</span>
           <span>/</span>
-          <span style={{ background: badgeColor, color: '#fff', fontSize: '9px', padding: '1px 5px', borderRadius: '4px' }}>{item.level || '입문'}</span>
+          <span>{item.day_of_week} {item.start_time}-{item.end_time}</span>
           <span>/</span>
-          <span>{item.start_time?.slice(0,5)}</span>
-          {weekText && (
-            <>
-              <span>/</span>
-              <span style={{ color: '#1E293B' }}>{weekText}</span>
-            </>
-          )}
+          <span style={{ color: '#1E293B' }}>{startLabel()} · {weekLabel()}</span>
         </div>
       </div>
     </div>
@@ -647,62 +648,7 @@ const HomePage = ({
                         </div>
                         <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', padding: '0 15px 20px' }}>
                           {regionLessons.slice(0, maxCount).map(item => (
-                            <div 
-                              key={item.id}
-                              onClick={() => handleOpenModal(setSelectedPoster, item.poster_url)} 
-                              style={{ 
-                                display: 'flex', 
-                                flexDirection: 'row', 
-                                alignItems: 'center', 
-                                backgroundColor: '#FFFFFF', 
-                                borderRadius: '16px', 
-                                overflow: 'hidden', 
-                                border: '1px solid #F1F5F9', 
-                                cursor: 'pointer', 
-                                height: '110px', 
-                                marginBottom: '12px', 
-                                boxShadow: '0 4px 6px -1px rgba(0,0,0,0.05)'
-                              }}
-                            >
-                              {/* 1. 포스터 (좌측 썸네일) */}
-                              <div style={{ width: '80px', height: '100%', flexShrink: 0 }}>
-                                <img src={item.poster_url} style={{ width: '100%', height: '100%', objectFit: 'cover' }} alt="Poster" />
-                              </div>
-
-                              {/* 2. 정보 영역 (3행 초고밀도 조합 - PartyCard 구조 100% 동기화) */}
-                              <div style={{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'center', minWidth: 0, padding: '0 15px' }}>
-                                {/* 1행: 장르 + 네비 아이콘 */}
-                                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '2px' }}>
-                                  <span style={{ fontSize: '13px', fontWeight: '800', color: '#64748B' }}>
-                                    {item.genre}
-                                  </span>
-                                  <Navigation 
-                                    size={14} 
-                                    color="#FF1744" 
-                                    fill="#FF1744" 
-                                    style={{ flexShrink: 0 }} 
-                                  />
-                                </div>
-
-                                {/* 2행: 제목 (굵게) */}
-                                <div style={{ display: 'flex', alignItems: 'center', gap: '5px', marginBottom: '4px' }}>
-                                  <h3 style={{ fontSize: '16px', fontWeight: '950', color: '#1E293B', margin: 0, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', letterSpacing: '-0.5px' }}>
-                                    {item.title}
-                                  </h3>
-                                </div>
-
-                                {/* 3행: 날짜·장소·시간·기간 한 줄 */}
-                                <div style={{ display: 'flex', alignItems: 'center', gap: '3px', fontSize: '11px', fontWeight: '800', color: '#94A3B8', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                                  <span style={{ color: '#FF1744' }}>{item.day_of_week}</span>
-                                  <span>/</span>
-                                  <span style={{ color: '#2ECC71' }}>{item.studio_name}</span>
-                                  <span>/</span>
-                                  <span>{item.start_time?.slice(0,5)}</span>
-                                  <span>/</span>
-                                  <span style={{ color: '#1E293B' }}>{item.week_type?.replace('주차', '주') || '상시'}</span>
-                                </div>
-                              </div>
-                            </div>
+                            <ClassCard key={item.id} item={item} onSelect={(url) => handleOpenModal(setSelectedPoster, url)} />
                           ))}
                         </div>
                       </section>
