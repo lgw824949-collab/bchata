@@ -75,6 +75,16 @@ const OHENG_NAMES: Record<string, string>  = { '木':'나무', '火':'불', '土
 const OHENG_COLORS: Record<string, string> = { '木':'#2E7D32', '火':'#E53935', '土':'#92400E', '金':'#6D28D9', '水':'#1565C0' }
 const OHENG_EMOJIS: Record<string, string> = { '木':'🌿', '火':'🔥', '土':'⛰️', '金':'💎', '水':'🌊' }
 
+// ─── 강사 데이터베이스 (수기 입력 관리용) ───
+// 향후 강사들이 직접 입력하거나 관리자가 수기로 정리할 DB입니다.
+const INSTRUCTOR_DB: Record<string, any> = {
+  "강사 정보 없음": { style: "정보 확인 중", tags: ["신규"], emoji: "👤" },
+  // 예시 데이터: 강사 이름이 키값이 됩니다.
+  "아만다": { style: "섬세한 감성 바차타", tags: ["센슈얼", "디테일"], emoji: "💃" },
+  "제이": { style: "파워풀 소셜 살사", tags: ["살사", "에너지"], emoji: "🕺" },
+  "미나": { style: "부드러운 연결과 소통", tags: ["바차타", "교감"], emoji: "✨" },
+}
+
 // ─── 사주 계산 함수 ───
 function getYearGanJi(y: number) {
   const g = ((y-4)%10+10)%10, j = ((y-4)%12+12)%12
@@ -169,13 +179,18 @@ export default function DanceDestiny({ onClose, parties=[] }: { onClose: () => v
       .filter(p => p.date >= todayStr && genreMatch(p, dance.genre))
       .sort((a, b) => a.date.localeCompare(b.date))
       .slice(0, 3)
-      .map(p => ({
-        title: p.title,
-        instructor: p.teacher || p.instructor || '강사 정보 없음',
-        location: p.locations?.name || p.location_name || '장소 정보 없음',
-        date: p.date,
-        poster_url: p.poster_url
-      }))
+      .map(p => {
+        const rawName = p.teacher || p.instructor || '강사 정보 없음'
+        const dbInfo = INSTRUCTOR_DB[rawName] || { style: "프리스타일", tags: ["현장입력"], emoji: "👤" }
+        return {
+          title: p.title,
+          instructor: rawName,
+          instructorDetail: dbInfo,
+          location: p.locations?.name || p.location_name || '장소 정보 없음',
+          date: p.date,
+          poster_url: p.poster_url
+        }
+      })
 
     // 4. 강사 스타일 문구 생성
     let instructorStyle = ""
@@ -447,9 +462,19 @@ export default function DanceDestiny({ onClose, parties=[] }: { onClose: () => v
                         )}
                       </div>
                       <div style={{ flex:1 }}>
-                        <div style={{ fontSize:14, fontWeight:800, color:'#1e293b' }}>{cls.title}</div>
-                        <div style={{ fontSize:12, color:'#64748b', marginTop:2 }}>강사: {cls.instructor} | {cls.location}</div>
-                        <div style={{ fontSize:11, color:'#94a3b8', marginTop:2 }}>{cls.date}</div>
+                        <div style={{ fontSize:14, fontWeight:800, color:'#1e293b', display:'flex', alignItems:'center', gap:6 }}>
+                          {cls.instructor} {cls.instructorDetail.emoji}
+                        </div>
+                        <div style={{ fontSize:12, fontWeight:700, color:'#1565C0', marginTop:2 }}>
+                          {cls.instructorDetail.style}
+                        </div>
+                        <div style={{ fontSize:13, color:'#475569', marginTop:4, fontWeight:600 }}>{cls.title}</div>
+                        <div style={{ display:'flex', gap:4, marginTop:6 }}>
+                          {cls.instructorDetail.tags.map((tag:string) => (
+                            <span key={tag} style={{ fontSize:10, padding:'2px 6px', background:'#f1f5f9', color:'#64748b', borderRadius:4, fontWeight:700 }}>#{tag}</span>
+                          ))}
+                        </div>
+                        <div style={{ fontSize:11, color:'#94a3b8', marginTop:8 }}>{cls.date} | {cls.location}</div>
                       </div>
                     </div>
                   ))}
