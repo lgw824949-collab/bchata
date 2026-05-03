@@ -3,7 +3,8 @@ import { Heart, MapPin, Calendar, User, Music, ChevronRight, ShieldCheck, X, Hom
 import { useTranslation } from 'react-i18next';
 import { motion, AnimatePresence } from 'framer-motion';
 import QuickPinchZoom, { make3dTransformValue } from 'react-quick-pinch-zoom';
-import LiveCount from '../components/LiveCount'
+import { supabase } from '../lib/supabase';
+import { BAR_DATABASE, findBarByName } from '../data/barDatabase';
 import { KMA_REGION_COORDS, fetchWeatherForecast, parseKmaWeather, HOME_REGION_MAP } from '../utils/kmaApi'
 
 const DAYS_KOR = ['일', '월', '화', '수', '목', '금', '토'];
@@ -22,7 +23,6 @@ const REGION_FILTER = {
   '전라도': (p) => p.broadRegion === '전라도',
   '충청도': (p) => p.broadRegion === '충청도',
   '강원/제주': (p) => p.broadRegion === '강원/제주',
-  // 별칭/도시별 매핑 (필터링 충돌 방지)
   '인천': (p) => p.broadRegion === '경기/인천',
   '부산': (p) => p.broadRegion === '경상도',
   '대구': (p) => p.broadRegion === '경상도',
@@ -48,177 +48,49 @@ const PosterImage = ({ src, onClick, alt = "파티 포스터" }) => {
   );
 };
 
-const PartyCard = ({ item, onSelect }) => {
-  const isLive = (() => {
-    const now = new Date();
-    const pDate = new Date(item.date);
-    
-    // 시작 시각 설정 (기본 20:00)
-    const startStr = (item.time?.split('-')[0] || '20:00').trim();
-    const [sH, sM] = startStr.split(':').length === 2 ? startStr.split(':').map(Number) : [20, 0];
-    
-    const startDate = new Date(pDate);
-    startDate.setHours(sH, sM, 0, 0);
-
-    // 종료 시각 설정 (시작 후 7시간 뒤, 예: 새벽 3시)
-    const endDate = new Date(startDate);
-    endDate.setHours(startDate.getHours() + 7);
-
-    return now >= startDate && now <= endDate;
-  })();
-
+const PartyCard = ({ item, onSelect, liveCount }) => {
+  const isLive = liveCount > 0;
   const cleanTitle = item.title?.split(' ㅣ ')[0] || '';
-  const displayTime = item.time?.split('-')[0].trim() || '21:00';
   const displayFee = (() => {
     if (!item.fee) return '1.2만';
     const f = String(item.fee);
     if (f.includes('만')) return f.replace('원', '');
     const num = parseInt(f.replace(/[^0-9]/g, ''));
-    if (isNaN(num)) return f;
-    if (num === 0) return '무료';
+    if (isNaN(num) || num === 0) return '무료';
     return (num / 10000).toFixed(1).replace('.0', '') + '만';
   })();
-
-  const { i18n } = useTranslation();
-  const isEn = i18n.language.startsWith('en');
-
-  const openMap = (e) => {
-    e.stopPropagation();
-    const address = item.address || item.locationName;
-    const query = encodeURIComponent(address);
-    const url = isEn 
-      ? `https://www.google.com/maps/search/?api=1&query=${query}`
-      : `https://map.kakao.com/link/search/${query}`;
-    window.open(url, '_blank');
-  };
-
 
   return (
     <div 
       onClick={() => onSelect(item.poster_url)} 
       style={{ 
         display: 'flex', 
-        flexDirection: 'row', 
-        alignItems: 'center', 
+        flexDirection: 'column', 
         backgroundColor: '#FFFFFF', 
-        borderRadius: '16px', 
+        borderRadius: '8px', 
         overflow: 'hidden', 
-        border: '1px solid #F1F5F9', 
+        border: '1px solid #E2E8F0', 
         cursor: 'pointer', 
-        height: '110px', 
-        marginBottom: '12px', 
-        boxShadow: '0 4px 6px -1px rgba(0,0,0,0.05)'
+        position: 'relative'
       }}
     >
-      {/* 1. 포스터 (왼쪽 고정) */}
-      <div style={{ width: '80px', height: '100%', flexShrink: 0 }}>
+      <div style={{ width: '100%', aspectRatio: '1/1', position: 'relative', overflow: 'hidden' }}>
         <img src={item.poster_url} style={{ width: '100%', height: '100%', objectFit: 'cover' }} alt="Poster" />
-      </div>
-
-      {/* 2. 정보 영역 (3행 초고밀도 조합) */}
-      <div style={{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'center', minWidth: 0, padding: '0 15px' }}>
-        {/* 1행: 장소명 (순수 장소명만!) + 빨간 화살표 */}
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '2px' }}>
-          <span style={{ fontSize: '13px', fontWeight: '800', color: '#64748B' }}>
-            {item.locationName || item.studio_name || item.address || '장소 미지정'}
-          </span>
-          <div onClick={openMap} style={{ color: '#FF1744', cursor: 'pointer', padding: '2px' }}>
-            <Navigation size={14} fill="currentColor" />
+        {isLive && (
+          <div style={{ 
+            position: 'absolute', top: '4px', left: '4px',
+            background: '#FF1744', color: '#fff', fontSize: '9px', fontWeight: '900',
+            padding: '2px 6px', borderRadius: '4px', display: 'flex', alignItems: 'center', gap: '2px'
+          }}>
+            LIVE {liveCount}
           </div>
-        </div>
-
-        {/* 2행: 제목 (대폭 강조) + LIVE 뱃지 */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '5px', marginBottom: '4px' }}>
-          {isLive && (
-            <span style={{ 
-              background: '#FF1744', color: '#fff', fontSize: '8px', fontWeight: '950', 
-              padding: '1px 4px', borderRadius: '3px', animation: 'blink 1.5s infinite', flexShrink: 0
-            }}>LIVE</span>
-          )}
-          <h3 style={{ fontSize: '16px', fontWeight: '950', color: '#1E293B', margin: 0, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', letterSpacing: '-0.5px' }}>
-            {cleanTitle.replace(/^\[.*?\]\s*|서울\s*|전국\s*/g, '')}
-          </h3>
-        </div>
-
-        {/* 3행: 날짜(요일) / 비율 / 시간 / 참여비 */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '3px', fontSize: '11px', fontWeight: '800', color: '#94A3B8', whiteSpace: 'nowrap' }}>
-          <span style={{ color: '#FF1744' }}>
-            {(() => {
-              const d = new Date(item.date);
-              return `${d.getMonth() + 1}/${d.getDate()}(${DAYS_KOR[d.getDay()]})`;
-            })()}
-          </span>
-          <span>/</span>
-          <span style={{ color: '#2ECC71' }}>
-            {Object.entries(GENRE_MAP)
-              .filter(([_, info]) => item[info.key] > 0)
-              .map(([_, info]) => `${info.label}${item[info.key]}`)
-              .join(' ')}
-          </span>
-          <span>/</span>
-          <span>{displayTime}</span>
-          <span>/</span>
-          <span style={{ color: '#1E293B' }}>{displayFee}</span>
-        </div>
+        )}
       </div>
-    </div>
-  );
-};
-
-const RollingContainer = ({ items, onSelect }) => {
-  const [index, setIndex] = useState(0);
-  useEffect(() => { if (items.length <= 1) return; const timer = setInterval(() => { setIndex((prev) => (prev + 1) % items.length); }, 3000); return () => clearInterval(timer); }, [items.length]);
-  return (
-    <div style={{ position: 'relative', height: '110px', width: '100%', overflow: 'hidden' }}>
-      <AnimatePresence mode="wait">
-        <motion.div key={items[index].id} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }} transition={{ duration: 0.5 }} style={{ position: 'absolute', width: '100%' }}>
-          <PartyCard item={items[index]} onSelect={onSelect} />
-        </motion.div>
-      </AnimatePresence>
-    </div>
-  );
-};
-
-const FilterBar = ({ filterRegion, setFilterRegion, filterGenre, setFilterGenre }) => {
-  const { i18n } = useTranslation();
-  const isEn = i18n.language.startsWith('en');
-  const regions = ['서울', '경기/인천', '경상도', '전라도', '충청도', '강원/제주'];
-  const genres = Object.keys(GENRE_MAP);
-  return (
-    <div style={{ padding: '0 15px 12px', background: '#fff', display: 'flex', flexDirection: 'column', gap: '12px' }}>
-      <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-        <div style={{ color: '#94A3B8' }}><MapPin size={16} /></div>
-        <div style={{ flex: 1, display: 'flex', overflowX: 'auto', gap: '12px', msOverflowStyle: 'none', scrollbarWidth: 'none', WebkitOverflowScrolling: 'touch' }} className="filter-scroll">
-          {regions.map(r => (
-            <button key={r} 
-              onClick={() => {
-                const newVal = filterRegion === r ? '' : r;
-                console.log('지역 선택:', newVal);
-                setFilterRegion(newVal);
-              }} 
-              style={{ padding: '6px 12px', borderRadius: '8px', fontSize: '12px', fontWeight: 700, whiteSpace: 'nowrap', border: 'none', background: filterRegion === r ? '#FF1744' : '#F1F5F9', color: filterRegion === r ? '#fff' : '#64748B', transition: 'all 0.2s' }}
-            >
-              {isEn ? REGION_MAP_EN[r] : r}
-            </button>
-          ))}
-        </div>
-      </div>
-      <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-        <div style={{ color: '#94A3B8' }}><Music size={16} /></div>
-        <div style={{ flex: 1, display: 'flex', overflowX: 'auto', gap: '12px', msOverflowStyle: 'none', scrollbarWidth: 'none', WebkitOverflowScrolling: 'touch' }} className="filter-scroll">
-          {genres.map(g => (
-            <button key={g} 
-              onClick={() => {
-                const newVal = filterGenre === g ? '' : g;
-                console.log('장르 선택:', newVal);
-                setFilterGenre(newVal);
-              }} 
-              style={{ padding: '6px 12px', borderRadius: '8px', fontSize: '12px', fontWeight: 700, whiteSpace: 'nowrap', border: 'none', background: filterGenre === g ? '#FF1744' : '#F1F5F9', color: filterGenre === g ? '#fff' : '#64748B', transition: 'all 0.2s' }}
-            >
-              {isEn ? GENRE_MAP[g].label_en : g}
-            </button>
-          ))}
-        </div>
+      <div style={{ padding: '6px', textAlign: 'center' }}>
+        <h3 style={{ fontSize: '11px', fontWeight: '900', color: '#1E293B', margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', display: '-webkit-box', WebkitLineClamp: 1, WebkitBoxOrient: 'vertical' }}>
+          {cleanTitle.replace(/^\[.*?\]\s*|서울\s*|전국\s*/g, '')}
+        </h3>
+        <p style={{ fontSize: '9px', color: '#64748B', margin: '2px 0 0' }}>{displayFee}</p>
       </div>
     </div>
   );
@@ -236,7 +108,39 @@ const HomePage = ({
   handleOpenModal, handleCloseModal
 }) => {
   const { t, i18n } = useTranslation();
-  const isEn = i18n.language.startsWith('en');
+  const [liveCounts, setLiveCounts] = useState({});
+
+  useEffect(() => {
+    const fetchLiveCounts = async () => {
+      const thirtyMinsAgo = new Date(Date.now() - 30 * 60 * 1000);
+      try {
+        const { data: checkins } = await supabase
+          .from('bar_checkins')
+          .select('bar_name')
+          .gte('checked_in_at', thirtyMinsAgo.toISOString());
+        
+        if (checkins) {
+          const grouped = checkins.reduce((acc, curr) => {
+            if (!curr.bar_name) return acc;
+            acc[curr.bar_name] = (acc[curr.bar_name] || 0) + 1;
+            return acc;
+          }, {});
+          setLiveCounts(grouped);
+        }
+      } catch (err) {
+        console.error('Home LiveCount fetch error:', err);
+      }
+    };
+
+    fetchLiveCounts();
+    const channel = supabase
+      .channel('home_live_checkins')
+      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'bar_checkins' }, () => fetchLiveCounts())
+      .subscribe();
+
+    return () => { supabase.removeChannel(channel); };
+  }, []);
+
   const [isPaused, setIsPaused] = useState(false);
   const [weatherMap, setWeatherMap] = useState({});
   const todayStr = useMemo(() => {
@@ -353,7 +257,8 @@ const HomePage = ({
         <div style={{ height: '32px', background: '#0f172a', borderRadius: '16px', display: 'flex', alignItems: 'center', overflow: 'hidden', padding: '0 12px' }}>
           <button onClick={() => setIsPaused(!isPaused)} style={{ background: isPaused ? '#FF1744' : 'rgba(255,255,255,0.2)', border: 'none', borderRadius: '12px', color: '#fff', fontSize: '10px', fontWeight: '900', padding: '4px 8px', marginRight: '10px', cursor: 'pointer' }}>{isPaused ? '▶ PLAY' : '⏸ STOP'}</button>
           <div style={{ flex: 1, overflow: 'hidden' }}>
-            <LiveCount />
+            <div style={{ padding: '10px 0' }} />
+
           </div>
         </div>
       </div>
@@ -451,14 +356,22 @@ const HomePage = ({
                           {isEn ? 'View All' : '전체보기'} <ChevronRight size={14} />
                         </button>
                       </div>
-                      <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', padding: '0 15px 20px' }}>
+                      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '10px', padding: '0 15px 20px' }}>
                         {regionParties.length === 0 ? (
-                          <div style={{ padding: '40px', background: '#F8FAFC', borderRadius: '16px', textAlign: 'center', color: '#94A3B8', fontSize: '13px', fontWeight: '700' }}>{t('no_parties')}</div>
+                          <div style={{ gridColumn: 'span 3', padding: '40px', background: '#F8FAFC', borderRadius: '16px', textAlign: 'center', color: '#94A3B8', fontSize: '13px', fontWeight: '700' }}>{t('no_parties')}</div>
                         ) : (() => {
-                          const maxCount = regionName === '서울' ? 3 : 2;
-                          return regionParties.slice(0, maxCount).map(item => (
-                            <PartyCard key={item.id} item={item} onSelect={(url) => handleOpenModal(setSelectedPoster, url)} />
-                          ));
+                          const maxCount = regionName === '서울' ? 6 : 3;
+                          return regionParties.slice(0, maxCount).map(item => {
+                            const barInfo = findBarByName(item.locationName || item.studio_name);
+                            return (
+                              <PartyCard 
+                                key={item.id} 
+                                item={item} 
+                                liveCount={barInfo ? liveCounts[barInfo.name] : 0}
+                                onSelect={(url) => handleOpenModal(setSelectedPoster, url)} 
+                              />
+                            );
+                          });
                         })()}
                       </div>
                     </section>

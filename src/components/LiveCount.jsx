@@ -121,7 +121,8 @@ const LiveCount = () => {
     const AREAS = {
       '홍대 성지': ['보니따', '홍턴', '부에나', '까리베', '마콘도', '팰리스', '안단테', '놀이터', '하바나', '아난타라', '솔SOL', '꼼애야', '맘보'],
       '상암 성지': ['상암', '디지털미디어시티'],
-      '강남 성지': ['강남', '신사', '역삼', '선릉']
+      '강남 성지': ['강남', '신사', '역삼', '선릉'],
+      '인천 성지': ['엘마르', '라씬', 'LBT', '부평', '구월']
     };
 
     const summaries = {};
@@ -139,7 +140,7 @@ const LiveCount = () => {
     return Object.entries(summaries).map(([area, total]) => ({
       area,
       total,
-      message: total > 100 ? '🔥 열기 폭발!' : total > 50 ? '✨ 열기 고조!' : '🏃 집결 중!'
+      message: total > 80 ? '🔥 열기 폭발!' : total > 30 ? '✨ 열기 고조!' : '🏃 집결 중!'
     }));
   }, [counts]);
 
@@ -148,7 +149,7 @@ const LiveCount = () => {
       .map(([key, count]) => {
         return [key, count];
       })
-      .filter(([_, count]) => count >= 10)
+      .filter(([_, count]) => count >= 1) // 1명 이상이면 즉시 노출 (초기 집결 중계 강화)
       .sort((a, b) => b[1] - a[1])
       .slice(0, 5);
 
