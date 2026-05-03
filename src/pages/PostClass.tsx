@@ -56,7 +56,6 @@ export default function PostClass({ onBack }) {
 
   // 최종 등록 로직
   const handleSubmit = async () => {
-    if (!formData.city) return alert('진행 지역을 선택해주세요.');
     if (!formData.title || !formData.genre || !formData.level) return alert('필수 정보를 모두 입력해주세요.');
     
     setLoading(true);
@@ -191,14 +190,14 @@ export default function PostClass({ onBack }) {
 
               <motion.button 
                 whileTap={{ scale: 0.98 }}
-                disabled={!formData.title || !formData.genre || !formData.level || !formData.duration || !formData.fee || !formData.city || loading} 
+                disabled={loading} 
                 onClick={handleSubmit}
                 style={{ 
                   width: '100%', padding: '22px', borderRadius: '18px', 
                   background: '#2ECC71', color: '#fff', fontSize: '18px', fontWeight: 900, 
                   border: 'none', marginTop: '30px', cursor: 'pointer', 
                   display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px',
-                  opacity: (!formData.title || !formData.genre || !formData.level || !formData.duration || !formData.fee || !formData.city || loading) ? 0.5 : 1
+                  opacity: loading ? 0.5 : 1
                 }}
               >
                 {loading ? '처리 중...' : <><Check size={22}/> 신청 완료하기</>}
