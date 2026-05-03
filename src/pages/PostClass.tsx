@@ -8,11 +8,11 @@ export default function PostClass({ onBack }) {
   const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState({
     title: '',
-    genre: '',
-    level: '',
-    duration: '',
+    genre: '바차타',
+    level: '입문',
+    duration: '기간 미지정',
     fee: '',
-    city: '',
+    city: '서울',
     poster_url: '',
     category_type: 'class',
     status: 'pending'
@@ -23,26 +23,23 @@ export default function PostClass({ onBack }) {
   const durations = ['4주', '6주', '8주', '12주', '기타(직접입력)'];
   const regions = ['서울', '경기,인천', '경상도', '충청도', '전라도', '강원,제주'];
 
-  // 포스터 업로드 로직 (Step 1)
+  // 포스터 업로드 로직
   const handleUpload = async (e) => {
     const file = e.target.files[0];
     if (!file) return;
 
     setLoading(true);
     try {
-      const fileExt = file.name.split('.').pop();
-      const fileName = `${Math.random()}.${fileExt}`;
-      const filePath = `class_posters/${fileName}`;
-
+      const fileName = `${Date.now()}_class.jpg`;
       const { error: uploadError } = await supabase.storage
         .from('posters')
-        .upload(filePath, file);
+        .upload(`lessons/${fileName}`, file);
 
       if (uploadError) throw uploadError;
 
       const { data: { publicUrl } } = supabase.storage
         .from('posters')
-        .getPublicUrl(filePath);
+        .getPublicUrl(`lessons/${fileName}`);
 
       console.log('✅ POSTER UPLOAD SUCCESS:', publicUrl);
       setFormData(prev => ({ ...prev, poster_url: publicUrl }));
@@ -54,20 +51,35 @@ export default function PostClass({ onBack }) {
     }
   };
 
-  // 최종 등록 로직
+  // 최종 등록 로직 (DB 스키마 강제 매칭)
   const handleSubmit = async () => {
-    console.log('🚀 SUBMIT CLICKED', formData);
-    
-    // 필수 정보 누락 시 경고
-    if (!formData.title || !formData.genre || !formData.level) {
-      return alert('필수 정보(제목, 장르, 난이도)를 모두 입력해주세요.');
-    }
+    if (!formData.title) return alert('강습 제목을 입력해주세요.');
     
     setLoading(true);
     try {
+      // PostLesson.tsx의 성공 로직에 따라 모든 필수 필드 구성
+      const insertData = {
+        title: formData.title,
+        genre: formData.genre,
+        level: formData.level,
+        duration: formData.duration || '기간 미지정',
+        fee: formData.fee ? `${formData.fee}원` : '참가비 문의',
+        city: formData.city,
+        poster_url: formData.poster_url,
+        category_type: 'class',
+        status: 'pending',
+        // 누락 시 DB 에러 발생하는 필드들 기본값 채움
+        day_of_week: '요일 미지정',
+        start_time: '19:00',
+        end_time: '21:00',
+        start_date: new Date().toISOString().split('T')[0],
+        studio_name: '장소 미지정',
+        address: '상세주소 미지정'
+      };
+
       const { error } = await supabase
         .from('classes_info')
-        .insert([formData]);
+        .insert([insertData]);
 
       if (error) throw error;
 
@@ -75,7 +87,7 @@ export default function PostClass({ onBack }) {
       onBack();
     } catch (error) {
       console.error('❌ SUBMIT ERROR:', error);
-      alert('등록 오류: ' + error.message);
+      alert('등록 실패: ' + error.message);
     } finally {
       setLoading(false);
     }
@@ -89,7 +101,6 @@ export default function PostClass({ onBack }) {
         <h2 style={{ fontSize: '18px', fontWeight: 900, marginLeft: '12px' }}>클래스 등록 신청</h2>
       </div>
 
-      {/* Progress Bar */}
       <div style={{ height: '4px', background: '#F1F5F9', width: '100%' }}>
         <motion.div animate={{ width: `${(step / 2) * 100}%` }} style={{ height: '100%', background: '#2ECC71' }} />
       </div>
@@ -135,13 +146,11 @@ export default function PostClass({ onBack }) {
               <h3 style={{ fontSize: '22px', fontWeight: 950, marginBottom: '30px' }}>강습 정보를<br/>입력해주세요 ✍️</h3>
               
               <div style={{ display: 'flex', flexDirection: 'column', gap: '32px' }}>
-                {/* 제목 */}
                 <div>
                   <label style={{ fontSize: '13px', fontWeight: 800, color: '#64748B', display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '12px' }}><Tag size={14}/> 강습 제목 (최대 16자)</label>
                   <input maxLength={16} value={formData.title} onChange={e => setFormData(p => ({...p, title: e.target.value}))} placeholder="예: 바차타 입문반 1기 모집" style={inputStyle} />
                 </div>
 
-                {/* 장르 */}
                 <div>
                   <label style={{ fontSize: '13px', fontWeight: 800, color: '#64748B', display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '12px' }}><Music size={14}/> 장르 선택</label>
                   <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '10px' }}>
@@ -151,7 +160,6 @@ export default function PostClass({ onBack }) {
                   </div>
                 </div>
 
-                {/* 지역 */}
                 <div>
                   <label style={{ fontSize: '13px', fontWeight: 800, color: '#64748B', display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '12px' }}><MapPin size={14}/> 진행 지역</label>
                   <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '10px' }}>
@@ -161,7 +169,6 @@ export default function PostClass({ onBack }) {
                   </div>
                 </div>
 
-                {/* 난이도 */}
                 <div>
                   <label style={{ fontSize: '13px', fontWeight: 800, color: '#64748B', display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '12px' }}><Award size={14}/> 난이도</label>
                   <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '8px' }}>
@@ -171,7 +178,6 @@ export default function PostClass({ onBack }) {
                   </div>
                 </div>
 
-                {/* 기간 */}
                 <div>
                   <label style={{ fontSize: '13px', fontWeight: 800, color: '#64748B', display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '12px' }}><Clock size={14}/> 강습 기간</label>
                   <div style={{ display: 'flex', flexWrap: 'wrap', gap: '10px' }}>
@@ -181,17 +187,10 @@ export default function PostClass({ onBack }) {
                   </div>
                 </div>
 
-                {/* 참여비 */}
                 <div>
                   <label style={{ fontSize: '13px', fontWeight: 800, color: '#64748B', display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '12px' }}><DollarSign size={14}/> 참여비 (원 단위)</label>
                   <input type="number" value={formData.fee} onChange={e => setFormData(p => ({...p, fee: e.target.value}))} placeholder="예: 80000" style={inputStyle} />
                 </div>
-              </div>
-
-              <div style={{ marginTop: '50px', padding: '20px', background: '#F0FFF4', borderRadius: '18px', border: '1px solid #C6F6D5' }}>
-                <p style={{ color: '#276749', fontSize: '13px', fontWeight: 700, lineHeight: '1.6' }}>
-                  ✅ 등록 신청 시 관리자 승인을 거쳐 게시됩니다.
-                </p>
               </div>
 
               <motion.button 
@@ -201,10 +200,10 @@ export default function PostClass({ onBack }) {
                 style={{ 
                   width: '100%', padding: '22px', borderRadius: '18px', 
                   background: '#2ECC71', color: '#fff', fontSize: '18px', fontWeight: 900, 
-                  border: 'none', marginTop: '30px', cursor: 'pointer', 
+                  border: 'none', marginTop: '50px', cursor: 'pointer', 
                   display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px',
                   opacity: loading ? 0.5 : 1,
-                  position: 'relative', zIndex: 9999 // 내비게이션 바보다 위에 오도록 설정
+                  position: 'relative', zIndex: 9999
                 }}
               >
                 {loading ? '처리 중...' : <><Check size={22}/> 신청 완료하기</>}
