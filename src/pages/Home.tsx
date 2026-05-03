@@ -83,59 +83,56 @@ const PartyCard = ({ item, onSelect, liveCount = 0 }) => {
         display: 'flex', 
         alignItems: 'center',
         backgroundColor: '#FFFFFF', 
-        borderRadius: '16px', 
-        padding: '12px 16px',
+        borderRadius: '12px', 
+        padding: '10px 16px',
         gap: '12px',
         borderBottom: '1px solid #F1F5F9',
         cursor: 'pointer',
-        transition: 'all 0.2s',
-        marginBottom: '4px',
-        width: '100%'
+        width: '100%',
+        minHeight: '70px'
       }}
     >
-      {/* 0열: 포스터 */}
+      {/* 포스터 (썸네일) */}
       <div 
         onClick={() => onSelect(item.poster_url)} 
-        style={{ width: '60px', height: '60px', flexShrink: 0, borderRadius: '12px', overflow: 'hidden', boxShadow: '0 2px 8px rgba(0,0,0,0.06)' }}
+        style={{ width: '50px', height: '50px', flexShrink: 0, borderRadius: '8px', overflow: 'hidden', boxShadow: '0 2px 6px rgba(0,0,0,0.06)' }}
       >
         <img src={item.poster_url} style={{ width: '100%', height: '100%', objectFit: 'cover' }} alt="Poster" />
       </div>
 
-      {/* 1열: 장소명 & 라이브 배지 */}
-      <div style={{ width: '85px', flexShrink: 0, display: 'flex', flexDirection: 'column', gap: '4px' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '3px' }}>
-          <span style={{ fontSize: '11px', fontWeight: '900', color: '#1E293B', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-            {item.locationName || '장소미정'}
-          </span>
-          <Navigation size={10} color="#FF1744" fill="#FF1744" style={{ flexShrink: 0 }} />
-        </div>
+      {/* 1열: 라틴 LIVE -> 지도 */}
+      <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexShrink: 0 }}>
+        <span style={{ fontSize: '11px', fontWeight: '950', color: '#1E293B', whiteSpace: 'nowrap' }}>{item.locationName || '라틴'}</span>
         {isLive && (
           <div style={{ 
             background: '#FF1744', color: '#fff', fontSize: '8px', fontWeight: '950',
-            padding: '1px 4px', borderRadius: '3px', display: 'inline-flex', alignItems: 'center', gap: '2px', alignSelf: 'flex-start'
+            padding: '1.5px 4px', borderRadius: '3px', display: 'flex', alignItems: 'center', gap: '2px', whiteSpace: 'nowrap'
           }}>
             LIVE ● {liveCount || 0}
           </div>
         )}
+        <div style={{ marginLeft: '4px', display: 'flex', alignItems: 'center' }}>
+          <Navigation size={12} color="#FF1744" fill="#FF1744" />
+        </div>
       </div>
 
-      {/* 2열: 타이틀 */}
+      {/* 2열: 타이틀 (한 줄로 쭉!) */}
       <div 
         onClick={() => onSelect(item.poster_url)} 
         style={{ flex: 1, minWidth: 0 }}
       >
-        <h3 style={{ fontSize: '14px', fontWeight: '900', color: '#1E293B', margin: 0, lineHeight: '1.4', wordBreak: 'keep-all' }}>
+        <h3 style={{ fontSize: '13px', fontWeight: '800', color: '#1E293B', margin: 0, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
           {cleanTitle.replace(/^\[.*?\]\s*|서울\s*|전국\s*/g, '')}
         </h3>
       </div>
 
-      {/* 3열: 날짜/요일 + 가격 + 음악비율 */}
-      <div style={{ width: '75px', flexShrink: 0, textAlign: 'right', display: 'flex', flexDirection: 'column', gap: '2px' }}>
-        <div style={{ fontSize: '11px', fontWeight: '800', color: '#64748B' }}>
+      {/* 3열: 날짜 요일 금액 비율 (옆으로 나란히!) */}
+      <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexShrink: 0 }}>
+        <div style={{ fontSize: '11px', fontWeight: '800', color: '#64748B', whiteSpace: 'nowrap' }}>
           {(() => { const d = new Date(item.date); return `${d.getMonth() + 1}/${d.getDate()}(${DAYS_KOR[d.getDay()]})`; })()}
         </div>
-        <div style={{ fontSize: '13px', fontWeight: '950', color: '#FF1744' }}>{displayFee}</div>
-        <div style={{ fontSize: '9px', color: '#94A3B8', fontWeight: '900', background: '#F8FAFC', padding: '1px 4px', borderRadius: '4px', alignSelf: 'flex-end' }}>
+        <div style={{ fontSize: '12px', fontWeight: '950', color: '#FF1744', whiteSpace: 'nowrap' }}>{displayFee}</div>
+        <div style={{ fontSize: '8px', color: '#94A3B8', fontWeight: '900', background: '#F1F5F9', padding: '1px 3px', borderRadius: '3px', whiteSpace: 'nowrap' }}>
           {Object.entries(GENRE_MAP).filter(([_, info]) => item[info.key] > 0).map(([_, info]) => `${info.label}${item[info.key]}`).join('')}
         </div>
       </div>
@@ -397,200 +394,6 @@ const HomePage = ({
           )}
         </div>
       </div>
-
-      <AnimatePresence>
-        {showFullCalendar && (
-          <>
-            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={handleCloseModal} style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.6)', backdropFilter: 'blur(4px)', zIndex: 170000 }} />
-            <motion.div initial={{ y: '100%', opacity: 0 }} animate={{ y: 0, opacity: 1 }} exit={{ y: '100%', opacity: 0 }} transition={{ type: 'spring', damping: 25, stiffness: 200 }} style={{ position: 'fixed', bottom: '90px', left: '10px', right: '10px', background: '#fff', borderRadius: '24px', padding: '20px', boxShadow: '0 10px 40px rgba(0,0,0,0.25)', zIndex: 170001, border: '1px solid #f1f5f9', display: 'flex', flexDirection: 'column', maxHeight: '85vh' }}>
-              <div style={{ width: '40px', height: '4px', background: '#E2E8F0', borderRadius: '2px', margin: '0 auto 20px' }} />
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}><span style={{ fontSize: '24px', fontWeight: 950, color: '#1E293B' }}>{selectedMonth}월</span><div style={{ display: 'flex', gap: '8px' }}><button onClick={() => setSelectedMonth(m => m > 1 ? m-1 : 12)} style={{ background: '#F8FAFC', border: '1px solid #F1F5F9', borderRadius: '10px', width: '36px', height: '36px' }}><ChevronLeft size={18} /></button><button onClick={() => setSelectedMonth(m => m < 12 ? m+1 : 1)} style={{ background: '#F8FAFC', border: '1px solid #F1F5F9', borderRadius: '10px', width: '36px', height: '36px' }}><ChevronRight size={18} /></button></div></div>
-                <button onClick={handleCloseModal} style={{ background: '#F1F5F9', border: 'none', borderRadius: '50%', width: '44px', height: '44px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#1E293B' }}>
-                  <ChevronLeft size={28} />
-                </button>
-              </div>
-              
-              <div style={{ flex: 1, overflowY: 'auto', minHeight: '350px' }}>
-                {!showFilterPanel && !showFilteredResults ? (
-                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: '5px', textAlign: 'center' }}>
-                    {['일','월','화','수','목','금','토'].map(d => <div key={d} style={{ fontSize: '12px', fontWeight: 700, color: d === '일' ? '#FF1744' : d === '토' ? '#FF1744' : '#999', padding: '5px 0' }}>{d}</div>)}
-                    {allDatesInMonth.map((day) => {
-                      if (!day.date) return <div key={Math.random()} />;
-                      const isWeekend = day.dayName === '금' || day.dayName === '토';
-                      const isSelected = selectedDate === day.fullDate;
-                      return (
-                        <div 
-                          key={day.fullDate} 
-                          onClick={() => { 
-                            if (day.fullDate < todayStr) return;
-                            setSelectedDate(day.fullDate); 
-                            handleOpenModal(setShowFilterPanel, true);
-                            setFilterStep(1);
-                          }} 
-                          style={{ height: '46px', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', fontSize: '15px', fontWeight: isSelected ? 800 : 600, color: isSelected ? '#fff' : (day.dayName === '일' ? '#FF1744' : (isWeekend ? '#FF1744' : '#1E293B')), backgroundColor: isSelected ? '#FF1744' : 'transparent', borderRadius: '14px', cursor: day.fullDate < todayStr ? 'default' : 'pointer', opacity: day.fullDate < todayStr ? 0.3 : 1 }}
-                        >
-                          {day.date}
-                        </div>
-                      );
-                    })}
-                  </div>
-                ) : showFilterPanel && !showFilteredResults ? (
-                  <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }}>
-                    {filterStep === 1 ? (
-                      <>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '20px' }}>
-                          <button onClick={() => { setShowFullCalendar(false); setShowFilterPanel(false); setShowFilteredResults(false); setFilterStep(1); }} style={{ background: '#F8FAFC', border: 'none', borderRadius: '10px', padding: '8px 12px', fontSize: '13px', fontWeight: 700, color: '#FF1744', display: 'flex', alignItems: 'center', gap: '4px' }}><X size={16} /> 닫기</button>
-                        </div>
-                        <div style={{ fontSize: '18px', fontWeight: 950, color: '#1E293B', marginBottom: '15px' }}>{t('filter_where')}</div>
-                        <div style={{ display: 'flex', overflowX: 'auto', gap: '10px', paddingBottom: '15px', msOverflowStyle: 'none', scrollbarWidth: 'none', WebkitOverflowScrolling: 'touch' }}>
-                          {['서울', '경기/인천', '부산', '대구', '대전', '광주', '기타'].map(r => (
-                            <button key={r} onClick={() => { setFilterRegion(r); handleOpenModal(setFilterStep, 2); }} style={{ flexShrink: 0, padding: '14px 24px', borderRadius: '14px', background: filterRegion === r ? '#FF1744' : '#F8FAFC', color: filterRegion === r ? '#fff' : '#64748B', fontWeight: 700, border: 'none', transition: 'all 0.2s' }}>{r}</button>
-                          ))}
-                        </div>
-                      </>
-                    ) : (
-                      <>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '20px' }}>
-                          <button onClick={handleCloseModal} style={{ background: '#F8FAFC', border: 'none', borderRadius: '10px', padding: '8px 12px', fontSize: '13px', fontWeight: 700, color: '#64748B', display: 'flex', alignItems: 'center', gap: '4px' }}><ChevronLeft size={16} /> 지역 다시 선택</button>
-                        </div>
-                        <div style={{ fontSize: '18px', fontWeight: 950, color: '#1E293B', marginBottom: '15px' }}>{t('filter_genre')}</div>
-                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', marginBottom: '20px' }}>
-                          {['바차타', '살사', '쥬크', '키좀바'].map(g => (
-                            <button key={g} onClick={() => { setFilterGenre(g); handleOpenModal(setShowFilteredResults, true); }} style={{ padding: '24px 15px', borderRadius: '18px', background: filterGenre === g ? '#1E293B' : '#F8FAFC', color: filterGenre === g ? '#fff' : '#64748B', fontWeight: 800, fontSize: '16px', border: 'none' }}>{g}</button>
-                          ))}
-                        </div>
-                      </>
-                    )}
-                  </motion.div>
-                ) : (
-                  <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '20px' }}>
-                      <button onClick={handleCloseModal} style={{ background: '#F8FAFC', border: 'none', borderRadius: '10px', padding: '8px 12px', fontSize: '13px', fontWeight: 700, color: '#64748B', display: 'flex', alignItems: 'center', gap: '4px' }}><ChevronLeft size={16} /> 장르 다시 선택</button>
-                    </div>
-                    <div style={{ display: 'flex', flexDirection: 'column' }}>
-                      {(() => {
-                        const filtered = filteredParties.filter(p => {
-                          const filterFn = REGION_FILTER[filterRegion];
-                          if (filterRegion && filterFn) {
-                            if (!filterFn(p)) return false;
-                          }
-                          if (filterGenre && GENRE_MAP[filterGenre]) {
-                            if (!(p[GENRE_MAP[filterGenre].key] > 0)) return false;
-                          }
-                          return true;
-                        });
-
-                        return filtered.length === 0 ? (
-                          <div style={{ padding: '60px 0', textAlign: 'center', color: '#94A3B8', fontWeight: 700 }}>해당 조건의 파티가 없습니다 😅</div>
-                        ) : (
-                          filtered.map(party => {
-                            const barInfo = findBarByName(party.locationName || party.studio_name);
-                            return (
-                              <PartyCard 
-                                key={party.id} 
-                                item={party} 
-                                liveCount={barInfo ? (liveCounts[barInfo.name] || 0) : 0}
-                                onSelect={(url) => handleOpenModal(setSelectedPoster, url)} 
-                              />
-                            );
-                          })
-                        );
-                      })()}
-                    </div>
-                    <button onClick={handleCloseModal} style={{ width: '100%', height: '54px', borderRadius: '16px', background: '#1E293B', color: '#fff', fontSize: '16px', fontWeight: 800, border: 'none', marginTop: '20px' }}>확인 완료</button>
-                  </motion.div>
-                )}
-              </div>
-            </motion.div>
-          </>
-        )}
-      </AnimatePresence>
-
-      <AnimatePresence>
-        {showGridModal && (
-          <>
-            <motion.div 
-              initial={{ opacity: 0 }} 
-              animate={{ opacity: 1 }} 
-              exit={{ opacity: 0 }} 
-              onClick={handleCloseModal} 
-              style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.85)', backdropFilter: 'blur(10px)', zIndex: 180000 }} 
-            />
-            <motion.div 
-              initial={{ y: '100%' }} 
-              animate={{ y: 0 }} 
-              exit={{ y: '100%' }} 
-              transition={{ type: 'spring', damping: 25, stiffness: 200 }}
-              style={{ 
-                position: 'fixed', 
-                inset: 0, 
-                background: '#000', 
-                zIndex: 180001, 
-                display: 'flex', 
-                flexDirection: 'column',
-                height: '100dvh',
-                paddingTop: 'env(safe-area-inset-top)',
-                paddingBottom: 'env(safe-area-inset-bottom)'
-              }}
-            >
-              <div style={{ height: '70px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0 20px', borderBottom: '1px solid rgba(255,255,255,0.1)' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
-                  <button 
-                    onClick={handleCloseModal}
-                    style={{ background: 'rgba(255,255,255,0.15)', border: 'none', borderRadius: '50%', width: '48px', height: '48px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff' }}
-                  >
-                    <ChevronLeft size={28} />
-                  </button>
-                  <div style={{ color: '#fff', fontSize: '18px', fontWeight: '900', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                    <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#FF1744' }} />
-                    {gridRegion} 전체보기
-                  </div>
-                </div>
-              </div>
-
-              <div style={{ flex: 1, overflowY: 'auto', padding: '2px' }}>
-                <div style={{ 
-                  display: 'grid', 
-                  gridTemplateColumns: 'repeat(3, 1fr)', 
-                  gap: '2px' 
-                }}>
-                  {(() => {
-                    const filtered = filteredParties.filter(p => {
-                      const filterFn = REGION_FILTER[gridRegion];
-                      return filterFn ? filterFn(p) : true;
-                    });
-                    return filtered.map(item => (
-                      <div 
-                        key={item.id} 
-                        onClick={() => {
-                          handleOpenModal(setSelectedPoster, item.poster_url);
-                        }}
-                        style={{ aspectRatio: '3/4', overflow: 'hidden', background: '#111', position: 'relative' }}
-                      >
-                        <img 
-                          src={item.poster_url} 
-                          alt="Poster" 
-                          style={{ width: '100%', height: '100%', objectFit: 'cover' }} 
-                        />
-                        <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, padding: '8px 5px', background: 'linear-gradient(transparent, rgba(0,0,0,0.8))', color: '#fff' }}>
-                          <div style={{ fontSize: '10px', fontWeight: '800', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{item.locationName}</div>
-                        </div>
-                      </div>
-                    ));
-                  })()}
-                </div>
-                {filteredParties.filter(p => {
-                  const filterFn = REGION_FILTER[gridRegion];
-                  return filterFn ? filterFn(p) : true;
-                }).length === 0 && (
-                  <div style={{ padding: '100px 0', textAlign: 'center', color: '#64748B', fontWeight: '700' }}>해당 지역에 등록된 파티가 없습니다.</div>
-                )}
-              </div>
-            </motion.div>
-          </>
-        )}
-      </AnimatePresence>
     </div>
   )
 }
