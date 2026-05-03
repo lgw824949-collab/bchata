@@ -29,7 +29,8 @@ const PostClass = ({ onBack }) => {
     address: '',
     region: '서울',
     dance_style: '바차타',
-    week_type: '1주차'
+    week_type: '1주차',
+    duration: '상시'
   })
 
   const DANCE_STYLES = ['바차타', '살사', '쥬크', '키좀바']
@@ -101,7 +102,7 @@ const PostClass = ({ onBack }) => {
         end_time: formData.end_time,
         day_of_week: formData.selected_days.join(', '),
         start_date: formData.startDate,
-        duration: formData.endDate ? `${formData.startDate} ~ ${formData.endDate}` : `${formData.startDate} ~ 기간 미지정`,
+        duration: formData.duration,
         studio_name: formData.studio_name,
         address: formData.address,
         city: formData.region,
@@ -205,6 +206,26 @@ const PostClass = ({ onBack }) => {
                     }}
                   >
                     {w}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <div style={{ marginBottom: '24px' }}>
+              <p style={labelStyle}>운영 기간 (필수)</p>
+              <div style={{ display: 'flex', gap: '10px' }}>
+                {['4주', '8주', '상시'].map(d => (
+                  <button 
+                    key={d} 
+                    onClick={() => setFormData({...formData, duration: d})} 
+                    style={{ 
+                      flex: 1, padding: '12px 0', borderRadius: '12px', 
+                      fontSize: '13px', fontWeight: '800', border: 'none', 
+                      background: formData.duration === d ? THEME_COLOR : '#F1F5F9', 
+                      color: formData.duration === d ? '#fff' : '#64748B' 
+                    }}
+                  >
+                    {d}
                   </button>
                 ))}
               </div>
