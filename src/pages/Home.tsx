@@ -48,8 +48,25 @@ const PosterImage = ({ src, onClick, alt = "파티 포스터" }) => {
   );
 };
 
-const PartyCard = ({ item, onSelect, liveCount }) => {
-  const isLive = liveCount > 0;
+const PartyCard = ({ item, onSelect, liveCount = 0 }) => {
+  const isTimeLive = (() => {
+    const now = new Date();
+    const pDate = new Date(item.date);
+    const startStr = (item.time?.split('-')[0] || '20:00').trim();
+    let [sH, sM] = [20, 0];
+    if (startStr.includes(':')) {
+      const parts = startStr.split(':').map(Number);
+      sH = parts[0]; sM = parts[1] || 0;
+    }
+    const startDate = new Date(pDate);
+    startDate.setHours(sH, sM, 0, 0);
+    const endDate = new Date(startDate);
+    endDate.setHours(startDate.getHours() + 7);
+    const startWithBuffer = new Date(startDate.getTime() - 30 * 60 * 1000);
+    return now >= startWithBuffer && now <= endDate;
+  })();
+
+  const isLive = isTimeLive || liveCount > 0;
   const cleanTitle = item.title?.split(' ㅣ ')[0] || '';
   const displayFee = (() => {
     if (!item.fee) return '1.2만';
@@ -67,10 +84,11 @@ const PartyCard = ({ item, onSelect, liveCount }) => {
         display: 'flex', 
         flexDirection: 'column', 
         backgroundColor: '#FFFFFF', 
-        borderRadius: '8px', 
+        borderRadius: '12px', 
         overflow: 'hidden', 
-        border: '1px solid #E2E8F0', 
+        border: '1px solid #F1F5F9', 
         cursor: 'pointer', 
+        boxShadow: '0 2px 4px rgba(0,0,0,0.04)',
         position: 'relative'
       }}
     >
@@ -78,19 +96,23 @@ const PartyCard = ({ item, onSelect, liveCount }) => {
         <img src={item.poster_url} style={{ width: '100%', height: '100%', objectFit: 'cover' }} alt="Poster" />
         {isLive && (
           <div style={{ 
-            position: 'absolute', top: '4px', left: '4px',
-            background: '#FF1744', color: '#fff', fontSize: '9px', fontWeight: '900',
-            padding: '2px 6px', borderRadius: '4px', display: 'flex', alignItems: 'center', gap: '2px'
+            position: 'absolute', top: '5px', left: '5px',
+            background: 'rgba(255, 23, 68, 0.9)', color: '#fff', fontSize: '9px', fontWeight: '950',
+            padding: '2px 6px', borderRadius: '4px', display: 'flex', alignItems: 'center', gap: '3px',
+            boxShadow: '0 2px 4px rgba(0,0,0,0.2)'
           }}>
-            LIVE {liveCount}
+            LIVE <span style={{ fontSize: '7px' }}>●</span> {liveCount || 0}
           </div>
         )}
       </div>
-      <div style={{ padding: '6px', textAlign: 'center' }}>
-        <h3 style={{ fontSize: '11px', fontWeight: '900', color: '#1E293B', margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', display: '-webkit-box', WebkitLineClamp: 1, WebkitBoxOrient: 'vertical' }}>
+      <div style={{ padding: '6px', minWidth: 0 }}>
+        <div style={{ fontSize: '10px', fontWeight: '800', color: '#64748B', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+          {item.locationName || '장소미정'}
+        </div>
+        <h3 style={{ fontSize: '11px', fontWeight: '900', color: '#1E293B', margin: '2px 0', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
           {cleanTitle.replace(/^\[.*?\]\s*|서울\s*|전국\s*/g, '')}
         </h3>
-        <p style={{ fontSize: '9px', color: '#64748B', margin: '2px 0 0' }}>{displayFee}</p>
+        <div style={{ fontSize: '10px', fontWeight: '900', color: '#FF1744' }}>{displayFee}</div>
       </div>
     </div>
   );
@@ -103,11 +125,12 @@ const HomePage = ({
   resetToToday, showFullCalendar, setShowFullCalendar, likedIds, toggleLike, logActivity, handleRegister, fourteenDays,
   showFilterPanel, setShowFilterPanel, filterRegion, setFilterRegion, filterGenre, setFilterGenre,
   showFilteredResults, setShowFilteredResults, isMenuOpen, setIsMenuOpen, showWeather, setShowWeather,
-  showLatinModal, setShowLatinModal, setShowSaju, latinCat, setLatinCat, selPatternId, setSelPatternId, regionalTheme, recordTraffic, IncheonBanner, venueCounts, openAnalysis,
+  showLatinModal, setShowLatinModal, showSaju, latinCat, setLatinCat, selPatternId, setSelPatternId, regionalTheme, recordTraffic, IncheonBanner, venueCounts, openAnalysis,
   showGridModal, setShowGridModal, gridRegion, setGridRegion, filterStep, setFilterStep,
   handleOpenModal, handleCloseModal
 }) => {
   const { t, i18n } = useTranslation();
+  const isEn = i18n.language.startsWith('en');
   const [liveCounts, setLiveCounts] = useState({});
 
   useEffect(() => {
@@ -367,7 +390,7 @@ const HomePage = ({
                               <PartyCard 
                                 key={item.id} 
                                 item={item} 
-                                liveCount={barInfo ? liveCounts[barInfo.name] : 0}
+                                liveCount={barInfo ? (liveCounts[barInfo.name] || 0) : 0}
                                 onSelect={(url) => handleOpenModal(setSelectedPoster, url)} 
                               />
                             );
