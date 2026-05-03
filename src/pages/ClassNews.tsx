@@ -6,27 +6,17 @@ import { supabase } from '../lib/supabase';
 const DAYS_KOR = ['일', '월', '화', '수', '목', '금', '토'];
 
 const ClassCard = ({ item, onSelect }) => {
-  const openMap = (e) => {
-    e.stopPropagation();
-    const query = encodeURIComponent(item.address || item.studio_name);
-    window.open(`https://map.kakao.com/link/search/${query}`, '_blank');
+  const levelColors = {
+    '입문': '#2ECC71',
+    '초급': '#3498DB',
+    '중급': '#F39C12',
+    '상급': '#E74C3C',
+    '고급': '#E74C3C'
   };
-
-  const formatDate = (dateStr) => {
-    if (!dateStr) return '';
-    const d = new Date(dateStr);
-    return `${d.getMonth() + 1}/${d.getDate()}(${DAYS_KOR[d.getDay()]})`;
-  };
-
-  // 레벨 텍스트 정규화 (공연 마스터 등 긴 텍스트 방지)
-  const normalizeLevel = (lv) => {
-    if (!lv) return '입문';
-    if (lv.includes('입문')) return '입문';
-    if (lv.includes('초급')) return '초급';
-    if (lv.includes('중급')) return '중급';
-    if (lv.includes('상급') || lv.includes('고급')) return '상급';
-    return lv.slice(0, 2); // 최대 2글자만 노출
-  };
+  const badgeColor = levelColors[item.level] || '#64748B';
+  const weekText = item.week_type?.includes('주차') 
+    ? item.week_type.replace('주차', '주 과정') 
+    : (item.week_type || '상시 운영');
 
   return (
     <motion.div 
@@ -34,76 +24,78 @@ const ClassCard = ({ item, onSelect }) => {
       animate={{ opacity: 1, y: 0 }}
       onClick={() => onSelect(item.poster_url)}
       style={{ 
-        display: 'flex', gap: '12px', padding: '10px 12px', background: '#fff', 
-        borderRadius: '16px', border: '1px solid #F1F5F9', marginBottom: '8px',
-        boxShadow: '0 4px 6px -1px rgba(0,0,0,0.05)', cursor: 'pointer'
+        background: '#fff', 
+        borderRadius: '20px', 
+        overflow: 'hidden', 
+        border: '1px solid #F1F5F9',
+        boxShadow: '0 4px 15px rgba(0,0,0,0.05)',
+        cursor: 'pointer',
+        display: 'flex',
+        flexDirection: 'column'
       }}
     >
-      {/* 왼쪽: 포스터 */}
-      <div style={{ width: '80px', height: '100px', flexShrink: 0, borderRadius: '10px', overflow: 'hidden', background: '#f8f8f8' }}>
-        <img src={item.poster_url} style={{ width: '100%', height: '100%', objectFit: 'cover' }} alt="Poster" />
+      {/* 포스터 이미지 */}
+      <div style={{ width: '100%', aspectRatio: '4/5', background: '#F1F5F9', overflow: 'hidden' }}>
+        {item.poster_url ? (
+          <img src={item.poster_url} style={{ width: '100%', height: '100%', objectFit: 'cover' }} alt="Poster" />
+        ) : (
+          <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#CBD5E1' }}>
+            <Music size={32} />
+          </div>
+        )}
       </div>
 
-      {/* 오른쪽: 정보 (3열 레이아웃) */}
-      <div style={{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'center', minWidth: 0, gap: '2px' }}>
-        {/* 1열: 강사명 & 지도 📍 */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-          <span style={{ fontSize: '15px', fontWeight: '900', color: '#1E293B' }}>{item.instructor}</span>
-          <span onClick={openMap} style={{ fontSize: '18px', cursor: 'pointer' }}>📍</span>
+      {/* 정보 영역 */}
+      <div style={{ padding: '15px' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+          <span style={{ 
+            background: badgeColor, 
+            color: '#fff', 
+            fontSize: '10px', 
+            fontWeight: '900', 
+            padding: '2px 8px', 
+            borderRadius: '6px' 
+          }}>{item.level || '입문'}</span>
+          <span style={{ fontSize: '11px', fontWeight: '800', color: '#FF1744' }}>{item.genre}</span>
         </div>
+        
+        <h3 style={{ 
+          fontSize: '14px', 
+          fontWeight: '900', 
+          color: '#1E293B', 
+          margin: '0 0 10px',
+          height: '40px',
+          display: '-webkit-box',
+          WebkitLineClamp: 2,
+          WebkitBoxOrient: 'vertical',
+          overflow: 'hidden',
+          lineHeight: '1.4'
+        }}>{item.title}</h3>
 
-        {/* 2열: 제목 */}
-        <h3 style={{ fontSize: '13px', fontWeight: '700', color: '#475569', margin: 0, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-          {item.title}
-        </h3>
-
-        {/* 3열: 상세 정보 (한 줄에 통합: 날짜 / 장르 / 레벨 / 요일 시간 / 비용) */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '4px', flexWrap: 'wrap', fontSize: '11px', fontWeight: '800' }}>
-          <span style={{ color: '#64748B' }}>{formatDate(item.start_date)}</span>
-          <span style={{ color: '#CBD5E1' }}>/</span>
-          <span style={{ color: '#2ECC71' }}>{item.genre}</span>
-          <span style={{ color: '#CBD5E1' }}>/</span>
-          <span style={{ color: '#FF1744' }}>{normalizeLevel(item.level)}</span>
-          <span style={{ color: '#CBD5E1' }}>/</span>
-          <span style={{ color: '#64748B' }}>
-            {item.day_of_week?.split(',')[0]} {item.start_time?.split(':')[0]}:{item.start_time?.split(':')[1]}
-          </span>
-          <span style={{ color: '#CBD5E1' }}>/</span>
-          <span style={{ color: '#1E293B' }}>
-            {(() => { if (!item.fee) return '1.2만'; const f = String(item.fee); const num = parseInt(f.replace(/[^0-9]/g, '')); if (isNaN(num)) return f; return (num/10000).toFixed(1).replace('.0', '') + '만'; })()}
-          </span>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: '11px', color: '#64748B', fontWeight: '700' }}>
+            <MapPin size={12} /> {item.studio_name}
+          </div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: '11px', color: '#64748B', fontWeight: '700' }}>
+            <Clock size={12} /> {item.day_of_week} · {item.start_time?.slice(0,5)}~{item.end_time?.slice(0,5)}
+          </div>
+          <div style={{ fontSize: '11px', color: '#94A3B8', fontWeight: '800', marginTop: '4px' }}>
+            {(() => {
+              const d = new Date(item.start_date);
+              return `${d.getMonth() + 1}/${d.getDate()} 시작 · ${weekText}`;
+            })()}
+          </div>
         </div>
       </div>
     </motion.div>
   );
 };
 
-// 📍 달력 기준 주차 계산기 (일요일 시작 기준)
-const getCalendarWeek = (dateStr) => {
-  if (!dateStr) return '1주차';
-  const d = new Date(dateStr);
-  const firstDay = new Date(d.getFullYear(), d.getMonth(), 1).getDay();
-  const weekNum = Math.ceil((d.getDate() + firstDay) / 7);
-  return `${weekNum}주차`;
-};
-
-// 📍 해당 월의 총 주차 수 계산
-const getTotalWeeks = (year, month) => {
-  const lastDate = new Date(year, month, 0).getDate();
-  const firstDay = new Date(year, month - 1, 1).getDay();
-  return Math.ceil((lastDate + firstDay) / 7);
-};
-
 const ClassNewsPage = ({ lessons: allLessons, loading: lessonsLoading, selectedMonth, setSelectedMonth, setSelectedPoster }) => {
-  const [selectedWeek, setSelectedWeek] = useState('1주차');
   const [filterGenre, setFilterGenre] = useState('전체');
   const [filterLevel, setFilterLevel] = useState('전체');
 
-  const currentYear = new Date().getFullYear();
-  const totalWeeks = useMemo(() => getTotalWeeks(currentYear, selectedMonth), [selectedMonth, currentYear]);
-  const weekButtons = useMemo(() => Array.from({ length: totalWeeks }, (_, i) => `${i + 1}주차`), [totalWeeks]);
-
-  // 📍 상단 HOT PICK 5 데이터 추출 (포스터가 있는 최신 수업 5개)
+  // 📍 상단 HOT PICK 5 데이터 추출
   const carouselLessons = useMemo(() => {
     return [...(allLessons || [])]
       .filter(l => l.poster_url)
@@ -114,30 +106,24 @@ const ClassNewsPage = ({ lessons: allLessons, loading: lessonsLoading, selectedM
   const filtered = useMemo(() => {
     return (allLessons || []).filter(l => {
       const d = new Date(l.start_date);
-      // 1. 월 필터링
       if (d.getMonth() + 1 !== selectedMonth) return false;
-
-      // 2. 주차 필터링 (달력 기준 자동 계산)
-      const currentWeek = getCalendarWeek(l.start_date);
-      const weekMatch = selectedWeek === '전체' || currentWeek === selectedWeek;
-      
       const genreMatch = !filterGenre || filterGenre === '전체' || l.genre === filterGenre;
       const levelMatch = !filterLevel || filterLevel === '전체' || l.level === filterLevel;
-      return weekMatch && genreMatch && levelMatch;
+      return genreMatch && levelMatch;
     });
-  }, [allLessons, selectedMonth, selectedWeek, filterGenre, filterLevel]);
+  }, [allLessons, selectedMonth, filterGenre, filterLevel]);
 
   const regions = ["서울", "경기/인천", "경상도", "전라도", "충청도", "강원/제주"];
 
   return (
-    <div style={{ width: '100%', maxWidth: '500px', margin: '0 auto', background: '#F8FAFC', minHeight: '100vh', paddingBottom: '100px' }}>
+    <div style={{ width: '100%', maxWidth: '500px', margin: '0 auto', background: '#fff', minHeight: '100vh', paddingBottom: '100px' }}>
       {/* 상단 헤더 & 월 선택 */}
-      <div style={{ padding: '30px 20px 20px', background: '#fff', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+      <div style={{ padding: '40px 20px 25px', background: '#fff', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
         <div>
           <h1 style={{ fontSize: '28px', fontWeight: '950', color: '#0f172a', margin: 0 }}>
             {selectedMonth}월 <span style={{ color: '#2ECC71' }}>클래스</span>
           </h1>
-          <p style={{ fontSize: '13px', color: '#64748b', marginTop: '4px' }}>나에게 딱 맞는 댄스 수업 찾기</p>
+          <p style={{ fontSize: '13px', color: '#64748b', marginTop: '4px', fontWeight: '600' }}>나에게 딱 맞는 댄스 수업 찾기</p>
         </div>
         <div style={{ display: 'flex', gap: '8px' }}>
           <button 
@@ -155,52 +141,27 @@ const ClassNewsPage = ({ lessons: allLessons, loading: lessonsLoading, selectedM
         </div>
       </div>
 
-      {/* 3단 필터 영역 */}
+      {/* 필터 영역 (주차 필터 제거) */}
       <div style={{ position: 'sticky', top: 0, zIndex: 100, background: '#fff', padding: '10px 20px', borderBottom: '1px solid #F1F5F9', boxShadow: '0 4px 12px rgba(0,0,0,0.03)' }}>
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-          {/* 1단: 주차 필터 (달력 기반 동적 생성) */}
-          <div style={{ display: 'flex', gap: '8px', overflowX: 'auto', paddingBottom: '2px' }} className="no-scrollbar">
-            {weekButtons.map(w => (
-              <button 
-                key={w} 
-                onClick={() => setSelectedWeek(w)} 
-                style={{ 
-                  flexShrink: 0, width: '54px', height: '54px', borderRadius: '50%', 
-                  fontSize: '11px', fontWeight: '800', border: 'none', 
-                  background: selectedWeek === w ? '#2ECC71' : '#F1F5F9', 
-                  color: selectedWeek === w ? '#fff' : '#64748B',
-                  display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  boxShadow: selectedWeek === w ? '0 4px 10px rgba(46, 204, 113, 0.3)' : 'none',
-                  transition: 'all 0.2s'
-                }}
-              >
-                {w}
-              </button>
-            ))}
-          </div>
-
-          {/* 2단: 장르 필터 */}
-          <div style={{ display: 'flex', gap: '8px', overflowX: 'auto', paddingBottom: '2px' }} className="no-scrollbar">
-            {['바차타', '살사', '키좀바', '쥬크'].map(g => (
-              <button key={g} onClick={() => setFilterGenre(filterGenre === g ? '전체' : g)} style={{ flexShrink: 0, padding: '6px 14px', borderRadius: '99px', fontSize: '12px', fontWeight: '700', border: 'none', background: filterGenre === g ? '#2ECC71' : '#F1F5F9', color: filterGenre === g ? '#fff' : '#64748B' }}>{g}</button>
-            ))}
-          </div>
-
-          {/* 3단: 레벨 필터 */}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
           <div style={{ display: 'flex', gap: '8px', overflowX: 'auto' }} className="no-scrollbar">
-            {['입문', '초급', '중급', '상급'].map(l => (
-              <button key={l} onClick={() => setFilterLevel(filterLevel === l ? '전체' : l)} style={{ flexShrink: 0, padding: '6px 14px', borderRadius: '99px', fontSize: '12px', fontWeight: '700', border: 'none', background: filterLevel === l ? '#1E293B' : '#F1F5F9', color: filterLevel === l ? '#fff' : '#64748B' }}>{l}</button>
+            {['전체', '바차타', '살사', '키좀바', '쥬크'].map(g => (
+              <button key={g} onClick={() => setFilterGenre(g)} style={{ flexShrink: 0, padding: '8px 16px', borderRadius: '99px', fontSize: '12px', fontWeight: '700', border: 'none', background: filterGenre === g ? '#2ECC71' : '#F1F5F9', color: filterGenre === g ? '#fff' : '#64748B', transition: 'all 0.2s' }}>{g}</button>
+            ))}
+          </div>
+          <div style={{ display: 'flex', gap: '8px', overflowX: 'auto' }} className="no-scrollbar">
+            {['전체', '입문', '초급', '중급', '상급'].map(l => (
+              <button key={l} onClick={() => setFilterLevel(l)} style={{ flexShrink: 0, padding: '8px 16px', borderRadius: '99px', fontSize: '12px', fontWeight: '700', border: 'none', background: filterLevel === l ? '#1E293B' : '#F1F5F9', color: filterLevel === l ? '#fff' : '#64748B', transition: 'all 0.2s' }}>{l}</button>
             ))}
           </div>
         </div>
       </div>
 
-      <div style={{ padding: '20px 0' }}>
+      <div style={{ padding: '10px 0' }}>
         {lessonsLoading ? (
           <div style={{ padding: '100px 0', textAlign: 'center' }}><Loader2 className="animate-spin" size={32} color="#2ECC71" style={{ margin: '0 auto' }} /></div>
         ) : (
           <>
-            {/* 📍 [영역 C: HOT PICK 5 롤링 배너] */}
             {carouselLessons.length > 0 && (
               <div style={{ margin: '0 0 25px', padding: '10px 0 25px', background: '#fff', borderBottom: '1px solid #F1F5F9' }}>
                 <div style={{ padding: '0 20px 15px' }}>
@@ -214,15 +175,11 @@ const ClassNewsPage = ({ lessons: allLessons, loading: lessonsLoading, selectedM
                     transition={{ duration: 25, repeat: Infinity, ease: "linear" }}
                     style={{ display: 'flex', gap: '15px', paddingLeft: '20px', width: 'max-content' }}
                   >
-                    {/* 5개 포스터를 반복해서 보여주어 끊김 없는 롤링 구현 */}
                     {[...carouselLessons, ...carouselLessons].map((item, idx) => (
                       <div 
                         key={`${item.id}-${idx}`} 
                         onClick={() => setSelectedPoster(item.poster_url)}
-                        style={{ 
-                          width: '140px', flexShrink: 0, borderRadius: '12px', overflow: 'hidden', 
-                          boxShadow: '0 8px 20px rgba(0,0,0,0.1)', position: 'relative', cursor: 'pointer' 
-                        }}
+                        style={{ width: '140px', flexShrink: 0, borderRadius: '12px', overflow: 'hidden', boxShadow: '0 8px 20px rgba(0,0,0,0.1)', position: 'relative', cursor: 'pointer' }}
                       >
                         <img src={item.poster_url} style={{ width: '100%', height: '180px', objectFit: 'cover' }} alt="Hot Class" />
                         <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, padding: '10px', background: 'linear-gradient(transparent, rgba(0,0,0,0.8))', color: '#fff' }}>
@@ -235,72 +192,51 @@ const ClassNewsPage = ({ lessons: allLessons, loading: lessonsLoading, selectedM
                 </div>
               </div>
             )}
+
             {(() => {
-            const regions = ["서울", "경기/인천", "경상도", "전라도", "충청도", "강원/제주"];
-            
-            // 1. 각 지역별로 분류된 수업 데이터 생성
-            const grouped = regions.reduce((acc, name) => {
-              acc[name] = filtered.filter(l => {
-                const text = `${l.city || ''} ${l.broadRegion || ''} ${l.region || ''} ${l.address || ''} ${l.studio_name || ''}`.toLowerCase();
-                if (name === "서울") return text.includes("서울") || text.includes("강남") || text.includes("홍대") || text.includes("잠실") || text.includes("성수") || text.includes("신림") || text.includes("건대");
-                if (name === "경기/인천") return text.includes("경기") || text.includes("인천") || text.includes("부천") || text.includes("수원") || text.includes("의정부") || text.includes("안양") || text.includes("고양") || text.includes("일산") || text.includes("성남") || text.includes("분당") || text.includes("평택") || text.includes("시흥");
-                if (name === "경상도") return text.includes("경상") || text.includes("경남") || text.includes("경북") || text.includes("부산") || text.includes("대구") || text.includes("울산") || text.includes("창원") || text.includes("포항") || text.includes("구미") || text.includes("진주") || text.includes("양산") || text.includes("거제") || text.includes("안동");
-                if (name === "전라도") return text.includes("전라") || text.includes("전남") || text.includes("전북") || text.includes("광주") || text.includes("전주") || text.includes("목포") || text.includes("여수") || text.includes("순천") || text.includes("군산") || text.includes("익산");
-                if (name === "충청도") return text.includes("충청") || text.includes("충남") || text.includes("충북") || text.includes("대전") || text.includes("세종") || text.includes("천안") || text.includes("청주") || text.includes("아산") || text.includes("충주") || text.includes("당진") || text.includes("공주");
-                if (name === "강원/제주") return text.includes("강원") || text.includes("제주") || text.includes("춘천") || text.includes("원주") || text.includes("강릉") || text.includes("서귀포") || text.includes("속초");
-                return false;
-              });
-              return acc;
-            }, {});
+              const grouped = regions.reduce((acc, name) => {
+                acc[name] = filtered.filter(l => {
+                  const text = `${l.city || ''} ${l.broadRegion || ''} ${l.region || ''} ${l.address || ''} ${l.studio_name || ''}`.toLowerCase();
+                  if (name === "서울") return text.includes("서울") || text.includes("강남") || text.includes("홍대") || text.includes("잠실") || text.includes("성수") || text.includes("신림") || text.includes("건대");
+                  if (name === "경기/인천") return text.includes("경기") || text.includes("인천") || text.includes("부천") || text.includes("수원") || text.includes("의정부") || text.includes("안양") || text.includes("고양") || text.includes("일산") || text.includes("성남") || text.includes("분당") || text.includes("평택") || text.includes("시흥");
+                  if (name === "경상도") return text.includes("경상") || text.includes("경남") || text.includes("경북") || text.includes("부산") || text.includes("대구") || text.includes("울산") || text.includes("창원") || text.includes("포항") || text.includes("구미") || text.includes("진주") || text.includes("양산") || text.includes("거제") || text.includes("안동");
+                  if (name === "전라도") return text.includes("전라") || text.includes("전남") || text.includes("전북") || text.includes("광주") || text.includes("전주") || text.includes("목포") || text.includes("여수") || text.includes("순천") || text.includes("군산") || text.includes("익산");
+                  if (name === "충청도") return text.includes("충청") || text.includes("충남") || text.includes("충북") || text.includes("대전") || text.includes("세종") || text.includes("천안") || text.includes("청주") || text.includes("아산") || text.includes("충주") || text.includes("당진") || text.includes("공주");
+                  if (name === "강원/제주") return text.includes("강원") || text.includes("제주") || text.includes("춘천") || text.includes("원주") || text.includes("강릉") || text.includes("서귀포") || text.includes("속초");
+                  return false;
+                });
+                return acc;
+              }, {});
 
-            // 2. 분류되지 않은 나머지 수업들 (기타 지역)
-            const matchedIds = new Set(Object.values(grouped).flat().map(item => item.id));
-            const others = filtered.filter(item => !matchedIds.has(item.id));
-
-            return (
-              <>
-                {regions.map(regionName => {
-                  const regionLessons = grouped[regionName];
-                  return (
-                    <section key={regionName} style={{ marginBottom: '30px' }}>
-                      <div style={{ padding: '0 20px 12px', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                        <div style={{ width: '4px', height: '16px', background: '#2ECC71', borderRadius: '2px' }} />
-                        <h2 style={{ fontSize: '18px', fontWeight: '900', color: '#1E293B', margin: 0 }}>{regionName}</h2>
-                        <span style={{ fontSize: '12px', color: '#94A3B8', fontWeight: '700' }}>{regionLessons.length}</span>
-                      </div>
-                      <div style={{ padding: '0 20px' }}>
-                        {regionLessons.length === 0 ? (
-                          <div style={{ padding: '20px', background: '#fff', borderRadius: '16px', border: '1px dashed #E2E8F0', textAlign: 'center', color: '#94A3B8', fontSize: '13px', fontWeight: '700' }}>해당 지역에 등록된 수업이 없습니다 😅</div>
-                        ) : (
-                          regionLessons.map(item => (
-                            <ClassCard key={item.id} item={item} onSelect={setSelectedPoster} />
-                          ))
-                        )}
-                      </div>
-                    </section>
-                  );
-                })}
-
-                {/* 기타 지역 (분류되지 않은 데이터 구제) */}
-                {others.length > 0 && (
-                  <section style={{ marginBottom: '30px' }}>
-                    <div style={{ padding: '0 20px 12px', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                      <div style={{ width: '4px', height: '16px', background: '#64748B', borderRadius: '2px' }} />
-                      <h2 style={{ fontSize: '18px', fontWeight: '900', color: '#1E293B', margin: 0 }}>기타 지역</h2>
-                      <span style={{ fontSize: '12px', color: '#94A3B8', fontWeight: '700' }}>{others.length}</span>
+              return regions.map(regionName => {
+                const regionLessons = grouped[regionName];
+                if (regionLessons.length === 0) return null;
+                return (
+                  <section key={regionName} style={{ marginBottom: '40px' }}>
+                    <div style={{ padding: '0 20px 15px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                      <div style={{ width: '4px', height: '18px', background: '#2ECC71', borderRadius: '2px' }} />
+                      <h2 style={{ fontSize: '20px', fontWeight: '950', color: '#1E293B', margin: 0 }}>{regionName}</h2>
+                      <span style={{ fontSize: '13px', color: '#94A3B8', fontWeight: '800' }}>{regionLessons.length}</span>
                     </div>
-                    <div style={{ padding: '0 20px' }}>
-                      {others.map(item => (
+                    <div style={{ 
+                      padding: '0 20px',
+                      display: 'grid',
+                      gridTemplateColumns: 'repeat(auto-fill, minmax(160px, 1fr))',
+                      gap: '15px'
+                    }}>
+                      {regionLessons.map(item => (
                         <ClassCard key={item.id} item={item} onSelect={setSelectedPoster} />
                       ))}
                     </div>
                   </section>
-                )}
-              </>
-            );
-          })()}
-        </>
-      )}
+                );
+              });
+            })()}
+            {filtered.length === 0 && (
+              <div style={{ padding: '100px 20px', textAlign: 'center', color: '#94A3B8', fontWeight: '800' }}>해당 조건의 클래스가 없습니다 😅</div>
+            )}
+          </>
+        )}
       </div>
     </div>
   );
