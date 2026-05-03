@@ -553,6 +553,9 @@ const HomePage = ({
                     </div>
                     <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '10px', marginBottom: '20px' }}>
                       {(() => {
+                        console.log('filteredParties:', filteredParties?.length)
+                        console.log('filterRegion:', filterRegion)
+                        console.log('filterGenre:', filterGenre)
                         const filtered = filteredParties.filter(p => {
                           // 지역 필터 적용
                           const filterFn = REGION_FILTER[filterRegion];
