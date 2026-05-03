@@ -172,18 +172,22 @@ const naturalIncheonDB = [
 const DynamicAnalysisModal = ({ isOpen, onClose, userCoords, isSajuCall }) => {
   const [targetDest, setTargetDest] = useState(null);
   const [tracker, setTracker] = useState({ distance: '0.0', duration: '0' });
+  const [nearbyVenues, setNearbyVenues] = useState([]);
   const [amguho, setAmguho] = useState(null);
 
   useEffect(() => {
     if (!isOpen) return;
     const findTarget = (lat, lon) => {
-      let nearest = null; let minDist = Infinity;
-      Object.values(VENUE_COORDS).forEach(venue => {
-        const dist = calculateDistance(lat, lon, venue.lat, venue.lon);
-        if (dist < minDist) { minDist = dist; nearest = venue; }
-      });
-      setTargetDest(nearest);
-      const d = calculateDistance(lat, lon, nearest.lat, nearest.lon);
+      const venues = Object.values(VENUE_COORDS).map(venue => ({
+        ...venue,
+        dist: calculateDistance(lat, lon, venue.lat, venue.lon)
+      }))
+      .sort((a, b) => a.dist - b.dist)
+      .slice(0, 5);
+
+      setTargetDest(venues[0]);
+      setNearbyVenues(venues);
+      const d = venues[0].dist;
       setTracker({ distance: d.toFixed(1), duration: Math.ceil(d * 10) + 5 });
     };
     if (userCoords) findTarget(userCoords.lat, userCoords.lon);
@@ -213,6 +217,17 @@ const DynamicAnalysisModal = ({ isOpen, onClose, userCoords, isSajuCall }) => {
             <div style={{ padding: '30px', background: '#F8FAFC', borderRadius: '30px', display: 'flex', gap: '20px', marginBottom: '30px', border: '1px solid #E2E8F0' }}>
               <div style={{ flex: 1 }}><p style={{ color: '#64748B', fontSize: '12px' }}>실제 거리</p><p style={{ fontSize: '26px', fontWeight: '1000', color: '#FF1744' }}>{tracker.distance}km</p></div>
               <div style={{ flex: 1 }}><p style={{ color: '#64748B', fontSize: '12px' }}>예상 소요</p><p style={{ fontSize: '26px', fontWeight: '1000', color: '#1E293B' }}>{tracker.duration}분</p></div>
+            </div>
+            <div style={{ marginBottom: '25px' }}>
+              <p style={{ fontSize: '14px', fontWeight: '800', color: '#64748B', marginBottom: '12px' }}>주변 성지 추천</p>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                {nearbyVenues.map((venue, idx) => (
+                  <div key={idx} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '12px 16px', background: idx === 0 ? '#FEF2F2' : '#F8FAFC', borderRadius: '15px', border: idx === 0 ? '1px solid #FF1744' : '1px solid #E2E8F0' }}>
+                    <span style={{ fontSize: '14px', fontWeight: '800', color: idx === 0 ? '#FF1744' : '#1E293B' }}>{venue.name}</span>
+                    <span style={{ fontSize: '13px', fontWeight: '700', color: '#94A3B8' }}>{venue.dist.toFixed(1)}km</span>
+                  </div>
+                ))}
+              </div>
             </div>
             <button onClick={() => isIncheon ? setAmguho(naturalIncheonDB[0]) : onClose()} style={{ width: '100%', padding: '22px', borderRadius: '25px', background: '#FF1744', color: '#fff', border: 'none', fontSize: '18px', fontWeight: '1000', boxShadow: '0 10px 20px rgba(255, 23, 68, 0.2)' }}>{isIncheon ? '암구호 수신하기' : '확인 완료'}</button>
           </>
