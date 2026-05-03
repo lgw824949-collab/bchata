@@ -662,11 +662,66 @@ const HomePage = ({
                           }} 
                           className="no-scrollbar"
                         >
-                          {regionLessons.slice(0, 20).map(item => (
-                            <div key={item.id} style={{ flexShrink: 0, width: '280px', scrollSnapAlign: 'start' }}>
-                              <ClassCard item={item} onSelect={(url) => handleOpenModal(setSelectedPoster, url)} />
-                            </div>
-                          ))}
+                          {regionLessons.slice(0, 20).map(item => {
+                            const weekLabel = !item.week_type ? '상시 운영' : (isNaN(parseInt(item.week_type)) ? item.week_type : `${parseInt(item.week_type)}주 과정`);
+                            const startLabel = item.start_date ? `${new Date(item.start_date).getMonth() + 1}/${new Date(item.start_date).getDate()} 시작` : '';
+                            
+                            return (
+                              <div key={item.id} style={{ flexShrink: 0, width: '280px', scrollSnapAlign: 'start' }}>
+                                <div
+                                  onClick={() => handleOpenModal(setSelectedPoster, item.poster_url)}
+                                  style={{
+                                    display: 'flex',
+                                    flexDirection: 'row',
+                                    alignItems: 'center',
+                                    backgroundColor: '#FFFFFF',
+                                    borderRadius: '16px',
+                                    overflow: 'hidden',
+                                    border: '1px solid #F1F5F9',
+                                    cursor: 'pointer',
+                                    height: '110px',
+                                    boxShadow: '0 4px 6px -1px rgba(0,0,0,0.05)',
+                                    width: '100%'
+                                  }}
+                                >
+                                  <div style={{ width: '80px', minWidth: '80px', maxWidth: '80px', height: '110px', flexShrink: 0 }}>
+                                    <img src={item.poster_url} style={{ width: '100%', height: '100%', objectFit: 'cover' }} alt="Poster" />
+                                  </div>
+                                  <div style={{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'center', minWidth: 0, padding: '0 15px', overflow: 'hidden' }}>
+                                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '4px' }}>
+                                      <span style={{ fontSize: '13px', fontWeight: '800', color: '#64748B', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                                        {item.studio_name || item.address || '장소 미지정'}
+                                      </span>
+                                      <Navigation size={14} color="#FF3B30" fill="#FF3B30" style={{ flexShrink: 0 }} />
+                                    </div>
+                                    <div style={{ display: 'flex', alignItems: 'center', gap: '5px', marginBottom: '6px' }}>
+                                      <span style={{ fontSize: '11px', fontWeight: '800', color: '#fff', background: '#D4A017', padding: '1px 6px', borderRadius: '3px', flexShrink: 0 }}>
+                                        {item.level}
+                                      </span>
+                                      <h3 style={{ fontSize: '15px', fontWeight: '950', color: '#1E293B', margin: 0, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', letterSpacing: '-0.5px' }}>
+                                        {item.title}
+                                      </h3>
+                                    </div>
+                                    <div style={{ display: 'flex', flexDirection: 'column', gap: '2px', fontSize: '11px', fontWeight: '700', color: '#94A3B8' }}>
+                                      <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                                        <MapPin size={11} color="#94A3B8" />
+                                        <span style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{item.studio_name}</span>
+                                        <span style={{ color: '#FF3B30', marginLeft: '4px', flexShrink: 0 }}>{item.genre}</span>
+                                      </div>
+                                      <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                                        <Clock size={11} color="#94A3B8" />
+                                        <span>{item.day_of_week} · {item.start_time?.slice(0,5)}~{item.end_time?.slice(0,5)}</span>
+                                      </div>
+                                      <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                                        <CalendarDays size={11} color="#94A3B8" />
+                                        <span>{startLabel} · {weekLabel}</span>
+                                      </div>
+                                    </div>
+                                  </div>
+                                </div>
+                              </div>
+                            );
+                          })}
                         </div>
                       </section>
                     );
