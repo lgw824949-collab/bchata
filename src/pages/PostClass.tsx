@@ -184,21 +184,20 @@ export default function PostClass({ onBack }) {
                 </div>
               </div>
 
-              <motion.button 
-                whileTap={{ scale: 0.98 }}
+              <button 
                 disabled={loading} 
                 onClick={handleSubmit}
                 style={{ 
                   width: '100%', padding: '22px', borderRadius: '18px', 
                   background: '#2ECC71', color: '#fff', fontSize: '18px', fontWeight: 900, 
-                  border: 'none', marginTop: '50px', cursor: 'pointer', 
+                  border: 'none', marginTop: '30px', cursor: 'pointer', 
                   display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px',
                   opacity: loading ? 0.5 : 1,
                   position: 'relative', zIndex: 9999
                 }}
               >
                 {loading ? '처리 중...' : <><Check size={22}/> 신청 완료하기</>}
-              </motion.button>
+              </button>
               
               <button onClick={() => setStep(1)} style={{ width: '100%', marginTop: '24px', background: 'none', border: 'none', color: '#94A3B8', fontWeight: 700, cursor: 'pointer', paddingBottom: '40px' }}>이전 단계로</button>
             </motion.div>
