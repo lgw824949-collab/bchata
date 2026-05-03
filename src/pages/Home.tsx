@@ -84,39 +84,43 @@ const PartyCard = ({ item, onSelect, liveCount = 0 }) => {
         display: 'flex', 
         alignItems: 'center',
         backgroundColor: '#FFFFFF', 
-        borderRadius: '12px', 
-        overflow: 'hidden', 
-        border: '1px solid #F1F5F9', 
-        cursor: 'pointer', 
-        boxShadow: '0 2px 4px rgba(0,0,0,0.04)',
-        position: 'relative',
-        padding: '8px',
-        gap: '12px',
-        height: '90px'
+        borderRadius: '16px', 
+        padding: '12px 16px',
+        gap: '16px',
+        borderBottom: '1px solid #F1F5F9',
+        cursor: 'pointer',
+        transition: 'all 0.2s',
+        marginBottom: '4px'
       }}
     >
-      <div style={{ width: '70px', height: '70px', position: 'relative', flexShrink: 0 }}>
-        <img src={item.poster_url} style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: '8px' }} alt="Poster" />
-        {isLive && (
-          <div style={{ 
-            position: 'absolute', top: '-4px', left: '-4px',
-            background: 'rgba(255, 23, 68, 0.9)', color: '#fff', fontSize: '8px', fontWeight: '950',
-            padding: '1px 4px', borderRadius: '3px', display: 'flex', alignItems: 'center', gap: '2px',
-            boxShadow: '0 2px 4px rgba(0,0,0,0.2)',
-            zIndex: 10
-          }}>
-            LIVE <span style={{ fontSize: '6px' }}>●</span> {liveCount || 0}
-          </div>
-        )}
+      {/* 1열: 포스터 */}
+      <div style={{ width: '64px', height: '64px', flexShrink: 0, borderRadius: '12px', overflow: 'hidden', boxShadow: '0 2px 8px rgba(0,0,0,0.06)' }}>
+        <img src={item.poster_url} style={{ width: '100%', height: '100%', objectFit: 'cover' }} alt="Poster" />
       </div>
-      <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
-        <div style={{ fontSize: '10px', fontWeight: '800', color: '#64748B', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', marginBottom: '2px' }}>
-          {item.locationName || '장소미정'}
+
+      {/* 2열: 라이브/장르 + 제목 */}
+      <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', gap: '4px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+          {isLive && (
+            <div style={{ 
+              background: '#FF1744', color: '#fff', fontSize: '9px', fontWeight: '950',
+              padding: '1.5px 5px', borderRadius: '4px', display: 'flex', alignItems: 'center', gap: '2px'
+            }}>
+              LIVE ● {liveCount || 0}
+            </div>
+          )}
+          <span style={{ fontSize: '11px', fontWeight: '900', color: '#1E293B' }}>라틴</span>
+          <span style={{ fontSize: '11px', fontWeight: '800', color: '#94A3B8' }}>{item.locationName}</span>
         </div>
-        <h3 style={{ fontSize: '12px', fontWeight: '900', color: '#1E293B', margin: '0 0 4px', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden', lineHeight: '1.3' }}>
+        <h3 style={{ fontSize: '14px', fontWeight: '900', color: '#1E293B', margin: 0, lineHeight: '1.4', wordBreak: 'keep-all' }}>
           {cleanTitle.replace(/^\[.*?\]\s*|서울\s*|전국\s*/g, '')}
         </h3>
-        <div style={{ fontSize: '11px', fontWeight: '950', color: '#FF1744' }}>{displayFee}</div>
+      </div>
+
+      {/* 3열: 가격 */}
+      <div style={{ flexShrink: 0, textAlign: 'right' }}>
+        <div style={{ fontSize: '14px', fontWeight: '950', color: '#FF1744' }}>{displayFee}</div>
+        <div style={{ fontSize: '9px', color: '#CBD5E1', fontWeight: '800', marginTop: '1px' }}>입장료</div>
       </div>
     </div>
   );
@@ -306,10 +310,6 @@ const HomePage = ({
                           <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, padding: '10px 8px', background: 'linear-gradient(transparent, rgba(0,0,0,0.95))', color: 'white' }}>
                             <div style={{ fontSize: '10px', color: '#FFEB3B', fontWeight: 950, marginBottom: '2px' }}>{item.locationName}</div>
                             <div style={{ fontSize: '11px', fontWeight: '950', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', marginBottom: '4px' }}>{item.title}</div>
-                            <div style={{ fontSize: '8px', fontWeight: 950, color: '#fff', display: 'flex', gap: '2px', whiteSpace: 'nowrap', overflow: 'hidden' }}>
-                              <span style={{ background: 'rgba(255,255,255,0.2)', padding: '1px 4px', borderRadius: '4px' }}>{(() => { const d = new Date(item.date); return `${d.getMonth() + 1}/${d.getDate()}(${DAYS_KOR[d.getDay()]})`; })()}</span>
-                              <span style={{ background: 'rgba(255,255,255,0.2)', padding: '1px 4px', borderRadius: '4px' }}>{item.time?.split('-')[0].trim() || '21:00'}</span>
-                            </div>
                           </div>
                         </div>
                       ))}
@@ -354,9 +354,9 @@ const HomePage = ({
                           {isEn ? 'View All' : '전체보기'} <ChevronRight size={14} />
                         </button>
                       </div>
-                      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '10px', padding: '0 15px 20px' }}>
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
                         {regionParties.length === 0 ? (
-                          <div style={{ gridColumn: 'span 3', padding: '40px', background: '#F8FAFC', borderRadius: '16px', textAlign: 'center', color: '#94A3B8', fontSize: '13px', fontWeight: '700' }}>{t('no_parties')}</div>
+                          <div style={{ padding: '40px', background: '#F8FAFC', borderRadius: '16px', textAlign: 'center', color: '#94A3B8', fontSize: '13px', fontWeight: '700', margin: '0 15px 20px' }}>{t('no_parties')}</div>
                         ) : (() => {
                           const maxCount = regionName === '서울' ? 6 : 3;
                           return regionParties.slice(0, maxCount).map(item => {
@@ -451,7 +451,7 @@ const HomePage = ({
                     <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '20px' }}>
                       <button onClick={handleCloseModal} style={{ background: '#F8FAFC', border: 'none', borderRadius: '10px', padding: '8px 12px', fontSize: '13px', fontWeight: 700, color: '#64748B', display: 'flex', alignItems: 'center', gap: '4px' }}><ChevronLeft size={16} /> 장르 다시 선택</button>
                     </div>
-                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '10px', marginBottom: '20px' }}>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
                       {(() => {
                         const filtered = filteredParties.filter(p => {
                           const filterFn = REGION_FILTER[filterRegion];
@@ -465,7 +465,7 @@ const HomePage = ({
                         });
 
                         return filtered.length === 0 ? (
-                          <div style={{ gridColumn: 'span 3', padding: '60px 0', textAlign: 'center', color: '#94A3B8', fontWeight: 700 }}>해당 조건의 파티가 없습니다 😅</div>
+                          <div style={{ padding: '60px 0', textAlign: 'center', color: '#94A3B8', fontWeight: 700 }}>해당 조건의 파티가 없습니다 😅</div>
                         ) : (
                           filtered.map(party => {
                             const barInfo = findBarByName(party.locationName || party.studio_name);
@@ -481,7 +481,7 @@ const HomePage = ({
                         );
                       })()}
                     </div>
-                    <button onClick={handleCloseModal} style={{ width: '100%', height: '54px', borderRadius: '16px', background: '#1E293B', color: '#fff', fontSize: '16px', fontWeight: 800, border: 'none' }}>확인 완료</button>
+                    <button onClick={handleCloseModal} style={{ width: '100%', height: '54px', borderRadius: '16px', background: '#1E293B', color: '#fff', fontSize: '16px', fontWeight: 800, border: 'none', marginTop: '20px' }}>확인 완료</button>
                   </motion.div>
                 )}
               </div>
