@@ -1,35 +1,13 @@
 // src/components/DanceDestiny.tsx
-// 사주 분석(오행) + 댄스 성향(4가지 질문) → 댄스 운명 좌표 분석
-// 기존 SajuModal.jsx 로직을 기반으로 질문 4개를 추가함
+// 전면 재작성: 모달 기반 / Gemini API 전용 분석 / 내비게이션 최적화
+// parties, BAR, 강사 라인업 등 모든 외부 데이터 렌더링 삭제
 
 import React, { useState } from 'react'
 import { X, ChevronDown, Sparkles, ChevronLeft } from 'lucide-react'
-import { motion } from 'framer-motion'
-import { BAR_DATABASE } from '../lib/BarLib'
 
-// ─── 거리 계산 (Haversine Formula) ───
-const getDistance = (lat1: number, lon1: number, lat2: number, lon2: number) => {
-  const R = 6371 
-  const dLat = (lat2 - lat1) * Math.PI / 180
-  const dLon = (lon2 - lon1) * Math.PI / 180
-  const a = Math.sin(dLat / 2) ** 2 +
-    Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * Math.sin(dLon / 2) ** 2
-  return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a))
-}
-
-const matchesGenre = (barName: string, genre: string) => {
-  const name = barName.toLowerCase()
-  if (genre === '살사') return name.includes('살사') || name.includes('턴') || name.includes('보니따') || name.includes('까리베') || name.includes('맘보') || name.includes('라틴')
-  if (genre === '바차타') return name.includes('바차타') || name.includes('엘마르') || name.includes('센슈얼') || name.includes('바바루') || name.includes('보니따')
-  if (genre === '주크바차타') return name.includes('주크') || name.includes('바차타')
-  if (genre === '키좀바') return name.includes('키좀바')
-  return true
-}
-
-// ─── 사주 상수 ───
+// ─── 사주 상수 (Gemini 프롬프트용 데이터 추출) ───
 const CHUN_GAN = ['갑','을','병','정','무','기','경','신','임','계']
 const CHUN_GAN_OHENG = ['木','木','火','火','土','土','金','金','水','水']
-const CHUN_GAN_EMOJI = ['🌱','🌿','🔥','✨','⛰️','🌾','⚔️','💎','🌊','❄️']
 const JI_JI = ['자','축','인','묘','진','사','오','미','신','유','술','해']
 const JI_JI_OHENG = ['水','土','木','木','土','火','火','土','金','金','土','水']
 
@@ -48,159 +26,69 @@ const TIME_LIST = [
   { label:'해시 (21:00~23:00) 🐷', value:11 },
 ]
 
-const OHENG_DANCE: Record<string, any> = {
-  '火': { genre:'살사', emoji:'🔥', color:'#E53935', bg:'#FFF0F0', border:'#FFCDD2',
-    reason:'불(火) 기운이 강한 당신! 폭발적인 에너지와 열정이 살사의 강렬한 비트와 완벽하게 맞아요.',
-    traits:['열정적','강렬함','카리스마','즉흥성'],
-    tip:'살사는 당신의 불 기운을 완전히 발산시켜주는 춤이에요.' },
-  '水': { genre:'바차타', emoji:'🌊', color:'#1565C0', bg:'#E3F2FD', border:'#BBDEFB',
-    reason:'물(水) 기운이 강한 당신! 깊은 감성과 유연한 흐름이 바차타의 센슈얼한 리듬과 어울려요.',
-    traits:['감성적','유연함','깊이감','섬세함'],
-    tip:'바차타의 흐름은 당신의 물 기운을 그대로 표현해요.' },
-  '木': { genre:'주크바차타', emoji:'🌿', color:'#2E7D32', bg:'#E8F5E9', border:'#C8E6C9',
-    reason:'나무(木) 기운이 강한 당신! 유연하면서도 강인한 에너지가 주크바차타의 움직임과 최고의 궁합이에요.',
-    traits:['유연함','성장','창의성','균형감'],
-    tip:'주크바차타의 물결치는 무브먼트가 당신의 나무 기운을 표현해줘요.' },
-  '金': { genre:'키좀바', emoji:'💎', color:'#6D28D9', bg:'#F5F3FF', border:'#DDD6FE',
-    reason:'쇠(金) 기운이 강한 당신! 절제된 힘과 정밀함이 키좀바의 깊고 묵직한 리듬과 맞아요.',
-    traits:['절제','정밀함','깊이','신뢰감'],
-    tip:'키좀바는 화려한 기술보다 연결과 절제가 핵심이에요.' },
-  '土': { genre:'모든 장르', emoji:'⛰️', color:'#92400E', bg:'#FEF3C7', border:'#FDE68A',
-    reason:'흙(土) 기운이 강한 당신! 안정적이고 균형 잡힌 에너지가 어떤 장르든 잘 소화해요.',
-    traits:['안정감','균형','포용력','신뢰'],
-    tip:'당신은 모든 장르에서 빛나요! 오늘 밤 분위기에 따라 골라보세요.' },
-}
-
-const OHENG_NAMES: Record<string, string>  = { '木':'나무', '火':'불', '土':'흙', '金':'쇠', '水':'물' }
-const OHENG_COLORS: Record<string, string> = { '木':'#2E7D32', '火':'#E53935', '土':'#92400E', '金':'#6D28D9', '水':'#1565C0' }
-const OHENG_EMOJIS: Record<string, string> = { '木':'🌿', '火':'🔥', '土':'⛰️', '金':'💎', '水':'🌊' }
-
+const OHENG_NAMES: Record<string, string> = { '木':'나무', '火':'불', '土':'흙', '金':'쇠', '水':'물' }
 
 // ─── 사주 계산 함수 ───
-function getYearGanJi(y: number) {
+function getYearGJ(y: number) {
   const g = ((y-4)%10+10)%10, j = ((y-4)%12+12)%12
-  return { gan:CHUN_GAN[g], ji:JI_JI[j], ganOheng:CHUN_GAN_OHENG[g], jiOheng:JI_JI_OHENG[j], emoji:CHUN_GAN_EMOJI[g] }
+  return { gan:CHUN_GAN[g], ji:JI_JI[j], ganOheng:CHUN_GAN_OHENG[g], jiOheng:JI_JI_OHENG[j] }
 }
 function getMonthJi(m: number) {
   const idx = [2,3,4,5,6,7,8,9,10,11,0,1][m-1]
-  return { gan:'', ji:JI_JI[idx], ganOheng:'', jiOheng:JI_JI_OHENG[idx], emoji:'📅' }
+  return { ji:JI_JI[idx], jiOheng:JI_JI_OHENG[idx] }
 }
-function getDayGanJi(y: number, m: number, d: number) {
+function getDayGJ(y: number, m: number, d: number) {
   const base = new Date(2000,0,7), target = new Date(y,m-1,d)
   const diff = Math.floor((target.getTime() - base.getTime())/(1000*60*60*24))
   const g = ((diff%10)+10)%10, j = ((diff%12)+12)%12
-  return { gan:CHUN_GAN[g], ji:JI_JI[j], ganOheng:CHUN_GAN_OHENG[g], jiOheng:JI_JI_OHENG[j], emoji:CHUN_GAN_EMOJI[g] }
+  return { gan:CHUN_GAN[g], ji:JI_JI[j], ganOheng:CHUN_GAN_OHENG[g], jiOheng:JI_JI_OHENG[j] }
 }
-function calcOheng(saju: any[]) {
+function calcMainOheng(saju: any[]) {
   const cnt: Record<string, number> = { '木':0,'火':0,'土':0,'金':0,'水':0 }
   saju.forEach(s => {
     if (s.ganOheng) cnt[s.ganOheng]++
     if (s.jiOheng)  cnt[s.jiOheng]++
   })
-  const sorted = Object.entries(cnt).sort((a,b)=>b[1]-a[1])
-  const main = sorted[0][0]
-  return { count:cnt, main }
+  return Object.entries(cnt).sort((a,b)=>b[1]-a[1])[0][0]
 }
 
-// ─── 공통 인풋 스타일 ───
+// ─── 공통 스타일 ───
 const INP: React.CSSProperties = {
-  padding:'12px 14px', borderRadius:10,
-  border:'1.5px solid #E2E8F0', fontSize:14,
-  outline:'none', background:'#FAFBFF', color:'#111',
-  fontFamily:"'Pretendard',-apple-system,sans-serif",
+  padding:'12px 14px', borderRadius:12, border:'1.5px solid #E2E8F0',
+  fontSize:14, outline:'none', background:'#FAFBFF', color:'#111', width:'100%',
+  fontFamily:"'Pretendard',sans-serif",
 }
 
-export default function DanceDestiny({ onClose, parties=[] }: { onClose: () => void, parties?: any[] }) {
+export default function DanceDestiny({ onClose }: { onClose: () => void }) {
   const [step, setStep]       = useState(1)
-  const [calType, setCalType] = useState('solar')
   const [gender, setGender]   = useState('')
   const [year, setYear]       = useState('')
   const [month, setMonth]     = useState('')
   const [day, setDay]         = useState('')
   const [timeIdx, setTimeIdx] = useState('')
   
-  // ─── 추가 질문 4개 ───
-  const [q1, setQ1] = useState('') // 목적
-  const [q2, setQ2] = useState('') // 분위기
-  const [q3, setQ3] = useState('') // 실력
-  const [q4, setQ4] = useState('') // 중요 가치
+  const [q1, setQ1] = useState('')
+  const [q2, setQ2] = useState('')
+  const [q3, setQ3] = useState('')
+  const [q4, setQ4] = useState('')
 
   const [result, setResult]   = useState<any>(null)
   const [loading, setLoading] = useState(false)
 
   const isBasicValid = gender && year && month && day && timeIdx !== ''
   const isQuestionsValid = q1 && q2 && q3 && q4
-  const isValid = isBasicValid && isQuestionsValid
 
   const analyze = async () => {
-    if (!isValid) return
+    if (!isBasicValid || !isQuestionsValid) return
     setLoading(true)
 
-    // 1. 사주 데이터 계산
-    const y=parseInt(year), m=parseInt(month), d=parseInt(day), t=parseInt(timeIdx)
-    const yGJ = getYearGanJi(y)
-    const mGJ = getMonthJi(m)
-    const dGJ = getDayGanJi(y,m,d)
-    const tGJ = { gan:'', ji:JI_JI[t], ganOheng:'', jiOheng:JI_JI_OHENG[t], emoji:'🕐' }
-    const { count, main } = calcOheng([yGJ,mGJ,dGJ,tGJ])
-    const dance = { ...OHENG_DANCE[main] }
-
-    // 2. 질문 답변에 따른 개인화 (AI 프롬프트 대신 로컬 로직 반영)
-    if (q1 === '퍼포먼스/대회 나가고 싶어') dance.traits.push('목표지향')
-    if (q2 === '열정적이고 빡센 분위기') dance.tip = '오늘은 에너지를 120% 쏟아낼 수 있는 파티를 추천해요!'
-    if (q3 === '이제 막 시작한 왕초보') dance.tip = '초보자를 위한 베이직 수업이 있는 곳부터 시작해보세요.'
-    if (q4 === '음악과의 교감과 감성') dance.traits.push('예술가적 감성')
-
-    // 3. 추천 클래스/강사 매칭 로직
-    const now = new Date()
-    const kstDate = new Date(now.getTime() + (9 * 60 * 60 * 1000))
-    const todayStr = kstDate.toISOString().split('T')[0]
-
-    const genreMatch = (p: any, targetGenre: string) => {
-      if (targetGenre === '모든 장르') return true
-      const title = (p.title || '').toLowerCase()
-      if (targetGenre === '살사') return title.includes('살사') || (p.s_ratio||0) >= 1
-      if (targetGenre === '바차타') return title.includes('바차타') || (p.b_ratio||0) >= 1
-      if (targetGenre === '주크바차타') return title.includes('주크') || (p.j_ratio||0) >= 1
-      if (targetGenre === '키좀바') return title.includes('키좀바') || (p.k_ratio||0) >= 1
-      return false
-    }
-
-
-    // 4. 강사 스타일 문구 생성 (Fallback용)
-    let instructorStyle = ""
-    if (q2 === '체계적이고 꼼꼼하게') {
-      instructorStyle = `기초부터 탄탄하게 잡아주는 정석적인 강사 스타일이 맞아요. ${main}의 기운을 가진 당신은 정확한 원리를 이해할 때 가장 큰 성장을 이룹니다.`
-    } else if (q2 === '쉽고 재미있게') {
-      instructorStyle = `유머러스하고 유쾌한 분위기를 만드는 강사 스타일이 어울려요. ${main}의 특성을 살려 부담 없이 즐겁게 시작할 수 있는 수업을 추천합니다.`
-    } else if (q2 === '다 같이 친해지는 분위기') {
-      instructorStyle = `커뮤니티와 소통을 중시하는 외향적인 강사 스타일이 맞아요. ${main}의 포용력을 발휘해 다른 사람들과 교류하며 배우는 환경에서 빛을 발합니다.`
-    } else {
-      instructorStyle = `에너지가 넘치고 강렬한 카리스마를 가진 강사 스타일이 어울려요. ${main}의 열정을 자극하는 빡세고 디테일한 피드백을 통해 한계를 돌파해보세요.`
-    }
-
-    // 5. 강사 유형 결정 로직 (Fallback용)
-    let instructorType = ""
-    if (q2 === '체계적이고 꼼꼼하게' || q4 === '정확한 기술과 베이직') {
-      instructorType = "체계형 (기초/원리 중심)"
-    } else if (q2 === '열정적이고 빡센 분위기' || q4 === '화려한 패턴과 무대매너') {
-      instructorType = "에너지형 (열정/퍼포먼스 중심)"
-    } else if (q4 === '음악과의 교감과 감성' || main === '水') {
-      instructorType = "감성형 (음악/느낌 중심)"
-    } else if (q2 === '다 같이 친해지는 분위기' || q4 === '파트너와의 소통과 연결' || main === '土') {
-      instructorType = "소통형 (파트너십/즐거움 중심)"
-    } else {
-      // 최종 Fallback (오행 기반)
-      if (main === '木' || main === '金') instructorType = "체계형 (기초/원리 중심)"
-      else if (main === '火') instructorType = "에너지형 (열정/퍼포먼스 중심)"
-      else instructorType = "소통형 (파트너십/즐거움 중심)"
-    }
-
     try {
-      // 6. Gemini API 실시간 분석
+      const y=parseInt(year), m=parseInt(month), d=parseInt(day), t=parseInt(timeIdx)
+      const saju = [getYearGJ(y), getMonthJi(m), getDayGJ(y,m,d), { ji:JI_JI[t], jiOheng:JI_JI_OHENG[t] }]
+      const main = calcMainOheng(saju)
       const apiKey = import.meta.env.VITE_GEMINI_API_KEY
-      if (apiKey) {
-        const prompt = `당신은 댄스 강사 유형 분석 전문가입니다.
+
+      const prompt = `당신은 댄스 강사 유형 분석 전문가입니다.
 아래 정보를 바탕으로 이 사람에게 맞는 댄스 강사 유형을 분석해주세요.
 
 - 사주 오행: ${OHENG_NAMES[main]} (${main})
@@ -218,297 +106,170 @@ export default function DanceDestiny({ onClose, parties=[] }: { onClose: () => v
   "keywords": ["키워드1", "키워드2", "키워드3"]
 }
 
-주의: 반드시 JSON 형식으로만 답변하세요.`
+반드시 JSON 형식으로만 답변하세요.`
 
-        const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            contents: [{ parts: [{ text: prompt }] }]
-          })
-        })
+      const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }] })
+      })
 
-        const data = await response.json()
-        const text = data.candidates?.[0]?.content?.parts?.[0]?.text || ''
-        
-        // JSON 추출 (마크다운 코드 블록 제거 등)
-        const jsonMatch = text.match(/\{[\s\S]*\}/)
-        if (jsonMatch) {
-          const aiResult = JSON.parse(jsonMatch[0])
-            setResult({ 
-              yearGJ:yGJ, monthGJ:mGJ, dayGJ:dGJ, timeGJ:tGJ, 
-              ohengCount:count, mainOheng:main, dance, 
-              instructorStyle: aiResult.analysis, 
-              gender, today: todayStr,
-              instructorType: `${aiResult.type} (${aiResult.title})`,
-              aiKeywords: aiResult.keywords,
-              answers: { q1, q2, q3, q4 }
-            })
-          setLoading(false)
-          setStep(3)
-          return
-        }
+      const data = await response.json()
+      const text = data.candidates?.[0]?.content?.parts?.[0]?.text || ''
+      const jsonMatch = text.match(/\{[\s\S]*\}/)
+      
+      if (jsonMatch) {
+        const aiData = JSON.parse(jsonMatch[0])
+        setResult(aiData)
+        setStep(3)
+      } else {
+        alert('분석 결과를 불러오지 못했습니다. 다시 시도해주세요.')
       }
     } catch (err) {
-      console.error('Gemini API Error:', err)
+      console.error(err)
+      alert('오류가 발생했습니다.')
+    } finally {
+      setLoading(false)
     }
-
-    // Fallback 로직 (기존 하드코딩)
-    setResult({ 
-      yearGJ:yGJ, monthGJ:mGJ, dayGJ:dGJ, timeGJ:tGJ, 
-      ohengCount:count, mainOheng:main, dance, 
-      instructorStyle, gender, today: todayStr,
-      instructorType,
-      answers: { q1, q2, q3, q4 }
-    })
-    setLoading(false)
-    setStep(3)
   }
 
   const reset = () => {
-    setStep(1); setResult(null)
-    setYear(''); setMonth(''); setDay(''); setTimeIdx(''); setGender('')
-    setQ1(''); setQ2(''); setQ3(''); setQ4('')
+    setStep(1); setResult(null);
+    setYear(''); setMonth(''); setDay(''); setTimeIdx(''); setGender('');
+    setQ1(''); setQ2(''); setQ3(''); setQ4('');
   }
 
   return (
-    <>
-      <style>{`
-        @import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css');
-        .destiny-wrap * { font-family:'Pretendard',-apple-system,sans-serif !important; }
-        .destiny-inp:focus { border-color:#1565C0 !important; background:#fff !important; box-shadow:0 0 0 3px rgba(21,101,192,0.1) !important; }
-        .hide-scrollbar::-webkit-scrollbar { display: none; }
-      `}</style>
+    <div style={{ position:'fixed', inset:0, zIndex:10000, display:'flex', alignItems:'flex-end', justifyContent:'center' }}>
+      {/* 배경 딤처리 */}
+      <div onClick={onClose} style={{ position:'absolute', inset:0, background:'rgba(0,0,0,0.6)', backdropFilter:'blur(4px)' }} />
 
-      <div onClick={onClose} style={{ position:'fixed',inset:0,background:'rgba(0,0,0,0.65)',zIndex:10010, backdropFilter: 'blur(4px)' }} />
-
-      <div className="destiny-wrap" style={{
-        position:'fixed', bottom:0, left:0, width:'100%',
-        maxHeight:'94vh', overflowY:'auto',
-        background:'#fff', zIndex:10011,
-        borderRadius:'32px 32px 0 0',
-        boxShadow: '0 -10px 40px rgba(0,0,0,0.2)'
+      {/* 모달 바디 */}
+      <div style={{
+        position:'relative', width:'100%', maxWidth:'500px', background:'#fff',
+        borderRadius:'32px 32px 0 0', maxHeight:'92vh', overflowY:'auto',
+        boxShadow:'0 -10px 40px rgba(0,0,0,0.2)', transition:'transform 0.3s ease-out'
       }}>
-
-        {/* ══ 헤더 ══ */}
+        
+        {/* 공통 헤더 */}
         <div style={{
-          position:'sticky', top:0, zIndex:2,
-          background:'linear-gradient(135deg,#0D47A1 0%,#1565C0 100%)',
-          padding:'24px 20px 45px',
-          color: '#fff'
+          position:'sticky', top:0, zIndex:10, background:'linear-gradient(135deg,#0D47A1 0%,#1565C0 100%)',
+          padding:'20px', color:'#fff', borderRadius:'32px 32px 0 0'
         }}>
-          <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:16 }}>
-            <button onClick={() => {
-              if (step === 1) {
-                onClose();
-              } else {
-                setStep(step - 1);
-              }
-            }} style={{
-              background:'none', border:'none', color:'#fff', fontSize:15, fontWeight:700,
-              display:'flex', alignItems:'center', gap:4, cursor:'pointer', padding:0
-            }}>
-              <ChevronLeft size={20} /> 뒤로
+          <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center' }}>
+            <button onClick={() => step === 1 ? onClose() : setStep(step - 1)} style={{ background:'none', border:'none', color:'#fff', cursor:'pointer', padding:8 }}>
+              <ChevronLeft size={24} />
             </button>
-            <button onClick={() => onClose()} style={{
-              background:'rgba(255,255,255,0.2)',border:'none',
-              borderRadius:'50%',width:32,height:32,cursor:'pointer',
-              display:'flex',alignItems:'center',justifyContent:'center',
-            }}>
-              <X size={18} color="#fff"/>
-            </button>
-          </div>
-          <div>
-            <div style={{ fontSize:22,fontWeight:900,letterSpacing:'-0.5px', display:'flex', alignItems:'center', gap:8 }}>
-              <Sparkles size={24} /> 나의 댄스 강사 유형 찾기
+            <div style={{ fontSize:18, fontWeight:900, display:'flex', alignItems:'center', gap:6 }}>
+              <Sparkles size={20} /> 나의 댄스 강사 유형 찾기
             </div>
-            <div style={{ fontSize:12,color:'rgba(255,255,255,0.7)',marginTop:6 }}>사주와 성향을 결합한 정밀 분석</div>
+            <button onClick={onClose} style={{ background:'rgba(255,255,255,0.2)', border:'none', borderRadius:'50%', width:32, height:32, color:'#fff', cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center' }}>
+              <X size={18} />
+            </button>
           </div>
-          <svg style={{ position:'absolute',bottom:0,left:0,width:'100%' }} viewBox="0 0 400 50" preserveAspectRatio="none">
-            <path d="M0,50 C110,20 210,60 400,50 L400,50 L0,50 Z" fill="#ffffff"/>
-          </svg>
         </div>
 
-        {/* ══ STEP 1: 기본 정보 입력 ══ */}
-        {step===1 && (
-          <div style={{ padding:'10px 20px 40px' }}>
-            
-            {/* 기본 정보 */}
-            <div style={{ marginBottom:30 }}>
-              <div style={{ fontSize:15, fontWeight:800, color:'#1e293b', marginBottom:16, display:'flex', alignItems:'center', gap:6 }}>
-                <div style={{ width:4, height:16, background:'#1565C0', borderRadius:2 }}></div>
-                기본 정보 입력
-              </div>
-              
-              <div style={{ display:'flex',gap:10, marginBottom:16 }}>
-                {['남','여'].map(g=>(
+        <div style={{ padding:'24px 20px 40px' }}>
+          {/* STEP 1: 기본 정보 */}
+          {step === 1 && (
+            <div style={{ animation:'fadeIn 0.3s' }}>
+              <h3 style={{ fontSize:18, fontWeight:800, marginBottom:20, color:'#1e293b' }}>정보를 입력해주세요</h3>
+              <div style={{ display:'flex', gap:10, marginBottom:16 }}>
+                {['남','여'].map(g => (
                   <button key={g} onClick={()=>setGender(g)} style={{
-                    flex:1,padding:'14px',borderRadius:12,fontSize:15,fontWeight:700,
-                    border:gender===g?'2px solid #1565C0':'1.5px solid #E2E8F0',
-                    background:gender===g?'#1565C0':'#fff',
-                    color:gender===g?'#fff':'#94A3B8', transition:'all 0.2s',
+                    flex:1, padding:14, borderRadius:12, fontWeight:700,
+                    background: gender===g ? '#1565C0' : '#fff',
+                    color: gender===g ? '#fff' : '#94A3B8',
+                    border: gender===g ? '2px solid #1565C0' : '1.5px solid #E2E8F0'
                   }}>{g==='남'?'👨 남성':'👩 여성'}</button>
                 ))}
               </div>
-
-              <div style={{ display:'flex',gap:8, marginBottom:16 }}>
-                <input className="destiny-inp" type="number" placeholder="년도(1995)" value={year} onChange={e=>setYear(e.target.value)} style={{...INP, flex: 2}}/>
-                <input className="destiny-inp" type="number" placeholder="월" value={month} onChange={e=>setMonth(e.target.value)} style={{...INP, flex: 1}}/>
-                <input className="destiny-inp" type="number" placeholder="일" value={day} onChange={e=>setDay(e.target.value)} style={{...INP, flex: 1}}/>
+              <div style={{ display:'flex', gap:8, marginBottom:16 }}>
+                <input type="number" placeholder="년(1995)" value={year} onChange={e=>setYear(e.target.value)} style={INP} />
+                <input type="number" placeholder="월" value={month} onChange={e=>setMonth(e.target.value)} style={INP} />
+                <input type="number" placeholder="일" value={day} onChange={e=>setDay(e.target.value)} style={INP} />
               </div>
-
-              <div style={{ position:'relative' }}>
-                <select value={timeIdx} onChange={e=>setTimeIdx(e.target.value)} style={{
-                  ...INP, width:'100%', padding:'14px 40px 14px 14px',
-                  appearance:'none', cursor:'pointer',
-                  color:timeIdx!==''?'#111':'#94A3B8',
-                }}>
+              <div style={{ position:'relative', marginBottom:30 }}>
+                <select value={timeIdx} onChange={e=>setTimeIdx(e.target.value)} style={{ ...INP, appearance:'none' }}>
                   <option value="">태어난 시간 선택</option>
-                  {TIME_LIST.map(t=>(
-                    <option key={t.value} value={t.value}>{t.label}</option>
-                  ))}
+                  {TIME_LIST.map(t => <option key={t.value} value={t.value}>{t.label}</option>)}
                 </select>
-                <ChevronDown size={18} style={{ position:'absolute',right:14,top:'50%',transform:'translateY(-50%)',color:'#94A3B8',pointerEvents:'none' }}/>
+                <ChevronDown size={18} style={{ position:'absolute', right:14, top:'50%', transform:'translateY(-50%)', color:'#94A3B8' }} />
               </div>
+              <button onClick={()=>setStep(2)} disabled={!isBasicValid} style={{
+                width:'100%', padding:18, borderRadius:16, border:'none', fontSize:17, fontWeight:900,
+                background: isBasicValid ? 'linear-gradient(135deg,#1565C0,#42A5F5)' : '#E2E8F0',
+                color:'#fff', cursor:isBasicValid?'pointer':'not-allowed'
+              }}>다음 단계로</button>
             </div>
+          )}
 
-            <button onClick={() => setStep(2)} disabled={!isBasicValid} style={{
-              width:'100%', padding:'18px', borderRadius:16,
-              background: isBasicValid ? 'linear-gradient(135deg,#1565C0,#42A5F5)' : '#E2E8F0',
-              color: '#fff', border:'none', fontSize:17, fontWeight:900, cursor:isBasicValid?'pointer':'not-allowed',
-              boxShadow: isBasicValid ? '0 8px 25px rgba(21,101,192,0.3)' : 'none',
-            }}>
-              다음 단계로 (1/2)
-            </button>
-          </div>
-        )}
-
-        {/* ══ STEP 2: 댄스 성향 질문 ══ */}
-        {step===2 && (
-          <div style={{ padding:'10px 20px 40px' }}>
-            <div style={{ marginBottom:40 }}>
-              <div style={{ fontSize:15, fontWeight:800, color:'#1e293b', marginBottom:16, display:'flex', alignItems:'center', gap:6 }}>
-                <div style={{ width:4, height:16, background:'#1565C0', borderRadius:2 }}></div>
-                댄스 성향 분석 (Q1~Q4)
-              </div>
-
-              {/* Q1 */}
-              <div style={{ marginBottom:20 }}>
-                <div style={{ fontSize:13, fontWeight:700, color:'#64748b', marginBottom:10 }}>Q1. 춤을 배우는 목적은?</div>
-                <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:8 }}>
-                  {['소셜파티에서 추고 싶어', '퍼포먼스/대회 나가고 싶어', '그냥 취미로 즐기고 싶어', '다이어트/운동 목적'].map(opt => (
-                    <button key={opt} onClick={()=>setQ1(opt)} style={{
-                      padding:'12px 8px', borderRadius:10, fontSize:12, fontWeight:600,
-                      border: q1===opt ? '1.5px solid #1565C0' : '1px solid #E2E8F0',
-                      background: q1===opt ? '#F0F7FF' : '#fff',
-                      color: q1===opt ? '#1565C0' : '#64748b',
-                    }}>{opt}</button>
-                  ))}
+          {/* STEP 2: 질문 */}
+          {step === 2 && (
+            <div style={{ animation:'fadeIn 0.3s' }}>
+              <h3 style={{ fontSize:18, fontWeight:800, marginBottom:20, color:'#1e293b' }}>당신의 성향은?</h3>
+              {[
+                { label:'Q1. 배우는 목적', val:q1, set:setQ1, opts:['소셜파티','퍼포먼스/대회','취미','다이어트'] },
+                { label:'Q2. 선호 분위기', val:q2, set:setQ2, opts:['체계적/꼼꼼','쉽고 재미있게','다 같이 친목','열정/빡센'] },
+                { label:'Q3. 춤 실력', val:q3, set:setQ3, opts:['왕초보','기본기 초보','중급','고수'] },
+                { label:'Q4. 중요 가치', val:q4, set:setQ4, opts:['기술/베이직','음악/감성','소통/연결','패턴/무대'] },
+              ].map((q, idx) => (
+                <div key={idx} style={{ marginBottom:20 }}>
+                  <div style={{ fontSize:14, fontWeight:700, color:'#64748b', marginBottom:10 }}>{q.label}</div>
+                  <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:8 }}>
+                    {q.opts.map(opt => (
+                      <button key={opt} onClick={()=>q.set(opt)} style={{
+                        padding:12, borderRadius:10, fontSize:13, fontWeight:600,
+                        border: q.val===opt ? '1.5px solid #1565C0' : '1px solid #E2E8F0',
+                        background: q.val===opt ? '#F0F7FF' : '#fff',
+                        color: q.val===opt ? '#1565C0' : '#64748b',
+                      }}>{opt}</button>
+                    ))}
+                  </div>
                 </div>
-              </div>
-
-              {/* Q2 */}
-              <div style={{ marginBottom:20 }}>
-                <div style={{ fontSize:13, fontWeight:700, color:'#64748b', marginBottom:10 }}>Q2. 선호하는 수업 분위기는?</div>
-                <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:8 }}>
-                  {['체계적이고 꼼꼼하게', '쉽고 재미있게', '다 같이 친해지는 분위기', '열정적이고 빡센 분위기'].map(opt => (
-                    <button key={opt} onClick={()=>setQ2(opt)} style={{
-                      padding:'12px 8px', borderRadius:10, fontSize:12, fontWeight:600,
-                      border: q2===opt ? '1.5px solid #1565C0' : '1px solid #E2E8F0',
-                      background: q2===opt ? '#F0F7FF' : '#fff',
-                      color: q2===opt ? '#1565C0' : '#64748b',
-                    }}>{opt}</button>
-                  ))}
-                </div>
-              </div>
-
-              {/* Q3 */}
-              <div style={{ marginBottom:20 }}>
-                <div style={{ fontSize:13, fontWeight:700, color:'#64748b', marginBottom:10 }}>Q3. 본인이 생각하는 춤 실력은?</div>
-                <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:8 }}>
-                  {['이제 막 시작한 왕초보', '기본기는 좀 있는 초보', '어디서든 출 수 있는 중급', '다들 쳐다보는 고수'].map(opt => (
-                    <button key={opt} onClick={()=>setQ3(opt)} style={{
-                      padding:'12px 8px', borderRadius:10, fontSize:12, fontWeight:600,
-                      border: q3===opt ? '1.5px solid #1565C0' : '1px solid #E2E8F0',
-                      background: q3===opt ? '#F0F7FF' : '#fff',
-                      color: q3===opt ? '#1565C0' : '#64748b',
-                    }}>{opt}</button>
-                  ))}
-                </div>
-              </div>
-
-              {/* Q4 */}
-              <div style={{ marginBottom:20 }}>
-                <div style={{ fontSize:13, fontWeight:700, color:'#64748b', marginBottom:10 }}>Q4. 가장 중요하게 생각하는 것은?</div>
-                <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:8 }}>
-                  {['정확한 기술과 베이직', '음악과의 교감과 감성', '파트너와의 소통과 연결', '화려한 패턴과 무대매너'].map(opt => (
-                    <button key={opt} onClick={()=>setQ4(opt)} style={{
-                      padding:'12px 8px', borderRadius:10, fontSize:12, fontWeight:600,
-                      border: q4===opt ? '1.5px solid #1565C0' : '1px solid #E2E8F0',
-                      background: q4===opt ? '#F0F7FF' : '#fff',
-                      color: q4===opt ? '#1565C0' : '#64748b',
-                    }}>{opt}</button>
-                  ))}
-                </div>
-              </div>
+              ))}
+              <button onClick={analyze} disabled={!isQuestionsValid || loading} style={{
+                width:'100%', padding:18, borderRadius:16, border:'none', fontSize:17, fontWeight:900,
+                background: isQuestionsValid ? 'linear-gradient(135deg,#1565C0,#42A5F5)' : '#E2E8F0',
+                color:'#fff', cursor:isQuestionsValid?'pointer':'not-allowed'
+              }}>{loading ? '🔮 운명 분석 중...' : '🔮 나의 댄스 운명 확인하기'}</button>
             </div>
+          )}
 
-            <button onClick={analyze} disabled={!isValid} style={{
-              width:'100%', padding:'18px', borderRadius:16,
-              background: isValid ? 'linear-gradient(135deg,#1565C0,#42A5F5)' : '#E2E8F0',
-              color: '#fff', border:'none', fontSize:17, fontWeight:900, cursor:isValid?'pointer':'not-allowed',
-              boxShadow: isValid ? '0 8px 25px rgba(21,101,192,0.3)' : 'none',
-            }}>
-              {loading ? '🔮 운명의 좌표 계산 중...' : '🔮 나의 댄스 운명 확인하기'}
-            </button>
-          </div>
-        )}
-
-        {/* ══ STEP 3: 결과 ══ */}
-        {step===3 && result && (
-          <div style={{ padding:'10px 20px 50px' }}>
-            
-            {/* 결과 카드 */}
-            <div style={{
-              marginBottom:24, background:result.dance.bg, border:`2px solid ${result.dance.border}`,
-              borderRadius:24, padding:24, textAlign:'center'
-            }}>
-              <div style={{ fontSize:40, marginBottom:16 }}>{result.dance.emoji}</div>
-              <div style={{ fontSize:14, color:result.dance.color, fontWeight:800, marginBottom:4 }}>
-                {result.gender}성 · {result.mainOheng} 기운 분석
+          {/* STEP 3: 결과 */}
+          {step === 3 && result && (
+            <div style={{ animation:'fadeIn 0.5s' }}>
+              <div style={{ textAlign:'center', marginBottom:30, padding:24, borderRadius:24, background:'#F8FAFC', border:'2px solid #E2E8F0' }}>
+                <div style={{ fontSize:40, marginBottom:16 }}>✨</div>
+                <div style={{ fontSize:22, fontWeight:900, color:'#1e293b', marginBottom:8 }}>{result.type}</div>
+                <div style={{ fontSize:16, fontWeight:700, color:'#1565C0' }}>"{result.title}"</div>
               </div>
-              <div style={{ fontSize:26, fontWeight:900, color:'#111', marginBottom:16 }}>
-                나에게 맞는 강사 유형: {result.instructorType}
-              </div>
-              <p style={{ fontSize:15, color:'#444', lineHeight:1.6, marginBottom:20 }}>{result.dance.reason}</p>
               
-              <div style={{ display:'flex', gap:6, justifyContent:'center', flexWrap:'wrap' }}>
-                {(result.aiKeywords || result.dance.traits).map((t: string)=>(
-                  <span key={t} style={{ padding:'6px 14px', borderRadius:99, background:result.dance.color, color:'#fff', fontSize:13, fontWeight:700 }}>#{t}</span>
+              <div style={{ marginBottom:30 }}>
+                <h4 style={{ fontSize:16, fontWeight:900, color:'#1e293b', marginBottom:12 }}>👨‍🏫 나에게 맞는 강사 스타일</h4>
+                <div style={{ padding:20, borderRadius:20, background:'#fff', border:'1.5px solid #E2E8F0', lineHeight:1.6, color:'#334155', fontSize:15 }}>
+                  {result.analysis}
+                </div>
+              </div>
+
+              <div style={{ display:'flex', gap:8, flexWrap:'wrap', justifyContent:'center', marginBottom:30 }}>
+                {result.keywords?.map((k:string) => (
+                  <span key={k} style={{ padding:'8px 16px', borderRadius:99, background:'#F1F5F9', color:'#475569', fontSize:13, fontWeight:700 }}>#{k}</span>
                 ))}
               </div>
+
+              <button onClick={reset} style={{ width:'100%', padding:16, borderRadius:14, background:'#F1F5F9', color:'#64748b', border:'none', fontSize:15, fontWeight:700, cursor:'pointer' }}>
+                🔄 다시 분석하기
+              </button>
             </div>
-
-            {/* 강사 스타일 추천 */}
-            <div style={{ marginBottom:30 }}>
-              <div style={{ fontSize:16, fontWeight:900, marginBottom:12, color:'#1e293b', display:'flex', alignItems:'center', gap:6 }}>
-                👨‍🏫 나에게 맞는 강사 스타일
-              </div>
-              <div style={{ padding:20, borderRadius:20, background:'#f8fafc', border:'1px solid #e2e8f0', lineHeight:1.6 }}>
-                <div style={{ fontSize:15, color:'#334155', fontWeight:600 }}>
-                  "{result.instructorStyle}"
-                </div>
-              </div>
-            </div>
-
-
-            <button onClick={reset} style={{
-              width:'100%', padding:16, borderRadius:14, background:'#f1f5f9', color:'#64748b',
-              border:'none', fontSize:15, fontWeight:700, cursor:'pointer'
-            }}>🔄 다시 분석하기</button>
-          </div>
-        )}
+          )}
+        </div>
       </div>
-    </>
+
+      <style>{`
+        @keyframes fadeIn { from { opacity:0; transform:translateY(10px); } to { opacity:1; transform:translateY(0); } }
+        input[type="number"]::-webkit-inner-spin-button { display:none; }
+      `}</style>
+    </div>
   )
 }
