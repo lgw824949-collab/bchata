@@ -576,15 +576,14 @@ const HomePage = ({
                 });
               })()}
 
-              {/* 📌 [영역 D: 5월 클래스 섹션 - 지역별 리스트 교체 (최종 정밀 필터)] */}
+              {/* 📌 [영역 D: 5월 클래스 섹션 - 소셜 섹션 코드 100% 복제] */}
               <div style={{ marginTop: '20px' }}>
                 <div style={{ padding: '0 20px 10px' }}>
                   <h2 style={{ fontSize: '18px', fontWeight: '950', color: '#1E293B', margin: 0 }}>
-                    <span style={{ color: '#2ECC71' }}>{selectedMonth}월</span> 클래스 소식
+                    <span style={{ color: '#2ECC71' }}>{selectedMonth}월</span> 클래스
                   </h2>
                 </div>
-
-                {/* 📌 클래스 섹션 전용 HOT PICK 5 추가 */}
+                
                 {carouselLessons.length > 0 && (
                   <div style={{ margin: '0 0 15px', padding: '10px 0 20px', background: '#fff' }}>
                     <div style={{ padding: '0 20px 10px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
@@ -601,7 +600,7 @@ const HomePage = ({
                               <div style={{ fontSize: '10px', color: '#2ECC71', fontWeight: 950, marginBottom: '2px' }}>{item.studio_name}</div>
                               <div style={{ fontSize: '11px', fontWeight: '950', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', marginBottom: '4px' }}>{item.title}</div>
                               <div style={{ fontSize: '8px', fontWeight: 950, color: '#fff', display: 'flex', gap: '2px', whiteSpace: 'nowrap', overflow: 'hidden' }}>
-                                <span style={{ background: 'rgba(255,255,255,0.2)', padding: '1px 4px', borderRadius: '4px' }}>{(() => { const d = new Date(item.start_date); return `${d.getMonth() + 1}/${d.getDate()}(${item.day_of_week?.split(',')[0]})`; })()}</span>
+                                <span style={{ background: 'rgba(255,255,255,0.2)', padding: '1px 4px', borderRadius: '4px' }}>{(() => { const d = new Date(item.start_date); return `${d.getMonth() + 1}/${d.getDate()}(${DAYS_KOR[d.getDay()]})`; })()}</span>
                                 <span style={{ background: 'rgba(46,204,113,0.3)', color: '#2ECC71', padding: '1px 4px', borderRadius: '4px' }}>{item.level}</span>
                                 <span style={{ background: 'rgba(255,255,255,0.2)', padding: '1px 4px', borderRadius: '4px' }}>{item.genre}</span>
                               </div>
@@ -612,6 +611,7 @@ const HomePage = ({
                     </div>
                   </div>
                 )}
+
                 {(() => {
                   const regions = ["서울", "경기/인천", "경상도", "전라도", "충청도", "강원/제주"];
                   return regions.map((regionName) => {
@@ -622,34 +622,27 @@ const HomePage = ({
                                (l.category_type === 'class') && 
                                (l.status === 'approved');
                       })
-                      .filter(l => {
-                        // 지역 필터 로직
-                        const text = `${l.city || ''} ${l.broadRegion || ''} ${l.address || ''} ${l.studio_name || ''}`.toLowerCase();
-                        if (regionName === "서울") return text.includes("서울") || text.includes("강남") || text.includes("홍대") || text.includes("잠실") || text.includes("성수") || text.includes("신림") || text.includes("건대");
-                        if (regionName === "경기/인천") return text.includes("경기") || text.includes("인천") || text.includes("부천") || text.includes("수원") || text.includes("의정부") || text.includes("안양") || text.includes("고양") || text.includes("일산") || text.includes("성남") || text.includes("분당");
-                        if (regionName === "경상도") return text.includes("경상") || text.includes("경남") || text.includes("경북") || text.includes("부산") || text.includes("대구") || text.includes("울산") || text.includes("창원");
-                        if (regionName === "전라도") return text.includes("전라") || text.includes("전남") || text.includes("전북") || text.includes("광주") || text.includes("전주");
-                        if (regionName === "충청도") return text.includes("충청") || text.includes("충남") || text.includes("충북") || text.includes("대전") || text.includes("세종");
-                        if (regionName === "강원/제주") return text.includes("강원") || text.includes("제주");
-                        return false;
-                      });
+                      .filter(l => REGION_FILTER[regionName](l));
 
                     if (regionLessons.length === 0) return null;
 
                     const maxCount = regionName === '서울' ? 4 : 3;
 
                     return (
-                      <section key={`class-region-${regionName}`} style={{ marginBottom: '15px', background: '#fff' }}>
+                      <section 
+                        key={`class-region-${regionName}`} 
+                        style={{ marginBottom: '15px', background: '#fff' }}
+                      >
                         <div style={{ fontSize: '18px', fontWeight: '900', padding: '15px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                           <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                            <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#2ECC71' }} />
-                            {regionName}
+                            <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#FF1744' }} />
+                            {isEn ? (REGION_MAP_EN[regionName] || regionName) : regionName}
                           </div>
                           <button 
                             onClick={() => setView('class')}
                             style={{ fontSize: '12px', fontWeight: '700', color: '#94A3B8', background: 'none', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '2px' }}
                           >
-                            전체보기 <ChevronRight size={14} />
+                            {isEn ? 'View All' : '전체보기'} <ChevronRight size={14} />
                           </button>
                         </div>
                         <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', padding: '0 15px 20px' }}>
