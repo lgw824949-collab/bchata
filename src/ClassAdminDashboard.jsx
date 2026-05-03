@@ -1,272 +1,170 @@
-
 import React, { useState, useEffect } from 'react'
-import { ChevronLeft, Check, Trash2, Edit3, Save, X } from 'lucide-react'
 import { supabase } from './lib/supabase'
+import { ChevronLeft, Check, Trash2, RefreshCw, Calendar, Clock, MapPin, User, Tag } from 'lucide-react'
 
-const ClassAdminDashboard = ({ onBack }) => {
+export default function ClassAdminDashboard({ onBack }) {
   const [items, setItems] = useState([])
-  const [loading, setLoading] = useState(true)
-  const [editingId, setEditingId] = useState(null)
-  const [editData, setEditData] = useState({})
-  const [activeTab, setActiveTab] = useState('class') // 'class' or 'club'
+  const [activeTab, setActiveTab] = useState('pending') // 'pending', 'approved', 'expired'
+  const [loading, setLoading] = useState(false)
 
-  useEffect(() => {
-    fetchItems()
-  }, [])
-
-  const fetchItems = async () => {
+  // 데이터 불러오기 (클래스 전용)
+  const fetchData = async () => {
     setLoading(true)
-    const { data, error } = await supabase
-      .from('classes_info')
-      .select('*')
-      .neq('status', 'archived')
-      .order('created_at', { ascending: false })
-    
-    if (error) console.error(error)
-    else setItems(data || [])
-    setLoading(false)
+    try {
+      const { data, error } = await supabase
+        .from('classes_info')
+        .select('*')
+        .eq('category_type', 'class')
+        .eq('status', activeTab)
+        .order('created_at', { ascending: false })
+      
+      if (error) throw error
+      setItems(data || [])
+    } catch (err) {
+      console.error(err)
+    } finally {
+      setLoading(false)
+    }
   }
 
-  const filteredItems = items.filter(item => {
-    if (activeTab === 'class') return item.category_type === 'class' || !item.category_type
-    return item.category_type === 'club'
-  })
+  useEffect(() => {
+    fetchData()
+  }, [activeTab])
 
-  const pendingCount = (type) => items.filter(i => (type === 'class' ? (i.category_type === 'class' || !i.category_type) : i.category_type === 'club') && i.status === 'pending').length
-
-  const handleApprove = async (e, id) => {
-    e.preventDefault();
-    e.stopPropagation();
-    if (loading) return;
-    setLoading(true);
+  // 승인 처리
+  const handleApprove = async (id) => {
+    if (!window.confirm('이 클래스를 승인하시겠습니까?')) return
+    setLoading(true)
     try {
       const { error } = await supabase
         .from('classes_info')
         .update({ status: 'approved' })
         .eq('id', id)
       
-      if (error) throw error;
-      alert('승인이 완료되었습니다.');
-      await fetchItems();
+      if (error) throw error
+      alert('승인되었습니다.')
+      fetchData()
     } catch (err) {
-      console.error('Approve error:', err);
-      alert('승인 중 오류 발생: ' + err.message);
+      alert('오류 발생: ' + err.message)
     } finally {
-      setLoading(false);
+      setLoading(false)
     }
   }
 
-  const handleDelete = async (e, id) => {
-    e.preventDefault();
-    e.stopPropagation();
-    if (loading) return;
-    
-    if (!window.confirm('정말 이 게시물을 DB에서 완전히 삭제하시겠습니까?')) return
-    
-    setLoading(true);
+  // 반려/삭제 처리
+  const handleDelete = async (id) => {
+    if (!window.confirm('DB에서 영구 삭제하시겠습니까? (반려 시 삭제 처리됩니다)')) return
+    setLoading(true)
     try {
       const { error } = await supabase
         .from('classes_info')
         .delete()
         .eq('id', id)
       
-      if (error) throw error;
-      alert('완전 삭제되었습니다.');
-      await fetchItems();
+      if (error) throw error
+      alert('삭제되었습니다.')
+      fetchData()
     } catch (err) {
-      console.error('Delete error:', err);
-      alert('삭제 처리 중 오류가 발생했습니다: ' + err.message);
+      alert('삭제 실패: ' + err.message)
     } finally {
-      setLoading(false);
-    }
-  }
-
-  const startEdit = (item) => {
-    setEditingId(item.id)
-    setEditData({ ...item })
-  }
-
-  const handleSave = async () => {
-    if (loading) return;
-    setLoading(true);
-    try {
-      const { error } = await supabase
-        .from('classes_info')
-        .update(editData)
-        .eq('id', editingId)
-      
-      if (error) throw error;
-      setItems(items.map(item => item.id === editingId ? { ...editData } : item))
-      setEditingId(null)
-      alert('수정되었습니다.')
-      await fetchItems();
-    } catch (err) {
-      alert('저장 실패: ' + err.message);
-    } finally {
-      setLoading(false);
+      setLoading(false)
     }
   }
 
   return (
-    <div style={{ padding: '20px', backgroundColor: '#F9FAFB', minHeight: '100vh', paddingBottom: '100px' }}>
-      <div style={{ display: 'flex', alignItems: 'center', marginBottom: '16px' }}>
-        <button onClick={onBack} disabled={loading} style={{ background: 'none', border: 'none', cursor: 'pointer', marginRight: '12px', opacity: loading ? 0.5 : 1 }}>
-          <ChevronLeft size={24} />
-        </button>
-        <h1 style={{ fontSize: '20px', fontWeight: 800 }}>강습/동호회 관리자</h1>
-        <button 
-          onClick={() => fetchItems()} 
-          disabled={loading}
-          style={{ marginLeft: 'auto', fontSize: '11px', background: 'white', color: '#03C75A', padding: '4px 10px', borderRadius: '20px', fontWeight: 700, border: '1.5px solid #03C75A', opacity: loading ? 0.5 : 1 }}
-        >
-          갱신
-        </button>
+    <div style={{ backgroundColor: '#F8FAFC', minHeight: '100vh', paddingBottom: '100px' }}>
+      <header style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '16px 20px', backgroundColor: '#FFFFFF', borderBottom: '1px solid #E2E8F0', position: 'sticky', top: 0, zIndex: 100 }}>
+        <div style={{ display: 'flex', alignItems: 'center' }}>
+          <button onClick={onBack} style={{ padding: '8px', color: '#1E293B', background: 'none', border: 'none', cursor: 'pointer' }}><ChevronLeft size={28} /></button>
+          <div style={{ marginLeft: '12px' }}>
+            <h2 style={{ fontSize: '18px', fontWeight: 900, color: '#1E293B' }}>클래스 관리</h2>
+            <div style={{ fontSize: '11px', color: '#FF8C00', fontWeight: 700 }}>ACADEMY_ADMIN_PANEL</div>
+          </div>
+        </div>
+        <button onClick={fetchData} disabled={loading} style={{ padding: '8px', color: '#FF8C00', background: 'none', border: 'none', cursor: 'pointer' }}><RefreshCw size={24} className={loading ? 'animate-spin' : ''} /></button>
+      </header>
+
+      {/* 탭 네비게이션 */}
+      <div style={{ display: 'flex', padding: '16px', gap: '8px' }}>
+        {[
+          { id: 'pending', label: '대기중', color: '#FF8C00' },
+          { id: 'approved', label: '승인됨', color: '#03C75A' },
+          { id: 'expired', label: '만료됨', color: '#64748B' }
+        ].map(tab => (
+          <button 
+            key={tab.id}
+            onClick={() => setActiveTab(tab.id)}
+            style={{ 
+              flex: 1, padding: '14px', borderRadius: '16px', border: 'none', 
+              background: activeTab === tab.id ? tab.color : '#FFFFFF', 
+              color: activeTab === tab.id ? 'white' : '#64748B', 
+              fontWeight: 800, fontSize: '14px',
+              boxShadow: activeTab === tab.id ? '0 4px 12px rgba(0,0,0,0.1)' : '0 2px 4px rgba(0,0,0,0.05)',
+              transition: 'all 0.2s'
+            }}
+          >
+            {tab.label}
+          </button>
+        ))}
       </div>
 
-      {/* 탭 내비게이션 */}
-      <div style={{ display: 'flex', gap: '8px', marginBottom: '24px' }}>
-        <button 
-          onClick={() => setActiveTab('class')}
-          disabled={loading}
-          style={{ 
-            flex: 1, 
-            padding: '12px', 
-            borderRadius: '12px', 
-            border: 'none', 
-            background: activeTab === 'class' ? '#FF8C00' : 'white',
-            color: activeTab === 'class' ? 'white' : '#666',
-            fontWeight: 800,
-            fontSize: '14px',
-            boxShadow: activeTab === 'class' ? '0 4px 12px rgba(255, 140, 0, 0.2)' : '0 2px 4px rgba(0,0,0,0.05)',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            gap: '6px',
-            opacity: loading ? 0.5 : 1
-          }}
-        >
-          강습 홍보 
-          <span style={{ fontSize: '11px', opacity: 0.8 }}>({pendingCount('class')})</span>
-        </button>
-        <button 
-          onClick={() => setActiveTab('club')}
-          disabled={loading}
-          style={{ 
-            flex: 1, 
-            padding: '12px', 
-            borderRadius: '12px', 
-            border: 'none', 
-            background: activeTab === 'club' ? '#FF8C00' : 'white',
-            color: activeTab === 'club' ? 'white' : '#666',
-            fontWeight: 800,
-            fontSize: '14px',
-            boxShadow: activeTab === 'club' ? '0 4px 12px rgba(255, 140, 0, 0.2)' : '0 2px 4px rgba(0,0,0,0.05)',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            gap: '6px',
-            opacity: loading ? 0.5 : 1
-          }}
-        >
-          동호회 강습
-          <span style={{ fontSize: '11px', opacity: 0.8 }}>({pendingCount('club')})</span>
-        </button>
-      </div>
+      {/* 목록 리스트 */}
+      <div style={{ padding: '0 16px' }}>
+        {items.length === 0 ? (
+          <div style={{ textAlign: 'center', padding: '100px 0', color: '#94A3B8' }}>데이터가 없습니다.</div>
+        ) : (
+          items.map(item => (
+            <div key={item.id} style={{ backgroundColor: 'white', borderRadius: '24px', padding: '20px', marginBottom: '16px', border: '1px solid #E2E8F0', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.05)' }}>
+              <div style={{ display: 'flex', gap: '16px' }}>
+                {item.poster_url && (
+                  <img 
+                    src={item.poster_url} 
+                    style={{ width: '80px', height: '110px', objectFit: 'cover', borderRadius: '12px' }} 
+                    alt="Poster" 
+                    onClick={() => window.open(item.poster_url, '_blank')}
+                  />
+                )}
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <div style={{ display: 'flex', gap: '4px', marginBottom: '6px' }}>
+                    <span style={{ fontSize: '10px', background: '#F1F5F9', color: '#64748B', padding: '2px 8px', borderRadius: '6px', fontWeight: 700 }}>{item.genre}</span>
+                    <span style={{ fontSize: '10px', background: '#FFF7ED', color: '#EA580C', padding: '2px 8px', borderRadius: '6px', fontWeight: 700 }}>{item.level}</span>
+                  </div>
+                  <h3 style={{ fontSize: '17px', fontWeight: 900, color: '#1E293B', margin: '0 0 8px 0' }}>{item.title}</h3>
+                  
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px', fontSize: '12px', color: '#64748B' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}><User size={12} /> {item.instructor}</div>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}><MapPin size={12} /> {item.city}</div>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}><Calendar size={12} /> {item.day_of_week} ({item.start_date?.slice(5)})</div>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}><Clock size={12} /> {item.start_time?.slice(0,5)}~{item.end_time?.slice(0,5)}</div>
+                  </div>
 
-      {loading && items.length === 0 ? (
-        <div style={{ textAlign: 'center', padding: '100px' }}>로딩 중...</div>
-      ) : filteredItems.length === 0 ? (
-        <div style={{ textAlign: 'center', padding: '100px', color: '#999' }}>{activeTab === 'class' ? '강습' : '동호회'} 신청 내역이 없습니다.</div>
-      ) : (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-          {filteredItems.map(item => (
-            <div key={item.id} style={{ 
-              backgroundColor: 'white', 
-              borderRadius: '16px', 
-              padding: '16px', 
-              boxShadow: '0 4px 12px rgba(0,0,0,0.05)',
-              border: item.status === 'pending' ? '2px solid #FF8C00' : '1px solid #E5E7EB',
-              opacity: item.status === 'approved' ? 0.6 : 1
-            }}>
-              {editingId === item.id ? (
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-                  <input style={inputStyle} value={editData.title} onChange={e => setEditData({...editData, title: e.target.value})} placeholder="제목" />
-                  <input style={inputStyle} value={editData.instructor} onChange={e => setEditData({...editData, instructor: e.target.value})} placeholder="강사명" />
-                  <input style={inputStyle} value={editData.address} onChange={e => setEditData({...editData, address: e.target.value})} placeholder="주소" />
-                  <div style={{ display: 'flex', gap: '8px' }}>
-                    <button onClick={handleSave} disabled={loading} style={{ flex: 1, padding: '12px', background: '#03C75A', color: 'white', border: 'none', borderRadius: '8px', fontWeight: 700, opacity: loading ? 0.5 : 1 }}>저장</button>
-                    <button onClick={() => setEditingId(null)} disabled={loading} style={{ flex: 1, padding: '12px', background: '#9CA3AF', color: 'white', border: 'none', borderRadius: '8px', fontWeight: 700, opacity: loading ? 0.5 : 1 }}>취소</button>
+                  <div style={{ fontSize: '12px', color: '#94A3B8', marginTop: '6px', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                    <Tag size={12} /> {item.studio_name} | {item.duration}
                   </div>
-                </div>
-              ) : (
-                <>
-                  <div style={{ display: 'flex', gap: '12px', marginBottom: '12px' }}>
-                    {item.poster_url && <img src={item.poster_url} style={{ width: '60px', height: '80px', objectFit: 'cover', borderRadius: '8px', cursor: 'pointer' }} onClick={() => window.open(item.poster_url, '_blank')} />}
-                    <div style={{ flex: 1 }}>
-                      <div style={{ fontSize: '11px', color: item.status === 'approved' ? '#03C75A' : '#FF8C00', fontWeight: 800, marginBottom: '2px' }}>{item.status.toUpperCase()}</div>
-                      <h3 style={{ fontSize: '15px', fontWeight: 800, marginBottom: '4px' }}>{item.title}</h3>
-                      <div style={{ fontSize: '12px', color: '#666' }}>{item.instructor} 강사 | {item.day_of_week}요일 {item.time}</div>
-                      <div style={{ fontSize: '11px', color: '#999', marginTop: '4px' }}>📍 {item.address}</div>
-                    </div>
-                  </div>
-                  <div style={{ display: 'flex', gap: '8px' }}>
-                    {item.status === 'pending' && (
+
+                  {/* 관리 버튼 */}
+                  <div style={{ display: 'flex', gap: '8px', marginTop: '16px' }}>
+                    {activeTab === 'pending' && (
                       <button 
-                        disabled={loading}
-                        type="button"
-                        onClick={(e) => handleApprove(e, item.id)} 
-                        style={{ flex: 2, padding: '10px', background: '#FF8C00', color: 'white', border: 'none', borderRadius: '8px', fontWeight: 800, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '4px', opacity: loading ? 0.5 : 1 }}
+                        onClick={() => handleApprove(item.id)} 
+                        style={{ flex: 2, background: '#FF8C00', color: 'white', padding: '12px', borderRadius: '12px', fontWeight: 800, border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px' }}
                       >
                         <Check size={18} /> 승인하기
                       </button>
                     )}
                     <button 
-                      disabled={loading}
-                      type="button"
-                      onClick={(e) => { e.stopPropagation(); startEdit(item); }} 
-                      style={{ flex: 1, padding: '10px', background: '#F3F4F6', border: 'none', borderRadius: '8px', color: '#4B5563', opacity: loading ? 0.5 : 1 }}
+                      onClick={() => handleDelete(item.id)} 
+                      style={{ flex: 1, background: '#FEE2E2', color: '#EF4444', padding: '12px', borderRadius: '12px', fontWeight: 800, border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
                     >
-                      <Edit3 size={18} />
-                    </button>
-                    <button 
-                      type="button"
-                      onClick={(e) => handleDelete(e, item.id)} 
-                      disabled={loading}
-                      style={{ 
-                        flex: 1, 
-                        padding: '12px', 
-                        background: '#FEE2E2', 
-                        border: 'none', 
-                        borderRadius: '12px', 
-                        color: '#EF4444', 
-                        cursor: loading ? 'not-allowed' : 'pointer',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        transition: 'all 0.2s',
-                        opacity: loading ? 0.5 : 1
-                      }}
-                    >
-                      <Trash2 size={20} style={{ pointerEvents: 'none' }} />
+                      <Trash2 size={18} /> {activeTab === 'pending' ? '반려' : '삭제'}
                     </button>
                   </div>
-                </>
-              )}
+                </div>
+              </div>
             </div>
-          ))}
-        </div>
-      )
-      )}
+          ))
+        )}
+      </div>
     </div>
   )
 }
-
-const inputStyle = {
-  padding: '12px',
-  borderRadius: '8px',
-  border: '1.5px solid #E5E7EB',
-  fontSize: '14px',
-  width: '100%'
-}
-
-export default ClassAdminDashboard
