@@ -379,13 +379,6 @@ const HomePage = ({
     return [...all].filter(p => p.poster_url).sort((a, b) => new Date(b.date) - new Date(a.date)).slice(0, 5);
   }, [parties]);
 
-  const carouselLessons = useMemo(() => {
-    const all = lessons || [];
-    return [...all]
-      .filter(l => l.poster_url && l.category_type === 'class' && l.status === 'approved')
-      .sort((a, b) => new Date(b.start_date) - new Date(a.start_date))
-      .slice(0, 5);
-  }, [lessons]);
 
   const allDatesInMonth = useMemo(() => {
     const year = 2026;
@@ -580,33 +573,6 @@ const HomePage = ({
                   </h2>
                 </div>
                 
-                {carouselLessons.length > 0 && (
-                  <div style={{ margin: '0 0 15px', padding: '10px 0 20px', background: '#fff' }}>
-                    <div style={{ padding: '0 20px 10px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                      <h2 style={{ fontSize: '16px', fontWeight: '950', color: '#1E293B', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                        <span style={{ color: '#2ECC71' }}>HOT</span> CLASS PICK
-                      </h2>
-                    </div>
-                    <div style={{ width: '100%', overflow: 'hidden', padding: '10px 0' }}>
-                      <div style={{ display: 'flex', gap: '15px', paddingLeft: '20px', overflowX: 'auto', msOverflowStyle: 'none', scrollbarWidth: 'none', WebkitOverflowScrolling: 'touch' }} className="no-scrollbar">
-                        {carouselLessons.map((item) => (
-                          <div key={`pick-class-${item.id}`} onClick={() => handleOpenModal(setSelectedPoster, item.poster_url)} style={{ width: '140px', flexShrink: 0, borderRadius: '12px', overflow: 'hidden', boxShadow: '0 8px 20px rgba(0,0,0,0.12)', position: 'relative' }}>
-                            <img src={item.poster_url} style={{ width: '100%', height: '190px', objectFit: 'cover' }} alt="Class Pick" />
-                            <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, padding: '10px 8px', background: 'linear-gradient(transparent, rgba(0,0,0,0.95))', color: 'white' }}>
-                              <div style={{ fontSize: '10px', color: '#2ECC71', fontWeight: 950, marginBottom: '2px' }}>{item.studio_name}</div>
-                              <div style={{ fontSize: '11px', fontWeight: '950', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', marginBottom: '4px' }}>{item.title}</div>
-                              <div style={{ fontSize: '8px', fontWeight: 950, color: '#fff', display: 'flex', gap: '2px', whiteSpace: 'nowrap', overflow: 'hidden' }}>
-                                <span style={{ background: 'rgba(255,255,255,0.2)', padding: '1px 4px', borderRadius: '4px' }}>{(() => { const d = new Date(item.start_date); return `${d.getMonth() + 1}/${d.getDate()}(${DAYS_KOR[d.getDay()]})`; })()}</span>
-                                <span style={{ background: 'rgba(46,204,113,0.3)', color: '#2ECC71', padding: '1px 4px', borderRadius: '4px' }}>{item.level}</span>
-                                <span style={{ background: 'rgba(255,255,255,0.2)', padding: '1px 4px', borderRadius: '4px' }}>{item.genre}</span>
-                              </div>
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  </div>
-                )}
 
                 {(() => {
                   const regions = ["서울", "경기/인천", "경상도", "전라도", "충청도", "강원/제주"];
