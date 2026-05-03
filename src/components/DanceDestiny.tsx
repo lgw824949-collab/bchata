@@ -299,15 +299,18 @@ export default function DanceDestiny({ onClose, parties=[] }: { onClose: () => v
         }}>
           <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:16 }}>
             <button onClick={() => {
-              if (step === 1) onClose()
-              else setStep(step - 1)
+              if (step === 1) {
+                onClose();
+              } else {
+                setStep(step - 1);
+              }
             }} style={{
               background:'none', border:'none', color:'#fff', fontSize:15, fontWeight:700,
               display:'flex', alignItems:'center', gap:4, cursor:'pointer', padding:0
             }}>
               <ChevronLeft size={20} /> 뒤로
             </button>
-            <button onClick={onClose} style={{
+            <button onClick={() => onClose()} style={{
               background:'rgba(255,255,255,0.2)',border:'none',
               borderRadius:'50%',width:32,height:32,cursor:'pointer',
               display:'flex',alignItems:'center',justifyContent:'center',
