@@ -307,35 +307,17 @@ const HomePage = ({
   return (
     <div className="app-container" style={{ width: '100%', maxWidth: '500px', margin: '0 auto', background: '#fff', minHeight: '100vh', paddingBottom: '100px' }}>
       
-      {/* 📌 [영역 A: 브랜드 헤더 - 스크롤되어 사라짐] */}
-      <motion.div 
-        initial={{ opacity: 0, y: -20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.8, ease: "easeOut" }}
-        style={{ padding: '48px 24px 32px', background: 'linear-gradient(180deg, #FFFFFF 0%, #F8FAFC 100%)', position: 'relative', overflow: 'hidden' }}
-      >
-        <div style={{ position: 'absolute', top: '-20px', right: '-20px', width: '120px', height: '120px', background: 'radial-gradient(circle, rgba(255, 23, 68, 0.05) 0%, transparent 70%)', borderRadius: '50%' }}></div>
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', marginBottom: '24px' }}>
-          <span style={{ fontSize: '11px', color: '#FF1744', fontWeight: 900, letterSpacing: '3px', textTransform: 'uppercase', opacity: 0.8 }}>
-            Social Culture Experience
-          </span>
+      {/* 📌 [영역 A: 브랜드 헤더 - 최종 확정] */}
+      <div style={{ padding: '28px 24px' }}>
+        <p style={{ fontSize: '10px', color: '#E53935', letterSpacing: '4px', fontWeight: 700, margin: '0 0 12px' }}>SOCIAL CULTURE EXPERIENCE</p>
+        <p style={{ fontSize: '13px', color: '#999', margin: '0 0 4px' }}>오늘 저녁, 혼자 집에 있을 건가요?</p>
+        <p style={{ fontSize: '26px', fontWeight: 900, color: '#111', margin: 0, letterSpacing: '-1px', lineHeight: 1.15 }}>전국 어디서든</p>
+        <p style={{ fontSize: '26px', fontWeight: 900, color: '#E53935', margin: '0 0 14px', letterSpacing: '-1px', lineHeight: 1.15 }}>만원이면 충분해요</p>
+        <div style={{ borderLeft: '3px solid #E53935', paddingLeft: '12px' }}>
+          <p style={{ fontSize: '12px', color: '#999', margin: 0 }}>바차타 · 살사 · 소셜</p>
+          <p style={{ fontSize: '12px', color: '#bbb', margin: '4px 0 0' }}>도심 속 전율의 밤</p>
         </div>
-        <div style={{ display: 'flex', alignItems: 'flex-start', gap: '16px' }}>
-          <div style={{ width: '4px', height: '44px', background: 'linear-gradient(180deg, #FF1744 0%, #D32F2F 100%)', borderRadius: '2px', marginTop: '2px' }}></div>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
-            <h2 style={{ fontSize: '24px', fontWeight: 950, color: '#0F172A', margin: 0, letterSpacing: '-1px', lineHeight: 1.2 }}>
-              바차타 · 살사 · 소셜
-            </h2>
-            <p style={{ fontSize: '14px', color: '#475569', fontWeight: 600, margin: '4px 0 0', lineHeight: 1.4, letterSpacing: '-0.3px' }}>
-              만원대면 충분해요 <span style={{ color: '#FF1744', fontWeight: 800 }}>전율의 밤</span>
-            </p>
-          </div>
-        </div>
-        <div style={{ position: 'absolute', top: '44px', right: '24px', display: 'flex', flexDirection: 'column', alignItems: 'flex-end', pointerEvents: 'none' }}>
-          <span style={{ fontSize: '8px', color: '#cbd5e1', fontWeight: 900, letterSpacing: '1px', marginBottom: '4px' }}>EST. 2024</span>
-          <div style={{ width: '24px', height: '1px', background: '#cbd5e1' }}></div>
-        </div>
-      </motion.div>
+      </div>
 
       {/* 📌 [영역 B: 날짜 선택바 - 상단 고정(Sticky)] */}
       <div style={{ position: 'sticky', top: 0, zIndex: 1000, background: '#ffffff', borderBottom: '1px solid #f1f5f9', boxShadow: '0 4px 12px rgba(0,0,0,0.03)', padding: '0 10px' }}>
