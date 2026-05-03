@@ -498,7 +498,9 @@ const HomePage = ({
                   <span style={{ fontSize: '12px', fontWeight: '700', color: '#94A3B8' }}>
                     {lessons.filter(l => {
                       const d = new Date(l.start_date);
-                      return (d.getMonth() + 1 === selectedMonth) && (!filterGenre || l.genre === filterGenre);
+                      return (d.getMonth() + 1 === selectedMonth) && 
+                             (!filterGenre || l.genre === filterGenre) &&
+                             (l.category_type === 'class');
                     }).length}개의 수업
                   </span>
                 </div>
@@ -547,6 +549,7 @@ const HomePage = ({
                       const d = new Date(l.start_date);
                       if (d.getMonth() + 1 !== selectedMonth) return false;
                       if (filterGenre && l.genre !== filterGenre) return false;
+                      if (l.category_type !== 'class') return false;
                       return true;
                     })
                     .map((item) => {
