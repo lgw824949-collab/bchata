@@ -150,7 +150,34 @@ export default function DanceDestiny({ onClose, parties=[] }: { onClose: () => v
     if (q3 === '이제 막 시작한 왕초보') dance.tip = '초보자를 위한 베이직 수업이 있는 곳부터 시작해보세요.'
     if (q4 === '음악과의 교감과 감성') dance.traits.push('예술가적 감성')
 
-    // 3. 강사 스타일 매칭 로직
+    // 3. 추천 클래스/강사 매칭 로직
+    const now = new Date()
+    const kstDate = new Date(now.getTime() + (9 * 60 * 60 * 1000))
+    const todayStr = kstDate.toISOString().split('T')[0]
+
+    const genreMatch = (p: any, targetGenre: string) => {
+      if (targetGenre === '모든 장르') return true
+      const title = (p.title || '').toLowerCase()
+      if (targetGenre === '살사') return title.includes('살사') || (p.s_ratio||0) >= 1
+      if (targetGenre === '바차타') return title.includes('바차타') || (p.b_ratio||0) >= 1
+      if (targetGenre === '주크바차타') return title.includes('주크') || (p.j_ratio||0) >= 1
+      if (targetGenre === '키좀바') return title.includes('키좀바') || (p.k_ratio||0) >= 1
+      return false
+    }
+
+    const matchedClasses = parties
+      .filter(p => p.date >= todayStr && genreMatch(p, dance.genre))
+      .sort((a, b) => a.date.localeCompare(b.date))
+      .slice(0, 3)
+      .map(p => ({
+        title: p.title,
+        instructor: p.teacher || p.instructor || '강사 정보 없음',
+        location: p.locations?.name || p.location_name || '장소 정보 없음',
+        date: p.date,
+        poster_url: p.poster_url
+      }))
+
+    // 4. 강사 스타일 문구 생성
     let instructorStyle = ""
     if (q2 === '체계적이고 꼼꼼하게') {
       instructorStyle = `기초부터 탄탄하게 잡아주는 정석적인 강사 스타일이 맞아요. ${main}의 기운을 가진 당신은 정확한 원리를 이해할 때 가장 큰 성장을 이룹니다.`
@@ -165,7 +192,7 @@ export default function DanceDestiny({ onClose, parties=[] }: { onClose: () => v
     setResult({ 
       yearGJ:yGJ, monthGJ:mGJ, dayGJ:dGJ, timeGJ:tGJ, 
       ohengCount:count, mainOheng:main, dance, 
-      instructorStyle, gender, today: todayStr,
+      instructorStyle, matchedClasses, gender, today: todayStr,
       answers: { q1, q2, q3, q4 }
     })
     setLoading(false)
@@ -402,11 +429,33 @@ export default function DanceDestiny({ onClose, parties=[] }: { onClose: () => v
                 <div style={{ fontSize:15, color:'#334155', fontWeight:600 }}>
                   "{result.instructorStyle}"
                 </div>
-                <div style={{ fontSize:12, color:'#94a3b8', marginTop:10 }}>
-                  *선택하신 '{result.answers.q2}' 분위기와 {result.mainOheng} 기운의 성향을 결합한 분석입니다.
-                </div>
               </div>
             </div>
+
+            {/* 추천 클래스 & 강사 라인업 */}
+            {result.matchedClasses && result.matchedClasses.length > 0 && (
+              <div style={{ marginBottom:30 }}>
+                <div style={{ fontSize:16, fontWeight:900, marginBottom:12, color:'#1e293b' }}>✨ 추천 클래스 & 강사 라인업</div>
+                <div style={{ display:'flex', flexDirection:'column', gap:10 }}>
+                  {result.matchedClasses.map((cls: any, i: number)=>(
+                    <div key={i} style={{ padding:16, borderRadius:16, background:'#fff', border:'1px solid #f1f5f9', display:'flex', alignItems:'center', gap:12, boxShadow:'0 2px 8px rgba(0,0,0,0.03)' }}>
+                      <div style={{ width:56, height:56, borderRadius:12, background:'#f8fafc', border:'1px solid #e2e8f0', overflow:'hidden', display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0 }}>
+                        {cls.poster_url ? (
+                          <img src={cls.poster_url} style={{ width:'100%', height:'100%', objectFit:'cover' }} />
+                        ) : (
+                          <span style={{ fontSize:20 }}>👤</span>
+                        )}
+                      </div>
+                      <div style={{ flex:1 }}>
+                        <div style={{ fontSize:14, fontWeight:800, color:'#1e293b' }}>{cls.title}</div>
+                        <div style={{ fontSize:12, color:'#64748b', marginTop:2 }}>강사: {cls.instructor} | {cls.location}</div>
+                        <div style={{ fontSize:11, color:'#94a3b8', marginTop:2 }}>{cls.date}</div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
 
             <button onClick={reset} style={{
               width:'100%', padding:16, borderRadius:14, background:'#f1f5f9', color:'#64748b',
