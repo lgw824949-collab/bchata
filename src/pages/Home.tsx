@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo, useRef } from 'react';
-import { Heart, MapPin, Calendar, User, Music, ChevronRight, ShieldCheck, X, Home as HomeIcon, ChevronLeft, CloudSun, Utensils, Zap, PlusCircle, Languages, Bell, Globe, Navigation } from 'lucide-react';
+import { Heart, MapPin, Calendar, User, Music, ChevronRight, ShieldCheck, X, Home as HomeIcon, ChevronLeft, CloudSun, Utensils, Zap, PlusCircle, Languages, Bell, Globe, Navigation, ArrowRight } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { motion, AnimatePresence } from 'framer-motion';
 import QuickPinchZoom, { make3dTransformValue } from 'react-quick-pinch-zoom';
@@ -79,48 +79,65 @@ const PartyCard = ({ item, onSelect, liveCount = 0 }) => {
 
   return (
     <div 
-      onClick={() => onSelect(item.poster_url)} 
       style={{ 
         display: 'flex', 
         alignItems: 'center',
         backgroundColor: '#FFFFFF', 
         borderRadius: '16px', 
         padding: '12px 16px',
-        gap: '16px',
+        gap: '12px',
         borderBottom: '1px solid #F1F5F9',
         cursor: 'pointer',
         transition: 'all 0.2s',
-        marginBottom: '4px'
+        marginBottom: '4px',
+        width: '100%'
       }}
     >
-      {/* 1열: 포스터 */}
-      <div style={{ width: '64px', height: '64px', flexShrink: 0, borderRadius: '12px', overflow: 'hidden', boxShadow: '0 2px 8px rgba(0,0,0,0.06)' }}>
+      {/* 0열: 포스터 */}
+      <div 
+        onClick={() => onSelect(item.poster_url)} 
+        style={{ width: '60px', height: '60px', flexShrink: 0, borderRadius: '12px', overflow: 'hidden', boxShadow: '0 2px 8px rgba(0,0,0,0.06)' }}
+      >
         <img src={item.poster_url} style={{ width: '100%', height: '100%', objectFit: 'cover' }} alt="Poster" />
       </div>
 
-      {/* 2열: 라이브/장르 + 제목 */}
-      <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', gap: '4px' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-          {isLive && (
-            <div style={{ 
-              background: '#FF1744', color: '#fff', fontSize: '9px', fontWeight: '950',
-              padding: '1.5px 5px', borderRadius: '4px', display: 'flex', alignItems: 'center', gap: '2px'
-            }}>
-              LIVE ● {liveCount || 0}
-            </div>
-          )}
-          <span style={{ fontSize: '11px', fontWeight: '900', color: '#1E293B' }}>라틴</span>
-          <span style={{ fontSize: '11px', fontWeight: '800', color: '#94A3B8' }}>{item.locationName}</span>
+      {/* 1열: 장소명 & 라이브 배지 */}
+      <div style={{ width: '85px', flexShrink: 0, display: 'flex', flexDirection: 'column', gap: '4px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '3px' }}>
+          <span style={{ fontSize: '11px', fontWeight: '900', color: '#1E293B', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+            {item.locationName || '장소미정'}
+          </span>
+          <Navigation size={10} color="#FF1744" fill="#FF1744" style={{ flexShrink: 0 }} />
         </div>
+        {isLive && (
+          <div style={{ 
+            background: '#FF1744', color: '#fff', fontSize: '8px', fontWeight: '950',
+            padding: '1px 4px', borderRadius: '3px', display: 'inline-flex', alignItems: 'center', gap: '2px', alignSelf: 'flex-start'
+          }}>
+            LIVE ● {liveCount || 0}
+          </div>
+        )}
+      </div>
+
+      {/* 2열: 타이틀 */}
+      <div 
+        onClick={() => onSelect(item.poster_url)} 
+        style={{ flex: 1, minWidth: 0 }}
+      >
         <h3 style={{ fontSize: '14px', fontWeight: '900', color: '#1E293B', margin: 0, lineHeight: '1.4', wordBreak: 'keep-all' }}>
           {cleanTitle.replace(/^\[.*?\]\s*|서울\s*|전국\s*/g, '')}
         </h3>
       </div>
 
-      {/* 3열: 가격 */}
-      <div style={{ flexShrink: 0, textAlign: 'right' }}>
-        <div style={{ fontSize: '14px', fontWeight: '950', color: '#FF1744' }}>{displayFee}</div>
-        <div style={{ fontSize: '9px', color: '#CBD5E1', fontWeight: '800', marginTop: '1px' }}>입장료</div>
+      {/* 3열: 날짜/요일 + 가격 + 음악비율 */}
+      <div style={{ width: '75px', flexShrink: 0, textAlign: 'right', display: 'flex', flexDirection: 'column', gap: '2px' }}>
+        <div style={{ fontSize: '11px', fontWeight: '800', color: '#64748B' }}>
+          {(() => { const d = new Date(item.date); return `${d.getMonth() + 1}/${d.getDate()}(${DAYS_KOR[d.getDay()]})`; })()}
+        </div>
+        <div style={{ fontSize: '13px', fontWeight: '950', color: '#FF1744' }}>{displayFee}</div>
+        <div style={{ fontSize: '9px', color: '#94A3B8', fontWeight: '900', background: '#F8FAFC', padding: '1px 4px', borderRadius: '4px', alignSelf: 'flex-end' }}>
+          {Object.entries(GENRE_MAP).filter(([_, info]) => item[info.key] > 0).map(([_, info]) => `${info.label}${item[info.key]}`).join('')}
+        </div>
       </div>
     </div>
   );
@@ -354,7 +371,7 @@ const HomePage = ({
                           {isEn ? 'View All' : '전체보기'} <ChevronRight size={14} />
                         </button>
                       </div>
-                      <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
+                      <div style={{ display: 'flex', flexDirection: 'column' }}>
                         {regionParties.length === 0 ? (
                           <div style={{ padding: '40px', background: '#F8FAFC', borderRadius: '16px', textAlign: 'center', color: '#94A3B8', fontSize: '13px', fontWeight: '700', margin: '0 15px 20px' }}>{t('no_parties')}</div>
                         ) : (() => {
@@ -451,7 +468,7 @@ const HomePage = ({
                     <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '20px' }}>
                       <button onClick={handleCloseModal} style={{ background: '#F8FAFC', border: 'none', borderRadius: '10px', padding: '8px 12px', fontSize: '13px', fontWeight: 700, color: '#64748B', display: 'flex', alignItems: 'center', gap: '4px' }}><ChevronLeft size={16} /> 장르 다시 선택</button>
                     </div>
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
+                    <div style={{ display: 'flex', flexDirection: 'column' }}>
                       {(() => {
                         const filtered = filteredParties.filter(p => {
                           const filterFn = REGION_FILTER[filterRegion];
