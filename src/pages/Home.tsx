@@ -495,7 +495,46 @@ const HomePage = ({
                     <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#2ECC71' }} />
                     <h2 style={{ fontSize: '18px', fontWeight: '950', color: '#1E293B', margin: 0 }}>{selectedMonth}월 클래스</h2>
                   </div>
-                  <span style={{ fontSize: '12px', fontWeight: '700', color: '#94A3B8' }}>{lessons.filter(l => new Date(l.start_date).getMonth() + 1 === selectedMonth).length}개의 수업</span>
+                  <span style={{ fontSize: '12px', fontWeight: '700', color: '#94A3B8' }}>
+                    {lessons.filter(l => {
+                      const d = new Date(l.start_date);
+                      return (d.getMonth() + 1 === selectedMonth) && (!filterGenre || l.genre === filterGenre);
+                    }).length}개의 수업
+                  </span>
+                </div>
+
+                {/* 📍 레벨 트랙 (순서 안내용) */}
+                <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '14px', overflowX: 'auto', paddingBottom: '4px' }} className="no-scrollbar">
+                  {[
+                    { name: '입문', color: '#2ECC71' },
+                    { name: '초급', color: '#3498DB' },
+                    { name: '중급', color: '#F39C12' },
+                    { name: '상급', color: '#E74C3C' }
+                  ].map((lvl, idx) => (
+                    <React.Fragment key={lvl.name}>
+                      <span style={{ 
+                        background: lvl.color, color: '#fff', fontSize: '10px', fontWeight: '900', 
+                        padding: '3px 8px', borderRadius: '6px', whiteSpace: 'nowrap'
+                      }}>{lvl.name}</span>
+                      {idx < 3 && <span style={{ color: '#94A3B8', fontSize: '10px' }}>›</span>}
+                    </React.Fragment>
+                  ))}
+                </div>
+
+                {/* 📍 장르 필터 줄 */}
+                <div style={{ display: 'flex', gap: '8px', overflowX: 'auto', marginBottom: '24px' }} className="no-scrollbar">
+                  {['전체', '바차타', '살사', '키좀바', '쥬크'].map(g => (
+                    <button 
+                      key={g} 
+                      onClick={() => setFilterGenre(g === '전체' ? '' : g)}
+                      style={{ 
+                        flexShrink: 0, padding: '8px 16px', borderRadius: '99px', fontSize: '12px', fontWeight: '700', border: 'none',
+                        background: (filterGenre === g || (g === '전체' && !filterGenre)) ? '#2ECC71' : '#F1F5F9',
+                        color: (filterGenre === g || (g === '전체' && !filterGenre)) ? '#fff' : '#64748B',
+                        transition: 'all 0.2s'
+                      }}
+                    >{g}</button>
+                  ))}
                 </div>
 
                 <div style={{ 
@@ -504,7 +543,12 @@ const HomePage = ({
                   gap: '15px' 
                 }}>
                   {lessons
-                    .filter(l => new Date(l.start_date).getMonth() + 1 === selectedMonth)
+                    .filter(l => {
+                      const d = new Date(l.start_date);
+                      if (d.getMonth() + 1 !== selectedMonth) return false;
+                      if (filterGenre && l.genre !== filterGenre) return false;
+                      return true;
+                    })
                     .map((item) => {
                       const levelColors = {
                         '입문': '#2ECC71',
