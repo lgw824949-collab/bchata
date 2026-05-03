@@ -374,6 +374,7 @@ export default function AdminDashboard({ onBack, refreshData }) {
           j_ratio: item.j_ratio || 0,
           k_ratio: item.k_ratio || 0,
           location_id: finalLocId,
+          status: 'approved'
         }])
       
       if (error) {
@@ -686,16 +687,48 @@ export default function AdminDashboard({ onBack, refreshData }) {
                         <p style={{ fontSize: '13px', color: '#F59E0B', fontWeight: 700, margin: '4px 0' }}>📍 {item.studio_name || item.address}</p>
                         
                         <div style={{ display: 'flex', gap: '8px', marginTop: '16px' }}>
-                          <button onClick={async (e) => {
-                            const { error } = await supabase.from('classes_info').update({ status: 'active' }).eq('id', item.id);
-                            if (!error) { if (refreshData) refreshData(); alert('승인되었습니다.'); fetchPending(); }
-                          }} style={{ flex: 2, backgroundColor: '#F59E0B', color: 'white', padding: '12px', borderRadius: '12px', fontWeight: 900, fontSize: '14px', border: 'none' }}>APPROVE CLASS</button>
-                          <button onClick={() => setEditingClass(item)} style={{ flex: 1, backgroundColor: '#1E293B', color: 'white', padding: '12px', borderRadius: '12px', border: 'none' }}><Edit3 size={18} /></button>
-                          <button onClick={async () => {
-                            if (!window.confirm('삭제하시겠습니까?')) return;
-                            await supabase.from('classes_info').update({ status: 'archived' }).eq('id', item.id);
-                            fetchPending();
-                          }} style={{ flex: 1, backgroundColor: 'rgba(239, 68, 68, 0.1)', color: '#EF4444', padding: '12px', borderRadius: '12px', border: 'none' }}><Trash2 size={18} /></button>
+                          <button 
+                            disabled={loading}
+                            onClick={async (e) => {
+                              if (loading) return;
+                              setLoading(true);
+                              try {
+                                const { error } = await supabase.from('classes_info').update({ status: 'approved' }).eq('id', item.id);
+                                if (error) throw error;
+                                alert('강습이 승인되었습니다.');
+                                await fetchPending();
+                                if (refreshData) refreshData();
+                              } catch (err) {
+                                alert('승인 실패: ' + err.message);
+                              } finally {
+                                setLoading(false);
+                              }
+                            }} 
+                            style={{ flex: 2, backgroundColor: '#F59E0B', color: 'white', padding: '12px', borderRadius: '12px', fontWeight: 900, fontSize: '14px', border: 'none', opacity: loading ? 0.5 : 1 }}
+                          >
+                            APPROVE CLASS
+                          </button>
+                          <button disabled={loading} onClick={() => setEditingClass(item)} style={{ flex: 1, backgroundColor: '#1E293B', color: 'white', padding: '12px', borderRadius: '12px', border: 'none' }}><Edit3 size={18} /></button>
+                          <button 
+                            disabled={loading}
+                            onClick={async () => {
+                              if (!window.confirm('DB에서 완전히 삭제하시겠습니까?')) return;
+                              setLoading(true);
+                              try {
+                                const { error } = await supabase.from('classes_info').delete().eq('id', item.id);
+                                if (error) throw error;
+                                alert('삭제되었습니다.');
+                                await fetchPending();
+                              } catch (err) {
+                                alert('삭제 실패: ' + err.message);
+                              } finally {
+                                setLoading(false);
+                              }
+                            }} 
+                            style={{ flex: 1, backgroundColor: 'rgba(239, 68, 68, 0.1)', color: '#EF4444', padding: '12px', borderRadius: '12px', border: 'none' }}
+                          >
+                            <Trash2 size={18} />
+                          </button>
                         </div>
                       </div>
                     </div>
@@ -727,9 +760,9 @@ export default function AdminDashboard({ onBack, refreshData }) {
                         <div style={{ backgroundColor: 'rgba(0,255,0,0.1)', color: '#00FF00', padding: '10px 14px', borderRadius: '12px', fontSize: '12px', marginTop: '12px', fontWeight: 700, border: '1px solid rgba(0,255,0,0.2)' }}>{item.ai_reason || '정기 제보'}</div>
                         
                         <div style={{ display: 'flex', gap: '8px', marginTop: '16px' }}>
-                          <button onClick={(e) => handleApprove(e, item)} style={{ flex: 2, backgroundColor: '#00FF00', color: 'black', padding: '12px', borderRadius: '12px', fontWeight: 900, fontSize: '14px', border: 'none' }}>APPROVE PARTY</button>
-                          <button onClick={() => setEditingParty(item)} style={{ flex: 1, backgroundColor: '#1E293B', color: 'white', padding: '12px', borderRadius: '12px', border: 'none' }}><Edit3 size={18} /></button>
-                          <button onClick={() => handleDelete(item.id)} style={{ flex: 1, backgroundColor: 'rgba(239, 68, 68, 0.1)', color: '#EF4444', padding: '12px', borderRadius: '12px', border: 'none' }}><Trash2 size={18} /></button>
+                          <button disabled={loading} onClick={(e) => handleApprove(e, item)} style={{ flex: 2, backgroundColor: '#00FF00', color: 'black', padding: '12px', borderRadius: '12px', fontWeight: 900, fontSize: '14px', border: 'none', opacity: loading ? 0.5 : 1 }}>APPROVE PARTY</button>
+                          <button disabled={loading} onClick={() => setEditingParty(item)} style={{ flex: 1, backgroundColor: '#1E293B', color: 'white', padding: '12px', borderRadius: '12px', border: 'none' }}><Edit3 size={18} /></button>
+                          <button disabled={loading} onClick={() => handleDelete(item.id)} style={{ flex: 1, backgroundColor: 'rgba(239, 68, 68, 0.1)', color: '#EF4444', padding: '12px', borderRadius: '12px', border: 'none' }}><Trash2 size={18} /></button>
                         </div>
                       </div>
                     </div>
@@ -779,62 +812,79 @@ export default function AdminDashboard({ onBack, refreshData }) {
                       
                       <div style={{ display: 'flex', gap: '8px', marginTop: '16px' }}>
                         {item.status === 'pending' && (
-                          <button onClick={async (e) => {
-                            e.preventDefault();
-                            e.stopPropagation();
-                            try {
-                              const { error } = await supabase.from('classes_info').update({ status: 'active' }).eq('id', item.id)
-                              if (error) {
-                                alert('승인 실패 (DB): ' + error.message);
-                                return;
+                          <button 
+                            disabled={loading}
+                            onClick={async (e) => {
+                              e.preventDefault();
+                              e.stopPropagation();
+                              if (loading) return;
+                              setLoading(true);
+                              try {
+                                const { error } = await supabase.from('classes_info').update({ status: 'approved' }).eq('id', item.id)
+                                if (error) throw error;
+                                
+                                const normalizeRegion = (reg) => {
+                                  if (!reg) return '서울';
+                                  if (reg.includes('서울')) return '서울';
+                                  if (reg.includes('경기') || reg.includes('인천')) return '경기/인천';
+                                  if (reg.includes('충청') || reg.includes('대전') || reg.includes('세종')) return '충청도';
+                                  if (reg.includes('전라') || reg.includes('광주')) return '전라도';
+                                  if (reg.includes('경상') || reg.includes('부산') || reg.includes('대구') || reg.includes('울산')) return '경상도';
+                                  if (reg.includes('강원') || reg.includes('제주')) return '강원/제주';
+                                  return reg;
+                                };
+
+                                const { error: insertErr } = await supabase.from('parties').insert([{
+                                  title: `[${item.category_type === 'club' ? '동호회' : '강습/정모'}] ${item.title}`,
+                                  date: item.start_date || new Date().toISOString().split('T')[0],
+                                  day_of_week: item.day_of_week ? item.day_of_week.split(',')[0].trim() : '일',
+                                  time: `${item.start_time || ''}~${item.end_time || ''}`,
+                                  address: item.address || item.studio_name || '',
+                                  fee: item.fee || '0',
+                                  poster_url: item.poster_url || '',
+                                  broadRegion: normalizeRegion(item.region),
+                                  cityName: item.city || item.region || '전국',
+                                  status: 'approved'
+                                }]);
+
+                                if (insertErr) throw insertErr;
+
+                                alert('승인되었습니다.');
+                                await fetchClasses();
+                                if (refreshData) refreshData();
+                              } catch (err) {
+                                alert('승인 처리 중 오류: ' + err.message);
+                              } finally {
+                                setLoading(false);
                               }
-                              
-                              // 지역명 표준화 (메인 화면 필터 매칭용)
-                              const normalizeRegion = (reg) => {
-                                if (!reg) return '서울';
-                                if (reg.includes('서울')) return '서울';
-                                if (reg.includes('경기') || reg.includes('인천')) return '경기/인천';
-                                if (reg.includes('충청') || reg.includes('대전') || reg.includes('세종')) return '충청도';
-                                if (reg.includes('전라') || reg.includes('광주')) return '전라도';
-                                if (reg.includes('경상') || reg.includes('부산') || reg.includes('대구') || reg.includes('울산')) return '경상도';
-                                if (reg.includes('강원') || reg.includes('제주')) return '강원/제주';
-                                return reg;
-                              };
-
-                              // parties 테이블에도 등록하여 앱에 노출되도록 함
-                              const { error: insertErr } = await supabase.from('parties').insert([{
-                                title: `[${item.category_type === 'club' ? '동호회' : '강습/정모'}] ${item.title}`,
-                                date: item.start_date || new Date().toISOString().split('T')[0],
-                                day_of_week: item.day_of_week ? item.day_of_week.split(',')[0].trim() : '일',
-                                time: `${item.start_time || ''}~${item.end_time || ''}`,
-                                address: item.address || item.studio_name || '',
-                                fee: item.fee || '0',
-                                poster_url: item.poster_url || '',
-                                // 누락되었던 핵심 필드 추가
-                                broadRegion: normalizeRegion(item.region),
-                                cityName: item.city || item.region || '전국'
-                              }]);
-
-                              if (insertErr) console.error('Parties insert error:', insertErr);
-
-                              if (refreshData) refreshData()
-                              alert('승인되었습니다.');
-                              fetchClasses();
-                            } catch (err) {
-                              alert('오류 발생: ' + err.message);
-                            }
-                          }} style={{ flex: 2, backgroundColor: '#F59E0B', color: 'white', padding: '12px', borderRadius: '12px', fontWeight: 900, fontSize: '14px', border: 'none' }}>APPROVE</button>
+                            }} 
+                            style={{ flex: 2, backgroundColor: '#F59E0B', color: 'white', padding: '12px', borderRadius: '12px', fontWeight: 900, fontSize: '14px', border: 'none', opacity: loading ? 0.5 : 1 }}
+                          >
+                            APPROVE
+                          </button>
                         )}
-                        <button onClick={() => setEditingClass(item)} style={{ flex: 1, backgroundColor: '#1E293B', color: 'white', padding: '12px', borderRadius: '12px', border: 'none' }}><Edit3 size={18} /></button>
-                        <button onClick={async () => {
-                          if(!window.confirm('삭제하시겠습니까?')) return
-                          const { error } = await supabase.from('classes_info').update({ status: 'archived' }).eq('id', item.id)
-                          if(!error) { 
-                            if (refreshData) refreshData()
-                            alert('삭제되었습니다.'); 
-                            fetchClasses(); 
-                          }
-                        }} style={{ flex: 1, backgroundColor: 'rgba(239, 68, 68, 0.1)', color: '#EF4444', padding: '12px', borderRadius: '12px', border: '1px solid rgba(239, 68, 68, 0.2)' }}><Trash2 size={18} /></button>
+                        <button disabled={loading} onClick={() => setEditingClass(item)} style={{ flex: 1, backgroundColor: '#1E293B', color: 'white', padding: '12px', borderRadius: '12px', border: 'none' }}><Edit3 size={18} /></button>
+                        <button 
+                          disabled={loading}
+                          onClick={async () => {
+                            if(!window.confirm('DB에서 완전히 삭제하시겠습니까?')) return
+                            setLoading(true);
+                            try {
+                              const { error } = await supabase.from('classes_info').delete().eq('id', item.id)
+                              if(error) throw error;
+                              alert('완전 삭제되었습니다.');
+                              await fetchClasses(); 
+                              if (refreshData) refreshData();
+                            } catch (err) {
+                              alert('삭제 실패: ' + err.message);
+                            } finally {
+                              setLoading(false);
+                            }
+                          }} 
+                          style={{ flex: 1, backgroundColor: 'rgba(239, 68, 68, 0.1)', color: '#EF4444', padding: '12px', borderRadius: '12px', border: '1px solid rgba(239, 68, 68, 0.2)' }}
+                        >
+                          <Trash2 size={18} />
+                        </button>
                       </div>
                     </div>
                   </div>
@@ -1080,10 +1130,27 @@ export default function AdminDashboard({ onBack, refreshData }) {
               
               <div style={inputGroupStyle}><label style={labelStyle}>참가비</label><input value={editingClass.fee} onChange={e => setEditingClass({...editingClass, fee: e.target.value})} style={inputStyle} /></div>
               
-              <button onClick={async () => {
-                const { error } = await supabase.from('classes_info').update(editingClass).eq('id', editingClass.id)
-                if(!error) { alert('수정되었습니다.'); setEditingClass(null); fetchClasses(); }
-              }} style={{ width: '100%', padding: '16px', background: '#FF8C00', color: 'white', borderRadius: '12px', fontWeight: 800, marginTop: '10px' }}>수정 내용 저장</button>
+              <button 
+                disabled={loading}
+                onClick={async () => {
+                  if (loading) return;
+                  setLoading(true);
+                  try {
+                    const { error } = await supabase.from('classes_info').update(editingClass).eq('id', editingClass.id)
+                    if (error) throw error;
+                    alert('수정 내용이 저장되었습니다.');
+                    setEditingClass(null);
+                    await fetchClasses();
+                  } catch (err) {
+                    alert('저장 실패: ' + err.message);
+                  } finally {
+                    setLoading(false);
+                  }
+                }} 
+                style={{ width: '100%', padding: '16px', background: '#FF8C00', color: 'white', borderRadius: '12px', fontWeight: 800, marginTop: '10px', opacity: loading ? 0.5 : 1 }}
+              >
+                {loading ? '저장 중...' : '수정 내용 저장'}
+              </button>
             </div>
           </div>
         </div>

@@ -37,44 +37,47 @@ const ClassAdminDashboard = ({ onBack }) => {
   const handleApprove = async (e, id) => {
     e.preventDefault();
     e.stopPropagation();
+    if (loading) return;
+    setLoading(true);
     try {
       const { error } = await supabase
         .from('classes_info')
-        .update({ status: 'active' })
+        .update({ status: 'approved' })
         .eq('id', id)
       
-      if (!error) {
-        alert('승인이 완료되었습니다. 화면을 갱신합니다.')
-        window.location.reload()
-      }
+      if (error) throw error;
+      alert('승인이 완료되었습니다.');
+      await fetchItems();
     } catch (err) {
-      console.error('Approve error:', err)
+      console.error('Approve error:', err);
+      alert('승인 중 오류 발생: ' + err.message);
+    } finally {
+      setLoading(false);
     }
   }
 
   const handleDelete = async (e, id) => {
     e.preventDefault();
     e.stopPropagation();
+    if (loading) return;
     
-    if (!window.confirm('정말 이 게시물을 삭제(보관)하시겠습니까?')) return
+    if (!window.confirm('정말 이 게시물을 DB에서 완전히 삭제하시겠습니까?')) return
     
-    setItems(prev => prev.filter(item => String(item.id) !== String(id)))
-    
+    setLoading(true);
     try {
       const { error } = await supabase
         .from('classes_info')
-        .update({ status: 'archived' })
+        .delete()
         .eq('id', id)
       
-      if (error) {
-        console.error('Delete error:', error)
-        alert('삭제 처리 중 오류가 발생했습니다.')
-      } else {
-        alert('삭제 처리가 완료되었습니다. 화면을 갱신합니다.')
-        window.location.reload()
-      }
+      if (error) throw error;
+      alert('완전 삭제되었습니다.');
+      await fetchItems();
     } catch (err) {
-      console.error('Crash in handleDelete:', err)
+      console.error('Delete error:', err);
+      alert('삭제 처리 중 오류가 발생했습니다: ' + err.message);
+    } finally {
+      setLoading(false);
     }
   }
 
@@ -84,28 +87,37 @@ const ClassAdminDashboard = ({ onBack }) => {
   }
 
   const handleSave = async () => {
-    const { error } = await supabase
-      .from('classes_info')
-      .update(editData)
-      .eq('id', editingId)
-    
-    if (!error) {
+    if (loading) return;
+    setLoading(true);
+    try {
+      const { error } = await supabase
+        .from('classes_info')
+        .update(editData)
+        .eq('id', editingId)
+      
+      if (error) throw error;
       setItems(items.map(item => item.id === editingId ? { ...editData } : item))
       setEditingId(null)
       alert('수정되었습니다.')
+      await fetchItems();
+    } catch (err) {
+      alert('저장 실패: ' + err.message);
+    } finally {
+      setLoading(false);
     }
   }
 
   return (
     <div style={{ padding: '20px', backgroundColor: '#F9FAFB', minHeight: '100vh', paddingBottom: '100px' }}>
       <div style={{ display: 'flex', alignItems: 'center', marginBottom: '16px' }}>
-        <button onClick={onBack} style={{ background: 'none', border: 'none', cursor: 'pointer', marginRight: '12px' }}>
+        <button onClick={onBack} disabled={loading} style={{ background: 'none', border: 'none', cursor: 'pointer', marginRight: '12px', opacity: loading ? 0.5 : 1 }}>
           <ChevronLeft size={24} />
         </button>
         <h1 style={{ fontSize: '20px', fontWeight: 800 }}>강습/동호회 관리자</h1>
         <button 
-          onClick={() => window.location.reload()} 
-          style={{ marginLeft: 'auto', fontSize: '11px', background: 'white', color: '#03C75A', padding: '4px 10px', borderRadius: '20px', fontWeight: 700, border: '1.5px solid #03C75A' }}
+          onClick={() => fetchItems()} 
+          disabled={loading}
+          style={{ marginLeft: 'auto', fontSize: '11px', background: 'white', color: '#03C75A', padding: '4px 10px', borderRadius: '20px', fontWeight: 700, border: '1.5px solid #03C75A', opacity: loading ? 0.5 : 1 }}
         >
           갱신
         </button>
@@ -115,6 +127,7 @@ const ClassAdminDashboard = ({ onBack }) => {
       <div style={{ display: 'flex', gap: '8px', marginBottom: '24px' }}>
         <button 
           onClick={() => setActiveTab('class')}
+          disabled={loading}
           style={{ 
             flex: 1, 
             padding: '12px', 
@@ -128,7 +141,8 @@ const ClassAdminDashboard = ({ onBack }) => {
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
-            gap: '6px'
+            gap: '6px',
+            opacity: loading ? 0.5 : 1
           }}
         >
           강습 홍보 
@@ -136,6 +150,7 @@ const ClassAdminDashboard = ({ onBack }) => {
         </button>
         <button 
           onClick={() => setActiveTab('club')}
+          disabled={loading}
           style={{ 
             flex: 1, 
             padding: '12px', 
@@ -149,7 +164,8 @@ const ClassAdminDashboard = ({ onBack }) => {
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
-            gap: '6px'
+            gap: '6px',
+            opacity: loading ? 0.5 : 1
           }}
         >
           동호회 강습
@@ -157,7 +173,7 @@ const ClassAdminDashboard = ({ onBack }) => {
         </button>
       </div>
 
-      {loading ? (
+      {loading && items.length === 0 ? (
         <div style={{ textAlign: 'center', padding: '100px' }}>로딩 중...</div>
       ) : filteredItems.length === 0 ? (
         <div style={{ textAlign: 'center', padding: '100px', color: '#999' }}>{activeTab === 'class' ? '강습' : '동호회'} 신청 내역이 없습니다.</div>
@@ -170,7 +186,7 @@ const ClassAdminDashboard = ({ onBack }) => {
               padding: '16px', 
               boxShadow: '0 4px 12px rgba(0,0,0,0.05)',
               border: item.status === 'pending' ? '2px solid #FF8C00' : '1px solid #E5E7EB',
-              opacity: item.status === 'active' ? 0.7 : 1
+              opacity: item.status === 'approved' ? 0.6 : 1
             }}>
               {editingId === item.id ? (
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
@@ -178,16 +194,16 @@ const ClassAdminDashboard = ({ onBack }) => {
                   <input style={inputStyle} value={editData.instructor} onChange={e => setEditData({...editData, instructor: e.target.value})} placeholder="강사명" />
                   <input style={inputStyle} value={editData.address} onChange={e => setEditData({...editData, address: e.target.value})} placeholder="주소" />
                   <div style={{ display: 'flex', gap: '8px' }}>
-                    <button onClick={handleSave} style={{ flex: 1, padding: '12px', background: '#03C75A', color: 'white', border: 'none', borderRadius: '8px', fontWeight: 700 }}>저장</button>
-                    <button onClick={() => setEditingId(null)} style={{ flex: 1, padding: '12px', background: '#9CA3AF', color: 'white', border: 'none', borderRadius: '8px', fontWeight: 700 }}>취소</button>
+                    <button onClick={handleSave} disabled={loading} style={{ flex: 1, padding: '12px', background: '#03C75A', color: 'white', border: 'none', borderRadius: '8px', fontWeight: 700, opacity: loading ? 0.5 : 1 }}>저장</button>
+                    <button onClick={() => setEditingId(null)} disabled={loading} style={{ flex: 1, padding: '12px', background: '#9CA3AF', color: 'white', border: 'none', borderRadius: '8px', fontWeight: 700, opacity: loading ? 0.5 : 1 }}>취소</button>
                   </div>
                 </div>
               ) : (
                 <>
                   <div style={{ display: 'flex', gap: '12px', marginBottom: '12px' }}>
-                    {item.poster_url && <img src={item.poster_url} style={{ width: '60px', height: '80px', objectFit: 'cover', borderRadius: '8px' }} onClick={() => window.open(item.poster_url, '_blank')} />}
+                    {item.poster_url && <img src={item.poster_url} style={{ width: '60px', height: '80px', objectFit: 'cover', borderRadius: '8px', cursor: 'pointer' }} onClick={() => window.open(item.poster_url, '_blank')} />}
                     <div style={{ flex: 1 }}>
-                      <div style={{ fontSize: '11px', color: item.status === 'active' ? '#03C75A' : '#FF8C00', fontWeight: 800, marginBottom: '2px' }}>{item.status.toUpperCase()}</div>
+                      <div style={{ fontSize: '11px', color: item.status === 'approved' ? '#03C75A' : '#FF8C00', fontWeight: 800, marginBottom: '2px' }}>{item.status.toUpperCase()}</div>
                       <h3 style={{ fontSize: '15px', fontWeight: 800, marginBottom: '4px' }}>{item.title}</h3>
                       <div style={{ fontSize: '12px', color: '#666' }}>{item.instructor} 강사 | {item.day_of_week}요일 {item.time}</div>
                       <div style={{ fontSize: '11px', color: '#999', marginTop: '4px' }}>📍 {item.address}</div>
@@ -196,17 +212,19 @@ const ClassAdminDashboard = ({ onBack }) => {
                   <div style={{ display: 'flex', gap: '8px' }}>
                     {item.status === 'pending' && (
                       <button 
+                        disabled={loading}
                         type="button"
                         onClick={(e) => handleApprove(e, item.id)} 
-                        style={{ flex: 2, padding: '10px', background: '#FF8C00', color: 'white', border: 'none', borderRadius: '8px', fontWeight: 800, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '4px' }}
+                        style={{ flex: 2, padding: '10px', background: '#FF8C00', color: 'white', border: 'none', borderRadius: '8px', fontWeight: 800, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '4px', opacity: loading ? 0.5 : 1 }}
                       >
                         <Check size={18} /> 승인하기
                       </button>
                     )}
                     <button 
+                      disabled={loading}
                       type="button"
                       onClick={(e) => { e.stopPropagation(); startEdit(item); }} 
-                      style={{ flex: 1, padding: '10px', background: '#F3F4F6', border: 'none', borderRadius: '8px', color: '#4B5563' }}
+                      style={{ flex: 1, padding: '10px', background: '#F3F4F6', border: 'none', borderRadius: '8px', color: '#4B5563', opacity: loading ? 0.5 : 1 }}
                     >
                       <Edit3 size={18} />
                     </button>
@@ -225,10 +243,9 @@ const ClassAdminDashboard = ({ onBack }) => {
                         display: 'flex',
                         alignItems: 'center',
                         justifyContent: 'center',
-                        transition: 'all 0.2s'
+                        transition: 'all 0.2s',
+                        opacity: loading ? 0.5 : 1
                       }}
-                      onMouseDown={e => e.currentTarget.style.transform = 'scale(0.95)'}
-                      onMouseUp={e => e.currentTarget.style.transform = 'scale(1)'}
                     >
                       <Trash2 size={20} style={{ pointerEvents: 'none' }} />
                     </button>
@@ -238,6 +255,7 @@ const ClassAdminDashboard = ({ onBack }) => {
             </div>
           ))}
         </div>
+      )
       )}
     </div>
   )
