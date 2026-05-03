@@ -652,13 +652,14 @@ const HomePage = ({
                         <div 
                           style={{ 
                             display: 'flex', 
+                            flexDirection: 'row',
                             overflowX: 'auto', 
-                            gap: '12px', 
-                            padding: '0 20px 10px',
-                            scrollSnapType: 'x mandatory',
                             WebkitOverflowScrolling: 'touch',
+                            scrollSnapType: 'x mandatory',
                             msOverflowStyle: 'none',
-                            scrollbarWidth: 'none'
+                            scrollbarWidth: 'none',
+                            gap: '12px',
+                            padding: '0 15px 20px'
                           }} 
                           className="no-scrollbar"
                         >
@@ -667,7 +668,7 @@ const HomePage = ({
                             const startLabel = item.start_date ? `${new Date(item.start_date).getMonth() + 1}/${new Date(item.start_date).getDate()} 시작` : '';
                             
                             return (
-                              <div key={item.id} style={{ flexShrink: 0, width: '280px', scrollSnapAlign: 'start' }}>
+                              <div key={item.id} style={{ scrollSnapAlign: 'start', flexShrink: 0, width: '280px' }}>
                                 <div
                                   onClick={() => handleOpenModal(setSelectedPoster, item.poster_url)}
                                   style={{
@@ -684,8 +685,8 @@ const HomePage = ({
                                     width: '100%'
                                   }}
                                 >
-                                  <div style={{ width: '80px', minWidth: '80px', maxWidth: '80px', height: '110px', flexShrink: 0 }}>
-                                    <img src={item.poster_url} style={{ width: '100%', height: '100%', objectFit: 'cover' }} alt="Poster" />
+                                  <div style={{ width: '80px', height: '110px', flexShrink: 0, overflow: 'hidden' }}>
+                                    <img src={item.poster_url} style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} alt="Poster" />
                                   </div>
                                   <div style={{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'center', minWidth: 0, padding: '0 15px', overflow: 'hidden' }}>
                                     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '4px' }}>
