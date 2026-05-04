@@ -392,7 +392,7 @@ const HomePage = ({
   }, []);
 
   const carouselParties = useMemo(() => {
-    const all = (parties || []).filter(p => p.category_type === 'social');
+    const all = parties || [];
     return [...all].filter(p => p.poster_url).sort((a, b) => new Date(b.date) - new Date(a.date)).slice(0, 5);
   }, [parties]);
 
@@ -608,7 +608,7 @@ const HomePage = ({
                 const regions = ["서울", "경기/인천", "경상도", "전라도", "충청도", "강원/제주"];
                 return regions.map((regionName) => {
                   const regionParties = (parties || [])
-                    .filter(p => p.date === selectedDate && p.category_type === 'social')
+                    .filter(p => p.date === selectedDate)
                     .filter(p => REGION_FILTER[regionName](p))
                     .filter(p => {
                       // 2. 장르 조건 매칭
@@ -738,7 +738,7 @@ const HomePage = ({
                         console.log('filteredParties:', filteredParties?.length)
                         console.log('filterRegion:', filterRegion)
                         console.log('filterGenre:', filterGenre)
-                        const filtered = filteredParties.filter(p => p.category_type === 'social').filter(p => {
+                        const filtered = filteredParties.filter(p => {
                           // 지역 필터 적용
                           const filterFn = REGION_FILTER[filterRegion];
                           if (filterRegion && filterFn) {
@@ -874,7 +874,7 @@ const HomePage = ({
                   gap: '2px' 
                 }}>
                   {(() => {
-                    const filtered = filteredParties.filter(p => p.category_type === 'social').filter(p => {
+                    const filtered = filteredParties.filter(p => {
                       const filterFn = REGION_FILTER[gridRegion];
                       return filterFn ? filterFn(p) : true;
                     });
