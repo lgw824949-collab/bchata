@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { supabase } from '../lib/supabase';
-import { ChevronLeft, Camera, Check, Upload, MapPin, Tag, Clock, Award, DollarSign, Music, X, Calendar } from 'lucide-react';
+import { ChevronLeft, Camera, Check, Upload, MapPin, Tag, Clock, Award, DollarSign, Music, X, Calendar, User } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
 export default function PostClass({ onBack }) {
@@ -13,6 +13,7 @@ export default function PostClass({ onBack }) {
     duration: '4주',
     fee: '',
     city: '서울',
+    instructor: '',
     poster_url: '',
     category_type: 'class',
     status: 'pending',
@@ -90,6 +91,7 @@ export default function PostClass({ onBack }) {
         title: formData.title,
         genre: formData.genre,
         level: formData.level,
+        instructor: formData.instructor || '미지정',
         duration: formData.duration === '기타(직접입력)' ? formData.custom_duration : (formData.duration || '기간 미지정'),
         fee: formData.fee ? String(formData.fee) : '문의',
         city: String(formData.city),
@@ -141,9 +143,7 @@ export default function PostClass({ onBack }) {
     border: '1px solid #E2E8F0',
     fontSize: '15px',
     outline: 'none',
-    background: '#fff',
-    appearance: 'none',
-    WebkitAppearance: 'none'
+    background: '#fff'
   };
 
   return (
@@ -310,27 +310,26 @@ export default function PostClass({ onBack }) {
               <div style={cardStyle}>
                 <label style={labelStyle}>강습 시간 (12:00 ~ 22:00)</label>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                  <div style={{ flex: 1, position: 'relative' }}>
+                  <div style={{ flex: 1 }}>
                     <select 
                       value={formData.start_time} 
                       onChange={e => setFormData(p => ({ ...p, start_time: e.target.value }))}
-                      style={{ ...inputStyle, padding: '12px' }}
+                      style={{ ...inputStyle, padding: '12px', appearance: 'auto' }}
                     >
                       {timeSlots.map(t => <option key={t} value={t}>{t}</option>)}
                     </select>
                   </div>
                   <span style={{ fontWeight: 800, color: '#94A3B8' }}>~</span>
-                  <div style={{ flex: 1, position: 'relative' }}>
+                  <div style={{ flex: 1 }}>
                     <select 
                       value={formData.end_time} 
                       onChange={e => setFormData(p => ({ ...p, end_time: e.target.value }))}
-                      style={{ ...inputStyle, padding: '12px' }}
+                      style={{ ...inputStyle, padding: '12px', appearance: 'auto' }}
                     >
                       {timeSlots.map(t => <option key={t} value={t}>{t}</option>)}
                     </select>
                   </div>
                 </div>
-                <p style={{ marginTop: '12px', fontSize: '12px', color: '#94A3B8', fontWeight: 600 }}>※ 12:00부터 10:00(22:00)까지 30분 단위로 선택 가능합니다.</p>
               </div>
 
               <button 
@@ -359,7 +358,13 @@ export default function PostClass({ onBack }) {
                   <input maxLength={16} value={formData.title} onChange={e => setFormData(p => ({...p, title: e.target.value}))} placeholder="예: 강남 바차타 초급반" style={inputStyle} />
                 </div>
 
-                {/* 2. 장르 선택 */}
+                {/* 2. 강사명 추가 */}
+                <div style={cardStyle}>
+                  <label style={labelStyle}>강사명</label>
+                  <input value={formData.instructor} onChange={e => setFormData(p => ({...p, instructor: e.target.value}))} placeholder="강사명을 입력해주세요 (예: 김철수 & 이영희)" style={inputStyle} />
+                </div>
+
+                {/* 3. 장르 선택 */}
                 <div style={cardStyle}>
                   <label style={labelStyle}>장르</label>
                   <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '10px' }}>
@@ -384,7 +389,7 @@ export default function PostClass({ onBack }) {
                   </div>
                 </div>
 
-                {/* 3. 난이도 */}
+                {/* 4. 난이도 */}
                 <div style={cardStyle}>
                   <label style={labelStyle}>난이도</label>
                   <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '8px' }}>
@@ -418,7 +423,7 @@ export default function PostClass({ onBack }) {
                   </div>
                 </div>
 
-                {/* 4. 진행 지역 */}
+                {/* 5. 진행 지역 */}
                 <div style={cardStyle}>
                   <label style={labelStyle}>진행 지역</label>
                   <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gridTemplateRows: 'repeat(3, 1fr)', gap: '10px' }}>
@@ -443,7 +448,7 @@ export default function PostClass({ onBack }) {
                   </div>
                 </div>
 
-                {/* 5. 강습 기간 */}
+                {/* 6. 강습 기간 */}
                 <div style={cardStyle}>
                   <label style={labelStyle}>강습 기간</label>
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
@@ -484,7 +489,7 @@ export default function PostClass({ onBack }) {
                   </div>
                 </div>
 
-                {/* 6. 참여비 */}
+                {/* 7. 참여비 */}
                 <div style={cardStyle}>
                   <label style={labelStyle}>참여비</label>
                   <div style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
