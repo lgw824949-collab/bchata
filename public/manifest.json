@@ -1,0 +1,22 @@
+{
+  "name": "오늘밤빠",
+  "short_name": "오늘밤빠",
+  "description": "전국 라틴댄스 소셜파티 & 동호회 정보 플랫폼",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#0a0a0a",
+  "theme_color": "#FF1744",
+  "orientation": "portrait",
+  "icons": [
+    {
+      "src": "/logo.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "/logo.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}
