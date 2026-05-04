@@ -1,5 +1,5 @@
 import React, { useState, useMemo, useRef } from 'react';
-import { MapPin, ChevronLeft, ChevronRight, Clock, Calendar } from 'lucide-react';
+import { MapPin, ChevronLeft, ChevronRight, Clock, Calendar, Plus } from 'lucide-react';
 import { motion } from 'framer-motion';
 
 const DAYS_KOR = ['일', '월', '화', '수', '목', '금', '토'];
@@ -83,7 +83,7 @@ const ClassCard = ({ item, onSelect }) => {
   );
 };
 
-const ClassNewsPage = ({ lessons: allLessons, loading: lessonsLoading, selectedMonth, setSelectedMonth, setSelectedPoster }) => {
+const ClassNewsPage = ({ lessons: allLessons, loading: lessonsLoading, selectedMonth, setSelectedMonth, setSelectedPoster, handleRegister }) => {
   const [filterGenre, setFilterGenre] = useState('전체');
   const [filterLevel, setFilterLevel] = useState('전체');
 
@@ -201,6 +201,32 @@ const ClassNewsPage = ({ lessons: allLessons, loading: lessonsLoading, selectedM
           </>
         )}
       </div>
+      {/* 플로팅 등록 버튼 추가 */}
+      <motion.button
+        whileHover={{ scale: 1.1 }}
+        whileTap={{ scale: 0.9 }}
+        onClick={handleRegister}
+        style={{
+          position: 'fixed',
+          bottom: '100px',
+          right: '20px',
+          width: '60px',
+          height: '60px',
+          borderRadius: '30px',
+          background: 'linear-gradient(135deg, #2ECC71 0%, #27AE60 100%)',
+          color: 'white',
+          border: 'none',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          boxShadow: '0 8px 25px rgba(46, 204, 113, 0.4)',
+          zIndex: 1000,
+          cursor: 'pointer'
+        }}
+      >
+        <Plus size={32} strokeWidth={3} />
+      </motion.button>
+
       <style>{`
         .hide-scrollbar::-webkit-scrollbar { display: none; }
         .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }

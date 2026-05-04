@@ -1,5 +1,5 @@
 import React, { useState } from 'react'
-import { ChevronLeft, Camera, Loader2, Check, Clock, Calendar, Plus, DollarSign } from 'lucide-react'
+import { ChevronLeft, Camera, Loader2, Check, Clock, Calendar, Plus, DollarSign, X } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { supabase } from '../lib/supabase'
 import Tesseract from 'tesseract.js'
@@ -162,13 +162,13 @@ const PostLesson = ({ onBack, user }) => {
               <section style={{ marginBottom: '32px' }}>
                 <label style={{ display: 'block', fontSize: '15px', fontWeight: 700, color: '#374151', marginBottom: '12px' }}>포스터 이미지</label>
                 <div 
-                  onClick={() => document.getElementById('lesson-poster').click()}
                   style={{ 
-                    width: '100%', 
-                    height: '320px', 
+                    width: 'calc(100% + 40px)', 
+                    marginLeft: '-20px', 
+                    minHeight: preview ? 'auto' : '320px', 
                     background: 'white', 
-                    borderRadius: '24px', 
-                    border: '2px dashed #E5E7EB', 
+                    borderTop: '1px solid #F3F4F6',
+                    borderBottom: '1px solid #F3F4F6',
                     display: 'flex', 
                     flexDirection: 'column', 
                     alignItems: 'center', 
@@ -179,18 +179,39 @@ const PostLesson = ({ onBack, user }) => {
                   }}
                 >
                   {preview ? (
-                    <img src={preview} alt="Preview" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
+                    <div style={{ width: '100%', position: 'relative' }}>
+                      <img src={preview} alt="Preview" style={{ width: '100%', height: 'auto', display: 'block' }} />
+                      <button 
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setPreview(null);
+                          setFile(null);
+                        }}
+                        style={{ 
+                          position: 'absolute', top: '16px', right: '16px', 
+                          background: 'rgba(0,0,0,0.6)', color: 'white', border: 'none', 
+                          borderRadius: '50%', width: '36px', height: '36px', 
+                          display: 'flex', alignItems: 'center', justifyContent: 'center', 
+                          cursor: 'pointer', zIndex: 10, backdropFilter: 'blur(4px)'
+                        }}
+                      >
+                        <X size={20} />
+                      </button>
+                    </div>
                   ) : (
-                    <>
-                      <div style={{ width: '64px', height: '64px', borderRadius: '32px', background: '#F9FAFB', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '16px' }}>
+                    <div 
+                      onClick={() => document.getElementById('lesson-poster').click()}
+                      style={{ padding: '40px 0', textAlign: 'center', cursor: 'pointer', width: '100%' }}
+                    >
+                      <div style={{ width: '64px', height: '64px', borderRadius: '32px', background: '#F9FAFB', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 16px', boxShadow: '0 2px 8px rgba(0,0,0,0.05)' }}>
                         <Camera size={32} color="#9CA3AF" />
                       </div>
                       <p style={{ fontSize: '15px', fontWeight: 600, color: '#6B7280' }}>포스터 이미지 선택</p>
                       <p style={{ marginTop: '4px', fontSize: '13px', color: '#9CA3AF' }}>AI가 내용을 자동으로 분석해드려요</p>
-                    </>
+                    </div>
                   )}
                   {isOcrProcessing && (
-                    <div style={{ position: 'absolute', inset: 0, background: 'rgba(255,255,255,0.7)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                    <div style={{ position: 'absolute', inset: 0, background: 'rgba(255,255,255,0.7)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 20 }}>
                       <Loader2 className="animate-spin" color="#FF8C00" />
                     </div>
                   )}
