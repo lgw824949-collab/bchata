@@ -596,7 +596,7 @@ const HomePage = ({
                         </div>
                       ) : (
                         <div style={{ padding: '20px', margin: '0 20px', background: '#F8FAFC', borderRadius: '12px', textAlign: 'center', color: '#94A3B8', fontSize: '13px', fontWeight: '700' }}>
-                          이 지역에 등록된 클래스가 없습니다.
+                          이 지역에 등록된 포스터가 없습니다.
                         </div>
                       )}
                     </div>
