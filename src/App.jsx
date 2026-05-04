@@ -273,30 +273,43 @@ const formatDateToKSTString = (date) => {
   return `${y}-${m}-${d}`;
 };
 
-const SplashScreen = ({ onComplete }) => (
+const SplashScreen = () => (
   <motion.div
     initial={{ opacity: 1 }}
-    animate={{ 
-      scale: [1, 1, 2],
-      opacity: [1, 1, 0]
-    }}
-    transition={{ 
-      duration: 3, 
-      times: [0, 0.66, 1], // 0-2초 정지, 2-3초 확대/페이드아웃
-      ease: "easeInOut" 
-    }}
-    onAnimationComplete={onComplete}
+    exit={{ opacity: 0 }}
+    transition={{ duration: 0.3 }}
     style={{
       position: 'fixed',
       inset: 0,
-      zIndex: 999999,
-      backgroundColor: '#FFFFFF',
+      zIndex: 9999,
+      backgroundColor: '#0a0a0a',
       display: 'flex',
+      flexDirection: 'column',
       alignItems: 'center',
-      justifyContent: 'center'
+      justifyContent: 'center',
+      overflow: 'hidden'
     }}
   >
-    <img src="/logo.png" alt="BAMPPA" style={{ width: '220px', height: 'auto' }} />
+    {/* 배경 원형 장식 */}
+    <div style={{ position: 'absolute', width: '500px', height: '500px', border: '1px solid rgba(255,23,68,0.12)', borderRadius: '50%', top: '-100px', right: '-100px' }} />
+    <div style={{ position: 'absolute', width: '350px', height: '350px', border: '1px solid rgba(255,23,68,0.12)', borderRadius: '50%', bottom: '50px', left: '-50px' }} />
+    <div style={{ position: 'absolute', width: '200px', height: '200px', border: '1px solid rgba(255,23,68,0.12)', borderRadius: '50%', top: '20%', left: '10%' }} />
+
+    {/* 로고 */}
+    <img src="/logo.png" alt="BAMPPA" style={{ width: '200px', objectFit: 'contain' }} />
+
+    {/* 로고 아래 장르 텍스트 */}
+    <div style={{ marginTop: '24px', textAlign: 'center', zIndex: 1 }}>
+      <div style={{ fontSize: '10px', color: 'rgba(255,255,255,0.3)', letterSpacing: '3px', marginBottom: '8px' }}>── LATIN DANCE ──</div>
+      <div style={{ fontSize: '9px', color: '#FF1744', fontWeight: 700, letterSpacing: '1px' }}>BACHATA · SALSA · KIZOMBA · ZOUK</div>
+    </div>
+
+    {/* 하단 인디케이터 */}
+    <div style={{ position: 'absolute', bottom: '40px', display: 'flex', gap: '8px' }}>
+      <div style={{ width: '20px', height: '3px', background: '#FF1744', borderRadius: '2px' }} />
+      <div style={{ width: '6px', height: '3px', background: 'rgba(255,255,255,0.2)', borderRadius: '2px' }} />
+      <div style={{ width: '6px', height: '3px', background: 'rgba(255,255,255,0.2)', borderRadius: '2px' }} />
+    </div>
   </motion.div>
 );
 
@@ -324,14 +337,14 @@ function App() {
 
   const todayData = getKSTDate();
 
-  const [showSplash, setShowSplash] = useState(() => {
-    // 세션당 한 번만 노출 (새로고침 시 노출 안 됨)
-    try {
-      return !sessionStorage.getItem('splash_shown');
-    } catch (e) {
-      return true;
-    }
-  });
+  const [showSplash, setShowSplash] = useState(true);
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setShowSplash(false);
+    }, 1800);
+    return () => clearTimeout(timer);
+  }, []);
   const [parties, setParties] = useState([]);
   const [lessons, setLessons] = useState([]);
   const [displayParties, setDisplayParties] = useState([]);
@@ -580,17 +593,15 @@ function App() {
   return (
     <div style={{ width: '100%', maxWidth: '500px', margin: '0 auto', background: '#fff', minHeight: '100vh', position: 'relative' }}>
       <AnimatePresence>
-        {showSplash && (
-          <SplashScreen 
-            onComplete={() => {
-              try {
-                sessionStorage.setItem('splash_shown', 'true');
-              } catch (e) {}
-              setShowSplash(false);
-            }} 
-          />
-        )}
+        {showSplash && <SplashScreen key="splash" />}
       </AnimatePresence>
+
+      <motion.div 
+        initial={{ opacity: 0 }} 
+        animate={{ opacity: showSplash ? 0 : 1 }} 
+        transition={{ duration: 0.3, delay: showSplash ? 0 : 0.3 }}
+        style={{ width: '100%', minHeight: '100vh', position: 'relative' }}
+      >
       <AnimatePresence>{isAnalyzing && <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} style={{ position: 'fixed', inset: 0, zIndex: 1000000, background: 'rgba(255,255,255,0.9)', backdropFilter: 'blur(30px)', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}><motion.div animate={{ rotate: 360 }} transition={{ duration: 1, repeat: Infinity, ease: 'linear' }} style={{ width: '60px', height: '60px', border: '4px solid #FFEBEE', borderTop: '4px solid #E53935', borderRadius: '50%', marginBottom: '20px' }} /><h2 style={{ color: '#1E293B', fontSize: '20px', fontWeight: '900' }}>실시간 지능형 분석 중...</h2></motion.div>}</AnimatePresence>
 
       {/* 햄버거 메뉴 버튼 (드래그 기능 유지) */}
@@ -1044,6 +1055,7 @@ function App() {
           </div>
         </nav>
       )}
+      </motion.div>
     </div>
   );
 }
