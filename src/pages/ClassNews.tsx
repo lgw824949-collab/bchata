@@ -1,8 +1,5 @@
-import React, { useState, useMemo, useRef } from 'react';
-import { MapPin, ChevronLeft, ChevronRight, Clock, Calendar, Navigation } from 'lucide-react';
-import { motion } from 'framer-motion';
-
-const DAYS_KOR = ['일', '월', '화', '수', '목', '금', '토'];
+import React, { useState, useMemo } from 'react';
+import { ChevronLeft, ChevronRight, Navigation } from 'lucide-react';
 
 const ClassCard = ({ item, onSelect }) => {
   const levelColors = {
@@ -13,92 +10,52 @@ const ClassCard = ({ item, onSelect }) => {
     '고급': '#EF4444'
   };
   const badgeColor = levelColors[item.level] || '#64748B';
-  const weekText = item.week_type?.includes('주차') 
-    ? item.week_type.replace('주차', '주 과정') 
-    : (item.week_type || '상시 운영');
 
   return (
     <div 
       onClick={() => onSelect(item.poster_url)}
       style={{ 
         width: '160px',
-        minWidth: '160px',
         flexShrink: 0,
-        background: '#fff', 
-        borderRadius: '16px', 
-        overflow: 'hidden', 
         cursor: 'pointer',
-        display: 'flex',
-        flexDirection: 'column',
-        scrollSnapAlign: 'start',
-        border: '1px solid #F1F5F9',
-        boxShadow: '0 2px 8px rgba(0,0,0,0.06)'
+        scrollSnapAlign: 'start'
       }}
     >
-      {/* 포스터 영역 (160x200) */}
-      <div style={{ width: '160px', height: '200px', background: '#1a1a2e', position: 'relative', overflow: 'hidden', flexShrink: 0 }}>
+      <div style={{ width: '160px', height: '200px', position: 'relative', overflow: 'hidden', borderRadius: '12px' }}>
         {item.poster_url ? (
-          <img src={item.poster_url} style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} alt="Poster" />
+          <img src={item.poster_url} style={{ width: '160px', height: '200px', objectFit: 'cover', display: 'block' }} alt="" />
         ) : (
-          <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#CBD5E1', fontSize: '12px', fontWeight: 800 }}>
-            No Poster
-          </div>
+          <div style={{ width: '160px', height: '200px', background: '#F1F5F9', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#94A3B8', fontSize: '12px' }}>No Poster</div>
         )}
-        
-        {/* 레벨 배지 */}
         <div style={{ 
           position: 'absolute', top: '8px', left: '8px',
           background: badgeColor, color: '#fff', 
-          fontSize: '10px', fontWeight: '800', 
-          padding: '2px 7px', borderRadius: '4px',
+          padding: '2px 6px', borderRadius: '4px', 
+          fontSize: '10px', fontWeight: '900',
           zIndex: 10
         }}>
           {item.level || '입문'}
         </div>
       </div>
-
-      {/* 정보 영역 */}
-      <div style={{ padding: '10px 10px 12px' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '4px', marginBottom: '4px' }}>
-          <span style={{ fontSize: '11px', fontWeight: '800', color: '#FF3B30' }}>{item.genre}</span>
-          <Navigation size={11} color="#FF3B30" fill="#FF3B30" />
+      <div style={{ padding: '8px 2px', display: 'flex', flexDirection: 'column', gap: '2px' }}>
+        <div style={{ color: '#FF3B30', fontSize: '11px', fontWeight: '800' }}>{item.genre}</div>
+        <div style={{ 
+          color: '#1E293B', fontSize: '13px', fontWeight: '900', 
+          whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' 
+        }}>{item.title}</div>
+        <div style={{ color: '#64748B', fontSize: '11px', fontWeight: '500' }}>{item.studio_name}</div>
+        <div style={{ color: '#94A3B8', fontSize: '11px', fontWeight: '500' }}>
+          {item.day_of_week} · {item.start_time?.slice(0, 5)}
         </div>
-        
-        <h3 style={{ 
-          fontSize: '13px', fontWeight: '900', color: '#1E293B', 
-          margin: '0 0 6px', height: '36px', display: '-webkit-box',
-          WebkitLineClamp: 2, WebkitBoxOrient: 'vertical',
-          overflow: 'hidden', lineHeight: '1.4'
-        }}>{item.title}</h3>
-
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
-          <div style={{ 
-            fontSize: '11px', color: '#64748B', fontWeight: '700',
-            whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' 
-          }}>
-            {item.studio_name}
-          </div>
-          
-          <div style={{ fontSize: '11px', color: '#94A3B8', fontWeight: '700' }}>
-            {item.day_of_week} · {item.start_time?.slice(0,5)}
-          </div>
-          
-          <div style={{ color: '#2ECC71', fontWeight: '800', fontSize: '11px', marginTop: '2px' }}>
-            {(() => {
-              const d = new Date(item.start_date);
-              return `${d.getMonth() + 1}/${d.getDate()} · ${weekText}`;
-            })()}
-          </div>
-          <div style={{ color: '#64748B', fontWeight: '800', fontSize: '11px', marginTop: '4px' }}>
-            활동비 {item.fee ? (Number(item.fee).toLocaleString() + '원') : '문의'}
-          </div>
+        <div style={{ color: '#2ECC71', fontSize: '11px', fontWeight: '700' }}>
+          활동비 {item.fee}
         </div>
       </div>
     </div>
   );
 };
 
-const ClassNewsPage = ({ lessons: allLessons, loading: lessonsLoading, selectedMonth, setSelectedMonth, setSelectedPoster, handleRegister }) => {
+const ClassNewsPage = ({ lessons: allLessons, loading: lessonsLoading, selectedMonth, setSelectedMonth, setSelectedPoster }) => {
   const [filterGenre, setFilterGenre] = useState('전체');
   const [filterLevel, setFilterLevel] = useState('전체');
 
@@ -116,7 +73,6 @@ const ClassNewsPage = ({ lessons: allLessons, loading: lessonsLoading, selectedM
 
   return (
     <div style={{ width: '100%', maxWidth: '500px', margin: '0 auto', background: '#fff', minHeight: '100vh', paddingBottom: '100px' }}>
-      {/* 상단 헤더 & 월 선택 */}
       <div style={{ padding: '30px 20px 20px', background: '#fff', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
         <h1 style={{ fontSize: '24px', fontWeight: '950', color: '#0f172a', margin: 0 }}>
           {selectedMonth}월 <span style={{ color: '#2ECC71' }}>LEVEL UP</span>
@@ -127,7 +83,6 @@ const ClassNewsPage = ({ lessons: allLessons, loading: lessonsLoading, selectedM
         </div>
       </div>
 
-      {/* 스티키 이중 필터 */}
       <div style={{ position: 'sticky', top: 0, zIndex: 100, background: 'rgba(255,255,255,0.95)', backdropFilter: 'blur(10px)', padding: '10px 0', borderBottom: '1px solid #F1F5F9' }}>
         <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
           <div style={{ display: 'flex', gap: '6px', overflowX: 'auto', padding: '0 20px' }} className="no-scrollbar">
@@ -174,42 +129,51 @@ const ClassNewsPage = ({ lessons: allLessons, loading: lessonsLoading, selectedM
                     </div>
                     {regionLessons.length > 0 ? (
                       <div 
-                        className="hide-scrollbar no-scrollbar"
+                        className="no-scrollbar"
                         onMouseDown={(e) => {
                           const el = e.currentTarget;
+                          el.dataset.isDown = 'true';
+                          el.dataset.startX = (e.pageX - el.offsetLeft).toString();
+                          el.dataset.scrollLeft = el.scrollLeft.toString();
                           el.style.cursor = 'grabbing';
-                          el.style.userSelect = 'none';
-                          const startX = e.pageX - el.offsetLeft;
-                          const scrollLeft = el.scrollLeft;
-                          const onMouseMove = (e) => {
-                            const x = e.pageX - el.offsetLeft;
-                            const walk = (x - startX) * 2;
-                            el.scrollLeft = scrollLeft - walk;
-                          };
-                          const onMouseUp = () => {
-                            el.style.cursor = 'grab';
-                            el.style.removeProperty('user-select');
-                            document.removeEventListener('mousemove', onMouseMove);
-                            document.removeEventListener('mouseup', onMouseUp);
-                          };
-                          document.addEventListener('mousemove', onMouseMove);
-                          document.addEventListener('mouseup', onMouseUp);
+                        }}
+                        onMouseLeave={(e) => {
+                          const el = e.currentTarget;
+                          el.dataset.isDown = 'false';
+                          el.style.cursor = 'grab';
+                        }}
+                        onMouseUp={(e) => {
+                          const el = e.currentTarget;
+                          el.dataset.isDown = 'false';
+                          el.style.cursor = 'grab';
+                        }}
+                        onMouseMove={(e) => {
+                          const el = e.currentTarget;
+                          if (el.dataset.isDown !== 'true') return;
+                          e.preventDefault();
+                          const x = e.pageX - el.offsetLeft;
+                          const walk = (x - Number(el.dataset.startX)) * 2;
+                          el.scrollLeft = Number(el.dataset.scrollLeft) - walk;
                         }}
                         style={{ 
-                          display: 'flex', gap: '12px', padding: '0 20px',
-                          overflowX: 'auto', scrollSnapType: 'x mandatory',
-                          cursor: 'grab',
-                          WebkitOverflowScrolling: 'touch'
+                          display: 'flex',
+                          overflowX: 'auto',
+                          WebkitOverflowScrolling: 'touch',
+                          scrollSnapType: 'x mandatory',
+                          msOverflowStyle: 'none',
+                          scrollbarWidth: 'none',
+                          gap: '12px',
+                          padding: '0 16px 16px',
+                          cursor: 'grab'
                         }}
                       >
                         {regionLessons.map(item => (
                           <ClassCard key={item.id} item={item} onSelect={setSelectedPoster} />
                         ))}
-                        <div style={{ width: '20px', flexShrink: 0 }} /> {/* 여백용 */}
                       </div>
                     ) : (
                       <div style={{ padding: '20px', margin: '0 20px', background: '#F8FAFC', borderRadius: '12px', textAlign: 'center', color: '#94A3B8', fontSize: '13px', fontWeight: '700' }}>
-                        이 지역에 등록된 포스터가 없습니다.
+                        이 지역에 등록된 클래스가 없습니다.
                       </div>
                     )}
                   </section>
@@ -223,10 +187,7 @@ const ClassNewsPage = ({ lessons: allLessons, loading: lessonsLoading, selectedM
         )}
       </div>
 
-
       <style>{`
-        .hide-scrollbar::-webkit-scrollbar { display: none; }
-        .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
         .no-scrollbar::-webkit-scrollbar { display: none; }
         .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
       `}</style>
