@@ -202,8 +202,9 @@ export default function PostClass({ onBack }) {
                       <Camera size={32} color="#2ECC71" />
                     </div>
                     <span style={{ fontSize: '15px', color: '#64748B', fontWeight: 700 }}>이미지 파일을 선택해주세요</span>
-                    <div style={{ fontSize: '13px', color: '#EF4444', marginTop: '10px', fontWeight: 700 }}>
-                      ※ 참가비 또는 금액을 적어 주세요
+                    <div style={{ fontSize: '15px', color: '#EF4444', marginTop: '12px', fontWeight: 800, lineHeight: '1.5' }}>
+                      ※ 포스터에 참가비 또는 금액을 적어 주셔야 합니다.<br/>
+                      미기재 시 등록 제한됩니다.
                     </div>
                     <input 
                       type="file" accept="image/*" onChange={handleUpload} 
