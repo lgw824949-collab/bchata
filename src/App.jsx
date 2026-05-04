@@ -11,6 +11,7 @@ import ClassNewsPage from './pages/ClassNews'
 import PostClub from './pages/PostClub'
 import PostClass from './pages/PostClass'
 import Auth from './components/Auth'
+import ClassAdminDashboard from './ClassAdminDashboard'
 import Parking from './pages/Parking'
 import Restaurant from './pages/Restaurant'
 import DanceDestiny from './components/DanceDestiny'
@@ -743,8 +744,9 @@ function App() {
             'restaurant': <Restaurant onBack={() => setView('home')} />,
             'register-party': <RegisterForm onBack={() => setView('home')} />,
             'register-class': <PostClass onBack={() => setView('class')} />,
-            'admin': <AdminDashboard onBack={() => setView('home')} refreshData={fetchParties} />
-          }[view] || <AdminDashboard onBack={() => setView('home')} refreshData={fetchParties} />}
+            'admin': <AdminDashboard setView={setView} onBack={() => setView('home')} refreshData={fetchParties} />,
+            'class-admin': <ClassAdminDashboard onBack={() => setView('admin')} />
+          }[view] || <AdminDashboard setView={setView} onBack={() => setView('home')} refreshData={fetchParties} />}
       </main>
 
       <DynamicAnalysisModal isOpen={showIncheonModal} onClose={() => setShowIncheonModal(false)} userCoords={userCoords} isSajuCall={isSajuCall} />
