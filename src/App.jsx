@@ -1006,11 +1006,7 @@ function App() {
                   </motion.div>
                 )}
               </div>
-              <div style={{ marginTop: '20px', padding: '15px', background: view === 'class' ? '#F0FFF4' : '#FFF5F5', borderRadius: '16px' }}>
-                <p style={{ fontSize: '14px', fontWeight: 800, color: view === 'class' ? '#2ECC71' : '#FF1744' }}>
-                  {view === 'class' ? '어떤 수업을 듣고 싶으세요?' : '어디로 가시나요?'}
-                </p>
-              </div>
+
             </motion.div>
           </>
         )}
