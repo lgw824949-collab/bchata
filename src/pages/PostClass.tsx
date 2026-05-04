@@ -35,6 +35,15 @@ export default function PostClass({ onBack }) {
   const durations = ['4주', '6주', '8주', '12주', '기타(직접입력)'];
   const regions = ['서울', '경기,인천', '경상도', '충청도', '전라도', '강원,제주'];
 
+  // 12:00 ~ 22:00 (30분 단위) 시간 목록 생성
+  const timeSlots = [];
+  for (let h = 12; h <= 22; h++) {
+    timeSlots.push(`${h < 10 ? '0' + h : h}:00`);
+    if (h < 22) {
+      timeSlots.push(`${h < 10 ? '0' + h : h}:30`);
+    }
+  }
+
   const toggleDay = (day) => {
     let currentDays = formData.day_of_week ? formData.day_of_week.split(', ').filter(d => d) : [];
     if (currentDays.includes(day)) {
@@ -132,7 +141,9 @@ export default function PostClass({ onBack }) {
     border: '1px solid #E2E8F0',
     fontSize: '15px',
     outline: 'none',
-    background: '#fff'
+    background: '#fff',
+    appearance: 'none',
+    WebkitAppearance: 'none'
   };
 
   return (
@@ -295,24 +306,31 @@ export default function PostClass({ onBack }) {
                 )}
               </div>
 
-              {/* 강습 시간 입력 */}
+              {/* 강습 시간 선택 (30분 단위 셀렉트박스) */}
               <div style={cardStyle}>
-                <label style={labelStyle}>강습 시간</label>
+                <label style={labelStyle}>강습 시간 (12:00 ~ 22:00)</label>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                  <input 
-                    type="time" 
-                    value={formData.start_time} 
-                    onChange={e => setFormData(p => ({ ...p, start_time: e.target.value }))}
-                    style={{ ...inputStyle, flex: 1, padding: '12px' }} 
-                  />
+                  <div style={{ flex: 1, position: 'relative' }}>
+                    <select 
+                      value={formData.start_time} 
+                      onChange={e => setFormData(p => ({ ...p, start_time: e.target.value }))}
+                      style={{ ...inputStyle, padding: '12px' }}
+                    >
+                      {timeSlots.map(t => <option key={t} value={t}>{t}</option>)}
+                    </select>
+                  </div>
                   <span style={{ fontWeight: 800, color: '#94A3B8' }}>~</span>
-                  <input 
-                    type="time" 
-                    value={formData.end_time} 
-                    onChange={e => setFormData(p => ({ ...p, end_time: e.target.value }))}
-                    style={{ ...inputStyle, flex: 1, padding: '12px' }} 
-                  />
+                  <div style={{ flex: 1, position: 'relative' }}>
+                    <select 
+                      value={formData.end_time} 
+                      onChange={e => setFormData(p => ({ ...p, end_time: e.target.value }))}
+                      style={{ ...inputStyle, padding: '12px' }}
+                    >
+                      {timeSlots.map(t => <option key={t} value={t}>{t}</option>)}
+                    </select>
+                  </div>
                 </div>
+                <p style={{ marginTop: '12px', fontSize: '12px', color: '#94A3B8', fontWeight: 600 }}>※ 12:00부터 10:00(22:00)까지 30분 단위로 선택 가능합니다.</p>
               </div>
 
               <button 
