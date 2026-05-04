@@ -187,6 +187,9 @@ export default function PostClass({ onBack }) {
                       <Camera size={32} color="#2ECC71" />
                     </div>
                     <span style={{ fontSize: '15px', color: '#64748B', fontWeight: 700 }}>이미지 파일을 선택해주세요</span>
+                    <div style={{ fontSize: '13px', color: '#EF4444', marginTop: '10px', fontWeight: 700 }}>
+                      ※ 참가비 또는 금액을 적어 주세요
+                    </div>
                     <input 
                       type="file" accept="image/*" onChange={handleUpload} 
                       style={{ position: 'absolute', inset: 0, opacity: 0, cursor: 'pointer' }} 
@@ -401,26 +404,9 @@ export default function PostClass({ onBack }) {
                 {/* 6. 참여비 */}
                 <div style={cardStyle}>
                   <label style={labelStyle}>참여비</label>
-                  <div style={{ position: 'relative', display: 'flex', alignItems: 'center', marginBottom: '16px' }}>
+                  <div style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
                     <input type="number" value={formData.fee} onChange={e => setFormData(p => ({...p, fee: e.target.value}))} placeholder="예: 80000" style={{ ...inputStyle, paddingRight: '40px' }} />
                     <span style={{ position: 'absolute', right: '15px', fontWeight: 800, color: '#64748B' }}>원</span>
-                  </div>
-                  
-                  <div style={{ 
-                    background: '#FFF5F5', 
-                    borderRadius: '12px', 
-                    padding: '16px', 
-                    border: '1px solid #FED7D7'
-                  }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: '#C53030', marginBottom: '8px', fontWeight: 800, fontSize: '13px' }}>
-                      <X size={14} /> 등록 및 입금 시 주의사항
-                    </div>
-                    <ul style={{ margin: 0, paddingLeft: '18px', fontSize: '12px', color: '#742A2A', lineHeight: '1.6', fontWeight: 600 }}>
-                      <li>참가비는 원 단위 숫자로만 입력해주세요.</li>
-                      <li>입금 계좌 정보는 반드시 포스터에 포함하거나 별도로 공지해야 합니다.</li>
-                      <li>환불 규정 미준수로 인한 분쟁 발생 시 책임은 등록자에게 있습니다.</li>
-                      <li>허위 금액 입력 시 예고 없이 삭제될 수 있습니다.</li>
-                    </ul>
                   </div>
                 </div>
               </div>
