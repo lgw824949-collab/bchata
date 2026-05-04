@@ -4,6 +4,19 @@
   --safe-bottom: env(safe-area-inset-bottom);
 }
 
+* {
+  font-family: 'Noto Sans KR', sans-serif !important;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+body {
+  font-family: 'Noto Sans KR', sans-serif;
+  margin: 0;
+  padding: 0;
+}
+
+
 /* ✅ 전역 스크롤바 숨김 (모든 브라우저 및 기기) */
 * {
   -ms-overflow-style: none; /* IE, Edge */
@@ -49,7 +62,6 @@ body::-webkit-scrollbar {
 
 
 body {
-  font-family: 'Pretendard Variable', Pretendard, -apple-system, BlinkMacSystemFont, system-ui, Roboto, 'Helvetica Neue', 'Segoe UI', 'Apple SD Gothic Neo', 'Noto Sans KR', 'Malgun Gothic', sans-serif;
   letter-spacing: -0.02em;
   -webkit-font-smoothing: antialiased;
 }
@@ -328,7 +340,7 @@ input[type=number] {
   --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
   --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
   --shadow-lg: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);
-  --font-main: 'Pretendard', -apple-system, BlinkMacSystemFont, system-ui, Roboto, sans-serif;
+  --font-main: 'Noto Sans KR', sans-serif;
 }
 
 * {
@@ -819,7 +831,6 @@ body {
   display: flex; flex-direction: column;
   z-index: 10006;
   transition: transform 0.4s cubic-bezier(0.4,0,0.2,1);
-  font-family: 'Noto Sans KR', sans-serif;
   box-shadow: 2px 0 15px rgba(0,0,0,0.3);
 }
 .latin-modal.open {
@@ -837,7 +848,6 @@ body {
   flex-shrink: 0; gap: 10px;
 }
 .latin-modal-title {
-  font-family: 'Bebas Neue', sans-serif;
   font-size: 24px; letter-spacing: 2px;
   color: var(--latin-red); flex: 1;
 }
@@ -865,7 +875,6 @@ body {
   border: 0.5px solid var(--latin-dkb);
   border-radius: 22px;
   padding: 9px 16px;
-  font-family: 'Noto Sans KR', sans-serif;
   font-size: 13px; color: var(--latin-dt);
   outline: none;
   transition: border-color 0.2s;
@@ -888,7 +897,6 @@ body {
   border: 0.5px solid var(--latin-dkb);
   background: var(--color-bg-soft); color: var(--latin-dm);
   cursor: pointer; white-space: nowrap;
-  font-family: 'Noto Sans KR', sans-serif;
   transition: all 0.15s;
   text-align: center;
   display: flex; align-items: center; justify-content: center;
@@ -920,12 +928,10 @@ body {
   gap: 8px; margin-bottom: 4px;
 }
 .latin-mcard-num {
-  font-family: 'Bebas Neue', sans-serif;
   font-size: 12px; color: var(--latin-red); letter-spacing: 1px;
 }
 .latin-mcard-cat { font-size: 10px; color: var(--latin-dm); }
 .latin-mcard-en {
-  font-family: 'Playfair Display', serif;
   font-style: italic; font-size: 14px;
   color: var(--latin-dt); margin-bottom: 3px; line-height: 1.4;
 }
