@@ -585,59 +585,6 @@ const HomePage = ({
                 });
               })()}
 
-              {/* 📌 LEVEL UP 섹션 (지역별 클래스 추천) */}
-              {(() => {
-                const classRegions = ["서울", "경기,인천", "경상도", "충청도", "전라도", "강원,제주"];
-                const approvedClasses = (lessons || []).filter(l => l.category_type === 'class' && l.status === 'approved');
-                
-                return classRegions.map(regionName => {
-                  const regionLessons = approvedClasses.filter(l => {
-                    const text = `${l.city || ''} ${l.broadRegion || ''} ${l.region || ''} ${l.address || ''} ${l.studio_name || ''}`.toLowerCase();
-                    if (regionName === "서울") return text.includes("서울");
-                    if (regionName === "경기,인천") return text.includes("경기") || text.includes("인천") || text.includes("부천") || text.includes("수원") || text.includes("의정부") || text.includes("안양") || text.includes("고양") || text.includes("일산") || text.includes("성남") || text.includes("분당") || text.includes("평택") || text.includes("시흥");
-                    if (regionName === "경상도") return text.includes("경상") || text.includes("경남") || text.includes("경북") || text.includes("부산") || text.includes("대구") || text.includes("울산");
-                    if (regionName === "전라도") return text.includes("전라") || text.includes("전남") || text.includes("전북") || text.includes("광주");
-                    if (regionName === "충청도") return text.includes("충청") || text.includes("충남") || text.includes("충북") || text.includes("대전") || text.includes("세종");
-                    if (regionName === "강원,제주") return text.includes("강원") || text.includes("제주");
-                    return false;
-                  });
-
-                  return (
-                    <div key={`class-${regionName}`} style={{ margin: '0 0 15px', padding: '20px 0', background: '#fff', borderBottom: '1px solid #eee' }}>
-                      <div style={{ padding: '0 20px 15px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                        <h2 style={{ fontSize: '18px', fontWeight: '950', color: '#1E293B', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                          <span style={{ color: '#2ECC71' }}>LEVEL UP</span> {regionName}
-                        </h2>
-                        <button 
-                          onClick={() => setView('class')}
-                          style={{ fontSize: '12px', fontWeight: '700', color: '#94A3B8', background: 'none', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '2px' }}
-                        >
-                          {isEn ? 'View All' : '전체보기'} <ChevronRight size={14} />
-                        </button>
-                      </div>
-                      {regionLessons.length > 0 ? (
-                        <div 
-                          className="no-scrollbar"
-                          style={{ 
-                            display: 'flex', gap: '12px', padding: '0 20px 20px',
-                            overflowX: 'auto', WebkitOverflowScrolling: 'touch',
-                            scrollSnapType: 'x mandatory'
-                          }}
-                        >
-                          {regionLessons.slice(0, 5).map(item => (
-                            <ClassCard key={item.id} item={item} onSelect={(url) => handleOpenModal(setSelectedPoster, url)} />
-                          ))}
-                          <div style={{ width: '20px', flexShrink: 0 }} />
-                        </div>
-                      ) : (
-                        <div style={{ padding: '20px', margin: '0 20px', background: '#F8FAFC', borderRadius: '12px', textAlign: 'center', color: '#94A3B8', fontSize: '13px', fontWeight: '700' }}>
-                          이 지역에 등록된 포스터가 없습니다.
-                        </div>
-                      )}
-                    </div>
-                  );
-                });
-              })()}
 
             </div>
           )}
