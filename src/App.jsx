@@ -474,7 +474,7 @@ function App() {
     try {
       // 1. 파티와 장소 데이터를 각각 단순 쿼리로 호출 (400 에러 방지)
       const [partiesRes, locationsRes, lessonsRes] = await Promise.all([
-        supabase.from('parties').select('*').eq('status', 'approved').order('date', { ascending: true }),
+        supabase.from('parties').select('*').order('date', { ascending: true }),
         supabase.from('locations').select('id, name'),
         supabase.from('classes_info').select('*').eq('status', 'approved').eq('category_type', 'class').order('start_date', { ascending: true })
       ]);
