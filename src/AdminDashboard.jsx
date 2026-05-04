@@ -62,45 +62,30 @@ export default function AdminDashboard({ onBack, onNavigateToClass }) {
   }, [activeTab, isAdmin])
 
   // 승인 처리 (pending_parties -> parties)
-  const approveParty = async (item) => {
+  const handleApprove = async (item) => {
     if (!window.confirm('이 파티를 승인하여 전체 공개하시겠습니까?')) return
     setLoading(true)
     try {
-      // 1. 장소 ID 확인 (locations 테이블)
-      let locationId = null;
-      const { data: loc } = await supabase.from('locations').select('id').eq('name', item.location_name).maybeSingle();
-      if (loc) {
-        locationId = loc.id;
-      } else {
-        // 장소가 없으면 새로 추가
-        const { data: newLoc, error: locError } = await supabase.from('locations').insert([{
-          name: item.location_name,
-          address: item.address || '',
-          region_id: 1 // 기본 서울
-        }]).select().single();
-        if (locError) throw locError;
-        locationId = newLoc.id;
-      }
-
-      // 2. parties 테이블에 삽입
+      // 1. parties 테이블에 삽입 (요청하신 규격 준수)
       const { error: insError } = await supabase.from('parties').insert([{
         title: item.title,
-        day_of_week: item.day_of_week,
-        date: item.date,
-        time: item.time,
-        location_id: locationId,
-        poster_url: item.poster_url,
+        location_name: item.location_name,
         address: item.address,
         fee: item.fee,
+        date: item.date,
+        time: item.time,
+        day_of_week: item.day_of_week,
+        poster_url: item.poster_url,
         s_ratio: item.s_ratio,
         b_ratio: item.b_ratio,
         j_ratio: item.j_ratio,
         k_ratio: item.k_ratio,
-        title_en: item.title_en
+        status: 'approved'
       }])
+      
       if (insError) throw insError;
 
-      // 3. pending_parties에서 삭제
+      // 2. pending_parties에서 삭제
       const { error: delError } = await supabase.from('pending_parties').delete().eq('id', item.id);
       if (delError) throw delError;
 
@@ -108,6 +93,26 @@ export default function AdminDashboard({ onBack, onNavigateToClass }) {
       fetchData();
     } catch (err) {
       alert('승인 처리 실패: ' + err.message);
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  // 반려 처리 (상태 업데이트)
+  const handleReject = async (id) => {
+    if (!window.confirm('이 등록 신청을 반려하시겠습니까?')) return
+    setLoading(true)
+    try {
+      const { error } = await supabase
+        .from('pending_parties')
+        .update({ status: 'rejected' })
+        .eq('id', id)
+      
+      if (error) throw error
+      alert('반려 처리되었습니다.')
+      fetchData()
+    } catch (err) {
+      alert('반려 실패: ' + err.message)
     } finally {
       setLoading(false)
     }
@@ -232,8 +237,8 @@ export default function AdminDashboard({ onBack, onNavigateToClass }) {
                   <div style={{ display: 'flex', gap: '8px', marginTop: '16px' }}>
                     {activeTab === 'pending' && (
                       <>
-                        <button onClick={() => approveParty(item)} style={{ flex: 2, background: '#00FF00', color: 'black', padding: '10px', borderRadius: '10px', fontWeight: 900, border: 'none', cursor: 'pointer' }}>승인하기</button>
-                        <button onClick={() => deleteParty(item.id)} style={{ flex: 1, background: '#EF4444', color: 'white', padding: '10px', borderRadius: '10px', fontWeight: 900, border: 'none', cursor: 'pointer' }}>반려</button>
+                        <button onClick={() => handleApprove(item)} style={{ flex: 2, background: '#00FF00', color: 'black', padding: '10px', borderRadius: '10px', fontWeight: 900, border: 'none', cursor: 'pointer' }}>승인하기</button>
+                        <button onClick={() => handleReject(item.id)} style={{ flex: 1, background: '#EF4444', color: 'white', padding: '10px', borderRadius: '10px', fontWeight: 900, border: 'none', cursor: 'pointer' }}>반려</button>
                       </>
                     )}
                     <button onClick={() => deleteParty(item.id)} style={{ padding: '10px', background: 'rgba(239, 68, 68, 0.1)', color: '#EF4444', borderRadius: '10px', border: 'none', cursor: 'pointer' }}><Trash2 size={18} /></button>
