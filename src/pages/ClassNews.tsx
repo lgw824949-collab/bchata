@@ -1,5 +1,6 @@
 import React, { useState, useMemo } from 'react';
-import { ChevronLeft, ChevronRight, Navigation } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Navigation, X } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
 
 const ClassCard = ({ item, onSelect }) => {
   const levelColors = {
@@ -58,6 +59,7 @@ const ClassCard = ({ item, onSelect }) => {
 const ClassNewsPage = ({ lessons: allLessons, loading: lessonsLoading, selectedMonth, setSelectedMonth, setSelectedPoster }) => {
   const [filterGenre, setFilterGenre] = useState('전체');
   const [filterLevel, setFilterLevel] = useState('전체');
+  const [gridRegion, setGridRegion] = useState(null);
 
   const filtered = useMemo(() => {
     return (allLessons || []).filter(l => {
@@ -69,7 +71,23 @@ const ClassNewsPage = ({ lessons: allLessons, loading: lessonsLoading, selectedM
     });
   }, [allLessons, filterGenre, filterLevel]);
 
-  const regions = ["서울", "경기,인천", "경상도", "충청도", "전라도", "강원,제주"];
+  const regions = useMemo(() => ["서울", "경기,인천", "경상도", "충청도", "전라도", "강원,제주"], []);
+
+  const groupedLessons = useMemo(() => {
+    return regions.reduce((acc, name) => {
+      acc[name] = filtered.filter(l => {
+        const text = `${l.city || ''} ${l.broadRegion || ''} ${l.region || ''} ${l.address || ''} ${l.studio_name || ''}`.toLowerCase();
+        if (name === "서울") return text.includes("서울");
+        if (name === "경기,인천") return text.includes("경기") || text.includes("인천") || text.includes("부천") || text.includes("수원") || text.includes("의정부") || text.includes("안양") || text.includes("고양") || text.includes("일산") || text.includes("성남") || text.includes("분당") || text.includes("평택") || text.includes("시흥");
+        if (name === "경상도") return text.includes("경상") || text.includes("경남") || text.includes("경북") || text.includes("부산") || text.includes("대구") || text.includes("울산");
+        if (name === "전라도") return text.includes("전라") || text.includes("전남") || text.includes("전북") || text.includes("광주");
+        if (name === "충청도") return text.includes("충청") || text.includes("충남") || text.includes("충북") || text.includes("대전") || text.includes("세종");
+        if (name === "강원,제주") return text.includes("강원") || text.includes("제주");
+        return false;
+      }).slice(0, 20);
+      return acc;
+    }, {});
+  }, [filtered, regions]);
 
   return (
     <div style={{ width: '100%', maxWidth: '500px', margin: '0 auto', background: '#fff', minHeight: '100vh', paddingBottom: '100px' }}>
@@ -103,30 +121,23 @@ const ClassNewsPage = ({ lessons: allLessons, loading: lessonsLoading, selectedM
           <div style={{ padding: '100px 0', textAlign: 'center', color: '#2ECC71', fontWeight: 800 }}>로딩 중...</div>
         ) : (
           <>
-            {(() => {
-              const grouped = regions.reduce((acc, name) => {
-                acc[name] = filtered.filter(l => {
-                  const text = `${l.city || ''} ${l.broadRegion || ''} ${l.region || ''} ${l.address || ''} ${l.studio_name || ''}`.toLowerCase();
-                  if (name === "서울") return text.includes("서울");
-                  if (name === "경기,인천") return text.includes("경기") || text.includes("인천") || text.includes("부천") || text.includes("수원") || text.includes("의정부") || text.includes("안양") || text.includes("고양") || text.includes("일산") || text.includes("성남") || text.includes("분당") || text.includes("평택") || text.includes("시흥");
-                  if (name === "경상도") return text.includes("경상") || text.includes("경남") || text.includes("경북") || text.includes("부산") || text.includes("대구") || text.includes("울산");
-                  if (name === "전라도") return text.includes("전라") || text.includes("전남") || text.includes("전북") || text.includes("광주");
-                  if (name === "충청도") return text.includes("충청") || text.includes("충남") || text.includes("충북") || text.includes("대전") || text.includes("세종");
-                  if (name === "강원,제주") return text.includes("강원") || text.includes("제주");
-                  return false;
-                }).slice(0, 20);
-                return acc;
-              }, {});
-
-              return regions.map(regionName => {
-                const regionLessons = grouped[regionName];
-                return (
-                  <section key={regionName} style={{ marginBottom: '32px' }}>
-                    <div style={{ padding: '0 20px 12px', display: 'flex', alignItems: 'center', gap: '6px' }}>
+            {regions.map(regionName => {
+              const regionLessons = groupedLessons[regionName];
+              return (
+                <section key={regionName} style={{ marginBottom: '32px' }}>
+                  <div style={{ padding: '0 20px 12px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                       <span style={{ color: '#2ECC71', fontSize: '14px' }}>●</span>
                       <h2 style={{ fontSize: '18px', fontWeight: '950', color: '#1E293B', margin: 0 }}>{regionName}</h2>
                       <span style={{ fontSize: '13px', color: '#94A3B8', fontWeight: '800' }}>({regionLessons.length})</span>
                     </div>
+                    <button 
+                      onClick={() => setGridRegion(regionName)}
+                      style={{ fontSize: '12px', fontWeight: '700', color: '#94A3B8', background: 'none', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '2px' }}
+                    >
+                      전체보기 <ChevronRight size={14} />
+                    </button>
+                  </div>
                     {regionLessons.length > 0 ? (
                       <div 
                         className="no-scrollbar"
@@ -173,19 +184,65 @@ const ClassNewsPage = ({ lessons: allLessons, loading: lessonsLoading, selectedM
                       </div>
                     ) : (
                       <div style={{ padding: '20px', margin: '0 20px', background: '#F8FAFC', borderRadius: '12px', textAlign: 'center', color: '#94A3B8', fontSize: '13px', fontWeight: '700' }}>
-                        이 지역에 등록된 클래스가 없습니다.
+                        이 지역에 등록된 포스터가 없습니다.
                       </div>
                     )}
                   </section>
                 );
-              });
-            })()}
+              })}
             {filtered.length === 0 && (
               <div style={{ padding: '100px 20px', textAlign: 'center', color: '#94A3B8', fontWeight: '800' }}>해당 조건의 클래스가 없습니다 😅</div>
             )}
           </>
         )}
       </div>
+
+      <AnimatePresence>
+        {gridRegion && (
+          <>
+            <motion.div 
+              initial={{ opacity: 0 }} 
+              animate={{ opacity: 1 }} 
+              exit={{ opacity: 0 }} 
+              onClick={() => setGridRegion(null)} 
+              style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.85)', backdropFilter: 'blur(10px)', zIndex: 180000 }} 
+            />
+            <motion.div 
+              initial={{ y: '100%' }} 
+              animate={{ y: 0 }} 
+              exit={{ y: '100%' }} 
+              transition={{ type: 'spring', damping: 25, stiffness: 200 }}
+              style={{ 
+                position: 'fixed', 
+                inset: 0, 
+                background: '#000', 
+                zIndex: 180001, 
+                display: 'flex', 
+                flexDirection: 'column',
+                height: '100dvh',
+                paddingTop: 'env(safe-area-inset-top)',
+                paddingBottom: 'env(safe-area-inset-bottom)'
+              }}
+            >
+              <div style={{ height: '70px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0 20px', borderBottom: '1px solid rgba(255,255,255,0.1)' }}>
+                <div style={{ color: '#fff', fontSize: '18px', fontWeight: '900' }}>{gridRegion} 전체보기</div>
+                <button onClick={() => setGridRegion(null)} style={{ background: 'rgba(255,255,255,0.15)', border: 'none', borderRadius: '50%', width: '40px', height: '40px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff' }}>
+                  <X size={24} />
+                </button>
+              </div>
+              <div style={{ flex: 1, overflowY: 'auto', padding: '12px' }}>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '6px' }}>
+                  {(groupedLessons[gridRegion] || []).slice(0, 15).map(item => (
+                    <div key={item.id} onClick={() => { setSelectedPoster(item.poster_url); setGridRegion(null); }} style={{ aspectRatio: '1', overflow: 'hidden', cursor: 'pointer', borderRadius: '16px' }}>
+                      <img src={item.poster_url} style={{ width: '100%', height: '100%', objectFit: 'cover' }} alt="" />
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </motion.div>
+          </>
+        )}
+      </AnimatePresence>
 
       <style>{`
         .no-scrollbar::-webkit-scrollbar { display: none; }
