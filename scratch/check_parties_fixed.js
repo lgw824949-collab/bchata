@@ -5,17 +5,18 @@ const supabaseKey = process.env.VITE_SUPABASE_ANON_KEY;
 
 const supabase = createClient(supabaseUrl, supabaseKey);
 
-async function checkPendingColumns() {
+async function checkParties() {
   const { data, error } = await supabase
-    .from('pending_parties')
-    .select('*')
-    .limit(1);
+    .from('parties')
+    .select('id, title, created_at')
+    .order('created_at', { ascending: false })
+    .limit(10);
 
   if (error) {
     console.error('Error:', error);
   } else {
-    console.log('Available columns in pending_parties:', Object.keys(data[0] || {}));
+    console.table(data);
   }
 }
 
-checkPendingColumns();
+checkParties();

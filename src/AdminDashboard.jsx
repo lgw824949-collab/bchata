@@ -37,11 +37,16 @@ export default function AdminDashboard({ onBack, onNavigateToClass }) {
   const fetchData = async () => {
     setLoading(true)
     try {
-      const { data, error } = await supabase
-        .from('parties')
-        .select('*')
-        .eq('status', activeTab)
-        .order('created_at', { ascending: false })
+      let query;
+      if (activeTab === 'approved') {
+        // 승인된 데이터는 parties 테이블에서 가져옴 (장소명 조인)
+        query = supabase.from('parties').select('*, locations(name)');
+      } else {
+        // 대기중/반려됨 데이터는 pending_parties 테이블에서 가져옴
+        query = supabase.from('pending_parties').select('*').eq('status', activeTab);
+      }
+      
+      const { data, error } = await query.order('created_at', { ascending: false })
       
       if (error) throw error
       setParties(data || [])
@@ -56,21 +61,53 @@ export default function AdminDashboard({ onBack, onNavigateToClass }) {
     if (isAdmin) fetchData()
   }, [activeTab, isAdmin])
 
-  // 상태 업데이트 (승인/반려)
-  const updateStatus = async (id, newStatus) => {
-    if (!window.confirm(`상태를 [${newStatus}]로 변경하시겠습니까?`)) return
+  // 승인 처리 (pending_parties -> parties)
+  const approveParty = async (item) => {
+    if (!window.confirm('이 파티를 승인하여 전체 공개하시겠습니까?')) return
     setLoading(true)
     try {
-      const { error } = await supabase
-        .from('parties')
-        .update({ status: newStatus })
-        .eq('id', id)
-      
-      if (error) throw error
-      alert('변경되었습니다.')
-      fetchData()
+      // 1. 장소 ID 확인 (locations 테이블)
+      let locationId = null;
+      const { data: loc } = await supabase.from('locations').select('id').eq('name', item.location_name).maybeSingle();
+      if (loc) {
+        locationId = loc.id;
+      } else {
+        // 장소가 없으면 새로 추가
+        const { data: newLoc, error: locError } = await supabase.from('locations').insert([{
+          name: item.location_name,
+          address: item.address || '',
+          region_id: 1 // 기본 서울
+        }]).select().single();
+        if (locError) throw locError;
+        locationId = newLoc.id;
+      }
+
+      // 2. parties 테이블에 삽입
+      const { error: insError } = await supabase.from('parties').insert([{
+        title: item.title,
+        day_of_week: item.day_of_week,
+        date: item.date,
+        time: item.time,
+        location_id: locationId,
+        poster_url: item.poster_url,
+        address: item.address,
+        fee: item.fee,
+        s_ratio: item.s_ratio,
+        b_ratio: item.b_ratio,
+        j_ratio: item.j_ratio,
+        k_ratio: item.k_ratio,
+        title_en: item.title_en
+      }])
+      if (insError) throw insError;
+
+      // 3. pending_parties에서 삭제
+      const { error: delError } = await supabase.from('pending_parties').delete().eq('id', item.id);
+      if (delError) throw delError;
+
+      alert('승인 및 배포 완료!');
+      fetchData();
     } catch (err) {
-      alert('오류 발생: ' + err.message)
+      alert('승인 처리 실패: ' + err.message);
     } finally {
       setLoading(false)
     }
@@ -81,8 +118,9 @@ export default function AdminDashboard({ onBack, onNavigateToClass }) {
     if (!window.confirm('DB에서 완전히 삭제하시겠습니까? 이 작업은 되돌릴 수 없습니다.')) return
     setLoading(true)
     try {
+      const targetTable = activeTab === 'approved' ? 'parties' : 'pending_parties';
       const { error } = await supabase
-        .from('parties')
+        .from(targetTable)
         .delete()
         .eq('id', id)
       
@@ -185,18 +223,18 @@ export default function AdminDashboard({ onBack, onNavigateToClass }) {
                   <div style={{ fontSize: '10px', color: '#64748B', marginBottom: '4px' }}>ID: {item.id} | {item.created_at?.split('T')[0]}</div>
                   <h3 style={{ fontSize: '16px', fontWeight: 900, margin: '0 0 6px 0', color: 'white', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{item.title}</h3>
                   <div style={{ fontSize: '13px', color: '#94A3B8', display: 'flex', flexDirection: 'column', gap: '2px' }}>
-                    <div>📍 {item.location_name || item.address}</div>
+                    <div>📍 {item.locations?.name || item.location_name || item.address}</div>
                     <div>📅 {item.date} ({item.day_of_week}) | ⏰ {item.time}</div>
                     <div style={{ color: '#FF1744', fontWeight: 700 }}>💰 {item.fee}</div>
                   </div>
                   
                   {/* 버튼 영역 */}
                   <div style={{ display: 'flex', gap: '8px', marginTop: '16px' }}>
-                    {activeTab !== 'approved' && (
-                      <button onClick={() => updateStatus(item.id, 'approved')} style={{ flex: 2, background: '#00FF00', color: 'black', padding: '10px', borderRadius: '10px', fontWeight: 900, border: 'none', cursor: 'pointer' }}>승인하기</button>
-                    )}
                     {activeTab === 'pending' && (
-                      <button onClick={() => updateStatus(item.id, 'rejected')} style={{ flex: 1, background: '#EF4444', color: 'white', padding: '10px', borderRadius: '10px', fontWeight: 900, border: 'none', cursor: 'pointer' }}>반려</button>
+                      <>
+                        <button onClick={() => approveParty(item)} style={{ flex: 2, background: '#00FF00', color: 'black', padding: '10px', borderRadius: '10px', fontWeight: 900, border: 'none', cursor: 'pointer' }}>승인하기</button>
+                        <button onClick={() => deleteParty(item.id)} style={{ flex: 1, background: '#EF4444', color: 'white', padding: '10px', borderRadius: '10px', fontWeight: 900, border: 'none', cursor: 'pointer' }}>반려</button>
+                      </>
                     )}
                     <button onClick={() => deleteParty(item.id)} style={{ padding: '10px', background: 'rgba(239, 68, 68, 0.1)', color: '#EF4444', borderRadius: '10px', border: 'none', cursor: 'pointer' }}><Trash2 size={18} /></button>
                   </div>
