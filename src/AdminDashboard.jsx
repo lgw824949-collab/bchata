@@ -3,7 +3,7 @@ import { supabase } from './lib/supabase'
 import { ChevronLeft, Check, Trash2, ShieldCheck, X, RefreshCw, XCircle } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
 
-export default function AdminDashboard({ onBack, setView }) {
+export default function AdminDashboard({ onBack, onNavigateToClass }) {
   const [isAdmin, setIsAdmin] = useState(false)
   const [loginStep, setLoginStep] = useState(1)
   const [adminId, setAdminId] = useState('')
@@ -128,26 +128,27 @@ export default function AdminDashboard({ onBack, setView }) {
             <div style={{ fontSize: '11px', color: '#FF1744', fontWeight: 700 }}>SOCIAL_PARTY_OPERATIONS</div>
           </div>
         </div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-          <button 
-            onClick={() => setView('class-admin')} 
-            style={{ 
-              background: '#2ECC71', 
-              color: 'white', 
-              padding: '10px 14px', 
-              borderRadius: '12px', 
-              fontWeight: 800, 
-              fontSize: '13px', 
-              border: 'none', 
-              cursor: 'pointer',
-              boxShadow: '0 4px 12px rgba(46, 204, 113, 0.2)'
-            }}
-          >
-            클래스 관리
-          </button>
-          <button onClick={fetchData} disabled={loading} style={{ padding: '8px', color: '#FF1744', background: 'none', border: 'none', cursor: 'pointer' }}><RefreshCw size={24} className={loading ? 'animate-spin' : ''} /></button>
-        </div>
+        <button onClick={fetchData} disabled={loading} style={{ padding: '8px', color: '#FF1744', background: 'none', border: 'none', cursor: 'pointer' }}><RefreshCw size={24} className={loading ? 'animate-spin' : ''} /></button>
       </header>
+
+      {/* 클래스 관리 바로가기 버튼 */}
+      <button
+        onClick={() => onNavigateToClass && onNavigateToClass()}
+        style={{
+          width: 'calc(100% - 32px)',
+          margin: '12px 16px 0',
+          padding: '14px',
+          background: '#2ECC71',
+          color: '#fff',
+          fontSize: '15px',
+          fontWeight: 900,
+          border: 'none',
+          borderRadius: '14px',
+          cursor: 'pointer'
+        }}
+      >
+        📚 클래스 관리
+      </button>
 
       {/* 탭 구성 */}
       <div style={{ display: 'flex', padding: '16px', gap: '8px' }}>
