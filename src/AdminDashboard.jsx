@@ -3,7 +3,7 @@ import { supabase } from './lib/supabase'
 import { ChevronLeft, Check, Trash2, ShieldCheck, X, RefreshCw, XCircle } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
 
-export default function AdminDashboard({ onBack, onNavigateToClass }) {
+export default function AdminDashboard({ onBack }) {
   const [isAdmin, setIsAdmin] = useState(false)
   const [loginStep, setLoginStep] = useState(1)
   const [adminId, setAdminId] = useState('')
@@ -174,24 +174,7 @@ export default function AdminDashboard({ onBack, onNavigateToClass }) {
         <button onClick={fetchData} disabled={loading} style={{ padding: '8px', color: '#FF1744', background: 'none', border: 'none', cursor: 'pointer' }}><RefreshCw size={24} className={loading ? 'animate-spin' : ''} /></button>
       </header>
 
-      {/* 클래스 관리 바로가기 버튼 */}
-      <button
-        onClick={() => onNavigateToClass && onNavigateToClass()}
-        style={{
-          width: 'calc(100% - 32px)',
-          margin: '12px 16px 0',
-          padding: '14px',
-          background: '#2ECC71',
-          color: '#fff',
-          fontSize: '15px',
-          fontWeight: 900,
-          border: 'none',
-          borderRadius: '14px',
-          cursor: 'pointer'
-        }}
-      >
-        📚 클래스 관리
-      </button>
+
 
       {/* 탭 구성 */}
       <div style={{ display: 'flex', padding: '16px', gap: '8px' }}>

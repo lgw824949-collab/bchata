@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo, useRef } from 'react'
-import { Home as HomeIcon, Users, Plus, LogOut, Heart, X, MessageSquare, RefreshCw, CloudSun, Utensils, Zap, Languages, Bell, Star, Navigation, CreditCard, Settings, Map as MapIcon, BarChart, Gift, Coffee, User, Menu, Music2, GraduationCap, Tent, Flag, Download, Globe, ShieldCheck, Calendar, Camera, ChevronLeft, ChevronRight } from 'lucide-react'
+import { Home as HomeIcon, Users, Plus, LogOut, Heart, X, MessageSquare, RefreshCw, CloudSun, Utensils, Zap, Languages, Bell, Star, Navigation, CreditCard, Settings, Map as MapIcon, BarChart, Gift, Coffee, User, Menu, Music2, Tent, Flag, Download, Globe, ShieldCheck, Calendar, Camera, ChevronLeft, ChevronRight } from 'lucide-react'
 import { useTranslation } from 'react-i18next';
 import { motion, AnimatePresence } from 'framer-motion'
 import { supabase, logActivity } from './lib/supabase'
@@ -7,14 +7,10 @@ import RegisterForm from './RegisterForm'
 import AdminDashboard from './AdminDashboard'
 import HomePage from './pages/Home'
 import Community from './pages/Community'
-import ClassNewsPage from './pages/ClassNews'
 import PostClub from './pages/PostClub'
-import PostClass from './pages/PostClass'
 import Auth from './components/Auth'
-import ClassAdminDashboard from './ClassAdminDashboard'
 import Parking from './pages/Parking'
 import Restaurant from './pages/Restaurant'
-import DanceDestiny from './components/DanceDestiny'
 import SajuModal from './components/SajuModal'
 import IncheonRoute from './components/IncheonRoute'
 import WeatherModal from './components/WeatherModal'
@@ -375,7 +371,6 @@ function App() {
     return () => clearTimeout(timer);
   }, [showSplash]);
   const [parties, setParties] = useState([]);
-  const [lessons, setLessons] = useState([]);
   const [displayParties, setDisplayParties] = useState([]);
   const [loading, setLoading] = useState(true);
   const [selectedDate, setSelectedDate] = useState(todayData.dateStr);
@@ -475,15 +470,13 @@ function App() {
     setLoading(true);
     try {
       // 1. 파티와 장소 데이터를 각각 단순 쿼리로 호출 (400 에러 방지)
-      const [partiesRes, locationsRes, lessonsRes] = await Promise.all([
+      const [partiesRes, locationsRes] = await Promise.all([
         supabase.from('parties').select('*').order('date', { ascending: true }),
-        supabase.from('locations').select('id, name'),
-        supabase.from('classes_info').select('*').eq('status', 'approved').eq('category_type', 'class').order('start_date', { ascending: true })
+        supabase.from('locations').select('id, name')
       ]);
 
       const rawParties = partiesRes.data || [];
       const rawLocations = locationsRes.data || [];
-      const rawLessons = lessonsRes.data || [];
 
       // 2. 장소 데이터를 ID 기반 Map으로 변환
       const locationMap = rawLocations.reduce((acc, loc) => {
@@ -522,32 +515,7 @@ function App() {
           locationNameEn
         };
       });
-      const mappedLessons = rawLessons.map(l => {
-        const fullSearchText = `${l.address || ''} ${l.studio_name || ''} ${l.city || ''}`;
-        let broadRegion = '전국';
-        
-        if (fullSearchText.includes('엘마로')) broadRegion = '경기/인천';
-        else if (fullSearchText.includes('서울')) broadRegion = '서울';
-        else if (fullSearchText.includes('경기') || fullSearchText.includes('인천')) broadRegion = '경기/인천';
-        else if (fullSearchText.includes('부산') || fullSearchText.includes('대구') || fullSearchText.includes('울산') || fullSearchText.includes('경남') || fullSearchText.includes('경북') || fullSearchText.includes('경상')) broadRegion = '경상도';
-        else if (fullSearchText.includes('광주') || fullSearchText.includes('전남') || fullSearchText.includes('전북') || fullSearchText.includes('전라')) broadRegion = '전라도';
-        else if (fullSearchText.includes('대전') || fullSearchText.includes('충남') || fullSearchText.includes('충북') || fullSearchText.includes('충청') || fullSearchText.includes('세종')) broadRegion = '충청도';
-        else if (fullSearchText.includes('강원') || fullSearchText.includes('제주')) broadRegion = '강원/제주';
-
-        const broadRegionEn = REGION_MAP_EN[broadRegion] || broadRegion;
-        const cityNameEn = CITY_MAP_EN[l.city] || l.city || 'Nationwide';
-
-        return {
-          ...l,
-          broadRegion,
-          displayBroadRegion: broadRegionEn,
-          displayCityName: cityNameEn,
-          displayLocationName: l.studio_name
-        };
-      });
-
       setParties(mappedParties);
-      setLessons(mappedLessons);
     } catch (err) { console.error('데이터 로딩 오류:', err); } finally { setLoading(false); }
   };
 
@@ -598,7 +566,7 @@ function App() {
   };
 
   const sharedProps = {
-    parties: displayParties, lessons, loading, selectedMonth, setSelectedMonth, selectedWeek: 1, setSelectedWeek: () => {}, 
+    parties: displayParties, loading, selectedMonth, setSelectedMonth, selectedWeek: 1, setSelectedWeek: () => {}, 
     selectedDate, setSelectedDate, selectedRegion: '서울', setSelectedRegion: () => {}, 
     view, setView, setSelectedPoster, 
     fourteenDays: Array.from({ length: 14 }).map((_, i) => {
@@ -651,7 +619,7 @@ function App() {
             display: 'flex', alignItems: 'center', justifyContent: 'center'
           }}
         >
-          <Menu size={24} color={view === 'class' ? '#2ECC71' : '#FF1744'} />
+          <Menu size={24} color={'#FF1744'} />
         </motion.button>
       )}
 
@@ -678,7 +646,7 @@ function App() {
               <motion.button 
                 whileTap={{ scale: 0.9 }}
                 onClick={handleCloseModal}
-                style={{ background: '#F8FAFC', border: '1px solid #E2E8F0', borderRadius: '12px', padding: '10px', color: view === 'class' ? '#2ECC71' : '#FF1744', cursor: 'pointer' }}
+                style={{ background: '#F8FAFC', border: '1px solid #E2E8F0', borderRadius: '12px', padding: '10px', color: '#FF1744', cursor: 'pointer' }}
               >
                 <ChevronLeft size={24} />
               </motion.button>
@@ -691,12 +659,12 @@ function App() {
 
             <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
               {[
-                { icon: <Calendar color={view === 'class' ? '#2ECC71' : '#FF1744'} />, text: t('view_calendar'), action: () => { setIsMenuOpen(false); handleOpenModal(setShowFullCalendar, true); } },
-                { icon: <Camera color={view === 'class' ? '#2ECC71' : '#FF1744'} />, text: 'LIVE PICK', action: () => { setView('community'); setIsMenuOpen(false); } },
-                { icon: <Utensils color={view === 'class' ? '#2ECC71' : '#FF1744'} />, text: t('restaurant'), action: () => { setView('restaurant'); setIsMenuOpen(false); } },
-                { icon: <Star color={view === 'class' ? '#2ECC71' : '#FF1744'} />, text: t('saju'), action: () => { if(typeof setShowSaju === 'function') { handleOpenModal(setShowSaju, true); setIsMenuOpen(false); } } },
+                { icon: <Calendar color={'#FF1744'} />, text: t('view_calendar'), action: () => { setIsMenuOpen(false); handleOpenModal(setShowFullCalendar, true); } },
+                { icon: <Camera color={'#FF1744'} />, text: 'LIVE PICK', action: () => { setView('community'); setIsMenuOpen(false); } },
+                { icon: <Utensils color={'#FF1744'} />, text: t('restaurant'), action: () => { setView('restaurant'); setIsMenuOpen(false); } },
+                { icon: <Star color={'#FF1744'} />, text: t('saju'), action: () => { if(typeof setShowSaju === 'function') { handleOpenModal(setShowSaju, true); setIsMenuOpen(false); } } },
                 { 
-                  icon: <CloudSun color={view === 'class' ? '#2ECC71' : '#FF1744'} />, 
+                  icon: <CloudSun color={'#FF1744'} />, 
                   text: t('weather'), 
                   action: () => { 
                     const now = Date.now();
@@ -726,8 +694,8 @@ function App() {
                     }, 500);
                   } 
                 },
-                { icon: <MessageSquare color={view === 'class' ? '#2ECC71' : '#FF1744'} />, text: '실시간 오픈톡', action: () => { window.open('https://open.kakao.com/o/gP43rNri', '_blank'); setIsMenuOpen(false); } },
-                { icon: <Bell color={view === 'class' ? '#2ECC71' : '#FF1744'} />, text: t('notice'), action: () => { alert(t('coming_soon')) } },
+                { icon: <MessageSquare color={'#FF1744'} />, text: '실시간 오픈톡', action: () => { window.open('https://open.kakao.com/o/gP43rNri', '_blank'); setIsMenuOpen(false); } },
+                { icon: <Bell color={'#FF1744'} />, text: t('notice'), action: () => { alert(t('coming_soon')) } },
               ].map((item, idx) => (
                 <motion.div
                   key={idx}
@@ -763,19 +731,10 @@ function App() {
 
       <main>
         {view === 'home' ? <HomePage {...sharedProps} /> : 
-         view === 'class' ? <ClassNewsPage lessons={lessons} {...sharedProps} handleRegister={() => sharedProps.handleRegister('class')} /> :
          view === 'bootcamp' ? (
            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '80vh', color: '#1E293B' }}>
              <span style={{ fontSize: '48px', marginBottom: '20px' }}>🏕️</span>
-             <h2 style={{ fontSize: '24px', fontWeight: 900 }}>부트캠프</h2>
-             <p style={{ color: '#64748B', marginTop: '8px' }}>Coming Soon</p>
-           </div>
-         ) :
-         view === 'festival' ? (
-           <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '80vh', color: '#1E293B' }}>
-             <span style={{ fontSize: '48px', marginBottom: '20px' }}>🎪</span>
-             <h2 style={{ fontSize: '24px', fontWeight: 900 }}>페스티벌</h2>
-             <p style={{ color: '#64748B', marginTop: '8px' }}>Coming Soon</p>
+             <h2 style={{ fontSize: '24px', fontWeight: 900 }}>부트캠프 준비중</h2>
            </div>
          ) :
          {
@@ -783,9 +742,7 @@ function App() {
             'parking': <Parking onBack={() => setView('home')} />,
             'restaurant': <Restaurant onBack={() => setView('home')} />,
             'register-party': <RegisterForm onBack={() => setView('home')} />,
-            'register-class': <PostClass onBack={() => setView('class')} />,
             'admin': <AdminDashboard setView={setView} onBack={() => setView('admin-portal')} refreshData={fetchParties} />,
-            'class-admin': <ClassAdminDashboard onBack={() => setView('admin-portal')} />,
             'admin-portal': (
               <div style={{ 
                 height: '100vh', 
@@ -816,18 +773,6 @@ function App() {
                 </button>
                 
                 <button 
-                  onClick={() => setView('class-admin')}
-                  style={{ 
-                    width: '100%', maxWidth: '320px', padding: '24px', 
-                    borderRadius: '20px', background: '#1E293B', color: 'white', 
-                    border: '1px solid #334155', fontSize: '18px', fontWeight: 800,
-                    cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '15px'
-                  }}
-                >
-                  <GraduationCap size={24} color="#2ECC71" /> LEVEL UP 관리
-                </button>
-                
-                <button 
                   onClick={() => setView('home')}
                   style={{ marginTop: '40px', background: 'none', border: 'none', color: '#64748B', fontWeight: 700, cursor: 'pointer' }}
                 >
@@ -835,7 +780,7 @@ function App() {
                 </button>
               </div>
             )
-          }[view] || <AdminDashboard onNavigateToClass={() => setView('class-admin')} onBack={() => setView('home')} refreshData={fetchParties} />}
+          }[view] || <AdminDashboard onBack={() => setView('home')} refreshData={fetchParties} />}
       </main>
 
       <DynamicAnalysisModal isOpen={showIncheonModal} onClose={() => setShowIncheonModal(false)} userCoords={userCoords} isSajuCall={isSajuCall} />
@@ -843,11 +788,7 @@ function App() {
         {showIncheon && <IncheonRoute parties={parties} onClose={() => setShowIncheon(false)} />}
       </AnimatePresence>
       <AnimatePresence>
-        {showSaju && (
-          view === 'class' 
-            ? <DanceDestiny lessons={lessons} onClose={() => setShowSaju(false)} />
-            : <SajuModal parties={parties} onClose={() => setShowSaju(false)} />
-        )}
+        {showSaju && <SajuModal parties={parties} onClose={() => setShowSaju(false)} />}
       </AnimatePresence>
       <AnimatePresence>
         {showWeather && <WeatherModal onClose={() => setShowWeather(false)} />}
@@ -883,19 +824,15 @@ function App() {
                       return days.map((day, idx) => {
                         if (!day.date) return <div key={idx} />;
                         const isSelected = selectedDate === day.fullDate;
-                        const themeColor = view === 'class' ? '#2ECC71' : '#FF1744';
+                        const themeColor = '#FF1744';
                         const todayStr = getKSTDate().dateStr;
                         return (
                           <div 
                             key={day.fullDate} 
                             onClick={() => { 
-                              if (day.fullDate < todayStr) return;
-                              setSelectedDate(day.fullDate); 
-                              handleOpenModal(setShowFilterPanel, true);
-                              setFilterStep(1);
-                              setShowFilteredResults(false);
-                            }} 
-                            style={{ height: '46px', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', fontSize: '15px', fontWeight: isSelected ? 800 : 600, color: isSelected ? '#fff' : (day.dayName === '일' ? '#FF1744' : (day.dayName === '토' ? '#FF1744' : '#1E293B')), backgroundColor: isSelected ? themeColor : 'transparent', borderRadius: '14px', cursor: day.fullDate < todayStr ? 'default' : 'pointer', opacity: day.fullDate < todayStr ? 0.3 : 1 }}
+                              if (day.fullDate >= todayStr) { setSelectedDate(day.fullDate); }
+                            }}
+                            style={{ padding: '10px 0', borderRadius: '10px', background: isSelected ? themeColor : '#F8FAFC', color: isSelected ? '#fff' : '#1E293B', fontWeight: 800, cursor: 'pointer' }}
                           >
                             {day.date}
                           </div>
@@ -903,81 +840,33 @@ function App() {
                       });
                     })()}
                   </div>
-                ) : showFilterPanel && !showFilteredResults ? (
-                  <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '20px' }}>
-                      <button onClick={() => { setShowFullCalendar(false); setShowFilterPanel(false); setShowFilteredResults(false); setFilterStep(1); }} style={{ background: '#F8FAFC', border: 'none', borderRadius: '10px', padding: '8px 12px', fontSize: '13px', fontWeight: 700, color: view === 'class' ? '#2ECC71' : '#FF1744', display: 'flex', alignItems: 'center', gap: '4px' }}><X size={16} /> 닫기</button>
-                      {filterStep > 1 && <button onClick={() => setFilterStep(prev => prev - 1)} style={{ background: '#F8FAFC', border: 'none', borderRadius: '10px', padding: '8px 12px', fontSize: '13px', fontWeight: 700, color: '#64748B', display: 'flex', alignItems: 'center', gap: '4px' }}><ChevronLeft size={16} /> 이전</button>}
+                ) : (
+                  <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} style={{ padding: '10px' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '20px' }}>
+                      <button onClick={() => { setShowFilterPanel(false); setShowFilteredResults(false); setFilterStep(1); }} style={{ background: '#F8FAFC', border: 'none', borderRadius: '10px', padding: '8px 12px', fontSize: '13px', fontWeight: 700, color: '#FF1744', display: 'flex', alignItems: 'center', gap: '4px' }}><X size={16} /> 닫기</button>
                     </div>
                     
                     <div style={{ fontSize: '18px', fontWeight: 950, color: '#1E293B', marginBottom: '15px' }}>
-                      {view === 'class' ? (filterStep === 1 ? '어떤 장르의 수업을 원하시나요?' : '어느 지역에서 듣고 싶으세요?') : (filterStep === 1 ? '어디로 가시나요?' : '어떤 장르가 꽂히세요?')}
+                      {filterStep === 1 ? '어디로 가시나요?' : '어떤 장르가 꽂히세요?'}
                     </div>
 
-                    {view === 'class' ? (
-                      filterStep === 1 ? (
-                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
-                          {['바차타', '살사', '쥬크', '키좀바'].map(g => (
-                            <button key={g} onClick={() => { setFilterGenre(g); setFilterStep(2); }} style={{ padding: '24px 15px', borderRadius: '18px', background: filterGenre === g ? '#2ECC71' : '#F8FAFC', color: filterGenre === g ? '#fff' : '#64748B', fontWeight: 800, fontSize: '16px', border: 'none' }}>{g}</button>
-                          ))}
-                        </div>
-                      ) : (
-                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '10px' }}>
-                          {['서울', '경기/인천', '부산', '대구', '대전', '광주', '기타'].map(r => (
-                            <button key={r} onClick={() => { setFilterRegion(r); setShowFilteredResults(true); }} style={{ padding: '16px', borderRadius: '14px', background: filterRegion === r ? '#2ECC71' : '#F8FAFC', color: filterRegion === r ? '#fff' : '#64748B', fontWeight: 700, border: 'none' }}>{r}</button>
-                          ))}
-                        </div>
-                      )
+                    {filterStep === 1 ? (
+                      <div style={{ display: 'flex', overflowX: 'auto', gap: '10px', paddingBottom: '15px' }}>
+                        {['서울', '경기/인천', '부산', '대구', '대전', '광주', '기타'].map(r => (
+                          <button key={r} onClick={() => { setFilterRegion(r); setFilterStep(2); }} style={{ flexShrink: 0, padding: '14px 24px', borderRadius: '14px', background: filterRegion === r ? '#FF1744' : '#F8FAFC', color: filterRegion === r ? '#fff' : '#64748B', fontWeight: 700, border: 'none' }}>{r}</button>
+                        ))}
+                      </div>
                     ) : (
-                      filterStep === 1 ? (
-                        <div style={{ display: 'flex', overflowX: 'auto', gap: '10px', paddingBottom: '15px' }}>
-                          {['서울', '경기/인천', '부산', '대구', '대전', '광주', '기타'].map(r => (
-                            <button key={r} onClick={() => { setFilterRegion(r); setFilterStep(2); }} style={{ flexShrink: 0, padding: '14px 24px', borderRadius: '14px', background: filterRegion === r ? '#FF1744' : '#F8FAFC', color: filterRegion === r ? '#fff' : '#64748B', fontWeight: 700, border: 'none' }}>{r}</button>
-                          ))}
-                        </div>
-                      ) : (
-                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
-                          {['바차타', '살사', '쥬크', '키좀바'].map(g => (
-                            <button key={g} onClick={() => { setFilterGenre(g); setShowFilteredResults(true); }} style={{ padding: '24px 15px', borderRadius: '18px', background: filterGenre === g ? '#1E293B' : '#F8FAFC', color: filterGenre === g ? '#fff' : '#64748B', fontWeight: 800, fontSize: '16px', border: 'none' }}>{g}</button>
-                          ))}
-                        </div>
-                      )
+                      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+                        {['바차타', '살사', '쥬크', '키좀바'].map(g => (
+                          <button key={g} onClick={() => { setFilterGenre(g); setShowFilteredResults(true); }} style={{ padding: '24px 15px', borderRadius: '18px', background: filterGenre === g ? '#1E293B' : '#F8FAFC', color: filterGenre === g ? '#fff' : '#64748B', fontWeight: 800, fontSize: '16px', border: 'none' }}>{g}</button>
+                        ))}
+                      </div>
                     )}
-                  </motion.div>
-                ) : (
-                  <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '20px' }}>
-                      <button onClick={() => setShowFilteredResults(false)} style={{ background: '#F8FAFC', border: 'none', borderRadius: '10px', padding: '8px 12px', fontSize: '13px', fontWeight: 700, color: '#64748B', display: 'flex', alignItems: 'center', gap: '4px' }}><ChevronLeft size={16} /> 조건 다시 선택</button>
-                    </div>
-                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(1, 1fr)', gap: '12px', marginBottom: '20px' }}>
-                      {view === 'class' ? (
-                        lessons.filter(l => {
-                          const matchesRegion = filterRegion ? l.broadRegion === filterRegion : true;
-                          const matchesGenre = filterGenre ? l.genre === filterGenre : true;
-                          const matchesDate = l.day_of_week.includes(DAYS_KOR[new Date(selectedDate).getDay()]);
-                          return matchesRegion && matchesGenre && matchesDate;
-                        }).length === 0 ? (
-                          <div style={{ padding: '60px 0', textAlign: 'center', color: '#94A3B8', fontWeight: 700 }}>해당 조건의 수업이 없습니다 😅</div>
-                        ) : (
-                          lessons.filter(l => {
-                            const matchesRegion = filterRegion ? l.broadRegion === filterRegion : true;
-                            const matchesGenre = filterGenre ? l.genre === filterGenre : true;
-                            const matchesDate = l.day_of_week.includes(DAYS_KOR[new Date(selectedDate).getDay()]);
-                            return matchesRegion && matchesGenre && matchesDate;
-                          }).map(item => (
-                            <div key={item.id} onClick={() => setSelectedPoster(item.poster_url)} style={{ background: '#F8FAFC', borderRadius: '16px', padding: '12px', display: 'flex', gap: '15px', border: '1px solid #EDF2F7', cursor: 'pointer' }}>
-                              <img src={item.poster_url} style={{ width: '80px', height: '100px', objectFit: 'cover', borderRadius: '10px' }} alt="Poster" />
-                              <div style={{ flex: 1 }}>
-                                <div style={{ fontSize: '11px', color: '#2ECC71', fontWeight: 800 }}>{item.displayBroadRegion}</div>
-                                <div style={{ fontSize: '14px', fontWeight: 900, color: '#1E293B', marginTop: '2px' }}>{item.title}</div>
-                                <div style={{ fontSize: '12px', color: '#64748B', marginTop: '4px' }}>{item.instructor} | {item.level}</div>
-                                <div style={{ fontSize: '11px', color: '#94A3B8', marginTop: '6px' }}>{item.day_of_week} {item.start_time}</div>
-                              </div>
-                            </div>
-                          ))
-                        )
-                      ) : (
-                        displayParties.filter(p => {
+
+                    {showFilteredResults && (
+                      <div style={{ marginTop: '20px', display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                        {displayParties.filter(p => {
                           const matchesRegion = filterRegion ? (p.broadRegion === filterRegion || p.address?.includes(filterRegion)) : true;
                           const matchesGenre = filterGenre ? p[GENRE_MAP[filterGenre]?.key] > 0 : true;
                           return p.date === selectedDate && matchesRegion && matchesGenre;
@@ -999,10 +888,10 @@ function App() {
                               </div>
                             </div>
                           ))
-                        )
-                      )}
-                    </div>
-                    <button onClick={handleCloseModal} style={{ width: '100%', height: '54px', borderRadius: '16px', background: view === 'class' ? '#2ECC71' : '#1E293B', color: '#fff', fontSize: '16px', fontWeight: 800, border: 'none' }}>확인 완료</button>
+                        )}
+                      </div>
+                    )}
+                    <button onClick={handleCloseModal} style={{ width: '100%', height: '54px', borderRadius: '16px', background: '#1E293B', color: '#fff', fontSize: '16px', fontWeight: 800, border: 'none' }}>확인 완료</button>
                   </motion.div>
                 )}
               </div>
@@ -1032,13 +921,7 @@ function App() {
             <span style={{ fontSize: '10px', fontWeight: view === 'home' ? 900 : 500, color: view === 'home' ? '#FF1744' : '#94A3B8' }}>소셜/파티</span>
           </div>
 
-          <div 
-            className={`nav-item ${view === 'class' ? 'active' : ''}`} 
-            onClick={() => { setView('class'); window.scrollTo(0,0); }}
-          >
-            <GraduationCap size={22} color={view === 'class' ? '#2ECC71' : '#94A3B8'} style={{ marginBottom: '4px' }} />
-            <span style={{ fontSize: '10px', fontWeight: view === 'class' ? 900 : 500, color: view === 'class' ? '#2ECC71' : '#94A3B8' }}>LEVEL UP</span>
-          </div>
+
 
           <div className="nav-item central-action" style={{ pointerEvents: 'none', position: 'relative', zIndex: 1001 }}>
             <motion.button
@@ -1047,7 +930,7 @@ function App() {
               style={{
                 width:'52px', height:'52px',
                 borderRadius:'50%',
-                background: view === 'class' ? 'linear-gradient(135deg, #2ECC71 0%, #27AE60 100%)' : 'linear-gradient(135deg, #FF1744 0%, #D32F2F 100%)',
+                background: 'linear-gradient(135deg, #FF1744 0%, #D32F2F 100%)',
                 border:'none', color:'#fff',
                 display:'flex', alignItems:'center',
                 justifyContent:'center', cursor:'pointer',
@@ -1055,7 +938,7 @@ function App() {
                 pointerEvents: 'auto'
               }}
               onClick={() => {
-                handleRegister(view === 'class' ? 'class' : 'party')
+                handleRegister('party')
               }}
             >
               <Plus size={28} strokeWidth={3} />
