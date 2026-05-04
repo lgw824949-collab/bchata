@@ -666,7 +666,7 @@ function App() {
                       const newCount = weatherTapCount + 1;
                       setWeatherTapCount(newCount);
                       if (newCount >= 5) {
-                        setView('admin');
+                        setView('admin-portal');
                         setIsMenuOpen(false);
                         setWeatherTapCount(0);
                         return;
@@ -744,8 +744,57 @@ function App() {
             'restaurant': <Restaurant onBack={() => setView('home')} />,
             'register-party': <RegisterForm onBack={() => setView('home')} />,
             'register-class': <PostClass onBack={() => setView('class')} />,
-            'admin': <AdminDashboard onNavigateToClass={() => setView('class-admin')} onBack={() => setView('home')} refreshData={fetchParties} />,
-            'class-admin': <ClassAdminDashboard onBack={() => setView('admin')} />
+            'admin': <AdminDashboard setView={setView} onBack={() => setView('admin-portal')} refreshData={fetchParties} />,
+            'class-admin': <ClassAdminDashboard onBack={() => setView('admin-portal')} />,
+            'admin-portal': (
+              <div style={{ 
+                height: '100vh', 
+                background: '#0F172A', 
+                display: 'flex', 
+                flexDirection: 'column', 
+                alignItems: 'center', 
+                justifyContent: 'center', 
+                padding: '20px',
+                gap: '20px'
+              }}>
+                <div style={{ textAlign: 'center', marginBottom: '30px' }}>
+                  <ShieldCheck size={64} color="#FF1744" style={{ margin: '0 auto 16px' }} />
+                  <h2 style={{ color: 'white', fontSize: '24px', fontWeight: 900 }}>관리자 포털</h2>
+                  <p style={{ color: '#94A3B8', fontSize: '14px' }}>관리하실 항목을 선택해주세요.</p>
+                </div>
+                
+                <button 
+                  onClick={() => setView('admin')}
+                  style={{ 
+                    width: '100%', maxWidth: '320px', padding: '24px', 
+                    borderRadius: '20px', background: '#1E293B', color: 'white', 
+                    border: '1px solid #334155', fontSize: '18px', fontWeight: 800,
+                    cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '15px'
+                  }}
+                >
+                  <Music2 size={24} color="#FF1744" /> 소셜파티 관리
+                </button>
+                
+                <button 
+                  onClick={() => setView('class-admin')}
+                  style={{ 
+                    width: '100%', maxWidth: '320px', padding: '24px', 
+                    borderRadius: '20px', background: '#1E293B', color: 'white', 
+                    border: '1px solid #334155', fontSize: '18px', fontWeight: 800,
+                    cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '15px'
+                  }}
+                >
+                  <GraduationCap size={24} color="#2ECC71" /> 클래스 관리
+                </button>
+                
+                <button 
+                  onClick={() => setView('home')}
+                  style={{ marginTop: '40px', background: 'none', border: 'none', color: '#64748B', fontWeight: 700, cursor: 'pointer' }}
+                >
+                  메인으로 돌아가기
+                </button>
+              </div>
+            )
           }[view] || <AdminDashboard onNavigateToClass={() => setView('class-admin')} onBack={() => setView('home')} refreshData={fetchParties} />}
       </main>
 
