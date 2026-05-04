@@ -21,19 +21,21 @@ const ClassCard = ({ item, onSelect }) => {
     <div 
       onClick={() => onSelect(item.poster_url)}
       style={{ 
-        width: '140px',
+        width: '160px',
         flexShrink: 0,
         background: '#fff', 
-        borderRadius: '16px', 
+        borderRadius: '20px', 
         overflow: 'hidden', 
         cursor: 'pointer',
         display: 'flex',
         flexDirection: 'column',
-        scrollSnapAlign: 'start'
+        scrollSnapAlign: 'start',
+        boxShadow: '0 4px 12px rgba(0,0,0,0.05)',
+        border: '1px solid #F1F5F9'
       }}
     >
-      {/* 포스터 이미지 (140x180) */}
-      <div style={{ width: '140px', height: '180px', background: '#F1F5F9', position: 'relative', overflow: 'hidden' }}>
+      {/* 포스터 이미지 (160x200) */}
+      <div style={{ width: '160px', height: '200px', background: '#F1F5F9', position: 'relative', overflow: 'hidden' }}>
         {item.poster_url ? (
           <img src={item.poster_url} style={{ width: '100%', height: '100%', objectFit: 'cover' }} alt="Poster" />
         ) : (
@@ -42,36 +44,45 @@ const ClassCard = ({ item, onSelect }) => {
           </div>
         )}
         
-        {/* 레벨 배지 (이미지 좌상단 절대위치) */}
+        {/* 레벨 배지 (좌상단 절대위치) */}
         <div style={{ 
-          position: 'absolute', top: '8px', left: '8px',
+          position: 'absolute', top: '10px', left: '10px',
           background: badgeColor, color: '#fff', 
           fontSize: '10px', fontWeight: '900', 
-          padding: '2px 8px', borderRadius: '6px',
-          boxShadow: '0 2px 4px rgba(0,0,0,0.2)'
+          padding: '3px 10px', borderRadius: '8px',
+          boxShadow: '0 2px 8px rgba(0,0,0,0.15)',
+          zIndex: 10
         }}>
           {item.level || '입문'}
         </div>
       </div>
 
       {/* 정보 영역 */}
-      <div style={{ padding: '10px 4px' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '4px', marginBottom: '4px' }}>
-          <span style={{ fontSize: '11px', fontWeight: '900', color: '#FF1744' }}>{item.genre}</span>
-          <MapPin size={10} color="#FF1744" />
+      <div style={{ padding: '12px 10px' }}>
+        <div style={{ marginBottom: '4px' }}>
+          <span style={{ fontSize: '11px', fontWeight: '800', color: '#FF3B30' }}>{item.genre}</span>
         </div>
         
         <h3 style={{ 
-          fontSize: '13px', fontWeight: '800', color: '#1E293B', 
-          margin: '0 0 4px', height: '36px', display: '-webkit-box',
+          fontSize: '13px', fontWeight: '900', color: '#1E293B', 
+          margin: '0 0 8px', height: '36px', display: '-webkit-box',
           WebkitLineClamp: 2, WebkitBoxOrient: 'vertical',
           overflow: 'hidden', lineHeight: '1.4'
         }}>{item.title}</h3>
 
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '2px', fontSize: '11px', color: '#64748B' }}>
-          <div style={{ fontWeight: '600', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{item.studio_name}</div>
-          <div>{item.day_of_week} · {item.start_time?.slice(0,5)}</div>
-          <div style={{ color: '#94A3B8', fontWeight: '700', marginTop: '2px', fontSize: '10px' }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+          <div style={{ 
+            fontSize: '11px', color: '#64748B', fontWeight: '700',
+            whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' 
+          }}>
+            {item.studio_name}
+          </div>
+          
+          <div style={{ fontSize: '11px', color: '#94A3B8', fontWeight: '700' }}>
+            {item.day_of_week} · {item.start_time?.slice(0,5)}
+          </div>
+          
+          <div style={{ color: '#2ECC71', fontWeight: '800', fontSize: '11px', marginTop: '2px' }}>
             {(() => {
               const d = new Date(item.start_date);
               return `${d.getMonth() + 1}/${d.getDate()} · ${weekText}`;
