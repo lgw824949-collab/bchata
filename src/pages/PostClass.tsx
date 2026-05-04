@@ -214,8 +214,11 @@ export default function PostClass({ onBack }) {
                     </div>
                     <span style={{ fontSize: '15px', color: '#64748B', fontWeight: 700 }}>이미지 파일을 선택해주세요</span>
                     <div style={{ fontSize: '15px', color: '#EF4444', marginTop: '12px', fontWeight: 800, lineHeight: '1.5' }}>
-                      ※ 포스터에 활동비 또는 금액을 적어 주셔야 합니다.<br/>
-                      미기재 시 등록 제한됩니다.
+                      ※ 포스터에 반드시 '활동비' 단어를 기재해 주세요.
+                    </div>
+                    <div style={{ fontSize: '13px', color: '#FF3B30', fontWeight: 900, textAlign: 'center', marginTop: '10px', lineHeight: '1.4' }}>
+                      ⚠️ '활동비 OOO원' 형식으로 포스터에 직접 기재<br/>
+                      미기재 시 승인 거절됩니다.
                     </div>
                     <input 
                       type="file" accept="image/*" onChange={handleUpload} 
