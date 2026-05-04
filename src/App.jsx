@@ -364,14 +364,16 @@ function App() {
 
   const todayData = getKSTDate();
 
-  const [showSplash, setShowSplash] = useState(true);
+  const [showSplash, setShowSplash] = useState(!localStorage.getItem('splash_shown'));
 
   useEffect(() => {
+    if (!showSplash) return;
     const timer = setTimeout(() => {
+      localStorage.setItem('splash_shown', 'true');
       setShowSplash(false);
     }, 4000);
     return () => clearTimeout(timer);
-  }, []);
+  }, [showSplash]);
   const [parties, setParties] = useState([]);
   const [lessons, setLessons] = useState([]);
   const [displayParties, setDisplayParties] = useState([]);
