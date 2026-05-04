@@ -292,6 +292,7 @@ export default function ClassAdminDashboard({ onBack }) {
                       <div style={{ fontSize: '11px', color: '#94A3B8', marginTop: '6px', display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
                         <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}><Tag size={12} /> {item.studio_name}</span>
                         <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}><Award size={12} /> {item.duration}</span>
+                        <span style={{ display: 'flex', alignItems: 'center', gap: '4px', color: '#2ECC71', fontWeight: 900 }}>활동비 {item.fee ? (Number(item.fee).toLocaleString() + '원') : '문의'}</span>
                       </div>
                     </>
                   )}

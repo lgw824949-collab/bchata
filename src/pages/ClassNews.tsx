@@ -89,6 +89,9 @@ const ClassCard = ({ item, onSelect }) => {
               return `${d.getMonth() + 1}/${d.getDate()} · ${weekText}`;
             })()}
           </div>
+          <div style={{ color: '#64748B', fontWeight: '800', fontSize: '11px', marginTop: '4px' }}>
+            활동비 {item.fee ? (Number(item.fee).toLocaleString() + '원') : '문의'}
+          </div>
         </div>
       </div>
     </div>

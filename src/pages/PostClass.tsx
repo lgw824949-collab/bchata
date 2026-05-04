@@ -214,7 +214,7 @@ export default function PostClass({ onBack }) {
                     </div>
                     <span style={{ fontSize: '15px', color: '#64748B', fontWeight: 700 }}>이미지 파일을 선택해주세요</span>
                     <div style={{ fontSize: '15px', color: '#EF4444', marginTop: '12px', fontWeight: 800, lineHeight: '1.5' }}>
-                      ※ 포스터에 참가비 또는 금액을 적어 주셔야 합니다.<br/>
+                      ※ 포스터에 활동비 또는 금액을 적어 주셔야 합니다.<br/>
                       미기재 시 등록 제한됩니다.
                     </div>
                     <input 
@@ -489,15 +489,20 @@ export default function PostClass({ onBack }) {
                   </div>
                 </div>
 
-                {/* 7. 참여비 */}
+                {/* 7. 활동비 */}
                 <div style={cardStyle}>
-                  <label style={labelStyle}>참여비</label>
+                  <label style={{ ...labelStyle, color: '#FF3B30', fontWeight: '900' }}>💰 활동비 (동호회 활동비로 표기 필수!)</label>
                   <div style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
-                    <input type="number" value={formData.fee} onChange={e => setFormData(p => ({...p, fee: e.target.value}))} placeholder="예: 80000" style={{ ...inputStyle, paddingRight: '40px' }} />
+                    <input type="number" value={formData.fee} onChange={e => setFormData(p => ({...p, fee: e.target.value}))} placeholder="예: 80000 (활동비로 포스터에 표기해주세요)" style={{ ...inputStyle, paddingRight: '40px' }} />
                     <span style={{ position: 'absolute', right: '15px', fontWeight: 800, color: '#64748B' }}>원</span>
                   </div>
                 </div>
               </div>
+
+                <div style={{ fontSize: '11px', color: '#94A3B8', textAlign: 'center', marginBottom: '20px', lineHeight: '1.5' }}>
+                  본 서비스는 라틴댄스 동호회 정보 게시판입니다.<br/>
+                  게시된 포스터 및 활동비에 대한 책임은 등록자에게 있습니다.
+                </div>
 
               {/* 하단 고정 버튼 */}
               <button 
