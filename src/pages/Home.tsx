@@ -547,8 +547,6 @@ const HomePage = ({
                     return false;
                   }).slice(0, 20);
 
-                  if (regionLessons.length === 0) return null;
-
                   return (
                     <div key={`class-${regionName}`} style={{ margin: '0 0 15px', padding: '20px 0', background: '#fff', borderBottom: '1px solid #eee' }}>
                       <div style={{ padding: '0 20px 15px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
@@ -562,39 +560,45 @@ const HomePage = ({
                           {t('view_all')} <ChevronRight size={14} />
                         </button>
                       </div>
-                      <div 
-                        className="no-scrollbar"
-                        onMouseDown={(e) => {
-                          const el = e.currentTarget;
-                          el.style.cursor = 'grabbing';
-                          el.style.userSelect = 'none';
-                          const startX = e.pageX - el.offsetLeft;
-                          const scrollLeft = el.scrollLeft;
-                          const onMouseMove = (e) => {
-                            const x = e.pageX - el.offsetLeft;
-                            const walk = (x - startX) * 2;
-                            el.scrollLeft = scrollLeft - walk;
-                          };
-                          const onMouseUp = () => {
-                            el.style.cursor = 'grab';
-                            el.style.removeProperty('user-select');
-                            document.removeEventListener('mousemove', onMouseMove);
-                            document.removeEventListener('mouseup', onMouseUp);
-                          };
-                          document.addEventListener('mousemove', onMouseMove);
-                          document.addEventListener('mouseup', onMouseUp);
-                        }}
-                        style={{ 
-                          display: 'flex', gap: '12px', padding: '0 20px',
-                          overflowX: 'auto', scrollSnapType: 'x mandatory',
-                          cursor: 'grab', WebkitOverflowScrolling: 'touch'
-                        }}
-                      >
-                        {regionLessons.map(item => (
-                          <ClassCard key={item.id} item={item} onSelect={(url) => handleOpenModal(setSelectedPoster, url)} />
-                        ))}
-                        <div style={{ width: '20px', flexShrink: 0 }} />
-                      </div>
+                      {regionLessons.length > 0 ? (
+                        <div 
+                          className="no-scrollbar"
+                          onMouseDown={(e) => {
+                            const el = e.currentTarget;
+                            el.style.cursor = 'grabbing';
+                            el.style.userSelect = 'none';
+                            const startX = e.pageX - el.offsetLeft;
+                            const scrollLeft = el.scrollLeft;
+                            const onMouseMove = (e) => {
+                              const x = e.pageX - el.offsetLeft;
+                              const walk = (x - startX) * 2;
+                              el.scrollLeft = scrollLeft - walk;
+                            };
+                            const onMouseUp = () => {
+                              el.style.cursor = 'grab';
+                              el.style.removeProperty('user-select');
+                              document.removeEventListener('mousemove', onMouseMove);
+                              document.removeEventListener('mouseup', onMouseUp);
+                            };
+                            document.addEventListener('mousemove', onMouseMove);
+                            document.addEventListener('mouseup', onMouseUp);
+                          }}
+                          style={{ 
+                            display: 'flex', gap: '12px', padding: '0 20px',
+                            overflowX: 'auto', scrollSnapType: 'x mandatory',
+                            cursor: 'grab', WebkitOverflowScrolling: 'touch'
+                          }}
+                        >
+                          {regionLessons.map(item => (
+                            <ClassCard key={item.id} item={item} onSelect={(url) => handleOpenModal(setSelectedPoster, url)} />
+                          ))}
+                          <div style={{ width: '20px', flexShrink: 0 }} />
+                        </div>
+                      ) : (
+                        <div style={{ padding: '20px', margin: '0 20px', background: '#F8FAFC', borderRadius: '12px', textAlign: 'center', color: '#94A3B8', fontSize: '13px', fontWeight: '700' }}>
+                          이 지역에 등록된 클래스가 없습니다.
+                        </div>
+                      )}
                     </div>
                   );
                 });
