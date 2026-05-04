@@ -1,12 +1,14 @@
 import React, { useState, useEffect } from 'react'
 import { supabase } from './lib/supabase'
-import { ChevronLeft, Check, Trash2, RefreshCw, Calendar, Clock, MapPin, User, Tag, Award } from 'lucide-react'
+import { ChevronLeft, Check, Trash2, RefreshCw, Calendar, Clock, MapPin, User, Tag, Award, Edit2, X, Save } from 'lucide-react'
 
 export default function ClassAdminDashboard({ onBack }) {
   const [items, setItems] = useState([])
   const [activeTab, setActiveTab] = useState('pending') // 'pending', 'approved', 'expired'
   const [loading, setLoading] = useState(false)
   const [counts, setCounts] = useState({ pending: 0, approved: 0, expired: 0 })
+  const [editingId, setEditingId] = useState(null)
+  const [editData, setEditData] = useState({})
 
   // 데이터 및 건수 불러오기
   const fetchData = async () => {
@@ -85,6 +87,39 @@ export default function ClassAdminDashboard({ onBack }) {
       fetchData()
     } catch (err) {
       alert('삭제 실패: ' + err.message)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  // 수정 시작
+  const handleEditStart = (item) => {
+    setEditingId(item.id)
+    setEditData({ ...item })
+  }
+
+  // 수정 저장
+  const handleSave = async (id) => {
+    setLoading(true)
+    try {
+      const { error } = await supabase
+        .from('classes_info')
+        .update({
+          title: editData.title,
+          genre: editData.genre,
+          level: editData.level,
+          duration: editData.duration,
+          fee: editData.fee,
+          city: editData.city
+        })
+        .eq('id', id)
+      
+      if (error) throw error
+      alert('수정되었습니다.')
+      setEditingId(null)
+      fetchData()
+    } catch (err) {
+      alert('수정 실패: ' + err.message)
     } finally {
       setLoading(false)
     }
@@ -192,72 +227,118 @@ export default function ClassAdminDashboard({ onBack }) {
                 </div>
 
                 <div style={{ flex: 1, minWidth: 0 }}>
-                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px', marginBottom: '6px' }}>
-                    <span style={{ fontSize: '10px', background: '#F1F5F9', color: '#64748B', padding: '2px 8px', borderRadius: '6px', fontWeight: 800 }}>{item.genre}</span>
-                    <span style={{ fontSize: '10px', background: '#F0FFF4', color: '#2ECC71', padding: '2px 8px', borderRadius: '6px', fontWeight: 800 }}>{item.level}</span>
-                    {item.status === 'pending' && <span style={{ fontSize: '10px', background: '#FFF7ED', color: '#FF8C00', padding: '2px 8px', borderRadius: '6px', fontWeight: 800 }}>대기중</span>}
-                  </div>
-                  
-                  <h3 style={{ fontSize: '16px', fontWeight: 900, color: '#1E293B', margin: '0 0 8px 0', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{item.title}</h3>
-                  
-                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '6px', fontSize: '11px', color: '#64748B' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}><User size={12} /> {item.instructor || '미지정'}</div>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}><MapPin size={12} /> {item.city}</div>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}><Calendar size={12} /> {item.day_of_week} ({item.start_date?.slice(5)})</div>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}><Clock size={12} /> {item.start_time?.slice(0,5)}~{item.end_time?.slice(0,5)}</div>
-                  </div>
+                  {editingId === item.id ? (
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                      <input 
+                        value={editData.title || ''} 
+                        onChange={e => setEditData({...editData, title: e.target.value})}
+                        style={{ width: '100%', padding: '8px', borderRadius: '8px', border: '1px solid #2ECC71', fontSize: '14px', fontWeight: 900 }}
+                        placeholder="제목"
+                      />
+                      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
+                        <select 
+                          value={editData.genre || ''} 
+                          onChange={e => setEditData({...editData, genre: e.target.value})}
+                          style={{ padding: '8px', borderRadius: '8px', border: '1px solid #E2E8F0' }}
+                        >
+                          {['바차타', '살사', '키좀바', '쥬크'].map(g => <option key={g} value={g}>{g}</option>)}
+                        </select>
+                        <select 
+                          value={editData.level || ''} 
+                          onChange={e => setEditData({...editData, level: e.target.value})}
+                          style={{ padding: '8px', borderRadius: '8px', border: '1px solid #E2E8F0' }}
+                        >
+                          {['입문', '초급', '중급', '상급'].map(l => <option key={l} value={l}>{l}</option>)}
+                        </select>
+                      </div>
+                      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
+                        <input 
+                          value={editData.city || ''} 
+                          onChange={e => setEditData({...editData, city: e.target.value})}
+                          style={{ padding: '8px', borderRadius: '8px', border: '1px solid #E2E8F0' }}
+                          placeholder="지역(도시)"
+                        />
+                        <input 
+                          value={editData.duration || ''} 
+                          onChange={e => setEditData({...editData, duration: e.target.value})}
+                          style={{ padding: '8px', borderRadius: '8px', border: '1px solid #E2E8F0' }}
+                          placeholder="기간"
+                        />
+                      </div>
+                      <input 
+                        value={editData.fee || ''} 
+                        onChange={e => setEditData({...editData, fee: e.target.value})}
+                        style={{ padding: '8px', borderRadius: '8px', border: '1px solid #E2E8F0' }}
+                        placeholder="비용"
+                      />
+                    </div>
+                  ) : (
+                    <>
+                      <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px', marginBottom: '6px' }}>
+                        <span style={{ fontSize: '10px', background: '#F1F5F9', color: '#64748B', padding: '2px 8px', borderRadius: '6px', fontWeight: 800 }}>{item.genre}</span>
+                        <span style={{ fontSize: '10px', background: '#F0FFF4', color: '#2ECC71', padding: '2px 8px', borderRadius: '6px', fontWeight: 800 }}>{item.level}</span>
+                        {item.status === 'pending' && <span style={{ fontSize: '10px', background: '#FFF7ED', color: '#FF8C00', padding: '2px 8px', borderRadius: '6px', fontWeight: 800 }}>대기중</span>}
+                      </div>
+                      
+                      <h3 style={{ fontSize: '16px', fontWeight: 900, color: '#1E293B', margin: '0 0 8px 0', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{item.title}</h3>
+                      
+                      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '6px', fontSize: '11px', color: '#64748B' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}><User size={12} /> {item.instructor || '미지정'}</div>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}><MapPin size={12} /> {item.city}</div>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}><Calendar size={12} /> {item.day_of_week} ({item.start_date?.slice(5)})</div>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}><Clock size={12} /> {item.start_time?.slice(0,5)}~{item.end_time?.slice(0,5)}</div>
+                      </div>
 
-                  <div style={{ fontSize: '11px', color: '#94A3B8', marginTop: '6px', display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
-                    <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}><Tag size={12} /> {item.studio_name}</span>
-                    <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}><Award size={12} /> {item.duration}</span>
-                  </div>
+                      <div style={{ fontSize: '11px', color: '#94A3B8', marginTop: '6px', display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
+                        <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}><Tag size={12} /> {item.studio_name}</span>
+                        <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}><Award size={12} /> {item.duration}</span>
+                      </div>
+                    </>
+                  )}
                 </div>
               </div>
 
               {/* 하단 액션 버튼 */}
               <div style={{ display: 'flex', gap: '8px', marginTop: '16px' }}>
-                {activeTab === 'pending' && (
-                  <button 
-                    onClick={() => handleApprove(item.id)} 
-                    style={{ 
-                      flex: 2, 
-                      background: '#2ECC71', 
-                      color: 'white', 
-                      padding: '12px', 
-                      borderRadius: '12px', 
-                      fontWeight: 800, 
-                      border: 'none', 
-                      cursor: 'pointer', 
-                      display: 'flex', 
-                      alignItems: 'center', 
-                      justifyContent: 'center', 
-                      gap: '6px',
-                      fontSize: '14px'
-                    }}
-                  >
-                    <Check size={18} /> 승인하기
-                  </button>
+                {editingId === item.id ? (
+                  <>
+                    <button 
+                      onClick={() => handleSave(item.id)} 
+                      style={{ flex: 1, background: '#2ECC71', color: 'white', padding: '12px', borderRadius: '12px', fontWeight: 800, border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px', fontSize: '14px' }}
+                    >
+                      <Save size={18} /> 저장
+                    </button>
+                    <button 
+                      onClick={() => setEditingId(null)} 
+                      style={{ flex: 1, background: '#F1F5F9', color: '#64748B', padding: '12px', borderRadius: '12px', fontWeight: 800, border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px', fontSize: '14px' }}
+                    >
+                      <X size={18} /> 취소
+                    </button>
+                  </>
+                ) : (
+                  <>
+                    {activeTab === 'pending' && (
+                      <button 
+                        onClick={() => handleApprove(item.id)} 
+                        style={{ flex: 2, background: '#2ECC71', color: 'white', padding: '12px', borderRadius: '12px', fontWeight: 800, border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px', fontSize: '14px' }}
+                      >
+                        <Check size={18} /> 승인하기
+                      </button>
+                    )}
+                    <button 
+                      onClick={() => handleEditStart(item)} 
+                      style={{ flex: 1, background: '#F1F5F9', color: '#64748B', padding: '12px', borderRadius: '12px', fontWeight: 800, border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px', fontSize: '14px' }}
+                    >
+                      <Edit2 size={18} /> 수정
+                    </button>
+                    <button 
+                      onClick={() => handleDelete(item.id)} 
+                      style={{ flex: 1, background: '#FEE2E2', color: '#EF4444', padding: '12px', borderRadius: '12px', fontWeight: 800, border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px', fontSize: '14px' }}
+                    >
+                      <Trash2 size={18} /> {activeTab === 'pending' ? '삭제' : '삭제'}
+                    </button>
+                  </>
                 )}
-                <button 
-                  onClick={() => handleDelete(item.id)} 
-                  style={{ 
-                    flex: 1, 
-                    background: '#FEE2E2', 
-                    color: '#EF4444', 
-                    padding: '12px', 
-                    borderRadius: '12px', 
-                    fontWeight: 800, 
-                    border: 'none', 
-                    cursor: 'pointer', 
-                    display: 'flex', 
-                    alignItems: 'center', 
-                    justifyContent: 'center', 
-                    gap: '6px',
-                    fontSize: '14px'
-                  }}
-                >
-                  <Trash2 size={18} /> {activeTab === 'pending' ? '반려(삭제)' : '영구삭제'}
-                </button>
               </div>
             </div>
           ))

@@ -530,6 +530,75 @@ const HomePage = ({
               )}
 
 
+              {/* 📌 [새로 추가] 지역별 추천 클래스 섹션 */}
+              {(() => {
+                const classRegions = ["서울", "경기,인천", "경상도", "충청도", "전라도", "강원,제주"];
+                const approvedClasses = (lessons || []).filter(l => l.category_type === 'class' && l.status === 'approved');
+                
+                return classRegions.map(regionName => {
+                  const regionLessons = approvedClasses.filter(l => {
+                    const text = `${l.city || ''} ${l.broadRegion || ''} ${l.region || ''} ${l.address || ''} ${l.studio_name || ''}`.toLowerCase();
+                    if (regionName === "서울") return text.includes("서울");
+                    if (regionName === "경기,인천") return text.includes("경기") || text.includes("인천") || text.includes("부천") || text.includes("수원") || text.includes("의정부") || text.includes("안양") || text.includes("고양") || text.includes("일산") || text.includes("성남") || text.includes("분당") || text.includes("평택") || text.includes("시흥");
+                    if (regionName === "경상도") return text.includes("경상") || text.includes("경남") || text.includes("경북") || text.includes("부산") || text.includes("대구") || text.includes("울산");
+                    if (regionName === "전라도") return text.includes("전라") || text.includes("전남") || text.includes("전북") || text.includes("광주");
+                    if (regionName === "충청도") return text.includes("충청") || text.includes("충남") || text.includes("충북") || text.includes("대전") || text.includes("세종");
+                    if (regionName === "강원,제주") return text.includes("강원") || text.includes("제주");
+                    return false;
+                  }).slice(0, 20);
+
+                  if (regionLessons.length === 0) return null;
+
+                  return (
+                    <div key={`class-${regionName}`} style={{ margin: '0 0 15px', padding: '20px 0', background: '#fff', borderBottom: '1px solid #eee' }}>
+                      <div style={{ padding: '0 20px 15px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                        <h2 style={{ fontSize: '18px', fontWeight: '950', color: '#1E293B', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                          <span style={{ color: '#2ECC71' }}>NEW</span> {regionName} 클래스
+                        </h2>
+                        <button 
+                          onClick={() => setView('class')}
+                          style={{ fontSize: '12px', fontWeight: '700', color: '#94A3B8', background: 'none', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '2px' }}
+                        >
+                          {t('view_all')} <ChevronRight size={14} />
+                        </button>
+                      </div>
+                      <div 
+                        className="no-scrollbar"
+                        onMouseDown={(e) => {
+                          const el = e.currentTarget;
+                          el.style.cursor = 'grabbing';
+                          el.style.userSelect = 'none';
+                          const startX = e.pageX - el.offsetLeft;
+                          const scrollLeft = el.scrollLeft;
+                          const onMouseMove = (e) => {
+                            const x = e.pageX - el.offsetLeft;
+                            const walk = (x - startX) * 2;
+                            el.scrollLeft = scrollLeft - walk;
+                          };
+                          const onMouseUp = () => {
+                            el.style.cursor = 'grab';
+                            el.style.removeProperty('user-select');
+                            document.removeEventListener('mousemove', onMouseMove);
+                            document.removeEventListener('mouseup', onMouseUp);
+                          };
+                          document.addEventListener('mousemove', onMouseMove);
+                          document.addEventListener('mouseup', onMouseUp);
+                        }}
+                        style={{ 
+                          display: 'flex', gap: '12px', padding: '0 20px',
+                          overflowX: 'auto', scrollSnapType: 'x mandatory',
+                          cursor: 'grab', WebkitOverflowScrolling: 'touch'
+                        }}
+                      >
+                        {regionLessons.map(item => (
+                          <ClassCard key={item.id} item={item} onSelect={(url) => handleOpenModal(setSelectedPoster, url)} />
+                        ))}
+                        <div style={{ width: '20px', flexShrink: 0 }} />
+                      </div>
+                    </div>
+                  );
+                });
+              })()}
               {IncheonBanner && <IncheonBanner />}
               {(() => {
                 const regions = ["서울", "경기/인천", "경상도", "전라도", "충청도", "강원/제주"];
