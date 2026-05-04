@@ -188,73 +188,89 @@ const PartyCard = ({ item, onSelect }) => {
 };
 
 const ClassCard = ({ item, onSelect }) => {
-  const { i18n } = useTranslation();
-  const weekLabel = (() => {
-    if (!item.week_type) return '상시 운영';
-    const num = parseInt(item.week_type);
-    return isNaN(num) ? item.week_type : `${num}주 과정`;
-  })();
-  const startLabel = (() => {
-    if (!item.start_date) return '';
-    const d = new Date(item.start_date);
-    return `${d.getMonth() + 1}/${d.getDate()} 시작`;
-  })();
+  const levelColors = {
+    '입문': '#2ECC71',
+    '초급': '#3B82F6',
+    '중급': '#F59E0B',
+    '상급': '#EF4444',
+    '고급': '#EF4444'
+  };
+  const badgeColor = levelColors[item.level] || '#64748B';
+  const weekText = item.week_type?.includes('주차') 
+    ? item.week_type.replace('주차', '주 과정') 
+    : (item.week_type || '상시 운영');
+
   return (
-    <div
+    <div 
       onClick={() => onSelect(item.poster_url)}
-      style={{
-        display: 'flex',
-        flexDirection: 'row',
-        alignItems: 'center',
-        backgroundColor: '#FFFFFF',
-        borderRadius: '16px',
-        overflow: 'hidden',
-        border: '1px solid #F1F5F9',
+      style={{ 
+        width: '160px',
+        minWidth: '160px',
+        flexShrink: 0,
+        background: '#fff', 
+        borderRadius: '16px', 
+        overflow: 'hidden', 
         cursor: 'pointer',
-        height: '110px',
-        boxShadow: '0 4px 6px -1px rgba(0,0,0,0.05)',
-        width: '100%',
-        minWidth: '280px'
+        display: 'flex',
+        flexDirection: 'column',
+        scrollSnapAlign: 'start',
+        border: '1px solid #F1F5F9',
+        boxShadow: '0 2px 8px rgba(0,0,0,0.06)'
       }}
     >
-      <div style={{ width: '80px', minWidth: '80px', maxWidth: '80px', height: '110px', flexShrink: 0 }}>
-        <img src={item.poster_url} style={{ width: '100%', height: '100%', objectFit: 'cover' }} alt="Poster" />
+      {/* 포스터 영역 (160x200) */}
+      <div style={{ width: '160px', height: '200px', background: '#1a1a2e', position: 'relative', overflow: 'hidden' }}>
+        {item.poster_url ? (
+          <img src={item.poster_url} style={{ width: '100%', height: '100%', objectFit: 'cover' }} alt="Poster" />
+        ) : (
+          <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#CBD5E1', fontSize: '12px', fontWeight: 800 }}>
+            No Poster
+          </div>
+        )}
+        
+        {/* 레벨 배지 */}
+        <div style={{ 
+          position: 'absolute', top: '8px', left: '8px',
+          background: badgeColor, color: '#fff', 
+          fontSize: '10px', fontWeight: '800', 
+          padding: '2px 7px', borderRadius: '4px',
+          zIndex: 10
+        }}>
+          {item.level || '입문'}
+        </div>
       </div>
-      <div style={{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'center', minWidth: 0, padding: '0 15px', overflow: 'hidden' }}>
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '4px', width: '100%' }}>
-          <span style={{ fontSize: '13px', fontWeight: '800', color: '#64748B', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-            {item.studio_name || item.address || '장소 미지정'}
-          </span>
-          <Navigation size={14} color="#FF3B30" fill="#FF3B30"
-            style={{ flexShrink: 0, cursor: 'pointer' }}
-            onClick={(e) => {
-              e.stopPropagation();
-              const addr = item.address || item.studio_name;
-              window.open(`https://map.kakao.com/link/search/${encodeURIComponent(addr)}`, '_blank');
-            }}
-          />
+
+      {/* 정보 영역 */}
+      <div style={{ padding: '10px 10px 12px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '4px', marginBottom: '4px' }}>
+          <span style={{ fontSize: '11px', fontWeight: '800', color: '#FF3B30' }}>{item.genre}</span>
+          <Navigation size={11} color="#FF3B30" fill="#FF3B30" />
         </div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '5px', marginBottom: '6px', width: '100%', overflow: 'hidden' }}>
-          <span style={{ fontSize: '11px', fontWeight: '800', color: '#fff', background: '#D4A017', padding: '1px 6px', borderRadius: '3px', flexShrink: 0 }}>
-            {item.level}
-          </span>
-          <h3 style={{ fontSize: '15px', fontWeight: '950', color: '#1E293B', margin: 0, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', letterSpacing: '-0.5px' }}>
-            {item.title}
-          </h3>
-        </div>
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '2px', fontSize: '11px', fontWeight: '700', color: '#94A3B8', width: '100%', overflow: 'hidden' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '4px', whiteSpace: 'nowrap', overflow: 'hidden' }}>
-            <MapPin size={11} color="#94A3B8" style={{ flexShrink: 0 }} />
-            <span style={{ overflow: 'hidden', textOverflow: 'ellipsis' }}>{item.studio_name}</span>
-            <span style={{ color: '#FF3B30', marginLeft: '4px', flexShrink: 0 }}>{item.genre}</span>
+        
+        <h3 style={{ 
+          fontSize: '13px', fontWeight: '900', color: '#1E293B', 
+          margin: '0 0 6px', height: '36px', display: '-webkit-box',
+          WebkitLineClamp: 2, WebkitBoxOrient: 'vertical',
+          overflow: 'hidden', lineHeight: '1.4'
+        }}>{item.title}</h3>
+
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
+          <div style={{ 
+            fontSize: '11px', color: '#64748B', fontWeight: '700',
+            whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' 
+          }}>
+            {item.studio_name}
           </div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '4px', whiteSpace: 'nowrap', overflow: 'hidden' }}>
-            <Clock size={11} color="#94A3B8" style={{ flexShrink: 0 }} />
-            <span>{item.day_of_week} · {item.start_time}~{item.end_time}</span>
+          
+          <div style={{ fontSize: '11px', color: '#94A3B8', fontWeight: '700' }}>
+            {item.day_of_week} · {item.start_time?.slice(0,5)}
           </div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '4px', whiteSpace: 'nowrap', overflow: 'hidden' }}>
-            <CalendarDays size={11} color="#94A3B8" style={{ flexShrink: 0 }} />
-            <span>{startLabel} · {weekLabel}</span>
+          
+          <div style={{ color: '#2ECC71', fontWeight: '800', fontSize: '11px', marginTop: '2px' }}>
+            {(() => {
+              const d = new Date(item.start_date);
+              return `${d.getMonth() + 1}/${d.getDate()} · ${weekText}`;
+            })()}
           </div>
         </div>
       </div>
@@ -509,6 +525,60 @@ const HomePage = ({
                         </div>
                       ))}
                     </motion.div>
+                  </div>
+                </div>
+              )}
+
+              {/* 📌 [새로 추가] 추천 클래스 섹션 */}
+              {(lessons || []).filter(l => l.category_type === 'class' && l.status === 'approved').length > 0 && (
+                <div style={{ margin: '0 0 15px', padding: '20px 0', background: '#fff', borderBottom: '1px solid #eee' }}>
+                  <div style={{ padding: '0 20px 15px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                    <h2 style={{ fontSize: '18px', fontWeight: '950', color: '#1E293B', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                      <span style={{ color: '#2ECC71' }}>NEW</span> 추천 클래스
+                    </h2>
+                    <button 
+                      onClick={() => setView('class')}
+                      style={{ fontSize: '12px', fontWeight: '700', color: '#94A3B8', background: 'none', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '2px' }}
+                    >
+                      전체보기 <ChevronRight size={14} />
+                    </button>
+                  </div>
+                  <div 
+                    className="no-scrollbar"
+                    onMouseDown={(e) => {
+                      const el = e.currentTarget;
+                      el.style.cursor = 'grabbing';
+                      el.style.userSelect = 'none';
+                      const startX = e.pageX - el.offsetLeft;
+                      const scrollLeft = el.scrollLeft;
+                      const onMouseMove = (e) => {
+                        const x = e.pageX - el.offsetLeft;
+                        const walk = (x - startX) * 2;
+                        el.scrollLeft = scrollLeft - walk;
+                      };
+                      const onMouseUp = () => {
+                        el.style.cursor = 'grab';
+                        el.style.removeProperty('user-select');
+                        document.removeEventListener('mousemove', onMouseMove);
+                        document.removeEventListener('mouseup', onMouseUp);
+                      };
+                      document.addEventListener('mousemove', onMouseMove);
+                      document.addEventListener('mouseup', onMouseUp);
+                    }}
+                    style={{ 
+                      display: 'flex', gap: '12px', padding: '0 20px',
+                      overflowX: 'auto', scrollSnapType: 'x mandatory',
+                      cursor: 'grab', WebkitOverflowScrolling: 'touch'
+                    }}
+                  >
+                    {(lessons || [])
+                      .filter(l => l.category_type === 'class' && l.status === 'approved')
+                      .slice(0, 20)
+                      .map(item => (
+                        <ClassCard key={item.id} item={item} onSelect={(url) => handleOpenModal(setSelectedPoster, url)} />
+                      ))
+                    }
+                    <div style={{ width: '20px', flexShrink: 0 }} />
                   </div>
                 </div>
               )}
