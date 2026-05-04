@@ -17,7 +17,9 @@ export default function PostClass({ onBack }) {
     category_type: 'class',
     status: 'pending',
     start_date: new Date().toISOString().split('T')[0],
-    day_of_week: (['일', '월', '화', '수', '목', '금', '토'])[new Date().getDay()] + '요일',
+    day_of_week: '',
+    start_time: '19:00',
+    end_time: '21:00',
     custom_duration: ''
   });
 
@@ -27,10 +29,21 @@ export default function PostClass({ onBack }) {
     return days[new Date(dateStr).getDay()] + '요일';
   };
 
+  const weekDays = ['월', '화', '수', '목', '금', '토', '일'];
   const genres = ['바차타', '살사', '키좀바', '쥬크'];
   const levels = ['입문', '초급', '중급', '상급'];
   const durations = ['4주', '6주', '8주', '12주', '기타(직접입력)'];
   const regions = ['서울', '경기,인천', '경상도', '충청도', '전라도', '강원,제주'];
+
+  const toggleDay = (day) => {
+    let currentDays = formData.day_of_week ? formData.day_of_week.split(', ').filter(d => d) : [];
+    if (currentDays.includes(day)) {
+      currentDays = currentDays.filter(d => d !== day);
+    } else {
+      currentDays = [...currentDays, day];
+    }
+    setFormData(p => ({ ...p, day_of_week: currentDays.join(', ') }));
+  };
 
   // 포스터 업로드 로직
   const handleUpload = async (e) => {
@@ -60,6 +73,8 @@ export default function PostClass({ onBack }) {
 
   const handleSubmit = async () => {
     if (!formData.title) return alert('강습 제목을 입력해주세요.');
+    if (!formData.day_of_week) return alert('강습 요일을 선택해주세요.');
+    
     setLoading(true);
     try {
       const insertData = {
@@ -72,9 +87,9 @@ export default function PostClass({ onBack }) {
         poster_url: formData.poster_url,
         category_type: 'class',
         status: 'pending',
-        day_of_week: formData.day_of_week || '요일 미지정',
-        start_time: '19:00',
-        end_time: '21:00',
+        day_of_week: formData.day_of_week,
+        start_time: formData.start_time,
+        end_time: formData.end_time,
         start_date: formData.start_date,
         studio_name: '장소 미지정',
         address: '상세주소 미지정'
@@ -236,18 +251,67 @@ export default function PostClass({ onBack }) {
                   value={formData.start_date} 
                   onChange={e => {
                     const date = e.target.value;
-                    setFormData(p => ({ ...p, start_date: date, day_of_week: getDayName(date) }));
+                    setFormData(p => ({ ...p, start_date: date }));
                   }} 
                   style={{ ...inputStyle, border: '2px solid #2ECC71', padding: '16px' }} 
                 />
                 <div style={{ marginTop: '12px', fontSize: '16px', fontWeight: 800, color: '#2ECC71', textAlign: 'right' }}>
-                  {formData.day_of_week}
+                  {getDayName(formData.start_date)}
                 </div>
               </div>
 
-              <div style={{ ...cardStyle, background: '#F0FFF4', border: '1px solid #C6F6D5', textAlign: 'center' }}>
-                <span style={{ fontSize: '14px', color: '#2F855A', fontWeight: 700 }}>자동 계산된 요일: </span>
-                <span style={{ fontSize: '20px', color: '#2ECC71', fontWeight: 900 }}>{formData.day_of_week}</span>
+              {/* 강습 요일 선택 (복수 선택 가능) */}
+              <div style={cardStyle}>
+                <label style={labelStyle}>강습 요일 (복수 선택 가능)</label>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: '6px' }}>
+                  {weekDays.map(day => {
+                    const isSelected = formData.day_of_week.includes(day);
+                    return (
+                      <button
+                        key={day}
+                        onClick={() => toggleDay(day)}
+                        style={{
+                          padding: '12px 0',
+                          borderRadius: '10px',
+                          border: 'none',
+                          fontSize: '14px',
+                          fontWeight: 800,
+                          background: isSelected ? '#2ECC71' : '#F1F5F9',
+                          color: isSelected ? '#fff' : '#64748B',
+                          cursor: 'pointer',
+                          transition: 'all 0.2s'
+                        }}
+                      >
+                        {day}
+                      </button>
+                    );
+                  })}
+                </div>
+                {formData.day_of_week && (
+                  <div style={{ marginTop: '12px', fontSize: '14px', fontWeight: 700, color: '#2ECC71', textAlign: 'right' }}>
+                    선택됨: {formData.day_of_week}
+                  </div>
+                )}
+              </div>
+
+              {/* 강습 시간 입력 */}
+              <div style={cardStyle}>
+                <label style={labelStyle}>강습 시간</label>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                  <input 
+                    type="time" 
+                    value={formData.start_time} 
+                    onChange={e => setFormData(p => ({ ...p, start_time: e.target.value }))}
+                    style={{ ...inputStyle, flex: 1, padding: '12px' }} 
+                  />
+                  <span style={{ fontWeight: 800, color: '#94A3B8' }}>~</span>
+                  <input 
+                    type="time" 
+                    value={formData.end_time} 
+                    onChange={e => setFormData(p => ({ ...p, end_time: e.target.value }))}
+                    style={{ ...inputStyle, flex: 1, padding: '12px' }} 
+                  />
+                </div>
               </div>
 
               <button 
