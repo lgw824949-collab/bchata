@@ -273,45 +273,72 @@ const formatDateToKSTString = (date) => {
   return `${y}-${m}-${d}`;
 };
 
-const SplashScreen = () => (
-  <motion.div
-    initial={{ opacity: 1 }}
-    exit={{ opacity: 0 }}
-    transition={{ duration: 0.3 }}
-    style={{
-      position: 'fixed',
-      inset: 0,
-      zIndex: 9999,
-      backgroundColor: '#0a0a0a',
-      display: 'flex',
-      flexDirection: 'column',
-      alignItems: 'center',
-      justifyContent: 'center',
-      overflow: 'hidden'
-    }}
-  >
-    {/* 배경 원형 장식 */}
-    <div style={{ position: 'absolute', width: '500px', height: '500px', border: '1px solid rgba(255,23,68,0.12)', borderRadius: '50%', top: '-100px', right: '-100px' }} />
-    <div style={{ position: 'absolute', width: '350px', height: '350px', border: '1px solid rgba(255,23,68,0.12)', borderRadius: '50%', bottom: '50px', left: '-50px' }} />
-    <div style={{ position: 'absolute', width: '200px', height: '200px', border: '1px solid rgba(255,23,68,0.12)', borderRadius: '50%', top: '20%', left: '10%' }} />
+const SplashScreen = () => {
+  const [stage, setStage] = useState(1);
 
-    {/* 로고 */}
-    <img src="/logo.png" alt="BAMPPA" style={{ width: '200px', objectFit: 'contain' }} />
+  useEffect(() => {
+    const timer = setTimeout(() => setStage(2), 2000);
+    return () => clearTimeout(timer);
+  }, []);
 
-    {/* 로고 아래 장르 텍스트 */}
-    <div style={{ marginTop: '24px', textAlign: 'center', zIndex: 1 }}>
-      <div style={{ fontSize: '10px', color: 'rgba(255,255,255,0.3)', letterSpacing: '3px', marginBottom: '8px' }}>── LATIN DANCE ──</div>
-      <div style={{ fontSize: '9px', color: '#FF1744', fontWeight: 700, letterSpacing: '1px' }}>BACHATA · SALSA · KIZOMBA · ZOUK</div>
-    </div>
-
-    {/* 하단 인디케이터 */}
-    <div style={{ position: 'absolute', bottom: '40px', display: 'flex', gap: '8px' }}>
-      <div style={{ width: '20px', height: '3px', background: '#FF1744', borderRadius: '2px' }} />
-      <div style={{ width: '6px', height: '3px', background: 'rgba(255,255,255,0.2)', borderRadius: '2px' }} />
-      <div style={{ width: '6px', height: '3px', background: 'rgba(255,255,255,0.2)', borderRadius: '2px' }} />
-    </div>
-  </motion.div>
-);
+  return (
+    <motion.div
+      initial={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      transition={{ duration: 0.3 }}
+      style={{
+        position: 'fixed',
+        inset: 0,
+        zIndex: 9999,
+        backgroundColor: '#0a0a0a',
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+        justifyContent: 'center',
+        overflow: 'hidden'
+      }}
+    >
+      <AnimatePresence mode="wait">
+        {stage === 1 ? (
+          <motion.img
+            key="stage1"
+            src="/logo.png"
+            alt="BAMPPA"
+            initial={{ opacity: 1 }}
+            exit={{ opacity: 0, transition: { duration: 0.2 } }}
+            style={{ width: '200px', objectFit: 'contain' }}
+          />
+        ) : (
+          <motion.div
+            key="stage2"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}
+          >
+            <motion.img
+              src="/logo.png"
+              alt="BAMPPA"
+              initial={{ scale: 0.8, opacity: 0 }}
+              animate={{ scale: [0.8, 1.2, 1.0], opacity: 1 }}
+              transition={{ duration: 0.8, times: [0, 0.6, 1], ease: "easeOut" }}
+              style={{ width: '200px', objectFit: 'contain' }}
+            />
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 0.4, duration: 0.5 }}
+              style={{ marginTop: '24px', textAlign: 'center' }}
+            >
+              <div style={{ fontSize: '9px', color: '#FF1744', fontWeight: 700, letterSpacing: '1px' }}>
+                BACHATA · SALSA · KIZOMBA · ZOUK
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </motion.div>
+  );
+};
 
 function App() {
   const { t, i18n } = useTranslation();
@@ -342,7 +369,7 @@ function App() {
   useEffect(() => {
     const timer = setTimeout(() => {
       setShowSplash(false);
-    }, 1800);
+    }, 4000);
     return () => clearTimeout(timer);
   }, []);
   const [parties, setParties] = useState([]);
