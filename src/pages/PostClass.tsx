@@ -151,7 +151,7 @@ export default function PostClass({ onBack }) {
       {/* Header */}
       <div style={{ display: 'flex', alignItems: 'center', padding: '20px', position: 'sticky', top: 0, background: '#fff', zIndex: 10000, borderBottom: '1px solid #F1F5F9' }}>
         <button onClick={() => step > 1 ? setStep(step - 1) : onBack()} style={{ background: 'none', border: 'none', cursor: 'pointer' }}><ChevronLeft size={28} /></button>
-        <h2 style={{ fontSize: '18px', fontWeight: 900, marginLeft: '12px' }}>클래스 등록 신청 ({step}/{TOTAL_STEPS})</h2>
+        <h2 style={{ fontSize: '18px', fontWeight: 900, marginLeft: '12px' }}>LEVEL UP 등록 ({step}/{TOTAL_STEPS})</h2>
       </div>
 
       <div style={{ height: '4px', background: '#F1F5F9', width: '100%' }}>
@@ -521,7 +521,7 @@ export default function PostClass({ onBack }) {
                   cursor: loading ? 'default' : 'pointer'
                 }}
               >
-                {loading ? '처리 중...' : '클래스 등록 신청하기'}
+                {loading ? '처리 중...' : 'LEVEL UP 등록하기'}
               </button>
               
               <div style={{ textAlign: 'center', marginTop: '-100px', paddingBottom: '40px' }}>

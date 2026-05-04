@@ -116,7 +116,7 @@ const ClassNewsPage = ({ lessons: allLessons, loading: lessonsLoading, selectedM
       {/* 상단 헤더 & 월 선택 */}
       <div style={{ padding: '30px 20px 20px', background: '#fff', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
         <h1 style={{ fontSize: '24px', fontWeight: '950', color: '#0f172a', margin: 0 }}>
-          {selectedMonth}월 <span style={{ color: '#2ECC71' }}>클래스</span>
+          {selectedMonth}월 <span style={{ color: '#2ECC71' }}>LEVEL UP</span>
         </h1>
         <div style={{ display: 'flex', gap: '6px' }}>
           <button onClick={() => setSelectedMonth(m => m > 1 ? m - 1 : 12)} style={{ background: '#F8FAFC', border: '1px solid #F1F5F9', borderRadius: '10px', width: '32px', height: '32px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><ChevronLeft size={16} /></button>

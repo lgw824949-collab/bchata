@@ -784,7 +784,7 @@ function App() {
                     cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '15px'
                   }}
                 >
-                  <GraduationCap size={24} color="#2ECC71" /> 클래스 관리
+                  <GraduationCap size={24} color="#2ECC71" /> LEVEL UP 관리
                 </button>
                 
                 <button 
@@ -1001,7 +1001,7 @@ function App() {
             onClick={() => { setView('class'); window.scrollTo(0,0); }}
           >
             <GraduationCap size={22} color={view === 'class' ? '#2ECC71' : '#94A3B8'} style={{ marginBottom: '4px' }} />
-            <span style={{ fontSize: '10px', fontWeight: view === 'class' ? 900 : 500, color: view === 'class' ? '#2ECC71' : '#94A3B8' }}>{t('nav_class')}</span>
+            <span style={{ fontSize: '10px', fontWeight: view === 'class' ? 900 : 500, color: view === 'class' ? '#2ECC71' : '#94A3B8' }}>LEVEL UP</span>
           </div>
 
           <div className="nav-item central-action" style={{ pointerEvents: 'none', position: 'relative', zIndex: 1001 }}>

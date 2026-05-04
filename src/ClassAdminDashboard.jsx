@@ -147,8 +147,8 @@ export default function ClassAdminDashboard({ onBack }) {
             <ChevronLeft size={28} />
           </button>
           <div style={{ marginLeft: '12px' }}>
-            <h2 style={{ fontSize: '18px', fontWeight: 900, color: '#1E293B', margin: 0 }}>클래스 관리</h2>
-            <div style={{ fontSize: '11px', color: '#2ECC71', fontWeight: 700 }}>CLASS_ADMIN_CONSOLE</div>
+            <h2 style={{ fontSize: '18px', fontWeight: 900, color: '#1E293B', margin: 0 }}>LEVEL UP 관리</h2>
+            <div style={{ fontSize: '11px', color: '#2ECC71', fontWeight: 700 }}>LEVEL_UP_ADMIN_CONSOLE</div>
           </div>
         </div>
         <button 
