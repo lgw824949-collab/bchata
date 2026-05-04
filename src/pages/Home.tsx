@@ -393,7 +393,7 @@ const HomePage = ({
 
   const carouselParties = useMemo(() => {
     const all = parties || [];
-    return [...all].filter(p => p.poster_url && p.category_type === 'social').sort((a, b) => new Date(b.date) - new Date(a.date)).slice(0, 5);
+    return [...all].filter(p => p.poster_url).sort((a, b) => new Date(b.date) - new Date(a.date)).slice(0, 5);
   }, [parties]);
 
 
@@ -529,65 +529,13 @@ const HomePage = ({
                 </div>
               )}
 
-              {/* 📌 [새로 추가] 추천 클래스 섹션 */}
-              {(lessons || []).filter(l => l.category_type === 'class' && l.status === 'approved').length > 0 && (
-                <div style={{ margin: '0 0 15px', padding: '20px 0', background: '#fff', borderBottom: '1px solid #eee' }}>
-                  <div style={{ padding: '0 20px 15px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                    <h2 style={{ fontSize: '18px', fontWeight: '950', color: '#1E293B', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                      <span style={{ color: '#2ECC71' }}>NEW</span> 추천 클래스
-                    </h2>
-                    <button 
-                      onClick={() => setView('class')}
-                      style={{ fontSize: '12px', fontWeight: '700', color: '#94A3B8', background: 'none', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '2px' }}
-                    >
-                      전체보기 <ChevronRight size={14} />
-                    </button>
-                  </div>
-                  <div 
-                    className="no-scrollbar"
-                    onMouseDown={(e) => {
-                      const el = e.currentTarget;
-                      el.style.cursor = 'grabbing';
-                      el.style.userSelect = 'none';
-                      const startX = e.pageX - el.offsetLeft;
-                      const scrollLeft = el.scrollLeft;
-                      const onMouseMove = (e) => {
-                        const x = e.pageX - el.offsetLeft;
-                        const walk = (x - startX) * 2;
-                        el.scrollLeft = scrollLeft - walk;
-                      };
-                      const onMouseUp = () => {
-                        el.style.cursor = 'grab';
-                        el.style.removeProperty('user-select');
-                        document.removeEventListener('mousemove', onMouseMove);
-                        document.removeEventListener('mouseup', onMouseUp);
-                      };
-                      document.addEventListener('mousemove', onMouseMove);
-                      document.addEventListener('mouseup', onMouseUp);
-                    }}
-                    style={{ 
-                      display: 'flex', gap: '12px', padding: '0 20px',
-                      overflowX: 'auto', scrollSnapType: 'x mandatory',
-                      cursor: 'grab', WebkitOverflowScrolling: 'touch'
-                    }}
-                  >
-                    {(lessons || [])
-                      .filter(l => l.category_type === 'class' && l.status === 'approved')
-                      .slice(0, 20)
-                      .map(item => (
-                        <ClassCard key={item.id} item={item} onSelect={(url) => handleOpenModal(setSelectedPoster, url)} />
-                      ))
-                    }
-                    <div style={{ width: '20px', flexShrink: 0 }} />
-                  </div>
-                </div>
-              )}
+
               {IncheonBanner && <IncheonBanner />}
               {(() => {
                 const regions = ["서울", "경기/인천", "경상도", "전라도", "충청도", "강원/제주"];
                 return regions.map((regionName) => {
                   const regionParties = (parties || [])
-                    .filter(p => p.date === selectedDate && p.category_type === 'social')
+                    .filter(p => p.date === selectedDate)
                     .filter(p => REGION_FILTER[regionName](p))
                     .filter(p => {
                       // 2. 장르 조건 매칭
@@ -718,9 +666,6 @@ const HomePage = ({
                         console.log('filterRegion:', filterRegion)
                         console.log('filterGenre:', filterGenre)
                         const filtered = filteredParties.filter(p => {
-                          // 소셜 데이터만 허용
-                          if (p.category_type !== 'social') return false;
-
                           // 지역 필터 적용
                           const filterFn = REGION_FILTER[filterRegion];
                           if (filterRegion && filterFn) {
@@ -857,7 +802,6 @@ const HomePage = ({
                 }}>
                   {(() => {
                     const filtered = filteredParties.filter(p => {
-                      if (p.category_type !== 'social') return false;
                       const filterFn = REGION_FILTER[gridRegion];
                       return filterFn ? filterFn(p) : true;
                     });
@@ -883,7 +827,6 @@ const HomePage = ({
                   })()}
                 </div>
                 {filteredParties.filter(p => {
-                  if (p.category_type !== 'social') return false;
                   const filterFn = REGION_FILTER[gridRegion];
                   return filterFn ? filterFn(p) : true;
                 }).length === 0 && (
