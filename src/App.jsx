@@ -8,6 +8,7 @@ import AdminDashboard from './AdminDashboard'
 import HomePage from './pages/Home'
 import Community from './pages/Community'
 import PostClub from './pages/PostClub'
+import Bootcamp from './pages/Bootcamp'
 import Auth from './components/Auth'
 import Parking from './pages/Parking'
 import Restaurant from './pages/Restaurant'
@@ -167,6 +168,7 @@ const DynamicAnalysisModal = ({ isOpen, onClose, userCoords, isSajuCall }) => {
         .filter(b => b.lat && b.lon)
         .map(b => ({
           name: b.name,
+          address: b.address,
           lat: b.lat,
           lon: b.lon,
           region: b.region,
@@ -198,31 +200,142 @@ const DynamicAnalysisModal = ({ isOpen, onClose, userCoords, isSajuCall }) => {
   const isIncheon = targetDest.region === '인천' && isSajuCall;
 
   return (
-    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} style={{ position: 'fixed', inset: 0, zIndex: 1000000, backgroundColor: 'rgba(0,0,0,0.4)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px' }} onClick={onClose}>
-      <motion.div initial={{ scale: 0.95, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} onClick={(e) => e.stopPropagation()} style={{ width: '100%', maxWidth: '420px', background: '#FFFFFF', borderRadius: '35px', padding: '40px 30px', boxShadow: '0 50px 100px rgba(0,0,0,0.1)', color: '#1E293B' }}>
+    <motion.div 
+      initial={{ opacity: 0 }} 
+      animate={{ opacity: 1 }} 
+      exit={{ opacity: 0 }} 
+      style={{ 
+        position: 'fixed', 
+        inset: 0, 
+        zIndex: 1000000, 
+        backgroundColor: '#FFFFFF', 
+        display: 'flex', 
+        flexDirection: 'column',
+        overflowY: 'auto'
+      }}
+    >
+      <motion.div 
+        initial={{ y: 20, opacity: 0 }} 
+        animate={{ y: 0, opacity: 1 }} 
+        style={{ 
+          width: '100%', 
+          maxWidth: '500px',
+          margin: '0 auto',
+          minHeight: '100vh',
+          background: '#FFFFFF', 
+          padding: 'calc(20px + env(safe-area-inset-top)) 24px calc(40px + env(safe-area-inset-bottom))', 
+          color: '#1E293B',
+          display: 'flex',
+          flexDirection: 'column'
+        }}
+      >
         {!amguho ? (
           <>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '35px' }}><div style={{ background: '#FF1744', color: '#fff', padding: '8px 16px', borderRadius: '50px', fontSize: '11px', fontWeight: '900' }}>REALTIME GPS</div><ChevronLeft size={28} onClick={onClose} style={{ cursor: 'pointer', color: '#64748B' }} /></div>
-            <h2 style={{ fontSize: '26px', fontWeight: '1000', marginBottom: '30px', color: '#1E293B' }}>{isIncheon ? '성지 상륙 분석' : '최단 경로 최적화'} 🛰️<br/><span style={{ color: '#FF1744' }}>{targetDest.name}</span></h2>
-            <div style={{ padding: '30px', background: '#F8FAFC', borderRadius: '30px', display: 'flex', gap: '20px', marginBottom: '30px', border: '1px solid #E2E8F0' }}>
-              <div style={{ flex: 1 }}><p style={{ color: '#64748B', fontSize: '12px' }}>실제 거리</p><p style={{ fontSize: '26px', fontWeight: '1000', color: '#FF1744' }}>{tracker.distance}km</p></div>
-              <div style={{ flex: 1 }}><p style={{ color: '#64748B', fontSize: '12px' }}>예상 소요</p><p style={{ fontSize: '26px', fontWeight: '1000', color: '#1E293B' }}>{tracker.duration}분</p></div>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '35px' }}>
+              <div style={{ background: '#FF1744', color: '#fff', padding: '8px 16px', borderRadius: '50px', fontSize: '11px', fontWeight: '900', letterSpacing: '0.5px' }}>REALTIME GPS</div>
+              <button 
+                onClick={onClose}
+                style={{ background: '#F1F5F9', border: 'none', borderRadius: '50%', width: '44px', height: '44px', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}
+              >
+                <X size={24} color="#64748B" />
+              </button>
             </div>
-            <div style={{ marginBottom: '25px' }}>
-              <p style={{ fontSize: '14px', fontWeight: '800', color: '#64748B', marginBottom: '12px' }}>주변 성지 추천</p>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+            
+            <h2 style={{ fontSize: '28px', fontWeight: '1000', marginBottom: '30px', color: '#1E293B', lineHeight: '1.3' }}>
+              {isIncheon ? '성지 상륙 분석' : '최단 경로 최적화'} 🛰️<br/>
+              <span style={{ color: '#FF1744' }}>{targetDest.name}</span>
+            </h2>
+
+            <div style={{ padding: '30px', background: '#F8FAFC', borderRadius: '30px', display: 'flex', gap: '20px', marginBottom: '40px', border: '1px solid #E2E8F0' }}>
+              <div style={{ flex: 1 }}>
+                <p style={{ color: '#64748B', fontSize: '12px', fontWeight: '700', marginBottom: '4px' }}>실제 거리</p>
+                <p style={{ fontSize: '28px', fontWeight: '1000', color: '#FF1744' }}>{tracker.distance}km</p>
+              </div>
+              <div style={{ flex: 1 }}>
+                <p style={{ color: '#64748B', fontSize: '12px', fontWeight: '700', marginBottom: '4px' }}>예상 소요</p>
+                <p style={{ fontSize: '28px', fontWeight: '1000', color: '#1E293B' }}>{tracker.duration}분</p>
+              </div>
+            </div>
+
+            <div style={{ marginBottom: '40px', flex: 1 }}>
+              <p style={{ fontSize: '15px', fontWeight: '800', color: '#64748B', marginBottom: '16px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <Star size={16} fill="#64748B" /> 주변 성지 추천
+              </p>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
                 {nearbyVenues.map((venue, idx) => (
-                  <div key={idx} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '12px 16px', background: idx === 0 ? '#FEF2F2' : '#F8FAFC', borderRadius: '15px', border: idx === 0 ? '1px solid #FF1744' : '1px solid #E2E8F0' }}>
-                    <span style={{ fontSize: '14px', fontWeight: '800', color: idx === 0 ? '#FF1744' : '#1E293B' }}>{venue.name}</span>
-                    <span style={{ fontSize: '13px', fontWeight: '700', color: '#94A3B8' }}>{venue.dist.toFixed(1)}km</span>
-                  </div>
+                  <motion.div 
+                    key={idx} 
+                    whileTap={{ scale: 0.98 }}
+                    onClick={() => {
+                      const query = encodeURIComponent(venue.name + ' ' + (venue.address || ''));
+                      window.open(`https://map.kakao.com/link/search/${query}`, '_blank');
+                    }}
+                    style={{ 
+                      display: 'flex', 
+                      justifyContent: 'space-between', 
+                      alignItems: 'center', 
+                      padding: '16px 20px', 
+                      background: idx === 0 ? '#FEF2F2' : '#F8FAFC', 
+                      borderRadius: '20px', 
+                      border: idx === 0 ? '1px solid #FF1744' : '1px solid #E2E8F0',
+                      cursor: 'pointer'
+                    }}
+                  >
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
+                      <span style={{ fontSize: '15px', fontWeight: '800', color: idx === 0 ? '#FF1744' : '#1E293B' }}>{venue.name}</span>
+                      <span style={{ fontSize: '12px', color: '#94A3B8', fontWeight: '500' }}>{venue.address}</span>
+                    </div>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                      <span style={{ fontSize: '14px', fontWeight: '700', color: idx === 0 ? '#FF1744' : '#94A3B8' }}>{venue.dist.toFixed(1)}km</span>
+                      <ChevronRight size={18} color={idx === 0 ? '#FF1744' : '#CBD5E1'} />
+                    </div>
+                  </motion.div>
                 ))}
               </div>
             </div>
-            <button onClick={() => isIncheon ? setAmguho(naturalIncheonDB[0]) : onClose()} style={{ width: '100%', padding: '22px', borderRadius: '25px', background: '#FF1744', color: '#fff', border: 'none', fontSize: '18px', fontWeight: '1000', boxShadow: '0 10px 20px rgba(255, 23, 68, 0.2)' }}>{isIncheon ? '암구호 수신하기' : '확인 완료'}</button>
+
+            <button 
+              onClick={() => isIncheon ? setAmguho(naturalIncheonDB[0]) : onClose()} 
+              style={{ 
+                width: '100%', 
+                padding: '24px', 
+                borderRadius: '24px', 
+                background: '#FF1744', 
+                color: '#fff', 
+                border: 'none', 
+                fontSize: '18px', 
+                fontWeight: '1000', 
+                boxShadow: '0 12px 24px rgba(255, 23, 68, 0.2)',
+                cursor: 'pointer'
+              }}
+            >
+              {isIncheon ? '암구호 수신하기' : '확인 완료'}
+            </button>
           </>
         ) : (
-          <div style={{ textAlign: 'center' }}><h3 style={{ fontSize: '22px', fontWeight: '1000', marginBottom: '30px', color: '#1E293B' }}>성지 암구호</h3><div style={{ background: '#FEF2F2', padding: '30px', borderRadius: '30px', border: '2px solid #FF1744', marginBottom: '30px' }}><p style={{ color: '#FF1744', fontWeight: '700' }}>Q: {amguho.q}</p><p style={{ fontSize: '20px', fontWeight: '1000', marginTop: '10px', color: '#1E293B' }}>A: {amguho.a}</p></div><button onClick={onClose} style={{ width: '100%', padding: '20px', borderRadius: '20px', background: '#FF1744', color: '#FFFFFF', fontWeight: '1000', border: 'none' }}>작전 시작</button></div>
+          <div style={{ textAlign: 'center', flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
+            <h3 style={{ fontSize: '24px', fontWeight: '1000', marginBottom: '40px', color: '#1E293B' }}>성지 암구호</h3>
+            <div style={{ background: '#FEF2F2', padding: '40px 30px', borderRadius: '35px', border: '2px solid #FF1744', marginBottom: '40px' }}>
+              <p style={{ color: '#FF1744', fontWeight: '800', fontSize: '16px', marginBottom: '12px' }}>Q: {amguho.q}</p>
+              <p style={{ fontSize: '24px', fontWeight: '1000', color: '#1E293B' }}>A: {amguho.a}</p>
+            </div>
+            <button 
+              onClick={onClose} 
+              style={{ 
+                width: '100%', 
+                padding: '22px', 
+                borderRadius: '24px', 
+                background: '#1E293B', 
+                color: '#FFFFFF', 
+                fontWeight: '1000', 
+                border: 'none',
+                fontSize: '18px',
+                cursor: 'pointer'
+              }}
+            >
+              작전 시작
+            </button>
+          </div>
         )}
       </motion.div>
     </motion.div>
@@ -730,10 +843,11 @@ function App() {
 
       <main>
         {view === 'home' ? <HomePage {...sharedProps} /> : 
-         (view === 'bootcamp' || view === 'festival') ? (
+         view === 'bootcamp' ? <Bootcamp onBack={() => setView('home')} /> :
+         view === 'festival' ? (
            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '80vh', color: '#1E293B' }}>
-             <span style={{ fontSize: '48px', marginBottom: '20px' }}>{view === 'bootcamp' ? '🏕️' : '🚩'}</span>
-             <h2 style={{ fontSize: '24px', fontWeight: 900 }}>{view === 'bootcamp' ? '부트캠프' : '페스티벌'} 준비중</h2>
+             <span style={{ fontSize: '48px', marginBottom: '20px' }}>🚩</span>
+             <h2 style={{ fontSize: '24px', fontWeight: 900 }}>페스티벌 준비중</h2>
            </div>
          ) :
          {
