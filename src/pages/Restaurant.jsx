@@ -29,10 +29,13 @@ const DEFAULT_RESTAURANTS = [
 const Restaurant = ({ onBack }) => {
   const { t, i18n } = useTranslation();
   const isEn = i18n.language.startsWith('en');
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [restaurants, setRestaurants] = useState(DEFAULT_RESTAURANTS);
-  const [coords, setCoords] = useState(null);
+  const [restaurants, setRestaurants] = useState([]); 
+  const [coords, setCoords] = useState(() => {
+    const cached = localStorage.getItem('last_coords');
+    return cached ? JSON.parse(cached) : null;
+  });
   const [isFallback, setIsFallback] = useState(false);
   const [isRefreshing, setIsRefreshing] = useState(false);
 
@@ -46,16 +49,21 @@ const Restaurant = ({ onBack }) => {
 
     navigator.geolocation.getCurrentPosition(
       (pos) => {
-        setCoords({ lat: pos.coords.latitude, lon: pos.coords.longitude });
+        const newCoords = { lat: pos.coords.latitude, lon: pos.coords.longitude };
+        setCoords(newCoords);
+        localStorage.setItem('last_coords', JSON.stringify(newCoords));
         setIsFallback(false);
       },
       (err) => {
-        console.warn('Geolocation error, falling back to Seoul:', err);
-        setCoords({ lat: 37.5665, lon: 126.9780 });
-        setIsFallback(true);
+        console.warn('Geolocation error:', err);
+        if (!coords) {
+          const seoul = { lat: 37.5665, lon: 126.9780 };
+          setCoords(seoul);
+          setIsFallback(true);
+        }
         setError(null);
       },
-      { timeout: 10000 }
+      { timeout: 5000, enableHighAccuracy: false }
     );
   }, []);
 
@@ -64,18 +72,23 @@ const Restaurant = ({ onBack }) => {
     if (!coords) return;
 
     const fetchRestaurants = async () => {
-      // 5분 캐시 확인
-      const cacheKey = `res_cache_${coords.lat.toFixed(4)}_${coords.lon.toFixed(4)}`;
+      const latKey = coords.lat.toFixed(2);
+      const lonKey = coords.lon.toFixed(2);
+      const cacheKey = `res_cache_${latKey}_${lonKey}`;
+      
       const cached = localStorage.getItem(cacheKey);
       if (cached) {
         const { data, timestamp } = JSON.parse(cached);
-        if (Date.now() - timestamp < 5 * 60 * 1000) {
+        if (Date.now() - timestamp < 10 * 60 * 1000) { 
           setRestaurants(data);
+          setLoading(false);
           return;
         }
       }
 
       setIsRefreshing(true);
+      if (restaurants.length === 0) setLoading(true);
+
       try {
         const url = `/api/restaurant?lat=${coords.lat}&lon=${coords.lon}`;
         const response = await fetch(url);
@@ -97,10 +110,10 @@ const Restaurant = ({ onBack }) => {
           localStorage.setItem(cacheKey, JSON.stringify({ data: list, timestamp: Date.now() }));
         }
       } catch (err) {
-        console.error('Background fetch failed, keeping defaults:', err);
-        // API 실패 시 에러를 표시하지 않고 기본 데이터(또는 캐시된 데이터) 유지
+        console.error('Fetch failed:', err);
       } finally {
         setIsRefreshing(false);
+        setLoading(false);
       }
     };
 
