@@ -1030,16 +1030,16 @@ function App() {
             className={`nav-item ${view === 'home' ? 'active' : ''}`} 
             onClick={() => { setView('home'); window.scrollTo(0,0); }}
           >
-            <Music2 size={22} color={view === 'home' ? '#FF1744' : '#94A3B8'} style={{ marginBottom: '4px' }} />
-            <span style={{ fontSize: '10px', fontWeight: view === 'home' ? 900 : 500, color: view === 'home' ? '#FF1744' : '#94A3B8' }}>소셜/파티</span>
+            <Music2 size={22} color={view === 'home' ? '#F59E0B' : '#555'} style={{ marginBottom: '4px' }} />
+            <span style={{ fontSize: '10px', fontWeight: view === 'home' ? 900 : 500, color: view === 'home' ? '#F59E0B' : '#555' }}>소셜/파티</span>
           </div>
 
           <div 
             className={`nav-item ${view === 'community' ? 'active' : ''}`} 
             onClick={() => { setView('community'); window.scrollTo(0,0); }}
           >
-            <Camera size={22} color={view === 'community' ? '#FF1744' : '#94A3B8'} style={{ marginBottom: '4px' }} />
-            <span style={{ fontSize: '10px', fontWeight: view === 'community' ? 900 : 500, color: view === 'community' ? '#FF1744' : '#94A3B8' }}>LIVE PICK</span>
+            <Camera size={22} color={view === 'community' ? '#F59E0B' : '#555'} style={{ marginBottom: '4px' }} />
+            <span style={{ fontSize: '10px', fontWeight: view === 'community' ? 900 : 500, color: view === 'community' ? '#F59E0B' : '#555' }}>LIVE PICK</span>
           </div>
 
 
@@ -1051,11 +1051,11 @@ function App() {
               style={{
                 width:'52px', height:'52px',
                 borderRadius:'50%',
-                background: 'linear-gradient(135deg, #FF1744 0%, #D32F2F 100%)',
+                background: 'linear-gradient(135deg, #F59E0B 0%, #D97706 100%)',
                 border:'none', color:'#fff',
                 display:'flex', alignItems:'center',
                 justifyContent:'center', cursor:'pointer',
-                boxShadow:'0 8px 25px rgba(255, 23, 68, 0.4)',
+                boxShadow:'0 8px 25px rgba(245, 158, 11, 0.4)',
                 pointerEvents: 'auto'
               }}
               onClick={() => {
@@ -1075,16 +1075,16 @@ function App() {
             className={`nav-item ${view === 'bootcamp' ? 'active' : ''}`} 
             onClick={() => { setView('bootcamp'); window.scrollTo(0,0); }}
           >
-            <Tent size={22} color={view === 'bootcamp' ? '#7C3AED' : '#94A3B8'} style={{ marginBottom: '4px' }} />
-            <span style={{ fontSize: '10px', fontWeight: view === 'bootcamp' ? 900 : 500, color: view === 'bootcamp' ? '#7C3AED' : '#94A3B8' }}>부트캠프</span>
+            <Tent size={22} color={view === 'bootcamp' ? '#F59E0B' : '#555'} style={{ marginBottom: '4px' }} />
+            <span style={{ fontSize: '10px', fontWeight: view === 'bootcamp' ? 900 : 500, color: view === 'bootcamp' ? '#F59E0B' : '#555' }}>부트캠프</span>
           </div>
 
           <div 
             className={`nav-item ${view === 'festival' ? 'active' : ''}`} 
             onClick={() => { setView('festival'); window.scrollTo(0,0); }}
           >
-            <Flag size={22} color={view === 'festival' ? '#FF1744' : '#94A3B8'} style={{ marginBottom: '4px' }} />
-            <span style={{ fontSize: '10px', fontWeight: view === 'festival' ? 900 : 500, color: view === 'festival' ? '#FF1744' : '#94A3B8' }}>페스티벌</span>
+            <Flag size={22} color={view === 'festival' ? '#F59E0B' : '#555'} style={{ marginBottom: '4px' }} />
+            <span style={{ fontSize: '10px', fontWeight: view === 'festival' ? 900 : 500, color: view === 'festival' ? '#F59E0B' : '#555' }}>페스티벌</span>
           </div>
         </nav>
       )}

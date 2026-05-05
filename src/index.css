@@ -706,7 +706,7 @@ body {
 }
 
 .nav-item.active { 
-  color: #FF1744; 
+  color: #F59E0B; 
   transform: translateY(-2px);
 }
 
@@ -716,9 +716,9 @@ body {
   bottom: -8px;
   width: 4px;
   height: 4px;
-  background: #FF1744;
+  background: #F59E0B;
   border-radius: 50%;
-  box-shadow: 0 0 10px #FF1744;
+  box-shadow: 0 0 10px #F59E0B;
 }
 
 /* Animation Classes */
