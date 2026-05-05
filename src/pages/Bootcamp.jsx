@@ -118,7 +118,7 @@ const Bootcamp = ({ onBack }) => {
           <button onClick={onBack} style={{ background: 'none', border: 'none', cursor: 'pointer' }}><ChevronLeft size={24} color="#fff" /></button>
           <h1 style={{ fontSize: '18px', fontWeight: 900, color: '#fff', margin: 0, letterSpacing: '1px' }}>PREMIUM BOOTCAMP</h1>
         </div>
-        <button onClick={() => setView('register')} style={{ background: '#7C3AED', color: '#fff', border: 'none', borderRadius: '12px', padding: '8px 16px', fontSize: '14px', fontWeight: 800, display: 'flex', alignItems: 'center', gap: '6px', cursor: 'pointer', boxShadow: '0 4px 15px rgba(124, 58, 237, 0.3)' }}><Plus size={18} /> 등록</button>
+        <button onClick={() => setView('register')} style={{ background: '#F59E0B', color: '#fff', border: 'none', borderRadius: '12px', padding: '8px 16px', fontSize: '14px', fontWeight: 800, display: 'flex', alignItems: 'center', gap: '6px', cursor: 'pointer', boxShadow: '0 4px 15px rgba(124, 58, 237, 0.3)' }}><Plus size={18} /> 등록</button>
       </div>
 
       <div style={{ padding: '0 20px 100px' }}>
@@ -126,25 +126,25 @@ const Bootcamp = ({ onBack }) => {
           <>
             {/* Tabs */}
             <div style={{ display: 'flex', gap: '10px', marginTop: '20px', marginBottom: '25px', padding: '5px', background: '#1a1a1a', borderRadius: '16px' }}>
-              <button onClick={() => setActiveTab('domestic')} style={{ flex: 1, padding: '12px', borderRadius: '12px', border: 'none', background: activeTab === 'domestic' ? '#7C3AED' : 'transparent', color: activeTab === 'domestic' ? '#fff' : '#666', fontWeight: 800, fontSize: '14px', transition: 'all 0.3s' }}>국내</button>
-              <button onClick={() => setActiveTab('overseas')} style={{ flex: 1, padding: '12px', borderRadius: '12px', border: 'none', background: activeTab === 'overseas' ? '#7C3AED' : 'transparent', color: activeTab === 'overseas' ? '#fff' : '#666', fontWeight: 800, fontSize: '14px', transition: 'all 0.3s' }}>국외</button>
+              <button onClick={() => setActiveTab('domestic')} style={{ flex: 1, padding: '12px', borderRadius: '12px', border: 'none', background: activeTab === 'domestic' ? '#F59E0B' : 'transparent', color: activeTab === 'domestic' ? '#fff' : '#666', fontWeight: 800, fontSize: '14px', transition: 'all 0.3s' }}>국내</button>
+              <button onClick={() => setActiveTab('overseas')} style={{ flex: 1, padding: '12px', borderRadius: '12px', border: 'none', background: activeTab === 'overseas' ? '#F59E0B' : 'transparent', color: activeTab === 'overseas' ? '#fff' : '#666', fontWeight: 800, fontSize: '14px', transition: 'all 0.3s' }}>국외</button>
             </div>
 
             {/* Filters */}
             <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', marginBottom: '30px' }}>
               <div style={{ display: 'flex', overflowX: 'auto', gap: '8px', paddingBottom: '4px' }}>
-                <button onClick={() => setFilterGenre('')} style={{ flexShrink: 0, padding: '8px 16px', borderRadius: '50px', background: filterGenre === '' ? '#7C3AED' : '#1a1a1a', color: filterGenre === '' ? '#fff' : '#999', fontSize: '12px', fontWeight: 700, border: '1px solid rgba(255,255,255,0.05)' }}>전체 장르</button>
-                {GENRES.map(g => <button key={g} onClick={() => setFilterGenre(g)} style={{ flexShrink: 0, padding: '8px 16px', borderRadius: '50px', background: filterGenre === g ? '#7C3AED' : '#1a1a1a', color: filterGenre === g ? '#fff' : '#999', fontSize: '12px', fontWeight: 700, border: '1px solid rgba(255,255,255,0.05)' }}>{g}</button>)}
+                <button onClick={() => setFilterGenre('')} style={{ flexShrink: 0, padding: '8px 16px', borderRadius: '50px', background: filterGenre === '' ? '#F59E0B' : '#1a1a1a', color: filterGenre === '' ? '#fff' : '#999', fontSize: '12px', fontWeight: 700, border: '1px solid rgba(255,255,255,0.05)' }}>전체 장르</button>
+                {GENRES.map(g => <button key={g} onClick={() => setFilterGenre(g)} style={{ flexShrink: 0, padding: '8px 16px', borderRadius: '50px', background: filterGenre === g ? '#F59E0B' : '#1a1a1a', color: filterGenre === g ? '#fff' : '#999', fontSize: '12px', fontWeight: 700, border: '1px solid rgba(255,255,255,0.05)' }}>{g}</button>)}
               </div>
               <div style={{ display: 'flex', overflowX: 'auto', gap: '8px', paddingBottom: '4px' }}>
-                <button onClick={() => setFilterLevel('')} style={{ flexShrink: 0, padding: '8px 16px', borderRadius: '50px', background: filterLevel === '' ? '#7C3AED' : '#1a1a1a', color: filterLevel === '' ? '#fff' : '#999', fontSize: '12px', fontWeight: 700, border: '1px solid rgba(255,255,255,0.05)' }}>전체 레벨</button>
-                {LEVELS.map(l => <button key={l} onClick={() => setFilterLevel(l)} style={{ flexShrink: 0, padding: '8px 16px', borderRadius: '50px', background: filterLevel === l ? '#7C3AED' : '#1a1a1a', color: filterLevel === l ? '#fff' : '#999', fontSize: '12px', fontWeight: 700, border: '1px solid rgba(255,255,255,0.05)' }}>{l}</button>)}
+                <button onClick={() => setFilterLevel('')} style={{ flexShrink: 0, padding: '8px 16px', borderRadius: '50px', background: filterLevel === '' ? '#F59E0B' : '#1a1a1a', color: filterLevel === '' ? '#fff' : '#999', fontSize: '12px', fontWeight: 700, border: '1px solid rgba(255,255,255,0.05)' }}>전체 레벨</button>
+                {LEVELS.map(l => <button key={l} onClick={() => setFilterLevel(l)} style={{ flexShrink: 0, padding: '8px 16px', borderRadius: '50px', background: filterLevel === l ? '#F59E0B' : '#1a1a1a', color: filterLevel === l ? '#fff' : '#999', fontSize: '12px', fontWeight: 700, border: '1px solid rgba(255,255,255,0.05)' }}>{l}</button>)}
               </div>
             </div>
 
             {/* List */}
             {loading ? (
-              <div style={{ display: 'flex', justifyContent: 'center', padding: '100px 0' }}><Loader2 size={40} color="#7C3AED" className="animate-spin" /></div>
+              <div style={{ display: 'flex', justifyContent: 'center', padding: '100px 0' }}><Loader2 size={40} color="#F59E0B" className="animate-spin" /></div>
             ) : filteredList.length === 0 ? (
               <div style={{ textAlign: 'center', padding: '100px 20px', color: '#666' }}><Tent size={60} style={{ marginBottom: '20px', opacity: 0.1 }} /><p style={{ fontWeight: 800, fontSize: '16px' }}>등록된 부트캠프가 없습니다.</p></div>
             ) : (
@@ -153,12 +153,12 @@ const Bootcamp = ({ onBack }) => {
                   <motion.div key={item.id} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} style={{ background: '#111', borderRadius: '32px', overflow: 'hidden', border: '1px solid rgba(255,255,255,0.05)', boxShadow: '0 20px 40px rgba(0,0,0,0.4)' }}>
                     <div style={{ position: 'relative', height: '260px', background: '#1a1a1a' }}>
                       {item.poster_url ? <img src={item.poster_url} alt={item.title} style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#222' }}><ImageIcon size={64} /></div>}
-                      <div style={{ position: 'absolute', top: '24px', left: '24px' }}><div style={{ background: item.type === 'domestic' ? '#39FF14' : '#7C3AED', color: item.type === 'domestic' ? '#000' : '#fff', padding: '8px 16px', borderRadius: '10px', fontSize: '12px', fontWeight: 900, boxShadow: '0 4px 15px rgba(0,0,0,0.3)' }}>{item.type === 'domestic' ? 'DOMESTIC' : 'OVERSEAS'}</div></div>
+                      <div style={{ position: 'absolute', top: '24px', left: '24px' }}><div style={{ background: item.type === 'domestic' ? '#39FF14' : '#F59E0B', color: item.type === 'domestic' ? '#000' : '#fff', padding: '8px 16px', borderRadius: '10px', fontSize: '12px', fontWeight: 900, boxShadow: '0 4px 15px rgba(0,0,0,0.3)' }}>{item.type === 'domestic' ? 'DOMESTIC' : 'OVERSEAS'}</div></div>
                       <div style={{ position: 'absolute', bottom: '0', left: '0', right: '0', height: '120px', background: 'linear-gradient(to top, #111, transparent)' }} />
                     </div>
                     <div style={{ padding: '28px', marginTop: '-30px', position: 'relative', zIndex: 1 }}>
                       <div style={{ marginBottom: '24px' }}>
-                        <div style={{ color: '#7C3AED', fontSize: '13px', fontWeight: 900, marginBottom: '6px', letterSpacing: '1px' }}>{item.nationality ? `${item.nationality} · ` : ''}{item.genre}</div>
+                        <div style={{ color: '#F59E0B', fontSize: '13px', fontWeight: 900, marginBottom: '6px', letterSpacing: '1px' }}>{item.nationality ? `${item.nationality} · ` : ''}{item.genre}</div>
                         <h3 style={{ fontSize: '26px', fontWeight: 900, color: '#fff', margin: 0, letterSpacing: '-0.5px' }}>{item.instructor}</h3>
                         <p style={{ fontSize: '15px', color: '#888', margin: '6px 0 0', fontWeight: 600 }}>{item.title}</p>
                       </div>
@@ -183,7 +183,7 @@ const Bootcamp = ({ onBack }) => {
             <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '28px' }}>
               <div><label style={{ display: 'block', fontSize: '12px', fontWeight: 900, color: '#555', marginBottom: '12px', letterSpacing: '1px' }}>1. TYPE (REQUIRED)</label>
                 <div style={{ display: 'flex', gap: '12px' }}>
-                  {['domestic', 'overseas'].map(t => <button key={t} type="button" onClick={() => setFormData(prev => ({ ...prev, type: t }))} style={{ flex: 1, padding: '18px', borderRadius: '16px', border: 'none', background: formData.type === t ? '#7C3AED' : '#1a1a1a', color: formData.type === t ? '#fff' : '#666', fontWeight: 900, fontSize: '15px' }}>{t === 'domestic' ? '국내' : '국외'}</button>)}
+                  {['domestic', 'overseas'].map(t => <button key={t} type="button" onClick={() => setFormData(prev => ({ ...prev, type: t }))} style={{ flex: 1, padding: '18px', borderRadius: '16px', border: 'none', background: formData.type === t ? '#F59E0B' : '#1a1a1a', color: formData.type === t ? '#fff' : '#666', fontWeight: 900, fontSize: '15px' }}>{t === 'domestic' ? '국내' : '국외'}</button>)}
                 </div>
               </div>
               <div><label style={{ display: 'block', fontSize: '12px', fontWeight: 900, color: '#555', marginBottom: '12px', letterSpacing: '1px' }}>2. BOOTCAMP TITLE (MAX 16)</label><input required maxLength={16} value={formData.title} onChange={e => setFormData(prev => ({ ...prev, title: e.target.value }))} placeholder="캠프 이름을 입력하세요" style={{ width: '100%', padding: '20px', borderRadius: '16px', border: '1px solid rgba(255,255,255,0.05)', background: '#1a1a1a', fontSize: '16px', color: '#fff' }} /></div>
@@ -212,12 +212,12 @@ const Bootcamp = ({ onBack }) => {
               </div>
               <div><label style={{ display: 'block', fontSize: '12px', fontWeight: 900, color: '#555', marginBottom: '12px', letterSpacing: '1px' }}>12. POSTER IMAGE</label>
                 <div style={{ width: '100%', height: '180px', borderRadius: '24px', border: '2px dashed rgba(255,255,255,0.1)', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', background: '#1a1a1a', cursor: 'pointer', overflow: 'hidden', position: 'relative' }}>
-                  {formData.poster_url ? <img src={formData.poster_url} alt="Preview" style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : <> {uploading ? <Loader2 className="animate-spin" color="#7C3AED" /> : <ImageIcon color="#222" size={40} />} <span style={{ fontSize: '13px', color: '#333', marginTop: '15px', fontWeight: 900 }}>{uploading ? 'UPLOADING...' : 'SELECT POSTER IMAGE'}</span> </>}
+                  {formData.poster_url ? <img src={formData.poster_url} alt="Preview" style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : <> {uploading ? <Loader2 className="animate-spin" color="#F59E0B" /> : <ImageIcon color="#222" size={40} />} <span style={{ fontSize: '13px', color: '#333', marginTop: '15px', fontWeight: 900 }}>{uploading ? 'UPLOADING...' : 'SELECT POSTER IMAGE'}</span> </>}
                   <input type="file" accept="image/*" onChange={handleImageUpload} style={{ position: 'absolute', inset: 0, opacity: 0, cursor: 'pointer' }} />
                 </div>
               </div>
               <div><label style={{ display: 'block', fontSize: '12px', fontWeight: 900, color: '#555', marginBottom: '12px', letterSpacing: '1px' }}>13. DESCRIPTION</label><textarea value={formData.description} onChange={e => setFormData(prev => ({ ...prev, description: e.target.value }))} placeholder="상세 내용을 입력하세요" style={{ width: '100%', padding: '24px', borderRadius: '24px', border: '1px solid rgba(255,255,255,0.05)', background: '#1a1a1a', fontSize: '16px', color: '#fff', minHeight: '180px', resize: 'none' }} /></div>
-              <button type="submit" disabled={submitting || uploading} style={{ width: '100%', padding: '24px', borderRadius: '24px', background: '#7C3AED', color: '#fff', fontSize: '18px', fontWeight: 1000, border: 'none', boxShadow: '0 15px 40px rgba(124, 58, 237, 0.4)', cursor: 'pointer', marginTop: '20px' }}>{submitting ? 'PROCESSING...' : 'APPLY BOOTCAMP'}</button>
+              <button type="submit" disabled={submitting || uploading} style={{ width: '100%', padding: '24px', borderRadius: '24px', background: '#F59E0B', color: '#fff', fontSize: '18px', fontWeight: 1000, border: 'none', boxShadow: '0 15px 40px rgba(124, 58, 237, 0.4)', cursor: 'pointer', marginTop: '20px' }}>{submitting ? 'PROCESSING...' : 'APPLY BOOTCAMP'}</button>
             </form>
           </motion.div>
         )}
