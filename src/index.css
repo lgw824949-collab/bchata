@@ -713,7 +713,7 @@ body {
 .nav-item.active::after {
   content: '';
   position: absolute;
-  bottom: -8px;
+  bottom: 0px;
   width: 4px;
   height: 4px;
   background: #F59E0B;

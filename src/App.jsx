@@ -1047,7 +1047,7 @@ function App() {
               style={{
                 width:'52px', height:'52px',
                 borderRadius:'50%',
-                background: 'linear-gradient(135deg, #F59E0B 0%, #D97706 100%)',
+                background: '#F59E0B',
                 border:'none', color:'#fff',
                 display:'flex', alignItems:'center',
                 justifyContent:'center', cursor:'pointer',
@@ -1064,7 +1064,7 @@ function App() {
             >
               <Plus size={28} strokeWidth={3} />
             </motion.button>
-            <span style={{ pointerEvents: 'auto', color: '#1E293B', fontSize: '10px' }}>{view === 'community' ? '리포트' : '등록'}</span>
+            <span style={{ pointerEvents: 'auto', color: '#555', fontSize: '10px', fontWeight: 800 }}>{view === 'community' ? '리포트' : '등록'}</span>
           </div>
 
           <div 
