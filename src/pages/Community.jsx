@@ -31,8 +31,13 @@ const Community = ({ setSelectedPoster, setView }) => {
         setShowUploadModal(false);
       }
     };
+    const handleOpenUpload = () => setShowUploadModal(true);
     window.addEventListener('popstate', handlePopState);
-    return () => window.removeEventListener('popstate', handlePopState);
+    window.addEventListener('open-community-upload', handleOpenUpload);
+    return () => {
+      window.removeEventListener('popstate', handlePopState);
+      window.removeEventListener('open-community-upload', handleOpenUpload);
+    };
   }, [selectedPost, showUploadModal]);
 
   const fetchPosts = async () => {
@@ -276,9 +281,6 @@ const Community = ({ setSelectedPoster, setView }) => {
         )}
       </AnimatePresence>
 
-      <motion.button whileTap={{ scale: 0.9 }} onClick={() => setShowUploadModal(true)} style={{ position: 'fixed', bottom: '30px', right: '20px', width: '56px', height: '56px', borderRadius: '50%', background: '#E53935', color: '#fff', border: 'none', boxShadow: '0 8px 25px rgba(229,57,53,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000 }}>
-        <Plus size={28} strokeWidth={3} />
-      </motion.button>
 
       <AnimatePresence>
         {showUploadModal && (

@@ -945,12 +945,16 @@ function App() {
                 pointerEvents: 'auto'
               }}
               onClick={() => {
-                handleRegister('party')
+                if (view === 'community') {
+                  window.dispatchEvent(new CustomEvent('open-community-upload'));
+                } else {
+                  handleRegister('party')
+                }
               }}
             >
               <Plus size={28} strokeWidth={3} />
             </motion.button>
-            <span style={{ pointerEvents: 'auto', color: '#1E293B', fontSize: '10px' }}>등록</span>
+            <span style={{ pointerEvents: 'auto', color: '#1E293B', fontSize: '10px' }}>{view === 'community' ? '리포트' : '등록'}</span>
           </div>
 
           <div 

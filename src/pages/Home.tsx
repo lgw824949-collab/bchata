@@ -704,11 +704,27 @@ const HomePage = ({
                                 {(() => {
                                   const now = new Date();
                                   const pDate = new Date(party.date);
-                                  const startStr = party.time?.split('-')[0].trim() || '21:00';
-                                  const [h, m] = startStr.split(':').map(Number);
-                                  const startDate = new Date(now);
-                                  startDate.setHours(h, m, 0, 0);
-                                  if (now.toDateString() === pDate.toDateString() && now >= startDate) {
+                                  
+                                  const startStr = (party.time?.split('-')[0] || '20:00').trim();
+                                  const [sH, sM] = startStr.split(':').length === 2 ? startStr.split(':').map(Number) : [20, 0];
+                                  const startDate = new Date(pDate);
+                                  startDate.setHours(sH, sM, 0, 0);
+
+                                  const endStr = party.time?.includes('-') ? party.time.split('-')[1].trim() : null;
+                                  let endDate = new Date(startDate);
+
+                                  if (endStr && endStr.includes(':')) {
+                                    const [eH, eM] = endStr.split(':').map(Number);
+                                    endDate.setHours(eH, eM + 30, 0, 0);
+                                    if (endDate < startDate) endDate.setDate(endDate.getDate() + 1);
+                                  } else {
+                                    endDate.setHours(startDate.getHours() + 4, startDate.getMinutes() + 30, 0, 0);
+                                  }
+
+                                  const startWithBuffer = new Date(startDate.getTime() - 30 * 60 * 1000);
+                                  const isLive = now >= startWithBuffer && now <= endDate;
+
+                                  if (isLive) {
                                     return (
                                       <div style={{ position: 'absolute', top: '8px', left: '8px', background: '#FF1744', color: 'white', fontSize: '9px', fontWeight: '950', padding: '2px 5px', borderRadius: '4px', boxShadow: '0 2px 4px rgba(0,0,0,0.2)', display: 'flex', alignItems: 'center', gap: '3px', zIndex: 10 }}>
                                         <span style={{ width: '5px', height: '5px', background: 'white', borderRadius: '50%', display: 'inline-block' }}></span>
