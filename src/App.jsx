@@ -9,6 +9,7 @@ import HomePage from './pages/Home'
 import Community from './pages/Community'
 import PostClub from './pages/PostClub'
 import Bootcamp from './pages/Bootcamp'
+import Festival from './pages/Festival'
 import Auth from './components/Auth'
 import Parking from './pages/Parking'
 import Restaurant from './pages/Restaurant'
@@ -844,12 +845,7 @@ function App() {
       <main>
         {view === 'home' ? <HomePage {...sharedProps} /> : 
          view === 'bootcamp' ? <Bootcamp onBack={() => setView('home')} /> :
-         view === 'festival' ? (
-           <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '80vh', color: '#1E293B' }}>
-             <span style={{ fontSize: '48px', marginBottom: '20px' }}>🚩</span>
-             <h2 style={{ fontSize: '24px', fontWeight: 900 }}>페스티벌 준비중</h2>
-           </div>
-         ) :
+         view === 'festival' ? <Festival onBack={() => setView('home')} /> :
          {
             'community': <Community setSelectedPoster={setSelectedPoster} setView={setView} />,
             'parking': <Parking onBack={() => setView('home')} />,
