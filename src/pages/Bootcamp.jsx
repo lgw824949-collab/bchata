@@ -18,7 +18,6 @@ const Bootcamp = ({ onBack }) => {
   const [bootcamps, setBootcamps] = useState([]);
   const [loading, setLoading] = useState(true);
   const [filterGenre, setFilterGenre] = useState('');
-  const [filterLevel, setFilterLevel] = useState('');
   
   // Registration form state
   const [formData, setFormData] = useState({
@@ -134,7 +133,6 @@ const Bootcamp = ({ onBack }) => {
 
   const filteredList = bootcamps.filter(b => {
     if (filterGenre && b.genre !== filterGenre) return false;
-    if (filterLevel && b.level !== filterLevel) return false;
     return true;
   });
 
@@ -194,33 +192,6 @@ const Bootcamp = ({ onBack }) => {
                     }}
                   >
                     {g}
-                  </button>
-                ))}
-              </div>
-              <div style={{ display: 'flex', overflowX: 'auto', gap: '8px', paddingBottom: '4px' }}>
-                <button 
-                  onClick={() => setFilterLevel('')}
-                  style={{ 
-                    flexShrink: 0, padding: '8px 16px', borderRadius: '10px',
-                    background: filterLevel === '' ? '#FF1744' : '#FFFFFF',
-                    color: filterLevel === '' ? '#FFFFFF' : '#64748B',
-                    fontSize: '13px', fontWeight: 700, border: '1px solid #E2E8F0'
-                  }}
-                >
-                  전체 레벨
-                </button>
-                {LEVELS.map(l => (
-                  <button 
-                    key={l}
-                    onClick={() => setFilterLevel(l)}
-                    style={{ 
-                      flexShrink: 0, padding: '8px 16px', borderRadius: '10px',
-                      background: filterLevel === l ? '#FF1744' : '#FFFFFF',
-                      color: filterLevel === l ? '#FFFFFF' : '#64748B',
-                      fontSize: '13px', fontWeight: 700, border: '1px solid #E2E8F0'
-                    }}
-                  >
-                    {l}
                   </button>
                 ))}
               </div>
