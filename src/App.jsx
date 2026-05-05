@@ -1075,8 +1075,8 @@ function App() {
             className={`nav-item ${view === 'bootcamp' ? 'active' : ''}`} 
             onClick={() => { setView('bootcamp'); window.scrollTo(0,0); }}
           >
-            <Tent size={22} color={view === 'bootcamp' ? '#FF1744' : '#94A3B8'} style={{ marginBottom: '4px' }} />
-            <span style={{ fontSize: '10px', fontWeight: view === 'bootcamp' ? 900 : 500, color: view === 'bootcamp' ? '#FF1744' : '#94A3B8' }}>부트캠프</span>
+            <Tent size={22} color={view === 'bootcamp' ? '#7C3AED' : '#94A3B8'} style={{ marginBottom: '4px' }} />
+            <span style={{ fontSize: '10px', fontWeight: view === 'bootcamp' ? 900 : 500, color: view === 'bootcamp' ? '#7C3AED' : '#94A3B8' }}>부트캠프</span>
           </div>
 
           <div 
