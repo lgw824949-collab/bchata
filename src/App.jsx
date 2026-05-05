@@ -660,7 +660,6 @@ function App() {
             <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
               {[
                 { icon: <Calendar color={'#FF1744'} />, text: t('view_calendar'), action: () => { setIsMenuOpen(false); handleOpenModal(setShowFullCalendar, true); } },
-                { icon: <Camera color={'#FF1744'} />, text: 'LIVE PICK', action: () => { setView('community'); setIsMenuOpen(false); } },
                 { icon: <Utensils color={'#FF1744'} />, text: t('restaurant'), action: () => { setView('restaurant'); setIsMenuOpen(false); } },
                 { icon: <Star color={'#FF1744'} />, text: t('saju'), action: () => { if(typeof setShowSaju === 'function') { handleOpenModal(setShowSaju, true); setIsMenuOpen(false); } } },
                 { 
@@ -731,10 +730,10 @@ function App() {
 
       <main>
         {view === 'home' ? <HomePage {...sharedProps} /> : 
-         view === 'bootcamp' ? (
+         (view === 'bootcamp' || view === 'festival') ? (
            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '80vh', color: '#1E293B' }}>
-             <span style={{ fontSize: '48px', marginBottom: '20px' }}>🏕️</span>
-             <h2 style={{ fontSize: '24px', fontWeight: 900 }}>부트캠프 준비중</h2>
+             <span style={{ fontSize: '48px', marginBottom: '20px' }}>{view === 'bootcamp' ? '🏕️' : '🚩'}</span>
+             <h2 style={{ fontSize: '24px', fontWeight: 900 }}>{view === 'bootcamp' ? '부트캠프' : '페스티벌'} 준비중</h2>
            </div>
          ) :
          {
@@ -911,7 +910,7 @@ function App() {
         />
       )}
 
-      {view !== 'community' && (
+      {true && (
         <nav className="bottom-nav">
           <div 
             className={`nav-item ${view === 'home' ? 'active' : ''}`} 
@@ -919,6 +918,14 @@ function App() {
           >
             <Music2 size={22} color={view === 'home' ? '#FF1744' : '#94A3B8'} style={{ marginBottom: '4px' }} />
             <span style={{ fontSize: '10px', fontWeight: view === 'home' ? 900 : 500, color: view === 'home' ? '#FF1744' : '#94A3B8' }}>소셜/파티</span>
+          </div>
+
+          <div 
+            className={`nav-item ${view === 'community' ? 'active' : ''}`} 
+            onClick={() => { setView('community'); window.scrollTo(0,0); }}
+          >
+            <Camera size={22} color={view === 'community' ? '#FF1744' : '#94A3B8'} style={{ marginBottom: '4px' }} />
+            <span style={{ fontSize: '10px', fontWeight: view === 'community' ? 900 : 500, color: view === 'community' ? '#FF1744' : '#94A3B8' }}>LIVE PICK</span>
           </div>
 
 
