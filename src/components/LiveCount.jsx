@@ -7,7 +7,6 @@ const LiveCount = ({ isPaused = false }) => {
   
   const getTodayKST = () => {
     const kst = new Date(Date.now() + (9 * 60 * 60 * 1000))
-    // 새벽 5시 이전까지는 전날을 '오늘'로 간주하여 파티 중계를 유지함
     if (kst.getHours() < 5) {
       kst.setDate(kst.getDate() - 1)
     }
@@ -26,11 +25,9 @@ const LiveCount = ({ isPaused = false }) => {
 
   const isNowInPartyTime = (dateStr, startTime, endTime) => {
     const now = new Date()
-    // 시작 시간 (버퍼 30분 전부터)
     const start = new Date(`${dateStr}T${startTime}:00`)
     const startWithBuffer = new Date(start.getTime() - 30 * 60 * 1000)
 
-    // 종료 시간 설정 (사용자 요청에 따라 익일 새벽 3시로 고정)
     const end = new Date(start.getTime());
     end.setDate(end.getDate() + 1);
     end.setHours(3, 0, 0, 0);
@@ -43,7 +40,6 @@ const LiveCount = ({ isPaused = false }) => {
     const yesterdayStr = getYesterdayKST()
 
     try {
-      // 오늘과 어제 파티를 모두 가져옴 (새벽 시간대 대응)
       const [{ data: parties }, { data: locations }] = await Promise.all([
         supabase.from('parties').select('*').in('date', [todayStr, yesterdayStr]),
         supabase.from('locations').select('id, name')
@@ -117,13 +113,11 @@ const LiveCount = ({ isPaused = false }) => {
       const nearBar = BAR_DATABASE.find(bar => bar.lat && bar.lon && getDist(lat, lon, bar.lat, bar.lon) < 0.1)
       
       if (nearBar) {
-        // locations 테이블에서 공식 명칭 조회
         const { data: locData } = await supabase.from('locations').select('id, name').eq('name', nearBar.name).maybeSingle()
         if (!locData) return;
         
         const officialName = locData.name;
         
-        // 오늘 또는 어제 파티 중 현재 live인 것이 있는지 확인
         const { data: activeParties } = await supabase.from('parties').select('*').in('date', [todayStr, yesterdayStr]).eq('location_id', locData.id)
         const isCurrentlyLive = (activeParties || []).some(p => isNowInPartyTime(p.date, p.time, p.end_time))
         
@@ -145,14 +139,15 @@ const LiveCount = ({ isPaused = false }) => {
 
   const abbreviateRegion = (region) => {
     if (!region) return '';
-    return region.replace('인천광역시', '인천').replace('서울특별시', '서울').replace('부산광역시', '부산').replace('경기도', '경기');
+    const maps = { '서울특별시': '서울', '인천광역시': '인천', '부산광역시': '부산', '경기도': '경기', '충청도': '충청', '전라도': '전라', '경상도': '경상' };
+    return maps[region] || region;
   };
 
   const areaSummary = useMemo(() => {
     const AREAS = {
       '홍대 성지': ['보니따', '홍턴', '부에나', '까리베', '마콘도', '팰리스', '안단테', '놀이터', '하바나', '아난타라', '솔SOL', '꼼애야', '맘보'],
       '상암 성지': ['상암', '디지털미디어시티'],
-      '강남 성지': ['강남', '신사', '역삼', '선릉'],
+      '강남 성지': ['강남', '신사', '역삼', '선릉', '라틴'],
       '인천 성지': ['엘마르', '라씬', 'LBT', '부평', '구월']
     };
 
@@ -176,62 +171,59 @@ const LiveCount = ({ isPaused = false }) => {
   }, [counts]);
 
   const liveList = useMemo(() => {
-    const list = Object.entries(counts)
-      .map(([key, count]) => {
-        return [key, count];
-      })
+    return Object.entries(counts)
       .filter(([_, count]) => count >= 1) 
       .sort((a, b) => b[1] - a[1])
       .slice(0, 5);
-
-    return list;
   }, [counts]);
 
-
   return (
-    <div style={{ background: '#0F172A', padding: '10px 0', borderBottom: '1px solid #1E293B', overflow: 'hidden' }}>
+    <div style={{ background: '#0F172A', padding: '12px 0', borderBottom: '1px solid #1E293B', overflow: 'hidden', position: 'relative' }}>
       <style>{`
-        .live-dot { animation: blink 1.5s infinite; } 
-        @keyframes blink { 0% { opacity: 1; } 50% { opacity: 0.3; } 100% { opacity: 1; } }
+        .live-pulse { animation: pulse 2s infinite; } 
+        @keyframes pulse { 0% { transform: scale(1); opacity: 1; box-shadow: 0 0 0 0 rgba(34, 211, 238, 0.7); } 70% { transform: scale(1.1); opacity: 0.8; box-shadow: 0 0 0 10px rgba(34, 211, 238, 0); } 100% { transform: scale(1); opacity: 1; } }
         .ticker-container { 
           display: flex; 
-          animation: scroll 30s linear infinite; 
-          gap: 40px; 
+          animation: scroll 35s linear infinite; 
+          gap: 50px; 
+          align-items: center;
           animation-play-state: ${isPaused ? 'paused' : 'running'};
         }
-        @keyframes scroll { 0% { transform: translateX(100%); } 100% { transform: translateX(-150%); } }
+        @keyframes scroll { 0% { transform: translateX(100%); } 100% { transform: translateX(-180%); } }
         .live-text { font-family: 'Pretendard', sans-serif; white-space: nowrap; }
       `}</style>
 
       <div className="ticker-container">
         {areaSummary.length === 0 && liveList.length === 0 && (
-          <span className="live-text" style={{ color: '#94A3B8', fontSize: '13px' }}>
+          <span className="live-text" style={{ color: '#94A3B8', fontSize: '13px', fontWeight: 600, letterSpacing: '-0.5px' }}>
             {isPaused ? '⏸ 중계 일시 정지됨' : '🎵 밤빠가 전하는 전국 소셜 파티 실시간 인원 중계 중! 🔥'}
           </span>
         )}
-        {/* 1. 성지 구역 요약 (광고판 중계) */}
+
+        {/* 1. 성지 구역 요약 */}
         {areaSummary.map(item => (
-          <div key={item.area} className="live-text" style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-            <span style={{ background: '#FF1744', color: '#fff', fontSize: '10px', fontWeight: '950', padding: '2px 8px', borderRadius: '4px' }}>BROADCAST</span>
-            <span style={{ fontWeight: 900, fontSize: '15px', color: '#FFFFFF' }}>
-              [{item.area}] 반경 1km 내 <span style={{ color: '#FF1744' }}>{item.total}명</span> 집결 중!
+          <div key={item.area} className="live-text" style={{ display: 'flex', alignItems: 'center', gap: '12px', background: 'rgba(255, 23, 68, 0.1)', padding: '6px 16px', borderRadius: '30px', border: '1px solid rgba(255, 23, 68, 0.2)' }}>
+            <span style={{ color: '#FF1744', fontSize: '10px', fontWeight: 950, letterSpacing: '1px' }}>BROADCAST</span>
+            <span style={{ fontWeight: 800, fontSize: '15px', color: '#FFFFFF' }}>
+              [{item.area}] <span style={{ color: '#FF1744' }}>{item.total}명</span> 집결!
             </span>
-            <span style={{ fontSize: '13px', fontWeight: '800', color: '#2ECC71' }}>{item.message}</span>
+            <span style={{ fontSize: '13px', fontWeight: 800, color: '#2ECC71' }}>{item.message}</span>
           </div>
         ))}
 
-        {/* 2. 개별 바 인원 현황 */}
+        {/* 2. 개별 바 인원 현황 (리뉴얼 디자인) */}
         {liveList.map(([key, count]) => {
           const parts = key.split('|');
           const barName = parts[1] || '';
           const shortRegion = abbreviateRegion(parts[0]);
           return (
-            <div key={key} className="live-text" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <span className="live-dot" style={{ color: '#FF1744', fontSize: '10px' }}>●</span>
-              <span style={{ fontWeight: 800, fontSize: '14px', color: '#94A3B8' }}>
-                {shortRegion} {barName}
-              </span>
-              <span style={{ fontWeight: 900, fontSize: '18px', color: '#FFFFFF', marginLeft: '4px' }}>
+            <div key={key} className="live-text" style={{ display: 'flex', alignItems: 'center', gap: '10px', background: 'rgba(255, 255, 255, 0.05)', padding: '6px 14px', borderRadius: '30px', border: '1px solid rgba(255, 255, 255, 0.1)' }}>
+              <div className="live-pulse" style={{ width: 8, height: 8, background: '#22D3EE', borderRadius: '50%', boxShadow: '0 0 10px rgba(34, 211, 238, 0.8)' }} />
+              <div style={{ display: 'flex', alignItems: 'baseline', gap: '4px' }}>
+                <span style={{ fontWeight: 700, fontSize: '12px', color: '#94A3B8' }}>{shortRegion}</span>
+                <span style={{ fontWeight: 800, fontSize: '15px', color: '#F8FAFC' }}>{barName}</span>
+              </div>
+              <span style={{ fontWeight: 950, fontSize: '20px', color: '#22D3EE', marginLeft: '6px', fontFamily: 'Pretendard, system-ui' }}>
                 {count}
               </span>
             </div>
