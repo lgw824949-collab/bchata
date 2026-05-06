@@ -38,12 +38,51 @@ export const ALL_RESULTS = [
 
 // 결과 선택 로직
 export const selectResult = (genre, gender, month, day, count) => {
-  // 간단한 알고리즘으로 결과 인덱스 결정
-  const index = (parseInt(month) + parseInt(day) + (gender === 'male' ? 1 : 2)) % ALL_RESULTS.length;
-  const baseResult = ALL_RESULTS[index];
-  
+  const num = parseInt(month) + parseInt(day) + (gender === 'male' ? 1 : 2)
+  const index = num % ALL_RESULTS.length
+  const baseResult = ALL_RESULTS[index]
+
+  // 오행 기반 댄스 타입 결정
+  const ohengList = Object.keys(OHENG_GENRE)
+  const oheng = ohengList[num % ohengList.length]
+  const recommendedGenre = genre || OHENG_GENRE[oheng]
+
+  // 성향 타입 결정 (3가지)
+  const typeIndex = num % 3
+  const types = [
+    {
+      type: '🔥 핫한 연결형',
+      typeDesc: '새로운 사람과 자연스럽게 어울리는 날이에요',
+      vibe: '활발하고 에너지 넘침',
+      groupSize: '대규모'
+    },
+    {
+      type: '🌿 편안한 교류형',
+      typeDesc: '소규모로 깊게 연결되는 날이에요',
+      vibe: '여유롭고 따뜻함',
+      groupSize: '소규모'
+    },
+    {
+      type: '💎 실력 성장형',
+      typeDesc: '오늘은 배움에 집중하는 날이에요',
+      vibe: '진지하고 성장 지향',
+      groupSize: '클래스'
+    }
+  ]
+  const selectedType = types[typeIndex]
+
+  // AI 분석 근거 3개
+  const aiReasons = [
+    `${oheng} 기운 보유자 → ${recommendedGenre} 최적 매칭`,
+    `${gender === 'male' ? '남성' : '여성'} ${month}월생 에너지 패턴 분석 완료`,
+    `현재 ${selectedType.groupSize} 모임 활성도 높음 → 우선 추천`
+  ]
+
   return {
     ...baseResult,
-    genre: genre || OHENG_GENRE['수(水)'] // 기본값 바차타
-  };
-};
+    genre: recommendedGenre,
+    oheng,
+    selectedType,
+    aiReasons
+  }
+}

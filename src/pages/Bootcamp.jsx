@@ -12,14 +12,15 @@ const GENRES = ['바차타', '살사', '키좀바', '쥬크'];
 const LEVELS = ['입문', '초급', '중급', '상급'];
 const REGIONS = ['서울', '경기/인천', '경상도', '전라도', '충청도', '강원/제주'];
 
-const Bootcamp = ({ onBack }) => {
+const Bootcamp = ({ onBack, initialView = 'list' }) => {
   const { t } = useTranslation();
-  const [view, setView] = useState('list'); 
+  const [view, setView] = useState(initialView); 
   const [activeTab, setActiveTab] = useState('domestic'); 
   const [bootcamps, setBootcamps] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [filterGenre, setFilterGenre] = useState('');
-  const [filterLevel, setFilterLevel] = useState('');
+  const [selectedGenre, setSelectedGenre] = useState('전체');
+  const [selectedLevel, setSelectedLevel] = useState('전체');
+  const [showFilter, setShowFilter] = useState(false);
   
   const [formData, setFormData] = useState({
     type: 'domestic',
@@ -88,8 +89,8 @@ const Bootcamp = ({ onBack }) => {
     if (formData.title.length > 16) return alert('제목은 16자 이내여야 합니다.');
     setSubmitting(true);
     try {
-      const { error } = await supabase.from('bootcamps').insert([{ ...formData, status: 'pending' }]);
-      if (error) throw error;
+      const { data, error } = await supabase.from('bootcamps').insert([{ ...formData, status: 'pending' }]);
+      if (error) { console.error('bootcamp insert error:', error); alert('등록 실패: ' + error.message); return; }
       alert('등록되었습니다. 승인 후 노출됩니다');
       setView('list');
     } catch (err) {
@@ -100,13 +101,13 @@ const Bootcamp = ({ onBack }) => {
   };
 
   const filteredList = bootcamps.filter(b => {
-    if (filterGenre && b.genre !== filterGenre) return false;
-    if (filterLevel && b.level !== filterLevel) return false;
+    if (selectedGenre !== '전체' && b.genre !== selectedGenre) return false;
+    if (selectedLevel !== '전체' && b.level !== selectedLevel) return false;
     return true;
   });
 
   return (
-    <div style={{ width: '100%', minHeight: '100vh', background: '#0a0a0a', color: '#fff', fontFamily: "'Pretendard', sans-serif" }}>
+    <div style={{ width: '100%', minHeight: '100vh', background: '#0a0a0a', color: '#fff', fontFamily: "'Pretendard', sans-serif", paddingBottom: '80px' }}>
       {/* Header */}
       <div style={{ 
         position: 'sticky', top: 0, zIndex: 100, background: 'rgba(10, 10, 10, 0.8)', 
@@ -118,29 +119,56 @@ const Bootcamp = ({ onBack }) => {
           <button onClick={onBack} style={{ background: 'none', border: 'none', cursor: 'pointer' }}><ChevronLeft size={24} color="#fff" /></button>
           <h1 style={{ fontSize: '18px', fontWeight: 900, color: '#fff', margin: 0, letterSpacing: '1px' }}>PREMIUM BOOTCAMP</h1>
         </div>
-        <button onClick={() => setView('register')} style={{ background: '#F59E0B', color: '#fff', border: 'none', borderRadius: '12px', padding: '8px 16px', fontSize: '14px', fontWeight: 800, display: 'flex', alignItems: 'center', gap: '6px', cursor: 'pointer', boxShadow: '0 4px 15px rgba(124, 58, 237, 0.3)' }}><Plus size={18} /> 등록</button>
       </div>
+
 
       <div style={{ padding: '0 20px 100px' }}>
         {view === 'list' ? (
           <>
-            {/* Tabs */}
-            <div style={{ display: 'flex', gap: '10px', marginTop: '20px', marginBottom: '25px', padding: '5px', background: '#1a1a1a', borderRadius: '16px' }}>
-              <button onClick={() => setActiveTab('domestic')} style={{ flex: 1, padding: '12px', borderRadius: '12px', border: 'none', background: activeTab === 'domestic' ? '#F59E0B' : 'transparent', color: activeTab === 'domestic' ? '#fff' : '#666', fontWeight: 800, fontSize: '14px', transition: 'all 0.3s' }}>국내</button>
-              <button onClick={() => setActiveTab('overseas')} style={{ flex: 1, padding: '12px', borderRadius: '12px', border: 'none', background: activeTab === 'overseas' ? '#F59E0B' : 'transparent', color: activeTab === 'overseas' ? '#fff' : '#666', fontWeight: 800, fontSize: '14px', transition: 'all 0.3s' }}>국외</button>
+            {/* 국내/국외 탭 */}
+            <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginTop: '20px', marginBottom: '15px' }}>
+              <div style={{ flex: 1, display: 'flex', gap: '6px', background: '#1a1a1a', padding: '4px', borderRadius: '10px' }}>
+                <button onClick={() => setActiveTab('domestic')} style={{ flex: 1, padding: '8px', borderRadius: '7px', border: 'none', background: activeTab === 'domestic' ? '#7C3AED' : 'transparent', color: activeTab === 'domestic' ? 'white' : '#666', fontSize: '11px', fontWeight: 600 }}>국내</button>
+                <button onClick={() => setActiveTab('overseas')} style={{ flex: 1, padding: '8px', borderRadius: '7px', border: 'none', background: activeTab === 'overseas' ? '#7C3AED' : 'transparent', color: activeTab === 'overseas' ? 'white' : '#666', fontSize: '11px', fontWeight: 600 }}>국외</button>
+              </div>
+
+              {/* 필터 버튼 */}
+              <button 
+                onClick={() => setShowFilter(!showFilter)}
+                style={{ background: showFilter ? '#7C3AED' : '#1a1a1a', color: showFilter ? 'white' : '#7C3AED', border: '1px solid #7C3AED', borderRadius: '8px', padding: '6px 12px', fontSize: '11px', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '4px', whiteSpace: 'nowrap' }}
+              >
+                필터 {showFilter ? '▲' : '▾'}
+              </button>
             </div>
 
-            {/* Filters */}
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', marginBottom: '30px' }}>
-              <div style={{ display: 'flex', overflowX: 'auto', gap: '8px', paddingBottom: '4px' }}>
-                <button onClick={() => setFilterGenre('')} style={{ flexShrink: 0, padding: '8px 16px', borderRadius: '50px', background: filterGenre === '' ? '#F59E0B' : '#1a1a1a', color: filterGenre === '' ? '#fff' : '#999', fontSize: '12px', fontWeight: 700, border: '1px solid rgba(255,255,255,0.05)' }}>전체 장르</button>
-                {GENRES.map(g => <button key={g} onClick={() => setFilterGenre(g)} style={{ flexShrink: 0, padding: '8px 16px', borderRadius: '50px', background: filterGenre === g ? '#F59E0B' : '#1a1a1a', color: filterGenre === g ? '#fff' : '#999', fontSize: '12px', fontWeight: 700, border: '1px solid rgba(255,255,255,0.05)' }}>{g}</button>)}
+            {/* 필터 패널 - showFilter true일때만 표시 */}
+            {showFilter && (
+              <div style={{ background: '#111', borderRadius: '12px', padding: '15px', marginBottom: '20px', border: '1px solid #222' }}>
+                <div style={{ fontSize: '11px', fontWeight: 700, color: '#444', marginBottom: '10px', display: 'flex', alignItems: 'center', gap: '5px' }}>장르</div>
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', marginBottom: '15px' }}>
+                  {['전체', '바차타', '살사', '키좀바', '쥬크'].map(g => (
+                    <button 
+                      key={g}
+                      onClick={() => setSelectedGenre(g)}
+                      style={{ background: selectedGenre === g ? '#7C3AED' : '#222', color: selectedGenre === g ? 'white' : '#666', border: 'none', borderRadius: '20px', padding: '4px 12px', fontSize: '11px', fontWeight: selectedGenre === g ? 700 : 400 }}>
+                      {g}
+                    </button>
+                  ))}
+                </div>
+
+                <div style={{ fontSize: '11px', fontWeight: 700, color: '#444', marginBottom: '10px', display: 'flex', alignItems: 'center', gap: '5px' }}>레벨</div>
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
+                  {['전체', '입문', '초급', '중급', '상급'].map(l => (
+                    <button 
+                      key={l}
+                      onClick={() => setSelectedLevel(l)}
+                      style={{ background: selectedLevel === l ? '#7C3AED' : '#222', color: selectedLevel === l ? 'white' : '#666', border: 'none', borderRadius: '20px', padding: '4px 12px', fontSize: '11px', fontWeight: selectedLevel === l ? 700 : 400 }}>
+                      {l}
+                    </button>
+                  ))}
+                </div>
               </div>
-              <div style={{ display: 'flex', overflowX: 'auto', gap: '8px', paddingBottom: '4px' }}>
-                <button onClick={() => setFilterLevel('')} style={{ flexShrink: 0, padding: '8px 16px', borderRadius: '50px', background: filterLevel === '' ? '#F59E0B' : '#1a1a1a', color: filterLevel === '' ? '#fff' : '#999', fontSize: '12px', fontWeight: 700, border: '1px solid rgba(255,255,255,0.05)' }}>전체 레벨</button>
-                {LEVELS.map(l => <button key={l} onClick={() => setFilterLevel(l)} style={{ flexShrink: 0, padding: '8px 16px', borderRadius: '50px', background: filterLevel === l ? '#F59E0B' : '#1a1a1a', color: filterLevel === l ? '#fff' : '#999', fontSize: '12px', fontWeight: 700, border: '1px solid rgba(255,255,255,0.05)' }}>{l}</button>)}
-              </div>
-            </div>
+            )}
 
             {/* List */}
             {loading ? (
@@ -151,9 +179,9 @@ const Bootcamp = ({ onBack }) => {
               <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: '30px' }}>
                 {filteredList.map(item => (
                   <motion.div key={item.id} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} style={{ background: '#111', borderRadius: '32px', overflow: 'hidden', border: '1px solid rgba(255,255,255,0.05)', boxShadow: '0 20px 40px rgba(0,0,0,0.4)' }}>
-                    <div style={{ position: 'relative', height: '260px', background: '#1a1a1a' }}>
+                    <div style={{ position: 'relative', aspectRatio: '3/4', background: '#1a1a1a' }}>
                       {item.poster_url ? <img src={item.poster_url} alt={item.title} style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#222' }}><ImageIcon size={64} /></div>}
-                      <div style={{ position: 'absolute', top: '24px', left: '24px' }}><div style={{ background: item.type === 'domestic' ? '#39FF14' : '#F59E0B', color: item.type === 'domestic' ? '#000' : '#fff', padding: '8px 16px', borderRadius: '10px', fontSize: '12px', fontWeight: 900, boxShadow: '0 4px 15px rgba(0,0,0,0.3)' }}>{item.type === 'domestic' ? 'DOMESTIC' : 'OVERSEAS'}</div></div>
+                      <div style={{ position: 'absolute', top: '24px', left: '24px' }}><div style={{ background: item.type === '국내' ? '#39FF14' : '#7C3AED', color: item.type === 'domestic' ? '#000' : '#fff', padding: '8px 16px', borderRadius: '10px', fontSize: '12px', fontWeight: 900, boxShadow: '0 4px 15px rgba(0,0,0,0.3)' }}>{item.type === 'domestic' ? '국내' : '국외'}</div></div>
                       <div style={{ position: 'absolute', bottom: '0', left: '0', right: '0', height: '120px', background: 'linear-gradient(to top, #111, transparent)' }} />
                     </div>
                     <div style={{ padding: '28px', marginTop: '-30px', position: 'relative', zIndex: 1 }}>

@@ -1,3 +1,5 @@
+@import url("https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css");
+
 :root {
   /* 아이폰 노치 및 하단 바 영역 보호 */
   --safe-top: env(safe-area-inset-top);
@@ -5,13 +7,14 @@
 }
 
 * {
-  font-family: 'Noto Sans KR', sans-serif !important;
+  font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, system-ui, Roboto, 'Helvetica Neue', 'Segoe UI', 'Apple SD Gothic Neo', 'Noto Sans KR', 'Malgun Gothic', 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', sans-serif !important;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
 
+
 body {
-  font-family: 'Noto Sans KR', sans-serif;
+  font-family: 'Pretendard', sans-serif;
   margin: 0;
   padding: 0;
 }
@@ -673,24 +676,25 @@ body {
 /* Bottom Nav Glassmorphism */
 .bottom-nav {
   position: fixed;
-  bottom: 0;
+  bottom: 20px; /* Floating look */
   left: 50%;
   transform: translateX(-50%);
-  width: 100%;
-  max-width: 500px;
-  height: 80px;
-  background: rgba(255, 255, 255, 0.85);
+  width: calc(100% - 40px);
+  max-width: 460px;
+  height: 72px;
+  background: rgba(255, 255, 255, 0.75);
   backdrop-filter: blur(25px);
   -webkit-backdrop-filter: blur(25px);
-  border-top: 1px solid rgba(0,0,0,0.05);
+  border: 1px solid rgba(255, 255, 255, 0.4);
   display: flex;
   justify-content: space-around;
   align-items: center;
   padding: 0 10px;
-  padding-bottom: env(safe-area-inset-bottom);
+  border-radius: 30px; /* Rounded corners for floating */
   z-index: 1000;
-  box-shadow: 0 -10px 30px rgba(0,0,0,0.03);
+  box-shadow: 0 15px 35px rgba(0,0,0,0.12);
 }
+
 
 .nav-item {
   display: flex;
@@ -699,27 +703,22 @@ body {
   gap: 4px;
   color: #94A3B8;
   font-size: 10px;
-  font-weight: 700;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  font-weight: 800;
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
   flex: 1;
   position: relative;
+  cursor: pointer;
 }
 
-.nav-item.active { 
-  color: #F59E0B; 
-  transform: translateY(-2px);
-}
-
-.nav-item.active::after {
-  content: '';
+.nav-item .active-indicator {
   position: absolute;
-  bottom: 0px;
+  bottom: -4px;
   width: 4px;
   height: 4px;
-  background: #F59E0B;
   border-radius: 50%;
-  box-shadow: 0 0 10px #F59E0B;
+  transition: all 0.4s;
 }
+
 
 /* Animation Classes */
 .animate-spin {

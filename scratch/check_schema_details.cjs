@@ -4,11 +4,7 @@ const supabaseAnonKey = 'sb_publishable_TSfuOakU5BxoKeJrIoRDrw_kd6pz-k1'
 const supabase = createClient(supabaseUrl, supabaseAnonKey)
 
 async function check() {
-  const { data, error } = await supabase.from('pending_parties').select('*').limit(1)
-  if (error) {
-    console.error(error)
-  } else {
-    console.log('Columns:', Object.keys(data[0] || {}))
-  }
+  const { data, error } = await supabase.rpc('get_table_columns', { table_name: 'parties' })
+  console.log('Schema:', data || error)
 }
 check()

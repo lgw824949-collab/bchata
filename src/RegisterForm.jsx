@@ -28,7 +28,9 @@ const RegisterForm = ({ onBack, onSuccess }) => {
     sRatio: 5,
     bRatio: 5,
     jRatio: 0,
-    kRatio: 0
+    kRatio: 0,
+    latitude: null,
+    longitude: null
   })
   const [loading, setLoading] = useState(false)
   const [submitted, setSubmitted] = useState(false)
@@ -72,17 +74,36 @@ const RegisterForm = ({ onBack, onSuccess }) => {
     return ''
   }
 
-  const handleLocationNameChange = (name) => {
+  const handleLocationNameChange = async (name) => {
     setFormData(prev => ({ ...prev, location_name: name }))
     
     if (name.length >= 1) {
+      // 1. 로컬 BAR_DATABASE에서 먼저 검색
       const filtered = BAR_DATABASE.filter(bar => 
         bar.name.toLowerCase().includes(name.toLowerCase()) || 
         (bar.aliases && bar.aliases.some(a => a.toLowerCase().includes(name.toLowerCase())))
       ).slice(0, 5)
-      setSuggestions(filtered)
 
-      // 정확히 일치하는 경우 자동 입력
+      // 2. Supabase locations 에서도 검색해서 자동완성에 추가
+      const { data: dbLocs } = await supabase
+        .from('locations')
+        .select('name, address, latitude, longitude')
+        .ilike('name', `%${name}%`)
+        .limit(5)
+
+      if (dbLocs && dbLocs.length > 0) {
+        const dbSuggestions = dbLocs.map(l => ({
+          name: l.name,
+          address: l.address || '',
+          latitude: l.latitude,
+          longitude: l.longitude
+        }))
+        setSuggestions([...filtered, ...dbSuggestions].slice(0, 5))
+      } else {
+        setSuggestions(filtered)
+      }
+
+      // 3. 정확히 일치하는 경우 자동 입력
       const exactMatch = findBarByName(name)
       if (exactMatch && exactMatch.name === name) {
         setFormData(prev => ({ 
@@ -107,6 +128,69 @@ const RegisterForm = ({ onBack, onSuccess }) => {
     setSuggestions([])
   }
 
+  const handleAddressSearch = () => {
+    if (!window.daum || !window.daum.Postcode) {
+      alert('주소 서비스 로딩 중입니다. 잠시 후 다시 시도해주세요.');
+      return;
+    }
+    new window.daum.Postcode({
+      oncomplete: async (data) => {
+        const fullAddress = data.roadAddress || data.address;
+        let lat = null, lng = null;
+
+        // Geocoding
+        try {
+          const response = await fetch(`https://dapi.kakao.com/v2/local/search/address.json?query=${encodeURIComponent(fullAddress)}`, {
+            headers: { Authorization: `KakaoAK ${import.meta.env.VITE_KAKAO_REST_API_KEY}` }
+          });
+          const result = await response.json();
+          if (result.documents && result.documents.length > 0) {
+            const { x, y } = result.documents[0];
+            lat = parseFloat(y);
+            lng = parseFloat(x);
+          }
+        } catch (err) {
+          console.error('Geocoding error:', err);
+        }
+
+        setFormData(prev => ({ 
+          ...prev, 
+          address: fullAddress,
+          region: classifyRegion(fullAddress),
+          latitude: lat,
+          longitude: lng
+        }));
+
+        // 새 장소면 locations 테이블에 자동 저장
+        if (formData.location_name) {
+          const { data: existing } = await supabase
+            .from('locations')
+            .select('id, latitude')
+            .eq('name', formData.location_name)
+            .maybeSingle()
+
+          if (!existing) {
+            await supabase.from('locations').insert({
+              name: formData.location_name,
+              address: fullAddress,
+              latitude: lat,
+              longitude: lng
+            })
+          } else if (!existing.latitude && lat) {
+            // 기존 장소인데 위도/경도 없으면 업데이트
+            await supabase.from('locations')
+              .update({ 
+                address: fullAddress,
+                latitude: lat, 
+                longitude: lng 
+              })
+              .eq('name', formData.location_name)
+          }
+        }
+      }
+    }).open();
+  };
+
   const handleSubmit = async (e) => {
     if (e) e.preventDefault()
     
@@ -127,7 +211,7 @@ const RegisterForm = ({ onBack, onSuccess }) => {
 
       const { data: existingLoc } = await supabase
         .from('locations')
-        .select('id')
+        .select('id, latitude')
         .eq('name', formData.location_name)
         .maybeSingle()
 
@@ -137,8 +221,18 @@ const RegisterForm = ({ onBack, onSuccess }) => {
         await supabase.from('locations').insert([{
           name: formData.location_name,
           address: formData.address,
-          region_id: reg?.id || 1
+          region_id: reg?.id || 1,
+          latitude: formData.latitude,
+          longitude: formData.longitude
         }])
+      } else if (existingLoc && existingLoc.latitude === null && formData.latitude) {
+        await supabase.from('locations')
+          .update({ 
+            address: formData.address, 
+            latitude: formData.latitude, 
+            longitude: formData.longitude 
+          })
+          .eq('id', existingLoc.id)
       }
 
       let finalProcessedTitle = formData.title.trim();
@@ -256,7 +350,22 @@ const RegisterForm = ({ onBack, onSuccess }) => {
             </div>
             <div style={{ marginBottom: '24px' }}>
               <p style={{ fontSize: '14px', fontWeight: 800, color: '#64748B', marginBottom: '8px' }}>상세 주소</p>
-              <input type="text" value={formData.address} onChange={e => setFormData({...formData, address: e.target.value})} placeholder="장소 선택 시 주소가 자동 입력됩니다" style={{ width: '100%', padding: '18px', border: '2px solid #F1F5F9', borderRadius: '16px', fontSize: '15px', background: '#F8FAFC' }} />
+              <div style={{ display: 'flex', gap: '8px' }}>
+                <input 
+                  type="text" 
+                  value={formData.address} 
+                  onChange={e => setFormData({...formData, address: e.target.value})} 
+                  placeholder="장소 선택 시 주소가 자동 입력됩니다" 
+                  style={{ flex: 1, padding: '18px', border: '2px solid #F1F5F9', borderRadius: '16px', fontSize: '15px', background: '#F8FAFC' }} 
+                />
+                <button 
+                  type="button" 
+                  onClick={handleAddressSearch}
+                  style={{ padding: '0 15px', background: '#1D9E75', color: 'white', borderRadius: '8px', border: 'none', fontWeight: 800, whiteSpace: 'nowrap' }}
+                >
+                  주소 검색
+                </button>
+              </div>
             </div>
             <p style={{ fontSize: '14px', fontWeight: 800, color: '#64748B', marginBottom: '12px' }}>대분류 지역</p>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '8px' }}>

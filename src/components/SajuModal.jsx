@@ -5,6 +5,8 @@
 import { useState } from 'react'
 import { X, ChevronDown } from 'lucide-react'
 import { BAR_DATABASE } from '../lib/BarLib'
+import { selectResult } from '../data/sajuResults'
+import { supabase } from '../lib/supabase'
 
 // ─── 거리 계산 (Haversine Formula) ───
 const getDistance = (lat1, lon1, lat2, lon2) => {
@@ -133,6 +135,7 @@ export default function SajuModal({ onClose, parties=[] }) {
   const [timeIdx, setTimeIdx] = useState('')
   const [result, setResult]   = useState(null)
   const [loading, setLoading] = useState(false)
+  const [recommendedBars, setRecommendedBars] = useState([])
 
   const isValid = gender && year && month && day && timeIdx !== ''
 
@@ -238,10 +241,28 @@ export default function SajuModal({ onClose, parties=[] }) {
       }
     }
 
+    const detailed = selectResult(dance.genre, gender, month, day, count)
+    
+    // 추천 Bar 실제 데이터 연동
+    const todayStr = new Date().toISOString().split('T')[0]
+    const { data: bars } = await supabase
+      .from('parties')
+      .select('title, locations(name, address), date, fee, s_ratio, b_ratio, k_ratio, j_ratio')
+      .eq('status', 'approved')
+      .gte('date', todayStr)
+      .order('date', { ascending: true })
+      .limit(10)
+
+    const genreMap = { '바차타': 'b_ratio', '살사': 's_ratio', '키좀바': 'k_ratio', '쥬크': 'j_ratio' }
+    const ratioKey = genreMap[dance.genre] || 'b_ratio'
+    const filtered = bars?.filter(b => b[ratioKey] > 0).slice(0, 2)
+    setRecommendedBars(filtered || [])
+
     setResult({ 
       yearGJ:yGJ, monthGJ:mGJ, dayGJ:dGJ, timeGJ:tGJ, 
       ohengCount:count, mainOheng:main, dance, 
-      recommendedBars, gender, today
+      recommendedBars: recommendedBars, gender, today,
+      ...detailed
     })
     setLoading(false)
     setStep(2)
@@ -384,140 +405,93 @@ export default function SajuModal({ onClose, parties=[] }) {
 
         {/* ══ STEP 2: 결과 ══ */}
         {step===2 && result && (
-          <div style={{ padding:'24px 20px 36px' }}>
-
-            {/* 사주 8자 */}
-            <div style={{ marginBottom:20 }}>
-              <div style={{ fontSize:12,fontWeight:700,color:'#94A3B8',marginBottom:10,textAlign:'center',letterSpacing:'0.5px' }}>나의 사주 8자</div>
-              <div style={{ display:'grid',gridTemplateColumns:'repeat(4,1fr)',gap:8 }}>
-                {[
-                  { label:'년주',...result.yearGJ },
-                  { label:'월주',...result.monthGJ },
-                  { label:'일주',...result.dayGJ },
-                  { label:'시주',...result.timeGJ },
-                ].map((s,i)=>(
-                  <div key={i} style={{
-                    background:i===2?'linear-gradient(135deg,#E3F2FD,#BBDEFB)':'#F8FAFC',
-                    borderRadius:12, padding:'12px 6px', textAlign:'center',
-                    border:i===2?'1.5px solid #90CAF9':'1px solid #E2E8F0',
-                  }}>
-                    <div style={{ fontSize:10,color:'#94A3B8',marginBottom:4,fontWeight:600 }}>{s.label}</div>
-                    <div style={{ fontSize:18,marginBottom:2 }}>{s.emoji}</div>
-                    {s.gan && <div style={{ fontSize:17,fontWeight:900,color:'#1E293B' }}>{s.gan}</div>}
-                    <div style={{ fontSize:17,fontWeight:900,color:'#334155' }}>{s.ji}</div>
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            {/* 오행 분포 */}
-            <div style={{ marginBottom:20,background:'#F8FAFC',borderRadius:14,padding:16 }}>
-              <div style={{ fontSize:12,fontWeight:700,color:'#64748B',marginBottom:10,letterSpacing:'0.3px' }}>오행 분포</div>
-              <div style={{ display:'flex',gap:6 }}>
-                {Object.entries(result.ohengCount).map(([o,c])=>{
-                  const isMain = o===result.mainOheng
-                  return (
-                    <div key={o} style={{
-                      flex:1,textAlign:'center',padding:'10px 4px',borderRadius:10,
-                      background:isMain?OHENG_COLORS[o]:'#fff',
-                      border:`1.5px solid ${isMain?OHENG_COLORS[o]:'#E2E8F0'}`,
-                    }}>
-                      <div style={{ fontSize:15 }}>{OHENG_EMOJIS[o]}</div>
-                      <div style={{ fontSize:13,fontWeight:900,color:isMain?'#fff':OHENG_COLORS[o],marginTop:2 }}>{o}</div>
-                      <div style={{ fontSize:11,color:isMain?'rgba(255,255,255,0.75)':'#CBD5E1',marginTop:1 }}>{c}개</div>
-                    </div>
-                  )
-                })}
-              </div>
-            </div>
-
-            {/* 메인 결과 카드 */}
+          <div style={{ padding: '24px 20px 36px' }}>
+            {/* 카드 1 - 결과 핵심 */}
             <div style={{
-              marginBottom:20,
-              background:result.dance.bg,
-              border:`1.5px solid ${result.dance.border}`,
-              borderRadius:18, padding:20, position:'relative', overflow:'hidden',
+              background: 'linear-gradient(135deg, #1a0a2e, #0d0d0d)',
+              borderRadius: '16px',
+              padding: '20px',
+              marginBottom: '12px',
+              position: 'relative'
             }}>
-              <div style={{ position:'absolute',top:-20,right:-20,width:100,height:100,borderRadius:'50%',background:`${result.dance.color}12` }}/>
-              <div style={{ display:'flex',alignItems:'center',gap:12,marginBottom:14 }}>
-                <div style={{
-                  width:52,height:52,borderRadius:16,
-                  background:result.dance.color,
-                  display:'flex',alignItems:'center',justifyContent:'center',
-                  fontSize:26,flexShrink:0,
-                  boxShadow:`0 4px 12px ${result.dance.color}40`,
-                }}>{result.dance.emoji}</div>
-                <div>
-                  <div style={{ fontSize:12,color:result.dance.color,fontWeight:700,marginBottom:2 }}>
-                    {result.gender}성 · {result.mainOheng}({OHENG_NAMES[result.mainOheng]}) 기운
-                  </div>
-                  <div style={{ fontSize:22,fontWeight:900,color:'#111',letterSpacing:'-0.5px' }}>
-                    {result.dance.genre} 추천!
-                  </div>
-                </div>
-              </div>
-              <p style={{ fontSize:14,color:'#444',lineHeight:'1.7',marginBottom:14 }}>{result.dance.reason}</p>
-              <div style={{ display:'flex',gap:6,flexWrap:'wrap',marginBottom:14 }}>
-                {result.dance.traits.map(t=>(
-                  <span key={t} style={{ padding:'4px 12px',borderRadius:99,background:result.dance.color,color:'#fff',fontSize:12,fontWeight:700 }}>{t}</span>
-                ))}
-              </div>
-              <div style={{ background:'rgba(255,255,255,0.75)',borderRadius:12,padding:'12px 14px',fontSize:13,color:'#555',lineHeight:'1.6' }}>
-                💡 {result.dance.tip}
-              </div>
+              <div style={{ color: '#F59E0B', fontSize: '11px', letterSpacing: '2px', marginBottom: '8px' }}>오늘의 댄스사주</div>
+              <div style={{ fontSize: '26px', fontWeight: 900, color: 'white', marginBottom: '4px' }}>{result.selectedType.type}</div>
+              <div style={{ color: '#aaa', fontSize: '13px' }}>{result.selectedType.typeDesc}</div>
+              <div style={{
+                position: 'absolute',
+                top: '20px',
+                right: '20px',
+                background: '#7C3AED',
+                color: 'white',
+                padding: '3px 10px',
+                borderRadius: '20px',
+                fontSize: '11px'
+              }}>{result.oheng}</div>
             </div>
 
-            {/* BAR 추천 */}
-            <div style={{ marginBottom:20 }}>
-              <div style={{ fontSize:15,fontWeight:900,marginBottom:10,color:'#1E293B',letterSpacing:'-0.2px' }}>🎯 추천 BAR</div>
-              {result.recommendedBars.length > 0 ? (
-                <div style={{ display:'flex',flexDirection:'column',gap:8 }}>
-                  {result.recommendedBars.map((bar,i)=>(
-                    <div key={i} style={{ padding:'12px 14px',borderRadius:12,background:'#F8FAFC',border:'1px solid #E2E8F0',display:'flex',alignItems:'center',gap:10 }}>
-                      {bar.poster_url
-                        ? <img src={bar.poster_url} style={{ width:48,height:48,borderRadius:8,objectFit:'cover',flexShrink:0 }}/>
-                        : <div style={{ width:48,height:48,borderRadius:8,background:result.dance.bg,display:'flex',alignItems:'center',justifyContent:'center',fontSize:20,flexShrink:0 }}>{result.dance.emoji}</div>
-                      }
-                      <div style={{ flex:1,minWidth:0 }}>
-                        <div style={{ fontSize:14,fontWeight:700,color:'#1E293B' }}>{bar.title}</div>
-                        {bar.distanceText && (
-                          <div style={{ fontSize:12, color:'#E53935', fontWeight:700, marginTop:4 }}>
-                            📍 {bar.distanceText}
-                          </div>
-                        )}
-                        {(bar.type === 'today' || bar.type === 'future') && (
-                          <div style={{ fontSize:11, color:'#94A3B8', marginTop:2 }}>
-                             {bar.location_name} · {bar.date}
-                          </div>
-                        )}
-                      </div>
-                      <span style={{ fontSize:11,padding:'3px 9px',borderRadius:99,background:result.dance.bg,color:result.dance.color,fontWeight:700,flexShrink:0,border:`1px solid ${result.dance.border}` }}>
-                        {bar.type === 'today' ? '🔥 오늘 파티' : (bar.type === 'future' ? '📅 다가오는 파티' : `${result.dance.emoji} 추천`)}
-                      </span>
+            {/* 카드 2 - 추천 정보 */}
+            <div style={{ background: '#111', border: '1px solid #222', borderRadius: '16px', padding: '16px', marginBottom: '12px' }}>
+              <div style={{ color: '#eee', fontSize: '14px', lineHeight: '2' }}>
+                <div>📍 추천 장르: <span style={{ fontWeight: 700, color: '#fff' }}>{result.genre}</span></div>
+                <div>💃 분위기: <span style={{ color: '#ccc' }}>{result.selectedType.vibe}</span></div>
+                <div>👥 모임 규모: <span style={{ color: '#ccc' }}>{result.selectedType.groupSize}</span></div>
+                <div>🌙 오늘의 팁: <span style={{ color: '#ccc' }}>{result.tip}</span></div>
+              </div>
+
+              {recommendedBars.length > 0 && (
+                <div style={{ marginTop: '10px', borderTop: '1px solid #222', paddingTop: '10px' }}>
+                  <div style={{ fontSize: '11px', color: '#F59E0B', fontWeight: 700, marginBottom: '6px' }}>🎯 오늘 추천 Bar</div>
+                  {recommendedBars.map((bar, i) => (
+                    <div key={i} style={{ background: '#1a1a1a', borderRadius: '8px', padding: '8px 10px', marginBottom: '6px' }}>
+                      <div style={{ color: 'white', fontSize: '12px', fontWeight: 700 }}>{bar.locations?.name || bar.title}</div>
+                      <div style={{ color: '#888', fontSize: '11px' }}>📍 {bar.locations?.address || ''} · 📅 {bar.date}</div>
+                      <div style={{ color: '#F59E0B', fontSize: '11px' }}>입장료: {bar.fee || '무료'}</div>
                     </div>
                   ))}
-                </div>
-              ) : (
-                <div style={{ padding:20,background:'#F8FAFC',borderRadius:12,textAlign:'center' }}>
-                  <div style={{ fontSize:24,marginBottom:6 }}>🔜</div>
-                  <div style={{ fontSize:13,color:'#94A3B8' }}>오늘 {result.dance.genre} 파티 정보를 준비 중이에요!</div>
                 </div>
               )}
             </div>
 
-            {/* 다시 하기 */}
+            {/* 카드 3 - AI 분석 */}
+            <div style={{ background: '#0a1a0a', border: '1px solid #1a3a1a', borderRadius: '16px', padding: '16px', marginBottom: '16px' }}>
+              <div style={{ color: '#1D9E75', fontWeight: 700, marginBottom: '10px' }}>🤖 AI 분석 이유</div>
+              {result.aiReasons.map((reason, idx) => (
+                <div key={idx} style={{ color: '#aaa', fontSize: '12px', marginBottom: '4px' }}>• {reason}</div>
+              ))}
+            </div>
+
+            {/* 카드 4 - 버튼 */}
+            <button
+              onClick={() => window.open('https://open.kakao.com/o/gP43rNri', '_blank')}
+              style={{
+                width: '100%',
+                padding: '16px',
+                background: '#FEE500',
+                color: '#000',
+                fontSize: '16px',
+                fontWeight: 800,
+                borderRadius: '14px',
+                border: 'none',
+                cursor: 'pointer'
+              }}
+            >
+              🔥 지금 참여하기
+            </button>
+
+            {/* 다시 하기 버튼 (유지) */}
             <button onClick={reset} style={{
-              width:'100%',padding:'14px',borderRadius:12,
-              background:'#F1F5F9',color:'#64748B',
-              border:'none',fontSize:14,fontWeight:700,cursor:'pointer',
+              width: '100%', padding: '14px', borderRadius: 12,
+              background: 'none', color: '#64748B',
+              border: 'none', fontSize: 14, fontWeight: 700, cursor: 'pointer',
+              marginTop: '12px'
             }}>🔄 다시 분석하기</button>
+          </div>
+        )}
 
             <div style={{ textAlign:'center',marginTop:12,fontSize:11,color:'#CBD5E1' }}>
               🔒 입력하신 정보는 저장되지 않습니다
             </div>
           </div>
-        )}
-      </div>
-    </>
-  )
-}
+        </>
+      )
+    }

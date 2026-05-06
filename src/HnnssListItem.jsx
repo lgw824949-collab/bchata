@@ -21,7 +21,7 @@ export const HnnssListItem = ({ party }) => {
         }}
       />
       <div className="hnnss-content">
-        <h2 className="hnnss-location">{party.location_name}</h2>
+        <h2 className="hnnss-location">{party.locationName}</h2>
         <p className="hnnss-title">{party.title}</p>
         <p className="hnnss-footer">
           {party.start_time}  {party.address}

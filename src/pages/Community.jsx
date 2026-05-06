@@ -162,7 +162,7 @@ const Community = ({ setSelectedPoster, setView }) => {
   };
 
   return (
-    <div style={{ background: '#000', minHeight: '100vh', padding: '10px 4px 100px', color: '#fff' }}>
+    <div style={{ background: '#000', minHeight: '100vh', padding: '10px 4px 80px', color: '#fff' }}>
       {/* Header */}
       <div style={{ padding: '10px 10px 20px' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>

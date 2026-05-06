@@ -421,7 +421,7 @@ const HomePage = ({
   }, []);
 
   return (
-    <div className="app-container" style={{ width: '100%', maxWidth: '500px', margin: '0 auto', background: '#fff', minHeight: '100vh', paddingBottom: '100px' }}>
+    <div className="app-container" style={{ width: '100%', maxWidth: '500px', margin: '0 auto', background: '#fff', minHeight: '100vh', paddingBottom: '80px' }}>
       
       {/* 📌 [영역 A: 브랜드 헤더 - 최종 확정] */}
       <div style={{ padding: '40px 24px 24px' }}>
@@ -469,7 +469,7 @@ const HomePage = ({
         <div style={{ height: '32px', background: '#0f172a', borderRadius: '16px', display: 'flex', alignItems: 'center', overflow: 'hidden', padding: '0 12px' }}>
           <button onClick={() => setIsPaused(!isPaused)} style={{ background: isPaused ? '#FF1744' : 'rgba(255,255,255,0.2)', border: 'none', borderRadius: '12px', color: '#fff', fontSize: '10px', fontWeight: '950', padding: '4px 8px', marginRight: '10px', cursor: 'pointer' }}>{isPaused ? '▶ PLAY' : '⏸ STOP'}</button>
           <div style={{ flex: 1, overflow: 'hidden' }}>
-            <LiveCount />
+            <LiveCount isPaused={isPaused} />
           </div>
         </div>
       </div>

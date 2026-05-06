@@ -3,8 +3,9 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { ChevronLeft, MapPin, Calendar, Plus, X, Upload, Check, ChevronRight } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 
-const Festival = ({ onBack }) => {
-  const [view, setView] = useState('list'); // 'list', 'all', 'register'
+const Festival = ({ onBack, initialView = 'list' }) => {
+  const [view, setView] = useState(initialView); // 'list', 'all', 'register'
+
   const [festivals, setFestivals] = useState([]);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState('전체');
@@ -12,8 +13,10 @@ const Festival = ({ onBack }) => {
 
   const [registerForm, setRegisterForm] = useState({
     title: '', genre: '바차타', start_date: '', end_date: '',
-    location: '', region: '서울', price: '', organizer: '', description: ''
+    location: '', region: '서울', price: '', organizer: '', description: '',
+    ticket_type: '전체권'
   });
+
   const [file, setFile] = useState(null);
   const [registering, setRegistering] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
@@ -72,14 +75,14 @@ const Festival = ({ onBack }) => {
         poster_url = data.publicUrl;
       }
 
-      const { error } = await supabase.from('festivals').insert([{
+      const { data, error } = await supabase.from('festivals').insert([{
         ...registerForm,
         poster_url,
         status: 'pending',
         created_at: new Date().toISOString()
       }]);
 
-      if (error) throw error;
+      if (error) { console.error('festival insert error:', error); alert('등록 실패: ' + error.message); return; }
       setShowSuccess(true);
       setTimeout(() => { setShowSuccess(false); setView('list'); }, 2000);
     } catch (err) {
@@ -149,7 +152,7 @@ const Festival = ({ onBack }) => {
   );
 
   return (
-    <div style={{ background: '#FFF', minHeight: '100vh', padding: '20px 20px 100px', color: '#1E293B', fontFamily: "'Pretendard', sans-serif" }}>
+    <div style={{ background: '#FFF', minHeight: '100vh', padding: '20px 20px 80px', color: '#1E293B', fontFamily: "'Pretendard', sans-serif" }}>
       
       {/* Header */}
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '32px' }}>
@@ -157,12 +160,8 @@ const Festival = ({ onBack }) => {
           <span style={{ fontSize: '12px', fontWeight: 900, color: '#F97316', letterSpacing: '1px' }}>LATIN DANCE</span>
           <h1 style={{ fontSize: '28px', fontWeight: 900, margin: 0, color: '#000' }}>FESTIVAL</h1>
         </div>
-        {view === 'list' && (
-          <button onClick={() => setView('register')} style={{ background: '#F97316', color: '#FFF', border: 'none', padding: '12px 20px', borderRadius: '16px', fontWeight: 900, fontSize: '15px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px', boxShadow: '0 8px 20px rgba(249, 115, 22, 0.3)' }}>
-            <Plus size={20} strokeWidth={3} /> 등록
-          </button>
-        )}
       </div>
+
 
       {view === 'register' ? (
         <motion.form initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} onSubmit={handleRegister} style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
@@ -202,8 +201,18 @@ const Festival = ({ onBack }) => {
           </div>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
             <label style={{ fontSize: '14px', fontWeight: 800, color: '#64748B' }}>참가비</label>
-            <input type="number" value={registerForm.price} onChange={e => setRegisterForm({...registerForm, price: e.target.value})} style={{ padding: '18px', borderRadius: '16px', border: '1px solid #E2E8F0', background: '#F8FAFC', color: '#1E293B', fontSize: '16px', fontWeight: 700 }} placeholder="숫자만 입력 (예: 50000)" />
+            <div style={{ display: 'flex', gap: '8px', marginBottom: '8px' }}>
+              {['1일권', '전체권'].map(type => (
+                <button key={type} type="button" onClick={() => setRegisterForm({...registerForm, ticket_type: type})} style={{ flex: 1, padding: '12px', borderRadius: '12px', border: '1px solid #E2E8F0', background: registerForm.ticket_type === type ? '#F97316' : '#FFF', color: registerForm.ticket_type === type ? '#FFF' : '#64748B', fontWeight: 800, fontSize: '14px' }}>{type}</button>
+              ))}
+            </div>
+            <input type="number" value={registerForm.price} onChange={e => setRegisterForm({...registerForm, price: e.target.value})} style={{ padding: '18px', borderRadius: '16px', border: '1px solid #E2E8F0', background: '#F8FAFC', color: '#1E293B', fontSize: '16px', fontWeight: 700 }} placeholder="금액 입력 (예: 50000)" />
           </div>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+            <label style={{ fontSize: '14px', fontWeight: 800, color: '#64748B' }}>주최자/단체명</label>
+            <input required value={registerForm.organizer} onChange={e => setRegisterForm({...registerForm, organizer: e.target.value})} style={{ padding: '18px', borderRadius: '16px', border: '1px solid #E2E8F0', background: '#F8FAFC', color: '#1E293B', fontSize: '16px', fontWeight: 700 }} placeholder="주최자 또는 단체명을 입력하세요" />
+          </div>
+
           <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
             <label style={{ fontSize: '14px', fontWeight: 800, color: '#64748B' }}>포스터 이미지</label>
             <div onClick={() => document.getElementById('poster-input').click()} style={{ height: '160px', borderRadius: '16px', border: '2px dashed #E2E8F0', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', background: file ? '#F8FAFC' : 'transparent' }}>
@@ -294,8 +303,9 @@ const Festival = ({ onBack }) => {
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.8)', zIndex: 10000, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
             <motion.div initial={{ scale: 0.8 }} animate={{ scale: 1 }} style={{ background: '#fff', padding: '40px', borderRadius: '32px', textAlign: 'center', color: '#1E293B' }}>
               <div style={{ background: '#4ADE80', width: '64px', height: '64px', borderRadius: '32px', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 24px' }}><Check color="white" size={32} strokeWidth={3} /></div>
-              <div style={{ fontSize: '22px', fontWeight: 900 }}>등록 신청 완료</div>
-              <div style={{ fontSize: '15px', marginTop: '12px', color: '#94A3B8', fontWeight: 600 }}>관리자 승인 후 즉시 노출됩니다</div>
+              <div style={{ fontSize: '22px', fontWeight: 900 }}>등록되었습니다.</div>
+              <div style={{ fontSize: '15px', marginTop: '12px', color: '#94A3B8', fontWeight: 600 }}>승인 후 노출됩니다</div>
+
             </motion.div>
           </motion.div>
         )}

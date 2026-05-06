@@ -2,7 +2,7 @@ import React, { useEffect, useState, useMemo } from 'react'
 import { supabase } from '../lib/supabase'
 import { BAR_DATABASE } from '../data/barDatabase'
 
-const LiveCount = () => {
+const LiveCount = ({ isPaused = false }) => {
   const [counts, setCounts] = useState({})
   
   const getTodayKST = () => {
@@ -10,20 +10,37 @@ const LiveCount = () => {
     return kst.toISOString().split('T')[0]
   }
 
+  const getYesterdayKST = () => {
+    const kst = new Date(Date.now() + (9 * 60 * 60 * 1000) - (24 * 60 * 60 * 1000))
+    return kst.toISOString().split('T')[0]
+  }
+
   const isNowInPartyTime = (dateStr, startTime, endTime) => {
     const now = new Date()
+    // 시작 시간 (버퍼 30분 전부터)
     const start = new Date(`${dateStr}T${startTime}:00`)
-    let end = new Date(`${dateStr}T${endTime}:00`)
-    if (end < start) end.setDate(end.getDate() + 1)
     const startWithBuffer = new Date(start.getTime() - 30 * 60 * 1000)
+
+    // 종료 시간 설정 (없으면 시작 시간 + 5시간으로 넉넉히 잡음)
+    let end;
+    if (endTime) {
+      end = new Date(`${dateStr}T${endTime}:00`)
+      if (end < start) end.setDate(end.getDate() + 1)
+    } else {
+      end = new Date(start.getTime() + 5 * 60 * 60 * 1000)
+    }
+
     return now >= startWithBuffer && now <= end
   }
 
   const fetchCounts = async () => {
     const todayStr = getTodayKST()
+    const yesterdayStr = getYesterdayKST()
+
     try {
+      // 오늘과 어제 파티를 모두 가져옴 (새벽 시간대 대응)
       const [{ data: parties }, { data: locations }] = await Promise.all([
-        supabase.from('parties').select('*').eq('date', todayStr),
+        supabase.from('parties').select('*').in('date', [todayStr, yesterdayStr]),
         supabase.from('locations').select('id, name')
       ]);
 
@@ -81,6 +98,7 @@ const LiveCount = () => {
     const checkIn = async (pos) => {
       const { latitude: lat, longitude: lon } = pos.coords
       const todayStr = getTodayKST()
+      const yesterdayStr = getYesterdayKST()
       
       const getDist = (lat1, lon1, lat2, lon2) => {
         const R = 6371;
@@ -96,8 +114,13 @@ const LiveCount = () => {
       if (nearBar) {
         const { data: locData } = await supabase.from('locations').select('id').eq('name', nearBar.name).maybeSingle()
         if (!locData) return;
-        const { data: activeParty } = await supabase.from('parties').select('*').eq('date', todayStr).eq('location_id', locData.id).maybeSingle()
-        if (!activeParty || !isNowInPartyTime(activeParty.date, activeParty.time, activeParty.end_time)) return
+        
+        // 오늘 또는 어제 파티 중 현재 live인 것이 있는지 확인
+        const { data: activeParties } = await supabase.from('parties').select('*').in('date', [todayStr, yesterdayStr]).eq('location_id', locData.id)
+        const isCurrentlyLive = (activeParties || []).some(p => isNowInPartyTime(p.date, p.time, p.end_time))
+        
+        if (!isCurrentlyLive) return
+
         const lastCheckKey = `last_checkin_${nearBar.name}`
         const lastCheckTime = localStorage.getItem(lastCheckKey)
         const now = Date.now()
@@ -149,7 +172,7 @@ const LiveCount = () => {
       .map(([key, count]) => {
         return [key, count];
       })
-      .filter(([_, count]) => count >= 1) // 1명 이상이면 즉시 노출 (초기 집결 중계 강화)
+      .filter(([_, count]) => count >= 1) 
       .sort((a, b) => b[1] - a[1])
       .slice(0, 5);
 
@@ -162,7 +185,12 @@ const LiveCount = () => {
       <style>{`
         .live-dot { animation: blink 1.5s infinite; } 
         @keyframes blink { 0% { opacity: 1; } 50% { opacity: 0.3; } 100% { opacity: 1; } }
-        .ticker-container { display: flex; animation: scroll 30s linear infinite; gap: 40px; }
+        .ticker-container { 
+          display: flex; 
+          animation: scroll 30s linear infinite; 
+          gap: 40px; 
+          animation-play-state: ${isPaused ? 'paused' : 'running'};
+        }
         @keyframes scroll { 0% { transform: translateX(100%); } 100% { transform: translateX(-150%); } }
         .live-text { font-family: 'Pretendard', sans-serif; white-space: nowrap; }
       `}</style>
@@ -170,7 +198,7 @@ const LiveCount = () => {
       <div className="ticker-container">
         {areaSummary.length === 0 && liveList.length === 0 && (
           <span className="live-text" style={{ color: '#94A3B8', fontSize: '13px' }}>
-            🎵 밤빠가 전하는 전국 소셜 파티 실시간 인원 중계 중! 🔥
+            {isPaused ? '⏸ 중계 일시 정지됨' : '🎵 밤빠가 전하는 전국 소셜 파티 실시간 인원 중계 중! 🔥'}
           </span>
         )}
         {/* 1. 성지 구역 요약 (광고판 중계) */}

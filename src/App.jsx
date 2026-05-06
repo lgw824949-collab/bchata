@@ -17,6 +17,24 @@ import SajuModal from './components/SajuModal'
 import IncheonRoute from './components/IncheonRoute'
 import WeatherModal from './components/WeatherModal'
 import QuickPinchZoom, { make3dTransformValue } from 'react-quick-pinch-zoom';
+
+// --- [CUSTOM ROUTING ENGINE] ---
+const useLocation = () => {
+  const [pathname, setPathname] = useState(window.location.pathname);
+  useEffect(() => {
+    const handlePopState = () => setPathname(window.location.pathname);
+    window.addEventListener('popstate', handlePopState);
+    return () => window.removeEventListener('popstate', handlePopState);
+  }, []);
+  return { pathname };
+};
+
+const navigate = (path) => {
+  window.history.pushState({}, '', path);
+  window.dispatchEvent(new PopStateEvent('popstate'));
+  window.scrollTo(0, 0);
+};
+
 import { BAR_DATABASE, findBarByName } from './data/barDatabase';
 
 const GENRE_MAP = {
@@ -488,10 +506,26 @@ function App() {
   const [displayParties, setDisplayParties] = useState([]);
   const [loading, setLoading] = useState(true);
   const [selectedDate, setSelectedDate] = useState(todayData.dateStr);
-  const [view, setView] = useState(() => {
-    const hash = window.location.hash.replace('#', '');
-    return hash || 'home';
-  });
+  const location = useLocation();
+  const [view, setView] = useState('home');
+
+  useEffect(() => {
+    const path = location.pathname;
+    if (path === '/') setView('home');
+    else if (path === '/livepick') setView('community');
+    else if (path === '/bootcamp') setView('bootcamp');
+    else if (path === '/bootcamp/register') setView('bootcamp-register');
+    else if (path === '/festival') setView('festival');
+    else if (path === '/festival/register') setView('festival-register');
+    else if (path === '/register-party') setView('register-party');
+    else if (path === '/register-class') setView('register-class');
+    else if (path === '/parking') setView('parking');
+    else if (path === '/restaurant') setView('restaurant');
+    else if (path === '/admin') setView('admin');
+    else if (path === '/admin-portal') setView('admin-portal');
+  }, [location.pathname]);
+
+
   const [registerType, setRegisterType] = useState('party');
 
   const [showIncheonModal, setShowIncheonModal] = useState(false);
@@ -518,6 +552,8 @@ function App() {
   const [weatherTapCount, setWeatherTapCount] = useState(0);
   const [lastWeatherTap, setLastWeatherTap] = useState(0);
   const weatherTimeoutRef = useRef(null);
+  const [showCouponPopup, setShowCouponPopup] = useState(false)
+
 
   // [BAMPPA Navigation Engine]
   const handleOpenModal = (setter, value = true) => {
@@ -540,13 +576,8 @@ function App() {
     }
   }, []);
 
-  // 2. view 상태가 변경될 때마다 URL Hash 업데이트 및 히스토리 관리
-  useEffect(() => {
-    const currentHash = window.location.hash.replace('#', '');
-    if (view !== currentHash) {
-      window.location.hash = view;
-    }
-  }, [view]);
+  // URL Hash 싱크 제거 (Pathname 기반으로 전환)
+
 
   // 4. 브라우저/휴대폰 뒤로가기 통합 감지 및 강제 제어 로직 (모든 요소 대응)
   useEffect(() => {
@@ -579,6 +610,19 @@ function App() {
     window.addEventListener('popstate', handlePopState);
     return () => window.removeEventListener('popstate', handlePopState);
   }, [view, selectedPoster, showFullCalendar, isMenuOpen, showWeather, showSaju, showIncheonModal, showFilterPanel, showFilteredResults, showGridModal, showIncheon]);
+
+  useEffect(() => {
+    // 이미 쿠폰 받은 사람은 다시 안 보여줌
+    const couponReceived = localStorage.getItem('coupon_received')
+    if (couponReceived) return
+
+    // PWA 설치 완료 감지
+    window.addEventListener('appinstalled', () => {
+      setShowCouponPopup(true)
+      localStorage.setItem('coupon_received', 'true')
+    })
+  }, [])
+
 
   const fetchParties = async () => {
     setLoading(true);
@@ -676,8 +720,14 @@ function App() {
   };
 
   const handleRegister = (type = 'party') => {
-    setView(type === 'class' ? 'register-class' : 'register-party');
+    if (type === 'party') {
+      navigate('/register-party');
+    } else {
+      navigate('/register-class');
+    }
   };
+
+
 
   const sharedProps = {
     parties: displayParties, loading, selectedMonth, setSelectedMonth, selectedWeek: 1, setSelectedWeek: () => {}, 
@@ -844,15 +894,18 @@ function App() {
 
       <main>
         {view === 'home' ? <HomePage {...sharedProps} /> : 
-         view === 'bootcamp' ? <Bootcamp onBack={() => setView('home')} /> :
-         view === 'festival' ? <Festival onBack={() => setView('home')} /> :
-         {
-            'community': <Community setSelectedPoster={setSelectedPoster} setView={setView} />,
-            'parking': <Parking onBack={() => setView('home')} />,
-            'restaurant': <Restaurant onBack={() => setView('home')} />,
-            'register-party': <RegisterForm onBack={() => setView('home')} />,
-            'admin': <AdminDashboard setView={setView} onBack={() => setView('admin-portal')} refreshData={fetchParties} />,
-            'admin-portal': (
+         view === 'community' ? <Community setSelectedPoster={setSelectedPoster} setView={setView} /> :
+         view === 'bootcamp' ? <Bootcamp onBack={() => navigate('/')} /> :
+         view === 'bootcamp-register' ? <Bootcamp onBack={() => navigate('/bootcamp')} initialView="register" /> :
+         view === 'festival' ? <Festival onBack={() => navigate('/')} /> :
+         view === 'festival-register' ? <Festival onBack={() => navigate('/festival')} initialView="register" /> :
+         view === 'parking' ? <Parking onBack={() => navigate('/')} /> :
+         view === 'restaurant' ? <Restaurant onBack={() => navigate('/')} /> :
+         view === 'register-party' ? <RegisterForm onBack={() => navigate('/')} /> :
+
+
+         view === 'admin' ? <AdminDashboard setView={setView} onBack={() => setView('admin-portal')} refreshData={fetchParties} /> :
+         view === 'admin-portal' ? (
               <div style={{ 
                 height: '100vh', 
                 background: '#0F172A', 
@@ -882,15 +935,15 @@ function App() {
                 </button>
                 
                 <button 
-                  onClick={() => setView('home')}
+                  onClick={() => navigate('/')}
                   style={{ marginTop: '40px', background: 'none', border: 'none', color: '#64748B', fontWeight: 700, cursor: 'pointer' }}
                 >
                   메인으로 돌아가기
                 </button>
               </div>
-            )
-          }[view] || <AdminDashboard onBack={() => setView('home')} refreshData={fetchParties} />}
+            ) : <AdminDashboard onBack={() => navigate('/')} refreshData={fetchParties} />}
       </main>
+
 
       <DynamicAnalysisModal isOpen={showIncheonModal} onClose={() => setShowIncheonModal(false)} userCoords={userCoords} isSajuCall={isSajuCall} />
       <AnimatePresence>
@@ -1023,21 +1076,42 @@ function App() {
       {true && (
         <nav className="bottom-nav">
           <div 
-            className={`nav-item ${view === 'home' ? 'active' : ''}`} 
-            onClick={() => { setView('home'); window.scrollTo(0,0); }}
+            className="nav-item" 
+            onClick={() => navigate('/')}
+            style={{ 
+              color: location.pathname === '/' ? '#FF1744' : '#333',
+              transform: location.pathname === '/' ? 'translateY(-2px)' : 'none'
+            }}
           >
-            <Music2 size={22} color={view === 'home' ? '#F59E0B' : '#555'} style={{ marginBottom: '4px' }} />
-            <span style={{ fontSize: '10px', fontWeight: view === 'home' ? 900 : 500, color: view === 'home' ? '#F59E0B' : '#555' }}>소셜/파티</span>
+            <div style={{
+              position: 'absolute', top: '40%', left: '50%', transform: 'translate(-50%, -50%)',
+              width: '40px', height: '40px', borderRadius: '50%',
+              background: location.pathname === '/' ? 'rgba(255, 23, 68, 0.15)' : 'transparent',
+              filter: 'blur(10px)', transition: 'all 0.4s'
+            }} />
+            <Music2 size={22} color={location.pathname === '/' ? '#FF1744' : '#333'} style={{ marginBottom: '4px', position: 'relative' }} />
+            <span style={{ fontSize: '10px', fontWeight: location.pathname === '/' ? 900 : 500, position: 'relative' }}>소셜/파티</span>
+            <motion.div layoutId="active-nav" className="active-indicator" style={{ background: '#FF1744', opacity: location.pathname === '/' ? 1 : 0 }} />
           </div>
 
           <div 
-            className={`nav-item ${view === 'community' ? 'active' : ''}`} 
-            onClick={() => { setView('community'); window.scrollTo(0,0); }}
+            className="nav-item" 
+            onClick={() => navigate('/livepick')}
+            style={{ 
+              color: location.pathname === '/livepick' ? '#FF1744' : '#333',
+              transform: location.pathname === '/livepick' ? 'translateY(-2px)' : 'none'
+            }}
           >
-            <Camera size={22} color={view === 'community' ? '#F59E0B' : '#555'} style={{ marginBottom: '4px' }} />
-            <span style={{ fontSize: '10px', fontWeight: view === 'community' ? 900 : 500, color: view === 'community' ? '#F59E0B' : '#555' }}>LIVE PICK</span>
+            <div style={{
+              position: 'absolute', top: '40%', left: '50%', transform: 'translate(-50%, -50%)',
+              width: '40px', height: '40px', borderRadius: '50%',
+              background: location.pathname === '/livepick' ? 'rgba(255, 23, 68, 0.15)' : 'transparent',
+              filter: 'blur(10px)', transition: 'all 0.4s'
+            }} />
+            <Camera size={22} color={location.pathname === '/livepick' ? '#FF1744' : '#333'} style={{ marginBottom: '4px', position: 'relative' }} />
+            <span style={{ fontSize: '10px', fontWeight: location.pathname === '/livepick' ? 900 : 500, position: 'relative' }}>LIVE PICK</span>
+            <motion.div layoutId="active-nav" className="active-indicator" style={{ background: '#FF1744', opacity: location.pathname === '/livepick' ? 1 : 0 }} />
           </div>
-
 
 
           <div className="nav-item central-action" style={{ pointerEvents: 'none', position: 'relative', zIndex: 1001 }}>
@@ -1047,44 +1121,160 @@ function App() {
               style={{
                 width:'52px', height:'52px',
                 borderRadius:'50%',
-                background: '#F59E0B',
+                background: location.pathname === '/' ? '#FF1744' : 
+                           location.pathname === '/livepick' ? '#FF1744' :
+                           location.pathname === '/bootcamp' ? '#FF8A00' :
+                           location.pathname === '/festival' ? '#FF8A00' : '#333',
                 border:'none', color:'#fff',
                 display:'flex', alignItems:'center',
                 justifyContent:'center', cursor:'pointer',
-                boxShadow:'0 8px 25px rgba(245, 158, 11, 0.4)',
+                boxShadow: '0 8px 25px rgba(0,0,0,0.2)',
                 pointerEvents: 'auto'
               }}
               onClick={() => {
-                if (view === 'community') {
+                if (location.pathname === '/livepick') {
                   window.dispatchEvent(new CustomEvent('open-community-upload'));
+                } else if (location.pathname === '/bootcamp') {
+                  navigate('/bootcamp/register');
+                } else if (location.pathname === '/festival') {
+                  navigate('/festival/register');
                 } else {
-                  handleRegister('party')
+                  navigate('/register-party');
                 }
               }}
+
             >
               <Plus size={28} strokeWidth={3} />
             </motion.button>
-            <span style={{ pointerEvents: 'auto', color: '#555', fontSize: '10px', fontWeight: 800 }}>{view === 'community' ? '리포트' : '등록'}</span>
+            <span style={{ pointerEvents: 'auto', color: '#333', fontSize: '10px', fontWeight: 800 }}>{location.pathname === '/livepick' ? '리포트' : '등록'}</span>
           </div>
 
           <div 
-            className={`nav-item ${view === 'bootcamp' ? 'active' : ''}`} 
-            onClick={() => { setView('bootcamp'); window.scrollTo(0,0); }}
+            className="nav-item" 
+            onClick={() => navigate('/bootcamp')}
+            style={{ 
+              color: location.pathname === '/bootcamp' ? '#FF8A00' : '#333',
+              transform: location.pathname === '/bootcamp' ? 'translateY(-2px)' : 'none'
+            }}
           >
-            <Tent size={22} color={view === 'bootcamp' ? '#F59E0B' : '#555'} style={{ marginBottom: '4px' }} />
-            <span style={{ fontSize: '10px', fontWeight: view === 'bootcamp' ? 900 : 500, color: view === 'bootcamp' ? '#F59E0B' : '#555' }}>부트캠프</span>
+            <div style={{
+              position: 'absolute', top: '40%', left: '50%', transform: 'translate(-50%, -50%)',
+              width: '40px', height: '40px', borderRadius: '50%',
+              background: location.pathname === '/bootcamp' ? 'rgba(255, 138, 0, 0.15)' : 'transparent',
+              filter: 'blur(10px)', transition: 'all 0.4s'
+            }} />
+            <Tent size={22} color={location.pathname === '/bootcamp' ? '#FF8A00' : '#333'} style={{ marginBottom: '4px', position: 'relative' }} />
+            <span style={{ fontSize: '10px', fontWeight: location.pathname === '/bootcamp' ? 900 : 500, position: 'relative' }}>부트캠프</span>
+            <motion.div layoutId="active-nav" className="active-indicator" style={{ background: '#FF8A00', opacity: location.pathname === '/bootcamp' ? 1 : 0 }} />
           </div>
 
           <div 
-            className={`nav-item ${view === 'festival' ? 'active' : ''}`} 
-            onClick={() => { setView('festival'); window.scrollTo(0,0); }}
+            className="nav-item" 
+            onClick={() => navigate('/festival')}
+            style={{ 
+              color: location.pathname === '/festival' ? '#FF8A00' : '#333',
+              transform: location.pathname === '/festival' ? 'translateY(-2px)' : 'none'
+            }}
           >
-            <Flag size={22} color={view === 'festival' ? '#F59E0B' : '#555'} style={{ marginBottom: '4px' }} />
-            <span style={{ fontSize: '10px', fontWeight: view === 'festival' ? 900 : 500, color: view === 'festival' ? '#F59E0B' : '#555' }}>페스티벌</span>
+            <div style={{
+              position: 'absolute', top: '40%', left: '50%', transform: 'translate(-50%, -50%)',
+              width: '40px', height: '40px', borderRadius: '50%',
+              background: location.pathname === '/festival' ? 'rgba(255, 138, 0, 0.15)' : 'transparent',
+              filter: 'blur(10px)', transition: 'all 0.4s'
+            }} />
+            <Flag size={22} color={location.pathname === '/festival' ? '#FF8A00' : '#333'} style={{ marginBottom: '4px', position: 'relative' }} />
+            <span style={{ fontSize: '10px', fontWeight: location.pathname === '/festival' ? 900 : 500, position: 'relative' }}>페스티벌</span>
+            <motion.div layoutId="active-nav" className="active-indicator" style={{ background: '#FF8A00', opacity: location.pathname === '/festival' ? 1 : 0 }} />
           </div>
+
         </nav>
       )}
+
+      <AnimatePresence>
+        {showCouponPopup && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            style={{
+              position: 'fixed',
+              inset: 0,
+              zIndex: 2000002,
+              backgroundColor: 'rgba(0,0,0,0.8)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              padding: '20px'
+            }}
+          >
+            <motion.div
+              initial={{ scale: 0.9, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              style={{
+                background: '#111',
+                borderRadius: '20px',
+                padding: '30px',
+                width: '100%',
+                maxWidth: '340px',
+                textAlign: 'center',
+                border: '1px solid #333'
+              }}
+            >
+              <div style={{ fontSize: '40px', marginBottom: '15px' }}>🎉</div>
+              <h2 style={{ color: '#fff', fontSize: '20px', fontWeight: 'bold', margin: '0 0 8px 0' }}>설치 완료!</h2>
+              <p style={{ color: '#999', fontSize: '13px', margin: '0 0 20px 0' }}>오늘밤빠 앱을 설치해주셔서 감사해요!</p>
+              
+              <div style={{ height: '1px', background: '#333', margin: '20px 0' }} />
+              
+              <div style={{ marginBottom: '25px' }}>
+                <p style={{ color: '#fff', fontSize: '14px', margin: '0 0 5px 0', fontWeight: 'bold' }}>🎁 신규 설치 혜택</p>
+                <p style={{ color: '#F59E0B', fontSize: '18px', fontWeight: 'bold', margin: 0 }}>₩2,000 할인 쿠폰을 드려요!</p>
+              </div>
+              
+              <p style={{ color: '#888', fontSize: '12px', marginBottom: '15px' }}>카카오 오픈채팅에서 쿠폰을 받아가세요 👇</p>
+              
+              <button
+                onClick={() => window.open('https://open.kakao.com/o/gP43rNri', '_blank')}
+                style={{
+                  background: '#FEE500',
+                  color: '#000',
+                  width: '100%',
+                  padding: '14px',
+                  borderRadius: '12px',
+                  border: 'none',
+                  fontWeight: '700',
+                  fontSize: '15px',
+                  cursor: 'pointer',
+                  marginBottom: '15px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: '8px'
+                }}
+              >
+                💬 오픈채팅 입장하기
+              </button>
+              
+              <button
+                onClick={() => setShowCouponPopup(false)}
+                style={{
+                  background: 'none',
+                  border: 'none',
+                  color: '#555',
+                  fontSize: '12px',
+                  cursor: 'pointer',
+                  textDecoration: 'underline'
+                }}
+              >
+                나중에
+              </button>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
       </motion.div>
+
     </div>
   );
 }

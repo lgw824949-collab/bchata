@@ -4,7 +4,7 @@ const supabaseAnonKey = 'sb_publishable_TSfuOakU5BxoKeJrIoRDrw_kd6pz-k1'
 const supabase = createClient(supabaseUrl, supabaseAnonKey)
 
 async function check() {
-  const { data, error } = await supabase.from('pending_parties').select('*').limit(1)
+  const { data, error } = await supabase.from('parties').select('*').limit(1)
   if (error) {
     console.error(error)
   } else {
