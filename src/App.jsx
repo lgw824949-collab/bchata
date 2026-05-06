@@ -539,6 +539,7 @@ function App() {
   const [modalPos, setModalPos] = useState({ x: 0, y: 0 });
   const [lastTapTime, setLastTapTime] = useState(0);
   const [showIncheon, setShowIncheon] = useState(false);
+  const [showNoticeGuide, setShowNoticeGuide] = useState(false);
   const [showWeather, setShowWeather] = useState(false);
   const [showSaju, setShowSaju] = useState(false);
   const [showFullCalendar, setShowFullCalendar] = useState(false);
@@ -556,8 +557,6 @@ function App() {
   const weatherTimeoutRef = useRef(null);
   const [showCouponPopup, setShowCouponPopup] = useState(false)
 
-
-  // [BAMPPA Navigation Engine]
   const handleOpenModal = (setter, value = true) => {
     window.history.pushState({ modal: true }, '');
     setter(value);
@@ -568,7 +567,6 @@ function App() {
   };
 
   useEffect(() => {
-    // 1. 초기 접속 시 경로 또는 해시 처리
     if (window.location.pathname === '/parking') {
       setView('parking');
       window.location.hash = 'parking';
@@ -578,29 +576,23 @@ function App() {
     }
   }, []);
 
-  // URL Hash 싱크 제거 (Pathname 기반으로 전환)
-
-
-  // 4. 브라우저/휴대폰 뒤로가기 통합 감지 및 강제 제어 로직 (모든 요소 대응)
   useEffect(() => {
     const handlePopState = (event) => {
-      // 열려있는 순서의 역순(우선순위)으로 닫기만 하고 이동은 방지
       if (selectedPoster) { setSelectedPoster(null); return; }
       if (showGridModal) { setShowGridModal(false); return; }
       if (showFilteredResults) { setShowFilteredResults(false); return; }
       
-      // 필터 단계 처리 (2단계 -> 1단계)
       if (filterStep > 1) { setFilterStep(1); return; }
       
       if (showFilterPanel) { setShowFilterPanel(false); return; }
       if (showFullCalendar) { setShowFullCalendar(false); return; }
       if (isMenuOpen) { setIsMenuOpen(false); return; }
+      if (showNoticeGuide) { setShowNoticeGuide(false); return; }
       if (showWeather) { setShowWeather(false); return; }
       if (showSaju) { setShowSaju(false); return; }
       if (showIncheonModal) { setShowIncheonModal(false); return; }
       if (showIncheon) { setShowIncheon(false); return; }
 
-      // 모달이 없는 경우 해시 기반 뷰 전환 처리
       const newHash = window.location.hash.replace('#', '');
       if (newHash && newHash !== view) {
         setView(newHash);
@@ -611,25 +603,21 @@ function App() {
 
     window.addEventListener('popstate', handlePopState);
     return () => window.removeEventListener('popstate', handlePopState);
-  }, [view, selectedPoster, showFullCalendar, isMenuOpen, showWeather, showSaju, showIncheonModal, showFilterPanel, showFilteredResults, showGridModal, showIncheon]);
+  }, [view, selectedPoster, showFullCalendar, isMenuOpen, showNoticeGuide, showWeather, showSaju, showIncheonModal, showFilterPanel, showFilteredResults, showGridModal, showIncheon]);
 
   useEffect(() => {
-    // 이미 쿠폰 받은 사람은 다시 안 보여줌
     const couponReceived = localStorage.getItem('coupon_received')
     if (couponReceived) return
 
-    // PWA 설치 완료 감지
     window.addEventListener('appinstalled', () => {
       setShowCouponPopup(true)
       localStorage.setItem('coupon_received', 'true')
     })
   }, [])
 
-
   const fetchParties = async () => {
     setLoading(true);
     try {
-      // 1. 파티와 장소 데이터를 각각 단순 쿼리로 호출 (400 에러 방지)
       const [partiesRes, locationsRes, bootcampsRes, festivalsRes] = await Promise.all([
         supabase.from('parties').select('*').order('date', { ascending: true }),
         supabase.from('locations').select('id, name'),
@@ -640,19 +628,16 @@ function App() {
       const rawParties = partiesRes.data || [];
       const rawLocations = locationsRes.data || [];
 
-      // 2. 장소 데이터를 ID 기반 Map으로 변환
       const locationMap = rawLocations.reduce((acc, loc) => {
         acc[loc.id] = loc.name;
         return acc;
       }, {});
 
       const mappedParties = rawParties.map(p => {
-        // 장소명 매핑 (id 우선, 없으면 기존 필드 활용)
         const locName = locationMap[p.location_id] || p.locationName || p.location_name || '장소 미지정';
         
-        // 지역 분류 로직 (주소 + 장소명 + 도시명 통합 검색)
         const fullSearchText = `${p.address || ''} ${locName} ${p.cityName || ''}`;
-        let broadRegion = '전국'; // 기본값을 서울이 아닌 '전국'으로 설정 (오분류 방지)
+        let broadRegion = '전국'; 
         
         if (fullSearchText.includes('부산') || fullSearchText.includes('대구') || fullSearchText.includes('울산') || fullSearchText.includes('경상') || fullSearchText.includes('경남') || fullSearchText.includes('경북') || fullSearchText.includes('창원') || fullSearchText.includes('포항') || fullSearchText.includes('김해')) broadRegion = '경상도';
         else if (fullSearchText.includes('서울') || fullSearchText.includes('강남') || fullSearchText.includes('홍대') || fullSearchText.includes('잠실') || fullSearchText.includes('성수') || fullSearchText.includes('서초') || fullSearchText.includes('영등포') || fullSearchText.includes('신림') || fullSearchText.includes('건대')) broadRegion = '서울';
@@ -660,7 +645,7 @@ function App() {
         else if (fullSearchText.includes('광주') || fullSearchText.includes('전라') || fullSearchText.includes('전남') || fullSearchText.includes('전북') || fullSearchText.includes('전주') || fullSearchText.includes('목포') || fullSearchText.includes('여수') || fullSearchText.includes('순천')) broadRegion = '전라도';
         else if (fullSearchText.includes('대전') || fullSearchText.includes('충남') || fullSearchText.includes('충북') || fullSearchText.includes('충청') || fullSearchText.includes('세종') || fullSearchText.includes('천안') || fullSearchText.includes('청주')) broadRegion = '충청도';
         else if (fullSearchText.includes('강원') || fullSearchText.includes('제주') || fullSearchText.includes('춘천') || fullSearchText.includes('원주') || fullSearchText.includes('서귀포')) broadRegion = '강원/제주';
-        else broadRegion = '전국'; // 매칭 실패 시 전국/기타로 분류
+        else broadRegion = '전국'; 
         
         const barInfo = findBarByName(locName);
         const locationNameEn = barInfo?.name_en || locName;
@@ -685,7 +670,6 @@ function App() {
 
   useEffect(() => { fetchParties(); }, []);
 
-  // --- 최적화된 번역 엔진 (DB 저장 데이터 우선 사용) ---
   useEffect(() => {
     const todayStr = getKSTDate().dateStr;
     const upcomingParties = parties.filter(p => p.date >= todayStr);
@@ -695,7 +679,6 @@ function App() {
       const translated = upcomingParties.map(p => ({
         ...p,
         title: p.title_en || p.title,
-        // UI용 영어 필드만 따로 매핑하고 원본 필드는 유지 (필터링 유지)
         displayLocationName: p.locationNameEn || p.locationName,
         displayBroadRegion: p.broadRegionEn || p.broadRegion,
         displayCityName: p.cityNameEn || p.cityName
@@ -713,13 +696,10 @@ function App() {
   }, [i18n.language, parties]);
 
   useEffect(() => {
-    // 날짜 이동 시 히스토리 기록 (view는 해시가 자동 처리)
     window.history.replaceState({ view, date: selectedDate }, '');
   }, [selectedDate]);
 
   const openAnalysis = (saju = false) => {
-    // 사용자가 클릭했을 때만 위치 정보 요청
-    
     setIsSajuCall(saju);
     setIsAnalyzing(true);
     setTimeout(() => { setIsAnalyzing(false); setShowIncheonModal(true); }, 1200);
@@ -732,8 +712,6 @@ function App() {
       navigate('/register-class');
     }
   };
-
-
 
   const sharedProps = {
     parties: displayParties, bootcamps, festivals, loading, selectedMonth, setSelectedMonth, selectedWeek: 1, setSelectedWeek: () => {}, 
@@ -771,7 +749,6 @@ function App() {
       >
       <AnimatePresence>{isAnalyzing && <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} style={{ position: 'fixed', inset: 0, zIndex: 1000000, background: 'rgba(255,255,255,0.9)', backdropFilter: 'blur(30px)', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}><motion.div animate={{ rotate: 360 }} transition={{ duration: 1, repeat: Infinity, ease: 'linear' }} style={{ width: '60px', height: '60px', border: '4px solid #FFEBEE', borderTop: '4px solid #E53935', borderRadius: '50%', marginBottom: '20px' }} /><h2 style={{ color: '#1E293B', fontSize: '20px', fontWeight: '900' }}>실시간 지능형 분석 중...</h2></motion.div>}</AnimatePresence>
 
-      {/* 햄버거 메뉴 버튼 (드래그 기능 유지) */}
       {!isMenuOpen && (
         <motion.button 
           drag
@@ -793,7 +770,6 @@ function App() {
         </motion.button>
       )}
 
-      {/* 프리미엄 햄버거 메뉴 */}
       <AnimatePresence>
         {isMenuOpen && (
           <motion.div
@@ -811,7 +787,6 @@ function App() {
               borderLeft: '1px solid #E2E8F0'
             }}
           >
-            {/* Header */}
             <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: '32px' }}>
               <motion.button 
                 whileTap={{ scale: 0.9 }}
@@ -839,7 +814,7 @@ function App() {
                     const now = Date.now();
                     if (weatherTimeoutRef.current) clearTimeout(weatherTimeoutRef.current);
                     
-                    if (now - lastWeatherTap < 600) { // 0.6초 이내 연속 탭
+                    if (now - lastWeatherTap < 600) {
                       const newCount = weatherTapCount + 1;
                       setWeatherTapCount(newCount);
                       if (newCount >= 5) {
@@ -853,7 +828,6 @@ function App() {
                     }
                     setLastWeatherTap(now);
                     
-                    // 0.5초 동안 다음 탭이 없으면 날씨창 열기
                     weatherTimeoutRef.current = setTimeout(() => {
                       if (weatherTapCount < 2) {
                         setIsMenuOpen(false);
@@ -864,7 +838,7 @@ function App() {
                   } 
                 },
                 { icon: <MessageSquare color={'#FF1744'} />, text: '실시간 오픈톡', action: () => { window.open('https://open.kakao.com/o/gP43rNri', '_blank'); setIsMenuOpen(false); } },
-                { icon: <Bell color={'#FF1744'} />, text: t('notice'), action: () => { alert(t('coming_soon')) } },
+                { icon: <Bell color={'#FF1744'} />, text: t('notice'), action: () => { handleOpenModal(setShowNoticeGuide, true); setIsMenuOpen(false); } },
               ].map((item, idx) => (
                 <motion.div
                   key={idx}
@@ -908,8 +882,6 @@ function App() {
          view === 'parking' ? <Parking onBack={() => navigate('/')} /> :
          view === 'restaurant' ? <Restaurant onBack={() => navigate('/')} /> :
          view === 'register-party' ? <RegisterForm onBack={() => navigate('/')} /> :
-
-
          view === 'admin' ? <AdminDashboard setView={setView} onBack={() => setView('admin-portal')} refreshData={fetchParties} /> :
          view === 'admin-portal' ? (
               <div style={{ 
@@ -949,7 +921,6 @@ function App() {
               </div>
             ) : <AdminDashboard onBack={() => navigate('/')} refreshData={fetchParties} />}
       </main>
-
 
       <DynamicAnalysisModal isOpen={showIncheonModal} onClose={() => setShowIncheonModal(false)} userCoords={userCoords} isSajuCall={isSajuCall} />
       <AnimatePresence>
@@ -1068,10 +1039,7 @@ function App() {
           </>
         )}
       </AnimatePresence>
-      <AnimatePresence>
-      </AnimatePresence>
       
-      {/* 포스터 줌인 모달 (컴포넌트 방식) */}
       {selectedPoster && (
         <PosterModal 
           src={selectedPoster} 
@@ -1119,7 +1087,6 @@ function App() {
             <motion.div layoutId="active-nav" className="active-indicator" style={{ background: '#E11D48', opacity: location.pathname === '/livepick' ? 1 : 0 }} />
           </div>
 
-
           <div className="nav-item central-action" style={{ pointerEvents: 'none', position: 'relative', zIndex: 1001 }}>
             <motion.button
               whileHover={{ scale: 1.1 }}
@@ -1145,7 +1112,6 @@ function App() {
                   navigate('/register-party');
                 }
               }}
-
             >
               <Plus size={28} strokeWidth={3} />
             </motion.button>
@@ -1189,7 +1155,6 @@ function App() {
             <span style={{ fontSize: '10px', fontWeight: location.pathname === '/festival' ? 900 : 500, position: 'relative' }}>페스티벌</span>
             <motion.div layoutId="active-nav" className="active-indicator" style={{ background: '#F97316', opacity: location.pathname === '/festival' ? 1 : 0 }} />
           </div>
-
         </nav>
       )}
 
@@ -1270,6 +1235,69 @@ function App() {
                 }}
               >
                 나중에
+              </button>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      <AnimatePresence>
+        {showNoticeGuide && (
+          <motion.div 
+            initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+            style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.9)', zIndex: 3000000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px', backdropFilter: 'blur(10px)' }}
+          >
+            <motion.div 
+              initial={{ scale: 0.9, y: 20 }} animate={{ scale: 1, y: 0 }} exit={{ scale: 0.9, y: 20 }}
+              style={{ background: '#111827', width: '100%', maxWidth: '340px', borderRadius: '32px', padding: '32px', border: '1px solid rgba(201,168,76,0.3)', position: 'relative', overflow: 'hidden' }}
+            >
+              <div style={{ position: 'absolute', top: '-50px', right: '-50px', width: '150px', height: '150px', background: 'radial-gradient(circle, rgba(201,168,76,0.1) 0%, transparent 70%)', pointerEvents: 'none' }} />
+              
+              <div style={{ textAlign: 'center', marginBottom: '24px' }}>
+                <div style={{ width: '64px', height: '64px', background: 'rgba(201,168,76,0.1)', borderRadius: '20px', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 20px', border: '1px solid rgba(201,168,76,0.2)' }}>
+                  <Navigation size={32} color="#FFD700" />
+                </div>
+                <h3 style={{ color: '#F8FAFC', fontSize: '20px', fontWeight: 900, margin: 0, letterSpacing: '-0.5px' }}>위치 서비스 안내 📡</h3>
+                <p style={{ color: '#94A3B8', fontSize: '13px', marginTop: '8px', lineHeight: '1.5' }}>더 나은 밤빠 이용을 위해<br/>위치 권한이 왜 필요한지 안내해 드립니다.</p>
+              </div>
+
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '20px', marginBottom: '32px' }}>
+                <div style={{ display: 'flex', gap: '16px' }}>
+                  <div style={{ flexShrink: 0, width: '40px', height: '40px', background: 'rgba(59,130,246,0.1)', borderRadius: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                    <Map size={20} color="#3B82F6" />
+                  </div>
+                  <div>
+                    <div style={{ color: '#F1F5F9', fontSize: '15px', fontWeight: 800 }}>내 주변 장소 찾기</div>
+                    <p style={{ color: '#64748B', fontSize: '12px', marginTop: '4px', lineHeight: '1.4' }}>현재 위치에서 가장 가까운 파티 장소를 즉시 확인하고 최적의 경로를 안내받으세요.</p>
+                  </div>
+                </div>
+
+                <div style={{ display: 'flex', gap: '16px' }}>
+                  <div style={{ flexShrink: 0, width: '40px', height: '40px', background: 'rgba(249,115,22,0.1)', borderRadius: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                    <BarChart size={20} color="#F97316" />
+                  </div>
+                  <div>
+                    <div style={{ color: '#F1F5F9', fontSize: '15px', fontWeight: 800 }}>실시간 현황 기여</div>
+                    <p style={{ color: '#64748B', fontSize: '12px', marginTop: '4px', lineHeight: '1.4' }}>여러분의 참여가 실시간 중계 숫자를 완성합니다. 현장의 열기를 전국에 공유해 보세요.</p>
+                  </div>
+                </div>
+
+                <div style={{ display: 'flex', gap: '16px' }}>
+                  <div style={{ flexShrink: 0, width: '40px', height: '40px', background: 'rgba(16,185,129,0.1)', borderRadius: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                    <ShieldCheck size={20} color="#10B981" />
+                  </div>
+                  <div>
+                    <div style={{ color: '#F1F5F9', fontSize: '15px', fontWeight: 800 }}>철저한 보안 관리</div>
+                    <p style={{ color: '#64748B', fontSize: '12px', marginTop: '4px', lineHeight: '1.4' }}>위치 정보는 집계용으로만 일시 사용되며, 개인을 식별할 수 있는 정보는 절대 저장되지 않습니다.</p>
+                  </div>
+                </div>
+              </div>
+
+              <button 
+                onClick={() => setShowNoticeGuide(false)}
+                style={{ width: '100%', padding: '16px', borderRadius: '16px', background: 'linear-gradient(135deg, #C9A84C, #FFD700)', color: '#000', fontSize: '16px', fontWeight: 900, border: 'none', cursor: 'pointer', boxShadow: '0 10px 20px rgba(201,168,76,0.3)' }}
+              >
+                확인했습니다
               </button>
             </motion.div>
           </motion.div>
