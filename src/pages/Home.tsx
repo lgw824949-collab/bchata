@@ -528,12 +528,8 @@ const HomePage = ({
         </div>
       </div>
 
-      <div style={{ padding: '12px 10px 8px' }}>
-        <div style={{ height: '36px', background: '#0f172a', borderRadius: '18px', display: 'flex', alignItems: 'center', overflow: 'hidden', padding: '0 16px' }}>
-          <div style={{ flex: 1, overflow: 'hidden' }}>
-            <LiveCount />
-          </div>
-        </div>
+      <div style={{ padding: '0 10px' }}>
+        <LiveCount />
       </div>
 
       <div ref={scrollRef} style={{ width: '100%', background: '#fff' }}>
