@@ -529,10 +529,9 @@ const HomePage = ({
       </div>
 
       <div style={{ padding: '12px 10px 8px' }}>
-        <div style={{ height: '32px', background: '#0f172a', borderRadius: '16px', display: 'flex', alignItems: 'center', overflow: 'hidden', padding: '0 12px' }}>
-          <button onClick={() => setIsPaused(!isPaused)} style={{ background: isPaused ? '#FF1744' : 'rgba(255,255,255,0.2)', border: 'none', borderRadius: '12px', color: '#fff', fontSize: '10px', fontWeight: '950', padding: '4px 8px', marginRight: '10px', cursor: 'pointer' }}>{isPaused ? '▶ PLAY' : '⏸ STOP'}</button>
+        <div style={{ height: '36px', background: '#0f172a', borderRadius: '18px', display: 'flex', alignItems: 'center', overflow: 'hidden', padding: '0 16px' }}>
           <div style={{ flex: 1, overflow: 'hidden' }}>
-            <LiveCount isPaused={isPaused} />
+            <LiveCount />
           </div>
         </div>
       </div>
