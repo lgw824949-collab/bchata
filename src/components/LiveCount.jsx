@@ -4,6 +4,7 @@ import { BAR_DATABASE } from '../data/barDatabase'
 
 const LiveCount = () => {
   const [counts, setCounts] = useState({})
+  const [currentIndex, setCurrentIndex] = useState(0)
   const [displayText, setDisplayText] = useState('')
   const [isTyping, setIsTyping] = useState(true)
 
@@ -70,8 +71,9 @@ const LiveCount = () => {
     return maps[region] || region;
   };
 
-  const fullReport = useMemo(() => {
-    if (Object.keys(counts).length === 0) return '🎵 전국 소셜 파티 실시간 인원 중계 중! 🔥';
+  // 지역별로 분리된 리포트 배열 생성
+  const regionalReports = useMemo(() => {
+    if (Object.keys(counts).length === 0) return ['🎵 전국 소셜 파티 실시간 인원 중계 중! 🔥'];
 
     const byRegion = {};
     Object.entries(counts).forEach(([key, count]) => {
@@ -81,32 +83,38 @@ const LiveCount = () => {
       byRegion[shortRegion].push(`${name} ${count}`);
     });
 
-    return Object.entries(byRegion)
-      .map(([reg, venues]) => `[${reg}] ${venues.join(', ')}`)
-      .join(' | ');
+    return Object.entries(byRegion).map(([reg, venues]) => `[${reg}] ${venues.join(', ')}`);
   }, [counts]);
 
-  // 타이핑 효과 로직 (속도 감속 및 정돈)
+  // 타이핑 및 지역 로테이션 효과 로직
   useEffect(() => {
     let timeout;
+    const currentFullText = regionalReports[currentIndex] || '';
+
     if (isTyping) {
-      if (displayText.length < fullReport.length) {
+      if (displayText.length < currentFullText.length) {
         timeout = setTimeout(() => {
-          setDisplayText(fullReport.slice(0, displayText.length + 1));
-        }, 120); // 타이핑 속도 대폭 감속 (0.12초)
+          setDisplayText(currentFullText.slice(0, displayText.length + 1));
+        }, 80); // 타이핑 속도 최적화
       } else {
         setIsTyping(false);
+        // 문장 완성 후 4초간 대기
         timeout = setTimeout(() => {
-          setIsTyping(true);
+          setIsTyping(false);
+          // 글자 지우기 시작 (또는 바로 다음으로 전환)
           setDisplayText('');
-        }, 5000); // 5초 유지 후 재시작
+          setCurrentIndex((prev) => (prev + 1) % regionalReports.length);
+          setIsTyping(true);
+        }, 4000); 
       }
     }
     return () => clearTimeout(timeout);
-  }, [displayText, isTyping, fullReport]);
+  }, [displayText, isTyping, currentIndex, regionalReports]);
 
   const parseReport = (text) => {
-    // "[서울] 라틴 21" → { region: "서울", name: "라틴", count: "21" } 형태로 파싱
+    // "[서울] 라틴 21" 형태가 포함되어 있는지 확인하여 파싱
+    // 로테이션 방식이므로 하나의 텍스트 안에 여러 장소가 있을 수 있음. 
+    // 여기서는 가장 앞의 장소 정보를 대표로 파싱하거나, 전체를 텍스트로 보여줌
     const match = text.match(/\[(.+?)\]\s*(.+?)\s+(\d+)/)
     if (match) return { region: match[1], name: match[2], count: match[3] }
     return null
@@ -151,39 +159,31 @@ const LiveCount = () => {
           font-weight: 700;
           letter-spacing: 2px;
         }
+        .report-content {
+          display: flex;
+          align-items: baseline;
+          gap: 4px;
+          font-family: 'Pretendard', sans-serif;
+        }
         .live-region {
           color: rgba(255,255,255,0.5);
           font-size: 12px;
-          margin-right: 6px;
         }
-        .live-name {
+        .live-data-text {
           color: #E8D5A3;
-          font-size: 13px;
+          font-size: 14px;
           font-weight: 500;
-          margin-right: 8px;
+          letter-spacing: -0.2px;
         }
-        .live-count {
-          color: #FFD700;
-          font-size: 18px;
-          font-weight: 800;
-          animation: blink-count 1.2s ease-in-out infinite;
-          letter-spacing: -0.5px;
-        }
-        @keyframes blink-count {
-          0%, 100% { opacity: 1; }
-          50% { opacity: 0.4; }
-        }
-        .live-unit {
-          color: rgba(201,168,76,0.7);
-          font-size: 11px;
+        .cursor-gold {
+          border-right: 2px solid #FFD700;
+          animation: blink-gold 1s infinite;
           margin-left: 2px;
+          height: 14px;
+          display: inline-block;
+          vertical-align: middle;
         }
-        .live-default {
-          color: rgba(232,213,163,0.6);
-          font-size: 12px;
-          font-weight: 400;
-          letter-spacing: 0.5px;
-        }
+        @keyframes blink-gold { 0%, 100% { opacity: 1; } 50% { opacity: 0; } }
       `}</style>
 
       <div className="live-pill">
@@ -191,16 +191,12 @@ const LiveCount = () => {
         <span className="live-word">LIVE</span>
       </div>
 
-      {parsed ? (
-        <div style={{ display: 'flex', alignItems: 'baseline', gap: '2px' }}>
-          <span className="live-region">[{parsed.region}]</span>
-          <span className="live-name">{parsed.name}</span>
-          <span className="live-count">{parsed.count}</span>
-          <span className="live-unit">명</span>
-        </div>
-      ) : (
-        <span className="live-default">{displayText}</span>
-      )}
+      <div className="report-content">
+        <span className="live-data-text">
+          {displayText}
+          <span className="cursor-gold" />
+        </span>
+      </div>
     </div>
   )
 }
