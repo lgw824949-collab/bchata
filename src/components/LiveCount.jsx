@@ -105,65 +105,102 @@ const LiveCount = () => {
     return () => clearTimeout(timeout);
   }, [displayText, isTyping, fullReport]);
 
+  const parseReport = (text) => {
+    // "[서울] 라틴 21" → { region: "서울", name: "라틴", count: "21" } 형태로 파싱
+    const match = text.match(/\[(.+?)\]\s*(.+?)\s+(\d+)/)
+    if (match) return { region: match[1], name: match[2], count: match[3] }
+    return null
+  }
+  const parsed = parseReport(displayText)
+
   return (
-    <div style={{ background: 'linear-gradient(90deg, #0d0d0d, #1a1200, #0d0d0d)', height: '40px', display: 'flex', alignItems: 'center', padding: '0 16px', position: 'relative', overflow: 'hidden' }}>
+    <div style={{
+      background: 'transparent',
+      height: '44px',
+      display: 'flex',
+      alignItems: 'center',
+      padding: '0 16px',
+      position: 'relative',
+    }}>
       <style>{`
-        .gold-line { position: absolute; bottom: 0; left: 0; right: 0; height: 1px; background: linear-gradient(90deg, transparent, #C9A84C, #FFD700, #C9A84C, transparent); opacity: 0.8; }
-        .gold-line-top { position: absolute; top: 0; left: 0; right: 0; height: 1px; background: linear-gradient(90deg, transparent, #C9A84C, #FFD700, #C9A84C, transparent); opacity: 0.4; }
-        .live-label {
-          background: transparent;
-          border: 1px solid #C9A84C;
-          color: #FFD700;
-          font-size: 9px;
-          font-weight: 700;
-          padding: 2px 7px;
-          border-radius: 3px;
-          margin-right: 14px;
-          letter-spacing: 2px;
-          position: relative;
-          flex-shrink: 0;
-        }
-        .live-dot {
-          width: 5px;
-          height: 5px;
-          background: #FFD700;
-          border-radius: 50%;
-          display: inline-block;
-          margin-right: 5px;
-          animation: pulse-gold 1.5s ease-in-out infinite;
-          vertical-align: middle;
-        }
-        @keyframes pulse-gold {
-          0%, 100% { opacity: 1; box-shadow: 0 0 4px #FFD700; }
-          50% { opacity: 0.4; box-shadow: none; }
-        }
-        .report-text {
-          font-family: 'Pretendard', sans-serif;
-          color: #E8D5A3;
-          font-size: 13px;
-          font-weight: 400;
-          letter-spacing: 0.3px;
+        .live-pill {
           display: flex;
           align-items: center;
+          gap: 5px;
+          border: 1px solid rgba(201,168,76,0.6);
+          border-radius: 20px;
+          padding: 3px 10px 3px 7px;
+          margin-right: 12px;
+          flex-shrink: 0;
+          background: rgba(0,0,0,0.25);
         }
-        .cursor-gold {
-          border-right: 1.5px solid #C9A84C;
-          animation: blink-gold 1s infinite;
+        .live-dot2 {
+          width: 6px;
+          height: 6px;
+          background: #FFD700;
+          border-radius: 50%;
+          animation: pulse2 1.5s ease-in-out infinite;
+        }
+        @keyframes pulse2 {
+          0%, 100% { opacity: 1; box-shadow: 0 0 6px #FFD700; }
+          50% { opacity: 0.3; box-shadow: none; }
+        }
+        .live-word {
+          color: #FFD700;
+          font-size: 10px;
+          font-weight: 700;
+          letter-spacing: 2px;
+        }
+        .live-region {
+          color: rgba(255,255,255,0.5);
+          font-size: 12px;
+          margin-right: 6px;
+        }
+        .live-name {
+          color: #E8D5A3;
+          font-size: 13px;
+          font-weight: 500;
+          margin-right: 8px;
+        }
+        .live-count {
+          color: #FFD700;
+          font-size: 18px;
+          font-weight: 800;
+          animation: blink-count 1.2s ease-in-out infinite;
+          letter-spacing: -0.5px;
+        }
+        @keyframes blink-count {
+          0%, 100% { opacity: 1; }
+          50% { opacity: 0.4; }
+        }
+        .live-unit {
+          color: rgba(201,168,76,0.7);
+          font-size: 11px;
           margin-left: 2px;
-          height: 14px;
         }
-        @keyframes blink-gold { 0%, 100% { opacity: 1; } 50% { opacity: 0; } }
+        .live-default {
+          color: rgba(232,213,163,0.6);
+          font-size: 12px;
+          font-weight: 400;
+          letter-spacing: 0.5px;
+        }
       `}</style>
-      <div className="gold-line" />
-      <div className="gold-line-top" />
-      <span className="live-label">
-        <span className="live-dot" />
-        LIVE
-      </span>
-      <div className="report-text">
-        {displayText}
-        <span className="cursor-gold" />
+
+      <div className="live-pill">
+        <span className="live-dot2" />
+        <span className="live-word">LIVE</span>
       </div>
+
+      {parsed ? (
+        <div style={{ display: 'flex', alignItems: 'baseline', gap: '2px' }}>
+          <span className="live-region">[{parsed.region}]</span>
+          <span className="live-name">{parsed.name}</span>
+          <span className="live-count">{parsed.count}</span>
+          <span className="live-unit">명</span>
+        </div>
+      ) : (
+        <span className="live-default">{displayText}</span>
+      )}
     </div>
   )
 }
