@@ -278,6 +278,69 @@ const ClassCard = ({ item, onSelect }) => {
   );
 };
 
+const BootcampCard = ({ item, onSelect }) => {
+  return (
+    <div 
+      onClick={() => onSelect(item.poster_url)}
+      style={{ 
+        display: 'flex', 
+        backgroundColor: '#FFFFFF', 
+        borderRadius: '16px', 
+        overflow: 'hidden', 
+        border: '1px solid #F1F5F9', 
+        cursor: 'pointer', 
+        height: '110px', 
+        marginBottom: '12px', 
+        boxShadow: '0 4px 6px -1px rgba(0,0,0,0.05)'
+      }}
+    >
+      <div style={{ width: '80px', height: '100%', flexShrink: 0 }}>
+        <img src={item.poster_url} style={{ width: '100%', height: '100%', objectFit: 'cover' }} alt="Bootcamp" />
+      </div>
+      <div style={{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'center', padding: '0 15px', minWidth: 0 }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '2px' }}>
+          <span style={{ fontSize: '11px', fontWeight: '800', color: '#7C3AED' }}>BOOTCAMP · {item.genre}</span>
+          <span style={{ fontSize: '11px', fontWeight: '800', color: '#94A3B8' }}>{item.level}</span>
+        </div>
+        <h3 style={{ fontSize: '16px', fontWeight: '950', color: '#1E293B', margin: '0 0 4px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{item.instructor}</h3>
+        <div style={{ fontSize: '11px', fontWeight: '800', color: '#64748B' }}>
+          📍 {item.venue || item.region} | 💰 {item.fee}
+        </div>
+      </div>
+    </div>
+  );
+};
+
+const FestivalCard = ({ item, onSelect }) => {
+  return (
+    <div 
+      onClick={() => onSelect(item.poster_url)}
+      style={{ 
+        display: 'flex', 
+        backgroundColor: '#FFFFFF', 
+        borderRadius: '16px', 
+        overflow: 'hidden', 
+        border: '1px solid #F1F5F9', 
+        cursor: 'pointer', 
+        height: '110px', 
+        marginBottom: '12px', 
+        boxShadow: '0 4px 6px -1px rgba(0,0,0,0.05)'
+      }}
+    >
+      <div style={{ width: '80px', height: '100%', flexShrink: 0 }}>
+        <img src={item.poster_url} style={{ width: '100%', height: '100%', objectFit: 'cover' }} alt="Festival" />
+      </div>
+      <div style={{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'center', padding: '0 15px', minWidth: 0 }}>
+        <div style={{ fontSize: '11px', fontWeight: '800', color: '#F97316', marginBottom: '2px' }}>FESTIVAL · {item.genre}</div>
+        <h3 style={{ fontSize: '16px', fontWeight: '950', color: '#1E293B', margin: '0 0 4px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{item.title}</h3>
+        <div style={{ fontSize: '11px', fontWeight: '800', color: '#64748B' }}>
+          📍 {item.location} | 💰 ₩{item.price?.toLocaleString()}
+        </div>
+      </div>
+    </div>
+  );
+};
+
 const RollingContainer = ({ items, onSelect }) => {
   const [index, setIndex] = useState(0);
   useEffect(() => { if (items.length <= 1) return; const timer = setInterval(() => { setIndex((prev) => (prev + 1) % items.length); }, 3000); return () => clearInterval(timer); }, [items.length]);
@@ -338,7 +401,7 @@ const FilterBar = ({ filterRegion, setFilterRegion, filterGenre, setFilterGenre 
 };
 
 const HomePage = ({ 
-  parties, lessons, loading, selectedMonth, setSelectedMonth, selectedWeek, setSelectedWeek, 
+  parties, bootcamps, festivals, lessons, loading, selectedMonth, setSelectedMonth, selectedWeek, setSelectedWeek, 
   selectedDate, setSelectedDate, selectedRegion, setSelectedRegion, isExpanded, setIsExpanded,
   view, setView, setSelectedPoster, fetchParties, formatItemDate, formatFee, filteredParties, weekData,
   resetToToday, showFullCalendar, setShowFullCalendar, likedIds, toggleLike, logActivity, handleRegister, fourteenDays,
@@ -584,6 +647,40 @@ const HomePage = ({
                   );
                 });
               })()}
+
+              {/* 오늘의 부트캠프 */}
+              {bootcamps?.filter(b => b.start_date <= selectedDate && b.end_date >= selectedDate).length > 0 && (
+                <section style={{ marginBottom: '15px', background: '#fff' }}>
+                  <div style={{ fontSize: '18px', fontWeight: '900', padding: '15px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                      <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#7C3AED' }} />
+                      오늘의 부트캠프
+                    </div>
+                  </div>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', padding: '0 15px 20px' }}>
+                    {bootcamps.filter(b => b.start_date <= selectedDate && b.end_date >= selectedDate).map(item => (
+                      <BootcampCard key={item.id} item={item} onSelect={(url) => handleOpenModal(setSelectedPoster, url)} />
+                    ))}
+                  </div>
+                </section>
+              )}
+
+              {/* 오늘의 페스티벌 */}
+              {festivals?.filter(f => f.start_date <= selectedDate && f.end_date >= selectedDate).length > 0 && (
+                <section style={{ marginBottom: '15px', background: '#fff' }}>
+                  <div style={{ fontSize: '18px', fontWeight: '900', padding: '15px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                      <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#F97316' }} />
+                      오늘의 페스티벌
+                    </div>
+                  </div>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', padding: '0 15px 20px' }}>
+                    {festivals.filter(f => f.start_date <= selectedDate && f.end_date >= selectedDate).map(item => (
+                      <FestivalCard key={item.id} item={item} onSelect={(url) => handleOpenModal(setSelectedPoster, url)} />
+                    ))}
+                  </div>
+                </section>
+              )}
 
 
             </div>

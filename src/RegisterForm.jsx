@@ -209,16 +209,18 @@ const RegisterForm = ({ onBack, onSuccess }) => {
         finalPosterUrl = data.publicUrl
       }
 
+      // 1. 장소 확인 및 자동 저장 (ID 연동 준비)
+      let finalLocationId = null;
       const { data: existingLoc } = await supabase
         .from('locations')
         .select('id, latitude')
         .eq('name', formData.location_name)
         .maybeSingle()
-
+  
       if (!existingLoc) {
         const targetRegion = formData.region || classifyRegion(formData.address) || '서울'
         const { data: reg } = await supabase.from('regions').select('id').ilike('name', `%${targetRegion}%`).limit(1).maybeSingle()
-        await supabase.from('locations').insert([{
+        const { data: newLoc, error: locError } = await supabase.from('locations').insert([{
           name: formData.location_name,
           address: formData.address,
           region_id: reg?.id || 1,
@@ -243,6 +245,7 @@ const RegisterForm = ({ onBack, onSuccess }) => {
 
       const { error } = await supabase.from('pending_parties').insert([{
         title: `[${formData.region}] ${finalProcessedTitle}`,
+        location_id: finalLocationId,
         location_name: formData.location_name,
         address: formData.address,
         fee: formData.fee,

@@ -503,6 +503,8 @@ function App() {
     return () => clearTimeout(timer);
   }, [showSplash]);
   const [parties, setParties] = useState([]);
+  const [bootcamps, setBootcamps] = useState([]);
+  const [festivals, setFestivals] = useState([]);
   const [displayParties, setDisplayParties] = useState([]);
   const [loading, setLoading] = useState(true);
   const [selectedDate, setSelectedDate] = useState(todayData.dateStr);
@@ -628,9 +630,11 @@ function App() {
     setLoading(true);
     try {
       // 1. 파티와 장소 데이터를 각각 단순 쿼리로 호출 (400 에러 방지)
-      const [partiesRes, locationsRes] = await Promise.all([
+      const [partiesRes, locationsRes, bootcampsRes, festivalsRes] = await Promise.all([
         supabase.from('parties').select('*').order('date', { ascending: true }),
-        supabase.from('locations').select('id, name')
+        supabase.from('locations').select('id, name'),
+        supabase.from('bootcamps').select('*').eq('status', 'active'),
+        supabase.from('festivals').select('*').eq('status', 'active')
       ]);
 
       const rawParties = partiesRes.data || [];
@@ -674,6 +678,8 @@ function App() {
         };
       });
       setParties(mappedParties);
+      setBootcamps(bootcampsRes.data || []);
+      setFestivals(festivalsRes.data || []);
     } catch (err) { console.error('데이터 로딩 오류:', err); } finally { setLoading(false); }
   };
 
@@ -730,7 +736,7 @@ function App() {
 
 
   const sharedProps = {
-    parties: displayParties, loading, selectedMonth, setSelectedMonth, selectedWeek: 1, setSelectedWeek: () => {}, 
+    parties: displayParties, bootcamps, festivals, loading, selectedMonth, setSelectedMonth, selectedWeek: 1, setSelectedWeek: () => {}, 
     selectedDate, setSelectedDate, selectedRegion: '서울', setSelectedRegion: () => {}, 
     view, setView, setSelectedPoster, 
     fourteenDays: Array.from({ length: 14 }).map((_, i) => {
@@ -1079,38 +1085,38 @@ function App() {
             className="nav-item" 
             onClick={() => navigate('/')}
             style={{ 
-              color: location.pathname === '/' ? '#FF1744' : '#333',
+              color: location.pathname === '/' ? '#E11D48' : '#333',
               transform: location.pathname === '/' ? 'translateY(-2px)' : 'none'
             }}
           >
             <div style={{
               position: 'absolute', top: '40%', left: '50%', transform: 'translate(-50%, -50%)',
               width: '40px', height: '40px', borderRadius: '50%',
-              background: location.pathname === '/' ? 'rgba(255, 23, 68, 0.15)' : 'transparent',
+              background: location.pathname === '/' ? 'rgba(225, 29, 72, 0.15)' : 'transparent',
               filter: 'blur(10px)', transition: 'all 0.4s'
             }} />
-            <Music2 size={22} color={location.pathname === '/' ? '#FF1744' : '#333'} style={{ marginBottom: '4px', position: 'relative' }} />
+            <Music2 size={22} color={location.pathname === '/' ? '#E11D48' : '#333'} style={{ marginBottom: '4px', position: 'relative' }} />
             <span style={{ fontSize: '10px', fontWeight: location.pathname === '/' ? 900 : 500, position: 'relative' }}>소셜/파티</span>
-            <motion.div layoutId="active-nav" className="active-indicator" style={{ background: '#FF1744', opacity: location.pathname === '/' ? 1 : 0 }} />
+            <motion.div layoutId="active-nav" className="active-indicator" style={{ background: '#E11D48', opacity: location.pathname === '/' ? 1 : 0 }} />
           </div>
 
           <div 
             className="nav-item" 
             onClick={() => navigate('/livepick')}
             style={{ 
-              color: location.pathname === '/livepick' ? '#FF1744' : '#333',
+              color: location.pathname === '/livepick' ? '#E11D48' : '#333',
               transform: location.pathname === '/livepick' ? 'translateY(-2px)' : 'none'
             }}
           >
             <div style={{
               position: 'absolute', top: '40%', left: '50%', transform: 'translate(-50%, -50%)',
               width: '40px', height: '40px', borderRadius: '50%',
-              background: location.pathname === '/livepick' ? 'rgba(255, 23, 68, 0.15)' : 'transparent',
+              background: location.pathname === '/livepick' ? 'rgba(225, 29, 72, 0.15)' : 'transparent',
               filter: 'blur(10px)', transition: 'all 0.4s'
             }} />
-            <Camera size={22} color={location.pathname === '/livepick' ? '#FF1744' : '#333'} style={{ marginBottom: '4px', position: 'relative' }} />
+            <Camera size={22} color={location.pathname === '/livepick' ? '#E11D48' : '#333'} style={{ marginBottom: '4px', position: 'relative' }} />
             <span style={{ fontSize: '10px', fontWeight: location.pathname === '/livepick' ? 900 : 500, position: 'relative' }}>LIVE PICK</span>
-            <motion.div layoutId="active-nav" className="active-indicator" style={{ background: '#FF1744', opacity: location.pathname === '/livepick' ? 1 : 0 }} />
+            <motion.div layoutId="active-nav" className="active-indicator" style={{ background: '#E11D48', opacity: location.pathname === '/livepick' ? 1 : 0 }} />
           </div>
 
 
@@ -1121,14 +1127,11 @@ function App() {
               style={{
                 width:'52px', height:'52px',
                 borderRadius:'50%',
-                background: location.pathname === '/' ? '#FF1744' : 
-                           location.pathname === '/livepick' ? '#FF1744' :
-                           location.pathname === '/bootcamp' ? '#FF8A00' :
-                           location.pathname === '/festival' ? '#FF8A00' : '#333',
+                background: '#F59E0B',
                 border:'none', color:'#fff',
                 display:'flex', alignItems:'center',
                 justifyContent:'center', cursor:'pointer',
-                boxShadow: '0 8px 25px rgba(0,0,0,0.2)',
+                boxShadow: '0 8px 25px rgba(245, 158, 11, 0.2)',
                 pointerEvents: 'auto'
               }}
               onClick={() => {
@@ -1153,38 +1156,38 @@ function App() {
             className="nav-item" 
             onClick={() => navigate('/bootcamp')}
             style={{ 
-              color: location.pathname === '/bootcamp' ? '#FF8A00' : '#333',
+              color: location.pathname === '/bootcamp' ? '#F97316' : '#333',
               transform: location.pathname === '/bootcamp' ? 'translateY(-2px)' : 'none'
             }}
           >
             <div style={{
               position: 'absolute', top: '40%', left: '50%', transform: 'translate(-50%, -50%)',
               width: '40px', height: '40px', borderRadius: '50%',
-              background: location.pathname === '/bootcamp' ? 'rgba(255, 138, 0, 0.15)' : 'transparent',
+              background: location.pathname === '/bootcamp' ? 'rgba(249, 115, 22, 0.15)' : 'transparent',
               filter: 'blur(10px)', transition: 'all 0.4s'
             }} />
-            <Tent size={22} color={location.pathname === '/bootcamp' ? '#FF8A00' : '#333'} style={{ marginBottom: '4px', position: 'relative' }} />
+            <Tent size={22} color={location.pathname === '/bootcamp' ? '#F97316' : '#333'} style={{ marginBottom: '4px', position: 'relative' }} />
             <span style={{ fontSize: '10px', fontWeight: location.pathname === '/bootcamp' ? 900 : 500, position: 'relative' }}>부트캠프</span>
-            <motion.div layoutId="active-nav" className="active-indicator" style={{ background: '#FF8A00', opacity: location.pathname === '/bootcamp' ? 1 : 0 }} />
+            <motion.div layoutId="active-nav" className="active-indicator" style={{ background: '#F97316', opacity: location.pathname === '/bootcamp' ? 1 : 0 }} />
           </div>
 
           <div 
             className="nav-item" 
             onClick={() => navigate('/festival')}
             style={{ 
-              color: location.pathname === '/festival' ? '#FF8A00' : '#333',
+              color: location.pathname === '/festival' ? '#F97316' : '#333',
               transform: location.pathname === '/festival' ? 'translateY(-2px)' : 'none'
             }}
           >
             <div style={{
               position: 'absolute', top: '40%', left: '50%', transform: 'translate(-50%, -50%)',
               width: '40px', height: '40px', borderRadius: '50%',
-              background: location.pathname === '/festival' ? 'rgba(255, 138, 0, 0.15)' : 'transparent',
+              background: location.pathname === '/festival' ? 'rgba(249, 115, 22, 0.15)' : 'transparent',
               filter: 'blur(10px)', transition: 'all 0.4s'
             }} />
-            <Flag size={22} color={location.pathname === '/festival' ? '#FF8A00' : '#333'} style={{ marginBottom: '4px', position: 'relative' }} />
+            <Flag size={22} color={location.pathname === '/festival' ? '#F97316' : '#333'} style={{ marginBottom: '4px', position: 'relative' }} />
             <span style={{ fontSize: '10px', fontWeight: location.pathname === '/festival' ? 900 : 500, position: 'relative' }}>페스티벌</span>
-            <motion.div layoutId="active-nav" className="active-indicator" style={{ background: '#FF8A00', opacity: location.pathname === '/festival' ? 1 : 0 }} />
+            <motion.div layoutId="active-nav" className="active-indicator" style={{ background: '#F97316', opacity: location.pathname === '/festival' ? 1 : 0 }} />
           </div>
 
         </nav>
