@@ -1264,7 +1264,7 @@ function App() {
               <div style={{ display: 'flex', flexDirection: 'column', gap: '20px', marginBottom: '32px' }}>
                 <div style={{ display: 'flex', gap: '16px' }}>
                   <div style={{ flexShrink: 0, width: '40px', height: '40px', background: 'rgba(59,130,246,0.1)', borderRadius: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                    <Map size={20} color="#3B82F6" />
+                    <MapIcon size={20} color="#3B82F6" />
                   </div>
                   <div>
                     <div style={{ color: '#F1F5F9', fontSize: '15px', fontWeight: 800 }}>내 주변 장소 찾기</div>
