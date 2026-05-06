@@ -106,20 +106,63 @@ const LiveCount = () => {
   }, [displayText, isTyping, fullReport]);
 
   return (
-    <div style={{ background: '#0F172A', height: '36px', display: 'flex', alignItems: 'center', padding: '0 4px', position: 'relative' }}>
+    <div style={{ background: 'linear-gradient(90deg, #0d0d0d, #1a1200, #0d0d0d)', height: '40px', display: 'flex', alignItems: 'center', padding: '0 16px', position: 'relative', overflow: 'hidden' }}>
       <style>{`
-        .neon-line { position: absolute; bottom: 0; left: 0; right: 0; height: 1px; background: linear-gradient(90deg, transparent, #39FF14, transparent); box-shadow: 0 0 8px #39FF14; opacity: 0.6; }
-        .live-label { background: #39FF14; color: #000; font-size: 10px; font-weight: 950; padding: 2px 6px; border-radius: 4px; margin-right: 12px; letter-spacing: 0.5px; }
-        .report-text { font-family: 'Pretendard', monospace; color: #F8FAFC; font-size: 14px; font-weight: 700; letter-spacing: -0.3px; display: flex; align-items: center; }
-        .cursor { border-right: 2px solid #39FF14; animation: blink 0.8s infinite; margin-left: 2px; }
-        @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0; } }
+        .gold-line { position: absolute; bottom: 0; left: 0; right: 0; height: 1px; background: linear-gradient(90deg, transparent, #C9A84C, #FFD700, #C9A84C, transparent); opacity: 0.8; }
+        .gold-line-top { position: absolute; top: 0; left: 0; right: 0; height: 1px; background: linear-gradient(90deg, transparent, #C9A84C, #FFD700, #C9A84C, transparent); opacity: 0.4; }
+        .live-label {
+          background: transparent;
+          border: 1px solid #C9A84C;
+          color: #FFD700;
+          font-size: 9px;
+          font-weight: 700;
+          padding: 2px 7px;
+          border-radius: 3px;
+          margin-right: 14px;
+          letter-spacing: 2px;
+          position: relative;
+          flex-shrink: 0;
+        }
+        .live-dot {
+          width: 5px;
+          height: 5px;
+          background: #FFD700;
+          border-radius: 50%;
+          display: inline-block;
+          margin-right: 5px;
+          animation: pulse-gold 1.5s ease-in-out infinite;
+          vertical-align: middle;
+        }
+        @keyframes pulse-gold {
+          0%, 100% { opacity: 1; box-shadow: 0 0 4px #FFD700; }
+          50% { opacity: 0.4; box-shadow: none; }
+        }
+        .report-text {
+          font-family: 'Pretendard', sans-serif;
+          color: #E8D5A3;
+          font-size: 13px;
+          font-weight: 400;
+          letter-spacing: 0.3px;
+          display: flex;
+          align-items: center;
+        }
+        .cursor-gold {
+          border-right: 1.5px solid #C9A84C;
+          animation: blink-gold 1s infinite;
+          margin-left: 2px;
+          height: 14px;
+        }
+        @keyframes blink-gold { 0%, 100% { opacity: 1; } 50% { opacity: 0; } }
       `}</style>
-
-      <div className="neon-line" />
-      <span className="live-label">LIVE</span>
+      <div className="gold-line" />
+      <div className="gold-line-top" />
+      <span className="live-label">
+        <span className="live-dot" />
+        LIVE
+      </span>
       <div className="report-text">
         {displayText}
-        <span className="cursor" />
+        <span className="cursor-gold" />
       </div>
     </div>
   )
