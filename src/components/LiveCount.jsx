@@ -116,7 +116,7 @@ const LiveCount = () => {
       `}</style>
 
       <div className="neon-line" />
-      <span className="live-label">현재 인원</span>
+      <span className="live-label">LIVE</span>
       <div className="report-text">
         {displayText}
         <span className="cursor" />
