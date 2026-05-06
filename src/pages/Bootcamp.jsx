@@ -314,7 +314,7 @@ const Bootcamp = ({ onBack, initialView = 'list' }) => {
                       }}
                     >
                       {item.poster_url ? (
-                        <img src={item.poster_url} alt={item.title} style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
+                        <img src={item.poster_url} alt={item.title} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                       ) : (
                         <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#CBD5E1' }}>
                           <ImageIcon size={48} strokeWidth={1} />
