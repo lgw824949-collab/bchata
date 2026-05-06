@@ -109,11 +109,14 @@ const LiveCount = ({ isPaused = false }) => {
         return R * c;
       }
 
-      const nearBar = BAR_DATABASE.find(bar => bar.lat && bar.lon && getDist(lat, lon, bar.lat, bar.lon) < 1)
+      const nearBar = BAR_DATABASE.find(bar => bar.lat && bar.lon && getDist(lat, lon, bar.lat, bar.lon) < 0.1)
       
       if (nearBar) {
-        const { data: locData } = await supabase.from('locations').select('id').eq('name', nearBar.name).maybeSingle()
+        // locations 테이블에서 공식 명칭 조회
+        const { data: locData } = await supabase.from('locations').select('id, name').eq('name', nearBar.name).maybeSingle()
         if (!locData) return;
+        
+        const officialName = locData.name;
         
         // 오늘 또는 어제 파티 중 현재 live인 것이 있는지 확인
         const { data: activeParties } = await supabase.from('parties').select('*').in('date', [todayStr, yesterdayStr]).eq('location_id', locData.id)
@@ -121,11 +124,11 @@ const LiveCount = ({ isPaused = false }) => {
         
         if (!isCurrentlyLive) return
 
-        const lastCheckKey = `last_checkin_${nearBar.name}`
+        const lastCheckKey = `last_checkin_${officialName}`
         const lastCheckTime = localStorage.getItem(lastCheckKey)
         const now = Date.now()
         if (!lastCheckTime || now - parseInt(lastCheckTime) > 30 * 60 * 1000) {
-          await supabase.from('bar_checkins').insert({ bar_name: nearBar.name, region: nearBar.region, visitor_id, lat, lon })
+          await supabase.from('bar_checkins').insert({ bar_name: officialName, region: nearBar.region, visitor_id, lat, lon })
           localStorage.setItem(lastCheckKey, now.toString())
         }
       }
