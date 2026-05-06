@@ -21,13 +21,13 @@ const LiveCount = ({ isPaused = false }) => {
     const start = new Date(`${dateStr}T${startTime}:00`)
     const startWithBuffer = new Date(start.getTime() - 30 * 60 * 1000)
 
-    // 종료 시간 설정 (없으면 시작 시간 + 5시간으로 넉넉히 잡음)
+    // 종료 시간 설정 (없으면 시작 시간 + 8시간으로 넉넉히 잡음)
     let end;
     if (endTime) {
       end = new Date(`${dateStr}T${endTime}:00`)
       if (end < start) end.setDate(end.getDate() + 1)
     } else {
-      end = new Date(start.getTime() + 5 * 60 * 60 * 1000)
+      end = new Date(start.getTime() + 8 * 60 * 60 * 1000)
     }
 
     return now >= startWithBuffer && now <= end
