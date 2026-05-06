@@ -853,7 +853,6 @@ function App() {
                   } 
                 },
                 { icon: <MessageSquare color={'#FF1744'} />, text: '실시간 오픈톡', action: () => { window.open('https://open.kakao.com/o/gP43rNri', '_blank'); setIsMenuOpen(false); } },
-                { icon: <Bell color={'#FF1744'} />, text: t('notice'), action: () => { handleOpenModal(setShowNoticeGuide, true); setIsMenuOpen(false); } },
               ].map((item, idx) => (
                 <motion.div
                   key={idx}
