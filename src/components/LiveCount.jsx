@@ -4,7 +4,6 @@ import { BAR_DATABASE } from '../data/barDatabase'
 
 const LiveCount = () => {
   const [counts, setCounts] = useState({})
-  const [currentIndex, setCurrentIndex] = useState(0)
   const [displayText, setDisplayText] = useState('')
   const [isTyping, setIsTyping] = useState(true)
 
@@ -71,53 +70,54 @@ const LiveCount = () => {
     return maps[region] || region;
   };
 
-  const items = useMemo(() => {
-    const list = Object.entries(counts)
-      .filter(([_, count]) => count >= 1)
-      .sort((a, b) => b[1] - a[1])
-      .map(([key, count]) => {
-        const parts = key.split('|');
-        return `[${abbreviateRegion(parts[0])}] ${parts[1]} ${count}`;
-      });
-    return list.length > 0 ? list : ['🎵 전국 소셜 파티 실시간 인원 중계 중! 🔥'];
+  const fullReport = useMemo(() => {
+    if (Object.keys(counts).length === 0) return '🎵 전국 소셜 파티 실시간 인원 중계 중! 🔥';
+
+    const byRegion = {};
+    Object.entries(counts).forEach(([key, count]) => {
+      const [region, name] = key.split('|');
+      const shortRegion = abbreviateRegion(region);
+      if (!byRegion[shortRegion]) byRegion[shortRegion] = [];
+      byRegion[shortRegion].push(`${name} ${count}`);
+    });
+
+    return Object.entries(byRegion)
+      .map(([reg, venues]) => `[${reg}] ${venues.join(', ')}`)
+      .join(' | ');
   }, [counts]);
 
-  // 타이핑 효과 로직
+  // 타이핑 효과 로직 (속도 감속 및 정돈)
   useEffect(() => {
     let timeout;
-    const currentFullText = items[currentIndex];
-
     if (isTyping) {
-      if (displayText.length < currentFullText.length) {
+      if (displayText.length < fullReport.length) {
         timeout = setTimeout(() => {
-          setDisplayText(currentFullText.slice(0, displayText.length + 1));
-        }, 50); // 타이핑 속도
+          setDisplayText(fullReport.slice(0, displayText.length + 1));
+        }, 120); // 타이핑 속도 대폭 감속 (0.12초)
       } else {
         setIsTyping(false);
-        timeout = setTimeout(() => setIsTyping(true), 3000); // 3초 유지 후 다음으로
+        timeout = setTimeout(() => {
+          setIsTyping(true);
+          setDisplayText('');
+        }, 5000); // 5초 유지 후 재시작
       }
-    } else {
-      // 다음 텍스트로 전환
-      setDisplayText('');
-      setCurrentIndex((prev) => (prev + 1) % items.length);
-      setIsTyping(true);
     }
     return () => clearTimeout(timeout);
-  }, [displayText, isTyping, currentIndex, items]);
+  }, [displayText, isTyping, fullReport]);
 
   return (
-    <div style={{ background: '#0F172A', height: '36px', display: 'flex', alignItems: 'center', padding: '0 4px' }}>
+    <div style={{ background: '#0F172A', height: '36px', display: 'flex', alignItems: 'center', padding: '0 4px', position: 'relative' }}>
       <style>{`
-        .live-pulse-dot { width: 6px; height: 6px; background: #FF5722; border-radius: 50%; margin-right: 12px; position: relative; box-shadow: 0 0 12px #FF5722; }
-        .live-pulse-dot::after { content: ''; position: absolute; inset: -4px; border: 1px solid #FF5722; border-radius: 50%; animation: pulse-ring 1.5s infinite; }
-        @keyframes pulse-ring { 0% { transform: scale(1); opacity: 1; } 100% { transform: scale(2.5); opacity: 0; } }
-        .typewriter-text { font-family: 'Pretendard', monospace; color: #F8FAFC; font-size: 15px; font-weight: 800; letter-spacing: -0.2px; }
-        .cursor { border-right: 2px solid #FF5722; animation: blink 0.7s infinite; margin-left: 2px; }
+        .neon-line { position: absolute; bottom: 0; left: 0; right: 0; height: 1px; background: linear-gradient(90deg, transparent, #39FF14, transparent); box-shadow: 0 0 8px #39FF14; opacity: 0.6; }
+        .live-label { background: #39FF14; color: #000; font-size: 10px; font-weight: 950; padding: 2px 6px; border-radius: 4px; margin-right: 12px; letter-spacing: 0.5px; }
+        .report-text { font-family: 'Pretendard', monospace; color: #F8FAFC; font-size: 14px; font-weight: 700; letter-spacing: -0.3px; display: flex; align-items: center; }
+        .cursor { border-right: 2px solid #39FF14; animation: blink 0.8s infinite; margin-left: 2px; }
         @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0; } }
       `}</style>
 
-      <div className="live-pulse-dot" />
-      <div className="typewriter-text">
+      <div className="neon-line" />
+      <span className="live-label">현재 인원</span>
+      <div className="report-text">
         {displayText}
         <span className="cursor" />
       </div>
