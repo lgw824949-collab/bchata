@@ -7,11 +7,20 @@ const LiveCount = ({ isPaused = false }) => {
   
   const getTodayKST = () => {
     const kst = new Date(Date.now() + (9 * 60 * 60 * 1000))
+    // 새벽 5시 이전까지는 전날을 '오늘'로 간주하여 파티 중계를 유지함
+    if (kst.getHours() < 5) {
+      kst.setDate(kst.getDate() - 1)
+    }
     return kst.toISOString().split('T')[0]
   }
 
   const getYesterdayKST = () => {
-    const kst = new Date(Date.now() + (9 * 60 * 60 * 1000) - (24 * 60 * 60 * 1000))
+    const kst = new Date(Date.now() + (9 * 60 * 60 * 1000))
+    if (kst.getHours() < 5) {
+      kst.setDate(kst.getDate() - 2)
+    } else {
+      kst.setDate(kst.getDate() - 1)
+    }
     return kst.toISOString().split('T')[0]
   }
 
@@ -21,14 +30,10 @@ const LiveCount = ({ isPaused = false }) => {
     const start = new Date(`${dateStr}T${startTime}:00`)
     const startWithBuffer = new Date(start.getTime() - 30 * 60 * 1000)
 
-    // 종료 시간 설정 (없으면 시작 시간 + 8시간으로 넉넉히 잡음)
-    let end;
-    if (endTime) {
-      end = new Date(`${dateStr}T${endTime}:00`)
-      if (end < start) end.setDate(end.getDate() + 1)
-    } else {
-      end = new Date(start.getTime() + 8 * 60 * 60 * 1000)
-    }
+    // 종료 시간 설정 (사용자 요청에 따라 익일 새벽 3시로 고정)
+    const end = new Date(start.getTime());
+    end.setDate(end.getDate() + 1);
+    end.setHours(3, 0, 0, 0);
 
     return now >= startWithBuffer && now <= end
   }
