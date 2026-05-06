@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo, useRef } from 'react'
+﻿import { useState, useEffect, useMemo, useRef } from 'react'
 import { Home as HomeIcon, Users, Plus, LogOut, Heart, X, MessageSquare, RefreshCw, CloudSun, Utensils, Zap, Languages, Bell, Star, Navigation, CreditCard, Settings, Map as MapIcon, BarChart, Gift, Coffee, User, Menu, Music2, Tent, Flag, Download, Globe, ShieldCheck, Calendar, Camera, ChevronLeft, ChevronRight } from 'lucide-react'
 import { useTranslation } from 'react-i18next';
 import { motion, AnimatePresence } from 'framer-motion'
@@ -38,27 +38,27 @@ const navigate = (path) => {
 import { BAR_DATABASE, findBarByName } from './data/barDatabase';
 
 const GENRE_MAP = {
-  '바차타': { key: 'b_ratio', label: 'B', color: '#059669' },
-  '살사':   { key: 's_ratio', label: 'S', color: '#DC2626' },
+  '바차?�': { key: 'b_ratio', label: 'B', color: '#059669' },
+  '?�사':   { key: 's_ratio', label: 'S', color: '#DC2626' },
   '쥬크':   { key: 'j_ratio', label: 'J', color: '#F59E0B' },
-  '키좀바': { key: 'k_ratio', label: 'K', color: '#7C3AED' },
+  '?��?�?: { key: 'k_ratio', label: 'K', color: '#7C3AED' },
 };
 
 
-// [번역 비용 최적화를 위한 정적 맵핑]
+// [번역 비용 최적?��? ?�한 ?�적 맵핑]
 const REGION_MAP_EN = {
-  '전국': 'Nationwide',
-  '서울': 'Seoul', '경기/인천': 'Gyeonggi/Incheon', '경상도': 'Gyeongsang', 
-  '전라도': 'Jeolla', '충청도': 'Chungcheong', '강원/제주': 'Gangwon/Jeju'
+  '?�국': 'Nationwide',
+  '?�울': 'Seoul', '경기/?�천': 'Gyeonggi/Incheon', '경상??: 'Gyeongsang', 
+  '?�라??: 'Jeolla', '충청??: 'Chungcheong', '강원/?�주': 'Gangwon/Jeju'
 };
 
 const CITY_MAP_EN = {
-  '서울': 'Seoul', '인천': 'Incheon', '대구': 'Daegu', '부산': 'Busan', '광주': 'Gwangju', 
-  '대전': 'Daejeon', '울산': 'Ulsan', '세종': 'Sejong', '수원': 'Suwon', '성남': 'Seongnam',
-  '의정부': 'Uijeongbu', '안산': 'Ansan', '고양': 'Goyang', '용인': 'Yongin', '부천': 'Bucheon'
+  '?�울': 'Seoul', '?�천': 'Incheon', '?��?: 'Daegu', '부??: 'Busan', '광주': 'Gwangju', 
+  '?�??: 'Daejeon', '?�산': 'Ulsan', '?�종': 'Sejong', '?�원': 'Suwon', '?�남': 'Seongnam',
+  '?�정부': 'Uijeongbu', '?�산': 'Ansan', '고양': 'Goyang', '?�인': 'Yongin', '부�?: 'Bucheon'
 };
 
-// [포스터 줌 전용 컴포넌트 - 전역 분리]
+// [?�스??�??�용 컴포?�트 - ?�역 분리]
 const PosterModal = ({ src, onClose }) => {
   const imgRef = useRef();
   
@@ -93,11 +93,11 @@ const PosterModal = ({ src, onClose }) => {
       display:'flex', 
       alignItems:'center', 
       justifyContent:'center',
-      height: '100dvh', // 모바일 브라우저 주소창 고려
+      height: '100dvh', // 모바??브라?��? 주소�?고려
       paddingTop: 'env(safe-area-inset-top)',
       paddingBottom: 'env(safe-area-inset-bottom)'
     }}>
-      {/* 닫기 버튼 */}
+      {/* ?�기 버튼 */}
       <button 
         onClick={onClose} 
         style={{ 
@@ -110,7 +110,7 @@ const PosterModal = ({ src, onClose }) => {
         }}
       ><ChevronLeft size={32} /></button>
 
-      {/* 줌 컨테이너 (가용 화면 전체 사용) */}
+      {/* �?컨테?�너 (가???�면 ?�체 ?�용) */}
       <div style={{ width: '100%', height: '100%', position: 'relative', overflow: 'hidden', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
         <QuickPinchZoom onUpdate={onUpdate} wheelScaleFactor={500} tapZoomFactor={2}>
           <img 
@@ -129,7 +129,7 @@ const PosterModal = ({ src, onClose }) => {
         </QuickPinchZoom>
       </div>
       
-      {/* 하단 저장 버튼 */}
+      {/* ?�단 ?�??버튼 */}
       <div style={{ position: 'absolute', bottom: 'calc(40px + env(safe-area-inset-bottom))', left: '50%', transform: 'translateX(-50%)', zIndex: 100002 }}>
         <button 
           onClick={handleSave}
@@ -170,8 +170,8 @@ const calculateDistance = (lat1, lon1, lat2, lon2) => {
 
 
 const naturalIncheonDB = [
-  { t: "⚓ 상륙작전", q: "오늘 상륙인가요?", a: "벌써 점령했습니다!" },
-  { t: "💃 동암역", q: "동암 급행 타셨나요?", a: "당신께 급행 정착입니다!" }
+  { t: "???�륙?�전", q: "?�늘 ?�륙?��???", a: "벌써 ?�령?�습?�다!" },
+  { t: "?�� ?�암??, q: "?�암 급행 ?�?�나??", a: "?�신�?급행 ?�착?�니??" }
 ];
 
 const DynamicAnalysisModal = ({ isOpen, onClose, userCoords, isSajuCall }) => {
@@ -202,22 +202,11 @@ const DynamicAnalysisModal = ({ isOpen, onClose, userCoords, isSajuCall }) => {
       setTracker({ distance: d.toFixed(1), duration: Math.ceil(d * 10) + 5 });
     };
     if (userCoords) findTarget(userCoords.lat, userCoords.lon);
-    else if (navigator.geolocation) {
-      navigator.geolocation.getCurrentPosition(
-        pos => findTarget(pos.coords.latitude, pos.coords.longitude),
-        err => {
-          console.error("GPS Current Position Error:", err);
-          if (err.code === err.PERMISSION_DENIED) {
-            alert("위치 권한이 거부되었습니다. 최적화된 경로 안내를 위해 위치 권한을 허용해주세요.");
-          }
-        }
-      );
-    }
   }, [isOpen, userCoords]);
 
   if (!isOpen || !targetDest) return null;
+  const isIncheon = targetDest.region === '?�천' && isSajuCall;
   const isIncheon = targetDest.region === '인천' && isSajuCall;
-
   return (
     <motion.div 
       initial={{ opacity: 0 }} 
@@ -261,24 +250,24 @@ const DynamicAnalysisModal = ({ isOpen, onClose, userCoords, isSajuCall }) => {
             </div>
             
             <h2 style={{ fontSize: '28px', fontWeight: '1000', marginBottom: '30px', color: '#1E293B', lineHeight: '1.3' }}>
-              {isIncheon ? '성지 상륙 분석' : '최단 경로 최적화'} 🛰️<br/>
+              {isIncheon ? '?��? ?�륙 분석' : '최단 경로 최적??} ?���?br/>
               <span style={{ color: '#FF1744' }}>{targetDest.name}</span>
             </h2>
 
             <div style={{ padding: '30px', background: '#F8FAFC', borderRadius: '30px', display: 'flex', gap: '20px', marginBottom: '40px', border: '1px solid #E2E8F0' }}>
               <div style={{ flex: 1 }}>
-                <p style={{ color: '#64748B', fontSize: '12px', fontWeight: '700', marginBottom: '4px' }}>실제 거리</p>
+                <p style={{ color: '#64748B', fontSize: '12px', fontWeight: '700', marginBottom: '4px' }}>?�제 거리</p>
                 <p style={{ fontSize: '28px', fontWeight: '1000', color: '#FF1744' }}>{tracker.distance}km</p>
               </div>
               <div style={{ flex: 1 }}>
-                <p style={{ color: '#64748B', fontSize: '12px', fontWeight: '700', marginBottom: '4px' }}>예상 소요</p>
-                <p style={{ fontSize: '28px', fontWeight: '1000', color: '#1E293B' }}>{tracker.duration}분</p>
+                <p style={{ color: '#64748B', fontSize: '12px', fontWeight: '700', marginBottom: '4px' }}>?�상 ?�요</p>
+                <p style={{ fontSize: '28px', fontWeight: '1000', color: '#1E293B' }}>{tracker.duration}�?/p>
               </div>
             </div>
 
             <div style={{ marginBottom: '40px', flex: 1 }}>
               <p style={{ fontSize: '15px', fontWeight: '800', color: '#64748B', marginBottom: '16px', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <Star size={16} fill="#64748B" /> 주변 성지 추천
+                <Star size={16} fill="#64748B" /> 주�? ?��? 추천
               </p>
               <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
                 {nearbyVenues.map((venue, idx) => (
@@ -328,12 +317,12 @@ const DynamicAnalysisModal = ({ isOpen, onClose, userCoords, isSajuCall }) => {
                 cursor: 'pointer'
               }}
             >
-              {isIncheon ? '암구호 수신하기' : '확인 완료'}
+              {isIncheon ? '?�구???�신?�기' : '?�인 ?�료'}
             </button>
           </>
         ) : (
           <div style={{ textAlign: 'center', flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
-            <h3 style={{ fontSize: '24px', fontWeight: '1000', marginBottom: '40px', color: '#1E293B' }}>성지 암구호</h3>
+            <h3 style={{ fontSize: '24px', fontWeight: '1000', marginBottom: '40px', color: '#1E293B' }}>?��? ?�구??/h3>
             <div style={{ background: '#FEF2F2', padding: '40px 30px', borderRadius: '35px', border: '2px solid #FF1744', marginBottom: '40px' }}>
               <p style={{ color: '#FF1744', fontWeight: '800', fontSize: '16px', marginBottom: '12px' }}>Q: {amguho.q}</p>
               <p style={{ fontSize: '24px', fontWeight: '1000', color: '#1E293B' }}>A: {amguho.a}</p>
@@ -352,7 +341,7 @@ const DynamicAnalysisModal = ({ isOpen, onClose, userCoords, isSajuCall }) => {
                 cursor: 'pointer'
               }}
             >
-              작전 시작
+              ?�전 ?�작
             </button>
           </div>
         )}
@@ -392,9 +381,9 @@ const IncheonPremiumBanner = ({ onClick, t }) => (
   </div>
 );
 
-const BROAD_REGIONS = { '서울': '서울', '인천': '경기/인천', '경기': '경기/인천', '부산': '경상도', '대구': '경상도', '광주': '전라도', '대전': '충청도', '충남': '충청도', '충북': '충청도', '전남': '전라도', '전북': '전라도', '경남': '경상도', '경북': '경상도', '강원': '강원/제주', '제주': '강원/제주' };
-const SHORT_CITY_NAMES = { '인천': '인천', '서울': '서울', '경기': '경기', '부산': '부산', '대구': '대구', '광주': '광주', '대전': '대전' };
-const DAYS_KOR = ['일', '월', '화', '수', '목', '금', '토'];
+const BROAD_REGIONS = { '?�울': '?�울', '?�천': '경기/?�천', '경기': '경기/?�천', '부??: '경상??, '?��?: '경상??, '광주': '?�라??, '?�??: '충청??, '충남': '충청??, '충북': '충청??, '?�남': '?�라??, '?�북': '?�라??, '경남': '경상??, '경북': '경상??, '강원': '강원/?�주', '?�주': '강원/?�주' };
+const SHORT_CITY_NAMES = { '?�천': '?�천', '?�울': '?�울', '경기': '경기', '부??: '부??, '?��?: '?��?, '광주': '광주', '?�??: '?�?? };
+const DAYS_KOR = ['??, '??, '??, '??, '�?, '�?, '??];
 
 const formatDateToKSTString = (date) => {
   const y = date.getFullYear(); const m = String(date.getMonth() + 1).padStart(2, '0'); const d = String(date.getDate()).padStart(2, '0');
@@ -475,16 +464,16 @@ function App() {
     i18n.changeLanguage(newLang);
   };
 
-  // 환경에 관계없이 정확한 KST(한국 표준시) 날짜를 가져오는 로직
+  // ?�경??관계없???�확??KST(?�국 ?��??? ?�짜�?가?�오??로직
   const getKSTDate = () => {
     const now = new Date();
-    // ⚠️ [벤틀리 특수 로직] 새벽 4시 이전까지는 '전날'로 간주하여 포스터 유지
+    // ?�️ [벤�?�??�수 로직] ?�벽 4???�전까�???'?�날'�?간주?�여 ?�스???��?
     if (now.getHours() < 4) {
       now.setDate(now.getDate() - 1);
     }
     const kstString = now.toLocaleString('en-US', { timeZone: 'Asia/Seoul', year: 'numeric', month: '2-digit', day: '2-digit' });
     const [m, d, y] = kstString.split('/');
-    // 0 패딩 보장 (MM, DD)
+    // 0 ?�딩 보장 (MM, DD)
     const mm = m.padStart(2, '0');
     const dd = d.padStart(2, '0');
     return { year: parseInt(y), month: parseInt(mm), date: parseInt(dd), dateStr: `${y}-${mm}-${dd}` };
@@ -615,6 +604,17 @@ function App() {
     })
   }, [])
 
+  useEffect(() => {
+    // 공�??�항 가?�드 ?�동 ?�업 (?�션????�?
+    const guideShown = sessionStorage.getItem('notice_guide_shown');
+    if (!guideShown) {
+      setTimeout(() => {
+        setShowNoticeGuide(true);
+        sessionStorage.setItem('notice_guide_shown', 'true');
+      }, 1000); // 1�??�에 ?�연?�럽�??�업
+    }
+  }, []);
+
   const fetchParties = async () => {
     setLoading(true);
     try {
@@ -634,18 +634,18 @@ function App() {
       }, {});
 
       const mappedParties = rawParties.map(p => {
-        const locName = locationMap[p.location_id] || p.locationName || p.location_name || '장소 미지정';
+        const locName = locationMap[p.location_id] || p.locationName || p.location_name || '?�소 미�???;
         
         const fullSearchText = `${p.address || ''} ${locName} ${p.cityName || ''}`;
-        let broadRegion = '전국'; 
+        let broadRegion = '?�국'; 
         
-        if (fullSearchText.includes('부산') || fullSearchText.includes('대구') || fullSearchText.includes('울산') || fullSearchText.includes('경상') || fullSearchText.includes('경남') || fullSearchText.includes('경북') || fullSearchText.includes('창원') || fullSearchText.includes('포항') || fullSearchText.includes('김해')) broadRegion = '경상도';
-        else if (fullSearchText.includes('서울') || fullSearchText.includes('강남') || fullSearchText.includes('홍대') || fullSearchText.includes('잠실') || fullSearchText.includes('성수') || fullSearchText.includes('서초') || fullSearchText.includes('영등포') || fullSearchText.includes('신림') || fullSearchText.includes('건대')) broadRegion = '서울';
-        else if (fullSearchText.includes('경기') || fullSearchText.includes('인천') || fullSearchText.includes('부천') || fullSearchText.includes('수원') || fullSearchText.includes('안양') || fullSearchText.includes('의정부') || fullSearchText.includes('분당') || fullSearchText.includes('일산')) broadRegion = '경기/인천';
-        else if (fullSearchText.includes('광주') || fullSearchText.includes('전라') || fullSearchText.includes('전남') || fullSearchText.includes('전북') || fullSearchText.includes('전주') || fullSearchText.includes('목포') || fullSearchText.includes('여수') || fullSearchText.includes('순천')) broadRegion = '전라도';
-        else if (fullSearchText.includes('대전') || fullSearchText.includes('충남') || fullSearchText.includes('충북') || fullSearchText.includes('충청') || fullSearchText.includes('세종') || fullSearchText.includes('천안') || fullSearchText.includes('청주')) broadRegion = '충청도';
-        else if (fullSearchText.includes('강원') || fullSearchText.includes('제주') || fullSearchText.includes('춘천') || fullSearchText.includes('원주') || fullSearchText.includes('서귀포')) broadRegion = '강원/제주';
-        else broadRegion = '전국'; 
+        if (fullSearchText.includes('부??) || fullSearchText.includes('?��?) || fullSearchText.includes('?�산') || fullSearchText.includes('경상') || fullSearchText.includes('경남') || fullSearchText.includes('경북') || fullSearchText.includes('창원') || fullSearchText.includes('?�항') || fullSearchText.includes('김??)) broadRegion = '경상??;
+        else if (fullSearchText.includes('?�울') || fullSearchText.includes('강남') || fullSearchText.includes('?��?') || fullSearchText.includes('?�실') || fullSearchText.includes('?�수') || fullSearchText.includes('?�초') || fullSearchText.includes('?�등??) || fullSearchText.includes('?�림') || fullSearchText.includes('건�?')) broadRegion = '?�울';
+        else if (fullSearchText.includes('경기') || fullSearchText.includes('?�천') || fullSearchText.includes('부�?) || fullSearchText.includes('?�원') || fullSearchText.includes('?�양') || fullSearchText.includes('?�정부') || fullSearchText.includes('분당') || fullSearchText.includes('?�산')) broadRegion = '경기/?�천';
+        else if (fullSearchText.includes('광주') || fullSearchText.includes('?�라') || fullSearchText.includes('?�남') || fullSearchText.includes('?�북') || fullSearchText.includes('?�주') || fullSearchText.includes('목포') || fullSearchText.includes('?�수') || fullSearchText.includes('?�천')) broadRegion = '?�라??;
+        else if (fullSearchText.includes('?�??) || fullSearchText.includes('충남') || fullSearchText.includes('충북') || fullSearchText.includes('충청') || fullSearchText.includes('?�종') || fullSearchText.includes('천안') || fullSearchText.includes('�?��')) broadRegion = '충청??;
+        else if (fullSearchText.includes('강원') || fullSearchText.includes('?�주') || fullSearchText.includes('춘천') || fullSearchText.includes('?�주') || fullSearchText.includes('?��???)) broadRegion = '강원/?�주';
+        else broadRegion = '?�국'; 
         
         const barInfo = findBarByName(locName);
         const locationNameEn = barInfo?.name_en || locName;
@@ -656,7 +656,7 @@ function App() {
           ...p, 
           broadRegion, 
           broadRegionEn,
-          cityName: p.cityName || '전국', 
+          cityName: p.cityName || '?�국', 
           cityNameEn,
           locationName: locName,
           locationNameEn
@@ -665,7 +665,7 @@ function App() {
       setParties(mappedParties);
       setBootcamps(bootcampsRes.data || []);
       setFestivals(festivalsRes.data || []);
-    } catch (err) { console.error('데이터 로딩 오류:', err); } finally { setLoading(false); }
+    } catch (err) { console.error('?�이??로딩 ?�류:', err); } finally { setLoading(false); }
   };
 
   useEffect(() => { fetchParties(); }, []);
@@ -713,9 +713,24 @@ function App() {
     }
   };
 
+  const requestLocation = () => {
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(
+        (pos) => {
+          setUserCoords({ lat: pos.coords.latitude, lon: pos.coords.longitude });
+          console.log("Location obtained:", pos.coords.latitude, pos.coords.longitude);
+        },
+        (err) => {
+          console.error("Location request error:", err);
+        },
+        { enableHighAccuracy: true, timeout: 5000, maximumAge: 0 }
+      );
+    }
+  };
+
   const sharedProps = {
     parties: displayParties, bootcamps, festivals, loading, selectedMonth, setSelectedMonth, selectedWeek: 1, setSelectedWeek: () => {}, 
-    selectedDate, setSelectedDate, selectedRegion: '서울', setSelectedRegion: () => {}, 
+    selectedDate, setSelectedDate, selectedRegion: '?�울', setSelectedRegion: () => {}, 
     view, setView, setSelectedPoster, 
     fourteenDays: Array.from({ length: 14 }).map((_, i) => {
       const d = new Date(); d.setDate(d.getDate() + i);
@@ -732,7 +747,7 @@ function App() {
     handleOpenModal, handleCloseModal,
     IncheonBanner: () => <IncheonPremiumBanner t={t} onClick={() => openAnalysis(false)} />, venueCounts: {}, resetToToday: () => { setView('home'); setSelectedDate(todayData.dateStr); }, formatItemDate: (d, t) => `${d} ${t}`, formatFee: (f) => f, 
     handleRegister, 
-    logActivity: () => {}, regionalTheme: { welcomeMsg: "전국 댄서들을 위한 실시간 정보", specialBanner: true }
+    logActivity: () => {}, regionalTheme: { welcomeMsg: "?�국 ?�서?�을 ?�한 ?�시�??�보", specialBanner: true }
   };
 
   return (
@@ -747,7 +762,7 @@ function App() {
         transition={{ duration: 0.3, delay: showSplash ? 0 : 0.3 }}
         style={{ width: '100%', minHeight: '100vh', position: 'relative' }}
       >
-      <AnimatePresence>{isAnalyzing && <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} style={{ position: 'fixed', inset: 0, zIndex: 1000000, background: 'rgba(255,255,255,0.9)', backdropFilter: 'blur(30px)', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}><motion.div animate={{ rotate: 360 }} transition={{ duration: 1, repeat: Infinity, ease: 'linear' }} style={{ width: '60px', height: '60px', border: '4px solid #FFEBEE', borderTop: '4px solid #E53935', borderRadius: '50%', marginBottom: '20px' }} /><h2 style={{ color: '#1E293B', fontSize: '20px', fontWeight: '900' }}>실시간 지능형 분석 중...</h2></motion.div>}</AnimatePresence>
+      <AnimatePresence>{isAnalyzing && <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} style={{ position: 'fixed', inset: 0, zIndex: 1000000, background: 'rgba(255,255,255,0.9)', backdropFilter: 'blur(30px)', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}><motion.div animate={{ rotate: 360 }} transition={{ duration: 1, repeat: Infinity, ease: 'linear' }} style={{ width: '60px', height: '60px', border: '4px solid #FFEBEE', borderTop: '4px solid #E53935', borderRadius: '50%', marginBottom: '20px' }} /><h2 style={{ color: '#1E293B', fontSize: '20px', fontWeight: '900' }}>?�시�?지?�형 분석 �?..</h2></motion.div>}</AnimatePresence>
 
       {!isMenuOpen && (
         <motion.button 
@@ -837,7 +852,7 @@ function App() {
                     }, 500);
                   } 
                 },
-                { icon: <MessageSquare color={'#FF1744'} />, text: '실시간 오픈톡', action: () => { window.open('https://open.kakao.com/o/gP43rNri', '_blank'); setIsMenuOpen(false); } },
+                { icon: <MessageSquare color={'#FF1744'} />, text: '?�시�??�픈??, action: () => { window.open('https://open.kakao.com/o/gP43rNri', '_blank'); setIsMenuOpen(false); } },
                 { icon: <Bell color={'#FF1744'} />, text: t('notice'), action: () => { handleOpenModal(setShowNoticeGuide, true); setIsMenuOpen(false); } },
               ].map((item, idx) => (
                 <motion.div
@@ -896,8 +911,8 @@ function App() {
               }}>
                 <div style={{ textAlign: 'center', marginBottom: '30px' }}>
                   <ShieldCheck size={64} color="#FF1744" style={{ margin: '0 auto 16px' }} />
-                  <h2 style={{ color: 'white', fontSize: '24px', fontWeight: 900 }}>관리자 포털</h2>
-                  <p style={{ color: '#94A3B8', fontSize: '14px' }}>관리하실 항목을 선택해주세요.</p>
+                  <h2 style={{ color: 'white', fontSize: '24px', fontWeight: 900 }}>관리자 ?�털</h2>
+                  <p style={{ color: '#94A3B8', fontSize: '14px' }}>관리하????��???�택?�주?�요.</p>
                 </div>
                 
                 <button 
@@ -909,14 +924,14 @@ function App() {
                     cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '15px'
                   }}
                 >
-                  <Music2 size={24} color="#FF1744" /> 소셜파티 관리
+                  <Music2 size={24} color="#FF1744" /> ?�셜?�티 관�?
                 </button>
                 
                 <button 
                   onClick={() => navigate('/')}
                   style={{ marginTop: '40px', background: 'none', border: 'none', color: '#64748B', fontWeight: 700, cursor: 'pointer' }}
                 >
-                  메인으로 돌아가기
+                  메인?�로 ?�아가�?
                 </button>
               </div>
             ) : <AdminDashboard onBack={() => navigate('/')} refreshData={fetchParties} />}
@@ -940,7 +955,7 @@ function App() {
             <motion.div initial={{ y: '100%', opacity: 0 }} animate={{ y: 0, opacity: 1 }} exit={{ y: '100%', opacity: 0 }} transition={{ type: 'spring', damping: 25, stiffness: 200 }} style={{ position: 'fixed', bottom: '90px', left: '10px', right: '10px', background: '#fff', borderRadius: '24px', padding: '20px', boxShadow: '0 10px 40px rgba(0,0,0,0.25)', zIndex: 170001, border: '1px solid #f1f5f9', display: 'flex', flexDirection: 'column', maxHeight: '85vh' }}>
               <div style={{ width: '40px', height: '4px', background: '#E2E8F0', borderRadius: '2px', margin: '0 auto 20px' }} />
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}><span style={{ fontSize: '24px', fontWeight: 950, color: '#1E293B' }}>{selectedMonth}월</span><div style={{ display: 'flex', gap: '8px' }}><button onClick={() => setSelectedMonth(m => m > 1 ? m-1 : 12)} style={{ background: '#F8FAFC', border: '1px solid #F1F5F9', borderRadius: '10px', width: '36px', height: '36px' }}><ChevronLeft size={18} /></button><button onClick={() => setSelectedMonth(m => m < 12 ? m+1 : 1)} style={{ background: '#F8FAFC', border: '1px solid #F1F5F9', borderRadius: '10px', width: '36px', height: '36px' }}><ChevronRight size={18} /></button></div></div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}><span style={{ fontSize: '24px', fontWeight: 950, color: '#1E293B' }}>{selectedMonth}??/span><div style={{ display: 'flex', gap: '8px' }}><button onClick={() => setSelectedMonth(m => m > 1 ? m-1 : 12)} style={{ background: '#F8FAFC', border: '1px solid #F1F5F9', borderRadius: '10px', width: '36px', height: '36px' }}><ChevronLeft size={18} /></button><button onClick={() => setSelectedMonth(m => m < 12 ? m+1 : 1)} style={{ background: '#F8FAFC', border: '1px solid #F1F5F9', borderRadius: '10px', width: '36px', height: '36px' }}><ChevronRight size={18} /></button></div></div>
                 <button onClick={handleCloseModal} style={{ background: '#F1F5F9', border: 'none', borderRadius: '50%', width: '44px', height: '44px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#1E293B' }}>
                   <ChevronLeft size={28} />
                 </button>
@@ -949,7 +964,7 @@ function App() {
               <div style={{ flex: 1, overflowY: 'auto', minHeight: '350px' }}>
                 {!showFilterPanel && !showFilteredResults ? (
                   <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: '5px', textAlign: 'center' }}>
-                    {['일','월','화','수','목','금','토'].map(d => <div key={d} style={{ fontSize: '12px', fontWeight: 700, color: d === '일' ? '#FF1744' : d === '토' ? '#FF1744' : '#999', padding: '5px 0' }}>{d}</div>)}
+                    {['??,'??,'??,'??,'�?,'�?,'??].map(d => <div key={d} style={{ fontSize: '12px', fontWeight: 700, color: d === '?? ? '#FF1744' : d === '?? ? '#FF1744' : '#999', padding: '5px 0' }}>{d}</div>)}
                     {(() => {
                       const firstDay = new Date(todayData.year, selectedMonth - 1, 1).getDay();
                       const lastDate = new Date(todayData.year, selectedMonth, 0).getDate();
@@ -982,22 +997,22 @@ function App() {
                 ) : (
                   <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} style={{ padding: '10px' }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '20px' }}>
-                      <button onClick={() => { setShowFilterPanel(false); setShowFilteredResults(false); setFilterStep(1); }} style={{ background: '#F8FAFC', border: 'none', borderRadius: '10px', padding: '8px 12px', fontSize: '13px', fontWeight: 700, color: '#FF1744', display: 'flex', alignItems: 'center', gap: '4px' }}><X size={16} /> 닫기</button>
+                      <button onClick={() => { setShowFilterPanel(false); setShowFilteredResults(false); setFilterStep(1); }} style={{ background: '#F8FAFC', border: 'none', borderRadius: '10px', padding: '8px 12px', fontSize: '13px', fontWeight: 700, color: '#FF1744', display: 'flex', alignItems: 'center', gap: '4px' }}><X size={16} /> ?�기</button>
                     </div>
                     
                     <div style={{ fontSize: '18px', fontWeight: 950, color: '#1E293B', marginBottom: '15px' }}>
-                      {filterStep === 1 ? '어디로 가시나요?' : '어떤 장르가 꽂히세요?'}
+                      {filterStep === 1 ? '?�디�?가?�나??' : '?�떤 ?�르가 꽂히?�요?'}
                     </div>
 
                     {filterStep === 1 ? (
                       <div style={{ display: 'flex', overflowX: 'auto', gap: '10px', paddingBottom: '15px' }}>
-                        {['서울', '경기/인천', '부산', '대구', '대전', '광주', '기타'].map(r => (
+                        {['?�울', '경기/?�천', '부??, '?��?, '?�??, '광주', '기�?'].map(r => (
                           <button key={r} onClick={() => { setFilterRegion(r); setFilterStep(2); }} style={{ flexShrink: 0, padding: '14px 24px', borderRadius: '14px', background: filterRegion === r ? '#FF1744' : '#F8FAFC', color: filterRegion === r ? '#fff' : '#64748B', fontWeight: 700, border: 'none' }}>{r}</button>
                         ))}
                       </div>
                     ) : (
                       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
-                        {['바차타', '살사', '쥬크', '키좀바'].map(g => (
+                        {['바차?�', '?�사', '쥬크', '?��?�?].map(g => (
                           <button key={g} onClick={() => { setFilterGenre(g); setShowFilteredResults(true); }} style={{ padding: '24px 15px', borderRadius: '18px', background: filterGenre === g ? '#1E293B' : '#F8FAFC', color: filterGenre === g ? '#fff' : '#64748B', fontWeight: 800, fontSize: '16px', border: 'none' }}>{g}</button>
                         ))}
                       </div>
@@ -1010,7 +1025,7 @@ function App() {
                           const matchesGenre = filterGenre ? p[GENRE_MAP[filterGenre]?.key] > 0 : true;
                           return p.date === selectedDate && matchesRegion && matchesGenre;
                         }).length === 0 ? (
-                          <div style={{ padding: '60px 0', textAlign: 'center', color: '#94A3B8', fontWeight: 700 }}>해당 조건의 파티가 없습니다 😅</div>
+                          <div style={{ padding: '60px 0', textAlign: 'center', color: '#94A3B8', fontWeight: 700 }}>?�당 조건???�티가 ?�습?�다 ?��</div>
                         ) : (
                           displayParties.filter(p => {
                             const matchesRegion = filterRegion ? (p.broadRegion === filterRegion || p.address?.includes(filterRegion)) : true;
@@ -1030,7 +1045,7 @@ function App() {
                         )}
                       </div>
                     )}
-                    <button onClick={handleCloseModal} style={{ width: '100%', height: '54px', borderRadius: '16px', background: '#1E293B', color: '#fff', fontSize: '16px', fontWeight: 800, border: 'none' }}>확인 완료</button>
+                    <button onClick={handleCloseModal} style={{ width: '100%', height: '54px', borderRadius: '16px', background: '#1E293B', color: '#fff', fontSize: '16px', fontWeight: 800, border: 'none' }}>?�인 ?�료</button>
                   </motion.div>
                 )}
               </div>
@@ -1064,7 +1079,7 @@ function App() {
               filter: 'blur(10px)', transition: 'all 0.4s'
             }} />
             <Music2 size={22} color={location.pathname === '/' ? '#E11D48' : '#333'} style={{ marginBottom: '4px', position: 'relative' }} />
-            <span style={{ fontSize: '10px', fontWeight: location.pathname === '/' ? 900 : 500, position: 'relative' }}>소셜/파티</span>
+            <span style={{ fontSize: '10px', fontWeight: location.pathname === '/' ? 900 : 500, position: 'relative' }}>?�셜/?�티</span>
             <motion.div layoutId="active-nav" className="active-indicator" style={{ background: '#E11D48', opacity: location.pathname === '/' ? 1 : 0 }} />
           </div>
 
@@ -1115,7 +1130,7 @@ function App() {
             >
               <Plus size={28} strokeWidth={3} />
             </motion.button>
-            <span style={{ pointerEvents: 'auto', color: '#333', fontSize: '10px', fontWeight: 800 }}>{location.pathname === '/livepick' ? '리포트' : '등록'}</span>
+            <span style={{ pointerEvents: 'auto', color: '#333', fontSize: '10px', fontWeight: 800 }}>{location.pathname === '/livepick' ? '리포?? : '?�록'}</span>
           </div>
 
           <div 
@@ -1133,7 +1148,7 @@ function App() {
               filter: 'blur(10px)', transition: 'all 0.4s'
             }} />
             <Tent size={22} color={location.pathname === '/bootcamp' ? '#F97316' : '#333'} style={{ marginBottom: '4px', position: 'relative' }} />
-            <span style={{ fontSize: '10px', fontWeight: location.pathname === '/bootcamp' ? 900 : 500, position: 'relative' }}>부트캠프</span>
+            <span style={{ fontSize: '10px', fontWeight: location.pathname === '/bootcamp' ? 900 : 500, position: 'relative' }}>부?�캠??/span>
             <motion.div layoutId="active-nav" className="active-indicator" style={{ background: '#F97316', opacity: location.pathname === '/bootcamp' ? 1 : 0 }} />
           </div>
 
@@ -1152,7 +1167,7 @@ function App() {
               filter: 'blur(10px)', transition: 'all 0.4s'
             }} />
             <Flag size={22} color={location.pathname === '/festival' ? '#F97316' : '#333'} style={{ marginBottom: '4px', position: 'relative' }} />
-            <span style={{ fontSize: '10px', fontWeight: location.pathname === '/festival' ? 900 : 500, position: 'relative' }}>페스티벌</span>
+            <span style={{ fontSize: '10px', fontWeight: location.pathname === '/festival' ? 900 : 500, position: 'relative' }}>?�스?�벌</span>
             <motion.div layoutId="active-nav" className="active-indicator" style={{ background: '#F97316', opacity: location.pathname === '/festival' ? 1 : 0 }} />
           </div>
         </nav>
@@ -1188,18 +1203,18 @@ function App() {
                 border: '1px solid #333'
               }}
             >
-              <div style={{ fontSize: '40px', marginBottom: '15px' }}>🎉</div>
-              <h2 style={{ color: '#fff', fontSize: '20px', fontWeight: 'bold', margin: '0 0 8px 0' }}>설치 완료!</h2>
-              <p style={{ color: '#999', fontSize: '13px', margin: '0 0 20px 0' }}>오늘밤빠 앱을 설치해주셔서 감사해요!</p>
+              <div style={{ fontSize: '40px', marginBottom: '15px' }}>?��</div>
+              <h2 style={{ color: '#fff', fontSize: '20px', fontWeight: 'bold', margin: '0 0 8px 0' }}>?�치 ?�료!</h2>
+              <p style={{ color: '#999', fontSize: '13px', margin: '0 0 20px 0' }}>?�늘밤빠 ?�을 ?�치?�주?�서 감사?�요!</p>
               
               <div style={{ height: '1px', background: '#333', margin: '20px 0' }} />
               
               <div style={{ marginBottom: '25px' }}>
-                <p style={{ color: '#fff', fontSize: '14px', margin: '0 0 5px 0', fontWeight: 'bold' }}>🎁 신규 설치 혜택</p>
-                <p style={{ color: '#F59E0B', fontSize: '18px', fontWeight: 'bold', margin: 0 }}>₩2,000 할인 쿠폰을 드려요!</p>
+                <p style={{ color: '#fff', fontSize: '14px', margin: '0 0 5px 0', fontWeight: 'bold' }}>?�� ?�규 ?�치 ?�택</p>
+                <p style={{ color: '#F59E0B', fontSize: '18px', fontWeight: 'bold', margin: 0 }}>??,000 ?�인 쿠폰???�려??</p>
               </div>
               
-              <p style={{ color: '#888', fontSize: '12px', marginBottom: '15px' }}>카카오 오픈채팅에서 쿠폰을 받아가세요 👇</p>
+              <p style={{ color: '#888', fontSize: '12px', marginBottom: '15px' }}>카카???�픈채팅?�서 쿠폰??받아가?�요 ?��</p>
               
               <button
                 onClick={() => window.open('https://open.kakao.com/o/gP43rNri', '_blank')}
@@ -1220,7 +1235,7 @@ function App() {
                   gap: '8px'
                 }}
               >
-                💬 오픈채팅 입장하기
+                ?�� ?�픈채팅 ?�장?�기
               </button>
               
               <button
@@ -1234,7 +1249,7 @@ function App() {
                   textDecoration: 'underline'
                 }}
               >
-                나중에
+                ?�중??
               </button>
             </motion.div>
           </motion.div>
@@ -1257,8 +1272,8 @@ function App() {
                 <div style={{ width: '64px', height: '64px', background: 'rgba(201,168,76,0.1)', borderRadius: '20px', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 20px', border: '1px solid rgba(201,168,76,0.2)' }}>
                   <Navigation size={32} color="#FFD700" />
                 </div>
-                <h3 style={{ color: '#F8FAFC', fontSize: '20px', fontWeight: 900, margin: 0, letterSpacing: '-0.5px' }}>위치 서비스 안내 📡</h3>
-                <p style={{ color: '#94A3B8', fontSize: '13px', marginTop: '8px', lineHeight: '1.5' }}>더 나은 밤빠 이용을 위해<br/>위치 권한이 왜 필요한지 안내해 드립니다.</p>
+                <h3 style={{ color: '#F8FAFC', fontSize: '20px', fontWeight: 900, margin: 0, letterSpacing: '-0.5px' }}>?�치 ?�비???�내 ?��</h3>
+                <p style={{ color: '#94A3B8', fontSize: '13px', marginTop: '8px', lineHeight: '1.5' }}>???��? 밤빠 ?�용???�해<br/>?�치 권한?????�요?��? ?�내???�립?�다.</p>
               </div>
 
               <div style={{ display: 'flex', flexDirection: 'column', gap: '20px', marginBottom: '32px' }}>
@@ -1267,8 +1282,8 @@ function App() {
                     <MapIcon size={20} color="#3B82F6" />
                   </div>
                   <div>
-                    <div style={{ color: '#F1F5F9', fontSize: '15px', fontWeight: 800 }}>내 주변 장소 찾기</div>
-                    <p style={{ color: '#64748B', fontSize: '12px', marginTop: '4px', lineHeight: '1.4' }}>현재 위치에서 가장 가까운 파티 장소를 즉시 확인하고 최적의 경로를 안내받으세요.</p>
+                    <div style={{ color: '#F1F5F9', fontSize: '15px', fontWeight: 800 }}>??주�? ?�소 찾기</div>
+                    <p style={{ color: '#64748B', fontSize: '12px', marginTop: '4px', lineHeight: '1.4' }}>?�재 ?�치?�서 가??가까운 ?�티 ?�소�?즉시 ?�인?�고 최적??경로�??�내받으?�요.</p>
                   </div>
                 </div>
 
@@ -1277,8 +1292,8 @@ function App() {
                     <BarChart size={20} color="#F97316" />
                   </div>
                   <div>
-                    <div style={{ color: '#F1F5F9', fontSize: '15px', fontWeight: 800 }}>실시간 현황 기여</div>
-                    <p style={{ color: '#64748B', fontSize: '12px', marginTop: '4px', lineHeight: '1.4' }}>여러분의 참여가 실시간 중계 숫자를 완성합니다. 현장의 열기를 전국에 공유해 보세요.</p>
+                    <div style={{ color: '#F1F5F9', fontSize: '15px', fontWeight: 800 }}>?�시�??�황 기여</div>
+                    <p style={{ color: '#64748B', fontSize: '12px', marginTop: '4px', lineHeight: '1.4' }}>?�러분의 참여가 ?�시�?중계 ?�자�??�성?�니?? ?�장???�기�??�국??공유??보세??</p>
                   </div>
                 </div>
 
@@ -1287,17 +1302,20 @@ function App() {
                     <ShieldCheck size={20} color="#10B981" />
                   </div>
                   <div>
-                    <div style={{ color: '#F1F5F9', fontSize: '15px', fontWeight: 800 }}>철저한 보안 관리</div>
-                    <p style={{ color: '#64748B', fontSize: '12px', marginTop: '4px', lineHeight: '1.4' }}>위치 정보는 집계용으로만 일시 사용되며, 개인을 식별할 수 있는 정보는 절대 저장되지 않습니다.</p>
+                    <div style={{ color: '#F1F5F9', fontSize: '15px', fontWeight: 800 }}>철�???보안 관�?/div>
+                    <p style={{ color: '#64748B', fontSize: '12px', marginTop: '4px', lineHeight: '1.4' }}>?�치 ?�보??집계?�으로만 ?�시 ?�용?�며, 개인???�별?????�는 ?�보???��? ?�?�되지 ?�습?�다.</p>
                   </div>
                 </div>
               </div>
 
               <button 
-                onClick={() => setShowNoticeGuide(false)}
+                onClick={() => {
+                  setShowNoticeGuide(false);
+                  requestLocation();
+                }}
                 style={{ width: '100%', padding: '16px', borderRadius: '16px', background: 'linear-gradient(135deg, #C9A84C, #FFD700)', color: '#000', fontSize: '16px', fontWeight: 900, border: 'none', cursor: 'pointer', boxShadow: '0 10px 20px rgba(201,168,76,0.3)' }}
               >
-                확인했습니다
+                ?�인?�습?�다
               </button>
             </motion.div>
           </motion.div>
