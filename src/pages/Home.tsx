@@ -600,110 +600,158 @@ const HomePage = ({
         </div>
       </div>
 
-      <div ref={scrollRef} style={{ width: '100%', background: '#fff' }}>
+      <div ref={scrollRef} style={{ width: '100%', background: 'var(--color-bg)' }}>
         <div style={{ minHeight: '101%' }}>
           {loading ? (
-            <div style={{ display: 'flex', flexDirection: 'column', marginTop: '120px' }}>{Array(6).fill(0).map((_, i) => <div key={i} style={{ height: '140px', width: '100%', background: '#f9f9f9', borderBottom: '1px solid #eee' }} />)}</div>
+            <div style={{ display: 'flex', flexDirection: 'column', marginTop: '120px' }}>{Array(6).fill(0).map((_, i) => <div key={i} style={{ height: '140px', width: '100%', background: 'var(--color-card)', borderBottom: '1px solid var(--color-border)' }} />)}</div>
           ) : (
-            <div style={{ width: '100%', padding: '0 0 20px 0', backgroundColor: '#f2f2f2' }}>
-              {carouselParties.length > 0 && (
-                <div style={{ margin: '0 0 15px', padding: '10px 0 20px', background: '#fff', borderBottom: '1px solid #eee' }}>
-                  <div style={{ padding: '0 20px 15px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                    <h2 style={{ fontSize: '18px', fontWeight: '950', color: '#1E293B', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                      {i18n.language.startsWith('en') ? (
-                        <>HOT <span style={{ color: '#FF1744' }}>PICK 5</span></>
-                      ) : (
-                        <><span style={{ color: '#FF1744' }}>HOT</span> PICK 5</>
-                      )}
-                    </h2>
-                    
-                    {/* 운명의 좌표 (Saju) 버튼 추가 */}
-                    <motion.button
-                      whileTap={{ scale: 0.9 }}
-                      onClick={() => handleOpenModal(setShowSaju, true)}
-                      style={{
-                        background: '#F1F5F9',
-                        border: 'none',
-                        borderRadius: '12px',
-                        padding: '8px 12px',
-                        fontSize: '12px',
-                        fontWeight: '900',
-                        cursor: 'pointer',
-                        color: '#FF1744',
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: '6px'
-                      }}
-                    >
-                      <Star size={14} fill="#FF1744" color="#FF1744" />
-                      {t('saju')}
-                    </motion.button>
+            <div style={{ width: '100%', padding: '0 0 20px 0', backgroundColor: 'var(--color-bg)' }}>
+              {(() => {
+                const metropolitan = carouselParties.filter(p => 
+                  p.broadRegion === '서울' || p.broadRegion === '경기/인천'
+                ).slice(0, 5);
+                
+                const provincial = carouselParties.filter(p => 
+                  p.broadRegion !== '서울' && p.broadRegion !== '경기/인천'
+                ).slice(0, 5);
 
-                    {/* 언어 토글 버튼 이동 배치 */}
-                    <button
-                      onClick={() => {
-                        const newLang = lang === 'ko' ? 'en' : 'ko';
-                        setLang(newLang);
-                        i18n.changeLanguage(newLang);
-                      }}
-                      style={{
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: '4px',
-                        background: 'rgba(0,0,0,0.2)',
-                        border: '1px solid rgba(255,255,255,0.1)',
-                        borderRadius: '20px',
-                        padding: '2px 8px',
-                        cursor: 'pointer',
-                        color: 'rgba(255,255,255,0.6)',
-                        fontSize: '11px',
-                        fontWeight: 600,
-                        letterSpacing: '0.5px'
-                      }}
-                    >
-                      <span style={{ 
-                        color: lang === 'ko' ? '#fff' : 'rgba(255,255,255,0.3)',
-                        background: lang === 'ko' ? '#E53935' : 'transparent',
-                        padding: '2px 8px',
-                        borderRadius: '12px',
-                        transition: 'all 0.3s'
-                      }}>
-                        {lang === 'ko' ? '한국어' : 'KOR'}
-                      </span>
-                      <span style={{ 
-                        color: lang === 'en' ? '#fff' : 'rgba(255,255,255,0.3)',
-                        background: lang === 'en' ? '#E53935' : 'transparent',
-                        padding: '2px 8px',
-                        borderRadius: '12px',
-                        transition: 'all 0.3s'
-                      }}>
-                        {lang === 'en' ? 'ENG' : '영어'}
-                      </span>
-                    </button>
-                  </div>
-                  <div style={{ width: '100%', overflow: 'hidden', padding: '10px 0' }}>
-                    <motion.div animate={isPaused ? {} : { x: [0, -775] }} transition={{ duration: 20, repeat: Infinity, ease: "linear" }} style={{ display: 'flex', gap: '15px', paddingLeft: '20px', width: 'max-content' }}>
-                      {carouselParties.map((item) => (
-                        <div key={item.id} onClick={() => handleOpenModal(setSelectedPoster, item.poster_url)} style={{ width: '140px', flexShrink: 0, borderRadius: '12px', overflow: 'hidden', boxShadow: '0 8px 20px rgba(0,0,0,0.12)', position: 'relative' }}>
-                          <img src={item.poster_url} style={{ width: '100%', height: '190px', objectFit: 'cover' }} alt="Pick" />
-                            <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, padding: '10px 8px', background: 'linear-gradient(transparent, rgba(0,0,0,0.95))', color: 'white' }}>
-                              <div style={{ fontSize: '10px', color: '#FFEB3B', fontWeight: 950, marginBottom: '2px' }}>{translateDynamicText(item.locationName, isEn)}</div>
-                              <div style={{ fontSize: '11px', fontWeight: '950', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', marginBottom: '4px' }}>{translateDynamicText(item.title, isEn)}</div>
-                              <div style={{ fontSize: '8px', fontWeight: 950, color: '#fff', display: 'flex', gap: '2px', whiteSpace: 'nowrap', overflow: 'hidden' }}>
-                                <span style={{ background: 'rgba(255,255,255,0.2)', padding: '1px 4px', borderRadius: '4px' }}>{(() => { const d = new Date(item.date); return `${d.getMonth() + 1}/${d.getDate()}(${isEn ? DAYS_EN[d.getDay()] : DAYS_KOR[d.getDay()]})`; })()}</span>
-                                <span style={{ background: 'rgba(255,255,255,0.2)', padding: '1px 4px', borderRadius: '4px' }}>{item.time?.split('-')[0].trim() || '21:00'}</span>
-                                <span style={{ background: 'rgba(255,235,59,0.3)', color: '#FFEB3B', padding: '1px 4px', borderRadius: '4px' }}>{(() => { if (!item.fee) return '1.2만'; const f = String(item.fee); if (f.includes('만')) return isEn ? f.replace('만', '0k').replace('원', '') : f.replace('원', ''); const num = parseInt(f.replace(/[^0-9]/g, '')); if (isNaN(num)) return f; return isEn ? (num/10000).toFixed(1).replace('.0', '') + '0k' : (num/10000).toFixed(1).replace('.0', '') + '만'; })()}</span>
-                                <span style={{ background: 'rgba(255,255,255,0.2)', padding: '1px 4px', borderRadius: '4px' }}>
-                                  {Object.entries(GENRE_MAP).filter(([_, info]) => item[info.key] > 0).map(([_, info]) => `${info.label}${item[info.key]}`).join('')}
-                                </span>
-                              </div>
-                            </div>
+                return (
+                  <>
+                    {/* [1] HOT PICK 5 - 수도권 (상단 유지) */}
+                    {metropolitan.length > 0 && (
+                      <div style={{ margin: '0 0 15px', padding: '10px 0 20px', background: 'var(--color-card)', borderBottom: '1px solid var(--color-border)' }}>
+                        <div style={{ padding: '0 20px 15px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                          <h2 style={{ fontSize: '18px', fontWeight: '950', color: 'var(--color-text-main)', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                            <span style={{ color: '#FF1744' }}>HOT</span> PICK 5 <span style={{ fontSize: '12px', color: '#94A3B8', fontWeight: 700 }}>[수도권]</span>
+                          </h2>
+                          
+                          <motion.button
+                            whileTap={{ scale: 0.9 }}
+                            onClick={() => handleOpenModal(setShowSaju, true)}
+                            style={{
+                              background: 'var(--color-border)',
+                              border: 'none',
+                              borderRadius: '12px',
+                              padding: '8px 12px',
+                              fontSize: '12px',
+                              fontWeight: '900',
+                              cursor: 'pointer',
+                              color: '#FF1744',
+                              display: 'flex',
+                              alignItems: 'center',
+                              gap: '6px'
+                            }}
+                          >
+                            <Star size={14} fill="#FF1744" color="#FF1744" />
+                            {t('saju')}
+                          </motion.button>
                         </div>
-                      ))}
-                    </motion.div>
-                  </div>
-                </div>
-              )}
+                        <div style={{ width: '100%', overflow: 'hidden', padding: '10px 0' }}>
+                          <motion.div animate={isPaused ? {} : { x: [0, -775] }} transition={{ duration: 20, repeat: Infinity, ease: "linear" }} style={{ display: 'flex', gap: '15px', paddingLeft: '20px', width: 'max-content' }}>
+                            {metropolitan.map((item) => (
+                              <div key={item.id} onClick={() => handleOpenModal(setSelectedPoster, item.poster_url)} style={{ width: '140px', flexShrink: 0, borderRadius: '12px', overflow: 'hidden', boxShadow: '0 8px 20px rgba(0,0,0,0.12)', position: 'relative' }}>
+                                <img src={item.poster_url} style={{ width: '100%', height: '190px', objectFit: 'cover' }} alt="Pick" />
+                                <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, padding: '10px 8px', background: 'linear-gradient(transparent, rgba(0,0,0,0.95))', color: 'white' }}>
+                                  <div style={{ fontSize: '10px', color: '#FFEB3B', fontWeight: 950, marginBottom: '2px' }}>{translateDynamicText(item.locationName, isEn)}</div>
+                                  <div style={{ fontSize: '11px', fontWeight: '950', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', marginBottom: '4px' }}>{translateDynamicText(item.title, isEn)}</div>
+                                </div>
+                              </div>
+                            ))}
+                          </motion.div>
+                        </div>
+                      </div>
+                    )}
+
+                    {IncheonBanner && <IncheonBanner />}
+
+                    {/* [지역 리스트 처리 루프] */}
+                    {(() => {
+                      const regionKeys = {
+                        "서울": "region_seoul",
+                        "경기/인천": "region_gyeonggi_incheon",
+                        "경상도": "region_gyeongsang",
+                        "전라도": "region_jeolla",
+                        "충청도": "region_chungcheong",
+                        "강원/제주": "region_gangwon_jeju"
+                      };
+                      const regions = ["서울", "경기/인천", "경상도", "전라도", "충청도", "강원/제주"];
+                      
+                      return regions.map((regionName, idx) => {
+                        const regionParties = (parties || [])
+                          .filter(p => p.date === selectedDate)
+                          .filter(p => REGION_FILTER[regionName](p))
+                          .filter(p => {
+                            if (filterGenre && GENRE_MAP[filterGenre]) {
+                              if (!(p[GENRE_MAP[filterGenre].key] > 0)) return false;
+                            }
+                            return true;
+                          });
+
+                        const isFirst = regionName === '서울';
+                        const maxCount = regionName === '서울' ? 3 : 2;
+
+                        return (
+                          <React.Fragment key={regionName}>
+                            <section 
+                              ref={isFirst ? regionListRef : null}
+                              style={{ marginBottom: '15px', background: 'var(--color-card)' }}
+                            >
+                              <div style={{ fontSize: '18px', fontWeight: '900', padding: '15px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', color: 'var(--color-text-main)' }}>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                  <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#FF1744' }} />
+                                  {t(regionKeys[regionName] || regionName)}
+                                </div>
+                                <button 
+                                  onClick={() => {
+                                    setGridRegion(regionName);
+                                    handleOpenModal(setShowGridModal, true);
+                                  }}
+                                  style={{ fontSize: '12px', fontWeight: '700', color: 'var(--color-text-sub)', background: 'none', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '2px' }}
+                                >
+                                  {t('view_all')} <ChevronRight size={14} />
+                                </button>
+                              </div>
+                              <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', padding: '0 15px 20px' }}>
+                                {regionParties.length === 0 ? (
+                                  <div style={{ padding: '40px', background: 'var(--color-bg)', borderRadius: '16px', textAlign: 'center', color: 'var(--color-text-sub)', fontSize: '13px', fontWeight: '700' }}>{t('no_parties')}</div>
+                                ) : regionParties.slice(0, maxCount).map(item => (
+                                  <PartyCard key={item.id} item={item} onSelect={(url) => handleOpenModal(setSelectedPoster, url)} />
+                                ))}
+                              </div>
+                            </section>
+
+                            {/* 경기/인천 섹션 다음에 지방권 HOT PICK 배치 + 여백 확보 */}
+                            {regionName === '경기/인천' && provincial.length > 0 && (
+                              <div style={{ margin: '40px 0 15px', padding: '10px 0 20px', background: 'var(--color-card)', borderBottom: '1px solid var(--color-border)' }}>
+                                <div style={{ padding: '0 20px 15px' }}>
+                                  <h2 style={{ fontSize: '18px', fontWeight: '950', color: 'var(--color-text-main)', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                    <span style={{ color: '#FF1744' }}>HOT</span> PICK 5 <span style={{ fontSize: '12px', color: '#94A3B8', fontWeight: 700 }}>[지방권]</span>
+                                  </h2>
+                                </div>
+                                <div style={{ width: '100%', overflow: 'hidden', padding: '10px 0' }}>
+                                  <motion.div animate={isPaused ? {} : { x: [0, -775] }} transition={{ duration: 20, repeat: Infinity, ease: "linear" }} style={{ display: 'flex', gap: '15px', paddingLeft: '20px', width: 'max-content' }}>
+                                    {provincial.map((item) => (
+                                      <div key={item.id} onClick={() => handleOpenModal(setSelectedPoster, item.poster_url)} style={{ width: '140px', flexShrink: 0, borderRadius: '12px', overflow: 'hidden', boxShadow: '0 8px 20px rgba(0,0,0,0.12)', position: 'relative' }}>
+                                        <img src={item.poster_url} style={{ width: '100%', height: '190px', objectFit: 'cover' }} alt="Pick" />
+                                        <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, padding: '10px 8px', background: 'linear-gradient(transparent, rgba(0,0,0,0.95))', color: 'white' }}>
+                                          <div style={{ fontSize: '10px', color: '#FFEB3B', fontWeight: 950, marginBottom: '2px' }}>{translateDynamicText(item.locationName, isEn)}</div>
+                                          <div style={{ fontSize: '11px', fontWeight: '950', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', marginBottom: '4px' }}>{translateDynamicText(item.title, isEn)}</div>
+                                        </div>
+                                      </div>
+                                    ))}
+                                  </motion.div>
+                                </div>
+                                {/* 추후 광고 구좌를 위한 하단 여백 */}
+                                <div style={{ height: '20px' }}></div>
+                              </div>
+                            )}
+                          </React.Fragment>
+                        );
+                      });
+                    })()}
+                  </>
+                );
+              })()}
 
 
 
@@ -731,15 +779,14 @@ const HomePage = ({
                     });
 
                   const isFirst = regionName === '서울';
-                  const maxDisplay = regionName === '서울' ? 4 : 3;
 
                   return (
                     <section 
                       key={regionName} 
                       ref={isFirst ? regionListRef : null}
-                      style={{ marginBottom: '15px', background: '#fff' }}
+                      style={{ marginBottom: '15px', background: 'var(--color-card)' }}
                     >
-                      <div style={{ fontSize: '18px', fontWeight: '900', padding: '15px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                      <div style={{ fontSize: '18px', fontWeight: '900', padding: '15px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', color: 'var(--color-text-main)' }}>
                         <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                           <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#FF1744' }} />
                           {t(regionKeys[regionName] || regionName)}
@@ -813,11 +860,11 @@ const HomePage = ({
         {showFullCalendar && (
           <>
             <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={handleCloseModal} style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.6)', backdropFilter: 'blur(4px)', zIndex: 170000 }} />
-            <motion.div initial={{ y: '100%', opacity: 0 }} animate={{ y: 0, opacity: 1 }} exit={{ y: '100%', opacity: 0 }} transition={{ type: 'spring', damping: 25, stiffness: 200 }} style={{ position: 'fixed', bottom: '90px', left: '10px', right: '10px', background: '#fff', borderRadius: '24px', padding: '20px', boxShadow: '0 10px 40px rgba(0,0,0,0.25)', zIndex: 170001, border: '1px solid #f1f5f9', display: 'flex', flexDirection: 'column', maxHeight: '85vh' }}>
-              <div style={{ width: '40px', height: '4px', background: '#E2E8F0', borderRadius: '2px', margin: '0 auto 20px' }} />
+            <motion.div initial={{ y: '100%', opacity: 0 }} animate={{ y: 0, opacity: 1 }} exit={{ y: '100%', opacity: 0 }} transition={{ type: 'spring', damping: 25, stiffness: 200 }} style={{ position: 'fixed', bottom: '90px', left: '10px', right: '10px', background: 'var(--color-card)', borderRadius: '24px', padding: '20px', boxShadow: '0 10px 40px rgba(0,0,0,0.25)', zIndex: 170001, border: '1px solid var(--color-border)', display: 'flex', flexDirection: 'column', maxHeight: '85vh' }}>
+              <div style={{ width: '40px', height: '4px', background: 'var(--color-border)', borderRadius: '2px', margin: '0 auto 20px' }} />
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}><span style={{ fontSize: '24px', fontWeight: 950, color: '#1E293B' }}>{selectedMonth}월</span><div style={{ display: 'flex', gap: '8px' }}><button onClick={() => setSelectedMonth(m => m > 1 ? m-1 : 12)} style={{ background: '#F8FAFC', border: '1px solid #F1F5F9', borderRadius: '10px', width: '36px', height: '36px' }}><ChevronLeft size={18} /></button><button onClick={() => setSelectedMonth(m => m < 12 ? m+1 : 1)} style={{ background: '#F8FAFC', border: '1px solid #F1F5F9', borderRadius: '10px', width: '36px', height: '36px' }}><ChevronRight size={18} /></button></div></div>
-                <button onClick={handleCloseModal} style={{ background: '#F1F5F9', border: 'none', borderRadius: '50%', width: '44px', height: '44px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#1E293B' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}><span style={{ fontSize: '24px', fontWeight: 950, color: 'var(--color-text-main)' }}>{selectedMonth}월</span><div style={{ display: 'flex', gap: '8px' }}><button onClick={() => setSelectedMonth(m => m > 1 ? m-1 : 12)} style={{ background: 'var(--color-bg)', border: '1px solid var(--color-border)', borderRadius: '10px', width: '36px', height: '36px', color: 'var(--color-text-main)' }}><ChevronLeft size={18} /></button><button onClick={() => setSelectedMonth(m => m < 12 ? m+1 : 1)} style={{ background: 'var(--color-bg)', border: '1px solid var(--color-border)', borderRadius: '10px', width: '36px', height: '36px', color: 'var(--color-text-main)' }}><ChevronRight size={18} /></button></div></div>
+                <button onClick={handleCloseModal} style={{ background: 'var(--color-border)', border: 'none', borderRadius: '50%', width: '44px', height: '44px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--color-text-main)' }}>
                   <ChevronLeft size={28} />
                 </button>
               </div>
@@ -840,7 +887,7 @@ const HomePage = ({
                             handleOpenModal(setShowFilterPanel, true);
                             setFilterStep(1);
                           }} 
-                          style={{ height: '46px', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', fontSize: '15px', fontWeight: isSelected ? 800 : 600, color: isSelected ? '#fff' : (day.dayName === '일' ? '#FF1744' : (isWeekend ? '#FF1744' : '#1E293B')), backgroundColor: isSelected ? '#FF1744' : 'transparent', borderRadius: '14px', cursor: day.fullDate < todayStr ? 'default' : 'pointer', opacity: day.fullDate < todayStr ? 0.3 : 1 }}
+                          style={{ height: '46px', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', fontSize: '15px', fontWeight: isSelected ? 800 : 600, color: isSelected ? '#fff' : (day.dayName === '일' ? '#FF1744' : (isWeekend ? '#FF1744' : 'var(--color-text-main)')), backgroundColor: isSelected ? '#FF1744' : 'transparent', borderRadius: '14px', cursor: day.fullDate < todayStr ? 'default' : 'pointer', opacity: day.fullDate < todayStr ? 0.3 : 1 }}
                         >
                           {day.date}
                         </div>
@@ -852,24 +899,24 @@ const HomePage = ({
                     {filterStep === 1 ? (
                       <>
                         <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '20px' }}>
-                          <button onClick={() => { setShowFullCalendar(false); setShowFilterPanel(false); setShowFilteredResults(false); setFilterStep(1); }} style={{ background: '#F8FAFC', border: 'none', borderRadius: '10px', padding: '8px 12px', fontSize: '13px', fontWeight: 700, color: '#FF1744', display: 'flex', alignItems: 'center', gap: '4px' }}><X size={16} /> 닫기</button>
+                          <button onClick={() => { setShowFullCalendar(false); setShowFilterPanel(false); setShowFilteredResults(false); setFilterStep(1); }} style={{ background: 'var(--color-bg)', border: 'none', borderRadius: '10px', padding: '8px 12px', fontSize: '13px', fontWeight: 700, color: '#FF1744', display: 'flex', alignItems: 'center', gap: '4px' }}><X size={16} /> 닫기</button>
                         </div>
-                        <div style={{ fontSize: '18px', fontWeight: 950, color: '#1E293B', marginBottom: '15px' }}>{t('filter_where')}</div>
+                        <div style={{ fontSize: '18px', fontWeight: 950, color: 'var(--color-text-main)', marginBottom: '15px' }}>{t('filter_where')}</div>
                         <div style={{ display: 'flex', overflowX: 'auto', gap: '10px', paddingBottom: '15px', msOverflowStyle: 'none', scrollbarWidth: 'none', WebkitOverflowScrolling: 'touch' }}>
                           {['서울', '경기/인천', '부산', '대구', '대전', '광주', '기타'].map(r => (
-                            <button key={r} onClick={() => { setFilterRegion(r); handleOpenModal(setFilterStep, 2); }} style={{ flexShrink: 0, padding: '14px 24px', borderRadius: '14px', background: filterRegion === r ? '#FF1744' : '#F8FAFC', color: filterRegion === r ? '#fff' : '#64748B', fontWeight: 700, border: 'none', transition: 'all 0.2s' }}>{r}</button>
+                            <button key={r} onClick={() => { setFilterRegion(r); handleOpenModal(setFilterStep, 2); }} style={{ flexShrink: 0, padding: '14px 24px', borderRadius: '14px', background: filterRegion === r ? '#FF1744' : 'var(--color-bg)', color: filterRegion === r ? '#fff' : 'var(--color-text-sub)', fontWeight: 700, border: 'none', transition: 'all 0.2s' }}>{r}</button>
                           ))}
                         </div>
                       </>
                     ) : (
                       <>
                         <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '20px' }}>
-                          <button onClick={handleCloseModal} style={{ background: '#F8FAFC', border: 'none', borderRadius: '10px', padding: '8px 12px', fontSize: '13px', fontWeight: 700, color: '#64748B', display: 'flex', alignItems: 'center', gap: '4px' }}><ChevronLeft size={16} /> 지역 다시 선택</button>
+                          <button onClick={handleCloseModal} style={{ background: 'var(--color-bg)', border: 'none', borderRadius: '10px', padding: '8px 12px', fontSize: '13px', fontWeight: 700, color: 'var(--color-text-sub)', display: 'flex', alignItems: 'center', gap: '4px' }}><ChevronLeft size={16} /> 지역 다시 선택</button>
                         </div>
-                        <div style={{ fontSize: '18px', fontWeight: 950, color: '#1E293B', marginBottom: '15px' }}>{t('filter_genre')}</div>
+                        <div style={{ fontSize: '18px', fontWeight: 950, color: 'var(--color-text-main)', marginBottom: '15px' }}>{t('filter_genre')}</div>
                         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
                           {['바차타', '살사', '쥬크', '키좀바'].map(g => (
-                            <button key={g} onClick={() => { setFilterGenre(g); handleOpenModal(setShowFilteredResults, true); }} style={{ padding: '24px 15px', borderRadius: '18px', background: filterGenre === g ? '#1E293B' : '#F8FAFC', color: filterGenre === g ? '#fff' : '#64748B', fontWeight: 800, fontSize: '16px', border: 'none' }}>{g}</button>
+                            <button key={g} onClick={() => { setFilterGenre(g); handleOpenModal(setShowFilteredResults, true); }} style={{ padding: '24px 15px', borderRadius: '18px', background: filterGenre === g ? 'var(--color-text-main)' : 'var(--color-bg)', color: filterGenre === g ? 'var(--color-bg)' : 'var(--color-text-sub)', fontWeight: 800, fontSize: '16px', border: 'none' }}>{g}</button>
                           ))}
                         </div>
                       </>
@@ -917,7 +964,7 @@ const HomePage = ({
                             else if (addr.includes('광주')) displayRegion = '광주';
 
                             return (
-                              <div key={party.id} onClick={() => handleOpenModal(setSelectedPoster, party.poster_url)} style={{ aspectRatio: '1 / 1.4', borderRadius: '12px', overflow: 'hidden', position: 'relative', background: '#F1F5F9', cursor: 'pointer', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.1)' }}>
+                              <div key={party.id} onClick={() => handleOpenModal(setSelectedPoster, party.poster_url)} style={{ aspectRatio: '1 / 1.4', borderRadius: '12px', overflow: 'hidden', position: 'relative', background: 'var(--color-border)', cursor: 'pointer', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.1)' }}>
                                 <img src={party.poster_url} style={{ width: '100%', height: '100%', objectFit: 'cover' }} alt="Poster" />
                                 {(() => {
                                   const now = new Date();
@@ -953,7 +1000,7 @@ const HomePage = ({
                                   return null;
                                 })()}
                                 
-                                <div style={{ position: 'absolute', top: '8px', left: '8px', background: 'rgba(255, 255, 255, 0.9)', color: '#1E293B', padding: '2px 8px', borderRadius: '6px', fontSize: '10px', fontWeight: 800 }}>{displayRegion}</div>
+                                 <div style={{ position: 'absolute', top: '8px', left: '8px', background: 'var(--color-nav-bg)', color: 'var(--color-text-main)', padding: '2px 8px', borderRadius: '6px', fontSize: '10px', fontWeight: 800 }}>{displayRegion}</div>
                                 <div style={{ position: 'absolute', top: '8px', right: '8px', display: 'flex', gap: '4px', flexWrap: 'wrap', justifyContent: 'flex-end' }}>
                                   {Object.entries(GENRE_MAP).map(([name, info]) => (
                                     party[info.key] > 0 && <span key={name} style={{ background: `${info.color}F2`, color: 'white', padding: '2px 6px', borderRadius: '6px', fontSize: '10px', fontWeight: 950 }}>{info.label}{party[info.key]}</span>
@@ -1001,11 +1048,11 @@ const HomePage = ({
               animate={{ y: 0 }} 
               exit={{ y: '100%' }} 
               transition={{ type: 'spring', damping: 25, stiffness: 200 }}
-              style={{ 
-                position: 'fixed', 
-                inset: 0, 
-                background: '#000', 
-                zIndex: 180001, 
+               style={{ 
+                 position: 'fixed', 
+                 inset: 0, 
+                 background: 'var(--color-bg)', 
+                 zIndex: 180001, 
                 display: 'flex', 
                 flexDirection: 'column',
                 height: '100dvh',
@@ -1057,7 +1104,7 @@ const HomePage = ({
                         onClick={() => {
                           handleOpenModal(setSelectedPoster, item.poster_url);
                         }}
-                        style={{ aspectRatio: '3/4', overflow: 'hidden', background: '#111', position: 'relative' }}
+                         style={{ aspectRatio: '3/4', overflow: 'hidden', background: 'var(--color-card)', position: 'relative' }}
                       >
                         <img 
                           src={item.poster_url} 

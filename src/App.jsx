@@ -581,7 +581,11 @@ function App() {
   const lastScrollY = useRef(0)
 
   // 다크 모드 상태 관리
-  const [isDark, setIsDark] = useState(localStorage.getItem('theme') === 'dark');
+  const [isDark, setIsDark] = useState(() => {
+    const saved = localStorage.getItem('theme');
+    if (saved) return saved === 'dark';
+    return window.matchMedia('(prefers-color-scheme: dark)').matches;
+  });
 
   useEffect(() => {
     if (isDark) {
@@ -866,25 +870,26 @@ function App() {
               position: 'fixed', top: 0, bottom: 0, left: 0,
               width: '75vw', maxWidth: '320px',
               zIndex: 1000000,
-              background: '#FFFFFF', padding: '24px',
+              background: 'var(--color-bg)', padding: '24px',
               display: 'flex', flexDirection: 'column',
               overflowY: 'auto',
-              borderLeft: '1px solid #E2E8F0'
+              borderRight: '1px solid var(--color-border)',
+              transition: 'background-color 0.3s, border-color 0.3s'
             }}
           >
             <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: '32px' }}>
               <motion.button 
                 whileTap={{ scale: 0.9 }}
                 onClick={handleCloseModal}
-                style={{ background: '#F8FAFC', border: '1px solid #E2E8F0', borderRadius: '12px', padding: '10px', color: '#FF1744', cursor: 'pointer' }}
+                style={{ background: 'var(--color-card)', border: '1px solid var(--color-border)', borderRadius: '12px', padding: '10px', color: '#FF1744', cursor: 'pointer' }}
               >
                 <ChevronLeft size={24} />
               </motion.button>
             </div>
 
             <div style={{ marginBottom: '40px' }}>
-              <h2 style={{ color: '#1E293B', fontSize: '24px', fontWeight: 900, margin: 0 }}>{t('premium_services')}</h2>
-              <p style={{ color: '#64748B', fontSize: '14px', marginTop: '4px' }}>{t('platform_desc')}</p>
+              <h2 style={{ color: 'var(--color-text-main)', fontSize: '24px', fontWeight: 900, margin: 0 }}>{t('premium_services')}</h2>
+              <p style={{ color: 'var(--color-text-sub)', fontSize: '14px', marginTop: '4px' }}>{t('platform_desc')}</p>
             </div>
 
             <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
