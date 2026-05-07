@@ -478,6 +478,7 @@ const SplashScreen = () => {
 
 function App() {
   const { t, i18n } = useTranslation();
+  const lang = i18n.language.startsWith('en') ? 'en' : 'ko';
   const toggleLanguage = () => {
     const newLang = i18n.language.startsWith('ko') ? 'en' : 'ko';
     i18n.changeLanguage(newLang);
@@ -960,7 +961,7 @@ function App() {
         {showIncheon && <IncheonRoute parties={parties} onClose={() => setShowIncheon(false)} />}
       </AnimatePresence>
       <AnimatePresence>
-        {showSaju && <SajuModal parties={parties} onClose={() => setShowSaju(false)} />}
+        {showSaju && <SajuModal parties={parties} onClose={() => setShowSaju(false)} lang={lang} />}
       </AnimatePresence>
       <AnimatePresence>
         {showWeather && <WeatherModal onClose={() => setShowWeather(false)} />}

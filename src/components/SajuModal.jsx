@@ -81,7 +81,7 @@ function getDayGanJi(y, m, d) {
   return { gan:CHUN_GAN[g], ji:JI_JI[j], ganOheng:CHUN_GAN_OHENG[g], jiOheng:JI_JI_OHENG[j], emoji:CHUN_GAN_EMOJI[g] }
 }
 
-export default function SajuModal({ onClose }) {
+const SajuModal = ({ parties, onClose, lang = 'ko' }) => {
   const { t, i18n } = useTranslation()
   const isEn = i18n.language === 'en'
 
@@ -217,7 +217,7 @@ export default function SajuModal({ onClose }) {
           {step === 1 && (
             <div style={{ padding:'32px 24px' }}>
               <div style={{ background:'linear-gradient(135deg, #7C3AED 0%, #4C1D95 100%)', padding:'24px', borderRadius:'20px', color:'white', marginBottom:'28px' }}>
-                <div style={{ fontSize:20, fontWeight:900, marginBottom:8 }}>{t('saju_title')}</div>
+                <div style={{ fontSize:20, fontWeight:900, marginBottom:8 }}>{lang === 'ko' ? '댄스 사주 분석' : 'Dance Fortune Analysis'}</div>
                 <div style={{ fontSize:12, opacity:0.8 }}>{t('saju_desc')}</div>
               </div>
 
@@ -241,36 +241,36 @@ export default function SajuModal({ onClose }) {
               ) : (
                 <div style={{ display:'flex', flexDirection:'column', gap:20 }}>
                   <div>
-                    <label style={{ display:'block', fontSize:14, fontWeight:700, marginBottom:8 }}>{t('saju_gender')}</label>
+                    <label style={{ display:'block', fontSize:14, fontWeight:700, marginBottom:8 }}>{lang === 'ko' ? '성별' : 'Gender'}</label>
                     <div style={{ display:'flex', gap:10 }}>
                       {['남','여'].map(g=>(
-                        <button key={g} onClick={()=>setGender(g)} style={{ flex:1, padding:'14px', borderRadius:12, border:gender===g?'2px solid #7C3AED':'1px solid #E2E8F0', background:gender===g?'#F5F3FF':'#fff', color:gender===g?'#7C3AED':'#64748B', fontWeight:700, cursor:'pointer' }}>{g==='남'?t('saju_male'):t('saju_female')}</button>
+                        <button key={g} onClick={()=>setGender(g)} style={{ flex:1, padding:'14px', borderRadius:12, border:gender===g?'2px solid #7C3AED':'1px solid #E2E8F0', background:gender===g?'#F5F3FF':'#fff', color:gender===g?'#7C3AED':'#64748B', fontWeight:700, cursor:'pointer' }}>{g==='남'?(lang==='ko'?'남성':'Male'):(lang==='ko'?'여성':'Female')}</button>
                       ))}
                     </div>
                   </div>
 
                   <div>
-                    <label style={{ display:'block', fontSize:14, fontWeight:700, marginBottom:8 }}>{t('saju_experience')}</label>
+                    <label style={{ display:'block', fontSize:14, fontWeight:700, marginBottom:8 }}>{lang === 'ko' ? '댄스 경력' : 'Dance Experience'}</label>
                     <div style={{ display:'flex', flexDirection:'column', gap:8 }}>
                       <button onClick={()=>setExperience('beginner')} style={{ padding:'14px', borderRadius:12, border:experience==='beginner'?'2px solid #7C3AED':'1px solid #E2E8F0', background:experience==='beginner'?'#F5F3FF':'#fff', textAlign:'left', cursor:'pointer' }}>
-                        <div style={{ fontSize:14, fontWeight:700, color:experience==='beginner'?'#7C3AED':'#1E293B' }}>{t('saju_beginner')}</div>
+                        <div style={{ fontSize:14, fontWeight:700, color:experience==='beginner'?'#7C3AED':'#1E293B' }}>{lang === 'ko' ? '처음이에요 / 입문' : 'Beginner'}</div>
                         <div style={{ fontSize:11, color:'#64748B', marginTop:2 }}>{t('saju_beginner_desc')}</div>
                       </button>
                       <button onClick={()=>setExperience('experienced')} style={{ padding:'14px', borderRadius:12, border:experience==='experienced'?'2px solid #7C3AED':'1px solid #E2E8F0', background:experience==='experienced'?'#F5F3FF':'#fff', textAlign:'left', cursor:'pointer' }}>
-                        <div style={{ fontSize:14, fontWeight:700, color:experience==='experienced'?'#7C3AED':'#1E293B' }}>{t('saju_experienced')}</div>
+                        <div style={{ fontSize:14, fontWeight:700, color:experience==='experienced'?'#7C3AED':'#1E293B' }}>{lang === 'ko' ? '경력자예요' : 'Experienced'}</div>
                         <div style={{ fontSize:11, color:'#64748B', marginTop:2 }}>{t('saju_experienced_desc')}</div>
                       </button>
                     </div>
                   </div>
 
                   <div style={{ display:'flex', gap:10 }}>
-                    <div style={{ flex:1 }}><label style={{ display:'block', fontSize:13, fontWeight:700, marginBottom:6 }}>{t('saju_birth_year')}</label><input type="number" placeholder="1995" value={year} onChange={e=>setYear(e.target.value)} style={{ width:'100%', padding:12, borderRadius:10, border:'1.5px solid #E2E8F0' }} /></div>
-                    <div style={{ flex:1 }}><label style={{ display:'block', fontSize:13, fontWeight:700, marginBottom:6 }}>{t('saju_birth_month')}</label><input type="number" placeholder="5" value={month} onChange={e=>setMonth(e.target.value)} style={{ width:'100%', padding:12, borderRadius:10, border:'1.5px solid #E2E8F0' }} /></div>
-                    <div style={{ flex:1 }}><label style={{ display:'block', fontSize:13, fontWeight:700, marginBottom:6 }}>{t('saju_birth_day')}</label><input type="number" placeholder="20" value={day} onChange={e=>setDay(e.target.value)} style={{ width:'100%', padding:12, borderRadius:10, border:'1.5px solid #E2E8F0' }} /></div>
+                    <div style={{ flex:1 }}><label style={{ display:'block', fontSize:13, fontWeight:700, marginBottom:6 }}>{lang === 'ko' ? '생년' : 'Year'}</label><input type="number" placeholder="1995" value={year} onChange={e=>setYear(e.target.value)} style={{ width:'100%', padding:12, borderRadius:10, border:'1.5px solid #E2E8F0' }} /></div>
+                    <div style={{ flex:1 }}><label style={{ display:'block', fontSize:13, fontWeight:700, marginBottom:6 }}>{lang === 'ko' ? '월' : 'Month'}</label><input type="number" placeholder="5" value={month} onChange={e=>setMonth(e.target.value)} style={{ width:'100%', padding:12, borderRadius:10, border:'1.5px solid #E2E8F0' }} /></div>
+                    <div style={{ flex:1 }}><label style={{ display:'block', fontSize:13, fontWeight:700, marginBottom:6 }}>{lang === 'ko' ? '일' : 'Day'}</label><input type="number" placeholder="20" value={day} onChange={e=>setDay(e.target.value)} style={{ width:'100%', padding:12, borderRadius:10, border:'1.5px solid #E2E8F0' }} /></div>
                   </div>
 
                   <div>
-                    <label style={{ display:'block', fontSize:13, fontWeight:700, marginBottom:6 }}>{t('saju_birth_time')}</label>
+                    <label style={{ display:'block', fontSize:13, fontWeight:700, marginBottom:6 }}>{lang === 'ko' ? '태어난 시간 (모르면 무관)' : 'Birth Time (optional)'}</label>
                     <select value={timeIdx} onChange={e=>setTimeIdx(e.target.value)} style={{ width:'100%', padding:12, borderRadius:10, border:'1.5px solid #E2E8F0', background:'#fff' }}>
                       <option value="">{t('saju_birth_time_unknown')}</option>
                       {TIME_LIST.map(t=><option key={t.value} value={t.value}>{isEn ? t.label.replace('시', '').replace('오후', 'PM').replace('새벽', 'AM') : t.label}</option>)}
@@ -278,7 +278,7 @@ export default function SajuModal({ onClose }) {
                   </div>
 
                   <button onClick={analyze} disabled={!isValid || loading} style={{ width:'100%', padding:'18px', borderRadius:16, background:isValid?'#7C3AED':'#CBD5E1', color:'#fff', border:'none', fontSize:16, fontWeight:900, cursor:isValid?'pointer':'not-allowed', marginTop:10 }}>
-                    {loading ? t('saju_analyzing') : t('saju_analyze_btn')}
+                    {loading ? t('saju_analyzing') : (lang === 'ko' ? '나의 댄스 사주 분석하기' : 'Analyze My Dance Fortune')}
                   </button>
                 </div>
               )}
@@ -375,3 +375,5 @@ export default function SajuModal({ onClose }) {
     </div>
   )
 }
+
+export default SajuModal;
