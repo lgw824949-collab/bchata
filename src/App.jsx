@@ -110,20 +110,39 @@ const PosterModal = ({ src, onClose }) => {
         }}
       ><ChevronLeft size={32} /></button>
 
-      {/* 줌 컨테이너 (가용 화면 전체 사용) */}
-      <div style={{ width: '100%', height: '100%', position: 'relative', overflow: 'hidden', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-        <QuickPinchZoom onUpdate={onUpdate} wheelScaleFactor={500} tapZoomFactor={2}>
+      {/* 줌 컨테이너 (Viewport 전체 사용) */}
+      <div style={{ 
+        width: '100vw', 
+        height: '100vh', 
+        position: 'relative', 
+        overflow: 'hidden', 
+        display: 'flex', 
+        alignItems: 'center', 
+        justifyContent: 'center' 
+      }}>
+        <QuickPinchZoom 
+          onUpdate={onUpdate} 
+          wheelScaleFactor={500} 
+          tapZoomFactor={2}
+          containerProps={{
+            style: {
+              width: '100%',
+              height: '100%'
+            }
+          }}
+        >
           <img 
             ref={imgRef}
             src={src} 
             alt="poster" 
             style={{ 
-              maxWidth: '100%',
-              maxHeight: '100%',
+              width: '100%',
+              height: '100%',
               objectFit: 'contain',
               display: 'block',
               willChange: 'transform',
-              userSelect: 'none'
+              userSelect: 'none',
+              pointerEvents: 'none'
             }} 
           />
         </QuickPinchZoom>
@@ -751,6 +770,7 @@ function App() {
   };
 
   return (
+    <>
     <div style={{ width: '100%', maxWidth: '500px', margin: '0 auto', background: '#fff', minHeight: '100vh', position: 'relative' }}>
       <AnimatePresence>
         {showSplash && <SplashScreen key="splash" />}
@@ -1053,12 +1073,6 @@ function App() {
         )}
       </AnimatePresence>
       
-      {selectedPoster && (
-        <PosterModal 
-          src={selectedPoster} 
-          onClose={handleCloseModal} 
-        />
-      )}
 
       {true && (
         <nav className="bottom-nav">
@@ -1324,6 +1338,24 @@ function App() {
       </motion.div>
 
     </div>
+    
+    {/* [B] [포스터 확대 모달 - 컨테이너 외부 최상위 배치] */}
+    <AnimatePresence>
+      {selectedPoster && (
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          style={{ position: 'fixed', inset: 0, zIndex: 2000000 }}
+        >
+          <PosterModal 
+            src={selectedPoster} 
+            onClose={() => setSelectedPoster(null)} 
+          />
+        </motion.div>
+      )}
+    </AnimatePresence>
+    </>
   );
 }
 
