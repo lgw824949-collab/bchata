@@ -488,9 +488,6 @@ const HomePage = ({
       
       {/* 📌 [영역 A: 브랜드 헤더 - 최종 확정] */}
       <div style={{ padding: '40px 24px 24px' }}>
-        <p style={{ fontSize: '28px', fontWeight: 900, color: '#ffffff', letterSpacing: '-1px', margin: '0 0 6px', lineHeight: 1 }}>
-          오늘밤<span style={{ color: '#E53935' }}>빠</span>
-        </p>
         <p style={{ fontSize: '11px', color: '#E53935', letterSpacing: '0.3em', fontWeight: 300, margin: '0 0 16px' }}>SOCIAL CULTURE EXPERIENCE</p>
         <p style={{ fontSize: '13px', color: '#666', margin: '0 0 8px', fontWeight: 300, letterSpacing: '0.05em' }}>오늘 밤, 어디선가 파티가 시작되고 있어요</p>
         <p style={{ fontSize: '32px', fontWeight: 900, color: '#111', margin: 0, letterSpacing: '-1.5px', lineHeight: 1.3 }}>전국 어디서든</p>
