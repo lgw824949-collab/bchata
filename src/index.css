@@ -50,8 +50,8 @@ body::-webkit-scrollbar {
 }
 
 .app-container {
-  height: 100vh;
-  overflow-y: auto;
+  /* height: 100vh; 제거 */
+  /* overflow-y: auto; 제거 */
   /* ✅ 아이폰 전용: 손가락 끝에 붙는 부드러운 관성 스크롤 */
   -webkit-overflow-scrolling: touch; 
   scroll-behavior: smooth;
