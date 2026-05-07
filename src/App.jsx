@@ -974,6 +974,126 @@ function App() {
             ) : <AdminDashboard onBack={() => navigate('/')} refreshData={fetchParties} />}
       </main>
 
+      <nav 
+        className="bottom-nav" 
+        style={{ 
+          position: 'fixed', bottom: 0, left: '50%',
+          transform: navVisible ? 'translateX(-50%) translateY(0)' : 'translateX(-50%) translateY(100%)',
+          transition: 'transform 0.3s ease',
+          width: '100%', maxWidth: '500px', height: '80px',
+          background: 'rgba(255,255,255,0.95)', backdropFilter: 'blur(10px)',
+          display: 'flex', alignItems: 'center', justifyContent: 'space-around',
+          borderTop: '1px solid #F1F5F9', zIndex: 1000,
+          paddingBottom: 'env(safe-area-inset-bottom)'
+        }}
+      >
+        <div 
+          className="nav-item" 
+          onClick={() => navigate('/')}
+          style={{ 
+            flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
+            cursor: 'pointer', transition: 'all 0.3s', position: 'relative', height: '100%',
+            color: location.pathname === '/' ? '#2563EB' : '#94A3B8'
+          }}
+        >
+          {location.pathname === '/' && (
+            <motion.div 
+              layoutId="nav-glow"
+              style={{ position: 'absolute', width: '40px', height: '40px', borderRadius: '50%', background: 'rgba(37, 99, 235, 0.1)', filter: 'blur(8px)' }} 
+            />
+          )}
+          <HomeIcon size={22} strokeWidth={location.pathname === '/' ? 2.5 : 2} style={{ marginBottom: '4px' }} />
+          <span style={{ fontSize: '10px', fontWeight: location.pathname === '/' ? 900 : 500 }}>HOME</span>
+        </div>
+
+        <div 
+          className="nav-item" 
+          onClick={() => navigate('/livepick')}
+          style={{ 
+            flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
+            cursor: 'pointer', transition: 'all 0.3s', position: 'relative', height: '100%',
+            color: location.pathname === '/livepick' ? '#E11D48' : '#94A3B8'
+          }}
+        >
+          {location.pathname === '/livepick' && (
+            <motion.div 
+              layoutId="nav-glow"
+              style={{ position: 'absolute', width: '40px', height: '40px', borderRadius: '50%', background: 'rgba(225, 29, 72, 0.1)', filter: 'blur(8px)' }} 
+            />
+          )}
+          <Camera size={22} strokeWidth={location.pathname === '/livepick' ? 2.5 : 2} style={{ marginBottom: '4px' }} />
+          <span style={{ fontSize: '10px', fontWeight: location.pathname === '/livepick' ? 900 : 500 }}>LIVE PICK</span>
+        </div>
+
+        <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', position: 'relative', height: '100%' }}>
+          <motion.button
+            whileHover={{ scale: 1.1 }}
+            whileTap={{ scale: 0.9 }}
+            onClick={() => {
+              if (location.pathname === '/livepick') {
+                window.dispatchEvent(new CustomEvent('open-community-upload'));
+              } else if (location.pathname === '/bootcamp') {
+                navigate('/bootcamp/register');
+              } else if (location.pathname === '/festival') {
+                navigate('/festival/register');
+              } else {
+                navigate('/register-party');
+              }
+            }}
+            style={{
+              width: '54px', height: '54px', borderRadius: '18px',
+              background: 'linear-gradient(135deg, #F59E0B, #D97706)',
+              border: 'none', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center',
+              cursor: 'pointer', boxShadow: '0 8px 20px rgba(217, 119, 6, 0.3)',
+              marginBottom: '18px'
+            }}
+          >
+            <Plus size={30} strokeWidth={3} />
+          </motion.button>
+          <span style={{ fontSize: '10px', fontWeight: 900, color: '#D97706', position: 'absolute', bottom: '12px' }}>
+            {location.pathname === '/livepick' ? (i18n.language.startsWith('en') ? 'REPORT' : '리포트') : t('nav_register')}
+          </span>
+        </div>
+
+        <div 
+          className="nav-item" 
+          onClick={() => navigate('/bootcamp')}
+          style={{ 
+            flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
+            cursor: 'pointer', transition: 'all 0.3s', position: 'relative', height: '100%',
+            color: location.pathname === '/bootcamp' ? '#F97316' : '#94A3B8'
+          }}
+        >
+          {location.pathname === '/bootcamp' && (
+            <motion.div 
+              layoutId="nav-glow"
+              style={{ position: 'absolute', width: '40px', height: '40px', borderRadius: '50%', background: 'rgba(249, 115, 22, 0.1)', filter: 'blur(8px)' }} 
+            />
+          )}
+          <Tent size={22} strokeWidth={location.pathname === '/bootcamp' ? 2.5 : 2} style={{ marginBottom: '4px' }} />
+          <span style={{ fontSize: '10px', fontWeight: location.pathname === '/bootcamp' ? 900 : 500 }}>{t('nav_bootcamp')}</span>
+        </div>
+
+        <div 
+          className="nav-item" 
+          onClick={() => navigate('/festival')}
+          style={{ 
+            flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
+            cursor: 'pointer', transition: 'all 0.3s', position: 'relative', height: '100%',
+            color: location.pathname === '/festival' ? '#F97316' : '#94A3B8'
+          }}
+        >
+          {location.pathname === '/festival' && (
+            <motion.div 
+              layoutId="nav-glow"
+              style={{ position: 'absolute', width: '40px', height: '40px', borderRadius: '50%', background: 'rgba(249, 115, 22, 0.1)', filter: 'blur(8px)' }} 
+            />
+          )}
+          <Flag size={22} strokeWidth={location.pathname === '/festival' ? 2.5 : 2} style={{ marginBottom: '4px' }} />
+          <span style={{ fontSize: '10px', fontWeight: location.pathname === '/festival' ? 900 : 500 }}>{t('nav_festival')}</span>
+        </div>
+      </nav>
+
       <DynamicAnalysisModal isOpen={showIncheonModal} onClose={() => setShowIncheonModal(false)} userCoords={userCoords} isSajuCall={isSajuCall} />
       <AnimatePresence>
         {showIncheon && <IncheonRoute parties={parties} onClose={() => setShowIncheon(false)} />}
@@ -1093,128 +1213,6 @@ function App() {
       </AnimatePresence>
       
 
-      {true && (
-        <nav 
-          className="bottom-nav"
-          style={{ 
-            position: 'fixed', bottom: 0, left: '50%',
-            transform: navVisible ? 'translateX(-50%) translateY(0)' : 'translateX(-50%) translateY(100%)',
-            transition: 'transform 0.3s ease',
-            width: '100%', maxWidth: '500px', height: '80px',
-            background: 'rgba(255,255,255,0.95)', backdropFilter: 'blur(10px)',
-            display: 'flex', alignItems: 'center', justifyContent: 'space-around',
-            borderTop: '1px solid #F1F5F9', zIndex: 1000,
-            paddingBottom: 'env(safe-area-inset-bottom)'
-          }}
-        >
-          <div 
-            className="nav-item" 
-            onClick={() => navigate('/')}
-            style={{ 
-              color: location.pathname === '/' ? '#E11D48' : '#333',
-              transform: location.pathname === '/' ? 'translateY(-2px)' : 'none'
-            }}
-          >
-            <div style={{
-              position: 'absolute', top: '40%', left: '50%', transform: 'translate(-50%, -50%)',
-              width: '40px', height: '40px', borderRadius: '50%',
-              background: location.pathname === '/' ? 'rgba(225, 29, 72, 0.15)' : 'transparent',
-              filter: 'blur(10px)', transition: 'all 0.4s'
-            }} />
-            <Music2 size={22} color={location.pathname === '/' ? '#E11D48' : '#333'} style={{ marginBottom: '4px', position: 'relative' }} />
-            <span style={{ fontSize: '10px', fontWeight: location.pathname === '/' ? 900 : 500, position: 'relative' }}>{t('nav_social')}</span>
-            <motion.div layoutId="active-nav" className="active-indicator" style={{ background: '#E11D48', opacity: location.pathname === '/' ? 1 : 0 }} />
-          </div>
-
-          <div 
-            className="nav-item" 
-            onClick={() => navigate('/livepick')}
-            style={{ 
-              color: location.pathname === '/livepick' ? '#E11D48' : '#333',
-              transform: location.pathname === '/livepick' ? 'translateY(-2px)' : 'none'
-            }}
-          >
-            <div style={{
-              position: 'absolute', top: '40%', left: '50%', transform: 'translate(-50%, -50%)',
-              width: '40px', height: '40px', borderRadius: '50%',
-              background: location.pathname === '/livepick' ? 'rgba(225, 29, 72, 0.15)' : 'transparent',
-              filter: 'blur(10px)', transition: 'all 0.4s'
-            }} />
-            <Camera size={22} color={location.pathname === '/livepick' ? '#E11D48' : '#333'} style={{ marginBottom: '4px', position: 'relative' }} />
-            <span style={{ fontSize: '10px', fontWeight: location.pathname === '/livepick' ? 900 : 500, position: 'relative' }}>LIVE PICK</span>
-            <motion.div layoutId="active-nav" className="active-indicator" style={{ background: '#E11D48', opacity: location.pathname === '/livepick' ? 1 : 0 }} />
-          </div>
-
-          <div className="nav-item central-action" style={{ pointerEvents: 'none', position: 'relative', zIndex: 1001 }}>
-            <motion.button
-              whileHover={{ scale: 1.1 }}
-              whileTap={{ scale: 0.9 }}
-              style={{
-                width:'52px', height:'52px',
-                borderRadius:'50%',
-                background: '#F59E0B',
-                border:'none', color:'#fff',
-                display:'flex', alignItems:'center',
-                justifyContent:'center', cursor:'pointer',
-                boxShadow: '0 8px 25px rgba(245, 158, 11, 0.2)',
-                pointerEvents: 'auto'
-              }}
-              onClick={() => {
-                if (location.pathname === '/livepick') {
-                  window.dispatchEvent(new CustomEvent('open-community-upload'));
-                } else if (location.pathname === '/bootcamp') {
-                  navigate('/bootcamp/register');
-                } else if (location.pathname === '/festival') {
-                  navigate('/festival/register');
-                } else {
-                  navigate('/register-party');
-                }
-              }}
-            >
-              <Plus size={28} strokeWidth={3} />
-            </motion.button>
-            <span style={{ pointerEvents: 'auto', color: '#333', fontSize: '10px', fontWeight: 800 }}>{location.pathname === '/livepick' ? (i18n.language.startsWith('en') ? 'REPORT' : '리포트') : t('nav_register')}</span>
-          </div>
-
-          <div 
-            className="nav-item" 
-            onClick={() => navigate('/bootcamp')}
-            style={{ 
-              color: location.pathname === '/bootcamp' ? '#F97316' : '#333',
-              transform: location.pathname === '/bootcamp' ? 'translateY(-2px)' : 'none'
-            }}
-          >
-            <div style={{
-              position: 'absolute', top: '40%', left: '50%', transform: 'translate(-50%, -50%)',
-              width: '40px', height: '40px', borderRadius: '50%',
-              background: location.pathname === '/bootcamp' ? 'rgba(249, 115, 22, 0.15)' : 'transparent',
-              filter: 'blur(10px)', transition: 'all 0.4s'
-            }} />
-            <Tent size={22} color={location.pathname === '/bootcamp' ? '#F97316' : '#333'} style={{ marginBottom: '4px', position: 'relative' }} />
-            <span style={{ fontSize: '10px', fontWeight: location.pathname === '/bootcamp' ? 900 : 500, position: 'relative' }}>{t('nav_bootcamp')}</span>
-            <motion.div layoutId="active-nav" className="active-indicator" style={{ background: '#F97316', opacity: location.pathname === '/bootcamp' ? 1 : 0 }} />
-          </div>
-
-          <div 
-            className="nav-item" 
-            onClick={() => navigate('/festival')}
-            style={{ 
-              color: location.pathname === '/festival' ? '#F97316' : '#333',
-              transform: location.pathname === '/festival' ? 'translateY(-2px)' : 'none'
-            }}
-          >
-            <div style={{
-              position: 'absolute', top: '40%', left: '50%', transform: 'translate(-50%, -50%)',
-              width: '40px', height: '40px', borderRadius: '50%',
-              background: location.pathname === '/festival' ? 'rgba(249, 115, 22, 0.15)' : 'transparent',
-              filter: 'blur(10px)', transition: 'all 0.4s'
-            }} />
-            <Flag size={22} color={location.pathname === '/festival' ? '#F97316' : '#333'} style={{ marginBottom: '4px', position: 'relative' }} />
-            <span style={{ fontSize: '10px', fontWeight: location.pathname === '/festival' ? 900 : 500, position: 'relative' }}>{t('nav_festival')}</span>
-            <motion.div layoutId="active-nav" className="active-indicator" style={{ background: '#F97316', opacity: location.pathname === '/festival' ? 1 : 0 }} />
-          </div>
-        </nav>
-      )}
 
       <AnimatePresence>
         {showCouponPopup && (
