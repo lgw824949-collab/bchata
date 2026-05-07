@@ -1031,10 +1031,27 @@ const HomePage = ({
                           alt="Poster" 
                           style={{ width: '100%', height: '100%', objectFit: 'cover', imageRendering: '-webkit-optimize-contrast' }} 
                         />
-                        {/* 간단 정보 오버레이 */}
-                        <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, padding: '8px 5px', background: 'linear-gradient(transparent, rgba(0,0,0,0.85))', color: '#fff' }}>
-                          <div style={{ fontSize: '10px', fontWeight: '800', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', color: '#FFEB3B', marginBottom: '2px' }}>{translateDynamicText(item.locationName, isEn)}</div>
-                          <div style={{ fontSize: '9px', fontWeight: '700', opacity: 0.9 }}>{(() => { const d = new Date(item.date); return `${d.getMonth() + 1}/${d.getDate()}(${isEn ? DAYS_EN[d.getDay()] : DAYS_KOR[d.getDay()]})`; })()}</div>
+                        {/* 고대비 정보 오버레이 */}
+                        <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, padding: '10px 8px', background: 'linear-gradient(transparent, rgba(0,0,0,0.95))', color: '#fff' }}>
+                          <div style={{ fontSize: '10px', fontWeight: '900', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', color: '#FFEB3B', marginBottom: '6px', textShadow: '0 1px 2px rgba(0,0,0,0.8)' }}>
+                            {translateDynamicText(item.locationName, isEn)}
+                          </div>
+                          <div style={{ 
+                            fontSize: '11px', 
+                            fontWeight: '950', 
+                            color: '#FF1744', 
+                            background: '#fff',
+                            padding: '3px 8px',
+                            borderRadius: '6px',
+                            display: 'inline-block',
+                            boxShadow: '0 4px 10px rgba(255,23,68,0.3)',
+                            letterSpacing: '-0.5px'
+                          }}>
+                            {(() => { 
+                              const d = new Date(item.date); 
+                              return `${d.getMonth() + 1}/${d.getDate()}(${isEn ? DAYS_EN[d.getDay()] : DAYS_KOR[d.getDay()]})`; 
+                            })()}
+                          </div>
                         </div>
                       </div>
                     ));
