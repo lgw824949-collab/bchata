@@ -7,6 +7,7 @@ import LiveCount from '../components/LiveCount'
 import { KMA_REGION_COORDS, fetchWeatherForecast, parseKmaWeather, HOME_REGION_MAP } from '../utils/kmaApi'
 
 const DAYS_KOR = ['일', '월', '화', '수', '목', '금', '토'];
+const DAYS_EN  = ['SUN', 'MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT'];
 
 const GENRE_MAP = {
   '바차타': { key: 'b_ratio', label: 'B', label_en: 'Bachata', color: '#FF1744' },
@@ -167,7 +168,7 @@ const PartyCard = ({ item, onSelect }) => {
           <span style={{ color: '#FF1744' }}>
             {(() => {
               const d = new Date(item.date);
-              return `${d.getMonth() + 1}/${d.getDate()}(${DAYS_KOR[d.getDay()]})`;
+              return `${d.getMonth() + 1}/${d.getDate()}(${isEn ? DAYS_EN[d.getDay()] : DAYS_KOR[d.getDay()]})`;
             })()}
           </span>
           <span>/</span>
@@ -582,15 +583,19 @@ const HomePage = ({
 
                     {/* 언어 토글 버튼 이동 배치 */}
                     <button
-                      onClick={() => setLang(prev => prev === 'ko' ? 'en' : 'ko')}
+                      onClick={() => {
+                        const newLang = lang === 'ko' ? 'en' : 'ko';
+                        setLang(newLang);
+                        i18n.changeLanguage(newLang);
+                      }}
                       style={{
                         display: 'flex',
                         alignItems: 'center',
                         gap: '4px',
-                        background: 'transparent',
-                        border: '1px solid rgba(255,255,255,0.2)',
+                        background: 'rgba(0,0,0,0.2)',
+                        border: '1px solid rgba(255,255,255,0.1)',
                         borderRadius: '20px',
-                        padding: '4px 10px',
+                        padding: '2px 8px',
                         cursor: 'pointer',
                         color: 'rgba(255,255,255,0.6)',
                         fontSize: '11px',
@@ -598,9 +603,20 @@ const HomePage = ({
                         letterSpacing: '0.5px'
                       }}
                     >
-                      <span style={{ color: lang === 'ko' ? '#fff' : 'rgba(255,255,255,0.3)' }}>한국어</span>
-                      <span style={{ color: 'rgba(255,255,255,0.2)' }}>/</span>
-                      <span style={{ color: lang === 'en' ? '#fff' : 'rgba(255,255,255,0.3)' }}>ENG</span>
+                      <span style={{ 
+                        color: lang === 'ko' ? '#fff' : 'rgba(255,255,255,0.3)',
+                        background: lang === 'ko' ? '#E53935' : 'transparent',
+                        padding: '2px 8px',
+                        borderRadius: '12px',
+                        transition: 'all 0.3s'
+                      }}>한국어</span>
+                      <span style={{ 
+                        color: lang === 'en' ? '#fff' : 'rgba(255,255,255,0.3)',
+                        background: lang === 'en' ? '#E53935' : 'transparent',
+                        padding: '2px 8px',
+                        borderRadius: '12px',
+                        transition: 'all 0.3s'
+                      }}>ENG</span>
                     </button>
                   </div>
                   <div style={{ width: '100%', overflow: 'hidden', padding: '10px 0' }}>
@@ -631,6 +647,14 @@ const HomePage = ({
 
               {IncheonBanner && <IncheonBanner />}
               {(() => {
+                const regionKeys = {
+                  "서울": "region_seoul",
+                  "경기/인천": "region_gyeonggi_incheon",
+                  "경상도": "region_gyeongsang",
+                  "전라도": "region_jeolla",
+                  "충청도": "region_chungcheong",
+                  "강원/제주": "region_gangwon_jeju"
+                };
                 const regions = ["서울", "경기/인천", "경상도", "전라도", "충청도", "강원/제주"];
                 return regions.map((regionName) => {
                   const regionParties = (parties || [])
@@ -656,7 +680,7 @@ const HomePage = ({
                       <div style={{ fontSize: '18px', fontWeight: '900', padding: '15px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                         <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                           <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#FF1744' }} />
-                          {isEn ? (REGION_MAP_EN[regionName] || regionName) : regionName}
+                          {t(regionKeys[regionName] || regionName)}
                         </div>
                         <button 
                           onClick={() => {
@@ -665,7 +689,7 @@ const HomePage = ({
                           }}
                           style={{ fontSize: '12px', fontWeight: '700', color: '#94A3B8', background: 'none', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '2px' }}
                         >
-                          {isEn ? 'View All' : '전체보기'} <ChevronRight size={14} />
+                          {t('view_all')} <ChevronRight size={14} />
                         </button>
                       </div>
                       <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', padding: '0 15px 20px' }}>
@@ -689,7 +713,7 @@ const HomePage = ({
                   <div style={{ fontSize: '18px', fontWeight: '900', padding: '15px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                       <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#7C3AED' }} />
-                      오늘의 부트캠프
+                      {t('today_bootcamp')}
                     </div>
                   </div>
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', padding: '0 15px 20px' }}>
@@ -706,7 +730,7 @@ const HomePage = ({
                   <div style={{ fontSize: '18px', fontWeight: '900', padding: '15px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                       <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#F97316' }} />
-                      오늘의 페스티벌
+                      {t('today_festival')}
                     </div>
                   </div>
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', padding: '0 15px 20px' }}>
@@ -938,7 +962,7 @@ const HomePage = ({
                   </button>
                   <div style={{ color: '#fff', fontSize: '18px', fontWeight: '900', display: 'flex', alignItems: 'center', gap: '8px' }}>
                     <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#FF1744' }} />
-                    {gridRegion} 전체보기
+                    {t(regionKeys[gridRegion] || gridRegion)} {t('view_all')}
                   </div>
                 </div>
               </div>
