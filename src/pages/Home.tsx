@@ -1022,7 +1022,17 @@ const HomePage = ({
                   </button>
                   <div style={{ color: '#fff', fontSize: '18px', fontWeight: '900', display: 'flex', alignItems: 'center', gap: '8px' }}>
                     <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#FF1744' }} />
-                    {t(regionKeys[gridRegion] || gridRegion)} {t('view_all')}
+                    {(() => {
+                      const regionKeys = {
+                        '서울': 'region_seoul', '인천': 'region_incheon', '경기': 'region_gyeonggi_incheon',
+                        '부산': 'region_busan', '대구': 'region_daegu', '광주': 'region_gwangju',
+                        '대전': 'region_daejeon', '울산': 'region_ulsan', '세종': 'region_sejong',
+                        '강원': 'region_gangwon', '충북': 'region_chungcheong', '충남': 'region_chungcheong',
+                        '전북': 'region_jeolla', '전남': 'region_jeolla', '경북': 'region_gyeongsang',
+                        '경남': 'region_gyeongsang', '제주': 'region_jeju'
+                      };
+                      return t(regionKeys[gridRegion] || gridRegion);
+                    })()} {t('view_all')}
                   </div>
                 </div>
               </div>
