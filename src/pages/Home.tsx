@@ -607,22 +607,26 @@ const HomePage = ({
           ) : (
             <div style={{ width: '100%', padding: '0 0 20px 0', backgroundColor: 'var(--color-bg)' }}>
               {(() => {
-                const metropolitan = carouselParties.filter(p => 
-                  p.broadRegion === '서울' || p.broadRegion === '경기/인천'
-                ).slice(0, 5);
-                
-                const provincial = carouselParties.filter(p => 
+                // [수도권] 오늘 날짜의 모든 파티 추출
+                const metroToday = (parties || []).filter(p => 
+                  p.date === selectedDate && 
+                  (p.broadRegion === '서울' || p.broadRegion === '경기/인천')
+                );
+
+                // [지방권] 오늘 날짜의 모든 파티 추출
+                const provincialToday = (parties || []).filter(p => 
+                  p.date === selectedDate && 
                   p.broadRegion !== '서울' && p.broadRegion !== '경기/인천'
-                ).slice(0, 5);
+                );
 
                 return (
                   <>
-                    {/* [1] HOT PICK 5 - 수도권 (상단 유지) */}
-                    {metropolitan.length > 0 && (
+                    {/* [1] HOT PICK 5 - 수도권 (오늘의 모든 수도권 파티) */}
+                    {metroToday.length > 0 && (
                       <div style={{ margin: '0 0 15px', padding: '10px 0 20px', background: 'var(--color-card)', borderBottom: '1px solid var(--color-border)' }}>
                         <div style={{ padding: '0 20px 15px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                           <h2 style={{ fontSize: '18px', fontWeight: '950', color: 'var(--color-text-main)', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                            <span style={{ color: '#FF1744' }}>HOT</span> PICK 5 <span style={{ fontSize: '12px', color: '#94A3B8', fontWeight: 700 }}>[수도권]</span>
+                            <span style={{ color: '#FF1744' }}>HOT</span> PICK <span style={{ color: '#FF1744' }}>{metroToday.length}</span> <span style={{ fontSize: '12px', color: '#94A3B8', fontWeight: 700 }}>[수도권]</span>
                           </h2>
                           
                           <motion.button
@@ -648,12 +652,16 @@ const HomePage = ({
                         </div>
                         <div style={{ width: '100%', overflow: 'hidden', padding: '10px 0' }}>
                           <motion.div animate={isPaused ? {} : { x: [0, -775] }} transition={{ duration: 20, repeat: Infinity, ease: "linear" }} style={{ display: 'flex', gap: '15px', paddingLeft: '20px', width: 'max-content' }}>
-                            {metropolitan.map((item) => (
+                            {metroToday.map((item) => (
                               <div key={item.id} onClick={() => handleOpenModal(setSelectedPoster, item.poster_url)} style={{ width: '140px', flexShrink: 0, borderRadius: '12px', overflow: 'hidden', boxShadow: '0 8px 20px rgba(0,0,0,0.12)', position: 'relative' }}>
                                 <img src={item.poster_url} style={{ width: '100%', height: '190px', objectFit: 'cover' }} alt="Pick" />
                                 <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, padding: '10px 8px', background: 'linear-gradient(transparent, rgba(0,0,0,0.95))', color: 'white' }}>
                                   <div style={{ fontSize: '10px', color: '#FFEB3B', fontWeight: 950, marginBottom: '2px' }}>{translateDynamicText(item.locationName, isEn)}</div>
                                   <div style={{ fontSize: '11px', fontWeight: '950', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', marginBottom: '4px' }}>{translateDynamicText(item.title, isEn)}</div>
+                                  <div style={{ fontSize: '8px', fontWeight: 950, color: '#fff', display: 'flex', gap: '2px', whiteSpace: 'nowrap', overflow: 'hidden' }}>
+                                    <span style={{ background: 'rgba(255,255,255,0.2)', padding: '1px 4px', borderRadius: '4px' }}>{item.time?.split('-')[0].trim() || '21:00'}</span>
+                                    <span style={{ background: 'rgba(255,235,59,0.3)', color: '#FFEB3B', padding: '1px 4px', borderRadius: '4px' }}>{(() => { if (!item.fee) return '1.2만'; const f = String(item.fee); if (f.includes('만')) return isEn ? f.replace('만', '0k').replace('원', '') : f.replace('원', ''); const num = parseInt(f.replace(/[^0-9]/g, '')); if (isNaN(num)) return f; return isEn ? (num/10000).toFixed(1).replace('.0', '') + '0k' : (num/10000).toFixed(1).replace('.0', '') + '만'; })()}</span>
+                                  </div>
                                 </div>
                               </div>
                             ))}
@@ -721,21 +729,25 @@ const HomePage = ({
                             </section>
 
                             {/* 경기/인천 섹션 다음에 지방권 HOT PICK 배치 + 여백 확보 */}
-                            {regionName === '경기/인천' && provincial.length > 0 && (
+                            {regionName === '경기/인천' && provincialToday.length > 0 && (
                               <div style={{ margin: '40px 0 15px', padding: '10px 0 20px', background: 'var(--color-card)', borderBottom: '1px solid var(--color-border)' }}>
                                 <div style={{ padding: '0 20px 15px' }}>
                                   <h2 style={{ fontSize: '18px', fontWeight: '950', color: 'var(--color-text-main)', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                                    <span style={{ color: '#FF1744' }}>HOT</span> PICK 5 <span style={{ fontSize: '12px', color: '#94A3B8', fontWeight: 700 }}>[지방권]</span>
+                                    <span style={{ color: '#FF1744' }}>HOT</span> PICK <span style={{ color: '#FF1744' }}>{provincialToday.length}</span> <span style={{ fontSize: '12px', color: '#94A3B8', fontWeight: 700 }}>[지방권]</span>
                                   </h2>
                                 </div>
                                 <div style={{ width: '100%', overflow: 'hidden', padding: '10px 0' }}>
                                   <motion.div animate={isPaused ? {} : { x: [0, -775] }} transition={{ duration: 20, repeat: Infinity, ease: "linear" }} style={{ display: 'flex', gap: '15px', paddingLeft: '20px', width: 'max-content' }}>
-                                    {provincial.map((item) => (
+                                    {provincialToday.map((item) => (
                                       <div key={item.id} onClick={() => handleOpenModal(setSelectedPoster, item.poster_url)} style={{ width: '140px', flexShrink: 0, borderRadius: '12px', overflow: 'hidden', boxShadow: '0 8px 20px rgba(0,0,0,0.12)', position: 'relative' }}>
                                         <img src={item.poster_url} style={{ width: '100%', height: '190px', objectFit: 'cover' }} alt="Pick" />
                                         <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, padding: '10px 8px', background: 'linear-gradient(transparent, rgba(0,0,0,0.95))', color: 'white' }}>
                                           <div style={{ fontSize: '10px', color: '#FFEB3B', fontWeight: 950, marginBottom: '2px' }}>{translateDynamicText(item.locationName, isEn)}</div>
                                           <div style={{ fontSize: '11px', fontWeight: '950', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', marginBottom: '4px' }}>{translateDynamicText(item.title, isEn)}</div>
+                                          <div style={{ fontSize: '8px', fontWeight: 950, color: '#fff', display: 'flex', gap: '2px', whiteSpace: 'nowrap', overflow: 'hidden' }}>
+                                            <span style={{ background: 'rgba(255,255,255,0.2)', padding: '1px 4px', borderRadius: '4px' }}>{item.time?.split('-')[0].trim() || '21:00'}</span>
+                                            <span style={{ background: 'rgba(255,235,59,0.3)', color: '#FFEB3B', padding: '1px 4px', borderRadius: '4px' }}>{(() => { if (!item.fee) return '1.2만'; const f = String(item.fee); if (f.includes('만')) return isEn ? f.replace('만', '0k').replace('원', '') : f.replace('원', ''); const num = parseInt(f.replace(/[^0-9]/g, '')); if (isNaN(num)) return f; return isEn ? (num/10000).toFixed(1).replace('.0', '') + '0k' : (num/10000).toFixed(1).replace('.0', '') + '만'; })()}</span>
+                                          </div>
                                         </div>
                                       </div>
                                     ))}
