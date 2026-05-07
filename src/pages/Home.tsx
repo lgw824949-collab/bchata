@@ -989,7 +989,14 @@ const HomePage = ({
                   </button>
                   <div style={{ color: 'var(--color-text-main)', fontSize: '18px', fontWeight: '900', display: 'flex', alignItems: 'center', gap: '8px' }}>
                     <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#FF1744' }} />
-                    {isEn ? 'All Party Posters' : '전체 파티 포스터'}
+                    {(() => {
+                      const regionKeys = {
+                        '서울': 'region_seoul', '경기/인천': 'region_gyeonggi_incheon',
+                        '경상도': 'region_gyeongsang', '전라도': 'region_jeolla',
+                        '충청도': 'region_chungcheong', '강원/제주': 'region_gangwon_jeju'
+                      };
+                      return t(regionKeys[gridRegion] || gridRegion);
+                    })()} {isEn ? 'All Posters' : '전체 포스터'}
                   </div>
                 </div>
               </div>
@@ -1002,12 +1009,16 @@ const HomePage = ({
                   gap: '2px' 
                 }}>
                   {(() => {
-                    // 모든 포스터 파티 (날짜/지역 상관없이)
-                    const allPosterParties = (parties || [])
+                    // 해당 지역의 모든 포스터 파티 (날짜 상관없이)
+                    const regionalPosterParties = (parties || [])
                       .filter(p => p.poster_url && p.poster_url.trim() !== '')
-                      .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
+                      .filter(p => {
+                        const filterFn = REGION_FILTER[gridRegion];
+                        return filterFn ? filterFn(p) : true;
+                      })
+                      .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime()); // 가까운 날짜순
 
-                    return allPosterParties.map(item => (
+                    return regionalPosterParties.map(item => (
                       <div 
                         key={item.id} 
                         onClick={() => {
@@ -1029,9 +1040,12 @@ const HomePage = ({
                     ));
                   })()}
                 </div>
-                {(!parties || parties.filter(p => p.poster_url).length === 0) && (
-                  <div style={{ padding: '100px 0', textAlign: 'center', color: '#64748B', fontWeight: '700' }}>등록된 파티가 없습니다.</div>
-                )}
+                {(() => {
+                  const hasPosters = (parties || []).some(p => p.poster_url && REGION_FILTER[gridRegion]?.(p));
+                  return !hasPosters && (
+                    <div style={{ padding: '100px 0', textAlign: 'center', color: '#64748B', fontWeight: '700' }}>해당 지역에 등록된 포스터가 없습니다.</div>
+                  );
+                })()}
                 {/* 하단 여백 */}
                 <div style={{ height: '100px' }}></div>
               </div>
