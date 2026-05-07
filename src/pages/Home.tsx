@@ -555,6 +555,14 @@ const HomePage = ({
         </div>
       </div>
 
+      <div style={{ padding: '12px 10px 8px' }}>
+        <div style={{ height: '36px', background: '#0f172a', borderRadius: '18px', display: 'flex', alignItems: 'center', overflow: 'hidden', padding: '0 16px' }}>
+          <div style={{ flex: 1, overflow: 'hidden' }}>
+            <LiveCount />
+          </div>
+        </div>
+      </div>
+
       {/* 📌 [영역 B: 날짜 선택바 - 상단 고정(Sticky)] */}
       <div style={{ position: 'sticky', top: 0, zIndex: 1000, background: 'var(--color-bg)', borderBottom: '1px solid var(--color-border)', boxShadow: '0 4px 12px rgba(0,0,0,0.03)', padding: '0 10px', transition: 'all 0.3s' }}>
         <div style={{ flex: 1, display: 'flex', overflowX: 'auto', gap: '8px', padding: '6px 0', msOverflowStyle: 'none', scrollbarWidth: 'none', WebkitOverflowScrolling: 'touch' }} className="date-stream-bar">
@@ -582,14 +590,6 @@ const HomePage = ({
               </div>
             );
           })}
-        </div>
-      </div>
-
-      <div style={{ padding: '12px 10px 8px' }}>
-        <div style={{ height: '36px', background: '#0f172a', borderRadius: '18px', display: 'flex', alignItems: 'center', overflow: 'hidden', padding: '0 16px' }}>
-          <div style={{ flex: 1, overflow: 'hidden' }}>
-            <LiveCount />
-          </div>
         </div>
       </div>
 
