@@ -625,9 +625,36 @@ const HomePage = ({
                     {metroToday.length > 0 && (
                       <div style={{ margin: '0 0 15px', padding: '10px 0 20px', background: 'var(--color-card)', borderBottom: '1px solid var(--color-border)' }}>
                         <div style={{ padding: '0 20px 15px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                          <h2 style={{ fontSize: '18px', fontWeight: '950', color: 'var(--color-text-main)', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                            <span style={{ color: '#FF1744' }}>HOT</span> PICK <span style={{ color: '#FF1744' }}>{metroToday.length}</span> <span style={{ fontSize: '12px', color: '#94A3B8', fontWeight: 700 }}>[수도권]</span>
-                          </h2>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                            <h2 style={{ fontSize: '18px', fontWeight: '950', color: 'var(--color-text-main)', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                              <span style={{ color: '#FF1744' }}>HOT</span> PICK 5 <span style={{ fontSize: '12px', color: '#94A3B8', fontWeight: 700 }}>[수도권]</span>
+                            </h2>
+                            
+                            {/* 언어 토글 버튼 복구 */}
+                            <button
+                              onClick={() => {
+                                const newLang = lang === 'ko' ? 'en' : 'ko';
+                                setLang(newLang);
+                                i18n.changeLanguage(newLang);
+                              }}
+                              style={{
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: '2px',
+                                background: 'rgba(0,0,0,0.05)',
+                                border: '1px solid var(--color-border)',
+                                borderRadius: '20px',
+                                padding: '2px 4px',
+                                cursor: 'pointer',
+                                color: 'var(--color-text-sub)',
+                                fontSize: '10px',
+                                fontWeight: 700
+                              }}
+                            >
+                              <span style={{ color: lang === 'ko' ? '#FF1744' : 'inherit', padding: '1px 6px', borderRadius: '10px', background: lang === 'ko' ? 'var(--color-bg)' : 'transparent' }}>KO</span>
+                              <span style={{ color: lang === 'en' ? '#FF1744' : 'inherit', padding: '1px 6px', borderRadius: '10px', background: lang === 'en' ? 'var(--color-bg)' : 'transparent' }}>EN</span>
+                            </button>
+                          </div>
                           
                           <motion.button
                             whileTap={{ scale: 0.9 }}
@@ -733,7 +760,7 @@ const HomePage = ({
                               <div style={{ margin: '40px 0 15px', padding: '10px 0 20px', background: 'var(--color-card)', borderBottom: '1px solid var(--color-border)' }}>
                                 <div style={{ padding: '0 20px 15px' }}>
                                   <h2 style={{ fontSize: '18px', fontWeight: '950', color: 'var(--color-text-main)', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                                    <span style={{ color: '#FF1744' }}>HOT</span> PICK <span style={{ color: '#FF1744' }}>{provincialToday.length}</span> <span style={{ fontSize: '12px', color: '#94A3B8', fontWeight: 700 }}>[지방권]</span>
+                                    <span style={{ color: '#FF1744' }}>HOT</span> PICK 5 <span style={{ fontSize: '12px', color: '#94A3B8', fontWeight: 700 }}>[지방권]</span>
                                   </h2>
                                 </div>
                                 <div style={{ width: '100%', overflow: 'hidden', padding: '10px 0' }}>
@@ -764,103 +791,6 @@ const HomePage = ({
                   </>
                 );
               })()}
-
-
-
-              {IncheonBanner && <IncheonBanner />}
-              {(() => {
-                const regionKeys = {
-                  "서울": "region_seoul",
-                  "경기/인천": "region_gyeonggi_incheon",
-                  "경상도": "region_gyeongsang",
-                  "전라도": "region_jeolla",
-                  "충청도": "region_chungcheong",
-                  "강원/제주": "region_gangwon_jeju"
-                };
-                const regions = ["서울", "경기/인천", "경상도", "전라도", "충청도", "강원/제주"];
-                return regions.map((regionName) => {
-                  const regionParties = (parties || [])
-                    .filter(p => p.date === selectedDate)
-                    .filter(p => REGION_FILTER[regionName](p))
-                    .filter(p => {
-                      // 2. 장르 조건 매칭
-                      if (filterGenre && GENRE_MAP[filterGenre]) {
-                        if (!(p[GENRE_MAP[filterGenre].key] > 0)) return false;
-                      }
-                      return true;
-                    });
-
-                  const isFirst = regionName === '서울';
-
-                  return (
-                    <section 
-                      key={regionName} 
-                      ref={isFirst ? regionListRef : null}
-                      style={{ marginBottom: '15px', background: 'var(--color-card)' }}
-                    >
-                      <div style={{ fontSize: '18px', fontWeight: '900', padding: '15px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', color: 'var(--color-text-main)' }}>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                          <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#FF1744' }} />
-                          {t(regionKeys[regionName] || regionName)}
-                        </div>
-                        <button 
-                          onClick={() => {
-                            setGridRegion(regionName);
-                            handleOpenModal(setShowGridModal, true);
-                          }}
-                          style={{ fontSize: '12px', fontWeight: '700', color: '#94A3B8', background: 'none', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '2px' }}
-                        >
-                          {t('view_all')} <ChevronRight size={14} />
-                        </button>
-                      </div>
-                      <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', padding: '0 15px 20px' }}>
-                        {regionParties.length === 0 ? (
-                          <div style={{ padding: '40px', background: '#F8FAFC', borderRadius: '16px', textAlign: 'center', color: '#94A3B8', fontSize: '13px', fontWeight: '700' }}>{t('no_parties')}</div>
-                        ) : (() => {
-                          const maxCount = regionName === '서울' ? 3 : 2;
-                          return regionParties.slice(0, maxCount).map(item => (
-                            <PartyCard key={item.id} item={item} onSelect={(url) => handleOpenModal(setSelectedPoster, url)} />
-                          ));
-                        })()}
-                      </div>
-                    </section>
-                  );
-                });
-              })()}
-
-              {/* 오늘의 부트캠프 */}
-              {bootcamps?.filter(b => b.start_date <= selectedDate && b.end_date >= selectedDate).length > 0 && (
-                <section style={{ marginBottom: '15px', background: '#fff' }}>
-                  <div style={{ fontSize: '18px', fontWeight: '900', padding: '15px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                      <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#7C3AED' }} />
-                      {t('today_bootcamp')}
-                    </div>
-                  </div>
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', padding: '0 15px 20px' }}>
-                    {bootcamps.filter(b => b.start_date <= selectedDate && b.end_date >= selectedDate).map(item => (
-                      <BootcampCard key={item.id} item={item} onSelect={(url) => handleOpenModal(setSelectedPoster, url)} />
-                    ))}
-                  </div>
-                </section>
-              )}
-
-              {/* 오늘의 페스티벌 */}
-              {festivals?.filter(f => f.start_date <= selectedDate && f.end_date >= selectedDate).length > 0 && (
-                <section style={{ marginBottom: '15px', background: '#fff' }}>
-                  <div style={{ fontSize: '18px', fontWeight: '900', padding: '15px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                      <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#F97316' }} />
-                      {t('today_festival')}
-                    </div>
-                  </div>
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', padding: '0 15px 20px' }}>
-                    {festivals.filter(f => f.start_date <= selectedDate && f.end_date >= selectedDate).map(item => (
-                      <FestivalCard key={item.id} item={item} onSelect={(url) => handleOpenModal(setSelectedPoster, url)} />
-                    ))}
-                  </div>
-                </section>
-              )}
 
 
             </div>
