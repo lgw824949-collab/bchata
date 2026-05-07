@@ -412,6 +412,7 @@ const HomePage = ({
   handleOpenModal, handleCloseModal
 }) => {
   const { t, i18n } = useTranslation();
+  const [lang, setLang] = useState<'ko' | 'en'>('ko');
   const isEn = i18n.language.startsWith('en');
   const [isPaused, setIsPaused] = useState(false);
   const [classGenre, setClassGenre] = useState('전체');
@@ -499,12 +500,12 @@ const HomePage = ({
           </span>
         </div>
         <p style={{ fontSize: '11px', color: '#E53935', letterSpacing: '0.3em', fontWeight: 300, margin: '0 0 16px' }}>SOCIAL CULTURE EXPERIENCE</p>
-        <p style={{ fontSize: '13px', color: '#666', margin: '0 0 8px', fontWeight: 300, letterSpacing: '0.05em' }}>오늘 밤, 어디선가 파티가 시작되고 있어요</p>
-        <p style={{ fontSize: '32px', fontWeight: 900, color: '#111', margin: 0, letterSpacing: '-1.5px', lineHeight: 1.3 }}>전국 어디서든</p>
-        <p style={{ fontSize: '32px', fontWeight: 900, color: '#E53935', margin: '0 0 12px', letterSpacing: '-1.5px', lineHeight: 1.3 }}>만원이면 충분해요</p>
+        <p style={{ fontSize: '13px', color: '#666', margin: '0 0 8px', fontWeight: 300, letterSpacing: '0.05em' }}>{lang === 'ko' ? '오늘 밤, 어디선가 파티가 시작되고 있어요' : 'Tonight, a party is starting somewhere'}</p>
+        <p style={{ fontSize: '32px', fontWeight: 900, color: '#111', margin: 0, letterSpacing: '-1.5px', lineHeight: 1.3 }}>{lang === 'ko' ? '전국 어디서든' : 'Anywhere in Korea'}</p>
+        <p style={{ fontSize: '32px', fontWeight: 900, color: '#E53935', margin: '0 0 12px', letterSpacing: '-1.5px', lineHeight: 1.3 }}>{lang === 'ko' ? '만원이면 충분해요' : '10,000 won is enough'}</p>
         <div style={{ borderLeft: '3px solid #E53935', paddingLeft: '16px' }}>
-          <p style={{ fontSize: '13px', color: '#444', margin: 0, fontWeight: 300, lineHeight: 1.8 }}>바차타 · 살사 · 소셜</p>
-          <p style={{ fontSize: '13px', color: '#444', margin: 0, fontWeight: 300, lineHeight: 1.8 }}>도심 속 전율의 밤</p>
+          <p style={{ fontSize: '13px', color: '#444', margin: 0, fontWeight: 300, lineHeight: 1.8 }}>{lang === 'ko' ? '바차타 · 살사 · 소셜' : 'Bachata · Salsa · Social'}</p>
+          <p style={{ fontSize: '13px', color: '#444', margin: 0, fontWeight: 300, lineHeight: 1.8 }}>{lang === 'ko' ? '도심 속 전율의 밤' : 'A thrilling night in the city'}</p>
         </div>
       </div>
 
@@ -580,25 +581,27 @@ const HomePage = ({
                     </motion.button>
 
                     {/* 언어 토글 버튼 이동 배치 */}
-                    <motion.button
-                      whileTap={{ scale: 0.9 }}
-                      onClick={() => i18n.changeLanguage(i18n.language.startsWith('ko') ? 'en' : 'ko')}
+                    <button
+                      onClick={() => setLang(prev => prev === 'ko' ? 'en' : 'ko')}
                       style={{
-                        background: '#F1F5F9',
-                        border: 'none',
-                        borderRadius: '12px',
-                        padding: '8px 12px',
-                        fontSize: '12px',
-                        fontWeight: '900',
-                        cursor: 'pointer',
-                        color: '#1E293B',
                         display: 'flex',
                         alignItems: 'center',
-                        gap: '6px'
+                        gap: '4px',
+                        background: 'transparent',
+                        border: '1px solid rgba(255,255,255,0.2)',
+                        borderRadius: '20px',
+                        padding: '4px 10px',
+                        cursor: 'pointer',
+                        color: 'rgba(255,255,255,0.6)',
+                        fontSize: '11px',
+                        fontWeight: 600,
+                        letterSpacing: '0.5px'
                       }}
                     >
-                      {i18n.language.startsWith('ko') ? '🇺🇸 EN' : '🇰🇷 KO'}
-                    </motion.button>
+                      <span style={{ color: lang === 'ko' ? '#fff' : 'rgba(255,255,255,0.3)' }}>한국어</span>
+                      <span style={{ color: 'rgba(255,255,255,0.2)' }}>/</span>
+                      <span style={{ color: lang === 'en' ? '#fff' : 'rgba(255,255,255,0.3)' }}>ENG</span>
+                    </button>
                   </div>
                   <div style={{ width: '100%', overflow: 'hidden', padding: '10px 0' }}>
                     <motion.div animate={isPaused ? {} : { x: [0, -775] }} transition={{ duration: 20, repeat: Infinity, ease: "linear" }} style={{ display: 'flex', gap: '15px', paddingLeft: '20px', width: 'max-content' }}>
