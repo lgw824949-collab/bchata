@@ -75,8 +75,11 @@ const Festival = ({ onBack, initialView = 'list' }) => {
         poster_url = data.publicUrl;
       }
 
+      // ticket_type 컬럼이 DB에 없으므로 제외하고 전송
+      const { ticket_type: _, ...insertData } = registerForm;
+
       const { data, error } = await supabase.from('festivals').insert([{
-        ...registerForm,
+        ...insertData,
         poster_url,
         status: 'pending',
         created_at: new Date().toISOString()
