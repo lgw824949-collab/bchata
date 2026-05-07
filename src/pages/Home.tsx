@@ -979,70 +979,61 @@ const HomePage = ({
               }}
             >
               {/* 상단 바 */}
-              <div style={{ height: '70px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0 20px', borderBottom: '1px solid rgba(255,255,255,0.1)' }}>
+              <div style={{ height: '70px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0 20px', borderBottom: '1px solid var(--color-border)', background: 'var(--color-bg)' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
                   <button 
                     onClick={handleCloseModal}
-                    style={{ background: 'rgba(255,255,255,0.15)', border: 'none', borderRadius: '50%', width: '48px', height: '48px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff' }}
+                    style={{ background: 'var(--color-border)', border: 'none', borderRadius: '50%', width: '40px', height: '40px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--color-text-main)' }}
                   >
-                    <ChevronLeft size={28} />
+                    <ChevronLeft size={24} />
                   </button>
-                  <div style={{ color: '#fff', fontSize: '18px', fontWeight: '900', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <div style={{ color: 'var(--color-text-main)', fontSize: '18px', fontWeight: '900', display: 'flex', alignItems: 'center', gap: '8px' }}>
                     <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#FF1744' }} />
-                    {(() => {
-                      const regionKeys = {
-                        '서울': 'region_seoul', '인천': 'region_incheon', '경기': 'region_gyeonggi_incheon',
-                        '부산': 'region_busan', '대구': 'region_daegu', '광주': 'region_gwangju',
-                        '대전': 'region_daejeon', '울산': 'region_ulsan', '세종': 'region_sejong',
-                        '강원': 'region_gangwon', '충북': 'region_chungcheong', '충남': 'region_chungcheong',
-                        '전북': 'region_jeolla', '전남': 'region_jeolla', '경북': 'region_gyeongsang',
-                        '경남': 'region_gyeongsang', '제주': 'region_jeju'
-                      };
-                      return t(regionKeys[gridRegion] || gridRegion);
-                    })()} {t('view_all')}
+                    {isEn ? 'All Party Posters' : '전체 파티 포스터'}
                   </div>
                 </div>
               </div>
 
               {/* 그리드 본문 */}
-              <div style={{ flex: 1, overflowY: 'auto', padding: '2px' }}>
+              <div style={{ flex: 1, overflowY: 'auto', padding: '2px', background: 'var(--color-bg)' }}>
                 <div style={{ 
                   display: 'grid', 
                   gridTemplateColumns: 'repeat(3, 1fr)', 
                   gap: '2px' 
                 }}>
                   {(() => {
-                    const filtered = filteredParties.filter(p => {
-                      const filterFn = REGION_FILTER[gridRegion];
-                      return filterFn ? filterFn(p) : true;
-                    });
-                    return filtered.map(item => (
+                    // 모든 포스터 파티 (날짜/지역 상관없이)
+                    const allPosterParties = (parties || [])
+                      .filter(p => p.poster_url && p.poster_url.trim() !== '')
+                      .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
+
+                    return allPosterParties.map(item => (
                       <div 
                         key={item.id} 
                         onClick={() => {
                           handleOpenModal(setSelectedPoster, item.poster_url);
                         }}
-                         style={{ aspectRatio: '3/4', overflow: 'hidden', background: 'var(--color-card)', position: 'relative' }}
+                         style={{ aspectRatio: '1 / 1.4', overflow: 'hidden', background: 'var(--color-card)', position: 'relative' }}
                       >
                         <img 
                           src={item.poster_url} 
                           alt="Poster" 
-                          style={{ width: '100%', height: '100%', objectFit: 'cover' }} 
+                          style={{ width: '100%', height: '100%', objectFit: 'cover', imageRendering: '-webkit-optimize-contrast' }} 
                         />
                         {/* 간단 정보 오버레이 */}
-                        <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, padding: '8px 5px', background: 'linear-gradient(transparent, rgba(0,0,0,0.8))', color: '#fff' }}>
-                          <div style={{ fontSize: '10px', fontWeight: '800', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{translateDynamicText(item.locationName, isEn)}</div>
+                        <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, padding: '8px 5px', background: 'linear-gradient(transparent, rgba(0,0,0,0.85))', color: '#fff' }}>
+                          <div style={{ fontSize: '10px', fontWeight: '800', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', color: '#FFEB3B', marginBottom: '2px' }}>{translateDynamicText(item.locationName, isEn)}</div>
+                          <div style={{ fontSize: '9px', fontWeight: '700', opacity: 0.9 }}>{(() => { const d = new Date(item.date); return `${d.getMonth() + 1}/${d.getDate()}(${isEn ? DAYS_EN[d.getDay()] : DAYS_KOR[d.getDay()]})`; })()}</div>
                         </div>
                       </div>
                     ));
                   })()}
                 </div>
-                {filteredParties.filter(p => {
-                  const filterFn = REGION_FILTER[gridRegion];
-                  return filterFn ? filterFn(p) : true;
-                }).length === 0 && (
-                  <div style={{ padding: '100px 0', textAlign: 'center', color: '#64748B', fontWeight: '700' }}>해당 지역에 등록된 파티가 없습니다.</div>
+                {(!parties || parties.filter(p => p.poster_url).length === 0) && (
+                  <div style={{ padding: '100px 0', textAlign: 'center', color: '#64748B', fontWeight: '700' }}>등록된 파티가 없습니다.</div>
                 )}
+                {/* 하단 여백 */}
+                <div style={{ height: '100px' }}></div>
               </div>
             </motion.div>
           </>
