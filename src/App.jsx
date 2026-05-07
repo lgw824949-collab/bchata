@@ -1,22 +1,33 @@
-import { useState, useEffect, useMemo, useRef } from 'react'
-import { Home as HomeIcon, Users, Plus, LogOut, Heart, X, MessageSquare, RefreshCw, CloudSun, Utensils, Zap, Languages, Bell, Star, Navigation, CreditCard, Settings, Map as MapIcon, BarChart, Gift, Coffee, User, Menu, Music2, Tent, Flag, Download, Globe, ShieldCheck, Calendar, Camera, ChevronLeft, ChevronRight } from 'lucide-react'
+import { useState, useEffect, useMemo, useRef, lazy, Suspense } from 'react'
+import { Home as HomeIcon, Users, Plus, LogOut, Heart, X, MessageSquare, RefreshCw, CloudSun, Utensils, Zap, Languages, Bell, Star, Navigation, CreditCard, Settings, Map as MapIcon, BarChart, Gift, Coffee, User, Menu, Music2, Tent, Flag, Download, Globe, ShieldCheck, Calendar, Camera, ChevronLeft, ChevronRight, Loader2 } from 'lucide-react'
 import { useTranslation } from 'react-i18next';
 import { motion, AnimatePresence } from 'framer-motion'
 import { supabase, logActivity } from './lib/supabase'
-import RegisterForm from './RegisterForm'
-import AdminDashboard from './AdminDashboard'
-import HomePage from './pages/Home'
-import Community from './pages/Community'
-import PostClub from './pages/PostClub'
-import Bootcamp from './pages/Bootcamp'
-import Festival from './pages/Festival'
-import Auth from './components/Auth'
-import Parking from './pages/Parking'
-import Restaurant from './pages/Restaurant'
-import SajuModal from './components/SajuModal'
-import IncheonRoute from './components/IncheonRoute'
-import WeatherModal from './components/WeatherModal'
 import QuickPinchZoom, { make3dTransformValue } from 'react-quick-pinch-zoom';
+
+// 페이지 지연 로딩 (Lazy Loading)
+const RegisterForm = lazy(() => import('./RegisterForm'));
+const AdminDashboard = lazy(() => import('./AdminDashboard'));
+const HomePage = lazy(() => import('./pages/Home'));
+const Community = lazy(() => import('./pages/Community'));
+const PostClub = lazy(() => import('./pages/PostClub'));
+const Bootcamp = lazy(() => import('./pages/Bootcamp'));
+const Festival = lazy(() => import('./pages/Festival'));
+const Parking = lazy(() => import('./pages/Parking'));
+const Restaurant = lazy(() => import('./pages/Restaurant'));
+const SajuModal = lazy(() => import('./components/SajuModal'));
+const IncheonRoute = lazy(() => import('./components/IncheonRoute'));
+const WeatherModal = lazy(() => import('./components/WeatherModal'));
+
+// 로딩 스피너 컴포넌트
+const LoadingFallback = () => (
+  <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '80vh', gap: '16px' }}>
+    <motion.div animate={{ rotate: 360 }} transition={{ duration: 1, repeat: Infinity, ease: 'linear' }}>
+      <Loader2 size={40} color="#FF1744" />
+    </motion.div>
+    <p style={{ color: '#94A3B8', fontSize: '14px', fontWeight: 600 }}>잠시만 기다려주세요...</p>
+  </div>
+);
 
 // --- [CUSTOM ROUTING ENGINE] ---
 const useLocation = () => {
@@ -925,53 +936,55 @@ function App() {
       </AnimatePresence>
 
       <main>
-        {view === 'home' ? <HomePage {...sharedProps} /> : 
-         view === 'community' ? <Community setSelectedPoster={setSelectedPoster} setView={setView} /> :
-         view === 'bootcamp' ? <Bootcamp onBack={() => navigate('/')} /> :
-         view === 'bootcamp-register' ? <Bootcamp onBack={() => navigate('/bootcamp')} initialView="register" /> :
-         view === 'festival' ? <Festival onBack={() => navigate('/')} /> :
-         view === 'festival-register' ? <Festival onBack={() => navigate('/festival')} initialView="register" /> :
-         view === 'parking' ? <Parking onBack={() => navigate('/')} /> :
-         view === 'restaurant' ? <Restaurant onBack={() => navigate('/')} /> :
-         view === 'register-party' ? <RegisterForm onBack={() => navigate('/')} /> :
-         view === 'admin' ? <AdminDashboard setView={setView} onBack={() => setView('admin-portal')} refreshData={fetchParties} /> :
-         view === 'admin-portal' ? (
-              <div style={{ 
-                height: '100vh', 
-                background: '#0F172A', 
-                display: 'flex', 
-                flexDirection: 'column', 
-                alignItems: 'center', 
-                justifyContent: 'center', 
-                padding: '20px',
-                gap: '20px'
-              }}>
-                <div style={{ textAlign: 'center', marginBottom: '30px' }}>
-                  <ShieldCheck size={64} color="#FF1744" style={{ margin: '0 auto 16px' }} />
-                  <h2 style={{ color: 'white', fontSize: '24px', fontWeight: 900 }}>{t('admin_portal')}</h2>
-                  <p style={{ color: '#94A3B8', fontSize: '14px' }}>{t('admin_portal_desc')}</p>
+        <Suspense fallback={<LoadingFallback />}>
+          {view === 'home' ? <HomePage {...sharedProps} /> : 
+           view === 'community' ? <Community setSelectedPoster={setSelectedPoster} setView={setView} /> :
+           view === 'bootcamp' ? <Bootcamp onBack={() => navigate('/')} /> :
+           view === 'bootcamp-register' ? <Bootcamp onBack={() => navigate('/bootcamp')} initialView="register" /> :
+           view === 'festival' ? <Festival onBack={() => navigate('/')} /> :
+           view === 'festival-register' ? <Festival onBack={() => navigate('/festival')} initialView="register" /> :
+           view === 'parking' ? <Parking onBack={() => navigate('/')} /> :
+           view === 'restaurant' ? <Restaurant onBack={() => navigate('/')} /> :
+           view === 'register-party' ? <RegisterForm onBack={() => navigate('/')} /> :
+           view === 'admin' ? <AdminDashboard setView={setView} onBack={() => setView('admin-portal')} refreshData={fetchParties} /> :
+           view === 'admin-portal' ? (
+                <div style={{ 
+                  height: '100vh', 
+                  background: '#0F172A', 
+                  display: 'flex', 
+                  flexDirection: 'column', 
+                  alignItems: 'center', 
+                  justifyContent: 'center', 
+                  padding: '20px',
+                  gap: '20px'
+                }}>
+                  <div style={{ textAlign: 'center', marginBottom: '30px' }}>
+                    <ShieldCheck size={64} color="#FF1744" style={{ margin: '0 auto 16px' }} />
+                    <h2 style={{ color: 'white', fontSize: '24px', fontWeight: 900 }}>{t('admin_portal')}</h2>
+                    <p style={{ color: '#94A3B8', fontSize: '14px' }}>{t('admin_portal_desc')}</p>
+                  </div>
+                  
+                  <button 
+                    onClick={() => setView('admin')}
+                    style={{ 
+                      width: '100%', maxWidth: '320px', padding: '24px', 
+                      borderRadius: '20px', background: '#1E293B', color: 'white', 
+                      border: '1px solid #334155', fontSize: '18px', fontWeight: 800,
+                      cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '15px'
+                    }}
+                  >
+                    <Music2 size={24} color="#FF1744" /> {t('admin_manage_party')}
+                  </button>
+                  
+                  <button 
+                    onClick={() => navigate('/')}
+                    style={{ marginTop: '40px', background: 'none', border: 'none', color: '#64748B', fontWeight: 700, cursor: 'pointer' }}
+                  >
+                    {t('back_to_main')}
+                  </button>
                 </div>
-                
-                <button 
-                  onClick={() => setView('admin')}
-                  style={{ 
-                    width: '100%', maxWidth: '320px', padding: '24px', 
-                    borderRadius: '20px', background: '#1E293B', color: 'white', 
-                    border: '1px solid #334155', fontSize: '18px', fontWeight: 800,
-                    cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '15px'
-                  }}
-                >
-                  <Music2 size={24} color="#FF1744" /> {t('admin_manage_party')}
-                </button>
-                
-                <button 
-                  onClick={() => navigate('/')}
-                  style={{ marginTop: '40px', background: 'none', border: 'none', color: '#64748B', fontWeight: 700, cursor: 'pointer' }}
-                >
-                  {t('back_to_main')}
-                </button>
-              </div>
-            ) : <AdminDashboard onBack={() => navigate('/')} refreshData={fetchParties} />}
+              ) : <AdminDashboard onBack={() => navigate('/')} refreshData={fetchParties} />}
+        </Suspense>
       </main>
 
       <nav 
@@ -1096,13 +1109,19 @@ function App() {
 
       <DynamicAnalysisModal isOpen={showIncheonModal} onClose={() => setShowIncheonModal(false)} userCoords={userCoords} isSajuCall={isSajuCall} />
       <AnimatePresence>
-        {showIncheon && <IncheonRoute parties={parties} onClose={() => setShowIncheon(false)} />}
+        <Suspense fallback={null}>
+          {showIncheon && <IncheonRoute parties={parties} onClose={() => setShowIncheon(false)} />}
+        </Suspense>
       </AnimatePresence>
       <AnimatePresence>
-        {showSaju && <SajuModal parties={parties} onClose={() => setShowSaju(false)} lang={lang} />}
+        <Suspense fallback={null}>
+          {showSaju && <SajuModal parties={parties} onClose={() => setShowSaju(false)} lang={lang} />}
+        </Suspense>
       </AnimatePresence>
       <AnimatePresence>
-        {showWeather && <WeatherModal onClose={() => setShowWeather(false)} />}
+        <Suspense fallback={null}>
+          {showWeather && <WeatherModal onClose={() => setShowWeather(false)} />}
+        </Suspense>
       </AnimatePresence>
 
       <AnimatePresence>
