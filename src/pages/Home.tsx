@@ -151,14 +151,15 @@ const PartyCard = ({ item, onSelect }) => {
         display: 'flex', 
         flexDirection: 'row', 
         alignItems: 'center', 
-        backgroundColor: '#FFFFFF', 
+        backgroundColor: 'var(--color-card)', 
         borderRadius: '16px', 
         overflow: 'hidden', 
-        border: '1px solid #F1F5F9', 
+        border: '1px solid var(--color-border)', 
         cursor: 'pointer', 
         height: '110px', 
         marginBottom: '12px', 
-        boxShadow: '0 4px 6px -1px rgba(0,0,0,0.05)'
+        boxShadow: '0 4px 6px -1px rgba(0,0,0,0.05)',
+        transition: 'all 0.3s'
       }}
     >
       {/* 1. 포스터 (왼쪽 고정) */}
@@ -170,7 +171,7 @@ const PartyCard = ({ item, onSelect }) => {
       <div style={{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'center', minWidth: 0, padding: '0 15px' }}>
         {/* 1행: 장소명 (순수 장소명만!) + 빨간 화살표 */}
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '2px' }}>
-          <span style={{ fontSize: '13px', fontWeight: '800', color: '#64748B' }}>
+          <span style={{ fontSize: '13px', fontWeight: '800', color: 'var(--color-text-sub)' }}>
             {translateDynamicText(item.locationName || item.studio_name || item.address || '장소 미지정', isEn)}
           </span>
           <Navigation 
@@ -198,13 +199,13 @@ const PartyCard = ({ item, onSelect }) => {
               padding: '1px 4px', borderRadius: '3px', animation: 'blink 1.5s infinite', flexShrink: 0
             }}>LIVE</span>
           )}
-          <h3 style={{ fontSize: '16px', fontWeight: '950', color: '#1E293B', margin: 0, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', letterSpacing: '-0.5px' }}>
+          <h3 style={{ fontSize: '16px', fontWeight: '950', color: 'var(--color-text-main)', margin: 0, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', letterSpacing: '-0.5px' }}>
             {translateDynamicText(cleanTitle.replace(/^\[.*?\]\s*|서울\s*|전국\s*/g, ''), isEn)}
           </h3>
         </div>
 
         {/* 3행: 날짜(요일) / 비율 / 시간 / 참여비 */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '3px', fontSize: '11px', fontWeight: '800', color: '#94A3B8', whiteSpace: 'nowrap' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '3px', fontSize: '11px', fontWeight: '800', color: 'var(--color-text-sub)', whiteSpace: 'nowrap' }}>
           <span style={{ color: '#FF1744' }}>
             {(() => {
               const d = new Date(item.date);
@@ -221,7 +222,7 @@ const PartyCard = ({ item, onSelect }) => {
           <span>/</span>
           <span>{displayTime}</span>
           <span>/</span>
-          <span style={{ color: '#1E293B' }}>{isEn ? displayFee.replace('만', '0k') : displayFee}</span>
+          <span style={{ color: 'var(--color-text-main)' }}>{isEn ? displayFee.replace('만', '0k') : displayFee}</span>
         </div>
       </div>
     </div>
@@ -248,15 +249,16 @@ const ClassCard = ({ item, onSelect }) => {
         width: '160px',
         minWidth: '160px',
         flexShrink: 0,
-        background: '#fff', 
+        background: 'var(--color-card)', 
         borderRadius: '16px', 
         overflow: 'hidden', 
         cursor: 'pointer',
         display: 'flex',
         flexDirection: 'column',
         scrollSnapAlign: 'start',
-        border: '1px solid #F1F5F9',
-        boxShadow: '0 2px 8px rgba(0,0,0,0.06)'
+        border: '1px solid var(--color-border)',
+        boxShadow: '0 2px 8px rgba(0,0,0,0.06)',
+        transition: 'all 0.3s'
       }}
     >
       {/* 포스터 영역 (160x200) */}
@@ -264,7 +266,7 @@ const ClassCard = ({ item, onSelect }) => {
         {item.poster_url ? (
           <img src={item.poster_url} style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} alt="Poster" />
         ) : (
-          <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#CBD5E1', fontSize: '12px', fontWeight: 800 }}>
+          <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--color-text-sub)', fontSize: '12px', fontWeight: 800 }}>
             No Poster
           </div>
         )}
@@ -289,7 +291,7 @@ const ClassCard = ({ item, onSelect }) => {
         </div>
         
         <h3 style={{ 
-          fontSize: '13px', fontWeight: '900', color: '#1E293B', 
+          fontSize: '13px', fontWeight: '900', color: 'var(--color-text-main)', 
           margin: '0 0 6px', height: '36px', display: '-webkit-box',
           WebkitLineClamp: 2, WebkitBoxOrient: 'vertical',
           overflow: 'hidden', lineHeight: '1.4'
@@ -297,13 +299,13 @@ const ClassCard = ({ item, onSelect }) => {
 
         <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
           <div style={{ 
-            fontSize: '11px', color: '#64748B', fontWeight: '700',
+            fontSize: '11px', color: 'var(--color-text-sub)', fontWeight: '700',
             whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' 
           }}>
             {item.studio_name}
           </div>
           
-          <div style={{ fontSize: '11px', color: '#94A3B8', fontWeight: '700' }}>
+          <div style={{ fontSize: '11px', color: 'var(--color-text-sub)', fontWeight: '700' }}>
             {item.day_of_week} · {item.start_time?.slice(0,5)}
           </div>
           
@@ -413,7 +415,7 @@ const FilterBar = ({ filterRegion, setFilterRegion, filterGenre, setFilterGenre 
                 console.log('지역 선택:', newVal);
                 setFilterRegion(newVal);
               }} 
-              style={{ padding: '6px 12px', borderRadius: '8px', fontSize: '12px', fontWeight: 700, whiteSpace: 'nowrap', border: 'none', background: filterRegion === r ? '#FF1744' : '#F1F5F9', color: filterRegion === r ? '#fff' : '#64748B', transition: 'all 0.2s' }}
+              style={{ padding: '6px 12px', borderRadius: '8px', fontSize: '12px', fontWeight: 700, whiteSpace: 'nowrap', border: 'none', background: filterRegion === r ? '#FF1744' : 'var(--color-border)', color: filterRegion === r ? '#fff' : 'var(--color-text-sub)', transition: 'all 0.2s' }}
             >
               {isEn ? REGION_MAP_EN[r] : r}
             </button>
@@ -526,27 +528,27 @@ const HomePage = ({
   }, []);
 
   return (
-    <div className="app-container" style={{ width: '100%', maxWidth: '500px', margin: '0 auto', background: '#fff', minHeight: '100vh', paddingBottom: '80px' }}>
+    <div className="app-container" style={{ width: '100%', maxWidth: '500px', margin: '0 auto', background: 'var(--color-bg)', minHeight: '100vh', paddingBottom: '80px', transition: 'background-color 0.3s' }}>
       
       {/* 📌 [영역 A: 브랜드 헤더 - 최종 확정] */}
       <div style={{ padding: '40px 24px 24px' }}>
         <p style={{ fontSize: '11px', color: '#E53935', letterSpacing: '0.3em', fontWeight: 300, margin: '0 0 16px' }}>SOCIAL CULTURE EXPERIENCE</p>
-        <p style={{ fontSize: '13px', color: '#666', margin: '0 0 8px', fontWeight: 300, letterSpacing: '0.05em' }}>
+        <p style={{ fontSize: '13px', color: 'var(--color-text-sub)', margin: '0 0 8px', fontWeight: 300, letterSpacing: '0.05em' }}>
           {lang === 'ko' ? '오늘 밤, 어디선가 파티가 시작되고 있어요' : 'Tonight, a party is starting somewhere'}
         </p>
         <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between' }}>
           <div>
-            <p style={{ fontSize: '32px', fontWeight: 900, color: '#111', margin: 0, letterSpacing: '-1.5px', lineHeight: 1.3 }}>
+            <p style={{ fontSize: '32px', fontWeight: 900, color: 'var(--color-text-main)', margin: 0, letterSpacing: '-1.5px', lineHeight: 1.3 }}>
               {lang === 'ko' ? '전국 어디서든' : 'Anywhere in Korea'}
             </p>
             <p style={{ fontSize: '32px', fontWeight: 900, color: '#E53935', margin: '0 0 12px', letterSpacing: '-1.5px', lineHeight: 1.3 }}>
               {lang === 'ko' ? '만원이면 충분해요' : '10,000 won is enough'}
             </p>
             <div style={{ borderLeft: '3px solid #E53935', paddingLeft: '16px' }}>
-              <p style={{ fontSize: '13px', color: '#444', margin: 0, fontWeight: 300, lineHeight: 1.8 }}>
+              <p style={{ fontSize: '13px', color: 'var(--color-text-sub)', margin: 0, fontWeight: 300, lineHeight: 1.8 }}>
                 {lang === 'ko' ? '바차타 · 살사 · 소셜' : 'Bachata · Salsa · Social'}
               </p>
-              <p style={{ fontSize: '13px', color: '#444', margin: 0, fontWeight: 300, lineHeight: 1.8 }}>
+              <p style={{ fontSize: '13px', color: 'var(--color-text-sub)', margin: 0, fontWeight: 300, lineHeight: 1.8 }}>
                 {lang === 'ko' ? '도심 속 전율의 밤' : 'A thrilling night in the city'}
               </p>
             </div>
@@ -561,7 +563,7 @@ const HomePage = ({
       </div>
 
       {/* 📌 [영역 B: 날짜 선택바 - 상단 고정(Sticky)] */}
-      <div style={{ position: 'sticky', top: 0, zIndex: 1000, background: '#ffffff', borderBottom: '1px solid #f1f5f9', boxShadow: '0 4px 12px rgba(0,0,0,0.03)', padding: '0 10px' }}>
+      <div style={{ position: 'sticky', top: 0, zIndex: 1000, background: 'var(--color-bg)', borderBottom: '1px solid var(--color-border)', boxShadow: '0 4px 12px rgba(0,0,0,0.03)', padding: '0 10px', transition: 'all 0.3s' }}>
         <div style={{ flex: 1, display: 'flex', overflowX: 'auto', gap: '8px', padding: '6px 0', msOverflowStyle: 'none', scrollbarWidth: 'none', WebkitOverflowScrolling: 'touch' }} className="date-stream-bar">
           {fourteenDays.map((item) => {
             const isSelected = selectedDate === item.fullDate;

@@ -4,6 +4,25 @@
   /* 아이폰 노치 및 하단 바 영역 보호 */
   --safe-top: env(safe-area-inset-top);
   --safe-bottom: env(safe-area-inset-bottom);
+
+  /* Light Theme Colors */
+  --color-bg: #ffffff;
+  --color-text-main: #1e293b;
+  --color-text-sub: #64748b;
+  --color-card: #f8fafc;
+  --color-border: #f1f5f9;
+  --color-primary: #FF1744;
+  --color-nav-bg: rgba(255, 255, 255, 0.95);
+}
+
+[data-theme='dark'] {
+  --color-bg: #0f172a;
+  --color-text-main: #f8fafc;
+  --color-text-sub: #94a3b8;
+  --color-card: #1e293b;
+  --color-border: #334155;
+  --color-primary: #FF1744;
+  --color-nav-bg: rgba(15, 23, 42, 0.95);
 }
 
 * {

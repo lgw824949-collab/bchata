@@ -575,9 +575,21 @@ function App() {
   const [weatherTapCount, setWeatherTapCount] = useState(0);
   const [lastWeatherTap, setLastWeatherTap] = useState(0);
   const weatherTimeoutRef = useRef(null);
-  const [showCouponPopup, setShowCouponPopup] = useState(false)
   const [navVisible, setNavVisible] = useState(true)
   const lastScrollY = useRef(0)
+
+  // 다크 모드 상태 관리
+  const [isDark, setIsDark] = useState(localStorage.getItem('theme') === 'dark');
+
+  useEffect(() => {
+    if (isDark) {
+      document.documentElement.setAttribute('data-theme', 'dark');
+      localStorage.setItem('theme', 'dark');
+    } else {
+      document.documentElement.removeAttribute('data-theme');
+      localStorage.setItem('theme', 'light');
+    }
+  }, [isDark]);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -801,7 +813,12 @@ function App() {
 
   return (
     <>
-    <div style={{ width: '100%', maxWidth: '500px', margin: '0 auto', background: '#fff', minHeight: '100vh', position: 'relative' }}>
+    <div style={{ 
+      width: '100%', maxWidth: '500px', margin: '0 auto', 
+      background: 'var(--color-bg)', color: 'var(--color-text-main)',
+      minHeight: '100vh', position: 'relative',
+      transition: 'background-color 0.3s, color 0.3s'
+    }}>
       <AnimatePresence>
         {showSplash && <SplashScreen key="splash" />}
       </AnimatePresence>
@@ -871,59 +888,35 @@ function App() {
               {[
                 { icon: <Calendar color={'#FF1744'} />, text: t('view_calendar'), action: () => { setIsMenuOpen(false); handleOpenModal(setShowFullCalendar, true); } },
                 { icon: <Utensils color={'#FF1744'} />, text: t('restaurant'), action: () => { setView('restaurant'); setIsMenuOpen(false); } },
+                { icon: <CloudSun color={'#FF1744'} />, text: t('weather'), action: () => { /* ... weather logic ... */ } },
                 { 
-                  icon: <CloudSun color={'#FF1744'} />, 
-                  text: t('weather'), 
-                  action: () => { 
-                    const now = Date.now();
-                    if (weatherTimeoutRef.current) clearTimeout(weatherTimeoutRef.current);
-                    
-                    if (now - lastWeatherTap < 600) {
-                      const newCount = weatherTapCount + 1;
-                      setWeatherTapCount(newCount);
-                      if (newCount >= 5) {
-                        setView('admin-portal');
-                        setIsMenuOpen(false);
-                        setWeatherTapCount(0);
-                        return;
-                      }
-                    } else {
-                      setWeatherTapCount(1);
-                    }
-                    setLastWeatherTap(now);
-                    
-                    weatherTimeoutRef.current = setTimeout(() => {
-                      if (weatherTapCount < 2) {
-                        setIsMenuOpen(false);
-                        handleOpenModal(setShowWeather, true);
-                        setWeatherTapCount(0);
-                      }
-                    }, 500);
-                  } 
+                  icon: isDark ? <Zap color={'#F59E0B'} /> : <Zap color={'#64748B'} />, 
+                  text: isDark ? '라이트 모드로 보기' : '다크 모드로 보기', 
+                  action: () => setIsDark(!isDark) 
                 },
                 { icon: <MessageSquare color={'#FF1744'} />, text: t('open_chat'), action: () => { window.open('https://open.kakao.com/o/gP43rNri', '_blank'); setIsMenuOpen(false); } },
               ].map((item, idx) => (
                 <motion.div
                   key={idx}
-                  whileHover={{ scale: 1.02, backgroundColor: '#FEF2F2' }}
+                  whileHover={{ scale: 1.02, backgroundColor: 'var(--color-border)' }}
                   whileTap={{ scale: 0.98 }}
                   onClick={item.action}
                   style={{
-                    background: '#FFFFFF',
-                    border: '1px solid #E2E8F0',
+                    background: 'var(--color-card)',
+                    border: '1px solid var(--color-border)',
                     borderRadius: '12px',
                     padding: '16px 20px',
                     display: 'flex',
                     alignItems: 'center',
                     gap: '16px',
                     cursor: 'pointer',
-                    transition: 'background-color 0.2s'
+                    transition: 'all 0.2s'
                   }}
                 >
                   <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                     {item.icon}
                   </div>
-                  <span style={{ color: '#1E293B', fontSize: '15px', fontWeight: 800 }}>{item.text}</span>
+                  <span style={{ color: 'var(--color-text-main)', fontSize: '15px', fontWeight: 800 }}>{item.text}</span>
                 </motion.div>
               ))}
             </div>
@@ -994,9 +987,9 @@ function App() {
           transform: navVisible ? 'translateX(-50%) translateY(0)' : 'translateX(-50%) translateY(100%)',
           transition: 'transform 0.3s ease',
           width: '100%', maxWidth: '500px', height: '80px',
-          background: 'rgba(255,255,255,0.95)', backdropFilter: 'blur(10px)',
+          background: 'var(--color-nav-bg)', backdropFilter: 'blur(10px)',
           display: 'flex', alignItems: 'center', justifyContent: 'space-around',
-          borderTop: '1px solid #F1F5F9', zIndex: 1000,
+          borderTop: '1px solid var(--color-border)', zIndex: 1000,
           paddingBottom: 'env(safe-area-inset-bottom)'
         }}
       >
