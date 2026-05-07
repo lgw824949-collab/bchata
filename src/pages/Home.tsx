@@ -612,24 +612,24 @@ const HomePage = ({
                   .filter(p => p.poster_url && p.poster_url.trim() !== '')
                   .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
 
-                // 수도권 / 지방권 분리 (최대 12개씩)
+                // 수도권 / 지방권 분리 (최대 5개씩 제한 - 선택과 집중!)
                 const metroHot = allPosterParties.filter(p => 
                   p.broadRegion === '서울' || p.broadRegion === '경기/인천'
-                ).slice(0, 12);
+                ).slice(0, 5);
 
                 const provincialHot = allPosterParties.filter(p => 
                   p.broadRegion !== '서울' && p.broadRegion !== '경기/인천'
-                ).slice(0, 12);
+                ).slice(0, 5);
 
                 return (
                   <>
-                    {/* [1] HOT PICK 5 - 수도권 (실시간 로테이션) */}
+                    {/* [1] HOT PICK 5 - 수도권 (상위 5개 큐레이션) */}
                     {metroHot.length > 0 && (
                       <div style={{ margin: '0 0 15px', padding: '10px 0 20px', background: 'var(--color-card)', borderBottom: '1px solid var(--color-border)' }}>
                         <div style={{ padding: '0 20px 15px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                           <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
                             <h2 style={{ fontSize: '18px', fontWeight: '950', color: 'var(--color-text-main)', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                              <span style={{ color: '#FF1744' }}>HOT</span> PICK <span style={{ fontSize: '12px', color: '#94A3B8', fontWeight: 700 }}>[수도권]</span>
+                              <span style={{ color: '#FF1744' }}>HOT</span> PICK 5 <span style={{ fontSize: '12px', color: '#94A3B8', fontWeight: 700 }}>[수도권]</span>
                             </h2>
                             {/* 언어 토글 유지 */}
                             <button
@@ -737,7 +737,7 @@ const HomePage = ({
                               <div style={{ margin: '40px 0 15px', padding: '10px 0 20px', background: 'var(--color-card)', borderBottom: '1px solid var(--color-border)' }}>
                                 <div style={{ padding: '0 20px 15px' }}>
                                   <h2 style={{ fontSize: '18px', fontWeight: '950', color: 'var(--color-text-main)', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                                    <span style={{ color: '#FF1744' }}>HOT</span> PICK <span style={{ fontSize: '12px', color: '#94A3B8', fontWeight: 700 }}>[지방권]</span>
+                                    <span style={{ color: '#FF1744' }}>HOT</span> PICK 5 <span style={{ fontSize: '12px', color: '#94A3B8', fontWeight: 700 }}>[지방권]</span>
                                   </h2>
                                 </div>
                                 <div style={{ width: '100%', overflow: 'hidden', padding: '10px 0' }}>
