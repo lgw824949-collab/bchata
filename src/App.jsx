@@ -565,6 +565,24 @@ function App() {
   const [lastWeatherTap, setLastWeatherTap] = useState(0);
   const weatherTimeoutRef = useRef(null);
   const [showCouponPopup, setShowCouponPopup] = useState(false)
+  const [navVisible, setNavVisible] = useState(true)
+  const lastScrollY = useRef(0)
+
+  useEffect(() => {
+    const handleScroll = () => {
+      const currentY = window.scrollY
+      if (currentY < 50) {
+        setNavVisible(true)
+      } else if (currentY > lastScrollY.current + 5) {
+        setNavVisible(false)
+      } else if (currentY < lastScrollY.current - 5) {
+        setNavVisible(true)
+      }
+      lastScrollY.current = currentY
+    }
+    window.addEventListener('scroll', handleScroll, { passive: true })
+    return () => window.removeEventListener('scroll', handleScroll)
+  }, [])
 
   const handleOpenModal = (setter, value = true) => {
     window.history.pushState({ modal: true }, '');
@@ -1076,7 +1094,19 @@ function App() {
       
 
       {true && (
-        <nav className="bottom-nav">
+        <nav 
+          className="bottom-nav"
+          style={{ 
+            position: 'fixed', bottom: 0, left: '50%',
+            transform: navVisible ? 'translateX(-50%) translateY(0)' : 'translateX(-50%) translateY(100%)',
+            transition: 'transform 0.3s ease',
+            width: '100%', maxWidth: '500px', height: '80px',
+            background: 'rgba(255,255,255,0.95)', backdropFilter: 'blur(10px)',
+            display: 'flex', alignItems: 'center', justifyContent: 'space-around',
+            borderTop: '1px solid #F1F5F9', zIndex: 1000,
+            paddingBottom: 'env(safe-area-inset-bottom)'
+          }}
+        >
           <div 
             className="nav-item" 
             onClick={() => navigate('/')}
