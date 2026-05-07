@@ -656,33 +656,28 @@ const HomePage = ({
                         </div>
                         <div style={{ width: '100%', overflow: 'hidden', padding: '10px 0' }}>
                           <motion.div 
-                            initial={{ x: 0 }}
-                            animate={{ x: metroHot.length > 2 ? -(metroHot.length * 155 - window.innerWidth + 40) : 0 }} 
+                            animate={{ x: [0, -(metroHot.length * 155)] }} 
                             transition={{ 
-                              duration: metroHot.length * 5, 
+                              duration: metroHot.length * 4, 
                               repeat: Infinity, 
-                              repeatType: "reverse", 
-                              ease: "easeInOut",
-                              repeatDelay: 1 // 끝에서 1초간 정지하여 눈의 피로 감소
+                              ease: "linear"
                             }} 
                             style={{ 
                               display: 'flex', 
                               gap: '15px', 
                               paddingLeft: '20px', 
-                              width: 'max-content',
-                              willChange: 'transform', // 렌더링 최적화
-                              transformStyle: 'preserve-3d',
-                              backfaceVisibility: 'hidden'
+                              width: 'max-content'
                             }}
                           >
-                            {metroHot.map((item) => (
-                              <div key={item.id} onClick={() => handleOpenModal(setSelectedPoster, item.poster_url)} style={{ width: '140px', flexShrink: 0, borderRadius: '12px', overflow: 'hidden', boxShadow: '0 8px 20px rgba(0,0,0,0.12)', position: 'relative' }}>
+                            {/* 무한 루프를 위해 데이터를 두 번 렌더링 */}
+                            {[...metroHot, ...metroHot].map((item, idx) => (
+                              <div key={`${item.id}-${idx}`} onClick={() => handleOpenModal(setSelectedPoster, item.poster_url)} style={{ width: '140px', flexShrink: 0, borderRadius: '12px', overflow: 'hidden', boxShadow: '0 8px 20px rgba(0,0,0,0.12)', position: 'relative' }}>
                                 <img src={item.poster_url} style={{ width: '100%', height: '190px', objectFit: 'cover' }} alt="Pick" />
-                                <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, padding: '10px 8px', background: 'linear-gradient(transparent, rgba(0,0,0,0.95))', color: 'white' }}>
-                                  <div style={{ fontSize: '10px', color: '#FFEB3B', fontWeight: 950, marginBottom: '2px' }}>{translateDynamicText(item.locationName, isEn)}</div>
-                                  <div style={{ fontSize: '11px', fontWeight: '950', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', marginBottom: '4px' }}>{translateDynamicText(item.title, isEn)}</div>
-                                  <div style={{ fontSize: '8px', fontWeight: 950, color: '#fff', display: 'flex', gap: '2px' }}>
-                                    <span style={{ background: 'rgba(255,255,255,0.2)', padding: '1px 4px', borderRadius: '4px' }}>{(() => { const d = new Date(item.date); return `${d.getMonth() + 1}/${d.getDate()}(${isEn ? DAYS_EN[d.getDay()] : DAYS_KOR[d.getDay()]})`; })()}</span>
+                                <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, padding: '12px 8px', background: 'linear-gradient(transparent, rgba(0,0,0,0.9))', color: 'white' }}>
+                                  <div style={{ fontSize: '10px', color: '#FFEB3B', fontWeight: 900, marginBottom: '2px', textShadow: '0 1px 2px rgba(0,0,0,0.5)' }}>{translateDynamicText(item.locationName, isEn)}</div>
+                                  <div style={{ fontSize: '11px', fontWeight: 900, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', marginBottom: '4px' }}>{translateDynamicText(item.title, isEn)}</div>
+                                  <div style={{ fontSize: '9px', fontWeight: 900, color: '#fff', display: 'flex', gap: '2px' }}>
+                                    <span style={{ background: 'rgba(255,255,255,0.2)', padding: '1px 6px', borderRadius: '4px', backdropFilter: 'blur(2px)' }}>{(() => { const d = new Date(item.date); return `${d.getMonth() + 1}/${d.getDate()}(${isEn ? DAYS_EN[d.getDay()] : DAYS_KOR[d.getDay()]})`; })()}</span>
                                   </div>
                                 </div>
                               </div>
@@ -760,33 +755,27 @@ const HomePage = ({
                                 </div>
                                 <div style={{ width: '100%', overflow: 'hidden', padding: '10px 0' }}>
                                   <motion.div 
-                                    initial={{ x: 0 }}
-                                    animate={{ x: provincialHot.length > 2 ? -(provincialHot.length * 155 - window.innerWidth + 40) : 0 }} 
+                                    animate={{ x: [0, -(provincialHot.length * 155)] }} 
                                     transition={{ 
-                                      duration: provincialHot.length * 5, 
+                                      duration: provincialHot.length * 4, 
                                       repeat: Infinity, 
-                                      repeatType: "reverse", 
-                                      ease: "easeInOut",
-                                      repeatDelay: 1
+                                      ease: "linear"
                                     }} 
                                     style={{ 
                                       display: 'flex', 
                                       gap: '15px', 
                                       paddingLeft: '20px', 
-                                      width: 'max-content',
-                                      willChange: 'transform',
-                                      transformStyle: 'preserve-3d',
-                                      backfaceVisibility: 'hidden'
+                                      width: 'max-content'
                                     }}
                                   >
-                                    {provincialHot.map((item) => (
-                                      <div key={item.id} onClick={() => handleOpenModal(setSelectedPoster, item.poster_url)} style={{ width: '140px', flexShrink: 0, borderRadius: '12px', overflow: 'hidden', boxShadow: '0 8px 20px rgba(0,0,0,0.12)', position: 'relative' }}>
+                                    {[...provincialHot, ...provincialHot].map((item, idx) => (
+                                      <div key={`${item.id}-${idx}`} onClick={() => handleOpenModal(setSelectedPoster, item.poster_url)} style={{ width: '140px', flexShrink: 0, borderRadius: '12px', overflow: 'hidden', boxShadow: '0 8px 20px rgba(0,0,0,0.12)', position: 'relative' }}>
                                         <img src={item.poster_url} style={{ width: '100%', height: '190px', objectFit: 'cover' }} alt="Pick" />
-                                        <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, padding: '10px 8px', background: 'linear-gradient(transparent, rgba(0,0,0,0.95))', color: 'white' }}>
-                                          <div style={{ fontSize: '10px', color: '#FFEB3B', fontWeight: 950, marginBottom: '2px' }}>{translateDynamicText(item.locationName, isEn)}</div>
-                                          <div style={{ fontSize: '11px', fontWeight: '950', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', marginBottom: '4px' }}>{translateDynamicText(item.title, isEn)}</div>
-                                          <div style={{ fontSize: '8px', fontWeight: 950, color: '#fff', display: 'flex', gap: '2px' }}>
-                                            <span style={{ background: 'rgba(255,255,255,0.2)', padding: '1px 4px', borderRadius: '4px' }}>{(() => { const d = new Date(item.date); return `${d.getMonth() + 1}/${d.getDate()}(${isEn ? DAYS_EN[d.getDay()] : DAYS_KOR[d.getDay()]})`; })()}</span>
+                                        <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, padding: '12px 8px', background: 'linear-gradient(transparent, rgba(0,0,0,0.9))', color: 'white' }}>
+                                          <div style={{ fontSize: '10px', color: '#FFEB3B', fontWeight: 900, marginBottom: '2px', textShadow: '0 1px 2px rgba(0,0,0,0.5)' }}>{translateDynamicText(item.locationName, isEn)}</div>
+                                          <div style={{ fontSize: '11px', fontWeight: 900, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', marginBottom: '4px' }}>{translateDynamicText(item.title, isEn)}</div>
+                                          <div style={{ fontSize: '9px', fontWeight: 900, color: '#fff', display: 'flex', gap: '2px' }}>
+                                            <span style={{ background: 'rgba(255,255,255,0.2)', padding: '1px 6px', borderRadius: '4px', backdropFilter: 'blur(2px)' }}>{(() => { const d = new Date(item.date); return `${d.getMonth() + 1}/${d.getDate()}(${isEn ? DAYS_EN[d.getDay()] : DAYS_KOR[d.getDay()]})`; })()}</span>
                                           </div>
                                         </div>
                                       </div>
