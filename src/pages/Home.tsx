@@ -530,23 +530,33 @@ const HomePage = ({
       
       {/* 📌 [영역 A: 브랜드 헤더 - 최종 확정] */}
       <div style={{ padding: '40px 24px 24px' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '12px' }}>
-          <img 
-            src="/logo.png" 
-            alt="오늘밤빠" 
-            style={{ height: '32px', width: 'auto', objectFit: 'contain' }} 
-          />
-          <span style={{ fontSize: '22px', fontWeight: 900, color: '#ffffff', letterSpacing: '-0.5px', lineHeight: 1 }}>
-            오늘밤<span style={{ color: '#E53935' }}>빠</span>
-          </span>
-        </div>
         <p style={{ fontSize: '11px', color: '#E53935', letterSpacing: '0.3em', fontWeight: 300, margin: '0 0 16px' }}>SOCIAL CULTURE EXPERIENCE</p>
-        <p style={{ fontSize: '13px', color: '#666', margin: '0 0 8px', fontWeight: 300, letterSpacing: '0.05em' }}>{lang === 'ko' ? '오늘 밤, 어디선가 파티가 시작되고 있어요' : 'Tonight, a party is starting somewhere'}</p>
-        <p style={{ fontSize: '32px', fontWeight: 900, color: '#111', margin: 0, letterSpacing: '-1.5px', lineHeight: 1.3 }}>{lang === 'ko' ? '전국 어디서든' : 'Anywhere in Korea'}</p>
-        <p style={{ fontSize: '32px', fontWeight: 900, color: '#E53935', margin: '0 0 12px', letterSpacing: '-1.5px', lineHeight: 1.3 }}>{lang === 'ko' ? '만원이면 충분해요' : '10,000 won is enough'}</p>
-        <div style={{ borderLeft: '3px solid #E53935', paddingLeft: '16px' }}>
-          <p style={{ fontSize: '13px', color: '#444', margin: 0, fontWeight: 300, lineHeight: 1.8 }}>{lang === 'ko' ? '바차타 · 살사 · 소셜' : 'Bachata · Salsa · Social'}</p>
-          <p style={{ fontSize: '13px', color: '#444', margin: 0, fontWeight: 300, lineHeight: 1.8 }}>{lang === 'ko' ? '도심 속 전율의 밤' : 'A thrilling night in the city'}</p>
+        <p style={{ fontSize: '13px', color: '#666', margin: '0 0 8px', fontWeight: 300, letterSpacing: '0.05em' }}>
+          {lang === 'ko' ? '오늘 밤, 어디선가 파티가 시작되고 있어요' : 'Tonight, a party is starting somewhere'}
+        </p>
+        <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between' }}>
+          <div>
+            <p style={{ fontSize: '32px', fontWeight: 900, color: '#111', margin: 0, letterSpacing: '-1.5px', lineHeight: 1.3 }}>
+              {lang === 'ko' ? '전국 어디서든' : 'Anywhere in Korea'}
+            </p>
+            <p style={{ fontSize: '32px', fontWeight: 900, color: '#E53935', margin: '0 0 12px', letterSpacing: '-1.5px', lineHeight: 1.3 }}>
+              {lang === 'ko' ? '만원이면 충분해요' : '10,000 won is enough'}
+            </p>
+            <div style={{ borderLeft: '3px solid #E53935', paddingLeft: '16px' }}>
+              <p style={{ fontSize: '13px', color: '#444', margin: 0, fontWeight: 300, lineHeight: 1.8 }}>
+                {lang === 'ko' ? '바차타 · 살사 · 소셜' : 'Bachata · Salsa · Social'}
+              </p>
+              <p style={{ fontSize: '13px', color: '#444', margin: 0, fontWeight: 300, lineHeight: 1.8 }}>
+                {lang === 'ko' ? '도심 속 전율의 밤' : 'A thrilling night in the city'}
+              </p>
+            </div>
+          </div>
+          <img
+            src="/logo.png"
+            alt="오늘밤빠 로고"
+            style={{ width: '90px', height: '90px', objectFit: 'contain', borderRadius: '16px', flexShrink: 0, marginLeft: '12px' }}
+            onError={(e) => { e.currentTarget.style.display = 'none' }}
+          />
         </div>
       </div>
 
