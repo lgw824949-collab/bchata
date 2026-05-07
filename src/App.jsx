@@ -993,17 +993,17 @@ function App() {
           style={{ 
             flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
             cursor: 'pointer', transition: 'all 0.3s', position: 'relative', height: '100%',
-            color: location.pathname === '/' ? '#2563EB' : '#94A3B8'
+            color: location.pathname === '/' ? '#E11D48' : '#94A3B8'
           }}
         >
           {location.pathname === '/' && (
             <motion.div 
               layoutId="nav-glow"
-              style={{ position: 'absolute', width: '40px', height: '40px', borderRadius: '50%', background: 'rgba(37, 99, 235, 0.1)', filter: 'blur(8px)' }} 
+              style={{ position: 'absolute', width: '40px', height: '40px', borderRadius: '50%', background: 'rgba(225, 29, 72, 0.1)', filter: 'blur(8px)' }} 
             />
           )}
-          <HomeIcon size={22} strokeWidth={location.pathname === '/' ? 2.5 : 2} style={{ marginBottom: '4px' }} />
-          <span style={{ fontSize: '10px', fontWeight: location.pathname === '/' ? 900 : 500 }}>HOME</span>
+          <Music2 size={22} strokeWidth={location.pathname === '/' ? 2.5 : 2} style={{ marginBottom: '4px' }} />
+          <span style={{ fontSize: '10px', fontWeight: location.pathname === '/' ? 900 : 500 }}>SOCIAL</span>
         </div>
 
         <div 
