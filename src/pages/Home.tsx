@@ -660,12 +660,19 @@ const HomePage = ({
                             {[...metroHot, ...metroHot].map((item, idx) => (
                               <div key={`${item.id}-${idx}`} onClick={() => handleOpenModal(setSelectedPoster, item.poster_url)} style={{ width: '140px', flexShrink: 0, borderRadius: '12px', overflow: 'hidden', boxShadow: '0 8px 20px rgba(0,0,0,0.12)', position: 'relative' }}>
                                 <img src={item.poster_url} style={{ width: '100%', height: '190px', objectFit: 'cover' }} alt="Pick" />
-                                <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, padding: '12px 8px', background: 'linear-gradient(transparent, rgba(0,0,0,0.95))', color: 'white' }}>
-                                  <div style={{ fontSize: '10px', color: '#FFEB3B', fontWeight: 900, marginBottom: '2px', textShadow: '0 1px 2px rgba(0,0,0,0.8)' }}>{translateDynamicText(item.locationName, isEn)}</div>
-                                  <div style={{ fontSize: '11px', fontWeight: 900, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', marginBottom: '4px', textShadow: '0 1px 2px rgba(0,0,0,0.8)' }}>{translateDynamicText(item.title, isEn)}</div>
-                                  <div style={{ fontSize: '9px', fontWeight: 900, color: '#fff', display: 'flex', gap: '2px' }}>
-                                    <span style={{ background: 'rgba(0,0,0,0.5)', padding: '2px 8px', borderRadius: '4px' }}>{(() => { const d = new Date(item.date); return `${d.getMonth() + 1}/${d.getDate()}(${isEn ? DAYS_EN[d.getDay()] : DAYS_KOR[d.getDay()]})`; })()}</span>
+                                <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, padding: '12px 10px', background: 'linear-gradient(transparent, rgba(0,0,0,0.95))', color: 'white', display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                                  {/* 상단: 핵심 메타데이터 (장르, 시간만!) */}
+                                  <div style={{ display: 'flex', gap: '4px', flexWrap: 'wrap' }}>
+                                    <span style={{ background: '#FF1744', color: 'white', padding: '1px 6px', borderRadius: '4px', fontSize: '9px', fontWeight: 950 }}>
+                                      {Object.entries(GENRE_MAP).filter(([_, info]) => item[info.key] > 0).map(([_, info]) => `${info.label}${item[info.key]}`).join(' ')}
+                                    </span>
+                                    <span style={{ background: 'rgba(255,255,255,0.2)', padding: '1px 6px', borderRadius: '4px', fontSize: '9px', fontWeight: 950 }}>
+                                      {item.time?.split('-')[0].trim() || '21:00'}
+                                    </span>
                                   </div>
+                                  {/* 하단: 장소 및 제목 */}
+                                  <div style={{ fontSize: '10px', color: '#FFEB3B', fontWeight: 950, textShadow: '0 1px 2px rgba(0,0,0,0.8)' }}>{translateDynamicText(item.locationName, isEn)}</div>
+                                  <div style={{ fontSize: '11px', fontWeight: 950, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', textShadow: '0 1px 2px rgba(0,0,0,0.8)' }}>{translateDynamicText(item.title, isEn)}</div>
                                 </div>
                               </div>
                             ))}
@@ -1031,26 +1038,18 @@ const HomePage = ({
                           alt="Poster" 
                           style={{ width: '100%', height: '100%', objectFit: 'cover', imageRendering: '-webkit-optimize-contrast' }} 
                         />
-                        {/* 고대비 정보 오버레이 */}
-                        <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, padding: '10px 8px', background: 'linear-gradient(transparent, rgba(0,0,0,0.95))', color: '#fff' }}>
-                          <div style={{ fontSize: '10px', fontWeight: '900', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', color: '#FFEB3B', marginBottom: '6px', textShadow: '0 1px 2px rgba(0,0,0,0.8)' }}>
-                            {translateDynamicText(item.locationName, isEn)}
+                        {/* 고밀도 정보 오버레이 (음악/시간만!) */}
+                        <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, padding: '10px 6px', background: 'linear-gradient(transparent, rgba(0,0,0,0.95))', color: '#fff', display: 'flex', flexDirection: 'column', gap: '3px' }}>
+                          <div style={{ display: 'flex', gap: '3px', flexWrap: 'wrap' }}>
+                            <span style={{ background: '#FF1744', color: 'white', padding: '1px 4px', borderRadius: '3px', fontSize: '8px', fontWeight: 950 }}>
+                              {Object.entries(GENRE_MAP).filter(([_, info]) => item[info.key] > 0).map(([_, info]) => `${info.label}${item[info.key]}`).join(' ')}
+                            </span>
+                            <span style={{ background: 'rgba(255,255,255,0.2)', padding: '1px 4px', borderRadius: '3px', fontSize: '8px', fontWeight: 950 }}>
+                              {item.time?.split('-')[0].trim() || '21:00'}
+                            </span>
                           </div>
-                          <div style={{ 
-                            fontSize: '11px', 
-                            fontWeight: '950', 
-                            color: '#FF1744', 
-                            background: '#fff',
-                            padding: '3px 8px',
-                            borderRadius: '6px',
-                            display: 'inline-block',
-                            boxShadow: '0 4px 10px rgba(255,23,68,0.3)',
-                            letterSpacing: '-0.5px'
-                          }}>
-                            {(() => { 
-                              const d = new Date(item.date); 
-                              return `${d.getMonth() + 1}/${d.getDate()}(${isEn ? DAYS_EN[d.getDay()] : DAYS_KOR[d.getDay()]})`; 
-                            })()}
+                          <div style={{ fontSize: '10px', fontWeight: '900', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', color: '#FFEB3B' }}>
+                            {translateDynamicText(item.locationName, isEn)}
                           </div>
                         </div>
                       </div>
