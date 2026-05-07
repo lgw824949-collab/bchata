@@ -249,7 +249,6 @@ const RegisterForm = ({ onBack, onSuccess }) => {
 
       const { error } = await supabase.from('pending_parties').insert([{
         title: `[${formData.region}] ${finalProcessedTitle}`,
-        location_id: finalLocationId,
         location_name: formData.location_name,
         address: formData.address,
         fee: formData.fee,

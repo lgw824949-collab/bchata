@@ -85,17 +85,40 @@ export default function AdminDashboard({ onBack }) {
       if (category === 'social') {
         if (newStatus === 'active') {
           // 승인: pending_parties -> parties 이동
+          // 1. 장소 ID 확보 (없으면 새로 생성)
+          let finalLocationId = null;
           const { data: locData } = await supabase.from('locations').select('id').eq('name', item.location_name).maybeSingle();
+          
+          if (locData) {
+            finalLocationId = locData.id;
+          } else {
+            // 장소가 없으면 새로 생성 (최소 정보로)
+            const { data: newLoc } = await supabase.from('locations').insert([{
+              name: item.location_name,
+              address: item.address,
+              region_id: 1 // 기본값
+            }]).select().maybeSingle();
+            finalLocationId = newLoc?.id;
+          }
+
           const { error: insError } = await supabase.from('parties').insert([{
             title: item.title, 
-            location_id: locData?.id, 
+            location_id: finalLocationId, 
             location_name: item.location_name,
             locationName: item.location_name,
             address: item.address, 
             fee: item.fee,
-            date: item.date, time: item.time, day_of_week: item.day_of_week, poster_url: item.poster_url,
-            s_ratio: item.s_ratio, b_ratio: item.b_ratio, j_ratio: item.j_ratio, k_ratio: item.k_ratio, status: 'approved'
+            date: item.date, 
+            time: item.time, 
+            day_of_week: item.day_of_week, 
+            poster_url: item.poster_url,
+            s_ratio: item.s_ratio, 
+            b_ratio: item.b_ratio, 
+            j_ratio: item.j_ratio, 
+            k_ratio: item.k_ratio, 
+            status: 'approved'
           }]);
+
           if (insError) throw insError;
           await supabase.from('pending_parties').delete().eq('id', item.id);
         } else {
