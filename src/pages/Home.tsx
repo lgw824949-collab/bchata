@@ -37,6 +37,45 @@ const REGION_MAP_EN = {
   '전라도': 'Jeolla', '충청도': 'Chungcheong', '강원/제주': 'Gangwon/Jeju'
 };
 
+const TITLE_TRANSLATION = {
+  '주말 모드 원': 'Weekend Mode One',
+  '바차타 파인 다이닝': 'Bachata Fine Dining',
+  '오늘밤빠': 'TonightBAMPPA',
+  '맛집': 'Hot Spot',
+  '성지': 'Holy Ground',
+  '정모': 'Meetup',
+  '라틴': 'Latin',
+  '클럽': 'Club',
+  '살사': 'Salsa',
+  '바차타': 'Bachata',
+  '쥬크': 'Zouk',
+  '키좀바': 'Kizomba',
+  '수업': 'Class',
+  '번개': 'Flash Mob',
+  '파티': 'Party',
+  '전국': 'National',
+  '서울': 'Seoul',
+  '홍대': 'Hongdae',
+  '강남': 'Gangnam',
+  '부산': 'Busan',
+  '제주': 'Jeju',
+  '인천': 'Incheon',
+  '경기': 'Gyeonggi'
+};
+
+const translateDynamicText = (text, isEn) => {
+  if (!text || !isEn) return text;
+  let translated = text;
+  // Sort by length descending to avoid partial matches (e.g., '바차타' vs '바차타 파인 다이닝')
+  const sortedKeys = Object.keys(TITLE_TRANSLATION).sort((a, b) => b.length - a.length);
+  sortedKeys.forEach(ko => {
+    const en = TITLE_TRANSLATION[ko];
+    const regex = new RegExp(ko, 'g');
+    translated = translated.replace(regex, en);
+  });
+  return translated;
+};
+
 const PosterImage = ({ src, onClick, alt = "파티 포스터" }) => {
   const imgRef = useRef();
   const onUpdate = ({ x, y, scale }) => { if (imgRef.current) imgRef.current.style.transform = make3dTransformValue({ x, y, scale }); };
@@ -132,7 +171,7 @@ const PartyCard = ({ item, onSelect }) => {
         {/* 1행: 장소명 (순수 장소명만!) + 빨간 화살표 */}
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '2px' }}>
           <span style={{ fontSize: '13px', fontWeight: '800', color: '#64748B' }}>
-            {item.locationName || item.studio_name || item.address || '장소 미지정'}
+            {translateDynamicText(item.locationName || item.studio_name || item.address || '장소 미지정', isEn)}
           </span>
           <Navigation 
             size={14} 
@@ -142,10 +181,11 @@ const PartyCard = ({ item, onSelect }) => {
             onClick={(e) => {
               e.stopPropagation();
               const addr = item.address || item.locationName;
-              window.open(
-                `https://map.kakao.com/link/search/${encodeURIComponent(addr)}`,
-                '_blank'
-              )
+              const query = encodeURIComponent(addr);
+              const url = isEn 
+                ? `https://www.google.com/maps/search/?api=1&query=${query}`
+                : `https://map.kakao.com/link/search/${query}`;
+              window.open(url, '_blank');
             }}
           />
         </div>
@@ -159,7 +199,7 @@ const PartyCard = ({ item, onSelect }) => {
             }}>LIVE</span>
           )}
           <h3 style={{ fontSize: '16px', fontWeight: '950', color: '#1E293B', margin: 0, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', letterSpacing: '-0.5px' }}>
-            {cleanTitle.replace(/^\[.*?\]\s*|서울\s*|전국\s*/g, '')}
+            {translateDynamicText(cleanTitle.replace(/^\[.*?\]\s*|서울\s*|전국\s*/g, ''), isEn)}
           </h3>
         </div>
 
@@ -181,7 +221,7 @@ const PartyCard = ({ item, onSelect }) => {
           <span>/</span>
           <span>{displayTime}</span>
           <span>/</span>
-          <span style={{ color: '#1E293B' }}>{displayFee}</span>
+          <span style={{ color: '#1E293B' }}>{isEn ? displayFee.replace('만', '0k') : displayFee}</span>
         </div>
       </div>
     </div>
@@ -625,12 +665,12 @@ const HomePage = ({
                         <div key={item.id} onClick={() => handleOpenModal(setSelectedPoster, item.poster_url)} style={{ width: '140px', flexShrink: 0, borderRadius: '12px', overflow: 'hidden', boxShadow: '0 8px 20px rgba(0,0,0,0.12)', position: 'relative' }}>
                           <img src={item.poster_url} style={{ width: '100%', height: '190px', objectFit: 'cover' }} alt="Pick" />
                             <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, padding: '10px 8px', background: 'linear-gradient(transparent, rgba(0,0,0,0.95))', color: 'white' }}>
-                              <div style={{ fontSize: '10px', color: '#FFEB3B', fontWeight: 950, marginBottom: '2px' }}>{item.locationName}</div>
-                              <div style={{ fontSize: '11px', fontWeight: '950', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', marginBottom: '4px' }}>{item.title}</div>
+                              <div style={{ fontSize: '10px', color: '#FFEB3B', fontWeight: 950, marginBottom: '2px' }}>{translateDynamicText(item.locationName, isEn)}</div>
+                              <div style={{ fontSize: '11px', fontWeight: '950', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', marginBottom: '4px' }}>{translateDynamicText(item.title, isEn)}</div>
                               <div style={{ fontSize: '8px', fontWeight: 950, color: '#fff', display: 'flex', gap: '2px', whiteSpace: 'nowrap', overflow: 'hidden' }}>
-                                <span style={{ background: 'rgba(255,255,255,0.2)', padding: '1px 4px', borderRadius: '4px' }}>{(() => { const d = new Date(item.date); return `${d.getMonth() + 1}/${d.getDate()}(${DAYS_KOR[d.getDay()]})`; })()}</span>
+                                <span style={{ background: 'rgba(255,255,255,0.2)', padding: '1px 4px', borderRadius: '4px' }}>{(() => { const d = new Date(item.date); return `${d.getMonth() + 1}/${d.getDate()}(${isEn ? DAYS_EN[d.getDay()] : DAYS_KOR[d.getDay()]})`; })()}</span>
                                 <span style={{ background: 'rgba(255,255,255,0.2)', padding: '1px 4px', borderRadius: '4px' }}>{item.time?.split('-')[0].trim() || '21:00'}</span>
-                                <span style={{ background: 'rgba(255,235,59,0.3)', color: '#FFEB3B', padding: '1px 4px', borderRadius: '4px' }}>{(() => { if (!item.fee) return '1.2만'; const f = String(item.fee); if (f.includes('만')) return f.replace('원', ''); const num = parseInt(f.replace(/[^0-9]/g, '')); if (isNaN(num)) return f; return (num/10000).toFixed(1).replace('.0', '') + '만'; })()}</span>
+                                <span style={{ background: 'rgba(255,235,59,0.3)', color: '#FFEB3B', padding: '1px 4px', borderRadius: '4px' }}>{(() => { if (!item.fee) return '1.2만'; const f = String(item.fee); if (f.includes('만')) return isEn ? f.replace('만', '0k').replace('원', '') : f.replace('원', ''); const num = parseInt(f.replace(/[^0-9]/g, '')); if (isNaN(num)) return f; return isEn ? (num/10000).toFixed(1).replace('.0', '') + '0k' : (num/10000).toFixed(1).replace('.0', '') + '만'; })()}</span>
                                 <span style={{ background: 'rgba(255,255,255,0.2)', padding: '1px 4px', borderRadius: '4px' }}>
                                   {Object.entries(GENRE_MAP).filter(([_, info]) => item[info.key] > 0).map(([_, info]) => `${info.label}${item[info.key]}`).join('')}
                                 </span>
@@ -898,12 +938,12 @@ const HomePage = ({
                                   ))}
                                 </div>
                                 <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, padding: '12px 10px', background: 'linear-gradient(transparent, rgba(0,0,0,0.95))', color: 'white' }}>
-                                  <div style={{ fontSize: '11px', color: '#FFEB3B', fontWeight: 950, marginBottom: '3px' }}>{party.locationName}</div>
-                                  <div style={{ fontSize: '13px', fontWeight: 950, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', marginBottom: '5px' }}>{cleanTitle}</div>
+                                  <div style={{ fontSize: '11px', color: '#FFEB3B', fontWeight: 950, marginBottom: '3px' }}>{translateDynamicText(party.locationName, isEn)}</div>
+                                  <div style={{ fontSize: '13px', fontWeight: 950, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', marginBottom: '5px' }}>{translateDynamicText(cleanTitle, isEn)}</div>
                                   <div style={{ fontSize: '9px', fontWeight: 900, color: '#fff', display: 'flex', gap: '3px', whiteSpace: 'nowrap', overflow: 'hidden' }}>
-                                    <span style={{ background: 'rgba(255,255,255,0.2)', padding: '1px 4px', borderRadius: '4px' }}>{(() => { const d = new Date(party.date); return `${d.getMonth() + 1}/${d.getDate()}(${DAYS_KOR[d.getDay()]})`; })()}</span>
+                                    <span style={{ background: 'rgba(255,255,255,0.2)', padding: '1px 4px', borderRadius: '4px' }}>{(() => { const d = new Date(party.date); return `${d.getMonth() + 1}/${d.getDate()}(${isEn ? DAYS_EN[d.getDay()] : DAYS_KOR[d.getDay()]})`; })()}</span>
                                     <span style={{ background: 'rgba(255,255,255,0.2)', padding: '1px 4px', borderRadius: '4px' }}>{party.time?.split('-')[0].trim() || '21:00'}</span>
-                                    <span style={{ color: '#94A3B8', fontWeight: 950, fontSize: '11px' }}>{(() => { if (!party.fee) return '1.2만'; const f = String(party.fee); if (f.includes('만')) return f.replace('원', ''); const num = parseInt(f.replace(/[^0-9]/g, '')); if (isNaN(num)) return f; return (num/10000).toFixed(1).replace('.0', '') + '만'; })()}</span>
+                                    <span style={{ color: '#94A3B8', fontWeight: 950, fontSize: '11px' }}>{(() => { if (!party.fee) return '1.2만'; const f = String(party.fee); if (f.includes('만')) return isEn ? f.replace('만', '0k').replace('원', '') : f.replace('원', ''); const num = parseInt(f.replace(/[^0-9]/g, '')); if (isNaN(num)) return f; return isEn ? (num/10000).toFixed(1).replace('.0', '') + '0k' : (num/10000).toFixed(1).replace('.0', '') + '만'; })()}</span>
                                     <span style={{ background: 'rgba(255,255,255,0.2)', padding: '1px 4px', borderRadius: '4px' }}>
                                       {Object.entries(GENRE_MAP).filter(([_, info]) => party[info.key] > 0).map(([_, info]) => `${info.label}${party[info.key]}`).join('')}
                                     </span>
@@ -994,7 +1034,7 @@ const HomePage = ({
                         />
                         {/* 간단 정보 오버레이 */}
                         <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, padding: '8px 5px', background: 'linear-gradient(transparent, rgba(0,0,0,0.8))', color: '#fff' }}>
-                          <div style={{ fontSize: '10px', fontWeight: '800', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{item.locationName}</div>
+                          <div style={{ fontSize: '10px', fontWeight: '800', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{translateDynamicText(item.locationName, isEn)}</div>
                         </div>
                       </div>
                     ));
