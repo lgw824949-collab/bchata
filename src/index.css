@@ -99,10 +99,10 @@ input::-webkit-inner-spin-button {
   margin: 0;
 }
 
-/* 핫픽 무한 루프 애니메이션 */
+/* 핫픽 무한 루프 애니메이션 - 선명도 최우선 최적화 */
 @keyframes hotPickScroll {
-  0% { transform: translate3d(0, 0, 0); }
-  100% { transform: translate3d(-50%, 0, 0); }
+  from { transform: translateX(0); }
+  to { transform: translateX(-50%); }
 }
 
 .hot-pick-track {
@@ -110,9 +110,14 @@ input::-webkit-inner-spin-button {
   gap: 15px;
   width: max-content;
   animation: hotPickScroll 60s linear infinite;
-  will-change: transform;
-  transform-style: preserve-3d;
-  backface-visibility: hidden;
+  /* 선명도 저해 요소 제거 */
+  transform: translateZ(0);
+}
+
+.hot-pick-track img {
+  image-rendering: -webkit-optimize-contrast; /* 이미지 강제 선명화 */
+  image-rendering: crisp-edges;
+  transform: translateZ(0);
 }
 
 .hot-pick-track:hover {
