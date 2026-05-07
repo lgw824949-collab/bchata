@@ -68,7 +68,7 @@ export default function AdminDashboard({ onBack }) {
       else if (category === 'live') table = 'community_posts';
       else table = category === 'bootcamp' ? 'bootcamps' : 'festivals';
 
-      const { locations, created_at, id, ...updateData } = editFormData;
+      const { locations, created_at, id, locationName, ...updateData } = editFormData;
       const { error } = await supabase.from(table).update(updateData).eq('id', editingItem);
       if (error) throw error;
       alert('수정되었습니다.');
@@ -105,7 +105,6 @@ export default function AdminDashboard({ onBack }) {
             title: item.title, 
             location_id: finalLocationId, 
             location_name: item.location_name,
-            locationName: item.location_name,
             address: item.address, 
             fee: item.fee,
             date: item.date, 
