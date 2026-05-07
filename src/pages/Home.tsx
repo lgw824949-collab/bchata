@@ -218,9 +218,6 @@ const PartyCard = ({ item, onSelect }) => {
           <span style={{ color: 'var(--color-text-main)' }}>{displayFee}</span>
         </div>
       </div>
-          <span style={{ color: 'var(--color-text-main)' }}>{isEn ? displayFee.replace('만', '0k') : displayFee}</span>
-        </div>
-      </div>
     </div>
   );
 };
