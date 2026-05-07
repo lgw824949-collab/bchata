@@ -629,7 +629,7 @@ const HomePage = ({
                         <div style={{ padding: '0 20px 15px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                           <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
                             <h2 style={{ fontSize: '18px', fontWeight: '950', color: 'var(--color-text-main)', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                              <span style={{ color: '#FF1744' }}>HOT</span> PICK 5 <span style={{ fontSize: '12px', color: '#94A3B8', fontWeight: 700 }}>[수도권]</span>
+                              <span style={{ color: '#FF1744' }}>HOT</span> PICK <span style={{ fontSize: '12px', color: '#94A3B8', fontWeight: 700 }}>[수도권]</span>
                             </h2>
                             {/* 언어 토글 유지 */}
                             <button
@@ -655,20 +655,7 @@ const HomePage = ({
                           </motion.button>
                         </div>
                         <div style={{ width: '100%', overflow: 'hidden', padding: '10px 0' }}>
-                          <motion.div 
-                            animate={{ x: [0, -(metroHot.length * 155)] }} 
-                            transition={{ 
-                              duration: metroHot.length * 4, 
-                              repeat: Infinity, 
-                              ease: "linear"
-                            }} 
-                            style={{ 
-                              display: 'flex', 
-                              gap: '15px', 
-                              paddingLeft: '20px', 
-                              width: 'max-content'
-                            }}
-                          >
+                          <div className="hot-pick-track">
                             {/* 무한 루프를 위해 데이터를 두 번 렌더링 */}
                             {[...metroHot, ...metroHot].map((item, idx) => (
                               <div key={`${item.id}-${idx}`} onClick={() => handleOpenModal(setSelectedPoster, item.poster_url)} style={{ width: '140px', flexShrink: 0, borderRadius: '12px', overflow: 'hidden', boxShadow: '0 8px 20px rgba(0,0,0,0.12)', position: 'relative' }}>
@@ -682,7 +669,7 @@ const HomePage = ({
                                 </div>
                               </div>
                             ))}
-                          </motion.div>
+                          </div>
                         </div>
                       </div>
                     )}
@@ -750,24 +737,11 @@ const HomePage = ({
                               <div style={{ margin: '40px 0 15px', padding: '10px 0 20px', background: 'var(--color-card)', borderBottom: '1px solid var(--color-border)' }}>
                                 <div style={{ padding: '0 20px 15px' }}>
                                   <h2 style={{ fontSize: '18px', fontWeight: '950', color: 'var(--color-text-main)', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                                    <span style={{ color: '#FF1744' }}>HOT</span> PICK 5 <span style={{ fontSize: '12px', color: '#94A3B8', fontWeight: 700 }}>[지방권]</span>
+                                    <span style={{ color: '#FF1744' }}>HOT</span> PICK <span style={{ fontSize: '12px', color: '#94A3B8', fontWeight: 700 }}>[지방권]</span>
                                   </h2>
                                 </div>
                                 <div style={{ width: '100%', overflow: 'hidden', padding: '10px 0' }}>
-                                  <motion.div 
-                                    animate={{ x: [0, -(provincialHot.length * 155)] }} 
-                                    transition={{ 
-                                      duration: provincialHot.length * 4, 
-                                      repeat: Infinity, 
-                                      ease: "linear"
-                                    }} 
-                                    style={{ 
-                                      display: 'flex', 
-                                      gap: '15px', 
-                                      paddingLeft: '20px', 
-                                      width: 'max-content'
-                                    }}
-                                  >
+                                  <div className="hot-pick-track">
                                     {[...provincialHot, ...provincialHot].map((item, idx) => (
                                       <div key={`${item.id}-${idx}`} onClick={() => handleOpenModal(setSelectedPoster, item.poster_url)} style={{ width: '140px', flexShrink: 0, borderRadius: '12px', overflow: 'hidden', boxShadow: '0 8px 20px rgba(0,0,0,0.12)', position: 'relative' }}>
                                         <img src={item.poster_url} style={{ width: '100%', height: '190px', objectFit: 'cover' }} alt="Pick" />
@@ -780,7 +754,7 @@ const HomePage = ({
                                         </div>
                                       </div>
                                     ))}
-                                  </motion.div>
+                                  </div>
                                 </div>
                                 {/* 추후 광고 구좌를 위한 하단 여백 */}
                                 <div style={{ height: '20px' }}></div>

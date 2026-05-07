@@ -99,6 +99,26 @@ input::-webkit-inner-spin-button {
   margin: 0;
 }
 
+/* 핫픽 무한 루프 애니메이션 */
+@keyframes hotPickScroll {
+  0% { transform: translate3d(0, 0, 0); }
+  100% { transform: translate3d(-50%, 0, 0); }
+}
+
+.hot-pick-track {
+  display: flex;
+  gap: 15px;
+  width: max-content;
+  animation: hotPickScroll 60s linear infinite;
+  will-change: transform;
+  transform-style: preserve-3d;
+  backface-visibility: hidden;
+}
+
+.hot-pick-track:hover {
+  animation-play-state: paused;
+}
+
 input[type=number] {
   -moz-appearance: textfield;
 }
