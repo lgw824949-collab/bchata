@@ -522,6 +522,40 @@ function App() {
     }, 4000);
     return () => clearTimeout(timer);
   }, [showSplash]);
+
+  const fetchParties = async () => {
+    setLoading(true);
+    try {
+      const { data } = await supabase.from('parties').select('*, locations(*, regions(*))').order('date', { ascending: true });
+      const mapped = (data || []).map(p => {
+        const loc = Array.isArray(p.locations) ? p.locations[0] : p.locations;
+        const reg = loc?.regions ? (Array.isArray(loc.regions) ? loc.regions[0] : loc.regions) : null;
+        const regionName = reg?.name || '전국';
+        return { ...p, broadRegion: BROAD_REGIONS[regionName] || '전국', cityName: SHORT_CITY_NAMES[regionName] || regionName.substring(0,2), locationName: loc?.name || '장소 미지정' };
+      });
+      setParties(mapped);
+    } catch (err) { console.error(err); } finally { setLoading(false); }
+  };
+
+  const fetchBootcamps = async () => {
+    try {
+      const { data } = await supabase.from('bootcamps').select('*').order('start_date', { ascending: true });
+      if (data) setBootcamps(data);
+    } catch (err) { console.error(err); }
+  };
+
+  const fetchFestivals = async () => {
+    try {
+      const { data } = await supabase.from('festivals').select('*').order('date', { ascending: true });
+      if (data) setFestivals(data);
+    } catch (err) { console.error(err); }
+  };
+
+  useEffect(() => { 
+    fetchParties(); 
+    fetchBootcamps();
+    fetchFestivals();
+  }, []);
   const [parties, setParties] = useState([]);
   const [bootcamps, setBootcamps] = useState([]);
   const [festivals, setFestivals] = useState([]);
@@ -807,6 +841,7 @@ function App() {
     handleOpenModal, handleCloseModal,
     IncheonBanner: () => <IncheonPremiumBanner t={t} onClick={() => openAnalysis(false)} />, venueCounts: {}, resetToToday: () => { setView('home'); setSelectedDate(todayData.dateStr); }, formatItemDate: (d, t) => `${d} ${t}`, formatFee: (f) => f, 
     handleRegister, 
+    fetchParties,
     setShowSaju,
     logActivity: () => {}, regionalTheme: { welcomeMsg: "전국 댄서들을 위한 실시간 정보", specialBanner: true }
   };
