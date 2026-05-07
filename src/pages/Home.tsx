@@ -656,9 +656,24 @@ const HomePage = ({
                         </div>
                         <div style={{ width: '100%', overflow: 'hidden', padding: '10px 0' }}>
                           <motion.div 
-                            animate={isPaused ? {} : { x: [0, -(metroHot.length * 155), 0] }} 
-                            transition={{ duration: metroHot.length * 4, repeat: Infinity, ease: "linear" }} 
-                            style={{ display: 'flex', gap: '15px', paddingLeft: '20px', width: 'max-content' }}
+                            initial={{ x: 0 }}
+                            animate={{ x: metroHot.length > 2 ? -(metroHot.length * 155 - window.innerWidth + 40) : 0 }} 
+                            transition={{ 
+                              duration: metroHot.length * 5, 
+                              repeat: Infinity, 
+                              repeatType: "reverse", 
+                              ease: "easeInOut",
+                              repeatDelay: 1 // 끝에서 1초간 정지하여 눈의 피로 감소
+                            }} 
+                            style={{ 
+                              display: 'flex', 
+                              gap: '15px', 
+                              paddingLeft: '20px', 
+                              width: 'max-content',
+                              willChange: 'transform', // 렌더링 최적화
+                              transformStyle: 'preserve-3d',
+                              backfaceVisibility: 'hidden'
+                            }}
                           >
                             {metroHot.map((item) => (
                               <div key={item.id} onClick={() => handleOpenModal(setSelectedPoster, item.poster_url)} style={{ width: '140px', flexShrink: 0, borderRadius: '12px', overflow: 'hidden', boxShadow: '0 8px 20px rgba(0,0,0,0.12)', position: 'relative' }}>
@@ -745,9 +760,24 @@ const HomePage = ({
                                 </div>
                                 <div style={{ width: '100%', overflow: 'hidden', padding: '10px 0' }}>
                                   <motion.div 
-                                    animate={isPaused ? {} : { x: [0, -(provincialHot.length * 155), 0] }} 
-                                    transition={{ duration: provincialHot.length * 4, repeat: Infinity, ease: "linear" }} 
-                                    style={{ display: 'flex', gap: '15px', paddingLeft: '20px', width: 'max-content' }}
+                                    initial={{ x: 0 }}
+                                    animate={{ x: provincialHot.length > 2 ? -(provincialHot.length * 155 - window.innerWidth + 40) : 0 }} 
+                                    transition={{ 
+                                      duration: provincialHot.length * 5, 
+                                      repeat: Infinity, 
+                                      repeatType: "reverse", 
+                                      ease: "easeInOut",
+                                      repeatDelay: 1
+                                    }} 
+                                    style={{ 
+                                      display: 'flex', 
+                                      gap: '15px', 
+                                      paddingLeft: '20px', 
+                                      width: 'max-content',
+                                      willChange: 'transform',
+                                      transformStyle: 'preserve-3d',
+                                      backfaceVisibility: 'hidden'
+                                    }}
                                   >
                                     {provincialHot.map((item) => (
                                       <div key={item.id} onClick={() => handleOpenModal(setSelectedPoster, item.poster_url)} style={{ width: '140px', flexShrink: 0, borderRadius: '12px', overflow: 'hidden', boxShadow: '0 8px 20px rgba(0,0,0,0.12)', position: 'relative' }}>
