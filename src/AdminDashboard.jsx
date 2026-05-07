@@ -30,7 +30,7 @@ export default function AdminDashboard({ onBack }) {
     try {
       let query;
       if (category === 'social') {
-        if (activeTab === 'active') query = supabase.from('parties').select('*, locations(name)');
+        if (activeTab === 'active') query = supabase.from('parties').select('*, locations!location_id(name)');
         else query = supabase.from('pending_parties').select('*').eq('status', activeTab);
       } else if (category === 'live') {
         query = supabase.from('community_posts').select('*');
@@ -68,7 +68,8 @@ export default function AdminDashboard({ onBack }) {
       else if (category === 'live') table = 'community_posts';
       else table = category === 'bootcamp' ? 'bootcamps' : 'festivals';
 
-      const { error } = await supabase.from(table).update(editFormData).eq('id', editingItem);
+      const { locations, created_at, id, ...updateData } = editFormData;
+      const { error } = await supabase.from(table).update(updateData).eq('id', editingItem);
       if (error) throw error;
       alert('수정되었습니다.');
       setEditingItem(null);
@@ -186,7 +187,26 @@ export default function AdminDashboard({ onBack }) {
                 {editingItem === item.id ? (
                   /* 수정 모드 */
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                    <input value={editFormData.title || ''} onChange={e => setEditFormData({ ...editFormData, title: e.target.value })} placeholder="제목" style={{ width: '100%', padding: '8px', borderRadius: '8px', border: '1px solid #DDD' }} />
+                    <input value={editFormData.title || ''} onChange={e => setEditFormData({ ...editFormData, title: e.target.value })} placeholder="제목" style={{ width: '100%', padding: '10px', borderRadius: '10px', border: '1px solid #E2E8F0', fontWeight: 700 }} />
+                    
+                    {category === 'social' && (
+                      <>
+                        <input value={editFormData.location_name || ''} onChange={e => setEditFormData({ ...editFormData, location_name: e.target.value })} placeholder="장소명" style={{ width: '100%', padding: '10px', borderRadius: '10px', border: '1px solid #E2E8F0' }} />
+                        <input value={editFormData.address || ''} onChange={e => setEditFormData({ ...editFormData, address: e.target.value })} placeholder="주소" style={{ width: '100%', padding: '10px', borderRadius: '10px', border: '1px solid #E2E8F0' }} />
+                        <div style={{ display: 'flex', gap: '8px' }}>
+                          <input type="date" value={editFormData.date || ''} onChange={e => setEditFormData({ ...editFormData, date: e.target.value })} style={{ flex: 1, padding: '10px', borderRadius: '10px', border: '1px solid #E2E8F0' }} />
+                          <input value={editFormData.time || ''} onChange={e => setEditFormData({ ...editFormData, time: e.target.value })} placeholder="시간 (21:00)" style={{ flex: 1, padding: '10px', borderRadius: '10px', border: '1px solid #E2E8F0' }} />
+                        </div>
+                        <input value={editFormData.fee || ''} onChange={e => setEditFormData({ ...editFormData, fee: e.target.value })} placeholder="비용 (예: 20,000원)" style={{ width: '100%', padding: '10px', borderRadius: '10px', border: '1px solid #E2E8F0' }} />
+                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '8px' }}>
+                          <div style={{ textAlign: 'center' }}><div style={{ fontSize: '10px', color: '#94A3B8' }}>S</div><input type="number" value={editFormData.s_ratio || 0} onChange={e => setEditFormData({ ...editFormData, s_ratio: parseInt(e.target.value) })} style={{ width: '100%', padding: '8px', textAlign: 'center', borderRadius: '8px', border: '1px solid #E2E8F0' }} /></div>
+                          <div style={{ textAlign: 'center' }}><div style={{ fontSize: '10px', color: '#94A3B8' }}>B</div><input type="number" value={editFormData.b_ratio || 0} onChange={e => setEditFormData({ ...editFormData, b_ratio: parseInt(e.target.value) })} style={{ width: '100%', padding: '8px', textAlign: 'center', borderRadius: '8px', border: '1px solid #E2E8F0' }} /></div>
+                          <div style={{ textAlign: 'center' }}><div style={{ fontSize: '10px', color: '#94A3B8' }}>J</div><input type="number" value={editFormData.j_ratio || 0} onChange={e => setEditFormData({ ...editFormData, j_ratio: parseInt(e.target.value) })} style={{ width: '100%', padding: '8px', textAlign: 'center', borderRadius: '8px', border: '1px solid #E2E8F0' }} /></div>
+                          <div style={{ textAlign: 'center' }}><div style={{ fontSize: '10px', color: '#94A3B8' }}>K</div><input type="number" value={editFormData.k_ratio || 0} onChange={e => setEditFormData({ ...editFormData, k_ratio: parseInt(e.target.value) })} style={{ width: '100%', padding: '8px', textAlign: 'center', borderRadius: '8px', border: '1px solid #E2E8F0' }} /></div>
+                        </div>
+                      </>
+                    )}
+
                     {category === 'bootcamp' && (
                       <>
                         <input value={editFormData.instructor || ''} onChange={e => setEditFormData({ ...editFormData, instructor: e.target.value })} placeholder="강사명" style={{ width: '100%', padding: '8px', borderRadius: '8px', border: '1px solid #DDD' }} />

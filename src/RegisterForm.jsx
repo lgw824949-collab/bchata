@@ -220,21 +220,25 @@ const RegisterForm = ({ onBack, onSuccess }) => {
       if (!existingLoc) {
         const targetRegion = formData.region || classifyRegion(formData.address) || '서울'
         const { data: reg } = await supabase.from('regions').select('id').ilike('name', `%${targetRegion}%`).limit(1).maybeSingle()
-        const { data: newLoc, error: locError } = await supabase.from('locations').insert([{
+        const { data: newLocs, error: locError } = await supabase.from('locations').insert([{
           name: formData.location_name,
           address: formData.address,
           region_id: reg?.id || 1,
           latitude: formData.latitude,
           longitude: formData.longitude
-        }])
-      } else if (existingLoc && existingLoc.latitude === null && formData.latitude) {
-        await supabase.from('locations')
-          .update({ 
-            address: formData.address, 
-            latitude: formData.latitude, 
-            longitude: formData.longitude 
-          })
-          .eq('id', existingLoc.id)
+        }]).select()
+        if (newLocs && newLocs.length > 0) finalLocationId = newLocs[0].id;
+      } else {
+        finalLocationId = existingLoc.id;
+        if (existingLoc.latitude === null && formData.latitude) {
+          await supabase.from('locations')
+            .update({ 
+              address: formData.address, 
+              latitude: formData.latitude, 
+              longitude: formData.longitude 
+            })
+            .eq('id', existingLoc.id)
+        }
       }
 
       let finalProcessedTitle = formData.title.trim();

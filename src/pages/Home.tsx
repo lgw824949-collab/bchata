@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo, useRef } from 'react';
-import { Heart, MapPin, Calendar, Clock, User, Music, ChevronRight, ShieldCheck, X, Home as HomeIcon, ChevronLeft, CloudSun, Utensils, Zap, PlusCircle, Languages, Bell, Globe, Navigation, CalendarDays } from 'lucide-react';
+import { Heart, MapPin, Calendar, Clock, User, Music, ChevronRight, ShieldCheck, X, Home as HomeIcon, ChevronLeft, CloudSun, Utensils, Zap, PlusCircle, Languages, Bell, Globe, Navigation, CalendarDays, Star } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { motion, AnimatePresence } from 'framer-motion';
 import QuickPinchZoom, { make3dTransformValue } from 'react-quick-pinch-zoom';
@@ -489,7 +489,7 @@ const HomePage = ({
       {/* 📌 [영역 A: 브랜드 헤더 - 최종 확정] */}
       <div style={{ padding: '40px 24px 24px' }}>
         <p style={{ fontSize: '11px', color: '#E53935', letterSpacing: '0.3em', fontWeight: 300, margin: '0 0 16px' }}>SOCIAL CULTURE EXPERIENCE</p>
-        <p style={{ fontSize: '13px', color: '#666', margin: '0 0 8px', fontWeight: 300, letterSpacing: '0.05em' }}>오늘 저녁, 혼자 집에 있을 건가요?</p>
+        <p style={{ fontSize: '13px', color: '#666', margin: '0 0 8px', fontWeight: 300, letterSpacing: '0.05em' }}>오늘 밤, 어디선가 파티가 시작되고 있어요</p>
         <p style={{ fontSize: '32px', fontWeight: 900, color: '#111', margin: 0, letterSpacing: '-1.5px', lineHeight: 1.3 }}>전국 어디서든</p>
         <p style={{ fontSize: '32px', fontWeight: 900, color: '#E53935', margin: '0 0 12px', letterSpacing: '-1.5px', lineHeight: 1.3 }}>만원이면 충분해요</p>
         <div style={{ borderLeft: '3px solid #E53935', paddingLeft: '16px' }}>
@@ -546,6 +546,29 @@ const HomePage = ({
                 <div style={{ margin: '0 0 15px', padding: '10px 0 20px', background: '#fff', borderBottom: '1px solid #eee' }}>
                   <div style={{ padding: '0 20px 15px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                     <h2 style={{ fontSize: '18px', fontWeight: '950', color: '#1E293B', display: 'flex', alignItems: 'center', gap: '8px' }}><span style={{ color: '#FF1744' }}>HOT</span> PICK 5</h2>
+                    
+                    {/* 운명의 좌표 (Saju) 버튼 추가 */}
+                    <motion.button
+                      whileTap={{ scale: 0.9 }}
+                      onClick={() => handleOpenModal(setShowSaju, true)}
+                      style={{
+                        background: '#F1F5F9',
+                        border: 'none',
+                        borderRadius: '12px',
+                        padding: '8px 12px',
+                        fontSize: '12px',
+                        fontWeight: '900',
+                        cursor: 'pointer',
+                        color: '#FF1744',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '6px'
+                      }}
+                    >
+                      <Star size={14} fill="#FF1744" color="#FF1744" />
+                      {t('saju')}
+                    </motion.button>
+
                     {/* 언어 토글 버튼 이동 배치 */}
                     <motion.button
                       whileTap={{ scale: 0.9 }}

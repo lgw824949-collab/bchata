@@ -142,6 +142,24 @@ export default function SajuModal({ onClose }) {
   const [loading, setLoading] = useState(false)
   const [recommendedBars, setRecommendedBars] = useState([])
   const [fullPoster, setFullPoster] = useState(null)
+  const [isDataLoaded, setIsDataLoaded] = useState(false)
+
+  // 데이터 불러오기 및 자동 분석 시도
+  useEffect(() => {
+    const saved = localStorage.getItem('saju_user_data')
+    if (saved) {
+      try {
+        const data = JSON.parse(saved)
+        setGender(data.gender || '')
+        setYear(data.year || '')
+        setMonth(data.month || '')
+        setDay(data.day || '')
+        setTimeIdx(data.timeIdx !== undefined ? data.timeIdx : '')
+        setExperience(data.experience || 'beginner')
+        setIsDataLoaded(true)
+      } catch (e) { console.error('Failed to parse saju data', e) }
+    }
+  }, [])
 
   const isValid = gender && year && month && day && timeIdx !== ''
   const todayStr = new Date().toISOString().split('T')[0]
@@ -212,6 +230,12 @@ export default function SajuModal({ onClose }) {
 
     const detailed = selectResult(dance.genre, gender, month, day, count, experience)
     const resultData = { ...detailed, dance, recommendedBars: finalBars, gender, today: todayStr, mainOheng: main }
+    
+    // 데이터 저장
+    localStorage.setItem('saju_user_data', JSON.stringify({
+      gender, year, month, day, timeIdx, experience
+    }))
+
     setResult(resultData)
     setLoading(false)
     setStep(2)
@@ -240,48 +264,67 @@ export default function SajuModal({ onClose }) {
                 <div style={{ fontSize:12, opacity:0.8 }}>나에게 꼭 맞는 댄스 라이프를 찾아보세요</div>
               </div>
 
-              <div style={{ display:'flex', flexDirection:'column', gap:20 }}>
-                <div>
-                  <label style={{ display:'block', fontSize:14, fontWeight:700, marginBottom:8 }}>성별</label>
+              {isDataLoaded ? (
+                <div style={{ marginBottom: 24 }}>
+                  <div style={{ background: '#F5F3FF', padding: '20px', borderRadius: '16px', border: '1px solid #DDD6FE', marginBottom: '20px' }}>
+                    <div style={{ fontSize: '15px', fontWeight: 800, color: '#4C1D95', marginBottom: '12px' }}>반가워요! 기존 정보를 찾았습니다.</div>
+                    <div style={{ fontSize: '13px', color: '#6D28D9', display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
+                      <span>{gender === '남' ? '♂ 남성' : '♀ 여성'}</span>
+                      <span>•</span>
+                      <span>{year}년 {month}월 {day}일</span>
+                      <span>•</span>
+                      <span>{experience === 'beginner' ? '입문자' : '경력자'}</span>
+                    </div>
+                  </div>
+                  <button onClick={analyze} disabled={loading} style={{ width:'100%', padding:'18px', borderRadius:16, background:'#7C3AED', color:'#fff', border:'none', fontSize:17, fontWeight:900, cursor:'pointer', boxShadow: '0 8px 20px rgba(124, 58, 237, 0.3)' }}>
+                    {loading ? '🔮 분석 중...' : '🔮 오늘의 운세 바로보기'}
+                  </button>
+                  <button onClick={() => setIsDataLoaded(false)} style={{ width: '100%', marginTop: '16px', background: 'none', border: 'none', color: '#94A3B8', fontSize: '13px', fontWeight: 700, cursor: 'pointer' }}>정보 수정하기</button>
+                </div>
+              ) : (
+                <div style={{ display:'flex', flexDirection:'column', gap:20 }}>
+                  <div>
+                    <label style={{ display:'block', fontSize:14, fontWeight:700, marginBottom:8 }}>성별</label>
+                    <div style={{ display:'flex', gap:10 }}>
+                      {['남','여'].map(g=>(
+                        <button key={g} onClick={()=>setGender(g)} style={{ flex:1, padding:'14px', borderRadius:12, border:gender===g?'2px solid #7C3AED':'1px solid #E2E8F0', background:gender===g?'#F5F3FF':'#fff', color:gender===g?'#7C3AED':'#64748B', fontWeight:700, cursor:'pointer' }}>{g==='남'?'♂ 남성':'♀ 여성'}</button>
+                      ))}
+                    </div>
+                  </div>
+
+                  <div>
+                    <label style={{ display:'block', fontSize:14, fontWeight:700, marginBottom:8 }}>🐣 댄스 경력</label>
+                    <div style={{ display:'flex', flexDirection:'column', gap:8 }}>
+                      <button onClick={()=>setExperience('beginner')} style={{ padding:'14px', borderRadius:12, border:experience==='beginner'?'2px solid #7C3AED':'1px solid #E2E8F0', background:experience==='beginner'?'#F5F3FF':'#fff', textAlign:'left', cursor:'pointer' }}>
+                        <div style={{ fontSize:14, fontWeight:700, color:experience==='beginner'?'#7C3AED':'#1E293B' }}>처음이에요 / 입문</div>
+                        <div style={{ fontSize:11, color:'#64748B', marginTop:2 }}>오늘 처음이거나 배운지 6개월 미만이에요.</div>
+                      </button>
+                      <button onClick={()=>setExperience('experienced')} style={{ padding:'14px', borderRadius:12, border:experience==='experienced'?'2px solid #7C3AED':'1px solid #E2E8F0', background:experience==='experienced'?'#F5F3FF':'#fff', textAlign:'left', cursor:'pointer' }}>
+                        <div style={{ fontSize:14, fontWeight:700, color:experience==='experienced'?'#7C3AED':'#1E293B' }}>경력자예요</div>
+                        <div style={{ fontSize:11, color:'#64748B', marginTop:2 }}>이미 춤을 즐기고 있는 댄서예요 (6개월 이상)</div>
+                      </button>
+                    </div>
+                  </div>
+
                   <div style={{ display:'flex', gap:10 }}>
-                    {['남','여'].map(g=>(
-                      <button key={g} onClick={()=>setGender(g)} style={{ flex:1, padding:'14px', borderRadius:12, border:gender===g?'2px solid #7C3AED':'1px solid #E2E8F0', background:gender===g?'#F5F3FF':'#fff', color:gender===g?'#7C3AED':'#64748B', fontWeight:700, cursor:'pointer' }}>{g==='남'?'♂ 남성':'♀ 여성'}</button>
-                    ))}
+                    <div style={{ flex:1 }}><label style={{ display:'block', fontSize:13, fontWeight:700, marginBottom:6 }}>생년</label><input type="number" placeholder="1995" value={year} onChange={e=>setYear(e.target.value)} style={{ width:'100%', padding:12, borderRadius:10, border:'1.5px solid #E2E8F0' }} /></div>
+                    <div style={{ flex:1 }}><label style={{ display:'block', fontSize:13, fontWeight:700, marginBottom:6 }}>월</label><input type="number" placeholder="5" value={month} onChange={e=>setMonth(e.target.value)} style={{ width:'100%', padding:12, borderRadius:10, border:'1.5px solid #E2E8F0' }} /></div>
+                    <div style={{ flex:1 }}><label style={{ display:'block', fontSize:13, fontWeight:700, marginBottom:6 }}>일</label><input type="number" placeholder="20" value={day} onChange={e=>setDay(e.target.value)} style={{ width:'100%', padding:12, borderRadius:10, border:'1.5px solid #E2E8F0' }} /></div>
                   </div>
-                </div>
 
-                <div>
-                  <label style={{ display:'block', fontSize:14, fontWeight:700, marginBottom:8 }}>🐣 댄스 경력</label>
-                  <div style={{ display:'flex', flexDirection:'column', gap:8 }}>
-                    <button onClick={()=>setExperience('beginner')} style={{ padding:'14px', borderRadius:12, border:experience==='beginner'?'2px solid #7C3AED':'1px solid #E2E8F0', background:experience==='beginner'?'#F5F3FF':'#fff', textAlign:'left', cursor:'pointer' }}>
-                      <div style={{ fontSize:14, fontWeight:700, color:experience==='beginner'?'#7C3AED':'#1E293B' }}>처음이에요 / 입문</div>
-                      <div style={{ fontSize:11, color:'#64748B', marginTop:2 }}>오늘 처음이거나 배운지 6개월 미만이에요.</div>
-                    </button>
-                    <button onClick={()=>setExperience('experienced')} style={{ padding:'14px', borderRadius:12, border:experience==='experienced'?'2px solid #7C3AED':'1px solid #E2E8F0', background:experience==='experienced'?'#F5F3FF':'#fff', textAlign:'left', cursor:'pointer' }}>
-                      <div style={{ fontSize:14, fontWeight:700, color:experience==='experienced'?'#7C3AED':'#1E293B' }}>경력자예요</div>
-                      <div style={{ fontSize:11, color:'#64748B', marginTop:2 }}>이미 춤을 즐기고 있는 댄서예요 (6개월 이상)</div>
-                    </button>
+                  <div>
+                    <label style={{ display:'block', fontSize:13, fontWeight:700, marginBottom:6 }}>태어난 시간 (모르면 무관)</label>
+                    <select value={timeIdx} onChange={e=>setTimeIdx(e.target.value)} style={{ width:'100%', padding:12, borderRadius:10, border:'1.5px solid #E2E8F0', background:'#fff' }}>
+                      <option value="">모름</option>
+                      {TIME_LIST.map(t=><option key={t.value} value={t.value}>{t.label}</option>)}
+                    </select>
                   </div>
-                </div>
 
-                <div style={{ display:'flex', gap:10 }}>
-                  <div style={{ flex:1 }}><label style={{ display:'block', fontSize:13, fontWeight:700, marginBottom:6 }}>생년</label><input type="number" placeholder="1995" value={year} onChange={e=>setYear(e.target.value)} style={{ width:'100%', padding:12, borderRadius:10, border:'1.5px solid #E2E8F0' }} /></div>
-                  <div style={{ flex:1 }}><label style={{ display:'block', fontSize:13, fontWeight:700, marginBottom:6 }}>월</label><input type="number" placeholder="5" value={month} onChange={e=>setMonth(e.target.value)} style={{ width:'100%', padding:12, borderRadius:10, border:'1.5px solid #E2E8F0' }} /></div>
-                  <div style={{ flex:1 }}><label style={{ display:'block', fontSize:13, fontWeight:700, marginBottom:6 }}>일</label><input type="number" placeholder="20" value={day} onChange={e=>setDay(e.target.value)} style={{ width:'100%', padding:12, borderRadius:10, border:'1.5px solid #E2E8F0' }} /></div>
+                  <button onClick={analyze} disabled={!isValid || loading} style={{ width:'100%', padding:'18px', borderRadius:16, background:isValid?'#7C3AED':'#CBD5E1', color:'#fff', border:'none', fontSize:16, fontWeight:900, cursor:isValid?'pointer':'not-allowed', marginTop:10 }}>
+                    {loading ? '🔮 분석 중...' : '🔮 나의 댄스 사주 분석하기'}
+                  </button>
                 </div>
-
-                <div>
-                  <label style={{ display:'block', fontSize:13, fontWeight:700, marginBottom:6 }}>태어난 시간 (모르면 무관)</label>
-                  <select value={timeIdx} onChange={e=>setTimeIdx(e.target.value)} style={{ width:'100%', padding:12, borderRadius:10, border:'1.5px solid #E2E8F0', background:'#fff' }}>
-                    <option value="">모름</option>
-                    {TIME_LIST.map(t=><option key={t.value} value={t.value}>{t.label}</option>)}
-                  </select>
-                </div>
-
-                <button onClick={analyze} disabled={!isValid || loading} style={{ width:'100%', padding:'18px', borderRadius:16, background:isValid?'#7C3AED':'#CBD5E1', color:'#fff', border:'none', fontSize:16, fontWeight:900, cursor:isValid?'pointer':'not-allowed', marginTop:10 }}>
-                  {loading ? '🔮 분석 중...' : '🔮 나의 댄스 사주 분석하기'}
-                </button>
-              </div>
+              )}
             </div>
           )}
 

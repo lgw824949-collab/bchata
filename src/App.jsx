@@ -605,12 +605,11 @@ function App() {
   }, [])
 
   useEffect(() => {
-    // 공지사항 가이드 자동 팝업 (세션당 한 번)
-    const guideShown = sessionStorage.getItem('notice_guide_shown');
+    // 공지사항 가이드 자동 팝업 (디바이스당 한 번)
+    const guideShown = localStorage.getItem('notice_guide_shown');
     if (!guideShown) {
       setTimeout(() => {
         setShowNoticeGuide(true);
-        sessionStorage.setItem('notice_guide_shown', 'true');
       }, 1000); // 1초 뒤에 자연스럽게 팝업
     }
   }, []);
@@ -747,6 +746,7 @@ function App() {
     handleOpenModal, handleCloseModal,
     IncheonBanner: () => <IncheonPremiumBanner t={t} onClick={() => openAnalysis(false)} />, venueCounts: {}, resetToToday: () => { setView('home'); setSelectedDate(todayData.dateStr); }, formatItemDate: (d, t) => `${d} ${t}`, formatFee: (f) => f, 
     handleRegister, 
+    setShowSaju,
     logActivity: () => {}, regionalTheme: { welcomeMsg: "전국 댄서들을 위한 실시간 정보", specialBanner: true }
   };
 
@@ -821,7 +821,6 @@ function App() {
               {[
                 { icon: <Calendar color={'#FF1744'} />, text: t('view_calendar'), action: () => { setIsMenuOpen(false); handleOpenModal(setShowFullCalendar, true); } },
                 { icon: <Utensils color={'#FF1744'} />, text: t('restaurant'), action: () => { setView('restaurant'); setIsMenuOpen(false); } },
-                { icon: <Star color={'#FF1744'} />, text: t('saju'), action: () => { if(typeof setShowSaju === 'function') { handleOpenModal(setShowSaju, true); setIsMenuOpen(false); } } },
                 { 
                   icon: <CloudSun color={'#FF1744'} />, 
                   text: t('weather'), 
@@ -1310,6 +1309,7 @@ function App() {
               <button 
                 onClick={() => {
                   setShowNoticeGuide(false);
+                  localStorage.setItem('notice_guide_shown', 'true');
                   requestLocation();
                 }}
                 style={{ width: '100%', padding: '16px', borderRadius: '16px', background: 'linear-gradient(135deg, #C9A84C, #FFD700)', color: '#000', fontSize: '16px', fontWeight: 900, border: 'none', cursor: 'pointer', boxShadow: '0 10px 20px rgba(201,168,76,0.3)' }}
