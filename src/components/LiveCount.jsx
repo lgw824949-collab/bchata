@@ -2,6 +2,24 @@ import React, { useEffect, useState, useMemo } from 'react'
 import { supabase } from '../lib/supabase'
 import { BAR_DATABASE } from '../data/barDatabase'
 
+const LIVE_MESSAGES = [
+  "오늘 밤도 전국 플로어는 뜨겁습니다 🔥",
+  "지금 이 순간, 어딘가에서 음악이 흐르고 있어요 🎵",
+  "오늘 밤 파티, 아직 자리 있어요 💃",
+  "전국 댄서들이 지금 움직이고 있어요 ✨",
+  "플로어 위에서 만나요, 오늘 밤 🌙",
+  "음악이 있는 곳에 당신의 밤이 있어요 🎶",
+  "처음이어도 괜찮아요, 파티는 열려 있어요 🚪",
+  "지금 근처 파티를 찾아보세요 📍",
+  "오늘 밤의 선택이 새로운 인연을 만들어요 💫",
+  "전국 어디서든, 만원이면 충분해요 🎉",
+  "좋은 음악, 좋은 사람, 오늘 밤 여기 🌟",
+  "퇴근 후 뭐하지? 답은 플로어에 있어요 👟",
+  "혼자여도 괜찮아요, 플로어에선 모두가 친구예요 🤝",
+  "오늘 밤만큼은 특별하게 💎",
+  "지금 체크인하면 오늘 밤이 달라져요 🗺️",
+]
+
 const LiveCount = () => {
   const [counts, setCounts] = useState({})
   const [currentIndex, setCurrentIndex] = useState(0)
@@ -73,7 +91,7 @@ const LiveCount = () => {
 
   // 지역별로 분리된 리포트 배열 생성
   const regionalReports = useMemo(() => {
-    if (Object.keys(counts).length === 0) return ['🎵 전국 소셜 파티 실시간 인원 중계 중! 🔥'];
+    if (Object.keys(counts).length === 0) return LIVE_MESSAGES;
 
     const byRegion = {};
     Object.entries(counts).forEach(([key, count]) => {
@@ -100,10 +118,8 @@ const LiveCount = () => {
         setIsTyping(false);
         // 문장 완성 후 4초간 대기
         timeout = setTimeout(() => {
-          setIsTyping(false);
-          // 글자 지우기 시작 (또는 바로 다음으로 전환)
+          setCurrentIndex(prev => (prev + 1) % regionalReports.length);
           setDisplayText('');
-          setCurrentIndex((prev) => (prev + 1) % regionalReports.length);
           setIsTyping(true);
         }, 4000); 
       }
