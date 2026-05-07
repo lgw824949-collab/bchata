@@ -719,6 +719,12 @@ const HomePage = ({
                                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                                   <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#FF1744' }} />
                                   {t(regionKeys[regionName] || regionName)}
+                                  <span style={{ fontSize: '14px', color: '#E53935', fontWeight: '900', marginLeft: '8px' }}>
+                                    {(() => {
+                                      const d = new Date(selectedDate);
+                                      return `${d.getMonth() + 1}/${d.getDate()} (${isEn ? DAYS_EN[d.getDay()] : DAYS_KOR[d.getDay()]})`;
+                                    })()}
+                                  </span>
                                 </div>
                                 <button 
                                   onClick={() => {
