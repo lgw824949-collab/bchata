@@ -607,7 +607,13 @@ const HomePage = ({
               {carouselParties.length > 0 && (
                 <div style={{ margin: '0 0 15px', padding: '10px 0 20px', background: '#fff', borderBottom: '1px solid #eee' }}>
                   <div style={{ padding: '0 20px 15px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                    <h2 style={{ fontSize: '18px', fontWeight: '950', color: '#1E293B', display: 'flex', alignItems: 'center', gap: '8px' }}><span style={{ color: '#FF1744' }}>HOT</span> PICK 5</h2>
+                    <h2 style={{ fontSize: '18px', fontWeight: '950', color: '#1E293B', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                      {i18n.language.startsWith('en') ? (
+                        <>HOT <span style={{ color: '#FF1744' }}>PICK 5</span></>
+                      ) : (
+                        <><span style={{ color: '#FF1744' }}>HOT</span> PICK 5</>
+                      )}
+                    </h2>
                     
                     {/* 운명의 좌표 (Saju) 버튼 추가 */}
                     <motion.button
@@ -659,14 +665,18 @@ const HomePage = ({
                         padding: '2px 8px',
                         borderRadius: '12px',
                         transition: 'all 0.3s'
-                      }}>한국어</span>
+                      }}>
+                        {lang === 'ko' ? '한국어' : 'KOR'}
+                      </span>
                       <span style={{ 
                         color: lang === 'en' ? '#fff' : 'rgba(255,255,255,0.3)',
                         background: lang === 'en' ? '#E53935' : 'transparent',
                         padding: '2px 8px',
                         borderRadius: '12px',
                         transition: 'all 0.3s'
-                      }}>ENG</span>
+                      }}>
+                        {lang === 'en' ? 'ENG' : '영어'}
+                      </span>
                     </button>
                   </div>
                   <div style={{ width: '100%', overflow: 'hidden', padding: '10px 0' }}>

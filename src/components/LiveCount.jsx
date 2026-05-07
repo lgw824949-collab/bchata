@@ -1,30 +1,19 @@
 import React, { useEffect, useState, useMemo } from 'react'
+import { useTranslation } from 'react-i18next'
 import { supabase } from '../lib/supabase'
-import { BAR_DATABASE } from '../data/barDatabase'
-
-const LIVE_MESSAGES = [
-  "오늘 밤도 전국 플로어는 뜨겁습니다 🔥",
-  "지금 이 순간, 어딘가에서 음악이 흐르고 있어요 🎵",
-  "오늘 밤 파티, 아직 자리 있어요 💃",
-  "전국 댄서들이 지금 움직이고 있어요 ✨",
-  "플로어 위에서 만나요, 오늘 밤 🌙",
-  "음악이 있는 곳에 당신의 밤이 있어요 🎶",
-  "처음이어도 괜찮아요, 파티는 열려 있어요 🚪",
-  "지금 근처 파티를 찾아보세요 📍",
-  "오늘 밤의 선택이 새로운 인연을 만들어요 💫",
-  "전국 어디서든, 만원이면 충분해요 🎉",
-  "좋은 음악, 좋은 사람, 오늘 밤 여기 🌟",
-  "퇴근 후 뭐하지? 답은 플로어에 있어요 👟",
-  "혼자여도 괜찮아요, 플로어에선 모두가 친구예요 🤝",
-  "오늘 밤만큼은 특별하게 💎",
-  "지금 체크인하면 오늘 밤이 달라져요 🗺️",
-]
 
 const LiveCount = () => {
+  const { t, i18n } = useTranslation()
   const [counts, setCounts] = useState({})
   const [currentIndex, setCurrentIndex] = useState(0)
   const [displayText, setDisplayText] = useState('')
   const [isTyping, setIsTyping] = useState(true)
+
+  const liveMessages = useMemo(() => [
+    t('live_msg_1'), t('live_msg_2'), t('live_msg_3'), t('live_msg_4'), t('live_msg_5'),
+    t('live_msg_6'), t('live_msg_7'), t('live_msg_8'), t('live_msg_9'), t('live_msg_10'),
+    t('live_msg_11'), t('live_msg_12'), t('live_msg_13'), t('live_msg_14'), t('live_msg_15')
+  ], [t])
 
   const getTodayKST = () => {
     const kst = new Date(Date.now() + (9 * 60 * 60 * 1000))
@@ -85,26 +74,40 @@ const LiveCount = () => {
   }, [])
 
   const abbreviateRegion = (region) => {
-    const maps = { '서울특별시': '서울', '인천광역시': '인천', '부산광역시': '부산', '경기도': '경기', '충청도': '충청', '전라도': '전라', '경상도': '경상' };
-    return maps[region] || region;
+    const maps = { 
+      '서울특별시': '서울', '인천광역시': '인천', '부산광역시': '부산', 
+      '경기도': '경기', '충청도': '충청', '전라도': '전라', '경상도': '경상' 
+    };
+    const short = maps[region] || region;
+    
+    const translationKeys = {
+      '서울': 'region_seoul',
+      '인천': 'region_incheon',
+      '부산': 'region_busan',
+      '경기': 'region_gyeonggi_incheon',
+      '충청': 'region_chungcheong',
+      '전라': 'region_jeolla',
+      '경상': 'region_gyeongsang',
+      '전국': 'Nationwide'
+    };
+    
+    return t(translationKeys[short] || short);
   };
 
-  // 지역별로 분리된 리포트 배열 생성
   const regionalReports = useMemo(() => {
-    if (Object.keys(counts).length === 0) return LIVE_MESSAGES;
+    if (Object.keys(counts).length === 0) return liveMessages;
 
     const byRegion = {};
     Object.entries(counts).forEach(([key, count]) => {
       const [region, name] = key.split('|');
-      const shortRegion = abbreviateRegion(region);
-      if (!byRegion[shortRegion]) byRegion[shortRegion] = [];
-      byRegion[shortRegion].push(`${name} ${count}`);
+      const translatedRegion = abbreviateRegion(region);
+      if (!byRegion[translatedRegion]) byRegion[translatedRegion] = [];
+      byRegion[translatedRegion].push(`${name} ${count}`);
     });
 
     return Object.entries(byRegion).map(([reg, venues]) => `[${reg}] ${venues.join(', ')}`);
-  }, [counts]);
+  }, [counts, liveMessages, t]);
 
-  // 타이핑 및 지역 로테이션 효과 로직
   useEffect(() => {
     let timeout;
     const currentFullText = regionalReports[currentIndex] || '';
@@ -113,10 +116,9 @@ const LiveCount = () => {
       if (displayText.length < currentFullText.length) {
         timeout = setTimeout(() => {
           setDisplayText(currentFullText.slice(0, displayText.length + 1));
-        }, 80); // 타이핑 속도 최적화
+        }, 80);
       } else {
         setIsTyping(false);
-        // 문장 완성 후 4초간 대기
         timeout = setTimeout(() => {
           setCurrentIndex(prev => (prev + 1) % regionalReports.length);
           setDisplayText('');
@@ -126,16 +128,6 @@ const LiveCount = () => {
     }
     return () => clearTimeout(timeout);
   }, [displayText, isTyping, currentIndex, regionalReports]);
-
-  const parseReport = (text) => {
-    // "[서울] 라틴 21" 형태가 포함되어 있는지 확인하여 파싱
-    // 로테이션 방식이므로 하나의 텍스트 안에 여러 장소가 있을 수 있음. 
-    // 여기서는 가장 앞의 장소 정보를 대표로 파싱하거나, 전체를 텍스트로 보여줌
-    const match = text.match(/\[(.+?)\]\s*(.+?)\s+(\d+)/)
-    if (match) return { region: match[1], name: match[2], count: match[3] }
-    return null
-  }
-  const parsed = parseReport(displayText)
 
   return (
     <div style={{
@@ -181,10 +173,6 @@ const LiveCount = () => {
           gap: 4px;
           font-family: 'Pretendard', sans-serif;
         }
-        .live-region {
-          color: rgba(255,255,255,0.5);
-          font-size: 12px;
-        }
         .live-data-text {
           color: #E8D5A3;
           font-size: 14px;
@@ -198,6 +186,8 @@ const LiveCount = () => {
           height: 14px;
           display: inline-block;
           vertical-align: middle;
+          position: relative;
+          top: 2px;
         }
         @keyframes blink-gold { 0%, 100% { opacity: 1; } 50% { opacity: 0; } }
       `}</style>

@@ -871,7 +871,7 @@ function App() {
                     }, 500);
                   } 
                 },
-                { icon: <MessageSquare color={'#FF1744'} />, text: '실시간 오픈톡', action: () => { window.open('https://open.kakao.com/o/gP43rNri', '_blank'); setIsMenuOpen(false); } },
+                { icon: <MessageSquare color={'#FF1744'} />, text: t('open_chat'), action: () => { window.open('https://open.kakao.com/o/gP43rNri', '_blank'); setIsMenuOpen(false); } },
               ].map((item, idx) => (
                 <motion.div
                   key={idx}
@@ -929,8 +929,8 @@ function App() {
               }}>
                 <div style={{ textAlign: 'center', marginBottom: '30px' }}>
                   <ShieldCheck size={64} color="#FF1744" style={{ margin: '0 auto 16px' }} />
-                  <h2 style={{ color: 'white', fontSize: '24px', fontWeight: 900 }}>관리자 포털</h2>
-                  <p style={{ color: '#94A3B8', fontSize: '14px' }}>관리하실 항목을 선택해주세요.</p>
+                  <h2 style={{ color: 'white', fontSize: '24px', fontWeight: 900 }}>{t('admin_portal')}</h2>
+                  <p style={{ color: '#94A3B8', fontSize: '14px' }}>{t('admin_portal_desc')}</p>
                 </div>
                 
                 <button 
@@ -942,14 +942,14 @@ function App() {
                     cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '15px'
                   }}
                 >
-                  <Music2 size={24} color="#FF1744" /> 소셜파티 관리
+                  <Music2 size={24} color="#FF1744" /> {t('admin_manage_party')}
                 </button>
                 
                 <button 
                   onClick={() => navigate('/')}
                   style={{ marginTop: '40px', background: 'none', border: 'none', color: '#64748B', fontWeight: 700, cursor: 'pointer' }}
                 >
-                  메인으로 돌아가기
+                  {t('back_to_main')}
                 </button>
               </div>
             ) : <AdminDashboard onBack={() => navigate('/')} refreshData={fetchParties} />}
@@ -1063,7 +1063,7 @@ function App() {
                         )}
                       </div>
                     )}
-                    <button onClick={handleCloseModal} style={{ width: '100%', height: '54px', borderRadius: '16px', background: '#1E293B', color: '#fff', fontSize: '16px', fontWeight: 800, border: 'none' }}>확인 완료</button>
+                    <button onClick={handleCloseModal} style={{ width: '100%', height: '54px', borderRadius: '16px', background: '#1E293B', color: '#fff', fontSize: '16px', fontWeight: 800, border: 'none' }}>{t('confirm_complete')}</button>
                   </motion.div>
                 )}
               </div>
@@ -1091,7 +1091,7 @@ function App() {
               filter: 'blur(10px)', transition: 'all 0.4s'
             }} />
             <Music2 size={22} color={location.pathname === '/' ? '#E11D48' : '#333'} style={{ marginBottom: '4px', position: 'relative' }} />
-            <span style={{ fontSize: '10px', fontWeight: location.pathname === '/' ? 900 : 500, position: 'relative' }}>소셜/파티</span>
+            <span style={{ fontSize: '10px', fontWeight: location.pathname === '/' ? 900 : 500, position: 'relative' }}>{t('nav_social')}</span>
             <motion.div layoutId="active-nav" className="active-indicator" style={{ background: '#E11D48', opacity: location.pathname === '/' ? 1 : 0 }} />
           </div>
 
@@ -1142,7 +1142,7 @@ function App() {
             >
               <Plus size={28} strokeWidth={3} />
             </motion.button>
-            <span style={{ pointerEvents: 'auto', color: '#333', fontSize: '10px', fontWeight: 800 }}>{location.pathname === '/livepick' ? '리포트' : '등록'}</span>
+            <span style={{ pointerEvents: 'auto', color: '#333', fontSize: '10px', fontWeight: 800 }}>{location.pathname === '/livepick' ? (i18n.language.startsWith('en') ? 'REPORT' : '리포트') : t('nav_register')}</span>
           </div>
 
           <div 
@@ -1160,7 +1160,7 @@ function App() {
               filter: 'blur(10px)', transition: 'all 0.4s'
             }} />
             <Tent size={22} color={location.pathname === '/bootcamp' ? '#F97316' : '#333'} style={{ marginBottom: '4px', position: 'relative' }} />
-            <span style={{ fontSize: '10px', fontWeight: location.pathname === '/bootcamp' ? 900 : 500, position: 'relative' }}>부트캠프</span>
+            <span style={{ fontSize: '10px', fontWeight: location.pathname === '/bootcamp' ? 900 : 500, position: 'relative' }}>{t('nav_bootcamp')}</span>
             <motion.div layoutId="active-nav" className="active-indicator" style={{ background: '#F97316', opacity: location.pathname === '/bootcamp' ? 1 : 0 }} />
           </div>
 
@@ -1179,7 +1179,7 @@ function App() {
               filter: 'blur(10px)', transition: 'all 0.4s'
             }} />
             <Flag size={22} color={location.pathname === '/festival' ? '#F97316' : '#333'} style={{ marginBottom: '4px', position: 'relative' }} />
-            <span style={{ fontSize: '10px', fontWeight: location.pathname === '/festival' ? 900 : 500, position: 'relative' }}>페스티벌</span>
+            <span style={{ fontSize: '10px', fontWeight: location.pathname === '/festival' ? 900 : 500, position: 'relative' }}>{t('nav_festival')}</span>
             <motion.div layoutId="active-nav" className="active-indicator" style={{ background: '#F97316', opacity: location.pathname === '/festival' ? 1 : 0 }} />
           </div>
         </nav>

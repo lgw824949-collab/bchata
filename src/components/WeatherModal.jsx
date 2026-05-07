@@ -1,17 +1,16 @@
 // src/components/WeatherModal.jsx
 // 전국 날씨 - 기상청 API 직접 연동 버전
 
-import { useState, useEffect } from 'react'
-import { X } from 'lucide-react'
+import { useTranslation } from 'react-i18next'
 
 const REGIONS = [
-  { name:'서울', nx:60, ny:127 },
-  { name:'경기/인천', nx:55, ny:124 },
-  { name:'충청', nx:67, ny:100 },
-  { name:'전라', nx:58, ny:74 },
-  { name:'경상', nx:89, ny:90 },
-  { name:'강원', nx:73, ny:134 },
-  { name:'제주', nx:52, ny:38 },
+  { key: 'region_seoul', nx:60, ny:127 },
+  { key: 'region_gyeonggi_incheon', nx:55, ny:124 },
+  { key: 'region_chungcheong', nx:67, ny:100 },
+  { key: 'region_jeolla', nx:58, ny:74 },
+  { key: 'region_gyeongsang', nx:89, ny:90 },
+  { key: 'region_gangwon', nx:73, ny:134 },
+  { key: 'region_jeju', nx:52, ny:38 },
 ]
 
 const ANIM_STYLE = `
@@ -33,6 +32,7 @@ const ANIM_STYLE = `
 `
 
 export default function WeatherModal({ onClose }) {
+  const { t } = useTranslation()
   const [weatherData, setWeatherData] = useState([])
   const [loading, setLoading] = useState(true)
 
@@ -64,38 +64,38 @@ export default function WeatherModal({ onClose }) {
 
               // sky 코드: 1 → ☀️ 맑음, 3 → ⛅ 구름많음, 4 → ☁️ 흐림
               let icon = '☀️'
-              let label = '맑음'
+              let labelKey = 'weather_clear'
               let anim = 'spin'
-              let badge = '파티 GO!'
+              let badgeKey = 'badge_party_go'
               let badgeColor = '#FF8C00'
               let badgeBg = '#FFF3CD'
 
               if (sky === '3') {
                 icon = '⛅'
-                label = '구름많음'
+                labelKey = 'weather_partly_cloudy'
                 anim = 'sway'
-                badge = '춤추기 딱!'
+                badgeKey = 'badge_perfect_dance'
                 badgeColor = '#1565C0'
                 badgeBg = '#E3F2FD'
               } else if (sky === '4') {
                 icon = '☁️'
-                label = '흐림'
+                labelKey = 'weather_cloudy'
                 anim = 'sway'
-                badge = '실내 소셜!'
+                badgeKey = 'badge_indoor_social'
                 badgeColor = '#64748B'
                 badgeBg = '#F1F5F9'
               }
 
-              return { ...region, temp: tmp, icon, label, anim, badge, badgeColor, badgeBg }
+              return { ...region, temp: tmp, icon, labelKey, anim, badgeKey, badgeColor, badgeBg }
             } catch (err) {
-              console.error(`Error fetching weather for ${region.name}:`, err)
+              console.error(`Error fetching weather for ${region.key}:`, err)
               return { 
                 ...region, 
                 temp: '--', 
                 icon: '☀️', 
-                label: '맑음', 
+                labelKey: 'weather_clear', 
                 anim: 'spin', 
-                badge: '데이터 오류', 
+                badgeKey: 'weather_error', 
                 badgeColor: '#64748B', 
                 badgeBg: '#F1F5F9' 
               }
@@ -130,8 +130,8 @@ export default function WeatherModal({ onClose }) {
         {/* 헤더 */}
         <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:14 }}>
           <div>
-            <div style={{ fontSize:16, fontWeight:900, color:'#1E293B' }}>🗺️ 전국 날씨</div>
-            <div style={{ fontSize:10, color:'#94A3B8', marginTop:2 }}>오늘 밤 파티 날씨 실시간 안내</div>
+            <div style={{ fontSize:16, fontWeight:900, color:'#1E293B' }}>{t('weather_title')}</div>
+            <div style={{ fontSize:10, color:'#94A3B8', marginTop:2 }}>{t('weather_desc')}</div>
           </div>
           <button onClick={onClose} style={{
             background:'#E2E8F0', border:'none', borderRadius:'50%',
@@ -168,9 +168,9 @@ export default function WeatherModal({ onClose }) {
                   <div style={{ fontSize:32, marginBottom:3 }}>
                     <span className={`anim-${r.anim}`}>{r.icon}</span>
                   </div>
-                  <div style={{ fontSize:13, fontWeight:900, color:'#1E293B', marginBottom:1 }}>{r.name}</div>
+                  <div style={{ fontSize:13, fontWeight:900, color:'#1E293B', marginBottom:1 }}>{t(r.key)}</div>
                   <div style={{ fontSize:26, fontWeight:900, color:'#1565C0' }}>{r.temp}°</div>
-                  <div style={{ fontSize:12, color:'#94A3B8', marginBottom:5 }}>{r.label}</div>
+                  <div style={{ fontSize:12, color:'#94A3B8', marginBottom:5 }}>{t(r.labelKey)}</div>
                   <div style={{
                     background: r.badgeBg,
                     color: r.badgeColor,
@@ -178,7 +178,7 @@ export default function WeatherModal({ onClose }) {
                     fontSize:11, fontWeight:800,
                     display:'inline-block',
                   }}>
-                    {r.badge}
+                    {t(r.badgeKey)}
                   </div>
                 </div>
               ))
@@ -186,7 +186,7 @@ export default function WeatherModal({ onClose }) {
         </div>
 
         <div style={{ textAlign:'center', marginTop:10, fontSize:9, color:'#CBD5E1' }}>
-          기상청 단기예보 (05:00 기준)
+          {t('weather_source')}
         </div>
       </div>
     </>
