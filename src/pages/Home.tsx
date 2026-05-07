@@ -204,24 +204,20 @@ const PartyCard = ({ item, onSelect }) => {
           </h3>
         </div>
 
-        {/* 3행: 날짜(요일) / 비율 / 시간 / 참여비 */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '3px', fontSize: '11px', fontWeight: '800', color: 'var(--color-text-sub)', whiteSpace: 'nowrap' }}>
-          <span style={{ color: '#FF1744' }}>
-            {(() => {
-              const d = new Date(item.date);
-              return `${d.getMonth() + 1}/${d.getDate()}(${isEn ? DAYS_EN[d.getDay()] : DAYS_KOR[d.getDay()]})`;
-            })()}
-          </span>
-          <span>/</span>
+        {/* 3행: 장르비율 / 시간 / 참여비 (날짜 삭제 완료) */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '5px', fontSize: '11px', fontWeight: '800', color: 'var(--color-text-sub)', whiteSpace: 'nowrap' }}>
           <span style={{ color: '#2ECC71' }}>
             {Object.entries(GENRE_MAP)
               .filter(([_, info]) => item[info.key] > 0)
               .map(([_, info]) => `${info.label}${item[info.key]}`)
               .join(' ')}
           </span>
-          <span>/</span>
+          <span style={{ opacity: 0.3 }}>|</span>
           <span>{displayTime}</span>
-          <span>/</span>
+          <span style={{ opacity: 0.3 }}>|</span>
+          <span style={{ color: 'var(--color-text-main)' }}>{displayFee}</span>
+        </div>
+      </div>
           <span style={{ color: 'var(--color-text-main)' }}>{isEn ? displayFee.replace('만', '0k') : displayFee}</span>
         </div>
       </div>
