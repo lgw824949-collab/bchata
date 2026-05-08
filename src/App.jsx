@@ -387,11 +387,11 @@ const IncheonPremiumBanner = ({ onClick, t }) => (
     <div 
       onClick={(e) => { e.stopPropagation(); onClick(); }} 
       style={{ 
-        background: 'linear-gradient(90deg, #FFFFFF, #FEF2F2)', 
+        background: 'linear-gradient(90deg, #FFFBEB, #FEF3C7)', 
         borderRadius: '16px', 
         padding: '10px 16px', 
-        border: '1px solid #dcfce7', 
-        boxShadow: '0 4px 12px rgba(5, 150, 105, 0.03)', 
+        border: '1px solid #FDE68A', 
+        boxShadow: '0 4px 15px rgba(251, 191, 36, 0.1)', 
         cursor: 'pointer',
         display: 'flex',
         alignItems: 'center',
@@ -400,7 +400,7 @@ const IncheonPremiumBanner = ({ onClick, t }) => (
       }}
     >
       <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flex: 1, minWidth: 0 }}>
-        <div style={{ background: '#FEF2F2', padding: '6px', borderRadius: '10px', color: '#FF1744', flexShrink: 0 }}>
+        <div style={{ background: '#FEF3C7', padding: '6px', borderRadius: '10px', color: '#D97706', flexShrink: 0 }}>
           <Navigation size={15} strokeWidth={3} />
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px', overflow: 'hidden' }}>

@@ -556,7 +556,7 @@ const HomePage = ({
       </div>
 
       <div style={{ padding: '12px 10px 8px' }}>
-        <div style={{ height: '36px', background: '#F3F4F6', borderRadius: '18px', display: 'flex', alignItems: 'center', overflow: 'hidden', padding: '0 8px 0 16px', border: '1px solid #E5E7EB' }}>
+        <div style={{ height: '36px', background: 'linear-gradient(90deg, #FFFBEB, #FEF3C7)', borderRadius: '18px', display: 'flex', alignItems: 'center', overflow: 'hidden', padding: '0 8px 0 16px', border: '1px solid #FDE68A' }}>
           <div style={{ flex: 1, overflow: 'hidden' }}>
             <LiveCount />
           </div>
