@@ -990,10 +990,12 @@ function App() {
             <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
               {/* 1. 강사 등록 신청 */}
               <button
+                type="button"
                 onClick={() => { handleCloseModal(); setShowInstructorRegister(true) }}
                 style={{
                   width: '100%', padding: '16px 20px', background: '#fff', borderRadius: '16px', border: '1px solid #F1F5F9',
-                  textAlign: 'left', display: 'flex', alignItems: 'center', gap: '14px'
+                  textAlign: 'left', display: 'flex', alignItems: 'center', gap: '14px',
+                  cursor: 'pointer', pointerEvents: 'auto', position: 'relative', zIndex: 1
                 }}
               >
                 <div style={{ width: '40px', height: '40px', borderRadius: '12px', background: '#F5F3FF', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
@@ -1007,10 +1009,12 @@ function App() {
 
               {/* 2. 라틴에 진심 */}
               <button
+                type="button"
                 onClick={() => { handleCloseModal(); setShowInstructor(true) }}
                 style={{
                   width: '100%', padding: '16px 20px', borderRadius: '16px', textAlign: 'left', display: 'flex', alignItems: 'center', gap: '14px',
-                  background: 'linear-gradient(135deg, #F5F3FF, #EDE9FE)', border: '1px solid #DDD6FE'
+                  background: 'linear-gradient(135deg, #F5F3FF, #EDE9FE)', border: '1px solid #DDD6FE',
+                  cursor: 'pointer', pointerEvents: 'auto', position: 'relative', zIndex: 1
                 }}
               >
                 <div style={{ width: '40px', height: '40px', borderRadius: '12px', background: '#EDE9FE', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
@@ -1024,10 +1028,12 @@ function App() {
 
               {/* 3. 달력 */}
               <button
+                type="button"
                 onClick={() => { setIsMenuOpen(false); handleOpenModal(setShowFullCalendar, true); }}
                 style={{
                   width: '100%', padding: '16px 20px', background: '#fff', borderRadius: '16px', border: '1px solid #F1F5F9',
-                  textAlign: 'left', display: 'flex', alignItems: 'center', gap: '14px'
+                  textAlign: 'left', display: 'flex', alignItems: 'center', gap: '14px',
+                  cursor: 'pointer', pointerEvents: 'auto', position: 'relative', zIndex: 1
                 }}
               >
                 <div style={{ width: '40px', height: '40px', borderRadius: '12px', background: '#FEF3C7', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
@@ -1041,10 +1047,12 @@ function App() {
 
               {/* 4. 뒷풀이 맛집 */}
               <button
+                type="button"
                 onClick={() => { setView('restaurant'); setIsMenuOpen(false); }}
                 style={{
                   width: '100%', padding: '16px 20px', background: '#fff', borderRadius: '16px', border: '1px solid #F1F5F9',
-                  textAlign: 'left', display: 'flex', alignItems: 'center', gap: '14px'
+                  textAlign: 'left', display: 'flex', alignItems: 'center', gap: '14px',
+                  cursor: 'pointer', pointerEvents: 'auto', position: 'relative', zIndex: 1
                 }}
               >
                 <div style={{ width: '40px', height: '40px', borderRadius: '12px', background: '#FEE2E2', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
@@ -1058,10 +1066,12 @@ function App() {
 
               {/* 5. 오늘 날씨 */}
               <button
+                type="button"
                 onClick={handleWeatherTap}
                 style={{
                   width: '100%', padding: '16px 20px', background: '#fff', borderRadius: '16px', border: '1px solid #F1F5F9',
-                  textAlign: 'left', display: 'flex', alignItems: 'center', gap: '14px'
+                  textAlign: 'left', display: 'flex', alignItems: 'center', gap: '14px',
+                  cursor: 'pointer', pointerEvents: 'auto', position: 'relative', zIndex: 1
                 }}
               >
                 <div style={{ width: '40px', height: '40px', borderRadius: '12px', background: '#E0F2FE', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
@@ -1075,10 +1085,12 @@ function App() {
 
               {/* 6. 실시간 오픈톡 */}
               <button
+                type="button"
                 onClick={() => { window.open('https://open.kakao.com/o/gP43rNri', '_blank'); setIsMenuOpen(false); }}
                 style={{
                   width: '100%', padding: '16px 20px', background: '#fff', borderRadius: '16px', border: '1px solid #F1F5F9',
-                  textAlign: 'left', display: 'flex', alignItems: 'center', gap: '14px'
+                  textAlign: 'left', display: 'flex', alignItems: 'center', gap: '14px',
+                  cursor: 'pointer', pointerEvents: 'auto', position: 'relative', zIndex: 1
                 }}
               >
                 <div style={{ width: '40px', height: '40px', borderRadius: '12px', background: '#FEE500', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
@@ -1092,10 +1104,12 @@ function App() {
 
               {/* 다크모드 토글 (기존 스타일 유지하되 통일감 부여) */}
               <button
+                type="button"
                 onClick={() => setIsDark(!isDark)}
                 style={{
                   width: '100%', padding: '16px 20px', background: '#fff', borderRadius: '16px', border: '1px solid #F1F5F9',
-                  textAlign: 'left', display: 'flex', alignItems: 'center', gap: '14px', marginTop: '12px'
+                  textAlign: 'left', display: 'flex', alignItems: 'center', gap: '14px', marginTop: '12px',
+                  cursor: 'pointer', pointerEvents: 'auto', position: 'relative', zIndex: 1
                 }}
               >
                 <div style={{ width: '40px', height: '40px', borderRadius: '12px', background: '#EEF2FF', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
