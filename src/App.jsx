@@ -772,7 +772,7 @@ function App() {
           broadRegionEn,
           cityName: p.cityName || '전국', 
           cityNameEn,
-          locationName: locName,
+          locationName: barInfo ? barInfo.name : locName,
           locationNameEn
         };
       });
