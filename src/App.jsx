@@ -555,8 +555,6 @@ function App() {
     else if (path === '/bootcamp/register') setView('bootcamp-register');
     else if (path === '/festival') setView('festival');
     else if (path === '/festival/register') setView('festival-register');
-    else if (path === '/register-party') setView('register-party');
-    else if (path === '/register-class') setView('register-class');
     else if (path === '/parking') setView('parking');
     else if (path === '/restaurant') setView('restaurant');
     else if (path === '/admin') setView('admin');
