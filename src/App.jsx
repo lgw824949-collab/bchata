@@ -729,6 +729,12 @@ function App() {
     }
   }, []);
 
+  useEffect(() => {
+    const handleOpenRegister = () => setView('festival-register');
+    window.addEventListener('open-festival-register', handleOpenRegister);
+    return () => window.removeEventListener('open-festival-register', handleOpenRegister);
+  }, []);
+
   const fetchParties = async () => {
     setLoading(true);
     try {
