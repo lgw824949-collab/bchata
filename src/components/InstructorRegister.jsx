@@ -115,7 +115,11 @@ const InstructorRegister = ({ onBack }) => {
             </div>
             <input type="file" accept="image/*" onChange={handleImage} style={{ display: 'none' }} />
           </label>
-          <div style={{ fontSize: 12, color: '#999' }}>프로필 사진 (선택)</div>
+          <div style={{ fontSize: 12, color: '#999', marginBottom: 4 }}>프로필 사진 (선택)</div>
+          <div style={{ fontSize: 11, color: '#bbb', lineHeight: 1.6, textAlign: 'center' }}>
+            정사각형 1:1 비율 권장<br/>
+            800 x 800px · 최대 5MB · JPG/PNG
+          </div>
         </div>
 
         <div style={{ marginBottom: 20 }}>
