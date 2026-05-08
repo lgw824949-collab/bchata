@@ -2,29 +2,15 @@ import React, { useState } from 'react'
 import { supabase } from '../lib/supabase'
 
 const InstructorUpload = ({ onBack }) => {
-  const [instructorId, setInstructorId] = useState('')
   const [instructor, setInstructor] = useState(null)
   const [caption, setCaption] = useState('')
   const [imageFile, setImageFile] = useState(null)
   const [preview, setPreview] = useState(null)
-  const [step, setStep] = useState(1)
+  const [step, setStep] = useState(2)
   const [loading, setLoading] = useState(false)
   const [done, setDone] = useState(false)
 
-  const findInstructor = async () => {
-    if (!instructorId.trim()) return
-    const { data } = await supabase
-      .from('instructors')
-      .select('*')
-      .eq('id', instructorId.trim())
-      .single()
-    if (data) {
-      setInstructor(data)
-      setStep(2)
-    } else {
-      alert('강사 ID를 찾을 수 없어요.')
-    }
-  }
+
 
   const handleImage = (e) => {
     const file = e.target.files[0]
@@ -34,11 +20,11 @@ const InstructorUpload = ({ onBack }) => {
   }
 
   const upload = async () => {
-    if (!imageFile || !instructor) return
+    if (!imageFile) return
     setLoading(true)
     try {
       const ext = imageFile.name.split('.').pop()
-      const fileName = `instructor_posts/${instructor.id}_${Date.now()}.${ext}`
+      const fileName = `instructor_posts/${Date.now()}.${ext}`
       const { error: uploadError } = await supabase.storage
         .from('posters')
         .upload(fileName, imageFile)
@@ -47,7 +33,6 @@ const InstructorUpload = ({ onBack }) => {
         .from('posters')
         .getPublicUrl(fileName)
       await supabase.from('instructor_posts').insert({
-        instructor_id: instructor.id,
         image_url: urlData.publicUrl,
         caption: caption,
         status: 'pending'
@@ -82,34 +67,8 @@ const InstructorUpload = ({ onBack }) => {
       </div>
 
       <div style={{ padding: 24 }}>
-        {step === 1 && (
-          <>
-            <div style={{ marginBottom: 32, textAlign: 'center' }}>
-              <div style={{ fontSize: 40, marginBottom: 12 }}>🔑</div>
-              <div style={{ fontSize: 16, fontWeight: 900, color: '#111', marginBottom: 8 }}>강사 ID를 입력해주세요</div>
-              <div style={{ fontSize: 13, color: '#999', lineHeight: 1.6 }}>관리자에게 받은 고유 ID를 입력하세요</div>
-            </div>
-            <input
-              value={instructorId}
-              onChange={e => setInstructorId(e.target.value)}
-              placeholder="강사 ID 입력"
-              style={{ width: '100%', padding: '16px', borderRadius: 12, border: '1px solid #E5E7EB', fontSize: 14, marginBottom: 16, boxSizing: 'border-box', fontFamily: 'monospace' }}
-            />
-            <button onClick={findInstructor} style={{ width: '100%', padding: '16px', borderRadius: 16, background: '#7C3AED', color: '#fff', border: 'none', fontSize: 15, fontWeight: 700, cursor: 'pointer' }}>확인</button>
-          </>
-        )}
-
         {step === 2 && (
           <>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 12, background: '#F8F7FF', borderRadius: 16, padding: 16, marginBottom: 24, border: '1px solid #EDE9FE' }}>
-              <div style={{ width: 48, height: 48, borderRadius: '50%', overflow: 'hidden', background: '#EDE9FE', flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 24 }}>
-                {instructor?.photo_url ? <img src={instructor.photo_url} style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : '💃'}
-              </div>
-              <div>
-                <div style={{ fontSize: 16, fontWeight: 800, color: '#111' }}>{instructor?.name}</div>
-                <div style={{ fontSize: 12, color: '#7C3AED' }}>{Array.isArray(instructor?.genre) ? instructor.genre.join(' · ') : instructor?.genre}</div>
-              </div>
-            </div>
 
             <div style={{ marginBottom: 20 }}>
               <div style={{ fontSize: 14, fontWeight: 700, color: '#111', marginBottom: 8 }}>포스터 이미지 *</div>
