@@ -283,7 +283,26 @@ const Festival = ({ onBack, initialView = 'list' }) => {
           <motion.div initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} style={{ background: '#ffffff', padding: '30px', marginTop: '20px' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '40px' }}>
               <h2 style={{ fontSize: '24px', fontWeight: 900, color: '#111', margin: 0 }}>페스티벌 등록 신청</h2>
-              <button type="button" onClick={onBack} style={{ background: '#f1f5f9', border: 'none', borderRadius: '50%', width: '44px', height: '44px', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}><X size={24} color="#999" /></button>
+              <button 
+                type="button" 
+                onClick={() => { setView('list'); onBack(); }}
+                style={{ 
+                  background: '#f1f5f9', 
+                  border: 'none', 
+                  borderRadius: '50%', 
+                  width: '44px', 
+                  height: '44px', 
+                  display: 'flex', 
+                  alignItems: 'center', 
+                  justifyContent: 'center', 
+                  cursor: 'pointer',
+                  position: 'relative',
+                  zIndex: 10,
+                  pointerEvents: 'auto'
+                }}
+              >
+                <X size={24} color="#999" />
+              </button>
             </div>
             
             <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '28px' }}>
