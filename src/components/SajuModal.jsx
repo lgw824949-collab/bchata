@@ -24,6 +24,24 @@ const BEGINNER_MESSAGES_EN = [
   { cat: "Challenge", text: "If you have the courage to come this far today,\nyou just need to open one more party door.\nLet's go together." }
 ];
 
+const BEGINNER_MESSAGES = [
+  { cat: "첫날 공감", text: "첫 파티에서 벽에만 서 있던 그 분이\n지금은 전국 무대에서 가르치고 있습니다.\n그분도 당신처럼 시작했습니다." },
+  { cat: "첫날 공감", text: "10년차 강사님도 첫날엔\n박자 한 번 못 맞췄답니다.\n그게 춤의 시작이에요." },
+  { cat: "첫날 공감", text: "모든 고수의 첫날은\n정확히 당신의 오늘과 같았습니다.\n어색하고, 설레고, 긴장되는 그 순간 말이죠." },
+  { cat: "용기 지원", text: "춤을 완벽히 준비해서 나가려고 하면\n영영 못 나갑니다.\n지금 모습 그대로 나가는 게 정답이에요." },
+  { cat: "용기 지원", text: "파티에서 '저 오늘 처음이에요'라고 말하면\n모두가 친절해집니다.\n그 말이 당신의 마법 주문이 될 거예요." },
+  { cat: "용기 지원", text: "처음 하는 그 순간이 가장 용감한 겁니다.\n당신은 지금 가장 멋진 사람이에요." },
+  { cat: "커뮤니티", text: "댄스 씬에 새로 왔다고 하면\n누군가는 반드시 손을 내밀어 줍니다.\n그 따뜻함을 느껴보세요." },
+  { cat: "커뮤니티", text: "혼자 오는 분들도 아주 많습니다.\n당신만 어색한 게 아니에요." },
+  { cat: "성장 스토리", text: "춤을 시작한 걸 후회하는 사람은 없습니다.\n시작하지 않은 걸 후회하는 사람은 많죠.\n지금 시작하세요." },
+  { cat: "성장 스토리", text: "3개월 뒤 당신이\n얼마나 변해있을지\n기대하셔도 좋습니다." },
+  { cat: "정서적 지지", text: "사주가 당신에게 말합니다.\n지금 이 설렘은 당신 인생의 신호탄이라고." },
+  { cat: "정서적 지지", text: "춤은 몸으로 추는 게 아닙니다.\n마음으로 추는 거예요.\n당신은 이미 준비되었습니다." },
+  { cat: "도전 유도", text: "이번 주 미션.\n딱 한 군데 파티장 구경만 가보기.\n춤 안 춰도 괜찮아요." },
+  { cat: "도전 유도", text: "딱 한 곡만 플로어에 서보세요.\n그 한 곡이 모든 걸 바꿀 겁니다." },
+  { cat: "도전 유도", text: "오늘 여기까지 올 용기가 있었다면,\n파티장 문 한 번만 더 열면 됩니다.\n같이 가요." }
+];
+
 function getBeginnerContent(isEn) {
   const msgs = isEn ? BEGINNER_MESSAGES_EN : BEGINNER_MESSAGES;
   const shuffled = [...msgs].sort(() => Math.random() - 0.5);
@@ -217,7 +235,7 @@ const SajuModal = ({ parties, onClose, lang = 'ko' }) => {
           {step === 1 && (
             <div style={{ padding:'32px 24px' }}>
               <div style={{ background:'linear-gradient(135deg, #7C3AED 0%, #4C1D95 100%)', padding:'24px', borderRadius:'20px', color:'white', marginBottom:'28px' }}>
-                <div style={{ fontSize:20, fontWeight:900, marginBottom:8 }}>{lang === 'ko' ? '댄스 사주 분석' : 'Dance Fortune Analysis'}</div>
+                <div style={{ fontSize:20, fontWeight:900, marginBottom:8 }}>{lang === 'ko' ? '댄스 분석' : 'Dance Analysis'}</div>
                 <div style={{ fontSize:12, opacity:0.8 }}>{t('saju_desc')}</div>
               </div>
 
@@ -278,7 +296,7 @@ const SajuModal = ({ parties, onClose, lang = 'ko' }) => {
                   </div>
 
                   <button onClick={analyze} disabled={!isValid || loading} style={{ width:'100%', padding:'18px', borderRadius:16, background:isValid?'#7C3AED':'#CBD5E1', color:'#fff', border:'none', fontSize:16, fontWeight:900, cursor:isValid?'pointer':'not-allowed', marginTop:10 }}>
-                    {loading ? t('saju_analyzing') : (lang === 'ko' ? '나의 댄스 사주 분석하기' : 'Analyze My Dance Fortune')}
+                    {loading ? t('saju_analyzing') : (lang === 'ko' ? '나의 댄스 분석하기' : 'Analyze My Dance')}
                   </button>
                 </div>
               )}
@@ -318,7 +336,7 @@ const SajuModal = ({ parties, onClose, lang = 'ko' }) => {
               ) : (
                 <>
                   <div style={{ background:'linear-gradient(135deg, #F5F3FF 0%, #EDE9FE 100%)', padding:'40px 24px', textAlign:'center', borderBottom:'1px solid #DDD6FE' }}>
-                    <div style={{ fontSize:10, color:'#7C3AED', fontWeight:800, letterSpacing:4, marginBottom:16 }}>DANCE SAJU REPORT</div>
+                    <div style={{ fontSize:10, color:'#7C3AED', fontWeight:800, letterSpacing:4, marginBottom:16 }}>DANCE ANALYSIS REPORT</div>
                     <div style={{ fontSize:56, marginBottom:10 }}>{result.selectedType?.type?.split(' ')[0]}</div>
                     <div style={{ fontSize:24, fontWeight:900, color:'#1E1B4B', marginBottom:8 }}>{result.selectedType?.type}</div>
                     <div style={{ fontSize:14, color:'#4338CA', lineHeight:1.6, marginBottom:24 }}>{result.selectedType?.typeDesc}</div>
