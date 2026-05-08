@@ -177,7 +177,16 @@ export default function AdminDashboard({ onBack }) {
         <h1 style={{ fontSize: '28px', fontWeight: 900 }}>BAMPPA ADMIN</h1>
         <form onSubmit={handleLogin} style={{ marginTop: '50px', maxWidth: '320px', margin: '50px auto 0' }}>
           <input type={loginStep === 1 ? "text" : "password"} value={loginStep === 1 ? adminId : password} onChange={e => loginStep === 1 ? setAdminId(e.target.value) : setPassword(e.target.value)} placeholder={loginStep === 1 ? "ID" : "PW"} style={{ width: '100%', padding: '20px', borderRadius: '20px', border: '2px solid #334155', backgroundColor: '#0F172A', color: 'white', textAlign: 'center', marginBottom: '20px' }} />
-          <button type="submit" style={{ width: '100%', padding: '20px', background: '#FF1744', color: 'white', borderRadius: '20px', fontWeight: 900 }}>{loginStep === 1 ? 'NEXT' : 'LOGIN'}</button>
+          <button 
+            type="submit" 
+            style={{ 
+              width: '100%', padding: '20px', background: '#FF1744', color: 'white', 
+              borderRadius: '20px', fontWeight: 900, cursor: 'pointer', 
+              pointerEvents: 'auto', position: 'relative', zIndex: 1 
+            }}
+          >
+            {loginStep === 1 ? 'NEXT' : 'LOGIN'}
+          </button>
         </form>
       </div>
     )
