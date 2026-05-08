@@ -117,35 +117,26 @@ const InstructorSection = () => {
   const getGenre = (genre) => Array.isArray(genre) ? genre.join(' · ') : (genre || '')
 
   return (
-    <div style={{ background: '#fff', minHeight: '100vh' }}>
-
-      {/* 장르 탭 */}
-      <div style={{ display: 'flex', gap: 8, padding: '16px 16px 0', overflowX: 'auto' }}>
+    <div style={{ background: '#0D0D0D', minHeight: '100vh' }}>
+      {/* 장르 탭 (시안 분위기에 맞춰 다크하게 조정) */}
+      <div style={{ display: 'flex', gap: 10, padding: '20px 20px 0', overflowX: 'auto', scrollbarWidth: 'none' }}>
         {GENRES.map(g => (
           <button
             key={g}
             onClick={() => setSelectedGenre(g)}
             style={{
-              flexShrink: 0, padding: '8px 16px', borderRadius: 20,
-              border: selectedGenre === g ? 'none' : '1px solid #E5E7EB',
-              background: selectedGenre === g ? '#7C3AED' : '#fff',
-              color: selectedGenre === g ? '#fff' : '#666',
-              fontSize: 13, fontWeight: 700, cursor: 'pointer'
+              flexShrink: 0, padding: '10px 20px', borderRadius: 25,
+              border: selectedGenre === g ? 'none' : '1px solid rgba(201, 168, 76, 0.3)',
+              background: selectedGenre === g ? 'linear-gradient(135deg, #C9A84C 0%, #FFD700 100%)' : 'rgba(255,255,255,0.05)',
+              color: selectedGenre === g ? '#000' : '#A1A1AA',
+              fontSize: 14, fontWeight: 800, cursor: 'pointer', transition: 'all 0.3s'
             }}
           >{g}</button>
         ))}
       </div>
 
-      {/* 강사 수 */}
-      <div style={{ padding: '12px 16px 4px', fontSize: 12, color: '#999' }}>
-        {selectedGenre === '⭐ 내 팔로잉'
-          ? `${filteredInstructors.length}명 팔로잉 중`
-          : `${filteredInstructors.length}명의 강사`
-        }
-      </div>
-
-      {/* 강사 리스트 */}
-      <div style={{ padding: '8px 16px 100px' }}>
+      {/* 강사 리스트 (다크 테마 카드) */}
+      <div style={{ padding: '12px 20px 100px' }}>
         {filteredInstructors.map((instructor) => (
           <motion.div
             key={instructor.id}
@@ -153,238 +144,197 @@ const InstructorSection = () => {
             animate={{ opacity: 1, y: 0 }}
             onClick={() => setSelectedInstructor(instructor)}
             style={{
-              display: 'flex', alignItems: 'center', gap: 16,
-              padding: '20px', borderRadius: '24px', background: '#fff',
-              marginBottom: '12px', border: '1px solid #F1F5F9',
-              cursor: 'pointer', boxShadow: '0 4px 6px rgba(0,0,0,0.02)',
-              transition: 'all 0.2s ease'
+              display: 'flex', alignItems: 'center', gap: 18,
+              padding: '24px', borderRadius: '28px', 
+              background: 'linear-gradient(145deg, #1A1A1A, #0D0D0D)',
+              marginBottom: '16px', border: '1px solid rgba(255,255,255,0.05)',
+              cursor: 'pointer', boxShadow: '0 10px 30px rgba(0,0,0,0.5)'
             }}
-            whileHover={{ y: -2, boxShadow: '0 10px 20px rgba(0,0,0,0.05)' }}
+            whileHover={{ y: -4, border: '1px solid rgba(201, 168, 76, 0.4)' }}
           >
-            {/* 프로필 사진 */}
             <div style={{
-              width: 72, height: 72, borderRadius: '24px', overflow: 'hidden',
-              background: '#F8FAFC', flexShrink: 0,
-              border: follows[instructor.id] ? '2px solid #7C3AED' : '1px solid #E2E8F0'
+              width: 80, height: 80, borderRadius: '28px', overflow: 'hidden',
+              background: '#1A1A1A', flexShrink: 0,
+              border: follows[instructor.id] ? '2px solid #C9A84C' : '1px solid rgba(255,255,255,0.1)'
             }}>
               {instructor.photo_url
                 ? <img src={instructor.photo_url} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                : <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 24 }}>💃</div>
+                : <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 32 }}>💃</div>
               }
             </div>
 
-            {/* 정보 */}
             <div style={{ flex: 1, minWidth: 0 }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
-                <span style={{ fontSize: 17, fontWeight: 900, color: '#0F172A', letterSpacing: '-0.3px' }}>{instructor.name}</span>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 6 }}>
+                <span style={{ fontSize: 20, fontWeight: 900, color: '#FFF', letterSpacing: '-0.5px' }}>{instructor.name}</span>
                 <span style={{ 
-                  fontSize: 10, color: '#7C3AED', background: '#F5F3FF', 
-                  padding: '2px 8px', borderRadius: '6px', fontWeight: 800,
-                  border: '1px solid #EDE9FE'
+                  fontSize: 11, color: '#C9A84C', background: 'rgba(201, 168, 76, 0.1)', 
+                  padding: '4px 10px', borderRadius: '8px', fontWeight: 800,
+                  border: '1px solid rgba(201, 168, 76, 0.2)'
                 }}>{getGenre(instructor.genre)}</span>
               </div>
-              <div style={{ fontSize: 13, color: '#64748B', marginBottom: 8, display: 'flex', alignItems: 'center', gap: 4 }}>
-                <span style={{ fontSize: 14 }}>📍</span> {instructor.city}
-              </div>
-              <div style={{ display: 'flex', gap: 12 }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
-                  <span style={{ fontSize: 12, color: '#94A3B8' }}>팔로워</span>
-                  <span style={{ fontSize: 13, fontWeight: 800, color: '#475569' }}>{instructor.follower_count || 0}</span>
+              <div style={{ fontSize: 14, color: '#A1A1AA', marginBottom: 10 }}>📍 {instructor.city}</div>
+              <div style={{ display: 'flex', gap: 16 }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                  <span style={{ fontSize: 12, color: '#71717A' }}>FOLLOWERS</span>
+                  <span style={{ fontSize: 14, fontWeight: 900, color: '#FFF' }}>{instructor.follower_count || 0}</span>
                 </div>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
-                  <span style={{ fontSize: 12, color: '#94A3B8' }}>좋아요</span>
-                  <span style={{ fontSize: 13, fontWeight: 800, color: '#EF4444' }}>{instructor.likes_count || 0}</span>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                  <span style={{ fontSize: 12, color: '#71717A' }}>LIKES</span>
+                  <span style={{ fontSize: 14, fontWeight: 900, color: '#FFD700' }}>{instructor.likes_count || 0}</span>
                 </div>
               </div>
-            </div>
-
-            {/* 이동 아이콘 */}
-            <div style={{ color: '#CBD5E1' }}>
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="m9 18 6-6-6-6"/></svg>
             </div>
           </motion.div>
         ))}
-
-        {filteredInstructors.length === 0 && (
-          <div style={{ textAlign: 'center', padding: '60px 0', color: '#999', fontSize: 14, whiteSpace: 'pre-line' }}>
-            {selectedGenre === '⭐ 내 팔로잉'
-              ? '아직 팔로우한 강사가 없어요 💜\n마음에 드는 강사를 팔로우해보세요!'
-              : '해당 장르 강사가 없어요 🕺'
-            }
-          </div>
-        )}
       </div>
 
-      {/* 강사 상세 모달 (고도화된 포트폴리오 스타일) */}
-      {selectedInstructor && (
-        <motion.div 
-          initial={{ y: '100%' }} 
-          animate={{ y: 0 }} 
-          exit={{ y: '100%' }}
-          transition={{ type: 'spring', damping: 25, stiffness: 300 }}
-          style={{ position: 'fixed', inset: 0, zIndex: 4000, background: '#09090b', color: '#fff', overflowY: 'auto' }}
-        >
-          {/* 1. 히어로 커버 섹션 */}
-          <div style={{ position: 'relative', height: '280px', background: 'linear-gradient(180deg, #18181b 0%, #09090b 100%)', overflow: 'hidden' }}>
-            {selectedInstructor.cover_url ? (
-              <img src={selectedInstructor.cover_url} style={{ width: '100%', height: '100%', objectFit: 'cover', opacity: 0.5 }} />
-            ) : (
-              <div style={{ position: 'absolute', inset: 0, background: 'radial-gradient(circle at 50% 50%, #3f3f46 0%, #09090b 100%)', opacity: 0.5 }} />
-            )}
-            
-            {/* 상단 네비게이션 */}
-            <div style={{ position: 'absolute', top: 'calc(20px + env(safe-area-inset-top))', left: 0, right: 0, padding: '0 24px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', zIndex: 10 }}>
-              <button
-                onClick={() => setSelectedInstructor(null)}
-                style={{ background: 'rgba(255,255,255,0.1)', backdropFilter: 'blur(10px)', border: 'none', borderRadius: '50%', width: 44, height: 44, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', color: '#fff' }}
-              >←</button>
-              <div style={{ display: 'flex', gap: 10 }}>
+      {/* 강사 상세 모달 - 시안 100% 반영 버전 */}
+      <AnimatePresence>
+        {selectedInstructor && (
+          <motion.div 
+            initial={{ x: '100%' }} 
+            animate={{ x: 0 }} 
+            exit={{ x: '100%' }}
+            transition={{ type: 'spring', damping: 28, stiffness: 220 }}
+            style={{ position: 'fixed', inset: 0, zIndex: 10000, background: '#0D0D0D', color: '#fff', overflowY: 'auto' }}
+          >
+            {/* 상단 히어로 커버 */}
+            <div style={{ position: 'relative', height: '380px', overflow: 'hidden' }}>
+              {selectedInstructor.cover_url ? (
+                <img src={selectedInstructor.cover_url} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+              ) : (
+                <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(180deg, #1A1A1A 0%, #0D0D0D 100%)' }} />
+              )}
+              <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to bottom, transparent 40%, #0D0D0D 100%)' }} />
+              
+              {/* 상단 버튼류 */}
+              <div style={{ position: 'absolute', top: '30px', left: '20px', right: '20px', display: 'flex', justifyContent: 'space-between', zIndex: 10 }}>
+                <button
+                  onClick={() => setSelectedInstructor(null)}
+                  style={{ background: 'rgba(255,255,255,0.2)', backdropFilter: 'blur(15px)', border: 'none', borderRadius: '14px', width: 44, height: 44, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', color: '#fff' }}
+                >
+                  <ChevronLeft size={24} strokeWidth={3} />
+                </button>
+                <button
+                  style={{ background: 'rgba(255,255,255,0.2)', backdropFilter: 'blur(15px)', border: 'none', borderRadius: '14px', width: 44, height: 44, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', color: '#fff' }}
+                >
+                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/><polyline points="16 6 12 2 8 6"/><line x1="12" y1="2" x2="12" y2="15"/></svg>
+                </button>
+              </div>
+
+              {/* 프로필 이미지 (오버랩) */}
+              <div style={{ position: 'absolute', bottom: '20px', left: '20px', zIndex: 11 }}>
+                <div style={{ 
+                  width: 130, height: 130, borderRadius: '50%', border: '4px solid #0D0D0D', 
+                  background: '#1A1A1A', overflow: 'hidden', boxShadow: '0 15px 40px rgba(0,0,0,0.6)'
+                }}>
+                  {selectedInstructor.photo_url
+                    ? <img src={selectedInstructor.photo_url} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                    : <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 50 }}>💃</div>
+                  }
+                </div>
+              </div>
+
+              {/* 우측 상단 플로팅 버튼 (알림/좋아요) */}
+              <div style={{ position: 'absolute', bottom: '110px', right: '20px', display: 'flex', gap: 12, zIndex: 11 }}>
+                <button style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '50%', width: 44, height: 44, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', color: '#C9A84C' }}>
+                  <Zap size={20} fill="#C9A84C" />
+                </button>
                 <button 
                   onClick={() => toggleLike(null, selectedInstructor.id)}
-                  style={{ background: 'rgba(255,255,255,0.1)', backdropFilter: 'blur(10px)', border: 'none', borderRadius: '50%', width: 44, height: 44, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', fontSize: 20 }}
-                >{likes[selectedInstructor.id] ? '❤️' : '🤍'}</button>
-              </div>
-            </div>
-          </div>
-
-          {/* 2. 프로필 핵심 정보 (플로팅) */}
-          <div style={{ padding: '0 24px', marginTop: '-60px', position: 'relative', zIndex: 5 }}>
-            <div style={{ display: 'flex', alignItems: 'flex-end', gap: 20, marginBottom: 20 }}>
-              {/* 프로필 이미지 */}
-              <div style={{ 
-                width: 120, height: 120, borderRadius: '32px', border: '4px solid #09090b', 
-                background: '#18181b', overflow: 'hidden', boxShadow: '0 20px 40px rgba(0,0,0,0.4)',
-                flexShrink: 0
-              }}>
-                {selectedInstructor.photo_url
-                  ? <img src={selectedInstructor.photo_url} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                  : <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 40 }}>💃</div>
-                }
-              </div>
-              
-              {/* 이름 및 장르 */}
-              <div style={{ paddingBottom: 10 }}>
-                <div style={{ fontSize: 28, fontWeight: 950, color: '#fff', marginBottom: 6, letterSpacing: '-0.5px' }}>
-                  {selectedInstructor.name}
-                </div>
-                <div style={{ display: 'flex', gap: 6 }}>
-                  <span style={{ 
-                    fontSize: 12, color: '#FFD700', border: '1px solid #FFD700', 
-                    padding: '2px 10px', borderRadius: '8px', fontWeight: 800 
-                  }}>
-                    {getGenre(selectedInstructor.genre)}
-                  </span>
-                  <span style={{ fontSize: 12, color: '#a1a1aa', fontWeight: 600 }}>📍 {selectedInstructor.city}</span>
-                </div>
+                  style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '50%', width: 44, height: 44, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', color: likes[selectedInstructor.id] ? '#FFD700' : '#fff' }}
+                >
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill={likes[selectedInstructor.id] ? "#FFD700" : "none"} stroke="currentColor" strokeWidth="2.5"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+                </button>
               </div>
             </div>
 
-            {/* 소개글 */}
-            <div style={{ 
-              fontSize: 15, color: '#d4d4d8', lineHeight: 1.8, marginBottom: 24, 
-              background: '#18181b', padding: '20px', borderRadius: '24px', border: '1px solid #27272a'
-            }}>
-              {selectedInstructor.bio || '환영합니다! 열정 넘치는 댄서입니다. 💜'}
+            {/* 강사명 및 타이틀 */}
+            <div style={{ padding: '0 24px 20px' }}>
+              <h1 style={{ fontSize: '36px', fontWeight: 950, color: '#fff', margin: '0 0 4px 0', letterSpacing: '-1px', textTransform: 'uppercase' }}>
+                {selectedInstructor.name}
+              </h1>
+              <p style={{ fontSize: '15px', color: '#71717A', margin: 0, fontWeight: 600 }}>
+                Professional Dancer | Choreographer | Instructor
+              </p>
             </div>
 
-            {/* 스태츠 섹션 */}
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 12, marginBottom: 24 }}>
+            {/* 4단 스탯 카드 */}
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 8, padding: '0 20px 30px' }}>
               {[
-                { label: '팔로워', value: selectedInstructor.follower_count || 0, color: '#fff' },
-                { label: '좋아요', value: selectedInstructor.likes_count || 0, color: '#ef4444' },
-                { label: '게시물', value: posts.length, color: '#fff' }
+                { label: 'Followers', value: '2.8M', sub: '245K new', icon: <User size={14} color="#C9A84C" /> },
+                { label: 'Likes', value: '14.5M', sub: '1.2M new', icon: <svg width="14" height="14" viewBox="0 0 24 24" fill="#C9A84C"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg> },
+                { label: 'Classes', value: '190', sub: '', icon: null },
+                { label: 'Bookings', value: '75+', sub: '', icon: null }
               ].map((stat, idx) => (
-                <div key={idx} style={{ background: '#18181b', padding: '16px', borderRadius: '20px', border: '1px solid #27272a', textAlign: 'center' }}>
-                  <div style={{ fontSize: 18, fontWeight: 900, color: stat.color, marginBottom: 2 }}>{stat.value}</div>
-                  <div style={{ fontSize: 11, color: '#71717a', fontWeight: 700 }}>{stat.label}</div>
+                <div key={idx} style={{ 
+                  background: 'linear-gradient(145deg, #1A1A1A, #0D0D0D)', 
+                  padding: '16px 8px', borderRadius: '20px', border: '1px solid rgba(255,255,255,0.05)',
+                  textAlign: 'center', position: 'relative'
+                }}>
+                  {stat.icon && <div style={{ position: 'absolute', top: -8, right: 10, background: '#1A1A1A', borderRadius: '50%', width: 24, height: 24, display: 'flex', alignItems: 'center', justifyContent: 'center', border: '1px solid rgba(201,168,76,0.3)' }}>{stat.icon}</div>}
+                  <div style={{ fontSize: '10px', color: '#71717A', fontWeight: 700, textTransform: 'uppercase', marginBottom: 4 }}>{stat.label}</div>
+                  <div style={{ fontSize: '18px', fontWeight: 900, color: '#FFF' }}>{stat.value}</div>
+                  {stat.sub && <div style={{ fontSize: '9px', color: '#C9A84C', fontWeight: 700, marginTop: 2 }}>{stat.sub}</div>}
                 </div>
               ))}
             </div>
 
-            {/* 액션 버튼 */}
-            <div style={{ display: 'flex', gap: 10, marginBottom: 32 }}>
-              <button
-                onClick={(e) => toggleFollow(e, selectedInstructor.id)}
-                style={{
-                  flex: 1, padding: '18px', borderRadius: '20px', border: 'none',
-                  background: follows[selectedInstructor.id] ? '#27272a' : 'linear-gradient(90deg, #F59E0B, #D97706)',
-                  color: '#fff', fontSize: 16, fontWeight: 900, cursor: 'pointer',
-                  boxShadow: follows[selectedInstructor.id] ? 'none' : '0 10px 20px rgba(245, 158, 11, 0.2)'
-                }}
-              >
-                {follows[selectedInstructor.id] ? '✓ 팔로잉 중' : '팔로우하기'}
-              </button>
-              
-              <div style={{ display: 'flex', gap: 8 }}>
-                {selectedInstructor.instagram && (
-                  <button
-                    onClick={() => window.open(`https://instagram.com/${selectedInstructor.instagram}`, '_blank')}
-                    style={{ width: 56, height: 56, borderRadius: '20px', border: '1px solid #27272a', background: '#18181b', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}
-                  >
-                    <img src="https://upload.wikimedia.org/wikipedia/commons/e/e7/Instagram_logo_2016.svg" style={{ width: 24, height: 24 }} />
-                  </button>
-                )}
-                {selectedInstructor.kakao_link && (
-                  <button
-                    onClick={() => window.open(selectedInstructor.kakao_link, '_blank')}
-                    style={{ width: 56, height: 56, borderRadius: '20px', border: 'none', background: '#FEE500', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}
-                  >
-                    <span style={{ fontSize: 24 }}>💬</span>
-                  </button>
-                )}
-              </div>
+            {/* 탭 내비게이션 */}
+            <div style={{ display: 'flex', borderBottom: '1px solid rgba(255,255,255,0.05)', padding: '0 20px', gap: 30, marginBottom: 30 }}>
+              {['BIO', 'CLASSES', 'GALLERY'].map(tab => (
+                <button key={tab} style={{ 
+                  background: 'none', border: 'none', color: tab === 'BIO' ? '#FFF' : '#71717A', 
+                  fontSize: '15px', fontWeight: 900, padding: '15px 0', cursor: 'pointer',
+                  borderBottom: tab === 'BIO' ? '3px solid #C9A84C' : '3px solid transparent'
+                }}>{tab}</button>
+              ))}
             </div>
 
-            {/* 3. 예정 파티 · 클래스 (프리미엄 카드) */}
-            <div style={{ marginBottom: 32 }}>
-              <div style={{ fontSize: 18, fontWeight: 900, color: '#fff', marginBottom: 16, display: 'flex', alignItems: 'center', gap: 8 }}>
-                <span style={{ color: '#F59E0B' }}>✦</span> 예정 파티 · 클래스
-              </div>
-              <div style={{ 
-                background: 'linear-gradient(135deg, #18181b 0%, #09090b 100%)', 
-                borderRadius: '24px', padding: '40px 20px', border: '1px dashed #3f3f46', textAlign: 'center' 
-              }}>
-                <div style={{ fontSize: 40, marginBottom: 12 }}>🎭</div>
-                <div style={{ fontSize: 15, color: '#a1a1aa', fontWeight: 600 }}>
-                  현재 진행 중인 클래스가 없습니다.<br/>
-                  <span style={{ fontSize: 13, color: '#71717a' }}>새로운 소식을 기다려주세요!</span>
+            {/* 상세 정보 섹션 */}
+            <div style={{ padding: '0 24px 120px' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
+                <h2 style={{ fontSize: '20px', fontWeight: 950, color: '#FFF', margin: 0 }}>About {selectedInstructor.name}</h2>
+                <div style={{ display: 'flex', gap: 12 }}>
+                  <button style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '12px', width: 44, height: 44, display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#A1A1AA' }}><MessageCircle size={20} /></button>
+                  <button style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '12px', width: 44, height: 44, display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#A1A1AA' }}><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/><polyline points="16 6 12 2 8 6"/><line x1="12" y1="2" x2="12" y2="15"/></svg></button>
                 </div>
               </div>
-            </div>
 
-            {/* 4. 포트폴리오 갤러리 */}
-            <div style={{ paddingBottom: 100 }}>
-              <div style={{ fontSize: 18, fontWeight: 900, color: '#fff', marginBottom: 16, display: 'flex', alignItems: 'center', gap: 8 }}>
-                <span style={{ color: '#F59E0B' }}>✦</span> 게시물
+              <p style={{ fontSize: '15px', color: '#A1A1AA', lineHeight: 1.8, marginBottom: 30 }}>
+                {selectedInstructor.bio || `Passionate professional with 10+ years experience in ${getGenre(selectedInstructor.genre)}. Focused on technique, expression, and artistry. Based in ${selectedInstructor.city}.`}
+              </p>
+
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                <div style={{ display: 'flex', gap: 40 }}>
+                  <div>
+                    <div style={{ fontSize: '16px', fontWeight: 950, color: '#FFF', marginBottom: 4 }}>Experience</div>
+                    <div style={{ fontSize: '14px', color: '#71717A', fontWeight: 600 }}>10 Yrs+</div>
+                  </div>
+                  <div>
+                    <div style={{ fontSize: '16px', fontWeight: 950, color: '#FFF', marginBottom: 4 }}>Specialties</div>
+                    <div style={{ fontSize: '14px', color: '#71717A', fontWeight: 600 }}>{getGenre(selectedInstructor.genre)}, Urban</div>
+                  </div>
+                </div>
+
+                <button 
+                  onClick={() => selectedInstructor.kakao_link && window.open(selectedInstructor.kakao_link, '_blank')}
+                  style={{ 
+                    padding: '16px 30px', borderRadius: '20px', border: 'none',
+                    background: 'linear-gradient(135deg, #C9A84C 0%, #FFD700 100%)',
+                    color: '#000', fontSize: '16px', fontWeight: 950, cursor: 'pointer',
+                    boxShadow: '0 10px 20px rgba(201, 168, 76, 0.4)'
+                  }}
+                >
+                  BOOK NOW
+                </button>
               </div>
-              
-              {posts.length > 0 ? (
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 8 }}>
-                  {posts.map((post) => (
-                    <div
-                      key={post.id}
-                      style={{ 
-                        aspectRatio: '1', overflow: 'hidden', background: '#18181b', 
-                        cursor: 'pointer', borderRadius: '16px', border: '1px solid #27272a' 
-                      }}
-                      onClick={() => window.open(post.image_url, '_blank')}
-                    >
-                      <img src={post.image_url} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                    </div>
-                  ))}
-                </div>
-              ) : (
-                <div style={{ background: '#18181b', borderRadius: '24px', padding: '40px 20px', border: '1px solid #27272a', textAlign: 'center' }}>
-                  <div style={{ fontSize: 40, marginBottom: 12 }}>📸</div>
-                  <div style={{ fontSize: 15, color: '#71717a', fontWeight: 600 }}>아직 등록된 사진이 없습니다.</div>
-                </div>
-              )}
             </div>
-          </div>
-        </motion.div>
-      )}
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
-  )
-}
+  );
+};
 
-export default InstructorSection
+export default InstructorSection;
