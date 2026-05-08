@@ -6,6 +6,7 @@ const CITIES = ['서울', '경기', '인천', '부산', '대구', '광주', '대
 
 const InstructorRegister = ({ onBack }) => {
   const [name, setName] = useState('')
+  const [customId, setCustomId] = useState('')
   const [genre, setGenre] = useState([])
   const [city, setCity] = useState('')
   const [bio, setBio] = useState('')
@@ -28,7 +29,7 @@ const InstructorRegister = ({ onBack }) => {
   }
 
   const submit = async () => {
-    if (!name || genre.length === 0 || !city || !bio) {
+    if (!name || !customId || genre.length === 0 || !city || !bio) {
       alert('필수 항목을 모두 입력해주세요.')
       return
     }
@@ -50,6 +51,7 @@ const InstructorRegister = ({ onBack }) => {
       }
       await supabase.from('instructors').insert({
         name,
+        custom_id: customId,
         genre,
         city,
         bio,
@@ -116,7 +118,6 @@ const InstructorRegister = ({ onBack }) => {
           <div style={{ fontSize: 12, color: '#999' }}>프로필 사진 (선택)</div>
         </div>
 
-        {/* 이름 */}
         <div style={{ marginBottom: 20 }}>
           <div style={{ fontSize: 14, fontWeight: 700, color: '#111', marginBottom: 8 }}>이름 <span style={{ color: '#E53935' }}>*</span></div>
           <input
@@ -124,6 +125,21 @@ const InstructorRegister = ({ onBack }) => {
             onChange={e => setName(e.target.value)}
             placeholder="강사 이름"
             style={{ width: '100%', padding: '14px', borderRadius: 12, border: '1px solid #E5E7EB', fontSize: 14, boxSizing: 'border-box' }}
+          />
+        </div>
+
+        <div style={{ marginBottom: 20 }}>
+          <div style={{ fontSize: 14, fontWeight: 700, color: '#111', marginBottom: 4 }}>
+            나만의 ID <span style={{ color: '#E53935' }}>*</span>
+          </div>
+          <div style={{ fontSize: 12, color: '#999', marginBottom: 8 }}>
+            영문/숫자 조합으로 직접 만들어주세요 (예: bachata_kim)
+          </div>
+          <input
+            value={customId}
+            onChange={e => setCustomId(e.target.value.toLowerCase().replace(/[^a-z0-9_]/g, ''))}
+            placeholder="my_dance_id"
+            style={{ width: '100%', padding: '14px', borderRadius: 12, border: '1px solid #E5E7EB', fontSize: 14, boxSizing: 'border-box', fontFamily: 'monospace' }}
           />
         </div>
 
