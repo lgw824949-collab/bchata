@@ -87,9 +87,8 @@ export default function AdminDashboard({ onBack }) {
     } catch (err) { alert('수정 실패: ' + err.message) } finally { setLoading(false) }
   }
 
-  // 상태 업데이트 (승인/보류/반려)
+  // 상태 업데이트 (승인/보류/반려 - 확인창 제거하여 속도 개선)
   const updateStatus = async (item, newStatus) => {
-    if (!window.confirm(`상태를 [${newStatus}]로 변경하시겠습니까?`)) return
     setLoading(true)
     try {
       if (category === 'social') {
@@ -135,10 +134,15 @@ export default function AdminDashboard({ onBack }) {
         else table = category === 'bootcamp' ? 'bootcamps' : 'festivals';
         
         const statusVal = newStatus === 'approved' ? 'active' : newStatus;
-        await supabase.from(table).update({ status: statusVal }).eq('id', item.id);
+        const { error } = await supabase.from(table).update({ status: statusVal }).eq('id', item.id);
+        if (error) throw error;
       }
       fetchData();
-    } catch (err) { alert('처리 실패: ' + err.message) } finally { setLoading(false) }
+      alert('상태가 업데이트되었습니다!');
+    } catch (err) { 
+      console.error(err);
+      alert('처리 실패: ' + err.message); 
+    } finally { setLoading(false) }
   }
 
   // 영구 삭제
