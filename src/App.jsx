@@ -1318,7 +1318,6 @@ function App() {
         </Suspense>
       </AnimatePresence>
 
-      {/* --- [MODALS] --- */}
       <AnimatePresence>
         {showInstructor && (
           <motion.div initial={{ x: '100%' }} animate={{ x: 0 }} exit={{ x: '100%' }} transition={{ type: 'spring', damping: 25, stiffness: 200 }} style={{ position: 'fixed', inset: 0, zIndex: 1100, background: '#fff' }}>
@@ -1343,51 +1342,6 @@ function App() {
         )}
       </AnimatePresence>
 
-      <RegisterForm 
-        isOpen={view === 'register-party' || view === 'register-class'} 
-        onClose={() => setView('home')} 
-        type={view === 'register-party' ? 'party' : 'class'} 
-      />
-
-      <AnimatePresence>
-        {showInstructor && (
-          <motion.div
-            initial={{ opacity: 0, y: '100%' }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: '100%' }}
-            transition={{ type: 'spring', damping: 25, stiffness: 200 }}
-            style={{ position: 'fixed', inset: 0, zIndex: 2000, background: '#fff', overflowY: 'auto' }}
-          >
-            <div style={{ padding: '20px 24px', display: 'flex', alignItems: 'center', gap: 12, borderBottom: '1px solid #F1F5F9' }}>
-              <button
-                onClick={() => setShowInstructor(false)}
-                style={{ background: '#F1F5F9', border: 'none', borderRadius: '50%', width: 40, height: 40, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', fontSize: 18 }}
-              >←</button>
-              <div>
-                <div style={{ fontSize: 18, fontWeight: 900, color: '#111' }}>라틴에 진심 💃</div>
-                <div style={{ fontSize: 12, color: '#999' }}>팔로우할 강사를 찾아보세요</div>
-              </div>
-            </div>
-            <InstructorSection />
-          </motion.div>
-        )}
-      </AnimatePresence>
-
-
-
-      <AnimatePresence>
-        {showInstructorRegister && (
-          <motion.div
-            initial={{ opacity: 0, y: '100%' }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: '100%' }}
-            transition={{ type: 'spring', damping: 25, stiffness: 200 }}
-            style={{ position: 'fixed', inset: 0, zIndex: 2500, background: '#fff', overflowY: 'auto' }}
-          >
-            <InstructorRegister onBack={() => setShowInstructorRegister(false)} />
-          </motion.div>
-        )}
-      </AnimatePresence>
       <AnimatePresence>
         <Suspense fallback={null}>
           {showSaju && <SajuModal parties={parties} onClose={() => setShowSaju(false)} lang={lang} />}
