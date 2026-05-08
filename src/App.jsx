@@ -6,6 +6,7 @@ import { supabase, logActivity } from './lib/supabase'
 import QuickPinchZoom, { make3dTransformValue } from 'react-quick-pinch-zoom';
 import InstructorSection from './components/InstructorSection'
 import InstructorUpload from './components/InstructorUpload'
+import InstructorRegister from './components/InstructorRegister'
 
 // 페이지 지연 로딩 (Lazy Loading)
 const RegisterForm = lazy(() => import('./RegisterForm'));
@@ -584,6 +585,7 @@ function App() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [showInstructor, setShowInstructor] = useState(false)
   const [showInstructorUpload, setShowInstructorUpload] = useState(false)
+  const [showInstructorRegister, setShowInstructorRegister] = useState(false)
   const [filterRegion, setFilterRegion] = useState('');
   const [filterGenre, setFilterGenre] = useState('');
   const [selectedMonth, setSelectedMonth] = useState(todayData.month);
@@ -1018,6 +1020,14 @@ function App() {
                 <div style={{ background: '#F1F5F9', padding: '8px', borderRadius: '10px' }}>📸</div>
                 <span style={{ fontSize: '15px', fontWeight: 700, color: '#334155' }}>게시물 올리기 (강사 전용)</span>
               </button>
+
+              <button
+                onClick={() => { handleCloseModal(); setShowInstructorRegister(true) }}
+                style={{ width: '100%', padding: '20px 24px', background: '#fff', borderRadius: '20px', border: '1px solid #E2E8F0', textAlign: 'left', display: 'flex', alignItems: 'center', gap: '16px' }}
+              >
+                <div style={{ background: '#F5F3FF', padding: '8px', borderRadius: '10px' }}>💃</div>
+                <span style={{ fontSize: '15px', fontWeight: 700, color: '#334155' }}>강사 등록 신청</span>
+              </button>
               {[
                 { icon: <Calendar color={'#FF1744'} />, text: t('view_calendar'), action: () => { setIsMenuOpen(false); handleOpenModal(setShowFullCalendar, true); } },
                 { icon: <Utensils color={'#FF1744'} />, text: t('restaurant'), action: () => { setView('restaurant'); setIsMenuOpen(false); } },
@@ -1273,6 +1283,20 @@ function App() {
             style={{ position: 'fixed', inset: 0, zIndex: 2500, background: '#fff', overflowY: 'auto' }}
           >
             <InstructorUpload onBack={() => setShowInstructorUpload(false)} />
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      <AnimatePresence>
+        {showInstructorRegister && (
+          <motion.div
+            initial={{ opacity: 0, y: '100%' }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: '100%' }}
+            transition={{ type: 'spring', damping: 25, stiffness: 200 }}
+            style={{ position: 'fixed', inset: 0, zIndex: 2500, background: '#fff', overflowY: 'auto' }}
+          >
+            <InstructorRegister onBack={() => setShowInstructorRegister(false)} />
           </motion.div>
         )}
       </AnimatePresence>
