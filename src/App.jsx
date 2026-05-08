@@ -988,80 +988,124 @@ function App() {
             </div>
 
             <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+              {/* 1. 강사 등록 신청 */}
               <button
                 onClick={() => { handleCloseModal(); setShowInstructorRegister(true) }}
                 style={{
-                  width: '100%', padding: '14px 20px',
-                  background: 'linear-gradient(135deg, #F5F3FF, #EDE9FE)',
-                  borderRadius: '16px',
-                  border: '1px solid #DDD6FE',
-                  textAlign: 'left',
-                  display: 'flex', alignItems: 'center', gap: '12px'
+                  width: '100%', padding: '16px 20px', background: '#fff', borderRadius: '16px', border: '1px solid #F1F5F9',
+                  textAlign: 'left', display: 'flex', alignItems: 'center', gap: '14px'
                 }}
               >
-                <span style={{ fontSize: 18 }}>💃</span>
+                <div style={{ width: '40px', height: '40px', borderRadius: '12px', background: '#F5F3FF', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '18px' }}>
+                  💃
+                </div>
                 <div>
-                  <div style={{ fontSize: '14px', fontWeight: 800, color: '#7C3AED' }}>강사 등록 신청</div>
-                  <div style={{ fontSize: '11px', color: '#9CA3AF', marginTop: '1px' }}>라틴에 진심에 강사로 등록해보세요</div>
+                  <div style={{ fontSize: '15px', fontWeight: 700, color: '#1E293B' }}>강사 등록 신청</div>
+                  <div style={{ fontSize: '12px', color: '#94A3B8', marginTop: '2px' }}>라틴에 진심에 강사로 등록해보세요</div>
                 </div>
               </button>
 
+              {/* 2. 라틴에 진심 */}
               <button
                 onClick={() => { handleCloseModal(); setShowInstructor(true) }}
                 style={{
-                  width: '100%', padding: '24px',
-                  background: 'linear-gradient(135deg, #1a0a2e, #2d1b4e)',
-                  borderRadius: '24px',
-                  border: '1px solid rgba(201,168,76,0.3)',
-                  textAlign: 'left',
-                  display: 'flex', alignItems: 'center', justifyContent: 'space-between'
+                  width: '100%', padding: '16px 20px', borderRadius: '16px', textAlign: 'left', display: 'flex', alignItems: 'center', gap: '14px',
+                  background: 'linear-gradient(135deg, #F5F3FF, #EDE9FE)', border: '1px solid #DDD6FE'
                 }}
               >
-                <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
-                  <div style={{ background: 'rgba(201,168,76,0.15)', padding: '10px', borderRadius: '12px' }}>
-                    💃
-                  </div>
-                  <div>
-                    <div style={{ fontSize: '16px', fontWeight: 800, color: '#FFD700' }}>라틴에 진심</div>
-                    <div style={{ fontSize: '12px', color: 'rgba(255,255,255,0.5)', marginTop: '2px' }}>팔로우할 강사를 찾아보세요</div>
-                  </div>
+                <div style={{ width: '40px', height: '40px', borderRadius: '12px', background: '#1a0a2e', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '18px' }}>
+                  <span style={{ filter: 'brightness(100) grayscale(100)' }}>💃</span>
                 </div>
-                <ChevronRight size={20} color="#C9A84C" />
+                <div>
+                  <div style={{ fontSize: '15px', fontWeight: 900, color: '#7C3AED' }}>라틴에 진심</div>
+                  <div style={{ fontSize: '12px', color: '#94A3B8', marginTop: '2px' }}>팔로우할 강사를 찾아보세요</div>
+                </div>
               </button>
-              {[
-                { icon: <Calendar color={'#FF1744'} />, text: t('view_calendar'), action: () => { setIsMenuOpen(false); handleOpenModal(setShowFullCalendar, true); } },
-                { icon: <Utensils color={'#FF1744'} />, text: t('restaurant'), action: () => { setView('restaurant'); setIsMenuOpen(false); } },
-                { icon: <CloudSun color={'#FF1744'} />, text: t('weather'), action: handleWeatherTap },
-                { 
-                  icon: isDark ? <Zap color={'#F59E0B'} /> : <Zap color={'#64748B'} />, 
-                  text: isDark ? '라이트 모드로 보기' : '다크 모드로 보기', 
-                  action: () => setIsDark(!isDark) 
-                },
-                { icon: <MessageSquare color={'#FF1744'} />, text: t('open_chat'), action: () => { window.open('https://open.kakao.com/o/gP43rNri', '_blank'); setIsMenuOpen(false); } },
-              ].map((item, idx) => (
-                <motion.div
-                  key={idx}
-                  whileHover={{ scale: 1.02, backgroundColor: 'var(--color-border)' }}
-                  whileTap={{ scale: 0.98 }}
-                  onClick={item.action}
-                  style={{
-                    background: 'var(--color-card)',
-                    border: '1px solid var(--color-border)',
-                    borderRadius: '12px',
-                    padding: '16px 20px',
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '16px',
-                    cursor: 'pointer',
-                    transition: 'all 0.2s'
-                  }}
-                >
-                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                    {item.icon}
-                  </div>
-                  <span style={{ color: 'var(--color-text-main)', fontSize: '15px', fontWeight: 800 }}>{item.text}</span>
-                </motion.div>
-              ))}
+
+              {/* 3. 달력 */}
+              <button
+                onClick={() => { setIsMenuOpen(false); handleOpenModal(setShowFullCalendar, true); }}
+                style={{
+                  width: '100%', padding: '16px 20px', background: '#fff', borderRadius: '16px', border: '1px solid #F1F5F9',
+                  textAlign: 'left', display: 'flex', alignItems: 'center', gap: '14px'
+                }}
+              >
+                <div style={{ width: '40px', height: '40px', borderRadius: '12px', background: '#FEF3C7', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '18px' }}>
+                  📅
+                </div>
+                <div>
+                  <div style={{ fontSize: '15px', fontWeight: 700, color: '#1E293B' }}>달력</div>
+                  <div style={{ fontSize: '12px', color: '#94A3B8', marginTop: '2px' }}>파티 일정 한눈에 보기</div>
+                </div>
+              </button>
+
+              {/* 4. 뒷풀이 맛집 */}
+              <button
+                onClick={() => { setView('restaurant'); setIsMenuOpen(false); }}
+                style={{
+                  width: '100%', padding: '16px 20px', background: '#fff', borderRadius: '16px', border: '1px solid #F1F5F9',
+                  textAlign: 'left', display: 'flex', alignItems: 'center', gap: '14px'
+                }}
+              >
+                <div style={{ width: '40px', height: '40px', borderRadius: '12px', background: '#FEE2E2', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '18px' }}>
+                  🍜
+                </div>
+                <div>
+                  <div style={{ fontSize: '15px', fontWeight: 700, color: '#1E293B' }}>뒷풀이 맛집</div>
+                  <div style={{ fontSize: '12px', color: '#94A3B8', marginTop: '2px' }}>댄서들의 단골 맛집</div>
+                </div>
+              </button>
+
+              {/* 5. 오늘 날씨 */}
+              <button
+                onClick={handleWeatherTap}
+                style={{
+                  width: '100%', padding: '16px 20px', background: '#fff', borderRadius: '16px', border: '1px solid #F1F5F9',
+                  textAlign: 'left', display: 'flex', alignItems: 'center', gap: '14px'
+                }}
+              >
+                <div style={{ width: '40px', height: '40px', borderRadius: '12px', background: '#E0F2FE', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '18px' }}>
+                  ⛅
+                </div>
+                <div>
+                  <div style={{ fontSize: '15px', fontWeight: 700, color: '#1E293B' }}>오늘 날씨</div>
+                  <div style={{ fontSize: '12px', color: '#94A3B8', marginTop: '2px' }}>파티 가기 전 날씨 확인</div>
+                </div>
+              </button>
+
+              {/* 6. 실시간 오픈톡 */}
+              <button
+                onClick={() => { window.open('https://open.kakao.com/o/gP43rNri', '_blank'); setIsMenuOpen(false); }}
+                style={{
+                  width: '100%', padding: '16px 20px', background: '#fff', borderRadius: '16px', border: '1px solid #F1F5F9',
+                  textAlign: 'left', display: 'flex', alignItems: 'center', gap: '14px'
+                }}
+              >
+                <div style={{ width: '40px', height: '40px', borderRadius: '12px', background: '#FEE500', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '18px' }}>
+                  💬
+                </div>
+                <div>
+                  <div style={{ fontSize: '15px', fontWeight: 700, color: '#1E293B' }}>실시간 오픈톡</div>
+                  <div style={{ fontSize: '12px', color: '#94A3B8', marginTop: '2px' }}>댄서들과 실시간 소통</div>
+                </div>
+              </button>
+
+              {/* 다크모드 토글 (기존 스타일 유지하되 통일감 부여) */}
+              <button
+                onClick={() => setIsDark(!isDark)}
+                style={{
+                  width: '100%', padding: '16px 20px', background: '#fff', borderRadius: '16px', border: '1px solid #F1F5F9',
+                  textAlign: 'left', display: 'flex', alignItems: 'center', gap: '14px', marginTop: '12px'
+                }}
+              >
+                <div style={{ width: '40px', height: '40px', borderRadius: '12px', background: '#F1F5F9', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '18px' }}>
+                  {isDark ? '☀️' : '🌙'}
+                </div>
+                <div>
+                  <div style={{ fontSize: '15px', fontWeight: 700, color: '#1E293B' }}>{isDark ? '라이트 모드로 보기' : '다크 모드로 보기'}</div>
+                  <div style={{ fontSize: '12px', color: '#94A3B8', marginTop: '2px' }}>눈이 편안한 테마로 변경</div>
+                </div>
+              </button>
             </div>
 
             <div style={{ marginTop: 'auto', paddingTop: '40px', textAlign: 'center' }}>
