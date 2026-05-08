@@ -5,15 +5,12 @@ import { supabase } from '../lib/supabase'
 const LiveCount = () => {
   const { t, i18n } = useTranslation()
   const [counts, setCounts] = useState({})
-  const [currentIndex, setCurrentIndex] = useState(0)
-  const [displayText, setDisplayText] = useState('')
-  const [isTyping, setIsTyping] = useState(true)
+  const [liveVenueCount, setLiveVenueCount] = useState(0)
 
   const liveMessages = useMemo(() => [
-    t('live_msg_1'), t('live_msg_2'), t('live_msg_3'), t('live_msg_4'), t('live_msg_5'),
-    t('live_msg_6'), t('live_msg_7'), t('live_msg_8'), t('live_msg_9'), t('live_msg_10'),
-    t('live_msg_11'), t('live_msg_12'), t('live_msg_13'), t('live_msg_14'), t('live_msg_15')
-  ], [t])
+    "혼자여도 괜찮아요! 지금 바로 파티에 조인하세요.",
+    "오늘 밤 당신을 기다리는 특별한 소셜 경험이 시작됩니다."
+  ], [])
 
   const getTodayKST = () => {
     const kst = new Date(Date.now() + (9 * 60 * 60 * 1000))
@@ -34,7 +31,7 @@ const LiveCount = () => {
     const startWithBuffer = new Date(start.getTime() - 30 * 60 * 1000)
     const end = new Date(start.getTime())
     end.setDate(end.getDate() + 1)
-    end.setHours(3, 0, 0, 0)
+    end.setHours(4, 0, 0, 0) 
     return now >= startWithBuffer && now <= end
   }
 
@@ -42,30 +39,61 @@ const LiveCount = () => {
     const todayStr = getTodayKST()
     const yesterdayStr = getYesterdayKST()
     try {
-      const [{ data: parties }, { data: locations }] = await Promise.all([
-        supabase.from('parties').select('*').in('date', [todayStr, yesterdayStr]),
-        supabase.from('locations').select('id, name')
+      const [{ data: parties }] = await Promise.all([
+        supabase.from('parties').select('*, locations!location_id(name)').in('date', [todayStr, yesterdayStr])
       ]);
-      if (!parties || parties.length === 0) { setCounts({}); return; }
-      const locationMap = (locations || []).reduce((acc, loc) => { acc[loc.id] = loc.name; return acc; }, {});
-      const liveBarNames = parties
-        .filter(p => isNowInPartyTime(p.date, p.time))
-        .map(p => locationMap[p.location_id] || p.locationName)
-        .filter(Boolean)
-      if (liveBarNames.length === 0) { setCounts({}); return; }
+
+      if (!parties) return;
+
+      const liveParties = parties.filter(p => isNowInPartyTime(p.date, p.time));
+      const liveBarNames = liveParties
+        .map(p => {
+          const locName = Array.isArray(p.locations) ? p.locations[0]?.name : p.locations?.name;
+          return locName || p.location_name || p.locationName || p.address;
+        })
+        .filter(Boolean);
+
+      setLiveVenueCount(liveBarNames.length);
+
+      const initialCounts = {};
+      liveParties.forEach(p => {
+        const name = (Array.isArray(p.locations) ? p.locations[0]?.name : p.locations?.name) || p.location_name || p.locationName || p.address;
+        const reg = p.locations?.broad_region || '전국';
+        if (!initialCounts[reg]) initialCounts[reg] = [];
+        initialCounts[reg].push(`${name} 0`);
+      });
+
       const thirtyMinsAgo = new Date(Date.now() - 30 * 60 * 1000)
-      const { data: checkins } = await supabase.from('bar_checkins').select('bar_name, region').in('bar_name', liveBarNames).gte('checked_in_at', thirtyMinsAgo.toISOString())
-      if (checkins) {
-        const grouped = checkins.reduce((acc, curr) => {
-          if (!curr.bar_name) return acc;
-          const key = `${curr.region || '전국'}|${curr.bar_name}`
-          acc[key] = (acc[key] || 0) + 1
-          return acc
-        }, {})
-        setCounts(grouped)
+      const { data: checkins } = await supabase.from('bar_checkins')
+        .select('bar_name, region')
+        .in('bar_name', liveBarNames)
+        .gte('checked_in_at', thirtyMinsAgo.toISOString());
+        
+      if (checkins && checkins.length > 0) {
+        const actualCounts = {};
+        checkins.forEach(c => {
+          const reg = c.region || '기타';
+          if (!actualCounts[reg]) actualCounts[reg] = {};
+          actualCounts[reg][c.bar_name] = (actualCounts[reg][c.bar_name] || 0) + 1;
+        });
+
+        Object.keys(actualCounts).forEach(reg => {
+          if (!initialCounts[reg]) initialCounts[reg] = [];
+          Object.keys(actualCounts[reg]).forEach(name => {
+            const idx = initialCounts[reg].findIndex(v => v.startsWith(name));
+            if (idx > -1) {
+              initialCounts[reg][idx] = `${name} ${actualCounts[reg][name]}`;
+            } else {
+              initialCounts[reg].push(`${name} ${actualCounts[reg][name]}`);
+            }
+          });
+        });
       }
-    } catch (err) { console.error(err); }
-  }
+      setCounts(initialCounts);
+    } catch (err) {
+      console.error('LiveCount fetch error:', err);
+    }
+  };
 
   useEffect(() => {
     fetchCounts()
@@ -73,61 +101,9 @@ const LiveCount = () => {
     return () => { supabase.removeChannel(channel) }
   }, [])
 
-  const abbreviateRegion = (region) => {
-    const maps = { 
-      '서울특별시': '서울', '인천광역시': '인천', '부산광역시': '부산', 
-      '경기도': '경기', '충청도': '충청', '전라도': '전라', '경상도': '경상' 
-    };
-    const short = maps[region] || region;
-    
-    const translationKeys = {
-      '서울': 'region_seoul',
-      '인천': 'region_incheon',
-      '부산': 'region_busan',
-      '경기': 'region_gyeonggi_incheon',
-      '충청': 'region_chungcheong',
-      '전라': 'region_jeolla',
-      '경상': 'region_gyeongsang',
-      '전국': 'Nationwide'
-    };
-    
-    return t(translationKeys[short] || short);
-  };
-
-  const regionalReports = useMemo(() => {
-    if (Object.keys(counts).length === 0) return liveMessages;
-
-    const byRegion = {};
-    Object.entries(counts).forEach(([key, count]) => {
-      const [region, name] = key.split('|');
-      const translatedRegion = abbreviateRegion(region);
-      if (!byRegion[translatedRegion]) byRegion[translatedRegion] = [];
-      byRegion[translatedRegion].push(`${name} ${count}`);
-    });
-
-    return Object.entries(byRegion).map(([reg, venues]) => `[${reg}] ${venues.join(', ')}`);
-  }, [counts, liveMessages, t]);
-
-  useEffect(() => {
-    let timeout;
-    const currentFullText = regionalReports[currentIndex] || '';
-
-    if (isTyping) {
-      if (displayText.length < currentFullText.length) {
-        timeout = setTimeout(() => {
-          setDisplayText(currentFullText.slice(0, displayText.length + 1));
-        }, 80);
-      } else {
-        setIsTyping(false);
-        timeout = setTimeout(() => {
-          setCurrentIndex(prev => (prev + 1) % regionalReports.length);
-          setDisplayText('');
-          setIsTyping(true);
-        }, 4000); 
-      }
-    }
-    return () => clearTimeout(timeout);
-  }, [displayText, isTyping, currentIndex, regionalReports]);
+  const currentStatusText = useMemo(() => {
+    return liveMessages.join('   |   ');
+  }, [liveMessages]);
 
   return (
     <div style={{
@@ -135,61 +111,62 @@ const LiveCount = () => {
       height: '44px',
       display: 'flex',
       alignItems: 'center',
-      padding: '0 16px',
+      padding: '0 8px',
       position: 'relative',
+      overflow: 'hidden',
+      width: '100%'
     }}>
       <style>{`
         .live-pill {
           display: flex;
           align-items: center;
           gap: 5px;
-          border: 1px solid rgba(201,168,76,0.6);
+          border: 1px solid rgba(255, 23, 68, 0.3);
           border-radius: 20px;
           padding: 3px 10px 3px 7px;
-          margin-right: 12px;
+          margin-right: 8px;
           flex-shrink: 0;
-          background: rgba(0,0,0,0.25);
+          background: rgba(229, 57, 53, 0.05);
+          z-index: 2;
         }
         .live-dot2 {
           width: 6px;
           height: 6px;
-          background: #FFD700;
+          background: #FF1744;
           border-radius: 50%;
           animation: pulse2 1.5s ease-in-out infinite;
         }
         @keyframes pulse2 {
-          0%, 100% { opacity: 1; box-shadow: 0 0 6px #FFD700; }
+          0%, 100% { opacity: 1; box-shadow: 0 0 6px #FF1744; }
           50% { opacity: 0.3; box-shadow: none; }
         }
         .live-word {
-          color: #FFD700;
+          color: #FF1744;
           font-size: 10px;
           font-weight: 700;
           letter-spacing: 2px;
         }
-        .report-content {
+        .marquee-container {
+          flex: 1;
+          overflow: hidden;
+          white-space: nowrap;
+          position: relative;
           display: flex;
-          align-items: baseline;
-          gap: 4px;
+          align-items: center;
+        }
+        .marquee-content {
+          display: inline-block;
+          padding-left: 100%;
+          animation: marquee 35s linear infinite;
+          color: #FF1744;
+          font-size: 13px;
+          font-weight: 500;
           font-family: 'Pretendard', sans-serif;
         }
-        .live-data-text {
-          color: #E8D5A3;
-          font-size: 14px;
-          font-weight: 500;
-          letter-spacing: -0.2px;
+        @keyframes marquee {
+          0% { transform: translateX(0); }
+          100% { transform: translateX(-100%); }
         }
-        .cursor-gold {
-          border-right: 2px solid #FFD700;
-          animation: blink-gold 1s infinite;
-          margin-left: 2px;
-          height: 14px;
-          display: inline-block;
-          vertical-align: middle;
-          position: relative;
-          top: 2px;
-        }
-        @keyframes blink-gold { 0%, 100% { opacity: 1; } 50% { opacity: 0; } }
       `}</style>
 
       <div className="live-pill">
@@ -197,11 +174,10 @@ const LiveCount = () => {
         <span className="live-word">LIVE</span>
       </div>
 
-      <div className="report-content">
-        <span className="live-data-text">
-          {displayText}
-          <span className="cursor-gold" />
-        </span>
+      <div className="marquee-container">
+        <div className="marquee-content">
+          {currentStatusText}
+        </div>
       </div>
     </div>
   )

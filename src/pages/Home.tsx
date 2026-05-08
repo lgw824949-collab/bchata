@@ -80,7 +80,7 @@ const PosterImage = ({ src, onClick, alt = "파티 포스터" }) => {
   const imgRef = useRef();
   const onUpdate = ({ x, y, scale }) => { if (imgRef.current) imgRef.current.style.transform = make3dTransformValue({ x, y, scale }); };
   return (
-    <div style={{ width: '100%', aspectRatio: '3/4', overflow: 'hidden', borderRadius: '12px', background: '#000', position: 'relative', boxShadow: '0 4px 12px rgba(0,0,0,0.15)' }}>
+    <div style={{ width: '100%', aspectRatio: '3/4', overflow: 'hidden', borderRadius: '12px', background: '#F3F4F6', position: 'relative', boxShadow: '0 4px 12px rgba(0,0,0,0.05)' }}>
       <QuickPinchZoom onUpdate={onUpdate} wheelScaleFactor={500} tapZoomFactor={2}>
         <img ref={imgRef} src={src} alt={alt} onClick={onClick} style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block', willChange: 'transform' }} />
       </QuickPinchZoom>
@@ -320,10 +320,10 @@ const BootcampCard = ({ item, onSelect }) => {
       onClick={() => onSelect(item.poster_url)}
       style={{ 
         display: 'flex', 
-        backgroundColor: '#FFFFFF', 
+        backgroundColor: 'var(--color-card)', 
         borderRadius: '16px', 
         overflow: 'hidden', 
-        border: '1px solid #F1F5F9', 
+        border: '1px solid var(--color-border)', 
         cursor: 'pointer', 
         height: '110px', 
         marginBottom: '12px', 
@@ -336,10 +336,10 @@ const BootcampCard = ({ item, onSelect }) => {
       <div style={{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'center', padding: '0 15px', minWidth: 0 }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '2px' }}>
           <span style={{ fontSize: '11px', fontWeight: '800', color: '#7C3AED' }}>BOOTCAMP · {item.genre}</span>
-          <span style={{ fontSize: '11px', fontWeight: '800', color: '#94A3B8' }}>{item.level}</span>
+          <span style={{ fontSize: '11px', fontWeight: '800', color: 'var(--color-text-sub)' }}>{item.level}</span>
         </div>
-        <h3 style={{ fontSize: '16px', fontWeight: '950', color: '#1E293B', margin: '0 0 4px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{item.instructor}</h3>
-        <div style={{ fontSize: '11px', fontWeight: '800', color: '#64748B' }}>
+        <h3 style={{ fontSize: '16px', fontWeight: '950', color: 'var(--color-text-main)', margin: '0 0 4px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{item.instructor}</h3>
+        <div style={{ fontSize: '11px', fontWeight: '800', color: 'var(--color-text-sub)' }}>
           📍 {item.venue || item.region} | 💰 {item.fee}
         </div>
       </div>
@@ -353,10 +353,10 @@ const FestivalCard = ({ item, onSelect }) => {
       onClick={() => onSelect(item.poster_url)}
       style={{ 
         display: 'flex', 
-        backgroundColor: '#FFFFFF', 
+        backgroundColor: 'var(--color-card)', 
         borderRadius: '16px', 
         overflow: 'hidden', 
-        border: '1px solid #F1F5F9', 
+        border: '1px solid var(--color-border)', 
         cursor: 'pointer', 
         height: '110px', 
         marginBottom: '12px', 
@@ -368,8 +368,8 @@ const FestivalCard = ({ item, onSelect }) => {
       </div>
       <div style={{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'center', padding: '0 15px', minWidth: 0 }}>
         <div style={{ fontSize: '11px', fontWeight: '800', color: '#F97316', marginBottom: '2px' }}>FESTIVAL · {item.genre}</div>
-        <h3 style={{ fontSize: '16px', fontWeight: '950', color: '#1E293B', margin: '0 0 4px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{item.title}</h3>
-        <div style={{ fontSize: '11px', fontWeight: '800', color: '#64748B' }}>
+        <h3 style={{ fontSize: '16px', fontWeight: '950', color: 'var(--color-text-main)', margin: '0 0 4px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{item.title}</h3>
+        <div style={{ fontSize: '11px', fontWeight: '800', color: 'var(--color-text-sub)' }}>
           📍 {item.location} | 💰 ₩{item.price?.toLocaleString()}
         </div>
       </div>
@@ -397,7 +397,7 @@ const FilterBar = ({ filterRegion, setFilterRegion, filterGenre, setFilterGenre 
   const regions = ['서울', '경기/인천', '경상도', '전라도', '충청도', '강원/제주'];
   const genres = Object.keys(GENRE_MAP);
   return (
-    <div style={{ padding: '0 15px 12px', background: '#fff', display: 'flex', flexDirection: 'column', gap: '12px' }}>
+    <div style={{ padding: '0 15px 12px', background: 'var(--color-bg)', display: 'flex', flexDirection: 'column', gap: '12px' }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
         <div style={{ color: '#94A3B8' }}><MapPin size={16} /></div>
         <div style={{ flex: 1, display: 'flex', overflowX: 'auto', gap: '12px', msOverflowStyle: 'none', scrollbarWidth: 'none', WebkitOverflowScrolling: 'touch' }} className="filter-scroll">
@@ -425,7 +425,7 @@ const FilterBar = ({ filterRegion, setFilterRegion, filterGenre, setFilterGenre 
                 console.log('장르 선택:', newVal);
                 setFilterGenre(newVal);
               }} 
-              style={{ padding: '6px 12px', borderRadius: '8px', fontSize: '12px', fontWeight: 700, whiteSpace: 'nowrap', border: 'none', background: filterGenre === g ? '#FF1744' : '#F1F5F9', color: filterGenre === g ? '#fff' : '#64748B', transition: 'all 0.2s' }}
+              style={{ padding: '6px 12px', borderRadius: '8px', fontSize: '12px', fontWeight: 700, whiteSpace: 'nowrap', border: 'none', background: filterGenre === g ? '#FF1744' : 'var(--color-border)', color: filterGenre === g ? '#fff' : 'var(--color-text-sub)', transition: 'all 0.2s' }}
             >
               {isEn ? GENRE_MAP[g].label_en : g}
             </button>
@@ -531,10 +531,10 @@ const HomePage = ({
         </p>
         <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between' }}>
           <div>
-            <p style={{ fontSize: '32px', fontWeight: 900, color: 'var(--color-text-main)', margin: 0, letterSpacing: '-1.5px', lineHeight: 1.3 }}>
+            <p style={{ fontSize: '32px', fontWeight: 950, color: '#000000', margin: 0, letterSpacing: '-1.5px', lineHeight: 1.3 }}>
               {lang === 'ko' ? '전국 어디서든' : 'Anywhere in Korea'}
             </p>
-            <p style={{ fontSize: '32px', fontWeight: 900, color: '#E53935', margin: '0 0 12px', letterSpacing: '-1.5px', lineHeight: 1.3 }}>
+            <p style={{ fontSize: '32px', fontWeight: 950, color: '#FF1744', margin: '0 0 12px', letterSpacing: '-1.5px', lineHeight: 1.3 }}>
               {lang === 'ko' ? '만원이면 충분해요' : '10,000 won is enough'}
             </p>
             <div style={{ borderLeft: '3px solid #E53935', paddingLeft: '16px' }}>
@@ -556,7 +556,7 @@ const HomePage = ({
       </div>
 
       <div style={{ padding: '12px 10px 8px' }}>
-        <div style={{ height: '36px', background: '#0f172a', borderRadius: '18px', display: 'flex', alignItems: 'center', overflow: 'hidden', padding: '0 8px 0 16px' }}>
+        <div style={{ height: '36px', background: '#F3F4F6', borderRadius: '18px', display: 'flex', alignItems: 'center', overflow: 'hidden', padding: '0 8px 0 16px', border: '1px solid #E5E7EB' }}>
           <div style={{ flex: 1, overflow: 'hidden' }}>
             <LiveCount />
           </div>
@@ -571,12 +571,12 @@ const HomePage = ({
               display: 'flex', 
               alignItems: 'center', 
               gap: '2px', 
-              background: 'rgba(255,255,255,0.08)', 
-              border: '1px solid rgba(255,255,255,0.15)', 
+              background: '#fff', 
+              border: '1px solid #E5E7EB', 
               borderRadius: '20px', 
               padding: '2px', 
               cursor: 'pointer', 
-              color: 'rgba(255,255,255,0.6)', 
+              color: '#64748B', 
               fontSize: '9px', 
               fontWeight: 900,
               marginLeft: '10px',
@@ -664,9 +664,9 @@ const HomePage = ({
                         <div style={{ width: '100%', overflow: 'hidden', padding: '10px 0' }}>
                           <div className="hot-pick-track">
                             {/* 무한 루프를 위해 데이터를 두 번 렌더링 */}
-                            {[...metroHot, ...metroHot].map((item, idx) => (
-                              <div key={`${item.id}-${idx}`} onClick={() => handleOpenModal(setSelectedPoster, item.poster_url)} style={{ width: '140px', flexShrink: 0, borderRadius: '12px', overflow: 'hidden', boxShadow: '0 8px 20px rgba(0,0,0,0.12)', position: 'relative' }}>
-                                <img src={item.poster_url} style={{ width: '100%', height: '190px', objectFit: 'cover' }} alt="Pick" />
+                              {[...metroHot, ...metroHot].map((item, idx) => (
+                                <div key={`${item.id}-${idx}`} onClick={() => handleOpenModal(setSelectedPoster, item.poster_url)} className="hot-pick-item" style={{ borderRadius: '12px', overflow: 'hidden', boxShadow: '0 8px 20px rgba(0,0,0,0.12)', position: 'relative' }}>
+                                  <img src={item.poster_url} style={{ width: '100%', height: '190px', objectFit: 'cover' }} alt="Pick" />
                                 <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, padding: '12px 10px', background: 'linear-gradient(transparent, rgba(0,0,0,0.95))', color: 'white', display: 'flex', flexDirection: 'column', gap: '4px' }}>
                                   {/* 상단: 핵심 메타데이터 (장르, 시간만!) */}
                                   <div style={{ display: 'flex', gap: '4px', flexWrap: 'wrap' }}>
@@ -744,11 +744,24 @@ const HomePage = ({
                                 </button>
                               </div>
                               <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', padding: '0 15px 20px' }}>
-                                {regionParties.length === 0 ? (
-                                  <div style={{ padding: '40px', background: 'var(--color-bg)', borderRadius: '16px', textAlign: 'center', color: 'var(--color-text-sub)', fontSize: '13px', fontWeight: '700' }}>{t('no_parties')}</div>
-                                ) : regionParties.slice(0, maxCount).map(item => (
-                                  <PartyCard key={item.id} item={item} onSelect={(url) => handleOpenModal(setSelectedPoster, url)} />
-                                ))}
+                                <AnimatePresence mode="wait">
+                                  <motion.div 
+                                    key={`${regionName}-${shuffleOffset}`}
+                                    initial={{ opacity: 0.9, y: 5 }}
+                                    animate={{ opacity: 1, y: 0 }}
+                                    transition={{ duration: 0.6, ease: "easeOut" }}
+                                  >
+                                    {regionParties.length === 0 ? (
+                                      <div style={{ padding: '40px', background: 'var(--color-bg)', borderRadius: '16px', textAlign: 'center', color: 'var(--color-text-sub)', fontSize: '13px', fontWeight: '700' }}>{t('no_parties')}</div>
+                                    ) : (() => {
+                                      const start = shuffleOffset % regionParties.length;
+                                      const rotated = [...regionParties.slice(start), ...regionParties.slice(0, start)];
+                                      return rotated.slice(0, maxCount).map(item => (
+                                        <PartyCard key={item.id} item={item} onSelect={(url) => handleOpenModal(setSelectedPoster, url)} />
+                                      ));
+                                    })()}
+                                  </motion.div>
+                                </AnimatePresence>
                               </div>
                             </section>
 
@@ -763,7 +776,7 @@ const HomePage = ({
                                 <div style={{ width: '100%', overflow: 'hidden', padding: '10px 0' }}>
                                   <div className="hot-pick-track">
                                     {[...provincialHot, ...provincialHot].map((item, idx) => (
-                                      <div key={`${item.id}-${idx}`} onClick={() => handleOpenModal(setSelectedPoster, item.poster_url)} style={{ width: '140px', flexShrink: 0, borderRadius: '12px', overflow: 'hidden', boxShadow: '0 8px 20px rgba(0,0,0,0.12)', position: 'relative' }}>
+                                      <div key={`${item.id}-${idx}`} onClick={() => handleOpenModal(setSelectedPoster, item.poster_url)} className="hot-pick-item" style={{ borderRadius: '12px', overflow: 'hidden', boxShadow: '0 8px 20px rgba(0,0,0,0.12)', position: 'relative' }}>
                                         <img src={item.poster_url} style={{ width: '100%', height: '190px', objectFit: 'cover' }} alt="Pick" />
                                         <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, padding: '12px 8px', background: 'linear-gradient(transparent, rgba(0,0,0,0.95))', color: 'white' }}>
                                           <div style={{ fontSize: '10px', color: '#FFEB3B', fontWeight: 900, marginBottom: '2px', textShadow: '0 1px 2px rgba(0,0,0,0.8)' }}>{translateDynamicText(item.locationName, isEn)}</div>

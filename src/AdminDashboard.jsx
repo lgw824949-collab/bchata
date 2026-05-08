@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react'
 import { supabase } from './lib/supabase'
-import { ChevronLeft, Check, Trash2, ShieldCheck, X, RefreshCw, XCircle, Clock, Tent, Flag, Music2, Camera } from 'lucide-react'
+import { ChevronLeft, Check, Trash2, ShieldCheck, X, RefreshCw, XCircle, Clock, Tent, Flag, Music2, Camera, Zap } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
 
 export default function AdminDashboard({ onBack }) {
@@ -9,7 +9,7 @@ export default function AdminDashboard({ onBack }) {
   const [adminId, setAdminId] = useState('')
   const [password, setPassword] = useState('')
   const [items, setItems] = useState([])
-  const [category, setCategory] = useState('social') // 'social', 'live', 'bootcamp', 'festival'
+  const [category, setCategory] = useState('social') // 'social', 'live-mgmt', 'live', 'bootcamp', 'festival'
   const [activeTab, setActiveTab] = useState('pending') // 'pending', 'active', 'rejected'
   const [editingItem, setEditingItem] = useState(null)
   const [editFormData, setEditFormData] = useState({})
@@ -27,17 +27,21 @@ export default function AdminDashboard({ onBack }) {
   // 데이터 불러오기
   const fetchData = async () => {
     setLoading(true)
+    setItems([]) // 이전 데이터 초기화하여 혼선 방지
     try {
       let query;
       if (category === 'social') {
         if (activeTab === 'active') query = supabase.from('parties').select('*, locations!location_id(name)');
         else query = supabase.from('pending_parties').select('*').eq('status', activeTab);
+      } else if (category === 'live-mgmt') {
+        const todayStr = new Date(Date.now() + (9 * 60 * 60 * 1000)).toISOString().split('T')[0];
+        query = supabase.from('parties').select('*, locations!location_id(name)').eq('date', todayStr);
       } else if (category === 'live') {
-        query = supabase.from('community_posts').select('*');
-      } else {
-        const table = category === 'bootcamp' ? 'bootcamps' : 'festivals';
-        query = supabase.from(table).select('*');
-        if (category !== 'live') query = query.eq('status', activeTab);
+        query = supabase.from('community_posts').select('*').eq('status', activeTab);
+      } else if (category === 'bootcamp') {
+        query = supabase.from('bootcamps').select('*').eq('status', activeTab);
+      } else if (category === 'festival') {
+        query = supabase.from('festivals').select('*').eq('status', activeTab);
       }
       const { data, error } = await query.order('created_at', { ascending: false })
       if (error) throw error
@@ -125,7 +129,9 @@ export default function AdminDashboard({ onBack }) {
           await supabase.from('pending_parties').update({ status: newStatus }).eq('id', item.id);
         }
       } else {
-        const table = category === 'bootcamp' ? 'bootcamps' : 'festivals';
+        let table;
+        if (category === 'live') table = 'community_posts';
+        else table = category === 'bootcamp' ? 'bootcamps' : 'festivals';
         await supabase.from(table).update({ status: newStatus }).eq('id', item.id);
       }
       fetchData();
@@ -144,6 +150,20 @@ export default function AdminDashboard({ onBack }) {
       await supabase.from(table).delete().eq('id', id);
       fetchData();
     } catch (err) { alert('삭제 실패') } finally { setLoading(false) }
+  }
+
+  // 수동 체크인 추가 (LIVE 관리용)
+  const addManualCheckin = async (party) => {
+    try {
+      const locName = party.locations?.name || party.location_name;
+      const { error } = await supabase.from('bar_checkins').insert([{
+        bar_name: locName,
+        region: party.broadRegion || '전국',
+        checked_in_at: new Date().toISOString()
+      }]);
+      if (error) throw error;
+      alert('인원이 1명 추가되었습니다.');
+    } catch (err) { console.error('체크인 추가 실패', err); }
   }
 
   if (!isAdmin) {
@@ -173,6 +193,7 @@ export default function AdminDashboard({ onBack }) {
       <div style={{ display: 'flex', padding: '16px', gap: '8px', backgroundColor: '#FFF', overflowX: 'auto' }}>
         {[
           { id: 'social', label: '소셜파티', icon: <Music2 size={16} /> },
+          { id: 'live-mgmt', label: 'LIVE 관리', icon: <Zap size={16} color="#F59E0B" /> },
           { id: 'live', label: 'LIVE PICK', icon: <Camera size={16} /> },
           { id: 'bootcamp', label: '부트캠프', icon: <Tent size={16} /> },
           { id: 'festival', label: '페스티벌', icon: <Flag size={16} /> }
@@ -184,7 +205,7 @@ export default function AdminDashboard({ onBack }) {
       </div>
 
       {/* 상태 탭 */}
-      {category !== 'live' && (
+      {category !== 'live-mgmt' && (
         <div style={{ display: 'flex', padding: '0 16px 16px', gap: '8px', backgroundColor: '#FFF' }}>
           {[
             { id: 'pending', label: '승인대기', color: '#F59E0B' },
@@ -242,6 +263,17 @@ export default function AdminDashboard({ onBack }) {
                         <input value={editFormData.organizer || ''} onChange={e => setEditFormData({ ...editFormData, organizer: e.target.value })} placeholder="주최" style={{ width: '100%', padding: '8px', borderRadius: '8px', border: '1px solid #DDD' }} />
                       </>
                     )}
+                    {category === 'live' && (
+                      <>
+                        <input value={editFormData.bar_name || ''} onChange={e => setEditFormData({ ...editFormData, bar_name: e.target.value })} placeholder="장소명" style={{ width: '100%', padding: '10px', borderRadius: '10px', border: '1px solid #E2E8F0' }} />
+                        <input value={editFormData.region || ''} onChange={e => setEditFormData({ ...editFormData, region: e.target.value })} placeholder="지역" style={{ width: '100%', padding: '10px', borderRadius: '10px', border: '1px solid #E2E8F0' }} />
+                        <textarea value={editFormData.content || ''} onChange={e => setEditFormData({ ...editFormData, content: e.target.value })} placeholder="내용" style={{ width: '100%', padding: '10px', borderRadius: '10px', border: '1px solid #E2E8F0', minHeight: '80px' }} />
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '10px', background: '#F1F5F9', borderRadius: '10px' }}>
+                          <span style={{ fontSize: '13px', fontWeight: 700 }}>실시간 인증:</span>
+                          <input type="checkbox" checked={editFormData.is_live} onChange={e => setEditFormData({ ...editFormData, is_live: e.target.checked })} style={{ width: '20px', height: '20px' }} />
+                        </div>
+                      </>
+                    )}
                     <div style={{ display: 'flex', gap: '8px' }}>
                       <button onClick={saveEdit} style={{ flex: 1, padding: '10px', background: '#10B981', color: '#FFF', border: 'none', borderRadius: '10px', fontWeight: 800 }}>SAVE</button>
                       <button onClick={cancelEdit} style={{ flex: 1, padding: '10px', background: '#EEE', color: '#666', border: 'none', borderRadius: '10px', fontWeight: 800 }}>CANCEL</button>
@@ -249,58 +281,70 @@ export default function AdminDashboard({ onBack }) {
                   </div>
                 ) : (
                   /* 보기 모드 */
-                  <>
-                    {category === 'live' ? (
-                      <>
-                        <h3 style={{ fontSize: '16px', fontWeight: 900, marginBottom: '6px' }}>📍 {item.location_name} ({item.region})</h3>
-                        <div style={{ fontSize: '14px', color: '#64748B', lineHeight: '1.5', marginBottom: '8px' }}>{item.content}</div>
-                        <div style={{ fontSize: '12px', color: '#FF1744', fontWeight: 800 }}>❤️ {item.likes || 0} Likes</div>
-                      </>
-                    ) : (
-                      <h3 style={{ fontSize: '17px', fontWeight: 900, marginBottom: '8px' }}>{item.title}</h3>
+                  <div style={{ flex: 1 }}>
+                    {category === 'live' && (
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                        <h3 style={{ fontSize: '16px', fontWeight: 900, color: '#1E293B' }}>📍 {item.bar_name || '장소미지정'} ({item.region})</h3>
+                        <div style={{ fontSize: '14px', color: '#475569', lineHeight: '1.5', padding: '10px', background: '#F8FAFC', borderRadius: '8px' }}>{item.content}</div>
+                        <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
+                          <div style={{ fontSize: '12px', color: '#E53935', fontWeight: 800 }}>❤️ {item.likes_count || 0} Likes</div>
+                          <div style={{ fontSize: '12px', color: '#64748B', fontWeight: 800 }}>👁️ {item.view_count || 0} Views</div>
+                          {item.is_live && <div style={{ fontSize: '10px', background: '#E53935', color: '#fff', padding: '2px 6px', borderRadius: '4px', fontWeight: 900 }}>실시간인증</div>}
+                        </div>
+                      </div>
                     )}
-                    
-                    <div style={{ fontSize: '13px', color: '#64748B', display: 'flex', flexDirection: 'column', gap: '3px' }}>
-                      {category === 'social' && (
-                        <>
-                          <div>📍 {item.locations?.name || item.location_name || item.address}</div>
-                          <div>📅 {item.date} | 💰 {item.fee}</div>
-                        </>
-                      )}
-                      {category === 'bootcamp' && (
-                        <>
-                          <div style={{ color: '#F59E0B', fontWeight: 800 }}>👤 {item.instructor} ({item.nationality})</div>
-                          <div>🎵 {item.genre} | 📊 {item.level}</div>
-                          <div>📅 {item.start_date} ~ {item.end_date}</div>
-                          <div>📍 {item.venue} | 💰 {item.fee}</div>
-                          <div style={{ fontSize: '11px' }}>{item.accommodation_included ? '✅ 숙박 포함' : '❌ 숙박 미포함'} | <span style={{ color: '#000' }}>[{item.type?.toUpperCase()}]</span></div>
-                        </>
-                      )}
-                      {category === 'festival' && (
-                        <>
-                          <div>🎵 {item.genre} | 🏢 {item.organizer}</div>
-                          <div>📅 {item.start_date} ~ {item.end_date}</div>
-                          <div>📍 {item.location} ({item.region}) | 💰 ₩{item.price?.toLocaleString()}</div>
-                        </>
-                      )}
-                    </div>
 
-                    {/* 버튼 그룹 */}
+                    {category === 'live-mgmt' && (
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                        <h3 style={{ fontSize: '16px', fontWeight: 900, color: '#1E293B' }}>{item.title}</h3>
+                        <div style={{ fontSize: '13px', color: '#64748B' }}>📍 {item.locations?.name || item.location_name} | 📅 {item.date}</div>
+                      </div>
+                    )}
+
+                    {category === 'social' && (
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                        <h3 style={{ fontSize: '16px', fontWeight: 900, color: '#1E293B' }}>{item.title}</h3>
+                        <div style={{ fontSize: '13px', color: '#64748B' }}>📍 {item.locations?.name || item.location_name || item.address}</div>
+                        <div style={{ fontSize: '13px', color: '#64748B' }}>📅 {item.date} | 💰 {item.fee}</div>
+                      </div>
+                    )}
+
+                    {category === 'bootcamp' && (
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                        <h3 style={{ fontSize: '16px', fontWeight: 900, color: '#1E293B' }}>{item.title}</h3>
+                        <div style={{ color: '#F59E0B', fontWeight: 800, fontSize: '13px' }}>👤 {item.instructor} ({item.nationality})</div>
+                        <div style={{ fontSize: '13px', color: '#64748B' }}>🎵 {item.genre} | 📊 {item.level} | 📍 {item.venue}</div>
+                      </div>
+                    )}
+
+                    {category === 'festival' && (
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                        <h3 style={{ fontSize: '16px', fontWeight: 900, color: '#1E293B' }}>{item.title}</h3>
+                        <div style={{ fontSize: '13px', color: '#64748B' }}>🎵 {item.genre} | 🏢 {item.organizer}</div>
+                        <div style={{ fontSize: '13px', color: '#64748B' }}>📍 {item.location} | 📅 {item.start_date} ~ {item.end_date}</div>
+                      </div>
+                    )}
+
                     <div style={{ display: 'flex', gap: '8px', marginTop: '16px' }}>
-                      {category !== 'live' && (
-                        <>
-                          <button onClick={() => updateStatus(item, 'active')} style={{ flex: 1, padding: '10px', borderRadius: '10px', border: 'none', background: '#E8F5E9', color: '#2E7D32' }} title="승인"><Check size={18} /></button>
-                          <button onClick={() => updateStatus(item, 'pending')} style={{ flex: 1, padding: '10px', borderRadius: '10px', border: 'none', background: '#FFF8E1', color: '#F59E0B' }} title="보류"><Clock size={18} /></button>
-                          <button onClick={() => updateStatus(item, 'rejected')} style={{ flex: 1, padding: '10px', borderRadius: '10px', border: 'none', background: '#FFEBEE', color: '#C62828' }} title="반려"><XCircle size={18} /></button>
-                          <button onClick={() => startEdit(item)} style={{ flex: 1, padding: '10px', borderRadius: '10px', border: 'none', background: '#F1F5F9', color: '#475569' }} title="수정"><RefreshCw size={18} /></button>
-                        </>
-                      )}
+                      <button onClick={() => updateStatus(item, 'active')} style={{ flex: 1, padding: '10px', borderRadius: '10px', border: 'none', background: '#E8F5E9', color: '#2E7D32' }} title="승인"><Check size={18} /></button>
+                      <button onClick={() => updateStatus(item, 'pending')} style={{ flex: 1, padding: '10px', borderRadius: '10px', border: 'none', background: '#FFF8E1', color: '#F59E0B' }} title="보류"><Clock size={18} /></button>
+                      <button onClick={() => updateStatus(item, 'rejected')} style={{ flex: 1, padding: '10px', borderRadius: '10px', border: 'none', background: '#FFEBEE', color: '#C62828' }} title="반려"><XCircle size={18} /></button>
+                      <button onClick={() => startEdit(item)} style={{ flex: 1, padding: '10px', borderRadius: '10px', border: 'none', background: '#F1F5F9', color: '#475569' }} title="수정"><RefreshCw size={18} /></button>
                       <button onClick={() => deleteItem(item.id)} style={{ flex: category === 'live' ? 1 : 'none', padding: '10px', borderRadius: '10px', border: 'none', background: '#F5F5F5', color: '#666' }} title="삭제"><Trash2 size={18} /></button>
                     </div>
-                  </>
+                  </div>
                 )}
               </div>
             </div>
+            
+            {category === 'live-mgmt' && (
+              <div style={{ marginTop: '16px', paddingTop: '16px', borderTop: '1px dashed #E2E8F0', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                <div style={{ fontSize: '13px', fontWeight: 800, color: '#F59E0B' }}>수동 인원 조절</div>
+                <div style={{ display: 'flex', gap: '8px' }}>
+                  <button onClick={() => addManualCheckin(item)} style={{ padding: '8px 16px', background: '#F59E0B', color: '#FFF', border: 'none', borderRadius: '8px', fontSize: '12px', fontWeight: 900 }}>+1명 추가</button>
+                </div>
+              </div>
+            )}
           </div>
         ))}
       </div>

@@ -104,6 +104,23 @@ const Festival = ({ setView }) => {
           >
             {selectedRegion} <ChevronDown size={12} color="#E53935" />
           </button>
+          <button 
+            onClick={() => { setShowFilters(false); setSelectedFestival(null); window.dispatchEvent(new CustomEvent('open-festival-register')); }}
+            style={{ 
+              background: '#E53935', 
+              color: '#fff', 
+              border: 'none', 
+              padding: '6px 14px', 
+              borderRadius: '20px', 
+              fontSize: '11px', 
+              fontWeight: 900, 
+              display: 'flex', 
+              alignItems: 'center', 
+              gap: '6px'
+            }}
+          >
+            <Plus size={12} strokeWidth={3} /> 등록
+          </button>
           <button onClick={() => setView('home')} style={{ background: 'rgba(255,255,255,0.05)', border: 'none', borderRadius: '50%', padding: '8px' }}>
             <HomeIcon size={18} color="#fff" />
           </button>
