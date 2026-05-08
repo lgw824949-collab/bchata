@@ -280,7 +280,7 @@ const Festival = ({ onBack, initialView = 'list' }) => {
           </>
         ) : (
           /* Registration Form */
-          <motion.div initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} style={{ background: '#ffffff', padding: '30px', marginTop: '20px' }}>
+          <motion.div initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} style={{ background: '#ffffff', padding: '30px', marginTop: '20px', position: 'relative', zIndex: 3000 }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '40px' }}>
               <h2 style={{ fontSize: '24px', fontWeight: 900, color: '#111', margin: 0 }}>페스티벌 등록 신청</h2>
               <button 
