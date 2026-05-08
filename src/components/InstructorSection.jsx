@@ -251,112 +251,103 @@ const InstructorSection = () => {
 
             {/* 강사명 및 타이틀 */}
             <div style={{ padding: '0 24px 24px' }}>
-              <h1 style={{ fontSize: '40px', fontWeight: 900, color: '#fff', margin: '0 0 6px 0', letterSpacing: '-1.5px', textTransform: 'uppercase', fontFamily: 'Pretendard, sans-serif' }}>
+              <h1 style={{ fontSize: '34px', fontWeight: 800, color: '#fff', margin: '0 0 4px 0', letterSpacing: '-1px', fontFamily: 'Pretendard, sans-serif' }}>
                 {selectedInstructor.name}
               </h1>
-              <p style={{ fontSize: '14px', color: '#8E8E93', margin: 0, fontWeight: 500, letterSpacing: '0.2px' }}>
+              <p style={{ fontSize: '13px', color: '#8E8E93', margin: 0, fontWeight: 500 }}>
                 Professional Dancer | Choreographer | Instructor
               </p>
             </div>
 
-            {/* 4단 스탯 카드 (시안 1:1 재현) */}
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 10, padding: '0 20px 35px' }}>
+            {/* 4단 스탯 카드 (시안 100% 동일 비율 및 스타일) */}
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 8, padding: '0 20px 30px' }}>
               {[
-                { label: 'Followers', value: '2.8M', sub: '245K new', icon: <User size={10} color="#000" fill="#000" /> },
-                { label: 'Likes', value: '14.5M', sub: '1.2M new', icon: <svg width="10" height="10" viewBox="0 0 24 24" fill="#000"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg> },
+                { label: 'Followers', value: '2.8M', sub: '245K new', icon: <User size={10} color="#C9A84C" /> },
+                { label: 'Likes', value: '14.5M', sub: '1.2M new', icon: <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#C9A84C" strokeWidth="2.5"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg> },
                 { label: 'Classes', value: '190', sub: '', icon: null },
                 { label: 'Bookings', value: '75+', sub: '', icon: null }
               ].map((stat, idx) => (
                 <div key={idx} style={{ 
-                  background: 'linear-gradient(180deg, rgba(44,44,46,0.8) 0%, rgba(28,28,30,0.8) 100%)', 
-                  padding: '20px 8px', borderRadius: '22px', 
-                  border: '1px solid rgba(255,255,255,0.08)',
-                  textAlign: 'center', position: 'relative', overflow: 'hidden',
-                  boxShadow: '0 10px 20px rgba(0,0,0,0.3)'
+                  background: 'rgba(44, 44, 46, 0.4)', 
+                  backdropFilter: 'blur(20px)',
+                  padding: '24px 4px', borderRadius: '20px', 
+                  border: '1px solid rgba(255,255,255,0.1)',
+                  textAlign: 'center', position: 'relative',
+                  display: 'flex', flexDirection: 'column', justifyContent: 'center', height: '110px'
                 }}>
-                  {/* 상단 골드 엣지 (더 넓고 선명하게) */}
-                  <div style={{ 
-                    position: 'absolute', top: 0, left: '5%', right: '5%', height: '1.2px',
-                    background: 'linear-gradient(90deg, transparent, #C9A84C, #FFD700, #C9A84C, transparent)',
-                    opacity: 0.9
-                  }} />
-                  
-                  {/* 하단 골드 엣지 */}
-                  <div style={{ 
-                    position: 'absolute', bottom: 0, left: '10%', right: '10%', height: '1.2px',
-                    background: 'linear-gradient(90deg, transparent, #C9A84C, transparent)',
-                    opacity: 0.5
-                  }} />
+                  {/* 상하단 미세 골드 글로우 */}
+                  <div style={{ position: 'absolute', top: 0, left: '20%', right: '20%', height: '1px', background: 'linear-gradient(90deg, transparent, rgba(201,168,76,0.5), transparent)' }} />
+                  <div style={{ position: 'absolute', bottom: 0, left: '20%', right: '20%', height: '1px', background: 'linear-gradient(90deg, transparent, rgba(201,168,76,0.3), transparent)' }} />
 
                   {stat.icon && (
                     <div style={{ 
-                      position: 'absolute', top: 8, right: 8, 
-                      background: 'linear-gradient(135deg, #C9A84C 0%, #FFD700 100%)', 
-                      borderRadius: '50%', width: 20, height: 20, 
+                      position: 'absolute', top: 6, right: 6, 
+                      background: 'rgba(0,0,0,0.3)', 
+                      borderRadius: '50%', width: 22, height: 22, 
                       display: 'flex', alignItems: 'center', justifyContent: 'center', 
-                      zIndex: 2, boxShadow: '0 0 10px rgba(201,168,76,0.5)'
+                      border: '1px solid rgba(201,168,76,0.6)',
+                      boxShadow: '0 0 10px rgba(201,168,76,0.2)'
                     }}>
                       {stat.icon}
                     </div>
                   )}
                   
-                  <div style={{ fontSize: '10px', color: '#8E8E93', fontWeight: 600, textTransform: 'uppercase', marginBottom: 6, letterSpacing: '0.5px' }}>{stat.label}</div>
-                  <div style={{ fontSize: '20px', fontWeight: 800, color: '#FFF' }}>{stat.value}</div>
-                  {stat.sub && <div style={{ fontSize: '9px', color: '#C9A84C', fontWeight: 700, marginTop: 4 }}>{stat.sub}</div>}
+                  <div style={{ fontSize: '11px', color: '#8E8E93', fontWeight: 500, marginBottom: 6 }}>{stat.label}</div>
+                  <div style={{ fontSize: '19px', fontWeight: 800, color: '#FFF' }}>{stat.value}</div>
+                  {stat.sub && <div style={{ fontSize: '9px', color: '#C9A84C', fontWeight: 600, marginTop: 4 }}>{stat.sub}</div>}
                 </div>
               ))}
             </div>
 
-            {/* 탭 내비게이션 */}
-            <div style={{ display: 'flex', borderBottom: '1px solid rgba(255,255,255,0.1)', padding: '0 20px', gap: 40, marginBottom: 35 }}>
+            {/* 탭 내비게이션 (시안 폰트 및 간격) */}
+            <div style={{ display: 'flex', borderBottom: '1px solid rgba(255,255,255,0.1)', padding: '0 20px', gap: 40, marginBottom: 30 }}>
               {['BIO', 'CLASSES', 'GALLERY'].map(tab => (
                 <button key={tab} style={{ 
                   background: 'none', border: 'none', color: tab === 'BIO' ? '#FFF' : '#8E8E93', 
-                  fontSize: '15px', fontWeight: 800, padding: '15px 0', cursor: 'pointer',
-                  borderBottom: tab === 'BIO' ? '2.5px solid #C9A84C' : '2.5px solid transparent',
-                  transition: 'all 0.3s'
+                  fontSize: '14px', fontWeight: 700, padding: '12px 0', cursor: 'pointer',
+                  borderBottom: tab === 'BIO' ? '2px solid #C9A84C' : '2px solid transparent',
+                  fontFamily: 'Pretendard, sans-serif'
                 }}>{tab}</button>
               ))}
             </div>
 
             {/* 상세 정보 섹션 */}
-            <div style={{ padding: '0 24px 140px' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
-                <h2 style={{ fontSize: '20px', fontWeight: 800, color: '#FFF', margin: 0 }}>About {selectedInstructor.name}</h2>
-                <div style={{ display: 'flex', gap: 12 }}>
-                  <button style={{ background: 'rgba(255,255,255,0.08)', border: 'none', borderRadius: '14px', width: 44, height: 44, display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#FFF' }}><MessageCircle size={20} /></button>
-                  <button style={{ background: 'rgba(255,255,255,0.08)', border: 'none', borderRadius: '14px', width: 44, height: 44, display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#FFF' }}><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/><polyline points="16 6 12 2 8 6"/><line x1="12" y1="2" x2="12" y2="15"/></svg></button>
+            <div style={{ padding: '0 24px 120px' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
+                <h2 style={{ fontSize: '18px', fontWeight: 800, color: '#FFF', margin: 0 }}>About {selectedInstructor.name}</h2>
+                <div style={{ display: 'flex', gap: 10 }}>
+                  <button style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '12px', width: 40, height: 40, display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#8E8E93' }}><MessageCircle size={18} /></button>
+                  <button style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '12px', width: 40, height: 40, display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#8E8E93' }}><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/><polyline points="16 6 12 2 8 6"/><line x1="12" y1="2" x2="12" y2="15"/></svg></button>
                 </div>
               </div>
 
-              <p style={{ fontSize: '15px', color: '#A1A1AA', lineHeight: 1.8, marginBottom: 35, fontWeight: 400 }}>
+              <p style={{ fontSize: '14px', color: '#8E8E93', lineHeight: 1.7, marginBottom: 24, fontWeight: 400 }}>
                 {selectedInstructor.bio || `Passionate professional with 15+ years experience in Contemporary, Hip-Hop, Fusion. Founder of "Flow Studios". Focused on technique, expression, and artistry. Based in Los Angeles.`}
               </p>
 
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-                <div style={{ display: 'flex', gap: 35 }}>
+                <div style={{ display: 'flex', gap: 30 }}>
                   <div>
-                    <div style={{ fontSize: '17px', fontWeight: 800, color: '#FFF', marginBottom: 6 }}>Experience</div>
-                    <div style={{ fontSize: '14px', color: '#8E8E93', fontWeight: 500 }}>12 Yrs+</div>
+                    <div style={{ fontSize: '15px', fontWeight: 800, color: '#FFF', marginBottom: 4 }}>Experience</div>
+                    <div style={{ fontSize: '13px', color: '#8E8E93', fontWeight: 500 }}>12 Yrs+</div>
                   </div>
                   <div>
-                    <div style={{ fontSize: '17px', fontWeight: 800, color: '#FFF', marginBottom: 6 }}>Specialties</div>
-                    <div style={{ fontSize: '14px', color: '#8E8E93', fontWeight: 500 }}>Contemporary,<br/>Urban, Jazz</div>
+                    <div style={{ fontSize: '15px', fontWeight: 800, color: '#FFF', marginBottom: 4 }}>Specialties</div>
+                    <div style={{ fontSize: '13px', color: '#8E8E93', fontWeight: 500 }}>Contemporary,<br/>Urban, Jazz</div>
                   </div>
                 </div>
 
-                {/* BOOK NOW 버튼 글로우 추가 */}
+                {/* BOOK NOW 버튼 (시안 100% 동일 스타일: 다크 배경 + 골드 테두리) */}
                 <button 
                   onClick={() => selectedInstructor.kakao_link && window.open(selectedInstructor.kakao_link, '_blank')}
                   style={{ 
-                    padding: '16px 32px', borderRadius: '22px', border: 'none',
-                    background: 'linear-gradient(135deg, #C9A84C 0%, #FFD700 100%)',
-                    color: '#000', fontSize: '15px', fontWeight: 900, cursor: 'pointer',
-                    boxShadow: '0 8px 25px rgba(201, 168, 76, 0.5)',
-                    transition: 'transform 0.2s'
+                    padding: '12px 28px', borderRadius: '20px', 
+                    border: '1.5px solid #C9A84C',
+                    background: 'rgba(0,0,0,0.4)',
+                    color: '#C9A84C', fontSize: '14px', fontWeight: 900, cursor: 'pointer',
+                    boxShadow: '0 0 15px rgba(201, 168, 76, 0.2)',
+                    textTransform: 'uppercase'
                   }}
-                  onMouseEnter={(e) => e.currentTarget.style.transform = 'scale(1.05)'}
-                  onMouseLeave={(e) => e.currentTarget.style.transform = 'scale(1)'}
                 >
                   BOOK NOW
                 </button>
