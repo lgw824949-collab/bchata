@@ -269,13 +269,29 @@ const InstructorSection = () => {
               ].map((stat, idx) => (
                 <div key={idx} style={{ 
                   background: 'linear-gradient(145deg, #1A1A1A, #0D0D0D)', 
-                  padding: '16px 8px', borderRadius: '20px', border: '1px solid rgba(255,255,255,0.05)',
-                  textAlign: 'center', position: 'relative'
+                  padding: '16px 8px', borderRadius: '20px', 
+                  border: '1px solid rgba(255,255,255,0.05)',
+                  textAlign: 'center', position: 'relative', overflow: 'hidden',
+                  boxShadow: 'inset 0 0 20px rgba(201, 168, 76, 0.05)'
                 }}>
-                  {stat.icon && <div style={{ position: 'absolute', top: -8, right: 10, background: '#1A1A1A', borderRadius: '50%', width: 24, height: 24, display: 'flex', alignItems: 'center', justifyContent: 'center', border: '1px solid rgba(201,168,76,0.3)' }}>{stat.icon}</div>}
-                  <div style={{ fontSize: '10px', color: '#71717A', fontWeight: 700, textTransform: 'uppercase', marginBottom: 4 }}>{stat.label}</div>
-                  <div style={{ fontSize: '18px', fontWeight: 900, color: '#FFF' }}>{stat.value}</div>
-                  {stat.sub && <div style={{ fontSize: '9px', color: '#C9A84C', fontWeight: 700, marginTop: 2 }}>{stat.sub}</div>}
+                  {/* 상단 골드 엣지 그라데이션 */}
+                  <div style={{ 
+                    position: 'absolute', top: 0, left: '15%', right: '15%', height: '1.5px',
+                    background: 'linear-gradient(90deg, transparent, #C9A84C, #FFD700, #C9A84C, transparent)',
+                    opacity: 0.8
+                  }} />
+                  
+                  {/* 하단 골드 엣지 그라데이션 */}
+                  <div style={{ 
+                    position: 'absolute', bottom: 0, left: '15%', right: '15%', height: '1.5px',
+                    background: 'linear-gradient(90deg, transparent, #C9A84C, #FFD700, #C9A84C, transparent)',
+                    opacity: 0.6
+                  }} />
+
+                  {stat.icon && <div style={{ position: 'absolute', top: -8, right: 10, background: '#1A1A1A', borderRadius: '50%', width: 24, height: 24, display: 'flex', alignItems: 'center', justifyContent: 'center', border: '1px solid rgba(201,168,76,0.3)', zIndex: 2 }}>{stat.icon}</div>}
+                  <div style={{ fontSize: '10px', color: '#71717A', fontWeight: 700, textTransform: 'uppercase', marginBottom: 4, position: 'relative', zIndex: 1 }}>{stat.label}</div>
+                  <div style={{ fontSize: '18px', fontWeight: 900, color: '#FFF', position: 'relative', zIndex: 1 }}>{stat.value}</div>
+                  {stat.sub && <div style={{ fontSize: '9px', color: '#C9A84C', fontWeight: 700, marginTop: 2, position: 'relative', zIndex: 1 }}>{stat.sub}</div>}
                 </div>
               ))}
             </div>
