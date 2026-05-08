@@ -210,13 +210,15 @@ export default function AdminDashboard({ onBack }) {
         {MAIN_CATEGORIES.map(cat => (
           <button 
             key={cat.id} 
+            type="button"
             onClick={() => { setCategory(cat.id); setShowMoreMenu(false); }} 
             style={{ 
               flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', 
               padding: '16px', borderRadius: '16px', border: 'none', 
               background: category === cat.id ? '#000' : '#F1F5F9', 
               color: category === cat.id ? '#FFF' : '#64748B', 
-              fontWeight: 900, fontSize: '15px', transition: 'all 0.2s ease'
+              fontWeight: 900, fontSize: '15px', transition: 'all 0.2s ease',
+              cursor: 'pointer', pointerEvents: 'auto', position: 'relative', zIndex: 1
             }}
           >
             {cat.icon} {cat.label}
@@ -225,13 +227,15 @@ export default function AdminDashboard({ onBack }) {
         
         {/* 더보기 버튼 (아이콘 확실히 적용) */}
         <button 
+          type="button"
           onClick={() => setShowMoreMenu(!showMoreMenu)} 
           style={{ 
             width: '120px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px',
             padding: '16px 0', borderRadius: '16px', border: 'none', 
             background: MORE_CATEGORIES.some(m => m.id === category) ? '#7C3AED' : '#F1F5F9', 
             color: MORE_CATEGORIES.some(m => m.id === category) ? '#FFF' : '#64748B', 
-            fontWeight: 900, fontSize: '14px'
+            fontWeight: 900, fontSize: '14px',
+            cursor: 'pointer', pointerEvents: 'auto', position: 'relative', zIndex: 1
           }}
         >
           {showMoreMenu ? <X size={20} /> : <Menu size={20} />}
@@ -282,7 +286,20 @@ export default function AdminDashboard({ onBack }) {
             { id: 'active', label: '승인완료', color: '#10B981' },
             { id: 'rejected', label: '반려됨', color: '#EF4444' }
           ].map(tab => (
-            <button key={tab.id} onClick={() => setActiveTab(tab.id)} style={{ flex: 1, padding: '10px', borderRadius: '10px', border: activeTab === tab.id ? `2px solid ${tab.color}` : '1px solid #E2E8F0', background: activeTab === tab.id ? `${tab.color}10` : '#FFF', color: tab.color, fontWeight: 900, fontSize: '12px' }}>{tab.label}</button>
+            <button 
+              key={tab.id} 
+              type="button"
+              onClick={() => setActiveTab(tab.id)} 
+              style={{ 
+                flex: 1, padding: '10px', borderRadius: '10px', 
+                border: activeTab === tab.id ? `2px solid ${tab.color}` : '1px solid #E2E8F0', 
+                background: activeTab === tab.id ? `${tab.color}10` : '#FFF', 
+                color: tab.color, fontWeight: 900, fontSize: '12px',
+                cursor: 'pointer', pointerEvents: 'auto', position: 'relative', zIndex: 1
+              }}
+            >
+              {tab.label}
+            </button>
           ))}
         </div>
       )}
@@ -334,11 +351,66 @@ export default function AdminDashboard({ onBack }) {
                     )}
 
                     <div style={{ display: 'flex', gap: '8px', marginTop: '16px' }}>
-                      <button onClick={() => updateStatus(item, 'active')} style={{ flex: 1, padding: '10px', borderRadius: '10px', border: 'none', background: '#E8F5E9', color: '#2E7D32' }} title="승인"><Check size={18} /></button>
-                      <button onClick={() => updateStatus(item, 'pending')} style={{ flex: 1, padding: '10px', borderRadius: '10px', border: 'none', background: '#FFF8E1', color: '#F59E0B' }} title="보류"><Clock size={18} /></button>
-                      <button onClick={() => updateStatus(item, 'rejected')} style={{ flex: 1, padding: '10px', borderRadius: '10px', border: 'none', background: '#FFEBEE', color: '#C62828' }} title="반려"><XCircle size={18} /></button>
-                      <button onClick={() => startEdit(item)} style={{ flex: 1, padding: '10px', borderRadius: '10px', border: 'none', background: '#F1F5F9', color: '#475569' }} title="수정"><RefreshCw size={18} /></button>
-                      <button onClick={() => deleteItem(item.id)} style={{ flex: 'none', padding: '10px', borderRadius: '10px', border: 'none', background: '#F5F5F5', color: '#666' }} title="삭제"><Trash2 size={18} /></button>
+                      <button 
+                        type="button"
+                        onClick={() => updateStatus(item, 'active')} 
+                        style={{ 
+                          flex: 1, padding: '10px', borderRadius: '10px', border: 'none', 
+                          background: '#E8F5E9', color: '#2E7D32', cursor: 'pointer', 
+                          pointerEvents: 'auto', position: 'relative', zIndex: 1 
+                        }} 
+                        title="승인"
+                      >
+                        <Check size={18} />
+                      </button>
+                      <button 
+                        type="button"
+                        onClick={() => updateStatus(item, 'pending')} 
+                        style={{ 
+                          flex: 1, padding: '10px', borderRadius: '10px', border: 'none', 
+                          background: '#FFF8E1', color: '#F59E0B', cursor: 'pointer', 
+                          pointerEvents: 'auto', position: 'relative', zIndex: 1 
+                        }} 
+                        title="보류"
+                      >
+                        <Clock size={18} />
+                      </button>
+                      <button 
+                        type="button"
+                        onClick={() => updateStatus(item, 'rejected')} 
+                        style={{ 
+                          flex: 1, padding: '10px', borderRadius: '10px', border: 'none', 
+                          background: '#FFEBEE', color: '#C62828', cursor: 'pointer', 
+                          pointerEvents: 'auto', position: 'relative', zIndex: 1 
+                        }} 
+                        title="반려"
+                      >
+                        <XCircle size={18} />
+                      </button>
+                      <button 
+                        type="button"
+                        onClick={() => startEdit(item)} 
+                        style={{ 
+                          flex: 1, padding: '10px', borderRadius: '10px', border: 'none', 
+                          background: '#F1F5F9', color: '#475569', cursor: 'pointer', 
+                          pointerEvents: 'auto', position: 'relative', zIndex: 1 
+                        }} 
+                        title="수정"
+                      >
+                        <RefreshCw size={18} />
+                      </button>
+                      <button 
+                        type="button"
+                        onClick={() => deleteItem(item.id)} 
+                        style={{ 
+                          flex: 'none', padding: '10px', borderRadius: '10px', border: 'none', 
+                          background: '#F5F5F5', color: '#666', cursor: 'pointer', 
+                          pointerEvents: 'auto', position: 'relative', zIndex: 1 
+                        }} 
+                        title="삭제"
+                      >
+                        <Trash2 size={18} />
+                      </button>
                     </div>
                   </div>
                 )}
