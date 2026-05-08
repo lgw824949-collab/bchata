@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo, useRef, lazy, Suspense } from 'react'
-import { Home as HomeIcon, Users, Plus, LogOut, Heart, X, MessageSquare, RefreshCw, CloudSun, Utensils, Zap, Languages, Bell, Star, Navigation, CreditCard, Settings, Map as MapIcon, BarChart, Gift, Coffee, User, Menu, Music2, Tent, Flag, Download, Globe, ShieldCheck, Calendar, Camera, ChevronLeft, ChevronRight, Loader2 } from 'lucide-react'
+import { Home as HomeIcon, Users, Plus, LogOut, Heart, X, MessageSquare, RefreshCw, CloudSun, Utensils, Zap, Languages, Bell, Star, Navigation, CreditCard, Settings, Map as MapIcon, BarChart, Gift, Coffee, User, Menu, Music2, Tent, Flag, Download, Globe, ShieldCheck, Calendar, Camera, ChevronLeft, ChevronRight, Loader2, UserPlus, Cloud, MessageCircle, Moon } from 'lucide-react'
 import { useTranslation } from 'react-i18next';
 import { motion, AnimatePresence } from 'framer-motion'
 import { supabase, logActivity } from './lib/supabase'
@@ -996,8 +996,8 @@ function App() {
                   textAlign: 'left', display: 'flex', alignItems: 'center', gap: '14px'
                 }}
               >
-                <div style={{ width: '40px', height: '40px', borderRadius: '12px', background: '#F5F3FF', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '18px' }}>
-                  💃
+                <div style={{ width: '40px', height: '40px', borderRadius: '12px', background: '#F5F3FF', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  <UserPlus size={20} color="#7C3AED" />
                 </div>
                 <div>
                   <div style={{ fontSize: '15px', fontWeight: 700, color: '#1E293B' }}>강사 등록 신청</div>
@@ -1013,8 +1013,8 @@ function App() {
                   background: 'linear-gradient(135deg, #F5F3FF, #EDE9FE)', border: '1px solid #DDD6FE'
                 }}
               >
-                <div style={{ width: '40px', height: '40px', borderRadius: '12px', background: '#1a0a2e', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '18px' }}>
-                  <span style={{ filter: 'brightness(100) grayscale(100)' }}>💃</span>
+                <div style={{ width: '40px', height: '40px', borderRadius: '12px', background: '#EDE9FE', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  <Music2 size={20} color="#7C3AED" />
                 </div>
                 <div>
                   <div style={{ fontSize: '15px', fontWeight: 900, color: '#7C3AED' }}>라틴에 진심</div>
@@ -1030,8 +1030,8 @@ function App() {
                   textAlign: 'left', display: 'flex', alignItems: 'center', gap: '14px'
                 }}
               >
-                <div style={{ width: '40px', height: '40px', borderRadius: '12px', background: '#FEF3C7', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '18px' }}>
-                  📅
+                <div style={{ width: '40px', height: '40px', borderRadius: '12px', background: '#FEF3C7', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  <Calendar size={20} color="#D97706" />
                 </div>
                 <div>
                   <div style={{ fontSize: '15px', fontWeight: 700, color: '#1E293B' }}>달력</div>
@@ -1047,8 +1047,8 @@ function App() {
                   textAlign: 'left', display: 'flex', alignItems: 'center', gap: '14px'
                 }}
               >
-                <div style={{ width: '40px', height: '40px', borderRadius: '12px', background: '#FEE2E2', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '18px' }}>
-                  🍜
+                <div style={{ width: '40px', height: '40px', borderRadius: '12px', background: '#FEE2E2', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  <Utensils size={20} color="#E53935" />
                 </div>
                 <div>
                   <div style={{ fontSize: '15px', fontWeight: 700, color: '#1E293B' }}>뒷풀이 맛집</div>
@@ -1064,8 +1064,8 @@ function App() {
                   textAlign: 'left', display: 'flex', alignItems: 'center', gap: '14px'
                 }}
               >
-                <div style={{ width: '40px', height: '40px', borderRadius: '12px', background: '#E0F2FE', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '18px' }}>
-                  ⛅
+                <div style={{ width: '40px', height: '40px', borderRadius: '12px', background: '#E0F2FE', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  <Cloud size={20} color="#0284C7" />
                 </div>
                 <div>
                   <div style={{ fontSize: '15px', fontWeight: 700, color: '#1E293B' }}>오늘 날씨</div>
@@ -1081,8 +1081,8 @@ function App() {
                   textAlign: 'left', display: 'flex', alignItems: 'center', gap: '14px'
                 }}
               >
-                <div style={{ width: '40px', height: '40px', borderRadius: '12px', background: '#FEE500', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '18px' }}>
-                  💬
+                <div style={{ width: '40px', height: '40px', borderRadius: '12px', background: '#FEE500', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  <MessageCircle size={20} color="#000" />
                 </div>
                 <div>
                   <div style={{ fontSize: '15px', fontWeight: 700, color: '#1E293B' }}>실시간 오픈톡</div>
@@ -1098,8 +1098,8 @@ function App() {
                   textAlign: 'left', display: 'flex', alignItems: 'center', gap: '14px', marginTop: '12px'
                 }}
               >
-                <div style={{ width: '40px', height: '40px', borderRadius: '12px', background: '#F1F5F9', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '18px' }}>
-                  {isDark ? '☀️' : '🌙'}
+                <div style={{ width: '40px', height: '40px', borderRadius: '12px', background: '#EEF2FF', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  <Moon size={20} color="#6366F1" />
                 </div>
                 <div>
                   <div style={{ fontSize: '15px', fontWeight: 700, color: '#1E293B' }}>{isDark ? '라이트 모드로 보기' : '다크 모드로 보기'}</div>
