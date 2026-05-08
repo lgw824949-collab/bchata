@@ -22,9 +22,9 @@ const Community = ({ setSelectedPoster, setView }) => {
   const quickTags = ['#분위기최고👍', '#음악맛집🎵', '#사람많음🔥', '#여유로움☕', '#살사맛집💃', '#바차타맛집🕺', '#키좀바맛집✨', '#주크맛집🎶', '#미모포텐🎈', '#훈남훈녀가득🌟', '#패션왕등판🕶️', '#안호강중🔥'];
 
 const demoPosts = [
-  { id: 'real1', image_url: '/Photo/%ED%99%94%EB%A9%B4%20%EC%BA%A1%EC%B2%98%202026-05-07%20225729.png', bar_name: '', likes_count: 312, view_count: 4200, region: '서울', content: '오늘 분위기 미쳤습니다! #사람많음🔥 #분위기최고👍', created_at: new Date().toISOString(), is_live: true },
-  { id: 'real2', image_url: '/Photo/%ED%99%94%EB%A9%B4%20%EC%BA%A1%EC%B2%98%202026-05-07%20225828.png', bar_name: '', likes_count: 245, view_count: 3100, region: '서울', content: '바차타 맛집 인정.. 노래 셀렉 미쳤네요. #음악맛집🎵 #바차타맛집🕺', created_at: new Date().toISOString(), is_live: true },
-  { id: 'real3', image_url: '/Photo/%ED%99%94%EB%A9%B4%20%EC%BA%A1%EC%B2%98%202026-05-07%20225905.png', bar_name: '', likes_count: 189, view_count: 2400, region: '서울', content: '쪽 오시는 분들 참고하세요! 지금 피크입니다. #미모포텐🎈 #훈남훈녀가득🌟', created_at: new Date().toISOString(), is_live: true }
+  { id: 'real1', image_url: '/Photo/화면 캡처 2026-05-07 225729.png', bar_name: '', likes_count: 312, view_count: 4200, region: '서울', content: '오늘 분위기 미쳤습니다! #사람많음🔥 #분위기최고👍', created_at: new Date().toISOString(), is_live: true },
+  { id: 'real2', image_url: '/Photo/화면 캡처 2026-05-07 225828.png', bar_name: '', likes_count: 245, view_count: 3100, region: '서울', content: '바차타 맛집 인정.. 노래 셀렉 미쳤네요. #음악맛집🎵 #바차타맛집🕺', created_at: new Date().toISOString(), is_live: true },
+  { id: 'real3', image_url: '/Photo/화면 캡처 2026-05-07 225905.png', bar_name: '', likes_count: 189, view_count: 2400, region: '서울', content: '쪽 오시는 분들 참고하세요! 지금 피크입니다. #미모포텐🎈 #훈남훈녀가득🌟', created_at: new Date().toISOString(), is_live: true }
 ];
 
   useEffect(() => {
@@ -84,15 +84,14 @@ const demoPosts = [
       const threeDaysAgo = new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString();
       let { data, error } = await supabase
         .from('community_posts')
-        .select('*')
-        .eq('status', 'active')
+        .select('id, image_url, content, region, bar_name, likes_count, view_count, is_live, created_at')
         .gt('created_at', threeDaysAgo)
         .order('created_at', { ascending: false });
       
       if (!error && (!data || data.length === 0)) {
         const { data: allData, error: allErr } = await supabase
           .from('community_posts')
-          .select('*')
+          .select('id, image_url, content, region, bar_name, likes_count, view_count, is_live, created_at')
           .order('created_at', { ascending: false })
           .limit(10);
         data = allData;
@@ -111,6 +110,7 @@ const demoPosts = [
           setPosts(sortedByPopularity.slice(0, 15));
         }
       } else {
+        // 에러가 있거나 데이터가 없는 경우 데모 포스트 표시
         setPosts(demoPosts.slice(0, isFullView ? undefined : 15));
       }
     } catch (err) {
@@ -353,6 +353,30 @@ const demoPosts = [
           })
         )}
       </div>
+      
+      {/* Upload FAB */}
+      <motion.button 
+        whileTap={{ scale: 0.9 }} 
+        onClick={openUpload} 
+        style={{ 
+          position: 'fixed', 
+          bottom: '100px', 
+          right: '20px', 
+          width: '56px', 
+          height: '56px', 
+          borderRadius: '50%', 
+          background: '#E53935', 
+          color: '#fff', 
+          border: 'none', 
+          boxShadow: '0 8px 25px rgba(229,57,53,0.5)', 
+          display: 'flex', 
+          alignItems: 'center', 
+          justifyContent: 'center', 
+          zIndex: 1000 
+        }}
+      >
+        <Plus size={28} strokeWidth={3} />
+      </motion.button>
 
       {/* Detail Modal */}
       <AnimatePresence>
