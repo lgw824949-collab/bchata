@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next';
 import { motion, AnimatePresence } from 'framer-motion'
 import { supabase, logActivity } from './lib/supabase'
 import QuickPinchZoom, { make3dTransformValue } from 'react-quick-pinch-zoom';
+import InstructorSection from './components/InstructorSection'
 
 // 페이지 지연 로딩 (Lazy Loading)
 const RegisterForm = lazy(() => import('./RegisterForm'));
@@ -246,7 +247,7 @@ const DynamicAnalysisModal = ({ isOpen, onClose, userCoords, isSajuCall }) => {
         position: 'fixed', 
         inset: 0, 
         zIndex: 1000000, 
-        backgroundColor: '#FFFFFF', 
+        backgroundColor: 'var(--color-bg)', 
         display: 'flex', 
         flexDirection: 'column',
         overflowY: 'auto'
@@ -260,9 +261,9 @@ const DynamicAnalysisModal = ({ isOpen, onClose, userCoords, isSajuCall }) => {
           maxWidth: '500px',
           margin: '0 auto',
           minHeight: '100vh',
-          background: '#FFFFFF', 
+          background: 'var(--color-bg)', 
           padding: 'calc(20px + env(safe-area-inset-top)) 24px calc(40px + env(safe-area-inset-bottom))', 
-          color: '#1E293B',
+          color: 'var(--color-text-main)',
           display: 'flex',
           flexDirection: 'column'
         }}
@@ -279,25 +280,25 @@ const DynamicAnalysisModal = ({ isOpen, onClose, userCoords, isSajuCall }) => {
               </button>
             </div>
             
-            <h2 style={{ fontSize: '28px', fontWeight: '1000', marginBottom: '30px', color: '#1E293B', lineHeight: '1.3' }}>
+            <h2 style={{ fontSize: '28px', fontWeight: '1000', marginBottom: '30px', color: 'var(--color-text-main)', lineHeight: '1.3' }}>
               {isIncheon ? '성지 상륙 분석' : '최단 경로 최적화'} 🛰️<br/>
               <span style={{ color: '#FF1744' }}>{targetDest.name}</span>
             </h2>
 
-            <div style={{ padding: '30px', background: '#F8FAFC', borderRadius: '30px', display: 'flex', gap: '20px', marginBottom: '40px', border: '1px solid #E2E8F0' }}>
+            <div style={{ padding: '30px', background: 'var(--color-card)', borderRadius: '30px', display: 'flex', gap: '20px', marginBottom: '40px', border: '1px solid var(--color-border)' }}>
               <div style={{ flex: 1 }}>
-                <p style={{ color: '#64748B', fontSize: '12px', fontWeight: '700', marginBottom: '4px' }}>실제 거리</p>
+                <p style={{ color: 'var(--color-text-sub)', fontSize: '12px', fontWeight: '700', marginBottom: '4px' }}>실제 거리</p>
                 <p style={{ fontSize: '28px', fontWeight: '1000', color: '#FF1744' }}>{tracker.distance}km</p>
               </div>
               <div style={{ flex: 1 }}>
-                <p style={{ color: '#64748B', fontSize: '12px', fontWeight: '700', marginBottom: '4px' }}>예상 소요</p>
-                <p style={{ fontSize: '28px', fontWeight: '1000', color: '#1E293B' }}>{tracker.duration}분</p>
+                <p style={{ color: 'var(--color-text-sub)', fontSize: '12px', fontWeight: '700', marginBottom: '4px' }}>예상 소요</p>
+                <p style={{ fontSize: '28px', fontWeight: '1000', color: 'var(--color-text-main)' }}>{tracker.duration}분</p>
               </div>
             </div>
 
             <div style={{ marginBottom: '40px', flex: 1 }}>
-              <p style={{ fontSize: '15px', fontWeight: '800', color: '#64748B', marginBottom: '16px', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <Star size={16} fill="#64748B" /> 주변 성지 추천
+              <p style={{ fontSize: '15px', fontWeight: '800', color: 'var(--color-text-sub)', marginBottom: '16px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <Star size={16} fill="var(--color-text-sub)" /> 주변 성지 추천
               </p>
               <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
                 {nearbyVenues.map((venue, idx) => (
@@ -313,19 +314,19 @@ const DynamicAnalysisModal = ({ isOpen, onClose, userCoords, isSajuCall }) => {
                       justifyContent: 'space-between', 
                       alignItems: 'center', 
                       padding: '16px 20px', 
-                      background: idx === 0 ? '#FEF2F2' : '#F8FAFC', 
+                      background: idx === 0 ? 'rgba(255, 23, 68, 0.05)' : 'var(--color-card)', 
                       borderRadius: '20px', 
-                      border: idx === 0 ? '1px solid #FF1744' : '1px solid #E2E8F0',
+                      border: idx === 0 ? '1px solid #FF1744' : '1px solid var(--color-border)',
                       cursor: 'pointer'
                     }}
                   >
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
-                      <span style={{ fontSize: '15px', fontWeight: '800', color: idx === 0 ? '#FF1744' : '#1E293B' }}>{venue.name}</span>
-                      <span style={{ fontSize: '12px', color: '#94A3B8', fontWeight: '500' }}>{venue.address}</span>
+                      <span style={{ fontSize: '15px', fontWeight: '800', color: idx === 0 ? '#FF1744' : 'var(--color-text-main)' }}>{venue.name}</span>
+                      <span style={{ fontSize: '12px', color: 'var(--color-text-sub)', fontWeight: '500' }}>{venue.address}</span>
                     </div>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                      <span style={{ fontSize: '14px', fontWeight: '700', color: idx === 0 ? '#FF1744' : '#94A3B8' }}>{venue.dist.toFixed(1)}km</span>
-                      <ChevronRight size={18} color={idx === 0 ? '#FF1744' : '#CBD5E1'} />
+                      <span style={{ fontSize: '14px', fontWeight: '700', color: idx === 0 ? '#FF1744' : 'var(--color-text-sub)' }}>{venue.dist.toFixed(1)}km</span>
+                      <ChevronRight size={18} color={idx === 0 ? '#FF1744' : 'var(--color-border)'} />
                     </div>
                   </motion.div>
                 ))}
@@ -419,6 +420,18 @@ const formatDateToKSTString = (date) => {
   const y = date.getFullYear(); const m = String(date.getMonth() + 1).padStart(2, '0'); const d = String(date.getDate()).padStart(2, '0');
   return `${y}-${m}-${d}`;
 };
+
+const isNowInPartyTime = (dateStr, startTime) => {
+  const now = new Date()
+  const start = new Date(`${dateStr}T${startTime}:00`)
+  // 파티 시작 30분 전부터 체크인 허용
+  const startWithBuffer = new Date(start.getTime() - 30 * 60 * 1000)
+  // 새벽 3시 또는 시작 후 일정 시간까지 라이브 유지
+  const end = new Date(start.getTime())
+  end.setDate(end.getDate() + 1)
+  end.setHours(4, 0, 0, 0)
+  return now >= startWithBuffer && now <= end
+}
 
 const SplashScreen = () => {
   const [stage, setStage] = useState(1);
@@ -568,6 +581,7 @@ function App() {
   const [showFilterPanel, setShowFilterPanel] = useState(false);
   const [showFilteredResults, setShowFilteredResults] = useState(false);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [showInstructor, setShowInstructor] = useState(false)
   const [filterRegion, setFilterRegion] = useState('');
   const [filterGenre, setFilterGenre] = useState('');
   const [selectedMonth, setSelectedMonth] = useState(todayData.month);
@@ -580,22 +594,13 @@ function App() {
   const [navVisible, setNavVisible] = useState(true)
   const lastScrollY = useRef(0)
 
-  // 다크 모드 상태 관리
-  const [isDark, setIsDark] = useState(() => {
-    const saved = localStorage.getItem('theme');
-    if (saved) return saved === 'dark';
-    return window.matchMedia('(prefers-color-scheme: dark)').matches;
-  });
+  // 프리미엄 화이트 테마 고정 (시스템 설정 무시)
+  const [isDark, setIsDark] = useState(false);
 
   useEffect(() => {
-    if (isDark) {
-      document.documentElement.setAttribute('data-theme', 'dark');
-      localStorage.setItem('theme', 'dark');
-    } else {
-      document.documentElement.removeAttribute('data-theme');
-      localStorage.setItem('theme', 'light');
-    }
-  }, [isDark]);
+    document.documentElement.setAttribute('data-theme', 'light');
+    localStorage.setItem('theme', 'light');
+  }, []);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -612,6 +617,36 @@ function App() {
     window.addEventListener('scroll', handleScroll, { passive: true })
     return () => window.removeEventListener('scroll', handleScroll)
   }, [])
+
+  const handleWeatherTap = () => {
+    const now = Date.now();
+    // 500ms 이내 연속 클릭 체크
+    const isQuickTap = now - lastWeatherTap < 500;
+    const nextCount = isQuickTap ? weatherTapCount + 1 : 1;
+    
+    setWeatherTapCount(nextCount);
+    setLastWeatherTap(now);
+
+    if (nextCount >= 5) {
+      // 5번 연속 클릭 시 관리자 포털 진입
+      if (weatherTimeoutRef.current) clearTimeout(weatherTimeoutRef.current);
+      setView('admin-portal');
+      setWeatherTapCount(0);
+      setIsMenuOpen(false);
+    } else {
+      // 일반 클릭 또는 연속 클릭 대기
+      if (weatherTimeoutRef.current) clearTimeout(weatherTimeoutRef.current);
+      weatherTimeoutRef.current = setTimeout(() => {
+        // 300ms 이내에 추가 클릭이 없으면(즉, 카운트가 그대로면) 날씨 모달 열기
+        // (nextCount가 1인 경우에만 바로 열어줌으로써 UX 지연 최소화)
+        if (nextCount === 1) {
+          handleOpenModal(setShowWeather, true);
+          setIsMenuOpen(false);
+        }
+        setWeatherTapCount(0);
+      }, 300);
+    }
+  };
 
   const handleOpenModal = (setter, value = true) => {
     window.history.pushState({ modal: true }, '');
@@ -652,8 +687,12 @@ function App() {
       const newHash = window.location.hash.replace('#', '');
       if (newHash && newHash !== view) {
         setView(newHash);
-      } else if (!newHash && view !== 'home') {
-        setView('home');
+      } else if (!newHash) {
+        const path = window.location.pathname;
+        if (path === '/livepick') setView('community');
+        else if (path === '/festival') setView('festival');
+        else if (path === '/bootcamp') setView('bootcamp');
+        else if (view !== 'home') setView('home');
       }
     };
 
@@ -678,6 +717,9 @@ function App() {
       setTimeout(() => {
         setShowNoticeGuide(true);
       }, 1000); // 1초 뒤에 자연스럽게 팝업
+    } else {
+      // 이미 가이드를 본 사용자라면 즉시 위치 요청 시작
+      requestLocation();
     }
   }, []);
 
@@ -783,8 +825,12 @@ function App() {
     if (navigator.geolocation) {
       navigator.geolocation.getCurrentPosition(
         (pos) => {
-          setUserCoords({ lat: pos.coords.latitude, lon: pos.coords.longitude });
-          console.log("Location obtained:", pos.coords.latitude, pos.coords.longitude);
+          const coords = { lat: pos.coords.latitude, lon: pos.coords.longitude };
+          setUserCoords(coords);
+          console.log("Location obtained:", coords.lat, coords.lon);
+          
+          // 자동 체크인 트리거
+          triggerAutoCheckin(coords);
         },
         (err) => {
           console.error("Location request error:", err);
@@ -793,6 +839,53 @@ function App() {
       );
     }
   };
+
+  const triggerAutoCheckin = async (coords) => {
+    if (!parties.length || !coords) return;
+    
+    const todayStr = getKSTDate().dateStr;
+    const liveParties = parties.filter(p => p.date === todayStr && isNowInPartyTime(p.date, p.time));
+    
+    for (const party of liveParties) {
+      const locName = party.locationName || party.location_name;
+      const barInfo = findBarByName(locName);
+      if (!barInfo || !barInfo.lat || !barInfo.lon) continue;
+      
+      const distance = calculateDistance(coords.lat, coords.lon, barInfo.lat, barInfo.lon);
+      
+      // 200m (0.2km) 이내일 경우 자동 체크인
+      if (distance <= 0.2) {
+        const lastCheckinKey = `last_checkin_${barInfo.name}`;
+        const lastCheckin = localStorage.getItem(lastCheckinKey);
+        const now = Date.now();
+        
+        // 30분 이내 중복 체크인 방지
+        if (!lastCheckin || (now - parseInt(lastCheckin)) > 30 * 60 * 1000) {
+          try {
+            await supabase.from('bar_checkins').insert([
+              { 
+                bar_name: barInfo.name, 
+                region: barInfo.region || '전국',
+                checked_in_at: new Date().toISOString()
+              }
+            ]);
+            localStorage.setItem(lastCheckinKey, now.toString());
+            console.log(`Auto check-in success at ${barInfo.name}`);
+          } catch (err) {
+            console.error("Auto check-in failed:", err);
+          }
+        }
+      }
+    }
+  };
+
+  useEffect(() => {
+    // 주기적으로 자동 위치 갱신 및 체크인 시도 (3분에 한 번)
+    const interval = setInterval(() => {
+      requestLocation();
+    }, 180000);
+    return () => clearInterval(interval);
+  }, [parties]); // parties가 로드된 후부터 작동
 
   const sharedProps = {
     parties: displayParties, bootcamps, festivals, loading, selectedMonth, setSelectedMonth, selectedWeek: 1, setSelectedWeek: () => {}, 
@@ -893,10 +986,32 @@ function App() {
             </div>
 
             <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+              <button
+                onClick={() => { handleCloseModal(); setShowInstructor(true) }}
+                style={{
+                  width: '100%', padding: '24px',
+                  background: 'linear-gradient(135deg, #1a0a2e, #2d1b4e)',
+                  borderRadius: '24px',
+                  border: '1px solid rgba(201,168,76,0.3)',
+                  textAlign: 'left',
+                  display: 'flex', alignItems: 'center', justifyContent: 'space-between'
+                }}
+              >
+                <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+                  <div style={{ background: 'rgba(201,168,76,0.15)', padding: '10px', borderRadius: '12px' }}>
+                    💃
+                  </div>
+                  <div>
+                    <div style={{ fontSize: '16px', fontWeight: 800, color: '#FFD700' }}>라틴에 진심</div>
+                    <div style={{ fontSize: '12px', color: 'rgba(255,255,255,0.5)', marginTop: '2px' }}>팔로우할 강사를 찾아보세요</div>
+                  </div>
+                </div>
+                <ChevronRight size={20} color="#C9A84C" />
+              </button>
               {[
                 { icon: <Calendar color={'#FF1744'} />, text: t('view_calendar'), action: () => { setIsMenuOpen(false); handleOpenModal(setShowFullCalendar, true); } },
                 { icon: <Utensils color={'#FF1744'} />, text: t('restaurant'), action: () => { setView('restaurant'); setIsMenuOpen(false); } },
-                { icon: <CloudSun color={'#FF1744'} />, text: t('weather'), action: () => { /* ... weather logic ... */ } },
+                { icon: <CloudSun color={'#FF1744'} />, text: t('weather'), action: handleWeatherTap },
                 { 
                   icon: isDark ? <Zap color={'#F59E0B'} /> : <Zap color={'#64748B'} />, 
                   text: isDark ? '라이트 모드로 보기' : '다크 모드로 보기', 
@@ -991,14 +1106,15 @@ function App() {
       <nav 
         className="bottom-nav" 
         style={{ 
-          position: 'fixed', bottom: 0, left: '50%',
+          position: 'fixed', bottom: '20px', left: '50%',
           transform: navVisible ? 'translateX(-50%) translateY(0)' : 'translateX(-50%) translateY(100%)',
-          transition: 'transform 0.3s ease',
-          width: '100%', maxWidth: '500px', height: '80px',
-          background: 'var(--color-nav-bg)', backdropFilter: 'blur(10px)',
-          display: 'flex', alignItems: 'center', justifyContent: 'space-around',
-          borderTop: '1px solid var(--color-border)', zIndex: 1000,
-          paddingBottom: 'env(safe-area-inset-bottom)'
+          transition: 'transform 0.4s cubic-bezier(0.4, 0, 0.2, 1)',
+          width: 'calc(100% - 30px)', maxWidth: '480px', height: '72px',
+          background: 'rgba(0, 0, 0, 0.9)', backdropFilter: 'blur(30px)',
+          display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+          border: '1px solid rgba(255, 255, 255, 0.1)', zIndex: 1000,
+          borderRadius: '24px', boxShadow: '0 10px 40px rgba(0,0,0,0.6)',
+          padding: '0 10px'
         }}
       >
         <div 
@@ -1007,17 +1123,17 @@ function App() {
           style={{ 
             flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
             cursor: 'pointer', transition: 'all 0.3s', position: 'relative', height: '100%',
-            color: location.pathname === '/' ? '#E11D48' : '#94A3B8'
+            color: location.pathname === '/' ? '#E53935' : '#64748B'
           }}
         >
           {location.pathname === '/' && (
             <motion.div 
               layoutId="nav-glow"
-              style={{ position: 'absolute', width: '40px', height: '40px', borderRadius: '50%', background: 'rgba(225, 29, 72, 0.1)', filter: 'blur(8px)' }} 
+              style={{ position: 'absolute', width: '35px', height: '35px', borderRadius: '50%', background: 'rgba(229, 57, 53, 0.15)', filter: 'blur(10px)' }} 
             />
           )}
           <Music2 size={22} strokeWidth={location.pathname === '/' ? 2.5 : 2} style={{ marginBottom: '4px' }} />
-          <span style={{ fontSize: '10px', fontWeight: location.pathname === '/' ? 900 : 500 }}>SOCIAL</span>
+          <span style={{ fontSize: '9px', fontWeight: location.pathname === '/' ? 950 : 700, letterSpacing: '0.5px' }}>SOCIAL</span>
         </div>
 
         <div 
@@ -1026,22 +1142,23 @@ function App() {
           style={{ 
             flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
             cursor: 'pointer', transition: 'all 0.3s', position: 'relative', height: '100%',
-            color: location.pathname === '/livepick' ? '#E11D48' : '#94A3B8'
+            color: location.pathname === '/livepick' ? '#E53935' : '#64748B'
           }}
         >
           {location.pathname === '/livepick' && (
             <motion.div 
               layoutId="nav-glow"
-              style={{ position: 'absolute', width: '40px', height: '40px', borderRadius: '50%', background: 'rgba(225, 29, 72, 0.1)', filter: 'blur(8px)' }} 
+              style={{ position: 'absolute', width: '35px', height: '35px', borderRadius: '50%', background: 'rgba(229, 57, 53, 0.15)', filter: 'blur(10px)' }} 
             />
           )}
           <Camera size={22} strokeWidth={location.pathname === '/livepick' ? 2.5 : 2} style={{ marginBottom: '4px' }} />
-          <span style={{ fontSize: '10px', fontWeight: location.pathname === '/livepick' ? 900 : 500 }}>LIVE PICK</span>
+          <span style={{ fontSize: '9px', fontWeight: location.pathname === '/livepick' ? 950 : 700, letterSpacing: '0.5px' }}>LIVE PICK</span>
         </div>
 
-        <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', position: 'relative', height: '100%' }}>
+        {/* PREMIUM ACTION BUTTON */}
+        <div style={{ flex: 1, display: 'flex', justifyContent: 'center', alignItems: 'center', position: 'relative' }}>
           <motion.button
-            whileHover={{ scale: 1.1 }}
+            whileHover={{ scale: 1.1, rotate: 90 }}
             whileTap={{ scale: 0.9 }}
             onClick={() => {
               if (location.pathname === '/livepick') {
@@ -1055,18 +1172,15 @@ function App() {
               }
             }}
             style={{
-              width: '54px', height: '54px', borderRadius: '18px',
-              background: 'linear-gradient(135deg, #F59E0B, #D97706)',
+              width: '56px', height: '56px', borderRadius: '50%',
+              background: 'linear-gradient(135deg, #E53935 0%, #B71C1C 100%)',
               border: 'none', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center',
-              cursor: 'pointer', boxShadow: '0 8px 20px rgba(217, 119, 6, 0.3)',
-              marginBottom: '18px'
+              cursor: 'pointer', boxShadow: '0 8px 25px rgba(229, 57, 53, 0.5)',
+              zIndex: 2
             }}
           >
-            <Plus size={30} strokeWidth={3} />
+            <Plus size={32} strokeWidth={3} />
           </motion.button>
-          <span style={{ fontSize: '10px', fontWeight: 900, color: '#D97706', position: 'absolute', bottom: '12px' }}>
-            {location.pathname === '/livepick' ? (i18n.language.startsWith('en') ? 'REPORT' : '리포트') : t('nav_register')}
-          </span>
         </div>
 
         <div 
@@ -1075,17 +1189,17 @@ function App() {
           style={{ 
             flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
             cursor: 'pointer', transition: 'all 0.3s', position: 'relative', height: '100%',
-            color: location.pathname === '/bootcamp' ? '#F97316' : '#94A3B8'
+            color: location.pathname === '/bootcamp' ? '#E53935' : '#64748B'
           }}
         >
           {location.pathname === '/bootcamp' && (
             <motion.div 
               layoutId="nav-glow"
-              style={{ position: 'absolute', width: '40px', height: '40px', borderRadius: '50%', background: 'rgba(249, 115, 22, 0.1)', filter: 'blur(8px)' }} 
+              style={{ position: 'absolute', width: '35px', height: '35px', borderRadius: '50%', background: 'rgba(229, 57, 53, 0.15)', filter: 'blur(10px)' }} 
             />
           )}
           <Tent size={22} strokeWidth={location.pathname === '/bootcamp' ? 2.5 : 2} style={{ marginBottom: '4px' }} />
-          <span style={{ fontSize: '10px', fontWeight: location.pathname === '/bootcamp' ? 900 : 500 }}>{t('nav_bootcamp')}</span>
+          <span style={{ fontSize: '9px', fontWeight: location.pathname === '/bootcamp' ? 950 : 700, letterSpacing: '0.5px' }}>BOOTCAMP</span>
         </div>
 
         <div 
@@ -1094,17 +1208,17 @@ function App() {
           style={{ 
             flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
             cursor: 'pointer', transition: 'all 0.3s', position: 'relative', height: '100%',
-            color: location.pathname === '/festival' ? '#F97316' : '#94A3B8'
+            color: location.pathname === '/festival' ? '#E53935' : '#64748B'
           }}
         >
           {location.pathname === '/festival' && (
             <motion.div 
               layoutId="nav-glow"
-              style={{ position: 'absolute', width: '40px', height: '40px', borderRadius: '50%', background: 'rgba(249, 115, 22, 0.1)', filter: 'blur(8px)' }} 
+              style={{ position: 'absolute', width: '35px', height: '35px', borderRadius: '50%', background: 'rgba(229, 57, 53, 0.15)', filter: 'blur(10px)' }} 
             />
           )}
           <Flag size={22} strokeWidth={location.pathname === '/festival' ? 2.5 : 2} style={{ marginBottom: '4px' }} />
-          <span style={{ fontSize: '10px', fontWeight: location.pathname === '/festival' ? 900 : 500 }}>{t('nav_festival')}</span>
+          <span style={{ fontSize: '9px', fontWeight: location.pathname === '/festival' ? 950 : 700, letterSpacing: '0.5px' }}>FESTIVAL</span>
         </div>
       </nav>
 
@@ -1113,6 +1227,30 @@ function App() {
         <Suspense fallback={null}>
           {showIncheon && <IncheonRoute parties={parties} onClose={() => setShowIncheon(false)} />}
         </Suspense>
+      </AnimatePresence>
+
+      <AnimatePresence>
+        {showInstructor && (
+          <motion.div
+            initial={{ opacity: 0, y: '100%' }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: '100%' }}
+            transition={{ type: 'spring', damping: 25, stiffness: 200 }}
+            style={{ position: 'fixed', inset: 0, zIndex: 2000, background: '#fff', overflowY: 'auto' }}
+          >
+            <div style={{ padding: '20px 24px', display: 'flex', alignItems: 'center', gap: 12, borderBottom: '1px solid #F1F5F9' }}>
+              <button
+                onClick={() => setShowInstructor(false)}
+                style={{ background: '#F1F5F9', border: 'none', borderRadius: '50%', width: 40, height: 40, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', fontSize: 18 }}
+              >←</button>
+              <div>
+                <div style={{ fontSize: 18, fontWeight: 900, color: '#111' }}>라틴에 진심 💃</div>
+                <div style={{ fontSize: 12, color: '#999' }}>팔로우할 강사를 찾아보세요</div>
+              </div>
+            </div>
+            <InstructorSection />
+          </motion.div>
+        )}
       </AnimatePresence>
       <AnimatePresence>
         <Suspense fallback={null}>
