@@ -22,7 +22,7 @@ export const BAR_DATABASE = [
   { name: '하바나', address: '서울특별시 마포구 서교동 어울마당로 53', region: '서울', lat: 37.5545, lon: 126.9212 },
   { name: '아난타라', address: '서울특별시 마포구 양화로 18안길20', region: '서울', lat: 37.5552, lon: 126.9202 },
   { name: '솔SOL빠2차', address: '서울특별시 마포구 홍익로6길 83', region: '서울', lat: 37.5556, lon: 126.9228 },
-  { name: '꼼애야 2차', address: '서울특별시 마포구 동교로 209-4', region: '서울', lat: 37.5562, lon: 126.9222 },
+  { name: '꼼애야', address: '서울특별시 마포구 동교로 209-4', region: '서울', lat: 37.5562, lon: 126.9222 },
 
   // [경기 - 수원]
   { name: '쿠바', address: '경기도 수원시 팔달구 인계동 1042-7, 3층', region: '경기도', lat: 37.2636, lon: 127.0286 },
