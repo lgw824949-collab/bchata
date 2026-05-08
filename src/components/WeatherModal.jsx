@@ -1,7 +1,9 @@
 // src/components/WeatherModal.jsx
 // 전국 날씨 - 기상청 API 직접 연동 버전
 
+import { useState, useEffect } from 'react'
 import { useTranslation } from 'react-i18next'
+import { X } from 'lucide-react'
 
 const REGIONS = [
   { key: 'region_seoul', nx:60, ny:127 },
