@@ -16,6 +16,7 @@ const InstructorSection = () => {
   const [likes, setLikes] = useState({})
   const [selectedGenre, setSelectedGenre] = useState('전체')
   const [selectedInstructor, setSelectedInstructor] = useState(null)
+  const [posts, setPosts] = useState([])
 
   useEffect(() => {
     fetchInstructors()
@@ -50,6 +51,19 @@ const InstructorSection = () => {
       setLikes(map)
     }
   }
+
+  useEffect(() => {
+    if (!selectedInstructor) return
+    const fetchPosts = async () => {
+      const { data } = await supabase
+        .from('instructor_posts')
+        .select('*')
+        .eq('instructor_id', selectedInstructor.id)
+        .order('created_at', { ascending: false })
+      if (data) setPosts(data)
+    }
+    fetchPosts()
+  }, [selectedInstructor])
 
   const toggleFollow = async (e, instructorId) => {
     e.stopPropagation()
@@ -229,6 +243,7 @@ const InstructorSection = () => {
               <div style={{ display: 'flex', gap: 16 }}>
                 <span style={{ fontSize: 13, color: '#555' }}>👥 <strong>{selectedInstructor.follower_count || 0}</strong> 팔로워</span>
                 <span style={{ fontSize: 13, color: '#E53935' }}>❤️ <strong>{selectedInstructor.likes_count || 0}</strong> 좋아요</span>
+                <span style={{ fontSize: 13, color: '#555' }}>📸 <strong>{posts.length}</strong> 게시물</span>
               </div>
             </div>
           </div>
@@ -309,6 +324,37 @@ const InstructorSection = () => {
                 </div>
               </div>
             </div>
+          </div>
+
+          {/* 4. 포스터 그리드 섹션 */}
+          <div style={{ padding: '0 24px 100px' }}>
+            <div style={{ fontSize: 15, fontWeight: 900, color: '#111', marginBottom: 12 }}>📸 게시물</div>
+            
+            {posts.length > 0 ? (
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 2 }}>
+                {posts.map((post, i) => (
+                  <div
+                    key={post.id}
+                    style={{ aspectRatio: '1', overflow: 'hidden', background: '#F3F4F6', cursor: 'pointer', borderRadius: i === 0 ? '12px 0 0 0' : i === 2 ? '0 12px 0 0' : 0 }}
+                    onClick={() => window.open(post.image_url, '_blank')}
+                  >
+                    <img
+                      src={post.image_url}
+                      style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                      alt={post.caption || '포스터'}
+                    />
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div style={{ background: '#F8F7FF', borderRadius: 16, padding: 32, border: '1px solid #EDE9FE', textAlign: 'center' }}>
+                <div style={{ fontSize: 32, marginBottom: 8 }}>📸</div>
+                <div style={{ fontSize: 14, color: '#999', lineHeight: 1.6 }}>
+                  아직 게시물이 없어요<br/>
+                  <span style={{ fontSize: 12 }}>강사가 포스터를 올리면 여기에 표시돼요</span>
+                </div>
+              </div>
+            )}
           </div>
         </div>
       )}
