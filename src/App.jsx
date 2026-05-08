@@ -1168,6 +1168,7 @@ function App() {
                     <p style={{ color: '#94A3B8', fontSize: '14px' }}>{t('admin_portal_desc')}</p>
                   </div>
                   
+
                   <button 
                     onClick={() => setView('admin')}
                     style={{ 
@@ -1316,6 +1317,37 @@ function App() {
           {showIncheon && <IncheonRoute parties={parties} onClose={() => setShowIncheon(false)} />}
         </Suspense>
       </AnimatePresence>
+
+      {/* --- [MODALS] --- */}
+      <AnimatePresence>
+        {showInstructor && (
+          <motion.div initial={{ x: '100%' }} animate={{ x: 0 }} exit={{ x: '100%' }} transition={{ type: 'spring', damping: 25, stiffness: 200 }} style={{ position: 'fixed', inset: 0, zIndex: 1100, background: '#fff' }}>
+            <div style={{ position: 'fixed', top: 0, left: 0, right: 0, height: '60px', background: '#fff', borderBottom: '1px solid #F1F5F9', display: 'flex', alignItems: 'center', padding: '0 20px', zIndex: 1101 }}>
+              <button onClick={() => setShowInstructor(false)} style={{ background: 'none', border: 'none', color: '#64748B', display: 'flex', alignItems: 'center', gap: '8px', fontWeight: 900, cursor: 'pointer' }}>
+                <ChevronLeft size={24} /> {t('back')}
+              </button>
+              <div style={{ flex: 1, textAlign: 'center', fontWeight: 900, fontSize: '18px', color: '#1E293B', marginRight: '40px' }}>라틴에 진심</div>
+            </div>
+            <div style={{ paddingTop: '60px', height: '100%', overflowY: 'auto' }}>
+              <InstructorSection />
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      <AnimatePresence>
+        {showInstructorRegister && (
+          <motion.div initial={{ y: '100%' }} animate={{ y: 0 }} exit={{ y: '100%' }} transition={{ type: 'spring', damping: 25, stiffness: 200 }} style={{ position: 'fixed', inset: 0, zIndex: 1100, background: '#fff' }}>
+            <InstructorRegister onBack={() => setShowInstructorRegister(false)} />
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      <RegisterForm 
+        isOpen={view === 'register-party' || view === 'register-class'} 
+        onClose={() => setView('home')} 
+        type={view === 'register-party' ? 'party' : 'class'} 
+      />
 
       <AnimatePresence>
         {showInstructor && (
