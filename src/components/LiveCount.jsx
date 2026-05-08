@@ -101,84 +101,82 @@ const LiveCount = () => {
     return () => { supabase.removeChannel(channel) }
   }, [])
 
-  const currentStatusText = useMemo(() => {
-    return liveMessages.join('   |   ');
-  }, [liveMessages]);
+  // ─── 새 로직 추가: parsed(지역별 인원) 및 displayText 제어 ───
+  const [displayText, setDisplayText] = useState('')
+  const [parsed, setParsed] = useState(null)
+
+  useEffect(() => {
+    // 1. 공지 메시지 로테이션
+    let msgIdx = 0
+    const msgInterval = setInterval(() => {
+      setDisplayText(liveMessages[msgIdx])
+      msgIdx = (msgIdx + 1) % liveMessages.length
+    }, 5000)
+    setDisplayText(liveMessages[0])
+
+    // 2. 실시간 인원 데이터(counts) 로테이션
+    const updateParsed = () => {
+      const flat = []
+      Object.entries(counts).forEach(([reg, items]) => {
+        items.forEach(it => {
+          const [name, count] = it.split(' ')
+          flat.push({ region: reg, name, count })
+        })
+      })
+      if (flat.length > 0) {
+        let idx = 0
+        const pInterval = setInterval(() => {
+          setParsed(flat[idx])
+          idx = (idx + 1) % flat.length
+        }, 3000)
+        setParsed(flat[0])
+        return pInterval
+      } else {
+        setParsed(null)
+      }
+    }
+    const pInterval = updateParsed()
+    
+    return () => {
+      clearInterval(msgInterval)
+      if (pInterval) clearInterval(pInterval)
+    }
+  }, [counts, liveMessages])
 
   return (
-    <div style={{
-      background: 'transparent',
-      height: '44px',
-      display: 'flex',
-      alignItems: 'center',
-      padding: '0 8px',
-      position: 'relative',
-      overflow: 'hidden',
-      width: '100%'
-    }}>
+    <div style={{ background: 'linear-gradient(90deg, #0d0d0d, #1a1200, #0d0d0d)', height: '40px', display: 'flex', alignItems: 'center', padding: '0 16px', position: 'relative', overflow: 'hidden' }}>
       <style>{`
-        .live-pill {
-          display: flex;
-          align-items: center;
-          gap: 5px;
-          border: 1px solid rgba(255, 23, 68, 0.3);
-          border-radius: 20px;
-          padding: 3px 10px 3px 7px;
-          margin-right: 8px;
-          flex-shrink: 0;
-          background: rgba(229, 57, 53, 0.05);
-          z-index: 2;
-        }
-        .live-dot2 {
-          width: 6px;
-          height: 6px;
-          background: #FF1744;
-          border-radius: 50%;
-          animation: pulse2 1.5s ease-in-out infinite;
-        }
-        @keyframes pulse2 {
-          0%, 100% { opacity: 1; box-shadow: 0 0 6px #FF1744; }
-          50% { opacity: 0.3; box-shadow: none; }
-        }
-        .live-word {
-          color: #FF1744;
-          font-size: 10px;
-          font-weight: 700;
-          letter-spacing: 2px;
-        }
-        .marquee-container {
-          flex: 1;
-          overflow: hidden;
-          white-space: nowrap;
-          position: relative;
-          display: flex;
-          align-items: center;
-        }
-        .marquee-content {
-          display: inline-block;
-          padding-left: 100%;
-          animation: marquee 35s linear infinite;
-          color: #FF1744;
-          font-size: 13px;
-          font-weight: 500;
-          font-family: 'Pretendard', sans-serif;
-        }
-        @keyframes marquee {
-          0% { transform: translateX(0); }
-          100% { transform: translateX(-100%); }
-        }
+        .gold-line { position: absolute; bottom: 0; left: 0; right: 0; height: 1px; background: linear-gradient(90deg, transparent, #C9A84C, #FFD700, #C9A84C, transparent); opacity: 0.8; }
+        .gold-line-top { position: absolute; top: 0; left: 0; right: 0; height: 1px; background: linear-gradient(90deg, transparent, #C9A84C, #FFD700, #C9A84C, transparent); opacity: 0.4; }
+        .live-pill { display: flex; align-items: center; gap: 5px; border: 1px solid rgba(201,168,76,0.6); border-radius: 20px; padding: 3px 10px 3px 7px; margin-right: 12px; flex-shrink: 0; background: rgba(0,0,0,0.25); }
+        .live-dot { width: 6px; height: 6px; background: #FFD700; border-radius: 50%; animation: pulse2 1.5s ease-in-out infinite; }
+        @keyframes pulse2 { 0%, 100% { opacity: 1; box-shadow: 0 0 6px #FFD700; } 50% { opacity: 0.3; box-shadow: none; } }
+        .live-word { color: #FFD700; font-size: 10px; font-weight: 700; letter-spacing: 2px; }
+        .live-count { color: #FFD700; font-size: 18px; font-weight: 800; animation: blink-count 1.2s ease-in-out infinite; }
+        @keyframes blink-count { 0%, 100% { opacity: 1; } 50% { opacity: 0.4; } }
+        .live-region { color: rgba(255,255,255,0.5); font-size: 12px; margin-right: 6px; }
+        .live-name { color: #E8D5A3; font-size: 13px; font-weight: 500; margin-right: 8px; }
+        .live-unit { color: rgba(201,168,76,0.7); font-size: 11px; margin-left: 2px; }
+        .live-default { color: rgba(232,213,163,0.6); font-size: 12px; letter-spacing: 0.5px; }
+        .cursor-gold { border-right: 1.5px solid #C9A84C; animation: blink-gold 1s infinite; margin-left: 2px; height: 14px; display: inline-block; }
+        @keyframes blink-gold { 0%, 100% { opacity: 1; } 50% { opacity: 0; } }
       `}</style>
-
+      <div className="gold-line" />
+      <div className="gold-line-top" />
       <div className="live-pill">
-        <span className="live-dot2" />
+        <span className="live-dot" />
         <span className="live-word">LIVE</span>
       </div>
-
-      <div className="marquee-container">
-        <div className="marquee-content">
-          {currentStatusText}
+      {parsed ? (
+        <div style={{ display: 'flex', alignItems: 'baseline', gap: '2px' }}>
+          <span className="live-region">[{parsed.region}]</span>
+          <span className="live-name">{parsed.name}</span>
+          <span className="live-count">{parsed.count}</span>
+          <span className="live-unit">명</span>
         </div>
-      </div>
+      ) : (
+        <span className="live-default">{displayText}<span className="cursor-gold" /></span>
+      )}
     </div>
   )
 }
