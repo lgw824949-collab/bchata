@@ -607,14 +607,18 @@ function App() {
   useEffect(() => {
     const handleScroll = () => {
       const currentY = window.scrollY
-      if (currentY < 50) {
+      const diff = currentY - lastScrollY.current
+      
+      if (currentY < 10) {
         setNavVisible(true)
-      } else if (currentY > lastScrollY.current + 5) {
-        setNavVisible(false)
-      } else if (currentY < lastScrollY.current - 5) {
-        setNavVisible(true)
+      } else if (Math.abs(diff) > 10) {
+        if (diff > 0) {
+          setNavVisible(false)
+        } else {
+          setNavVisible(true)
+        }
+        lastScrollY.current = currentY
       }
-      lastScrollY.current = currentY
     }
     window.addEventListener('scroll', handleScroll, { passive: true })
     return () => window.removeEventListener('scroll', handleScroll)
@@ -1185,8 +1189,8 @@ function App() {
         className="bottom-nav" 
         style={{ 
           position: 'fixed', bottom: '20px', left: '50%',
-          transform: navVisible ? 'translateX(-50%) translateY(0)' : 'translateX(-50%) translateY(100%)',
-          transition: 'transform 0.4s cubic-bezier(0.4, 0, 0.2, 1)',
+          transform: navVisible ? 'translateX(-50%) translateY(0)' : 'translateX(-50%) translateY(150%)',
+          transition: 'transform 0.5s cubic-bezier(0.4, 0, 0.2, 1)',
           width: 'calc(100% - 30px)', maxWidth: '480px', height: '72px',
           background: 'rgba(0, 0, 0, 0.9)', backdropFilter: 'blur(30px)',
           display: 'flex', alignItems: 'center', justifyContent: 'space-between',
