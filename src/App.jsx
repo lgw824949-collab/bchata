@@ -1001,7 +1001,7 @@ function App() {
                 </div>
                 <div>
                   <div style={{ fontSize: '15px', fontWeight: 700, color: '#1E293B' }}>강사 등록 신청</div>
-                  <div style={{ fontSize: '12px', color: '#94A3B8', marginTop: '2px' }}>라틴에 진심에 강사로 등록해보세요</div>
+                  <div style={{ fontSize: '12px', color: '#94A3B8', marginTop: '2px' }}>나도 월드스타</div>
                 </div>
               </button>
 
