@@ -3,25 +3,25 @@ export const BAR_DATABASE = [
   // [서울 - 강남권]
   { name: '라틴', address: '서울특별시 강남구 테헤란로 6길 9', region: '서울', lat: 37.4980, lon: 127.0279 },
   { name: '강남턴', address: '서울특별시 강남구 역삼1동 831-34', region: '서울', aliases: ['강턴'], lat: 37.4975, lon: 127.0358 },
-  { name: 'Sol bar2차', address: '서울특별시 강남구 테헤란로 8길 11-7', region: '서울', lat: 37.4982, lon: 127.0285 },
+  { name: 'Sol bar', address: '서울특별시 강남구 테헤란로 8길 11-7', region: '서울', lat: 37.4982, lon: 127.0285 },
   { name: '마이애미', address: '서울특별시 강남구 테헤란로14길 25', region: '서울', lat: 37.4985, lon: 127.0312 },
   { name: '뉴욕', address: '서울특별시 강남구 강남대로84길 24-4', region: '서울', lat: 37.5015, lon: 127.0247 },
   { name: '압구정 살사클럽 탑', address: '서울특별시 강남구 압구정로 224', region: '서울', aliases: ['탑', '압탑'], lat: 37.5272, lon: 127.0286 },
   { name: '압구정 On2', address: '서울특별시 강남구 논현로167길 12', region: '서울', aliases: ['압온'], lat: 37.5268, lon: 127.0298 },
-  { name: '아지트2차', address: '서울특별시 강남구 역삼동 831-30', region: '서울', lat: 37.4973, lon: 127.0356 },
+  { name: '아지트', address: '서울특별시 강남구 역삼동 831-30', region: '서울', lat: 37.4973, lon: 127.0356 },
 
   // [서울 - 홍대권]
   { name: '보니따', address: '서울특별시 마포구 동교로 191', region: '서울', lat: 37.5560, lon: 126.9218 },
   { name: '홍턴', address: '서울특별시 마포구 동교로207', region: '서울', lat: 37.5563, lon: 126.9221 },
-  { name: '부에나2차', address: '서울특별시 마포구 동교로 217', region: '서울', lat: 37.5566, lon: 126.9228 },
-  { name: '까리베 2차', address: '서울특별시 마포구 월드컵북로6길 60', region: '서울', lat: 37.5578, lon: 126.9185 },
+  { name: '부에나', address: '서울특별시 마포구 동교로 217', region: '서울', lat: 37.5566, lon: 126.9228 },
+  { name: '까리베', address: '서울특별시 마포구 월드컵북로6길 60', region: '서울', lat: 37.5578, lon: 126.9185 },
   { name: '마콘도', address: '서울특별시 마포구 홍익로 6길48', region: '서울', lat: 37.5558, lon: 126.9225 },
   { name: '팰리스클럽', address: '서울특별시 마포구 월드컵 북로2길', region: '서울', lat: 37.5572, lon: 126.9178 },
   { name: '안단테', address: '서울특별시 마포구 양화로12길 24', region: '서울', lat: 37.5548, lon: 126.9198 },
-  { name: '놀이터 2차', address: '서울특별시 마포구 동교로213', region: '서울', lat: 37.5564, lon: 126.9224 },
+  { name: '놀이터', address: '서울특별시 마포구 동교로213', region: '서울', lat: 37.5564, lon: 126.9224 },
   { name: '하바나', address: '서울특별시 마포구 서교동 어울마당로 53', region: '서울', lat: 37.5545, lon: 126.9212 },
   { name: '아난타라', address: '서울특별시 마포구 양화로 18안길20', region: '서울', lat: 37.5552, lon: 126.9202 },
-  { name: '솔SOL빠2차', address: '서울특별시 마포구 홍익로6길 83', region: '서울', lat: 37.5556, lon: 126.9228 },
+  { name: '솔SOL빠', address: '서울특별시 마포구 홍익로6길 83', region: '서울', lat: 37.5556, lon: 126.9228 },
   { name: '꼼애야', address: '서울특별시 마포구 동교로 209-4', region: '서울', lat: 37.5562, lon: 126.9222 },
 
   // [경기 - 수원]

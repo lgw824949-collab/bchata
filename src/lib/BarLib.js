@@ -3,25 +3,25 @@ export const BAR_DATABASE = [
   // [서울 - 강남권]
   { name: '라틴', name_en: 'Latin', address: '서울특별시 강남구 테헤란로 6길 9', region: '서울' },
   { name: '강남턴', name_en: 'Gangnam Turn', address: '서울특별시 강남구 역삼1동 831-34', region: '서울', aliases: ['강턴'] },
-  { name: 'Sol bar2차', name_en: 'Sol Bar', address: '서울특별시 강남구 테헤란로 8길 11-7', region: '서울' },
+  { name: 'Sol bar', name_en: 'Sol Bar', address: '서울특별시 강남구 테헤란로 8길 11-7', region: '서울' },
   { name: '마이애미', name_en: 'Miami', address: '서울특별시 강남구 테헤란로14길 25', region: '서울' },
   { name: '뉴욕', name_en: 'New York', address: '서울특별시 강남구 강남대로84길 24-4', region: '서울' },
   { name: '압구정 살사클럽 탑', name_en: 'Apgujeong Top', address: '서울특별시 강남구 압구정로 224', region: '서울', aliases: ['탑', '압탑'] },
   { name: '압구정 On2', name_en: 'Apgujeong On2', address: '서울특별시 강남구 논현로167길 12', region: '서울', aliases: ['압온'] },
-  { name: '아지트2차', name_en: 'Azit', address: '서울특별시 강남구 역삼동 831-30', region: '서울' },
+  { name: '아지트', name_en: 'Azit', address: '서울특별시 강남구 역삼동 831-30', region: '서울' },
 
   // [서울 - 홍대권]
   { name: '보니따', name_en: 'Bonita', address: '서울특별시 마포구 동교로 191', region: '서울' },
   { name: '홍턴', name_en: 'Hong Turn', address: '서울특별시 마포구 동교로207', region: '서울' },
-  { name: '부에나2차', name_en: 'Buena', address: '서울특별시 마포구 동교로 217', region: '서울' },
-  { name: '까리베 2차', name_en: 'Caribe', address: '서울특별시 마포구 월드컵북로6길 60', region: '서울' },
+  { name: '부에나', name_en: 'Buena', address: '서울특별시 마포구 동교로 217', region: '서울' },
+  { name: '까리베', name_en: 'Caribe', address: '서울특별시 마포구 월드컵북로6길 60', region: '서울' },
   { name: '마콘도', name_en: 'Macondo', address: '서울특별시 마포구 홍익로 6길48', region: '서울' },
   { name: '팰리스클럽', name_en: 'Palace Club', address: '서울특별시 마포구 월드컵 북로2길', region: '서울' },
   { name: '안단테', name_en: 'Andante', address: '서울특별시 마포구 양화로12길 24', region: '서울' },
-  { name: '놀이터 2차', name_en: 'Noriter', address: '서울특별시 마포구 동교로213', region: '서울' },
+  { name: '놀이터', name_en: 'Noriter', address: '서울특별시 마포구 동교로213', region: '서울' },
   { name: '하바나', name_en: 'Havana', address: '서울특별시 마포구 서교동 어울마당로 53', region: '서울' },
   { name: '아난타라', name_en: 'Anantara', address: '서울특별시 마포구 양화로 18안길20', region: '서울' },
-  { name: '솔SOL빠2차', name_en: 'Sol Bar', address: '서울특별시 마포구 홍익로6길 83', region: '서울' },
+  { name: '솔SOL빠', name_en: 'Sol Bar', address: '서울특별시 마포구 홍익로6길 83', region: '서울' },
   { name: '꼼애야', name_en: 'Come Ya', address: '서울특별시 마포구 동교로 209-4', region: '서울' },
 
   // [경기 - 수원]

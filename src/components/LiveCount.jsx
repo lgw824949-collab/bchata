@@ -1,6 +1,7 @@
 import React, { useEffect, useState, useMemo } from 'react'
 import { useTranslation } from 'react-i18next'
 import { supabase } from '../lib/supabase'
+import { findBarByName } from '../data/barDatabase'
 
 const LiveCount = () => {
   const { t, i18n } = useTranslation()
@@ -57,7 +58,9 @@ const LiveCount = () => {
 
       const initialCounts = {};
       liveParties.forEach(p => {
-        const name = (Array.isArray(p.locations) ? p.locations[0]?.name : p.locations?.name) || p.location_name || p.locationName || p.address;
+        const rawName = (Array.isArray(p.locations) ? p.locations[0]?.name : p.locations?.name) || p.location_name || p.locationName || p.address;
+        const barInfo = findBarByName(rawName);
+        const name = barInfo ? barInfo.name : rawName;
         const reg = p.locations?.broad_region || '전국';
         if (!initialCounts[reg]) initialCounts[reg] = [];
         initialCounts[reg].push(`${name} 0`);
