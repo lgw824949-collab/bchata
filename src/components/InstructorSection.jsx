@@ -144,21 +144,26 @@ const InstructorSection = () => {
 
       {/* 강사 리스트 */}
       <div style={{ padding: '8px 16px 100px' }}>
-        {filteredInstructors.map(instructor => (
-          <div
+        {filteredInstructors.map((instructor) => (
+          <motion.div
             key={instructor.id}
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
             onClick={() => setSelectedInstructor(instructor)}
             style={{
               display: 'flex', alignItems: 'center', gap: 16,
-              padding: '16px 0', borderBottom: '1px solid #F3F4F6',
-              cursor: 'pointer'
+              padding: '20px', borderRadius: '24px', background: '#fff',
+              marginBottom: '12px', border: '1px solid #F1F5F9',
+              cursor: 'pointer', boxShadow: '0 4px 6px rgba(0,0,0,0.02)',
+              transition: 'all 0.2s ease'
             }}
+            whileHover={{ y: -2, boxShadow: '0 10px 20px rgba(0,0,0,0.05)' }}
           >
             {/* 프로필 사진 */}
             <div style={{
-              width: 64, height: 64, borderRadius: '50%', overflow: 'hidden',
-              background: '#F3F4F6', flexShrink: 0,
-              border: follows[instructor.id] ? '2px solid #7C3AED' : '2px solid #E5E7EB'
+              width: 72, height: 72, borderRadius: '24px', overflow: 'hidden',
+              background: '#F8FAFC', flexShrink: 0,
+              border: follows[instructor.id] ? '2px solid #7C3AED' : '1px solid #E2E8F0'
             }}>
               {instructor.photo_url
                 ? <img src={instructor.photo_url} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
@@ -168,30 +173,34 @@ const InstructorSection = () => {
 
             {/* 정보 */}
             <div style={{ flex: 1, minWidth: 0 }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 2 }}>
-                <span style={{ fontSize: 16, fontWeight: 800, color: '#111' }}>{instructor.name}</span>
-                <span style={{ fontSize: 11, color: '#fff', background: '#7C3AED', padding: '2px 8px', borderRadius: 10 }}>{getGenre(instructor.genre)}</span>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
+                <span style={{ fontSize: 17, fontWeight: 900, color: '#0F172A', letterSpacing: '-0.3px' }}>{instructor.name}</span>
+                <span style={{ 
+                  fontSize: 10, color: '#7C3AED', background: '#F5F3FF', 
+                  padding: '2px 8px', borderRadius: '6px', fontWeight: 800,
+                  border: '1px solid #EDE9FE'
+                }}>{getGenre(instructor.genre)}</span>
               </div>
-              <div style={{ fontSize: 12, color: '#999', marginBottom: 6 }}>{instructor.city}</div>
-              <div style={{ fontSize: 13, color: '#555', lineHeight: 1.5, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{instructor.bio}</div>
-              <div style={{ display: 'flex', gap: 12, marginTop: 6 }}>
-                <span style={{ fontSize: 11, color: '#999' }}>👥 {instructor.follower_count || 0}명</span>
-                <span style={{ fontSize: 11, color: '#999' }}>❤️ {instructor.likes_count || 0}</span>
+              <div style={{ fontSize: 13, color: '#64748B', marginBottom: 8, display: 'flex', alignItems: 'center', gap: 4 }}>
+                <span style={{ fontSize: 14 }}>📍</span> {instructor.city}
+              </div>
+              <div style={{ display: 'flex', gap: 12 }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+                  <span style={{ fontSize: 12, color: '#94A3B8' }}>팔로워</span>
+                  <span style={{ fontSize: 13, fontWeight: 800, color: '#475569' }}>{instructor.follower_count || 0}</span>
+                </div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+                  <span style={{ fontSize: 12, color: '#94A3B8' }}>좋아요</span>
+                  <span style={{ fontSize: 13, fontWeight: 800, color: '#EF4444' }}>{instructor.likes_count || 0}</span>
+                </div>
               </div>
             </div>
 
-            {/* 팔로우 버튼 */}
-            <button
-              onClick={(e) => toggleFollow(e, instructor.id)}
-              style={{
-                flexShrink: 0, padding: '8px 14px', borderRadius: 20,
-                border: follows[instructor.id] ? '1px solid #7C3AED' : '1px solid #E5E7EB',
-                background: follows[instructor.id] ? '#7C3AED' : '#fff',
-                color: follows[instructor.id] ? '#fff' : '#666',
-                fontSize: 12, fontWeight: 700, cursor: 'pointer'
-              }}
-            >{follows[instructor.id] ? '✓ 팔로잉' : '+ 팔로우'}</button>
-          </div>
+            {/* 이동 아이콘 */}
+            <div style={{ color: '#CBD5E1' }}>
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="m9 18 6-6-6-6"/></svg>
+            </div>
+          </motion.div>
         ))}
 
         {filteredInstructors.length === 0 && (
@@ -204,159 +213,173 @@ const InstructorSection = () => {
         )}
       </div>
 
-      {/* 강사 상세 모달 */}
+      {/* 강사 상세 모달 (고도화된 포트폴리오 스타일) */}
       {selectedInstructor && (
-        <div style={{ position: 'fixed', inset: 0, zIndex: 4000, background: '#fff', overflowY: 'auto' }}>
-          {/* 헤더 */}
-          <div style={{ position: 'sticky', top: 0, background: '#fff', padding: '20px 24px', display: 'flex', alignItems: 'center', gap: 12, borderBottom: '1px solid #F1F5F9', zIndex: 1 }}>
-            <button
-              onClick={() => setSelectedInstructor(null)}
-              style={{ background: '#F1F5F9', border: 'none', borderRadius: '50%', width: 40, height: 40, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', fontSize: 18 }}
-            >←</button>
-            <span style={{ fontSize: 16, fontWeight: 900, color: '#111' }}>{selectedInstructor.name}</span>
+        <motion.div 
+          initial={{ y: '100%' }} 
+          animate={{ y: 0 }} 
+          exit={{ y: '100%' }}
+          transition={{ type: 'spring', damping: 25, stiffness: 300 }}
+          style={{ position: 'fixed', inset: 0, zIndex: 4000, background: '#09090b', color: '#fff', overflowY: 'auto' }}
+        >
+          {/* 1. 히어로 커버 섹션 */}
+          <div style={{ position: 'relative', height: '280px', background: 'linear-gradient(180deg, #18181b 0%, #09090b 100%)', overflow: 'hidden' }}>
+            {selectedInstructor.cover_url ? (
+              <img src={selectedInstructor.cover_url} style={{ width: '100%', height: '100%', objectFit: 'cover', opacity: 0.5 }} />
+            ) : (
+              <div style={{ position: 'absolute', inset: 0, background: 'radial-gradient(circle at 50% 50%, #3f3f46 0%, #09090b 100%)', opacity: 0.5 }} />
+            )}
+            
+            {/* 상단 네비게이션 */}
+            <div style={{ position: 'absolute', top: 'calc(20px + env(safe-area-inset-top))', left: 0, right: 0, padding: '0 24px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', zIndex: 10 }}>
+              <button
+                onClick={() => setSelectedInstructor(null)}
+                style={{ background: 'rgba(255,255,255,0.1)', backdropFilter: 'blur(10px)', border: 'none', borderRadius: '50%', width: 44, height: 44, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', color: '#fff' }}
+              >←</button>
+              <div style={{ display: 'flex', gap: 10 }}>
+                <button 
+                  onClick={() => toggleLike(null, selectedInstructor.id)}
+                  style={{ background: 'rgba(255,255,255,0.1)', backdropFilter: 'blur(10px)', border: 'none', borderRadius: '50%', width: 44, height: 44, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', fontSize: 20 }}
+                >{likes[selectedInstructor.id] ? '❤️' : '🤍'}</button>
+              </div>
+            </div>
           </div>
 
-          {/* 프로필 */}
-          {/* 프로필 상단 - 좌우 레이아웃 */}
-          <div style={{ padding: '24px', display: 'flex', gap: 20, alignItems: 'flex-start', borderBottom: '1px solid #F3F4F6' }}>
-            
-            {/* 왼쪽: 프로필 사진 */}
-            <div style={{ flexShrink: 0 }}>
-              <div style={{ width: 100, height: 100, borderRadius: '50%', overflow: 'hidden', background: '#F3F4F6', border: '3px solid #7C3AED' }}>
+          {/* 2. 프로필 핵심 정보 (플로팅) */}
+          <div style={{ padding: '0 24px', marginTop: '-60px', position: 'relative', zIndex: 5 }}>
+            <div style={{ display: 'flex', alignItems: 'flex-end', gap: 20, marginBottom: 20 }}>
+              {/* 프로필 이미지 */}
+              <div style={{ 
+                width: 120, height: 120, borderRadius: '32px', border: '4px solid #09090b', 
+                background: '#18181b', overflow: 'hidden', boxShadow: '0 20px 40px rgba(0,0,0,0.4)',
+                flexShrink: 0
+              }}>
                 {selectedInstructor.photo_url
                   ? <img src={selectedInstructor.photo_url} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                   : <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 40 }}>💃</div>
                 }
               </div>
-            </div>
-
-            {/* 오른쪽: 정보 */}
-            <div style={{ flex: 1, minWidth: 0 }}>
-              <div style={{ fontSize: 22, fontWeight: 900, color: '#111', marginBottom: 4 }}>{selectedInstructor.name}</div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 4 }}>
-                <span style={{ fontSize: 12, color: '#fff', background: '#7C3AED', padding: '2px 10px', borderRadius: 10, fontWeight: 700 }}>
-                  {Array.isArray(selectedInstructor.genre) ? selectedInstructor.genre.join(' · ') : selectedInstructor.genre}
-                </span>
-              </div>
-              <div style={{ fontSize: 13, color: '#999', marginBottom: 8 }}>📍 {selectedInstructor.city}</div>
-              <div style={{ fontSize: 14, color: '#555', lineHeight: 1.6, marginBottom: 12 }}>{selectedInstructor.bio}</div>
-              <div style={{ display: 'flex', gap: 16 }}>
-                <span style={{ fontSize: 13, color: '#555' }}>👥 <strong>{selectedInstructor.follower_count || 0}</strong> 팔로워</span>
-                <span style={{ fontSize: 13, color: '#E53935' }}>❤️ <strong>{selectedInstructor.likes_count || 0}</strong> 좋아요</span>
-                <span style={{ fontSize: 13, color: '#555' }}>📸 <strong>{posts.length}</strong> 게시물</span>
-              </div>
-            </div>
-          </div>
-
-          {/* 액션 버튼 */}
-          <div style={{ padding: '16px 24px', display: 'flex', gap: 8, borderBottom: '1px solid #F3F4F6' }}>
-            <button
-              onClick={(e) => toggleFollow(e, selectedInstructor.id)}
-              style={{
-                flex: 1, padding: '14px', borderRadius: 16, border: 'none',
-                background: follows[selectedInstructor.id] ? '#EDE9FE' : '#7C3AED',
-                color: follows[selectedInstructor.id] ? '#7C3AED' : '#fff',
-                fontSize: 15, fontWeight: 900, cursor: 'pointer'
-              }}
-            >{follows[selectedInstructor.id] ? '✓ 팔로잉 중' : '+ 팔로우'}</button>
-            
-            <button
-              onClick={(e) => toggleLike(e, selectedInstructor.id)}
-              style={{
-                width: 52, height: 52, borderRadius: 16, border: '1px solid #E5E7EB',
-                background: likes[selectedInstructor.id] ? '#FEE2E2' : '#fff',
-                fontSize: 22, cursor: 'pointer', flexShrink: 0
-              }}
-            >{likes[selectedInstructor.id] ? '❤️' : '🤍'}</button>
-
-            {selectedInstructor.instagram && (
-              <button
-                onClick={() => window.open(`https://instagram.com/${selectedInstructor.instagram}`, '_blank')}
-                style={{ width: 52, height: 52, borderRadius: 16, border: '1px solid #E5E7EB', background: '#fff', fontSize: 20, cursor: 'pointer', flexShrink: 0 }}
-              >📸</button>
-            )}
-            {selectedInstructor.kakao_link && (
-              <button
-                onClick={() => window.open(selectedInstructor.kakao_link, '_blank')}
-                style={{ width: 52, height: 52, borderRadius: 16, border: '1px solid #FEE500', background: '#FEE500', fontSize: 20, cursor: 'pointer', flexShrink: 0 }}
-              >💬</button>
-            )}
-          </div>
-
-          <div style={{ padding: '24px' }}>
-            {/* 1. 강사 한줄 소개 카드 */}
-            <div style={{ margin: '0 0 16px', background: '#F8F7FF', borderRadius: 16, padding: 20, border: '1px solid #EDE9FE', textAlign: 'left' }}>
-              <div style={{ fontSize: 12, color: '#7C3AED', fontWeight: 800, marginBottom: 8, letterSpacing: 1 }}>✦ 강사 소개</div>
-              <div style={{ fontSize: 15, color: '#333', lineHeight: 1.8 }}>
-                {selectedInstructor.bio || '소개글을 준비 중이에요 💜'}
-              </div>
-            </div>
-
-            {/* 2. 경력/활동 지역 카드 */}
-            <div style={{ margin: '0 0 16px', display: 'flex', gap: 10 }}>
-              <div style={{ flex: 1, background: '#F8F7FF', borderRadius: 16, padding: 16, border: '1px solid #EDE9FE', textAlign: 'center' }}>
-                <div style={{ fontSize: 20, marginBottom: 6 }}>📍</div>
-                <div style={{ fontSize: 12, color: '#999', marginBottom: 4 }}>활동 지역</div>
-                <div style={{ fontSize: 14, fontWeight: 800, color: '#111' }}>{selectedInstructor.city || '전국'}</div>
-              </div>
-              <div style={{ flex: 1, background: '#F8F7FF', borderRadius: 16, padding: 16, border: '1px solid #EDE9FE', textAlign: 'center' }}>
-                <div style={{ fontSize: 20, marginBottom: 6 }}>💃</div>
-                <div style={{ fontSize: 12, color: '#999', marginBottom: 4 }}>전문 장르</div>
-                <div style={{ fontSize: 14, fontWeight: 800, color: '#111' }}>
-                  {getGenre(selectedInstructor.genre)}
+              
+              {/* 이름 및 장르 */}
+              <div style={{ paddingBottom: 10 }}>
+                <div style={{ fontSize: 28, fontWeight: 950, color: '#fff', marginBottom: 6, letterSpacing: '-0.5px' }}>
+                  {selectedInstructor.name}
                 </div>
-              </div>
-              <div style={{ flex: 1, background: '#F8F7FF', borderRadius: 16, padding: 16, border: '1px solid #EDE9FE', textAlign: 'center' }}>
-                <div style={{ fontSize: 20, marginBottom: 6 }}>👥</div>
-                <div style={{ fontSize: 12, color: '#999', marginBottom: 4 }}>팔로워</div>
-                <div style={{ fontSize: 14, fontWeight: 800, color: '#111' }}>{selectedInstructor.follower_count || 0}명</div>
-              </div>
-            </div>
-
-            {/* 3. 예정 파티/클래스 섹션 */}
-            <div style={{ margin: '0 0 16px', textAlign: 'left' }}>
-              <div style={{ fontSize: 15, fontWeight: 900, color: '#111', marginBottom: 12 }}>📅 예정 파티 · 클래스</div>
-              <div style={{ background: '#F8F7FF', borderRadius: 16, padding: 20, border: '1px solid #EDE9FE', textAlign: 'center' }}>
-                <div style={{ fontSize: 32, marginBottom: 8 }}>🎵</div>
-                <div style={{ fontSize: 14, color: '#999', lineHeight: 1.6 }}>
-                  등록된 파티/클래스가 없어요<br/>
-                  <span style={{ fontSize: 12 }}>곧 업데이트될 예정이에요</span>
+                <div style={{ display: 'flex', gap: 6 }}>
+                  <span style={{ 
+                    fontSize: 12, color: '#FFD700', border: '1px solid #FFD700', 
+                    padding: '2px 10px', borderRadius: '8px', fontWeight: 800 
+                  }}>
+                    {getGenre(selectedInstructor.genre)}
+                  </span>
+                  <span style={{ fontSize: 12, color: '#a1a1aa', fontWeight: 600 }}>📍 {selectedInstructor.city}</span>
                 </div>
               </div>
             </div>
-          </div>
 
-          {/* 4. 포스터 그리드 섹션 */}
-          <div style={{ padding: '0 24px 100px' }}>
-            <div style={{ fontSize: 15, fontWeight: 900, color: '#111', marginBottom: 12 }}>📸 게시물</div>
-            
-            {posts.length > 0 ? (
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 2 }}>
-                {posts.map((post, i) => (
-                  <div
-                    key={post.id}
-                    style={{ aspectRatio: '1', overflow: 'hidden', background: '#F3F4F6', cursor: 'pointer', borderRadius: i === 0 ? '12px 0 0 0' : i === 2 ? '0 12px 0 0' : 0 }}
-                    onClick={() => window.open(post.image_url, '_blank')}
+            {/* 소개글 */}
+            <div style={{ 
+              fontSize: 15, color: '#d4d4d8', lineHeight: 1.8, marginBottom: 24, 
+              background: '#18181b', padding: '20px', borderRadius: '24px', border: '1px solid #27272a'
+            }}>
+              {selectedInstructor.bio || '환영합니다! 열정 넘치는 댄서입니다. 💜'}
+            </div>
+
+            {/* 스태츠 섹션 */}
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 12, marginBottom: 24 }}>
+              {[
+                { label: '팔로워', value: selectedInstructor.follower_count || 0, color: '#fff' },
+                { label: '좋아요', value: selectedInstructor.likes_count || 0, color: '#ef4444' },
+                { label: '게시물', value: posts.length, color: '#fff' }
+              ].map((stat, idx) => (
+                <div key={idx} style={{ background: '#18181b', padding: '16px', borderRadius: '20px', border: '1px solid #27272a', textAlign: 'center' }}>
+                  <div style={{ fontSize: 18, fontWeight: 900, color: stat.color, marginBottom: 2 }}>{stat.value}</div>
+                  <div style={{ fontSize: 11, color: '#71717a', fontWeight: 700 }}>{stat.label}</div>
+                </div>
+              ))}
+            </div>
+
+            {/* 액션 버튼 */}
+            <div style={{ display: 'flex', gap: 10, marginBottom: 32 }}>
+              <button
+                onClick={(e) => toggleFollow(e, selectedInstructor.id)}
+                style={{
+                  flex: 1, padding: '18px', borderRadius: '20px', border: 'none',
+                  background: follows[selectedInstructor.id] ? '#27272a' : 'linear-gradient(90deg, #F59E0B, #D97706)',
+                  color: '#fff', fontSize: 16, fontWeight: 900, cursor: 'pointer',
+                  boxShadow: follows[selectedInstructor.id] ? 'none' : '0 10px 20px rgba(245, 158, 11, 0.2)'
+                }}
+              >
+                {follows[selectedInstructor.id] ? '✓ 팔로잉 중' : '팔로우하기'}
+              </button>
+              
+              <div style={{ display: 'flex', gap: 8 }}>
+                {selectedInstructor.instagram && (
+                  <button
+                    onClick={() => window.open(`https://instagram.com/${selectedInstructor.instagram}`, '_blank')}
+                    style={{ width: 56, height: 56, borderRadius: '20px', border: '1px solid #27272a', background: '#18181b', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}
                   >
-                    <img
-                      src={post.image_url}
-                      style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-                      alt={post.caption || '포스터'}
-                    />
-                  </div>
-                ))}
+                    <img src="https://upload.wikimedia.org/wikipedia/commons/e/e7/Instagram_logo_2016.svg" style={{ width: 24, height: 24 }} />
+                  </button>
+                )}
+                {selectedInstructor.kakao_link && (
+                  <button
+                    onClick={() => window.open(selectedInstructor.kakao_link, '_blank')}
+                    style={{ width: 56, height: 56, borderRadius: '20px', border: 'none', background: '#FEE500', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}
+                  >
+                    <span style={{ fontSize: 24 }}>💬</span>
+                  </button>
+                )}
               </div>
-            ) : (
-              <div style={{ background: '#F8F7FF', borderRadius: 16, padding: 32, border: '1px solid #EDE9FE', textAlign: 'center' }}>
-                <div style={{ fontSize: 32, marginBottom: 8 }}>📸</div>
-                <div style={{ fontSize: 14, color: '#999', lineHeight: 1.6 }}>
-                  아직 게시물이 없어요<br/>
-                  <span style={{ fontSize: 12 }}>강사가 포스터를 올리면 여기에 표시돼요</span>
+            </div>
+
+            {/* 3. 예정 파티 · 클래스 (프리미엄 카드) */}
+            <div style={{ marginBottom: 32 }}>
+              <div style={{ fontSize: 18, fontWeight: 900, color: '#fff', marginBottom: 16, display: 'flex', alignItems: 'center', gap: 8 }}>
+                <span style={{ color: '#F59E0B' }}>✦</span> 예정 파티 · 클래스
+              </div>
+              <div style={{ 
+                background: 'linear-gradient(135deg, #18181b 0%, #09090b 100%)', 
+                borderRadius: '24px', padding: '40px 20px', border: '1px dashed #3f3f46', textAlign: 'center' 
+              }}>
+                <div style={{ fontSize: 40, marginBottom: 12 }}>🎭</div>
+                <div style={{ fontSize: 15, color: '#a1a1aa', fontWeight: 600 }}>
+                  현재 진행 중인 클래스가 없습니다.<br/>
+                  <span style={{ fontSize: 13, color: '#71717a' }}>새로운 소식을 기다려주세요!</span>
                 </div>
               </div>
-            )}
+            </div>
+
+            {/* 4. 포트폴리오 갤러리 */}
+            <div style={{ paddingBottom: 100 }}>
+              <div style={{ fontSize: 18, fontWeight: 900, color: '#fff', marginBottom: 16, display: 'flex', alignItems: 'center', gap: 8 }}>
+                <span style={{ color: '#F59E0B' }}>✦</span> 게시물
+              </div>
+              
+              {posts.length > 0 ? (
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 8 }}>
+                  {posts.map((post) => (
+                    <div
+                      key={post.id}
+                      style={{ 
+                        aspectRatio: '1', overflow: 'hidden', background: '#18181b', 
+                        cursor: 'pointer', borderRadius: '16px', border: '1px solid #27272a' 
+                      }}
+                      onClick={() => window.open(post.image_url, '_blank')}
+                    >
+                      <img src={post.image_url} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div style={{ background: '#18181b', borderRadius: '24px', padding: '40px 20px', border: '1px solid #27272a', textAlign: 'center' }}>
+                  <div style={{ fontSize: 40, marginBottom: 12 }}>📸</div>
+                  <div style={{ fontSize: 15, color: '#71717a', fontWeight: 600 }}>아직 등록된 사진이 없습니다.</div>
+                </div>
+              )}
+            </div>
           </div>
-        </div>
+        </motion.div>
       )}
     </div>
   )
