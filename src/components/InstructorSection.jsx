@@ -163,159 +163,145 @@ const InstructorSection = () => {
           </motion.div>
         ))}
       </div>
-      {/* 강사 상세 모달 (명품 감성 복원) */}
-      <AnimatePresence>
-        {selectedInstructor && (
-          <motion.div 
-            initial={{ y: '100%' }} animate={{ y: 0 }} exit={{ y: '100%' }}
-            transition={{ type: 'spring', damping: 32, stiffness: 300 }}
-            style={{ position: 'fixed', inset: 0, zIndex: 10000, background: '#0D0D0D', color: '#fff', overflowY: 'auto' }}
-          >
-            {/* 상단 히어로 섹션 */}
-            <div style={{ position: 'relative', height: '400px' }}>
-              <div style={{ position: 'absolute', inset: 0, overflow: 'hidden' }}>
-                {selectedInstructor.photo_url ? (
-                  <img src={selectedInstructor.photo_url} style={{ width: '100%', height: '100%', objectFit: 'cover', filter: 'brightness(0.6)' }} />
-                ) : (
-                  <div style={{ width: '100%', height: '100%', background: 'linear-gradient(180deg, #1A1A1A 0%, #0D0D0D 100%)' }} />
-                )}
-                {/* 시안의 부드러운 하단 그라데이션 */}
-                <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, height: '150px', background: 'linear-gradient(to bottom, transparent, #0D0D0D)' }} />
-              </div>
+      {/* 강사 상세 페이지 (명품 포트폴리오 레이아웃 제안) */}
+      {selectedInstructor && (
+        <div style={{ position: 'fixed', inset: 0, zIndex: 5000, background: '#050505', color: '#fff', overflowY: 'auto', fontFamily: 'Pretendard, -apple-system, sans-serif' }}>
+          
+          {/* 1. 임머시브 히어로 섹션 (Immersive Hero) */}
+          <div style={{ position: 'relative', height: '60vh', overflow: 'hidden' }}>
+            <div style={{ 
+              position: 'absolute', inset: 0, 
+              background: selectedInstructor.photo_url ? `url(${selectedInstructor.photo_url}) center/cover` : '#1A1A1A',
+              filter: 'brightness(0.7)' 
+            }} />
+            {/* 상단 딥 그라데이션 (컨트롤 가독성) */}
+            <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: '120px', background: 'linear-gradient(to bottom, rgba(0,0,0,0.8), transparent)' }} />
+            {/* 하단 딥 페이드 (콘텐츠 연결) */}
+            <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, height: '250px', background: 'linear-gradient(to bottom, transparent, #050505)' }} />
 
-              {/* 상단 컨트롤 (시안 스타일) */}
-              <div style={{ position: 'absolute', top: '50px', left: '20px', right: '20px', display: 'flex', justifyContent: 'space-between', zIndex: 20 }}>
-                <button onClick={() => setSelectedInstructor(null)} style={{ width: 44, height: 44, borderRadius: '50%', background: 'rgba(0,0,0,0.4)', backdropFilter: 'blur(10px)', border: '1px solid rgba(255,255,255,0.1)', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}><ChevronLeft size={24} /></button>
+            {/* 상단 내비게이션 */}
+            <div style={{ position: 'absolute', top: '50px', left: '25px', right: '25px', display: 'flex', justifyContent: 'space-between', zIndex: 20 }}>
+              <button onClick={() => setSelectedInstructor(null)} style={{ width: 48, height: 48, borderRadius: '50%', background: 'rgba(255,255,255,0.05)', backdropFilter: 'blur(20px)', border: '1px solid rgba(255,255,255,0.1)', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}>
+                <ChevronLeft size={24} />
+              </button>
+              <div style={{ display: 'flex', gap: 12 }}>
                 <button 
                   onClick={() => selectedInstructor.instagram && window.open(`https://instagram.com/${selectedInstructor.instagram}`, '_blank')}
-                  style={{ width: 44, height: 44, borderRadius: '50%', background: 'rgba(0,0,0,0.4)', backdropFilter: 'blur(10px)', border: '1px solid rgba(255,255,255,0.1)', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}
+                  style={{ width: 48, height: 48, borderRadius: '50%', background: 'rgba(255,255,255,0.05)', backdropFilter: 'blur(20px)', border: '1px solid rgba(255,255,255,0.1)', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}
                 >
                   <Camera size={20} />
                 </button>
               </div>
+            </div>
+          </div>
 
-              {/* 프로필 이미지 (시안의 핵심: 두꺼운 화이트 테두리 + 높게 오버랩) */}
-              <div style={{ position: 'absolute', bottom: '20px', left: '20px', zIndex: 30 }}>
-                <div style={{ width: 135, height: 135, borderRadius: '50%', border: '4px solid #fff', background: '#1A1A1A', overflow: 'hidden', boxShadow: '0 15px 45px rgba(0,0,0,0.6)' }}>
-                  {selectedInstructor.photo_url ? <img src={selectedInstructor.photo_url} style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : <div style={{ fontSize: 60, display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100%' }}>💃</div>}
+          {/* 2. 강사 프로필 카드 (Floating Profile Card - Deep Blur) */}
+          <div style={{ marginTop: '-140px', padding: '0 25px', position: 'relative', zIndex: 30 }}>
+            <div style={{ 
+              background: 'rgba(255,255,255,0.03)', 
+              backdropFilter: 'blur(40px)', 
+              border: '1px solid rgba(255,255,255,0.08)', 
+              borderRadius: '35px', 
+              padding: '35px',
+              boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.5)'
+            }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 20, marginBottom: 25 }}>
+                <div style={{ width: 85, height: 85, borderRadius: '50%', border: '2.5px solid #C9A84C', padding: '3px' }}>
+                  <img src={selectedInstructor.photo_url} style={{ width: '100%', height: '100%', borderRadius: '50%', objectFit: 'cover' }} />
+                </div>
+                <div>
+                  <h1 style={{ fontSize: '32px', fontWeight: 900, color: '#FFF', margin: '0 0 6px 0', letterSpacing: '-1px', textTransform: 'uppercase' }}>{selectedInstructor.name}</h1>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                    <span style={{ fontSize: '13px', color: '#C9A84C', fontWeight: 800, background: 'rgba(201,168,76,0.1)', padding: '4px 10px', borderRadius: '8px' }}>MASTER INSTRUCTOR</span>
+                    <span style={{ fontSize: '13px', color: '#8E8E93', fontWeight: 600 }}>{selectedInstructor.city}</span>
+                  </div>
                 </div>
               </div>
 
-              {/* 우측 하단 플로팅 버튼 (시안 스타일) */}
-              <div style={{ position: 'absolute', bottom: '80px', right: '20px', display: 'flex', gap: 12, zIndex: 30 }}>
-                <button style={{ width: 48, height: 48, borderRadius: '50%', background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(201,168,76,0.5)', backdropFilter: 'blur(10px)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#C9A84C' }}><Zap size={22} fill="#C9A84C" /></button>
-                <button onClick={() => toggleLike(null, selectedInstructor.id)} style={{ width: 48, height: 48, borderRadius: '50%', background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', backdropFilter: 'blur(10px)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: likes[selectedInstructor.id] ? '#FFD700' : '#fff', cursor: 'pointer' }}>
-                  <svg width="22" height="22" viewBox="0 0 24 24" fill={likes[selectedInstructor.id] ? "#FFD700" : "none"} stroke="currentColor" strokeWidth="2.5"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
-                </button>
+              {/* 미니멀 통계 바 */}
+              <div style={{ display: 'flex', justifyContent: 'space-between', borderTop: '1px solid rgba(255,255,255,0.05)', paddingTop: '25px' }}>
+                {[
+                  { label: 'Followers', value: selectedInstructor.follower_count || 0 },
+                  { label: 'Likes', value: selectedInstructor.likes_count || 0 },
+                  { label: 'Classes', value: '120+' },
+                  { label: 'Genre', value: Array.isArray(selectedInstructor.genre) ? selectedInstructor.genre[0] : selectedInstructor.genre }
+                ].map((item, i) => (
+                  <div key={i} style={{ textAlign: 'center' }}>
+                    <div style={{ fontSize: '18px', fontWeight: 900, color: '#FFF', marginBottom: 4 }}>{item.value}</div>
+                    <div style={{ fontSize: '10px', color: '#8E8E93', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.5px' }}>{item.label}</div>
+                  </div>
+                ))}
               </div>
             </div>
+          </div>
 
-            {/* 이름 및 직함 (시안 대문자 스타일) */}
-            <div style={{ padding: '10px 24px 25px' }}>
-              <h1 style={{ fontSize: '38px', fontWeight: 900, color: '#fff', margin: '0 0 4px 0', letterSpacing: '-1.5px', textTransform: 'uppercase' }}>{selectedInstructor.name}</h1>
-              <p style={{ fontSize: '15px', color: '#8E8E93', margin: 0, fontWeight: 500, letterSpacing: '0.2px' }}>
-                {Array.isArray(selectedInstructor.genre) ? selectedInstructor.genre.join(' | ') : selectedInstructor.genre} | {selectedInstructor.city}
-              </p>
-            </div>
-
-            {/* 스탯 카드 (시안 1:1 복제 - 세로 비율 + 고광택 골드 엣지) */}
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 10, padding: '0 20px 35px' }}>
-              {[
-                { label: 'Followers', value: selectedInstructor.follower_count || 0, icon: <User size={10} color="#C9A84C" /> },
-                { label: 'Likes', value: selectedInstructor.likes_count || 0, icon: <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#C9A84C" strokeWidth="2.5"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg> },
-                { label: 'Posts', value: posts.length, icon: null },
-                { label: 'Genre', value: Array.isArray(selectedInstructor.genre) ? selectedInstructor.genre.length : 1, icon: null }
-              ].map((stat, idx) => (
-                <div key={idx} style={{ 
-                  background: 'rgba(25, 25, 27, 0.6)', backdropFilter: 'blur(20px)',
-                  padding: '24px 4px', borderRadius: '22px', border: '1px solid rgba(255,255,255,0.08)',
-                  textAlign: 'center', position: 'relative', display: 'flex', flexDirection: 'column', justifyContent: 'center', height: '115px',
-                  boxShadow: '0 8px 32px rgba(0,0,0,0.3)'
-                }}>
-                  {/* 시안의 강력한 상하단 골드 글로우 엣지 */}
-                  <div style={{ position: 'absolute', top: 0, left: '15%', right: '15%', height: '1.5px', background: 'linear-gradient(90deg, transparent, #C9A84C, #FFD700, #C9A84C, transparent)', opacity: 0.9 }} />
-                  <div style={{ position: 'absolute', bottom: 0, left: '15%', right: '15%', height: '1.5px', background: 'linear-gradient(90deg, transparent, #C9A84C, transparent)', opacity: 0.5 }} />
-
-                  {stat.icon && (
-                    <div style={{ position: 'absolute', top: 8, right: 8, background: 'rgba(0,0,0,0.4)', borderRadius: '50%', width: 20, height: 20, display: 'flex', alignItems: 'center', justifyContent: 'center', border: '1px solid rgba(201,168,76,0.6)' }}>
-                      {stat.icon}
-                    </div>
-                  )}
-                  <div style={{ fontSize: '11px', color: '#8E8E93', fontWeight: 600, marginBottom: 8, textTransform: 'capitalize' }}>{stat.label}</div>
-                  <div style={{ fontSize: '20px', fontWeight: 900, color: '#FFF', letterSpacing: '-0.5px' }}>{stat.value}</div>
-                </div>
-              ))}
-            </div>
-
-            {/* 탭 내비게이션 (시안 스타일) */}
-            <div style={{ display: 'flex', borderBottom: '1.5px solid rgba(255,255,255,0.1)', padding: '0 24px', gap: 40, marginBottom: 35 }}>
+          {/* 3. 콘텐츠 영역 (Tabs & Details) */}
+          <div style={{ padding: '40px 25px 150px' }}>
+            {/* 커스텀 탭 내비게이션 */}
+            <div style={{ display: 'flex', gap: 30, marginBottom: 35, paddingLeft: '5px' }}>
               {['BIO', 'GALLERY'].map(tab => (
                 <button 
                   key={tab} 
                   onClick={() => setActiveTab(tab)}
                   style={{ 
-                    background: 'none', border: 'none', color: activeTab === tab ? '#FFF' : '#8E8E93', 
-                    fontSize: '15px', fontWeight: 800, padding: '15px 0', cursor: 'pointer',
-                    borderBottom: activeTab === tab ? '3px solid #C9A84C' : '3px solid transparent',
-                    transition: 'all 0.2s'
+                    background: 'none', border: 'none', color: activeTab === tab ? '#FFF' : 'rgba(255,255,255,0.3)', 
+                    fontSize: '18px', fontWeight: 900, cursor: 'pointer', position: 'relative', paddingBottom: '8px',
+                    transition: 'all 0.3s'
                   }}
-                >{tab}</button>
+                >
+                  {tab}
+                  {activeTab === tab && <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, height: '3px', background: '#C9A84C', borderRadius: '2px' }} />}
+                </button>
               ))}
             </div>
 
-            {/* 상세 정보 섹션 */}
-            <div style={{ padding: '0 24px 140px' }}>
-              {activeTab === 'BIO' ? (
-                <>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
-                    <h2 style={{ fontSize: '20px', fontWeight: 800, color: '#FFF', margin: 0 }}>About {selectedInstructor.name}</h2>
-                  </div>
-                  <p style={{ fontSize: '15px', color: '#A1A1AA', lineHeight: 1.8, marginBottom: 35 }}>
-                    {selectedInstructor.bio || `Passionate professional instructor with deep expertise in their field. Focused on providing high-value classes and building a vibrant community.`}
+            {activeTab === 'BIO' ? (
+              <div style={{ animation: 'fadeIn 0.5s ease' }}>
+                <div style={{ position: 'relative', paddingLeft: '20px', borderLeft: '2px solid #C9A84C', marginBottom: 30 }}>
+                  <p style={{ fontSize: '18px', color: '#FFF', fontWeight: 700, lineHeight: 1.5, margin: 0, fontStyle: 'italic' }}>
+                    "Dance is not just movement, it's the signature of the soul."
                   </p>
-
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end' }}>
-                    <div style={{ display: 'flex', gap: 40 }}>
-                      <div>
-                        <div style={{ fontSize: '17px', fontWeight: 800, color: '#FFF', marginBottom: 6 }}>Genre</div>
-                        <div style={{ fontSize: '14px', color: '#8E8E93', fontWeight: 600 }}>{Array.isArray(selectedInstructor.genre) ? selectedInstructor.genre[0] : selectedInstructor.genre}</div>
-                      </div>
-                      <div>
-                        <div style={{ fontSize: '17px', fontWeight: 800, color: '#FFF', marginBottom: 6 }}>Location</div>
-                        <div style={{ fontSize: '14px', color: '#8E8E93', fontWeight: 600 }}>{selectedInstructor.city}</div>
-                      </div>
-                    </div>
-
-                    {/* 시안의 명품 BOOK NOW 버튼: 다크 배경 + 골드 테두리 + 골드 텍스트 + 글로우 */}
-                    <button 
-                      onClick={() => selectedInstructor.kakao_link && window.open(selectedInstructor.kakao_link, '_blank')}
-                      style={{ 
-                        padding: '16px 32px', borderRadius: '22px', border: '1.5px solid #C9A84C',
-                        background: 'rgba(20, 20, 22, 0.8)', color: '#C9A84C', fontSize: '15px', fontWeight: 950, 
-                        cursor: 'pointer', boxShadow: '0 0 20px rgba(201, 168, 76, 0.3)',
-                        transition: 'all 0.3s'
-                      }}
-                      onMouseEnter={(e) => e.currentTarget.style.transform = 'scale(1.05)'}
-                      onMouseLeave={(e) => e.currentTarget.style.transform = 'scale(1)'}
-                    >
-                      BOOK NOW
-                    </button>
-                  </div>
-                </>
-              ) : (
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 2 }}>
-                  {posts.map((post, idx) => (
-                    <div key={idx} style={{ aspectRatio: '1/1', background: '#1a1a1a', overflow: 'hidden' }}>
-                      {post.media_url && <img src={post.media_url} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />}
-                    </div>
-                  ))}
-                  {posts.length === 0 && <div style={{ gridColumn: 'span 3', textAlign: 'center', color: '#8E8E93', padding: '40px 0' }}>No posts yet.</div>}
                 </div>
-              )}
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
+                <p style={{ fontSize: '16px', color: '#A1A1AA', lineHeight: 1.9, fontWeight: 500 }}>
+                  {selectedInstructor.bio || `Professional instructor with over 15 years of experience in the international dance scene. Specializing in high-performance technique and emotional expression. Dedicated to training the next generation of master dancers.`}
+                </p>
+              </div>
+            ) : (
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 15, animation: 'fadeIn 0.5s ease' }}>
+                {posts.map((post, idx) => (
+                  <div key={idx} style={{ aspectRatio: '4/5', background: '#1a1a1a', borderRadius: '20px', overflow: 'hidden' }}>
+                    {post.media_url && <img src={post.media_url} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />}
+                  </div>
+                ))}
+                {posts.length === 0 && <div style={{ gridColumn: 'span 2', textAlign: 'center', color: '#444', padding: '80px 0', fontSize: '14px', fontWeight: 700 }}>PREMIUM CONTENT COMING SOON</div>}
+              </div>
+            )}
+          </div>
+
+          {/* 4. 하단 고정 하이엔드 액션 바 (Sticky Action Bar) */}
+          <div style={{ 
+            position: 'fixed', bottom: 0, left: 0, right: 0, 
+            padding: '25px 25px 40px', 
+            background: 'linear-gradient(to top, #050505 80%, transparent)',
+            backdropFilter: 'blur(20px)',
+            zIndex: 100
+          }}>
+            <button 
+              onClick={() => selectedInstructor.kakao_link && window.open(selectedInstructor.kakao_link, '_blank')}
+              style={{ 
+                width: '100%', padding: '22px', borderRadius: '20px', 
+                background: 'linear-gradient(135deg, #C9A84C 0%, #FFD700 100%)', 
+                color: '#000', fontSize: '18px', fontWeight: 950, 
+                border: 'none', cursor: 'pointer',
+                boxShadow: '0 10px 30px rgba(201, 168, 76, 0.4)',
+                textTransform: 'uppercase', letterSpacing: '1px'
+              }}
+            >
+              Reserve a Private Session
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   )
 }
