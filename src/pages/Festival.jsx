@@ -285,7 +285,13 @@ const Festival = ({ onBack, initialView = 'list' }) => {
               <h2 style={{ fontSize: '24px', fontWeight: 900, color: '#111', margin: 0 }}>페스티벌 등록 신청</h2>
               <button 
                 type="button" 
-                onClick={() => { setView('list'); onBack(); }}
+                onClick={() => { 
+                  if (initialView === 'register') {
+                    onBack(); 
+                  } else {
+                    setView('list'); 
+                  }
+                }}
                 style={{ 
                   background: '#f1f5f9', 
                   border: 'none', 
