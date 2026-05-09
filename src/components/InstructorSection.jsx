@@ -128,7 +128,7 @@ const InstructorSection = () => {
             style={{
               flexShrink: 0, padding: '10px 22px', borderRadius: 25,
               border: selectedGenre === g ? 'none' : '1px solid rgba(255,255,255,0.1)',
-              background: selectedGenre === g ? 'linear-gradient(135deg, #C9A84C 0%, #FFD700 100%)' : 'rgba(255,255,255,0.05)',
+              background: selectedGenre === g ? 'linear-gradient(135deg, #DAA520 0%, #FFD700 100%)' : 'rgba(255,255,255,0.05)',
               color: selectedGenre === g ? '#000' : '#A1A1AA',
               fontSize: 14, fontWeight: 700, cursor: 'pointer', transition: 'all 0.3s'
             }}
@@ -151,7 +151,7 @@ const InstructorSection = () => {
               marginBottom: '12px', border: '1px solid rgba(255,255,255,0.05)',
               cursor: 'pointer', backdropFilter: 'blur(15px)'
             }}
-            whileHover={{ scale: 1.02, border: '1px solid rgba(201,168,76,0.3)' }}
+            whileHover={{ scale: 1.02, border: '1px solid rgba(218,165,32,0.3)' }}
           >
             <div style={{ width: 75, height: 75, borderRadius: '22px', overflow: 'hidden', background: '#1A1A1A', flexShrink: 0, border: '1px solid rgba(255,255,255,0.1)' }}>
               {instructor.photo_url ? <img src={instructor.photo_url} style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : <div style={{ fontSize: 24, display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100%' }}>💃</div>}
@@ -163,144 +163,238 @@ const InstructorSection = () => {
           </motion.div>
         ))}
       </div>
-      {/* 강사 상세 페이지 (명품 포트폴리오 레이아웃 제안) */}
+
+      {/* 강사 상세 페이지 (프리미엄 시안 구현) */}
       {selectedInstructor && (
-        <div style={{ position: 'fixed', inset: 0, zIndex: 5000, background: '#050505', color: '#fff', overflowY: 'auto', fontFamily: 'Pretendard, -apple-system, sans-serif' }}>
-          
-          {/* 1. 임머시브 히어로 섹션 (Immersive Hero) */}
-          <div style={{ position: 'relative', height: '60vh', overflow: 'hidden' }}>
+        <motion.div 
+          initial={{ opacity: 0, x: 20 }}
+          animate={{ opacity: 1, x: 0 }}
+          style={{ 
+            position: 'fixed', 
+            top: 0, bottom: 0, 
+            left: '50%', transform: 'translateX(-50%)',
+            width: '100%', maxWidth: '480px', 
+            zIndex: 5000, background: '#050505', color: '#fff', 
+            overflowY: 'auto', fontFamily: 'Pretendard, -apple-system, sans-serif' 
+          }}
+        >
+          {/* 1. 프리미엄 히어로 섹션 (강화된 입체 음영) */}
+          <div style={{ position: 'relative', height: '420px', overflow: 'hidden', background: '#050505' }}>
+            {/* 메인 포스터 이미지 */}
             <div style={{ 
               position: 'absolute', inset: 0, 
               background: selectedInstructor.photo_url ? `url(${selectedInstructor.photo_url}) center/cover` : '#1A1A1A',
-              filter: 'brightness(0.7)' 
+              filter: 'brightness(0.7) contrast(1.1)',
+              transform: 'scale(1.02)',
+              zIndex: 0
             }} />
-            {/* 상단 딥 그라데이션 (컨트롤 가독성) */}
-            <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: '120px', background: 'linear-gradient(to bottom, rgba(0,0,0,0.8), transparent)' }} />
-            {/* 하단 딥 페이드 (콘텐츠 연결) */}
-            <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, height: '250px', background: 'linear-gradient(to bottom, transparent, #050505)' }} />
 
-            {/* 상단 내비게이션 */}
-            <div style={{ position: 'absolute', top: '50px', left: '25px', right: '25px', display: 'flex', justifyContent: 'space-between', zIndex: 20 }}>
-              <button onClick={() => setSelectedInstructor(null)} style={{ width: 48, height: 48, borderRadius: '50%', background: 'rgba(255,255,255,0.05)', backdropFilter: 'blur(20px)', border: '1px solid rgba(255,255,255,0.1)', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}>
-                <ChevronLeft size={24} />
+            {/* [음영 레이어 1] 상단 내비게이션 보호 음영 */}
+            <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: '140px', background: 'linear-gradient(to bottom, rgba(0,0,0,0.8), transparent)', zIndex: 1 }} />
+
+            {/* [음영 레이어 2] 하단 콘텐츠 연결 딥 페이드 */}
+            <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, height: '220px', background: 'linear-gradient(to bottom, transparent, #050505)', zIndex: 2 }} />
+
+            {/* [음영 레이어 3] 프리미엄 골드 포인트 글로우 (분위기 조율) */}
+            <div style={{ position: 'absolute', top: '20%', left: '-10%', width: '60%', height: '60%', background: 'radial-gradient(circle, rgba(218, 165, 32, 0.08) 0%, transparent 70%)', filter: 'blur(40px)', zIndex: 1 }} />
+
+            {/* 상단 내비게이션 버튼 */}
+            <div style={{ position: 'absolute', top: '50px', left: '20px', right: '20px', display: 'flex', justifyContent: 'space-between', zIndex: 50 }}>
+              <button onClick={() => setSelectedInstructor(null)} style={{ width: 44, height: 44, borderRadius: '50%', background: 'rgba(0,0,0,0.4)', backdropFilter: 'blur(10px)', border: '1px solid rgba(255,255,255,0.1)', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}>
+                <ChevronLeft size={22} />
               </button>
-              <div style={{ display: 'flex', gap: 12 }}>
-                <button 
-                  onClick={() => selectedInstructor.instagram && window.open(`https://instagram.com/${selectedInstructor.instagram}`, '_blank')}
-                  style={{ width: 48, height: 48, borderRadius: '50%', background: 'rgba(255,255,255,0.05)', backdropFilter: 'blur(20px)', border: '1px solid rgba(255,255,255,0.1)', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}
-                >
-                  <Camera size={20} />
-                </button>
+              <button style={{ width: 44, height: 44, borderRadius: '50%', background: 'rgba(0,0,0,0.4)', backdropFilter: 'blur(10px)', border: '1px solid rgba(255,255,255,0.1)', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}>
+                <Sparkles size={18} />
+              </button>
+            </div>
+
+            {/* 오버랩 프로필 이미지 */}
+            <div style={{ position: 'absolute', bottom: '20px', left: '25px', zIndex: 60 }}>
+              <div style={{ 
+                width: '110px', height: '110px', borderRadius: '50%', 
+                border: '3px solid #DAA520', padding: '4px',
+                background: '#050505',
+                boxShadow: '0 10px 30px rgba(0,0,0,0.5)'
+              }}>
+                <img src={selectedInstructor.photo_url} style={{ width: '100%', height: '100%', borderRadius: '50%', objectFit: 'cover' }} />
               </div>
+            </div>
+
+            {/* 알림 및 좋아요 버튼 */}
+            <div style={{ position: 'absolute', bottom: '35px', right: '25px', display: 'flex', gap: 12, zIndex: 60 }}>
+              <button style={{ width: 44, height: 44, borderRadius: '50%', background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                <Zap size={18} />
+              </button>
+              <button 
+                onClick={(e) => toggleLike(e, selectedInstructor.id)}
+                style={{ width: 44, height: 44, borderRadius: '50%', background: likes[selectedInstructor.id] ? 'rgba(139,69,19,0.2)' : 'rgba(255,255,255,0.05)', border: likes[selectedInstructor.id] ? '1px solid #DAA520' : '1px solid rgba(255,255,255,0.1)', color: likes[selectedInstructor.id] ? '#DAA520' : '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+              >
+                <motion.div animate={{ scale: likes[selectedInstructor.id] ? 1.2 : 1 }}>❤️</motion.div>
+              </button>
             </div>
           </div>
 
-          {/* 2. 강사 프로필 카드 (Floating Profile Card - Deep Blur) */}
-          <div style={{ marginTop: '-140px', padding: '0 25px', position: 'relative', zIndex: 30 }}>
-            <div style={{ 
-              background: 'rgba(255,255,255,0.03)', 
-              backdropFilter: 'blur(40px)', 
-              border: '1px solid rgba(255,255,255,0.08)', 
-              borderRadius: '35px', 
-              padding: '35px',
-              boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.5)'
-            }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 20, marginBottom: 25 }}>
-                <div style={{ width: 85, height: 85, borderRadius: '50%', border: '2.5px solid #C9A84C', padding: '3px' }}>
-                  <img src={selectedInstructor.photo_url} style={{ width: '100%', height: '100%', borderRadius: '50%', objectFit: 'cover' }} />
-                </div>
-                <div>
-                  <h1 style={{ fontSize: '32px', fontWeight: 900, color: '#FFF', margin: '0 0 6px 0', letterSpacing: '-1px', textTransform: 'uppercase' }}>{selectedInstructor.name}</h1>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                    <span style={{ fontSize: '13px', color: '#C9A84C', fontWeight: 800, background: 'rgba(201,168,76,0.1)', padding: '4px 10px', borderRadius: '8px' }}>MASTER INSTRUCTOR</span>
-                    <span style={{ fontSize: '13px', color: '#8E8E93', fontWeight: 600 }}>{selectedInstructor.city}</span>
-                  </div>
-                </div>
-              </div>
+          {/* 2. 이름 및 스탯 그리드 섹션 */}
+          <div style={{ padding: '0 25px' }}>
+            <div style={{ marginBottom: '30px' }}>
+              <h1 style={{ fontSize: '36px', fontWeight: 950, color: '#FFF', margin: '0 0 4px 0', letterSpacing: '-1.5px', textTransform: 'uppercase' }}>{selectedInstructor.name}</h1>
+              <p style={{ fontSize: '15px', color: '#8E8E93', fontWeight: 600, letterSpacing: '0.5px' }}>
+                Professional Dancer | {getGenre(selectedInstructor.genre)} | Instructor
+              </p>
+            </div>
 
-              {/* 미니멀 통계 바 */}
-              <div style={{ display: 'flex', justifyContent: 'space-between', borderTop: '1px solid rgba(255,255,255,0.05)', paddingTop: '25px' }}>
-                {[
-                  { label: 'Followers', value: selectedInstructor.follower_count || 0 },
-                  { label: 'Likes', value: selectedInstructor.likes_count || 0 },
-                  { label: 'Classes', value: '120+' },
-                  { label: 'Genre', value: Array.isArray(selectedInstructor.genre) ? selectedInstructor.genre[0] : selectedInstructor.genre }
-                ].map((item, i) => (
-                  <div key={i} style={{ textAlign: 'center' }}>
-                    <div style={{ fontSize: '18px', fontWeight: 900, color: '#FFF', marginBottom: 4 }}>{item.value}</div>
-                    <div style={{ fontSize: '10px', color: '#8E8E93', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.5px' }}>{item.label}</div>
-                  </div>
-                ))}
-              </div>
+            {/* 4구역 입체 골드 스탯 카드 (모바일 최적화 버전) */}
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '8px', marginBottom: '40px' }}>
+              {[
+                { label: 'Followers', value: (selectedInstructor.follower_count || 0) >= 1000 ? (selectedInstructor.follower_count / 1000).toFixed(1) + 'K' : selectedInstructor.follower_count, icon: <User size={13} />, sub: 'New' },
+                { label: 'Likes', value: (selectedInstructor.likes_count || 0) >= 1000 ? (selectedInstructor.likes_count / 1000).toFixed(1) + 'K' : selectedInstructor.likes_count, icon: '❤️', sub: 'New' },
+                { label: 'Classes', value: '190', icon: <Camera size={13} /> },
+                { label: 'Bookings', value: '75+', icon: <Check size={13} /> }
+              ].map((item, i) => (
+                <div key={i} style={{ 
+                  background: 'linear-gradient(180deg, rgba(255,255,255,0.03) 0%, rgba(139,69,19,0.15) 100%)', 
+                  border: '1px solid rgba(218,165,32,0.2)',
+                  borderRadius: '16px', 
+                  padding: '15px 4px',
+                  textAlign: 'center',
+                  position: 'relative',
+                  overflow: 'hidden',
+                  boxShadow: '0 8px 20px rgba(0,0,0,0.4), inset 0 0 10px rgba(139,69,19,0.1)'
+                }}>
+                  {/* 하단 골드 음영 효과 */}
+                  <div style={{ 
+                    position: 'absolute', bottom: '-10px', left: '50%', transform: 'translateX(-50%)',
+                    width: '100%', height: '40%', background: 'radial-gradient(circle, rgba(139,69,19,0.3) 0%, transparent 75%)',
+                    filter: 'blur(10px)', zIndex: 0
+                  }} />
+
+                  {/* 하단 빛 반사 실선 */}
+                  <div style={{ 
+                    position: 'absolute', bottom: 0, left: '15%', right: '15%', height: '1.2px',
+                    background: 'linear-gradient(90deg, transparent 0%, #DAA520 50%, transparent 100%)',
+                    boxShadow: '0 0 6px rgba(218,165,32,0.5)',
+                    zIndex: 2
+                  }} />
+
+                  <div style={{ position: 'absolute', top: '6px', right: '6px', opacity: 0.8, color: '#DAA520', zIndex: 1 }}>{item.icon}</div>
+                  
+                  {/* 항목 이름 (폰트 축소 및 자간 조정으로 잘림 방지) */}
+                  <div style={{ fontSize: '8.5px', color: '#FFF', fontWeight: 900, textTransform: 'uppercase', letterSpacing: '0.2px', marginBottom: 4, position: 'relative', zIndex: 1 }}>{item.label}</div>
+                  
+                  {/* 숫자 (모바일 비율에 맞게 크기 미세 조정) */}
+                  <div style={{ fontSize: '22px', fontWeight: 950, color: '#FFF', position: 'relative', zIndex: 1, textShadow: '0 2px 4px rgba(0,0,0,0.6)' }}>{item.value}</div>
+                  
+                  {item.sub && <div style={{ fontSize: '8px', color: '#DAA520', fontWeight: 900, marginTop: 2, position: 'relative', zIndex: 1 }}>{item.sub}</div>}
+                </div>
+              ))}
             </div>
           </div>
 
           {/* 3. 콘텐츠 영역 (Tabs & Details) */}
-          <div style={{ padding: '40px 25px 150px' }}>
+          <div style={{ padding: '0 20px 150px' }}>
             {/* 커스텀 탭 내비게이션 */}
-            <div style={{ display: 'flex', gap: 30, marginBottom: 35, paddingLeft: '5px' }}>
-              {['BIO', 'GALLERY'].map(tab => (
+            <div style={{ display: 'flex', gap: 30, marginBottom: 35, borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
+              {['BIO', 'CLASSES', 'GALLERY'].map(tab => (
                 <button 
                   key={tab} 
                   onClick={() => setActiveTab(tab)}
                   style={{ 
-                    background: 'none', border: 'none', color: activeTab === tab ? '#FFF' : 'rgba(255,255,255,0.3)', 
-                    fontSize: '18px', fontWeight: 900, cursor: 'pointer', position: 'relative', paddingBottom: '8px',
-                    transition: 'all 0.3s'
+                    background: 'none', border: 'none', color: activeTab === tab ? '#DAA520' : 'rgba(255,255,255,0.3)', 
+                    fontSize: '15px', fontWeight: 900, cursor: 'pointer', position: 'relative', padding: '0 0 12px 0',
+                    transition: 'all 0.3s', letterSpacing: '0.5px'
                   }}
                 >
                   {tab}
-                  {activeTab === tab && <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, height: '3px', background: '#C9A84C', borderRadius: '2px' }} />}
+                  {activeTab === tab && <motion.div layoutId="tabUnderline" style={{ position: 'absolute', bottom: -1, left: 0, right: 0, height: '2px', background: '#DAA520', borderRadius: '2px' }} />}
                 </button>
               ))}
             </div>
 
-            {activeTab === 'BIO' ? (
-              <div style={{ animation: 'fadeIn 0.5s ease' }}>
-                <div style={{ position: 'relative', paddingLeft: '20px', borderLeft: '2px solid #C9A84C', marginBottom: 30 }}>
-                  <p style={{ fontSize: '18px', color: '#FFF', fontWeight: 700, lineHeight: 1.5, margin: 0, fontStyle: 'italic' }}>
-                    "Dance is not just movement, it's the signature of the soul."
-                  </p>
-                </div>
-                <p style={{ fontSize: '16px', color: '#A1A1AA', lineHeight: 1.9, fontWeight: 500 }}>
-                  {selectedInstructor.bio || `Professional instructor with over 15 years of experience in the international dance scene. Specializing in high-performance technique and emotional expression. Dedicated to training the next generation of master dancers.`}
-                </p>
-              </div>
-            ) : (
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 15, animation: 'fadeIn 0.5s ease' }}>
-                {posts.map((post, idx) => (
-                  <div key={idx} style={{ aspectRatio: '4/5', background: '#1a1a1a', borderRadius: '20px', overflow: 'hidden' }}>
-                    {post.media_url && <img src={post.media_url} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />}
+            <AnimatePresence mode="wait">
+              {activeTab === 'BIO' && (
+                <motion.div 
+                  key="bio"
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -10 }}
+                >
+                  <div style={{ marginBottom: 40 }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 15 }}>
+                      <h3 style={{ fontSize: '22px', fontWeight: 900, color: '#FFF' }}>About {selectedInstructor.name}</h3>
+                      <div style={{ display: 'flex', gap: 10 }}>
+                        <button style={{ width: 38, height: 38, borderRadius: '50%', background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                          <MessageCircle size={16} />
+                        </button>
+                        <button style={{ width: 38, height: 38, borderRadius: '50%', background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                          <Sparkles size={16} />
+                        </button>
+                      </div>
+                    </div>
+                    <p style={{ fontSize: '15px', color: '#A1A1AA', lineHeight: 1.8, fontWeight: 500 }}>
+                      {selectedInstructor.bio || `Passionate professional with 15+ years experience in the international dance scene. Focused on technique, expression, and artistry. Based in ${selectedInstructor.city || 'Seoul'}.`}
+                    </p>
                   </div>
-                ))}
-                {posts.length === 0 && <div style={{ gridColumn: 'span 2', textAlign: 'center', color: '#444', padding: '80px 0', fontSize: '14px', fontWeight: 700 }}>PREMIUM CONTENT COMING SOON</div>}
-              </div>
-            )}
-          </div>
 
-          {/* 4. 하단 고정 하이엔드 액션 바 (Sticky Action Bar) */}
-          <div style={{ 
-            position: 'fixed', bottom: 0, left: 0, right: 0, 
-            padding: '25px 25px 40px', 
-            background: 'linear-gradient(to top, #050505 80%, transparent)',
-            backdropFilter: 'blur(20px)',
-            zIndex: 100
-          }}>
-            <button 
-              onClick={() => selectedInstructor.kakao_link && window.open(selectedInstructor.kakao_link, '_blank')}
-              style={{ 
-                width: '100%', padding: '22px', borderRadius: '20px', 
-                background: 'linear-gradient(135deg, #C9A84C 0%, #FFD700 100%)', 
-                color: '#000', fontSize: '18px', fontWeight: 950, 
-                border: 'none', cursor: 'pointer',
-                boxShadow: '0 10px 30px rgba(201, 168, 76, 0.4)',
-                textTransform: 'uppercase', letterSpacing: '1px'
-              }}
-            >
-              Reserve a Private Session
-            </button>
+                  <div style={{ display: 'flex', gap: 40, marginBottom: 40 }}>
+                    <div style={{ flex: 1 }}>
+                      <h4 style={{ fontSize: '18px', fontWeight: 900, color: '#FFF', marginBottom: 10 }}>Experience</h4>
+                      <p style={{ fontSize: '14px', color: '#8E8E93', fontWeight: 600 }}>12 Yrs+</p>
+                    </div>
+                    <div style={{ flex: 2 }}>
+                      <h4 style={{ fontSize: '18px', fontWeight: 900, color: '#FFF', marginBottom: 10 }}>Specialties</h4>
+                      <p style={{ fontSize: '14px', color: '#8E8E93', fontWeight: 600 }}>{getGenre(selectedInstructor.genre)}</p>
+                    </div>
+                  </div>
+
+                  {/* 시안의 주인공: BOOK NOW 버튼 (Imperial Gold with SaddleBrown Base) */}
+                  <button 
+                    onClick={() => selectedInstructor.kakao_link && window.open(selectedInstructor.kakao_link, '_blank')}
+                    style={{ 
+                      width: '100%', padding: '20px', borderRadius: '18px', 
+                      background: 'linear-gradient(135deg, #8b4513 0%, #DAA520 50%, #B8860B 100%)', 
+                      color: '#000', fontSize: '16px', fontWeight: 950, 
+                      border: 'none', cursor: 'pointer',
+                      boxShadow: '0 10px 25px rgba(139, 69, 19, 0.4)',
+                      textTransform: 'uppercase', letterSpacing: '1px',
+                      display: 'flex', justifyContent: 'center', alignItems: 'center', gap: 10
+                    }}
+                  >
+                    BOOK NOW
+                  </button>
+                </motion.div>
+              )}
+
+              {activeTab === 'GALLERY' && (
+                <motion.div 
+                  key="gallery"
+                  initial={{ opacity: 0, scale: 0.95 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 12 }}
+                >
+                  {posts.map((post, idx) => (
+                    <div key={idx} style={{ aspectRatio: '1/1', background: '#1a1a1a', borderRadius: '16px', overflow: 'hidden', border: '1px solid rgba(255,255,255,0.05)' }}>
+                      {post.media_url && <img src={post.media_url} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />}
+                    </div>
+                  ))}
+                  {posts.length === 0 && <div style={{ gridColumn: 'span 2', textAlign: 'center', color: '#444', padding: '60px 0', fontSize: '13px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '1px' }}>Premium Portfolio Coming Soon</div>}
+                </motion.div>
+              )}
+
+              {activeTab === 'CLASSES' && (
+                <motion.div 
+                  key="classes"
+                  initial={{ opacity: 0, x: -10 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  style={{ textAlign: 'center', padding: '60px 20px', color: '#8E8E93' }}
+                >
+                  <MapPin size={48} style={{ marginBottom: 20, opacity: 0.2 }} />
+                  <div style={{ fontSize: '15px', fontWeight: 700 }}>Upcoming Classes & Workshops</div>
+                  <div style={{ fontSize: '13px', marginTop: 8 }}>Stay tuned for the latest schedule</div>
+                </motion.div>
+              )}
+            </AnimatePresence>
           </div>
-        </div>
+        </motion.div>
       )}
     </div>
   )

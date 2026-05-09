@@ -603,24 +603,33 @@ function App() {
   }, []);
 
   useEffect(() => {
-    const handleScroll = () => {
-      const currentY = window.scrollY
-      const diff = currentY - lastScrollY.current
+    const handleScroll = (e) => {
+      const target = e.target === document ? (document.documentElement || document.body) : e.target;
+      const currentY = target.scrollTop || window.pageYOffset;
+      const totalHeight = target.scrollHeight || document.documentElement.scrollHeight;
+      const clientHeight = target.clientHeight || window.innerHeight;
       
-      if (currentY < 10) {
-        setNavVisible(true)
-      } else if (Math.abs(diff) > 10) {
+      const diff = currentY - lastScrollY.current;
+      
+      // 최상단이거나 최하단(여유값 20px)일 때는 항상 보이기
+      if (currentY < 10 || currentY + clientHeight >= totalHeight - 20) {
+        setNavVisible(true);
+      } else if (Math.abs(diff) > 2) {
         if (diff > 0) {
-          setNavVisible(false)
+          setNavVisible(false); // 내릴 때 숨김
         } else {
-          setNavVisible(true)
+          setNavVisible(true);  // 올릴 때 보임
         }
-        lastScrollY.current = currentY
+        lastScrollY.current = currentY;
       }
-    }
-    window.addEventListener('scroll', handleScroll, { passive: true })
-    return () => window.removeEventListener('scroll', handleScroll)
-  }, [])
+    };
+
+    window.addEventListener('scroll', handleScroll, { passive: true, capture: true });
+    
+    return () => {
+      window.removeEventListener('scroll', handleScroll, { capture: true });
+    };
+  }, []);
 
   const handleWeatherTap = () => {
     const now = Date.now();
@@ -941,199 +950,106 @@ function App() {
       >
       <AnimatePresence>{isAnalyzing && <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} style={{ position: 'fixed', inset: 0, zIndex: 1000000, background: 'rgba(255,255,255,0.9)', backdropFilter: 'blur(30px)', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}><motion.div animate={{ rotate: 360 }} transition={{ duration: 1, repeat: Infinity, ease: 'linear' }} style={{ width: '60px', height: '60px', border: '4px solid #FFEBEE', borderTop: '4px solid #E53935', borderRadius: '50%', marginBottom: '20px' }} /><h2 style={{ color: '#1E293B', fontSize: '20px', fontWeight: '900' }}>실시간 지능형 분석 중...</h2></motion.div>}</AnimatePresence>
 
-      {!isMenuOpen && (
-        <motion.button 
-          drag
-          dragConstraints={{ left: -450, right: 0, top: 0, bottom: 800 }}
-          dragMomentum={false}
-          dragElastic={0.05}
-          whileDrag={{ scale: 1.1 }}
-          whileTap={{ scale: 0.9 }}
-          onClick={() => handleOpenModal(setIsMenuOpen, true)}
-          style={{ 
-            position: 'fixed', top: '20px', right: '20px', zIndex: 1005,
-            background: 'rgba(255,255,255,0.95)', backdropFilter: 'blur(10px)',
-            border: '1px solid #F1F5F9', borderRadius: '14px', padding: '12px',
-            boxShadow: '0 8px 25px rgba(0,0,0,0.12)', cursor: 'pointer',
-            display: 'flex', alignItems: 'center', justifyContent: 'center'
-          }}
-        >
-          <Menu size={24} color={'#FF1744'} />
-        </motion.button>
-      )}
+        {!isMenuOpen && (
+          <motion.button 
+            drag
+            dragMomentum={false}
+            dragElastic={0}
+            whileDrag={{ scale: 1.1 }}
+            whileTap={{ scale: 0.9 }}
+            onClick={() => handleOpenModal(setIsMenuOpen, true)}
+            style={{ 
+              position: 'absolute', top: '20px', right: '16px', zIndex: 1005,
+              width: '44px', height: '44px',
+              minWidth: '44px', minHeight: '44px',
+              background: 'rgba(255,255,255,0.95)', backdropFilter: 'blur(10px)',
+              border: '1px solid #F1F5F9', borderRadius: '14px',
+              boxShadow: '0 8px 25px rgba(0,0,0,0.12)', cursor: 'pointer',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              padding: 0
+            }}
+          >
+            <Menu size={22} color={'#FF1744'} />
+          </motion.button>
+        )}
 
       <AnimatePresence>
         {isMenuOpen && (
-          <motion.div
-            initial={{ x: '-100%' }}
-            animate={{ x: 0 }}
-            exit={{ x: '-100%' }}
-            transition={{ type: 'spring', damping: 25, stiffness: 200 }}
-            style={{
-              position: 'fixed', top: 0, bottom: 0, left: 0,
-              width: '75vw', maxWidth: '320px',
-              zIndex: 1000000,
-              background: 'var(--color-bg)', padding: '24px',
-              display: 'flex', flexDirection: 'column',
-              overflowY: 'auto',
-              borderRight: '1px solid var(--color-border)',
-              transition: 'background-color 0.3s, border-color 0.3s'
-            }}
-          >
-            <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: '32px' }}>
-              <motion.button 
-                whileTap={{ scale: 0.9 }}
-                onClick={handleCloseModal}
-                style={{ background: 'var(--color-card)', border: '1px solid var(--color-border)', borderRadius: '12px', padding: '10px', color: '#FF1744', cursor: 'pointer' }}
-              >
-                <ChevronLeft size={24} />
-              </motion.button>
-            </div>
+          <>
+            {/* 배경 오버레이 */}
+            <motion.div 
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={handleCloseModal}
+              style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.6)', backdropFilter: 'blur(5px)', zIndex: 1000000 }}
+            />
+            
+            {/* 2/3 너비 사이드 메뉴 */}
+            <motion.div
+              initial={{ x: '-100%' }}
+              animate={{ x: 0 }}
+              exit={{ x: '-100%' }}
+              transition={{ type: 'spring', damping: 25, stiffness: 200 }}
+              style={{
+                position: 'fixed', top: 0, bottom: 0, left: 'calc(50% - 240px)', // 480px 프레임 기준
+                width: '66.6%', maxWidth: '320px',
+                zIndex: 1000001,
+                background: 'var(--color-bg)', padding: '32px 24px',
+                display: 'flex', flexDirection: 'column',
+                overflowY: 'auto',
+                boxShadow: '20px 0 60px rgba(0,0,0,0.5)',
+                borderRight: '1px solid var(--color-border)'
+              }}
+            >
+              <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: '40px' }}>
+                <motion.button 
+                  whileTap={{ scale: 0.9 }}
+                  onClick={handleCloseModal}
+                  style={{ background: '#F1F5F9', border: 'none', borderRadius: '12px', padding: '10px', color: '#FF1744', cursor: 'pointer' }}
+                >
+                  <ChevronLeft size={24} strokeWidth={3} />
+                </motion.button>
+              </div>
 
-            <div style={{ marginBottom: '40px' }}>
-              <h2 style={{ color: 'var(--color-text-main)', fontSize: '24px', fontWeight: 900, margin: 0 }}>{t('premium_services')}</h2>
-              <p style={{ color: 'var(--color-text-sub)', fontSize: '14px', marginTop: '4px' }}>{t('platform_desc')}</p>
-            </div>
+              <div style={{ marginBottom: '48px' }}>
+                <h2 style={{ color: 'var(--color-text-main)', fontSize: '26px', fontWeight: 1000, margin: 0, letterSpacing: '-0.5px' }}>PREMIUM</h2>
+                <p style={{ color: '#FF1744', fontSize: '13px', fontWeight: 800, marginTop: '6px' }}>BAMPPA SERVICES</p>
+              </div>
 
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-              {/* 1. 강사 등록 신청 */}
-              <button
-                type="button"
-                onClick={() => { handleCloseModal(); setShowInstructorRegister(true) }}
-                style={{
-                  width: '100%', padding: '16px 20px', background: '#fff', borderRadius: '16px', border: '1px solid #F1F5F9',
-                  textAlign: 'left', display: 'flex', alignItems: 'center', gap: '14px',
-                  cursor: 'pointer', pointerEvents: 'auto', position: 'relative', zIndex: 1
-                }}
-              >
-                <div style={{ width: '40px', height: '40px', borderRadius: '12px', background: '#F5F3FF', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                  <UserPlus size={20} color="#7C3AED" />
-                </div>
-                <div>
-                  <div style={{ fontSize: '15px', fontWeight: 700, color: '#1E293B' }}>강사 등록 신청</div>
-                  <div style={{ fontSize: '12px', color: '#94A3B8', marginTop: '2px' }}>나도 월드스타</div>
-                </div>
-              </button>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+                {[
+                  { icon: <UserPlus size={20} />, title: '강사 등록 신청', sub: '나도 월드스타', color: '#7C3AED', onClick: () => { handleCloseModal(); setShowInstructorRegister(true) } },
+                  { icon: <Music2 size={20} />, title: '라틴에 진심', sub: '베스트 강사 찾기', color: '#7C3AED', bg: 'linear-gradient(135deg, #F5F3FF, #EDE9FE)', onClick: () => { handleCloseModal(); setShowInstructor(true) } },
+                  { icon: <Calendar size={20} />, title: '파티 달력', sub: '일정 한눈에 보기', color: '#D97706', onClick: () => { setIsMenuOpen(false); handleOpenModal(setShowFullCalendar, true); } },
+                  { icon: <Cloud size={20} />, title: '오늘 날씨', sub: '파티 전 필수 확인', color: '#0284C7', onClick: handleWeatherTap },
+                  { icon: <MessageCircle size={20} />, title: '실시간 오픈톡', sub: '댄서들과 소통', color: '#000', bg: '#FEE500', onClick: () => { window.open('https://open.kakao.com/o/gP43rNri', '_blank'); setIsMenuOpen(false); } },
+                  { icon: <Moon size={20} />, title: isDark ? '라이트 모드' : '다크 모드', sub: '테마 변경하기', color: '#6366F1', onClick: () => setIsDark(!isDark) }
+                ].map((item, idx) => (
+                  <button
+                    key={idx}
+                    onClick={item.onClick}
+                    style={{
+                      width: '100%', padding: '18px 20px', background: item.bg || '#fff', borderRadius: '20px', border: '1px solid #F1F5F9',
+                      textAlign: 'left', display: 'flex', alignItems: 'center', gap: '16px', cursor: 'pointer', transition: 'all 0.2s'
+                    }}
+                  >
+                    <div style={{ width: '44px', height: '44px', borderRadius: '14px', background: 'rgba(0,0,0,0.03)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: item.color }}>
+                      {item.icon}
+                    </div>
+                    <div>
+                      <div style={{ fontSize: '15px', fontWeight: 800, color: '#1E293B' }}>{item.title}</div>
+                      <div style={{ fontSize: '11px', color: '#94A3B8', marginTop: '2px', fontWeight: 600 }}>{item.sub}</div>
+                    </div>
+                  </button>
+                ))}
+              </div>
 
-              {/* 2. 라틴에 진심 */}
-              <button
-                type="button"
-                onClick={() => { handleCloseModal(); setShowInstructor(true) }}
-                style={{
-                  width: '100%', padding: '16px 20px', borderRadius: '16px', textAlign: 'left', display: 'flex', alignItems: 'center', gap: '14px',
-                  background: 'linear-gradient(135deg, #F5F3FF, #EDE9FE)', border: '1px solid #DDD6FE',
-                  cursor: 'pointer', pointerEvents: 'auto', position: 'relative', zIndex: 1
-                }}
-              >
-                <div style={{ width: '40px', height: '40px', borderRadius: '12px', background: '#EDE9FE', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                  <Music2 size={20} color="#7C3AED" />
-                </div>
-                <div>
-                  <div style={{ fontSize: '15px', fontWeight: 900, color: '#7C3AED' }}>라틴에 진심</div>
-                  <div style={{ fontSize: '12px', color: '#94A3B8', marginTop: '2px' }}>팔로우할 강사를 찾아보세요</div>
-                </div>
-              </button>
-
-              {/* 3. 달력 */}
-              <button
-                type="button"
-                onClick={() => { setIsMenuOpen(false); handleOpenModal(setShowFullCalendar, true); }}
-                style={{
-                  width: '100%', padding: '16px 20px', background: '#fff', borderRadius: '16px', border: '1px solid #F1F5F9',
-                  textAlign: 'left', display: 'flex', alignItems: 'center', gap: '14px',
-                  cursor: 'pointer', pointerEvents: 'auto', position: 'relative', zIndex: 1
-                }}
-              >
-                <div style={{ width: '40px', height: '40px', borderRadius: '12px', background: '#FEF3C7', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                  <Calendar size={20} color="#D97706" />
-                </div>
-                <div>
-                  <div style={{ fontSize: '15px', fontWeight: 700, color: '#1E293B' }}>달력</div>
-                  <div style={{ fontSize: '12px', color: '#94A3B8', marginTop: '2px' }}>파티 일정 한눈에 보기</div>
-                </div>
-              </button>
-
-              {/* 4. 뒷풀이 맛집 */}
-              <button
-                type="button"
-                onClick={() => { setView('restaurant'); setIsMenuOpen(false); }}
-                style={{
-                  width: '100%', padding: '16px 20px', background: '#fff', borderRadius: '16px', border: '1px solid #F1F5F9',
-                  textAlign: 'left', display: 'flex', alignItems: 'center', gap: '14px',
-                  cursor: 'pointer', pointerEvents: 'auto', position: 'relative', zIndex: 1
-                }}
-              >
-                <div style={{ width: '40px', height: '40px', borderRadius: '12px', background: '#FEE2E2', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                  <Utensils size={20} color="#E53935" />
-                </div>
-                <div>
-                  <div style={{ fontSize: '15px', fontWeight: 700, color: '#1E293B' }}>뒷풀이 맛집</div>
-                  <div style={{ fontSize: '12px', color: '#94A3B8', marginTop: '2px' }}>댄서들의 단골 맛집</div>
-                </div>
-              </button>
-
-              {/* 5. 오늘 날씨 */}
-              <button
-                type="button"
-                onClick={handleWeatherTap}
-                style={{
-                  width: '100%', padding: '16px 20px', background: '#fff', borderRadius: '16px', border: '1px solid #F1F5F9',
-                  textAlign: 'left', display: 'flex', alignItems: 'center', gap: '14px',
-                  cursor: 'pointer', pointerEvents: 'auto', position: 'relative', zIndex: 1
-                }}
-              >
-                <div style={{ width: '40px', height: '40px', borderRadius: '12px', background: '#E0F2FE', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                  <Cloud size={20} color="#0284C7" />
-                </div>
-                <div>
-                  <div style={{ fontSize: '15px', fontWeight: 700, color: '#1E293B' }}>오늘 날씨</div>
-                  <div style={{ fontSize: '12px', color: '#94A3B8', marginTop: '2px' }}>파티 가기 전 날씨 확인</div>
-                </div>
-              </button>
-
-              {/* 6. 실시간 오픈톡 */}
-              <button
-                type="button"
-                onClick={() => { window.open('https://open.kakao.com/o/gP43rNri', '_blank'); setIsMenuOpen(false); }}
-                style={{
-                  width: '100%', padding: '16px 20px', background: '#fff', borderRadius: '16px', border: '1px solid #F1F5F9',
-                  textAlign: 'left', display: 'flex', alignItems: 'center', gap: '14px',
-                  cursor: 'pointer', pointerEvents: 'auto', position: 'relative', zIndex: 1
-                }}
-              >
-                <div style={{ width: '40px', height: '40px', borderRadius: '12px', background: '#FEE500', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                  <MessageCircle size={20} color="#000" />
-                </div>
-                <div>
-                  <div style={{ fontSize: '15px', fontWeight: 700, color: '#1E293B' }}>실시간 오픈톡</div>
-                  <div style={{ fontSize: '12px', color: '#94A3B8', marginTop: '2px' }}>댄서들과 실시간 소통</div>
-                </div>
-              </button>
-
-              {/* 다크모드 토글 (기존 스타일 유지하되 통일감 부여) */}
-              <button
-                type="button"
-                onClick={() => setIsDark(!isDark)}
-                style={{
-                  width: '100%', padding: '16px 20px', background: '#fff', borderRadius: '16px', border: '1px solid #F1F5F9',
-                  textAlign: 'left', display: 'flex', alignItems: 'center', gap: '14px', marginTop: '12px',
-                  cursor: 'pointer', pointerEvents: 'auto', position: 'relative', zIndex: 1
-                }}
-              >
-                <div style={{ width: '40px', height: '40px', borderRadius: '12px', background: '#EEF2FF', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                  <Moon size={20} color="#6366F1" />
-                </div>
-                <div>
-                  <div style={{ fontSize: '15px', fontWeight: 700, color: '#1E293B' }}>{isDark ? '라이트 모드로 보기' : '다크 모드로 보기'}</div>
-                  <div style={{ fontSize: '12px', color: '#94A3B8', marginTop: '2px' }}>눈이 편안한 테마로 변경</div>
-                </div>
-              </button>
-            </div>
-
-            <div style={{ marginTop: 'auto', paddingTop: '40px', textAlign: 'center' }}>
-              <p style={{ color: '#94A3B8', fontSize: '12px' }}>© 2026 BAMPPA All Rights Reserved.</p>
-            </div>
-          </motion.div>
+              <div style={{ marginTop: 'auto', paddingTop: '40px', textAlign: 'center' }}>
+                <p style={{ color: '#94A3B8', fontSize: '11px', fontWeight: 500 }}>© 2026 BAMPPA PREMIUM</p>
+              </div>
+            </motion.div>
+          </>
         )}
       </AnimatePresence>
 
@@ -1192,16 +1108,17 @@ function App() {
 
       <nav 
         className="bottom-nav" 
-        style={{ 
-          position: 'fixed', bottom: '20px', left: '50%',
-          transform: navVisible ? 'translateX(-50%) translateY(0)' : 'translateX(-50%) translateY(150%)',
-          transition: 'transform 0.5s cubic-bezier(0.4, 0, 0.2, 1)',
-          width: 'calc(100% - 30px)', maxWidth: '480px', height: '72px',
-          background: 'rgba(0, 0, 0, 0.9)', backdropFilter: 'blur(30px)',
-          display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-          border: '1px solid rgba(255, 255, 255, 0.1)', zIndex: 1000,
-          borderRadius: '24px', boxShadow: '0 10px 40px rgba(0,0,0,0.6)',
-          padding: '0 10px'
+        style={{
+          position: 'fixed', bottom: 0, left: '50%',
+          transform: navVisible ? 'translateX(-50%) translateY(0)' : 'translateX(-50%) translateY(200%)',
+          transition: 'transform 0.15s ease-out',
+          width: '100%', maxWidth: '500px', height: '80px',
+          background: 'rgba(255,255,255,0.95)', backdropFilter: 'blur(10px)',
+          display: 'flex', alignItems: 'center', justifyContent: 'space-around',
+          borderTop: '1px solid #F1F5F9', zIndex: 1000,
+          paddingBottom: 'env(safe-area-inset-bottom)',
+          borderRadius: 0, boxShadow: 'none', padding: '0',
+          border: 'none', borderTop: '1px solid #F1F5F9'
         }}
       >
         <div 
