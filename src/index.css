@@ -25,47 +25,21 @@
   --color-nav-bg: rgba(15, 23, 42, 0.95);
 }
 
-body {
-  margin: 0 !important;
-  padding: 0 !important;
-  background-color: #000 !important; /* PC 배경색 고정 */
-  display: flex !important;
-  justify-content: center !important;
-  min-height: 100vh !important;
-  overflow-x: hidden !important;
-}
-
-#root {
-  width: 100% !important;
-  max-width: 480px !important; /* 모바일 너비 강제 고정 */
-  min-height: 100vh !important;
-  background-color: #0D0D0D !important; /* 앱 배경색 고정 */
-  position: relative !important;
-  box-shadow: 0 0 100px rgba(0, 0, 0, 1) !important;
-  display: flex !important;
-  flex-direction: column !important;
-  overflow-x: hidden !important;
-}
-
-/* 모든 전역 요소가 모바일 프레임 밖으로 나가지 못하도록 차단 */
-.fixed, [style*="position: fixed"] {
-  max-width: 480px !important;
-  left: 50% !important;
-  transform: translateX(-50%) !important;
-}
-
-/* 스크롤바 숨기기 (모바일 앱 느낌 극대화) */
-::-webkit-scrollbar {
-  display: none;
-}
 * {
-  -ms-overflow-style: none;
-  scrollbar-width: none;
   font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, system-ui, Roboto, 'Helvetica Neue', 'Segoe UI', 'Apple SD Gothic Neo', 'Noto Sans KR', 'Malgun Gothic', 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', sans-serif !important;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
 
+
+body {
+  font-family: 'Pretendard', sans-serif;
+  margin: 0;
+  padding: 0;
+}
+
+
+/* ✅ 전역 스크롤바 숨김 (모든 브라우저 및 기기) */
 * {
   -ms-overflow-style: none; /* IE, Edge */
   scrollbar-width: none; /* Firefox */
