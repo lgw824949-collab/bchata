@@ -2013,7 +2013,7 @@ function App() {
             <div style={{ background:'#0a0a0a', borderRadius:16, padding:20, marginBottom:20, border:'1px solid rgba(249,115,22,0.3)' }}>
               <div style={{ fontSize:11, color:'#F97316', fontWeight:800, letterSpacing:3, marginBottom:10 }}>EVENT RULE</div>
               <div style={{ fontSize:14, color:'rgba(255,255,255,0.8)', lineHeight:1.8, whiteSpace:'pre-line' }}>
-                {'• 파티 등록 시 나만의 ID 입력\n• 15일간 승인된 파티 수 집계\n• 1등에게 위스키를 밤빠가 쏩니다 🥃\n• 결과는 카카오 오픈채팅 공지'}
+                {'• 소셜·부트캠프·페스티벌 포스터 등록 시 나만의 ID 입력\n• 15일간 승인된 포스터 수 집계\n• 소셜 / 부트캠프 / 페스티벌 모두 포함\n• 1등에게 위스키를 밤빠가 쏩니다 🥃\n• 결과는 카카오 오픈채팅 공지'}
               </div>
             </div>
             <div style={{ marginBottom:12 }}>

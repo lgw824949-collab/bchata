@@ -607,32 +607,6 @@ const HomePage = ({
           <div style={{ flex: 1, overflow: 'hidden' }}>
             <LiveCount />
           </div>
-          {/* 🌐 언어 토글 (LIVE 바 우측으로 이동) */}
-          <button
-            onClick={() => {
-              const newLang = lang === 'ko' ? 'en' : 'ko';
-              setLang(newLang);
-              i18n.changeLanguage(newLang);
-            }}
-            style={{ 
-              display: 'flex', 
-              alignItems: 'center', 
-              gap: '2px', 
-              background: 'rgba(255,255,255,0.08)', 
-              border: '1px solid rgba(255,255,255,0.15)', 
-              borderRadius: '20px', 
-              padding: '2px', 
-              cursor: 'pointer', 
-              color: 'rgba(255,255,255,0.6)', 
-              fontSize: '9px', 
-              fontWeight: 900,
-              marginLeft: '10px',
-              flexShrink: 0
-            }}
-          >
-            <span style={{ color: lang === 'ko' ? '#FF1744' : 'inherit', padding: '2px 7px', borderRadius: '10px', background: lang === 'ko' ? '#fff' : 'transparent' }}>KO</span>
-            <span style={{ color: lang === 'en' ? '#FF1744' : 'inherit', padding: '2px 7px', borderRadius: '10px', background: lang === 'en' ? '#fff' : 'transparent' }}>EN</span>
-          </button>
         </div>
       </div>
 
