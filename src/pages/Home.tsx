@@ -145,45 +145,40 @@ const PartyCard = ({ item, onSelect }) => {
 
 
   return (
-    <div 
-      onClick={() => onSelect(item.poster_url)} 
-      style={{ 
-        display: 'flex', 
-        flexDirection: 'row', 
-        alignItems: 'center', 
-        backgroundColor: 'var(--color-card)', 
-        borderRadius: '16px', 
-        overflow: 'hidden', 
-        border: '1px solid var(--color-border)', 
-        cursor: 'pointer', 
-        height: '110px', 
-        marginBottom: '12px', 
-        boxShadow: '0 4px 6px -1px rgba(0,0,0,0.05)',
+    <div
+      onClick={() => onSelect(item.poster_url)}
+      style={{
+        display: 'flex', flexDirection: 'row', alignItems: 'stretch',
+        backgroundColor: 'var(--color-card)',
+        borderRadius: '16px', overflow: 'hidden',
+        border: '1px solid var(--color-border)',
+        cursor: 'pointer', height: '110px', marginBottom: '12px',
         transition: 'all 0.3s'
       }}
     >
-      {/* 1. 포스터 (왼쪽 고정) */}
-      <div style={{ width: '80px', height: '100%', flexShrink: 0 }}>
+      {/* 포스터 */}
+      <div style={{ width: '80px', flexShrink: 0 }}>
         <img src={item.poster_url} style={{ width: '100%', height: '100%', objectFit: 'cover' }} alt="Poster" />
       </div>
 
-      {/* 2. 정보 영역 (3행 초고밀도 조합) */}
-      <div style={{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'center', minWidth: 0, padding: '0 15px' }}>
-        {/* 1행: 장소명 (순수 장소명만!) + 빨간 화살표 */}
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '2px' }}>
-          <span style={{ fontSize: '13px', fontWeight: '800', color: 'var(--color-text-sub)' }}>
+      {/* 정보 */}
+      <div style={{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'center', minWidth: 0, padding: '10px 14px', gap: '5px' }}>
+
+        {/* 1행: 장소명 + 지도 */}
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+          <span style={{ fontSize: '12px', fontWeight: '500', color: 'var(--color-text-sub)', letterSpacing: '0.2px' }}>
             {translateDynamicText(item.locationName || item.studio_name || item.address || '장소 미지정', isEn)}
           </span>
-          <Navigation 
-            size={14} 
-            color="#FF1744" 
-            fill="#FF1744" 
-            style={{ flexShrink: 0, cursor: 'pointer' }} 
+          <Navigation
+            size={13}
+            color="#E53935"
+            fill="#E53935"
+            style={{ flexShrink: 0, cursor: 'pointer', opacity: 0.8 }}
             onClick={(e) => {
               e.stopPropagation();
               const addr = item.address || item.locationName;
               const query = encodeURIComponent(addr);
-              const url = isEn 
+              const url = isEn
                 ? `https://www.google.com/maps/search/?api=1&query=${query}`
                 : `https://map.kakao.com/link/search/${query}`;
               window.open(url, '_blank');
@@ -191,35 +186,47 @@ const PartyCard = ({ item, onSelect }) => {
           />
         </div>
 
-        {/* 2행: 제목 (대폭 강조) + LIVE 뱃지 */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '5px', marginBottom: '4px' }}>
+        {/* 2행: 파티명 + LIVE */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
           {isTimeLive && (
-            <span style={{ 
-              background: '#FF1744', color: '#fff', fontSize: '8px', fontWeight: '950', 
-              padding: '1px 4px', borderRadius: '3px', animation: 'blink 1.5s infinite', flexShrink: 0
+            <span style={{
+              background: '#E53935', color: '#fff', fontSize: '8px', fontWeight: '800',
+              padding: '1px 5px', borderRadius: '3px', letterSpacing: '0.5px',
+              animation: 'blink 1.5s infinite', flexShrink: 0
             }}>LIVE</span>
           )}
-          <h3 style={{ fontSize: '16px', fontWeight: '950', color: 'var(--color-text-main)', margin: 0, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', letterSpacing: '-0.5px' }}>
+          <h3 style={{
+            fontSize: '15px', fontWeight: '800', color: 'var(--color-text-main)',
+            margin: 0, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
+            letterSpacing: '-0.3px', lineHeight: 1.2
+          }}>
             {translateDynamicText(cleanTitle.replace(/^\[.*?\]\s*|서울\s*|전국\s*/g, ''), isEn)}
           </h3>
         </div>
 
-        {/* 3행: 장르비율 / 시간 / 참여비 (날짜 삭제 완료) */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '5px', fontSize: '11px', fontWeight: '800', color: 'var(--color-text-sub)', whiteSpace: 'nowrap' }}>
-          <span style={{ color: '#2ECC71' }}>
+        {/* 3행: 시간 · 음악비율 */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '11px', color: 'var(--color-text-sub)', whiteSpace: 'nowrap' }}>
+          <span style={{ fontWeight: '600' }}>{displayTime}</span>
+          <span style={{ opacity: 0.25, fontSize: '10px' }}>·</span>
+          <span style={{ fontWeight: '400', color: 'var(--color-text-sub)', opacity: 0.8 }}>
             {Object.entries(GENRE_MAP)
               .filter(([_, info]) => item[info.key] > 0)
-              .map(([_, info]) => `${info.label}${item[info.key]}`)
-              .join(' ')}
+              .map(([_, info]) => `${info.label} ${item[info.key]}`)
+              .join('  ')}
           </span>
-          <span style={{ opacity: 0.3 }}>|</span>
-          <span>{displayTime}</span>
-          <span style={{ opacity: 0.3 }}>|</span>
-          <span style={{ color: 'var(--color-text-main)' }}>{displayFee}</span>
         </div>
+
+        {/* 4행: 가격 */}
+        <div>
+          <span style={{ fontSize: '15px', fontWeight: '900', color: '#E53935', letterSpacing: '-0.3px' }}>
+            {displayFee}
+          </span>
+        </div>
+
       </div>
     </div>
   );
+
 };
 
 const ClassCard = ({ item, onSelect }) => {
@@ -450,7 +457,35 @@ const HomePage = ({
   const { t, i18n } = useTranslation();
   const [lang, setLang] = useState<'ko' | 'en'>('ko');
   const isEn = i18n.language.startsWith('en');
+
+  // [타이틀 정제 로직]
+  const cleanTitle = (title: string) => {
+    if (!title) return '';
+    return title
+      .replace(/\[서울\]/g, '')
+      .replace(/\[경기\/인천\]/g, '')
+      .replace(/\[경상도\]/g, '')
+      .replace(/\[전라도\]/g, '')
+      .replace(/\[충청도\]/g, '')
+      .replace(/\[강원\/제주\]/g, '')
+      .replace(/오늘밤빠/g, '')
+      .replace(/\|/g, '')
+      .replace(/\s+/g, ' ')
+      .trim();
+  };
+
+  // [가격 정제 로직]
+  const formatPrice = (priceStr: string) => {
+    if (!priceStr) return '2만';
+    const num = parseInt(priceStr.replace(/[^0-9]/g, ''));
+    if (isNaN(num)) return priceStr;
+    if (num % 10000 === 0) return `${num/10000}만`;
+    if (num > 10000) return `${(num/10000).toFixed(1)}만`;
+    return priceStr;
+  };
+
   const [isPaused, setIsPaused] = useState(false);
+
   const [classGenre, setClassGenre] = useState('전체');
   const [classLevel, setClassLevel] = useState('전체');
   const [weatherMap, setWeatherMap] = useState({});
@@ -722,11 +757,11 @@ const HomePage = ({
                               ref={isFirst ? regionListRef : null}
                               style={{ marginBottom: '15px', background: 'var(--color-card)' }}
                             >
-                              <div style={{ fontSize: '18px', fontWeight: '900', padding: '15px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', color: 'var(--color-text-main)' }}>
+                              <div style={{ fontSize: '18px', fontWeight: '900', padding: '15px 20px', display: 'flex', alignItems: 'center', justifyContent: 'flex-start', gap: '15px', color: 'var(--color-text-main)' }}>
                                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                                   <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#FF1744' }} />
                                   {t(regionKeys[regionName] || regionName)}
-                                  <span style={{ fontSize: '14px', color: '#E53935', fontWeight: '900', marginLeft: '8px' }}>
+                                  <span style={{ fontSize: '14px', color: '#E53935', fontWeight: '900', marginLeft: '5px' }}>
                                     {(() => {
                                       const d = new Date(selectedDate);
                                       return `${d.getMonth() + 1}/${d.getDate()} (${isEn ? DAYS_EN[d.getDay()] : DAYS_KOR[d.getDay()]})`;
@@ -738,18 +773,111 @@ const HomePage = ({
                                     setGridRegion(regionName);
                                     handleOpenModal(setShowGridModal, true);
                                   }}
-                                  style={{ fontSize: '12px', fontWeight: '700', color: 'var(--color-text-sub)', background: 'none', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '2px' }}
+                                  style={{ fontSize: '12px', fontWeight: '700', color: '#FF1744', background: 'rgba(255,23,68,0.05)', border: 'none', padding: '4px 10px', borderRadius: '8px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '2px' }}
                                 >
                                   {t('view_all')} <ChevronRight size={14} />
                                 </button>
                               </div>
-                              <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', padding: '0 15px 20px' }}>
-                                {regionParties.length === 0 ? (
-                                  <div style={{ padding: '40px', background: 'var(--color-bg)', borderRadius: '16px', textAlign: 'center', color: 'var(--color-text-sub)', fontSize: '13px', fontWeight: '700' }}>{t('no_parties')}</div>
-                                ) : regionParties.slice(0, maxCount).map(item => (
-                                  <PartyCard key={item.id} item={item} onSelect={(url) => handleOpenModal(setSelectedPoster, url)} />
-                                ))}
-                              </div>
+
+                                <div style={{ 
+                                  display: 'flex', 
+                                  overflowX: 'auto', 
+                                  gap: '20px', 
+                                  padding: '10px 20px 40px',
+                                  msOverflowStyle: 'none',
+                                  scrollbarWidth: 'none',
+                                  WebkitOverflowScrolling: 'touch'
+                                }}>
+                                  {regionParties.length === 0 ? (
+                                    <div style={{ flexShrink: 0, width: '100%', padding: '50px', background: 'var(--color-bg)', borderRadius: '24px', textAlign: 'center', color: 'var(--color-text-sub)', fontSize: '13px', fontWeight: '900', border: '1px dashed #E2E8F0' }}>{t('no_parties')}</div>
+                                  ) : regionParties.map(item => (
+                                    <div 
+                                      key={item.id} 
+                                      onClick={() => handleOpenModal(setSelectedPoster, item.poster_url)} 
+                                      style={{ 
+                                        width: '330px', 
+                                        flexShrink: 0, 
+                                        borderRadius: '24px', 
+                                        overflow: 'hidden', 
+                                        display: 'flex',
+                                        background: '#FFFFFF',
+                                        boxShadow: '0 15px 35px rgba(0,0,0,0.1)',
+                                        cursor: 'pointer',
+                                        height: '190px',
+                                        border: '1px solid #F8FAFC'
+                                      }}
+                                    >
+                                      {/* 하이엔드 포스터 영역 */}
+                                      <div style={{ width: '140px', height: '100%', flexShrink: 0, position: 'relative' }}>
+                                        <img src={item.poster_url} style={{ width: '100%', height: '100%', objectFit: 'cover' }} alt="Poster" />
+                                        <div style={{ 
+                                          position: 'absolute', top: '12px', left: '12px', 
+                                          background: 'rgba(255,23,68,0.9)', color: '#fff', 
+                                          fontSize: '9px', fontWeight: 950, padding: '2px 8px', borderRadius: '6px',
+                                          letterSpacing: '0.5px', textTransform: 'uppercase'
+                                        }}>
+                                          {item.genre?.split('/')[0] || 'SOCIAL'}
+                                        </div>
+                                      </div>
+                                      
+                                      {/* 럭셔리 정보 영역 */}
+                                      <div style={{ flex: 1, padding: '20px 16px', display: 'flex', flexDirection: 'column', gap: '4px', minWidth: 0 }}>
+                                        {/* 장소 & 지도 아이콘 (타이트한 배치) */}
+                                        <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                                          <span style={{ fontSize: '13px', fontWeight: '950', color: '#64748B', textTransform: 'uppercase', letterSpacing: '0.3px' }}>
+                                            {translateDynamicText(item.locationName, isEn)}
+                                          </span>
+                                          <div style={{ color: '#FF1744', display: 'flex', alignItems: 'center' }}>
+                                            <Navigation size={12} fill="#FF1744" />
+                                          </div>
+                                        </div>
+                                        
+                                        {/* 정제된 볼드 타이틀 */}
+                                        <h3 style={{ 
+                                          fontSize: '17px', 
+                                          fontWeight: '950', 
+                                          color: '#0F172A', 
+                                          margin: '4px 0 8px', 
+                                          display: '-webkit-box', 
+                                          WebkitLineClamp: 2, 
+                                          WebkitBoxOrient: 'vertical', 
+                                          overflow: 'hidden', 
+                                          lineHeight: '1.3',
+                                          height: '44px',
+                                          letterSpacing: '-0.7px'
+                                        }}>
+                                          {cleanTitle(translateDynamicText(item.title, isEn))}
+                                        </h3>
+                                        
+                                        {/* 하단 메타 정보 영역 */}
+                                        <div style={{ marginTop: 'auto', display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                                          <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                                            <div style={{ fontSize: '11px', fontWeight: '900', color: '#94A3B8', display: 'flex', alignItems: 'center', gap: '3px' }}>
+                                              <Clock size={12} /> {item.time?.split('-')[0].trim() || '21:00'}
+                                            </div>
+                                            <div style={{ height: '3px', width: '3px', borderRadius: '50%', background: '#CBD5E1' }} />
+                                            <div style={{ fontSize: '11px', fontWeight: '900', color: '#94A3B8' }}>
+                                              {Object.entries(GENRE_MAP).filter(([_, info]) => item[info.key] > 0).map(([_, info]) => `${info.label}${item[info.key]}`).join(' ')}
+                                            </div>
+                                          </div>
+                                          
+                                          {/* 프리미엄 가격 배지 */}
+                                          <div style={{ display: 'flex', justifyContent: 'flex-start' }}>
+                                            <span style={{ 
+                                              fontSize: '13px', fontWeight: '950', color: '#FF1744',
+                                              background: 'rgba(255,23,68,0.08)', padding: '3px 10px', borderRadius: '8px'
+                                            }}>
+                                              {formatPrice(item.fee)}
+                                            </span>
+                                          </div>
+                                        </div>
+                                      </div>
+                                    </div>
+                                  ))}
+                                </div>
+
+
+
                             </section>
 
                             {/* 경기/인천 섹션 다음에 지방권 HOT PICK 배치 + 여백 확보 */}
