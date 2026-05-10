@@ -250,7 +250,6 @@ const RegisterForm = ({ onBack, onSuccess, isEdit = false, initialData = null })
       const partyData = {
         title: `[${formData.region}] ${finalProcessedTitle}`,
         location_id: finalLocationId,
-        location_name: formData.location_name,
         address: formData.address,
         fee: formData.fee,
         date: formData.date,

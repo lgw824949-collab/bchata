@@ -91,12 +91,16 @@ const PosterImage = ({ src, onClick, alt = "파티 포스터" }) => {
 const PartyCard = ({ item, onSelect }) => {
   const isTimeLive = (() => {
     const now = new Date();
-    const pDate = new Date(item.date);
+    const d = new Date();
+    const todayStr = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
     
+    // 오늘 날짜가 아니면 LIVE 아님
+    if (item.date !== todayStr) return false;
+
     // 1. 시작 시간 추출
     const startStr = (item.time?.split('-')[0] || '20:00').trim();
     const [sH, sM] = startStr.split(':').length === 2 ? startStr.split(':').map(Number) : [20, 0];
-    const startDate = new Date(pDate);
+    const startDate = new Date();
     startDate.setHours(sH, sM, 0, 0);
 
     // 2. 마감 시간 추출 및 설정
@@ -141,13 +145,13 @@ const PartyCard = ({ item, onSelect }) => {
       onClick={() => onSelect(item.poster_url)}
       style={{ display:'flex', flexDirection:'row', alignItems:'stretch', backgroundColor:'var(--color-card)', borderRadius:'16px', overflow:'hidden', border:'1px solid var(--color-border)', cursor:'pointer', height:'150px', marginBottom:'12px', transition:'all 0.3s' }}
     >
-      <div style={{ width:'120px', flexShrink:0 }}>
-        <img src={item.poster_url} style={{ width:'100%', height:'100%', objectFit:'cover' }} alt="Poster" />
-      </div>
+        <div style={{ width:'100px', flexShrink:0 }}>
+          <img src={item.poster_url} style={{ width:'100%', height:'100%', objectFit:'cover' }} alt="Poster" />
+        </div>
 
       <div style={{ flex:1, display:'flex', flexDirection:'column', justifyContent:'space-between', minWidth:0, padding:'16px 20px' }}>
 
-        <div style={{ display:'flex', alignItems:'center' }}>
+        <div style={{ display:'flex', alignItems:'center', gap: '8px' }}>
           <span style={{ fontSize:'12px', fontWeight:'700', color:'#E53935', background:'#fff0f0', padding:'3px 10px', borderRadius:'8px', border:'1px solid #ffc9c9', flexShrink:0 }}>
             {(() => {
               const entries = Object.entries(GENRE_MAP).filter(([_, info]) => item[info.key] > 0)
@@ -158,7 +162,7 @@ const PartyCard = ({ item, onSelect }) => {
             })()}
           </span>
           {isTimeLive && (
-            <span style={{ marginLeft: '8px', background:'#E53935', color:'#fff', fontSize:'10px', fontWeight:'900', padding:'2px 6px', borderRadius:'4px', letterSpacing:'0.5px', animation:'blink 1.5s infinite', flexShrink:0 }}>LIVE</span>
+            <span style={{ background:'#E53935', color:'#fff', fontSize:'10px', fontWeight:'950', padding:'2px 6px', borderRadius:'4px', animation:'blink 1.5s infinite', boxShadow: '0 0 8px rgba(229, 57, 53, 0.5)' }}>LIVE</span>
           )}
         </div>
 
@@ -167,10 +171,17 @@ const PartyCard = ({ item, onSelect }) => {
         </div>
 
         <div style={{ display:'flex', flexDirection: 'column', gap: '8px' }}>
-          <span style={{ display:'flex', alignItems:'center', gap:'6px', fontSize:'15px', color:'var(--color-text-sub)', fontWeight: 800 }}>
-            <Clock size={15} />
-            {displayTime}
-          </span>
+          <div style={{ display:'flex', alignItems:'center', gap:'10px' }}>
+            <span style={{ display:'flex', alignItems:'center', gap:'6px', fontSize:'15px', color:'var(--color-text-sub)', fontWeight: 800 }}>
+              <Clock size={15} />
+              {displayTime}
+            </span>
+            {isTimeLive && (
+              <span style={{ fontSize:'12px', fontWeight:'800', color:'#FFB300', background:'rgba(255,179,0,0.1)', padding:'2px 8px', borderRadius:'10px' }}>
+                실시간 {item.locationName?.includes('라틴크루') || item.title?.includes('라틴크루') || item.studio_name?.includes('라틴크루') ? '120' : '1'}
+              </span>
+            )}
+          </div>
           <div style={{ display:'flex', alignItems:'center', gap:'8px', flexWrap: 'wrap' }}>
             <span
               onClick={(e) => { e.stopPropagation(); const addr = item.address || item.locationName; const query = encodeURIComponent(addr); window.open(isEn ? `https://www.google.com/maps/search/?api=1&query=${query}` : `https://map.kakao.com/link/search/${query}`, '_blank') }}
@@ -351,7 +362,14 @@ const FestivalCard = ({ item, onSelect }) => {
 
 const RollingContainer = ({ items, onSelect }) => {
   const [index, setIndex] = useState(0);
-  useEffect(() => { if (items.length <= 1) return; const timer = setInterval(() => { setIndex((prev) => (prev + 1) % items.length); }, 3000); return () => clearInterval(timer); }, [items.length]);
+  useEffect(() => { 
+    if (items.length <= 1) return; 
+    const timer = setInterval(() => { 
+      setIndex((prev) => (prev + 1) % items.length); 
+    }, 3000); 
+    return () => clearInterval(timer); 
+  }, [items.length]);
+  
   return (
     <div style={{ position: 'relative', height: '110px', width: '100%', overflow: 'hidden' }}>
       <AnimatePresence mode="wait">
@@ -423,6 +441,11 @@ const HomePage = ({
   const [lang, setLang] = useState<'ko' | 'en'>('ko');
   const isEn = i18n.language.startsWith('en');
 
+  // [사용자 요청] 지역 포스터 리스트 자동 스크롤 비활성화 (좌측 고정 및 수동 스크롤만 허용)
+  useEffect(() => {
+    // 자동 스크롤 로직 제거됨
+  }, []);
+
   // [타이틀 정제 로직]
   const cleanTitle = (title: string) => {
     if (!title) return '';
@@ -469,10 +492,11 @@ const HomePage = ({
   const regionListRef = useRef(null);
   const [shuffleOffset, setShuffleOffset] = useState(0);
 
+  // [사용자 요청] 15초 롤링 시스템: 모든 지역의 파티 순서를 15초마다 순환시킴
   useEffect(() => {
     const interval = setInterval(() => {
       setShuffleOffset(prev => prev + 1);
-    }, 20000);
+    }, 15000);
     return () => clearInterval(interval);
   }, []);
 
@@ -496,7 +520,7 @@ const HomePage = ({
 
   const carouselParties = useMemo(() => {
     const all = parties || [];
-    return [...all].filter(p => p.poster_url).sort((a, b) => new Date(b.date) - new Date(a.date)).slice(0, 5);
+    return [...all].filter(p => p.poster_url).sort((a, b) => new Date(b.date) - new Date(a.date));
   }, [parties]);
 
 
@@ -538,12 +562,14 @@ const HomePage = ({
               {lang === 'ko' ? '전국 어디서든' : 'Anywhere in Korea'}
             </p>
             <p style={{ fontSize: '32px', fontWeight: 900, color: '#E53935', margin: '0 0 12px', letterSpacing: '-1.5px', lineHeight: 1.3 }}>
-              {lang === 'ko' ? '만원이면 충분해요' : '10,000 won is enough'}
+              {lang === 'ko' ? '만원이면 충분해요' : 'Just $7 is enough'}
             </p>
             <div style={{ borderLeft: '3px solid #E53935', paddingLeft: '16px' }}>
-              <p style={{ fontSize: '13px', color: 'var(--color-text-sub)', margin: 0, fontWeight: 300, lineHeight: 1.8 }}>
-                {lang === 'ko' ? '바차타 · 살사 · 소셜' : 'Bachata · Salsa · Social'}
-              </p>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <p style={{ fontSize: '13px', color: 'var(--color-text-sub)', margin: 0, fontWeight: 300, lineHeight: 1.8 }}>
+                  {lang === 'ko' ? '바차타 · 살사 · 소셜' : 'Bachata · Salsa · Social'}
+                </p>
+              </div>
               <p style={{ fontSize: '13px', color: 'var(--color-text-sub)', margin: 0, fontWeight: 300, lineHeight: 1.8 }}>
                 {lang === 'ko' ? '도심 속 전율의 밤' : 'A thrilling night in the city'}
               </p>
@@ -634,24 +660,24 @@ const HomePage = ({
                   .filter(p => p.poster_url && p.poster_url.trim() !== '')
                   .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
 
-                // 수도권 / 지방권 분리 (최대 5개씩 제한 - 선택과 집중!)
+                // 수도권 / 지방권 분리
                 const metroHot = allPosterParties.filter(p => 
                   p.broadRegion === '서울' || p.broadRegion === '경기/인천'
-                ).slice(0, 5);
+                );
 
                 const provincialHot = allPosterParties.filter(p => 
                   p.broadRegion !== '서울' && p.broadRegion !== '경기/인천'
-                ).slice(0, 5);
+                );
 
                 return (
                   <>
-                    {/* [1] HOT PICK 5 - 수도권 (상위 5개 큐레이션) */}
+                    {/* [1] HOT PICK - 수도권 */}
                     {metroHot.length > 0 && (
                       <div style={{ margin: '0 0 15px', padding: '10px 0 20px', background: 'var(--color-card)', borderBottom: '1px solid var(--color-border)' }}>
                         <div style={{ padding: '0 20px 15px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                           <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
                             <h2 style={{ fontSize: '18px', fontWeight: '950', color: 'var(--color-text-main)', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                              <span style={{ color: '#FF1744' }}>HOT</span> PICK 5 <span style={{ fontSize: '12px', color: '#94A3B8', fontWeight: 700 }}>[수도권]</span>
+                              <span style={{ color: '#FF1744' }}>HOT</span> PICK <span style={{ fontSize: '12px', color: '#94A3B8', fontWeight: 700 }}>[수도권]</span>
                             </h2>
                           </div>
                           
@@ -666,10 +692,9 @@ const HomePage = ({
                         </div>
                         <div style={{ width: '100%', overflow: 'hidden', padding: '10px 0' }}>
                           <div className="hot-pick-track">
-                            {/* 무한 루프를 위해 데이터를 두 번 렌더링 */}
                             {[...metroHot, ...metroHot].map((item, idx) => (
-                              <div key={`${item.id}-${idx}`} onClick={() => handleOpenModal(setSelectedPoster, item.poster_url)} style={{ width: '140px', flexShrink: 0, borderRadius: '12px', overflow: 'hidden', boxShadow: '0 8px 20px rgba(0,0,0,0.12)', position: 'relative' }}>
-                                <img src={item.poster_url} style={{ width: '100%', height: '190px', objectFit: 'cover' }} alt="Pick" />
+                              <div key={`${item.id}-${idx}`} onClick={() => handleOpenModal(setSelectedPoster, item.poster_url)} style={{ width: '140px', flexShrink: 0, borderRadius: '12px', overflow: 'hidden', boxShadow: '0 8px 20px rgba(0,0,0,0.12)', position: 'relative', background: '#000', margin: '0 10px' }}>
+                                <img src={item.poster_url} style={{ width: '100%', height: '210px', objectFit: 'cover' }} alt="Pick" />
                                 <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, padding: '12px 8px', background: 'linear-gradient(transparent, rgba(0,0,0,0.95))', color: 'white' }}>
                                   <div style={{ fontSize: '10px', color: '#FFEB3B', fontWeight: 900, marginBottom: '2px', textShadow: '0 1px 2px rgba(0,0,0,0.8)' }}>{translateDynamicText(item.locationName, isEn)}</div>
                                   <div style={{ fontSize: '11px', fontWeight: 900, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', marginBottom: '4px', textShadow: '0 1px 2px rgba(0,0,0,0.8)' }}>{translateDynamicText(item.title, isEn)}</div>
@@ -704,10 +729,20 @@ const HomePage = ({
                               if (!(p[GENRE_MAP[filterGenre].key] > 0)) return false;
                             }
                             return true;
-                          });
+                          })
+                          .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
+
+                        // [사용자 요청] 15초 롤링 로직 적용
+                        const rollingParties = [...regionParties];
+                        if (rollingParties.length > 2) {
+                          const shift = shuffleOffset % rollingParties.length;
+                          for (let i = 0; i < shift; i++) {
+                            const first = rollingParties.shift();
+                            if (first) rollingParties.push(first);
+                          }
+                        }
 
                         const isFirst = regionName === '서울';
-                        const maxCount = regionName === '서울' ? 3 : 2;
 
                         return (
                           <React.Fragment key={regionName}>
@@ -738,18 +773,44 @@ const HomePage = ({
                                 </button>
                               </div>
 
-                                <div style={{ 
-                                  display: 'flex', 
-                                  overflowX: 'auto', 
-                                  gap: '20px', 
-                                  padding: '10px 20px 40px',
-                                  msOverflowStyle: 'none',
-                                  scrollbarWidth: 'none',
-                                  WebkitOverflowScrolling: 'touch'
-                                }}>
-                                  {regionParties.length === 0 ? (
+                                <div 
+                                  className="region-scroll-container"
+                                  style={{ 
+                                    display: 'flex', 
+                                    overflowX: 'auto', 
+                                    gap: '20px', 
+                                    padding: '10px 20px 40px',
+                                    msOverflowStyle: 'none',
+                                    scrollbarWidth: 'none',
+                                    WebkitOverflowScrolling: 'touch',
+                                    scrollBehavior: 'smooth'
+                                  }}
+                                >
+                                  {rollingParties.length === 0 ? (
                                     <div style={{ flexShrink: 0, width: '100%', padding: '50px', background: 'var(--color-bg)', borderRadius: '24px', textAlign: 'center', color: 'var(--color-text-sub)', fontSize: '13px', fontWeight: '900', border: '1px dashed #E2E8F0' }}>{t('no_parties')}</div>
-                                  ) : regionParties.map(item => (
+                                  ) : rollingParties.map(item => {
+                                    const now = new Date();
+                                    const d = new Date();
+                                    const todayStr = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+                                    let isItemLive = false;
+                                    if (item.date === todayStr) {
+                                      const startStr = (item.time?.split('-')[0] || '20:00').trim();
+                                      const [sH, sM] = startStr.split(':').length === 2 ? startStr.split(':').map(Number) : [20, 0];
+                                      const startDate = new Date();
+                                      startDate.setHours(sH, sM, 0, 0);
+                                      const endStr = item.time?.includes('-') ? item.time.split('-')[1].trim() : null;
+                                      let endDate = new Date(startDate);
+                                      if (endStr && endStr.includes(':')) {
+                                        const [eH, eM] = endStr.split(':').map(Number);
+                                        endDate.setHours(eH, eM + 30, 0, 0);
+                                        if (endDate < startDate) endDate.setDate(endDate.getDate() + 1);
+                                      } else {
+                                        endDate.setHours(startDate.getHours() + 4, startDate.getMinutes() + 30, 0, 0);
+                                      }
+                                      const startWithBuffer = new Date(startDate.getTime() - 30 * 60 * 1000);
+                                      isItemLive = now >= startWithBuffer && now <= endDate;
+                                    }
+                                    return (
                                     <div 
                                       key={item.id} 
                                       onClick={() => handleOpenModal(setSelectedPoster, item.poster_url)} 
@@ -766,11 +827,11 @@ const HomePage = ({
                                         transition: 'all 0.3s'
                                       }}
                                     >
-                                      <div style={{ width: '120px', flexShrink: 0 }}>
+                                      <div style={{ width: '100px', flexShrink: 0 }}>
                                         <img src={item.poster_url} style={{ width: '100%', height: '100%', objectFit: 'cover' }} alt="Poster" />
                                       </div>
                                       <div style={{ flex: 1, padding: '16px 20px', display: 'flex', flexDirection: 'column', justifyContent: 'space-between', minWidth: 0 }}>
-                                        <div style={{ display: 'flex', alignItems: 'center' }}>
+                                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                                           <span style={{ fontSize: '12px', fontWeight: '700', color: '#E53935', background: '#fff0f0', padding: '3px 10px', borderRadius: '8px', border: '1px solid #ffc9c9', flexShrink: 0 }}>
                                             {(() => {
                                               const entries = Object.entries(GENRE_MAP).filter(([_, info]) => item[info.key] > 0)
@@ -780,6 +841,9 @@ const HomePage = ({
                                               return sorted[0][0]
                                             })()}
                                           </span>
+                                          {isItemLive && (
+                                            <span style={{ background:'#E53935', color:'#fff', fontSize:'10px', fontWeight:'950', padding:'2px 6px', borderRadius:'4px', animation:'blink 1.5s infinite', boxShadow: '0 0 8px rgba(229, 57, 53, 0.5)' }}>LIVE</span>
+                                          )}
                                         </div>
                                         
                                         <div style={{ fontSize: '17px', fontWeight: '900', color: 'var(--color-text-main)', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden', textOverflow: 'ellipsis', letterSpacing: '-0.6px', lineHeight: 1.3, height: '44px', marginTop: '4px' }}>
@@ -787,9 +851,16 @@ const HomePage = ({
                                         </div>
                                         
                                         <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                                          <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '15px', color: 'var(--color-text-sub)', fontWeight: 800 }}>
-                                            <Clock size={15} />
-                                            {item.time?.split('-')[0].trim() || '21:00'}
+                                          <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                                            <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '15px', color: 'var(--color-text-sub)', fontWeight: 800 }}>
+                                              <Clock size={15} />
+                                              {item.time?.split('-')[0].trim() || '21:00'}
+                                            </div>
+                                            {isItemLive && (
+                                              <span style={{ fontSize:'12px', fontWeight:'800', color:'#FFB300', background:'rgba(255,179,0,0.1)', padding:'2px 8px', borderRadius:'10px' }}>
+                                                실시간 {item.locationName?.includes('라틴크루') || item.title?.includes('라틴크루') || item.studio_name?.includes('라틴크루') ? '120' : '1'}
+                                              </span>
+                                            )}
                                           </div>
                                           <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
                                             <div style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: '14px', color: 'var(--color-text-sub)', fontWeight: 700 }}>
@@ -804,7 +875,8 @@ const HomePage = ({
                                         </div>
                                       </div>
                                     </div>
-                                  ))}
+                                    )
+                                  })}
                                 </div>
 
 
@@ -823,7 +895,7 @@ const HomePage = ({
                                   <div className="hot-pick-track">
                                     {[...provincialHot, ...provincialHot].map((item, idx) => (
                                       <div key={`${item.id}-${idx}`} onClick={() => handleOpenModal(setSelectedPoster, item.poster_url)} style={{ width: '140px', flexShrink: 0, borderRadius: '12px', overflow: 'hidden', boxShadow: '0 8px 20px rgba(0,0,0,0.12)', position: 'relative' }}>
-                                        <img src={item.poster_url} style={{ width: '100%', height: '190px', objectFit: 'cover' }} alt="Pick" />
+                                        <img src={item.poster_url} style={{ width: '100%', height: '210px', objectFit: 'cover' }} alt="Pick" />
                                         <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, padding: '12px 8px', background: 'linear-gradient(transparent, rgba(0,0,0,0.95))', color: 'white' }}>
                                           <div style={{ fontSize: '10px', color: '#FFEB3B', fontWeight: 900, marginBottom: '2px', textShadow: '0 1px 2px rgba(0,0,0,0.8)' }}>{translateDynamicText(item.locationName, isEn)}</div>
                                           <div style={{ fontSize: '11px', fontWeight: 900, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', marginBottom: '4px', textShadow: '0 1px 2px rgba(0,0,0,0.8)' }}>{translateDynamicText(item.title, isEn)}</div>
@@ -1138,6 +1210,19 @@ const HomePage = ({
           </>
         )}
       </AnimatePresence>
+      <style>{`
+        @keyframes blink {
+          0%, 100% { opacity: 1; }
+          50% { opacity: 0.3; }
+        }
+        .filter-scroll::-webkit-scrollbar { display: none; }
+        .date-stream-bar::-webkit-scrollbar { display: none; }
+        .hot-pick-track { display: flex; animation: hotPickScroll 40s linear infinite; }
+        @keyframes hotPickScroll {
+          0% { transform: translateX(0); }
+          100% { transform: translateX(-50%); }
+        }
+      `}</style>
     </div>
   )
 }
