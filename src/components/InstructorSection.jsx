@@ -27,6 +27,7 @@ const InstructorSection = () => {
   const [showMoreCities, setShowMoreCities] = useState(false)
   const [showMoreGenres, setShowMoreGenres] = useState(false)
   const [processing, setProcessing] = useState({})
+  const [classes, setClasses] = useState([])
 
   useEffect(() => {
     fetchInstructors()
@@ -90,6 +91,20 @@ const InstructorSection = () => {
     }
     fetchPosts()
   }, [selectedInstructor])
+
+  useEffect(() => {
+    if (activeTab !== 'CLASSES' || !selectedInstructor) return
+    const fetchClasses = async () => {
+      const { data } = await supabase
+        .from('instructor_classes')
+        .select('*')
+        .eq('instructor_id', selectedInstructor.id)
+        .eq('status', 'active')
+        .order('created_at', { ascending: false })
+      if (data) setClasses(data)
+    }
+    fetchClasses()
+  }, [activeTab, selectedInstructor])
 
   const toggleFollow = async (e, instructorId) => {
     if (e) {
@@ -606,35 +621,45 @@ const InstructorSection = () => {
                               {getGenre(selectedInstructor.genre).split(' · ').map(g => <span key={g} style={{ background: 'rgba(255,255,255,0.05)', padding: '4px 12px', borderRadius: '8px' }}>{g}</span>)}
                             </div>
                           </div>
-                          <motion.button 
-                            whileTap={{ scale: 0.95 }}
-                            onClick={() => selectedInstructor.kakao_link && window.open(selectedInstructor.kakao_link, '_blank')}
-                            style={{ 
-                              padding: '12px 24px', borderRadius: '30px', 
-                              background: 'linear-gradient(135deg, #C9A84C, #FFD700)', 
-                              border: 'none', 
-                              color: '#000', fontSize: '14px', fontWeight: 950,
-                              boxShadow: '0 10px 20px rgba(201,168,76,0.3)',
-                              cursor: 'pointer', alignSelf: 'flex-start'
-                            }}
-                          >
-                            BOOK NOW
-                          </motion.button>
+                        <div style={{ display:'flex', gap:8, marginTop:16 }}>
+                          {selectedInstructor.kakao_link && (
+                            <button
+                              onClick={() => window.open(selectedInstructor.kakao_link, '_blank')}
+                              style={{ flex:1, padding:'12px', borderRadius:14, border:'none', background:'#FEE500', color:'#000', fontSize:14, fontWeight:800, cursor:'pointer' }}
+                            >💬 카카오 문의</button>
+                          )}
+                          {selectedInstructor.instagram && (
+                            <button
+                              onClick={() => window.open(`https://instagram.com/${selectedInstructor.instagram}`, '_blank')}
+                              style={{ flex:1, padding:'12px', borderRadius:14, border:'1px solid #E5E7EB', background:'#fff', color:'#111', fontSize:14, fontWeight:800, cursor:'pointer' }}
+                            >📸 인스타그램</button>
+                          )}
+                        </div>
                         </div>
                       </motion.div>
                     )}
 
                     {activeTab === 'CLASSES' && (
-                      <motion.div 
-                        key="classes" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }}
-                        style={{ padding: '0 20px' }}
-                      >
-                        <div style={{ textAlign: 'center', padding: '60px 0' }}>
-                          <div style={{ fontSize: '40px', marginBottom: '15px' }}>📅</div>
-                          <div style={{ fontSize: '18px', fontWeight: 900, color: '#FFF', marginBottom: '8px' }}>No Active Classes</div>
-                          <div style={{ fontSize: '14px', color: '#64748B' }}>현재 등록된 클래스가 없습니다.</div>
-                        </div>
-                      </motion.div>
+                      <div style={{ padding:'16px' }}>
+                        {classes.length === 0 ? (
+                          <div style={{ textAlign:'center', padding:'60px 0', color:'rgba(255,255,255,0.3)' }}>
+                            <div style={{ fontSize:40, marginBottom:12 }}>📚</div>
+                            <div style={{ fontSize:14 }}>등록된 클래스가 없어요</div>
+                          </div>
+                        ) : (
+                          classes.map(c => (
+                            <div key={c.id} style={{ background:'#1a1a1a', borderRadius:14, padding:16, marginBottom:12 }}>
+                              <div style={{ fontSize:15, fontWeight:700, color:'#fff', marginBottom:6 }}>{c.title}</div>
+                              <div style={{ fontSize:13, color:'rgba(255,255,255,0.6)', lineHeight:1.6, marginBottom:8 }}>{c.description}</div>
+                              <div style={{ display:'flex', gap:12 }}>
+                                {c.schedule && <span style={{ fontSize:11, color:'#FFD700' }}>⏰ {c.schedule}</span>}
+                                {c.location && <span style={{ fontSize:11, color:'rgba(255,255,255,0.4)' }}>📍 {c.location}</span>}
+                                {c.fee && <span style={{ fontSize:11, color:'#E53935', fontWeight:700 }}>{c.fee}</span>}
+                              </div>
+                            </div>
+                          ))
+                        )}
+                      </div>
                     )}
 
                     {activeTab === 'GALLERY' && (
@@ -647,11 +672,10 @@ const InstructorSection = () => {
                             <img src={post.image_url} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                           </div>
                         )) : (
-                          [1, 2, 3].map(i => (
-                            <div key={i} style={{ aspectRatio: '1/1', background: 'rgba(255,255,255,0.03)', borderRadius: '12px', overflow: 'hidden', border: '1px solid rgba(255,255,255,0.05)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                              <Camera size={20} color="rgba(255,255,255,0.1)" />
-                            </div>
-                          ))
+                          <div style={{ gridColumn: 'span 3', textAlign: 'center', padding: '60px 0', color: 'rgba(255,255,255,0.3)' }}>
+                            <div style={{ fontSize: 40, marginBottom: 12 }}>📸</div>
+                            <div style={{ fontSize: 14 }}>아직 게시물이 없어요</div>
+                          </div>
                         )}
                       </motion.div>
                     )}
