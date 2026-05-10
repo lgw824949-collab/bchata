@@ -628,8 +628,8 @@ const HomePage = ({
           { icon: <CloudSun size={26} color="#FF1744" />, label: '오늘날씨', action: () => handleOpenModal(setShowWeather, true) },
           { icon: <Zap size={26} color="#FF1744" />, label: isDark ? '라이트모드' : '다크모드', action: () => setIsDark(!isDark) },
           { icon: <MessageSquare size={26} color="#FF1744" />, label: '오픈채팅', action: () => window.open('https://open.kakao.com/o/gP43rNri', '_blank') },
-          { icon: <Star size={26} color="#FF1744" />, label: '마이마스터', action: () => setView('instructors'), count: followedInstructors?.length },
-          { icon: <Heart size={26} color="#FF1744" />, label: '마이픽', action: () => setView('community'), count: likedLivePicks?.length },
+          { icon: <Navigation size={26} color="#FF1744" />, label: '지능형경로', action: () => openAnalysis(false), badge: 'LIVE' },
+          { icon: <Star size={26} color="#FF1744" />, label: '운명의좌표', action: () => handleOpenModal(setShowSaju, true), dot: true },
           { icon: <MapPin size={26} color="#FF1744" />, label: '주변주차', action: () => setView('parking') },
           { icon: <HomeIcon size={26} color="#FF1744" />, label: '대관문의', action: () => setShowRentalModal(true), dot: true },
         ].map((item, idx) => (
@@ -729,15 +729,6 @@ const HomePage = ({
                               <span style={{ color: '#FF1744' }}>HOT</span> PICK <span style={{ fontSize: '12px', color: '#94A3B8', fontWeight: 700 }}>[수도권]</span>
                             </h2>
                           </div>
-                          
-                          <motion.button
-                            whileTap={{ scale: 0.9 }}
-                            onClick={() => handleOpenModal(setShowSaju, true)}
-                            style={{ background: 'var(--color-border)', border: 'none', borderRadius: '12px', padding: '8px 12px', fontSize: '12px', fontWeight: '900', cursor: 'pointer', color: '#FF1744', display: 'flex', alignItems: 'center', gap: '6px' }}
-                          >
-                            <Star size={14} fill="#FF1744" color="#FF1744" />
-                            {t('saju')}
-                          </motion.button>
                         </div>
                         <div style={{ width: '100%', overflow: 'hidden', padding: '10px 0' }}>
                           <div className="hot-pick-track">
@@ -754,8 +745,6 @@ const HomePage = ({
                         </div>
                       </div>
                     )}
-
-                    {IncheonBanner && <IncheonBanner />}
 
                     {/* [지역 리스트 처리 루프] */}
                     {(() => {
