@@ -146,8 +146,8 @@ const PartyCard = ({ item, onSelect }) => {
       </div>
       <div style={{ flex:1, display:'flex', flexDirection:'column', justifyContent:'space-between', minWidth:0, padding:'10px 14px' }}>
 
-        <div style={{ display:'flex', alignItems:'center', gap:'6px' }}>
-          <span style={{ fontSize:'10px', fontWeight:'600', color:'#E53935', background:'#fff0f0', padding:'2px 7px', borderRadius:'20px', border:'0.5px solid #ffc9c9', flexShrink:0 }}>
+        <div style={{ display:'flex', alignItems:'center', gap:'8px' }}>
+          <span style={{ fontSize:'12px', fontWeight:'700', color:'#E53935', background:'#fff0f0', padding:'3px 10px', borderRadius:'20px', border:'0.5px solid #ffc9c9', flexShrink:0 }}>
             {(() => {
               const entries = Object.entries(GENRE_MAP).filter(([_, info]) => item[info.key] > 0)
               if (entries.length === 0) return '소셜'
@@ -156,28 +156,28 @@ const PartyCard = ({ item, onSelect }) => {
               return sorted[0][0]
             })()}
           </span>
-          <span style={{ fontSize:'10px', fontWeight:'700', color:'var(--color-text-primary)', background:'var(--color-background-secondary)', padding:'2px 7px', borderRadius:'20px', border:'0.5px solid var(--color-border)', flexShrink:0 }}>
+          <span style={{ fontSize:'12px', fontWeight:'800', color:'var(--color-text-primary)', background:'var(--color-background-secondary)', padding:'3px 10px', borderRadius:'20px', border:'0.5px solid var(--color-border)', flexShrink:0 }}>
             {displayFee}
           </span>
           {isTimeLive && (
-            <span style={{ background:'#E53935', color:'#fff', fontSize:'8px', fontWeight:'800', padding:'1px 5px', borderRadius:'3px', letterSpacing:'0.5px', animation:'blink 1.5s infinite', flexShrink:0 }}>LIVE</span>
+            <span style={{ background:'#E53935', color:'#fff', fontSize:'9px', fontWeight:'900', padding:'2px 6px', borderRadius:'4px', letterSpacing:'0.5px', animation:'blink 1.5s infinite', flexShrink:0 }}>LIVE</span>
           )}
         </div>
 
-        <div style={{ fontSize:'13px', fontWeight:'700', color:'var(--color-text-main)', whiteSpace:'nowrap', overflow:'hidden', textOverflow:'ellipsis', letterSpacing:'-0.2px', lineHeight:1.3 }}>
+        <div style={{ fontSize:'18px', fontWeight:'800', color:'var(--color-text-main)', whiteSpace:'nowrap', overflow:'hidden', textOverflow:'ellipsis', letterSpacing:'-0.5px', lineHeight:1.3 }}>
           {translateDynamicText(cleanTitle(item.title).replace(/^\[.*?\]\s*/, '').replace(/ㅣ\s*$/, '').trim(), isEn)}
         </div>
 
-        <div style={{ display:'flex', alignItems:'center', gap:'10px' }}>
-          <span style={{ display:'flex', alignItems:'center', gap:'3px', fontSize:'11px', color:'var(--color-text-sub)', flexShrink:0 }}>
-            <span style={{ opacity:0.5 }}>⏱</span>
+        <div style={{ display:'flex', alignItems:'center', gap:'12px' }}>
+          <span style={{ display:'flex', alignItems:'center', gap:'4px', fontSize:'13px', color:'var(--color-text-sub)', flexShrink:0 }}>
+            <Clock size={13} />
             {displayTime}
           </span>
           <span
             onClick={(e) => { e.stopPropagation(); const addr = item.address || item.locationName; const query = encodeURIComponent(addr); window.open(isEn ? `https://www.google.com/maps/search/?api=1&query=${query}` : `https://map.kakao.com/link/search/${query}`, '_blank') }}
-            style={{ display:'flex', alignItems:'center', gap:'3px', fontSize:'11px', color:'var(--color-text-sub)', cursor:'pointer', minWidth:0, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}
+            style={{ display:'flex', alignItems:'center', gap:'4px', fontSize:'13px', color:'var(--color-text-sub)', cursor:'pointer', minWidth:0, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}
           >
-            <Navigation size={11} color="#E53935" fill="#E53935" style={{ flexShrink:0 }} />
+            <Navigation size={13} color="#E53935" fill="#E53935" style={{ flexShrink:0 }} />
             {translateDynamicText(item.locationName || item.studio_name || '장소 미지정', isEn)}
           </span>
         </div>
@@ -764,9 +764,9 @@ const HomePage = ({
                                       <div style={{ width: '140px', flexShrink: 0 }}>
                                         <img src={item.poster_url} style={{ width: '100%', height: '100%', objectFit: 'cover' }} alt="Poster" />
                                       </div>
-                                      <div style={{ flex: 1, padding: '10px 14px', display: 'flex', flexDirection: 'column', justifyContent: 'space-between', minWidth: 0 }}>
-                                        <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                                          <span style={{ fontSize: '10px', fontWeight: '600', color: '#E53935', background: '#fff0f0', padding: '2px 7px', borderRadius: '20px', border: '0.5px solid #ffc9c9', flexShrink: 0 }}>
+                                      <div style={{ flex: 1, padding: '16px 20px', display: 'flex', flexDirection: 'column', justifyContent: 'space-between', minWidth: 0 }}>
+                                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                          <span style={{ fontSize: '12px', fontWeight: '700', color: '#E53935', background: '#fff0f0', padding: '3px 10px', borderRadius: '20px', border: '0.5px solid #ffc9c9', flexShrink: 0 }}>
                                             {(() => {
                                               const entries = Object.entries(GENRE_MAP).filter(([_, info]) => item[info.key] > 0)
                                               if (entries.length === 0) return '소셜'
@@ -775,25 +775,23 @@ const HomePage = ({
                                               return sorted[0][0]
                                             })()}
                                           </span>
-                                          <span style={{ fontSize: '10px', fontWeight: '700', color: 'var(--color-text-primary)', background: 'var(--color-background-secondary)', padding: '2px 7px', borderRadius: '20px', border: '0.5px solid var(--color-border)', flexShrink: 0 }}>
+                                          <span style={{ fontSize: '12px', fontWeight: '800', color: 'var(--color-text-primary)', background: 'var(--color-background-secondary)', padding: '3px 10px', borderRadius: '20px', border: '0.5px solid var(--color-border)', flexShrink: 0 }}>
                                             {formatPrice(item.fee)}
                                           </span>
                                         </div>
                                         
-                                        <div style={{ fontSize: '13px', fontWeight: '800', color: 'var(--color-text-main)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', letterSpacing: '-0.2px' }}>
+                                        <div style={{ fontSize: '18px', fontWeight: '800', color: 'var(--color-text-main)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', letterSpacing: '-0.5px' }}>
                                           {cleanTitle(item.title).replace(/^\[.*?\]\s*/, '').replace(/ㅣ\s*$/, '').trim()}
                                         </div>
-                                        
-                                        <div style={{ display: 'flex', alignItems: 'center', gap: '10px', fontSize: '11px', color: 'var(--color-text-sub)' }}>
-                                          <span style={{ display: 'flex', alignItems: 'center', gap: '3px' }}>
-                                            <Clock size={11} />
+                                        <div style={{ display: 'flex', alignItems: 'center', gap: '12px', fontSize: '13px', color: 'var(--color-text-sub)' }}>
+                                          <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                                            <Clock size={13} />
                                             {item.time?.split('-')[0].trim() || '21:00'}
                                           </span>
-                                          <span style={{ display: 'flex', alignItems: 'center', gap: '3px' }}>
-                                            <Navigation size={11} color="#E53935" fill="#E53935" />
+                                          <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                                            <Navigation size={13} color="#E53935" fill="#E53935" />
                                             {translateDynamicText(item.locationName, isEn)}
                                           </span>
-                                          
                                         </div>
                                       </div>
                                     </div>
