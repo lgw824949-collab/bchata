@@ -147,71 +147,45 @@ const PartyCard = ({ item, onSelect }) => {
   return (
     <div
       onClick={() => onSelect(item.poster_url)}
-      style={{
-        display: 'flex', flexDirection: 'row', alignItems: 'stretch',
-        backgroundColor: 'var(--color-card)',
-        borderRadius: '16px', overflow: 'hidden',
-        border: '1px solid var(--color-border)',
-        cursor: 'pointer', height: '100px', marginBottom: '12px',
-        transition: 'all 0.3s'
-      }}
+      style={{ display:'flex', flexDirection:'row', alignItems:'stretch', backgroundColor:'var(--color-card)', borderRadius:'16px', overflow:'hidden', border:'1px solid var(--color-border)', cursor:'pointer', height:'100px', marginBottom:'12px', transition:'all 0.3s' }}
     >
-      {/* 포스터 */}
-      <div style={{ width: '80px', flexShrink: 0 }}>
-        <img src={item.poster_url} style={{ width: '100%', height: '100%', objectFit: 'cover' }} alt="Poster" />
+      <div style={{ width:'80px', flexShrink:0 }}>
+        <img src={item.poster_url} style={{ width:'100%', height:'100%', objectFit:'cover' }} alt="Poster" />
       </div>
+      <div style={{ flex:1, display:'flex', flexDirection:'column', justifyContent:'space-between', minWidth:0, padding:'10px 14px' }}>
 
-      {/* 정보 */}
-      <div style={{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'space-between', minWidth: 0, padding: '10px 14px' }}>
-
-        {/* 1행: 장르태그 + 가격 + LIVE */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-          <span style={{ fontSize: '10px', fontWeight: '600', color: '#E53935', background: '#fff0f0', padding: '2px 7px', borderRadius: '20px', border: '0.5px solid #ffc9c9', flexShrink: 0 }}>
+        <div style={{ display:'flex', alignItems:'center', gap:'6px' }}>
+          <span style={{ fontSize:'10px', fontWeight:'600', color:'#E53935', background:'#fff0f0', padding:'2px 7px', borderRadius:'20px', border:'0.5px solid #ffc9c9', flexShrink:0 }}>
             {(() => {
               const entries = Object.entries(GENRE_MAP).filter(([_, info]) => item[info.key] > 0)
               if (entries.length === 0) return '소셜'
               const sorted = [...entries].sort((a, b) => item[b[1].key] - item[a[1].key])
-              if (sorted.length >= 2 && item[sorted[0][1].key] === item[sorted[1][1].key]) {
-                return `${sorted[0][1].label} · ${sorted[1][1].label}`
-              }
+              if (sorted.length >= 2 && item[sorted[0][1].key] === item[sorted[1][1].key]) return `${sorted[0][1].label} · ${sorted[1][1].label}`
               return sorted[0][1].label
             })()}
           </span>
-          <span style={{ fontSize: '10px', fontWeight: '700', color: 'var(--color-text-primary)', background: 'var(--color-background-secondary)', padding: '2px 7px', borderRadius: '20px', border: '0.5px solid var(--color-border)', flexShrink: 0 }}>
+          <span style={{ fontSize:'10px', fontWeight:'700', color:'var(--color-text-primary)', background:'var(--color-background-secondary)', padding:'2px 7px', borderRadius:'20px', border:'0.5px solid var(--color-border)', flexShrink:0 }}>
             {displayFee}
           </span>
           {isTimeLive && (
-            <span style={{ background: '#E53935', color: '#fff', fontSize: '8px', fontWeight: '800', padding: '1px 5px', borderRadius: '3px', letterSpacing: '0.5px', animation: 'blink 1.5s infinite', flexShrink: 0 }}>LIVE</span>
+            <span style={{ background:'#E53935', color:'#fff', fontSize:'8px', fontWeight:'800', padding:'1px 5px', borderRadius:'3px', letterSpacing:'0.5px', animation:'blink 1.5s infinite', flexShrink:0 }}>LIVE</span>
           )}
         </div>
 
-        {/* 2행: 파티명 - 대괄호 안 내용만 제거 */}
-        <div style={{ fontSize: '13px', fontWeight: '700', color: 'var(--color-text-main)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', letterSpacing: '-0.2px', lineHeight: 1.3 }}>
-          {translateDynamicText(
-            cleanTitle.replace(/^\[.*?\]\s*/, '').trim(),
-            isEn
-          )}
+        <div style={{ fontSize:'13px', fontWeight:'700', color:'var(--color-text-main)', whiteSpace:'nowrap', overflow:'hidden', textOverflow:'ellipsis', letterSpacing:'-0.2px', lineHeight:1.3 }}>
+          {translateDynamicText(cleanTitle.replace(/^\[.*?\]\s*/, '').trim(), isEn)}
         </div>
 
-        {/* 3행: 시간 + 장소명 클릭시 지도 */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-          <span style={{ display: 'flex', alignItems: 'center', gap: '3px', fontSize: '11px', color: 'var(--color-text-sub)', flexShrink: 0 }}>
-            <span style={{ opacity: 0.5 }}>⏱</span>
+        <div style={{ display:'flex', alignItems:'center', gap:'10px' }}>
+          <span style={{ display:'flex', alignItems:'center', gap:'3px', fontSize:'11px', color:'var(--color-text-sub)', flexShrink:0 }}>
+            <span style={{ opacity:0.5 }}>⏱</span>
             {displayTime}
           </span>
           <span
-            onClick={(e) => {
-              e.stopPropagation()
-              const addr = item.address || item.locationName
-              const query = encodeURIComponent(addr)
-              const url = isEn
-                ? `https://www.google.com/maps/search/?api=1&query=${query}`
-                : `https://map.kakao.com/link/search/${query}`
-              window.open(url, '_blank')
-            }}
-            style={{ display: 'flex', alignItems: 'center', gap: '3px', fontSize: '11px', color: 'var(--color-text-sub)', cursor: 'pointer', minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}
+            onClick={(e) => { e.stopPropagation(); const addr = item.address || item.locationName; const query = encodeURIComponent(addr); window.open(isEn ? `https://www.google.com/maps/search/?api=1&query=${query}` : `https://map.kakao.com/link/search/${query}`, '_blank') }}
+            style={{ display:'flex', alignItems:'center', gap:'3px', fontSize:'11px', color:'var(--color-text-sub)', cursor:'pointer', minWidth:0, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}
           >
-            <Navigation size={11} color="#E53935" fill="#E53935" style={{ flexShrink: 0 }} />
+            <Navigation size={11} color="#E53935" fill="#E53935" style={{ flexShrink:0 }} />
             {translateDynamicText(item.locationName || item.studio_name || '장소 미지정', isEn)}
           </span>
         </div>
@@ -219,6 +193,7 @@ const PartyCard = ({ item, onSelect }) => {
       </div>
     </div>
   );
+
 
 
 };
