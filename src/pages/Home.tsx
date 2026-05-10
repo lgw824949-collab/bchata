@@ -145,9 +145,9 @@ const PartyCard = ({ item, onSelect }) => {
         <img src={item.poster_url} style={{ width:'100%', height:'100%', objectFit:'cover' }} alt="Poster" />
       </div>
 
-      <div style={{ flex:1, display:'flex', flexDirection:'column', justifyContent:'space-between', minWidth:0, padding:'14px 18px' }}>
+      <div style={{ flex:1, display:'flex', flexDirection:'column', justifyContent:'space-between', minWidth:0, padding:'16px 20px' }}>
 
-        <div style={{ display:'flex', alignItems:'center', gap:'8px' }}>
+        <div style={{ display:'flex', alignItems:'center' }}>
           <span style={{ fontSize:'12px', fontWeight:'700', color:'#E53935', background:'#fff0f0', padding:'3px 10px', borderRadius:'8px', border:'1px solid #ffc9c9', flexShrink:0 }}>
             {(() => {
               const entries = Object.entries(GENRE_MAP).filter(([_, info]) => item[info.key] > 0)
@@ -162,13 +162,13 @@ const PartyCard = ({ item, onSelect }) => {
           )}
         </div>
 
-        <div style={{ fontSize:'18px', fontWeight:'900', color:'var(--color-text-main)', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow:'hidden', textOverflow:'ellipsis', letterSpacing:'-0.6px', lineHeight:1.3, height: '48px' }}>
+        <div style={{ fontSize:'17px', fontWeight:'900', color:'var(--color-text-main)', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow:'hidden', textOverflow:'ellipsis', letterSpacing:'-0.6px', lineHeight:1.3, height: '44px', marginTop: '4px' }}>
           {translateDynamicText(cleanTitle(item.title).replace(/^\[.*?\]\s*/, '').replace(/ㅣ\s*$/, '').trim(), isEn)}
         </div>
 
-        <div style={{ display:'flex', flexDirection: 'column', gap: '6px' }}>
-          <span style={{ display:'flex', alignItems:'center', gap:'6px', fontSize:'13px', color:'var(--color-text-sub)', fontWeight: 600 }}>
-            <Clock size={14} />
+        <div style={{ display:'flex', flexDirection: 'column', gap: '8px' }}>
+          <span style={{ display:'flex', alignItems:'center', gap:'6px', fontSize:'15px', color:'var(--color-text-sub)', fontWeight: 800 }}>
+            <Clock size={15} />
             {displayTime}
           </span>
           <div style={{ display:'flex', alignItems:'center', gap:'8px', flexWrap: 'wrap' }}>
@@ -768,7 +768,7 @@ const HomePage = ({
                                       <div style={{ width: '120px', flexShrink: 0 }}>
                                         <img src={item.poster_url} style={{ width: '100%', height: '100%', objectFit: 'cover' }} alt="Poster" />
                                       </div>
-                                      <div style={{ flex: 1, padding: '14px 18px', display: 'flex', flexDirection: 'column', justifyContent: 'space-between', minWidth: 0 }}>
+                                      <div style={{ flex: 1, padding: '16px 20px', display: 'flex', flexDirection: 'column', justifyContent: 'space-between', minWidth: 0 }}>
                                         <div style={{ display: 'flex', alignItems: 'center' }}>
                                           <span style={{ fontSize: '12px', fontWeight: '700', color: '#E53935', background: '#fff0f0', padding: '3px 10px', borderRadius: '8px', border: '1px solid #ffc9c9', flexShrink: 0 }}>
                                             {(() => {
@@ -781,13 +781,13 @@ const HomePage = ({
                                           </span>
                                         </div>
                                         
-                                        <div style={{ fontSize: '18px', fontWeight: '900', color: 'var(--color-text-main)', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden', textOverflow: 'ellipsis', letterSpacing: '-0.6px', lineHeight: 1.3, height: '48px' }}>
+                                        <div style={{ fontSize: '17px', fontWeight: '900', color: 'var(--color-text-main)', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden', textOverflow: 'ellipsis', letterSpacing: '-0.6px', lineHeight: 1.3, height: '44px', marginTop: '4px' }}>
                                           {cleanTitle(item.title).replace(/^\[.*?\]\s*/, '').replace(/ㅣ\s*$/, '').trim()}
                                         </div>
                                         
-                                        <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-                                          <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '13px', color: 'var(--color-text-sub)', fontWeight: 600 }}>
-                                            <Clock size={14} />
+                                        <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                                          <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '15px', color: 'var(--color-text-sub)', fontWeight: 800 }}>
+                                            <Clock size={15} />
                                             {item.time?.split('-')[0].trim() || '21:00'}
                                           </div>
                                           <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
