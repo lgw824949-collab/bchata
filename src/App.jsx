@@ -690,8 +690,12 @@ function App() {
 
   useEffect(() => {
     const handleSync = () => setSidebarRefresh(prev => prev + 1);
-    window.addEventListener('storage', handleSync);
-    return () => window.removeEventListener('storage', handleSync);
+    window.addEventListener('refresh-sidebar', handleSync);
+    window.addEventListener('storage', handleSync); // Keep storage for cross-tab sync
+    return () => {
+      window.removeEventListener('refresh-sidebar', handleSync);
+      window.removeEventListener('storage', handleSync);
+    };
   }, []);
 
   useEffect(() => {

@@ -129,7 +129,7 @@ const InstructorSection = () => {
       ));
       
       // Trigger a refresh event for the sidebar if needed (via window event)
-      window.dispatchEvent(new Event('storage')); 
+      window.dispatchEvent(new CustomEvent('refresh-sidebar')); 
       
       alert(isFollowing ? '팔로우가 취소되었습니다.' : '마스터를 팔로우했습니다! 사이드바에서 확인하세요.');
     } catch (err) {
