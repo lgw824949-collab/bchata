@@ -152,7 +152,7 @@ const PartyCard = ({ item, onSelect }) => {
         backgroundColor: 'var(--color-card)',
         borderRadius: '16px', overflow: 'hidden',
         border: '1px solid var(--color-border)',
-        cursor: 'pointer', height: '110px', marginBottom: '12px',
+        cursor: 'pointer', height: '100px', marginBottom: '12px',
         transition: 'all 0.3s'
       }}
     >
@@ -162,70 +162,64 @@ const PartyCard = ({ item, onSelect }) => {
       </div>
 
       {/* 정보 */}
-      <div style={{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'center', minWidth: 0, padding: '10px 14px', gap: '5px' }}>
+      <div style={{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'space-between', minWidth: 0, padding: '10px 14px' }}>
 
-        {/* 1행: 장소명 + 지도 */}
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-          <span style={{ fontSize: '12px', fontWeight: '500', color: 'var(--color-text-sub)', letterSpacing: '0.2px' }}>
-            {translateDynamicText(item.locationName || item.studio_name || item.address || '장소 미지정', isEn)}
+        {/* 1행: 장르태그 + 가격 + LIVE */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+          <span style={{ fontSize: '10px', fontWeight: '600', color: '#E53935', background: '#fff0f0', padding: '2px 7px', borderRadius: '20px', border: '0.5px solid #ffc9c9', flexShrink: 0 }}>
+            {(() => {
+              const entries = Object.entries(GENRE_MAP).filter(([_, info]) => item[info.key] > 0)
+              if (entries.length === 0) return '소셜'
+              const sorted = [...entries].sort((a, b) => item[b[1].key] - item[a[1].key])
+              if (sorted.length >= 2 && item[sorted[0][1].key] === item[sorted[1][1].key]) {
+                return `${sorted[0][1].label} · ${sorted[1][1].label}`
+              }
+              return sorted[0][1].label
+            })()}
           </span>
-          <Navigation
-            size={13}
-            color="#E53935"
-            fill="#E53935"
-            style={{ flexShrink: 0, cursor: 'pointer', opacity: 0.8 }}
+          <span style={{ fontSize: '10px', fontWeight: '700', color: 'var(--color-text-primary)', background: 'var(--color-background-secondary)', padding: '2px 7px', borderRadius: '20px', border: '0.5px solid var(--color-border)', flexShrink: 0 }}>
+            {displayFee}
+          </span>
+          {isTimeLive && (
+            <span style={{ background: '#E53935', color: '#fff', fontSize: '8px', fontWeight: '800', padding: '1px 5px', borderRadius: '3px', letterSpacing: '0.5px', animation: 'blink 1.5s infinite', flexShrink: 0 }}>LIVE</span>
+          )}
+        </div>
+
+        {/* 2행: 파티명 - 대괄호 안 내용만 제거 */}
+        <div style={{ fontSize: '13px', fontWeight: '700', color: 'var(--color-text-main)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', letterSpacing: '-0.2px', lineHeight: 1.3 }}>
+          {translateDynamicText(
+            cleanTitle.replace(/^\[.*?\]\s*/, '').trim(),
+            isEn
+          )}
+        </div>
+
+        {/* 3행: 시간 + 장소명 클릭시 지도 */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+          <span style={{ display: 'flex', alignItems: 'center', gap: '3px', fontSize: '11px', color: 'var(--color-text-sub)', flexShrink: 0 }}>
+            <span style={{ opacity: 0.5 }}>⏱</span>
+            {displayTime}
+          </span>
+          <span
             onClick={(e) => {
-              e.stopPropagation();
-              const addr = item.address || item.locationName;
-              const query = encodeURIComponent(addr);
+              e.stopPropagation()
+              const addr = item.address || item.locationName
+              const query = encodeURIComponent(addr)
               const url = isEn
                 ? `https://www.google.com/maps/search/?api=1&query=${query}`
-                : `https://map.kakao.com/link/search/${query}`;
-              window.open(url, '_blank');
+                : `https://map.kakao.com/link/search/${query}`
+              window.open(url, '_blank')
             }}
-          />
-        </div>
-
-        {/* 2행: 파티명 + LIVE */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
-          {isTimeLive && (
-            <span style={{
-              background: '#E53935', color: '#fff', fontSize: '8px', fontWeight: '800',
-              padding: '1px 5px', borderRadius: '3px', letterSpacing: '0.5px',
-              animation: 'blink 1.5s infinite', flexShrink: 0
-            }}>LIVE</span>
-          )}
-          <h3 style={{
-            fontSize: '15px', fontWeight: '800', color: 'var(--color-text-main)',
-            margin: 0, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
-            letterSpacing: '-0.3px', lineHeight: 1.2
-          }}>
-            {translateDynamicText(cleanTitle.replace(/^\[.*?\]\s*|서울\s*|전국\s*/g, ''), isEn)}
-          </h3>
-        </div>
-
-        {/* 3행: 시간 · 음악비율 */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '11px', color: 'var(--color-text-sub)', whiteSpace: 'nowrap' }}>
-          <span style={{ fontWeight: '600' }}>{displayTime}</span>
-          <span style={{ opacity: 0.25, fontSize: '10px' }}>·</span>
-          <span style={{ fontWeight: '400', color: 'var(--color-text-sub)', opacity: 0.8 }}>
-            {Object.entries(GENRE_MAP)
-              .filter(([_, info]) => item[info.key] > 0)
-              .map(([_, info]) => `${info.label} ${item[info.key]}`)
-              .join('  ')}
-          </span>
-        </div>
-
-        {/* 4행: 가격 */}
-        <div>
-          <span style={{ fontSize: '15px', fontWeight: '900', color: '#E53935', letterSpacing: '-0.3px' }}>
-            {displayFee}
+            style={{ display: 'flex', alignItems: 'center', gap: '3px', fontSize: '11px', color: 'var(--color-text-sub)', cursor: 'pointer', minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}
+          >
+            <Navigation size={11} color="#E53935" fill="#E53935" style={{ flexShrink: 0 }} />
+            {translateDynamicText(item.locationName || item.studio_name || '장소 미지정', isEn)}
           </span>
         </div>
 
       </div>
     </div>
   );
+
 
 };
 
