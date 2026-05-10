@@ -120,15 +120,7 @@ const PartyCard = ({ item, onSelect }) => {
 
   const cleanTitle = item.title?.split(' ㅣ ')[0] || '';
   const displayTime = item.time?.split('-')[0].trim() || '21:00';
-  const displayFee = (() => {
-    if (!item.fee) return '1.2만';
-    const f = String(item.fee);
-    if (f.includes('만')) return f.replace('원', '');
-    const num = parseInt(f.replace(/[^0-9]/g, ''));
-    if (isNaN(num)) return f;
-    if (num === 0) return '무료';
-    return (num / 10000).toFixed(1).replace('.0', '') + '만';
-  })();
+  const displayFee = formatPrice(item.fee);
 
   const { i18n } = useTranslation();
   const isEn = i18n.language.startsWith('en');
@@ -446,11 +438,14 @@ const HomePage = ({
   // [가격 정제 로직]
   const formatPrice = (priceStr: string) => {
     if (!priceStr) return '2만';
-    const num = parseInt(priceStr.replace(/[^0-9]/g, ''));
-    if (isNaN(num)) return priceStr;
-    if (num % 10000 === 0) return `${num/10000}만`;
-    if (num > 10000) return `${(num/10000).toFixed(1)}만`;
-    return priceStr;
+    if (priceStr.includes('무료') || priceStr === '0') return '무료';
+    const num = parseInt(String(priceStr).replace(/[^0-9]/g, ''));
+    if (isNaN(num)) return String(priceStr).replace('원', '');
+    if (num === 0) return '무료';
+    if (num < 1000) return `${num}`; // 1000원 미만은 숫자만 (거의 없음)
+    const manValue = num / 10000;
+    if (num % 10000 === 0) return `${manValue}만`;
+    return `${manValue.toFixed(1).replace('.0', '')}만`;
   };
 
   const [isPaused, setIsPaused] = useState(false);
