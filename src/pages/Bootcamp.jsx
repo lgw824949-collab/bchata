@@ -217,7 +217,23 @@ const Bootcamp = ({ onBack, initialView = 'list' }) => {
           <>
             <div style={{ display: 'flex', gap: '10px', padding: '10px 20px', overflowX: 'auto', scrollbarWidth: 'none' }}>
               {GENRES.map(g => (
-                <button key={g} onClick={() => setSelectedGenre(g)} style={{ padding: '8px 15px', borderRadius: '10px', background: selectedGenre === g ? 'rgba(124, 58, 237, 0.2)' : 'transparent', border: '1px solid', borderColor: selectedGenre === g ? '#7C3AED' : 'rgba(255,255,255,0.1)', color: selectedGenre === g ? '#fff' : '#64748b', fontSize: '12px', fontWeight: 800, whiteSpace: 'nowrap' }}>{g}</button>
+                <button 
+                  key={g} 
+                  onClick={() => setSelectedGenre(g)} 
+                  style={{ 
+                    padding: '8px 15px', 
+                    borderRadius: '10px', 
+                    background: selectedGenre === g ? 'rgba(124, 58, 237, 0.2)' : 'transparent', 
+                    border: '1px solid', 
+                    borderColor: selectedGenre === g ? '#7C3AED' : 'rgba(255,255,255,0.1)', 
+                    color: selectedGenre === g ? '#fff' : '#64748b', 
+                    fontSize: '12px', 
+                    fontWeight: 800, 
+                    whiteSpace: 'nowrap' 
+                  }}
+                >
+                  {g}
+                </button>
               ))}
             </div>
 
@@ -276,7 +292,13 @@ const Bootcamp = ({ onBack, initialView = 'list' }) => {
                             <span>{item.region} {item.venue}</span>
                           </div>
                         </div>
-                        <div style={{ background: 'rgba(245,158,11,0.1)', padding: '6px 12px', borderRadius: '10px', border: '1px solid rgba(245,158,11,0.2)' }}>
+                        <div 
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setSelectedBootcamp(item);
+                          }}
+                          style={{ background: 'rgba(245,158,11,0.1)', padding: '6px 12px', borderRadius: '10px', border: '1px solid rgba(245,158,11,0.2)' }}
+                        >
                           <span style={{ fontSize: '14px', fontWeight: 1000, color: '#F59E0B' }}>자세히 보기</span>
                         </div>
                       </div>
