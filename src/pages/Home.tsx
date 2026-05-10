@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo, useRef } from 'react';
-import { Heart, MapPin, Calendar, Clock, User, Music, ChevronRight, ShieldCheck, X, Home as HomeIcon, ChevronLeft, CloudSun, Utensils, Zap, PlusCircle, Languages, Bell, Globe, Navigation, CalendarDays, Star } from 'lucide-react';
+import { Heart, MapPin, Calendar, Clock, User, Music, ChevronRight, ShieldCheck, X, Home as HomeIcon, ChevronLeft, CloudSun, Utensils, Zap, PlusCircle, Languages, Bell, Globe, Navigation, CalendarDays, Star, Camera, MessageSquare } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { motion, AnimatePresence } from 'framer-motion';
 import QuickPinchZoom, { make3dTransformValue } from 'react-quick-pinch-zoom';
@@ -435,7 +435,8 @@ const HomePage = ({
   showFilteredResults, setShowFilteredResults, isMenuOpen, setIsMenuOpen, showWeather, setShowWeather,
   showLatinModal, setShowLatinModal, setShowSaju, latinCat, setLatinCat, selPatternId, setSelPatternId, regionalTheme, recordTraffic, IncheonBanner, venueCounts, openAnalysis,
   showGridModal, setShowGridModal, gridRegion, setGridRegion, filterStep, setFilterStep,
-  handleOpenModal, handleCloseModal
+  handleOpenModal, handleCloseModal,
+  isDark, setIsDark, followedInstructors, likedLivePicks
 }) => {
   const { t, i18n } = useTranslation();
   const [lang, setLang] = useState<'ko' | 'en'>('ko');
@@ -616,6 +617,54 @@ const HomePage = ({
             <span style={{ color: lang === 'en' ? '#FF1744' : 'inherit', padding: '2px 7px', borderRadius: '10px', background: lang === 'en' ? '#fff' : 'transparent' }}>EN</span>
           </button>
         </div>
+      </div>
+
+      {/* 🚀 [사용자 요청] 퀵 메뉴 그리드 (벤치마킹 디자인 적용) */}
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: '12px', padding: '15px 15px 30px' }}>
+        {[
+          { icon: <Camera size={26} color="#FF1744" />, label: '라이브픽', action: () => setView('community'), badge: 'HOT' },
+          { icon: <Calendar size={26} color="#FF1744" />, label: '전체달력', action: () => handleOpenModal(setShowFullCalendar, true) },
+          { icon: <Utensils size={26} color="#FF1744" />, label: '맛집/디풀이', action: () => setView('restaurant') },
+          { icon: <CloudSun size={26} color="#FF1744" />, label: '오늘날씨', action: () => handleOpenModal(setShowWeather, true) },
+          { icon: <Zap size={26} color="#FF1744" />, label: isDark ? '라이트모드' : '다크모드', action: () => setIsDark(!isDark) },
+          { icon: <MessageSquare size={26} color="#FF1744" />, label: '오픈채팅', action: () => window.open('https://open.kakao.com/o/gP43rNri', '_blank') },
+          { icon: <Star size={26} color="#FF1744" />, label: '마이마스터', action: () => setView('instructors'), count: followedInstructors?.length },
+          { icon: <Heart size={26} color="#FF1744" />, label: '마이픽', action: () => setView('community'), count: likedLivePicks?.length },
+          { icon: <MapPin size={26} color="#FF1744" />, label: '주변주차', action: () => setView('parking') },
+          { icon: <HomeIcon size={26} color="#FF1744" />, label: '대관문의', action: () => window.open('https://open.kakao.com/o/gP43rNri', '_blank'), dot: true },
+        ].map((item, idx) => (
+          <motion.div
+            key={idx}
+            whileTap={{ scale: 0.92 }}
+            onClick={item.action}
+            style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '8px', cursor: 'pointer' }}
+          >
+            <div style={{ 
+              width: '100%', 
+              aspectRatio: '1/1', 
+              background: 'var(--color-card)', 
+              borderRadius: '20px', 
+              display: 'flex', 
+              alignItems: 'center', 
+              justifyContent: 'center',
+              position: 'relative',
+              border: '1px solid var(--color-border)',
+              boxShadow: '0 4px 12px rgba(0,0,0,0.05)'
+            }}>
+              {item.icon}
+              {item.badge && (
+                <span style={{ position: 'absolute', top: '-4px', right: '-4px', background: '#FF1744', color: '#fff', fontSize: '8px', fontWeight: 900, padding: '2px 5px', borderRadius: '6px', boxShadow: '0 2px 4px rgba(255,23,68,0.3)' }}>{item.badge}</span>
+              )}
+              {item.dot && (
+                <span style={{ position: 'absolute', bottom: '8px', right: '8px', width: '6px', height: '6px', background: '#FF1744', borderRadius: '50%' }} />
+              )}
+              {item.count > 0 && (
+                <span style={{ position: 'absolute', top: '8px', right: '8px', background: 'rgba(255,23,68,0.1)', color: '#FF1744', fontSize: '9px', fontWeight: 800, padding: '1px 4px', borderRadius: '4px' }}>{item.count}</span>
+              )}
+            </div>
+            <span style={{ fontSize: '11px', fontWeight: 800, color: 'var(--color-text-main)', textAlign: 'center', whiteSpace: 'nowrap' }}>{item.label}</span>
+          </motion.div>
+        ))}
       </div>
 
       {/* 📌 [영역 B: 날짜 선택바 - 상단 고정(Sticky)] */}

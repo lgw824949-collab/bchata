@@ -987,6 +987,9 @@ function App() {
     IncheonBanner: () => <IncheonPremiumBanner t={t} onClick={() => openAnalysis(false)} />, venueCounts: {}, resetToToday: () => { setView('home'); setSelectedDate(todayData.dateStr); }, formatItemDate: (d, t) => `${d} ${t}`, formatFee: (f) => f, 
     handleRegister, 
     fetchParties,
+    showWeather, setShowWeather,
+    isDark, setIsDark,
+    followedInstructors, likedLivePicks,
     setShowSaju,
     logActivity: () => {}, regionalTheme: { welcomeMsg: "전국 댄서들을 위한 실시간 정보", specialBanner: true }
   };
