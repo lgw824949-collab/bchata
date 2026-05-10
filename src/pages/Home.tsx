@@ -586,7 +586,7 @@ const HomePage = ({
       </div>
 
       <div style={{ padding: '12px 10px 8px' }}>
-        <div style={{ display:'flex', justifyContent:'flex-end', padding:'4px 14px 0' }}>
+        <div style={{ display:'flex', justifyContent:'flex-end', padding:'2px 14px 0' }}>
           <button
             onClick={() => window.dispatchEvent(new CustomEvent('open-id-register'))}
             style={{
@@ -597,9 +597,11 @@ const HomePage = ({
               color:'#F97316', fontWeight:700
             }}
           >
-            <span style={{ width:5, height:5, background:'#F97316', borderRadius:'50%', display:'inline-block', animation:'ev-blink 1s infinite' }} />
+            <span style={{ width:5, height:5, background:'#F97316', borderRadius:'50%', flexShrink:0,
+              display:'inline-block', animation:'ev-blink 1s infinite' }} />
             🥃 포스터 이벤트
           </button>
+          <style>{`@keyframes ev-blink{0%,100%{opacity:1}50%{opacity:0.3}}`}</style>
         </div>
         <div style={{ height: '36px', background: '#0f172a', borderRadius: '18px', display: 'flex', alignItems: 'center', overflow: 'hidden', padding: '0 8px 0 16px' }}>
           <div style={{ flex: 1, overflow: 'hidden' }}>

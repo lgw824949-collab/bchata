@@ -140,55 +140,34 @@ const LiveCount = () => {
   }, [regionalReports, currentIndex]);
 
   return (
-    <>
-      <div
-        onClick={() => window.dispatchEvent(new CustomEvent('open-id-register'))}
-        style={{ background:'#111', height:'28px', display:'flex', alignItems:'center', justifyContent:'space-between', padding:'0 14px', cursor:'pointer', borderBottom:'1px solid #1a1a1a' }}
-      >
-        <style>{`
-          @keyframes ev-blink { 0%,100%{opacity:1} 50%{opacity:0.3} }
-          .ev-dot { width:6px; height:6px; background:#F97316; border-radius:50%; animation:ev-blink 1s infinite; flex-shrink:0; }
-        `}</style>
-        <div style={{ display:'flex', alignItems:'center', gap:6 }}>
-          <span className="ev-dot" />
-          <span style={{ fontSize:'11px', color:'#F97316', fontWeight:700 }}>EVENT</span>
-          <span style={{ fontSize:'11px', color:'rgba(255,255,255,0.5)' }}>
-            {lang === 'en' ? '🥃 Poster Event — Win Whisky!' : '🥃 포스터 이벤트 — 위스키 쏩니다!'}
-          </span>
+    <div style={{ background:'#0f172a', height:'44px', display:'flex', alignItems:'center', padding:'0 16px', gap:10 }}>
+      <style>{`
+        .lc-tag { background:#E53935; color:#fff; font-size:9px; font-weight:900; padding:2px 7px; border-radius:3px; letter-spacing:2px; flex-shrink:0; }
+        .lc-dot { width:5px; height:5px; background:#E53935; border-radius:50%; flex-shrink:0; animation:lc-blink 1s infinite; }
+        @keyframes lc-blink { 0%,100%{opacity:1} 50%{opacity:0.3} }
+        .lc-name { color:rgba(255,255,255,0.8); font-size:13px; font-family:monospace; margin-right:8px; }
+        .lc-count { color:#E53935; font-size:18px; font-weight:900; font-family:monospace; }
+        .lc-default { color:rgba(255,255,255,0.5); font-size:12px; font-family:monospace; }
+        .lc-lang { display:flex; margin-left:auto; flex-shrink:0; }
+        .lc-lang-btn { background:transparent; border:none; color:rgba(255,255,255,0.3); font-size:10px; font-weight:700; padding:4px 8px; cursor:pointer; letter-spacing:1px; }
+        .lc-lang-btn.on { color:#E53935; }
+      `}</style>
+      <span className="lc-tag">LIVE</span>
+      <span className="lc-dot" />
+      {parsed ? (
+        <div style={{ display:'flex', alignItems:'center', flex:1, minWidth:0 }}>
+          <span className="lc-name">{parsed.name}</span>
+          <span className="lc-count">{parsed.count}</span>
         </div>
-        <span style={{ fontSize:'10px', color:'#F97316', fontWeight:700 }}>
-          {lang === 'en' ? 'Join →' : '참여 →'}
-        </span>
+      ) : (
+        <span className="lc-default" style={{ flex:1 }}>{displayText}</span>
+      )}
+      <div className="lc-lang">
+        <button className={`lc-lang-btn${lang==='ko'?' on':''}`} onClick={() => onLangChange && onLangChange('ko')}>KO</button>
+        <span style={{ color:'rgba(255,255,255,0.2)', fontSize:10, alignSelf:'center' }}>|</span>
+        <button className={`lc-lang-btn${lang==='en'?' on':''}`} onClick={() => onLangChange && onLangChange('en')}>EN</button>
       </div>
-      <div style={{ background:'#0f172a', height:'44px', display:'flex', alignItems:'center', padding:'0 16px', gap:10 }}>
-        <style>{`
-          .lc-tag { background:#E53935; color:#fff; font-size:9px; font-weight:900; padding:2px 7px; border-radius:3px; letter-spacing:2px; flex-shrink:0; }
-          .lc-dot { width:5px; height:5px; background:#E53935; border-radius:50%; flex-shrink:0; animation:lc-blink 1s infinite; }
-          @keyframes lc-blink { 0%,100%{opacity:1} 50%{opacity:0.3} }
-          .lc-name { color:rgba(255,255,255,0.8); font-size:13px; font-family:monospace; margin-right:8px; }
-          .lc-count { color:#E53935; font-size:18px; font-weight:900; font-family:monospace; }
-          .lc-default { color:rgba(255,255,255,0.5); font-size:12px; font-family:monospace; }
-          .lc-lang { display:flex; margin-left:auto; flex-shrink:0; }
-          .lc-lang-btn { background:transparent; border:none; color:rgba(255,255,255,0.3); font-size:10px; font-weight:700; padding:4px 8px; cursor:pointer; letter-spacing:1px; }
-          .lc-lang-btn.on { color:#E53935; }
-        `}</style>
-        <span className="lc-tag">LIVE</span>
-        <span className="lc-dot" />
-        {parsed ? (
-          <div style={{ display:'flex', alignItems:'center', flex:1, minWidth:0 }}>
-            <span className="lc-name">{parsed.name}</span>
-            <span className="lc-count">{parsed.count}</span>
-          </div>
-        ) : (
-          <span className="lc-default" style={{ flex:1 }}>{displayText}</span>
-        )}
-        <div className="lc-lang">
-          <button className={`lc-lang-btn${lang==='ko'?' on':''}`} onClick={() => onLangChange && onLangChange('ko')}>KO</button>
-          <span style={{ color:'rgba(255,255,255,0.2)', fontSize:10, alignSelf:'center' }}>|</span>
-          <button className={`lc-lang-btn${lang==='en'?' on':''}`} onClick={() => onLangChange && onLangChange('en')}>EN</button>
-        </div>
-      </div>
-    </>
+    </div>
   )
 }
 
