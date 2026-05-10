@@ -1106,39 +1106,41 @@ function App() {
                 msOverflowStyle: 'none',
                 WebkitOverflowScrolling: 'touch'
               }}>
-                {followedInstructors.length > 0 ? (
-                  followedInstructors.map(inst => (
-                    <motion.div 
-                      key={inst.id}
-                      whileTap={{ scale: 0.9 }}
-                      onClick={() => {
-                        localStorage.setItem('selected_instructor_id', inst.id);
-                        navigate('/instructors');
-                        setIsMenuOpen(false);
-                      }}
-                      style={{ flexShrink: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '8px', width: '64px' }}
-                    >
-                      <div style={{ 
-                        width: '58px', 
-                        height: '58px', 
-                        borderRadius: '50%', 
-                        border: '2px solid #C9A84C', 
-                        padding: '2px', 
-                        background: 'linear-gradient(135deg, #C9A84C, #F1D382)',
-                        boxShadow: '0 4px 12px rgba(201, 168, 76, 0.2)'
-                      }}>
-                        <div style={{ width: '100%', height: '100%', borderRadius: '50%', background: 'var(--color-card)', overflow: 'hidden' }}>
-                          <img src={inst.photo_url || 'https://via.placeholder.com/150'} style={{ width: '100%', height: '100%', borderRadius: '50%', objectFit: 'cover' }} />
+                {/* [사용자 요청] 최소 10개 슬롯 표시 (팔로우 항목 + 나머지는 플레이스홀더) */}
+                {Array.from({ length: 10 }).map((_, idx) => {
+                  const inst = followedInstructors[idx];
+                  if (inst) {
+                    return (
+                      <motion.div 
+                        key={`inst-${inst.id}`}
+                        whileTap={{ scale: 0.9 }}
+                        onClick={() => {
+                          localStorage.setItem('selected_instructor_id', inst.id);
+                          navigate('/instructors');
+                          setIsMenuOpen(false);
+                        }}
+                        style={{ flexShrink: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '8px', width: '64px' }}
+                      >
+                        <div style={{ 
+                          width: '58px', 
+                          height: '58px', 
+                          borderRadius: '50%', 
+                          border: '2px solid #C9A84C', 
+                          padding: '2px', 
+                          background: 'linear-gradient(135deg, #C9A84C, #F1D382)',
+                          boxShadow: '0 4px 12px rgba(201, 168, 76, 0.2)'
+                        }}>
+                          <div style={{ width: '100%', height: '100%', borderRadius: '50%', background: 'var(--color-card)', overflow: 'hidden' }}>
+                            <img src={inst.photo_url || 'https://via.placeholder.com/150'} style={{ width: '100%', height: '100%', borderRadius: '50%', objectFit: 'cover' }} />
+                          </div>
                         </div>
-                      </div>
-                      <span style={{ fontSize: '11px', color: 'var(--color-text-main)', fontWeight: 800, textAlign: 'center', width: '100%', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{inst.name.split(' ')[0]}</span>
-                    </motion.div>
-                  ))
-                ) : (
-                  // Empty State Placeholder
-                  [1, 2, 3, 4, 5].map(i => (
+                        <span style={{ fontSize: '11px', color: 'var(--color-text-main)', fontWeight: 800, textAlign: 'center', width: '100%', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{inst.name.split(' ')[0]}</span>
+                      </motion.div>
+                    );
+                  }
+                  return (
                     <div 
-                      key={i}
+                      key={`placeholder-inst-${idx}`}
                       onClick={() => { setView('instructors'); setIsMenuOpen(false); }}
                       style={{ flexShrink: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '8px', width: '64px', opacity: 0.3 }}
                     >
@@ -1147,8 +1149,8 @@ function App() {
                       </div>
                       <div style={{ width: '30px', height: '8px', borderRadius: '4px', background: 'var(--color-border)' }} />
                     </div>
-                  ))
-                )}
+                  );
+                })}
               </div>
             </div>
 
@@ -1167,38 +1169,40 @@ function App() {
                 msOverflowStyle: 'none',
                 WebkitOverflowScrolling: 'touch'
               }}>
-                {likedLivePicks.length > 0 ? (
-                  likedLivePicks.map(post => (
-                    <motion.div 
-                      key={post.id}
-                      whileTap={{ scale: 0.9 }}
-                      onClick={() => {
-                        setView('community');
-                        setIsMenuOpen(false);
-                      }}
-                      style={{ flexShrink: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '8px', width: '64px' }}
-                    >
-                      <div style={{ 
-                        width: '58px', 
-                        height: '58px', 
-                        borderRadius: '50%', 
-                        border: '2px solid #E53935', 
-                        padding: '2px', 
-                        background: 'linear-gradient(135deg, #E53935, #FF8A80)',
-                        boxShadow: '0 4px 12px rgba(229, 57, 53, 0.2)'
-                      }}>
-                        <div style={{ width: '100%', height: '100%', borderRadius: '50%', background: 'var(--color-card)', overflow: 'hidden' }}>
-                          <img src={post.image_url} style={{ width: '100%', height: '100%', borderRadius: '50%', objectFit: 'cover' }} />
+                {/* [사용자 요청] 최소 10개 슬롯 표시 */}
+                {Array.from({ length: 10 }).map((_, idx) => {
+                  const post = likedLivePicks[idx];
+                  if (post) {
+                    return (
+                      <motion.div 
+                        key={`post-${post.id}`}
+                        whileTap={{ scale: 0.9 }}
+                        onClick={() => {
+                          setView('community');
+                          setIsMenuOpen(false);
+                        }}
+                        style={{ flexShrink: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '8px', width: '64px' }}
+                      >
+                        <div style={{ 
+                          width: '58px', 
+                          height: '58px', 
+                          borderRadius: '50%', 
+                          border: '2px solid #E53935', 
+                          padding: '2px', 
+                          background: 'linear-gradient(135deg, #E53935, #FF8A80)',
+                          boxShadow: '0 4px 12px rgba(229, 57, 53, 0.2)'
+                        }}>
+                          <div style={{ width: '100%', height: '100%', borderRadius: '50%', background: 'var(--color-card)', overflow: 'hidden' }}>
+                            <img src={post.image_url} style={{ width: '100%', height: '100%', borderRadius: '50%', objectFit: 'cover' }} />
+                          </div>
                         </div>
-                      </div>
-                      <span style={{ fontSize: '11px', color: 'var(--color-text-main)', fontWeight: 800, textAlign: 'center', width: '100%', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{post.bar_name || '현장'}</span>
-                    </motion.div>
-                  ))
-                ) : (
-                  // Empty State Placeholder
-                  [1, 2, 3, 4, 5].map(i => (
+                        <span style={{ fontSize: '11px', color: 'var(--color-text-main)', fontWeight: 800, textAlign: 'center', width: '100%', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{post.bar_name || '현장'}</span>
+                      </motion.div>
+                    );
+                  }
+                  return (
                     <div 
-                      key={i}
+                      key={`placeholder-post-${idx}`}
                       onClick={() => { setView('community'); setIsMenuOpen(false); }}
                       style={{ flexShrink: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '8px', width: '64px', opacity: 0.3 }}
                     >
@@ -1207,8 +1211,8 @@ function App() {
                       </div>
                       <div style={{ width: '30px', height: '8px', borderRadius: '4px', background: 'var(--color-border)' }} />
                     </div>
-                  ))
-                )}
+                  );
+                })}
               </div>
             </div>
 
