@@ -439,7 +439,7 @@ const HomePage = ({
   isDark, setIsDark, followedInstructors, likedLivePicks, setShowRentalModal
 }) => {
   const { t, i18n } = useTranslation();
-  const [lang, setLang] = useState<'ko' | 'en'>('ko');
+  const lang = isEn ? 'en' : 'ko';
   const isEn = i18n.language.startsWith('en');
 
   // [사용자 요청] 지역 포스터 리스트 자동 스크롤 비활성화 (좌측 고정 및 수동 스크롤만 허용)
