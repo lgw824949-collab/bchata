@@ -454,17 +454,17 @@ const RegisterForm = ({ onBack, onSuccess, isEdit = false, initialData = null })
             <label style={{ display: 'block', fontSize: '20px', fontWeight: 900, color: '#1E293B', marginBottom: '24px' }}>📅 파티 일정 확인</label>
             <div style={{ marginBottom: 16 }}>
               <label style={{ fontSize: 13, fontWeight: 700, color: '#333', marginBottom: 6, display: 'block' }}>
-                등록자 ID <span style={{ color: '#E53935' }}>*</span>
+                나만의 등록자 ID
               </label>
               <input
                 type="text"
-                placeholder="관리자에게 발급받은 ID 입력"
+                placeholder="영문+숫자로 나만의 ID 만들기 (예: kim_bachata)"
                 value={formData.contributorId}
-                onChange={e => setFormData(prev => ({ ...prev, contributorId: e.target.value }))}
-                style={{ width: '100%', padding: '12px 14px', borderRadius: 12, border: '1px solid #E5E7EB', fontSize: 14, boxSizing: 'border-box' }}
+                onChange={e => setFormData(prev => ({ ...prev, contributorId: e.target.value.toLowerCase().replace(/[^a-z0-9_]/g, '') }))}
+                style={{ width: '100%', padding: '12px 14px', borderRadius: 12, border: '1px solid #E5E7EB', fontSize: 14, boxSizing: 'border-box', fontFamily: 'monospace' }}
               />
               <div style={{ fontSize: 11, color: '#999', marginTop: 4 }}>
-                ID가 없으면 카카오 오픈채팅에서 발급받으세요
+                이 ID로 나중에 내가 올린 파티를 확인할 수 있어요
               </div>
             </div>
             <div style={{ marginBottom: '24px' }}>
