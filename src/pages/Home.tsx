@@ -767,9 +767,9 @@ const HomePage = ({
                                       <div style={{ width: '140px', flexShrink: 0 }}>
                                         <img src={item.poster_url} style={{ width: '100%', height: '100%', objectFit: 'cover' }} alt="Poster" />
                                       </div>
-                                      <div style={{ flex: 1, padding: '16px 20px', display: 'flex', flexDirection: 'column', justifyContent: 'space-between', minWidth: 0 }}>
-                                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                                          <span style={{ fontSize: '12px', fontWeight: '700', color: '#E53935', background: '#fff0f0', padding: '3px 10px', borderRadius: '20px', border: '0.5px solid #ffc9c9', flexShrink: 0 }}>
+                                      <div style={{ flex: 1, padding: '20px 24px', display: 'flex', flexDirection: 'column', justifyContent: 'space-between', minWidth: 0 }}>
+                                        <div style={{ display: 'flex', alignItems: 'center' }}>
+                                          <span style={{ fontSize: '16px', fontWeight: '900', color: '#E53935', background: '#fff0f0', padding: '4px 12px', borderRadius: '8px', border: '1px solid #ffc9c9', flexShrink: 0 }}>
                                             {(() => {
                                               const entries = Object.entries(GENRE_MAP).filter(([_, info]) => item[info.key] > 0)
                                               if (entries.length === 0) return '소셜'
@@ -778,23 +778,27 @@ const HomePage = ({
                                               return sorted[0][0]
                                             })()}
                                           </span>
-                                          <span style={{ fontSize: '12px', fontWeight: '800', color: 'var(--color-text-primary)', background: 'var(--color-background-secondary)', padding: '3px 10px', borderRadius: '20px', border: '0.5px solid var(--color-border)', flexShrink: 0 }}>
-                                            {formatPrice(item.fee)}
-                                          </span>
                                         </div>
                                         
-                                        <div style={{ fontSize: '18px', fontWeight: '800', color: 'var(--color-text-main)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', letterSpacing: '-0.5px' }}>
+                                        <div style={{ fontSize: '20px', fontWeight: '900', color: 'var(--color-text-main)', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden', textOverflow: 'ellipsis', letterSpacing: '-0.6px', lineHeight: 1.3, height: '52px' }}>
                                           {cleanTitle(item.title).replace(/^\[.*?\]\s*/, '').replace(/ㅣ\s*$/, '').trim()}
                                         </div>
-                                        <div style={{ display: 'flex', alignItems: 'center', gap: '12px', fontSize: '13px', color: 'var(--color-text-sub)' }}>
-                                          <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-                                            <Clock size={13} />
+                                        
+                                        <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                                          <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '14px', color: 'var(--color-text-sub)', fontWeight: 600 }}>
+                                            <Clock size={14} />
                                             {item.time?.split('-')[0].trim() || '21:00'}
-                                          </span>
-                                          <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-                                            <Navigation size={13} color="#E53935" fill="#E53935" />
-                                            {translateDynamicText(item.locationName, isEn)}
-                                          </span>
+                                          </div>
+                                          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+                                            <div style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: '15px', color: 'var(--color-text-sub)', fontWeight: 700 }}>
+                                              <Navigation size={15} color="#E53935" fill="#E53935" />
+                                              {translateDynamicText(item.locationName, isEn)}
+                                            </div>
+                                            <span style={{ color: 'var(--color-text-sub)', opacity: 0.3 }}>•</span>
+                                            <span style={{ fontSize: '15px', fontWeight: '900', color: '#E53935' }}>
+                                              {formatPrice(item.fee)}
+                                            </span>
+                                          </div>
                                         </div>
                                       </div>
                                     </div>
