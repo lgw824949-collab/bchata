@@ -433,7 +433,7 @@ const HomePage = ({
   resetToToday, showFullCalendar, setShowFullCalendar, likedIds, toggleLike, logActivity, handleRegister, fourteenDays,
   showFilterPanel, setShowFilterPanel, filterRegion, setFilterRegion, filterGenre, setFilterGenre,
   showFilteredResults, setShowFilteredResults, isMenuOpen, setIsMenuOpen, showWeather, setShowWeather,
-  showLatinModal, setShowLatinModal, setShowSaju, latinCat, setLatinCat, selPatternId, setSelPatternId, regionalTheme, recordTraffic, IncheonBanner, venueCounts, openAnalysis,
+  showLatinModal, setShowLatinModal, setShowSaju, setShowWishlist, latinCat, setLatinCat, selPatternId, setSelPatternId, regionalTheme, recordTraffic, IncheonBanner, venueCounts, openAnalysis,
   showGridModal, setShowGridModal, gridRegion, setGridRegion, filterStep, setFilterStep,
   handleOpenModal, handleCloseModal,
   isDark, setIsDark, followedInstructors, likedLivePicks, setShowRentalModal
@@ -626,7 +626,7 @@ const HomePage = ({
           { icon: <Calendar size={26} color="#FF1744" />, label: '행사달력', action: () => handleOpenModal(setShowFullCalendar, true) },
           { icon: <Utensils size={26} color="#FF1744" />, label: '맛집/디풀이', action: () => setView('restaurant') },
           { icon: <CloudSun size={26} color="#FF1744" />, label: '오늘날씨', action: () => handleOpenModal(setShowWeather, true) },
-          { icon: <Zap size={26} color="#FF1744" />, label: isDark ? '라이트모드' : '다크모드', action: () => setIsDark(!isDark) },
+          { icon: <Heart size={26} color="#E53935" />, label: '찜하기', action: () => handleOpenModal(setShowWishlist, true) },
           { icon: <MessageSquare size={26} color="#FF1744" />, label: '채팅문의', action: () => window.open('https://open.kakao.com/o/gP43rNri', '_blank') },
           { icon: <Navigation size={26} color="#FF1744" />, label: '지능형경로', action: () => openAnalysis(false), badge: 'LIVE' },
           { icon: <Star size={26} color="#FF1744" />, label: '운명의좌표', action: () => handleOpenModal(setShowSaju, true), dot: true },

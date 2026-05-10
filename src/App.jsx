@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo, useRef, lazy, Suspense } from 'react'
+import React, { useState, useEffect, useMemo, useRef, lazy, Suspense } from 'react'
 import { Home as HomeIcon, Users, Plus, LogOut, Heart, X, MessageSquare, RefreshCw, CloudSun, Utensils, Zap, Languages, Bell, Star, Navigation, CreditCard, Settings, Map as MapIcon, BarChart, Gift, Coffee, User, Menu, Music2, Tent, Flag, Download, Globe, ShieldCheck, Calendar, Camera, ChevronLeft, ChevronRight, Loader2 } from 'lucide-react'
 import { useTranslation } from 'react-i18next';
 import { motion, AnimatePresence } from 'framer-motion'
@@ -241,10 +241,14 @@ const DynamicAnalysisModal = ({ isOpen, onClose, userCoords, isSajuCall }) => {
         .sort((a, b) => a.dist - b.dist)
         .slice(0, 5);
 
-      setTargetDest(venues[0]);
-      setNearbyVenues(venues);
-      const d = venues[0].dist;
-      setTracker({ distance: d.toFixed(1), duration: Math.ceil(d * 10) + 5 });
+      if (venues.length > 0) {
+        setTargetDest(venues[0]);
+        setNearbyVenues(venues);
+        const d = venues[0].dist;
+        setTracker({ distance: d.toFixed(1), duration: Math.ceil(d * 10) + 5 });
+      } else {
+        setTargetDest(null);
+      }
     };
     if (userCoords) findTarget(userCoords.lat, userCoords.lon);
   }, [isOpen, userCoords]);
@@ -655,6 +659,7 @@ function App() {
   const [likedLivePicks, setLikedLivePicks] = useState([]);
   const [sidebarRefresh, setSidebarRefresh] = useState(0);
   const [showRentalModal, setShowRentalModal] = useState(false);
+  const [showWishlist, setShowWishlist] = useState(false)
 
   const groupedAllRegionsParties = useMemo(() => {
     if (!selectedAllRegionsDate) return {};
@@ -933,7 +938,10 @@ function App() {
     }
     setIsSajuCall(saju);
     setIsAnalyzing(true);
-    setTimeout(() => { setIsAnalyzing(false); setShowIncheonModal(true); }, 1200);
+    setTimeout(() => { 
+      setIsAnalyzing(false); 
+      handleOpenModal(setShowIncheonModal, true); 
+    }, 1200);
   };
 
 
@@ -993,6 +1001,8 @@ function App() {
     followedInstructors, likedLivePicks,
     showRentalModal, setShowRentalModal,
     setShowSaju,
+    setShowWishlist,
+    openAnalysis,
     logActivity: () => {}, regionalTheme: { welcomeMsg: "전국 댄서들을 위한 실시간 정보", specialBanner: true }
   };
 
@@ -1217,18 +1227,22 @@ function App() {
                     setLastWeatherTap(now);
                   } 
                 },
-                { 
-                  icon: <Zap color={'#FF1744'} />, 
-                  text: isDark ? '라이트 모드' : '다크 모드', 
-                  action: () => setIsDark(!isDark) 
-                },
+                <div onClick={() => handleOpenModal(setShowWishlist, true)}
+                  style={{ display:'flex', flexDirection:'column', alignItems:'center', gap:'6px', cursor:'pointer', position:'relative' }}>
+                  <div style={{ width:'56px', height:'56px', borderRadius:'16px', background:'#fff', border:'1px solid #F1F5F9', display:'flex', alignItems:'center', justifyContent:'center', boxShadow:'0 2px 8px rgba(0,0,0,0.06)' }}>
+                    <Heart size={24} color="#E53935" />
+                  </div>
+                  <span style={{ fontSize:'11px', color:'#64748B', fontWeight:500 }}>찜하기</span>
+                </div>,
                 { icon: <MessageSquare color={'#FF1744'} />, text: t('open_chat'), action: () => { window.open('https://open.kakao.com/o/gP43rNri', '_blank'); setIsMenuOpen(false); } },
-              ].map((item, idx) => (
-                <motion.div
-                  key={idx}
-                  whileHover={{ scale: 1.02, backgroundColor: 'var(--color-border)' }}
-                  whileTap={{ scale: 0.98 }}
-                  onClick={item.action}
+              ].map((item, idx) => {
+                if (React.isValidElement(item)) return <React.Fragment key={idx}>{item}</React.Fragment>;
+                return (
+                  <motion.div
+                    key={idx}
+                    whileHover={{ scale: 1.02, backgroundColor: 'var(--color-border)' }}
+                    whileTap={{ scale: 0.98 }}
+                    onClick={item.action}
                   style={{
                     background: 'var(--color-card)',
                     border: '1px solid var(--color-border)',
@@ -1244,9 +1258,10 @@ function App() {
                   <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                     {item.icon}
                   </div>
-                  <span style={{ color: 'var(--color-text-main)', fontSize: '15px', fontWeight: 800 }}>{item.text}</span>
+                  <span style={{ fontSize: '14px', fontWeight: 600 }}>{item.text}</span>
                 </motion.div>
-              ))}
+                );
+              })}
             </div>
 
             <div style={{ marginTop: 'auto', paddingTop: '40px', textAlign: 'center' }}>
@@ -1939,6 +1954,32 @@ function App() {
             src={selectedPoster} 
             onClose={() => setSelectedPoster(null)} 
           />
+        </motion.div>
+      )}
+    </AnimatePresence>
+    
+    <AnimatePresence>
+      {showWishlist && (
+        <motion.div
+          initial={{ opacity:0, y:'100%' }}
+          animate={{ opacity:1, y:0 }}
+          exit={{ opacity:0, y:'100%' }}
+          transition={{ type:'spring', damping:25, stiffness:200 }}
+          style={{ position:'fixed', inset:0, zIndex:2000, background:'#fff', overflowY:'auto' }}
+        >
+          <div style={{ padding:'20px 24px', display:'flex', alignItems:'center', gap:12, borderBottom:'1px solid #F1F5F9' }}>
+            <button onClick={() => setShowWishlist(false)}
+              style={{ background:'#F1F5F9', border:'none', borderRadius:'50%', width:40, height:40, display:'flex', alignItems:'center', justifyContent:'center', cursor:'pointer', fontSize:18 }}>←</button>
+            <div>
+              <div style={{ fontSize:18, fontWeight:900, color:'#111' }}>찜한 파티 ❤️</div>
+              <div style={{ fontSize:12, color:'#999' }}>관심있는 파티를 저장해보세요</div>
+            </div>
+          </div>
+          <div style={{ padding:'40px 24px', textAlign:'center' }}>
+            <div style={{ fontSize:48, marginBottom:16 }}>❤️</div>
+            <div style={{ fontSize:16, fontWeight:700, color:'#111', marginBottom:8 }}>아직 찜한 파티가 없어요</div>
+            <div style={{ fontSize:13, color:'#999' }}>파티 카드에서 하트를 눌러 저장해보세요</div>
+          </div>
         </motion.div>
       )}
     </AnimatePresence>
