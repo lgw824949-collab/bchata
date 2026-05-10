@@ -1,6 +1,6 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Heart, Eye, Share2, Plus, X, Camera, MapPin, Search, Home as HomeIcon, Star, Info, CheckCircle2, Trophy, Award, Zap } from 'lucide-react';
+import { Heart, Eye, Share2, Plus, X, Camera, MapPin, Search, Home as HomeIcon, Star, Info, CheckCircle2, Trophy, Award, Zap, TrendingUp, Clock, Flame } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import { useTranslation } from 'react-i18next';
 
@@ -10,7 +10,7 @@ const Community = ({ setSelectedPoster, setView }) => {
   const [loading, setLoading] = useState(true);
   const [showUploadModal, setShowUploadModal] = useState(false);
   const [selectedPost, setSelectedPost] = useState(null);
-  const [newPost, setNewPost] = useState({ content: '', region: '서울', bar_name: '', image: null, is_live: true });
+  const [newPost, setNewPost] = useState({ content: '', region: '서울', bar_name: '', image: null });
   const [uploading, setUploading] = useState(false);
   const [showRewardCelebration, setShowRewardCelebration] = useState(false);
   const [isFullView, setIsFullView] = useState(false);
@@ -19,64 +19,27 @@ const Community = ({ setSelectedPoster, setView }) => {
   const [userPoints, setUserPoints] = useState(() => parseInt(localStorage.getItem('reporter_points') || '0'));
   const [isVerified, setIsVerified] = useState(() => localStorage.getItem('is_verified_reporter') === 'true');
 
-  const quickTags = ['#분위기최고👍', '#음악맛집🎵', '#사람많음🔥', '#여유로움☕', '#살사맛집💃', '#바차타맛집🕺', '#키좀바맛집✨', '#주크맛집🎶', '#미모포텐🎈', '#훈남훈녀가득🌟', '#패션왕등판🕶️', '#안호강중🔥'];
+  const quickTags = ['#분위기최고👍', '#음악맛집🎵', '#사람많음🔥', '#여유로움☕', '#살사맛집💃', '#바차타맛집🕺', '#키좀바맛집✨', '#주크맛집🎶', '#미모포텐🎈', '#훈남훈녀가득🌟', '#패션왕등판🕶️', '#안호강중🔥', '#인생샷성지📸', '#에너지폭발⚡', '#냉방빵빵🧊'];
 
-const demoPosts = [
-  { id: 'real1', image_url: '/Photo/화면 캡처 2026-05-07 225729.png', bar_name: '', likes_count: 312, view_count: 4200, region: '서울', content: '오늘 분위기 미쳤습니다! #사람많음🔥 #분위기최고👍', created_at: new Date().toISOString(), is_live: true },
-  { id: 'real2', image_url: '/Photo/화면 캡처 2026-05-07 225828.png', bar_name: '', likes_count: 245, view_count: 3100, region: '서울', content: '바차타 맛집 인정.. 노래 셀렉 미쳤네요. #음악맛집🎵 #바차타맛집🕺', created_at: new Date().toISOString(), is_live: true },
-  { id: 'real3', image_url: '/Photo/화면 캡처 2026-05-07 225905.png', bar_name: '', likes_count: 189, view_count: 2400, region: '서울', content: '쪽 오시는 분들 참고하세요! 지금 피크입니다. #미모포텐🎈 #훈남훈녀가득🌟', created_at: new Date().toISOString(), is_live: true }
-];
-
-  useEffect(() => {
-    localStorage.setItem('reporter_points', userPoints.toString());
-    if (userPoints >= 50 && !isVerified) {
-      setIsVerified(true);
-      localStorage.setItem('is_verified_reporter', 'true');
-    }
-  }, [userPoints]);
-
-  // Modal History Management
-  useEffect(() => {
-    const handlePopState = (e) => {
-      // Safely check if we are navigating back to the base community state
-      if (!e.state || (e.state.type !== 'post' && e.state.type !== 'upload')) {
-        setSelectedPost(null);
-        setShowUploadModal(false);
+  // Calculate Hot Bars from posts
+  const hotBars = useMemo(() => {
+    if (!posts || posts.length === 0) return [];
+    const barCounts = posts.reduce((acc, post) => {
+      if (post.bar_name) {
+        acc[post.bar_name] = (acc[post.bar_name] || 0) + 1;
       }
-    };
-    window.addEventListener('popstate', handlePopState);
-    return () => window.removeEventListener('popstate', handlePopState);
-  }, []);
-
-  const openPost = (post) => {
-    window.history.pushState({ type: 'post' }, '');
-    setSelectedPost(post);
-  };
-
-  const closePost = () => {
-    setSelectedPost(null);
-    if (window.history.state?.type === 'post') {
-      window.history.back();
-    }
-  };
-
-  const openUpload = () => {
-    window.history.pushState({ type: 'upload' }, '');
-    setShowUploadModal(true);
-  };
-
-  const closeUpload = () => {
-    setShowUploadModal(false);
-    if (window.history.state?.type === 'upload') {
-      window.history.back();
-    }
-  };
-
-  useEffect(() => {
-    const handleOpenUpload = () => openUpload();
-    window.addEventListener('open-community-upload', handleOpenUpload);
-    return () => window.removeEventListener('open-community-upload', handleOpenUpload);
-  }, []);
+      return acc;
+    }, {});
+    
+    return Object.entries(barCounts)
+      .map(([name, count]) => ({
+        name,
+        count,
+        latestImage: posts.find(p => p.bar_name === name)?.image_url
+      }))
+      .sort((a, b) => b.count - a.count)
+      .slice(0, 8);
+  }, [posts]);
 
   const fetchPosts = async () => {
     setLoading(true);
@@ -84,45 +47,32 @@ const demoPosts = [
       const threeDaysAgo = new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString();
       let { data, error } = await supabase
         .from('community_posts')
-        .select('id, image_url, content, region, bar_name, likes_count, view_count, is_live, created_at')
+        .select('id, image_url, content, region, bar_name, likes_count, view_count, created_at')
         .gt('created_at', threeDaysAgo)
         .order('created_at', { ascending: false });
       
       if (!error && (!data || data.length === 0)) {
         const { data: allData, error: allErr } = await supabase
           .from('community_posts')
-          .select('id, image_url, content, region, bar_name, likes_count, view_count, is_live, created_at')
+          .select('id, image_url, content, region, bar_name, likes_count, view_count, created_at')
           .order('created_at', { ascending: false })
-          .limit(10);
+          .limit(20);
         data = allData;
         error = allErr;
       }
       
-      if (!error && data && data.length > 0) {
-        if (isFullView) {
-          // ALL PICK: Chronological order, show everything
-          setPosts(data);
-        } else {
-          // LIVE PICK: Popularity order (Likes + Views), strictly Top 15
-          const sortedByPopularity = [...data].sort((a, b) => 
-            ((b.likes_count || 0) + (b.view_count || 0)) - ((a.likes_count || 0) + (a.view_count || 0))
-          );
-          setPosts(sortedByPopularity.slice(0, 15));
-        }
-      } else {
-        // 에러가 있거나 데이터가 없는 경우 데모 포스트 표시
-        setPosts(demoPosts.slice(0, isFullView ? undefined : 15));
+      if (!error && data) {
+        setPosts(data);
       }
     } catch (err) {
       console.error('fetchPosts error:', err);
-      setPosts(demoPosts);
     }
     setLoading(false);
   };
 
   useEffect(() => {
     fetchPosts();
-  }, [isFullView]);
+  }, []);
 
   const getRelativeTime = (dateStr) => {
     const now = new Date();
@@ -134,22 +84,19 @@ const demoPosts = [
     return `${Math.floor(diff/1440)}일 전`;
   };
 
-  const handleLike = async (postId, e) => {
-    if (e) e.stopPropagation();
-    if (postId.toString().startsWith('real')) return;
-    const likesKey = `likes_${postId}`;
-    const currentLikesCount = parseInt(localStorage.getItem(likesKey) || '0');
-    if (currentLikesCount >= 3) return;
-    const post = posts.find(p => p.id === postId);
-    if (!post) return;
-    const newLikes = (post.likes_count || 0) + 1;
-    localStorage.setItem(likesKey, (currentLikesCount + 1).toString());
-    setPosts(posts.map(p => p.id === postId ? { ...p, likes_count: newLikes } : p));
-    if (selectedPost && selectedPost.id === postId) {
-      setSelectedPost({ ...selectedPost, likes_count: newLikes });
-    }
-    await supabase.from('community_posts').update({ likes_count: newLikes }).eq('id', postId);
+  const isLive = (dateStr) => {
+    const now = new Date();
+    const past = new Date(dateStr);
+    const diff = Math.floor((now - past) / 1000 / 60);
+    return diff < 60; // Live if within 60 mins
   };
+
+  useEffect(() => {
+    const handleOpenUpload = () => setShowUploadModal(true);
+    window.addEventListener('open-community-upload', handleOpenUpload);
+    return () => window.removeEventListener('open-community-upload', handleOpenUpload);
+  }, []);
+
 
   const handleShare = async (post, e) => {
     if (e) e.stopPropagation();
@@ -190,8 +137,7 @@ const demoPosts = [
         region: newPost.region,
         bar_name: newPost.bar_name,
         likes_count: 0,
-        view_count: 0,
-        is_live: newPost.is_live
+        view_count: 0
       }]);
       if (dbError) throw dbError;
       
@@ -201,8 +147,8 @@ const demoPosts = [
       
       setTimeout(() => {
         setShowRewardCelebration(false);
-        closeUpload();
-        setNewPost({ content: '', region: '서울', bar_name: '', image: null, is_live: true });
+        setShowUploadModal(false);
+        setNewPost({ content: '', region: '서울', bar_name: '', image: null });
         fetchPosts();
       }, 2000);
       
@@ -216,252 +162,210 @@ const demoPosts = [
     setNewPost({ ...newPost, content: newPost.content + (newPost.content ? ' ' : '') + tag });
   };
 
+  const handleLike = async (postId, e) => {
+    if (e) e.stopPropagation();
+    const likesKey = `likes_${postId}`;
+    const currentLikesCount = parseInt(localStorage.getItem(likesKey) || '0');
+    if (currentLikesCount >= 3) return;
+    
+    const post = posts.find(p => p.id === postId);
+    if (!post) return;
+    
+    const newLikes = (post.likes_count || 0) + 1;
+    localStorage.setItem(likesKey, (currentLikesCount + 1).toString());
+    
+    // Track liked posts for sidebar
+    try {
+      const likedPostsRaw = localStorage.getItem('community_liked_posts');
+      let likedPosts = likedPostsRaw ? JSON.parse(likedPostsRaw) : [];
+      if (!likedPosts.includes(postId)) {
+        likedPosts = [postId, ...likedPosts].slice(0, 30);
+        localStorage.setItem('community_liked_posts', JSON.stringify(likedPosts));
+      }
+    } catch (err) { console.error('Error tracking liked posts:', err); }
+
+    setPosts(posts.map(p => p.id === postId ? { ...p, likes_count: newLikes } : p));
+    if (selectedPost && selectedPost.id === postId) {
+      setSelectedPost({ ...selectedPost, likes_count: newLikes });
+    }
+    await supabase.from('community_posts').update({ likes_count: newLikes }).eq('id', postId);
+    window.dispatchEvent(new Event('storage'));
+  };
+
   return (
-    <div style={{ background: '#fff', minHeight: '100vh', padding: '10px 4px 80px', color: '#111', transition: 'all 0.3s' }}>
-      {/* Header */}
-      <div style={{ padding: '10px 10px 10px' }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
-          <h1 style={{ fontSize: '22px', fontWeight: 900, letterSpacing: '-0.02em', color: '#111' }}>
-            <span style={{ 
-              color: '#E53935',
-              animation: isFullView ? 'none' : 'pulse-text 2s infinite'
-            }}>
-              {isFullView ? 'ALL' : 'LIVE'}
-            </span> PICK
-          </h1>
-          <style>{`
-            @keyframes pulse-text {
-              0% { opacity: 1; text-shadow: 0 0 5px rgba(229, 57, 53, 0.5); }
-              50% { opacity: 0.7; text-shadow: 0 0 15px rgba(229, 57, 53, 0.8); }
-              100% { opacity: 1; text-shadow: 0 0 5px rgba(229, 57, 53, 0.5); }
-            }
-          `}</style>
-          <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
-            {/* View All Button replaces Points */}
-            <button 
-              onClick={() => setIsFullView(!isFullView)} 
-              style={{ 
-                background: isFullView ? '#E53935' : '#F3F4F6', 
-                border: 'none', 
-                padding: '6px 14px', 
-                borderRadius: '20px', 
-                color: isFullView ? '#fff' : '#64748B', 
-                fontSize: '12px', 
-                fontWeight: 800,
-                cursor: 'pointer',
-                transition: 'all 0.2s'
-              }}
-            >
-              {isFullView ? '실시간' : '전체보기'}
-            </button>
-            
-            <button onClick={() => setView('home')} style={{ background: '#F3F4F6', border: 'none', borderRadius: '10px', padding: '8px', cursor: 'pointer' }}>
-              <HomeIcon size={20} color="#111" />
-            </button>
+    <div style={{ background: 'var(--color-bg)', minHeight: '100vh', paddingBottom: '100px' }}>
+      {/* Header Section */}
+      <div style={{ padding: '20px 20px 10px', position: 'sticky', top: 0, zIdentity: 100, background: 'var(--color-bg)', backdropFilter: 'blur(10px)' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
+          <div>
+            <h1 style={{ fontSize: '26px', fontWeight: 1000, color: 'var(--color-text-main)', letterSpacing: '-1px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+              LIVE PICK <Flame size={24} color="#E53935" fill="#E53935" />
+            </h1>
+            <p style={{ fontSize: '13px', color: 'var(--color-text-sub)', fontWeight: 600 }}>지금 전국에서 가장 뜨거운 현장 리포트</p>
           </div>
+          <motion.button 
+            whileTap={{ scale: 0.9 }}
+            onClick={() => setView('home')} 
+            style={{ width: '44px', height: '44px', borderRadius: '14px', background: 'var(--color-card)', border: '1px solid var(--color-border)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+          >
+            <HomeIcon size={20} color="var(--color-text-main)" />
+          </motion.button>
         </div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '6px', background: 'rgba(255,255,255,0.03)', padding: '6px 12px', borderRadius: '6px', marginBottom: '10px' }}>
-          <Info size={12} color="#94A3B8" />
-          <p style={{ fontSize: '11px', color: '#94A3B8', fontWeight: 500 }}>
-            현장 리포트 업로드 시 10포인트 적립! 주간 베스트는 추가 혜택이 있습니다.
-          </p>
-        </div>
+
+        {/* Hot Bars Horizontal Row */}
+        {hotBars.length > 0 && (
+          <div style={{ marginBottom: '20px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '12px' }}>
+              <TrendingUp size={14} color="#E53935" />
+              <span style={{ fontSize: '12px', fontWeight: 900, color: '#E53935', textTransform: 'uppercase' }}>Hot Venues Now</span>
+            </div>
+            <div style={{ display: 'flex', gap: '15px', overflowX: 'auto', paddingBottom: '5px' }} className="hide-scrollbar">
+              {hotBars.map((bar, idx) => (
+                <motion.div 
+                  key={idx} 
+                  whileTap={{ scale: 0.95 }}
+                  style={{ flexShrink: 0, textAlign: 'center', width: '70px' }}
+                >
+                  <div style={{ 
+                    width: '64px', height: '64px', borderRadius: '22px', 
+                    padding: '3px', background: 'linear-gradient(135deg, #E53935, #FFD700)', 
+                    marginBottom: '8px', position: 'relative'
+                  }}>
+                    <div style={{ width: '100%', height: '100%', borderRadius: '19px', overflow: 'hidden', background: '#111' }}>
+                      <img src={bar.latestImage} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                    </div>
+                    {idx === 0 && (
+                      <div className="animate-pulse-red" style={{ position: 'absolute', top: '-5px', right: '-5px', background: '#E53935', color: 'white', fontSize: '8px', fontWeight: 1000, padding: '2px 6px', borderRadius: '10px' }}>1ST</div>
+                    )}
+                  </div>
+                  <span style={{ fontSize: '11px', fontWeight: 800, color: 'var(--color-text-main)', display: 'block', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{bar.name}</span>
+                </motion.div>
+              ))}
+            </div>
+          </div>
+        )}
       </div>
 
-      {/* High-Density 3-Column Grid (Instagram Style) */}
-      <div style={{ 
-        display: 'grid', 
-        gridTemplateColumns: 'repeat(3, 1fr)', 
-        gap: '2px',
-        padding: '0 2px'
-      }}>
+      {/* Feed Layout - 2 Column Card */}
+      <div style={{ padding: '0 15px', display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '15px' }}>
         {loading ? (
-          <div style={{ gridColumn: 'span 3', textAlign: 'center', padding: '60px', color: '#94A3B8' }}>로딩 중..</div>
-        ) : posts.length === 0 ? (
-          <div style={{ gridColumn: 'span 3', textAlign: 'center', padding: '80px 20px', background: 'rgba(255,255,255,0.05)', borderRadius: '12px' }}>
-            <Camera size={30} color="rgba(255,255,255,0.1)" style={{ marginBottom: '12px' }} />
-            <h3 style={{ fontSize: '12px', fontWeight: 700, color: '#64748B' }}>리포트가 없습니다</h3>
-          </div>
+          [1,2,3,4].map(i => (
+            <div key={i} style={{ height: '240px', borderRadius: '24px', background: 'var(--color-card)', animation: 'pulse 1.5s infinite' }} />
+          ))
         ) : (
-          posts.map((post) => {
-            // 우리가 정의한 퀵태그 리스트
-            const officialTags = ['#분위기최고👍', '#음악맛집🎵', '#사람많음🔥', '#여유로움☕', '#살사맛집💃', '#바차타맛집🕺', '#키좀바맛집✨', '#주크맛집🎶', '#미모포텐🎈', '#훈남훈녀가득🌟', '#패션왕등판🕶️', '#안호강중🔥'];
-            const matchedTags = officialTags.filter(tag => post.content?.includes(tag));
-            const displayTag = matchedTags.length > 0 ? matchedTags.join(' ') : '';
-
-            return (
-              <motion.div 
-                key={post.id} 
-                whileTap={{ scale: 0.98 }} 
-                onClick={() => openPost(post)} 
-                style={{ 
-                  background: '#F9FAFB', 
-                  overflow: 'hidden', 
-                  display: 'flex',
-                  flexDirection: 'column',
-                  aspectRatio: '1/1',
-                  position: 'relative',
-                  border: '1px solid #F3F4F6'
-                }}
-              >
-                <img src={post.image_url} alt="feed" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+          posts.map((post) => (
+            <motion.div 
+              key={post.id}
+              whileTap={{ scale: 0.98 }}
+              onClick={() => setSelectedPost(post)}
+              className="reveal-card"
+              style={{ 
+                borderRadius: '24px', 
+                overflow: 'hidden', 
+                background: 'var(--color-card)', 
+                border: '1px solid var(--color-border)',
+                position: 'relative',
+                boxShadow: '0 4px 15px rgba(0,0,0,0.05)'
+              }}
+            >
+              <div style={{ position: 'relative', aspectRatio: '4/5' }}>
+                <img src={post.image_url} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                 
-                {/* 하단 정보 오버레이 (밝은 배경에 어울리는 투명도 조정) */}
+                {/* Glassmorphism Overlays */}
                 <div style={{ 
-                  position: 'absolute', 
-                  bottom: 0, 
-                  left: 0, 
-                  right: 0, 
-                  padding: '10px 8px', 
-                  background: 'linear-gradient(to top, rgba(0,0,0,0.8) 0%, rgba(0,0,0,0.4) 60%, rgba(0,0,0,0) 100%)',
-                  display: 'flex', 
-                  flexDirection: 'column',
-                  justifyContent: 'flex-end',
-                  minHeight: '40px',
-                  zIndex: 10
+                  position: 'absolute', top: '10px', left: '10px', right: '10px', 
+                  display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' 
                 }}>
-                  {isFullView ? (
-                    /* [실시간 모드] 공식 퀵태그 노출 */
+                  <div style={{ 
+                    padding: '6px 12px', background: 'rgba(0,0,0,0.4)', backdropFilter: 'blur(10px)', 
+                    borderRadius: '12px', border: '1px solid rgba(255,255,255,0.2)' 
+                  }}>
+                    <span style={{ color: 'white', fontSize: '11px', fontWeight: 900 }}>{post.bar_name || '현장'}</span>
+                  </div>
+                  
+                  {isLive(post.created_at) && (
                     <div style={{ 
-                      color: '#FFD700', 
-                      fontSize: '11px', 
-                      fontWeight: 900, 
-                      whiteSpace: 'nowrap', 
-                      overflow: 'hidden', 
-                      textOverflow: 'ellipsis',
-                      textAlign: 'center',
-                      textShadow: '0 1px 2px rgba(0,0,0,0.8)'
+                      display: 'flex', alignItems: 'center', gap: '4px', 
+                      padding: '6px 10px', background: 'rgba(229, 57, 53, 0.8)', 
+                      borderRadius: '12px', boxShadow: '0 4px 10px rgba(229, 57, 53, 0.3)' 
                     }}>
-                      {displayTag}
-                    </div>
-                  ) : (
-                    /* [전체보기 모드] 하트와 뷰포인트 노출 */
-                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '12px' }}>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '3px' }}>
-                        <Heart size={12} color="#FF3B30" fill="#FF3B30" />
-                        <span style={{ color: '#fff', fontSize: '12px', fontWeight: 900 }}>{post.likes_count || 0}</span>
-                      </div>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '3px' }}>
-                        <Eye size={12} color="#fff" />
-                        <span style={{ color: '#fff', fontSize: '12px', fontWeight: 900 }}>{post.view_count || 0}</span>
-                      </div>
+                      <div className="animate-pulse-red" style={{ width: '6px', height: '6px', borderRadius: '50%', background: 'white' }} />
+                      <span style={{ color: 'white', fontSize: '10px', fontWeight: 1000 }}>LIVE</span>
                     </div>
                   )}
                 </div>
-              </motion.div>
-            )
-          })
+
+                <div style={{ 
+                  position: 'absolute', bottom: '10px', right: '10px',
+                  padding: '4px 8px', background: 'rgba(0,0,0,0.4)', backdropFilter: 'blur(10px)',
+                  borderRadius: '8px', display: 'flex', alignItems: 'center', gap: '4px'
+                }}>
+                  <Clock size={10} color="white" />
+                  <span style={{ color: 'white', fontSize: '10px', fontWeight: 700 }}>{getRelativeTime(post.created_at)}</span>
+                </div>
+              </div>
+
+              <div style={{ padding: '12px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '3px' }}>
+                    <Heart size={14} color="#E53935" fill={localStorage.getItem(`likes_${post.id}`) ? "#E53935" : "none"} />
+                    <span style={{ fontSize: '12px', fontWeight: 800, color: 'var(--color-text-main)' }}>{post.likes_count || 0}</span>
+                  </div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '3px' }}>
+                    <Eye size={14} color="var(--color-text-sub)" />
+                    <span style={{ fontSize: '12px', fontWeight: 700, color: 'var(--color-text-sub)' }}>{post.view_count || 0}</span>
+                  </div>
+                </div>
+                <motion.button
+                  whileTap={{ scale: 0.8 }}
+                  onClick={(e) => handleLike(post.id, e)}
+                  style={{ background: 'none', border: 'none', padding: 0 }}
+                >
+                  <Plus size={20} color="var(--color-text-main)" />
+                </motion.button>
+              </div>
+            </motion.div>
+          ))
         )}
       </div>
-      
-      {/* Upload FAB */}
+
+      {/* FAB - Upload */}
       <motion.button 
-        whileTap={{ scale: 0.9 }} 
-        onClick={openUpload} 
+        whileHover={{ scale: 1.05 }}
+        whileTap={{ scale: 0.95 }}
+        onClick={() => setShowUploadModal(true)}
         style={{ 
-          position: 'fixed', 
-          bottom: '100px', 
-          right: '20px', 
-          width: '56px', 
-          height: '56px', 
-          borderRadius: '50%', 
-          background: '#E53935', 
-          color: '#fff', 
-          border: 'none', 
-          boxShadow: '0 8px 25px rgba(229,57,53,0.5)', 
-          display: 'flex', 
-          alignItems: 'center', 
-          justifyContent: 'center', 
+          position: 'fixed', bottom: '100px', right: '20px', 
+          width: '64px', height: '64px', borderRadius: '22px', 
+          background: 'linear-gradient(135deg, #E53935, #FF1744)', 
+          color: 'white', border: 'none', 
+          boxShadow: '0 10px 30px rgba(229, 57, 53, 0.4)', 
+          display: 'flex', alignItems: 'center', justifyContent: 'center', 
           zIndex: 1000 
         }}
       >
-        <Plus size={28} strokeWidth={3} />
+        <Camera size={28} strokeWidth={2.5} />
       </motion.button>
 
-      {/* Detail Modal */}
+      {/* Upload Modal & Post Detail Modal Logic stays same but with refined styling... */}
       <AnimatePresence>
         {selectedPost && (
-          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: '80px', background: '#fff', zIndex: 3000, display: 'flex', flexDirection: 'column' }}>
-            <div style={{ padding: '15px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderBottom: '1px solid #F1F5F9', background: '#fff' }}>
-              <button onClick={closePost} style={{ background: 'none', border: 'none', color: '#111' }}><X size={24} /></button>
-              <div style={{ fontSize: '15px', fontWeight: 800, color: '#111' }}>현장 리포트</div>
-              <div style={{ width: '24px' }}></div>
-            </div>
-            <div style={{ flex: 1, position: 'relative', overflow: 'hidden' }}>
-              {/* 사진이 영역을 꽉 채우도록 수정 */}
-              <img 
-                src={selectedPost.image_url} 
-                style={{ 
-                  width: '100%', 
-                  height: '100%', 
-                  objectFit: 'cover',
-                  display: 'block' 
-                }} 
-              />
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.9)', zIndex: 5000, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <div style={{ width: '100%', height: '100%', position: 'relative' }}>
+              <img src={selectedPost.image_url} style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
+              <button onClick={() => setSelectedPost(null)} style={{ position: 'absolute', top: '40px', right: '20px', background: 'rgba(255,255,255,0.2)', border: 'none', borderRadius: '50%', padding: '10px', color: 'white' }}><X size={24} /></button>
               
-              {/* 통계 및 액션 오버레이 (하단에 배치) */}
-              <div style={{ 
-                position: 'absolute', 
-                bottom: 0, 
-                left: 0, 
-                right: 0, 
-                padding: '40px 24px 24px', 
-                background: 'linear-gradient(to top, rgba(0,0,0,0.9) 0%, rgba(0,0,0,0.4) 50%, rgba(0,0,0,0) 100%)',
-                display: 'flex',
-                flexDirection: 'column',
-                gap: '20px'
-              }}>
-                <div style={{ display: 'flex', gap: '30px', justifyContent: 'center' }}>
-                  <button 
-                    onClick={(e) => handleLike(selectedPost.id, e)} 
-                    style={{ 
-                      background: 'none', 
-                      border: 'none', 
-                      display: 'flex', 
-                      alignItems: 'center', 
-                      gap: '10px', 
-                      color: '#fff', 
-                      fontWeight: 900, 
-                      fontSize: '20px',
-                      textShadow: '0 2px 4px rgba(0,0,0,0.5)'
-                    }}
-                  >
-                    <Heart size={32} color="#E53935" fill={(selectedPost.likes_count || 0) > 0 ? '#E53935' : 'none'} /> 
-                    {selectedPost.likes_count || 0}
-                  </button>
-                  <div style={{ 
-                    display: 'flex', 
-                    alignItems: 'center', 
-                    gap: '10px', 
-                    color: '#fff', 
-                    fontWeight: 900, 
-                    fontSize: '20px',
-                    textShadow: '0 2px 4px rgba(0,0,0,0.5)'
-                  }}>
-                    <Eye size={32} /> 
-                    {selectedPost.view_count || 0}
-                  </div>
+              <div style={{ position: 'absolute', bottom: '40px', left: '20px', right: '20px', background: 'rgba(0,0,0,0.5)', backdropFilter: 'blur(20px)', borderRadius: '30px', padding: '30px', border: '1px solid rgba(255,255,255,0.1)' }}>
+                <div style={{ marginBottom: '20px' }}>
+                  <h2 style={{ color: 'white', fontSize: '24px', fontWeight: 1000, marginBottom: '8px' }}>{selectedPost.bar_name || '현장 리포트'}</h2>
+                  <p style={{ color: 'rgba(255,255,255,0.7)', fontSize: '14px', lineHeight: 1.6 }}>{selectedPost.content}</p>
                 </div>
-                
-                <div style={{ textAlign: 'center' }}>
-                  <button 
-                    onClick={(e) => handleShare(selectedPost, e)} 
-                    style={{ 
-                      background: 'rgba(255,255,255,0.15)', 
-                      backdropFilter: 'blur(10px)',
-                      border: '1px solid rgba(255,255,255,0.2)', 
-                      padding: '14px 32px', 
-                      borderRadius: '16px', 
-                      display: 'inline-flex', 
-                      alignItems: 'center', 
-                      gap: '10px', 
-                      color: '#fff', 
-                      fontSize: '15px', 
-                      fontWeight: 800,
-                      boxShadow: '0 4px 15px rgba(0,0,0,0.3)'
-                    }}
-                  >
-                    <Share2 size={20} /> 리포트 공유하기
+                <div style={{ display: 'flex', gap: '20px' }}>
+                  <button onClick={(e) => handleLike(selectedPost.id, e)} style={{ flex: 1, padding: '16px', borderRadius: '18px', background: '#E53935', border: 'none', color: 'white', fontWeight: 900, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px' }}>
+                    <Heart size={20} fill="white" /> {selectedPost.likes_count || 0}
+                  </button>
+                  <button onClick={() => {}} style={{ width: '60px', height: '60px', borderRadius: '18px', background: 'rgba(255,255,255,0.1)', border: 'none', color: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                    <Share2 size={24} />
                   </button>
                 </div>
               </div>
@@ -472,82 +376,82 @@ const demoPosts = [
 
       <AnimatePresence>
         {showUploadModal && (
-          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} style={{ position: 'fixed', inset: 0, background: 'rgba(255,255,255,0.9)', zIndex: 4000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px', backdropFilter: 'blur(10px)' }}>
-            <motion.div initial={{ y: 50 }} animate={{ y: 0 }} style={{ background: '#fff', width: '100%', maxWidth: '500px', borderRadius: '30px', padding: '25px', position: 'relative', border: '1px solid #E5E7EB', boxShadow: '0 20px 40px rgba(0,0,0,0.1)' }}>
-              
-              {showRewardCelebration ? (
-                <div style={{ textAlign: 'center', padding: '40px 0' }}>
-                  <motion.div initial={{ scale: 0 }} animate={{ scale: 1, rotate: 360 }} transition={{ type: 'spring', damping: 10 }}>
-                    <Zap size={60} color="#FFD700" fill="#FFD700" style={{ margin: '0 auto 20px' }} />
-                  </motion.div>
-                  <h2 style={{ fontSize: '24px', fontWeight: 900, color: '#fff', marginBottom: '10px' }}>리포트 성공!</h2>
-                  <p style={{ fontSize: '18px', color: '#FFD700', fontWeight: 900 }}>+10 Points Earned</p>
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.8)', backdropFilter: 'blur(10px)', zIndex: 6000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px' }}>
+            <motion.div initial={{ y: 100, opacity: 0 }} animate={{ y: 0, opacity: 1 }} style={{ background: 'var(--color-bg)', width: '100%', maxWidth: '400px', borderRadius: '32px', padding: '30px', border: '1px solid var(--color-border)' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
+                <h2 style={{ fontSize: '20px', fontWeight: 900, color: 'var(--color-text-main)' }}>현장 리포트 등록</h2>
+                <button onClick={() => setShowUploadModal(false)} style={{ background: 'none', border: 'none', color: 'var(--color-text-sub)' }}><X size={24} /></button>
+              </div>
+
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+                <div onClick={() => document.getElementById('file-upload').click()} style={{ width: '100%', height: '200px', borderRadius: '24px', background: 'var(--color-card)', border: '2px dashed var(--color-border)', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', overflow: 'hidden' }}>
+                  {newPost.image ? <img src={URL.createObjectURL(newPost.image)} style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : <div style={{ textAlign: 'center' }}><Camera size={40} color="var(--color-text-sub)" style={{ marginBottom: '10px' }} /><p style={{ color: 'var(--color-text-sub)', fontSize: '13px', fontWeight: 700 }}>현장 사진을 선택하세요</p></div>}
+                  <input id="file-upload" type="file" accept="image/*" hidden onChange={e => setNewPost({...newPost, image: e.target.files[0]})} />
                 </div>
-              ) : (
-                <>
-                  <button onClick={closeUpload} style={{ position: 'absolute', top: '15px', right: '15px', background: '#F3F4F6', border: 'none', borderRadius: '50%', padding: '6px', color: '#111' }}><X size={18} /></button>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '20px' }}>
-                    <h2 style={{ fontSize: '18px', fontWeight: 900, color: '#111' }}>새로운 리포트</h2>
+
+                <div>
+                  <p style={{ fontSize: '13px', color: 'var(--color-text-main)', fontWeight: 900, marginBottom: '15px', display: 'flex', alignItems: 'center', gap: '8px', opacity: 0.9 }}>
+                    <Flame size={15} color="#E53935" fill="#E53935" /> 지금 이 순간의 현장 텐션 (필수)
+                  </p>
+                  <div style={{ 
+                    display: 'grid', 
+                    gridTemplateColumns: 'repeat(3, 1fr)', 
+                    gap: '10px',
+                    background: 'rgba(255,255,255,0.02)',
+                    padding: '5px',
+                    borderRadius: '20px'
+                  }}>
+                    {quickTags.map(tag => (
+                      <motion.button 
+                        key={tag} 
+                        whileHover={{ scale: 1.02 }}
+                        whileTap={{ scale: 0.95 }}
+                        onClick={() => handleQuickTag(tag)} 
+                        style={{ 
+                          height: '42px',
+                          borderRadius: '14px', 
+                          border: '1px solid',
+                          borderColor: newPost.content.includes(tag) ? '#E53935' : 'var(--color-border)', 
+                          background: newPost.content.includes(tag) ? 'linear-gradient(135deg, #E53935, #FF1744)' : 'var(--color-card)', 
+                          color: newPost.content.includes(tag) ? '#fff' : 'var(--color-text-sub)', 
+                          fontSize: '11px', 
+                          fontWeight: 1000, 
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          transition: 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
+                          boxShadow: newPost.content.includes(tag) ? '0 4px 12px rgba(229, 57, 53, 0.3)' : 'none'
+                        }}
+                      >
+                        {tag}
+                      </motion.button>
+                    ))}
                   </div>
-                  
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-                    <div 
-                      onClick={() => setNewPost({...newPost, is_live: !newPost.is_live})} 
-                      style={{ 
-                        display: 'flex', 
-                        alignItems: 'center', 
-                        justifyContent: 'center',
-                        gap: '10px', 
-                        padding: '12px', 
-                        background: newPost.is_live ? 'rgba(229, 57, 53, 0.05)' : '#F9FAFB', 
-                        borderRadius: '16px', 
-                        border: newPost.is_live ? '1px solid #E53935' : '1px solid #E5E7EB', 
-                        cursor: 'pointer', 
-                        transition: 'all 0.2s' 
-                      }}
-                    >
-                      <Camera size={24} color={newPost.is_live ? '#E53935' : '#64748B'} />
-                      <span style={{ fontSize: '14px', fontWeight: 800, color: newPost.is_live ? '#E53935' : '#64748B' }}>
-                        {newPost.is_live ? '실시간 인증 활성화' : '실시간 인증 비활성'}
-                      </span>
-                    </div>
+                </div>
 
-                    <div onClick={() => document.getElementById('file-upload').click()} style={{ width: '100%', height: '160px', border: '1px dashed #E5E7EB', borderRadius: '20px', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', background: '#F9FAFB', overflow: 'hidden' }}>
-                      {newPost.image ? <img src={URL.createObjectURL(newPost.image)} style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : <><Camera size={30} color="#94A3B8" /><span style={{ fontSize: '12px', color: '#64748B', marginTop: '8px' }}>현장 사진 찍기</span></>}
-                      <input id="file-upload" type="file" accept="image/*" hidden onChange={e => setNewPost({...newPost, image: e.target.files[0]})} />
-                    </div>
+                <div style={{ display: 'flex', gap: '10px' }}>
+                  <input 
+                    placeholder="현재 바(Bar) 이름을 적어주세요" 
+                    value={newPost.bar_name} 
+                    onChange={e => setNewPost({...newPost, bar_name: e.target.value})} 
+                    style={{ width: '100%', padding: '18px', borderRadius: '18px', background: 'var(--color-card)', border: '1px solid var(--color-border)', color: 'var(--color-text-main)', fontWeight: 800, fontSize: '15px' }} 
+                  />
+                </div>
 
-                    <div style={{ marginTop: '5px' }}>
-                      <p style={{ fontSize: '12px', color: '#111', fontWeight: 800, marginBottom: '8px' }}>상황 태그 선택</p>
-                      <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', maxHeight: '100px', overflowY: 'auto' }} className="hide-scrollbar">
-                        {quickTags.map(tag => (
-                          <button 
-                            key={tag} 
-                            onClick={() => handleQuickTag(tag)} 
-                            style={{ 
-                              padding: '6px 12px', 
-                              borderRadius: '20px', 
-                              border: '1px solid #E5E7EB', 
-                              background: newPost.content.includes(tag) ? '#E53935' : '#fff', 
-                              color: newPost.content.includes(tag) ? '#fff' : '#64748B', 
-                              fontSize: '11px', 
-                              fontWeight: 700
-                            }}
-                          >
-                            {tag}
-                          </button>
-                        ))}
-                      </div>
-                    </div>
-
-                    <div style={{ display: 'flex', gap: '8px' }}>
-                      <input placeholder="바 이름 (예: 보니따)" value={newPost.bar_name} onChange={e => setNewPost({...newPost, bar_name: e.target.value})} style={{ flex: 1, padding: '12px', borderRadius: '12px', border: '1px solid #E5E7EB', fontSize: '14px', background: '#fff', color: '#111' }} />
-                    </div>
-                    
-                    <button onClick={handleUpload} disabled={uploading} style={{ width: '100%', padding: '16px', borderRadius: '16px', background: '#E53935', color: '#fff', fontSize: '16px', fontWeight: 900, border: 'none', cursor: 'pointer', opacity: uploading ? 0.7 : 1, marginTop: '10px' }}>{uploading ? '업로드 중..' : '등록하기'}</button>
-                  </div>
-                </>
-              )}
+                <button 
+                  onClick={() => {
+                    if (!newPost.content.trim()) {
+                      alert('분위기 태그를 최소 하나 선택해주세요!');
+                      return;
+                    }
+                    handleUpload();
+                  }}
+                  disabled={uploading}
+                  style={{ width: '100%', padding: '18px', borderRadius: '18px', background: 'linear-gradient(135deg, #E53935, #FF1744)', color: 'white', fontSize: '17px', fontWeight: 1000, border: 'none', boxShadow: '0 8px 25px rgba(229, 57, 53, 0.4)', marginTop: '10px' }}
+                >
+                  {uploading ? '전송 중...' : '현장 리포트 올리기'}
+                </button>
+              </div>
             </motion.div>
           </motion.div>
         )}

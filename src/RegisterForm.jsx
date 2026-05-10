@@ -247,8 +247,9 @@ const RegisterForm = ({ onBack, onSuccess }) => {
         finalProcessedTitle = `${finalProcessedTitle}${suffix}`;
       }
 
-      const { error } = await supabase.from('pending_parties').insert([{
+      const { error } = await supabase.from('parties').insert([{
         title: `[${formData.region}] ${finalProcessedTitle}`,
+        location_id: finalLocationId,
         location_name: formData.location_name,
         address: formData.address,
         fee: formData.fee,
@@ -260,7 +261,7 @@ const RegisterForm = ({ onBack, onSuccess }) => {
         b_ratio: formData.bRatio,
         j_ratio: formData.jRatio,
         k_ratio: formData.kRatio,
-        status: 'pending'
+        status: 'approved'
       }])
 
       if (error) throw error
@@ -286,8 +287,8 @@ const RegisterForm = ({ onBack, onSuccess }) => {
           <div style={{ backgroundColor: '#FF1744', width: '80px', height: '80px', borderRadius: '40px', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 24px' }}>
             <Check size={40} color="white" />
           </div>
-          <h2 style={{ fontSize: '24px', fontWeight: 900, color: '#1E293B', marginBottom: '12px' }}>등록 신청 완료!</h2>
-          <p style={{ fontSize: '16px', color: '#64748B', lineHeight: '1.6', marginBottom: '32px' }}>관리자 승인 후 즉시 노출됩니다.</p>
+          <h2 style={{ fontSize: '24px', fontWeight: 900, color: '#1E293B', marginBottom: '12px' }}>파티 등록 완료!</h2>
+          <p style={{ fontSize: '16px', color: '#64748B', lineHeight: '1.6', marginBottom: '32px' }}>지금 즉시 메인 화면에 게시되었습니다.</p>
           <button onClick={onSuccess || onBack} style={{ width: '100%', padding: '20px', background: '#FF1744', color: 'white', borderRadius: '16px', fontWeight: 900, fontSize: '18px', border: 'none' }}>확인</button>
         </motion.div>
       </div>

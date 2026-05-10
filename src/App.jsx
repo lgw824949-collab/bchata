@@ -18,6 +18,21 @@ const Restaurant = lazy(() => import('./pages/Restaurant'));
 const SajuModal = lazy(() => import('./components/SajuModal'));
 const IncheonRoute = lazy(() => import('./components/IncheonRoute'));
 const WeatherModal = lazy(() => import('./components/WeatherModal'));
+const Instructors = lazy(() => import('./pages/Instructors'));
+import InstructorRegistrationModal from './components/InstructorRegistrationModal';
+
+const INSTRUCTOR_FORM_KEY = 'bamppa_instructor_form';
+const INITIAL_INSTRUCTOR_FORM = {
+  name: '',
+  custom_id: '',
+  genre: [],
+  experience: '',
+  city: '서울',
+  instagram: '',
+  photo_url: '',
+  kakao_link: '',
+  bio: ''
+};
 
 // 로딩 스피너 컴포넌트
 const LoadingFallback = () => (
@@ -234,7 +249,50 @@ const DynamicAnalysisModal = ({ isOpen, onClose, userCoords, isSajuCall }) => {
     if (userCoords) findTarget(userCoords.lat, userCoords.lon);
   }, [isOpen, userCoords]);
 
-  if (!isOpen || !targetDest) return null;
+  if (!isOpen) return null;
+
+  // targetDest가 없을 때 (위치 정보 획득 중이거나 권한 거부 시) 대응
+  if (!targetDest) {
+    return (
+      <motion.div 
+        initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} 
+        style={{ position: 'fixed', inset: 0, zIndex: 1000000, backgroundColor: '#FFFFFF', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '24px' }}
+      >
+        <div style={{ textAlign: 'center', maxWidth: '300px' }}>
+          <div style={{ background: '#FEF2F2', padding: '20px', borderRadius: '50%', marginBottom: '20px', display: 'inline-flex' }}>
+            <Navigation size={32} color="#FF1744" className="animate-pulse" />
+          </div>
+          <h2 style={{ fontSize: '20px', fontWeight: '900', color: '#1E293B', marginBottom: '12px' }}>
+            {userCoords ? '데이터 분석 중...' : '위치 정보를 확인 중입니다'}
+          </h2>
+          <p style={{ color: '#64748B', fontSize: '14px', lineHeight: '1.6', marginBottom: '30px' }}>
+            {userCoords 
+              ? '가장 가까운 성지를 찾고 있습니다. 잠시만 기다려주세요.' 
+              : '권한 허용 확인이 필요하거나, GPS 신호를 수신하고 있습니다. 창이 계속 유지되면 위치 권한을 확인해주세요.'}
+          </p>
+          
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+            <button 
+              onClick={() => {
+                // 부모의 requestLocation을 다시 호출하거나, 그냥 닫고 다시 시도하도록 유도
+                onClose();
+              }}
+              style={{ padding: '16px', borderRadius: '14px', background: '#FF1744', color: '#fff', border: 'none', fontWeight: '800', cursor: 'pointer', fontSize: '15px' }}
+            >
+              다시 시도하기
+            </button>
+            <button 
+              onClick={onClose}
+              style={{ padding: '12px', background: 'none', border: 'none', color: '#94A3B8', fontWeight: '700', cursor: 'pointer', fontSize: '13px' }}
+            >
+              닫기
+            </button>
+          </div>
+        </div>
+      </motion.div>
+    );
+  }
+
   const isIncheon = targetDest.region === '인천' && isSajuCall;
 
   return (
@@ -537,6 +595,7 @@ function App() {
     const path = location.pathname;
     if (path === '/') setView('home');
     else if (path === '/livepick') setView('community');
+    else if (path === '/instructors') setView('instructors');
     else if (path === '/bootcamp') setView('bootcamp');
     else if (path === '/bootcamp/register') setView('bootcamp-register');
     else if (path === '/festival') setView('festival');
@@ -568,15 +627,74 @@ function App() {
   const [showFilterPanel, setShowFilterPanel] = useState(false);
   const [showFilteredResults, setShowFilteredResults] = useState(false);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [showInstructorRegister, setShowInstructorRegister] = useState(false);
+  const [instructorFormData, setInstructorFormData] = useState(() => {
+    const saved = localStorage.getItem(INSTRUCTOR_FORM_KEY);
+    return saved ? JSON.parse(saved) : INITIAL_INSTRUCTOR_FORM;
+  });
+
+  // Persist Instructor Form Data
+  useEffect(() => {
+    localStorage.setItem(INSTRUCTOR_FORM_KEY, JSON.stringify(instructorFormData));
+  }, [instructorFormData]);
   const [filterRegion, setFilterRegion] = useState('');
   const [filterGenre, setFilterGenre] = useState('');
   const [selectedMonth, setSelectedMonth] = useState(todayData.month);
   const [showGridModal, setShowGridModal] = useState(false);
   const [gridRegion, setGridRegion] = useState('');
+  const [followedInstructors, setFollowedInstructors] = useState([]);
+  const [likedLivePicks, setLikedLivePicks] = useState([]);
+  const [sidebarRefresh, setSidebarRefresh] = useState(0);
+
+  useEffect(() => {
+    const handleSync = () => setSidebarRefresh(prev => prev + 1);
+    window.addEventListener('storage', handleSync);
+    return () => window.removeEventListener('storage', handleSync);
+  }, []);
+
+  useEffect(() => {
+    if (isMenuOpen || sidebarRefresh > 0) {
+      const fetchFollowed = async () => {
+        const followsRaw = localStorage.getItem('instructor_follows');
+        if (!followsRaw) { setFollowedInstructors([]); return; }
+        
+        try {
+          const follows = JSON.parse(followsRaw);
+          const ids = Object.keys(follows).filter(id => follows[id]);
+          if (ids.length === 0) { setFollowedInstructors([]); return; }
+          
+          const { data } = await supabase
+            .from('instructors')
+            .select('id, name, photo_url')
+            .in('id', ids)
+            .eq('status', 'active');
+            
+          if (data) setFollowedInstructors(data);
+        } catch (e) { console.error(e); }
+      };
+
+      const fetchLikedPicks = async () => {
+        const likedRaw = localStorage.getItem('community_liked_posts');
+        if (!likedRaw) { setLikedLivePicks([]); return; }
+        try {
+          const ids = JSON.parse(likedRaw);
+          if (ids.length === 0) { setLikedLivePicks([]); return; }
+          const { data } = await supabase
+            .from('community_posts')
+            .select('id, image_url, bar_name')
+            .in('id', ids);
+          if (data) setLikedLivePicks(data);
+        } catch (e) { console.error(e); }
+      };
+
+      fetchFollowed();
+      fetchLikedPicks();
+    }
+  }, [isMenuOpen, sidebarRefresh]);
+
   const [filterStep, setFilterStep] = useState(1);
   const [weatherTapCount, setWeatherTapCount] = useState(0);
   const [lastWeatherTap, setLastWeatherTap] = useState(0);
-  const weatherTimeoutRef = useRef(null);
   const [navVisible, setNavVisible] = useState(true)
   const lastScrollY = useRef(0)
 
@@ -623,13 +741,15 @@ function App() {
   };
 
   useEffect(() => {
-    if (window.location.pathname === '/parking') {
-      setView('parking');
-      window.location.hash = 'parking';
-    } else if (window.location.pathname === '/restaurant') {
-      setView('restaurant');
-      window.location.hash = 'restaurant';
-    }
+    const path = window.location.pathname;
+    if (path === '/parking') setView('parking');
+    else if (path === '/restaurant') setView('restaurant');
+    else if (path === '/livepick' || path === '/community') setView('community');
+    else if (path === '/instructors') setView('instructors');
+    else if (path === '/bootcamp') setView('bootcamp');
+    else if (path === '/festival') setView('festival');
+    
+    if (path !== '/') window.location.hash = path.replace('/', '');
   }, []);
 
   useEffect(() => {
@@ -734,7 +854,13 @@ function App() {
     } catch (err) { console.error('데이터 로딩 오류:', err); } finally { setLoading(false); }
   };
 
-  useEffect(() => { fetchParties(); }, []);
+  useEffect(() => { 
+    fetchParties(); 
+    // 초기 로드 시 저장된 좌표 복구
+    const saved = localStorage.getItem('user_last_coords');
+    if (saved) setUserCoords(JSON.parse(saved));
+  }, []);
+
 
   useEffect(() => {
     const todayStr = getKSTDate().dateStr;
@@ -766,10 +892,14 @@ function App() {
   }, [selectedDate]);
 
   const openAnalysis = (saju = false) => {
+    if (!userCoords) {
+      requestLocation();
+    }
     setIsSajuCall(saju);
     setIsAnalyzing(true);
     setTimeout(() => { setIsAnalyzing(false); setShowIncheonModal(true); }, 1200);
   };
+
 
   const handleRegister = (type = 'party') => {
     if (type === 'party') {
@@ -783,16 +913,24 @@ function App() {
     if (navigator.geolocation) {
       navigator.geolocation.getCurrentPosition(
         (pos) => {
-          setUserCoords({ lat: pos.coords.latitude, lon: pos.coords.longitude });
-          console.log("Location obtained:", pos.coords.latitude, pos.coords.longitude);
+          const coords = { lat: pos.coords.latitude, lon: pos.coords.longitude };
+          setUserCoords(coords);
+          localStorage.setItem('user_last_coords', JSON.stringify(coords));
+          console.log("Location obtained:", coords);
         },
         (err) => {
           console.error("Location request error:", err);
+          // 에러 시 기존 저장된 좌표가 있다면 사용 (폴백)
+          const saved = localStorage.getItem('user_last_coords');
+          if (saved) {
+            setUserCoords(JSON.parse(saved));
+          }
         },
-        { enableHighAccuracy: true, timeout: 5000, maximumAge: 0 }
+        { enableHighAccuracy: false, timeout: 10000, maximumAge: 60000 }
       );
     }
   };
+
 
   const sharedProps = {
     parties: displayParties, bootcamps, festivals, loading, selectedMonth, setSelectedMonth, selectedWeek: 1, setSelectedWeek: () => {}, 
@@ -892,14 +1030,156 @@ function App() {
               <p style={{ color: 'var(--color-text-sub)', fontSize: '14px', marginTop: '4px' }}>{t('platform_desc')}</p>
             </div>
 
+            {/* MY MASTERS Section - Always Visible to pique interest */}
+            <div style={{ marginBottom: '32px', padding: '0 4px' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
+                <h3 style={{ color: 'var(--color-text-main)', fontSize: '13px', fontWeight: 1000, textTransform: 'uppercase', letterSpacing: '1px' }}>My Masters</h3>
+                <span style={{ fontSize: '10px', color: '#C9A84C', fontWeight: 700 }}>LIVE</span>
+              </div>
+              <div style={{ 
+                display: 'flex', 
+                gap: '14px', 
+                overflowX: 'auto', 
+                paddingBottom: '10px', 
+                scrollbarWidth: 'none', 
+                msOverflowStyle: 'none',
+                WebkitOverflowScrolling: 'touch'
+              }}>
+                {followedInstructors.length > 0 ? (
+                  followedInstructors.map(inst => (
+                    <motion.div 
+                      key={inst.id}
+                      whileTap={{ scale: 0.9 }}
+                      onClick={() => {
+                        localStorage.setItem('selected_instructor_id', inst.id);
+                        navigate('/instructors');
+                        setIsMenuOpen(false);
+                      }}
+                      style={{ flexShrink: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '8px', width: '64px' }}
+                    >
+                      <div style={{ 
+                        width: '58px', 
+                        height: '58px', 
+                        borderRadius: '50%', 
+                        border: '2px solid #C9A84C', 
+                        padding: '2px', 
+                        background: 'linear-gradient(135deg, #C9A84C, #F1D382)',
+                        boxShadow: '0 4px 12px rgba(201, 168, 76, 0.2)'
+                      }}>
+                        <div style={{ width: '100%', height: '100%', borderRadius: '50%', background: 'var(--color-card)', overflow: 'hidden' }}>
+                          <img src={inst.photo_url || 'https://via.placeholder.com/150'} style={{ width: '100%', height: '100%', borderRadius: '50%', objectFit: 'cover' }} />
+                        </div>
+                      </div>
+                      <span style={{ fontSize: '11px', color: 'var(--color-text-main)', fontWeight: 800, textAlign: 'center', width: '100%', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{inst.name.split(' ')[0]}</span>
+                    </motion.div>
+                  ))
+                ) : (
+                  // Empty State Placeholder
+                  [1, 2, 3, 4, 5].map(i => (
+                    <div 
+                      key={i}
+                      onClick={() => { setView('instructors'); setIsMenuOpen(false); }}
+                      style={{ flexShrink: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '8px', width: '64px', opacity: 0.3 }}
+                    >
+                      <div style={{ width: '58px', height: '58px', borderRadius: '50%', border: '2px dashed var(--color-text-sub)', background: 'var(--color-border)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                        <Plus size={20} color="var(--color-text-sub)" />
+                      </div>
+                      <div style={{ width: '30px', height: '8px', borderRadius: '4px', background: 'var(--color-border)' }} />
+                    </div>
+                  ))
+                )}
+              </div>
+            </div>
+
+            {/* MY LIVE PICKS Section - Permanent Discovery Hub */}
+            <div style={{ marginBottom: '32px', padding: '0 4px' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
+                <h3 style={{ color: 'var(--color-text-main)', fontSize: '13px', fontWeight: 1000, textTransform: 'uppercase', letterSpacing: '1px' }}>My Live Picks</h3>
+                <span style={{ fontSize: '10px', color: '#E53935', fontWeight: 700 }}>NEW</span>
+              </div>
+              <div style={{ 
+                display: 'flex', 
+                gap: '14px', 
+                overflowX: 'auto', 
+                paddingBottom: '10px', 
+                scrollbarWidth: 'none', 
+                msOverflowStyle: 'none',
+                WebkitOverflowScrolling: 'touch'
+              }}>
+                {likedLivePicks.length > 0 ? (
+                  likedLivePicks.map(post => (
+                    <motion.div 
+                      key={post.id}
+                      whileTap={{ scale: 0.9 }}
+                      onClick={() => {
+                        setView('community');
+                        setIsMenuOpen(false);
+                      }}
+                      style={{ flexShrink: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '8px', width: '64px' }}
+                    >
+                      <div style={{ 
+                        width: '58px', 
+                        height: '58px', 
+                        borderRadius: '50%', 
+                        border: '2px solid #E53935', 
+                        padding: '2px', 
+                        background: 'linear-gradient(135deg, #E53935, #FF8A80)',
+                        boxShadow: '0 4px 12px rgba(229, 57, 53, 0.2)'
+                      }}>
+                        <div style={{ width: '100%', height: '100%', borderRadius: '50%', background: 'var(--color-card)', overflow: 'hidden' }}>
+                          <img src={post.image_url} style={{ width: '100%', height: '100%', borderRadius: '50%', objectFit: 'cover' }} />
+                        </div>
+                      </div>
+                      <span style={{ fontSize: '11px', color: 'var(--color-text-main)', fontWeight: 800, textAlign: 'center', width: '100%', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{post.bar_name || '현장'}</span>
+                    </motion.div>
+                  ))
+                ) : (
+                  // Empty State Placeholder
+                  [1, 2, 3, 4, 5].map(i => (
+                    <div 
+                      key={i}
+                      onClick={() => { setView('community'); setIsMenuOpen(false); }}
+                      style={{ flexShrink: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '8px', width: '64px', opacity: 0.3 }}
+                    >
+                      <div style={{ width: '58px', height: '58px', borderRadius: '50%', border: '2px dashed var(--color-text-sub)', background: 'var(--color-border)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                        <Plus size={20} color="var(--color-text-sub)" />
+                      </div>
+                      <div style={{ width: '30px', height: '8px', borderRadius: '4px', background: 'var(--color-border)' }} />
+                    </div>
+                  ))
+                )}
+              </div>
+            </div>
+
             <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
               {[
+                { icon: <Camera color={'#FF1744'} />, text: 'LIVE PICK', action: () => { setView('community'); setIsMenuOpen(false); } },
                 { icon: <Calendar color={'#FF1744'} />, text: t('view_calendar'), action: () => { setIsMenuOpen(false); handleOpenModal(setShowFullCalendar, true); } },
                 { icon: <Utensils color={'#FF1744'} />, text: t('restaurant'), action: () => { setView('restaurant'); setIsMenuOpen(false); } },
-                { icon: <CloudSun color={'#FF1744'} />, text: t('weather'), action: () => { /* ... weather logic ... */ } },
                 { 
-                  icon: isDark ? <Zap color={'#F59E0B'} /> : <Zap color={'#64748B'} />, 
-                  text: isDark ? '라이트 모드로 보기' : '다크 모드로 보기', 
+                  icon: <CloudSun color={'#FF1744'} />, 
+                  text: t('weather'), 
+                  action: () => { 
+                    const now = Date.now();
+                    if (now - lastWeatherTap < 1000) {
+                      const newCount = weatherTapCount + 1;
+                      if (newCount >= 3) {
+                        setView('admin-portal');
+                        setIsMenuOpen(false);
+                        setWeatherTapCount(0);
+                      } else {
+                        setWeatherTapCount(newCount);
+                      }
+                    } else {
+                      setWeatherTapCount(1);
+                      handleOpenModal(setShowWeather, true);
+                    }
+                    setLastWeatherTap(now);
+                  } 
+                },
+                { 
+                  icon: <Zap color={'#FF1744'} />, 
+                  text: isDark ? '라이트 모드' : '다크 모드', 
                   action: () => setIsDark(!isDark) 
                 },
                 { icon: <MessageSquare color={'#FF1744'} />, text: t('open_chat'), action: () => { window.open('https://open.kakao.com/o/gP43rNri', '_blank'); setIsMenuOpen(false); } },
@@ -940,6 +1220,7 @@ function App() {
         <Suspense fallback={<LoadingFallback />}>
           {view === 'home' ? <HomePage {...sharedProps} /> : 
            view === 'community' ? <Community setSelectedPoster={setSelectedPoster} setView={setView} /> :
+           view === 'instructors' ? <Instructors /> :
            view === 'bootcamp' ? <Bootcamp onBack={() => navigate('/')} /> :
            view === 'bootcamp-register' ? <Bootcamp onBack={() => navigate('/bootcamp')} initialView="register" /> :
            view === 'festival' ? <Festival onBack={() => navigate('/')} /> :
@@ -1007,66 +1288,84 @@ function App() {
           style={{ 
             flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
             cursor: 'pointer', transition: 'all 0.3s', position: 'relative', height: '100%',
-            color: location.pathname === '/' ? '#E11D48' : '#94A3B8'
+            color: location.pathname === '/' ? '#FF1744' : '#94A3B8'
           }}
         >
           {location.pathname === '/' && (
             <motion.div 
               layoutId="nav-glow"
-              style={{ position: 'absolute', width: '40px', height: '40px', borderRadius: '50%', background: 'rgba(225, 29, 72, 0.1)', filter: 'blur(8px)' }} 
+              style={{ position: 'absolute', width: '40px', height: '40px', borderRadius: '50%', background: 'rgba(255, 23, 68, 0.1)', filter: 'blur(8px)' }} 
             />
           )}
+
           <Music2 size={22} strokeWidth={location.pathname === '/' ? 2.5 : 2} style={{ marginBottom: '4px' }} />
-          <span style={{ fontSize: '10px', fontWeight: location.pathname === '/' ? 900 : 500 }}>SOCIAL</span>
+          <span style={{ fontSize: '10px', fontWeight: location.pathname === '/' ? 900 : 500 }}>{t('nav_social')}</span>
+
         </div>
 
         <div 
           className="nav-item" 
-          onClick={() => navigate('/livepick')}
+          onClick={() => navigate('/instructors')}
           style={{ 
             flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
             cursor: 'pointer', transition: 'all 0.3s', position: 'relative', height: '100%',
-            color: location.pathname === '/livepick' ? '#E11D48' : '#94A3B8'
+            color: location.pathname === '/instructors' ? '#FF1744' : '#94A3B8'
           }}
         >
-          {location.pathname === '/livepick' && (
+          {location.pathname === '/instructors' && (
             <motion.div 
               layoutId="nav-glow"
-              style={{ position: 'absolute', width: '40px', height: '40px', borderRadius: '50%', background: 'rgba(225, 29, 72, 0.1)', filter: 'blur(8px)' }} 
+              style={{ position: 'absolute', width: '40px', height: '40px', borderRadius: '50%', background: 'rgba(255, 23, 68, 0.1)', filter: 'blur(8px)' }} 
             />
           )}
-          <Camera size={22} strokeWidth={location.pathname === '/livepick' ? 2.5 : 2} style={{ marginBottom: '4px' }} />
-          <span style={{ fontSize: '10px', fontWeight: location.pathname === '/livepick' ? 900 : 500 }}>LIVE PICK</span>
+
+          <Users size={22} strokeWidth={location.pathname === '/instructors' ? 2.5 : 2} style={{ marginBottom: '4px' }} />
+          <span style={{ fontSize: '10px', fontWeight: location.pathname === '/instructors' ? 900 : 500 }}>{t('nav_master')}</span>
+
         </div>
 
-        <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', position: 'relative', height: '100%' }}>
+        <div style={{ flex: 0.8, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', position: 'relative', height: '100%', zIndex: 20 }}>
           <motion.button
-            whileHover={{ scale: 1.1 }}
+            whileHover={{ scale: 1.1, y: -5 }}
             whileTap={{ scale: 0.9 }}
             onClick={() => {
-              if (location.pathname === '/livepick') {
+              if (location.pathname === '/livepick' || (setView && view === 'community')) {
                 window.dispatchEvent(new CustomEvent('open-community-upload'));
               } else if (location.pathname === '/bootcamp') {
                 navigate('/bootcamp/register');
               } else if (location.pathname === '/festival') {
                 navigate('/festival/register');
+              } else if (location.pathname === '/instructors' || (setView && view === 'instructors')) {
+                setShowInstructorRegister(true);
               } else {
                 navigate('/register-party');
               }
             }}
             style={{
-              width: '54px', height: '54px', borderRadius: '18px',
-              background: 'linear-gradient(135deg, #F59E0B, #D97706)',
+              width: '60px', height: '60px', borderRadius: '22px',
+              background: 'linear-gradient(135deg, #FF1744, #FF5252)',
               border: 'none', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center',
-              cursor: 'pointer', boxShadow: '0 8px 20px rgba(217, 119, 6, 0.3)',
-              marginBottom: '18px'
+              cursor: 'pointer', boxShadow: '0 10px 30px rgba(229, 57, 53, 0.4)',
+              marginBottom: '25px',
+              position: 'relative',
+              overflow: 'visible'
             }}
           >
-            <Plus size={30} strokeWidth={3} />
+            <div className="animate-pulse-red" style={{ position: 'absolute', inset: 0, borderRadius: '22px', opacity: 0.5 }}></div>
+            <Plus size={32} strokeWidth={3} style={{ position: 'relative', zIndex: 2 }} />
           </motion.button>
-          <span style={{ fontSize: '10px', fontWeight: 900, color: '#D97706', position: 'absolute', bottom: '12px' }}>
-            {location.pathname === '/livepick' ? (i18n.language.startsWith('en') ? 'REPORT' : '리포트') : t('nav_register')}
+          <span style={{ fontSize: '10px', fontWeight: 1000, color: '#FF1744', position: 'absolute', bottom: '12px' }}>
+            {(() => {
+              const currentPath = location.pathname;
+              if (currentPath === '/livepick' || view === 'community') return 'REPORT';
+              if (currentPath === '/bootcamp') return t('nav_bootcamp');
+              if (currentPath === '/festival') return t('nav_festival');
+              if (currentPath === '/instructors' || view === 'instructors') return t('nav_master');
+              if (currentPath === '/' || view === 'home') return t('nav_social');
+              return t('nav_party');
+            })()}
           </span>
+
         </div>
 
         <div 
@@ -1075,15 +1374,16 @@ function App() {
           style={{ 
             flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
             cursor: 'pointer', transition: 'all 0.3s', position: 'relative', height: '100%',
-            color: location.pathname === '/bootcamp' ? '#F97316' : '#94A3B8'
+            color: location.pathname === '/bootcamp' ? '#FF1744' : '#94A3B8'
           }}
         >
           {location.pathname === '/bootcamp' && (
             <motion.div 
               layoutId="nav-glow"
-              style={{ position: 'absolute', width: '40px', height: '40px', borderRadius: '50%', background: 'rgba(249, 115, 22, 0.1)', filter: 'blur(8px)' }} 
+              style={{ position: 'absolute', width: '40px', height: '40px', borderRadius: '50%', background: 'rgba(255, 23, 68, 0.1)', filter: 'blur(8px)' }} 
             />
           )}
+
           <Tent size={22} strokeWidth={location.pathname === '/bootcamp' ? 2.5 : 2} style={{ marginBottom: '4px' }} />
           <span style={{ fontSize: '10px', fontWeight: location.pathname === '/bootcamp' ? 900 : 500 }}>{t('nav_bootcamp')}</span>
         </div>
@@ -1094,15 +1394,16 @@ function App() {
           style={{ 
             flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
             cursor: 'pointer', transition: 'all 0.3s', position: 'relative', height: '100%',
-            color: location.pathname === '/festival' ? '#F97316' : '#94A3B8'
+            color: location.pathname === '/festival' ? '#FF1744' : '#94A3B8'
           }}
         >
           {location.pathname === '/festival' && (
             <motion.div 
               layoutId="nav-glow"
-              style={{ position: 'absolute', width: '40px', height: '40px', borderRadius: '50%', background: 'rgba(249, 115, 22, 0.1)', filter: 'blur(8px)' }} 
+              style={{ position: 'absolute', width: '40px', height: '40px', borderRadius: '50%', background: 'rgba(255, 23, 68, 0.1)', filter: 'blur(8px)' }} 
             />
           )}
+
           <Flag size={22} strokeWidth={location.pathname === '/festival' ? 2.5 : 2} style={{ marginBottom: '4px' }} />
           <span style={{ fontSize: '10px', fontWeight: location.pathname === '/festival' ? 900 : 500 }}>{t('nav_festival')}</span>
         </div>
@@ -1381,6 +1682,21 @@ function App() {
               </button>
             </motion.div>
           </motion.div>
+        )}
+      </AnimatePresence>
+
+      <AnimatePresence>
+        {showInstructorRegister && (
+          <InstructorRegistrationModal 
+            isOpen={showInstructorRegister} 
+            onClose={() => setShowInstructorRegister(false)} 
+            formData={instructorFormData}
+            setFormData={setInstructorFormData}
+            onSuccess={() => {
+              setInstructorFormData(INITIAL_INSTRUCTOR_FORM);
+              localStorage.removeItem(INSTRUCTOR_FORM_KEY);
+            }}
+          />
         )}
       </AnimatePresence>
 

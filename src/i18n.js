@@ -5,11 +5,14 @@ import LanguageDetector from 'i18next-browser-languagedetector';
 const resources = {
   ko: {
     translation: {
-      "nav_social": "소셜파티",
+      "nav_social": "소셜",
+      "nav_master": "강사",
       "nav_class": "수업/정모",
       "nav_bootcamp": "부트캠프",
-      "nav_festival": "전국페스티벌",
+      "nav_festival": "페스티벌",
+      "nav_party": "PARTY",
       "nav_register": "등록",
+
       "filter_where": "어디로 가시나요?",
       "filter_genre": "어떤 장르가 꽂히세요?",
       "map": "지도",
@@ -115,11 +118,14 @@ const resources = {
   },
   en: {
     translation: {
-      "nav_social": "Social Party",
+      "nav_social": "SOCIAL",
+      "nav_master": "MASTER",
       "nav_class": "Classes",
-      "nav_bootcamp": "Bootcamp",
-      "nav_festival": "Festival",
+      "nav_bootcamp": "BOOTCAMP",
+      "nav_festival": "FESTIVAL",
+      "nav_party": "PARTY",
       "nav_register": "Register",
+
       "filter_where": "Where are you going?",
       "filter_genre": "What's your vibe?",
       "map": "Map",

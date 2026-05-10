@@ -9,6 +9,15 @@ export default function AdminDashboard({ onBack }) {
   const [loginStep, setLoginStep] = useState(1)
   const [adminId, setAdminId] = useState('')
   const [password, setPassword] = useState('')
+  const [imageFile, setImageFile] = useState(null)
+  const [preview, setPreview] = useState(null)
+
+  const handleAdminImageChange = (e) => {
+    const file = e.target.files[0]
+    if (!file) return
+    setImageFile(file)
+    setPreview(URL.createObjectURL(file))
+  }
   const [items, setItems] = useState([])
   const [category, setCategory] = useState('social') // 'social', 'live-mgmt', 'live', 'bootcamp', 'festival', 'instructor'
   const [activeTab, setActiveTab] = useState('pending') // 'pending', 'active', 'rejected'
@@ -39,7 +48,7 @@ export default function AdminDashboard({ onBack }) {
         const todayStr = new Date(Date.now() + (9 * 60 * 60 * 1000)).toISOString().split('T')[0];
         query = supabase.from('parties').select('*, locations!location_id(name)').eq('date', todayStr);
       } else if (category === 'live') {
-        query = supabase.from('community_posts').select('*').eq('status', activeTab);
+        query = supabase.from('community_posts').select('*');
       } else if (category === 'bootcamp') {
         query = supabase.from('bootcamps').select('*').eq('status', activeTab);
       } else if (category === 'festival') {
@@ -66,6 +75,8 @@ export default function AdminDashboard({ onBack }) {
   const cancelEdit = () => {
     setEditingItem(null)
     setEditFormData({})
+    setImageFile(null)
+    setPreview(null)
   }
 
   // 수정 저장
@@ -78,11 +89,36 @@ export default function AdminDashboard({ onBack }) {
       else if (category === 'instructor') table = 'instructors';
       else table = category === 'bootcamp' ? 'bootcamps' : 'festivals';
 
+      let finalPhotoUrl = editFormData.photo_url || '';
+
+      // Upload image if a new file is selected (for instructors)
+      if (category === 'instructor' && imageFile) {
+        const ext = imageFile.name.split('.').pop()
+        const fileName = `instructors/${Date.now()}_${Math.random().toString(36).substring(7)}.${ext}`
+        const { error: uploadError } = await supabase.storage
+          .from('posters')
+          .upload(fileName, imageFile)
+        
+        if (uploadError) throw uploadError
+
+        const { data: urlData } = supabase.storage
+          .from('posters')
+          .getPublicUrl(fileName)
+        
+        finalPhotoUrl = urlData.publicUrl
+      }
+
       const { locations, created_at, id, locationName, location_name, ...updateData } = editFormData;
-      const { error } = await supabase.from(table).update(updateData).eq('id', editingItem);
+      const { error } = await supabase.from(table).update({
+        ...updateData,
+        photo_url: category === 'instructor' ? finalPhotoUrl : (updateData.photo_url || updateData.poster_url)
+      }).eq('id', editingItem);
+
       if (error) throw error;
       alert('수정되었습니다.');
       setEditingItem(null);
+      setImageFile(null);
+      setPreview(null);
       fetchData();
     } catch (err) { alert('수정 실패: ' + err.message) } finally { setLoading(false) }
   }
@@ -134,8 +170,10 @@ export default function AdminDashboard({ onBack }) {
         else table = category === 'bootcamp' ? 'bootcamps' : 'festivals';
         
         const statusVal = newStatus === 'approved' ? 'active' : newStatus;
-        const { error } = await supabase.from(table).update({ status: statusVal }).eq('id', item.id);
-        if (error) throw error;
+        if (category !== 'live') {
+          const { error } = await supabase.from(table).update({ status: statusVal }).eq('id', item.id);
+          if (error) throw error;
+        }
       }
       fetchData();
       alert('상태가 업데이트되었습니다!');
@@ -332,7 +370,31 @@ export default function AdminDashboard({ onBack }) {
                     <input value={editFormData.title || editFormData.name || ''} onChange={e => setEditFormData({ ...editFormData, title: e.target.value, name: e.target.value })} placeholder="제목/이름" style={{ width: '100%', padding: '10px', borderRadius: '10px', border: '1px solid #E2E8F0', fontWeight: 700 }} />
                     {category === 'instructor' && (
                       <>
-                        <input value={editFormData.custom_id || ''} onChange={e => setEditFormData({ ...editFormData, custom_id: e.target.value })} placeholder="고유 ID" style={{ width: '100%', padding: '10px', borderRadius: '10px', border: '1px solid #E2E8F0' }} />
+                        <div style={{ display: 'flex', gap: '8px' }}>
+                          <input value={editFormData.custom_id || ''} onChange={e => setEditFormData({ ...editFormData, custom_id: e.target.value })} placeholder="고유 ID (Handle)" style={{ flex: 1, padding: '10px', borderRadius: '10px', border: '1px solid #E2E8F0' }} />
+                          <input value={editFormData.city || ''} onChange={e => setEditFormData({ ...editFormData, city: e.target.value })} placeholder="활동 지역" style={{ flex: 1, padding: '10px', borderRadius: '10px', border: '1px solid #E2E8F0' }} />
+                        </div>
+                        <input value={Array.isArray(editFormData.genre) ? editFormData.genre.join(', ') : editFormData.genre || ''} onChange={e => setEditFormData({ ...editFormData, genre: e.target.value.split(',').map(s => s.trim()) })} placeholder="장르 (쉼표로 구분)" style={{ width: '100%', padding: '10px', borderRadius: '10px', border: '1px solid #E2E8F0' }} />
+                        <div style={{ display: 'flex', gap: '8px' }}>
+                          <input value={editFormData.instagram || ''} onChange={e => setEditFormData({ ...editFormData, instagram: e.target.value })} placeholder="인스타그램 ID" style={{ flex: 1, padding: '10px', borderRadius: '10px', border: '1px solid #E2E8F0' }} />
+                          <input value={editFormData.kakao_link || ''} onChange={e => setEditFormData({ ...editFormData, kakao_link: e.target.value })} placeholder="카카오 오픈챗 링크" style={{ flex: 1, padding: '10px', borderRadius: '10px', border: '1px solid #E2E8F0' }} />
+                        </div>
+                        
+                        <div style={{ display: 'flex', gap: '12px', alignItems: 'center', padding: '10px', backgroundColor: '#F1F5F9', borderRadius: '10px' }}>
+                          <label style={{ cursor: 'pointer', flexShrink: 0 }}>
+                            <input type="file" accept="image/*" onChange={handleAdminImageChange} style={{ display: 'none' }} />
+                            <div style={{ width: '60px', height: '60px', borderRadius: '12px', background: '#FFF', border: '1px dashed #94A3B8', overflow: 'hidden', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                              {(preview || editFormData.photo_url) ? (
+                                <img src={preview || editFormData.photo_url} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                              ) : <Camera size={24} color="#94A3B8" />}
+                            </div>
+                          </label>
+                          <div style={{ flex: 1 }}>
+                            <div style={{ fontSize: '11px', fontWeight: 800, color: '#475569' }}>프로필 사진 교체</div>
+                            <input value={editFormData.photo_url || ''} onChange={e => setEditFormData({ ...editFormData, photo_url: e.target.value })} placeholder="또는 URL 직접 입력" style={{ width: '100%', padding: '5px 0', border: 'none', borderBottom: '1px solid #CBD5E1', backgroundColor: 'transparent', fontSize: '12px' }} />
+                          </div>
+                        </div>
+
                         <textarea value={editFormData.bio || ''} onChange={e => setEditFormData({ ...editFormData, bio: e.target.value })} placeholder="자기소개" style={{ width: '100%', padding: '10px', borderRadius: '10px', border: '1px solid #E2E8F0', minHeight: '80px' }} />
                       </>
                     )}
@@ -348,7 +410,11 @@ export default function AdminDashboard({ onBack }) {
                       <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
                         <h3 style={{ fontSize: '16px', fontWeight: 900, color: '#1E293B' }}>👤 {item.name} (@{item.custom_id})</h3>
                         <div style={{ fontSize: '13px', color: '#7C3AED', fontWeight: 800 }}>🎵 {Array.isArray(item.genre) ? item.genre.join(', ') : item.genre} | 📍 {item.city}</div>
-                        <div style={{ fontSize: '13px', color: '#64748B', lineHeight: '1.4', background: '#F8FAFC', padding: '8px', borderRadius: '8px' }}>{item.bio}</div>
+                        <div style={{ display: 'flex', gap: '10px', fontSize: '12px' }}>
+                          <span style={{ color: '#E11D48', fontWeight: 700 }}>📸 Inst: {item.instagram || '-'}</span>
+                          <span style={{ color: '#F59E0B', fontWeight: 700 }}>💬 Kakao: {item.kakao_link ? 'YES' : 'NO'}</span>
+                        </div>
+                        <div style={{ fontSize: '13px', color: '#64748B', lineHeight: '1.4', background: '#F8FAFC', padding: '8px', borderRadius: '8px', whiteSpace: 'pre-wrap' }}>{item.bio}</div>
                       </div>
                     ) : category === 'live' ? (
                       <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
