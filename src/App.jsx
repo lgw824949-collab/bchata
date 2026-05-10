@@ -606,6 +606,13 @@ function App() {
     else if (path === '/restaurant') setView('restaurant');
     else if (path === '/admin') setView('admin');
     else if (path === '/admin-portal') setView('admin-portal');
+
+    // Handle Genre Hashes
+    const hash = window.location.hash.replace('#', '');
+    if (['바차타', '살사', '키좀바', '쥬크'].includes(hash)) {
+      setFilterGenre(hash);
+      setView('home');
+    }
   }, [location.pathname]);
 
 
@@ -769,7 +776,13 @@ function App() {
       if (showIncheonModal) { setShowIncheonModal(false); return; }
       if (showIncheon) { setShowIncheon(false); return; }
 
-      const newHash = window.location.hash.replace('#', '');
+      const newHash = decodeURIComponent(window.location.hash.replace('#', ''));
+      if (['바차타', '살사', '키좀바', '쥬크'].includes(newHash)) {
+        setFilterGenre(newHash);
+        setView('home');
+        return;
+      }
+
       if (newHash && newHash !== view) {
         setView(newHash);
       } else if (!newHash && view !== 'home') {
