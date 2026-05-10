@@ -654,6 +654,7 @@ function App() {
   const [followedInstructors, setFollowedInstructors] = useState([]);
   const [likedLivePicks, setLikedLivePicks] = useState([]);
   const [sidebarRefresh, setSidebarRefresh] = useState(0);
+  const [showRentalModal, setShowRentalModal] = useState(false);
 
   const groupedAllRegionsParties = useMemo(() => {
     if (!selectedAllRegionsDate) return {};
@@ -990,6 +991,7 @@ function App() {
     showWeather, setShowWeather,
     isDark, setIsDark,
     followedInstructors, likedLivePicks,
+    showRentalModal, setShowRentalModal,
     setShowSaju,
     logActivity: () => {}, regionalTheme: { welcomeMsg: "전국 댄서들을 위한 실시간 정보", specialBanner: true }
   };
@@ -1462,6 +1464,105 @@ function App() {
         <Suspense fallback={null}>
           {showWeather && <WeatherModal onClose={() => setShowWeather(false)} />}
         </Suspense>
+      </AnimatePresence>
+
+      <AnimatePresence>
+        {showRentalModal && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            style={{
+              position: 'fixed',
+              inset: 0,
+              zIndex: 2000003,
+              backgroundColor: 'rgba(0,0,0,0.85)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              padding: '20px',
+              backdropFilter: 'blur(8px)'
+            }}
+          >
+            <motion.div
+              initial={{ scale: 0.9, opacity: 0, y: 20 }}
+              animate={{ scale: 1, opacity: 1, y: 0 }}
+              style={{
+                background: 'var(--color-card)',
+                borderRadius: '32px',
+                padding: '40px 30px',
+                width: '100%',
+                maxWidth: '360px',
+                textAlign: 'center',
+                border: '1px solid var(--color-border)',
+                position: 'relative',
+                overflow: 'hidden'
+              }}
+            >
+              <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: '6px', background: 'linear-gradient(90deg, #FF1744, #FF8A80)' }} />
+              
+              <div style={{ fontSize: '48px', marginBottom: '24px' }}>🏢</div>
+              
+              <h2 style={{ color: 'var(--color-text-main)', fontSize: '24px', fontWeight: 900, margin: '0 0 12px 0', letterSpacing: '-0.5px' }}>
+                대관 및 홍보 안내 📣
+              </h2>
+              
+              <div style={{ background: 'var(--color-bg)', borderRadius: '20px', padding: '20px', marginBottom: '24px', border: '1px solid var(--color-border)' }}>
+                <p style={{ color: 'var(--color-text-main)', fontSize: '15px', fontWeight: 800, margin: '0 0 10px 0', lineHeight: 1.5 }}>
+                  "파티 장소를 대관하고 싶거나<br/>클럽을 홍보하고 싶은 사장님들!"
+                </p>
+                <p style={{ color: 'var(--color-text-sub)', fontSize: '13px', margin: 0, lineHeight: 1.6, fontWeight: 500 }}>
+                  밤빠와 함께라면 전국의 댄서들에게<br/>여러분의 공간을 가장 효과적으로<br/>알릴 수 있습니다.
+                </p>
+              </div>
+              
+              <p style={{ color: '#FF1744', fontSize: '14px', fontWeight: 900, marginBottom: '20px' }}>
+                지금 바로 연락 주시면 친절히 안내해 드릴게요!
+              </p>
+              
+              <button
+                onClick={() => {
+                  window.open('https://open.kakao.com/o/gP43rNri', '_blank');
+                  setShowRentalModal(false);
+                }}
+                style={{
+                  background: '#FEE500',
+                  color: '#000',
+                  width: '100%',
+                  padding: '18px',
+                  borderRadius: '16px',
+                  border: 'none',
+                  fontWeight: '900',
+                  fontSize: '17px',
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: '10px',
+                  boxShadow: '0 10px 20px rgba(254, 229, 0, 0.2)'
+                }}
+              >
+                💬 카카오톡으로 문의하기
+              </button>
+              
+              <button
+                onClick={() => setShowRentalModal(false)}
+                style={{
+                  marginTop: '20px',
+                  background: 'none',
+                  border: 'none',
+                  color: 'var(--color-text-sub)',
+                  fontSize: '13px',
+                  fontWeight: 700,
+                  cursor: 'pointer',
+                  textDecoration: 'underline'
+                }}
+              >
+                나중에 하기
+              </button>
+            </motion.div>
+          </motion.div>
+        )}
       </AnimatePresence>
 
       <AnimatePresence>

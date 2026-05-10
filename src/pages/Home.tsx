@@ -436,7 +436,7 @@ const HomePage = ({
   showLatinModal, setShowLatinModal, setShowSaju, latinCat, setLatinCat, selPatternId, setSelPatternId, regionalTheme, recordTraffic, IncheonBanner, venueCounts, openAnalysis,
   showGridModal, setShowGridModal, gridRegion, setGridRegion, filterStep, setFilterStep,
   handleOpenModal, handleCloseModal,
-  isDark, setIsDark, followedInstructors, likedLivePicks
+  isDark, setIsDark, followedInstructors, likedLivePicks, setShowRentalModal
 }) => {
   const { t, i18n } = useTranslation();
   const [lang, setLang] = useState<'ko' | 'en'>('ko');
@@ -631,7 +631,7 @@ const HomePage = ({
           { icon: <Star size={26} color="#FF1744" />, label: '마이마스터', action: () => setView('instructors'), count: followedInstructors?.length },
           { icon: <Heart size={26} color="#FF1744" />, label: '마이픽', action: () => setView('community'), count: likedLivePicks?.length },
           { icon: <MapPin size={26} color="#FF1744" />, label: '주변주차', action: () => setView('parking') },
-          { icon: <HomeIcon size={26} color="#FF1744" />, label: '대관문의', action: () => window.open('https://open.kakao.com/o/gP43rNri', '_blank'), dot: true },
+          { icon: <HomeIcon size={26} color="#FF1744" />, label: '대관문의', action: () => setShowRentalModal(true), dot: true },
         ].map((item, idx) => (
           <motion.div
             key={idx}
