@@ -139,7 +139,7 @@ const PartyCard = ({ item, onSelect }) => {
   return (
     <div
       onClick={() => onSelect(item.poster_url)}
-      style={{ display:'flex', flexDirection:'row', alignItems:'stretch', backgroundColor:'var(--color-card)', borderRadius:'16px', overflow:'hidden', border:'1px solid var(--color-border)', cursor:'pointer', height:'100px', marginBottom:'12px', transition:'all 0.3s' }}
+      style={{ display:'flex', flexDirection:'row', alignItems:'stretch', backgroundColor:'var(--color-card)', borderRadius:'16px', overflow:'hidden', border:'1px solid var(--color-border)', cursor:'pointer', height:'110px', marginBottom:'12px', transition:'all 0.3s' }}
     >
       <div style={{ width:'80px', flexShrink:0 }}>
         <img src={item.poster_url} style={{ width:'100%', height:'100%', objectFit:'cover' }} alt="Poster" />
@@ -664,35 +664,11 @@ const HomePage = ({
                           <div className="hot-pick-track">
                             {/* 무한 루프를 위해 데이터를 두 번 렌더링 */}
                             {[...metroHot, ...metroHot].map((item, idx) => (
-                              <div key={`${item.id}-${idx}`} onClick={() => handleOpenModal(setSelectedPoster, item.poster_url)} style={{ width: '280px', flexShrink: 0, borderRadius: '16px', overflow: 'hidden', display: 'flex', background: 'var(--color-card)', border: '1px solid var(--color-border)', cursor: 'pointer', height: '100px' }}>
-                                <div style={{ width: '80px', flexShrink: 0 }}>
-                                  <img src={item.poster_url} style={{ width: '100%', height: '100%', objectFit: 'cover' }} alt="Pick" />
-                                </div>
-                                <div style={{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'space-between', padding: '10px 14px', minWidth: 0 }}>
-                                  <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                                    <span style={{ fontSize: '9px', fontWeight: '600', color: '#E53935', background: '#fff0f0', padding: '1px 6px', borderRadius: '4px' }}>
-                                      {(() => {
-                                        const entries = Object.entries(GENRE_MAP).filter(([_, info]) => item[info.key] > 0)
-                                        if (entries.length === 0) return '소셜'
-                                        const sorted = [...entries].sort((a, b) => item[b[1].key] - item[a[1].key])
-                                        if (sorted.length >= 2 && item[sorted[0][1].key] === item[sorted[1][1].key]) return `${sorted[0][1].label} · ${sorted[1][1].label}`
-                                        return sorted[0][1].label
-                                      })()}
-                                    </span>
-                                    <span style={{ fontSize: '9px', fontWeight: '700', color: 'var(--color-text-primary)', background: 'var(--color-background-secondary)', padding: '1px 6px', borderRadius: '4px' }}>
-                                      {formatPrice(item.fee)}
-                                    </span>
-                                  </div>
-                                  <div style={{ fontSize: '12px', fontWeight: '800', color: 'var(--color-text-main)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                                    {translateDynamicText(cleanTitle(item.title).replace(/^\[.*?\]\s*/, '').trim(), isEn)}
-                                  </div>
-                                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '10px', color: 'var(--color-text-sub)' }}>
-                                    <span>{item.time?.split('-')[0].trim() || '21:00'}</span>
-                                    <span style={{ display: 'flex', alignItems: 'center', gap: '2px' }}>
-                                      <Navigation size={10} color="#E53935" fill="#E53935" />
-                                      {translateDynamicText(item.locationName, isEn)}
-                                    </span>
-                                  </div>
+                              <div key={`${item.id}-${idx}`} onClick={() => handleOpenModal(setSelectedPoster, item.poster_url)} style={{ width: '140px', flexShrink: 0, borderRadius: '12px', overflow: 'hidden', boxShadow: '0 8px 20px rgba(0,0,0,0.12)', position: 'relative' }}>
+                                <img src={item.poster_url} style={{ width: '100%', height: '190px', objectFit: 'cover' }} alt="Pick" />
+                                <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, padding: '12px 8px', background: 'linear-gradient(transparent, rgba(0,0,0,0.95))', color: 'white' }}>
+                                  <div style={{ fontSize: '10px', color: '#FFEB3B', fontWeight: 900, marginBottom: '2px', textShadow: '0 1px 2px rgba(0,0,0,0.8)' }}>{translateDynamicText(item.locationName, isEn)}</div>
+                                  <div style={{ fontSize: '11px', fontWeight: 900, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', marginBottom: '4px', textShadow: '0 1px 2px rgba(0,0,0,0.8)' }}>{translateDynamicText(item.title, isEn)}</div>
                                 </div>
                               </div>
                             ))}
@@ -773,77 +749,50 @@ const HomePage = ({
                                       key={item.id} 
                                       onClick={() => handleOpenModal(setSelectedPoster, item.poster_url)} 
                                       style={{ 
-                                        width: '330px', 
+                                        width: '280px', 
                                         flexShrink: 0, 
-                                        borderRadius: '24px', 
+                                        borderRadius: '16px', 
                                         overflow: 'hidden', 
                                         display: 'flex',
-                                        background: '#FFFFFF',
-                                        boxShadow: '0 15px 35px rgba(0,0,0,0.1)',
+                                        background: 'var(--color-card)',
+                                        border: '1px solid var(--color-border)',
                                         cursor: 'pointer',
-                                        height: '190px',
-                                        border: '1px solid #F8FAFC'
+                                        height: '110px',
+                                        transition: 'all 0.3s'
                                       }}
                                     >
-                                      {/* 하이엔드 포스터 영역 */}
-                                      <div style={{ width: '140px', height: '100%', flexShrink: 0, position: 'relative' }}>
+                                      <div style={{ width: '80px', flexShrink: 0 }}>
                                         <img src={item.poster_url} style={{ width: '100%', height: '100%', objectFit: 'cover' }} alt="Poster" />
-                                        <div style={{ 
-                                          position: 'absolute', top: '12px', left: '12px', 
-                                          background: 'rgba(255,23,68,0.9)', color: '#fff', 
-                                          fontSize: '9px', fontWeight: 950, padding: '2px 8px', borderRadius: '6px',
-                                          letterSpacing: '0.5px', textTransform: 'uppercase'
-                                        }}>
-                                          {item.genre?.split('/')[0] || 'SOCIAL'}
-                                        </div>
                                       </div>
-                                      
-                                      {/* 럭셔리 정보 영역 */}
-                                      <div style={{ flex: 1, padding: '20px 16px', display: 'flex', flexDirection: 'column', gap: '4px', minWidth: 0 }}>
-                                        {/* 장소 & 지도 아이콘 (타이트한 배치) */}
+                                      <div style={{ flex: 1, padding: '10px 14px', display: 'flex', flexDirection: 'column', justifyContent: 'space-between', minWidth: 0 }}>
                                         <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                                          <span style={{ fontSize: '13px', fontWeight: '950', color: '#64748B', textTransform: 'uppercase', letterSpacing: '0.3px' }}>
+                                          <span style={{ fontSize: '10px', fontWeight: '600', color: '#E53935', background: '#fff0f0', padding: '2px 7px', borderRadius: '20px', border: '0.5px solid #ffc9c9', flexShrink: 0 }}>
+                                            {(() => {
+                                              const entries = Object.entries(GENRE_MAP).filter(([_, info]) => item[info.key] > 0)
+                                              if (entries.length === 0) return '소셜'
+                                              const sorted = [...entries].sort((a, b) => item[b[1].key] - item[a[1].key])
+                                              if (sorted.length >= 2 && item[sorted[0][1].key] === item[sorted[1][1].key]) return `${sorted[0][1].label} · ${sorted[1][1].label}`
+                                              return sorted[0][1].label
+                                            })()}
+                                          </span>
+                                          <span style={{ fontSize: '10px', fontWeight: '700', color: 'var(--color-text-primary)', background: 'var(--color-background-secondary)', padding: '2px 7px', borderRadius: '20px', border: '0.5px solid var(--color-border)', flexShrink: 0 }}>
+                                            {formatPrice(item.fee)}
+                                          </span>
+                                        </div>
+                                        
+                                        <div style={{ fontSize: '13px', fontWeight: '800', color: 'var(--color-text-main)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', letterSpacing: '-0.2px' }}>
+                                          {cleanTitle(item.title).replace(/^\[.*?\]\s*/, '').trim()}
+                                        </div>
+                                        
+                                        <div style={{ display: 'flex', alignItems: 'center', gap: '10px', fontSize: '11px', color: 'var(--color-text-sub)' }}>
+                                          <span style={{ display: 'flex', alignItems: 'center', gap: '3px' }}>
+                                            <Clock size={11} />
+                                            {item.time?.split('-')[0].trim() || '21:00'}
+                                          </span>
+                                          <span style={{ display: 'flex', alignItems: 'center', gap: '3px' }}>
+                                            <Navigation size={11} color="#E53935" fill="#E53935" />
                                             {translateDynamicText(item.locationName, isEn)}
                                           </span>
-                                          <div style={{ color: '#FF1744', display: 'flex', alignItems: 'center' }}>
-                                            <Navigation size={12} fill="#FF1744" />
-                                          </div>
-                                        </div>
-                                        
-                                        {/* 정제된 볼드 타이틀 */}
-                                        <h3 style={{ 
-                                          fontSize: '17px', 
-                                          fontWeight: '950', 
-                                          color: '#0F172A', 
-                                          margin: '4px 0 8px', 
-                                          display: '-webkit-box', 
-                                          WebkitLineClamp: 2, 
-                                          WebkitBoxOrient: 'vertical', 
-                                          overflow: 'hidden', 
-                                          lineHeight: '1.3',
-                                          height: '44px',
-                                          letterSpacing: '-0.7px'
-                                        }}>
-                                          {cleanTitle(translateDynamicText(item.title, isEn))}
-                                        </h3>
-                                        
-                                        {/* 하단 메타 정보 영역 */}
-                                        <div style={{ marginTop: 'auto', display: 'flex', flexDirection: 'column', gap: '6px' }}>
-                                          <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                                            <div style={{ fontSize: '11px', fontWeight: '900', color: '#94A3B8', display: 'flex', alignItems: 'center', gap: '3px' }}>
-                                              <Clock size={12} /> {item.time?.split('-')[0].trim() || '21:00'}
-                                            </div>
-                                            <div style={{ height: '3px', width: '3px', borderRadius: '50%', background: '#CBD5E1' }} />
-                                            <div style={{ fontSize: '11px', fontWeight: '900', color: '#94A3B8' }}>
-                                              {(() => {
-                                                const entries = Object.entries(GENRE_MAP).filter(([_, info]) => item[info.key] > 0)
-                                                if (entries.length === 0) return '소셜'
-                                                const sorted = [...entries].sort((a, b) => item[b[1].key] - item[a[1].key])
-                                                if (sorted.length >= 2 && item[sorted[0][1].key] === item[sorted[1][1].key]) return `${sorted[0][1].label} · ${sorted[1][1].label}`
-                                                return sorted[0][1].label
-                                              })()}
-                                            </div>
-                                          </div>
                                           
                                           {/* 프리미엄 가격 배지 */}
                                           <div style={{ display: 'flex', justifyContent: 'flex-start' }}>
@@ -875,35 +824,11 @@ const HomePage = ({
                                 <div style={{ width: '100%', overflow: 'hidden', padding: '10px 0' }}>
                                   <div className="hot-pick-track">
                                     {[...provincialHot, ...provincialHot].map((item, idx) => (
-                                      <div key={`${item.id}-${idx}`} onClick={() => handleOpenModal(setSelectedPoster, item.poster_url)} style={{ width: '280px', flexShrink: 0, borderRadius: '16px', overflow: 'hidden', display: 'flex', background: 'var(--color-card)', border: '1px solid var(--color-border)', cursor: 'pointer', height: '100px' }}>
-                                        <div style={{ width: '80px', flexShrink: 0 }}>
-                                          <img src={item.poster_url} style={{ width: '100%', height: '100%', objectFit: 'cover' }} alt="Pick" />
-                                        </div>
-                                        <div style={{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'space-between', padding: '10px 14px', minWidth: 0 }}>
-                                          <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                                            <span style={{ fontSize: '9px', fontWeight: '600', color: '#E53935', background: '#fff0f0', padding: '1px 6px', borderRadius: '4px' }}>
-                                              {(() => {
-                                                const entries = Object.entries(GENRE_MAP).filter(([_, info]) => item[info.key] > 0)
-                                                if (entries.length === 0) return '소셜'
-                                                const sorted = [...entries].sort((a, b) => item[b[1].key] - item[a[1].key])
-                                                if (sorted.length >= 2 && item[sorted[0][1].key] === item[sorted[1][1].key]) return `${sorted[0][1].label} · ${sorted[1][1].label}`
-                                                return sorted[0][1].label
-                                              })()}
-                                            </span>
-                                            <span style={{ fontSize: '9px', fontWeight: '700', color: 'var(--color-text-primary)', background: 'var(--color-background-secondary)', padding: '1px 6px', borderRadius: '4px' }}>
-                                              {formatPrice(item.fee)}
-                                            </span>
-                                          </div>
-                                          <div style={{ fontSize: '12px', fontWeight: '800', color: 'var(--color-text-main)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                                            {cleanTitle(item.title).replace(/^\[.*?\]\s*/, '').trim()}
-                                          </div>
-                                          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '10px', color: 'var(--color-text-sub)' }}>
-                                            <span>{item.time?.split('-')[0].trim() || '21:00'}</span>
-                                            <span style={{ display: 'flex', alignItems: 'center', gap: '2px' }}>
-                                              <Navigation size={10} color="#E53935" fill="#E53935" />
-                                              {translateDynamicText(item.locationName, isEn)}
-                                            </span>
-                                          </div>
+                                      <div key={`${item.id}-${idx}`} onClick={() => handleOpenModal(setSelectedPoster, item.poster_url)} style={{ width: '140px', flexShrink: 0, borderRadius: '12px', overflow: 'hidden', boxShadow: '0 8px 20px rgba(0,0,0,0.12)', position: 'relative' }}>
+                                        <img src={item.poster_url} style={{ width: '100%', height: '190px', objectFit: 'cover' }} alt="Pick" />
+                                        <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, padding: '12px 8px', background: 'linear-gradient(transparent, rgba(0,0,0,0.95))', color: 'white' }}>
+                                          <div style={{ fontSize: '10px', color: '#FFEB3B', fontWeight: 900, marginBottom: '2px', textShadow: '0 1px 2px rgba(0,0,0,0.8)' }}>{translateDynamicText(item.locationName, isEn)}</div>
+                                          <div style={{ fontSize: '11px', fontWeight: 900, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', marginBottom: '4px', textShadow: '0 1px 2px rgba(0,0,0,0.8)' }}>{translateDynamicText(item.title, isEn)}</div>
                                         </div>
                                       </div>
                                     ))}
