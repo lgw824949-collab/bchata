@@ -1512,7 +1512,7 @@ function App() {
                   "파티 장소를 대관하고 싶거나<br/>클럽을 홍보하고 싶은 사장님들!"
                 </p>
                 <p style={{ color: 'var(--color-text-sub)', fontSize: '13px', margin: 0, lineHeight: 1.6, fontWeight: 500 }}>
-                  밤빠와 함께라면 전국의 댄서들에게<br/>여러분의 공간을 가장 효과적으로<br/>알릴 수 있습니다.
+                  밤빠와 함께라면 전국 회원들에게<br/>여러분의 공간을 가장 효과적으로<br/>알릴 수 있습니다.
                 </p>
               </div>
               
