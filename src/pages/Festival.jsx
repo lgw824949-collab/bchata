@@ -14,6 +14,7 @@ const Festival = ({ onBack, initialView = 'list' }) => {
   const [showFilters, setShowFilters] = useState(false);
   const [selectedFestival, setSelectedFestival] = useState(null);
   const [showBookingGuide, setShowBookingGuide] = useState(false);
+  const [copied, setCopied] = useState(false);
   
   const [formData, setFormData] = useState({
     title: '',
@@ -115,6 +116,12 @@ const Festival = ({ onBack, initialView = 'list' }) => {
       console.error('Booking log error:', err);
       setShowBookingGuide(true); // Still show guide even if logging fails
     }
+  };
+
+  const copyToClipboard = (text) => {
+    navigator.clipboard.writeText(text);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
   };
 
   const formatDate = (dateStr) => {
@@ -551,17 +558,38 @@ const Festival = ({ onBack, initialView = 'list' }) => {
                       (예: 홍길동 밤빠)
                     </p>
                     
-                    <div style={{ background: 'rgba(0,0,0,0.2)', padding: '20px', borderRadius: '20px', marginBottom: '30px', textAlign: 'left' }}>
-                      <p style={{ fontSize: '11px', color: '#64748b', fontWeight: 900, marginBottom: '8px', letterSpacing: '1px' }}>RESERVATION INFO</p>
-                      <p style={{ fontSize: '16px', color: '#fff', fontWeight: 800, lineHeight: 1.5 }}>
+                    <div 
+                      onClick={() => copyToClipboard('3333149146368')}
+                      style={{ 
+                        background: 'rgba(0,0,0,0.4)', 
+                        padding: '24px', 
+                        borderRadius: '24px', 
+                        marginBottom: '20px', 
+                        textAlign: 'left',
+                        border: '1px solid rgba(255,255,255,0.05)',
+                        cursor: 'pointer',
+                        position: 'relative',
+                        overflow: 'hidden'
+                      }}
+                    >
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
+                        <p style={{ fontSize: '11px', color: '#64748b', fontWeight: 900, letterSpacing: '1.5px' }}>RESERVATION INFO</p>
+                        <span style={{ fontSize: '10px', color: '#C9A84C', fontWeight: 900 }}>{copied ? '복사 완료!' : '클릭하여 복사'}</span>
+                      </div>
+                      <p style={{ fontSize: '18px', color: '#fff', fontWeight: 850, lineHeight: 1.5, margin: 0 }}>
                         카카오 3333-14-9146368<br />
                         이상규
                       </p>
+                      {copied && <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} style={{ position: 'absolute', inset: 0, background: 'rgba(201,168,76,0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', pointerEvents: 'none' }} />}
                     </div>
+
+                    <p style={{ fontSize: '13px', color: '#C9A84C', fontWeight: 800, marginBottom: '25px', letterSpacing: '-0.2px' }}>
+                      ✨ 복사하기로 송금할 수 있습니다
+                    </p>
 
                     <button 
                       onClick={() => setShowBookingGuide(false)}
-                      style={{ width: '100%', padding: '20px', borderRadius: '18px', background: '#C9A84C', color: '#000', fontWeight: 950, fontSize: '16px', border: 'none', cursor: 'pointer' }}
+                      style={{ width: '100%', padding: '22px', borderRadius: '20px', background: '#C9A84C', color: '#000', fontWeight: 1000, fontSize: '16px', border: 'none', cursor: 'pointer', boxShadow: '0 10px 25px rgba(201, 168, 76, 0.3)' }}
                     >
                       확인했습니다
                     </button>
