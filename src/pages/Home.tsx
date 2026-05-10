@@ -146,8 +146,8 @@ const PartyCard = ({ item, onSelect }) => {
       </div>
       <div style={{ flex:1, display:'flex', flexDirection:'column', justifyContent:'space-between', minWidth:0, padding:'10px 14px' }}>
 
-        <div style={{ display:'flex', alignItems:'center', gap:'8px' }}>
-          <span style={{ fontSize:'12px', fontWeight:'700', color:'#E53935', background:'#fff0f0', padding:'3px 10px', borderRadius:'20px', border:'0.5px solid #ffc9c9', flexShrink:0 }}>
+        <div style={{ display:'flex', alignItems:'center' }}>
+          <span style={{ fontSize:'16px', fontWeight:'900', color:'#E53935', background:'#fff0f0', padding:'4px 12px', borderRadius:'8px', border:'1px solid #ffc9c9', flexShrink:0 }}>
             {(() => {
               const entries = Object.entries(GENRE_MAP).filter(([_, info]) => item[info.key] > 0)
               if (entries.length === 0) return '소셜'
@@ -156,30 +156,33 @@ const PartyCard = ({ item, onSelect }) => {
               return sorted[0][0]
             })()}
           </span>
-          <span style={{ fontSize:'12px', fontWeight:'800', color:'var(--color-text-primary)', background:'var(--color-background-secondary)', padding:'3px 10px', borderRadius:'20px', border:'0.5px solid var(--color-border)', flexShrink:0 }}>
-            {displayFee}
-          </span>
           {isTimeLive && (
-            <span style={{ background:'#E53935', color:'#fff', fontSize:'9px', fontWeight:'900', padding:'2px 6px', borderRadius:'4px', letterSpacing:'0.5px', animation:'blink 1.5s infinite', flexShrink:0 }}>LIVE</span>
+            <span style={{ marginLeft: '8px', background:'#E53935', color:'#fff', fontSize:'10px', fontWeight:'900', padding:'2px 6px', borderRadius:'4px', letterSpacing:'0.5px', animation:'blink 1.5s infinite', flexShrink:0 }}>LIVE</span>
           )}
         </div>
 
-        <div style={{ fontSize:'18px', fontWeight:'800', color:'var(--color-text-main)', whiteSpace:'nowrap', overflow:'hidden', textOverflow:'ellipsis', letterSpacing:'-0.5px', lineHeight:1.3 }}>
+        <div style={{ fontSize:'20px', fontWeight:'900', color:'var(--color-text-main)', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow:'hidden', textOverflow:'ellipsis', letterSpacing:'-0.6px', lineHeight:1.3, height: '52px' }}>
           {translateDynamicText(cleanTitle(item.title).replace(/^\[.*?\]\s*/, '').replace(/ㅣ\s*$/, '').trim(), isEn)}
         </div>
 
-        <div style={{ display:'flex', alignItems:'center', gap:'12px' }}>
-          <span style={{ display:'flex', alignItems:'center', gap:'4px', fontSize:'13px', color:'var(--color-text-sub)', flexShrink:0 }}>
-            <Clock size={13} />
+        <div style={{ display:'flex', flexDirection: 'column', gap: '6px' }}>
+          <span style={{ display:'flex', alignItems:'center', gap:'6px', fontSize:'13px', color:'var(--color-text-sub)', fontWeight: 600 }}>
+            <Clock size={14} />
             {displayTime}
           </span>
-          <span
-            onClick={(e) => { e.stopPropagation(); const addr = item.address || item.locationName; const query = encodeURIComponent(addr); window.open(isEn ? `https://www.google.com/maps/search/?api=1&query=${query}` : `https://map.kakao.com/link/search/${query}`, '_blank') }}
-            style={{ display:'flex', alignItems:'center', gap:'4px', fontSize:'13px', color:'var(--color-text-sub)', cursor:'pointer', minWidth:0, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}
-          >
-            <Navigation size={13} color="#E53935" fill="#E53935" style={{ flexShrink:0 }} />
-            {translateDynamicText(item.locationName || item.studio_name || '장소 미지정', isEn)}
-          </span>
+          <div style={{ display:'flex', alignItems:'center', gap:'6px', flexWrap: 'wrap' }}>
+            <span
+              onClick={(e) => { e.stopPropagation(); const addr = item.address || item.locationName; const query = encodeURIComponent(addr); window.open(isEn ? `https://www.google.com/maps/search/?api=1&query=${query}` : `https://map.kakao.com/link/search/${query}`, '_blank') }}
+              style={{ display:'flex', alignItems:'center', gap:'4px', fontSize:'14px', color:'var(--color-text-sub)', cursor:'pointer', fontWeight: 700 }}
+            >
+              <Navigation size={14} color="#E53935" fill="#E53935" style={{ flexShrink:0 }} />
+              {translateDynamicText(item.locationName || item.studio_name || '장소 미지정', isEn)}
+            </span>
+            <span style={{ color: 'var(--color-text-sub)', opacity: 0.3 }}>•</span>
+            <span style={{ fontSize:'14px', fontWeight:'900', color:'#E53935' }}>
+              {displayFee}
+            </span>
+          </div>
         </div>
 
       </div>
