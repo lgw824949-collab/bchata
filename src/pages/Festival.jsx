@@ -6,7 +6,7 @@ import {
 import { motion, AnimatePresence } from 'framer-motion';
 import { supabase } from '../lib/supabase';
 
-const Festival = ({ onBack }) => {
+const Festival = ({ onBack, initialView = 'list' }) => {
   const [festivals, setFestivals] = useState([]);
   const [loading, setLoading] = useState(true);
   const [selectedRegion, setSelectedRegion] = useState('전체');
@@ -14,7 +14,7 @@ const Festival = ({ onBack }) => {
   const [selectedFestival, setSelectedFestival] = useState(null);
   const [showBookingGuide, setShowBookingGuide] = useState(false);
   const [copied, setCopied] = useState(false);
-  const [isRegistering, setIsRegistering] = useState(false);
+  const [isRegistering, setIsRegistering] = useState(initialView === 'register');
   const [currentStep, setCurrentStep] = useState(1);
   
   const [formData, setFormData] = useState({
@@ -38,6 +38,12 @@ const Festival = ({ onBack }) => {
   useEffect(() => {
     fetchFestivals();
   }, [selectedRegion]);
+
+  useEffect(() => {
+    if (initialView === 'register') {
+      setIsRegistering(true);
+    }
+  }, [initialView]);
 
   const fetchFestivals = async () => {
     setLoading(true);
@@ -126,79 +132,150 @@ const Festival = ({ onBack }) => {
   };
 
   return (
-    <div style={{ background: '#0f172a', minHeight: '100vh', paddingBottom: '100px', color: '#f8fafc', fontFamily: "'Pretendard', sans-serif", position: 'relative' }}>
-      
-      {/* Background Glow */}
-      <div style={{ position: 'fixed', inset: 0, zIndex: 0, opacity: 0.15 }}>
-        <div style={{ position: 'absolute', top: '10%', left: '10%', width: '50%', height: '50%', background: 'radial-gradient(circle, rgba(229, 57, 53, 0.4) 0%, transparent 70%)', filter: 'blur(80px)' }} />
+    <>
+      <div style={{ background: '#0f172a', minHeight: '100vh', paddingBottom: '100px', color: '#f8fafc', fontFamily: "'Pretendard', sans-serif", position: 'relative' }}>
+        
+        {/* Background Glow */}
+        <div style={{ position: 'fixed', inset: 0, zIndex: 0, opacity: 0.15, pointerEvents: 'none' }}>
+          <div style={{ position: 'absolute', top: '10%', left: '10%', width: '50%', height: '50%', background: 'radial-gradient(circle, rgba(229, 57, 53, 0.4) 0%, transparent 70%)', filter: 'blur(80px)' }} />
+        </div>
+
+        {/* Header */}
+        {!isRegistering && (
+          <div style={{ 
+            position: 'sticky', top: 0, zIndex: 2000, background: 'rgba(15, 23, 42, 0.95)', 
+            backdropFilter: 'blur(20px)', borderBottom: '1px solid rgba(255,255,255,0.08)',
+            padding: '12px 20px', display: 'flex', alignItems: 'center', justifyContent: 'space-between'
+          }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
+              <button onClick={onBack} style={{ background: 'none', border: 'none', cursor: 'pointer' }}><ChevronLeft size={24} color="#f8fafc" /></button>
+              <h1 style={{ fontSize: '18px', fontWeight: 950, color: '#f8fafc', margin: 0, letterSpacing: '1px' }}>
+                <span style={{ color: '#E53935' }}>PREMIUM</span> FESTIVAL
+              </h1>
+            </div>
+            
+            <div style={{ display: 'flex', gap: '8px' }}>
+              <button 
+                onClick={() => setShowFilters(!showFilters)}
+                style={{ 
+                  background: 'rgba(255,255,255,0.05)', 
+                  color: '#C9A84C', 
+                  border: '1px solid rgba(201,168,76,0.3)', 
+                  padding: '8px 16px', 
+                  borderRadius: '12px', 
+                  fontSize: '12px', 
+                  fontWeight: 1000, 
+                  display: 'flex', 
+                  alignItems: 'center', 
+                  gap: '6px'
+                }}
+              >
+                {selectedRegion} <ChevronDown size={14} color="#C9A84C" />
+              </button>
+              <button 
+                onClick={() => setIsRegistering(true)}
+                style={{ 
+                  background: 'linear-gradient(135deg, #E53935, #C62828)', 
+                  color: '#fff', 
+                  border: 'none', 
+                  padding: '8px 16px', 
+                  borderRadius: '12px', 
+                  fontSize: '12px', 
+                  fontWeight: 1000, 
+                  display: 'flex', 
+                  alignItems: 'center', 
+                  gap: '6px',
+                  boxShadow: '0 8px 20px rgba(229, 57, 53, 0.3)'
+                }}
+              >
+                <Plus size={14} strokeWidth={3} /> 등록
+              </button>
+            </div>
+          </div>
+        )}
+
+        {/* Main Content Area */}
+        {!isRegistering && (
+          <div style={{ position: 'relative', zIndex: 1 }}>
+            <AnimatePresence>
+              {showFilters && (
+                <motion.div initial={{ height: 0 }} animate={{ height: 'auto' }} exit={{ height: 0 }} style={{ overflow: 'hidden', background: '#1e293b' }}>
+                  <div style={{ padding: '15px', display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '8px' }}>
+                    {regions.map(r => (
+                      <button key={r} onClick={() => { setSelectedRegion(r); setShowFilters(false); }} style={{ padding: '14px 0', borderRadius: '12px', background: selectedRegion === r ? '#E53935' : 'rgba(255,255,255,0.05)', border: '1px solid', borderColor: selectedRegion === r ? '#E53935' : 'rgba(255,255,255,0.1)', color: selectedRegion === r ? '#ffffff' : '#94a3b8', fontSize: '13px', fontWeight: 900 }}>{r}</button>
+                    ))}
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
+
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '15px', padding: '15px' }}>
+              {loading ? (
+                <div style={{ textAlign: 'center', padding: '100px', color: '#94a3b8' }}>로딩 중..</div>
+              ) : festivals.length === 0 ? (
+                <div style={{ textAlign: 'center', padding: '100px 20px', color: '#94a3b8' }}>
+                  <p style={{ fontWeight: 800, marginBottom: '20px' }}>준비 중인 일정이 없습니다.</p>
+                  <button 
+                    onClick={() => setIsRegistering(true)}
+                    style={{
+                      background: 'rgba(229, 57, 53, 0.1)',
+                      color: '#E53935',
+                      border: '1px solid rgba(229, 57, 53, 0.2)',
+                      padding: '12px 24px',
+                      borderRadius: '15px',
+                      fontSize: '14px',
+                      fontWeight: 900,
+                      cursor: 'pointer'
+                    }}
+                  >
+                    직접 등록하기
+                  </button>
+                </div>
+              ) : (
+                festivals.map((fest) => (
+                  <motion.div 
+                    key={fest.id} 
+                    initial={{ opacity: 0, y: 10 }} 
+                    whileInView={{ opacity: 1, y: 0 }}
+                    viewport={{ once: true }}
+                    onClick={() => setSelectedFestival(fest)}
+                    style={{ width: '100%', cursor: 'pointer', background: '#1e293b', borderRadius: '24px', overflow: 'hidden', border: '1px solid rgba(255,255,255,0.1)', boxShadow: '0 10px 30px rgba(0,0,0,0.4)' }}
+                  >
+                    <div style={{ width: '100%', position: 'relative', height: '240px', overflow: 'hidden', background: '#000' }}>
+                      <div style={{ position: 'absolute', inset: 0, backgroundImage: `url(${fest.poster_url})`, backgroundSize: 'cover', backgroundPosition: 'center', filter: 'blur(20px) brightness(0.4)', transform: 'scale(1.1)' }} />
+                      <img src={fest.poster_url} style={{ width: '100%', height: '100%', objectFit: 'contain', display: 'block', position: 'relative', zIndex: 1 }} />
+                      <div style={{ position: 'absolute', top: '15px', right: '15px', background: 'rgba(229, 57, 53, 0.95)', color: '#fff', padding: '6px 12px', borderRadius: '10px', fontSize: '13px', fontWeight: 950, boxShadow: '0 4px 15px rgba(229, 57, 53, 0.4)', backdropFilter: 'blur(5px)', zIndex: 2 }}>{getDDay(fest.start_date)}</div>
+                      <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to bottom, transparent 60%, rgba(0,0,0,0.8) 100%)', zIndex: 2 }} />
+                      <div style={{ position: 'absolute', bottom: '20px', left: '20px', right: '20px', zIndex: 3 }}><h3 style={{ fontSize: '20px', fontWeight: 950, color: '#fff', margin: 0, lineHeight: 1.2, textShadow: '0 2px 4px rgba(0,0,0,0.5)' }}>{fest.title}</h3></div>
+                    </div>
+                    <div style={{ padding: '20px', background: '#1e293b' }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: '#94a3b8', fontSize: '13px', fontWeight: 800 }}><Calendar size={14} color="#C9A84C" /><span>{formatDate(fest.start_date)} - {formatDate(fest.end_date)}</span></div>
+                        <div style={{ background: 'rgba(201,168,76,0.2)', padding: '6px 12px', borderRadius: '10px', border: '1px solid rgba(201,168,76,0.4)' }}><span style={{ fontSize: '14px', fontWeight: 1000, color: '#C9A84C' }}>₩{fest.price_info?.split('/')[0]?.replace(/[^0-9]/g, '')?.toLocaleString() || '0'}</span></div>
+                      </div>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: '#94a3b8', fontSize: '13px', fontWeight: 700 }}><MapPin size={14} color="#E53935" /><span>{fest.region} {fest.venue || fest.location}</span></div>
+                    </div>
+                  </motion.div>
+                ))
+              )}
+            </div>
+          </div>
+        )}
       </div>
 
-      {/* Header */}
-      {!isRegistering && (
-        <div style={{ 
-          position: 'sticky', top: 0, zIndex: 2000, background: 'rgba(15, 23, 42, 0.95)', 
-          backdropFilter: 'blur(20px)', borderBottom: '1px solid rgba(255,255,255,0.08)',
-          padding: '12px 20px', display: 'flex', alignItems: 'center', justifyContent: 'space-between'
-        }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
-            <button onClick={onBack} style={{ background: 'none', border: 'none', cursor: 'pointer' }}><ChevronLeft size={24} color="#f8fafc" /></button>
-            <h1 style={{ fontSize: '18px', fontWeight: 950, color: '#f8fafc', margin: 0, letterSpacing: '1px' }}>
-              <span style={{ color: '#E53935' }}>PREMIUM</span> FESTIVAL
-            </h1>
-          </div>
-          
-          <div style={{ display: 'flex', gap: '8px' }}>
-            <button 
-              onClick={() => setShowFilters(!showFilters)}
-              style={{ 
-                background: 'rgba(255,255,255,0.05)', 
-                color: '#C9A84C', 
-                border: '1px solid rgba(201,168,76,0.3)', 
-                padding: '8px 16px', 
-                borderRadius: '12px', 
-                fontSize: '12px', 
-                fontWeight: 1000, 
-                display: 'flex', 
-                alignItems: 'center', 
-                gap: '6px'
-              }}
-            >
-              {selectedRegion} <ChevronDown size={14} color="#C9A84C" />
-            </button>
-            <button 
-              onClick={() => setIsRegistering(true)}
-              style={{ 
-                background: 'linear-gradient(135deg, #E53935, #C62828)', 
-                color: '#fff', 
-                border: 'none', 
-                padding: '8px 16px', 
-                borderRadius: '12px', 
-                fontSize: '12px', 
-                fontWeight: 1000, 
-                display: 'flex', 
-                alignItems: 'center', 
-                gap: '6px',
-                boxShadow: '0 8px 20px rgba(229, 57, 53, 0.3)'
-              }}
-            >
-              <Plus size={14} strokeWidth={3} /> 등록
-            </button>
-          </div>
-        </div>
-      )}
-
-      {/* Main Content Area */}
-      <div style={{ position: 'relative', zIndex: 1 }}>
-        {isRegistering ? (
+      {/* Registration Modal */}
+      <AnimatePresence>
+        {isRegistering && (
           <motion.div 
-            initial={{ opacity: 0, y: 30 }} 
+            initial={{ opacity: 0, y: '100%' }} 
             animate={{ opacity: 1, y: 0 }} 
+            exit={{ opacity: 0, y: '100%' }}
             style={{ 
               background: '#0f172a', 
               padding: '30px', 
               position: 'fixed', 
               inset: 0, 
-              zIndex: 3000, 
+              zIndex: 9999999, 
               overflowY: 'auto',
               display: 'flex',
               flexDirection: 'column'
@@ -211,7 +288,7 @@ const Festival = ({ onBack }) => {
 
             <div style={{ display: 'flex', gap: '8px', marginBottom: '40px' }}>
               {[1, 2, 3, 4].map(s => (
-                <div key={s} style={{ flex: 1, height: '4px', borderRadius: '2px', background: s <= currentStep ? '#7C3AED' : 'rgba(255,255,255,0.1)', transition: 'all 0.3s' }} />
+                <div key={s} style={{ flex: 1, height: '4px', borderRadius: '2px', background: s <= currentStep ? '#E53935' : 'rgba(255,255,255,0.1)', transition: 'all 0.3s' }} />
               ))}
             </div>
 
@@ -264,64 +341,17 @@ const Festival = ({ onBack }) => {
 
               <div style={{ display: 'flex', gap: '12px', marginTop: 'auto', paddingBottom: '30px' }}>
                 {currentStep > 1 && <button type="button" onClick={() => setCurrentStep(s => s - 1)} style={{ flex: 1, padding: '20px', borderRadius: '18px', background: 'rgba(255,255,255,0.05)', color: '#fff', fontWeight: 900, border: '1px solid rgba(255,255,255,0.1)' }}>이전</button>}
-                {currentStep < 4 ? <button type="button" onClick={() => setCurrentStep(s => s + 1)} style={{ flex: 2, padding: '20px', borderRadius: '18px', background: '#7C3AED', color: '#fff', fontWeight: 900, border: 'none' }}>다음 단계</button> : <button type="submit" disabled={submitting} style={{ flex: 2, padding: '24px', borderRadius: '20px', background: 'linear-gradient(135deg, #F59E0B, #D97706)', color: '#000', fontWeight: 1000, fontSize: '18px', border: 'none' }}>{submitting ? '등록 중...' : '신청 완료'}</button>}
+                {currentStep < 4 ? <button type="button" onClick={() => setCurrentStep(s => s + 1)} style={{ flex: 2, padding: '20px', borderRadius: '18px', background: '#E53935', color: '#fff', fontWeight: 900, border: 'none' }}>다음 단계</button> : <button type="submit" disabled={submitting} style={{ flex: 2, padding: '24px', borderRadius: '20px', background: 'linear-gradient(135deg, #E53935, #C62828)', color: '#fff', fontWeight: 1000, fontSize: '18px', border: 'none' }}>{submitting ? '등록 중...' : '신청 완료'}</button>}
               </div>
             </form>
           </motion.div>
-        ) : (
-          <>
-            <AnimatePresence>
-              {showFilters && (
-                <motion.div initial={{ height: 0 }} animate={{ height: 'auto' }} exit={{ height: 0 }} style={{ overflow: 'hidden', background: '#1e293b' }}>
-                  <div style={{ padding: '15px', display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '8px' }}>
-                    {regions.map(r => (
-                      <button key={r} onClick={() => { setSelectedRegion(r); setShowFilters(false); }} style={{ padding: '14px 0', borderRadius: '12px', background: selectedRegion === r ? '#E53935' : 'rgba(255,255,255,0.05)', border: '1px solid', borderColor: selectedRegion === r ? '#E53935' : 'rgba(255,255,255,0.1)', color: selectedRegion === r ? '#ffffff' : '#94a3b8', fontSize: '13px', fontWeight: 900 }}>{r}</button>
-                    ))}
-                  </div>
-                </motion.div>
-              )}
-            </AnimatePresence>
-
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '15px', padding: '15px' }}>
-              {loading ? (
-                <div style={{ textAlign: 'center', padding: '100px', color: '#94a3b8' }}>로딩 중..</div>
-              ) : festivals.length === 0 ? (
-                <div style={{ textAlign: 'center', padding: '100px 20px', color: '#94a3b8', fontWeight: 800 }}>준비 중인 일정이 없습니다.</div>
-              ) : (
-                festivals.map((fest) => (
-                  <motion.div 
-                    key={fest.id} 
-                    initial={{ opacity: 0, y: 10 }} 
-                    whileInView={{ opacity: 1, y: 0 }}
-                    viewport={{ once: true }}
-                    onClick={() => setSelectedFestival(fest)}
-                    style={{ width: '100%', cursor: 'pointer', background: '#1e293b', borderRadius: '24px', overflow: 'hidden', border: '1px solid rgba(255,255,255,0.1)', boxShadow: '0 10px 30px rgba(0,0,0,0.4)' }}
-                  >
-                    <div style={{ width: '100%', position: 'relative', height: '240px', overflow: 'hidden', background: '#000' }}>
-                      <div style={{ position: 'absolute', inset: 0, backgroundImage: `url(${fest.poster_url})`, backgroundSize: 'cover', backgroundPosition: 'center', filter: 'blur(20px) brightness(0.4)', transform: 'scale(1.1)' }} />
-                      <img src={fest.poster_url} style={{ width: '100%', height: '100%', objectFit: 'contain', display: 'block', position: 'relative', zIndex: 1 }} />
-                      <div style={{ position: 'absolute', top: '15px', right: '15px', background: 'rgba(229, 57, 53, 0.95)', color: '#fff', padding: '6px 12px', borderRadius: '10px', fontSize: '13px', fontWeight: 950, boxShadow: '0 4px 15px rgba(229, 57, 53, 0.4)', backdropFilter: 'blur(5px)', zIndex: 2 }}>{getDDay(fest.start_date)}</div>
-                      <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to bottom, transparent 60%, rgba(0,0,0,0.8) 100%)', zIndex: 2 }} />
-                      <div style={{ position: 'absolute', bottom: '20px', left: '20px', right: '20px', zIndex: 3 }}><h3 style={{ fontSize: '20px', fontWeight: 950, color: '#fff', margin: 0, lineHeight: 1.2, textShadow: '0 2px 4px rgba(0,0,0,0.5)' }}>{fest.title}</h3></div>
-                    </div>
-                    <div style={{ padding: '20px', background: '#1e293b' }}>
-                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: '#94a3b8', fontSize: '13px', fontWeight: 800 }}><Calendar size={14} color="#C9A84C" /><span>{formatDate(fest.start_date)} - {formatDate(fest.end_date)}</span></div>
-                        <div style={{ background: 'rgba(201,168,76,0.2)', padding: '6px 12px', borderRadius: '10px', border: '1px solid rgba(201,168,76,0.4)' }}><span style={{ fontSize: '14px', fontWeight: 1000, color: '#C9A84C' }}>₩{fest.price_info?.split('/')[0]?.replace(/[^0-9]/g, '')?.toLocaleString() || '0'}</span></div>
-                      </div>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: '#94a3b8', fontSize: '13px', fontWeight: 700 }}><MapPin size={14} color="#E53935" /><span>{fest.region} {fest.venue || fest.location}</span></div>
-                    </div>
-                  </motion.div>
-                ))
-              )}
-            </div>
-          </>
         )}
-      </div>
+      </AnimatePresence>
 
+      {/* Detail Modal */}
       <AnimatePresence>
         {selectedFestival && (
-          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} style={{ position: 'fixed', inset: 0, background: '#0f172a', zIndex: 6000, display: 'flex', flexDirection: 'column' }}>
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} style={{ position: 'fixed', inset: 0, background: '#0f172a', zIndex: 9999999, display: 'flex', flexDirection: 'column' }}>
             <div style={{ padding: '15px 20px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderBottom: '1px solid rgba(255,255,255,0.1)', background: 'rgba(15, 23, 42, 0.95)', backdropFilter: 'blur(20px)', color: '#f8fafc' }}>
               <X size={32} onClick={() => setSelectedFestival(null)} style={{ cursor: 'pointer' }} />
               <span style={{ fontSize: '16px', fontWeight: 900, letterSpacing: '1px' }}>FESTIVAL DETAIL</span>
@@ -357,7 +387,7 @@ const Festival = ({ onBack }) => {
             </div>
             <AnimatePresence>
               {showBookingGuide && (
-                <motion.div initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.9 }} style={{ position: 'absolute', inset: 0, zIndex: 7000, background: 'rgba(15, 23, 42, 0.95)', backdropFilter: 'blur(10px)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '30px' }}>
+                <motion.div initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.9 }} style={{ position: 'absolute', inset: 0, zIndex: 11000000, background: 'rgba(15, 23, 42, 0.95)', backdropFilter: 'blur(10px)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '30px' }}>
                   <div style={{ width: '100%', background: '#1e293b', borderRadius: '32px', padding: '40px 30px', textAlign: 'center', border: '1px solid rgba(201,168,76,0.3)', boxShadow: '0 20px 50px rgba(0,0,0,0.5)' }}>
                     <div style={{ width: '70px', height: '70px', background: 'rgba(201,168,76,0.1)', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 24px' }}><Zap size={32} color="#C9A84C" fill="#C9A84C" /></div>
                     <h3 style={{ fontSize: '22px', fontWeight: 950, color: '#fff', marginBottom: '15px' }}>잠깐! 확인해 주세요</h3>
@@ -376,7 +406,7 @@ const Festival = ({ onBack }) => {
           </motion.div>
         )}
       </AnimatePresence>
-    </div>
+    </>
   );
 };
 
