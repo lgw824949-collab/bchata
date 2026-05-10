@@ -1,8 +1,9 @@
 // v0.1.1 - Force redeploy for UI simplification
 import React, { useState, useEffect } from 'react'
 import { supabase } from './lib/supabase'
-import { ChevronLeft, Check, Trash2, ShieldCheck, X, RefreshCw, XCircle, Clock, Tent, Flag, Music2, Camera, Zap, Menu, User } from 'lucide-react'
+import { ChevronLeft, Check, Trash2, ShieldCheck, X, RefreshCw, XCircle, Clock, Tent, Flag, Music2, Camera, Zap, Menu, User, Sparkles } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
+import RegisterForm from './RegisterForm'
 
 export default function AdminDashboard({ onBack }) {
   const [isAdmin, setIsAdmin] = useState(false)
@@ -23,6 +24,8 @@ export default function AdminDashboard({ onBack }) {
   const [activeTab, setActiveTab] = useState('pending') // 'pending', 'active', 'rejected'
   const [showMoreMenu, setShowMoreMenu] = useState(false)
   const [editingItem, setEditingItem] = useState(null)
+  const [showEditModal, setShowEditModal] = useState(false)
+  const [currentItem, setCurrentItem] = useState(null)
   const [editFormData, setEditFormData] = useState({})
   const [loading, setLoading] = useState(false)
 
@@ -67,8 +70,34 @@ export default function AdminDashboard({ onBack }) {
 
   // 수정 시작
   const startEdit = (item) => {
-    setEditingItem(item.id)
-    setEditFormData({ ...item })
+    if (category === 'social') {
+      setCurrentItem(item)
+      setShowEditModal(true)
+    } else {
+      setEditingItem(item.id)
+      setEditFormData({ ...item })
+    }
+  }
+
+  // 과거 데이터 삭제 (클린업)
+  const cleanupPastData = async () => {
+    if (!window.confirm('오늘 이전의 모든 파티/부트캠프/페스티벌 데이터를 삭제하시겠습니까?')) return
+    setLoading(true)
+    try {
+      const today = new Date(Date.now() + (9 * 60 * 60 * 1000)).toISOString().split('T')[0]
+      const tables = ['parties', 'pending_parties', 'bootcamps', 'festivals']
+      
+      for (const table of tables) {
+        const dateCol = (table === 'bootcamps' || table === 'festivals') ? 'start_date' : 'date'
+        await supabase.from(table).delete().lt(dateCol, today)
+      }
+      alert('과거 데이터 정리가 완료되었습니다.')
+      fetchData()
+    } catch (err) {
+      alert('정리 실패: ' + err.message)
+    } finally {
+      setLoading(false)
+    }
   }
 
   // 수정 취소
@@ -253,7 +282,16 @@ export default function AdminDashboard({ onBack }) {
           <button onClick={onBack} style={{ padding: '8px', background: 'none', border: 'none' }}><ChevronLeft size={28} /></button>
           <h2 style={{ fontSize: '18px', fontWeight: 900, marginLeft: '8px' }}>통합 관리자 센터</h2>
         </div>
-        <button onClick={fetchData} disabled={loading} style={{ background: 'none', border: 'none' }}><RefreshCw size={24} className={loading ? 'animate-spin' : ''} /></button>
+        <div style={{ display: 'flex', gap: '12px' }}>
+          <button 
+            onClick={cleanupPastData} 
+            disabled={loading} 
+            style={{ display: 'flex', alignItems: 'center', gap: '6px', background: '#F1F5F9', border: 'none', padding: '8px 12px', borderRadius: '12px', color: '#64748B', fontSize: '12px', fontWeight: 800, cursor: 'pointer' }}
+          >
+            <Sparkles size={14} color="#7C3AED" /> 과거청소
+          </button>
+          <button onClick={fetchData} disabled={loading} style={{ background: 'none', border: 'none' }}><RefreshCw size={24} className={loading ? 'animate-spin' : ''} /></button>
+        </div>
       </header>
 
       {/* 카테고리 탭 (개편됨 - 1개 메인 + 더보기) */}
@@ -507,6 +545,20 @@ export default function AdminDashboard({ onBack }) {
           </div>
         ))}
       </div>
+      {/* 파티 수정 모달 */}
+      <AnimatePresence>
+        {showEditModal && (
+          <RegisterForm 
+            isEdit={true}
+            initialData={currentItem}
+            onBack={() => setShowEditModal(false)}
+            onSuccess={() => {
+              setShowEditModal(false);
+              fetchData();
+            }}
+          />
+        )}
+      </AnimatePresence>
     </div>
   )
 }

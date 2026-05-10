@@ -13,24 +13,24 @@ const TITLE_EXAMPLES = [
   "[대구] 바야 구라짱이랑 놀자! 라틴 성지 ㅣ 오늘밤빠"
 ];
 
-const RegisterForm = ({ onBack, onSuccess }) => {
+const RegisterForm = ({ onBack, onSuccess, isEdit = false, initialData = null }) => {
   const [file, setFile] = useState(null)
   const [formData, setFormData] = useState({
-    title: '',
-    location_name: '',
-    address: '',
-    date: new Date(new Date().getTime() + 9 * 60 * 60 * 1000).toISOString().split('T')[0],
-    time: '21:00',
-    end_time: '02:00',
-    fee: '20,000원',
-    region: '',
-    day_of_week: '',
-    sRatio: 5,
-    bRatio: 5,
-    jRatio: 0,
-    kRatio: 0,
-    latitude: null,
-    longitude: null
+    title: initialData?.title?.replace(/^\[.*?\]\s*/, '').replace(/ ㅣ 오늘밤빠$/, '') || '',
+    location_name: initialData?.location_name || initialData?.locations?.name || '',
+    address: initialData?.address || initialData?.locations?.address || '',
+    date: initialData?.date || new Date(new Date().getTime() + 9 * 60 * 60 * 1000).toISOString().split('T')[0],
+    time: initialData?.time || '21:00',
+    end_time: initialData?.end_time || '02:00',
+    fee: initialData?.fee || '20,000원',
+    region: initialData?.region || '',
+    day_of_week: initialData?.day_of_week || '',
+    sRatio: initialData?.s_ratio ?? 5,
+    bRatio: initialData?.b_ratio ?? 5,
+    jRatio: initialData?.j_ratio ?? 0,
+    kRatio: initialData?.k_ratio ?? 0,
+    latitude: initialData?.latitude || null,
+    longitude: initialData?.longitude || null
   })
   const [loading, setLoading] = useState(false)
   const [submitted, setSubmitted] = useState(false)
@@ -247,7 +247,7 @@ const RegisterForm = ({ onBack, onSuccess }) => {
         finalProcessedTitle = `${finalProcessedTitle}${suffix}`;
       }
 
-      const { error } = await supabase.from('parties').insert([{
+      const partyData = {
         title: `[${formData.region}] ${finalProcessedTitle}`,
         location_id: finalLocationId,
         location_name: formData.location_name,
@@ -256,13 +256,22 @@ const RegisterForm = ({ onBack, onSuccess }) => {
         date: formData.date,
         time: formData.time,
         day_of_week: formData.day_of_week,
-        poster_url: finalPosterUrl,
+        poster_url: finalPosterUrl || initialData?.poster_url,
         s_ratio: formData.sRatio,
         b_ratio: formData.bRatio,
         j_ratio: formData.jRatio,
         k_ratio: formData.kRatio,
         status: 'approved'
-      }])
+      };
+
+      let error;
+      if (isEdit && initialData?.id) {
+        const { error: updateError } = await supabase.from('parties').update(partyData).eq('id', initialData.id);
+        error = updateError;
+      } else {
+        const { error: insertError } = await supabase.from('parties').insert([partyData]);
+        error = insertError;
+      }
 
       if (error) throw error
       setSubmitted(true)
@@ -300,10 +309,10 @@ const RegisterForm = ({ onBack, onSuccess }) => {
       case 1:
         return (
           <motion.div key="step1" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} style={{ padding: '24px' }}>
-            <label style={{ display: 'block', fontSize: '20px', fontWeight: 900, color: '#1E293B', marginBottom: '24px' }}>📸 파티 포스터 선택</label>
+            <label style={{ display: 'block', fontSize: '20px', fontWeight: 900, color: '#1E293B', marginBottom: '24px' }}>📸 {isEdit ? '포스터 변경 (선택)' : '파티 포스터 선택'}</label>
             <div onClick={() => document.getElementById('poster-upload').click()} style={{ height: '350px', border: '2px dashed #E2E8F0', borderRadius: '24px', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', background: '#F8FAFC', overflow: 'hidden' }}>
-              {file ? (
-                <img src={URL.createObjectURL(file)} style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
+              {(file || initialData?.poster_url) ? (
+                <img src={file ? URL.createObjectURL(file) : initialData.poster_url} style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
               ) : (
                 <>
                   <Plus size={40} color="#FF1744" style={{ marginBottom: '16px' }} />
@@ -494,7 +503,7 @@ const RegisterForm = ({ onBack, onSuccess }) => {
             disabled={loading}
             style={{ flex: 2, height: '60px', borderRadius: '18px', background: '#FF1744', color: 'white', fontWeight: 900, fontSize: '18px', border: 'none', boxShadow: '0 8px 20px rgba(255, 23, 68, 0.2)' }}
           >
-            {loading ? '처리 중...' : (step === TOTAL_STEPS ? '등록 완료' : '다음 단계')}
+            {loading ? '처리 중...' : (step === TOTAL_STEPS ? (isEdit ? '수정 완료' : '등록 완료') : '다음 단계')}
           </button>
         </div>
       </motion.div>
