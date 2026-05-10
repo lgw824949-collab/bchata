@@ -623,11 +623,11 @@ const HomePage = ({
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: '12px', padding: '15px 15px 30px' }}>
         {[
           { icon: <Camera size={26} color="#FF1744" />, label: '라이브픽', action: () => setView('community'), badge: 'HOT' },
-          { icon: <Calendar size={26} color="#FF1744" />, label: '전체달력', action: () => handleOpenModal(setShowFullCalendar, true) },
+          { icon: <Calendar size={26} color="#FF1744" />, label: '행사달력', action: () => handleOpenModal(setShowFullCalendar, true) },
           { icon: <Utensils size={26} color="#FF1744" />, label: '맛집/디풀이', action: () => setView('restaurant') },
           { icon: <CloudSun size={26} color="#FF1744" />, label: '오늘날씨', action: () => handleOpenModal(setShowWeather, true) },
           { icon: <Zap size={26} color="#FF1744" />, label: isDark ? '라이트모드' : '다크모드', action: () => setIsDark(!isDark) },
-          { icon: <MessageSquare size={26} color="#FF1744" />, label: '오픈채팅', action: () => window.open('https://open.kakao.com/o/gP43rNri', '_blank') },
+          { icon: <MessageSquare size={26} color="#FF1744" />, label: '1:1 채팅', action: () => window.open('https://open.kakao.com/o/gP43rNri', '_blank') },
           { icon: <Navigation size={26} color="#FF1744" />, label: '지능형경로', action: () => openAnalysis(false), badge: 'LIVE' },
           { icon: <Star size={26} color="#FF1744" />, label: '운명의좌표', action: () => handleOpenModal(setShowSaju, true), dot: true },
           { icon: <MapPin size={26} color="#FF1744" />, label: '주변주차', action: () => setView('parking') },
