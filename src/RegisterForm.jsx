@@ -30,7 +30,8 @@ const RegisterForm = ({ onBack, onSuccess, isEdit = false, initialData = null })
     jRatio: initialData?.j_ratio ?? 0,
     kRatio: initialData?.k_ratio ?? 0,
     latitude: initialData?.latitude || null,
-    longitude: initialData?.longitude || null
+    longitude: initialData?.longitude || null,
+    contributorId: ''
   })
   const [loading, setLoading] = useState(false)
   const [submitted, setSubmitted] = useState(false)
@@ -260,6 +261,7 @@ const RegisterForm = ({ onBack, onSuccess, isEdit = false, initialData = null })
         b_ratio: formData.bRatio,
         j_ratio: formData.jRatio,
         k_ratio: formData.kRatio,
+        contributor_id: formData.contributorId || null,
         status: 'approved'
       };
 
@@ -450,6 +452,21 @@ const RegisterForm = ({ onBack, onSuccess, isEdit = false, initialData = null })
         return (
           <motion.div key="step5" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} style={{ padding: '24px' }}>
             <label style={{ display: 'block', fontSize: '20px', fontWeight: 900, color: '#1E293B', marginBottom: '24px' }}>📅 파티 일정 확인</label>
+            <div style={{ marginBottom: 16 }}>
+              <label style={{ fontSize: 13, fontWeight: 700, color: '#333', marginBottom: 6, display: 'block' }}>
+                등록자 ID <span style={{ color: '#E53935' }}>*</span>
+              </label>
+              <input
+                type="text"
+                placeholder="관리자에게 발급받은 ID 입력"
+                value={formData.contributorId}
+                onChange={e => setFormData(prev => ({ ...prev, contributorId: e.target.value }))}
+                style={{ width: '100%', padding: '12px 14px', borderRadius: 12, border: '1px solid #E5E7EB', fontSize: 14, boxSizing: 'border-box' }}
+              />
+              <div style={{ fontSize: 11, color: '#999', marginTop: 4 }}>
+                ID가 없으면 카카오 오픈채팅에서 발급받으세요
+              </div>
+            </div>
             <div style={{ marginBottom: '24px' }}>
               <p style={{ fontSize: '14px', fontWeight: 800, color: '#64748B', marginBottom: '8px' }}>파티 날짜</p>
               <input type="date" value={formData.date} onChange={e => setFormData({...formData, date: e.target.value})} style={{ width: '100%', padding: '20px', border: '2px solid #F1F5F9', borderRadius: '16px', fontSize: '18px', fontWeight: 900, background: '#F8FAFC' }} />

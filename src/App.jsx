@@ -19,6 +19,7 @@ const SajuModal = lazy(() => import('./components/SajuModal'));
 const IncheonRoute = lazy(() => import('./components/IncheonRoute'));
 const WeatherModal = lazy(() => import('./components/WeatherModal'));
 const Instructors = lazy(() => import('./pages/Instructors'));
+const MyPartiesSection = lazy(() => import('./components/MyPartiesSection'));
 import InstructorRegistrationModal from './components/InstructorRegistrationModal';
 
 const INSTRUCTOR_FORM_KEY = 'bamppa_instructor_form';
@@ -660,6 +661,7 @@ function App() {
   const [sidebarRefresh, setSidebarRefresh] = useState(0);
   const [showRentalModal, setShowRentalModal] = useState(false);
   const [showWishlist, setShowWishlist] = useState(false)
+  const [showMyParties, setShowMyParties] = useState(false)
 
   const groupedAllRegionsParties = useMemo(() => {
     if (!selectedAllRegionsDate) return {};
@@ -1262,6 +1264,19 @@ function App() {
                 </motion.div>
                 );
               })}
+
+              <button
+                onClick={() => { handleCloseModal(); setShowMyParties(true) }}
+                style={{ width:'100%', padding:'16px 20px', background:'#fff', borderRadius:'16px', border:'1px solid #F1F5F9', textAlign:'left', display:'flex', alignItems:'center', gap:'14px' }}
+              >
+                <div style={{ background:'#FEF3C7', padding:'8px', borderRadius:'10px' }}>
+                  <Star size={18} color="#D97706" />
+                </div>
+                <div>
+                  <div style={{ fontSize:'14px', fontWeight:700, color:'#1E293B' }}>내가 올린 파티</div>
+                  <div style={{ fontSize:'11px', color:'#94A3B8', marginTop:1 }}>등록한 파티 현황 확인</div>
+                </div>
+              </button>
             </div>
 
             <div style={{ marginTop: 'auto', paddingTop: '40px', textAlign: 'center' }}>
@@ -1980,6 +1995,30 @@ function App() {
             <div style={{ fontSize:16, fontWeight:700, color:'#111', marginBottom:8 }}>아직 찜한 파티가 없어요</div>
             <div style={{ fontSize:13, color:'#999' }}>파티 카드에서 하트를 눌러 저장해보세요</div>
           </div>
+        </motion.div>
+      )}
+    </AnimatePresence>
+
+    <AnimatePresence>
+      {showMyParties && (
+        <motion.div
+          initial={{ opacity:0, y:'100%' }}
+          animate={{ opacity:1, y:0 }}
+          exit={{ opacity:0, y:'100%' }}
+          transition={{ type:'spring', damping:25, stiffness:200 }}
+          style={{ position:'fixed', inset:0, zIndex:2000, background:'#fff', overflowY:'auto' }}
+        >
+          <div style={{ padding:'20px 24px', display:'flex', alignItems:'center', gap:12, borderBottom:'1px solid #F1F5F9' }}>
+            <button onClick={() => setShowMyParties(false)}
+              style={{ background:'#F1F5F9', border:'none', borderRadius:'50%', width:40, height:40, display:'flex', alignItems:'center', justifyContent:'center', cursor:'pointer', fontSize:18 }}>←</button>
+            <div>
+              <div style={{ fontSize:18, fontWeight:900, color:'#111' }}>내가 올린 파티 ⭐</div>
+              <div style={{ fontSize:12, color:'#999' }}>등록한 파티 승인 현황</div>
+            </div>
+          </div>
+          <Suspense fallback={<LoadingFallback />}>
+            <MyPartiesSection onClose={() => setShowMyParties(false)} />
+          </Suspense>
         </motion.div>
       )}
     </AnimatePresence>
