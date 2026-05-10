@@ -284,7 +284,7 @@ const RegisterForm = ({ onBack, onSuccess, isEdit = false, initialData = null })
 
   const TIME_SLOTS = (() => {
     const slots = [];
-    for (let h = 18; h <= 23; h++) { slots.push({ value: `${h}:00`, label: `오후 ${h - 12}:00` }); slots.push({ value: `${h}:30`, label: `오후 ${h - 12}:30` }); }
+    for (let h = 13; h <= 23; h++) { slots.push({ value: `${h}:00`, label: `오후 ${h - 12}:00` }); slots.push({ value: `${h}:30`, label: `오후 ${h - 12}:30` }); }
     for (let h = 0; h <= 5; h++) { const hh = String(h).padStart(2, '0'); slots.push({ value: `${hh}:00`, label: `새벽 ${h}:00` }); slots.push({ value: `${hh}:30`, label: `새벽 ${h}:30` }); }
     return slots;
   })();

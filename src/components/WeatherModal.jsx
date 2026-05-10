@@ -48,12 +48,21 @@ export default function WeatherModal({ onClose }) {
         const baseTime = '0500'
         const serviceKey = import.meta.env.VITE_KMA_API_KEY
 
+        if (!serviceKey) {
+          setLoading(false);
+          return;
+        }
+
         const results = await Promise.all(
           REGIONS.map(async (region) => {
             const url = `https://apis.data.go.kr/1360000/VilageFcstInfoService_2.0/getVilageFcst?serviceKey=${serviceKey}&numOfRows=10&pageNo=1&dataType=JSON&base_date=${baseDate}&base_time=${baseTime}&nx=${region.nx}&ny=${region.ny}`
             
             try {
               const res = await fetch(url)
+              if (!res.ok) {
+                const text = await res.text();
+                throw new Error(`HTTP ${res.status}: ${text.slice(0, 50)}`);
+              }
               const data = await res.json()
               
               if (data.response?.header?.resultCode !== '00') {
