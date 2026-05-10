@@ -194,8 +194,8 @@ const RegisterForm = ({ onBack, onSuccess, isEdit = false, initialData = null })
   const handleSubmit = async (e) => {
     if (e) e.preventDefault()
     
-    if (!formData.title || !formData.location_name || !formData.date || !formData.region) {
-      alert('필수 정보를 모두 입력해주세요. (제목, 장소명, 날짜, 지역)')
+    if (!formData.title || !formData.location_name || !formData.date) {
+      alert('필수 정보를 모두 입력해주세요. (제목, 장소명, 날짜)')
       return
     }
 
