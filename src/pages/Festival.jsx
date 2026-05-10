@@ -15,6 +15,8 @@ const Festival = ({ onBack, initialView = 'list' }) => {
   const [selectedFestival, setSelectedFestival] = useState(null);
   const [showBookingGuide, setShowBookingGuide] = useState(false);
   const [copied, setCopied] = useState(false);
+  const [isRegistering, setIsRegistering] = useState(false);
+  const [currentStep, setCurrentStep] = useState(1);
   
   const [formData, setFormData] = useState({
     title: '',
@@ -22,15 +24,18 @@ const Festival = ({ onBack, initialView = 'list' }) => {
     end_date: '',
     region: '서울',
     location: '',
+    venue: '',
     price: '',
+    price_info: '',
     description: '',
-    poster_url: ''
+    poster_url: '',
+    organizer: '',
+    genre: '바차타',
+    bank_info: ''
   });
   const [uploading, setUploading] = useState(false);
   const [submitting, setSubmitting] = useState(false);
 
-  // SEPARATED REGIONS AS REQUESTED
-  // [BAMPPA 정체성 반영] 광역 지역명으로 통일 (서울, 경기/인천, 경상도, 전라도, 충청도, 강원/제주)
   const regions = ['전체', '서울', '경기/인천', '경상도', '전라도', '충청도', '강원/제주'];
 
   useEffect(() => {
@@ -93,7 +98,8 @@ const Festival = ({ onBack, initialView = 'list' }) => {
       const { error } = await supabase.from('festivals').insert([{ ...formData, status: 'pending' }]);
       if (error) throw error;
       alert('등록 신청되었습니다. 승인 후 노출됩니다.');
-      setView('list');
+      setIsRegistering(false);
+      setCurrentStep(1);
     } catch (err) {
       console.error('festival insert error:', err);
       alert('등록 실패');
@@ -104,17 +110,14 @@ const Festival = ({ onBack, initialView = 'list' }) => {
 
   const handleBookingClick = async (fest) => {
     try {
-      // 1. Log the click for business data
       await supabase.from('festival_booking_logs').insert([{
         festival_id: fest.id,
         festival_title: fest.title
       }]);
-      
-      // 2. Show the guide overlay
       setShowBookingGuide(true);
     } catch (err) {
       console.error('Booking log error:', err);
-      setShowBookingGuide(true); // Still show guide even if logging fails
+      setShowBookingGuide(true);
     }
   };
 
@@ -143,12 +146,10 @@ const Festival = ({ onBack, initialView = 'list' }) => {
   return (
     <div style={{ background: '#0f172a', minHeight: '100vh', padding: '0 0 100px', color: '#f8fafc', fontFamily: "'Pretendard', sans-serif", position: 'relative' }}>
       
-      {/* Background Glow */}
       <div style={{ position: 'fixed', inset: 0, zIndex: 0, opacity: 0.15 }}>
         <div style={{ position: 'absolute', top: '10%', left: '10%', width: '50%', height: '50%', background: 'radial-gradient(circle, rgba(229, 57, 53, 0.4) 0%, transparent 70%)', filter: 'blur(80px)' }} />
       </div>
 
-      {/* Header */}
       <div style={{ 
         position: 'sticky', 
         top: 0, 
@@ -191,7 +192,7 @@ const Festival = ({ onBack, initialView = 'list' }) => {
               {selectedRegion} <ChevronDown size={14} color="#C9A84C" />
             </button>
             <button 
-              onClick={() => setView('register')}
+              onClick={() => setIsRegistering(true)}
               style={{ 
                 background: 'linear-gradient(135deg, #E53935, #C62828)', 
                 color: '#fff', 
@@ -213,9 +214,94 @@ const Festival = ({ onBack, initialView = 'list' }) => {
       </div>
 
       <div style={{ padding: '0 0 100px' }}>
-        {view === 'list' ? (
+        {isRegistering ? (
+          <motion.div initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} style={{ background: '#0f172a', padding: '30px', position: 'relative', zIndex: 3000, minHeight: '100vh' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '30px' }}>
+              <h2 style={{ fontSize: '24px', fontWeight: 950, color: '#f8fafc', margin: 0 }}>페스티벌 신청 ({currentStep}/4)</h2>
+              <button onClick={() => { setIsRegistering(false); setCurrentStep(1); }} style={{ background: '#1e293b', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '50%', width: '44px', height: '44px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><X size={24} color="#94a3b8" /></button>
+            </div>
+
+            <div style={{ display: 'flex', gap: '8px', marginBottom: '40px' }}>
+              {[1, 2, 3, 4].map(s => (
+                <div key={s} style={{ flex: 1, height: '4px', borderRadius: '2px', background: s <= currentStep ? '#7C3AED' : 'rgba(255,255,255,0.1)', transition: 'all 0.3s' }} />
+              ))}
+            </div>
+
+            <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '28px' }}>
+              
+              {currentStep === 1 && (
+                <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} style={{ display: 'flex', flexDirection: 'column', gap: '28px' }}>
+                  <div><label style={{ display: 'block', fontSize: '12px', fontWeight: 900, color: '#F59E0B', marginBottom: '12px', letterSpacing: '1.5px' }}>1. 페스티벌 이름 (최대 18자)</label><input required maxLength={18} value={formData.title} onChange={e => setFormData(prev => ({ ...prev, title: e.target.value }))} placeholder="축제 이름을 입력하세요" style={{ width: '100%', padding: '20px', borderRadius: '18px', border: '1px solid rgba(255,255,255,0.1)', background: '#1e293b', fontSize: '16px', color: '#f8fafc', outline: 'none' }} /></div>
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '15px' }}>
+                    <div><label style={{ display: 'block', fontSize: '12px', fontWeight: 900, color: '#F59E0B', marginBottom: '12px', letterSpacing: '1.5px' }}>2. 주최/주관</label><input required value={formData.organizer} onChange={e => setFormData(prev => ({ ...prev, organizer: e.target.value }))} placeholder="단체 또는 이름" style={{ width: '100%', padding: '20px', borderRadius: '18px', border: '1px solid rgba(255,255,255,0.1)', background: '#1e293b', fontSize: '16px', color: '#f8fafc', outline: 'none' }} /></div>
+                    <div><label style={{ display: 'block', fontSize: '12px', fontWeight: 900, color: '#F59E0B', marginBottom: '12px', letterSpacing: '1.5px' }}>3. 주요 장르</label><select value={formData.genre} onChange={e => setFormData(prev => ({ ...prev, genre: e.target.value }))} style={{ width: '100%', padding: '20px', borderRadius: '18px', border: '1px solid rgba(255,255,255,0.1)', background: '#1e293b', fontSize: '16px', color: '#f8fafc', outline: 'none' }}><option value="바차타">바차타</option><option value="살사">살사</option><option value="키좀바">키좀바</option><option value="쥬크">쥬크</option></select></div>
+                  </div>
+                </motion.div>
+              )}
+
+              {currentStep === 2 && (
+                <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} style={{ display: 'flex', flexDirection: 'column', gap: '28px' }}>
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '15px' }}>
+                    <div><label style={{ display: 'block', fontSize: '12px', fontWeight: 900, color: '#F59E0B', marginBottom: '12px', letterSpacing: '1.5px' }}>4. 시작 날짜</label><input type="date" required value={formData.start_date} onChange={e => setFormData(prev => ({ ...prev, start_date: e.target.value }))} style={{ width: '100%', padding: '20px', borderRadius: '18px', border: '1px solid rgba(255,255,255,0.1)', background: '#1e293b', fontSize: '16px', color: '#f8fafc', outline: 'none' }} /></div>
+                    <div><label style={{ display: 'block', fontSize: '12px', fontWeight: 900, color: '#F59E0B', marginBottom: '12px', letterSpacing: '1.5px' }}>5. 종료 날짜</label><input type="date" required value={formData.end_date} onChange={e => setFormData(prev => ({ ...prev, end_date: e.target.value }))} style={{ width: '100%', padding: '20px', borderRadius: '18px', border: '1px solid rgba(255,255,255,0.1)', background: '#1e293b', fontSize: '16px', color: '#f8fafc', outline: 'none' }} /></div>
+                  </div>
+                  <div>
+                    <label style={{ display: 'block', fontSize: '12px', fontWeight: 900, color: '#F59E0B', marginBottom: '12px', letterSpacing: '1.5px' }}>6. 상세 장소/주소</label>
+                    <div style={{ display: 'flex', gap: '10px' }}>
+                      <input 
+                        required 
+                        value={formData.venue} 
+                        onChange={e => setFormData(prev => ({ ...prev, venue: e.target.value }))} 
+                        placeholder="상세 장소를 입력하세요 (미정 시 우측 버튼 클릭)" 
+                        style={{ flex: 1, padding: '20px', borderRadius: '18px', border: '1px solid rgba(255,255,255,0.1)', background: '#1e293b', fontSize: '16px', color: '#f8fafc', outline: 'none' }} 
+                      />
+                      <button 
+                        type="button"
+                        onClick={() => setFormData(prev => ({ ...prev, venue: '추후 공지' }))}
+                        style={{ padding: '0 20px', borderRadius: '18px', background: formData.venue === '추후 공지' ? '#F59E0B' : 'rgba(255,255,255,0.05)', color: formData.venue === '추후 공지' ? '#000' : '#94a3b8', fontSize: '13px', fontWeight: 900, border: '1px solid rgba(255,255,255,0.1)', whiteSpace: 'nowrap' }}
+                      >
+                        추후 공지
+                      </button>
+                    </div>
+                  </div>
+                  <div><label style={{ display: 'block', fontSize: '12px', fontWeight: 900, color: '#F59E0B', marginBottom: '12px', letterSpacing: '1.5px' }}>7. 지역</label><select value={formData.region} onChange={e => setFormData(prev => ({ ...prev, region: e.target.value }))} style={{ width: '100%', padding: '20px', borderRadius: '18px', border: '1px solid rgba(255,255,255,0.1)', background: '#1e293b', fontSize: '16px', color: '#f8fafc', outline: 'none' }}>{['서울', '경기/인천', '경상도', '전라도', '충청도', '강원/제주'].map(r => <option key={r} value={r}>{r}</option>)}</select></div>
+                </motion.div>
+              )}
+
+              {currentStep === 3 && (
+                <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} style={{ display: 'flex', flexDirection: 'column', gap: '28px' }}>
+                  <div><label style={{ display: 'block', fontSize: '12px', fontWeight: 900, color: '#F59E0B', marginBottom: '12px', letterSpacing: '1.5px' }}>8. 티켓 가격 정보</label><input required value={formData.price_info} onChange={e => setFormData(prev => ({ ...prev, price_info: e.target.value }))} placeholder="예: 풀패스 250,000 / 파티패스 50,000" style={{ width: '100%', padding: '20px', borderRadius: '18px', border: '1px solid rgba(255,255,255,0.1)', background: '#1e293b', fontSize: '16px', color: '#f8fafc', outline: 'none' }} /></div>
+                  <div><label style={{ display: 'block', fontSize: '12px', fontWeight: 900, color: '#F59E0B', marginBottom: '12px', letterSpacing: '1.5px' }}>9. 포스터 이미지</label>
+                    <div style={{ width: '100%', height: '220px', borderRadius: '24px', border: '2px dashed rgba(255,255,255,0.1)', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', background: '#1e293b', cursor: 'pointer', position: 'relative', overflow: 'hidden' }}>
+                      {formData.poster_url ? <img src={formData.poster_url} style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : <><ImageIcon color="#F59E0B" size={40} /><span style={{ fontSize: '13px', color: '#94a3b8', marginTop: '10px' }}>{uploading ? '업로드 중...' : '포스터 선택'}</span></>}
+                      <input type="file" accept="image/*" onChange={handleImageUpload} style={{ position: 'absolute', inset: 0, opacity: 0 }} />
+                    </div>
+                  </div>
+                </motion.div>
+              )}
+
+              {currentStep === 4 && (
+                <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} style={{ display: 'flex', flexDirection: 'column', gap: '28px' }}>
+                  <div><label style={{ display: 'block', fontSize: '12px', fontWeight: 900, color: '#F59E0B', marginBottom: '12px', letterSpacing: '1.5px' }}>10. 상세 설명</label><textarea rows={6} value={formData.description} onChange={e => setFormData(prev => ({ ...prev, description: e.target.value }))} placeholder="라인업, 워크샵 정보 등 상세 내용 입력" style={{ width: '100%', padding: '20px', borderRadius: '18px', border: '1px solid rgba(255,255,255,0.1)', background: '#1e293b', fontSize: '16px', color: '#f8fafc', outline: 'none', resize: 'none' }} /></div>
+                  <div><label style={{ display: 'block', fontSize: '12px', fontWeight: 900, color: '#F59E0B', marginBottom: '12px', letterSpacing: '1.5px' }}>11. 입금 계좌 정보 (필수)</label><input required value={formData.bank_info} onChange={e => setFormData(prev => ({ ...prev, bank_info: e.target.value }))} placeholder="예: 카카오뱅크 3333-01-1234567 홍길동" style={{ width: '100%', padding: '20px', borderRadius: '18px', border: '1px solid rgba(255,255,255,0.1)', background: '#1e293b', fontSize: '16px', color: '#f8fafc', outline: 'none' }} /></div>
+                </motion.div>
+              )}
+
+              <div style={{ display: 'flex', gap: '12px', marginTop: '20px' }}>
+                {currentStep > 1 && (
+                  <button type="button" onClick={() => setCurrentStep(s => s - 1)} style={{ flex: 1, padding: '20px', borderRadius: '18px', background: 'rgba(255,255,255,0.05)', color: '#fff', fontWeight: 900, border: '1px solid rgba(255,255,255,0.1)' }}>이전</button>
+                )}
+                
+                {currentStep < 4 ? (
+                  <button type="button" onClick={() => setCurrentStep(s => s + 1)} style={{ flex: 2, padding: '20px', borderRadius: '18px', background: '#7C3AED', color: '#fff', fontWeight: 900, border: 'none' }}>다음 단계</button>
+                ) : (
+                  <button type="submit" disabled={submitting} style={{ flex: 2, padding: '24px', borderRadius: '20px', background: 'linear-gradient(135deg, #F59E0B, #D97706)', color: '#000', fontWeight: 1000, fontSize: '18px', border: 'none' }}>{submitting ? '등록 중...' : '신청 완료'}</button>
+                )}
+              </div>
+            </form>
+          </motion.div>
+        ) : (
           <>
-            {/* 2-Row Filter Grid (Aligned) */}
             <AnimatePresence>
               {showFilters && (
                 <motion.div initial={{ height: 0 }} animate={{ height: 'auto' }} exit={{ height: 0 }} style={{ overflow: 'hidden', background: '#1e293b' }}>
@@ -243,7 +329,6 @@ const Festival = ({ onBack, initialView = 'list' }) => {
               )}
             </AnimatePresence>
 
-            {/* Festival List */}
             <div style={{ display: 'flex', flexDirection: 'column', gap: '15px', padding: '15px' }}>
               {loading ? (
                 <div style={{ textAlign: 'center', padding: '100px', color: 'var(--color-text-sub)' }}>로딩 중..</div>
@@ -267,9 +352,7 @@ const Festival = ({ onBack, initialView = 'list' }) => {
                       boxShadow: '0 10px 30px rgba(0,0,0,0.4)'
                     }}
                   >
-                    {/* Poster with Blurred Background (Method 1) */}
                     <div style={{ width: '100%', position: 'relative', height: '240px', overflow: 'hidden', background: '#000' }}>
-                      {/* Blurred Background Layer */}
                       <div style={{ 
                         position: 'absolute', 
                         inset: 0, 
@@ -280,7 +363,6 @@ const Festival = ({ onBack, initialView = 'list' }) => {
                         transform: 'scale(1.1)' 
                       }} />
                       
-                      {/* Main Uncropped Image */}
                       <img src={fest.poster_url} style={{ width: '100%', height: '100%', objectFit: 'contain', display: 'block', position: 'relative', zIndex: 1 }} />
                       
                       <div style={{ 
@@ -300,7 +382,6 @@ const Festival = ({ onBack, initialView = 'list' }) => {
                         {getDDay(fest.start_date)}
                       </div>
                       
-                      {/* Gradient Overlay for Title Visibility */}
                       <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to bottom, transparent 60%, rgba(0,0,0,0.8) 100%)', zIndex: 2 }} />
                       
                       <div style={{ position: 'absolute', bottom: '20px', left: '20px', right: '20px', zIndex: 3 }}>
@@ -310,7 +391,6 @@ const Festival = ({ onBack, initialView = 'list' }) => {
                       </div>
                     </div>
                     
-                    {/* Structured Info Area */}
                     <div style={{ padding: '20px', background: '#1e293b' }}>
                       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
                         <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: '#94a3b8', fontSize: '13px', fontWeight: 800 }}>
@@ -332,122 +412,6 @@ const Festival = ({ onBack, initialView = 'list' }) => {
               )}
             </div>
           </>
-        ) : (
-          /* Registration Form */
-          <motion.div initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} style={{ background: '#0f172a', padding: '30px', position: 'relative', zIndex: 3000, minHeight: '100vh' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '40px' }}>
-              <h2 style={{ fontSize: '24px', fontWeight: 950, color: '#f8fafc', margin: 0, letterSpacing: '-0.5px' }}>페스티벌 등록 신청</h2>
-              <button 
-                type="button" 
-                onClick={() => { 
-                  if (initialView === 'register') {
-                    onBack(); 
-                  } else {
-                    setView('list'); 
-                  }
-                }}
-                style={{ 
-                  background: '#1e293b', 
-                  border: '1px solid rgba(255,255,255,0.1)', 
-                  borderRadius: '50%', 
-                  width: '44px', 
-                  height: '44px', 
-                  display: 'flex', 
-                  alignItems: 'center', 
-                  justifyContent: 'center', 
-                  cursor: 'pointer',
-                  position: 'relative',
-                  zIndex: 10,
-                  pointerEvents: 'auto',
-                  boxShadow: '0 8px 16px rgba(0,0,0,0.5)'
-                }}
-              >
-                <X size={24} color="#94a3b8" />
-              </button>
-            </div>
-            
-            <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '28px' }}>
-              <div>
-                <label style={{ display: 'block', fontSize: '12px', fontWeight: 900, color: '#C9A84C', marginBottom: '12px', letterSpacing: '1.5px', textTransform: 'uppercase' }}>1. 축제 이름</label>
-                <input required value={formData.title} onChange={e => setFormData(prev => ({ ...prev, title: e.target.value }))} placeholder="페스티벌 이름을 입력하세요" style={{ width: '100%', padding: '20px', borderRadius: '18px', border: '1px solid rgba(255,255,255,0.1)', background: '#1e293b', fontSize: '16px', color: '#f8fafc', outline: 'none', boxShadow: 'inset 0 2px 8px rgba(0,0,0,0.4)' }} />
-              </div>
-
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '15px' }}>
-                <div>
-                  <label style={{ display: 'block', fontSize: '12px', fontWeight: 900, color: '#C9A84C', marginBottom: '12px', letterSpacing: '1.5px', textTransform: 'uppercase' }}>2. 시작 날짜</label>
-                  <input type="date" required value={formData.start_date} onChange={e => setFormData(prev => ({ ...prev, start_date: e.target.value }))} style={{ width: '100%', padding: '20px', borderRadius: '18px', border: '1px solid rgba(255,255,255,0.1)', background: '#1e293b', fontSize: '16px', color: '#f8fafc', outline: 'none' }} />
-                </div>
-                <div>
-                  <label style={{ display: 'block', fontSize: '12px', fontWeight: 900, color: '#C9A84C', marginBottom: '12px', letterSpacing: '1.5px', textTransform: 'uppercase' }}>3. 종료 날짜</label>
-                  <input type="date" required value={formData.end_date} onChange={e => setFormData(prev => ({ ...prev, end_date: e.target.value }))} style={{ width: '100%', padding: '20px', borderRadius: '18px', border: '1px solid rgba(255,255,255,0.1)', background: '#1e293b', fontSize: '16px', color: '#f8fafc', outline: 'none' }} />
-                </div>
-              </div>
-
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '15px' }}>
-                <div>
-                  <label style={{ display: 'block', fontSize: '12px', fontWeight: 900, color: '#C9A84C', marginBottom: '12px', letterSpacing: '1.5px', textTransform: 'uppercase' }}>4. 활동 지역</label>
-                  <select value={formData.region} onChange={e => setFormData(prev => ({ ...prev, region: e.target.value }))} style={{ width: '100%', padding: '20px', borderRadius: '18px', border: '1px solid rgba(255,255,255,0.1)', background: '#1e293b', fontSize: '16px', color: '#f8fafc', outline: 'none' }}>
-                    {regions.filter(r => r !== '전체').map(r => <option key={r} value={r}>{r}</option>)}
-                  </select>
-                </div>
-                <div>
-                  <label style={{ display: 'block', fontSize: '12px', fontWeight: 900, color: '#C9A84C', marginBottom: '12px', letterSpacing: '1.5px', textTransform: 'uppercase' }}>5. 티켓 가격</label>
-                  <input required value={formData.price} onChange={e => setFormData(prev => ({ ...prev, price: e.target.value }))} placeholder="예: 150,000" style={{ width: '100%', padding: '20px', borderRadius: '18px', border: '1px solid rgba(255,255,255,0.1)', background: '#1e293b', fontSize: '16px', color: '#f8fafc', outline: 'none' }} />
-                </div>
-              </div>
-
-              <div>
-                <label style={{ display: 'block', fontSize: '12px', fontWeight: 900, color: '#C9A84C', marginBottom: '12px', letterSpacing: '1.5px', textTransform: 'uppercase' }}>6. 상세 장소 (베뉴)</label>
-                <input required value={formData.location} onChange={e => setFormData(prev => ({ ...prev, location: e.target.value }))} placeholder="예: 홍대 보니따" style={{ width: '100%', padding: '20px', borderRadius: '18px', border: '1px solid rgba(255,255,255,0.1)', background: '#1e293b', fontSize: '16px', color: '#f8fafc', outline: 'none' }} />
-              </div>
-
-              <div>
-                <label style={{ display: 'block', fontSize: '12px', fontWeight: 900, color: '#C9A84C', marginBottom: '12px', letterSpacing: '1.5px', textTransform: 'uppercase' }}>7. 포스터 이미지</label>
-                <div style={{ width: '100%', height: '200px', borderRadius: '24px', border: '2px dashed rgba(255,255,255,0.1)', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', background: '#1e293b', cursor: 'pointer', overflow: 'hidden', position: 'relative' }}>
-                  {formData.poster_url ? (
-                    <img src={formData.poster_url} alt="Preview" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                  ) : (
-                    <>
-                      {uploading ? <Loader2 className="animate-spin" color="#C9A84C" /> : <Camera color="#C9A84C" size={40} />}
-                      <span style={{ fontSize: '13px', color: '#94a3b8', marginTop: '15px', fontWeight: 900 }}>{uploading ? '업로드 중...' : '포스터 사진 선택'}</span>
-                    </>
-                  )}
-                  <input type="file" accept="image/*" onChange={handleImageUpload} style={{ position: 'absolute', inset: 0, opacity: 0, cursor: 'pointer' }} />
-                </div>
-              </div>
-
-              <div>
-                <label style={{ display: 'block', fontSize: '12px', fontWeight: 900, color: '#C9A84C', marginBottom: '12px', letterSpacing: '1.5px', textTransform: 'uppercase' }}>8. 축제 상세 설명</label>
-                <textarea 
-                  rows={4}
-                  value={formData.description} 
-                  onChange={e => setFormData(prev => ({ ...prev, description: e.target.value }))} 
-                  placeholder="페스티벌 소개 및 특이사항을 입력해주세요" 
-                  style={{ width: '100%', padding: '20px', borderRadius: '18px', border: '1px solid rgba(255,255,255,0.1)', background: '#1e293b', fontSize: '16px', color: '#f8fafc', outline: 'none', resize: 'none', lineHeight: 1.6 }} 
-                />
-              </div>
-
-              <button 
-                type="submit" 
-                disabled={submitting || uploading} 
-                style={{ 
-                  width: '100%', 
-                  padding: '24px', 
-                  borderRadius: '24px', 
-                  background: '#E53935', 
-                  color: '#fff', 
-                  fontSize: '18px', 
-                  fontWeight: 1000, 
-                  border: 'none', 
-                  boxShadow: '0 15px 40px rgba(229, 57, 53, 0.3)', 
-                  cursor: 'pointer', 
-                  marginTop: '20px' 
-                }}
-              >
-                {submitting ? 'PROCESSING...' : 'APPLY FESTIVAL'}
-              </button>
-            </form>
-          </motion.div>
         )}
       </div>
 
