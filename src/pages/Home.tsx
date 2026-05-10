@@ -715,11 +715,12 @@ const HomePage = ({
                               ref={isFirst ? regionListRef : null}
                               style={{ marginBottom: '15px', background: 'var(--color-card)' }}
                             >
-                              <div style={{ fontSize: '18px', fontWeight: '900', padding: '15px 20px', display: 'flex', alignItems: 'center', justifyContent: 'flex-start', gap: '15px', color: 'var(--color-text-main)' }}>
-                                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                                  <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#FF1744' }} />
-                                  {t(regionKeys[regionName] || regionName)}
-                                  <span style={{ fontSize: '14px', color: '#E53935', fontWeight: '900', marginLeft: '5px' }}>
+                              <div style={{ padding: '15px 20px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', color: 'var(--color-text-main)' }}>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                                  <span style={{ fontSize: '15px', fontWeight: '800' }}>
+                                    {t(regionKeys[regionName] || regionName)}
+                                  </span>
+                                  <span style={{ fontSize: '12px', color: 'var(--color-text-secondary)', fontWeight: '600', marginLeft: '4px' }}>
                                     {(() => {
                                       const d = new Date(selectedDate);
                                       return `${d.getMonth() + 1}/${d.getDate()} (${isEn ? DAYS_EN[d.getDay()] : DAYS_KOR[d.getDay()]})`;
@@ -731,7 +732,7 @@ const HomePage = ({
                                     setGridRegion(regionName);
                                     handleOpenModal(setShowGridModal, true);
                                   }}
-                                  style={{ fontSize: '12px', fontWeight: '700', color: '#FF1744', background: 'rgba(255,23,68,0.05)', border: 'none', padding: '4px 10px', borderRadius: '8px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '2px' }}
+                                  style={{ fontSize: '12px', fontWeight: '700', color: '#E53935', background: 'none', border: 'none', padding: 0, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '2px' }}
                                 >
                                   {t('view_all')} <ChevronRight size={14} />
                                 </button>
