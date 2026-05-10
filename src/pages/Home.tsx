@@ -139,9 +139,9 @@ const PartyCard = ({ item, onSelect }) => {
   return (
     <div
       onClick={() => onSelect(item.poster_url)}
-      style={{ display:'flex', flexDirection:'row', alignItems:'stretch', backgroundColor:'var(--color-card)', borderRadius:'16px', overflow:'hidden', border:'1px solid var(--color-border)', cursor:'pointer', height:'110px', marginBottom:'12px', transition:'all 0.3s' }}
+      style={{ display:'flex', flexDirection:'row', alignItems:'stretch', backgroundColor:'var(--color-card)', borderRadius:'16px', overflow:'hidden', border:'1px solid var(--color-border)', cursor:'pointer', height:'190px', marginBottom:'12px', transition:'all 0.3s' }}
     >
-      <div style={{ width:'80px', flexShrink:0 }}>
+      <div style={{ width:'140px', flexShrink:0 }}>
         <img src={item.poster_url} style={{ width:'100%', height:'100%', objectFit:'cover' }} alt="Poster" />
       </div>
       <div style={{ flex:1, display:'flex', flexDirection:'column', justifyContent:'space-between', minWidth:0, padding:'10px 14px' }}>
@@ -749,7 +749,7 @@ const HomePage = ({
                                       key={item.id} 
                                       onClick={() => handleOpenModal(setSelectedPoster, item.poster_url)} 
                                       style={{ 
-                                        width: '280px', 
+                                        width: '330px', 
                                         flexShrink: 0, 
                                         borderRadius: '16px', 
                                         overflow: 'hidden', 
@@ -757,11 +757,11 @@ const HomePage = ({
                                         background: 'var(--color-card)',
                                         border: '1px solid var(--color-border)',
                                         cursor: 'pointer',
-                                        height: '110px',
+                                        height: '190px',
                                         transition: 'all 0.3s'
                                       }}
                                     >
-                                      <div style={{ width: '80px', flexShrink: 0 }}>
+                                      <div style={{ width: '140px', flexShrink: 0 }}>
                                         <img src={item.poster_url} style={{ width: '100%', height: '100%', objectFit: 'cover' }} alt="Poster" />
                                       </div>
                                       <div style={{ flex: 1, padding: '10px 14px', display: 'flex', flexDirection: 'column', justifyContent: 'space-between', minWidth: 0 }}>
