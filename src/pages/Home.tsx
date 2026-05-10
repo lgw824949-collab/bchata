@@ -826,7 +826,13 @@ const HomePage = ({
                                             </div>
                                             <div style={{ height: '3px', width: '3px', borderRadius: '50%', background: '#CBD5E1' }} />
                                             <div style={{ fontSize: '11px', fontWeight: '900', color: '#94A3B8' }}>
-                                              {Object.entries(GENRE_MAP).filter(([_, info]) => item[info.key] > 0).map(([_, info]) => `${info.label}${item[info.key]}`).join(' ')}
+                                              {(() => {
+                                                const entries = Object.entries(GENRE_MAP).filter(([_, info]) => item[info.key] > 0)
+                                                if (entries.length === 0) return '소셜'
+                                                const sorted = [...entries].sort((a, b) => item[b[1].key] - item[a[1].key])
+                                                if (sorted.length >= 2 && item[sorted[0][1].key] === item[sorted[1][1].key]) return `${sorted[0][1].label} · ${sorted[1][1].label}`
+                                                return sorted[0][1].label
+                                              })()}
                                             </div>
                                           </div>
                                           
