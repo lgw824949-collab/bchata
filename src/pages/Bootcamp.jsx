@@ -184,54 +184,29 @@ const Bootcamp = ({ onBack, initialView = 'list' }) => {
           borderBottom: '1px solid rgba(255,255,255,0.05)',
           padding: '15px 20px'
         }}>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
-            <div style={{ display: 'flex', gap: '8px', overflowX: 'auto', paddingBottom: '5px', scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
-              <style>{`div::-webkit-scrollbar { display: none; }`}</style>
-              {REGIONS.map(r => (
-                <button 
-                  key={r} 
-                  onClick={() => setSelectedRegion(r)}
-                  style={{ 
-                    padding: '10px 18px', 
-                    borderRadius: '12px', 
-                    background: selectedRegion === r ? '#F59E0B' : 'rgba(255,255,255,0.05)', 
-                    border: '1px solid',
-                    borderColor: selectedRegion === r ? '#F59E0B' : 'rgba(255,255,255,0.1)',
-                    color: selectedRegion === r ? '#000' : '#94a3b8', 
-                    fontSize: '13px', 
-                    fontWeight: 900,
-                    whiteSpace: 'nowrap',
-                    transition: 'all 0.2s'
-                  }}
-                >
-                  {r}
-                </button>
-              ))}
+          <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
+            <div style={{ flex: 1, display: 'flex', gap: '4px', background: 'rgba(255,255,255,0.05)', padding: '4px', borderRadius: '12px', maxWidth: '200px' }}>
+              <button onClick={() => setActiveTab('국내')} style={{ flex: 1, padding: '8px', borderRadius: '10px', border: 'none', background: activeTab === '국내' ? '#7C3AED' : 'transparent', color: activeTab === '국내' ? 'white' : '#64748b', fontSize: '12px', fontWeight: 900 }}>국내</button>
+              <button onClick={() => setActiveTab('국외')} style={{ flex: 1, padding: '8px', borderRadius: '10px', border: 'none', background: activeTab === '국외' ? '#7C3AED' : 'transparent', color: activeTab === '국외' ? 'white' : '#64748b', fontSize: '12px', fontWeight: 900 }}>국외</button>
             </div>
             
-            <div style={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'center', gap: '10px' }}>
-              <div style={{ flex: 1, display: 'flex', gap: '4px', background: 'rgba(255,255,255,0.05)', padding: '4px', borderRadius: '12px' }}>
-                <button onClick={() => setActiveTab('국내')} style={{ flex: 1, padding: '8px', borderRadius: '10px', border: 'none', background: activeTab === '국내' ? '#7C3AED' : 'transparent', color: activeTab === '국내' ? 'white' : '#64748b', fontSize: '12px', fontWeight: 900 }}>국내</button>
-                <button onClick={() => setActiveTab('국외')} style={{ flex: 1, padding: '8px', borderRadius: '10px', border: 'none', background: activeTab === '국외' ? '#7C3AED' : 'transparent', color: activeTab === '국외' ? 'white' : '#64748b', fontSize: '12px', fontWeight: 900 }}>국외</button>
-              </div>
-              <div style={{ position: 'relative', width: '100%', maxWidth: '280px' }}>
-                <SearchIcon size={16} color="#94a3b8" style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)' }} />
-                <input 
-                  value={searchTerm}
-                  onChange={e => setSearchTerm(e.target.value)}
-                  placeholder="강사/제목 검색"
-                  style={{ 
-                    width: '100%', 
-                    padding: '10px 12px 10px 38px', 
-                    borderRadius: '12px', 
-                    background: '#1e293b', 
-                    border: '1px solid rgba(255,255,255,0.1)', 
-                    color: '#f8fafc', 
-                    fontSize: '13px', 
-                    outline: 'none'
-                  }} 
-                />
-              </div>
+            <div style={{ position: 'relative', flex: 2 }}>
+              <SearchIcon size={16} color="#94a3b8" style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)' }} />
+              <input 
+                value={searchTerm}
+                onChange={e => setSearchTerm(e.target.value)}
+                placeholder="강사명 또는 캠프 제목 검색"
+                style={{ 
+                  width: '100%', 
+                  padding: '12px 12px 12px 38px', 
+                  borderRadius: '12px', 
+                  background: '#1e293b', 
+                  border: '1px solid rgba(255,255,255,0.1)', 
+                  color: '#f8fafc', 
+                  fontSize: '14px', 
+                  outline: 'none'
+                }} 
+              />
             </div>
           </div>
         </div>
