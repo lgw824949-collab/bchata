@@ -152,8 +152,8 @@ const PartyCard = ({ item, onSelect }) => {
               const entries = Object.entries(GENRE_MAP).filter(([_, info]) => item[info.key] > 0)
               if (entries.length === 0) return '소셜'
               const sorted = [...entries].sort((a, b) => item[b[1].key] - item[a[1].key])
-              if (sorted.length >= 2 && item[sorted[0][1].key] === item[sorted[1][1].key]) return `${sorted[0][1].label} · ${sorted[1][1].label}`
-              return sorted[0][1].label
+              if (sorted.length >= 2 && item[sorted[0][1].key] === item[sorted[1][1].key]) return `${sorted[0][0]} · ${sorted[1][0]}`
+              return sorted[0][0]
             })()}
           </span>
           <span style={{ fontSize:'10px', fontWeight:'700', color:'var(--color-text-primary)', background:'var(--color-background-secondary)', padding:'2px 7px', borderRadius:'20px', border:'0.5px solid var(--color-border)', flexShrink:0 }}>
@@ -165,7 +165,7 @@ const PartyCard = ({ item, onSelect }) => {
         </div>
 
         <div style={{ fontSize:'13px', fontWeight:'700', color:'var(--color-text-main)', whiteSpace:'nowrap', overflow:'hidden', textOverflow:'ellipsis', letterSpacing:'-0.2px', lineHeight:1.3 }}>
-          {translateDynamicText(cleanTitle(item.title).replace(/^\[.*?\]\s*/, '').trim(), isEn)}
+          {translateDynamicText(cleanTitle(item.title).replace(/^\[.*?\]\s*/, '').replace(/ㅣ\s*$/, '').trim(), isEn)}
         </div>
 
         <div style={{ display:'flex', alignItems:'center', gap:'10px' }}>
@@ -771,8 +771,8 @@ const HomePage = ({
                                               const entries = Object.entries(GENRE_MAP).filter(([_, info]) => item[info.key] > 0)
                                               if (entries.length === 0) return '소셜'
                                               const sorted = [...entries].sort((a, b) => item[b[1].key] - item[a[1].key])
-                                              if (sorted.length >= 2 && item[sorted[0][1].key] === item[sorted[1][1].key]) return `${sorted[0][1].label} · ${sorted[1][1].label}`
-                                              return sorted[0][1].label
+                                              if (sorted.length >= 2 && item[sorted[0][1].key] === item[sorted[1][1].key]) return `${sorted[0][0]} · ${sorted[1][0]}`
+                                              return sorted[0][0]
                                             })()}
                                           </span>
                                           <span style={{ fontSize: '10px', fontWeight: '700', color: 'var(--color-text-primary)', background: 'var(--color-background-secondary)', padding: '2px 7px', borderRadius: '20px', border: '0.5px solid var(--color-border)', flexShrink: 0 }}>
@@ -781,7 +781,7 @@ const HomePage = ({
                                         </div>
                                         
                                         <div style={{ fontSize: '13px', fontWeight: '800', color: 'var(--color-text-main)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', letterSpacing: '-0.2px' }}>
-                                          {cleanTitle(item.title).replace(/^\[.*?\]\s*/, '').trim()}
+                                          {cleanTitle(item.title).replace(/^\[.*?\]\s*/, '').replace(/ㅣ\s*$/, '').trim()}
                                         </div>
                                         
                                         <div style={{ display: 'flex', alignItems: 'center', gap: '10px', fontSize: '11px', color: 'var(--color-text-sub)' }}>
@@ -794,15 +794,6 @@ const HomePage = ({
                                             {translateDynamicText(item.locationName, isEn)}
                                           </span>
                                           
-                                          {/* 프리미엄 가격 배지 */}
-                                          <div style={{ display: 'flex', justifyContent: 'flex-start' }}>
-                                            <span style={{ 
-                                              fontSize: '13px', fontWeight: '950', color: '#FF1744',
-                                              background: 'rgba(255,23,68,0.08)', padding: '3px 10px', borderRadius: '8px'
-                                            }}>
-                                              {formatPrice(item.fee)}
-                                            </span>
-                                          </div>
                                         </div>
                                       </div>
                                     </div>
