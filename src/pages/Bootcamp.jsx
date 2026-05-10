@@ -22,8 +22,6 @@ const Bootcamp = ({ onBack, initialView = 'list' }) => {
   const [selectedGenre, setSelectedGenre] = useState('전체');
   const [selectedLevel, setSelectedLevel] = useState('전체');
   const [activeTab, setActiveTab] = useState('국내');
-  const [isGridView, setIsGridView] = useState(true);
-  const [showFilter, setShowFilter] = useState(false);
   const [selectedBootcamp, setSelectedBootcamp] = useState(null);
   const [showBookingGuide, setShowBookingGuide] = useState(false);
   const [copied, setCopied] = useState(false);
@@ -187,7 +185,6 @@ const Bootcamp = ({ onBack, initialView = 'list' }) => {
           padding: '15px 20px'
         }}>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
-            {/* Regional Filter chips at the top */}
             <div style={{ display: 'flex', gap: '8px', overflowX: 'auto', paddingBottom: '5px', scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
               <style>{`div::-webkit-scrollbar { display: none; }`}</style>
               {REGIONS.map(r => (
@@ -212,7 +209,6 @@ const Bootcamp = ({ onBack, initialView = 'list' }) => {
               ))}
             </div>
             
-            {/* Search Bar pushed to the right */}
             <div style={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'center', gap: '10px' }}>
               <div style={{ flex: 1, display: 'flex', gap: '4px', background: 'rgba(255,255,255,0.05)', padding: '4px', borderRadius: '12px' }}>
                 <button onClick={() => setActiveTab('국내')} style={{ flex: 1, padding: '8px', borderRadius: '10px', border: 'none', background: activeTab === '국내' ? '#7C3AED' : 'transparent', color: activeTab === '국내' ? 'white' : '#64748b', fontSize: '12px', fontWeight: 900 }}>국내</button>
@@ -250,44 +246,63 @@ const Bootcamp = ({ onBack, initialView = 'list' }) => {
               ))}
             </div>
 
-            <div style={{ padding: '10px 20px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <div style={{ fontSize: '14px', fontWeight: 800, color: '#94a3b8' }}>총 <span style={{ color: '#F59E0B' }}>{filteredList.length}</span>개</div>
-              <button onClick={() => setIsGridView(!isGridView)} style={{ background: 'none', border: 'none', color: '#64748b', fontSize: '12px', fontWeight: 800 }}>{isGridView ? '카드형 보기' : '리스트형 보기'}</button>
-            </div>
-
-            <div style={{ padding: '0 15px' }}>
+            <div style={{ padding: '0 15px', marginTop: '20px' }}>
               {loading ? (
                 <div style={{ textAlign: 'center', padding: '100px', color: '#94a3b8' }}><Loader2 size={40} className="animate-spin" style={{ margin: '0 auto 20px' }} />로딩 중..</div>
               ) : filteredList.length === 0 ? (
                 <div style={{ textAlign: 'center', padding: '100px 20px', color: '#94a3b8' }}><Tent size={60} style={{ margin: '0 auto 20px', opacity: 0.1 }} /><p style={{ fontWeight: 800 }}>등록된 부트캠프가 없습니다.</p></div>
               ) : (
-                <div style={{ display: isGridView ? 'grid' : 'flex', gridTemplateColumns: 'repeat(3, 1fr)', flexDirection: 'column', gap: '10px' }}>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
                   {filteredList.map((item) => (
                     <motion.div 
                       key={item.id}
-                      initial={{ opacity: 0, y: 10 }} 
-                      animate={{ opacity: 1, y: 0 }}
+                      initial={{ opacity: 0, y: 15 }} 
+                      whileInView={{ opacity: 1, y: 0 }}
+                      viewport={{ once: true }}
                       onClick={() => setSelectedBootcamp(item)}
                       style={{ 
                         background: '#1e293b', 
-                        borderRadius: '16px', 
+                        borderRadius: '24px', 
                         overflow: 'hidden', 
                         border: '1px solid rgba(255,255,255,0.05)',
                         cursor: 'pointer',
-                        display: isGridView ? 'block' : 'flex',
-                        gap: '15px'
+                        boxShadow: '0 10px 30px rgba(0,0,0,0.4)'
                       }}
                     >
-                      <div style={{ width: isGridView ? '100%' : '100px', aspectRatio: isGridView ? '2/3' : '1/1', background: '#000', position: 'relative' }}>
-                        {item.poster_url ? <img src={item.poster_url} style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : <div style={{ height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><ImageIcon size={24} color="#475569" /></div>}
-                        <div style={{ position: 'absolute', top: '8px', left: '8px', background: 'rgba(0,0,0,0.6)', padding: '4px 8px', borderRadius: '6px', fontSize: '10px', fontWeight: 900, color: '#F59E0B' }}>{item.genre}</div>
+                      {/* Wide Poster Area */}
+                      <div style={{ width: '100%', position: 'relative', height: '260px', overflow: 'hidden', background: '#000' }}>
+                        <div style={{ 
+                          position: 'absolute', 
+                          inset: 0, 
+                          backgroundImage: `url(${item.poster_url})`, 
+                          backgroundSize: 'cover', 
+                          backgroundPosition: 'center', 
+                          filter: 'blur(20px) brightness(0.4)',
+                          transform: 'scale(1.1)' 
+                        }} />
+                        <img src={item.poster_url} style={{ width: '100%', height: '100%', objectFit: 'contain', position: 'relative', zIndex: 1 }} />
+                        <div style={{ position: 'absolute', top: '15px', right: '15px', background: 'rgba(245, 158, 11, 0.95)', color: '#000', padding: '6px 12px', borderRadius: '10px', fontSize: '13px', fontWeight: 1000, zIndex: 2 }}>{item.genre}</div>
+                        <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to bottom, transparent 50%, rgba(15,23,42,0.9) 100%)', zIndex: 1 }} />
+                        <div style={{ position: 'absolute', bottom: '20px', left: '20px', right: '20px', zIndex: 2 }}>
+                          <div style={{ fontSize: '14px', color: '#F59E0B', fontWeight: 900, marginBottom: '4px' }}>{item.instructor}</div>
+                          <h3 style={{ fontSize: '22px', fontWeight: 950, color: '#fff', margin: 0 }}>{item.title}</h3>
+                        </div>
                       </div>
-                      <div style={{ padding: isGridView ? '12px' : '10px', flex: 1 }}>
-                        <div style={{ fontSize: isGridView ? '11px' : '12px', color: '#94a3b8', fontWeight: 800, marginBottom: '4px' }}>{item.instructor}</div>
-                        <h3 style={{ fontSize: isGridView ? '13px' : '15px', fontWeight: 950, color: '#f8fafc', margin: 0, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{item.title}</h3>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '4px', marginTop: '8px', color: '#64748b', fontSize: '11px', fontWeight: 700 }}>
-                          <MapPin size={10} color="#F59E0B" />
-                          <span>{item.region} {item.venue}</span>
+
+                      {/* Info Area */}
+                      <div style={{ padding: '20px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                        <div style={{ display: 'flex', gap: '15px' }}>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: '#94a3b8', fontSize: '13px', fontWeight: 800 }}>
+                            <Calendar size={14} color="#F59E0B" />
+                            <span>{item.start_date?.slice(5)} ~ {item.end_date?.slice(5)}</span>
+                          </div>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: '#94a3b8', fontSize: '13px', fontWeight: 800 }}>
+                            <MapPin size={14} color="#E53935" />
+                            <span>{item.region} {item.venue}</span>
+                          </div>
+                        </div>
+                        <div style={{ background: 'rgba(245,158,11,0.1)', padding: '6px 12px', borderRadius: '10px', border: '1px solid rgba(245,158,11,0.2)' }}>
+                          <span style={{ fontSize: '14px', fontWeight: 1000, color: '#F59E0B' }}>자세히 보기</span>
                         </div>
                       </div>
                     </motion.div>
