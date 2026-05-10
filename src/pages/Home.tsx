@@ -165,7 +165,7 @@ const PartyCard = ({ item, onSelect }) => {
         </div>
 
         <div style={{ fontSize:'13px', fontWeight:'700', color:'var(--color-text-main)', whiteSpace:'nowrap', overflow:'hidden', textOverflow:'ellipsis', letterSpacing:'-0.2px', lineHeight:1.3 }}>
-          {translateDynamicText(cleanTitle.replace(/^\[.*?\]\s*/, '').trim(), isEn)}
+          {translateDynamicText(cleanTitle(item.title).replace(/^\[.*?\]\s*/, '').trim(), isEn)}
         </div>
 
         <div style={{ display:'flex', alignItems:'center', gap:'10px' }}>
@@ -664,21 +664,35 @@ const HomePage = ({
                           <div className="hot-pick-track">
                             {/* 무한 루프를 위해 데이터를 두 번 렌더링 */}
                             {[...metroHot, ...metroHot].map((item, idx) => (
-                              <div key={`${item.id}-${idx}`} onClick={() => handleOpenModal(setSelectedPoster, item.poster_url)} style={{ width: '140px', flexShrink: 0, borderRadius: '12px', overflow: 'hidden', boxShadow: '0 8px 20px rgba(0,0,0,0.12)', position: 'relative' }}>
-                                <img src={item.poster_url} style={{ width: '100%', height: '190px', objectFit: 'cover' }} alt="Pick" />
-                                <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, padding: '12px 10px', background: 'linear-gradient(transparent, rgba(0,0,0,0.95))', color: 'white', display: 'flex', flexDirection: 'column', gap: '4px' }}>
-                                  {/* 상단: 핵심 메타데이터 (장르, 시간만!) */}
-                                  <div style={{ display: 'flex', gap: '4px', flexWrap: 'wrap' }}>
-                                    <span style={{ background: '#FF1744', color: 'white', padding: '1px 6px', borderRadius: '4px', fontSize: '9px', fontWeight: 950 }}>
-                                      {Object.entries(GENRE_MAP).filter(([_, info]) => item[info.key] > 0).map(([_, info]) => `${info.label}${item[info.key]}`).join(' ')}
+                              <div key={`${item.id}-${idx}`} onClick={() => handleOpenModal(setSelectedPoster, item.poster_url)} style={{ width: '280px', flexShrink: 0, borderRadius: '16px', overflow: 'hidden', display: 'flex', background: 'var(--color-card)', border: '1px solid var(--color-border)', cursor: 'pointer', height: '100px' }}>
+                                <div style={{ width: '80px', flexShrink: 0 }}>
+                                  <img src={item.poster_url} style={{ width: '100%', height: '100%', objectFit: 'cover' }} alt="Pick" />
+                                </div>
+                                <div style={{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'space-between', padding: '10px 14px', minWidth: 0 }}>
+                                  <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                                    <span style={{ fontSize: '9px', fontWeight: '600', color: '#E53935', background: '#fff0f0', padding: '1px 6px', borderRadius: '4px' }}>
+                                      {(() => {
+                                        const entries = Object.entries(GENRE_MAP).filter(([_, info]) => item[info.key] > 0)
+                                        if (entries.length === 0) return '소셜'
+                                        const sorted = [...entries].sort((a, b) => item[b[1].key] - item[a[1].key])
+                                        if (sorted.length >= 2 && item[sorted[0][1].key] === item[sorted[1][1].key]) return `${sorted[0][1].label} · ${sorted[1][1].label}`
+                                        return sorted[0][1].label
+                                      })()}
                                     </span>
-                                    <span style={{ background: 'rgba(255,255,255,0.2)', padding: '1px 6px', borderRadius: '4px', fontSize: '9px', fontWeight: 950 }}>
-                                      {item.time?.split('-')[0].trim() || '21:00'}
+                                    <span style={{ fontSize: '9px', fontWeight: '700', color: 'var(--color-text-primary)', background: 'var(--color-background-secondary)', padding: '1px 6px', borderRadius: '4px' }}>
+                                      {formatPrice(item.fee)}
                                     </span>
                                   </div>
-                                  {/* 하단: 장소 및 제목 */}
-                                  <div style={{ fontSize: '10px', color: '#FFEB3B', fontWeight: 950, textShadow: '0 1px 2px rgba(0,0,0,0.8)' }}>{translateDynamicText(item.locationName, isEn)}</div>
-                                  <div style={{ fontSize: '11px', fontWeight: 950, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', textShadow: '0 1px 2px rgba(0,0,0,0.8)' }}>{translateDynamicText(item.title, isEn)}</div>
+                                  <div style={{ fontSize: '12px', fontWeight: '800', color: 'var(--color-text-main)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                                    {translateDynamicText(cleanTitle(item.title).replace(/^\[.*?\]\s*/, '').trim(), isEn)}
+                                  </div>
+                                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '10px', color: 'var(--color-text-sub)' }}>
+                                    <span>{item.time?.split('-')[0].trim() || '21:00'}</span>
+                                    <span style={{ display: 'flex', alignItems: 'center', gap: '2px' }}>
+                                      <Navigation size={10} color="#E53935" fill="#E53935" />
+                                      {translateDynamicText(item.locationName, isEn)}
+                                    </span>
+                                  </div>
                                 </div>
                               </div>
                             ))}
@@ -861,13 +875,34 @@ const HomePage = ({
                                 <div style={{ width: '100%', overflow: 'hidden', padding: '10px 0' }}>
                                   <div className="hot-pick-track">
                                     {[...provincialHot, ...provincialHot].map((item, idx) => (
-                                      <div key={`${item.id}-${idx}`} onClick={() => handleOpenModal(setSelectedPoster, item.poster_url)} style={{ width: '140px', flexShrink: 0, borderRadius: '12px', overflow: 'hidden', boxShadow: '0 8px 20px rgba(0,0,0,0.12)', position: 'relative' }}>
-                                        <img src={item.poster_url} style={{ width: '100%', height: '190px', objectFit: 'cover' }} alt="Pick" />
-                                        <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, padding: '12px 8px', background: 'linear-gradient(transparent, rgba(0,0,0,0.95))', color: 'white' }}>
-                                          <div style={{ fontSize: '10px', color: '#FFEB3B', fontWeight: 900, marginBottom: '2px', textShadow: '0 1px 2px rgba(0,0,0,0.8)' }}>{translateDynamicText(item.locationName, isEn)}</div>
-                                          <div style={{ fontSize: '11px', fontWeight: 900, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', marginBottom: '4px', textShadow: '0 1px 2px rgba(0,0,0,0.8)' }}>{translateDynamicText(item.title, isEn)}</div>
-                                          <div style={{ fontSize: '9px', fontWeight: 900, color: '#fff', display: 'flex', gap: '2px' }}>
-                                            <span style={{ background: 'rgba(0,0,0,0.5)', padding: '2px 8px', borderRadius: '4px' }}>{(() => { const d = new Date(item.date); return `${d.getMonth() + 1}/${d.getDate()}(${isEn ? DAYS_EN[d.getDay()] : DAYS_KOR[d.getDay()]})`; })()}</span>
+                                      <div key={`${item.id}-${idx}`} onClick={() => handleOpenModal(setSelectedPoster, item.poster_url)} style={{ width: '280px', flexShrink: 0, borderRadius: '16px', overflow: 'hidden', display: 'flex', background: 'var(--color-card)', border: '1px solid var(--color-border)', cursor: 'pointer', height: '100px' }}>
+                                        <div style={{ width: '80px', flexShrink: 0 }}>
+                                          <img src={item.poster_url} style={{ width: '100%', height: '100%', objectFit: 'cover' }} alt="Pick" />
+                                        </div>
+                                        <div style={{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'space-between', padding: '10px 14px', minWidth: 0 }}>
+                                          <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                                            <span style={{ fontSize: '9px', fontWeight: '600', color: '#E53935', background: '#fff0f0', padding: '1px 6px', borderRadius: '4px' }}>
+                                              {(() => {
+                                                const entries = Object.entries(GENRE_MAP).filter(([_, info]) => item[info.key] > 0)
+                                                if (entries.length === 0) return '소셜'
+                                                const sorted = [...entries].sort((a, b) => item[b[1].key] - item[a[1].key])
+                                                if (sorted.length >= 2 && item[sorted[0][1].key] === item[sorted[1][1].key]) return `${sorted[0][1].label} · ${sorted[1][1].label}`
+                                                return sorted[0][1].label
+                                              })()}
+                                            </span>
+                                            <span style={{ fontSize: '9px', fontWeight: '700', color: 'var(--color-text-primary)', background: 'var(--color-background-secondary)', padding: '1px 6px', borderRadius: '4px' }}>
+                                              {formatPrice(item.fee)}
+                                            </span>
+                                          </div>
+                                          <div style={{ fontSize: '12px', fontWeight: '800', color: 'var(--color-text-main)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                                            {cleanTitle(item.title).replace(/^\[.*?\]\s*/, '').trim()}
+                                          </div>
+                                          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '10px', color: 'var(--color-text-sub)' }}>
+                                            <span>{item.time?.split('-')[0].trim() || '21:00'}</span>
+                                            <span style={{ display: 'flex', alignItems: 'center', gap: '2px' }}>
+                                              <Navigation size={10} color="#E53935" fill="#E53935" />
+                                              {translateDynamicText(item.locationName, isEn)}
+                                            </span>
                                           </div>
                                         </div>
                                       </div>
