@@ -71,7 +71,8 @@ export default function AdminDashboard({ onBack }) {
   // 수정 시작
   const startEdit = (item) => {
     if (category === 'social') {
-      setCurrentItem(item)
+      const targetTable = activeTab === 'active' ? 'parties' : 'pending_parties'
+      setCurrentItem({ ...item, _table: targetTable })
       setShowEditModal(true)
     } else {
       setEditingItem(item.id)

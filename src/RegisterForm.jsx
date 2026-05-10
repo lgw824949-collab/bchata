@@ -266,7 +266,8 @@ const RegisterForm = ({ onBack, onSuccess, isEdit = false, initialData = null })
 
       let error;
       if (isEdit && initialData?.id) {
-        const { error: updateError } = await supabase.from('parties').update(partyData).eq('id', initialData.id);
+        const targetTable = initialData._table || 'parties';
+        const { error: updateError } = await supabase.from(targetTable).update(partyData).eq('id', initialData.id);
         error = updateError;
       } else {
         const { error: insertError } = await supabase.from('parties').insert([partyData]);
