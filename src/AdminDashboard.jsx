@@ -5,6 +5,85 @@ import { ChevronLeft, Check, Trash2, ShieldCheck, X, RefreshCw, XCircle, Clock, 
 import { motion, AnimatePresence } from 'framer-motion'
 import RegisterForm from './RegisterForm'
 
+const EventRanking = () => {
+  const [rankings, setRankings] = useState([])
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    const fetchRankings = async () => {
+      const since = new Date()
+      since.setDate(since.getDate() - 15)
+
+      const [partiesRes, bootcampsRes, festivalsRes] = await Promise.all([
+        supabase.from('parties').select('contributor_id, status').not('contributor_id', 'is', null).gte('created_at', since.toISOString()),
+        supabase.from('bootcamps').select('contributor_id, status').not('contributor_id', 'is', null).gte('created_at', since.toISOString()),
+        supabase.from('festivals').select('contributor_id, status').not('contributor_id', 'is', null).gte('created_at', since.toISOString()),
+      ])
+
+      const all = [
+        ...(partiesRes.data || []),
+        ...(bootcampsRes.data || []),
+        ...(festivalsRes.data || []),
+      ]
+
+      const map = {}
+      all.forEach(p => {
+        if (!p.contributor_id) return
+        if (!map[p.contributor_id]) map[p.contributor_id] = { total:0, approved:0, pending:0 }
+        map[p.contributor_id].total++
+        if (p.status === 'approved') map[p.contributor_id].approved++
+        if (p.status === 'pending') map[p.contributor_id].pending++
+      })
+
+      const sorted = Object.entries(map)
+        .sort((a, b) => b[1].approved - a[1].approved)
+        .map(([id, counts], i) => ({ rank: i+1, id, ...counts }))
+
+      setRankings(sorted)
+      setLoading(false)
+    }
+    fetchRankings()
+  }, [])
+
+  return (
+    <div style={{ padding:24 }}>
+      <div style={{ fontSize:18, fontWeight:900, color:'#111', marginBottom:4 }}>🥃 포스터 이벤트 집계</div>
+      <div style={{ fontSize:12, color:'#999', marginBottom:20 }}>최근 15일 · 소셜+부트캠프+페스티벌 승인 기준</div>
+
+      {loading && <div style={{ textAlign:'center', padding:40, color:'#999' }}>집계 중...</div>}
+
+      {!loading && rankings.length === 0 && (
+        <div style={{ textAlign:'center', padding:40, color:'#999' }}>
+          <div style={{ fontSize:32, marginBottom:8 }}>📭</div>
+          <div>등록된 포스터가 없어요</div>
+        </div>
+      )}
+
+      {rankings.map(r => (
+        <div key={r.id} style={{
+          display:'flex', alignItems:'center', gap:16,
+          padding:'14px 16px', borderRadius:14, marginBottom:10,
+          background: r.rank === 1 ? '#FFF8E1' : '#F8F9FA',
+          border: r.rank === 1 ? '1px solid #F59E0B' : '1px solid #F1F5F9'
+        }}>
+          <div style={{ fontSize:20, width:32, textAlign:'center' }}>
+            {r.rank === 1 ? '🥇' : r.rank === 2 ? '🥈' : r.rank === 3 ? '🥉' : r.rank}
+          </div>
+          <div style={{ flex:1 }}>
+            <div style={{ fontSize:15, fontWeight:700, color:'#111', fontFamily:'monospace' }}>{r.id}</div>
+            <div style={{ fontSize:11, color:'#999', marginTop:2 }}>
+              전체 {r.total}개 · 승인 {r.approved}개 · 검토중 {r.pending}개
+            </div>
+          </div>
+          {r.rank === 1 && (
+            <span style={{ fontSize:11, fontWeight:700, color:'#F59E0B', background:'#FEF3C7', padding:'3px 10px', borderRadius:20 }}>🥃 위스키</span>
+          )}
+        </div>
+      ))}
+    </div>
+  )
+}
+
 export default function AdminDashboard({ onBack }) {
   const [isAdmin, setIsAdmin] = useState(false)
   const [loginStep, setLoginStep] = useState(1)
@@ -273,7 +352,8 @@ export default function AdminDashboard({ onBack }) {
     { id: 'live-mgmt', label: 'LIVE 관리', icon: <Zap size={16} color="#F59E0B" /> },
     { id: 'live', label: 'LIVE PICK', icon: <Camera size={16} /> },
     { id: 'bootcamp', label: '부트캠프', icon: <Tent size={16} /> },
-    { id: 'festival', label: '페스티벌', icon: <Flag size={16} /> }
+    { id: 'festival', label: '페스티벌', icon: <Flag size={16} /> },
+    { id: 'event', label: '🥃 이벤트', icon: <Sparkles size={16} color="#F59E0B" /> }
   ]
 
   return (
@@ -369,7 +449,7 @@ export default function AdminDashboard({ onBack }) {
       </div>
 
       {/* 상태 탭 */}
-      {category !== 'live-mgmt' && (
+      {category !== 'live-mgmt' && category !== 'event' && (
         <div style={{ display: 'flex', padding: '0 16px 16px', gap: '8px', backgroundColor: '#FFF' }}>
           {[
             { id: 'pending', label: '승인대기', color: '#F59E0B' },
@@ -396,7 +476,7 @@ export default function AdminDashboard({ onBack }) {
 
       {/* 리스트 */}
       <div style={{ padding: '16px' }}>
-        {items.length === 0 ? <div style={{ textAlign: 'center', padding: '100px 0', color: '#94A3B8' }}>데이터가 없습니다.</div> : items.map(item => (
+        {category === 'event' ? <EventRanking /> : items.length === 0 ? <div style={{ textAlign: 'center', padding: '100px 0', color: '#94A3B8' }}>데이터가 없습니다.</div> : items.map(item => (
           <div key={item.id} style={{ backgroundColor: '#FFF', borderRadius: '20px', padding: '20px', marginBottom: '16px', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.1)', border: '1px solid #E2E8F0' }}>
             <div style={{ display: 'flex', gap: '16px' }}>
               {(item.poster_url || item.photo_url || item.image_url) && <img src={item.poster_url || item.photo_url || item.image_url} style={{ width: '80px', height: '110px', objectFit: 'cover', borderRadius: '12px' }} />}
