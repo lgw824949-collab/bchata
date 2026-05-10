@@ -649,9 +649,31 @@ function App() {
   const [selectedMonth, setSelectedMonth] = useState(todayData.month);
   const [showGridModal, setShowGridModal] = useState(false);
   const [gridRegion, setGridRegion] = useState('');
+  const [showAllRegionsModal, setShowAllRegionsModal] = useState(false);
+  const [selectedAllRegionsDate, setSelectedAllRegionsDate] = useState('');
   const [followedInstructors, setFollowedInstructors] = useState([]);
   const [likedLivePicks, setLikedLivePicks] = useState([]);
   const [sidebarRefresh, setSidebarRefresh] = useState(0);
+
+  const groupedAllRegionsParties = useMemo(() => {
+    if (!selectedAllRegionsDate) return {};
+    const dayParties = parties.filter(p => p.date === selectedAllRegionsDate);
+    const groups = {
+      '서울': [],
+      '경기/인천': [],
+      '경상도': [],
+      '기타': []
+    };
+    
+    dayParties.forEach(p => {
+      let region = p.broadRegion;
+      if (region !== '서울' && region !== '경기/인천' && region !== '경상도') {
+        region = '기타';
+      }
+      if (groups[region].length < 8) groups[region].push(p);
+    });
+    return groups;
+  }, [parties, selectedAllRegionsDate]);
 
   useEffect(() => {
     const handleSync = () => setSidebarRefresh(prev => prev + 1);
@@ -1286,7 +1308,7 @@ function App() {
         className="bottom-nav" 
         style={{ 
           position: 'fixed', bottom: 0, left: '50%',
-          transform: navVisible ? 'translateX(-50%) translateY(0)' : 'translateX(-50%) translateY(100%)',
+          transform: (navVisible && !showAllRegionsModal) ? 'translateX(-50%) translateY(0)' : 'translateX(-50%) translateY(100%)',
           transition: 'transform 0.3s ease',
           width: '100%', maxWidth: '500px', height: '80px',
           background: 'var(--color-nav-bg)', backdropFilter: 'blur(10px)',
@@ -1440,6 +1462,61 @@ function App() {
       </AnimatePresence>
 
       <AnimatePresence>
+        {showAllRegionsModal && (
+          <motion.div 
+            initial={{ opacity: 0, y: 100 }} 
+            animate={{ opacity: 1, y: 0 }} 
+            exit={{ opacity: 0, y: 100 }} 
+            transition={{ type: 'spring', damping: 25, stiffness: 200 }}
+            style={{ position: 'fixed', inset: 0, background: '#0F172A', zIndex: 180000, display: 'flex', flexDirection: 'column', paddingBottom: 'env(safe-area-inset-bottom)' }}
+          >
+            <div style={{ padding: '20px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: 'rgba(15, 23, 42, 0.9)', backdropFilter: 'blur(20px)', borderBottom: '1px solid rgba(255,255,255,0.05)', position: 'sticky', top: 0, zIndex: 10 }}>
+              <div>
+                <h2 style={{ fontSize: '20px', fontWeight: 950, color: '#fff', margin: 0 }}>{selectedAllRegionsDate.split('-')[1]}월 {selectedAllRegionsDate.split('-')[2]}일 전체 행사</h2>
+                <p style={{ fontSize: '12px', color: '#FF1744', marginTop: '2px', fontWeight: 800, letterSpacing: '1px' }}>NATIONWIDE PREVIEW</p>
+              </div>
+              <button onClick={() => setShowAllRegionsModal(false)} style={{ background: 'rgba(255,255,255,0.1)', border: 'none', borderRadius: '50%', width: '44px', height: '44px', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}>
+                <X size={24} color="#fff" />
+              </button>
+            </div>
+
+            <div style={{ flex: 1, overflowY: 'auto', padding: '20px' }}>
+              {['서울', '경기/인천', '경상도', '기타'].map(region => (
+                <div key={region} style={{ marginBottom: '40px' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '16px' }}>
+                    <div style={{ width: '4px', height: '18px', background: '#FF1744', borderRadius: '2px' }} />
+                    <h3 style={{ fontSize: '19px', fontWeight: 1000, color: '#fff', margin: 0 }}>{region === '기타' ? '전라/충청/강원/제주' : region}</h3>
+                    <div style={{ flex: 1, height: '1px', background: 'linear-gradient(90deg, rgba(255,255,255,0.1), transparent)' }} />
+                    <span style={{ fontSize: '13px', color: '#FF1744', fontWeight: 900 }}>{groupedAllRegionsParties[region]?.length || 0}</span>
+                  </div>
+                  
+                  {groupedAllRegionsParties[region]?.length > 0 ? (
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '10px' }}>
+                      {groupedAllRegionsParties[region].map(p => (
+                        <div key={p.id} onClick={() => setSelectedPoster(p.poster_url)} style={{ cursor: 'pointer', transition: 'transform 0.2s' }}>
+                          <div style={{ position: 'relative', paddingTop: '135%', borderRadius: '14px', overflow: 'hidden', border: '1px solid rgba(255,255,255,0.08)', boxShadow: '0 8px 24px rgba(0,0,0,0.4)' }}>
+                            <img src={p.poster_url} style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover' }} alt={p.title} />
+                            <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to bottom, transparent 40%, rgba(0,0,0,0.9) 100%)' }} />
+                            <div style={{ position: 'absolute', bottom: '8px', left: '8px', right: '8px' }}>
+                              <div style={{ fontSize: '11px', fontWeight: 900, color: '#fff', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{p.displayLocationName}</div>
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <div style={{ padding: '40px', background: 'rgba(255,255,255,0.02)', borderRadius: '20px', textAlign: 'center', border: '1px dashed rgba(255,255,255,0.1)' }}>
+                      <p style={{ color: '#475569', fontSize: '14px', fontWeight: 800, margin: 0 }}>이 지역에 등록된 행사가 없습니다 😴</p>
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      <AnimatePresence>
         {showFullCalendar && (
           <>
             <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={handleCloseModal} style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.6)', backdropFilter: 'blur(4px)', zIndex: 170000 }} />
@@ -1469,17 +1546,45 @@ function App() {
                       return days.map((day, idx) => {
                         if (!day.date) return <div key={idx} />;
                         const isSelected = selectedDate === day.fullDate;
+                        const hasEvents = parties.some(p => p.date === day.fullDate);
                         const themeColor = '#FF1744';
                         const todayStr = getKSTDate().dateStr;
                         return (
                           <div 
                             key={day.fullDate} 
                             onClick={() => { 
-                              if (day.fullDate >= todayStr) { setSelectedDate(day.fullDate); }
+                              if (day.fullDate >= todayStr) { 
+                                setSelectedDate(day.fullDate);
+                                setSelectedAllRegionsDate(day.fullDate);
+                                handleOpenModal(setShowAllRegionsModal, true);
+                              }
                             }}
-                            style={{ padding: '10px 0', borderRadius: '10px', background: isSelected ? themeColor : '#F8FAFC', color: isSelected ? '#fff' : '#1E293B', fontWeight: 800, cursor: 'pointer' }}
+                            style={{ 
+                              padding: '10px 0', 
+                              borderRadius: '12px', 
+                              background: isSelected ? themeColor : 'transparent', 
+                              color: isSelected ? '#fff' : (idx % 7 === 0 || idx % 7 === 6) ? '#FF1744' : '#1E293B', 
+                              fontWeight: 900, 
+                              cursor: 'pointer',
+                              position: 'relative',
+                              display: 'flex',
+                              flexDirection: 'column',
+                              alignItems: 'center',
+                              justifyContent: 'center',
+                              transition: 'all 0.2s'
+                            }}
                           >
-                            {day.date}
+                            <span style={{ position: 'relative', zIndex: 1 }}>{day.date}</span>
+                            {hasEvents && !isSelected && (
+                              <div style={{ 
+                                position: 'absolute', 
+                                bottom: '6px', 
+                                width: '4px', 
+                                height: '4px', 
+                                background: '#FF1744', 
+                                borderRadius: '50%' 
+                              }} />
+                            )}
                           </div>
                         );
                       });
