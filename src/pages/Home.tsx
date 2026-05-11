@@ -631,7 +631,7 @@ const HomePage = ({
           { icon: '🧭', label: '지능형경로', scale: 1.1, action: () => openAnalysis(false), badge: 'LIVE' },
           { icon: '🔮', label: '운명의좌표', scale: 0.95, action: () => handleOpenModal(setShowSaju, true) },
           { icon: '🚗', label: '주변주차', scale: 1.2, action: () => setView('parking') },
-          { icon: '🔑', label: '대관문의', scale: 0.95, action: () => setShowRentalModal(true) },
+          { icon: '🔑', label: '대관문의', scale: 0.95, action: () => handleOpenModal(setShowRentalModal, true) },
         ].map((item, idx) => (
           <motion.div
             key={idx}
