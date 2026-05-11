@@ -234,7 +234,25 @@ const DynamicAnalysisModal = ({ isOpen, onClose, userCoords, isSajuCall }) => {
     if (userCoords) findTarget(userCoords.lat, userCoords.lon);
   }, [isOpen, userCoords]);
 
-  if (!isOpen || !targetDest) return null;
+  if (!isOpen) return null;
+
+  // 데이터 로딩 중일 때 표시할 UI
+  if (!targetDest) {
+    return (
+      <motion.div 
+        initial={{ opacity: 0 }} 
+        animate={{ opacity: 1 }} 
+        exit={{ opacity: 0 }} 
+        style={{ position: 'fixed', inset: 0, zIndex: 1000000, backgroundColor: '#FFFFFF', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '20px' }}
+      >
+        <motion.div animate={{ rotate: 360 }} transition={{ duration: 1, repeat: Infinity, ease: 'linear' }}>
+          <Loader2 size={50} color="#FF1744" />
+        </motion.div>
+        <h2 style={{ color: '#1E293B', fontSize: '20px', fontWeight: '900' }}>지능형 경로 분석 중...</h2>
+      </motion.div>
+    );
+  }
+
   const isIncheon = targetDest.region === '인천' && isSajuCall;
 
   return (
@@ -771,8 +789,7 @@ function App() {
 
   const openAnalysis = (saju = false) => {
     setIsSajuCall(saju);
-    setIsAnalyzing(true);
-    setTimeout(() => { setIsAnalyzing(false); setShowIncheonModal(true); }, 1200);
+    setShowIncheonModal(true);
   };
 
   const handleRegister = (type = 'party') => {
@@ -1119,17 +1136,17 @@ function App() {
 
       <DynamicAnalysisModal isOpen={showIncheonModal} onClose={() => setShowIncheonModal(false)} userCoords={userCoords} isSajuCall={isSajuCall} />
       <AnimatePresence>
-        <Suspense fallback={null}>
+        <Suspense fallback={<LoadingFallback />}>
           {(showIncheon || showRoute) && <IncheonRoute parties={parties} onClose={() => { setShowIncheon(false); setShowRoute(false); }} />}
         </Suspense>
       </AnimatePresence>
       <AnimatePresence>
-        <Suspense fallback={null}>
+        <Suspense fallback={<LoadingFallback />}>
           {showSaju && <SajuModal parties={parties} onClose={() => setShowSaju(false)} lang={lang} />}
         </Suspense>
       </AnimatePresence>
       <AnimatePresence>
-        <Suspense fallback={null}>
+        <Suspense fallback={<LoadingFallback />}>
           {showWeather && <WeatherModal onClose={() => setShowWeather(false)} />}
         </Suspense>
       </AnimatePresence>
