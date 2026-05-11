@@ -559,18 +559,22 @@ const HomePage = ({
         </p>
         <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between' }}>
           <div>
-            <p 
+            <p
+              style={{ fontSize: '32px', fontWeight: 900, color: 'var(--color-text-main)', margin: 0, letterSpacing: '-1.5px', lineHeight: 1.3 }}
               onClick={() => {
-                if (adminTimerRef.current) clearTimeout(adminTimerRef.current);
-                adminTapRef.current += 1;
-                if (adminTapRef.current >= 3) {
-                  adminTapRef.current = 0;
-                  setView('admin');
+                const now = Date.now();
+                if (!window._adminTap) window._adminTap = { count: 0, last: 0 };
+                if (now - window._adminTap.last < 1000) {
+                  window._adminTap.count++;
                 } else {
-                  adminTimerRef.current = setTimeout(() => { adminTapRef.current = 0; }, 1000);
+                  window._adminTap.count = 1;
+                }
+                window._adminTap.last = now;
+                if (window._adminTap.count >= 3) {
+                  window._adminTap.count = 0;
+                  setView('admin');
                 }
               }}
-              style={{ fontSize: '32px', fontWeight: 900, color: 'var(--color-text-main)', margin: 0, letterSpacing: '-1.5px', lineHeight: 1.3 }}
             >
               {lang === 'ko' ? '전국 어디서든' : 'Anywhere in Korea'}
             </p>
