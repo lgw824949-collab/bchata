@@ -33,12 +33,6 @@ const ANIM_STYLE = `
   .wx-card:active { transform: scale(0.94); }
 `
 
-// 전역 캐시 변수 (컴포넌트 리렌더링과 무관하게 유지)
-let weatherCache = {
-  data: null,
-  timestamp: 0
-};
-
 export default function WeatherModal({ onClose }) {
   const { t } = useTranslation()
   const [weatherData, setWeatherData] = useState([])
@@ -46,36 +40,13 @@ export default function WeatherModal({ onClose }) {
 
   useEffect(() => {
     const fetchAll = async () => {
-      // 1. 캐시 확인 (10분 이내 데이터가 있으면 즉시 사용)
-      const nowTime = Date.now();
-      if (weatherCache.data && (nowTime - weatherCache.timestamp < 10 * 60 * 1000)) {
-        setWeatherData(weatherCache.data);
-        setLoading(false);
-        return;
-      }
-
       try {
         const now = new Date()
-        // KST 기준 (UTC+9)
+        // KST 기준 날짜 계산 (UTC+9)
         const kstDate = new Date(now.getTime() + (9 * 60 * 60 * 1000))
-        
-        // 초단기실황(getUltraSrtNcst)은 매시간 정시에 데이터 생성, 40분 이후 안정적 수신
-        // 안전하게 1시간 전 데이터를 요청하거나 현재 시각의 30분 전으로 설정
-        let baseDate = kstDate.toISOString().slice(0,10).replace(/-/g,'')
-        let hours = kstDate.getUTCHours();
-        let minutes = kstDate.getUTCMinutes();
-        
-        // 기상청 가이드: 실황 데이터는 매시 40분 이후 호출 권장
-        if (minutes < 45) {
-          hours -= 1;
-          if (hours < 0) {
-            hours = 23;
-            // 날짜도 하루 전으로 처리해야 하나 단순화 위해 시간만 조정
-          }
-        }
-        const baseTime = hours.toString().padStart(2, '0') + '00';
-        
-        const serviceKey = import.meta.env.VITE_WEATHER_API_KEY
+        const baseDate = kstDate.toISOString().slice(0,10).replace(/-/g,'')
+        const baseTime = '0500'
+        const serviceKey = import.meta.env.VITE_KMA_API_KEY
 
         if (!serviceKey) {
           setLoading(false);
@@ -84,12 +55,14 @@ export default function WeatherModal({ onClose }) {
 
         const results = await Promise.all(
           REGIONS.map(async (region) => {
-            // 더 가벼운 getUltraSrtNcst 사용
-            const url = `/kma-api/1360000/VilageFcstInfoService_2.0/getUltraSrtNcst?serviceKey=${serviceKey}&numOfRows=10&pageNo=1&dataType=JSON&base_date=${baseDate}&base_time=${baseTime}&nx=${region.nx}&ny=${region.ny}`
+            const url = `https://apis.data.go.kr/1360000/VilageFcstInfoService_2.0/getVilageFcst?serviceKey=${serviceKey}&numOfRows=10&pageNo=1&dataType=JSON&base_date=${baseDate}&base_time=${baseTime}&nx=${region.nx}&ny=${region.ny}`
             
             try {
               const res = await fetch(url)
-              if (!res.ok) throw new Error(`HTTP ${res.status}`);
+              if (!res.ok) {
+                const text = await res.text();
+                throw new Error(`HTTP ${res.status}: ${text.slice(0, 50)}`);
+              }
               const data = await res.json()
               
               if (data.response?.header?.resultCode !== '00') {
@@ -97,10 +70,10 @@ export default function WeatherModal({ onClose }) {
               }
 
               const items = data.response.body.items.item
-              const tmp = items.find(i => i.category === 'T1H')?.obsrValue // 실황은 T1H가 온도
-              const pty = items.find(i => i.category === 'PTY')?.obsrValue // 강수 형태
+              const tmp = items.find(i => i.category === 'TMP')?.fcstValue
+              const sky = items.find(i => i.category === 'SKY')?.fcstValue
 
-              // 실황 API에는 SKY가 없으므로 PTY와 시간대로 추정 (심플 버전)
+              // sky 코드: 1 → ☀️ 맑음, 3 → ⛅ 구름많음, 4 → ☁️ 흐림
               let icon = '☀️'
               let labelKey = 'weather_clear'
               let anim = 'spin'
@@ -108,43 +81,41 @@ export default function WeatherModal({ onClose }) {
               let badgeColor = '#FF8C00'
               let badgeBg = '#FFF3CD'
 
-              if (pty === '1' || pty === '4') { // 비
-                icon = '🌧️'
-                labelKey = 'weather_rainy'
-                anim = 'fall'
-                badgeKey = 'badge_indoor_social'
-                badgeColor = '#1565C0'
-                badgeBg = '#E3F2FD'
-              } else if (pty === '2' || pty === '3') { // 눈
-                icon = '❄️'
-                labelKey = 'weather_snowy'
+              if (sky === '3') {
+                icon = '⛅'
+                labelKey = 'weather_partly_cloudy'
                 anim = 'sway'
                 badgeKey = 'badge_perfect_dance'
+                badgeColor = '#1565C0'
+                badgeBg = '#E3F2FD'
+              } else if (sky === '4') {
+                icon = '☁️'
+                labelKey = 'weather_cloudy'
+                anim = 'sway'
+                badgeKey = 'badge_indoor_social'
                 badgeColor = '#64748B'
                 badgeBg = '#F1F5F9'
-              } else {
-                // 구름 등은 실황에서 알기 어려우므로 기본 맑음 유지
               }
 
               return { ...region, temp: tmp, icon, labelKey, anim, badgeKey, badgeColor, badgeBg }
             } catch (err) {
+              console.error(`Error fetching weather for ${region.key}:`, err)
               return { 
-                ...region, temp: '--', icon: '☀️', labelKey: 'weather_clear', anim: 'spin', 
-                badgeKey: 'weather_error', badgeColor: '#64748B', badgeBg: '#F1F5F9' 
+                ...region, 
+                temp: '--', 
+                icon: '☀️', 
+                labelKey: 'weather_clear', 
+                anim: 'spin', 
+                badgeKey: 'weather_error', 
+                badgeColor: '#64748B', 
+                badgeBg: '#F1F5F9' 
               }
             }
           })
         )
-
-        // 캐시 저장
-        weatherCache = {
-          data: results,
-          timestamp: Date.now()
-        };
-        
         setWeatherData(results)
       } catch (err) {
-        console.error('Weather optimization error:', err)
+        console.error('Weather fetch error:', err)
       }
       setLoading(false)
     }
@@ -168,19 +139,18 @@ export default function WeatherModal({ onClose }) {
       }}>
 
         {/* 헤더 */}
-        <div style={{ display:'flex', alignItems:'center', gap:16, marginBottom:18 }}>
+        <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:14 }}>
+          <div>
+            <div style={{ fontSize:16, fontWeight:900, color:'#1E293B' }}>{t('weather_title')}</div>
+            <div style={{ fontSize:10, color:'#94A3B8', marginTop:2 }}>{t('weather_desc')}</div>
+          </div>
           <button onClick={onClose} style={{
             background:'#E2E8F0', border:'none', borderRadius:'50%',
-            width:40, height:40, cursor:'pointer',
+            width:32, height:32, cursor:'pointer',
             display:'flex', alignItems:'center', justifyContent:'center',
-            flexShrink: 0
           }}>
-            <ChevronLeft size={24} color="#64748B"/>
+            <X size={14} color="#64748B"/>
           </button>
-          <div>
-            <div style={{ fontSize:18, fontWeight:900, color:'#1E293B' }}>{t('weather_title')}</div>
-            <div style={{ fontSize:11, color:'#94A3B8' }}>{t('weather_desc')}</div>
-          </div>
         </div>
 
         {/* 카드 그리드 */}
