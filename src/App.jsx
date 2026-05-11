@@ -1,5 +1,5 @@
-import React, { useState, useEffect, useMemo, useRef, lazy, Suspense } from 'react'
-import { Home as HomeIcon, Users, Plus, LogOut, Heart, X, MessageSquare, RefreshCw, CloudSun, Utensils, Zap, Languages, Bell, Star, Navigation, CreditCard, Settings, Map as MapIcon, BarChart, Gift, Coffee, User, Menu, Music2, Tent, Flag, Download, Globe, ShieldCheck, Calendar, Camera, BookOpen, ParkingCircle, Building, Cloud, MessageCircle, ChevronLeft, ChevronRight, Loader2 } from 'lucide-react'
+import { useState, useEffect, useMemo, useRef, lazy, Suspense } from 'react'
+import { Home as HomeIcon, Users, Plus, LogOut, Heart, X, MessageSquare, RefreshCw, CloudSun, Utensils, Zap, Languages, Bell, Star, Navigation, CreditCard, Settings, Map as MapIcon, BarChart, Gift, Coffee, User, Menu, Music2, Tent, Flag, Download, Globe, ShieldCheck, Calendar, Camera, ChevronLeft, ChevronRight, Loader2 } from 'lucide-react'
 import { useTranslation } from 'react-i18next';
 import { motion, AnimatePresence } from 'framer-motion'
 import { supabase, logActivity } from './lib/supabase'
@@ -18,22 +18,6 @@ const Restaurant = lazy(() => import('./pages/Restaurant'));
 const SajuModal = lazy(() => import('./components/SajuModal'));
 const IncheonRoute = lazy(() => import('./components/IncheonRoute'));
 const WeatherModal = lazy(() => import('./components/WeatherModal'));
-const Instructors = lazy(() => import('./pages/Instructors'));
-import InstructorRegistrationModal from './components/InstructorRegistrationModal';
-import InstructorClassForm from './components/InstructorClassForm'
-
-const INSTRUCTOR_FORM_KEY = 'bamppa_instructor_form';
-const INITIAL_INSTRUCTOR_FORM = {
-  name: '',
-  custom_id: '',
-  genre: [],
-  experience: '',
-  city: '서울',
-  instagram: '',
-  photo_url: '',
-  kakao_link: '',
-  bio: ''
-};
 
 // 로딩 스피너 컴포넌트
 const LoadingFallback = () => (
@@ -242,62 +226,15 @@ const DynamicAnalysisModal = ({ isOpen, onClose, userCoords, isSajuCall }) => {
         .sort((a, b) => a.dist - b.dist)
         .slice(0, 5);
 
-      if (venues.length > 0) {
-        setTargetDest(venues[0]);
-        setNearbyVenues(venues);
-        const d = venues[0].dist;
-        setTracker({ distance: d.toFixed(1), duration: Math.ceil(d * 10) + 5 });
-      } else {
-        setTargetDest(null);
-      }
+      setTargetDest(venues[0]);
+      setNearbyVenues(venues);
+      const d = venues[0].dist;
+      setTracker({ distance: d.toFixed(1), duration: Math.ceil(d * 10) + 5 });
     };
     if (userCoords) findTarget(userCoords.lat, userCoords.lon);
   }, [isOpen, userCoords]);
 
-  if (!isOpen) return null;
-
-  // targetDest가 없을 때 (위치 정보 획득 중이거나 권한 거부 시) 대응
-  if (!targetDest) {
-    return (
-      <motion.div 
-        initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} 
-        style={{ position: 'fixed', inset: 0, zIndex: 1000000, backgroundColor: '#FFFFFF', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '24px' }}
-      >
-        <div style={{ textAlign: 'center', maxWidth: '300px' }}>
-          <div style={{ background: '#FEF2F2', padding: '20px', borderRadius: '50%', marginBottom: '20px', display: 'inline-flex' }}>
-            <Navigation size={32} color="#FF1744" className="animate-pulse" />
-          </div>
-          <h2 style={{ fontSize: '20px', fontWeight: '900', color: '#1E293B', marginBottom: '12px' }}>
-            {userCoords ? '데이터 분석 중...' : '위치 정보를 확인 중입니다'}
-          </h2>
-          <p style={{ color: '#64748B', fontSize: '14px', lineHeight: '1.6', marginBottom: '30px' }}>
-            {userCoords 
-              ? '가장 가까운 성지를 찾고 있습니다. 잠시만 기다려주세요.' 
-              : '권한 허용 확인이 필요하거나, GPS 신호를 수신하고 있습니다. 창이 계속 유지되면 위치 권한을 확인해주세요.'}
-          </p>
-          
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-            <button 
-              onClick={() => {
-                // 부모의 requestLocation을 다시 호출하거나, 그냥 닫고 다시 시도하도록 유도
-                onClose();
-              }}
-              style={{ padding: '16px', borderRadius: '14px', background: '#FF1744', color: '#fff', border: 'none', fontWeight: '800', cursor: 'pointer', fontSize: '15px' }}
-            >
-              다시 시도하기
-            </button>
-            <button 
-              onClick={onClose}
-              style={{ padding: '12px', background: 'none', border: 'none', color: '#94A3B8', fontWeight: '700', cursor: 'pointer', fontSize: '13px' }}
-            >
-              닫기
-            </button>
-          </div>
-        </div>
-      </motion.div>
-    );
-  }
-
+  if (!isOpen || !targetDest) return null;
   const isIncheon = targetDest.region === '인천' && isSajuCall;
 
   return (
@@ -600,7 +537,6 @@ function App() {
     const path = location.pathname;
     if (path === '/') setView('home');
     else if (path === '/livepick') setView('community');
-    else if (path === '/instructors') setView('instructors');
     else if (path === '/bootcamp') setView('bootcamp');
     else if (path === '/bootcamp/register') setView('bootcamp-register');
     else if (path === '/festival') setView('festival');
@@ -611,13 +547,6 @@ function App() {
     else if (path === '/restaurant') setView('restaurant');
     else if (path === '/admin') setView('admin');
     else if (path === '/admin-portal') setView('admin-portal');
-
-    // Handle Genre Hashes
-    const hash = window.location.hash.replace('#', '');
-    if (['바차타', '살사', '키좀바', '쥬크'].includes(hash)) {
-      setFilterGenre(hash);
-      setView('home');
-    }
   }, [location.pathname]);
 
 
@@ -639,85 +568,15 @@ function App() {
   const [showFilterPanel, setShowFilterPanel] = useState(false);
   const [showFilteredResults, setShowFilteredResults] = useState(false);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const [showInstructorRegister, setShowInstructorRegister] = useState(false);
-  const [instructorFormData, setInstructorFormData] = useState(() => {
-    const saved = localStorage.getItem(INSTRUCTOR_FORM_KEY);
-    return saved ? JSON.parse(saved) : INITIAL_INSTRUCTOR_FORM;
-  });
-
-  // Persist Instructor Form Data
-  useEffect(() => {
-    localStorage.setItem(INSTRUCTOR_FORM_KEY, JSON.stringify(instructorFormData));
-  }, [instructorFormData]);
   const [filterRegion, setFilterRegion] = useState('');
   const [filterGenre, setFilterGenre] = useState('');
   const [selectedMonth, setSelectedMonth] = useState(todayData.month);
   const [showGridModal, setShowGridModal] = useState(false);
   const [gridRegion, setGridRegion] = useState('');
-  const [showAllRegionsModal, setShowAllRegionsModal] = useState(false);
-  const [selectedAllRegionsDate, setSelectedAllRegionsDate] = useState('');
-  const [showRentalModal, setShowRentalModal] = useState(false);
-  const [showWishlist, setShowWishlist] = useState(false)
-  const [showIdRegister, setShowIdRegister] = useState(false)
-  const [showClassForm, setShowClassForm] = useState(false)
-  const [showLivePick, setShowLivePick] = useState(false)
-
-  const handleWeatherTap = () => {
-    const now = Date.now();
-    if (now - lastWeatherTap < 1000) {
-      const newCount = weatherTapCount + 1;
-      if (newCount >= 3) {
-        setView('admin-portal');
-        setIsMenuOpen(false);
-        setWeatherTapCount(0);
-      } else {
-        setWeatherTapCount(newCount);
-      }
-    } else {
-      setWeatherTapCount(1);
-      handleOpenModal(setShowWeather, true);
-    }
-    setLastWeatherTap(now);
-  };
-
-  useEffect(() => {
-    if (showLivePick) {
-      setView('community');
-      setIsMenuOpen(false);
-      setShowLivePick(false);
-    }
-  }, [showLivePick]);
-
-  const groupedAllRegionsParties = useMemo(() => {
-    if (!selectedAllRegionsDate) return {};
-    const dayParties = parties.filter(p => p.date === selectedAllRegionsDate);
-    const groups = {
-      '서울': [],
-      '경기/인천': [],
-      '경상도': [],
-      '기타': []
-    };
-    
-    dayParties.forEach(p => {
-      let region = p.broadRegion;
-      if (region !== '서울' && region !== '경기/인천' && region !== '경상도') {
-        region = '기타';
-      }
-      if (groups[region].length < 8) groups[region].push(p);
-    });
-    return groups;
-  }, [parties, selectedAllRegionsDate]);
-
-  useEffect(() => {
-    const handler = () => setShowIdRegister(true)
-    window.addEventListener('open-id-register', handler)
-    return () => window.removeEventListener('open-id-register', handler)
-  }, [])
-
-
   const [filterStep, setFilterStep] = useState(1);
   const [weatherTapCount, setWeatherTapCount] = useState(0);
   const [lastWeatherTap, setLastWeatherTap] = useState(0);
+  const weatherTimeoutRef = useRef(null);
   const [navVisible, setNavVisible] = useState(true)
   const lastScrollY = useRef(0)
 
@@ -764,15 +623,13 @@ function App() {
   };
 
   useEffect(() => {
-    const path = window.location.pathname;
-    if (path === '/parking') setView('parking');
-    else if (path === '/restaurant') setView('restaurant');
-    else if (path === '/livepick' || path === '/community') setView('community');
-    else if (path === '/instructors') setView('instructors');
-    else if (path === '/bootcamp') setView('bootcamp');
-    else if (path === '/festival') setView('festival');
-    
-    if (path !== '/') window.location.hash = path.replace('/', '');
+    if (window.location.pathname === '/parking') {
+      setView('parking');
+      window.location.hash = 'parking';
+    } else if (window.location.pathname === '/restaurant') {
+      setView('restaurant');
+      window.location.hash = 'restaurant';
+    }
   }, []);
 
   useEffect(() => {
@@ -792,13 +649,7 @@ function App() {
       if (showIncheonModal) { setShowIncheonModal(false); return; }
       if (showIncheon) { setShowIncheon(false); return; }
 
-      const newHash = decodeURIComponent(window.location.hash.replace('#', ''));
-      if (['바차타', '살사', '키좀바', '쥬크'].includes(newHash)) {
-        setFilterGenre(newHash);
-        setView('home');
-        return;
-      }
-
+      const newHash = window.location.hash.replace('#', '');
       if (newHash && newHash !== view) {
         setView(newHash);
       } else if (!newHash && view !== 'home') {
@@ -883,13 +734,7 @@ function App() {
     } catch (err) { console.error('데이터 로딩 오류:', err); } finally { setLoading(false); }
   };
 
-  useEffect(() => { 
-    fetchParties(); 
-    // 초기 로드 시 저장된 좌표 복구
-    const saved = localStorage.getItem('user_last_coords');
-    if (saved) setUserCoords(JSON.parse(saved));
-  }, []);
-
+  useEffect(() => { fetchParties(); }, []);
 
   useEffect(() => {
     const todayStr = getKSTDate().dateStr;
@@ -921,17 +766,10 @@ function App() {
   }, [selectedDate]);
 
   const openAnalysis = (saju = false) => {
-    if (!userCoords) {
-      requestLocation();
-    }
     setIsSajuCall(saju);
     setIsAnalyzing(true);
-    setTimeout(() => { 
-      setIsAnalyzing(false); 
-      handleOpenModal(setShowIncheonModal, true); 
-    }, 1200);
+    setTimeout(() => { setIsAnalyzing(false); setShowIncheonModal(true); }, 1200);
   };
-
 
   const handleRegister = (type = 'party') => {
     if (type === 'party') {
@@ -945,24 +783,16 @@ function App() {
     if (navigator.geolocation) {
       navigator.geolocation.getCurrentPosition(
         (pos) => {
-          const coords = { lat: pos.coords.latitude, lon: pos.coords.longitude };
-          setUserCoords(coords);
-          localStorage.setItem('user_last_coords', JSON.stringify(coords));
-          console.log("Location obtained:", coords);
+          setUserCoords({ lat: pos.coords.latitude, lon: pos.coords.longitude });
+          console.log("Location obtained:", pos.coords.latitude, pos.coords.longitude);
         },
         (err) => {
           console.error("Location request error:", err);
-          // 에러 시 기존 저장된 좌표가 있다면 사용 (폴백)
-          const saved = localStorage.getItem('user_last_coords');
-          if (saved) {
-            setUserCoords(JSON.parse(saved));
-          }
         },
-        { enableHighAccuracy: false, timeout: 10000, maximumAge: 60000 }
+        { enableHighAccuracy: true, timeout: 5000, maximumAge: 0 }
       );
     }
   };
-
 
   const sharedProps = {
     parties: displayParties, bootcamps, festivals, loading, selectedMonth, setSelectedMonth, selectedWeek: 1, setSelectedWeek: () => {}, 
@@ -984,12 +814,7 @@ function App() {
     IncheonBanner: () => <IncheonPremiumBanner t={t} onClick={() => openAnalysis(false)} />, venueCounts: {}, resetToToday: () => { setView('home'); setSelectedDate(todayData.dateStr); }, formatItemDate: (d, t) => `${d} ${t}`, formatFee: (f) => f, 
     handleRegister, 
     fetchParties,
-    showWeather, setShowWeather,
-    isDark, setIsDark,
-    showRentalModal, setShowRentalModal,
     setShowSaju,
-    setShowWishlist,
-    openAnalysis,
     logActivity: () => {}, regionalTheme: { welcomeMsg: "전국 댄서들을 위한 실시간 정보", specialBanner: true }
   };
 
@@ -1062,53 +887,46 @@ function App() {
               </motion.button>
             </div>
 
+            <div style={{ marginBottom: '40px' }}>
+              <h2 style={{ color: 'var(--color-text-main)', fontSize: '24px', fontWeight: 900, margin: 0 }}>{t('premium_services')}</h2>
+              <p style={{ color: 'var(--color-text-sub)', fontSize: '14px', marginTop: '4px' }}>{t('platform_desc')}</p>
+            </div>
 
-            <button
-              onClick={() => { handleCloseModal(); setShowClassForm(true) }}
-              style={{ width:'100%', padding:'16px 20px', background:'#fff', borderRadius:'16px', border:'1px solid #F1F5F9', textAlign:'left', display:'flex', alignItems:'center', gap:'14px', marginBottom:'16px' }}
-            >
-              <div style={{ background:'#FEE2E2', padding:'8px', borderRadius:'10px' }}>
-                <BookOpen size={18} color="#E53935" />
-              </div>
-              <div>
-                <div style={{ fontSize:'14px', fontWeight:700, color:'#1E293B' }}>클래스 등록</div>
-                <div style={{ fontSize:'11px', color:'#94A3B8', marginTop:1 }}>강사 전용 수업 등록</div>
-              </div>
-            </button>
-
-            <div style={{ display:'flex', flexDirection:'column', gap:'8px', padding:'12px 0' }}>
-
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
               {[
-                { label:'라이브픽', bg:'#FFE4E4', iconColor:'#E53935', icon:<Camera size={18} color="#E53935" />, badge:'HOT', onClick:() => handleOpenModal(setShowLivePick, true) },
-                { label:'행사달력', bg:'#FFF3E0', iconColor:'#F97316', icon:<Calendar size={18} color="#F97316" />, onClick:() => handleOpenModal(setShowFullCalendar, true) },
-                { label:'맛집/뒷풀이', bg:'#FCE4EC', icon:<Utensils size={18} color="#C2185B" />, onClick:() => setView('restaurant') },
-                { label:'오늘날씨', bg:'#E3F2FD', icon:<Cloud size={18} color="#1976D2" />, onClick:handleWeatherTap },
-                { label:'찜하기', bg:'#F3E5F5', icon:<Heart size={18} color="#7B1FA2" />, onClick:() => handleOpenModal(setShowWishlist, true) },
-                { label:'채팅문의', bg:'#E8F5E9', icon:<MessageCircle size={18} color="#388E3C" />, onClick:() => window.open('https://open.kakao.com/o/gP43rNri','_blank') },
-                { label:'지능형경로', bg:'#E8EAF6', icon:<Navigation size={18} color="#303F9F" />, badge:'LIVE', onClick:() => handleOpenModal(setShowIncheonModal, true) },
-                { label:'운명의좌표', bg:'#FFF8E1', icon:<Star size={18} color="#F9A825" />, onClick:() => handleOpenModal(setShowSaju, true) },
-                { label:'주변주차', bg:'#E0F7FA', icon:<ParkingCircle size={18} color="#0097A7" />, onClick:() => setView('parking') },
-                { label:'대관문의', bg:'#F1F8E9', icon:<Building size={18} color="#558B2F" />, onClick:() => window.open('https://open.kakao.com/o/gP43rNri','_blank') },
-              ].map((item, i) => (
-                <div
-                  key={i}
-                  onClick={item.onClick}
-                  style={{ width:'100%', padding:'12px 16px', background:'#fff', borderRadius:'14px', border:'1px solid #F1F5F9', display:'flex', alignItems:'center', gap:'14px', cursor:'pointer' }}
+                { icon: <Calendar color={'#FF1744'} />, text: t('view_calendar'), action: () => { setIsMenuOpen(false); handleOpenModal(setShowFullCalendar, true); } },
+                { icon: <Utensils color={'#FF1744'} />, text: t('restaurant'), action: () => { setView('restaurant'); setIsMenuOpen(false); } },
+                { icon: <CloudSun color={'#FF1744'} />, text: t('weather'), action: () => { /* ... weather logic ... */ } },
+                { 
+                  icon: isDark ? <Zap color={'#F59E0B'} /> : <Zap color={'#64748B'} />, 
+                  text: isDark ? '라이트 모드로 보기' : '다크 모드로 보기', 
+                  action: () => setIsDark(!isDark) 
+                },
+                { icon: <MessageSquare color={'#FF1744'} />, text: t('open_chat'), action: () => { window.open('https://open.kakao.com/o/gP43rNri', '_blank'); setIsMenuOpen(false); } },
+              ].map((item, idx) => (
+                <motion.div
+                  key={idx}
+                  whileHover={{ scale: 1.02, backgroundColor: 'var(--color-border)' }}
+                  whileTap={{ scale: 0.98 }}
+                  onClick={item.action}
+                  style={{
+                    background: 'var(--color-card)',
+                    border: '1px solid var(--color-border)',
+                    borderRadius: '12px',
+                    padding: '16px 20px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '16px',
+                    cursor: 'pointer',
+                    transition: 'all 0.2s'
+                  }}
                 >
-                  <div style={{ width:'36px', height:'36px', borderRadius:'10px', background:item.bg, display:'flex', alignItems:'center', justifyContent:'center' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                     {item.icon}
                   </div>
-                  <span style={{ fontSize:'14px', fontWeight:700, color:'#1E293B' }}>
-                    {item.label}
-                  </span>
-                  {item.badge && (
-                    <span style={{ marginLeft:'auto', background:'#E53935', color:'#fff', fontSize:'9px', fontWeight:800, padding:'2px 6px', borderRadius:'10px' }}>
-                      {item.badge}
-                    </span>
-                  )}
-                </div>
+                  <span style={{ color: 'var(--color-text-main)', fontSize: '15px', fontWeight: 800 }}>{item.text}</span>
+                </motion.div>
               ))}
-
             </div>
 
             <div style={{ marginTop: 'auto', paddingTop: '40px', textAlign: 'center' }}>
@@ -1122,7 +940,6 @@ function App() {
         <Suspense fallback={<LoadingFallback />}>
           {view === 'home' ? <HomePage {...sharedProps} /> : 
            view === 'community' ? <Community setSelectedPoster={setSelectedPoster} setView={setView} /> :
-           view === 'instructors' ? <Instructors /> :
            view === 'bootcamp' ? <Bootcamp onBack={() => navigate('/')} /> :
            view === 'bootcamp-register' ? <Bootcamp onBack={() => navigate('/bootcamp')} initialView="register" /> :
            view === 'festival' ? <Festival onBack={() => navigate('/')} /> :
@@ -1175,7 +992,7 @@ function App() {
         className="bottom-nav" 
         style={{ 
           position: 'fixed', bottom: 0, left: '50%',
-          transform: (navVisible && !showAllRegionsModal) ? 'translateX(-50%) translateY(0)' : 'translateX(-50%) translateY(100%)',
+          transform: navVisible ? 'translateX(-50%) translateY(0)' : 'translateX(-50%) translateY(100%)',
           transition: 'transform 0.3s ease',
           width: '100%', maxWidth: '500px', height: '80px',
           background: 'var(--color-nav-bg)', backdropFilter: 'blur(10px)',
@@ -1190,84 +1007,66 @@ function App() {
           style={{ 
             flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
             cursor: 'pointer', transition: 'all 0.3s', position: 'relative', height: '100%',
-            color: location.pathname === '/' ? '#FF1744' : '#94A3B8'
+            color: location.pathname === '/' ? '#E11D48' : '#94A3B8'
           }}
         >
           {location.pathname === '/' && (
             <motion.div 
               layoutId="nav-glow"
-              style={{ position: 'absolute', width: '40px', height: '40px', borderRadius: '50%', background: 'rgba(255, 23, 68, 0.1)', filter: 'blur(8px)' }} 
+              style={{ position: 'absolute', width: '40px', height: '40px', borderRadius: '50%', background: 'rgba(225, 29, 72, 0.1)', filter: 'blur(8px)' }} 
             />
           )}
-
           <Music2 size={22} strokeWidth={location.pathname === '/' ? 2.5 : 2} style={{ marginBottom: '4px' }} />
-          <span style={{ fontSize: '10px', fontWeight: location.pathname === '/' ? 900 : 500 }}>{t('nav_social')}</span>
-
+          <span style={{ fontSize: '10px', fontWeight: location.pathname === '/' ? 900 : 500 }}>SOCIAL</span>
         </div>
 
         <div 
           className="nav-item" 
-          onClick={() => navigate('/instructors')}
+          onClick={() => navigate('/livepick')}
           style={{ 
             flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
             cursor: 'pointer', transition: 'all 0.3s', position: 'relative', height: '100%',
-            color: location.pathname === '/instructors' ? '#FF1744' : '#94A3B8'
+            color: location.pathname === '/livepick' ? '#E11D48' : '#94A3B8'
           }}
         >
-          {location.pathname === '/instructors' && (
+          {location.pathname === '/livepick' && (
             <motion.div 
               layoutId="nav-glow"
-              style={{ position: 'absolute', width: '40px', height: '40px', borderRadius: '50%', background: 'rgba(255, 23, 68, 0.1)', filter: 'blur(8px)' }} 
+              style={{ position: 'absolute', width: '40px', height: '40px', borderRadius: '50%', background: 'rgba(225, 29, 72, 0.1)', filter: 'blur(8px)' }} 
             />
           )}
-
-          <Users size={22} strokeWidth={location.pathname === '/instructors' ? 2.5 : 2} style={{ marginBottom: '4px' }} />
-          <span style={{ fontSize: '10px', fontWeight: location.pathname === '/instructors' ? 900 : 500 }}>{t('nav_master')}</span>
-
+          <Camera size={22} strokeWidth={location.pathname === '/livepick' ? 2.5 : 2} style={{ marginBottom: '4px' }} />
+          <span style={{ fontSize: '10px', fontWeight: location.pathname === '/livepick' ? 900 : 500 }}>LIVE PICK</span>
         </div>
 
-        <div style={{ flex: 0.8, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', position: 'relative', height: '100%', zIndex: 20 }}>
+        <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', position: 'relative', height: '100%' }}>
           <motion.button
-            whileHover={{ scale: 1.1, y: -5 }}
+            whileHover={{ scale: 1.1 }}
             whileTap={{ scale: 0.9 }}
             onClick={() => {
-              if (location.pathname === '/livepick' || (setView && view === 'community')) {
+              if (location.pathname === '/livepick') {
                 window.dispatchEvent(new CustomEvent('open-community-upload'));
               } else if (location.pathname === '/bootcamp') {
                 navigate('/bootcamp/register');
               } else if (location.pathname === '/festival') {
                 navigate('/festival/register');
-              } else if (location.pathname === '/instructors' || (setView && view === 'instructors')) {
-                setShowInstructorRegister(true);
               } else {
                 navigate('/register-party');
               }
             }}
             style={{
-              width: '60px', height: '60px', borderRadius: '22px',
-              background: 'linear-gradient(135deg, #FF1744, #FF5252)',
+              width: '54px', height: '54px', borderRadius: '18px',
+              background: 'linear-gradient(135deg, #F59E0B, #D97706)',
               border: 'none', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center',
-              cursor: 'pointer', boxShadow: '0 10px 30px rgba(229, 57, 53, 0.4)',
-              marginBottom: '25px',
-              position: 'relative',
-              overflow: 'visible'
+              cursor: 'pointer', boxShadow: '0 8px 20px rgba(217, 119, 6, 0.3)',
+              marginBottom: '18px'
             }}
           >
-            <div className="animate-pulse-red" style={{ position: 'absolute', inset: 0, borderRadius: '22px', opacity: 0.5 }}></div>
-            <Plus size={32} strokeWidth={3} style={{ position: 'relative', zIndex: 2 }} />
+            <Plus size={30} strokeWidth={3} />
           </motion.button>
-          <span style={{ fontSize: '10px', fontWeight: 1000, color: '#FF1744', position: 'absolute', bottom: '12px' }}>
-            {(() => {
-              const currentPath = location.pathname;
-              if (currentPath === '/livepick' || view === 'community') return 'REPORT';
-              if (currentPath === '/bootcamp') return t('nav_bootcamp');
-              if (currentPath === '/festival') return t('nav_festival');
-              if (currentPath === '/instructors' || view === 'instructors') return t('nav_master');
-              if (currentPath === '/' || view === 'home') return t('nav_social');
-              return t('nav_party');
-            })()}
+          <span style={{ fontSize: '10px', fontWeight: 900, color: '#D97706', position: 'absolute', bottom: '12px' }}>
+            {location.pathname === '/livepick' ? (i18n.language.startsWith('en') ? 'REPORT' : '리포트') : t('nav_register')}
           </span>
-
         </div>
 
         <div 
@@ -1276,16 +1075,15 @@ function App() {
           style={{ 
             flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
             cursor: 'pointer', transition: 'all 0.3s', position: 'relative', height: '100%',
-            color: location.pathname === '/bootcamp' ? '#FF1744' : '#94A3B8'
+            color: location.pathname === '/bootcamp' ? '#F97316' : '#94A3B8'
           }}
         >
           {location.pathname === '/bootcamp' && (
             <motion.div 
               layoutId="nav-glow"
-              style={{ position: 'absolute', width: '40px', height: '40px', borderRadius: '50%', background: 'rgba(255, 23, 68, 0.1)', filter: 'blur(8px)' }} 
+              style={{ position: 'absolute', width: '40px', height: '40px', borderRadius: '50%', background: 'rgba(249, 115, 22, 0.1)', filter: 'blur(8px)' }} 
             />
           )}
-
           <Tent size={22} strokeWidth={location.pathname === '/bootcamp' ? 2.5 : 2} style={{ marginBottom: '4px' }} />
           <span style={{ fontSize: '10px', fontWeight: location.pathname === '/bootcamp' ? 900 : 500 }}>{t('nav_bootcamp')}</span>
         </div>
@@ -1296,16 +1094,15 @@ function App() {
           style={{ 
             flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
             cursor: 'pointer', transition: 'all 0.3s', position: 'relative', height: '100%',
-            color: location.pathname === '/festival' ? '#FF1744' : '#94A3B8'
+            color: location.pathname === '/festival' ? '#F97316' : '#94A3B8'
           }}
         >
           {location.pathname === '/festival' && (
             <motion.div 
               layoutId="nav-glow"
-              style={{ position: 'absolute', width: '40px', height: '40px', borderRadius: '50%', background: 'rgba(255, 23, 68, 0.1)', filter: 'blur(8px)' }} 
+              style={{ position: 'absolute', width: '40px', height: '40px', borderRadius: '50%', background: 'rgba(249, 115, 22, 0.1)', filter: 'blur(8px)' }} 
             />
           )}
-
           <Flag size={22} strokeWidth={location.pathname === '/festival' ? 2.5 : 2} style={{ marginBottom: '4px' }} />
           <span style={{ fontSize: '10px', fontWeight: location.pathname === '/festival' ? 900 : 500 }}>{t('nav_festival')}</span>
         </div>
@@ -1326,160 +1123,6 @@ function App() {
         <Suspense fallback={null}>
           {showWeather && <WeatherModal onClose={() => setShowWeather(false)} />}
         </Suspense>
-      </AnimatePresence>
-
-      <AnimatePresence>
-        {showRentalModal && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            style={{
-              position: 'fixed',
-              inset: 0,
-              zIndex: 2000003,
-              backgroundColor: 'rgba(0,0,0,0.85)',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              padding: '20px',
-              backdropFilter: 'blur(8px)'
-            }}
-          >
-            <motion.div
-              initial={{ scale: 0.9, opacity: 0, y: 20 }}
-              animate={{ scale: 1, opacity: 1, y: 0 }}
-              style={{
-                background: 'var(--color-card)',
-                borderRadius: '32px',
-                padding: '40px 30px',
-                width: '100%',
-                maxWidth: '360px',
-                textAlign: 'center',
-                border: '1px solid var(--color-border)',
-                position: 'relative',
-                overflow: 'hidden'
-              }}
-            >
-              <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: '6px', background: 'linear-gradient(90deg, #FF1744, #FF8A80)' }} />
-              
-              <div style={{ fontSize: '48px', marginBottom: '24px' }}>🏢</div>
-              
-              <h2 style={{ color: 'var(--color-text-main)', fontSize: '24px', fontWeight: 900, margin: '0 0 12px 0', letterSpacing: '-0.5px' }}>
-                대관 및 홍보 안내 📣
-              </h2>
-              
-              <div style={{ background: 'var(--color-bg)', borderRadius: '20px', padding: '20px', marginBottom: '24px', border: '1px solid var(--color-border)' }}>
-                <p style={{ color: 'var(--color-text-main)', fontSize: '15px', fontWeight: 800, margin: '0 0 10px 0', lineHeight: 1.5 }}>
-                  "파티 장소를 대관하고 싶거나<br/>클럽을 홍보하고 싶은 사장님들!"
-                </p>
-                <p style={{ color: 'var(--color-text-sub)', fontSize: '13px', margin: 0, lineHeight: 1.6, fontWeight: 500 }}>
-                  밤빠와 함께라면 전국 회원들에게<br/>여러분의 공간을 가장 효과적으로<br/>알릴 수 있습니다.
-                </p>
-              </div>
-              
-              <p style={{ color: '#FF1744', fontSize: '14px', fontWeight: 900, marginBottom: '20px' }}>
-                지금 바로 연락 주시면 친절히 안내해 드릴게요!
-              </p>
-              
-              <button
-                onClick={() => {
-                  window.open('https://open.kakao.com/o/gP43rNri', '_blank');
-                  setShowRentalModal(false);
-                }}
-                style={{
-                  background: '#FEE500',
-                  color: '#000',
-                  width: '100%',
-                  padding: '18px',
-                  borderRadius: '16px',
-                  border: 'none',
-                  fontWeight: '900',
-                  fontSize: '17px',
-                  cursor: 'pointer',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  gap: '10px',
-                  boxShadow: '0 10px 20px rgba(254, 229, 0, 0.2)'
-                }}
-              >
-                💬 카카오톡으로 문의하기
-              </button>
-              
-              <button
-                onClick={() => setShowRentalModal(false)}
-                style={{
-                  marginTop: '20px',
-                  background: 'none',
-                  border: 'none',
-                  color: 'var(--color-text-sub)',
-                  fontSize: '13px',
-                  fontWeight: 700,
-                  cursor: 'pointer',
-                  textDecoration: 'underline'
-                }}
-              >
-                나중에 하기
-              </button>
-            </motion.div>
-          </motion.div>
-        )}
-      </AnimatePresence>
-
-      <AnimatePresence>
-        {showAllRegionsModal && (
-          <motion.div 
-            initial={{ opacity: 0, y: 100 }} 
-            animate={{ opacity: 1, y: 0 }} 
-            exit={{ opacity: 0, y: 100 }} 
-            transition={{ type: 'spring', damping: 25, stiffness: 200 }}
-            style={{ position: 'fixed', inset: 0, background: '#0F172A', zIndex: 180000, display: 'flex', flexDirection: 'column', paddingBottom: 'env(safe-area-inset-bottom)' }}
-          >
-            <div style={{ padding: '20px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: 'rgba(15, 23, 42, 0.9)', backdropFilter: 'blur(20px)', borderBottom: '1px solid rgba(255,255,255,0.05)', position: 'sticky', top: 0, zIndex: 10 }}>
-              <div>
-                <h2 style={{ fontSize: '20px', fontWeight: 950, color: '#fff', margin: 0 }}>{selectedAllRegionsDate.split('-')[1]}월 {selectedAllRegionsDate.split('-')[2]}일 전체 행사</h2>
-                <p style={{ fontSize: '12px', color: '#FF1744', marginTop: '2px', fontWeight: 800, letterSpacing: '1px' }}>NATIONWIDE PREVIEW</p>
-              </div>
-              <button onClick={() => setShowAllRegionsModal(false)} style={{ background: 'rgba(255,255,255,0.1)', border: 'none', borderRadius: '50%', width: '44px', height: '44px', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}>
-                <X size={24} color="#fff" />
-              </button>
-            </div>
-
-            <div style={{ flex: 1, overflowY: 'auto', padding: '20px' }}>
-              {['서울', '경기/인천', '경상도', '기타'].map(region => (
-                <div key={region} style={{ marginBottom: '40px' }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '16px' }}>
-                    <div style={{ width: '4px', height: '18px', background: '#FF1744', borderRadius: '2px' }} />
-                    <h3 style={{ fontSize: '19px', fontWeight: 1000, color: '#fff', margin: 0 }}>{region === '기타' ? '전라/충청/강원/제주' : region}</h3>
-                    <div style={{ flex: 1, height: '1px', background: 'linear-gradient(90deg, rgba(255,255,255,0.1), transparent)' }} />
-                    <span style={{ fontSize: '13px', color: '#FF1744', fontWeight: 900 }}>{groupedAllRegionsParties[region]?.length || 0}</span>
-                  </div>
-                  
-                  {groupedAllRegionsParties[region]?.length > 0 ? (
-                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '10px' }}>
-                      {groupedAllRegionsParties[region].map(p => (
-                        <div key={p.id} onClick={() => setSelectedPoster(p.poster_url)} style={{ cursor: 'pointer', transition: 'transform 0.2s' }}>
-                          <div style={{ position: 'relative', paddingTop: '135%', borderRadius: '14px', overflow: 'hidden', border: '1px solid rgba(255,255,255,0.08)', boxShadow: '0 8px 24px rgba(0,0,0,0.4)' }}>
-                            <img src={p.poster_url} style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover' }} alt={p.title} />
-                            <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to bottom, transparent 40%, rgba(0,0,0,0.9) 100%)' }} />
-                            <div style={{ position: 'absolute', bottom: '8px', left: '8px', right: '8px' }}>
-                              <div style={{ fontSize: '11px', fontWeight: 900, color: '#fff', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{p.displayLocationName}</div>
-                            </div>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  ) : (
-                    <div style={{ padding: '40px', background: 'rgba(255,255,255,0.02)', borderRadius: '20px', textAlign: 'center', border: '1px dashed rgba(255,255,255,0.1)' }}>
-                      <p style={{ color: '#475569', fontSize: '14px', fontWeight: 800, margin: 0 }}>이 지역에 등록된 행사가 없습니다 😴</p>
-                    </div>
-                  )}
-                </div>
-              ))}
-            </div>
-          </motion.div>
-        )}
       </AnimatePresence>
 
       <AnimatePresence>
@@ -1512,45 +1155,17 @@ function App() {
                       return days.map((day, idx) => {
                         if (!day.date) return <div key={idx} />;
                         const isSelected = selectedDate === day.fullDate;
-                        const hasEvents = parties.some(p => p.date === day.fullDate);
                         const themeColor = '#FF1744';
                         const todayStr = getKSTDate().dateStr;
                         return (
                           <div 
                             key={day.fullDate} 
                             onClick={() => { 
-                              if (day.fullDate >= todayStr) { 
-                                setSelectedDate(day.fullDate);
-                                setSelectedAllRegionsDate(day.fullDate);
-                                handleOpenModal(setShowAllRegionsModal, true);
-                              }
+                              if (day.fullDate >= todayStr) { setSelectedDate(day.fullDate); }
                             }}
-                            style={{ 
-                              padding: '10px 0', 
-                              borderRadius: '12px', 
-                              background: isSelected ? themeColor : 'transparent', 
-                              color: isSelected ? '#fff' : (idx % 7 === 0 || idx % 7 === 6) ? '#FF1744' : '#1E293B', 
-                              fontWeight: 900, 
-                              cursor: 'pointer',
-                              position: 'relative',
-                              display: 'flex',
-                              flexDirection: 'column',
-                              alignItems: 'center',
-                              justifyContent: 'center',
-                              transition: 'all 0.2s'
-                            }}
+                            style={{ padding: '10px 0', borderRadius: '10px', background: isSelected ? themeColor : '#F8FAFC', color: isSelected ? '#fff' : '#1E293B', fontWeight: 800, cursor: 'pointer' }}
                           >
-                            <span style={{ position: 'relative', zIndex: 1 }}>{day.date}</span>
-                            {hasEvents && !isSelected && (
-                              <div style={{ 
-                                position: 'absolute', 
-                                bottom: '6px', 
-                                width: '4px', 
-                                height: '4px', 
-                                background: '#FF1744', 
-                                borderRadius: '50%' 
-                              }} />
-                            )}
+                            {day.date}
                           </div>
                         );
                       });
@@ -1769,21 +1384,6 @@ function App() {
         )}
       </AnimatePresence>
 
-      <AnimatePresence>
-        {showInstructorRegister && (
-          <InstructorRegistrationModal 
-            isOpen={showInstructorRegister} 
-            onClose={() => setShowInstructorRegister(false)} 
-            formData={instructorFormData}
-            setFormData={setInstructorFormData}
-            onSuccess={() => {
-              setInstructorFormData(INITIAL_INSTRUCTOR_FORM);
-              localStorage.removeItem(INSTRUCTOR_FORM_KEY);
-            }}
-          />
-        )}
-      </AnimatePresence>
-
       </motion.div>
 
     </div>
@@ -1804,102 +1404,6 @@ function App() {
         </motion.div>
       )}
     </AnimatePresence>
-    
-    <AnimatePresence>
-      {showWishlist && (
-        <motion.div
-          initial={{ opacity:0, y:'100%' }}
-          animate={{ opacity:1, y:0 }}
-          exit={{ opacity:0, y:'100%' }}
-          transition={{ type:'spring', damping:25, stiffness:200 }}
-          style={{ position:'fixed', inset:0, zIndex:2000, background:'#fff', overflowY:'auto' }}
-        >
-          <div style={{ padding:'20px 24px', display:'flex', alignItems:'center', gap:12, borderBottom:'1px solid #F1F5F9' }}>
-            <button onClick={() => setShowWishlist(false)}
-              style={{ background:'#F1F5F9', border:'none', borderRadius:'50%', width:40, height:40, display:'flex', alignItems:'center', justifyContent:'center', cursor:'pointer', fontSize:18 }}>←</button>
-            <div>
-              <div style={{ fontSize:18, fontWeight:900, color:'#111' }}>찜한 파티 ❤️</div>
-              <div style={{ fontSize:12, color:'#999' }}>관심있는 파티를 저장해보세요</div>
-            </div>
-          </div>
-          <div style={{ padding:'40px 24px', textAlign:'center' }}>
-            <div style={{ fontSize:48, marginBottom:16 }}>❤️</div>
-            <div style={{ fontSize:16, fontWeight:700, color:'#111', marginBottom:8 }}>아직 찜한 파티가 없어요</div>
-            <div style={{ fontSize:13, color:'#999' }}>파티 카드에서 하트를 눌러 저장해보세요</div>
-          </div>
-        </motion.div>
-      )}
-    </AnimatePresence>
-
-    <AnimatePresence>
-      {showIdRegister && (
-        <motion.div
-          initial={{ opacity:0, y:'100%' }}
-          animate={{ opacity:1, y:0 }}
-          exit={{ opacity:0, y:'100%' }}
-          transition={{ type:'spring', damping:25, stiffness:200 }}
-          style={{ position:'fixed', inset:0, zIndex:3000, background:'#fff', overflowY:'auto' }}
-        >
-          <div style={{ padding:'20px 24px', display:'flex', alignItems:'center', gap:12, borderBottom:'1px solid #F1F5F9' }}>
-            <button onClick={() => setShowIdRegister(false)}
-              style={{ background:'#F1F5F9', border:'none', borderRadius:'50%', width:40, height:40, display:'flex', alignItems:'center', justifyContent:'center', cursor:'pointer', fontSize:18 }}>←</button>
-            <div>
-              <div style={{ fontSize:18, fontWeight:900, color:'#111' }}>🥃 포스터 이벤트</div>
-              <div style={{ fontSize:12, color:'#999' }}>15일간 1등에게 위스키를 밤빠가 쏩니다</div>
-            </div>
-          </div>
-          <div style={{ padding:'24px' }}>
-            <div style={{ background:'#0a0a0a', borderRadius:16, padding:20, marginBottom:20, border:'1px solid rgba(249,115,22,0.3)' }}>
-              <div style={{ fontSize:11, color:'#F97316', fontWeight:800, letterSpacing:3, marginBottom:10 }}>EVENT RULE</div>
-              <div style={{ fontSize:14, color:'rgba(255,255,255,0.8)', lineHeight:1.8, whiteSpace:'pre-line' }}>
-                {'• 소셜·부트캠프·페스티벌 포스터 등록 시 나만의 ID 입력\n• 15일간 승인된 포스터 수 집계\n• 소셜 / 부트캠프 / 페스티벌 모두 포함\n• 1등에게 위스키를 밤빠가 쏩니다 🥃\n• 결과는 카카오 오픈채팅 공지'}
-              </div>
-            </div>
-            <div style={{ marginBottom:12 }}>
-              <div style={{ fontSize:14, fontWeight:700, color:'#111', marginBottom:6 }}>나만의 ID 만들기</div>
-              <input
-                id="event-id-input"
-                type="text"
-                placeholder="영문+숫자 (예: kim_bachata)"
-                style={{ width:'100%', padding:'14px', borderRadius:12, border:'1px solid #E5E7EB', fontSize:14, boxSizing:'border-box', fontFamily:'monospace' }}
-                onChange={e => { e.target.value = e.target.value.toLowerCase().replace(/[^a-z0-9_]/g, '') }}
-              />
-              <div style={{ fontSize:11, color:'#999', marginTop:4 }}>이 ID로 파티 등록 시 자동 사용돼요</div>
-            </div>
-            <button
-              onClick={() => {
-                const id = document.getElementById('event-id-input')?.value
-                if (id) {
-                  localStorage.setItem('contributor_id', id)
-                  alert(`"${id}" 저장 완료! 파티 등록 시 자동으로 입력됩니다 🎉`)
-                  setShowIdRegister(false)
-                } else {
-                  alert('ID를 입력해주세요')
-                }
-              }}
-              style={{ width:'100%', padding:'16px', borderRadius:16, background:'#F97316', color:'#fff', border:'none', fontSize:16, fontWeight:900, cursor:'pointer', marginBottom:10 }}
-            >ID 저장하기 🎉</button>
-            <button
-              onClick={() => window.open('https://open.kakao.com/o/gP43rNri', '_blank')}
-              style={{ width:'100%', padding:'14px', borderRadius:16, background:'#FEE500', color:'#000', border:'none', fontSize:14, fontWeight:700, cursor:'pointer' }}
-            >💬 카카오 오픈채팅 참여하기</button>
-          </div>
-        </motion.div>
-      )}
-      </AnimatePresence>
-      <AnimatePresence>
-        {showClassForm && (
-          <motion.div
-            initial={{ opacity:0, y:'100%' }}
-            animate={{ opacity:1, y:0 }}
-            exit={{ opacity:0, y:'100%' }}
-            transition={{ type:'spring', damping:25, stiffness:200 }}
-            style={{ position:'fixed', inset:0, zIndex:2500, background:'#fff', overflowY:'auto' }}
-          >
-            <InstructorClassForm onBack={() => setShowClassForm(false)} />
-          </motion.div>
-        )}
-      </AnimatePresence>
     </>
   );
 }
