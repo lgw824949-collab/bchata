@@ -707,7 +707,7 @@ function App() {
     setLoading(true);
     try {
       const [partiesRes, locationsRes, bootcampsRes, festivalsRes] = await Promise.all([
-        supabase.from('parties').select('*').order('date', { ascending: true }),
+        supabase.from('parties').select('*, locations(latitude, longitude)').order('date', { ascending: true }),
         supabase.from('locations').select('id, name'),
         supabase.from('bootcamps').select('*').eq('status', 'active'),
         supabase.from('festivals').select('*').eq('status', 'active')
@@ -1137,7 +1137,7 @@ function App() {
       <DynamicAnalysisModal isOpen={showIncheonModal} onClose={() => setShowIncheonModal(false)} userCoords={userCoords} isSajuCall={isSajuCall} />
       <AnimatePresence>
         <Suspense fallback={<LoadingFallback />}>
-          {(showIncheon || showRoute) && <IncheonRoute parties={parties} onClose={() => { setShowIncheon(false); setShowRoute(false); }} />}
+          {(showIncheon || showRoute) && <IncheonRoute parties={parties} userCoords={userCoords} onClose={() => { setShowIncheon(false); setShowRoute(false); }} />}
         </Suspense>
       </AnimatePresence>
       <AnimatePresence>
