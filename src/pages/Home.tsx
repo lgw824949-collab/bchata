@@ -632,7 +632,7 @@ const HomePage = ({
           >
             <div style={{ width:'100%', aspectRatio:'1/1', background:'#fff', borderRadius:'16px', display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center', position:'relative', border:'0.5px solid #F1F5F9', gap:'6px' }}>
               <div style={{ width:'36px', height:'36px', borderRadius:'10px', background:item.bg, display:'flex', alignItems:'center', justifyContent:'center' }}>{item.icon}</div>
-              <span style={{ fontSize:'10px', fontWeight:600, color:'#1E293B', textAlign:'center', lineHeight:1.3 }}>{item.label}</span>
+              <span style={{ fontSize:'10px', fontWeight:600, color:'#1E293B', textAlign:'center', lineHeight:1.3, padding:'0 2px' }}>{item.label}</span>
               {item.badge && (
                 <span style={{ position: 'absolute', top: '-4px', right: '-4px', background: '#FF1744', color: '#fff', fontSize: '8px', fontWeight: 900, padding: '2px 5px', borderRadius: '6px', boxShadow: '0 2px 4px rgba(255,23,68,0.3)' }}>{item.badge}</span>
               )}
