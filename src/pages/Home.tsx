@@ -477,6 +477,7 @@ const HomePage = ({
   };
 
   const [isPaused, setIsPaused] = useState(false);
+  const [showMoreMenu, setShowMoreMenu] = useState(false);
 
   const [classGenre, setClassGenre] = useState('전체');
   const [classLevel, setClassLevel] = useState('전체');
@@ -610,48 +611,99 @@ const HomePage = ({
         </div>
       </div>
 
-      {/* 🚀 [사용자 요청] 퀵 메뉴 그리드 (벤치마킹 디자인 적용) */}
-      <div style={{ display:'grid', gridTemplateColumns:'repeat(5, 1fr)', gap:'4px', padding:'8px 10px 12px' }}>
-        {[
-          { icon: <Camera size={22} color="#E53935" />, label:'라이브픽', badge:'HOT', action:() => setView('community') },
-          { icon: <Calendar size={22} color="#F97316" />, label:'행사달력', action:() => setShowFullCalendar(true) },
-          { icon: <Utensils size={22} color="#C2185B" />, label:'맛집/뒷풀이', action:() => setView('restaurant') },
-          { icon: <CloudSun size={22} color="#1976D2" />, label:'오늘날씨', action:() => setShowWeather(true) },
-          { icon: <Heart size={22} color="#7B1FA2" />, label:'찜하기', action:() => setShowWishlist(true) },
-          { icon: <MessageSquare size={22} color="#388E3C" />, label:'채팅문의', action:() => window.open('https://open.kakao.com/o/gP43rNri','_blank') },
-          { icon: <Navigation size={22} color="#303F9F" />, label:'지능형경로', badge:'LIVE', action:() => setShowRoute(true) },
-          { icon: <Star size={22} color="#F9A825" />, label:'운명의좌표', action:() => setShowSaju(true) },
-          { icon: <MapPin size={22} color="#0097A7" />, label:'주변주차', action:() => setView('parking') },
-          { icon: <HomeIcon size={22} color="#558B2F" />, label:'대관문의', action:() => setShowRentalModal(true) },
-        ].map((item, idx) => (
-          <div key={idx} style={{ position:'relative' }}>
-            <div style={{ 
-              borderRadius:'14px', padding:'1.5px', 
-              background:'linear-gradient(135deg, #CBD5E1, #E2E8F0, #CBD5E1)',
-              boxShadow: '0 8px 16px rgba(0,0,0,0.04)'
-            }}>
-              <motion.div
-                whileTap={{ scale: 0.92 }}
-                onClick={item.action}
-                style={{ 
-                  display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center', 
-                  gap:'6px', cursor:'pointer', borderRadius:'12px', 
-                  padding:'12px 4px 10px', background:'#fff' 
-                }}
-              >
-                {item.icon}
-                <span style={{ fontSize:'10px', fontWeight:500, color:'#1E293B', textAlign:'center', lineHeight:1.3, wordBreak:'keep-all' }}>
-                  {item.label}
+      {/* 🚀 [사용자 요청] 퀵 메뉴 그리드 (1순위 메인 노출 + 더보기 구조) */}
+      <div style={{ display:'flex', flexDirection:'column', gap:'4px', padding:'8px 10px 12px' }}>
+        {/* 메인 1순위 노출 (5개) */}
+        <div style={{ display:'grid', gridTemplateColumns:'repeat(5, 1fr)', gap:'4px' }}>
+          {[
+            { icon: <Camera size={22} color="#E53935" />, label:'라이브뷰', badge:'HOT', action:() => setView('community') },
+            { icon: <Calendar size={22} color="#F97316" />, label:'행사달력', action:() => setShowFullCalendar(true) },
+            { icon: <Utensils size={22} color="#C2185B" />, label:'맛집', action:() => setView('restaurant') },
+            { icon: <MessageSquare size={22} color="#388E3C" />, label:'채팅문의', action:() => window.open('https://open.kakao.com/o/gP43rNri','_blank') },
+            { icon: <PlusCircle size={22} color="#475569" />, label:'더보기', action:() => setShowMoreMenu(!showMoreMenu) },
+          ].map((item, idx) => (
+            <div key={idx} style={{ position:'relative' }}>
+              <div style={{ 
+                borderRadius:'14px', padding:'1.5px', 
+                background: item.label === '더보기' && showMoreMenu ? 'linear-gradient(135deg, #1E293B, #475569)' : 'linear-gradient(135deg, #CBD5E1, #E2E8F0, #CBD5E1)',
+                boxShadow: '0 8px 16px rgba(0,0,0,0.04)',
+                transition: 'all 0.3s'
+              }}>
+                <motion.div
+                  whileTap={{ scale: 0.92 }}
+                  onClick={item.action}
+                  style={{ 
+                    display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center', 
+                    gap:'6px', cursor:'pointer', borderRadius:'12px', 
+                    padding:'12px 4px 10px', background: item.label === '더보기' && showMoreMenu ? '#F8FAFC' : '#fff' 
+                  }}
+                >
+                  <motion.div animate={item.label === '더보기' ? { rotate: showMoreMenu ? 45 : 0 } : {}}>
+                    {item.icon}
+                  </motion.div>
+                  <span style={{ fontSize:'10px', fontWeight:600, color:'#1E293B', textAlign:'center', lineHeight:1.3, wordBreak:'keep-all' }}>
+                    {item.label}
+                  </span>
+                </motion.div>
+              </div>
+              {item.badge && (
+                <span style={{ position:'absolute', top:'-4px', right:'-4px', background:'#E53935', color:'#fff', fontSize:'7px', fontWeight:700, padding:'1px 4px', borderRadius:'6px', zIndex:1 }}>
+                  {item.badge}
                 </span>
-              </motion.div>
+              )}
             </div>
-            {item.badge && (
-              <span style={{ position:'absolute', top:'-4px', right:'-4px', background:'#E53935', color:'#fff', fontSize:'7px', fontWeight:700, padding:'1px 4px', borderRadius:'6px', zIndex:1 }}>
-                {item.badge}
-              </span>
-            )}
-          </div>
-        ))}
+          ))}
+        </div>
+
+        {/* 더보기 확장 영역 */}
+        <AnimatePresence>
+          {showMoreMenu && (
+            <motion.div
+              initial={{ height: 0, opacity: 0 }}
+              animate={{ height: 'auto', opacity: 1 }}
+              exit={{ height: 0, opacity: 0 }}
+              style={{ overflow:'hidden' }}
+            >
+              <div style={{ display:'grid', gridTemplateColumns:'repeat(5, 1fr)', gap:'4px', paddingTop:'8px' }}>
+                {[
+                  { icon: <Navigation size={22} color="#303F9F" />, label:'지능형경로', badge:'LIVE', action:() => setShowRoute(true) },
+                  { icon: <Star size={22} color="#F9A825" />, label:'운명의좌표', action:() => setShowSaju(true) },
+                  { icon: <CloudSun size={22} color="#1976D2" />, label:'오늘날씨', action:() => setShowWeather(true) },
+                  { icon: <Heart size={22} color="#7B1FA2" />, label:'찜하기', action:() => setShowWishlist(true) },
+                  { icon: <MapPin size={22} color="#0097A7" />, label:'주변주차', action:() => setView('parking') },
+                  { icon: <HomeIcon size={22} color="#558B2F" />, label:'대관문의', action:() => setShowRentalModal(true) },
+                ].map((item, idx) => (
+                  <div key={idx} style={{ position:'relative' }}>
+                    <div style={{ 
+                      borderRadius:'14px', padding:'1.5px', 
+                      background:'linear-gradient(135deg, #E2E8F0, #F1F5F9, #E2E8F0)',
+                    }}>
+                      <motion.div
+                        whileTap={{ scale: 0.92 }}
+                        onClick={item.action}
+                        style={{ 
+                          display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center', 
+                          gap:'6px', cursor:'pointer', borderRadius:'12px', 
+                          padding:'10px 4px 8px', background:'#fff' 
+                        }}
+                      >
+                        {item.icon}
+                        <span style={{ fontSize:'9.5px', fontWeight:500, color:'#64748B', textAlign:'center', lineHeight:1.3 }}>
+                          {item.label}
+                        </span>
+                      </motion.div>
+                    </div>
+                    {item.badge && (
+                      <span style={{ position:'absolute', top:'-4px', right:'-4px', background:'#303F9F', color:'#fff', fontSize:'7px', fontWeight:700, padding:'1px 4px', borderRadius:'6px', zIndex:1 }}>
+                        {item.badge}
+                      </span>
+                    )}
+                  </div>
+                ))}
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
       </div>
 
       {/* 📌 [영역 B: 날짜 선택바 - 상단 고정(Sticky)] */}
