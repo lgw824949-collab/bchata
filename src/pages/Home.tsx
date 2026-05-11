@@ -632,19 +632,24 @@ const HomePage = ({
               display: 'flex', flexDirection: 'column',
               alignItems: 'center', justifyContent: 'center',
               gap: '8px', cursor: 'pointer',
-              background: item.bg,
+              background: '#fff',
               borderRadius: '18px',
               padding: '14px 4px',
               position: 'relative',
-              border: '0.5px solid rgba(0,0,0,0.06)'
+              border: '0.5px solid #F1F5F9',
+              boxShadow: '0 4px 12px rgba(0,0,0,0.03)'
             }}
           >
             {item.badge && (
-              <span style={{ position:'absolute', top:'6px', right:'6px', background:'#E53935', color:'#fff', fontSize:'8px', fontWeight:900, padding:'1px 5px', borderRadius:'6px' }}>
+              <span style={{ position:'absolute', top:'6px', right:'6px', background:'#E53935', color:'#fff', fontSize:'8px', fontWeight:900, padding:'1px 5px', borderRadius:'6px', zIndex: 1 }}>
                 {item.badge}
               </span>
             )}
-            <div style={{ fontSize: '24px', lineHeight: 1 }}>
+            <div style={{ 
+              width: '40px', height: '40px', 
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              fontSize: '24px' 
+            }}>
               {item.icon}
             </div>
             <span style={{ fontSize:'11px', fontWeight:700, color:'#1E293B', textAlign:'center', lineHeight:1.3, wordBreak:'keep-all' }}>
