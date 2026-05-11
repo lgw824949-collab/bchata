@@ -1145,7 +1145,7 @@ function App() {
       <DynamicAnalysisModal isOpen={showIncheonModal} onClose={() => setShowIncheonModal(false)} userCoords={userCoords} isSajuCall={isSajuCall} />
       <AnimatePresence>
         <Suspense fallback={<LoadingFallback />}>
-          {(showIncheon || showRoute) && <IncheonRoute parties={parties} userCoords={userCoords} onClose={() => { setShowIncheon(false); setShowRoute(false); }} />}
+          {(showIncheon || showRoute) && <IncheonRoute parties={parties} userCoords={userCoords} setUserCoords={setUserCoords} onClose={() => { setShowIncheon(false); setShowRoute(false); }} />}
         </Suspense>
       </AnimatePresence>
       <AnimatePresence>
