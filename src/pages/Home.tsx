@@ -613,16 +613,16 @@ const HomePage = ({
       {/* 🚀 [사용자 요청] 퀵 메뉴 그리드 (벤치마킹 디자인 적용) */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: '12px', padding: '15px 15px 30px' }}>
         {[
-          { icon: <Camera size={26} color="#FF1744" />, label: '라이브픽', action: () => setView('community'), badge: 'HOT' },
-          { icon: <Calendar size={26} color="#FF1744" />, label: '행사달력', action: () => handleOpenModal(setShowFullCalendar, true) },
-          { icon: <Utensils size={26} color="#FF1744" />, label: '맛집/디풀이', action: () => setView('restaurant') },
-          { icon: <CloudSun size={26} color="#FF1744" />, label: '오늘날씨', action: () => handleOpenModal(setShowWeather, true) },
-          { icon: <Heart size={26} color="#E53935" />, label: '찜하기', action: () => handleOpenModal(setShowWishlist, true) },
-          { icon: <MessageSquare size={26} color="#FF1744" />, label: '채팅문의', action: () => window.open('https://open.kakao.com/o/gP43rNri', '_blank') },
-          { icon: <Navigation size={26} color="#FF1744" />, label: '지능형경로', action: () => openAnalysis(false), badge: 'LIVE' },
-          { icon: <Star size={26} color="#FF1744" />, label: '운명의좌표', action: () => handleOpenModal(setShowSaju, true), dot: true },
-          { icon: <MapPin size={26} color="#FF1744" />, label: '주변주차', action: () => setView('parking') },
-          { icon: <HomeIcon size={26} color="#FF1744" />, label: '대관문의', action: () => setShowRentalModal(true), dot: true },
+          { icon: <Camera size={22} color="#E53935" />, label: '라이브픽', bg:'#FFE4E4', action: () => setView('community'), badge: 'HOT' },
+          { icon: <Calendar size={22} color="#F97316" />, label: '행사달력', bg:'#FFF3E0', action: () => handleOpenModal(setShowFullCalendar, true) },
+          { icon: <Utensils size={22} color="#C2185B" />, label: '맛집/뒷풀이', bg:'#FCE4EC', action: () => setView('restaurant') },
+          { icon: <CloudSun size={22} color="#1976D2" />, label: '오늘날씨', bg:'#E3F2FD', action: () => handleOpenModal(setShowWeather, true) },
+          { icon: <Heart size={22} color="#7B1FA2" />, label: '찜하기', bg:'#F3E5F5', action: () => handleOpenModal(setShowWishlist, true) },
+          { icon: <MessageSquare size={22} color="#388E3C" />, label: '채팅문의', bg:'#E8F5E9', action: () => window.open('https://open.kakao.com/o/gP43rNri', '_blank') },
+          { icon: <Navigation size={22} color="#303F9F" />, label: '지능형경로', bg:'#E8EAF6', action: () => openAnalysis(false), badge: 'LIVE' },
+          { icon: <Star size={22} color="#F9A825" />, label: '운명의좌표', bg:'#FFF8E1', action: () => handleOpenModal(setShowSaju, true) },
+          { icon: <MapPin size={22} color="#0097A7" />, label: '주변주차', bg:'#E0F7FA', action: () => setView('parking') },
+          { icon: <HomeIcon size={22} color="#558B2F" />, label: '대관문의', bg:'#F1F8E9', action: () => setShowRentalModal(true) },
         ].map((item, idx) => (
           <motion.div
             key={idx}
@@ -630,19 +630,9 @@ const HomePage = ({
             onClick={item.action}
             style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '8px', cursor: 'pointer' }}
           >
-            <div style={{ 
-              width: '100%', 
-              aspectRatio: '1/1', 
-              background: 'var(--color-card)', 
-              borderRadius: '20px', 
-              display: 'flex', 
-              alignItems: 'center', 
-              justifyContent: 'center',
-              position: 'relative',
-              border: '1px solid var(--color-border)',
-              boxShadow: '0 4px 12px rgba(0,0,0,0.05)'
-            }}>
-              {item.icon}
+            <div style={{ width:'100%', aspectRatio:'1/1', background:'#fff', borderRadius:'16px', display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center', position:'relative', border:'0.5px solid #F1F5F9', gap:'6px' }}>
+              <div style={{ width:'36px', height:'36px', borderRadius:'10px', background:item.bg, display:'flex', alignItems:'center', justifyContent:'center' }}>{item.icon}</div>
+              <span style={{ fontSize:'10px', fontWeight:600, color:'#1E293B', textAlign:'center', lineHeight:1.3 }}>{item.label}</span>
               {item.badge && (
                 <span style={{ position: 'absolute', top: '-4px', right: '-4px', background: '#FF1744', color: '#fff', fontSize: '8px', fontWeight: 900, padding: '2px 5px', borderRadius: '6px', boxShadow: '0 2px 4px rgba(255,23,68,0.3)' }}>{item.badge}</span>
               )}
@@ -653,7 +643,7 @@ const HomePage = ({
                 <span style={{ position: 'absolute', top: '8px', right: '8px', background: 'rgba(255,23,68,0.1)', color: '#FF1744', fontSize: '9px', fontWeight: 800, padding: '1px 4px', borderRadius: '4px' }}>{item.count}</span>
               )}
             </div>
-            <span style={{ fontSize: '11px', fontWeight: 800, color: 'var(--color-text-main)', textAlign: 'center', whiteSpace: 'nowrap' }}>{item.label}</span>
+
           </motion.div>
         ))}
       </div>
