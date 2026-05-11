@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo, useRef, lazy, Suspense } from 'react'
-import { Home as HomeIcon, Users, Plus, LogOut, Heart, X, MessageSquare, RefreshCw, CloudSun, Utensils, Zap, Languages, Bell, Star, Navigation, CreditCard, Settings, Map as MapIcon, BarChart, Gift, Coffee, User, Menu, Music2, Tent, Flag, Download, Globe, ShieldCheck, Calendar, Camera, ChevronLeft, ChevronRight, Loader2 } from 'lucide-react'
+import { Home as HomeIcon, Users, Plus, LogOut, Heart, X, MessageSquare, RefreshCw, CloudSun, Utensils, Zap, Languages, Bell, Star, Navigation, CreditCard, Settings, Map as MapIcon, BarChart, Gift, Coffee, User, Menu, Music2, Tent, Flag, Download, Globe, ShieldCheck, Calendar, Camera, BookOpen, ChevronLeft, ChevronRight, Loader2 } from 'lucide-react'
 import { useTranslation } from 'react-i18next';
 import { motion, AnimatePresence } from 'framer-motion'
 import { supabase, logActivity } from './lib/supabase'
@@ -20,6 +20,7 @@ const IncheonRoute = lazy(() => import('./components/IncheonRoute'));
 const WeatherModal = lazy(() => import('./components/WeatherModal'));
 const Instructors = lazy(() => import('./pages/Instructors'));
 import InstructorRegistrationModal from './components/InstructorRegistrationModal';
+import InstructorClassForm from './components/InstructorClassForm'
 
 const INSTRUCTOR_FORM_KEY = 'bamppa_instructor_form';
 const INITIAL_INSTRUCTOR_FORM = {
@@ -661,6 +662,7 @@ function App() {
   const [showRentalModal, setShowRentalModal] = useState(false);
   const [showWishlist, setShowWishlist] = useState(false)
   const [showIdRegister, setShowIdRegister] = useState(false)
+  const [showClassForm, setShowClassForm] = useState(false)
 
   const groupedAllRegionsParties = useMemo(() => {
     if (!selectedAllRegionsDate) return {};
@@ -1215,6 +1217,19 @@ function App() {
                 })}
               </div>
             </div>
+
+            <button
+              onClick={() => { handleCloseModal(); setShowClassForm(true) }}
+              style={{ width:'100%', padding:'16px 20px', background:'#fff', borderRadius:'16px', border:'1px solid #F1F5F9', textAlign:'left', display:'flex', alignItems:'center', gap:'14px', marginBottom:'16px' }}
+            >
+              <div style={{ background:'#FEE2E2', padding:'8px', borderRadius:'10px' }}>
+                <BookOpen size={18} color="#E53935" />
+              </div>
+              <div>
+                <div style={{ fontSize:'14px', fontWeight:700, color:'#1E293B' }}>클래스 등록</div>
+                <div style={{ fontSize:'11px', color:'#94A3B8', marginTop:1 }}>강사 전용 수업 등록</div>
+              </div>
+            </button>
 
             <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
               {[
@@ -2055,7 +2070,20 @@ function App() {
           </div>
         </motion.div>
       )}
-    </AnimatePresence>
+      </AnimatePresence>
+      <AnimatePresence>
+        {showClassForm && (
+          <motion.div
+            initial={{ opacity:0, y:'100%' }}
+            animate={{ opacity:1, y:0 }}
+            exit={{ opacity:0, y:'100%' }}
+            transition={{ type:'spring', damping:25, stiffness:200 }}
+            style={{ position:'fixed', inset:0, zIndex:2500, background:'#fff', overflowY:'auto' }}
+          >
+            <InstructorClassForm onBack={() => setShowClassForm(false)} />
+          </motion.div>
+        )}
+      </AnimatePresence>
     </>
   );
 }
