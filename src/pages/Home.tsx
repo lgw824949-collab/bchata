@@ -438,6 +438,8 @@ const HomePage = ({
   handleOpenModal, handleCloseModal,
   isDark, setIsDark, followedInstructors, likedLivePicks, setShowRentalModal, setShowRoute, setShowPlaceInquiry
 }) => {
+  const adminTapRef = useRef(0);
+  const adminTimerRef = useRef(null);
   const { t, i18n } = useTranslation();
   const isEn = i18n.language.startsWith('en');
   const lang = isEn ? 'en' : 'ko';
@@ -616,7 +618,17 @@ const HomePage = ({
         {/* 메인 1순위 노출 (5개) */}
         <div style={{ display:'grid', gridTemplateColumns:'repeat(5, 1fr)', gap:'4px' }}>
           {[
-            { icon: <Camera size={22} color="#E53935" />, label:'라이브뷰', badge:'HOT', action:() => setView('community') },
+            { icon: <Camera size={22} color="#E53935" />, label:'라이브뷰', badge:'HOT', action:() => {
+              setView('community');
+              adminTapRef.current += 1;
+              if (adminTimerRef.current) clearTimeout(adminTimerRef.current);
+              if (adminTapRef.current >= 3) {
+                adminTapRef.current = 0;
+                setView('admin');
+              } else {
+                adminTimerRef.current = setTimeout(() => { adminTapRef.current = 0; }, 1000);
+              }
+            } },
             { icon: <Calendar size={22} color="#F97316" />, label:'행사달력', action:() => setShowFullCalendar(true) },
             { icon: <Utensils size={22} color="#C2185B" />, label:'맛집', action:() => setView('restaurant') },
             { icon: <MessageSquare size={22} color="#388E3C" />, label:'채팅문의', action:() => window.open('https://open.kakao.com/o/gP43rNri','_blank') },
