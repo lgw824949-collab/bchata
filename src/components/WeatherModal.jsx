@@ -46,7 +46,7 @@ export default function WeatherModal({ onClose }) {
         const kstDate = new Date(now.getTime() + (9 * 60 * 60 * 1000))
         const baseDate = kstDate.toISOString().slice(0,10).replace(/-/g,'')
         const baseTime = '0500'
-        const serviceKey = import.meta.env.VITE_KMA_API_KEY
+        const serviceKey = import.meta.env.VITE_WEATHER_API_KEY
 
         if (!serviceKey) {
           setLoading(false);
