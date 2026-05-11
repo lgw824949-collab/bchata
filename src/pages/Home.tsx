@@ -579,7 +579,17 @@ const HomePage = ({
           <img
             src="/logo.png"
             alt="오늘밤빠 로고"
-            style={{ width: '90px', height: '90px', objectFit: 'contain', borderRadius: '16px', flexShrink: 0, marginLeft: '12px' }}
+            onClick={() => {
+              if (adminTimerRef.current) clearTimeout(adminTimerRef.current);
+              adminTapRef.current += 1;
+              if (adminTapRef.current >= 3) {
+                adminTapRef.current = 0;
+                setView('admin');
+              } else {
+                adminTimerRef.current = setTimeout(() => { adminTapRef.current = 0; }, 2000);
+              }
+            }}
+            style={{ width: '90px', height: '90px', objectFit: 'contain', borderRadius: '16px', flexShrink: 0, marginLeft: '12px', cursor: 'pointer' }}
             onError={(e) => { e.currentTarget.style.display = 'none' }}
           />
         </div>
