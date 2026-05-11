@@ -299,23 +299,8 @@ const RegisterForm = ({ onBack, onSuccess, isEdit = false, initialData = null })
             <Check size={40} color="white" />
           </div>
           <h2 style={{ fontSize: '24px', fontWeight: 900, color: '#1E293B', marginBottom: '12px' }}>파티 등록 완료!</h2>
-          <p style={{ fontSize: '15px', color: '#64748B', lineHeight: '1.6', marginBottom: '10px' }}>지금 즉시 메인 화면에 게시되었습니다.</p>
-          
-          <div style={{ background: '#F8FAFC', padding: '20px', borderRadius: '20px', marginBottom: '24px', border: '1px solid #E2E8F0' }}>
-            <p style={{ fontSize: '14px', color: '#94A3B8', marginBottom: '8px', fontWeight: 700 }}>파티 일정 확인용 아이디</p>
-            <p style={{ fontSize: '20px', fontWeight: 1000, color: '#FF1744' }}>
-              [{formData.contributorId || '아이디 없음'}]
-            </p>
-          </div>
-
-          <div style={{ background: '#FEF2F2', padding: '16px', borderRadius: '16px', marginBottom: '32px', border: '1px solid #FECACA' }}>
-            <p style={{ fontSize: '13px', color: '#E53935', fontWeight: 900, margin: 0 }}>
-              🔥 포스터 이벤트 참여 완료! 🔥<br/>
-              가장 많이 올린 사람에게 양주를 쏩니다!
-            </p>
-          </div>
-
-          <button onClick={onSuccess || onBack} style={{ width: '100%', padding: '20px', background: '#FF1744', color: 'white', borderRadius: '16px', fontWeight: 900, fontSize: '18px', border: 'none', boxShadow: '0 8px 20px rgba(255, 23, 68, 0.2)' }}>확인</button>
+          <p style={{ fontSize: '16px', color: '#64748B', lineHeight: '1.6', marginBottom: '32px' }}>지금 즉시 메인 화면에 게시되었습니다.</p>
+          <button onClick={onSuccess || onBack} style={{ width: '100%', padding: '20px', background: '#FF1744', color: 'white', borderRadius: '16px', fontWeight: 900, fontSize: '18px', border: 'none' }}>확인</button>
         </motion.div>
       </div>
     )

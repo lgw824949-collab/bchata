@@ -131,22 +131,19 @@ const Community = ({ setSelectedPoster, setView }) => {
       let { error: uploadError } = await supabase.storage.from('posters').upload(filePath, file);
       if (uploadError) throw uploadError;
       const { data: urlData } = supabase.storage.from('posters').getPublicUrl(filePath);
-        const { error: dbError } = await supabase.from('community_posts').insert([{
-          image_url: urlData.publicUrl,
-          content: `${newPost.content} [나만의 등록 아이디: ${newPost.contributor_id || '익명'}]`,
-          region: newPost.region,
-          bar_name: newPost.bar_name,
-          likes_count: 0,
-          view_count: 0
-        }]);
+      const { error: dbError } = await supabase.from('community_posts').insert([{
+        image_url: urlData.publicUrl,
+        content: newPost.content,
+        region: newPost.region,
+        bar_name: newPost.bar_name,
+        likes_count: 0,
+        view_count: 0
+      }]);
       if (dbError) throw dbError;
       
       // Reward Point Grant
       setUserPoints(prev => prev + 10);
       setShowRewardCelebration(true);
-      
-      // 알림창으로 아이디 강조 표시
-      alert(`🎉 포스터 이벤트 참여 완료!\n나만의 등록 아이디: [${newPost.contributor_id || '익명'}]\n가장 많이 올린 사람 양주 당첨 기회!`);
       
       setTimeout(() => {
         setShowRewardCelebration(false);
@@ -430,21 +427,6 @@ const Community = ({ setSelectedPoster, setView }) => {
                       </motion.button>
                     ))}
                   </div>
-                </div>
-
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-                  <p style={{ fontSize: '13px', color: 'var(--color-text-main)', fontWeight: 900, marginBottom: '5px', opacity: 0.9 }}>
-                    🆔 나만의 등록 아이디 (이벤트 참여용)
-                  </p>
-                  <input 
-                    placeholder="영문+숫자 (예: kim_bachata)" 
-                    value={newPost.contributor_id || ''} 
-                    onChange={e => setNewPost({...newPost, contributor_id: e.target.value.toLowerCase().replace(/[^a-z0-9_]/g, '')})} 
-                    style={{ width: '100%', padding: '15px', borderRadius: '15px', background: 'var(--color-card)', border: '1px solid var(--color-border)', color: 'var(--color-text-main)', fontWeight: 800, fontSize: '14px' }} 
-                  />
-                  <p style={{ fontSize: '11px', color: '#E53935', fontWeight: 700, marginTop: '-5px' }}>
-                    * [포스터 이벤트] 아이디를 입력해야 양주 쏘기 당첨이 가능합니다!
-                  </p>
                 </div>
 
                 <div style={{ display: 'flex', gap: '10px' }}>
