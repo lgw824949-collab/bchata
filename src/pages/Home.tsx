@@ -792,31 +792,6 @@ const HomePage = ({
                       <div style={{ height: '1.2px', background: 'var(--color-border)', opacity: 0.4, borderRadius: '1px' }} />
                     </div>
 
-                    {/* [2] HOT PICK - 지방권 (복구 및 스타일 강화) */}
-                    {provincialHot.length > 0 && (
-                      <div style={{ margin: '10px 0', padding: '24px 0 32px', background: 'var(--color-card)' }}>
-                        <div style={{ padding: '0 20px 20px' }}>
-                          <h2 style={{ fontSize: '20px', fontWeight: '950', color: 'var(--color-text-main)', display: 'flex', alignItems: 'center', gap: '12px' }}>
-                            <span style={{ padding: '4px 12px', borderRadius: '8px', background: '#303F9F', color: '#fff', fontSize: '11px', fontWeight: 900, letterSpacing: '0.5px' }}>REGIONAL</span>
-                            <span>지방권 핫픽 TOP 5</span>
-                          </h2>
-                        </div>
-                        <div style={{ width: '100%', overflow: 'hidden', padding: '10px 0' }}>
-                          <div className="hot-pick-track">
-                            {[...provincialHot, ...provincialHot].slice(0, 10).map((item, idx) => (
-                              <div key={`${item.id}-${idx}`} onClick={() => setSelectedPoster(item.poster_url)} style={{ width: '140px', flexShrink: 0, borderRadius: '20px', overflow: 'hidden', boxShadow: '0 12px 28px rgba(0,0,0,0.18)', position: 'relative', background: '#000', margin: '0 12px' }}>
-                                <img src={item.poster_url} style={{ width: '100%', height: '210px', objectFit: 'cover' }} alt="Pick" />
-                                <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, padding: '14px 10px', background: 'linear-gradient(transparent, rgba(0,0,0,0.95))', color: 'white' }}>
-                                  <div style={{ fontSize: '10px', color: '#FFEB3B', fontWeight: 950, marginBottom: '2px' }}>{translateDynamicText(item.locationName, isEn)}</div>
-                                  <div style={{ fontSize: '11px', fontWeight: 900, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{translateDynamicText(item.title, isEn)}</div>
-                                </div>
-                              </div>
-                            ))}
-                          </div>
-                        </div>
-                      </div>
-                    )}
-
                     <div style={{ padding: '32px 20px 48px' }}>
                       <div style={{ height: '1.2px', background: 'var(--color-border)', opacity: 0.4, borderRadius: '1px' }} />
                     </div>
