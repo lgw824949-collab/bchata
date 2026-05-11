@@ -1259,107 +1259,38 @@ function App() {
             </button>
 
             <div style={{ display:'grid', gridTemplateColumns:'repeat(5, 1fr)', gap:'8px', padding:'12px 16px' }}>
-              <div 
-                style={{ display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center', gap:'7px', cursor:'pointer', borderRadius:'14px', padding:'12px 2px 10px', position:'relative', background:'#fff', border:'0.5px solid #F1F5F9' }}
-                onClick={() => { handleOpenModal(setShowLivePick, true) }}
-              >
-                <span style={{ position:'absolute', top:'5px', right:'5px', background:'#E53935', color:'#fff', fontSize:'7px', fontTargetWeight:'700', padding:'1px 4px', borderRadius:'10px' }}>HOT</span>
-                <div style={{ width:'36px', height:'36px', borderRadius:'10px', display:'flex', alignItems:'center', justifyContent:'center', background:'#FFE4E4' }}>
-                  <Camera size={18} color="#E53935" />
-                </div>
-                <span style={{ fontSize:'10px', fontWeight:600, color:'#1E293B', textAlign:'center', lineHeight:1.3 }}>라이브픽</span>
-              </div>
 
-              <div 
-                style={{ display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center', gap:'7px', cursor:'pointer', borderRadius:'14px', padding:'12px 2px 10px', position:'relative', background:'#fff', border:'0.5px solid #F1F5F9' }}
-                onClick={() => { handleOpenModal(setShowFullCalendar, true) }}
-              >
-                <div style={{ width:'36px', height:'36px', borderRadius:'10px', display:'flex', alignItems:'center', justifyContent:'center', background:'#FFF3E0' }}>
-                  <Calendar size={18} color="#F97316" />
+              {[
+                { label:'라이브픽', bg:'#FFE4E4', iconColor:'#E53935', icon:<Camera size={18} color="#E53935" />, badge:'HOT', onClick:() => handleOpenModal(setShowLivePick, true) },
+                { label:'행사달력', bg:'#FFF3E0', iconColor:'#F97316', icon:<Calendar size={18} color="#F97316" />, onClick:() => handleOpenModal(setShowFullCalendar, true) },
+                { label:'맛집/뒷풀이', bg:'#FCE4EC', icon:<Utensils size={18} color="#C2185B" />, onClick:() => setView('restaurant') },
+                { label:'오늘날씨', bg:'#E3F2FD', icon:<Cloud size={18} color="#1976D2" />, onClick:handleWeatherTap },
+                { label:'찜하기', bg:'#F3E5F5', icon:<Heart size={18} color="#7B1FA2" />, onClick:() => handleOpenModal(setShowWishlist, true) },
+                { label:'채팅문의', bg:'#E8F5E9', icon:<MessageCircle size={18} color="#388E3C" />, onClick:() => window.open('https://open.kakao.com/o/gP43rNri','_blank') },
+                { label:'지능형경로', bg:'#E8EAF6', icon:<Navigation size={18} color="#303F9F" />, badge:'LIVE', onClick:() => handleOpenModal(setShowIncheonModal, true) },
+                { label:'운명의좌표', bg:'#FFF8E1', icon:<Star size={18} color="#F9A825" />, onClick:() => handleOpenModal(setShowSaju, true) },
+                { label:'주변주차', bg:'#E0F7FA', icon:<ParkingCircle size={18} color="#0097A7" />, onClick:() => setView('parking') },
+                { label:'대관문의', bg:'#F1F8E9', icon:<Building size={18} color="#558B2F" />, onClick:() => window.open('https://open.kakao.com/o/gP43rNri','_blank') },
+              ].map((item, i) => (
+                <div
+                  key={i}
+                  onClick={item.onClick}
+                  style={{ display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center', gap:'7px', cursor:'pointer', borderRadius:'14px', padding:'12px 2px 10px', position:'relative', background:'#fff', border:'0.5px solid #F1F5F9' }}
+                >
+                  {item.badge && (
+                    <span style={{ position:'absolute', top:'5px', right:'5px', background:'#E53935', color:'#fff', fontSize:'7px', fontWeight:700, padding:'1px 4px', borderRadius:'10px' }}>
+                      {item.badge}
+                    </span>
+                  )}
+                  <div style={{ width:'36px', height:'36px', borderRadius:'10px', background:item.bg, display:'flex', alignItems:'center', justifyContent:'center' }}>
+                    {item.icon}
+                  </div>
+                  <span style={{ fontSize:'10px', fontWeight:600, color:'#1E293B', textAlign:'center', lineHeight:1.3 }}>
+                    {item.label}
+                  </span>
                 </div>
-                <span style={{ fontSize:'10px', fontWeight:600, color:'#1E293B', textAlign:'center', lineHeight:1.3 }}>행사달력</span>
-              </div>
+              ))}
 
-              <div 
-                style={{ display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center', gap:'7px', cursor:'pointer', borderRadius:'14px', padding:'12px 2px 10px', position:'relative', background:'#fff', border:'0.5px solid #F1F5F9' }}
-                onClick={() => { setView('restaurant'); }}
-              >
-                <div style={{ width:'36px', height:'36px', borderRadius:'10px', display:'flex', alignItems:'center', justifyContent:'center', background:'#FCE4EC' }}>
-                  <Utensils size={18} color="#C2185B" />
-                </div>
-                <span style={{ fontSize:'10px', fontWeight:600, color:'#1E293B', textAlign:'center', lineHeight:1.3 }}>맛집/뒷풀이</span>
-              </div>
-
-              <div 
-                style={{ display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center', gap:'7px', cursor:'pointer', borderRadius:'14px', padding:'12px 2px 10px', position:'relative', background:'#fff', border:'0.5px solid #F1F5F9' }}
-                onClick={handleWeatherTap}
-              >
-                <div style={{ width:'36px', height:'36px', borderRadius:'10px', display:'flex', alignItems:'center', justifyContent:'center', background:'#E3F2FD' }}>
-                  <Cloud size={18} color="#1976D2" />
-                </div>
-                <span style={{ fontSize:'10px', fontWeight:600, color:'#1E293B', textAlign:'center', lineHeight:1.3 }}>오늘날씨</span>
-              </div>
-
-              <div 
-                style={{ display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center', gap:'7px', cursor:'pointer', borderRadius:'14px', padding:'12px 2px 10px', position:'relative', background:'#fff', border:'0.5px solid #F1F5F9' }}
-                onClick={() => { handleOpenModal(setShowWishlist, true) }}
-              >
-                <div style={{ width:'36px', height:'36px', borderRadius:'10px', display:'flex', alignItems:'center', justifyContent:'center', background:'#F3E5F5' }}>
-                  <Heart size={18} color="#7B1FA2" />
-                </div>
-                <span style={{ fontSize:'10px', fontWeight:600, color:'#1E293B', textAlign:'center', lineHeight:1.3 }}>찜하기</span>
-              </div>
-
-              <div 
-                style={{ display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center', gap:'7px', cursor:'pointer', borderRadius:'14px', padding:'12px 2px 10px', position:'relative', background:'#fff', border:'0.5px solid #F1F5F9' }}
-                onClick={() => { window.open('https://open.kakao.com/o/gP43rNri', '_blank') }}
-              >
-                <div style={{ width:'36px', height:'36px', borderRadius:'10px', display:'flex', alignItems:'center', justifyContent:'center', background:'#E8F5E9' }}>
-                  <MessageCircle size={18} color="#388E3C" />
-                </div>
-                <span style={{ fontSize:'10px', fontWeight:600, color:'#1E293B', textAlign:'center', lineHeight:1.3 }}>채팅문의</span>
-              </div>
-
-              <div 
-                style={{ display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center', gap:'7px', cursor:'pointer', borderRadius:'14px', padding:'12px 2px 10px', position:'relative', background:'#fff', border:'0.5px solid #F1F5F9' }}
-                onClick={() => { handleOpenModal(setShowIncheonModal, true) }}
-              >
-                <span style={{ position:'absolute', top:'5px', right:'5px', background:'#E53935', color:'#fff', fontSize:'7px', fontWeight:'700', padding:'1px 4px', borderRadius:'10px' }}>LIVE</span>
-                <div style={{ width:'36px', height:'36px', borderRadius:'10px', display:'flex', alignItems:'center', justifyContent:'center', background:'#E8EAF6' }}>
-                  <Navigation size={18} color="#303F9F" />
-                </div>
-                <span style={{ fontSize:'10px', fontWeight:600, color:'#1E293B', textAlign:'center', lineHeight:1.3 }}>지능형경로</span>
-              </div>
-
-              <div 
-                style={{ display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center', gap:'7px', cursor:'pointer', borderRadius:'14px', padding:'12px 2px 10px', position:'relative', background:'#fff', border:'0.5px solid #F1F5F9' }}
-                onClick={() => { handleOpenModal(setShowSaju, true) }}
-              >
-                <div style={{ width:'36px', height:'36px', borderRadius:'10px', display:'flex', alignItems:'center', justifyContent:'center', background:'#FFF8E1' }}>
-                  <Star size={18} color="#F9A825" />
-                </div>
-                <span style={{ fontSize:'10px', fontWeight:600, color:'#1E293B', textAlign:'center', lineHeight:1.3 }}>운명의좌표</span>
-              </div>
-
-              <div 
-                style={{ display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center', gap:'7px', cursor:'pointer', borderRadius:'14px', padding:'12px 2px 10px', position:'relative', background:'#fff', border:'0.5px solid #F1F5F9' }}
-                onClick={() => { setView('parking'); }}
-              >
-                <div style={{ width:'36px', height:'36px', borderRadius:'10px', display:'flex', alignItems:'center', justifyContent:'center', background:'#E0F7FA' }}>
-                  <ParkingCircle size={18} color="#0097A7" />
-                </div>
-                <span style={{ fontSize:'10px', fontWeight:600, color:'#1E293B', textAlign:'center', lineHeight:1.3 }}>주변주차</span>
-              </div>
-
-              <div 
-                style={{ display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center', gap:'7px', cursor:'pointer', borderRadius:'14px', padding:'12px 2px 10px', position:'relative', background:'#fff', border:'0.5px solid #F1F5F9' }}
-                onClick={() => { window.open('https://open.kakao.com/o/gP43rNri', '_blank') }}
-              >
-                <div style={{ width:'36px', height:'36px', borderRadius:'10px', display:'flex', alignItems:'center', justifyContent:'center', background:'#F1F8E9' }}>
-                  <Building size={18} color="#558B2F" />
-                </div>
-                <span style={{ fontSize:'10px', fontWeight:600, color:'#1E293B', textAlign:'center', lineHeight:1.3 }}>대관문의</span>
-              </div>
             </div>
 
             <div style={{ marginTop: 'auto', paddingTop: '40px', textAlign: 'center' }}>
