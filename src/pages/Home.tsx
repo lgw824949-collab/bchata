@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo, useRef } from 'react';
-import { Heart, MapPin, Calendar, Clock, User, Music, ChevronRight, ShieldCheck, X, Home as HomeIcon, ChevronLeft, CloudSun, Utensils, Zap, PlusCircle, Languages, Bell, Globe, Navigation, CalendarDays, Star, Camera, MessageSquare } from 'lucide-react';
+import { Heart, MapPin, Calendar, Clock, User, Music, ChevronRight, ShieldCheck, X, Home as HomeIcon, ChevronLeft, CloudSun, Utensils, Zap, PlusCircle, Languages, Bell, Globe, Navigation, CalendarDays, Star, Camera, MessageSquare, Trophy } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { motion, AnimatePresence } from 'framer-motion';
 import QuickPinchZoom, { make3dTransformValue } from 'react-quick-pinch-zoom';
@@ -587,6 +587,35 @@ const HomePage = ({
           />
         </div>
       </div>
+
+      {/* 🍾 포스터 이벤트 배너 추가 */}
+      <motion.div 
+        initial={{ opacity: 0, y: -10 }}
+        animate={{ opacity: 1, y: 0 }}
+        onClick={() => window.dispatchEvent(new CustomEvent('open-community-upload'))}
+        style={{ 
+          margin: '0 20px 20px', 
+          padding: '16px 20px', 
+          background: 'linear-gradient(135deg, #FF1744, #F97316)', 
+          borderRadius: '20px', 
+          display: 'flex', 
+          alignItems: 'center', 
+          justifyContent: 'space-between',
+          boxShadow: '0 8px 25px rgba(255, 23, 68, 0.3)',
+          cursor: 'pointer'
+        }}
+      >
+        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+          <div style={{ background: 'rgba(255,255,255,0.2)', padding: '10px', borderRadius: '14px' }}>
+            <Trophy size={20} color="white" />
+          </div>
+          <div>
+            <p style={{ color: 'white', fontSize: '15px', fontWeight: 900, margin: 0 }}>많이 올린 사람 양주 쏜다! 🍾</p>
+            <p style={{ color: 'rgba(255,255,255,0.8)', fontSize: '12px', fontWeight: 700, margin: '2px 0 0' }}>지금 바로 포스터 등록하고 이벤트 참여하세요</p>
+          </div>
+        </div>
+        <ChevronRight size={20} color="white" />
+      </motion.div>
 
       <div style={{ padding: '12px 10px 8px' }}>
         <div style={{ display:'flex', justifyContent:'flex-end', padding:'2px 14px 0' }}>
