@@ -628,22 +628,28 @@ const HomePage = ({
             key={idx}
             whileTap={{ scale: 0.92 }}
             onClick={item.action}
-            style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '8px', cursor: 'pointer' }}
+            style={{
+              display: 'flex', flexDirection: 'column',
+              alignItems: 'center', justifyContent: 'center',
+              gap: '8px', cursor: 'pointer',
+              background: item.bg,
+              borderRadius: '18px',
+              padding: '14px 4px',
+              position: 'relative',
+              border: '0.5px solid rgba(0,0,0,0.06)'
+            }}
           >
-            <div style={{ width:'100%', aspectRatio:'1/1', background:'#fff', borderRadius:'16px', display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center', position:'relative', border:'0.5px solid #F1F5F9', gap:'6px' }}>
-              <div style={{ width:'36px', height:'36px', borderRadius:'10px', background:item.bg, display:'flex', alignItems:'center', justifyContent:'center' }}>{item.icon}</div>
-              <span style={{ fontSize:'10px', fontWeight:600, color:'#1E293B', textAlign:'center', lineHeight:1.3, padding:'0 2px' }}>{item.label}</span>
-              {item.badge && (
-                <span style={{ position: 'absolute', top: '-4px', right: '-4px', background: '#FF1744', color: '#fff', fontSize: '8px', fontWeight: 900, padding: '2px 5px', borderRadius: '6px', boxShadow: '0 2px 4px rgba(255,23,68,0.3)' }}>{item.badge}</span>
-              )}
-              {item.dot && (
-                <span style={{ position: 'absolute', bottom: '8px', right: '8px', width: '6px', height: '6px', background: '#FF1744', borderRadius: '50%' }} />
-              )}
-              {item.count > 0 && (
-                <span style={{ position: 'absolute', top: '8px', right: '8px', background: 'rgba(255,23,68,0.1)', color: '#FF1744', fontSize: '9px', fontWeight: 800, padding: '1px 4px', borderRadius: '4px' }}>{item.count}</span>
-              )}
+            {item.badge && (
+              <span style={{ position:'absolute', top:'6px', right:'6px', background:'#E53935', color:'#fff', fontSize:'8px', fontWeight:900, padding:'1px 5px', borderRadius:'6px' }}>
+                {item.badge}
+              </span>
+            )}
+            <div style={{ fontSize: '24px', lineHeight: 1 }}>
+              {item.icon}
             </div>
-
+            <span style={{ fontSize:'11px', fontWeight:700, color:'#1E293B', textAlign:'center', lineHeight:1.3, wordBreak:'keep-all' }}>
+              {item.label}
+            </span>
           </motion.div>
         ))}
       </div>
