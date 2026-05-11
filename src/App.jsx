@@ -18,17 +18,8 @@ const Restaurant = lazy(() => import('./pages/Restaurant'));
 const SajuModal = lazy(() => import('./components/SajuModal'));
 const IncheonRoute = lazy(() => import('./components/IncheonRoute'));
 const WeatherModal = lazy(() => import('./components/WeatherModal'));
-const Instructors = lazy(() => import('./pages/Instructors'));
 
 // 로딩 스피너 컴포넌트
-// 배포 후 이전 버전 캐시로 인한 청크 로딩 에러 해결
-window.addEventListener('unhandledrejection', (event) => {
-  if (event.reason && event.reason.name === 'ChunkLoadError' || (event.reason && event.reason.message && event.reason.message.includes('Failed to fetch dynamically imported module'))) {
-    console.warn('New version detected, reloading...');
-    window.location.reload();
-  }
-});
-
 const LoadingFallback = () => (
   <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '80vh', gap: '16px' }}>
     <motion.div animate={{ rotate: 360 }} transition={{ duration: 1, repeat: Infinity, ease: 'linear' }}>
@@ -243,25 +234,7 @@ const DynamicAnalysisModal = ({ isOpen, onClose, userCoords, isSajuCall }) => {
     if (userCoords) findTarget(userCoords.lat, userCoords.lon);
   }, [isOpen, userCoords]);
 
-  if (!isOpen) return null;
-
-  // 데이터 로딩 중일 때 표시할 UI
-  if (!targetDest) {
-    return (
-      <motion.div 
-        initial={{ opacity: 0 }} 
-        animate={{ opacity: 1 }} 
-        exit={{ opacity: 0 }} 
-        style={{ position: 'fixed', inset: 0, zIndex: 1000000, backgroundColor: '#FFFFFF', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '20px' }}
-      >
-        <motion.div animate={{ rotate: 360 }} transition={{ duration: 1, repeat: Infinity, ease: 'linear' }}>
-          <Loader2 size={50} color="#FF1744" />
-        </motion.div>
-        <h2 style={{ color: '#1E293B', fontSize: '20px', fontWeight: '900' }}>지능형 경로 분석 중...</h2>
-      </motion.div>
-    );
-  }
-
+  if (!isOpen || !targetDest) return null;
   const isIncheon = targetDest.region === '인천' && isSajuCall;
 
   return (
@@ -564,7 +537,6 @@ function App() {
     const path = location.pathname;
     if (path === '/') setView('home');
     else if (path === '/livepick') setView('community');
-    else if (path === '/instructor') setView('instructors');
     else if (path === '/bootcamp') setView('bootcamp');
     else if (path === '/bootcamp/register') setView('bootcamp-register');
     else if (path === '/festival') setView('festival');
@@ -606,10 +578,6 @@ function App() {
   const [lastWeatherTap, setLastWeatherTap] = useState(0);
   const weatherTimeoutRef = useRef(null);
   const [navVisible, setNavVisible] = useState(true)
-  const [showRoute, setShowRoute] = useState(false);
-  const [showPlaceInquiry, setShowPlaceInquiry] = useState(false);
-  const [showWishlist, setShowWishlist] = useState(false);
-  const [showRentalModal, setShowRentalModal] = useState(false);
   const lastScrollY = useRef(0)
 
   // 다크 모드 상태 관리
@@ -618,38 +586,6 @@ function App() {
     if (saved) return saved === 'dark';
     return window.matchMedia('(prefers-color-scheme: dark)').matches;
   });
-
-  // [사용자 요청] 브라우저/하드웨어 뒤로가기 버튼 대응: 모달이 열려있으면 모달만 닫음
-  useEffect(() => {
-    const handlePopState = (e) => {
-      // 열려있는 모든 모달 상태 체크
-      const hasOpenModal = showIncheon || showRoute || showIncheonModal || showWeather || 
-                           showWishlist || showSaju || showRentalModal || selectedPoster || 
-                           showFullCalendar || showFilterPanel || showGridModal || isMenuOpen;
-      
-      if (hasOpenModal) {
-        e.preventDefault();
-        setShowIncheon(false);
-        setShowRoute(false);
-        setShowIncheonModal(false);
-        setShowWeather(false);
-        setShowWishlist(false);
-        setShowSaju(false);
-        setShowRentalModal(false);
-        setSelectedPoster(null);
-        setShowFullCalendar(false);
-        setShowFilterPanel(false);
-        setShowGridModal(false);
-        setIsMenuOpen(false);
-        // 히스토리를 하나 다시 추가하여 다음 뒤로가기 때 또 대응할 수 있게 함
-        window.history.pushState(null, '', window.location.href);
-      }
-    };
-
-    window.history.pushState(null, '', window.location.href);
-    window.addEventListener('popstate', handlePopState);
-    return () => window.removeEventListener('popstate', handlePopState);
-  }, [showIncheon, showRoute, showIncheonModal, showWeather, showWishlist, showSaju, showRentalModal, selectedPoster, showFullCalendar, showFilterPanel, showGridModal, isMenuOpen]);
 
   useEffect(() => {
     if (isDark) {
@@ -749,7 +685,7 @@ function App() {
     setLoading(true);
     try {
       const [partiesRes, locationsRes, bootcampsRes, festivalsRes] = await Promise.all([
-        supabase.from('parties').select('*, locations(latitude, longitude)').order('date', { ascending: true }),
+        supabase.from('parties').select('*').order('date', { ascending: true }),
         supabase.from('locations').select('id, name'),
         supabase.from('bootcamps').select('*').eq('status', 'active'),
         supabase.from('festivals').select('*').eq('status', 'active')
@@ -831,7 +767,8 @@ function App() {
 
   const openAnalysis = (saju = false) => {
     setIsSajuCall(saju);
-    setShowIncheonModal(true);
+    setIsAnalyzing(true);
+    setTimeout(() => { setIsAnalyzing(false); setShowIncheonModal(true); }, 1200);
   };
 
   const handleRegister = (type = 'party') => {
@@ -878,11 +815,6 @@ function App() {
     handleRegister, 
     fetchParties,
     setShowSaju,
-    setShowRoute,
-    setShowPlaceInquiry,
-    setShowWeather,
-    setShowWishlist,
-    setShowRentalModal,
     logActivity: () => {}, regionalTheme: { welcomeMsg: "전국 댄서들을 위한 실시간 정보", specialBanner: true }
   };
 
@@ -1008,7 +940,6 @@ function App() {
         <Suspense fallback={<LoadingFallback />}>
           {view === 'home' ? <HomePage {...sharedProps} /> : 
            view === 'community' ? <Community setSelectedPoster={setSelectedPoster} setView={setView} /> :
-           view === 'instructors' ? <Instructors /> :
            view === 'bootcamp' ? <Bootcamp onBack={() => navigate('/')} /> :
            view === 'bootcamp-register' ? <Bootcamp onBack={() => navigate('/bootcamp')} initialView="register" /> :
            view === 'festival' ? <Festival onBack={() => navigate('/')} /> :
@@ -1057,7 +988,7 @@ function App() {
         </Suspense>
       </main>
 
-       <nav 
+      <nav 
         className="bottom-nav" 
         style={{ 
           position: 'fixed', bottom: 0, left: '50%',
@@ -1070,57 +1001,54 @@ function App() {
           paddingBottom: 'env(safe-area-inset-bottom)'
         }}
       >
-        {/* [1] 소셜 / SOCIAL */}
         <div 
           className="nav-item" 
           onClick={() => navigate('/')}
           style={{ 
             flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
             cursor: 'pointer', transition: 'all 0.3s', position: 'relative', height: '100%',
-            color: view === 'home' ? '#FF0033' : '#94A3B8'
+            color: location.pathname === '/' ? '#E11D48' : '#94A3B8'
           }}
         >
-          {view === 'home' && (
+          {location.pathname === '/' && (
             <motion.div 
               layoutId="nav-glow"
-              style={{ position: 'absolute', width: '40px', height: '40px', borderRadius: '50%', background: 'rgba(255, 0, 51, 0.1)', filter: 'blur(8px)' }} 
+              style={{ position: 'absolute', width: '40px', height: '40px', borderRadius: '50%', background: 'rgba(225, 29, 72, 0.1)', filter: 'blur(8px)' }} 
             />
           )}
-          <Music2 size={22} strokeWidth={view === 'home' ? 2.5 : 2} style={{ marginBottom: '4px' }} />
-          <span style={{ fontSize: '10px', fontWeight: view === 'home' ? 900 : 500 }}>{t('nav_social')}</span>
+          <Music2 size={22} strokeWidth={location.pathname === '/' ? 2.5 : 2} style={{ marginBottom: '4px' }} />
+          <span style={{ fontSize: '10px', fontWeight: location.pathname === '/' ? 900 : 500 }}>SOCIAL</span>
         </div>
 
-        {/* [2] 강사 / MASTER */}
         <div 
           className="nav-item" 
-          onClick={() => navigate('/instructor')}
+          onClick={() => navigate('/livepick')}
           style={{ 
             flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
             cursor: 'pointer', transition: 'all 0.3s', position: 'relative', height: '100%',
-            color: view === 'instructors' ? '#FF0033' : '#94A3B8'
+            color: location.pathname === '/livepick' ? '#E11D48' : '#94A3B8'
           }}
         >
-          {view === 'instructors' && (
+          {location.pathname === '/livepick' && (
             <motion.div 
               layoutId="nav-glow"
-              style={{ position: 'absolute', width: '40px', height: '40px', borderRadius: '50%', background: 'rgba(255, 0, 51, 0.1)', filter: 'blur(8px)' }} 
+              style={{ position: 'absolute', width: '40px', height: '40px', borderRadius: '50%', background: 'rgba(225, 29, 72, 0.1)', filter: 'blur(8px)' }} 
             />
           )}
-          <Users size={22} strokeWidth={view === 'instructors' ? 2.5 : 2} style={{ marginBottom: '4px' }} />
-          <span style={{ fontSize: '10px', fontWeight: view === 'instructors' ? 900 : 500 }}>{t('nav_master')}</span>
+          <Camera size={22} strokeWidth={location.pathname === '/livepick' ? 2.5 : 2} style={{ marginBottom: '4px' }} />
+          <span style={{ fontSize: '10px', fontWeight: location.pathname === '/livepick' ? 900 : 500 }}>LIVE PICK</span>
         </div>
 
-        {/* [3] + (등록 버튼) */}
         <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', position: 'relative', height: '100%' }}>
           <motion.button
             whileHover={{ scale: 1.1 }}
             whileTap={{ scale: 0.9 }}
             onClick={() => {
-              if (view === 'instructors') {
-                navigate('/register-class');
-              } else if (view === 'bootcamp') {
+              if (location.pathname === '/livepick') {
+                window.dispatchEvent(new CustomEvent('open-community-upload'));
+              } else if (location.pathname === '/bootcamp') {
                 navigate('/bootcamp/register');
-              } else if (view === 'festival') {
+              } else if (location.pathname === '/festival') {
                 navigate('/festival/register');
               } else {
                 navigate('/register-party');
@@ -1128,185 +1056,73 @@ function App() {
             }}
             style={{
               width: '54px', height: '54px', borderRadius: '18px',
-              background: 'linear-gradient(135deg, #FF0033, #CC0029)',
+              background: 'linear-gradient(135deg, #F59E0B, #D97706)',
               border: 'none', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center',
-              cursor: 'pointer', boxShadow: '0 8px 20px rgba(255, 0, 51, 0.3)',
+              cursor: 'pointer', boxShadow: '0 8px 20px rgba(217, 119, 6, 0.3)',
               marginBottom: '18px'
             }}
           >
             <Plus size={30} strokeWidth={3} />
           </motion.button>
-          <span style={{ fontSize: '10px', fontWeight: 900, color: '#FF0033', position: 'absolute', bottom: '12px' }}>
-            {view === 'instructors' ? t('nav_master') : (view === 'home' ? t('nav_social') : t('nav_register'))}
+          <span style={{ fontSize: '10px', fontWeight: 900, color: '#D97706', position: 'absolute', bottom: '12px' }}>
+            {location.pathname === '/livepick' ? (i18n.language.startsWith('en') ? 'REPORT' : '리포트') : t('nav_register')}
           </span>
         </div>
 
-        {/* [4] 부트캠프 / BOOTCAMP */}
         <div 
           className="nav-item" 
           onClick={() => navigate('/bootcamp')}
           style={{ 
             flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
             cursor: 'pointer', transition: 'all 0.3s', position: 'relative', height: '100%',
-            color: view === 'bootcamp' ? '#FF0033' : '#94A3B8'
+            color: location.pathname === '/bootcamp' ? '#F97316' : '#94A3B8'
           }}
         >
-          {view === 'bootcamp' && (
+          {location.pathname === '/bootcamp' && (
             <motion.div 
               layoutId="nav-glow"
-              style={{ position: 'absolute', width: '40px', height: '40px', borderRadius: '50%', background: 'rgba(255, 0, 51, 0.1)', filter: 'blur(8px)' }} 
+              style={{ position: 'absolute', width: '40px', height: '40px', borderRadius: '50%', background: 'rgba(249, 115, 22, 0.1)', filter: 'blur(8px)' }} 
             />
           )}
-          <Tent size={22} strokeWidth={view === 'bootcamp' ? 2.5 : 2} style={{ marginBottom: '4px' }} />
-          <span style={{ fontSize: '10px', fontWeight: view === 'bootcamp' ? 900 : 500 }}>{t('nav_bootcamp')}</span>
+          <Tent size={22} strokeWidth={location.pathname === '/bootcamp' ? 2.5 : 2} style={{ marginBottom: '4px' }} />
+          <span style={{ fontSize: '10px', fontWeight: location.pathname === '/bootcamp' ? 900 : 500 }}>{t('nav_bootcamp')}</span>
         </div>
 
-        {/* [5] 페스티벌 / FESTIVAL */}
         <div 
           className="nav-item" 
           onClick={() => navigate('/festival')}
           style={{ 
             flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
             cursor: 'pointer', transition: 'all 0.3s', position: 'relative', height: '100%',
-            color: view === 'festival' ? '#FF0033' : '#94A3B8'
+            color: location.pathname === '/festival' ? '#F97316' : '#94A3B8'
           }}
         >
-          {view === 'festival' && (
+          {location.pathname === '/festival' && (
             <motion.div 
               layoutId="nav-glow"
-              style={{ position: 'absolute', width: '40px', height: '40px', borderRadius: '50%', background: 'rgba(255, 0, 51, 0.1)', filter: 'blur(8px)' }} 
+              style={{ position: 'absolute', width: '40px', height: '40px', borderRadius: '50%', background: 'rgba(249, 115, 22, 0.1)', filter: 'blur(8px)' }} 
             />
           )}
-          <Flag size={22} strokeWidth={view === 'festival' ? 2.5 : 2} style={{ marginBottom: '4px' }} />
-          <span style={{ fontSize: '10px', fontWeight: view === 'festival' ? 900 : 500 }}>{t('nav_festival')}</span>
+          <Flag size={22} strokeWidth={location.pathname === '/festival' ? 2.5 : 2} style={{ marginBottom: '4px' }} />
+          <span style={{ fontSize: '10px', fontWeight: location.pathname === '/festival' ? 900 : 500 }}>{t('nav_festival')}</span>
         </div>
       </nav>
 
       <DynamicAnalysisModal isOpen={showIncheonModal} onClose={() => setShowIncheonModal(false)} userCoords={userCoords} isSajuCall={isSajuCall} />
       <AnimatePresence>
-        <Suspense fallback={<LoadingFallback />}>
-          {(showIncheon || showRoute) && <IncheonRoute parties={parties} userCoords={userCoords} setUserCoords={setUserCoords} onClose={() => { setShowIncheon(false); setShowRoute(false); }} />}
+        <Suspense fallback={null}>
+          {showIncheon && <IncheonRoute parties={parties} onClose={() => setShowIncheon(false)} />}
         </Suspense>
       </AnimatePresence>
       <AnimatePresence>
-        <Suspense fallback={<LoadingFallback />}>
+        <Suspense fallback={null}>
           {showSaju && <SajuModal parties={parties} onClose={() => setShowSaju(false)} lang={lang} />}
         </Suspense>
       </AnimatePresence>
       <AnimatePresence>
-        <Suspense fallback={<LoadingFallback />}>
+        <Suspense fallback={null}>
           {showWeather && <WeatherModal onClose={() => setShowWeather(false)} />}
         </Suspense>
-      </AnimatePresence>
-
-      <AnimatePresence>
-        {showWishlist && (
-          <motion.div
-            initial={{ opacity:0, y:'100%' }}
-            animate={{ opacity:1, y:0 }}
-            exit={{ opacity:0, y:'100%' }}
-            transition={{ type:'spring', damping:25, stiffness:200 }}
-            style={{ position:'fixed', inset:0, zIndex:2000003, background:'var(--color-bg)', overflowY:'auto' }}
-          >
-            <div style={{ padding:'20px 24px', display:'flex', alignItems:'center', gap:12, borderBottom:'1px solid var(--color-border)' }}>
-              <button onClick={() => setShowWishlist(false)}
-                style={{ background:'var(--color-border)', border:'none', borderRadius:'50%', width:40, height:40, display:'flex', alignItems:'center', justifyContent:'center', cursor:'pointer', fontSize:18, color:'var(--color-text-main)' }}>×</button>
-              <div>
-                <div style={{ fontSize:18, fontWeight:900, color:'var(--color-text-main)' }}>{t('nav_wishlist')} ❤️</div>
-                <div style={{ fontSize:12, color:'var(--color-text-sub)' }}>관심있는 파티를 저장해보세요</div>
-              </div>
-            </div>
-            <div style={{ padding:'60px 24px', textAlign:'center' }}>
-              <div style={{ fontSize:48, marginBottom:16 }}>❤️</div>
-              <div style={{ fontSize:18, fontWeight:900, color:'var(--color-text-main)', marginBottom:8 }}>아직 찜한 파티가 없어요</div>
-              <div style={{ fontSize:14, color:'var(--color-text-sub)', lineHeight: 1.6 }}>파티 카드에서 하트를 눌러<br/>관심 있는 파티를 저장해보세요!</div>
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
-
-      <AnimatePresence>
-        {showRentalModal && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            style={{
-              position: 'fixed',
-              inset: 0,
-              zIndex: 2000003,
-              backgroundColor: 'rgba(0,0,0,0.85)',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              padding: '20px',
-              backdropFilter: 'blur(8px)'
-            }}
-          >
-            <motion.div
-              initial={{ scale: 0.9, opacity: 0, y: 20 }}
-              animate={{ scale: 1, opacity: 1, y: 0 }}
-              style={{
-                background: 'var(--color-card)',
-                borderRadius: '32px',
-                padding: '40px 30px',
-                width: '100%',
-                maxWidth: '360px',
-                textAlign: 'center',
-                border: '1px solid var(--color-border)',
-                position: 'relative',
-                overflow: 'hidden'
-              }}
-            >
-              <div style={{ fontSize: '48px', marginBottom: '20px' }}>🏢</div>
-              <h3 style={{ fontSize: '22px', fontWeight: '950', color: 'var(--color-text-main)', marginBottom: '12px' }}>전국 대관 문의</h3>
-              <p style={{ color: 'var(--color-text-sub)', fontSize: '15px', lineHeight: '1.6', marginBottom: '30px', fontWeight: 500 }}>
-                바 차타 플랫폼을 통해<br/>전국 댄서들에게 장소를 홍보하세요.
-              </p>
-              
-              <button
-                onClick={() => {
-                  window.open('https://open.kakao.com/o/gP43rNri', '_blank');
-                  setShowRentalModal(false);
-                }}
-                style={{
-                  background: '#FEE500',
-                  color: '#000',
-                  width: '100%',
-                  padding: '18px',
-                  borderRadius: '16px',
-                  border: 'none',
-                  fontWeight: '900',
-                  fontSize: '17px',
-                  cursor: 'pointer',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  gap: '10px',
-                  boxShadow: '0 10px 20px rgba(254, 229, 0, 0.2)'
-                }}
-              >
-                카카오톡으로 문의하기
-              </button>
-              
-              <button
-                onClick={() => setShowRentalModal(false)}
-                style={{
-                  marginTop: '20px',
-                  background: 'none',
-                  border: 'none',
-                  color: 'var(--color-text-sub)',
-                  fontSize: '13px',
-                  fontWeight: 700,
-                  cursor: 'pointer',
-                  textDecoration: 'underline'
-                }}
-              >
-                나중에 하기
-              </button>
-            </motion.div>
-          </motion.div>
-        )}
       </AnimatePresence>
 
       <AnimatePresence>
