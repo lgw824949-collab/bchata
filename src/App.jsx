@@ -578,6 +578,8 @@ function App() {
   const [lastWeatherTap, setLastWeatherTap] = useState(0);
   const weatherTimeoutRef = useRef(null);
   const [navVisible, setNavVisible] = useState(true)
+  const [showRoute, setShowRoute] = useState(false);
+  const [showPlaceInquiry, setShowPlaceInquiry] = useState(false);
   const lastScrollY = useRef(0)
 
   // 다크 모드 상태 관리
@@ -815,6 +817,8 @@ function App() {
     handleRegister, 
     fetchParties,
     setShowSaju,
+    setShowRoute,
+    setShowPlaceInquiry,
     logActivity: () => {}, regionalTheme: { welcomeMsg: "전국 댄서들을 위한 실시간 정보", specialBanner: true }
   };
 
