@@ -720,7 +720,7 @@ const HomePage = ({
                         <div style={{ width: '100%', overflow: 'hidden', padding: '10px 0' }}>
                           <div className="hot-pick-track">
                             {[...metroHot, ...metroHot].map((item, idx) => (
-                              <div key={`${item.id}-${idx}`} onClick={() => handleOpenModal(setSelectedPoster, item.poster_url)} style={{ width: '140px', flexShrink: 0, borderRadius: '12px', overflow: 'hidden', boxShadow: '0 8px 20px rgba(0,0,0,0.12)', position: 'relative', background: '#000', margin: '0 10px' }}>
+                              <div key={`${item.id}-${idx}`} onClick={() => setSelectedPoster(item.poster_url)} style={{ width: '140px', flexShrink: 0, borderRadius: '12px', overflow: 'hidden', boxShadow: '0 8px 20px rgba(0,0,0,0.12)', position: 'relative', background: '#000', margin: '0 10px' }}>
                                 <img src={item.poster_url} style={{ width: '100%', height: '210px', objectFit: 'cover' }} alt="Pick" />
                                 <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, padding: '12px 8px', background: 'linear-gradient(transparent, rgba(0,0,0,0.95))', color: 'white' }}>
                                   <div style={{ fontSize: '10px', color: '#FFEB3B', fontWeight: 900, marginBottom: '2px', textShadow: '0 1px 2px rgba(0,0,0,0.8)' }}>{translateDynamicText(item.locationName, isEn)}</div>
@@ -790,7 +790,7 @@ const HomePage = ({
                                 <button 
                                   onClick={() => {
                                     setGridRegion(regionName);
-                                    handleOpenModal(setShowGridModal, true);
+                                    setShowGridModal(true);
                                   }}
                                   style={{ fontSize: '12px', fontWeight: '700', color: '#E53935', background: 'none', border: 'none', padding: 0, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '2px' }}
                                 >
@@ -838,7 +838,7 @@ const HomePage = ({
                                     return (
                                     <div 
                                       key={item.id} 
-                                      onClick={() => handleOpenModal(setSelectedPoster, item.poster_url)} 
+                                      onClick={() => setSelectedPoster(item.poster_url)} 
                                       style={{ 
                                         width: '320px', 
                                         flexShrink: 0, 
@@ -919,7 +919,7 @@ const HomePage = ({
                                 <div style={{ width: '100%', overflow: 'hidden', padding: '10px 0' }}>
                                   <div className="hot-pick-track">
                                     {[...provincialHot, ...provincialHot].map((item, idx) => (
-                                      <div key={`${item.id}-${idx}`} onClick={() => handleOpenModal(setSelectedPoster, item.poster_url)} style={{ width: '140px', flexShrink: 0, borderRadius: '12px', overflow: 'hidden', boxShadow: '0 8px 20px rgba(0,0,0,0.12)', position: 'relative' }}>
+                                      <div key={`${item.id}-${idx}`} onClick={() => setSelectedPoster(item.poster_url)} style={{ width: '140px', flexShrink: 0, borderRadius: '12px', overflow: 'hidden', boxShadow: '0 8px 20px rgba(0,0,0,0.12)', position: 'relative' }}>
                                         <img src={item.poster_url} style={{ width: '100%', height: '210px', objectFit: 'cover' }} alt="Pick" />
                                         <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, padding: '12px 8px', background: 'linear-gradient(transparent, rgba(0,0,0,0.95))', color: 'white' }}>
                                           <div style={{ fontSize: '10px', color: '#FFEB3B', fontWeight: 900, marginBottom: '2px', textShadow: '0 1px 2px rgba(0,0,0,0.8)' }}>{translateDynamicText(item.locationName, isEn)}</div>
@@ -975,7 +975,7 @@ const HomePage = ({
                             if (day.fullDate < todayStr) return;
                             setSelectedDate(day.fullDate); 
                             // 모든 날짜 클릭 시 3단계 필터 필터 플로우 활성화
-                            handleOpenModal(setShowFilterPanel, true);
+                            setShowFilterPanel(true);
                             setFilterStep(1);
                           }} 
                           style={{ height: '46px', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', fontSize: '15px', fontWeight: isSelected ? 800 : 600, color: isSelected ? '#fff' : (day.dayName === '일' ? '#FF1744' : (isWeekend ? '#FF1744' : 'var(--color-text-main)')), backgroundColor: isSelected ? '#FF1744' : 'transparent', borderRadius: '14px', cursor: day.fullDate < todayStr ? 'default' : 'pointer', opacity: day.fullDate < todayStr ? 0.3 : 1 }}
@@ -995,7 +995,7 @@ const HomePage = ({
                         <div style={{ fontSize: '18px', fontWeight: 950, color: 'var(--color-text-main)', marginBottom: '15px' }}>{t('filter_where')}</div>
                         <div style={{ display: 'flex', overflowX: 'auto', gap: '10px', paddingBottom: '15px', msOverflowStyle: 'none', scrollbarWidth: 'none', WebkitOverflowScrolling: 'touch' }}>
                           {['서울', '경기/인천', '부산', '대구', '대전', '광주', '기타'].map(r => (
-                            <button key={r} onClick={() => { setFilterRegion(r); handleOpenModal(setFilterStep, 2); }} style={{ flexShrink: 0, padding: '14px 24px', borderRadius: '14px', background: filterRegion === r ? '#FF1744' : 'var(--color-bg)', color: filterRegion === r ? '#fff' : 'var(--color-text-sub)', fontWeight: 700, border: 'none', transition: 'all 0.2s' }}>{r}</button>
+                            <button key={r} onClick={() => { setFilterRegion(r); setFilterStep(2); }} style={{ flexShrink: 0, padding: '14px 24px', borderRadius: '14px', background: filterRegion === r ? '#FF1744' : 'var(--color-bg)', color: filterRegion === r ? '#fff' : 'var(--color-text-sub)', fontWeight: 700, border: 'none', transition: 'all 0.2s' }}>{r}</button>
                           ))}
                         </div>
                       </>
@@ -1007,7 +1007,7 @@ const HomePage = ({
                         <div style={{ fontSize: '18px', fontWeight: 950, color: 'var(--color-text-main)', marginBottom: '15px' }}>{t('filter_genre')}</div>
                         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
                           {['바차타', '살사', '쥬크', '키좀바'].map(g => (
-                            <button key={g} onClick={() => { setFilterGenre(g); handleOpenModal(setShowFilteredResults, true); }} style={{ padding: '24px 15px', borderRadius: '18px', background: filterGenre === g ? 'var(--color-text-main)' : 'var(--color-bg)', color: filterGenre === g ? 'var(--color-bg)' : 'var(--color-text-sub)', fontWeight: 800, fontSize: '16px', border: 'none' }}>{g}</button>
+                            <button key={g} onClick={() => { setFilterGenre(g); setShowFilteredResults(true); }} style={{ padding: '24px 15px', borderRadius: '18px', background: filterGenre === g ? 'var(--color-text-main)' : 'var(--color-bg)', color: filterGenre === g ? 'var(--color-bg)' : 'var(--color-text-sub)', fontWeight: 800, fontSize: '16px', border: 'none' }}>{g}</button>
                           ))}
                         </div>
                       </>
@@ -1055,7 +1055,7 @@ const HomePage = ({
                             else if (addr.includes('광주')) displayRegion = '광주';
 
                             return (
-                              <div key={party.id} onClick={() => handleOpenModal(setSelectedPoster, party.poster_url)} style={{ aspectRatio: '1 / 1.4', borderRadius: '12px', overflow: 'hidden', position: 'relative', background: 'var(--color-border)', cursor: 'pointer', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.1)' }}>
+                              <div key={party.id} onClick={() => setSelectedPoster(party.poster_url)} style={{ aspectRatio: '1 / 1.4', borderRadius: '12px', overflow: 'hidden', position: 'relative', background: 'var(--color-border)', cursor: 'pointer', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.1)' }}>
                                 <img src={party.poster_url} style={{ width: '100%', height: '100%', objectFit: 'cover' }} alt="Poster" />
                                 {(() => {
                                   const now = new Date();
@@ -1195,7 +1195,7 @@ const HomePage = ({
                       <div 
                         key={item.id} 
                         onClick={() => {
-                          handleOpenModal(setSelectedPoster, item.poster_url);
+                          setSelectedPoster(item.poster_url);
                         }}
                          style={{ aspectRatio: '1 / 1.4', overflow: 'hidden', background: 'var(--color-card)', position: 'relative' }}
                       >
