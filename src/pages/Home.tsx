@@ -611,18 +611,18 @@ const HomePage = ({
       </div>
 
       {/* 🚀 [사용자 요청] 퀵 메뉴 그리드 (벤치마킹 디자인 적용) */}
-      <div style={{ display:'grid', gridTemplateColumns:'repeat(5, 1fr)', gap:'6px', padding:'10px 12px 16px' }}>
+      <div style={{ display:'grid', gridTemplateColumns:'repeat(5, 1fr)', gap:'4px', padding:'8px 10px 12px' }}>
         {[
-          { icon: <Camera size={24} color="#E53935" />, label:'라이브픽', badge:'HOT', action:() => setView('community') },
-          { icon: <Calendar size={24} color="#F97316" />, label:'행사달력', action:() => handleOpenModal(setShowFullCalendar, true) },
-          { icon: <Utensils size={24} color="#C2185B" />, label:'맛집/뒷풀이', action:() => setView('restaurant') },
-          { icon: <CloudSun size={24} color="#1976D2" />, label:'오늘날씨', action:() => handleOpenModal(setShowWeather, true) },
-          { icon: <Heart size={24} color="#7B1FA2" />, label:'찜하기', action:() => handleOpenModal(setShowWishlist, true) },
-          { icon: <MessageSquare size={24} color="#388E3C" />, label:'채팅문의', action:() => window.open('https://open.kakao.com/o/gP43rNri','_blank') },
-          { icon: <Navigation size={24} color="#303F9F" />, label:'지능형경로', badge:'LIVE', action:() => openAnalysis(false) },
-          { icon: <Star size={24} color="#F9A825" />, label:'운명의좌표', action:() => handleOpenModal(setShowSaju, true) },
-          { icon: <MapPin size={24} color="#0097A7" />, label:'주변주차', action:() => setView('parking') },
-          { icon: <HomeIcon size={24} color="#558B2F" />, label:'대관문의', action:() => handleOpenModal(setShowRentalModal, true) },
+          { icon: <Camera size={22} color="#E53935" />, label:'라이브픽', badge:'HOT', action:() => setView('community') },
+          { icon: <Calendar size={22} color="#F97316" />, label:'행사달력', action:() => handleOpenModal(setShowFullCalendar, true) },
+          { icon: <Utensils size={22} color="#C2185B" />, label:'맛집/뒷풀이', action:() => setView('restaurant') },
+          { icon: <CloudSun size={22} color="#1976D2" />, label:'오늘날씨', action:() => handleOpenModal(setShowWeather, true) },
+          { icon: <Heart size={22} color="#7B1FA2" />, label:'찜하기', action:() => handleOpenModal(setShowWishlist, true) },
+          { icon: <MessageSquare size={22} color="#388E3C" />, label:'채팅문의', action:() => window.open('https://open.kakao.com/o/gP43rNri','_blank') },
+          { icon: <Navigation size={22} color="#303F9F" />, label:'지능형경로', badge:'LIVE', action:() => openAnalysis(false) },
+          { icon: <Star size={22} color="#F9A825" />, label:'운명의좌표', action:() => handleOpenModal(setShowSaju, true) },
+          { icon: <MapPin size={22} color="#0097A7" />, label:'주변주차', action:() => setView('parking') },
+          { icon: <HomeIcon size={22} color="#558B2F" />, label:'대관문의', action:() => handleOpenModal(setShowRentalModal, true) },
         ].map((item, idx) => (
           <div key={idx} style={{ position:'relative' }}>
             <div style={{ 
@@ -635,12 +635,12 @@ const HomePage = ({
                 onClick={item.action}
                 style={{ 
                   display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center', 
-                  gap:'8px', cursor:'pointer', borderRadius:'13px', 
-                  padding:'32px 2px 28px', background:'#fff' 
+                  gap:'6px', cursor:'pointer', borderRadius:'12px', 
+                  padding:'12px 4px 10px', background:'#fff' 
                 }}
               >
                 {item.icon}
-                <span style={{ fontSize:'10.5px', fontWeight:800, color:'#1E293B', textAlign:'center', lineHeight:1.3, wordBreak:'keep-all' }}>
+                <span style={{ fontSize:'10px', fontWeight:500, color:'#1E293B', textAlign:'center', lineHeight:1.3, wordBreak:'keep-all' }}>
                   {item.label}
                 </span>
               </motion.div>
