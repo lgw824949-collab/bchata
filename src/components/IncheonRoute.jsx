@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { X, Navigation, MapPin, Info } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { useTranslation } from 'react-i18next';
@@ -8,6 +8,8 @@ const IncheonRoute = ({ parties, userCoords, onClose }) => {
   const { t, i18n } = useTranslation();
   const isEn = i18n.language.startsWith('en');
   const [loading, setLoading] = useState(false);
+  const mapContainer = useRef(null);
+  const mapRef = useRef(null);
 
   // 거리 계산 함수 (Haversine)
   const calcDist = (lat1, lon1, lat2, lon2) => {
@@ -24,13 +26,80 @@ const IncheonRoute = ({ parties, userCoords, onClose }) => {
     const lat = p.locations?.latitude || p.lat;
     const lon = p.locations?.longitude || p.lon;
     const dist = userCoords ? calcDist(userCoords.lat, userCoords.lon, lat, lon) : 9999;
-    return { ...p, distance: dist };
+    return { ...p, distance: dist, lat, lon };
   });
 
   // '지능형 경로' (거리순 안내)
   const nearbyParties = processedParties
     .sort((a, b) => a.distance - b.distance)
     .slice(0, 10);
+
+  // --- 카카오 지도 초기화 ---
+  useEffect(() => {
+    if (!window.kakao || !window.kakao.maps || !mapContainer.current) return;
+
+    const lat = userCoords?.lat || 37.4562557; // 기본값: 인천시청
+    const lon = userCoords?.lon || 126.7052062;
+
+    const options = {
+      center: new window.kakao.maps.LatLng(lat, lon),
+      level: 4
+    };
+
+    const map = new window.kakao.maps.Map(mapContainer.current, options);
+    mapRef.current = map;
+
+    const bounds = new window.kakao.maps.LatLngBounds();
+
+    // 1. 내 위치 마커
+    if (userCoords) {
+      const myPos = new window.kakao.maps.LatLng(lat, lon);
+      const marker = new window.kakao.maps.Marker({
+        position: myPos,
+        title: '내 위치'
+      });
+      marker.setMap(map);
+      bounds.extend(myPos);
+
+      // 내 위치 커스텀 오버레이 (텍스트)
+      const content = '<div style="padding:5px 10px; background:#2563EB; color:#fff; border-radius:20px; font-size:10px; font-weight:900; box-shadow:0 2px 6px rgba(0,0,0,0.2)">내 위치</div>';
+      const customOverlay = new window.kakao.maps.CustomOverlay({
+        position: myPos,
+        content: content,
+        yAnchor: 2.3
+      });
+      customOverlay.setMap(map);
+    }
+
+    // 2. 주변 성지 마커
+    nearbyParties.forEach(party => {
+      if (!party.lat || !party.lon) return;
+      const pos = new window.kakao.maps.LatLng(party.lat, party.lon);
+      const marker = new window.kakao.maps.Marker({
+        position: pos,
+        title: party.title
+      });
+      marker.setMap(map);
+      bounds.extend(pos);
+
+      // 마커 클릭 시 정보창
+      const iwContent = `<div style="padding:8px; font-size:12px; font-weight:700; color:#1E293B; width:150px">${party.title}</div>`;
+      const infowindow = new window.kakao.maps.InfoWindow({
+        content: iwContent,
+        removable: true
+      });
+
+      window.kakao.maps.event.addListener(marker, 'click', () => {
+        infowindow.open(map, marker);
+      });
+    });
+
+    // 모든 마커가 보이도록 범위 조정
+    if (nearbyParties.length > 0 || userCoords) {
+      map.setBounds(bounds);
+    }
+
+  }, [userCoords, nearbyParties]);
 
   const handleRoute = (party) => {
     const locationName = (party.locationName || '').trim()
@@ -90,7 +159,7 @@ const IncheonRoute = ({ parties, userCoords, onClose }) => {
         transition={{ type: 'spring', damping: 25, stiffness: 200 }}
         onClick={(e) => e.stopPropagation()}
         style={{ 
-          width: '100%', maxHeight: '85vh', background: '#fff', 
+          width: '100%', height: '92vh', background: '#fff', 
           borderTopLeftRadius: '30px', borderTopRightRadius: '30px', 
           overflow: 'hidden', display: 'flex', flexDirection: 'column' 
         }}
@@ -98,7 +167,7 @@ const IncheonRoute = ({ parties, userCoords, onClose }) => {
         {/* 헤더: 블루 계열 */}
         <div style={{ 
           background: 'linear-gradient(135deg, #1E40AF, #3B82F6)', 
-          padding: '24px 20px', color: '#fff', position: 'relative' 
+          padding: '24px 20px', color: '#fff', position: 'relative', flexShrink: 0
         }}>
           <div style={{ width: '40px', height: '4px', background: 'rgba(255,255,255,0.3)', borderRadius: '2px', margin: '0 auto 15px' }} />
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
@@ -112,12 +181,25 @@ const IncheonRoute = ({ parties, userCoords, onClose }) => {
           </div>
         </div>
 
+        {/* 지도 영역 */}
+        <div style={{ width: '100%', height: '35%', background: '#f0f0f0', flexShrink: 0, position: 'relative' }}>
+          <div ref={mapContainer} style={{ width: '100%', height: '100%' }} />
+          {!userCoords && (
+            <div style={{ position:'absolute', inset:0, background:'rgba(255,255,255,0.7)', display:'flex', alignItems:'center', justifyContent:'center', zIndex:10 }}>
+              <div style={{ textAlign:'center', color:'#1E40AF', fontWeight:800 }}>
+                <Info size={32} style={{ margin:'0 auto 8px' }}/>
+                위치 권한을 허용하면 지도가 활성화됩니다.
+              </div>
+            </div>
+          )}
+        </div>
+
         {/* 목록 영역 */}
         <div style={{ flex: 1, overflowY: 'auto', padding: '20px', background: '#F8FAFC' }}>
           {nearbyParties.length === 0 ? (
             <div style={{ textAlign: 'center', padding: '60px 20px', color: '#64748B' }}>
               <Info size={48} style={{ margin: '0 auto 16px', opacity: 0.3 }} />
-              <p style={{ fontSize: '16px', fontWeight: '700' }}>{userCoords ? '주변 100km 이내에 파티 정보가 없습니다.' : '위치 권한을 허용하시면 주변 성지를 안내해 드립니다.'}</p>
+              <p style={{ fontSize: '16px', fontWeight: '700' }}>{userCoords ? '주변 200km 이내에 파티 정보가 없습니다.' : '위치 권한을 허용하시면 주변 성지를 안내해 드립니다.'}</p>
             </div>
           ) : (
             <div style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
@@ -170,7 +252,7 @@ const IncheonRoute = ({ parties, userCoords, onClose }) => {
           )}
         </div>
         
-        <div style={{ padding: '20px', background: '#fff', borderTop: '1px solid #F1F5F9' }}>
+        <div style={{ padding: '20px', background: '#fff', borderTop: '1px solid #F1F5F9', flexShrink: 0 }}>
           <button onClick={onClose} style={{ width: '100%', padding: '18px', borderRadius: '18px', background: '#F1F5F9', color: '#475569', border: 'none', fontSize: '16px', fontWeight: '800', cursor: 'pointer' }}>
             닫기
           </button>
