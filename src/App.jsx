@@ -656,9 +656,6 @@ function App() {
   const [gridRegion, setGridRegion] = useState('');
   const [showAllRegionsModal, setShowAllRegionsModal] = useState(false);
   const [selectedAllRegionsDate, setSelectedAllRegionsDate] = useState('');
-  const [followedInstructors, setFollowedInstructors] = useState([]);
-  const [likedLivePicks, setLikedLivePicks] = useState([]);
-  const [sidebarRefresh, setSidebarRefresh] = useState(0);
   const [showRentalModal, setShowRentalModal] = useState(false);
   const [showWishlist, setShowWishlist] = useState(false)
   const [showIdRegister, setShowIdRegister] = useState(false)
@@ -717,55 +714,6 @@ function App() {
     return () => window.removeEventListener('open-id-register', handler)
   }, [])
 
-  useEffect(() => {
-    const handleSync = () => setSidebarRefresh(prev => prev + 1);
-    window.addEventListener('refresh-sidebar', handleSync);
-    window.addEventListener('storage', handleSync); // Keep storage for cross-tab sync
-    return () => {
-      window.removeEventListener('refresh-sidebar', handleSync);
-      window.removeEventListener('storage', handleSync);
-    };
-  }, []);
-
-  useEffect(() => {
-    if (isMenuOpen || sidebarRefresh > 0) {
-      const fetchFollowed = async () => {
-        const followsRaw = localStorage.getItem('instructor_follows');
-        if (!followsRaw) { setFollowedInstructors([]); return; }
-        
-        try {
-          const follows = JSON.parse(followsRaw);
-          const ids = Object.keys(follows).filter(id => follows[id]);
-          if (ids.length === 0) { setFollowedInstructors([]); return; }
-          
-          const { data } = await supabase
-            .from('instructors')
-            .select('id, name, photo_url')
-            .in('id', ids)
-            .eq('status', 'active');
-            
-          if (data) setFollowedInstructors(data);
-        } catch (e) { console.error(e); }
-      };
-
-      const fetchLikedPicks = async () => {
-        const likedRaw = localStorage.getItem('community_liked_posts');
-        if (!likedRaw) { setLikedLivePicks([]); return; }
-        try {
-          const ids = JSON.parse(likedRaw);
-          if (ids.length === 0) { setLikedLivePicks([]); return; }
-          const { data } = await supabase
-            .from('community_posts')
-            .select('id, image_url, bar_name')
-            .in('id', ids);
-          if (data) setLikedLivePicks(data);
-        } catch (e) { console.error(e); }
-      };
-
-      fetchFollowed();
-      fetchLikedPicks();
-    }
-  }, [isMenuOpen, sidebarRefresh]);
 
   const [filterStep, setFilterStep] = useState(1);
   const [weatherTapCount, setWeatherTapCount] = useState(0);
@@ -1038,7 +986,6 @@ function App() {
     fetchParties,
     showWeather, setShowWeather,
     isDark, setIsDark,
-    followedInstructors, likedLivePicks,
     showRentalModal, setShowRentalModal,
     setShowSaju,
     setShowWishlist,
@@ -1115,135 +1062,6 @@ function App() {
               </motion.button>
             </div>
 
-            <div style={{ marginBottom: '40px' }}>
-              <h2 style={{ color: 'var(--color-text-main)', fontSize: '24px', fontWeight: 900, margin: 0 }}>{t('premium_services')}</h2>
-              <p style={{ color: 'var(--color-text-sub)', fontSize: '14px', marginTop: '4px' }}>{t('platform_desc')}</p>
-            </div>
-
-            {/* MY MASTERS Section - Always Visible to pique interest */}
-            <div style={{ marginBottom: '32px', padding: '0 4px' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
-                <h3 style={{ color: 'var(--color-text-main)', fontSize: '13px', fontWeight: 1000, textTransform: 'uppercase', letterSpacing: '1px' }}>My Masters</h3>
-                <span style={{ fontSize: '10px', color: '#C9A84C', fontWeight: 700 }}>LIVE</span>
-              </div>
-              <div style={{ 
-                display: 'flex', 
-                gap: '14px', 
-                overflowX: 'auto', 
-                paddingBottom: '10px', 
-                scrollbarWidth: 'none', 
-                msOverflowStyle: 'none',
-                WebkitOverflowScrolling: 'touch'
-              }}>
-                {/* [사용자 요청] 최소 10개 슬롯 표시 (팔로우 항목 + 나머지는 플레이스홀더) */}
-                {Array.from({ length: 10 }).map((_, idx) => {
-                  const inst = followedInstructors[idx];
-                  if (inst) {
-                    return (
-                      <motion.div 
-                        key={`inst-${inst.id}`}
-                        whileTap={{ scale: 0.9 }}
-                        onClick={() => {
-                          localStorage.setItem('selected_instructor_id', inst.id);
-                          navigate('/instructors');
-                          setIsMenuOpen(false);
-                        }}
-                        style={{ flexShrink: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '8px', width: '64px' }}
-                      >
-                        <div style={{ 
-                          width: '58px', 
-                          height: '58px', 
-                          borderRadius: '50%', 
-                          border: '2px solid #C9A84C', 
-                          padding: '2px', 
-                          background: 'linear-gradient(135deg, #C9A84C, #F1D382)',
-                          boxShadow: '0 4px 12px rgba(201, 168, 76, 0.2)'
-                        }}>
-                          <div style={{ width: '100%', height: '100%', borderRadius: '50%', background: 'var(--color-card)', overflow: 'hidden' }}>
-                            <img src={inst.photo_url || 'https://via.placeholder.com/150'} style={{ width: '100%', height: '100%', borderRadius: '50%', objectFit: 'cover' }} />
-                          </div>
-                        </div>
-                        <span style={{ fontSize: '11px', color: 'var(--color-text-main)', fontWeight: 800, textAlign: 'center', width: '100%', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{inst.name.split(' ')[0]}</span>
-                      </motion.div>
-                    );
-                  }
-                  return (
-                    <div 
-                      key={`placeholder-inst-${idx}`}
-                      onClick={() => { setView('instructors'); setIsMenuOpen(false); }}
-                      style={{ flexShrink: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '8px', width: '64px', opacity: 0.3 }}
-                    >
-                      <div style={{ width: '58px', height: '58px', borderRadius: '50%', border: '2px dashed var(--color-text-sub)', background: 'var(--color-border)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                        <Plus size={20} color="var(--color-text-sub)" />
-                      </div>
-                      <div style={{ width: '30px', height: '8px', borderRadius: '4px', background: 'var(--color-border)' }} />
-                    </div>
-                  );
-                })}
-              </div>
-            </div>
-
-            {/* MY LIVE PICKS Section - Permanent Discovery Hub */}
-            <div style={{ marginBottom: '32px', padding: '0 4px' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
-                <h3 style={{ color: 'var(--color-text-main)', fontSize: '13px', fontWeight: 1000, textTransform: 'uppercase', letterSpacing: '1px' }}>My Live Picks</h3>
-                <span style={{ fontSize: '10px', color: '#E53935', fontWeight: 700 }}>NEW</span>
-              </div>
-              <div style={{ 
-                display: 'flex', 
-                gap: '14px', 
-                overflowX: 'auto', 
-                paddingBottom: '10px', 
-                scrollbarWidth: 'none', 
-                msOverflowStyle: 'none',
-                WebkitOverflowScrolling: 'touch'
-              }}>
-                {/* [사용자 요청] 최소 10개 슬롯 표시 */}
-                {Array.from({ length: 10 }).map((_, idx) => {
-                  const post = likedLivePicks[idx];
-                  if (post) {
-                    return (
-                      <motion.div 
-                        key={`post-${post.id}`}
-                        whileTap={{ scale: 0.9 }}
-                        onClick={() => {
-                          setView('community');
-                          setIsMenuOpen(false);
-                        }}
-                        style={{ flexShrink: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '8px', width: '64px' }}
-                      >
-                        <div style={{ 
-                          width: '58px', 
-                          height: '58px', 
-                          borderRadius: '50%', 
-                          border: '2px solid #E53935', 
-                          padding: '2px', 
-                          background: 'linear-gradient(135deg, #E53935, #FF8A80)',
-                          boxShadow: '0 4px 12px rgba(229, 57, 53, 0.2)'
-                        }}>
-                          <div style={{ width: '100%', height: '100%', borderRadius: '50%', background: 'var(--color-card)', overflow: 'hidden' }}>
-                            <img src={post.image_url} style={{ width: '100%', height: '100%', borderRadius: '50%', objectFit: 'cover' }} />
-                          </div>
-                        </div>
-                        <span style={{ fontSize: '11px', color: 'var(--color-text-main)', fontWeight: 800, textAlign: 'center', width: '100%', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{post.bar_name || '현장'}</span>
-                      </motion.div>
-                    );
-                  }
-                  return (
-                    <div 
-                      key={`placeholder-post-${idx}`}
-                      onClick={() => { setView('community'); setIsMenuOpen(false); }}
-                      style={{ flexShrink: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '8px', width: '64px', opacity: 0.3 }}
-                    >
-                      <div style={{ width: '58px', height: '58px', borderRadius: '50%', border: '2px dashed var(--color-text-sub)', background: 'var(--color-border)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                        <Plus size={20} color="var(--color-text-sub)" />
-                      </div>
-                      <div style={{ width: '30px', height: '8px', borderRadius: '4px', background: 'var(--color-border)' }} />
-                    </div>
-                  );
-                })}
-              </div>
-            </div>
 
             <button
               onClick={() => { handleCloseModal(); setShowClassForm(true) }}
@@ -1258,7 +1076,7 @@ function App() {
               </div>
             </button>
 
-            <div style={{ display:'grid', gridTemplateColumns:'repeat(5, 1fr)', gap:'8px', padding:'12px 16px' }}>
+            <div style={{ display:'flex', flexDirection:'column', gap:'8px', padding:'12px 0' }}>
 
               {[
                 { label:'라이브픽', bg:'#FFE4E4', iconColor:'#E53935', icon:<Camera size={18} color="#E53935" />, badge:'HOT', onClick:() => handleOpenModal(setShowLivePick, true) },
@@ -1275,19 +1093,19 @@ function App() {
                 <div
                   key={i}
                   onClick={item.onClick}
-                  style={{ display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center', gap:'7px', cursor:'pointer', borderRadius:'14px', padding:'12px 2px 10px', position:'relative', background:'#fff', border:'0.5px solid #F1F5F9' }}
+                  style={{ width:'100%', padding:'12px 16px', background:'#fff', borderRadius:'14px', border:'1px solid #F1F5F9', display:'flex', alignItems:'center', gap:'14px', cursor:'pointer' }}
                 >
-                  {item.badge && (
-                    <span style={{ position:'absolute', top:'5px', right:'5px', background:'#E53935', color:'#fff', fontSize:'7px', fontWeight:700, padding:'1px 4px', borderRadius:'10px' }}>
-                      {item.badge}
-                    </span>
-                  )}
                   <div style={{ width:'36px', height:'36px', borderRadius:'10px', background:item.bg, display:'flex', alignItems:'center', justifyContent:'center' }}>
                     {item.icon}
                   </div>
-                  <span style={{ fontSize:'10px', fontWeight:600, color:'#1E293B', textAlign:'center', lineHeight:1.3 }}>
+                  <span style={{ fontSize:'14px', fontWeight:700, color:'#1E293B' }}>
                     {item.label}
                   </span>
+                  {item.badge && (
+                    <span style={{ marginLeft:'auto', background:'#E53935', color:'#fff', fontSize:'9px', fontWeight:800, padding:'2px 6px', borderRadius:'10px' }}>
+                      {item.badge}
+                    </span>
+                  )}
                 </div>
               ))}
 
