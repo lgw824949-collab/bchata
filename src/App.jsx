@@ -665,6 +665,32 @@ function App() {
   const [showClassForm, setShowClassForm] = useState(false)
   const [showLivePick, setShowLivePick] = useState(false)
 
+  const handleWeatherTap = () => {
+    const now = Date.now();
+    if (now - lastWeatherTap < 1000) {
+      const newCount = weatherTapCount + 1;
+      if (newCount >= 3) {
+        setView('admin-portal');
+        setIsMenuOpen(false);
+        setWeatherTapCount(0);
+      } else {
+        setWeatherTapCount(newCount);
+      }
+    } else {
+      setWeatherTapCount(1);
+      handleOpenModal(setShowWeather, true);
+    }
+    setLastWeatherTap(now);
+  };
+
+  useEffect(() => {
+    if (showLivePick) {
+      setView('community');
+      setIsMenuOpen(false);
+      setShowLivePick(false);
+    }
+  }, [showLivePick]);
+
   const groupedAllRegionsParties = useMemo(() => {
     if (!selectedAllRegionsDate) return {};
     const dayParties = parties.filter(p => p.date === selectedAllRegionsDate);
