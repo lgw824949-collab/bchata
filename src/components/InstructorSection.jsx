@@ -648,13 +648,25 @@ const InstructorSection = () => {
                           </div>
                         ) : (
                           classes.map(c => (
-                            <div key={c.id} style={{ background:'#1a1a1a', borderRadius:14, padding:16, marginBottom:12 }}>
-                              <div style={{ fontSize:15, fontWeight:700, color:'#fff', marginBottom:6 }}>{c.title}</div>
-                              <div style={{ fontSize:13, color:'rgba(255,255,255,0.6)', lineHeight:1.6, marginBottom:8 }}>{c.description}</div>
-                              <div style={{ display:'flex', gap:12 }}>
-                                {c.schedule && <span style={{ fontSize:11, color:'#FFD700' }}>⏰ {c.schedule}</span>}
-                                {c.location && <span style={{ fontSize:11, color:'rgba(255,255,255,0.4)' }}>📍 {c.location}</span>}
-                                {c.fee && <span style={{ fontSize:11, color:'#E53935', fontWeight:700 }}>{c.fee}</span>}
+                            <div key={c.id} style={{ background:'#1a1a1a', borderRadius:20, overflow:'hidden', marginBottom:20, border:'1px solid rgba(255,255,255,0.05)' }}>
+                              {c.poster_url && (
+                                <img src={c.poster_url} style={{ width:'100%', height:'200px', objectFit:'cover' }} alt={c.title} />
+                              )}
+                              <div style={{ padding:16 }}>
+                                <div style={{ fontSize:17, fontWeight:900, color:'#fff', marginBottom:8 }}>{c.title}</div>
+                                <div style={{ fontSize:13, color:'rgba(255,255,255,0.6)', lineHeight:1.6, marginBottom:12 }}>{c.description}</div>
+                                <div style={{ display:'flex', flexWrap:'wrap', gap:10 }}>
+                                  {c.schedule && <div style={{ fontSize:12, color:'#FFD700', background:'rgba(255,215,0,0.1)', padding:'4px 10px', borderRadius:8 }}>⏰ {c.schedule}</div>}
+                                  {c.location && <div style={{ fontSize:12, color:'rgba(255,255,255,0.5)', background:'rgba(255,255,255,0.05)', padding:'4px 10px', borderRadius:8 }}>📍 {c.location}</div>}
+                                  {c.fee && <div style={{ fontSize:12, color:'#E53935', fontWeight:800, background:'rgba(229,57,53,0.1)', padding:'4px 10px', borderRadius:8 }}>{c.fee}</div>}
+                                </div>
+                                
+                                {selectedInstructor.kakao_link && (
+                                  <button
+                                    onClick={() => window.open(selectedInstructor.kakao_link, '_blank')}
+                                    style={{ width:'100%', marginTop:16, padding:'12px', borderRadius:14, border:'none', background:'#FEE500', color:'#000', fontSize:13, fontWeight:900, cursor:'pointer' }}
+                                  >문의 및 신청하기</button>
+                                )}
                               </div>
                             </div>
                           ))

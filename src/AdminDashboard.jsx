@@ -138,6 +138,9 @@ export default function AdminDashboard({ onBack }) {
       } else if (category === 'instructor') {
         const statusVal = activeTab === 'active' ? 'active' : activeTab;
         query = supabase.from('instructors').select('*').eq('status', statusVal);
+      } else if (category === 'instructor-classes') {
+        const statusVal = activeTab === 'active' ? 'active' : activeTab;
+        query = supabase.from('instructor_classes').select('*, instructors(name)').eq('status', statusVal);
       }
       const { data, error } = await query.order('created_at', { ascending: false })
       if (error) throw error
@@ -196,6 +199,7 @@ export default function AdminDashboard({ onBack }) {
       if (category === 'social') table = activeTab === 'active' ? 'parties' : 'pending_parties';
       else if (category === 'live') table = 'community_posts';
       else if (category === 'instructor') table = 'instructors';
+      else if (category === 'instructor-classes') table = 'instructor_classes';
       else table = category === 'bootcamp' ? 'bootcamps' : 'festivals';
 
       let finalPhotoUrl = editFormData.photo_url || '';
@@ -276,6 +280,7 @@ export default function AdminDashboard({ onBack }) {
         let table;
         if (category === 'live') table = 'community_posts';
         else if (category === 'instructor') table = 'instructors';
+        else if (category === 'instructor-classes') table = 'instructor_classes';
         else table = category === 'bootcamp' ? 'bootcamps' : 'festivals';
         
         const statusVal = newStatus === 'approved' ? 'active' : newStatus;
@@ -301,6 +306,7 @@ export default function AdminDashboard({ onBack }) {
       if (category === 'social') table = activeTab === 'active' ? 'parties' : 'pending_parties';
       else if (category === 'live') table = 'community_posts';
       else if (category === 'instructor') table = 'instructors';
+      else if (category === 'instructor-classes') table = 'instructor_classes';
       else table = category === 'bootcamp' ? 'bootcamps' : 'festivals';
       await supabase.from(table).delete().eq('id', id);
       fetchData();
@@ -353,6 +359,7 @@ export default function AdminDashboard({ onBack }) {
     { id: 'live', label: 'LIVE PICK', icon: <Camera size={16} /> },
     { id: 'bootcamp', label: '부트캠프', icon: <Tent size={16} /> },
     { id: 'festival', label: '페스티벌', icon: <Flag size={16} /> },
+    { id: 'instructor-classes', label: '강사 클래스 📚', icon: <Sparkles size={16} /> },
     { id: 'event', label: '🥃 이벤트', icon: <Sparkles size={16} color="#F59E0B" /> }
   ]
 
@@ -517,6 +524,21 @@ export default function AdminDashboard({ onBack }) {
                         <textarea value={editFormData.bio || ''} onChange={e => setEditFormData({ ...editFormData, bio: e.target.value })} placeholder="자기소개" style={{ width: '100%', padding: '10px', borderRadius: '10px', border: '1px solid #E2E8F0', minHeight: '80px' }} />
                       </>
                     )}
+                    {category === 'instructor-classes' && (
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                        <input value={editFormData.title || ''} onChange={e => setEditFormData({ ...editFormData, title: e.target.value })} placeholder="클래스 제목" style={{ width: '100%', padding: '10px', borderRadius: '10px', border: '1px solid #E2E8F0', fontWeight: 700 }} />
+                        <textarea value={editFormData.description || ''} onChange={e => setEditFormData({ ...editFormData, description: e.target.value })} placeholder="클래스 설명" style={{ width: '100%', padding: '10px', borderRadius: '10px', border: '1px solid #E2E8F0', minHeight: '80px' }} />
+                        <div style={{ display: 'flex', gap: '8px' }}>
+                          <input value={editFormData.schedule || ''} onChange={e => setEditFormData({ ...editFormData, schedule: e.target.value })} placeholder="일정 (예: 매주 토 2시)" style={{ flex: 1, padding: '10px', borderRadius: '10px', border: '1px solid #E2E8F0' }} />
+                          <input value={editFormData.location || ''} onChange={e => setEditFormData({ ...editFormData, location: e.target.value })} placeholder="장소" style={{ flex: 1, padding: '10px', borderRadius: '10px', border: '1px solid #E2E8F0' }} />
+                        </div>
+                        <div style={{ display: 'flex', gap: '8px' }}>
+                          <input value={editFormData.fee || ''} onChange={e => setEditFormData({ ...editFormData, fee: e.target.value })} placeholder="비용" style={{ flex: 1, padding: '10px', borderRadius: '10px', border: '1px solid #E2E8F0' }} />
+                          <input value={editFormData.poster_url || ''} onChange={e => setEditFormData({ ...editFormData, poster_url: e.target.value })} placeholder="포스터 URL" style={{ flex: 1, padding: '10px', borderRadius: '10px', border: '1px solid #E2E8F0' }} />
+                        </div>
+                        <input value={editFormData.instructor_id || ''} onChange={e => setEditFormData({ ...editFormData, instructor_id: e.target.value })} placeholder="강사 UUID (직접 수정시 주의)" style={{ width: '100%', padding: '10px', borderRadius: '10px', border: '1px solid #E2E8F0', fontSize: '11px' }} />
+                      </div>
+                    )}
                     <div style={{ display: 'flex', gap: '8px' }}>
                       <button onClick={saveEdit} style={{ flex: 1, padding: '10px', background: '#10B981', color: '#FFF', border: 'none', borderRadius: '10px', fontWeight: 800 }}>SAVE</button>
                       <button onClick={cancelEdit} style={{ flex: 1, padding: '10px', background: '#EEE', color: '#666', border: 'none', borderRadius: '10px', fontWeight: 800 }}>CANCEL</button>
@@ -534,6 +556,13 @@ export default function AdminDashboard({ onBack }) {
                           <span style={{ color: '#F59E0B', fontWeight: 700 }}>💬 Kakao: {item.kakao_link ? 'YES' : 'NO'}</span>
                         </div>
                         <div style={{ fontSize: '13px', color: '#64748B', lineHeight: '1.4', background: '#F8FAFC', padding: '8px', borderRadius: '8px', whiteSpace: 'pre-wrap' }}>{item.bio}</div>
+                      </div>
+                    ) : category === 'instructor-classes' ? (
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                        <h3 style={{ fontSize: '16px', fontWeight: 900, color: '#1E293B' }}>📚 {item.title}</h3>
+                        <div style={{ fontSize: '13px', color: '#7C3AED', fontWeight: 800 }}>👤 강사: {item.instructors?.name || '알수없음'}</div>
+                        <div style={{ fontSize: '13px', color: '#64748B', lineHeight: '1.4', background: '#F8FAFC', padding: '8px', borderRadius: '8px' }}>{item.description}</div>
+                        <div style={{ fontSize: '12px', color: '#475569', marginTop: '4px' }}>⏰ {item.schedule} | 📍 {item.location} | 💰 {item.fee}</div>
                       </div>
                     ) : category === 'live' ? (
                       <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
