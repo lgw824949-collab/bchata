@@ -718,7 +718,6 @@ const HomePage = ({
             return (
               <div key={item.fullDate} 
                 onClick={() => {
-                  console.log('클릭한 날짜:', item.fullDate);
                   setSelectedDate(item.fullDate); 
                   if (regionListRef.current) {
                     regionListRef.current.scrollIntoView({ behavior: 'smooth', block: 'start' });
@@ -734,6 +733,10 @@ const HomePage = ({
             );
           })}
         </div>
+      </div>
+
+      <div style={{ padding: '32px 20px 8px' }}>
+        <div style={{ height: '1.5px', background: 'var(--color-border)', opacity: 0.6, borderRadius: '1px' }} />
       </div>
 
       <div ref={scrollRef} style={{ width: '100%', background: 'var(--color-bg)' }}>
@@ -761,22 +764,21 @@ const HomePage = ({
                   <>
                     {/* [1] HOT PICK - 수도권 */}
                     {metroHot.length > 0 && (
-                      <div style={{ margin: '0 0 15px', padding: '10px 0 20px', background: 'var(--color-card)', borderBottom: '1px solid var(--color-border)' }}>
-                        <div style={{ padding: '0 20px 15px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                          <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                            <h2 style={{ fontSize: '18px', fontWeight: '950', color: 'var(--color-text-main)', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                              <span style={{ color: '#FF1744' }}>HOT</span> PICK <span style={{ fontSize: '12px', color: '#94A3B8', fontWeight: 700 }}>[수도권]</span>
-                            </h2>
-                          </div>
+                      <div style={{ margin: '0 0 10px', padding: '10px 0 24px', background: 'var(--color-card)' }}>
+                        <div style={{ padding: '0 20px 15px' }}>
+                          <h2 style={{ fontSize: '19px', fontWeight: '950', color: 'var(--color-text-main)', display: 'flex', alignItems: 'center', gap: '10px' }}>
+                            <span style={{ padding: '3px 10px', borderRadius: '8px', background: '#FF1744', color: '#fff', fontSize: '11px', fontWeight: 900 }}>METRO</span>
+                            <span>수도권 핫픽 TOP 5</span>
+                          </h2>
                         </div>
                         <div style={{ width: '100%', overflow: 'hidden', padding: '10px 0' }}>
                           <div className="hot-pick-track">
-                            {[...metroHot, ...metroHot].map((item, idx) => (
-                              <div key={`${item.id}-${idx}`} onClick={() => setSelectedPoster(item.poster_url)} style={{ width: '140px', flexShrink: 0, borderRadius: '12px', overflow: 'hidden', boxShadow: '0 8px 20px rgba(0,0,0,0.12)', position: 'relative', background: '#000', margin: '0 10px' }}>
-                                <img src={item.poster_url} style={{ width: '100%', height: '210px', objectFit: 'cover' }} alt="Pick" />
-                                <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, padding: '12px 8px', background: 'linear-gradient(transparent, rgba(0,0,0,0.95))', color: 'white' }}>
-                                  <div style={{ fontSize: '10px', color: '#FFEB3B', fontWeight: 900, marginBottom: '2px', textShadow: '0 1px 2px rgba(0,0,0,0.8)' }}>{translateDynamicText(item.locationName, isEn)}</div>
-                                  <div style={{ fontSize: '11px', fontWeight: 900, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', marginBottom: '4px', textShadow: '0 1px 2px rgba(0,0,0,0.8)' }}>{translateDynamicText(item.title, isEn)}</div>
+                            {[...metroHot, ...metroHot].slice(0, 10).map((item, idx) => (
+                              <div key={`${item.id}-${idx}`} onClick={() => setSelectedPoster(item.poster_url)} style={{ width: '135px', flexShrink: 0, borderRadius: '16px', overflow: 'hidden', boxShadow: '0 10px 24px rgba(0,0,0,0.15)', position: 'relative', background: '#000', margin: '0 12px' }}>
+                                <img src={item.poster_url} style={{ width: '100%', height: '200px', objectFit: 'cover' }} alt="Pick" />
+                                <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, padding: '12px 10px', background: 'linear-gradient(transparent, rgba(0,0,0,0.95))', color: 'white' }}>
+                                  <div style={{ fontSize: '10px', color: '#FFEB3B', fontWeight: 950, marginBottom: '2px' }}>{translateDynamicText(item.locationName, isEn)}</div>
+                                  <div style={{ fontSize: '11px', fontWeight: 900, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{translateDynamicText(item.title, isEn)}</div>
                                 </div>
                               </div>
                             ))}
@@ -784,6 +786,39 @@ const HomePage = ({
                         </div>
                       </div>
                     )}
+
+                    <div style={{ padding: '24px 20px 8px' }}>
+                      <div style={{ height: '1.5px', background: 'var(--color-border)', opacity: 0.6, borderRadius: '1px' }} />
+                    </div>
+
+                    {/* [2] HOT PICK - 지방권 */}
+                    {provincialHot.length > 0 && (
+                      <div style={{ margin: '10px 0', padding: '10px 0 24px', background: 'var(--color-card)' }}>
+                        <div style={{ padding: '0 20px 15px' }}>
+                          <h2 style={{ fontSize: '19px', fontWeight: '950', color: 'var(--color-text-main)', display: 'flex', alignItems: 'center', gap: '10px' }}>
+                            <span style={{ padding: '3px 10px', borderRadius: '8px', background: '#303F9F', color: '#fff', fontSize: '11px', fontWeight: 900 }}>REGIONAL</span>
+                            <span>지방권 핫픽 TOP 5</span>
+                          </h2>
+                        </div>
+                        <div style={{ width: '100%', overflow: 'hidden', padding: '10px 0' }}>
+                          <div className="hot-pick-track">
+                            {[...provincialHot, ...provincialHot].slice(0, 10).map((item, idx) => (
+                              <div key={`${item.id}-${idx}`} onClick={() => setSelectedPoster(item.poster_url)} style={{ width: '135px', flexShrink: 0, borderRadius: '16px', overflow: 'hidden', boxShadow: '0 10px 24px rgba(0,0,0,0.15)', position: 'relative', background: '#000', margin: '0 12px' }}>
+                                <img src={item.poster_url} style={{ width: '100%', height: '200px', objectFit: 'cover' }} alt="Pick" />
+                                <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, padding: '12px 10px', background: 'linear-gradient(transparent, rgba(0,0,0,0.95))', color: 'white' }}>
+                                  <div style={{ fontSize: '10px', color: '#FFEB3B', fontWeight: 950, marginBottom: '2px' }}>{translateDynamicText(item.locationName, isEn)}</div>
+                                  <div style={{ fontSize: '11px', fontWeight: 900, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{translateDynamicText(item.title, isEn)}</div>
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      </div>
+                    )}
+
+                    <div style={{ padding: '24px 20px 32px' }}>
+                      <div style={{ height: '1.5px', background: 'var(--color-border)', opacity: 0.6, borderRadius: '1px' }} />
+                    </div>
 
                     {/* [지역 리스트 처리 루프] */}
                     {(() => {
