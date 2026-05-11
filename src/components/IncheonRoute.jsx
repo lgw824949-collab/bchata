@@ -86,8 +86,25 @@ const IncheonRoute = ({ parties, userCoords, setUserCoords, onClose }) => {
     <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} style={{ position: 'fixed', inset: 0, zIndex: 2147483647, backgroundColor: 'rgba(0,0,0,0.6)', display: 'flex', alignItems: 'flex-end' }} onClick={onClose}>
       <motion.div initial={{ y: '100%' }} animate={{ y: 0 }} exit={{ y: '100%' }} transition={{ type: 'spring', damping: 30, stiffness: 300 }} onClick={(e) => e.stopPropagation()} style={{ width: '100%', height: '80vh', background: '#fff', borderTopLeftRadius: '32px', borderTopRightRadius: '32px', overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
         
+        {/* 헤더 */}
+        <div style={{ background: '#0F172A', padding: '20px 20px 15px', color: '#fff', flexShrink: 0 }}>
+          <div style={{ width: '40px', height: '4px', background: 'rgba(255,255,255,0.2)', borderRadius: '2px', margin: '0 auto 12px' }} />
+          <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
+            <button onClick={onClose} style={{ 
+              background: 'rgba(255,255,255,0.1)', border: 'none', borderRadius: '50%', 
+              width: 40, height: 40, color: '#fff', display:'flex', alignItems:'center', justifyContent:'center' 
+            }}>
+              <ChevronLeft size={24} />
+            </button>
+            <div style={{ display:'flex', alignItems:'center', gap:8 }}>
+              <Trophy size={18} color="#FFD700" />
+              <h2 style={{ fontSize: '18px', fontWeight: '900', margin: 0, color:'#FFD700' }}>{t('nav_route')}</h2>
+            </div>
+          </div>
+        </div>
+
         {/* 미니 지도 */}
-        <div style={{ width: '100%', height: '220px', background: '#eee', flexShrink: 0 }}>
+        <div style={{ width: '100%', height: '180px', background: '#eee', flexShrink: 0 }}>
           <div ref={mapContainer} style={{ width: '100%', height: '100%' }} />
         </div>
 

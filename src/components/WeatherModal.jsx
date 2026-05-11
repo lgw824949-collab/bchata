@@ -168,18 +168,19 @@ export default function WeatherModal({ onClose }) {
       }}>
 
         {/* 헤더 */}
-        <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:14 }}>
-          <div>
-            <div style={{ fontSize:16, fontWeight:900, color:'#1E293B' }}>{t('weather_title')}</div>
-            <div style={{ fontSize:10, color:'#94A3B8', marginTop:2 }}>{t('weather_desc')}</div>
-          </div>
+        <div style={{ display:'flex', alignItems:'center', gap:16, marginBottom:18 }}>
           <button onClick={onClose} style={{
             background:'#E2E8F0', border:'none', borderRadius:'50%',
-            width:32, height:32, cursor:'pointer',
+            width:40, height:40, cursor:'pointer',
             display:'flex', alignItems:'center', justifyContent:'center',
+            flexShrink: 0
           }}>
-            <X size={14} color="#64748B"/>
+            <ChevronLeft size={24} color="#64748B"/>
           </button>
+          <div>
+            <div style={{ fontSize:18, fontWeight:900, color:'#1E293B' }}>{t('weather_title')}</div>
+            <div style={{ fontSize:11, color:'#94A3B8' }}>{t('weather_desc')}</div>
+          </div>
         </div>
 
         {/* 카드 그리드 */}

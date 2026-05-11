@@ -617,6 +617,38 @@ function App() {
     return window.matchMedia('(prefers-color-scheme: dark)').matches;
   });
 
+  // [사용자 요청] 브라우저/하드웨어 뒤로가기 버튼 대응: 모달이 열려있으면 모달만 닫음
+  useEffect(() => {
+    const handlePopState = (e) => {
+      // 열려있는 모든 모달 상태 체크
+      const hasOpenModal = showIncheon || showRoute || showIncheonModal || showWeather || 
+                           showWishlist || showSaju || showRentalModal || selectedPoster || 
+                           showFullCalendar || showFilterPanel || showGridModal || isMenuOpen;
+      
+      if (hasOpenModal) {
+        e.preventDefault();
+        setShowIncheon(false);
+        setShowRoute(false);
+        setShowIncheonModal(false);
+        setShowWeather(false);
+        setShowWishlist(false);
+        setShowSaju(false);
+        setShowRentalModal(false);
+        setSelectedPoster(null);
+        setShowFullCalendar(false);
+        setShowFilterPanel(false);
+        setShowGridModal(false);
+        setIsMenuOpen(false);
+        // 히스토리를 하나 다시 추가하여 다음 뒤로가기 때 또 대응할 수 있게 함
+        window.history.pushState(null, '', window.location.href);
+      }
+    };
+
+    window.history.pushState(null, '', window.location.href);
+    window.addEventListener('popstate', handlePopState);
+    return () => window.removeEventListener('popstate', handlePopState);
+  }, [showIncheon, showRoute, showIncheonModal, showWeather, showWishlist, showSaju, showRentalModal, selectedPoster, showFullCalendar, showFilterPanel, showGridModal, isMenuOpen]);
+
   useEffect(() => {
     if (isDark) {
       document.documentElement.setAttribute('data-theme', 'dark');

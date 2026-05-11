@@ -1,6 +1,7 @@
 // updated
 import React, { useState, useEffect } from 'react'
-import { X, ChevronDown } from 'lucide-react'
+import { ChevronLeft, ChevronDown, Download } from 'lucide-react'
+import QuickPinchZoom, { make3dTransformValue } from 'react-quick-pinch-zoom'
 import { useTranslation } from 'react-i18next'
 import { supabase } from '../lib/supabase'
 import { selectResult } from '../data/sajuResults'
@@ -113,6 +114,7 @@ const SajuModal = ({ parties, onClose, lang = 'ko' }) => {
   const [recommendedBars, setRecommendedBars] = useState([])
   const [fullPoster, setFullPoster] = useState(null)
   const [isDataLoaded, setIsDataLoaded] = useState(false)
+  const imgRef = React.useRef()
 
   // 데이터 불러오기 및 자동 분석 시도
   useEffect(() => {
@@ -220,12 +222,14 @@ const SajuModal = ({ parties, onClose, lang = 'ko' }) => {
 
   return (
     <div style={{ position:'fixed', inset:0, background:'rgba(0,0,0,0.6)', zIndex:2000, display:'flex', justifyContent:'center', alignItems:'center', padding:'20px' }}>
-      <div style={{ width:'100%', maxWidth:'450px', maxHeight:'90vh', background:'#fff', borderRadius:'24px', display:'flex', flexDirection:'column', overflow:'hidden', boxShadow:'0 20px 40px rgba(0,0,0,0.2)', position:'relative' }}>
+      <div style={{ width:'100%', maxWidth:'450px', maxHeight:'94vh', background:'#fff', borderRadius:'24px', display:'flex', flexDirection:'column', overflow:'hidden', boxShadow:'0 20px 40px rgba(0,0,0,0.2)', position:'relative' }}>
         
-        <div style={{ display:'flex', justifyContent:'flex-end', padding:'16px 20px', position:'absolute', top:0, right:0, zIndex:10 }}>
-          <button onClick={onClose} style={{ background:'rgba(0,0,0,0.05)', border:'none', width:'32px', height:'32px', borderRadius:'50%', cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center' }}>
-            <X size={20} />
+        {/* 헤더 */}
+        <div style={{ display:'flex', alignItems:'center', padding:'16px 20px', borderBottom:'1px solid #F1F5F9', background:'#fff', zIndex:10 }}>
+          <button onClick={onClose} style={{ background:'#F1F5F9', border:'none', width:'40px', height:'40px', borderRadius:'50%', cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center', marginRight:'12px' }}>
+            <ChevronLeft size={24} color="#64748B" />
           </button>
+          <div style={{ fontSize:18, fontWeight:900, color:'#1E293B' }}>{t('nav_saju')}</div>
         </div>
 
         <div style={{ flex:1, overflowY:'auto', background:'#ffffff' }}>
@@ -382,9 +386,15 @@ const SajuModal = ({ parties, onClose, lang = 'ko' }) => {
         </div>
 
         {fullPoster && (
-          <div onClick={()=>setFullPoster(null)} style={{ position:'fixed', inset:0, background:'rgba(0,0,0,0.95)', zIndex:3000, display:'flex', alignItems:'center', justifyContent:'center', cursor:'zoom-out', padding:20 }}>
-            <img src={fullPoster} style={{ maxWidth:'100%', maxHeight:'100%', borderRadius:12 }} />
-            <div style={{ position:'absolute', top:20, right:20, color:'#fff', fontSize:24 }}>✕</div>
+          <div style={{ position:'fixed', inset:0, background:'rgba(0,0,0,0.98)', zIndex:3000, display:'flex', alignItems:'center', justifyContent:'center', padding:0 }}>
+            <button onClick={()=>setFullPoster(null)} style={{ position:'absolute', top:'40px', left:'20px', zIndex:3010, background:'rgba(255,255,255,0.2)', border:'none', width:'44px', height:'44px', borderRadius:'50%', color:'#fff', display:'flex', alignItems:'center', justifyContent:'center', backdropFilter:'blur(10px)' }}>
+              <ChevronLeft size={28} />
+            </button>
+            <QuickPinchZoom onUpdate={({ x, y, scale }) => {
+              if (imgRef.current) imgRef.current.style.transform = make3dTransformValue({ x, y, scale });
+            }}>
+              <img ref={imgRef} src={fullPoster} style={{ width:'100%', height:'auto', borderRadius:0, display:'block', willChange:'transform' }} alt="Full Poster" />
+            </QuickPinchZoom>
           </div>
         )}
       </div>
