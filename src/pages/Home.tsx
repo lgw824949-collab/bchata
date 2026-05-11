@@ -559,7 +559,19 @@ const HomePage = ({
         </p>
         <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between' }}>
           <div>
-            <p style={{ fontSize: '32px', fontWeight: 900, color: 'var(--color-text-main)', margin: 0, letterSpacing: '-1.5px', lineHeight: 1.3 }}>
+            <p 
+              onClick={() => {
+                if (adminTimerRef.current) clearTimeout(adminTimerRef.current);
+                adminTapRef.current += 1;
+                if (adminTapRef.current >= 3) {
+                  adminTapRef.current = 0;
+                  setView('admin');
+                } else {
+                  adminTimerRef.current = setTimeout(() => { adminTapRef.current = 0; }, 1000);
+                }
+              }}
+              style={{ fontSize: '32px', fontWeight: 900, color: 'var(--color-text-main)', margin: 0, letterSpacing: '-1.5px', lineHeight: 1.3 }}
+            >
               {lang === 'ko' ? '전국 어디서든' : 'Anywhere in Korea'}
             </p>
             <p style={{ fontSize: '32px', fontWeight: 900, color: '#E53935', margin: '0 0 12px', letterSpacing: '-1.5px', lineHeight: 1.3 }}>
