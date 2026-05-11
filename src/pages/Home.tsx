@@ -629,7 +629,7 @@ const HomePage = ({
               <motion.div
                 whileTap={{ scale: 0.92 }}
                 onClick={item.action}
-                style={{ display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center', gap:'6px', cursor:'pointer', borderRadius:'13px', padding:'14px 2px', background:'#fff' }}
+                style={{ display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center', gap:'4px', cursor:'pointer', borderRadius:'13px', padding:'10px 2px 8px', background:'#fff' }}
               >
                 {item.icon}
                 <span style={{ fontSize:'10px', fontWeight:700, color:'#1E293B', textAlign:'center', lineHeight:1.3, wordBreak:'keep-all' }}>
