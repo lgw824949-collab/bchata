@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo, useRef, lazy, Suspense } from 'react'
-import { Home as HomeIcon, Users, Plus, LogOut, Heart, X, MessageSquare, RefreshCw, CloudSun, Utensils, Zap, Languages, Bell, Star, Navigation, CreditCard, Settings, Map as MapIcon, BarChart, Gift, Coffee, User, Menu, Music2, Tent, Flag, Download, Globe, ShieldCheck, Calendar, Camera, BookOpen, ChevronLeft, ChevronRight, Loader2 } from 'lucide-react'
+import { Home as HomeIcon, Users, Plus, LogOut, Heart, X, MessageSquare, RefreshCw, CloudSun, Utensils, Zap, Languages, Bell, Star, Navigation, CreditCard, Settings, Map as MapIcon, BarChart, Gift, Coffee, User, Menu, Music2, Tent, Flag, Download, Globe, ShieldCheck, Calendar, Camera, BookOpen, ParkingCircle, Building, Cloud, MessageCircle, ChevronLeft, ChevronRight, Loader2 } from 'lucide-react'
 import { useTranslation } from 'react-i18next';
 import { motion, AnimatePresence } from 'framer-motion'
 import { supabase, logActivity } from './lib/supabase'
@@ -663,6 +663,7 @@ function App() {
   const [showWishlist, setShowWishlist] = useState(false)
   const [showIdRegister, setShowIdRegister] = useState(false)
   const [showClassForm, setShowClassForm] = useState(false)
+  const [showLivePick, setShowLivePick] = useState(false)
 
   const groupedAllRegionsParties = useMemo(() => {
     if (!selectedAllRegionsDate) return {};
@@ -1231,68 +1232,65 @@ function App() {
               </div>
             </button>
 
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-              {[
-                { icon: <Camera color={'#FF1744'} />, text: 'LIVE PICK', action: () => { setView('community'); setIsMenuOpen(false); } },
-                { icon: <Calendar color={'#FF1744'} />, text: t('view_calendar'), action: () => { setIsMenuOpen(false); handleOpenModal(setShowFullCalendar, true); } },
-                { icon: <Utensils color={'#FF1744'} />, text: t('restaurant'), action: () => { setView('restaurant'); setIsMenuOpen(false); } },
-                { 
-                  icon: <CloudSun color={'#FF1744'} />, 
-                  text: t('weather'), 
-                  action: () => { 
-                    const now = Date.now();
-                    if (now - lastWeatherTap < 1000) {
-                      const newCount = weatherTapCount + 1;
-                      if (newCount >= 3) {
-                        setView('admin-portal');
-                        setIsMenuOpen(false);
-                        setWeatherTapCount(0);
-                      } else {
-                        setWeatherTapCount(newCount);
-                      }
-                    } else {
-                      setWeatherTapCount(1);
-                      handleOpenModal(setShowWeather, true);
-                    }
-                    setLastWeatherTap(now);
-                  } 
-                },
-                <div onClick={() => handleOpenModal(setShowWishlist, true)}
-                  style={{ display:'flex', flexDirection:'column', alignItems:'center', gap:'6px', cursor:'pointer', position:'relative' }}>
-                  <div style={{ width:'56px', height:'56px', borderRadius:'16px', background:'#fff', border:'1px solid #F1F5F9', display:'flex', alignItems:'center', justifyContent:'center', boxShadow:'0 2px 8px rgba(0,0,0,0.06)' }}>
-                    <Heart size={24} color="#E53935" />
-                  </div>
-                  <span style={{ fontSize:'11px', color:'#64748B', fontWeight:500 }}>찜하기</span>
-                </div>,
-                { icon: <MessageSquare color={'#FF1744'} />, text: t('open_chat'), action: () => { window.open('https://open.kakao.com/o/gP43rNri', '_blank'); setIsMenuOpen(false); } },
-              ].map((item, idx) => {
-                if (React.isValidElement(item)) return <React.Fragment key={idx}>{item}</React.Fragment>;
-                return (
-                  <motion.div
-                    key={idx}
-                    whileHover={{ scale: 1.02, backgroundColor: 'var(--color-border)' }}
-                    whileTap={{ scale: 0.98 }}
-                    onClick={item.action}
-                  style={{
-                    background: 'var(--color-card)',
-                    border: '1px solid var(--color-border)',
-                    borderRadius: '12px',
-                    padding: '16px 20px',
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '16px',
-                    cursor: 'pointer',
-                    transition: 'all 0.2s'
-                  }}
-                >
-                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                    {item.icon}
-                  </div>
-                  <span style={{ fontSize: '14px', fontWeight: 600 }}>{item.text}</span>
-                </motion.div>
-                );
-              })}
+            <div style={{ display:'grid', gridTemplateColumns:'repeat(5, 1fr)', gap:'8px', padding:'12px 16px' }}>
+              <style>{`
+                .grid-item { display:flex; flex-direction:column; align-items:center; justify-content:center; gap:7px; cursor:pointer; border-radius:14px; padding:12px 2px 10px; position:relative; background:#fff; border:0.5px solid #F1F5F9; }
+                .grid-icon { width:36px; height:36px; border-radius:10px; display:flex; align-items:center; justify-content:center; }
+                .grid-label { font-size:10px; font-weight:600; color:#1E293B; text-align:center; line-height:1.3; }
+                .grid-badge { position:absolute; top:5px; right:5px; background:#E53935; color:#fff; font-size:7px; font-weight:700; padding:1px 4px; border-radius:10px; }
+              `}</style>
 
+              <div className="grid-item" onClick={() => { handleOpenModal(setShowLivePick, true) }}>
+                <span className="grid-badge">HOT</span>
+                <div className="grid-icon" style={{ background:'#FFE4E4' }}><Camera size={18} color="#E53935" /></div>
+                <span className="grid-label">라이브픽</span>
+              </div>
+
+              <div className="grid-item" onClick={() => { handleOpenModal(setShowFullCalendar, true) }}>
+                <div className="grid-icon" style={{ background:'#FFF3E0' }}><Calendar size={18} color="#F97316" /></div>
+                <span className="grid-label">행사달력</span>
+              </div>
+
+              <div className="grid-item" onClick={() => { setView('restaurant'); }}>
+                <div className="grid-icon" style={{ background:'#FCE4EC' }}><Utensils size={18} color="#C2185B" /></div>
+                <span className="grid-label">맛집뒷풀이</span>
+              </div>
+
+              <div className="grid-item" onClick={handleWeatherTap}>
+                <div className="grid-icon" style={{ background:'#E3F2FD' }}><Cloud size={18} color="#1976D2" /></div>
+                <span className="grid-label">오늘날씨</span>
+              </div>
+
+              <div className="grid-item" onClick={() => { handleOpenModal(setShowWishlist, true) }}>
+                <div className="grid-icon" style={{ background:'#F3E5F5' }}><Heart size={18} color="#7B1FA2" /></div>
+                <span className="grid-label">찜하기</span>
+              </div>
+
+              <div className="grid-item" onClick={() => { window.open('https://open.kakao.com/o/gP43rNri', '_blank') }}>
+                <div className="grid-icon" style={{ background:'#E8F5E9' }}><MessageCircle size={18} color="#388E3C" /></div>
+                <span className="grid-label">채팅문의</span>
+              </div>
+
+              <div className="grid-item" onClick={() => { handleOpenModal(setShowIncheonModal, true) }}>
+                <span className="grid-badge">LIVE</span>
+                <div className="grid-icon" style={{ background:'#E8EAF6' }}><Navigation size={18} color="#303F9F" /></div>
+                <span className="grid-label">지능형경로</span>
+              </div>
+
+              <div className="grid-item" onClick={() => { handleOpenModal(setShowSaju, true) }}>
+                <div className="grid-icon" style={{ background:'#FFF8E1' }}><Star size={18} color="#F9A825" /></div>
+                <span className="grid-label">운명의좌표</span>
+              </div>
+
+              <div className="grid-item" onClick={() => { setView('parking'); }}>
+                <div className="grid-icon" style={{ background:'#E0F7FA' }}><ParkingCircle size={18} color="#0097A7" /></div>
+                <span className="grid-label">주변주차</span>
+              </div>
+
+              <div className="grid-item" onClick={() => { window.open('https://open.kakao.com/o/gP43rNri', '_blank') }}>
+                <div className="grid-icon" style={{ background:'#F1F8E9' }}><Building size={18} color="#558B2F" /></div>
+                <span className="grid-label">대관문의</span>
+              </div>
             </div>
 
             <div style={{ marginTop: 'auto', paddingTop: '40px', textAlign: 'center' }}>
