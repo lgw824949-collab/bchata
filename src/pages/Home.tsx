@@ -735,12 +735,12 @@ const HomePage = ({
         </div>
       </div>
 
-      {/* 섹션 1 하단 Divider (요일 바와 수도권 섹션 사이) */}
-      <div style={{ padding: '40px 20px 0' }}>
-        <div style={{ height: '1.2px', background: 'var(--color-border)', opacity: 0.4, borderRadius: '1px' }} />
+      {/* 섹션 1 하단 Divider (요일 바와 수도권 섹션 사이 - 간격 대폭 확대 & 선명한 실선) */}
+      <div style={{ padding: '80px 20px 0' }}>
+        <div style={{ height: '1.5px', background: 'var(--color-border)', opacity: 0.8, borderRadius: '1px' }} />
       </div>
 
-      <div ref={scrollRef} style={{ width: '100%', background: 'var(--color-bg)', paddingTop: '24px' }}>
+      <div ref={scrollRef} style={{ width: '100%', background: 'var(--color-bg)', paddingTop: '48px' }}>
         <div style={{ minHeight: '101%' }}>
           {loading ? (
             <div style={{ display: 'flex', flexDirection: 'column', marginTop: '120px' }}>{Array(6).fill(0).map((_, i) => <div key={i} style={{ height: '140px', width: '100%', background: 'var(--color-card)', borderBottom: '1px solid var(--color-border)' }} />)}</div>
@@ -763,248 +763,143 @@ const HomePage = ({
 
                 return (
                   <>
-                    {/* [1] HOT PICK - 수도권 */}
-                    {metroHot.length > 0 && (
-                      <div style={{ margin: '0 0 10px', padding: '24px 0 32px', background: 'var(--color-card)' }}>
-                        <div style={{ padding: '0 20px 20px' }}>
-                          <h2 style={{ fontSize: '20px', fontWeight: '950', color: 'var(--color-text-main)', display: 'flex', alignItems: 'center', gap: '12px' }}>
-                            <span style={{ padding: '4px 12px', borderRadius: '8px', background: '#FF1744', color: '#fff', fontSize: '11px', fontWeight: 900, letterSpacing: '0.5px' }}>METRO</span>
-                            <span>수도권 핫픽 TOP 5</span>
-                          </h2>
-                        </div>
-                        <div style={{ width: '100%', overflow: 'hidden', padding: '10px 0' }}>
-                          <div className="hot-pick-track">
-                            {[...metroHot, ...metroHot].slice(0, 10).map((item, idx) => (
-                              <div key={`${item.id}-${idx}`} onClick={() => setSelectedPoster(item.poster_url)} style={{ width: '140px', flexShrink: 0, borderRadius: '20px', overflow: 'hidden', boxShadow: '0 12px 28px rgba(0,0,0,0.18)', position: 'relative', background: '#000', margin: '0 12px' }}>
-                                <img src={item.poster_url} style={{ width: '100%', height: '210px', objectFit: 'cover' }} alt="Pick" />
-                                <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, padding: '14px 10px', background: 'linear-gradient(transparent, rgba(0,0,0,0.95))', color: 'white' }}>
-                                  <div style={{ fontSize: '10px', color: '#FFEB3B', fontWeight: 950, marginBottom: '2px' }}>{translateDynamicText(item.locationName, isEn)}</div>
-                                  <div style={{ fontSize: '11px', fontWeight: 900, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{translateDynamicText(item.title, isEn)}</div>
-                                </div>
-                              </div>
-                            ))}
+                    {/* [섹션 2] 수도권 그룹 (핫픽 + 서울 + 경기/인천을 한 덩어리로) */}
+                    <div style={{ background: 'var(--color-bg)' }}>
+                      {/* 수도권 핫픽 */}
+                      {metroHot.length > 0 && (
+                        <div style={{ padding: '24px 0 32px', background: 'var(--color-card)' }}>
+                          <div style={{ padding: '0 20px 20px' }}>
+                            <h2 style={{ fontSize: '20px', fontWeight: '950', color: 'var(--color-text-main)', display: 'flex', alignItems: 'center', gap: '12px' }}>
+                              <span style={{ padding: '4px 12px', borderRadius: '8px', background: '#FF1744', color: '#fff', fontSize: '11px', fontWeight: 900, letterSpacing: '0.5px' }}>METRO</span>
+                              <span>수도권 핫픽 TOP 5</span>
+                            </h2>
                           </div>
-                        </div>
-                      </div>
-                    )}
-
-                    <div style={{ padding: '32px 20px 8px' }}>
-                      <div style={{ height: '1.2px', background: 'var(--color-border)', opacity: 0.4, borderRadius: '1px' }} />
-                    </div>
-
-                    <div style={{ padding: '32px 20px 48px' }}>
-                      <div style={{ height: '1.2px', background: 'var(--color-border)', opacity: 0.4, borderRadius: '1px' }} />
-                    </div>
-
-                    {/* [지역 리스트 처리 루프] */}
-                    {(() => {
-                      const regionKeys = {
-                        "서울": "region_seoul",
-                        "경기/인천": "region_gyeonggi_incheon",
-                        "경상도": "region_gyeongsang",
-                        "전라도": "region_jeolla",
-                        "충청도": "region_chungcheong",
-                        "강원/제주": "region_gangwon_jeju"
-                      };
-                      const regions = ["서울", "경기/인천", "경상도", "전라도", "충청도", "강원/제주"];
-                      
-                      return regions.map((regionName, idx) => {
-                        const regionParties = (parties || [])
-                          .filter(p => p.date === selectedDate)
-                          .filter(p => REGION_FILTER[regionName](p))
-                          .filter(p => {
-                            if (filterGenre && GENRE_MAP[filterGenre]) {
-                              if (!(p[GENRE_MAP[filterGenre].key] > 0)) return false;
-                            }
-                            return true;
-                          })
-                          .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
-
-                        // [사용자 요청] 15초 롤링 로직 적용
-                        const rollingParties = [...regionParties];
-                        if (rollingParties.length > 2) {
-                          const shift = shuffleOffset % rollingParties.length;
-                          for (let i = 0; i < shift; i++) {
-                            const first = rollingParties.shift();
-                            if (first) rollingParties.push(first);
-                          }
-                        }
-
-                        const isFirst = regionName === '서울';
-
-                        return (
-                          <React.Fragment key={regionName}>
-                            <section 
-                              ref={isFirst ? regionListRef : null}
-                              style={{ marginBottom: '15px', background: 'var(--color-card)' }}
-                            >
-                              <div style={{ padding: '15px 20px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', color: 'var(--color-text-main)' }}>
-                                <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                                  <span style={{ fontSize: '15px', fontWeight: '800' }}>
-                                    {t(regionKeys[regionName] || regionName)}
-                                  </span>
-                                  <span style={{ fontSize: '12px', color: 'var(--color-text-secondary)', fontWeight: '600', marginLeft: '4px' }}>
-                                    {(() => {
-                                      const d = new Date(selectedDate);
-                                      return `${d.getMonth() + 1}/${d.getDate()} (${isEn ? DAYS_EN[d.getDay()] : DAYS_KOR[d.getDay()]})`;
-                                    })()}
-                                  </span>
-                                </div>
-                                <button 
-                                  onClick={() => {
-                                    setGridRegion(regionName);
-                                    setShowGridModal(true);
-                                  }}
-                                  style={{ fontSize: '12px', fontWeight: '700', color: '#E53935', background: 'none', border: 'none', padding: 0, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '2px' }}
-                                >
-                                  {t('view_all')} <ChevronRight size={14} />
-                                </button>
-                              </div>
-
-                                <div 
-                                  className="region-scroll-container"
-                                  style={{ 
-                                    display: 'flex', 
-                                    overflowX: 'auto', 
-                                    gap: '20px', 
-                                    padding: '10px 20px 40px',
-                                    msOverflowStyle: 'none',
-                                    scrollbarWidth: 'none',
-                                    WebkitOverflowScrolling: 'touch',
-                                    scrollBehavior: 'smooth'
-                                  }}
-                                >
-                                  {rollingParties.length === 0 ? (
-                                    <div style={{ flexShrink: 0, width: '100%', padding: '50px', background: 'var(--color-bg)', borderRadius: '24px', textAlign: 'center', color: 'var(--color-text-sub)', fontSize: '13px', fontWeight: '900', border: '1px dashed #E2E8F0' }}>{t('no_parties')}</div>
-                                  ) : rollingParties.map(item => {
-                                    const now = new Date();
-                                    const d = new Date();
-                                    const todayStr = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
-                                    let isItemLive = false;
-                                    if (item.date === todayStr) {
-                                      const startStr = (item.time?.split('-')[0] || '20:00').trim();
-                                      const [sH, sM] = startStr.split(':').length === 2 ? startStr.split(':').map(Number) : [20, 0];
-                                      const startDate = new Date();
-                                      startDate.setHours(sH, sM, 0, 0);
-                                      const endStr = item.time?.includes('-') ? item.time.split('-')[1].trim() : null;
-                                      let endDate = new Date(startDate);
-                                      if (endStr && endStr.includes(':')) {
-                                        const [eH, eM] = endStr.split(':').map(Number);
-                                        endDate.setHours(eH, eM + 30, 0, 0);
-                                        if (endDate < startDate) endDate.setDate(endDate.getDate() + 1);
-                                      } else {
-                                        endDate.setHours(startDate.getHours() + 4, startDate.getMinutes() + 30, 0, 0);
-                                      }
-                                      const startWithBuffer = new Date(startDate.getTime() - 30 * 60 * 1000);
-                                      isItemLive = now >= startWithBuffer && now <= endDate;
-                                    }
-                                    return (
-                                    <div 
-                                      key={item.id} 
-                                      onClick={() => setSelectedPoster(item.poster_url)} 
-                                      style={{ 
-                                        width: '320px', 
-                                        flexShrink: 0, 
-                                        borderRadius: '16px', 
-                                        overflow: 'hidden', 
-                                        display: 'flex',
-                                        background: 'var(--color-card)',
-                                        border: '1px solid var(--color-border)',
-                                        cursor: 'pointer',
-                                        height: '150px',
-                                        transition: 'all 0.3s'
-                                      }}
-                                    >
-                                      <div style={{ width: '100px', flexShrink: 0 }}>
-                                        <img src={item.poster_url} style={{ width: '100%', height: '100%', objectFit: 'cover' }} alt="Poster" />
-                                      </div>
-                                      <div style={{ flex: 1, padding: '16px 20px', display: 'flex', flexDirection: 'column', justifyContent: 'space-between', minWidth: 0 }}>
-                                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                                          <span style={{ fontSize: '12px', fontWeight: '700', color: '#E53935', background: '#fff0f0', padding: '3px 10px', borderRadius: '8px', border: '1px solid #ffc9c9', flexShrink: 0 }}>
-                                            {(() => {
-                                              const entries = Object.entries(GENRE_MAP).filter(([_, info]) => item[info.key] > 0)
-                                              if (entries.length === 0) return '소셜'
-                                              const sorted = [...entries].sort((a, b) => item[b[1].key] - item[a[1].key])
-                                              if (sorted.length >= 2 && item[sorted[0][1].key] === item[sorted[1][1].key]) return `${sorted[0][0]} · ${sorted[1][0]}`
-                                              return sorted[0][0]
-                                            })()}
-                                          </span>
-                                          {isItemLive && (
-                                            <span style={{ background:'#E53935', color:'#fff', fontSize:'10px', fontWeight:'950', padding:'2px 6px', borderRadius:'4px', animation:'blink 1.5s infinite', boxShadow: '0 0 8px rgba(229, 57, 53, 0.5)' }}>LIVE</span>
-                                          )}
-                                        </div>
-                                        
-                                        <div style={{ fontSize: '17px', fontWeight: '900', color: 'var(--color-text-main)', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden', textOverflow: 'ellipsis', letterSpacing: '-0.6px', lineHeight: 1.3, height: '44px', marginTop: '4px' }}>
-                                          {cleanTitle(item.title).replace(/^\[.*?\]\s*/, '').replace(/ㅣ\s*$/, '').trim()}
-                                        </div>
-                                        
-                                        <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                                          <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                                            <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '15px', color: 'var(--color-text-sub)', fontWeight: 800 }}>
-                                              <Clock size={15} />
-                                              {item.time?.split('-')[0].trim() || '21:00'}
-                                            </div>
-                                            {isItemLive && (
-                                              <span style={{ fontSize:'12px', fontWeight:'800', color:'#FFB300', background:'rgba(255,179,0,0.1)', padding:'2px 8px', borderRadius:'10px' }}>
-                                                실시간 {item.locationName?.includes('라틴크루') || item.title?.includes('라틴크루') || item.studio_name?.includes('라틴크루') ? '120' : '1'}
-                                              </span>
-                                            )}
-                                          </div>
-                                          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
-                                            <div style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: '14px', color: 'var(--color-text-sub)', fontWeight: 700 }}>
-                                              <Navigation size={14} color="#E53935" fill="#E53935" />
-                                              {translateDynamicText(item.locationName, isEn)}
-                                            </div>
-                                            <span style={{ color: 'var(--color-text-sub)', opacity: 0.3 }}>•</span>
-                                            <span style={{ fontSize: '14px', fontWeight: '900', color: '#E53935' }}>
-                                              {formatPrice(item.fee)}
-                                            </span>
-                                          </div>
-                                        </div>
-                                      </div>
-                                    </div>
-                                    )
-                                  })}
-                                </div>
-
-
-
-                            </section>
-
-                            {/* 경기/인천 섹션 다음에 지방권 HOT PICK 배치 + 여백 확보 */}
-                            {regionName === '경기/인천' && provincialHot.length > 0 && (
-                              <div style={{ margin: '40px 0 15px', padding: '10px 0 20px', background: 'var(--color-card)', borderBottom: '1px solid var(--color-border)' }}>
-                                <div style={{ padding: '0 20px 15px' }}>
-                                  <h2 style={{ fontSize: '18px', fontWeight: '950', color: 'var(--color-text-main)', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                                    <span style={{ color: '#FF1744' }}>HOT</span> PICK 5 <span style={{ fontSize: '12px', color: '#94A3B8', fontWeight: 700 }}>[지방권]</span>
-                                  </h2>
-                                </div>
-                                <div style={{ width: '100%', overflow: 'hidden', padding: '10px 0' }}>
-                                  <div className="hot-pick-track">
-                                    {[...provincialHot, ...provincialHot].map((item, idx) => (
-                                      <div key={`${item.id}-${idx}`} onClick={() => setSelectedPoster(item.poster_url)} style={{ width: '140px', flexShrink: 0, borderRadius: '12px', overflow: 'hidden', boxShadow: '0 8px 20px rgba(0,0,0,0.12)', position: 'relative' }}>
-                                        <img src={item.poster_url} style={{ width: '100%', height: '210px', objectFit: 'cover' }} alt="Pick" />
-                                        <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, padding: '12px 8px', background: 'linear-gradient(transparent, rgba(0,0,0,0.95))', color: 'white' }}>
-                                          <div style={{ fontSize: '10px', color: '#FFEB3B', fontWeight: 900, marginBottom: '2px', textShadow: '0 1px 2px rgba(0,0,0,0.8)' }}>{translateDynamicText(item.locationName, isEn)}</div>
-                                          <div style={{ fontSize: '11px', fontWeight: 900, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', marginBottom: '4px', textShadow: '0 1px 2px rgba(0,0,0,0.8)' }}>{translateDynamicText(item.title, isEn)}</div>
-                                        </div>
-                                      </div>
-                                    ))}
+                          <div style={{ width: '100%', overflow: 'hidden', padding: '10px 0' }}>
+                            <div className="hot-pick-track">
+                              {[...metroHot, ...metroHot].slice(0, 10).map((item, idx) => (
+                                <div key={`${item.id}-${idx}`} onClick={() => setSelectedPoster(item.poster_url)} style={{ width: '140px', flexShrink: 0, borderRadius: '20px', overflow: 'hidden', boxShadow: '0 12px 28px rgba(0,0,0,0.18)', position: 'relative', background: '#000', margin: '0 12px' }}>
+                                  <img src={item.poster_url} style={{ width: '100%', height: '210px', objectFit: 'cover' }} alt="Pick" />
+                                  <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, padding: '14px 10px', background: 'linear-gradient(transparent, rgba(0,0,0,0.95))', color: 'white' }}>
+                                    <div style={{ fontSize: '10px', color: '#FFEB3B', fontWeight: 950, marginBottom: '2px' }}>{translateDynamicText(item.locationName, isEn)}</div>
+                                    <div style={{ fontSize: '11px', fontWeight: 900, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{translateDynamicText(item.title, isEn)}</div>
                                   </div>
                                 </div>
-                                {/* 추후 광고 구좌를 위한 하단 여백 */}
-                                <div style={{ height: '20px' }}></div>
+                              ))}
+                            </div>
+                          </div>
+                        </div>
+                      )}
+
+                      {/* 수도권 지역 리스트 (서울, 경기/인천 - 핫픽과 바로 이어서 노출) */}
+                      {(() => {
+                        const regions = ["서울", "경기/인천"];
+                        return regions.map(regionName => {
+                          const regionParties = (parties || [])
+                            .filter(p => p.date === selectedDate)
+                            .filter(p => REGION_FILTER[regionName](p))
+                            .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
+                          
+                          return (
+                            <section key={regionName} style={{ marginBottom: '15px', background: 'var(--color-card)' }}>
+                              <div style={{ padding: '15px 20px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', color: 'var(--color-text-main)' }}>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                                  <span style={{ fontSize: '15px', fontWeight: '800' }}>{regionName === '서울' ? t('region_seoul') : t('region_gyeonggi_incheon')}</span>
+                                  <span style={{ fontSize: '12px', color: 'var(--color-text-secondary)', fontWeight: '600', marginLeft: '4px' }}>
+                                    {(() => { const d = new Date(selectedDate); return `${d.getMonth() + 1}/${d.getDate()} (${isEn ? DAYS_EN[d.getDay()] : DAYS_KOR[d.getDay()]})`; })()}
+                                  </span>
+                                </div>
+                                <button onClick={() => { setGridRegion(regionName); setShowGridModal(true); }} style={{ fontSize: '12px', fontWeight: '700', color: '#E53935', background: 'none', border: 'none', padding: 0 }}>{t('view_all')} <ChevronRight size={14} /></button>
                               </div>
-                            )}
-                          </React.Fragment>
-                        );
-                      });
-                    })()}
+                              <div style={{ display: 'flex', overflowX: 'auto', gap: '20px', padding: '10px 20px 40px', msOverflowStyle: 'none', scrollbarWidth: 'none' }}>
+                                {regionParties.length === 0 ? <div style={{ flexShrink: 0, width: '100%', padding: '30px', textAlign: 'center', color: '#999' }}>{t('no_parties')}</div> : regionParties.map(item => (
+                                  <div key={item.id} onClick={() => setSelectedPoster(item.poster_url)} style={{ width: '320px', flexShrink: 0, borderRadius: '16px', overflow: 'hidden', display: 'flex', background: 'var(--color-card)', border: '1px solid var(--color-border)', height: '150px' }}>
+                                    <div style={{ width: '100px', flexShrink: 0 }}><img src={item.poster_url} style={{ width: '100%', height: '100%', objectFit: 'cover' }} alt="Poster" /></div>
+                                    <div style={{ flex: 1, padding: '16px 20px', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
+                                      <div style={{ fontSize: '12px', fontWeight: '700', color: '#E53935' }}>{translateDynamicText(item.locationName, isEn)}</div>
+                                      <div style={{ fontSize: '17px', fontWeight: '900', color: 'var(--color-text-main)', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>{translateDynamicText(item.title, isEn)}</div>
+                                      <div style={{ fontSize: '14px', color: 'var(--color-text-sub)', fontWeight: 700 }}>{item.time?.split('-')[0].trim() || '21:00'} · {formatPrice(item.fee)}</div>
+                                    </div>
+                                  </div>
+                                ))}
+                              </div>
+                            </section>
+                          );
+                        });
+                      })()}
+                    </div>
+
+                    {/* 섹션 2 종료 Divider (수도권 덩어리가 끝난 후 선명한 실선) */}
+                    <div style={{ padding: '80px 20px' }}>
+                      <div style={{ height: '1.5px', background: 'var(--color-border)', opacity: 0.8, borderRadius: '1px' }} />
+                    </div>
+
+                    {/* [섹션 3] 지방권 그룹 (핫픽 + 나머지 모든 지방 리스트를 한 덩어리로) */}
+                    <div style={{ background: 'var(--color-bg)' }}>
+                      {/* 지방권 핫픽 */}
+                      {provincialHot.length > 0 && (
+                        <div style={{ padding: '24px 0 32px', background: 'var(--color-card)' }}>
+                          <div style={{ padding: '0 20px 20px' }}>
+                            <h2 style={{ fontSize: '20px', fontWeight: '950', color: 'var(--color-text-main)', display: 'flex', alignItems: 'center', gap: '12px' }}>
+                              <span style={{ padding: '4px 12px', borderRadius: '8px', background: '#303F9F', color: '#fff', fontSize: '11px', fontWeight: 900, letterSpacing: '0.5px' }}>REGIONAL</span>
+                              <span>지방권 핫픽 TOP 5</span>
+                            </h2>
+                          </div>
+                          <div style={{ width: '100%', overflow: 'hidden', padding: '10px 0' }}>
+                            <div className="hot-pick-track">
+                              {[...provincialHot, ...provincialHot].slice(0, 10).map((item, idx) => (
+                                <div key={`${item.id}-${idx}`} onClick={() => setSelectedPoster(item.poster_url)} style={{ width: '140px', flexShrink: 0, borderRadius: '20px', overflow: 'hidden', boxShadow: '0 12px 28px rgba(0,0,0,0.18)', position: 'relative', background: '#000', margin: '0 12px' }}>
+                                  <img src={item.poster_url} style={{ width: '100%', height: '210px', objectFit: 'cover' }} alt="Pick" />
+                                  <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, padding: '14px 10px', background: 'linear-gradient(transparent, rgba(0,0,0,0.95))', color: 'white' }}>
+                                    <div style={{ fontSize: '10px', color: '#FFEB3B', fontWeight: 950, marginBottom: '2px' }}>{translateDynamicText(item.locationName, isEn)}</div>
+                                    <div style={{ fontSize: '11px', fontWeight: 900, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{translateDynamicText(item.title, isEn)}</div>
+                                  </div>
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        </div>
+                      )}
+
+                      {/* 지방 지역 리스트 (나머지 전체) */}
+                      {(() => {
+                        const regions = ["경상도", "전라도", "충청도", "강원/제주"];
+                        return regions.map(regionName => {
+                          const regionParties = (parties || [])
+                            .filter(p => p.date === selectedDate)
+                            .filter(p => REGION_FILTER[regionName](p))
+                            .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
+                          
+                          return (
+                            <section key={regionName} style={{ marginBottom: '15px', background: 'var(--color-card)' }}>
+                              <div style={{ padding: '15px 20px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', color: 'var(--color-text-main)' }}>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                                  <span style={{ fontSize: '15px', fontWeight: '800' }}>{regionName}</span>
+                                </div>
+                                <button onClick={() => { setGridRegion(regionName); setShowGridModal(true); }} style={{ fontSize: '12px', fontWeight: '700', color: '#E53935', background: 'none', border: 'none', padding: 0 }}>{t('view_all')} <ChevronRight size={14} /></button>
+                              </div>
+                              <div style={{ display: 'flex', overflowX: 'auto', gap: '20px', padding: '10px 20px 40px', msOverflowStyle: 'none', scrollbarWidth: 'none' }}>
+                                {regionParties.length === 0 ? <div style={{ flexShrink: 0, width: '100%', padding: '30px', textAlign: 'center', color: '#999' }}>{t('no_parties')}</div> : regionParties.map(item => (
+                                  <div key={item.id} onClick={() => setSelectedPoster(item.poster_url)} style={{ width: '320px', flexShrink: 0, borderRadius: '16px', overflow: 'hidden', display: 'flex', background: 'var(--color-card)', border: '1px solid var(--color-border)', height: '150px' }}>
+                                    <div style={{ width: '100px', flexShrink: 0 }}><img src={item.poster_url} style={{ width: '100%', height: '100%', objectFit: 'cover' }} alt="Poster" /></div>
+                                    <div style={{ flex: 1, padding: '16px 20px', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
+                                      <div style={{ fontSize: '12px', fontWeight: '700', color: '#E53935' }}>{translateDynamicText(item.locationName, isEn)}</div>
+                                      <div style={{ fontSize: '17px', fontWeight: '900', color: 'var(--color-text-main)', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>{translateDynamicText(item.title, isEn)}</div>
+                                      <div style={{ fontSize: '14px', color: 'var(--color-text-sub)', fontWeight: 700 }}>{item.time?.split('-')[0].trim() || '21:00'} · {formatPrice(item.fee)}</div>
+                                    </div>
+                                  </div>
+                                ))}
+                              </div>
+                            </section>
+                          );
+                        });
+                      })()}
+                    </div>
+
+                    {/* 하단 마무리 여백 */}
+                    <div style={{ height: '100px' }} />
                   </>
                 );
               })()}
-
-
             </div>
           )}
         </div>
