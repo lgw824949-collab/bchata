@@ -436,7 +436,7 @@ const HomePage = ({
   showLatinModal, setShowLatinModal, setShowSaju, setShowWishlist, latinCat, setLatinCat, selPatternId, setSelPatternId, regionalTheme, recordTraffic, IncheonBanner, venueCounts, openAnalysis,
   showGridModal, setShowGridModal, gridRegion, setGridRegion, filterStep, setFilterStep,
   handleOpenModal, handleCloseModal,
-  isDark, setIsDark, followedInstructors, likedLivePicks, setShowRentalModal
+  isDark, setIsDark, followedInstructors, likedLivePicks, setShowRentalModal, setShowRoute, setShowPlaceInquiry
 }) => {
   const { t, i18n } = useTranslation();
   const isEn = i18n.language.startsWith('en');
@@ -618,11 +618,11 @@ const HomePage = ({
           { icon: <Utensils size={22} color="#C2185B" />, label:'맛집/뒷풀이', action:() => setView('restaurant') },
           { icon: <CloudSun size={22} color="#1976D2" />, label:'오늘날씨', action:() => setShowWeather(true) },
           { icon: <Heart size={22} color="#7B1FA2" />, label:'찜하기', action:() => setShowWishlist(true) },
-          { icon: <MessageSquare size={22} color="#388E3C" />, label:'채팅문의', action:() => window.open('https://open.kakao.com/o/gP43rNri','_blank') },
-          { icon: <Navigation size={22} color="#303F9F" />, label:'지능형경로', badge:'LIVE', action:() => openAnalysis(false) },
+          { icon: <MessageSquare size={22} color="#388E3C" />, label:'채팅문의', action:() => setShowPlaceInquiry(true) },
+          { icon: <Navigation size={22} color="#303F9F" />, label:'지능형경로', badge:'LIVE', action:() => setShowRoute(true) },
           { icon: <Star size={22} color="#F9A825" />, label:'운명의좌표', action:() => setShowSaju(true) },
           { icon: <MapPin size={22} color="#0097A7" />, label:'주변주차', action:() => setView('parking') },
-          { icon: <HomeIcon size={22} color="#558B2F" />, label:'대관문의', action:() => handleOpenModal(setShowRentalModal, true) },
+          { icon: <HomeIcon size={22} color="#558B2F" />, label:'대관문의', action:() => setShowRentalModal(true) },
         ].map((item, idx) => (
           <div key={idx} style={{ position:'relative' }}>
             <div style={{ 
