@@ -622,16 +622,16 @@ const HomePage = ({
         border: '1px solid rgba(0,0,0,0.02)'
       }}>
         {[
-          { icon: '🤳', label: '라이브픽', bg:'#FFE4E4', action: () => setView('community'), badge: 'HOT' },
-          { icon: '🗓️', label: '행사달력', bg:'#FFF3E0', action: () => handleOpenModal(setShowFullCalendar, true) },
-          { icon: '😋', label: '맛집/뒷풀이', bg:'#FCE4EC', action: () => setView('restaurant') },
-          { icon: '🌤️', label: '오늘날씨', bg:'#E3F2FD', action: () => handleOpenModal(setShowWeather, true) },
-          { icon: '💖', label: '찜하기', bg:'#F3E5F5', action: () => handleOpenModal(setShowWishlist, true) },
-          { icon: '🗨️', label: '채팅문의', bg:'#E8F5E9', action: () => window.open('https://open.kakao.com/o/gP43rNri', '_blank') },
-          { icon: '🧭', label: '지능형경로', bg:'#E8EAF6', action: () => openAnalysis(false), badge: 'LIVE' },
-          { icon: '🔮', label: '운명의좌표', bg:'#FFF8E1', action: () => handleOpenModal(setShowSaju, true) },
-          { icon: '🚗', label: '주변주차', bg:'#E0F7FA', action: () => setView('parking') },
-          { icon: '🔑', label: '대관문의', bg:'#F1F8E9', action: () => setShowRentalModal(true) },
+          { icon: '📱', label: '라이브픽', scale: 1.0, action: () => setView('community'), badge: 'HOT' },
+          { icon: '🗓️', label: '행사달력', scale: 1.0, action: () => handleOpenModal(setShowFullCalendar, true) },
+          { icon: '😋', label: '맛집/뒷풀이', scale: 1.1, action: () => setView('restaurant') },
+          { icon: '🌤️', label: '오늘날씨', scale: 1.1, action: () => handleOpenModal(setShowWeather, true) },
+          { icon: '💖', label: '찜하기', scale: 1.0, action: () => handleOpenModal(setShowWishlist, true) },
+          { icon: '🗨️', label: '채팅문의', scale: 1.1, action: () => window.open('https://open.kakao.com/o/gP43rNri', '_blank') },
+          { icon: '🧭', label: '지능형경로', scale: 1.1, action: () => openAnalysis(false), badge: 'LIVE' },
+          { icon: '🔮', label: '운명의좌표', scale: 0.95, action: () => handleOpenModal(setShowSaju, true) },
+          { icon: '🚗', label: '주변주차', scale: 1.2, action: () => setView('parking') },
+          { icon: '🔑', label: '대관문의', scale: 0.95, action: () => setShowRentalModal(true) },
         ].map((item, idx) => (
           <motion.div
             key={idx}
@@ -657,7 +657,8 @@ const HomePage = ({
             <div style={{ 
               width: '44px', height: '44px', 
               display: 'flex', alignItems: 'center', justifyContent: 'center',
-              fontSize: '26px' 
+              fontSize: '26px',
+              transform: `scale(${item.scale || 1})`
             }}>
               {item.icon}
             </div>
