@@ -613,16 +613,16 @@ const HomePage = ({
       {/* 🚀 [사용자 요청] 퀵 메뉴 그리드 (벤치마킹 디자인 적용) */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: '12px', padding: '15px 15px 30px' }}>
         {[
-          { icon: <Camera size={22} color="#E53935" />, label: '라이브픽', bg:'#FFE4E4', action: () => setView('community'), badge: 'HOT' },
-          { icon: <Calendar size={22} color="#F97316" />, label: '행사달력', bg:'#FFF3E0', action: () => handleOpenModal(setShowFullCalendar, true) },
-          { icon: <Utensils size={22} color="#C2185B" />, label: '맛집/뒷풀이', bg:'#FCE4EC', action: () => setView('restaurant') },
-          { icon: <CloudSun size={22} color="#1976D2" />, label: '오늘날씨', bg:'#E3F2FD', action: () => handleOpenModal(setShowWeather, true) },
-          { icon: <Heart size={22} color="#7B1FA2" />, label: '찜하기', bg:'#F3E5F5', action: () => handleOpenModal(setShowWishlist, true) },
-          { icon: <MessageSquare size={22} color="#388E3C" />, label: '채팅문의', bg:'#E8F5E9', action: () => window.open('https://open.kakao.com/o/gP43rNri', '_blank') },
-          { icon: <Navigation size={22} color="#303F9F" />, label: '지능형경로', bg:'#E8EAF6', action: () => openAnalysis(false), badge: 'LIVE' },
-          { icon: <Star size={22} color="#F9A825" />, label: '운명의좌표', bg:'#FFF8E1', action: () => handleOpenModal(setShowSaju, true) },
-          { icon: <MapPin size={22} color="#0097A7" />, label: '주변주차', bg:'#E0F7FA', action: () => setView('parking') },
-          { icon: <HomeIcon size={22} color="#558B2F" />, label: '대관문의', bg:'#F1F8E9', action: () => setShowRentalModal(true) },
+          { icon: <Camera size={28} color="#E53935" />, label: '라이브픽', bg:'#FFE4E4', action: () => setView('community'), badge: 'HOT' },
+          { icon: <Calendar size={28} color="#F97316" />, label: '행사달력', bg:'#FFF3E0', action: () => handleOpenModal(setShowFullCalendar, true) },
+          { icon: <Utensils size={28} color="#C2185B" />, label: '맛집/뒷풀이', bg:'#FCE4EC', action: () => setView('restaurant') },
+          { icon: <CloudSun size={28} color="#1976D2" />, label: '오늘날씨', bg:'#E3F2FD', action: () => handleOpenModal(setShowWeather, true) },
+          { icon: <Heart size={28} color="#7B1FA2" />, label: '찜하기', bg:'#F3E5F5', action: () => handleOpenModal(setShowWishlist, true) },
+          { icon: <MessageSquare size={28} color="#388E3C" />, label: '채팅문의', bg:'#E8F5E9', action: () => window.open('https://open.kakao.com/o/gP43rNri', '_blank') },
+          { icon: <Navigation size={28} color="#303F9F" />, label: '지능형경로', bg:'#E8EAF6', action: () => openAnalysis(false), badge: 'LIVE' },
+          { icon: <Star size={28} color="#F9A825" />, label: '운명의좌표', bg:'#FFF8E1', action: () => handleOpenModal(setShowSaju, true) },
+          { icon: <MapPin size={28} color="#0097A7" />, label: '주변주차', bg:'#E0F7FA', action: () => setView('parking') },
+          { icon: <HomeIcon size={28} color="#558B2F" />, label: '대관문의', bg:'#F1F8E9', action: () => setShowRentalModal(true) },
         ].map((item, idx) => (
           <motion.div
             key={idx}
@@ -646,13 +646,13 @@ const HomePage = ({
               </span>
             )}
             <div style={{ 
-              width: '40px', height: '40px', 
+              width: '48px', height: '48px', 
               display: 'flex', alignItems: 'center', justifyContent: 'center',
-              fontSize: '24px' 
+              fontSize: '28px' 
             }}>
               {item.icon}
             </div>
-            <span style={{ fontSize:'11px', fontWeight:700, color:'#1E293B', textAlign:'center', lineHeight:1.3, wordBreak:'keep-all' }}>
+            <span style={{ fontSize:'11px', fontWeight:800, color:'#1E293B', textAlign:'center', lineHeight:1.3, wordBreak:'keep-all' }}>
               {item.label}
             </span>
           </motion.div>
