@@ -685,7 +685,7 @@ function App() {
     setLoading(true);
     try {
       const [partiesRes, locationsRes, bootcampsRes, festivalsRes] = await Promise.all([
-        supabase.from('parties').select('*').order('date', { ascending: true }),
+        supabase.from('parties').select('*').eq('status', 'approved').order('date', { ascending: true }),
         supabase.from('locations').select('id, name'),
         supabase.from('bootcamps').select('*').eq('status', 'active'),
         supabase.from('festivals').select('*').eq('status', 'active')
