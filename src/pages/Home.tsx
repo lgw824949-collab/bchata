@@ -611,61 +611,43 @@ const HomePage = ({
       </div>
 
       {/* 🚀 [사용자 요청] 퀵 메뉴 그리드 (벤치마킹 디자인 적용) */}
-      <div style={{ 
-        display: 'grid', 
-        gridTemplateColumns: 'repeat(5, 1fr)', 
-        gap: '10px', 
-        padding: '20px 12px',
-        background: '#F8FAFC',
-        borderRadius: '24px',
-        margin: '12px 14px 28px',
-        border: '1px solid rgba(0,0,0,0.02)'
-      }}>
+      <div style={{ display:'grid', gridTemplateColumns:'repeat(5, 1fr)', gap:'10px', padding:'12px 16px 20px' }}>
         {[
-          { icon: '📱', label: '라이브픽', scale: 1.0, action: () => setView('community'), badge: 'HOT' },
-          { icon: '🗓️', label: '행사달력', scale: 1.0, action: () => handleOpenModal(setShowFullCalendar, true) },
-          { icon: '😋', label: '맛집/뒷풀이', scale: 1.1, action: () => setView('restaurant') },
-          { icon: '🌤️', label: '오늘날씨', scale: 1.1, action: () => handleOpenModal(setShowWeather, true) },
-          { icon: '💖', label: '찜하기', scale: 1.0, action: () => handleOpenModal(setShowWishlist, true) },
-          { icon: '🗨️', label: '채팅문의', scale: 1.1, action: () => window.open('https://open.kakao.com/o/gP43rNri', '_blank') },
-          { icon: '🧭', label: '지능형경로', scale: 1.1, action: () => openAnalysis(false), badge: 'LIVE' },
-          { icon: '🔮', label: '운명의좌표', scale: 0.95, action: () => handleOpenModal(setShowSaju, true) },
-          { icon: '🚗', label: '주변주차', scale: 1.2, action: () => setView('parking') },
-          { icon: '🔑', label: '대관문의', scale: 0.95, action: () => handleOpenModal(setShowRentalModal, true) },
+          { icon: <Camera size={24} color="#E53935" />, label:'라이브픽', badge:'HOT', action:() => setView('community') },
+          { icon: <Calendar size={24} color="#F97316" />, label:'행사달력', action:() => handleOpenModal(setShowFullCalendar, true) },
+          { icon: <Utensils size={24} color="#C2185B" />, label:'맛집/뒷풀이', action:() => setView('restaurant') },
+          { icon: <CloudSun size={24} color="#1976D2" />, label:'오늘날씨', action:() => handleOpenModal(setShowWeather, true) },
+          { icon: <Heart size={24} color="#7B1FA2" />, label:'찜하기', action:() => handleOpenModal(setShowWishlist, true) },
+          { icon: <MessageSquare size={24} color="#388E3C" />, label:'채팅문의', action:() => window.open('https://open.kakao.com/o/gP43rNri','_blank') },
+          { icon: <Navigation size={24} color="#E53935" />, label:'지능형경로', badge:'LIVE', action:() => openAnalysis(false) },
+          { icon: <Star size={24} color="#F9A825" />, label:'운명의좌표', action:() => handleOpenModal(setShowSaju, true) },
+          { icon: <MapPin size={24} color="#0097A7" />, label:'주변주차', action:() => setView('parking') },
+          { icon: <HomeIcon size={24} color="#558B2F" />, label:'대관문의', action:() => handleOpenModal(setShowRentalModal, true) },
         ].map((item, idx) => (
-          <motion.div
-            key={idx}
-            whileTap={{ scale: 0.92 }}
-            onClick={item.action}
-            style={{
-              display: 'flex', flexDirection: 'column',
-              alignItems: 'center', justifyContent: 'center',
-              gap: '6px', cursor: 'pointer',
-              background: '#fff',
-              borderRadius: '20px',
-              padding: '12px 2px',
-              position: 'relative',
-              boxShadow: '0 8px 16px rgba(0,0,0,0.04), 0 2px 4px rgba(0,0,0,0.02)',
-              border: '1px solid #fff'
-            }}
-          >
+          <div key={idx} style={{ position:'relative' }}>
+            <div style={{
+              borderRadius:'20px', padding:'1.5px',
+              background: item.badge === 'HOT' || item.badge === 'LIVE'
+                ? 'linear-gradient(135deg, #E53935, #FF8A65, #E53935)'
+                : 'linear-gradient(135deg, #CBD5E1, #E2E8F0, #CBD5E1)'
+            }}>
+              <motion.div
+                whileTap={{ scale: 0.92 }}
+                onClick={item.action}
+                style={{ display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center', gap:'8px', cursor:'pointer', borderRadius:'19px', padding:'14px 4px', background:'#fff' }}
+              >
+                {item.icon}
+                <span style={{ fontSize:'11px', fontWeight:700, color:'#1E293B', textAlign:'center', lineHeight:1.3, wordBreak:'keep-all' }}>
+                  {item.label}
+                </span>
+              </motion.div>
+            </div>
             {item.badge && (
-              <span style={{ position:'absolute', top:'4px', right:'4px', background:'#E53935', color:'#fff', fontSize:'8px', fontWeight:900, padding:'1px 4px', borderRadius:'5px', zIndex: 1, boxShadow: '0 2px 4px rgba(229,57,53,0.2)' }}>
+              <span style={{ position:'absolute', top:'-5px', right:'-5px', background:'#E53935', color:'#fff', fontSize:'7px', fontWeight:700, padding:'1px 5px', borderRadius:'6px', zIndex:1 }}>
                 {item.badge}
               </span>
             )}
-            <div style={{ 
-              width: '44px', height: '44px', 
-              display: 'flex', alignItems: 'center', justifyContent: 'center',
-              fontSize: '26px',
-              transform: `scale(${item.scale || 1})`
-            }}>
-              {item.icon}
-            </div>
-            <span style={{ fontSize:'10.5px', fontWeight:800, color:'#1E293B', textAlign:'center', lineHeight:1.2, wordBreak:'keep-all', letterSpacing: '-0.2px' }}>
-              {item.label}
-            </span>
-          </motion.div>
+          </div>
         ))}
       </div>
 
