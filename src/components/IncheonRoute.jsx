@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { X, Navigation, MapPin, Loader2, Trophy, ChevronRight } from 'lucide-react';
+import { X, Navigation, MapPin, Loader2, Trophy, ChevronRight, ChevronLeft } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { useTranslation } from 'react-i18next';
 import { BAR_DATABASE } from '../lib/BarLib';
