@@ -580,6 +580,8 @@ function App() {
   const [navVisible, setNavVisible] = useState(true)
   const [showRoute, setShowRoute] = useState(false);
   const [showPlaceInquiry, setShowPlaceInquiry] = useState(false);
+  const [showWishlist, setShowWishlist] = useState(false);
+  const [showRentalModal, setShowRentalModal] = useState(false);
   const lastScrollY = useRef(0)
 
   // 다크 모드 상태 관리
@@ -819,6 +821,9 @@ function App() {
     setShowSaju,
     setShowRoute,
     setShowPlaceInquiry,
+    setShowWeather,
+    setShowWishlist,
+    setShowRentalModal,
     logActivity: () => {}, regionalTheme: { welcomeMsg: "전국 댄서들을 위한 실시간 정보", specialBanner: true }
   };
 
@@ -1115,7 +1120,7 @@ function App() {
       <DynamicAnalysisModal isOpen={showIncheonModal} onClose={() => setShowIncheonModal(false)} userCoords={userCoords} isSajuCall={isSajuCall} />
       <AnimatePresence>
         <Suspense fallback={null}>
-          {showIncheon && <IncheonRoute parties={parties} onClose={() => setShowIncheon(false)} />}
+          {(showIncheon || showRoute) && <IncheonRoute parties={parties} onClose={() => { setShowIncheon(false); setShowRoute(false); }} />}
         </Suspense>
       </AnimatePresence>
       <AnimatePresence>
@@ -1127,6 +1132,116 @@ function App() {
         <Suspense fallback={null}>
           {showWeather && <WeatherModal onClose={() => setShowWeather(false)} />}
         </Suspense>
+      </AnimatePresence>
+
+      <AnimatePresence>
+        {showWishlist && (
+          <motion.div
+            initial={{ opacity:0, y:'100%' }}
+            animate={{ opacity:1, y:0 }}
+            exit={{ opacity:0, y:'100%' }}
+            transition={{ type:'spring', damping:25, stiffness:200 }}
+            style={{ position:'fixed', inset:0, zIndex:2000003, background:'var(--color-bg)', overflowY:'auto' }}
+          >
+            <div style={{ padding:'20px 24px', display:'flex', alignItems:'center', gap:12, borderBottom:'1px solid var(--color-border)' }}>
+              <button onClick={() => setShowWishlist(false)}
+                style={{ background:'var(--color-border)', border:'none', borderRadius:'50%', width:40, height:40, display:'flex', alignItems:'center', justifyContent:'center', cursor:'pointer', fontSize:18, color:'var(--color-text-main)' }}>×</button>
+              <div>
+                <div style={{ fontSize:18, fontWeight:900, color:'var(--color-text-main)' }}>{t('nav_wishlist')} ❤️</div>
+                <div style={{ fontSize:12, color:'var(--color-text-sub)' }}>관심있는 파티를 저장해보세요</div>
+              </div>
+            </div>
+            <div style={{ padding:'60px 24px', textAlign:'center' }}>
+              <div style={{ fontSize:48, marginBottom:16 }}>❤️</div>
+              <div style={{ fontSize:18, fontWeight:900, color:'var(--color-text-main)', marginBottom:8 }}>아직 찜한 파티가 없어요</div>
+              <div style={{ fontSize:14, color:'var(--color-text-sub)', lineHeight: 1.6 }}>파티 카드에서 하트를 눌러<br/>관심 있는 파티를 저장해보세요!</div>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      <AnimatePresence>
+        {showRentalModal && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            style={{
+              position: 'fixed',
+              inset: 0,
+              zIndex: 2000003,
+              backgroundColor: 'rgba(0,0,0,0.85)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              padding: '20px',
+              backdropFilter: 'blur(8px)'
+            }}
+          >
+            <motion.div
+              initial={{ scale: 0.9, opacity: 0, y: 20 }}
+              animate={{ scale: 1, opacity: 1, y: 0 }}
+              style={{
+                background: 'var(--color-card)',
+                borderRadius: '32px',
+                padding: '40px 30px',
+                width: '100%',
+                maxWidth: '360px',
+                textAlign: 'center',
+                border: '1px solid var(--color-border)',
+                position: 'relative',
+                overflow: 'hidden'
+              }}
+            >
+              <div style={{ fontSize: '48px', marginBottom: '20px' }}>🏢</div>
+              <h3 style={{ fontSize: '22px', fontWeight: '950', color: 'var(--color-text-main)', marginBottom: '12px' }}>전국 대관 문의</h3>
+              <p style={{ color: 'var(--color-text-sub)', fontSize: '15px', lineHeight: '1.6', marginBottom: '30px', fontWeight: 500 }}>
+                바 차타 플랫폼을 통해<br/>전국 댄서들에게 장소를 홍보하세요.
+              </p>
+              
+              <button
+                onClick={() => {
+                  window.open('https://open.kakao.com/o/gP43rNri', '_blank');
+                  setShowRentalModal(false);
+                }}
+                style={{
+                  background: '#FEE500',
+                  color: '#000',
+                  width: '100%',
+                  padding: '18px',
+                  borderRadius: '16px',
+                  border: 'none',
+                  fontWeight: '900',
+                  fontSize: '17px',
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: '10px',
+                  boxShadow: '0 10px 20px rgba(254, 229, 0, 0.2)'
+                }}
+              >
+                카카오톡으로 문의하기
+              </button>
+              
+              <button
+                onClick={() => setShowRentalModal(false)}
+                style={{
+                  marginTop: '20px',
+                  background: 'none',
+                  border: 'none',
+                  color: 'var(--color-text-sub)',
+                  fontSize: '13px',
+                  fontWeight: 700,
+                  cursor: 'pointer',
+                  textDecoration: 'underline'
+                }}
+              >
+                나중에 하기
+              </button>
+            </motion.div>
+          </motion.div>
+        )}
       </AnimatePresence>
 
       <AnimatePresence>
