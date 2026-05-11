@@ -20,6 +20,14 @@ const IncheonRoute = lazy(() => import('./components/IncheonRoute'));
 const WeatherModal = lazy(() => import('./components/WeatherModal'));
 
 // 로딩 스피너 컴포넌트
+// 배포 후 이전 버전 캐시로 인한 청크 로딩 에러 해결
+window.addEventListener('unhandledrejection', (event) => {
+  if (event.reason && event.reason.name === 'ChunkLoadError' || (event.reason && event.reason.message && event.reason.message.includes('Failed to fetch dynamically imported module'))) {
+    console.warn('New version detected, reloading...');
+    window.location.reload();
+  }
+});
+
 const LoadingFallback = () => (
   <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '80vh', gap: '16px' }}>
     <motion.div animate={{ rotate: 360 }} transition={{ duration: 1, repeat: Infinity, ease: 'linear' }}>
