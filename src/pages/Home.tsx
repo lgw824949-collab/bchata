@@ -618,17 +618,7 @@ const HomePage = ({
         {/* 메인 1순위 노출 (5개) */}
         <div style={{ display:'grid', gridTemplateColumns:'repeat(5, 1fr)', gap:'4px' }}>
           {[
-            { icon: <Camera size={22} color="#E53935" />, label:'라이브뷰', badge:'HOT', action:() => {
-              setView('community');
-              adminTapRef.current += 1;
-              if (adminTimerRef.current) clearTimeout(adminTimerRef.current);
-              if (adminTapRef.current >= 3) {
-                adminTapRef.current = 0;
-                setView('admin');
-              } else {
-                adminTimerRef.current = setTimeout(() => { adminTapRef.current = 0; }, 1000);
-              }
-            } },
+            { icon: <Camera size={22} color="#E53935" />, label:'라이브뷰', badge:'HOT', action:() => setView('community') },
             { icon: <Calendar size={22} color="#F97316" />, label:'행사달력', action:() => setShowFullCalendar(true) },
             { icon: <Utensils size={22} color="#C2185B" />, label:'맛집', action:() => setView('restaurant') },
             { icon: <MessageSquare size={22} color="#388E3C" />, label:'채팅문의', action:() => window.open('https://open.kakao.com/o/gP43rNri','_blank') },
@@ -780,8 +770,17 @@ const HomePage = ({
                       {/* 수도권 핫픽 */}
                       {metroHot.length > 0 && (
                         <div style={{ padding: '24px 0 32px', background: 'var(--color-card)' }}>
-                          <div style={{ padding: '0 20px 20px' }}>
-                            <h2 style={{ fontSize: '20px', fontWeight: '950', color: 'var(--color-text-main)', display: 'flex', alignItems: 'center', gap: '12px' }}>
+                          <div style={{ padding: '0 20px 20px' }} onClick={() => {
+                            adminTapRef.current += 1;
+                            if (adminTimerRef.current) clearTimeout(adminTimerRef.current);
+                            if (adminTapRef.current >= 3) {
+                              adminTapRef.current = 0;
+                              setView('admin');
+                            } else {
+                              adminTimerRef.current = setTimeout(() => { adminTapRef.current = 0; }, 1000);
+                            }
+                          }}>
+                            <h2 style={{ fontSize: '20px', fontWeight: '950', color: 'var(--color-text-main)', display: 'flex', alignItems: 'center', gap: '12px', cursor: 'pointer' }}>
                               <span style={{ padding: '4px 12px', borderRadius: '8px', background: '#FF1744', color: '#fff', fontSize: '11px', fontWeight: 900, letterSpacing: '0.5px' }}>METRO</span>
                               <span>수도권 핫픽 TOP 5</span>
                             </h2>
