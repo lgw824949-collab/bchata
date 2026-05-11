@@ -584,7 +584,9 @@ const HomePage = ({
               adminTapRef.current += 1;
               if (adminTapRef.current >= 3) {
                 adminTapRef.current = 0;
-                setView('admin');
+                // App.jsx의 navigate 로직을 수동으로 실행하여 view 상태 동기화 유도
+                window.history.pushState({}, '', '/admin');
+                window.dispatchEvent(new PopStateEvent('popstate'));
               } else {
                 adminTimerRef.current = setTimeout(() => { adminTapRef.current = 0; }, 2000);
               }
