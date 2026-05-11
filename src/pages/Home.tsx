@@ -436,10 +436,8 @@ const HomePage = ({
   showLatinModal, setShowLatinModal, setShowSaju, setShowWishlist, latinCat, setLatinCat, selPatternId, setSelPatternId, regionalTheme, recordTraffic, IncheonBanner, venueCounts, openAnalysis,
   showGridModal, setShowGridModal, gridRegion, setGridRegion, filterStep, setFilterStep,
   handleOpenModal, handleCloseModal,
-  isDark, setIsDark, followedInstructors, likedLivePicks, setShowRentalModal, setShowRoute, setShowPlaceInquiry
+  isDark, setIsDark, followedInstructors, likedLivePicks, setShowRentalModal
 }) => {
-  const adminTapRef = useRef(0);
-  const adminTimerRef = useRef(null);
   const { t, i18n } = useTranslation();
   const isEn = i18n.language.startsWith('en');
   const lang = isEn ? 'en' : 'ko';
@@ -479,7 +477,6 @@ const HomePage = ({
   };
 
   const [isPaused, setIsPaused] = useState(false);
-  const [showMoreMenu, setShowMoreMenu] = useState(false);
 
   const [classGenre, setClassGenre] = useState('전체');
   const [classLevel, setClassLevel] = useState('전체');
@@ -613,99 +610,45 @@ const HomePage = ({
         </div>
       </div>
 
-      {/* 🚀 [사용자 요청] 퀵 메뉴 그리드 (1순위 메인 노출 + 더보기 구조) */}
-      <div style={{ display:'flex', flexDirection:'column', gap:'4px', padding:'8px 10px 12px' }}>
-        {/* 메인 1순위 노출 (5개) */}
-        <div style={{ display:'grid', gridTemplateColumns:'repeat(5, 1fr)', gap:'4px' }}>
-          {[
-            { icon: <Camera size={22} color="#E53935" />, label:'라이브뷰', badge:'HOT', action:() => setView('community') },
-            { icon: <Calendar size={22} color="#F97316" />, label:'행사달력', action:() => setShowFullCalendar(true) },
-            { icon: <Utensils size={22} color="#C2185B" />, label:'맛집', action:() => setView('restaurant') },
-            { icon: <MessageSquare size={22} color="#388E3C" />, label:'채팅문의', action:() => window.open('https://open.kakao.com/o/gP43rNri','_blank') },
-            { icon: <PlusCircle size={22} color="#475569" />, label:'더보기', action:() => setShowMoreMenu(!showMoreMenu) },
-          ].map((item, idx) => (
-            <div key={idx} style={{ position:'relative' }}>
-              <div style={{ 
-                borderRadius:'14px', padding:'1.5px', 
-                background: item.label === '더보기' && showMoreMenu ? 'linear-gradient(135deg, #1E293B, #475569)' : 'linear-gradient(135deg, #CBD5E1, #E2E8F0, #CBD5E1)',
-                boxShadow: '0 8px 16px rgba(0,0,0,0.04)',
-                transition: 'all 0.3s'
-              }}>
-                <motion.div
-                  whileTap={{ scale: 0.92 }}
-                  onClick={item.action}
-                  style={{ 
-                    display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center', 
-                    gap:'6px', cursor:'pointer', borderRadius:'12px', 
-                    padding:'12px 4px 10px', background: item.label === '더보기' && showMoreMenu ? '#F8FAFC' : '#fff' 
-                  }}
-                >
-                  <motion.div animate={item.label === '더보기' ? { rotate: showMoreMenu ? 45 : 0 } : {}}>
-                    {item.icon}
-                  </motion.div>
-                  <span style={{ fontSize:'10px', fontWeight:600, color:'#1E293B', textAlign:'center', lineHeight:1.3, wordBreak:'keep-all' }}>
-                    {item.label}
-                  </span>
-                </motion.div>
-              </div>
-              {item.badge && (
-                <span style={{ position:'absolute', top:'-4px', right:'-4px', background:'#E53935', color:'#fff', fontSize:'7px', fontWeight:700, padding:'1px 4px', borderRadius:'6px', zIndex:1 }}>
-                  {item.badge}
+      {/* 🚀 [사용자 요청] 퀵 메뉴 그리드 (벤치마킹 디자인 적용) */}
+      <div style={{ display:'grid', gridTemplateColumns:'repeat(5, 1fr)', gap:'10px', padding:'12px 16px 20px' }}>
+        {[
+          { icon: <Camera size={24} color="#E53935" />, label:'라이브픽', badge:'HOT', action:() => setView('community') },
+          { icon: <Calendar size={24} color="#F97316" />, label:'행사달력', action:() => handleOpenModal(setShowFullCalendar, true) },
+          { icon: <Utensils size={24} color="#C2185B" />, label:'맛집/뒷풀이', action:() => setView('restaurant') },
+          { icon: <CloudSun size={24} color="#1976D2" />, label:'오늘날씨', action:() => handleOpenModal(setShowWeather, true) },
+          { icon: <Heart size={24} color="#7B1FA2" />, label:'찜하기', action:() => handleOpenModal(setShowWishlist, true) },
+          { icon: <MessageSquare size={24} color="#388E3C" />, label:'채팅문의', action:() => window.open('https://open.kakao.com/o/gP43rNri','_blank') },
+          { icon: <Navigation size={24} color="#E53935" />, label:'지능형경로', badge:'LIVE', action:() => openAnalysis(false) },
+          { icon: <Star size={24} color="#F9A825" />, label:'운명의좌표', action:() => handleOpenModal(setShowSaju, true) },
+          { icon: <MapPin size={24} color="#0097A7" />, label:'주변주차', action:() => setView('parking') },
+          { icon: <HomeIcon size={24} color="#558B2F" />, label:'대관문의', action:() => handleOpenModal(setShowRentalModal, true) },
+        ].map((item, idx) => (
+          <div key={idx} style={{ position:'relative' }}>
+            <div style={{
+              borderRadius:'20px', padding:'1.5px',
+              background: item.badge === 'HOT' || item.badge === 'LIVE'
+                ? 'linear-gradient(135deg, #E53935, #FF8A65, #E53935)'
+                : 'linear-gradient(135deg, #CBD5E1, #E2E8F0, #CBD5E1)'
+            }}>
+              <motion.div
+                whileTap={{ scale: 0.92 }}
+                onClick={item.action}
+                style={{ display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center', gap:'8px', cursor:'pointer', borderRadius:'19px', padding:'14px 4px', background:'#fff' }}
+              >
+                {item.icon}
+                <span style={{ fontSize:'11px', fontWeight:700, color:'#1E293B', textAlign:'center', lineHeight:1.3, wordBreak:'keep-all' }}>
+                  {item.label}
                 </span>
-              )}
+              </motion.div>
             </div>
-          ))}
-        </div>
-
-        {/* 더보기 확장 영역 */}
-        <AnimatePresence>
-          {showMoreMenu && (
-            <motion.div
-              initial={{ height: 0, opacity: 0 }}
-              animate={{ height: 'auto', opacity: 1 }}
-              exit={{ height: 0, opacity: 0 }}
-              style={{ overflow:'hidden' }}
-            >
-              <div style={{ display:'grid', gridTemplateColumns:'repeat(5, 1fr)', gap:'4px', paddingTop:'8px' }}>
-                {[
-                  { icon: <Navigation size={22} color="#303F9F" />, label:'지능형경로', badge:'LIVE', action:() => setShowRoute(true) },
-                  { icon: <Star size={22} color="#F9A825" />, label:'운명의좌표', action:() => setShowSaju(true) },
-                  { icon: <CloudSun size={22} color="#1976D2" />, label:'오늘날씨', action:() => setShowWeather(true) },
-                  { icon: <Heart size={22} color="#7B1FA2" />, label:'찜하기', action:() => setShowWishlist(true) },
-                  { icon: <MapPin size={22} color="#0097A7" />, label:'주변주차', action:() => setView('parking') },
-                  { icon: <HomeIcon size={22} color="#558B2F" />, label:'대관문의', action:() => setShowRentalModal(true) },
-                ].map((item, idx) => (
-                  <div key={idx} style={{ position:'relative' }}>
-                    <div style={{ 
-                      borderRadius:'14px', padding:'1.5px', 
-                      background:'linear-gradient(135deg, #E2E8F0, #F1F5F9, #E2E8F0)',
-                    }}>
-                      <motion.div
-                        whileTap={{ scale: 0.92 }}
-                        onClick={item.action}
-                        style={{ 
-                          display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center', 
-                          gap:'6px', cursor:'pointer', borderRadius:'12px', 
-                          padding:'10px 4px 8px', background:'#fff' 
-                        }}
-                      >
-                        {item.icon}
-                        <span style={{ fontSize:'9.5px', fontWeight:500, color:'#64748B', textAlign:'center', lineHeight:1.3 }}>
-                          {item.label}
-                        </span>
-                      </motion.div>
-                    </div>
-                    {item.badge && (
-                      <span style={{ position:'absolute', top:'-4px', right:'-4px', background:'#303F9F', color:'#fff', fontSize:'7px', fontWeight:700, padding:'1px 4px', borderRadius:'6px', zIndex:1 }}>
-                        {item.badge}
-                      </span>
-                    )}
-                  </div>
-                ))}
-              </div>
-            </motion.div>
-          )}
-        </AnimatePresence>
+            {item.badge && (
+              <span style={{ position:'absolute', top:'-5px', right:'-5px', background:'#E53935', color:'#fff', fontSize:'7px', fontWeight:700, padding:'1px 5px', borderRadius:'6px', zIndex:1 }}>
+                {item.badge}
+              </span>
+            )}
+          </div>
+        ))}
       </div>
 
       {/* 📌 [영역 B: 날짜 선택바 - 상단 고정(Sticky)] */}
@@ -720,6 +663,7 @@ const HomePage = ({
             return (
               <div key={item.fullDate} 
                 onClick={() => {
+                  console.log('클릭한 날짜:', item.fullDate);
                   setSelectedDate(item.fullDate); 
                   if (regionListRef.current) {
                     regionListRef.current.scrollIntoView({ behavior: 'smooth', block: 'start' });
@@ -737,88 +681,264 @@ const HomePage = ({
         </div>
       </div>
 
-      {/* 섹션 1 하단 Divider (요일 바와 수도권 섹션 사이 - 간격 대폭 확대 & 선명한 실선) */}
-      <div style={{ padding: '80px 20px 0' }}>
-        <div style={{ height: '1.5px', background: 'var(--color-border)', opacity: 0.8, borderRadius: '1px' }} />
-      </div>
-
-      <div ref={scrollRef} style={{ width: '100%', background: 'var(--color-bg)', paddingTop: '48px' }}>
+      <div ref={scrollRef} style={{ width: '100%', background: 'var(--color-bg)' }}>
         <div style={{ minHeight: '101%' }}>
           {loading ? (
             <div style={{ display: 'flex', flexDirection: 'column', marginTop: '120px' }}>{Array(6).fill(0).map((_, i) => <div key={i} style={{ height: '140px', width: '100%', background: 'var(--color-card)', borderBottom: '1px solid var(--color-border)' }} />)}</div>
           ) : (
             <div style={{ width: '100%', padding: '0 0 20px 0', backgroundColor: 'var(--color-bg)' }}>
               {(() => {
-                const regions = ["서울", "경기/인천", "경상도", "전라도", "충청도", "강원/제주"];
+                // 포스터가 있는 모든 파티 추출 (최신순 정렬)
+                const allPosterParties = (parties || [])
+                  .filter(p => p.poster_url && p.poster_url.trim() !== '')
+                  .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
+
+                // 수도권 / 지방권 분리
+                const metroHot = allPosterParties.filter(p => 
+                  p.broadRegion === '서울' || p.broadRegion === '경기/인천'
+                );
+
+                const provincialHot = allPosterParties.filter(p => 
+                  p.broadRegion !== '서울' && p.broadRegion !== '경기/인천'
+                );
+
                 return (
                   <>
-                    {regions.map(regionName => {
-                      const regionParties = (parties || [])
-                        .filter(p => p.date === selectedDate)
-                        .filter(p => REGION_FILTER[regionName](p))
-                        .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
-                      
-                      return (
-                        <section key={regionName} style={{ marginBottom: '15px', background: 'var(--color-card)', borderBottom: '1px solid var(--color-border)' }}>
-                          <div style={{ padding: '15px 20px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                            <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                              <span style={{ fontSize: '15px', fontWeight: '800', color: 'var(--color-text-main)' }}>{regionName === '서울' ? t('region_seoul') : (regionName === '경기/인천' ? t('region_gyeonggi_incheon') : regionName)}</span>
-                              <span style={{ fontSize: '12px', color: 'var(--color-text-sub)', fontWeight: '600', marginLeft: '4px' }}>
-                                {(() => { const d = new Date(selectedDate); return `${d.getMonth() + 1}/${d.getDate()}(${isEn ? DAYS_EN[d.getDay()] : DAYS_KOR[d.getDay()]})`; })()}
-                              </span>
-                            </div>
-                            <button onClick={() => { setGridRegion(regionName); setShowGridModal(true); }} style={{ fontSize: '12px', fontWeight: '700', color: '#E53935', background: 'none', border: 'none', padding: 0 }}>{t('view_all')} <ChevronRight size={14} /></button>
+                    {/* [1] HOT PICK - 수도권 */}
+                    {metroHot.length > 0 && (
+                      <div style={{ margin: '0 0 15px', padding: '10px 0 20px', background: 'var(--color-card)', borderBottom: '1px solid var(--color-border)' }}>
+                        <div style={{ padding: '0 20px 15px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                            <h2 style={{ fontSize: '18px', fontWeight: '950', color: 'var(--color-text-main)', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                              <span style={{ color: '#FF1744' }}>HOT</span> PICK <span style={{ fontSize: '12px', color: '#94A3B8', fontWeight: 700 }}>[수도권]</span>
+                            </h2>
                           </div>
+                        </div>
+                        <div style={{ width: '100%', overflow: 'hidden', padding: '10px 0' }}>
+                          <div className="hot-pick-track">
+                            {[...metroHot, ...metroHot].map((item, idx) => (
+                              <div key={`${item.id}-${idx}`} onClick={() => handleOpenModal(setSelectedPoster, item.poster_url)} style={{ width: '140px', flexShrink: 0, borderRadius: '12px', overflow: 'hidden', boxShadow: '0 8px 20px rgba(0,0,0,0.12)', position: 'relative', background: '#000', margin: '0 10px' }}>
+                                <img src={item.poster_url} style={{ width: '100%', height: '210px', objectFit: 'cover' }} alt="Pick" />
+                                <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, padding: '12px 8px', background: 'linear-gradient(transparent, rgba(0,0,0,0.95))', color: 'white' }}>
+                                  <div style={{ fontSize: '10px', color: '#FFEB3B', fontWeight: 900, marginBottom: '2px', textShadow: '0 1px 2px rgba(0,0,0,0.8)' }}>{translateDynamicText(item.locationName, isEn)}</div>
+                                  <div style={{ fontSize: '11px', fontWeight: 900, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', marginBottom: '4px', textShadow: '0 1px 2px rgba(0,0,0,0.8)' }}>{translateDynamicText(item.title, isEn)}</div>
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      </div>
+                    )}
 
-                          <div style={{ display: 'flex', flexDirection: 'column' }}>
-                            {regionParties.length > 0 ? (
-                              regionParties.map(item => (
-                                <div key={item.id} onClick={() => setSelectedPoster(item.poster_url)} style={{ padding: '15px 20px', display: 'flex', alignItems: 'center', borderTop: '1px solid var(--color-border)', gap: '15px', cursor: 'pointer' }}>
-                                  <div style={{ width: '50px', height: '65px', borderRadius: '8px', overflow: 'hidden', flexShrink: 0 }}>
-                                    <img src={item.poster_url} style={{ width: '100%', height: '100%', objectFit: 'cover' }} alt="Poster" />
-                                  </div>
-                                  <div style={{ flex: 1, minWidth: 0 }}>
-                                    <div style={{ display: 'flex', alignItems: 'center', gap: '5px', marginBottom: '4px' }}>
-                                      <span style={{ fontSize: '12px', fontWeight: '800', color: '#2563EB', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                                        {translateDynamicText(item.locationName, isEn)}
-                                      </span>
+                    {/* [지역 리스트 처리 루프] */}
+                    {(() => {
+                      const regionKeys = {
+                        "서울": "region_seoul",
+                        "경기/인천": "region_gyeonggi_incheon",
+                        "경상도": "region_gyeongsang",
+                        "전라도": "region_jeolla",
+                        "충청도": "region_chungcheong",
+                        "강원/제주": "region_gangwon_jeju"
+                      };
+                      const regions = ["서울", "경기/인천", "경상도", "전라도", "충청도", "강원/제주"];
+                      
+                      return regions.map((regionName, idx) => {
+                        const regionParties = (parties || [])
+                          .filter(p => p.date === selectedDate)
+                          .filter(p => REGION_FILTER[regionName](p))
+                          .filter(p => {
+                            if (filterGenre && GENRE_MAP[filterGenre]) {
+                              if (!(p[GENRE_MAP[filterGenre].key] > 0)) return false;
+                            }
+                            return true;
+                          })
+                          .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
+
+                        // [사용자 요청] 15초 롤링 로직 적용
+                        const rollingParties = [...regionParties];
+                        if (rollingParties.length > 2) {
+                          const shift = shuffleOffset % rollingParties.length;
+                          for (let i = 0; i < shift; i++) {
+                            const first = rollingParties.shift();
+                            if (first) rollingParties.push(first);
+                          }
+                        }
+
+                        const isFirst = regionName === '서울';
+
+                        return (
+                          <React.Fragment key={regionName}>
+                            <section 
+                              ref={isFirst ? regionListRef : null}
+                              style={{ marginBottom: '15px', background: 'var(--color-card)' }}
+                            >
+                              <div style={{ padding: '15px 20px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', color: 'var(--color-text-main)' }}>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                                  <span style={{ fontSize: '15px', fontWeight: '800' }}>
+                                    {t(regionKeys[regionName] || regionName)}
+                                  </span>
+                                  <span style={{ fontSize: '12px', color: 'var(--color-text-secondary)', fontWeight: '600', marginLeft: '4px' }}>
+                                    {(() => {
+                                      const d = new Date(selectedDate);
+                                      return `${d.getMonth() + 1}/${d.getDate()} (${isEn ? DAYS_EN[d.getDay()] : DAYS_KOR[d.getDay()]})`;
+                                    })()}
+                                  </span>
+                                </div>
+                                <button 
+                                  onClick={() => {
+                                    setGridRegion(regionName);
+                                    handleOpenModal(setShowGridModal, true);
+                                  }}
+                                  style={{ fontSize: '12px', fontWeight: '700', color: '#E53935', background: 'none', border: 'none', padding: 0, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '2px' }}
+                                >
+                                  {t('view_all')} <ChevronRight size={14} />
+                                </button>
+                              </div>
+
+                                <div 
+                                  className="region-scroll-container"
+                                  style={{ 
+                                    display: 'flex', 
+                                    overflowX: 'auto', 
+                                    gap: '20px', 
+                                    padding: '10px 20px 40px',
+                                    msOverflowStyle: 'none',
+                                    scrollbarWidth: 'none',
+                                    WebkitOverflowScrolling: 'touch',
+                                    scrollBehavior: 'smooth'
+                                  }}
+                                >
+                                  {rollingParties.length === 0 ? (
+                                    <div style={{ flexShrink: 0, width: '100%', padding: '50px', background: 'var(--color-bg)', borderRadius: '24px', textAlign: 'center', color: 'var(--color-text-sub)', fontSize: '13px', fontWeight: '900', border: '1px dashed #E2E8F0' }}>{t('no_parties')}</div>
+                                  ) : rollingParties.map(item => {
+                                    const now = new Date();
+                                    const d = new Date();
+                                    const todayStr = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+                                    let isItemLive = false;
+                                    if (item.date === todayStr) {
+                                      const startStr = (item.time?.split('-')[0] || '20:00').trim();
+                                      const [sH, sM] = startStr.split(':').length === 2 ? startStr.split(':').map(Number) : [20, 0];
+                                      const startDate = new Date();
+                                      startDate.setHours(sH, sM, 0, 0);
+                                      const endStr = item.time?.includes('-') ? item.time.split('-')[1].trim() : null;
+                                      let endDate = new Date(startDate);
+                                      if (endStr && endStr.includes(':')) {
+                                        const [eH, eM] = endStr.split(':').map(Number);
+                                        endDate.setHours(eH, eM + 30, 0, 0);
+                                        if (endDate < startDate) endDate.setDate(endDate.getDate() + 1);
+                                      } else {
+                                        endDate.setHours(startDate.getHours() + 4, startDate.getMinutes() + 30, 0, 0);
+                                      }
+                                      const startWithBuffer = new Date(startDate.getTime() - 30 * 60 * 1000);
+                                      isItemLive = now >= startWithBuffer && now <= endDate;
+                                    }
+                                    return (
+                                    <div 
+                                      key={item.id} 
+                                      onClick={() => handleOpenModal(setSelectedPoster, item.poster_url)} 
+                                      style={{ 
+                                        width: '320px', 
+                                        flexShrink: 0, 
+                                        borderRadius: '16px', 
+                                        overflow: 'hidden', 
+                                        display: 'flex',
+                                        background: 'var(--color-card)',
+                                        border: '1px solid var(--color-border)',
+                                        cursor: 'pointer',
+                                        height: '150px',
+                                        transition: 'all 0.3s'
+                                      }}
+                                    >
+                                      <div style={{ width: '100px', flexShrink: 0 }}>
+                                        <img src={item.poster_url} style={{ width: '100%', height: '100%', objectFit: 'cover' }} alt="Poster" />
+                                      </div>
+                                      <div style={{ flex: 1, padding: '16px 20px', display: 'flex', flexDirection: 'column', justifyContent: 'space-between', minWidth: 0 }}>
+                                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                          <span style={{ fontSize: '12px', fontWeight: '700', color: '#E53935', background: '#fff0f0', padding: '3px 10px', borderRadius: '8px', border: '1px solid #ffc9c9', flexShrink: 0 }}>
+                                            {(() => {
+                                              const entries = Object.entries(GENRE_MAP).filter(([_, info]) => item[info.key] > 0)
+                                              if (entries.length === 0) return '소셜'
+                                              const sorted = [...entries].sort((a, b) => item[b[1].key] - item[a[1].key])
+                                              if (sorted.length >= 2 && item[sorted[0][1].key] === item[sorted[1][1].key]) return `${sorted[0][0]} · ${sorted[1][0]}`
+                                              return sorted[0][0]
+                                            })()}
+                                          </span>
+                                          {isItemLive && (
+                                            <span style={{ background:'#E53935', color:'#fff', fontSize:'10px', fontWeight:'950', padding:'2px 6px', borderRadius:'4px', animation:'blink 1.5s infinite', boxShadow: '0 0 8px rgba(229, 57, 53, 0.5)' }}>LIVE</span>
+                                          )}
+                                        </div>
+                                        
+                                        <div style={{ fontSize: '17px', fontWeight: '900', color: 'var(--color-text-main)', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden', textOverflow: 'ellipsis', letterSpacing: '-0.6px', lineHeight: 1.3, height: '44px', marginTop: '4px' }}>
+                                          {cleanTitle(item.title).replace(/^\[.*?\]\s*/, '').replace(/ㅣ\s*$/, '').trim()}
+                                        </div>
+                                        
+                                        <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                                          <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                                            <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '15px', color: 'var(--color-text-sub)', fontWeight: 800 }}>
+                                              <Clock size={15} />
+                                              {item.time?.split('-')[0].trim() || '21:00'}
+                                            </div>
+                                            {isItemLive && (
+                                              <span style={{ fontSize:'12px', fontWeight:'800', color:'#FFB300', background:'rgba(255,179,0,0.1)', padding:'2px 8px', borderRadius:'10px' }}>
+                                                실시간 {item.locationName?.includes('라틴크루') || item.title?.includes('라틴크루') || item.studio_name?.includes('라틴크루') ? '120' : '1'}
+                                              </span>
+                                            )}
+                                          </div>
+                                          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+                                            <div style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: '14px', color: 'var(--color-text-sub)', fontWeight: 700 }}>
+                                              <Navigation size={14} color="#E53935" fill="#E53935" />
+                                              {translateDynamicText(item.locationName, isEn)}
+                                            </div>
+                                            <span style={{ color: 'var(--color-text-sub)', opacity: 0.3 }}>•</span>
+                                            <span style={{ fontSize: '14px', fontWeight: '900', color: '#E53935' }}>
+                                              {formatPrice(item.fee)}
+                                            </span>
+                                          </div>
+                                        </div>
+                                      </div>
                                     </div>
-                                    <div style={{ fontSize: '15px', fontWeight: '900', color: 'var(--color-text-main)', lineHeight: '1.3', marginBottom: '6px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                                      {translateDynamicText(item.title, isEn)}
-                                    </div>
-                                    <div style={{ display: 'flex', alignItems: 'center', gap: '5px', fontSize: '11px' }}>
-                                      <span style={{ color: '#E53935', fontWeight: '800' }}>{item.time?.split('-')[0].trim() || '21:00'}</span>
-                                      <span style={{ color: 'var(--color-text-sub)', opacity: 0.3 }}>·</span>
-                                      <span style={{ color: '#D97706', fontWeight: '700' }}>{formatPrice(item.fee)}</span>
-                                      <span style={{ color: 'var(--color-text-sub)', opacity: 0.3 }}>·</span>
-                                      <span style={{ color: '#7C3AED', fontWeight: '700' }}>
-                                        {(() => {
-                                          const entries = Object.entries(GENRE_MAP).filter(([_, info]) => item[info.key] > 0);
-                                          if (entries.length === 0) return '소셜';
-                                          const sorted = [...entries].sort((a, b) => item[b[1].key] - item[a[1].key]);
-                                          return isEn ? sorted[0][1].label_en : sorted[0][0];
-                                        })()}
-                                      </span>
-                                    </div>
-                                  </div>
-                                  <div style={{ color: 'var(--color-text-sub)', opacity: 0.3 }}>
-                                    <ChevronRight size={18} />
+                                    )
+                                  })}
+                                </div>
+
+
+
+                            </section>
+
+                            {/* 경기/인천 섹션 다음에 지방권 HOT PICK 배치 + 여백 확보 */}
+                            {regionName === '경기/인천' && provincialHot.length > 0 && (
+                              <div style={{ margin: '40px 0 15px', padding: '10px 0 20px', background: 'var(--color-card)', borderBottom: '1px solid var(--color-border)' }}>
+                                <div style={{ padding: '0 20px 15px' }}>
+                                  <h2 style={{ fontSize: '18px', fontWeight: '950', color: 'var(--color-text-main)', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                    <span style={{ color: '#FF1744' }}>HOT</span> PICK 5 <span style={{ fontSize: '12px', color: '#94A3B8', fontWeight: 700 }}>[지방권]</span>
+                                  </h2>
+                                </div>
+                                <div style={{ width: '100%', overflow: 'hidden', padding: '10px 0' }}>
+                                  <div className="hot-pick-track">
+                                    {[...provincialHot, ...provincialHot].map((item, idx) => (
+                                      <div key={`${item.id}-${idx}`} onClick={() => handleOpenModal(setSelectedPoster, item.poster_url)} style={{ width: '140px', flexShrink: 0, borderRadius: '12px', overflow: 'hidden', boxShadow: '0 8px 20px rgba(0,0,0,0.12)', position: 'relative' }}>
+                                        <img src={item.poster_url} style={{ width: '100%', height: '210px', objectFit: 'cover' }} alt="Pick" />
+                                        <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, padding: '12px 8px', background: 'linear-gradient(transparent, rgba(0,0,0,0.95))', color: 'white' }}>
+                                          <div style={{ fontSize: '10px', color: '#FFEB3B', fontWeight: 900, marginBottom: '2px', textShadow: '0 1px 2px rgba(0,0,0,0.8)' }}>{translateDynamicText(item.locationName, isEn)}</div>
+                                          <div style={{ fontSize: '11px', fontWeight: 900, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', marginBottom: '4px', textShadow: '0 1px 2px rgba(0,0,0,0.8)' }}>{translateDynamicText(item.title, isEn)}</div>
+                                        </div>
+                                      </div>
+                                    ))}
                                   </div>
                                 </div>
-                              ))
-                            ) : (
-                              <div style={{ padding: '30px 20px', textAlign: 'center', color: 'var(--color-text-sub)', fontSize: '13px' }}>
-                                {t('no_parties')}
+                                {/* 추후 광고 구좌를 위한 하단 여백 */}
+                                <div style={{ height: '20px' }}></div>
                               </div>
                             )}
-                          </div>
-                        </section>
-                      );
-                    })}
-                    <div style={{ height: '100px' }} />
+                          </React.Fragment>
+                        );
+                      });
+                    })()}
                   </>
                 );
               })()}
+
+
             </div>
           )}
         </div>
@@ -852,7 +972,7 @@ const HomePage = ({
                             if (day.fullDate < todayStr) return;
                             setSelectedDate(day.fullDate); 
                             // 모든 날짜 클릭 시 3단계 필터 필터 플로우 활성화
-                            setShowFilterPanel(true);
+                            handleOpenModal(setShowFilterPanel, true);
                             setFilterStep(1);
                           }} 
                           style={{ height: '46px', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', fontSize: '15px', fontWeight: isSelected ? 800 : 600, color: isSelected ? '#fff' : (day.dayName === '일' ? '#FF1744' : (isWeekend ? '#FF1744' : 'var(--color-text-main)')), backgroundColor: isSelected ? '#FF1744' : 'transparent', borderRadius: '14px', cursor: day.fullDate < todayStr ? 'default' : 'pointer', opacity: day.fullDate < todayStr ? 0.3 : 1 }}
@@ -872,7 +992,7 @@ const HomePage = ({
                         <div style={{ fontSize: '18px', fontWeight: 950, color: 'var(--color-text-main)', marginBottom: '15px' }}>{t('filter_where')}</div>
                         <div style={{ display: 'flex', overflowX: 'auto', gap: '10px', paddingBottom: '15px', msOverflowStyle: 'none', scrollbarWidth: 'none', WebkitOverflowScrolling: 'touch' }}>
                           {['서울', '경기/인천', '부산', '대구', '대전', '광주', '기타'].map(r => (
-                            <button key={r} onClick={() => { setFilterRegion(r); setFilterStep(2); }} style={{ flexShrink: 0, padding: '14px 24px', borderRadius: '14px', background: filterRegion === r ? '#FF1744' : 'var(--color-bg)', color: filterRegion === r ? '#fff' : 'var(--color-text-sub)', fontWeight: 700, border: 'none', transition: 'all 0.2s' }}>{r}</button>
+                            <button key={r} onClick={() => { setFilterRegion(r); handleOpenModal(setFilterStep, 2); }} style={{ flexShrink: 0, padding: '14px 24px', borderRadius: '14px', background: filterRegion === r ? '#FF1744' : 'var(--color-bg)', color: filterRegion === r ? '#fff' : 'var(--color-text-sub)', fontWeight: 700, border: 'none', transition: 'all 0.2s' }}>{r}</button>
                           ))}
                         </div>
                       </>
@@ -884,7 +1004,7 @@ const HomePage = ({
                         <div style={{ fontSize: '18px', fontWeight: 950, color: 'var(--color-text-main)', marginBottom: '15px' }}>{t('filter_genre')}</div>
                         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
                           {['바차타', '살사', '쥬크', '키좀바'].map(g => (
-                            <button key={g} onClick={() => { setFilterGenre(g); setShowFilteredResults(true); }} style={{ padding: '24px 15px', borderRadius: '18px', background: filterGenre === g ? 'var(--color-text-main)' : 'var(--color-bg)', color: filterGenre === g ? 'var(--color-bg)' : 'var(--color-text-sub)', fontWeight: 800, fontSize: '16px', border: 'none' }}>{g}</button>
+                            <button key={g} onClick={() => { setFilterGenre(g); handleOpenModal(setShowFilteredResults, true); }} style={{ padding: '24px 15px', borderRadius: '18px', background: filterGenre === g ? 'var(--color-text-main)' : 'var(--color-bg)', color: filterGenre === g ? 'var(--color-bg)' : 'var(--color-text-sub)', fontWeight: 800, fontSize: '16px', border: 'none' }}>{g}</button>
                           ))}
                         </div>
                       </>
@@ -932,7 +1052,7 @@ const HomePage = ({
                             else if (addr.includes('광주')) displayRegion = '광주';
 
                             return (
-                              <div key={party.id} onClick={() => setSelectedPoster(party.poster_url)} style={{ aspectRatio: '1 / 1.4', borderRadius: '12px', overflow: 'hidden', position: 'relative', background: 'var(--color-border)', cursor: 'pointer', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.1)' }}>
+                              <div key={party.id} onClick={() => handleOpenModal(setSelectedPoster, party.poster_url)} style={{ aspectRatio: '1 / 1.4', borderRadius: '12px', overflow: 'hidden', position: 'relative', background: 'var(--color-border)', cursor: 'pointer', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.1)' }}>
                                 <img src={party.poster_url} style={{ width: '100%', height: '100%', objectFit: 'cover' }} alt="Poster" />
                                 {(() => {
                                   const now = new Date();
@@ -1072,7 +1192,7 @@ const HomePage = ({
                       <div 
                         key={item.id} 
                         onClick={() => {
-                          setSelectedPoster(item.poster_url);
+                          handleOpenModal(setSelectedPoster, item.poster_url);
                         }}
                          style={{ aspectRatio: '1 / 1.4', overflow: 'hidden', background: 'var(--color-card)', position: 'relative' }}
                       >
