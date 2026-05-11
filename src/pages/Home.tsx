@@ -611,7 +611,7 @@ const HomePage = ({
       </div>
 
       {/* 🚀 [사용자 요청] 퀵 메뉴 그리드 (벤치마킹 디자인 적용) */}
-      <div style={{ display:'grid', gridTemplateColumns:'repeat(5, 1fr)', gap:'8px', padding:'10px 16px 16px' }}>
+      <div style={{ display:'grid', gridTemplateColumns:'repeat(5, 1fr)', gap:'6px', padding:'10px 12px 16px' }}>
         {[
           { icon: <Camera size={20} color="#E53935" />, label:'라이브픽', badge:'HOT', action:() => setView('community') },
           { icon: <Calendar size={20} color="#F97316" />, label:'행사달력', action:() => handleOpenModal(setShowFullCalendar, true) },
@@ -625,11 +625,11 @@ const HomePage = ({
           { icon: <HomeIcon size={20} color="#558B2F" />, label:'대관문의', action:() => handleOpenModal(setShowRentalModal, true) },
         ].map((item, idx) => (
           <div key={idx} style={{ position:'relative' }}>
-            <div style={{ borderRadius:'16px', padding:'1.5px', background:'linear-gradient(135deg, #CBD5E1, #E2E8F0, #CBD5E1)' }}>
+            <div style={{ borderRadius:'14px', padding:'1.5px', background:'linear-gradient(135deg, #CBD5E1, #E2E8F0, #CBD5E1)' }}>
               <motion.div
                 whileTap={{ scale: 0.92 }}
                 onClick={item.action}
-                style={{ display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center', gap:'6px', cursor:'pointer', borderRadius:'15px', padding:'10px 2px', background:'#fff' }}
+                style={{ display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center', gap:'6px', cursor:'pointer', borderRadius:'13px', padding:'14px 2px', background:'#fff' }}
               >
                 {item.icon}
                 <span style={{ fontSize:'10px', fontWeight:700, color:'#1E293B', textAlign:'center', lineHeight:1.3, wordBreak:'keep-all' }}>
@@ -638,7 +638,7 @@ const HomePage = ({
               </motion.div>
             </div>
             {item.badge && (
-              <span style={{ position:'absolute', top:'-5px', right:'-5px', background:'#E53935', color:'#fff', fontSize:'7px', fontWeight:700, padding:'1px 4px', borderRadius:'6px', zIndex:1 }}>
+              <span style={{ position:'absolute', top:'-4px', right:'-4px', background:'#E53935', color:'#fff', fontSize:'7px', fontWeight:700, padding:'1px 4px', borderRadius:'6px', zIndex:1 }}>
                 {item.badge}
               </span>
             )}
