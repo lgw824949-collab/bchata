@@ -1259,63 +1259,106 @@ function App() {
             </button>
 
             <div style={{ display:'grid', gridTemplateColumns:'repeat(5, 1fr)', gap:'8px', padding:'12px 16px' }}>
-              <style>{`
-                .grid-item { display:flex; flex-direction:column; align-items:center; justify-content:center; gap:7px; cursor:pointer; border-radius:14px; padding:12px 2px 10px; position:relative; background:#fff; border:0.5px solid #F1F5F9; }
-                .grid-icon { width:36px; height:36px; border-radius:10px; display:flex; align-items:center; justify-content:center; }
-                .grid-label { font-size:10px; font-weight:600; color:#1E293B; text-align:center; line-height:1.3; }
-                .grid-badge { position:absolute; top:5px; right:5px; background:#E53935; color:#fff; font-size:7px; font-weight:700; padding:1px 4px; border-radius:10px; }
-              `}</style>
-
-              <div className="grid-item" onClick={() => { handleOpenModal(setShowLivePick, true) }}>
-                <span className="grid-badge">HOT</span>
-                <div className="grid-icon" style={{ background:'#FFE4E4' }}><Camera size={18} color="#E53935" /></div>
-                <span className="grid-label">라이브픽</span>
+              <div 
+                style={{ display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center', gap:'7px', cursor:'pointer', borderRadius:'14px', padding:'12px 2px 10px', position:'relative', background:'#fff', border:'0.5px solid #F1F5F9' }}
+                onClick={() => { handleOpenModal(setShowLivePick, true) }}
+              >
+                <span style={{ position:'absolute', top:'5px', right:'5px', background:'#E53935', color:'#fff', fontSize:'7px', fontTargetWeight:'700', padding:'1px 4px', borderRadius:'10px' }}>HOT</span>
+                <div style={{ width:'36px', height:'36px', borderRadius:'10px', display:'flex', alignItems:'center', justifyContent:'center', background:'#FFE4E4' }}>
+                  <Camera size={18} color="#E53935" />
+                </div>
+                <span style={{ fontSize:'10px', fontWeight:600, color:'#1E293B', textAlign:'center', lineHeight:1.3 }}>라이브픽</span>
               </div>
 
-              <div className="grid-item" onClick={() => { handleOpenModal(setShowFullCalendar, true) }}>
-                <div className="grid-icon" style={{ background:'#FFF3E0' }}><Calendar size={18} color="#F97316" /></div>
-                <span className="grid-label">행사달력</span>
+              <div 
+                style={{ display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center', gap:'7px', cursor:'pointer', borderRadius:'14px', padding:'12px 2px 10px', position:'relative', background:'#fff', border:'0.5px solid #F1F5F9' }}
+                onClick={() => { handleOpenModal(setShowFullCalendar, true) }}
+              >
+                <div style={{ width:'36px', height:'36px', borderRadius:'10px', display:'flex', alignItems:'center', justifyContent:'center', background:'#FFF3E0' }}>
+                  <Calendar size={18} color="#F97316" />
+                </div>
+                <span style={{ fontSize:'10px', fontWeight:600, color:'#1E293B', textAlign:'center', lineHeight:1.3 }}>행사달력</span>
               </div>
 
-              <div className="grid-item" onClick={() => { setView('restaurant'); }}>
-                <div className="grid-icon" style={{ background:'#FCE4EC' }}><Utensils size={18} color="#C2185B" /></div>
-                <span className="grid-label">맛집뒷풀이</span>
+              <div 
+                style={{ display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center', gap:'7px', cursor:'pointer', borderRadius:'14px', padding:'12px 2px 10px', position:'relative', background:'#fff', border:'0.5px solid #F1F5F9' }}
+                onClick={() => { setView('restaurant'); }}
+              >
+                <div style={{ width:'36px', height:'36px', borderRadius:'10px', display:'flex', alignItems:'center', justifyContent:'center', background:'#FCE4EC' }}>
+                  <Utensils size={18} color="#C2185B" />
+                </div>
+                <span style={{ fontSize:'10px', fontWeight:600, color:'#1E293B', textAlign:'center', lineHeight:1.3 }}>맛집/뒷풀이</span>
               </div>
 
-              <div className="grid-item" onClick={handleWeatherTap}>
-                <div className="grid-icon" style={{ background:'#E3F2FD' }}><Cloud size={18} color="#1976D2" /></div>
-                <span className="grid-label">오늘날씨</span>
+              <div 
+                style={{ display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center', gap:'7px', cursor:'pointer', borderRadius:'14px', padding:'12px 2px 10px', position:'relative', background:'#fff', border:'0.5px solid #F1F5F9' }}
+                onClick={handleWeatherTap}
+              >
+                <div style={{ width:'36px', height:'36px', borderRadius:'10px', display:'flex', alignItems:'center', justifyContent:'center', background:'#E3F2FD' }}>
+                  <Cloud size={18} color="#1976D2" />
+                </div>
+                <span style={{ fontSize:'10px', fontWeight:600, color:'#1E293B', textAlign:'center', lineHeight:1.3 }}>오늘날씨</span>
               </div>
 
-              <div className="grid-item" onClick={() => { handleOpenModal(setShowWishlist, true) }}>
-                <div className="grid-icon" style={{ background:'#F3E5F5' }}><Heart size={18} color="#7B1FA2" /></div>
-                <span className="grid-label">찜하기</span>
+              <div 
+                style={{ display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center', gap:'7px', cursor:'pointer', borderRadius:'14px', padding:'12px 2px 10px', position:'relative', background:'#fff', border:'0.5px solid #F1F5F9' }}
+                onClick={() => { handleOpenModal(setShowWishlist, true) }}
+              >
+                <div style={{ width:'36px', height:'36px', borderRadius:'10px', display:'flex', alignItems:'center', justifyContent:'center', background:'#F3E5F5' }}>
+                  <Heart size={18} color="#7B1FA2" />
+                </div>
+                <span style={{ fontSize:'10px', fontWeight:600, color:'#1E293B', textAlign:'center', lineHeight:1.3 }}>찜하기</span>
               </div>
 
-              <div className="grid-item" onClick={() => { window.open('https://open.kakao.com/o/gP43rNri', '_blank') }}>
-                <div className="grid-icon" style={{ background:'#E8F5E9' }}><MessageCircle size={18} color="#388E3C" /></div>
-                <span className="grid-label">채팅문의</span>
+              <div 
+                style={{ display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center', gap:'7px', cursor:'pointer', borderRadius:'14px', padding:'12px 2px 10px', position:'relative', background:'#fff', border:'0.5px solid #F1F5F9' }}
+                onClick={() => { window.open('https://open.kakao.com/o/gP43rNri', '_blank') }}
+              >
+                <div style={{ width:'36px', height:'36px', borderRadius:'10px', display:'flex', alignItems:'center', justifyContent:'center', background:'#E8F5E9' }}>
+                  <MessageCircle size={18} color="#388E3C" />
+                </div>
+                <span style={{ fontSize:'10px', fontWeight:600, color:'#1E293B', textAlign:'center', lineHeight:1.3 }}>채팅문의</span>
               </div>
 
-              <div className="grid-item" onClick={() => { handleOpenModal(setShowIncheonModal, true) }}>
-                <span className="grid-badge">LIVE</span>
-                <div className="grid-icon" style={{ background:'#E8EAF6' }}><Navigation size={18} color="#303F9F" /></div>
-                <span className="grid-label">지능형경로</span>
+              <div 
+                style={{ display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center', gap:'7px', cursor:'pointer', borderRadius:'14px', padding:'12px 2px 10px', position:'relative', background:'#fff', border:'0.5px solid #F1F5F9' }}
+                onClick={() => { handleOpenModal(setShowIncheonModal, true) }}
+              >
+                <span style={{ position:'absolute', top:'5px', right:'5px', background:'#E53935', color:'#fff', fontSize:'7px', fontWeight:'700', padding:'1px 4px', borderRadius:'10px' }}>LIVE</span>
+                <div style={{ width:'36px', height:'36px', borderRadius:'10px', display:'flex', alignItems:'center', justifyContent:'center', background:'#E8EAF6' }}>
+                  <Navigation size={18} color="#303F9F" />
+                </div>
+                <span style={{ fontSize:'10px', fontWeight:600, color:'#1E293B', textAlign:'center', lineHeight:1.3 }}>지능형경로</span>
               </div>
 
-              <div className="grid-item" onClick={() => { handleOpenModal(setShowSaju, true) }}>
-                <div className="grid-icon" style={{ background:'#FFF8E1' }}><Star size={18} color="#F9A825" /></div>
-                <span className="grid-label">운명의좌표</span>
+              <div 
+                style={{ display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center', gap:'7px', cursor:'pointer', borderRadius:'14px', padding:'12px 2px 10px', position:'relative', background:'#fff', border:'0.5px solid #F1F5F9' }}
+                onClick={() => { handleOpenModal(setShowSaju, true) }}
+              >
+                <div style={{ width:'36px', height:'36px', borderRadius:'10px', display:'flex', alignItems:'center', justifyContent:'center', background:'#FFF8E1' }}>
+                  <Star size={18} color="#F9A825" />
+                </div>
+                <span style={{ fontSize:'10px', fontWeight:600, color:'#1E293B', textAlign:'center', lineHeight:1.3 }}>운명의좌표</span>
               </div>
 
-              <div className="grid-item" onClick={() => { setView('parking'); }}>
-                <div className="grid-icon" style={{ background:'#E0F7FA' }}><ParkingCircle size={18} color="#0097A7" /></div>
-                <span className="grid-label">주변주차</span>
+              <div 
+                style={{ display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center', gap:'7px', cursor:'pointer', borderRadius:'14px', padding:'12px 2px 10px', position:'relative', background:'#fff', border:'0.5px solid #F1F5F9' }}
+                onClick={() => { setView('parking'); }}
+              >
+                <div style={{ width:'36px', height:'36px', borderRadius:'10px', display:'flex', alignItems:'center', justifyContent:'center', background:'#E0F7FA' }}>
+                  <ParkingCircle size={18} color="#0097A7" />
+                </div>
+                <span style={{ fontSize:'10px', fontWeight:600, color:'#1E293B', textAlign:'center', lineHeight:1.3 }}>주변주차</span>
               </div>
 
-              <div className="grid-item" onClick={() => { window.open('https://open.kakao.com/o/gP43rNri', '_blank') }}>
-                <div className="grid-icon" style={{ background:'#F1F8E9' }}><Building size={18} color="#558B2F" /></div>
-                <span className="grid-label">대관문의</span>
+              <div 
+                style={{ display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center', gap:'7px', cursor:'pointer', borderRadius:'14px', padding:'12px 2px 10px', position:'relative', background:'#fff', border:'0.5px solid #F1F5F9' }}
+                onClick={() => { window.open('https://open.kakao.com/o/gP43rNri', '_blank') }}
+              >
+                <div style={{ width:'36px', height:'36px', borderRadius:'10px', display:'flex', alignItems:'center', justifyContent:'center', background:'#F1F8E9' }}>
+                  <Building size={18} color="#558B2F" />
+                </div>
+                <span style={{ fontSize:'10px', fontWeight:600, color:'#1E293B', textAlign:'center', lineHeight:1.3 }}>대관문의</span>
               </div>
             </div>
 
