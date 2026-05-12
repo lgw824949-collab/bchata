@@ -630,16 +630,11 @@ const HomePage = ({
       {/* 🚀 [사용자 요청] 퀵 메뉴 그리드 (벤치마킹 디자인 적용) */}
       <div style={{ display:'grid', gridTemplateColumns:'repeat(5, 1fr)', gap:'4px', padding:'8px 10px 12px' }}>
         {[
-          { icon: <Camera size={22} color="#E53935" />, label:'라이브픽', badge:'HOT', action:() => setView('community') },
           { icon: <Calendar size={22} color="#F97316" />, label:'행사달력', action:() => setShowFullCalendar(true) },
           { icon: <Utensils size={22} color="#C2185B" />, label:'맛집/뒷풀이', action:() => setView('restaurant') },
-          { icon: <CloudSun size={22} color="#1976D2" />, label:'오늘날씨', action:() => setShowWeather(true) },
-          { icon: <Heart size={22} color="#7B1FA2" />, label:'찜하기', action:() => setShowWishlist(true) },
           { icon: <MessageSquare size={22} color="#388E3C" />, label:'채팅문의', action:() => window.open('https://open.kakao.com/o/gP43rNri','_blank') },
-          { icon: <Navigation size={22} color="#303F9F" />, label:'지능형경로', badge:'LIVE', action:() => openAnalysis(false) },
-          { icon: <Star size={22} color="#F9A825" />, label:'운명의좌표', action:() => setShowSaju(true) },
-          { icon: <MapPin size={22} color="#0097A7" />, label:'주변주차', action:() => setView('parking') },
-          { icon: <HomeIcon size={22} color="#558B2F" />, label:'대관문의', action:() => setShowRentalModal(true) },
+          { icon: <Camera size={22} color="#E53935" />, label:'라이브픽', badge:'HOT', action:() => setView('community') },
+          { icon: <PlusCircle size={22} color="#64748B" />, label:'더보기', action:() => { setGridRegion('more'); setShowGridModal(true); } },
         ].map((item, idx) => (
           <div key={idx} style={{ position:'relative' }}>
             <div style={{ 
@@ -1200,24 +1195,65 @@ const HomePage = ({
                   <div style={{ color: 'var(--color-text-main)', fontSize: '18px', fontWeight: '900', display: 'flex', alignItems: 'center', gap: '8px' }}>
                     <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#FF1744' }} />
                     {(() => {
+                      if (gridRegion === 'more') return '더보기';
                       const regionKeys = {
                         '서울': 'region_seoul', '경기/인천': 'region_gyeonggi_incheon',
                         '경상도': 'region_gyeongsang', '전라도': 'region_jeolla',
                         '충청도': 'region_chungcheong', '강원/제주': 'region_gangwon_jeju'
                       };
                       return t(regionKeys[gridRegion] || gridRegion);
-                    })()} {isEn ? 'All Posters' : '전체 포스터'}
+                    })()} {gridRegion !== 'more' && (isEn ? 'All Posters' : '전체 포스터')}
                   </div>
                 </div>
               </div>
 
               {/* 그리드 본문 */}
               <div style={{ flex: 1, overflowY: 'auto', padding: '2px', background: 'var(--color-bg)' }}>
-                <div style={{ 
-                  display: 'grid', 
-                  gridTemplateColumns: 'repeat(3, 1fr)', 
-                  gap: '2px' 
-                }}>
+                {gridRegion === 'more' ? (
+                  <div style={{ display:'grid', gridTemplateColumns:'repeat(3, 1fr)', gap:'10px', padding:'20px' }}>
+                    {[
+                      { icon: <CloudSun size={32} color="#1976D2" />, label:'오늘날씨', action:() => setShowWeather(true) },
+                      { icon: <Heart size={32} color="#7B1FA2" />, label:'찜하기', action:() => setShowWishlist(true) },
+                      { icon: <Navigation size={32} color="#303F9F" />, label:'지능형경로', badge:'LIVE', action:() => openAnalysis(false) },
+                      { icon: <Star size={32} color="#F9A825" />, label:'운명의좌표', action:() => setShowSaju(true) },
+                      { icon: <MapPin size={32} color="#0097A7" />, label:'주변주차', action:() => setView('parking') },
+                      { icon: <HomeIcon size={32} color="#558B2F" />, label:'대관문의', action:() => setShowRentalModal(true) },
+                    ].map((item, idx) => (
+                      <div key={idx} style={{ position:'relative' }}>
+                        <div style={{ 
+                          borderRadius:'16px', padding:'2px', 
+                          background:'linear-gradient(135deg, #CBD5E1, #E2E8F0, #CBD5E1)',
+                          boxShadow: '0 8px 16px rgba(0,0,0,0.04)'
+                        }}>
+                          <motion.div
+                            whileTap={{ scale: 0.92 }}
+                            onClick={() => { handleCloseModal(); setTimeout(item.action, 100); }}
+                            style={{ 
+                              display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center', 
+                              gap:'10px', cursor:'pointer', borderRadius:'14px', 
+                              padding:'20px 10px', background:'#fff' 
+                            }}
+                          >
+                            {item.icon}
+                            <span style={{ fontSize:'12px', fontWeight:600, color:'#1E293B', textAlign:'center', wordBreak:'keep-all' }}>
+                              {item.label}
+                            </span>
+                          </motion.div>
+                        </div>
+                        {item.badge && (
+                          <span style={{ position:'absolute', top:'-6px', right:'-6px', background:'#E53935', color:'#fff', fontSize:'9px', fontWeight:700, padding:'2px 6px', borderRadius:'8px', zIndex:1 }}>
+                            {item.badge}
+                          </span>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div style={{ 
+                    display: 'grid', 
+                    gridTemplateColumns: 'repeat(3, 1fr)', 
+                    gap: '2px' 
+                  }}>
                   {(() => {
                     // 해당 지역의 모든 포스터 파티 (날짜 상관없이)
                     const regionalPosterParties = (parties || [])
@@ -1259,7 +1295,8 @@ const HomePage = ({
                     ));
                   })()}
                 </div>
-                {(() => {
+                )}
+                {gridRegion !== 'more' && (() => {
                   const hasPosters = (parties || []).some(p => p.poster_url && REGION_FILTER[gridRegion]?.(p));
                   return !hasPosters && (
                     <div style={{ padding: '100px 0', textAlign: 'center', color: '#64748B', fontWeight: '700' }}>해당 지역에 등록된 포스터가 없습니다.</div>
