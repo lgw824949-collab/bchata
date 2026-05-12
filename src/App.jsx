@@ -804,6 +804,10 @@ function App() {
     }
   };
 
+  useEffect(() => {
+    requestLocation();
+  }, []);
+
   const withHistory = (isOpen, setter) => (v) => {
     if (v === true && !isOpen) {
       window.history.pushState({ modal: true }, '');
