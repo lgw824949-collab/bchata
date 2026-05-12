@@ -817,6 +817,10 @@ function App() {
     handleRegister, 
     fetchParties,
     setShowSaju,
+    setShowWeather,
+    setShowWishlist,
+    setShowRentalModal,
+    openAnalysis,
     setShowRoute,
     setShowPlaceInquiry,
     logActivity: () => {}, regionalTheme: { welcomeMsg: "전국 댄서들을 위한 실시간 정보", specialBanner: true }
