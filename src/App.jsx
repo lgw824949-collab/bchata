@@ -574,6 +574,8 @@ function App() {
   const [showGridModal, setShowGridModal] = useState(false);
   const [gridRegion, setGridRegion] = useState('');
   const [filterStep, setFilterStep] = useState(1);
+  const [showRoute, setShowRoute] = useState(false);
+  const [showPlaceInquiry, setShowPlaceInquiry] = useState(false);
   const [weatherTapCount, setWeatherTapCount] = useState(0);
   const [lastWeatherTap, setLastWeatherTap] = useState(0);
   const weatherTimeoutRef = useRef(null);
@@ -815,6 +817,8 @@ function App() {
     handleRegister, 
     fetchParties,
     setShowSaju,
+    setShowRoute,
+    setShowPlaceInquiry,
     logActivity: () => {}, regionalTheme: { welcomeMsg: "전국 댄서들을 위한 실시간 정보", specialBanner: true }
   };
 
