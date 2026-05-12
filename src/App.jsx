@@ -576,6 +576,8 @@ function App() {
   const [filterStep, setFilterStep] = useState(1);
   const [showRoute, setShowRoute] = useState(false);
   const [showPlaceInquiry, setShowPlaceInquiry] = useState(false);
+  const [showWishlist, setShowWishlist] = useState(false);
+  const [showRentalModal, setShowRentalModal] = useState(false);
   const [weatherTapCount, setWeatherTapCount] = useState(0);
   const [lastWeatherTap, setLastWeatherTap] = useState(0);
   const weatherTimeoutRef = useRef(null);
