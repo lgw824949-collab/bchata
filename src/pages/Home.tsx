@@ -708,8 +708,9 @@ const HomePage = ({
           ) : (
             <div style={{ width: '100%', padding: '0 0 20px 0', backgroundColor: 'var(--color-bg)' }}>
               {(() => {
-                // 포스터가 있는 모든 파티 추출 (최신순 정렬)
+                // 선택된 날짜의 포스터가 있는 파티 추출 (최신순 정렬)
                 const allPosterParties = (parties || [])
+                  .filter(p => p.date === selectedDate)
                   .filter(p => p.poster_url && p.poster_url.trim() !== '')
                   .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
 
