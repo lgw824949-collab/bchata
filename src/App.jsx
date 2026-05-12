@@ -652,6 +652,10 @@ function App() {
       if (showSaju) { setShowSaju(false); return; }
       if (showIncheonModal) { setShowIncheonModal(false); return; }
       if (showIncheon) { setShowIncheon(false); return; }
+      if (showWishlist) { setShowWishlist(false); return; }
+      if (showRentalModal) { setShowRentalModal(false); return; }
+      if (showRoute) { setShowRoute(false); return; }
+      if (showPlaceInquiry) { setShowPlaceInquiry(false); return; }
 
       const newHash = window.location.hash.replace('#', '');
       if (newHash && newHash !== view) {
@@ -663,7 +667,7 @@ function App() {
 
     window.addEventListener('popstate', handlePopState);
     return () => window.removeEventListener('popstate', handlePopState);
-  }, [view, selectedPoster, showFullCalendar, isMenuOpen, showNoticeGuide, showWeather, showSaju, showIncheonModal, showFilterPanel, showFilteredResults, showGridModal, showIncheon]);
+  }, [view, selectedPoster, showFullCalendar, isMenuOpen, showNoticeGuide, showWeather, showSaju, showIncheonModal, showFilterPanel, showFilteredResults, showGridModal, showIncheon, showWishlist, showRentalModal, showRoute, showPlaceInquiry]);
 
   useEffect(() => {
     const couponReceived = localStorage.getItem('coupon_received')
@@ -798,6 +802,17 @@ function App() {
     }
   };
 
+  const withHistory = (isOpen, setter) => (v) => {
+    if (v === true && !isOpen) {
+      window.history.pushState({ modal: true }, '');
+      setter(true);
+    } else if (v === false && isOpen) {
+      window.history.back();
+    } else {
+      setter(v);
+    }
+  };
+
   const sharedProps = {
     parties: displayParties, bootcamps, festivals, loading, selectedMonth, setSelectedMonth, selectedWeek: 1, setSelectedWeek: () => {}, 
     selectedDate, setSelectedDate, selectedRegion: '서울', setSelectedRegion: () => {}, 
@@ -808,7 +823,7 @@ function App() {
       const dayName = i18n.language.startsWith('en') ? DAYS_EN[d.getDay()] : DAYS_KOR[d.getDay()];
       return { fullDate: formatDateToKSTString(d), date: String(d.getDate()), month: String(d.getMonth() + 1), dayName, isToday: i === 0, dayOfWeek: d.getDay() };
     }), weekData: [], allDatesInMonth: [], filteredParties: displayParties.filter(p => p.date === selectedDate),
-    showFullCalendar, setShowFullCalendar,
+    showFullCalendar, setShowFullCalendar: withHistory(showFullCalendar, setShowFullCalendar),
     showFilterPanel, setShowFilterPanel,
     showFilteredResults, setShowFilteredResults,
     likedIds: [], toggleLike: () => {},
@@ -818,13 +833,13 @@ function App() {
     IncheonBanner: () => <IncheonPremiumBanner t={t} onClick={() => openAnalysis(false)} />, venueCounts: {}, resetToToday: () => { setView('home'); setSelectedDate(todayData.dateStr); }, formatItemDate: (d, t) => `${d} ${t}`, formatFee: (f) => f, 
     handleRegister, 
     fetchParties,
-    setShowSaju,
-    setShowWeather,
-    setShowWishlist,
-    setShowRentalModal,
+    setShowSaju: withHistory(showSaju, setShowSaju),
+    setShowWeather: withHistory(showWeather, setShowWeather),
+    setShowWishlist: withHistory(showWishlist, setShowWishlist),
+    setShowRentalModal: withHistory(showRentalModal, setShowRentalModal),
     openAnalysis,
-    setShowRoute,
-    setShowPlaceInquiry,
+    setShowRoute: withHistory(showRoute, setShowRoute),
+    setShowPlaceInquiry: withHistory(showPlaceInquiry, setShowPlaceInquiry),
     logActivity: () => {}, regionalTheme: { welcomeMsg: "전국 댄서들을 위한 실시간 정보", specialBanner: true }
   };
 
