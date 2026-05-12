@@ -85,7 +85,8 @@ const InstructorUpload = ({ onBack, instructorId = '8f69b01d-bf65-4459-88fa-8419
       <div style={{ fontSize: 60, marginBottom: 16 }}>🎉</div>
       <div style={{ fontSize: 20, fontWeight: 900, color: '#111', marginBottom: 8 }}>업로드 완료!</div>
       <div style={{ fontSize: 14, color: '#999', lineHeight: 1.6, marginBottom: 32 }}>
-        관리자 승인 후 프로필에 표시돼요.<br/>보통 24시간 이내에 처리됩니다.
+        지금 즉시 마스터 프로필에 게시되었습니다.<br/>
+        나의 최신 소식을 확인해보세요.
       </div>
       <button onClick={onBack} style={{ padding: '14px 32px', borderRadius: 16, background: '#7C3AED', color: '#fff', border: 'none', fontSize: 15, fontWeight: 700, cursor: 'pointer' }}>확인</button>
     </div>

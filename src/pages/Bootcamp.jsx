@@ -92,9 +92,13 @@ const Bootcamp = ({ onBack, initialView = 'list' }) => {
     e.preventDefault();
     setSubmitting(true);
     try {
-      const { error } = await supabase.from('bootcamps').insert([{ ...formData, status: 'pending' }]);
+      const { error } = await supabase.from('bootcamps').insert({
+        ...formData,
+        status: 'active'
+      });
       if (error) throw error;
-      alert('등록 신청되었습니다. 승인 후 노출됩니다.');
+      alert('등록되었습니다! 지금 즉시 리스트에서 확인하실 수 있습니다.');
+      onBack();
       setView('list');
       setCurrentStep(1);
     } catch (err) {

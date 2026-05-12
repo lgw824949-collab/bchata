@@ -104,14 +104,14 @@ const InstructorRegistrationModal = ({ isOpen, onClose, onSuccess, formData, set
           ...submitData,
           photo_url: finalPhotoUrl,
           bio: finalBio,
-          status: 'pending',
+          status: 'active',
           follower_count: 0,
           likes_count: 0
         }])
 
       if (error) throw error
       
-      alert('강사 등록 신청이 완료되었습니다! 관리자 승인 후 리스트에 표시됩니다.')
+      alert('강사 등록이 완료되었습니다! 지금 즉시 마스터 리스트에서 확인하실 수 있습니다.')
       if (onSuccess) onSuccess()
       onClose()
     } catch (err) {

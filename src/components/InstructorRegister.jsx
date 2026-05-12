@@ -60,13 +60,13 @@ const InstructorRegister = ({ onBack }) => {
         instagram,
         kakao_link: kakaoLink,
         photo_url: photoUrl,
-        status: 'pending',
+        status: 'active',
         follower_count: 0,
         likes_count: 0
       })
       setDone(true)
     } catch (err) {
-      alert('등록 신청 중 오류가 발생했습니다. 잠시 후 다시 시도해주세요.')
+      alert('등록 중 오류가 발생했습니다. 잠시 후 다시 시도해주세요.')
       console.error(err)
     }
     setLoading(false)
@@ -81,11 +81,11 @@ const InstructorRegister = ({ onBack }) => {
       <div style={{ width: 100, height: 100, borderRadius: '40px', background: '#F5F3FF', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 24, boxShadow: '0 20px 40px rgba(124, 58, 237, 0.1)' }}>
         <Sparkles size={48} color="#7C3AED" />
       </div>
-      <div style={{ fontSize: 28, fontWeight: 950, color: '#1E293B', marginBottom: 12, letterSpacing: '-0.5px' }}>신청이 완료되었습니다!</div>
+      <div style={{ fontSize: 28, fontWeight: 950, color: '#1E293B', marginBottom: 12, letterSpacing: '-0.5px' }}>등록이 완료되었습니다!</div>
       <div style={{ fontSize: 16, color: '#64748B', lineHeight: 1.8, marginBottom: 40, fontWeight: 500 }}>
-        전문 강사 포트폴리오 구성을 위해<br/>
-        관리자가 꼼꼼히 검토 중입니다.<br/>
-        <span style={{ color: '#7C3AED', fontWeight: 800 }}>보통 24시간 이내</span>에 승인됩니다 💜
+        지금 즉시 마스터 리스트에서<br/>
+        나의 프로필을 확인하실 수 있습니다.<br/>
+        <span style={{ color: '#7C3AED', fontWeight: 800 }}>활동을 시작해보세요</span> 💜
       </div>
       <button
         onClick={onBack}
