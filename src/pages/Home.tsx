@@ -639,7 +639,7 @@ const HomePage = ({
           { icon: <Navigation size={22} color="#303F9F" />, label:'지능형경로', badge:'LIVE', action:() => openAnalysis(false) },
           { icon: <Star size={22} color="#F9A825" />, label:'운명의좌표', action:() => setShowSaju(true) },
           { icon: <MapPin size={22} color="#0097A7" />, label:'주변주차', action:() => setView('parking') },
-          { icon: <HomeIcon size={22} color="#558B2F" />, label:'대관문의', action:() => handleOpenModal(setShowRentalModal, true) },
+          { icon: <HomeIcon size={22} color="#558B2F" />, label:'대관문의', action:() => setShowRentalModal(true) },
         ].map((item, idx) => (
           <div key={idx} style={{ position:'relative' }}>
             <div style={{ 
