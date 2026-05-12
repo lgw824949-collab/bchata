@@ -745,8 +745,10 @@ function App() {
   useEffect(() => { fetchParties(); }, []);
 
   useEffect(() => {
-    const todayStr = getKSTDate().dateStr;
-    const upcomingParties = parties.filter(p => p.date >= todayStr);
+    const now = new Date();
+    const kst = new Date(now.getTime() + 9 * 60 * 60 * 1000);
+    const todayKST = kst.toISOString().split('T')[0];
+    const upcomingParties = parties.filter(p => p.date >= todayKST);
     
     const currentLang = i18n.language || 'ko';
     if (currentLang.startsWith('en')) {
