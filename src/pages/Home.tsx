@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo, useRef } from 'react';
-import { Heart, MapPin, Calendar, Clock, User, Music, ChevronRight, ShieldCheck, X, Home as HomeIcon, ChevronLeft, CloudSun, Utensils, Zap, PlusCircle, Languages, Bell, Globe, Navigation, CalendarDays, Star, Camera, MessageSquare } from 'lucide-react';
+import { Heart, MapPin, Calendar, Clock, User, Users, Music, ChevronRight, ShieldCheck, X, Home as HomeIcon, ChevronLeft, CloudSun, Utensils, Zap, PlusCircle, Languages, Bell, Globe, Navigation, CalendarDays, Star, Camera, MessageSquare } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { motion, AnimatePresence } from 'framer-motion';
 import QuickPinchZoom, { make3dTransformValue } from 'react-quick-pinch-zoom';
@@ -1218,6 +1218,7 @@ const HomePage = ({
                       { icon: <Star size={32} color="#F9A825" />, label:'운명의좌표', action:() => setShowSaju(true) },
                       { icon: <MapPin size={32} color="#0097A7" />, label:'주변주차', action:() => setView('parking') },
                       { icon: <HomeIcon size={32} color="#558B2F" />, label:'대관문의', action:() => setShowRentalModal(true) },
+                      { icon: <Users size={32} color="#E53935" />, label:'파트너구하기', badge:'NEW', action:() => setShowPartner(true) },
                     ].map((item, idx) => (
                       <div key={idx} style={{ position:'relative' }}>
                         <div style={{ 
