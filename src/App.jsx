@@ -18,6 +18,7 @@ const Restaurant = lazy(() => import('./pages/Restaurant'));
 const SajuModal = lazy(() => import('./components/SajuModal'));
 const IncheonRoute = lazy(() => import('./components/IncheonRoute'));
 const WeatherModal = lazy(() => import('./components/WeatherModal'));
+import PartnerModal from './components/PartnerModal';
 
 // 로딩 스피너 컴포넌트
 const LoadingFallback = () => (
@@ -564,6 +565,7 @@ function App() {
   const [showNoticeGuide, setShowNoticeGuide] = useState(false);
   const [showWeather, setShowWeather] = useState(false);
   const [showSaju, setShowSaju] = useState(false);
+  const [showPartner, setShowPartner] = useState(false);
   const [showFullCalendar, setShowFullCalendar] = useState(false);
   const [showFilterPanel, setShowFilterPanel] = useState(false);
   const [showFilteredResults, setShowFilteredResults] = useState(false);
@@ -837,6 +839,7 @@ function App() {
     setShowWeather: withHistory(showWeather, setShowWeather),
     setShowWishlist: withHistory(showWishlist, setShowWishlist),
     setShowRentalModal: withHistory(showRentalModal, setShowRentalModal),
+    setShowPartner,
     openAnalysis,
     setShowRoute: withHistory(showRoute, setShowRoute),
     setShowPlaceInquiry: withHistory(showPlaceInquiry, setShowPlaceInquiry),
@@ -1414,6 +1417,7 @@ function App() {
     </div>
     
     {/* [B] [포스터 확대 모달 - 컨테이너 외부 최상위 배치] */}
+    {showPartner && <PartnerModal onClose={() => setShowPartner(false)} />}
     <AnimatePresence>
       {selectedPoster && (
         <motion.div
