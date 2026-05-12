@@ -953,7 +953,7 @@ const HomePage = ({
                                 <div style={{ width: '100%', overflow: 'hidden', padding: '10px 0' }}>
                                   <div className="hot-pick-track">
                                     {[...provincialHot, ...provincialHot].map((item, idx) => (
-                                      <div key={`${item.id}-${idx}`} onClick={() => handleOpenModal(setSelectedPoster, item.poster_url)} style={{ width: '140px', flexShrink: 0, borderRadius: '12px', overflow: 'hidden', boxShadow: '0 8px 20px rgba(0,0,0,0.12)', position: 'relative' }}>
+                                      <div key={`${item.id}-${idx}`} onClick={() => handleOpenModal(setSelectedPoster, item.poster_url)} style={{ width: '140px', flexShrink: 0, borderRadius: '12px', overflow: 'hidden', boxShadow: '0 8px 20px rgba(0,0,0,0.12)', position: 'relative', background: '#000', margin: '0 10px' }}>
                                         <img src={item.poster_url} style={{ width: '100%', height: '210px', objectFit: 'cover' }} alt="Pick" />
                                         <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, padding: '12px 8px', background: 'linear-gradient(transparent, rgba(0,0,0,0.95))', color: 'white' }}>
                                           <div style={{ fontSize: '10px', color: '#FFEB3B', fontWeight: 900, marginBottom: '2px', textShadow: '0 1px 2px rgba(0,0,0,0.8)' }}>{translateDynamicText(item.locationName, isEn)}</div>
