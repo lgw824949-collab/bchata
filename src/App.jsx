@@ -232,11 +232,13 @@ const DynamicAnalysisModal = ({ isOpen, onClose, userCoords, isSajuCall }) => {
       const d = venues[0].dist;
       setTracker({ distance: d.toFixed(1), duration: Math.ceil(d * 10) + 5 });
     };
-    if (userCoords) findTarget(userCoords.lat, userCoords.lon);
+    const coords = userCoords || { lat: 37.4979, lng: 127.0276 };
+    findTarget(coords.lat, coords.lon || coords.lng);
   }, [isOpen, userCoords]);
 
-  if (!isOpen || !targetDest) return null;
-  const isIncheon = targetDest.region === '인천' && isSajuCall;
+  if (!isOpen) return null;
+  const currentTargetDest = targetDest || { region: '서울', name: '강남역 성지' };
+  const isIncheon = currentTargetDest.region === '인천' && isSajuCall;
 
   return (
     <motion.div 
@@ -282,7 +284,7 @@ const DynamicAnalysisModal = ({ isOpen, onClose, userCoords, isSajuCall }) => {
             
             <h2 style={{ fontSize: '28px', fontWeight: '1000', marginBottom: '30px', color: '#1E293B', lineHeight: '1.3' }}>
               {isIncheon ? '성지 상륙 분석' : '최단 경로 최적화'} 🛰️<br/>
-              <span style={{ color: '#FF1744' }}>{targetDest.name}</span>
+              <span style={{ color: '#FF1744' }}>{currentTargetDest.name}</span>
             </h2>
 
             <div style={{ padding: '30px', background: '#F8FAFC', borderRadius: '30px', display: 'flex', gap: '20px', marginBottom: '40px', border: '1px solid #E2E8F0' }}>
