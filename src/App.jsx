@@ -807,12 +807,8 @@ function App() {
   const withHistory = (isOpen, setter) => (v) => {
     if (v === true && !isOpen) {
       window.history.pushState({ modal: true }, '');
-      setter(true);
-    } else if (v === false && isOpen) {
-      window.history.back();
-    } else {
-      setter(v);
     }
+    setter(v);
   };
 
   const sharedProps = {
