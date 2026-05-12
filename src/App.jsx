@@ -530,7 +530,6 @@ function App() {
   const [displayParties, setDisplayParties] = useState([]);
   const [loading, setLoading] = useState(true);
   const [selectedDate, setSelectedDate] = useState(todayData.dateStr);
-  const [showCouponPopup, setShowCouponPopup] = useState(false);
   const location = useLocation();
   const [view, setView] = useState('home');
 
@@ -679,15 +678,6 @@ function App() {
     return () => window.removeEventListener('popstate', handlePopState);
   }, [view, selectedPoster, showFullCalendar, isMenuOpen, showNoticeGuide, showWeather, showSaju, showIncheonModal, showFilterPanel, showFilteredResults, showGridModal, showIncheon, showWishlist, showRentalModal, showRoute, showPlaceInquiry]);
 
-  useEffect(() => {
-    const couponReceived = localStorage.getItem('coupon_received')
-    if (couponReceived) return
-
-    window.addEventListener('appinstalled', () => {
-      setShowCouponPopup(true)
-      localStorage.setItem('coupon_received', 'true')
-    })
-  }, [])
 
   useEffect(() => {
     // 공지사항 가이드 자동 팝업 (디바이스당 한 번)
@@ -1266,88 +1256,7 @@ function App() {
       
 
 
-      <AnimatePresence>
-        {showCouponPopup && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            style={{
-              position: 'fixed',
-              inset: 0,
-              zIndex: 2000002,
-              backgroundColor: 'rgba(0,0,0,0.8)',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              padding: '20px'
-            }}
-          >
-            <motion.div
-              initial={{ scale: 0.9, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              style={{
-                background: '#111',
-                borderRadius: '20px',
-                padding: '30px',
-                width: '100%',
-                maxWidth: '340px',
-                textAlign: 'center',
-                border: '1px solid #333'
-              }}
-            >
-              <div style={{ fontSize: '40px', marginBottom: '15px' }}>🎉</div>
-              <h2 style={{ color: '#fff', fontSize: '20px', fontWeight: 'bold', margin: '0 0 8px 0' }}>설치 완료!</h2>
-              <p style={{ color: '#999', fontSize: '13px', margin: '0 0 20px 0' }}>오늘밤빠 앱을 설치해주셔서 감사해요!</p>
-              
-              <div style={{ height: '1px', background: '#333', margin: '20px 0' }} />
-              
-              <div style={{ marginBottom: '25px' }}>
-                <p style={{ color: '#fff', fontSize: '14px', margin: '0 0 5px 0', fontWeight: 'bold' }}>🎁 신규 설치 혜택</p>
-                <p style={{ color: '#F59E0B', fontSize: '18px', fontWeight: 'bold', margin: 0 }}>₩2,000 할인 쿠폰을 드려요!</p>
-              </div>
-              
-              <p style={{ color: '#888', fontSize: '12px', marginBottom: '15px' }}>카카오 오픈채팅에서 쿠폰을 받아가세요 👇</p>
-              
-              <button
-                onClick={() => window.open('https://open.kakao.com/o/gP43rNri', '_blank')}
-                style={{
-                  background: '#FEE500',
-                  color: '#000',
-                  width: '100%',
-                  padding: '14px',
-                  borderRadius: '12px',
-                  border: 'none',
-                  fontWeight: '700',
-                  fontSize: '15px',
-                  cursor: 'pointer',
-                  marginBottom: '15px',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  gap: '8px'
-                }}
-              >
-                💬 오픈채팅 입장하기
-              </button>
-              
-              <button
-                onClick={() => setShowCouponPopup(false)}
-                style={{
-                  background: 'none',
-                  border: 'none',
-                  color: '#555',
-                  fontSize: '12px',
-                  cursor: 'pointer',
-                  textDecoration: 'underline'
-                }}
-              >
-                나중에
-              </button>
-            </motion.div>
-          </motion.div>
-        )}
-      </AnimatePresence>
+
 
       <AnimatePresence>
         {showNoticeGuide && (
