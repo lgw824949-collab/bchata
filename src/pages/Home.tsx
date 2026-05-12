@@ -1230,7 +1230,7 @@ const HomePage = ({
                         }}>
                           <motion.div
                             whileTap={{ scale: 0.92 }}
-                            onClick={() => { setShowGridModal(false); setTimeout(() => { item.action(); }, 150); }}
+                            onClick={() => { item.action(); setTimeout(() => { setShowGridModal(false); }, 300); }}
                             style={{
                               display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
                               gap: '10px', cursor: 'pointer', borderRadius: '14px',
