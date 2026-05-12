@@ -625,7 +625,15 @@ function App() {
   };
 
   const handleCloseModal = () => {
-    window.history.back();
+    setShowFullCalendar(false);
+    setShowWeather(false);
+    setShowWishlist(false);
+    setShowSaju(false);
+    setShowRentalModal(false);
+    setShowPartner(false);
+    setShowRoute(false);
+    setShowPlaceInquiry(false);
+    setShowGridModal(false);
   };
 
   useEffect(() => {
