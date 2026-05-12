@@ -839,7 +839,7 @@ function App() {
     setShowWeather: withHistory(showWeather, setShowWeather),
     setShowWishlist: withHistory(showWishlist, setShowWishlist),
     setShowRentalModal: withHistory(showRentalModal, setShowRentalModal),
-    setShowPartner,
+    setShowPartner: withHistory(showPartner, setShowPartner),
     openAnalysis,
     setShowRoute: withHistory(showRoute, setShowRoute),
     setShowPlaceInquiry: withHistory(showPlaceInquiry, setShowPlaceInquiry),
