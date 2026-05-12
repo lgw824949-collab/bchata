@@ -481,6 +481,8 @@ const HomePage = ({
   const [classGenre, setClassGenre] = useState('전체');
   const [classLevel, setClassLevel] = useState('전체');
   const [weatherMap, setWeatherMap] = useState({});
+  const [adminTapCount, setAdminTapCount] = useState(0);
+  const [lastAdminTap, setLastAdminTap] = useState(0);
   const todayStr = useMemo(() => {
     const d = new Date();
     return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
@@ -777,7 +779,26 @@ const HomePage = ({
                             >
                               <div style={{ padding: '15px 20px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', color: 'var(--color-text-main)' }}>
                                 <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                                  <span style={{ fontSize: '15px', fontWeight: '800' }}>
+                                  <span 
+                                    onClick={() => {
+                                      if (regionName === '서울') {
+                                        const now = Date.now();
+                                        if (now - lastAdminTap < 2000) {
+                                          const nextCount = adminTapCount + 1;
+                                          if (nextCount >= 3) {
+                                            setView('admin-portal');
+                                            setAdminTapCount(0);
+                                          } else {
+                                            setAdminTapCount(nextCount);
+                                          }
+                                        } else {
+                                          setAdminTapCount(1);
+                                        }
+                                        setLastAdminTap(now);
+                                      }
+                                    }}
+                                    style={{ fontSize: '15px', fontWeight: '800', cursor: regionName === '서울' ? 'pointer' : 'default' }}
+                                  >
                                     {t(regionKeys[regionName] || regionName)}
                                   </span>
                                   <span style={{ fontSize: '12px', color: 'var(--color-text-secondary)', fontWeight: '600', marginLeft: '4px' }}>
