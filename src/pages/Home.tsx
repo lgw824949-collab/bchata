@@ -581,7 +581,22 @@ const HomePage = ({
           <img
             src="/logo.png"
             alt="오늘밤빠 로고"
-            style={{ width: '90px', height: '90px', objectFit: 'contain', borderRadius: '16px', flexShrink: 0, marginLeft: '12px' }}
+            onClick={() => {
+              const now = Date.now();
+              if (now - lastAdminTap < 2000) {
+                const nextCount = adminTapCount + 1;
+                if (nextCount >= 3) {
+                  setView('admin-portal');
+                  setAdminTapCount(0);
+                } else {
+                  setAdminTapCount(nextCount);
+                }
+              } else {
+                setAdminTapCount(1);
+              }
+              setLastAdminTap(now);
+            }}
+            style={{ width: '90px', height: '90px', objectFit: 'contain', borderRadius: '16px', flexShrink: 0, marginLeft: '12px', cursor: 'pointer', userSelect: 'none' }}
             onError={(e) => { e.currentTarget.style.display = 'none' }}
           />
         </div>
@@ -797,7 +812,7 @@ const HomePage = ({
                                         setLastAdminTap(now);
                                       }
                                     }}
-                                    style={{ fontSize: '15px', fontWeight: '800', cursor: regionName === '서울' ? 'pointer' : 'default' }}
+                                    style={{ fontSize: '15px', fontWeight: '800', cursor: regionName === '서울' ? 'pointer' : 'default', userSelect: 'none', padding: '2px 4px' }}
                                   >
                                     {t(regionKeys[regionName] || regionName)}
                                   </span>
