@@ -1230,7 +1230,7 @@ const HomePage = ({
                         }}>
                           <motion.div
                             whileTap={{ scale: 0.92 }}
-                            onClick={() => { handleCloseModal(); setTimeout(item.action, 100); }}
+                            onClick={() => { item.action(); handleCloseModal(); }}
                             style={{
                               display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
                               gap: '10px', cursor: 'pointer', borderRadius: '14px',
