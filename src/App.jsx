@@ -19,6 +19,7 @@ const SajuModal = lazy(() => import('./components/SajuModal'));
 const IncheonRoute = lazy(() => import('./components/IncheonRoute'));
 const WeatherModal = lazy(() => import('./components/WeatherModal'));
 import PartnerModal from './components/PartnerModal';
+import WishlistModal from './components/WishlistModal';
 
 // 로딩 스피너 컴포넌트
 const LoadingFallback = () => (
@@ -1151,6 +1152,9 @@ function App() {
         <Suspense fallback={null}>
           {showWeather && <WeatherModal onClose={() => setShowWeather(false)} />}
         </Suspense>
+      </AnimatePresence>
+      <AnimatePresence>
+        {showWishlist && <WishlistModal onClose={() => setShowWishlist(false)} />}
       </AnimatePresence>
 
       <AnimatePresence>
