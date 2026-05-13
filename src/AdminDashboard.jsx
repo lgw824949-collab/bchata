@@ -6,6 +6,12 @@ import { motion, AnimatePresence } from 'framer-motion'
 import RegisterForm from './RegisterForm'
 import gangturnPhoto from './assets/gangturn_photo.png'
 import ggomaeyaPhoto from './assets/ggomaeya_photo.jpg'
+import noriterPhoto from './assets/noriter_photo.png'
+import latinPhoto from './assets/latin_photo.png'
+import macondoPhoto from './assets/macondo_photo.png'
+import bonitaPhoto from './assets/bonita_photo.png'
+import buenaPhoto from './assets/buena_photo.png'
+import hongturnPhoto from './assets/hongturn_photo.png'
 
 const EventRanking = () => {
   const [rankings, setRankings] = useState([])
@@ -606,6 +612,12 @@ export default function AdminDashboard({ onBack }) {
                   const key = `${item.name || ''}`.replace(/\s+/g, '').toLowerCase();
                   if (key.includes('강남턴') || key.includes('강턴')) img = gangturnPhoto;
                   else if (key.includes('꼼애야')) img = ggomaeyaPhoto;
+                  else if (key.includes('놀이터')) img = noriterPhoto;
+                  else if (key.includes('라틴')) img = latinPhoto;
+                  else if (key.includes('마콘도')) img = macondoPhoto;
+                  else if (key.includes('보니따')) img = bonitaPhoto;
+                  else if (key.includes('부에나')) img = buenaPhoto;
+                  else if (key.includes('홍턴')) img = hongturnPhoto;
                 }
                 return img ? <img src={img} style={{ width: '80px', height: '110px', objectFit: 'cover', borderRadius: '12px' }} /> : null;
               })()}
@@ -701,7 +713,7 @@ export default function AdminDashboard({ onBack }) {
                         </div>
                         {(() => {
                           const key = `${item.name || ''}`.replace(/\s+/g, '').toLowerCase();
-                          const isCustom = key.includes('강남턴') || key.includes('강턴') || key.includes('꼼애야');
+                          const isCustom = key.includes('강남턴') || key.includes('강턴') || key.includes('꼼애야') || key.includes('놀이터') || key.includes('라틴') || key.includes('마콘도') || key.includes('보니따') || key.includes('부에나') || key.includes('홍턴');
                           return (item.image_url || isCustom) && <div style={{ fontSize: '11px', color: '#94A3B8', marginTop: '2px', wordBreak: 'break-all' }}>이미지: {isCustom ? '✨ 내장 브랜드 고유 에셋 매핑 적용 완료' : item.image_url}</div>;
                         })()}
                       </div>
