@@ -95,7 +95,7 @@ export default function RentalModal({ onClose }) {
         return { 
           ...loc, 
           region, 
-          image_url: isGangturn ? '/turn_logo.png' : null,
+          image_url: isGangturn ? '/turn_logo.png' : loc.image_url,
           instagram_url: isGangturn ? 'https://www.instagram.com/turn_latinclub_no.1?igsh=MW94ajh3OHZ3NDZ6bg%3D%3D' : loc.instagram_url
         };
       });
