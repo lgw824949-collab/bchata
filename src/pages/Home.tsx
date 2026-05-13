@@ -5,6 +5,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import QuickPinchZoom, { make3dTransformValue } from 'react-quick-pinch-zoom';
 import LiveCount from '../components/LiveCount'
 import { KMA_REGION_COORDS, fetchWeatherForecast, parseKmaWeather, HOME_REGION_MAP } from '../utils/kmaApi'
+import { supabase } from '../lib/supabase'
 
 const DAYS_KOR = ['일', '월', '화', '수', '목', '금', '토'];
 const DAYS_EN = ['SUN', 'MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT'];
@@ -849,77 +850,75 @@ const HomePage = ({
                   return item._itemGenre === activeDateGenre;
                 });
 
-                // 선택된 날짜의 포스터가 있는 파티 추출 (최신순 기본 정렬)
-                const allPosterParties = unifiedDayEvents
-                  .filter(p => p.poster_url && p.poster_url.trim() !== '')
-                  .sort((a, b) => new Date(b.created_at || 0).getTime() - new Date(a.created_at || 0).getTime());
+                // 전국 포스터 있는 모든 이벤트 추출 (날짜/장르 필터 무관)
+                const globalBootcamps = (bootcamps || []).map(b => ({
+                  ...b,
+                  locationName: b.venue || b.region,
+                  _table: 'bootcamps'
+                }));
+                const globalFestivals = (festivals || []).map(f => ({
+                  ...f,
+                  locationName: f.venue || f.region,
+                  _table: 'festivals'
+                }));
+                const globalParties = (parties || []).map(p => ({
+                  ...p,
+                  locationName: p.location_name || p.locations?.name || p.region,
+                  _table: 'parties'
+                }));
 
-                // 중복된 포스터 무조건 제거
-                const uniquePosterParties: typeof allPosterParties = [];
-                const seenPosters = new Set<string>();
-                for (const p of allPosterParties) {
-                  if (!seenPosters.has(p.poster_url)) {
-                    seenPosters.add(p.poster_url);
-                    uniquePosterParties.push(p);
+                const allGlobalEvents = [...globalParties, ...globalBootcamps, ...globalFestivals]
+                  .filter(p => p.poster_url && p.poster_url.trim() !== '');
+
+                // 중복된 포스터 URL 무조건 제거
+                const uniqueGlobalEvents: typeof allGlobalEvents = [];
+                const seenGlobalPosters = new Set<string>();
+                for (const item of allGlobalEvents) {
+                  if (!seenGlobalPosters.has(item.poster_url)) {
+                    seenGlobalPosters.add(item.poster_url);
+                    uniqueGlobalEvents.push(item);
                   }
                 }
 
-                // 각 아이템별 시뮬레이션 조회수 점수 계산
-                // (지방권 포스터는 플러스 어드밴티지 추가 부여)
-                const itemsWithScores = uniquePosterParties.map(p => {
-                  const isProvincial = p.broadRegion !== '서울' && p.broadRegion !== '경기/인천';
-                  const advantage = isProvincial ? 500 : 0;
-                  // 안정적인 가상 조회수 점수 생성
-                  const baseViews = ((p.title || '').length * 15) + (parseInt(p.id?.slice(-2) || '0', 16) % 100) + 50;
-                  return {
-                    ...p,
-                    _viewScore: baseViews + advantage,
-                    _isProvincial: isProvincial
-                  };
-                });
-
-                // 1~5위: 조회수 점수가 높은 순서대로 5개 선정
-                const top5Sorted = [...itemsWithScores]
-                  .sort((a, b) => b._viewScore - a._viewScore)
-                  .slice(0, 5)
-                  .map((item, idx) => ({ ...item, _rankBadge: `TOP ${idx + 1}` }));
-
-                const top5Ids = new Set(top5Sorted.map(p => p.id));
-
-                // 나머지 3개: Top 5에 선정되지 않은 포스터 중 최신 등록 순(created_at)으로 3개 선정
-                const remainingNewest = itemsWithScores
-                  .filter(p => !top5Ids.has(p.id))
-                  .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
-                  .slice(0, 3)
-                  .map(item => ({ ...item, _rankBadge: 'NEW' }));
-
-                // 최종 8개의 포스터 롤링 목록 구성
-                const hotPickRollingItems = [...top5Sorted, ...remainingNewest];
+                // created_at 기준 최신 8개 정렬
+                const newest8GlobalEvents = uniqueGlobalEvents
+                  .sort((a, b) => new Date(b.created_at || 0).getTime() - new Date(a.created_at || 0).getTime())
+                  .slice(0, 8);
 
                 return (
                   <>
-                    {/* [1] HOT PICK 통합 트랙 (상위 8개 무한 롤링) */}
-                    {hotPickRollingItems.length > 0 && (
+                    {/* HOT PICK 통합 트랙 (가로 스크롤) */}
+                    {newest8GlobalEvents.length > 0 && (
                       <div style={{ margin: '0 0 15px', padding: '10px 0 20px', background: 'var(--color-card)', borderBottom: '1px solid var(--color-border)' }}>
                         <div style={{ padding: '0 20px 15px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                           <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
                             <h2 style={{ fontSize: '18px', fontWeight: '950', color: 'var(--color-text-main)', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                              <span style={{ color: '#FF1744' }}>HOT</span> PICK <span style={{ fontSize: '11px', background: '#FF1744', color: '#fff', padding: '2px 6px', borderRadius: '6px', fontWeight: 900 }}>TOP 8</span>
+                              <span style={{ color: '#FF1744' }}>HOT</span> PICK
                             </h2>
                           </div>
                         </div>
-                        <div style={{ width: '100%', overflow: 'hidden', padding: '10px 0' }}>
-                          <div className="hot-pick-track">
-                            {[...hotPickRollingItems, ...hotPickRollingItems].map((item, idx) => (
-                              <div key={`${item.id}-${idx}`} onClick={() => handleOpenModal(setSelectedPoster, item.poster_url)} style={{ width: '140px', flexShrink: 0, borderRadius: '12px', overflow: 'hidden', boxShadow: '0 8px 20px rgba(0,0,0,0.12)', position: 'relative', background: '#000', margin: '0 10px' }}>
+                        <div style={{ width: '100%', overflow: 'hidden' }}>
+                          <div style={{ display: 'flex', overflowX: 'auto', gap: '12px', padding: '5px 20px 10px', msOverflowStyle: 'none', scrollbarWidth: 'none', WebkitOverflowScrolling: 'touch' }}>
+                            {newest8GlobalEvents.map((item, idx) => (
+                              <div 
+                                key={`${item.id}-${idx}`} 
+                                onClick={async () => {
+                                  handleOpenModal(setSelectedPoster, item.poster_url);
+                                  if (item.id && item._table) {
+                                    try {
+                                      const currentClicks = item.click_count || 0;
+                                      await supabase.from(item._table).update({ click_count: currentClicks + 1 }).eq('id', item.id);
+                                    } catch (err) {}
+                                  }
+                                }} 
+                                style={{ width: '140px', flexShrink: 0, borderRadius: '12px', overflow: 'hidden', boxShadow: '0 8px 20px rgba(0,0,0,0.12)', position: 'relative', background: '#000', cursor: 'pointer' }}
+                              >
                                 <img src={item.poster_url} style={{ width: '100%', height: '210px', objectFit: 'cover' }} alt="Pick" />
                                 
-                                {/* 랭크 / 상태 배지 (TOP 1~5, NEW) */}
-                                {item._rankBadge && (
-                                  <div style={{ position: 'absolute', top: '8px', left: '8px', zIndex: 10, background: item._rankBadge.startsWith('TOP') ? '#FF1744' : '#1D9E75', color: '#fff', fontSize: '10px', fontWeight: 900, padding: '2px 6px', borderRadius: '6px', boxShadow: '0 2px 4px rgba(0,0,0,0.3)' }}>
-                                    {item._rankBadge}
-                                  </div>
-                                )}
+                                {/* NEW 뱃지 표시 */}
+                                <div style={{ position: 'absolute', top: '8px', left: '8px', zIndex: 10, background: '#FF1744', color: '#fff', fontSize: '10px', fontWeight: 900, padding: '2px 6px', borderRadius: '6px', boxShadow: '0 2px 4px rgba(0,0,0,0.3)' }}>
+                                  NEW
+                                </div>
 
                                 <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, padding: '12px 8px', background: 'linear-gradient(transparent, rgba(0,0,0,0.95))', color: 'white' }}>
                                   <div style={{ fontSize: '10px', color: '#FFEB3B', fontWeight: 900, marginBottom: '2px', textShadow: '0 1px 2px rgba(0,0,0,0.8)' }}>{translateDynamicText(item.locationName, isEn)}</div>
