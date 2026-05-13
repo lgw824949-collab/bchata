@@ -985,6 +985,7 @@ function App() {
                       onClick={() => {
                         localStorage.setItem('selected_instructor_id', inst.id);
                         navigate('/instructors');
+                        setView('instructors');
                         setIsMenuOpen(false);
                       }}
                       style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '6px', cursor: 'pointer', flexShrink: 0 }}
@@ -1012,6 +1013,7 @@ function App() {
                   action: () => { 
                     localStorage.setItem('instructor_target_genre', '전체');
                     navigate('/instructors'); 
+                    setView('instructors');
                     setIsMenuOpen(false); 
                     setTimeout(() => {
                       window.dispatchEvent(new CustomEvent('apply-instructor-filter'));
@@ -1024,6 +1026,7 @@ function App() {
                   action: () => { 
                     localStorage.setItem('instructor_target_genre', '전체');
                     navigate('/instructors'); 
+                    setView('instructors');
                     setIsMenuOpen(false); 
                     setTimeout(() => {
                       window.dispatchEvent(new CustomEvent('apply-instructor-filter'));
@@ -1036,6 +1039,7 @@ function App() {
                   action: () => { 
                     localStorage.setItem('instructor_target_genre', '전체');
                     navigate('/instructors'); 
+                    setView('instructors');
                     setIsMenuOpen(false); 
                     setTimeout(() => {
                       window.dispatchEvent(new CustomEvent('apply-instructor-filter'));
