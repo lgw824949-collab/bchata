@@ -149,7 +149,7 @@ const PostClub = ({ onBack, onSuccess }) => {
         city: formData.region,
         fee: finalFee,
         poster_url: posterUrl,
-        status: 'pending',
+        status: 'approved',
         category_type: 'club'
       }])
 
@@ -166,11 +166,10 @@ const PostClub = ({ onBack, onSuccess }) => {
     return (
       <div style={{ textAlign: 'center', padding: '100px 24px', backgroundColor: 'white', minHeight: '100vh' }}>
         <div style={{ backgroundColor: THEME_COLOR, width: '80px', height: '80px', borderRadius: '40px', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 32px', boxShadow: `0 10px 25px ${THEME_COLOR}33` }}><Check size={40} color="white" /></div>
-        <h2 style={{ fontSize: '26px', fontWeight: 900, color: '#111827', marginBottom: '12px' }}>등록 신청 완료!</h2>
+        <h2 style={{ fontSize: '26px', fontWeight: 900, color: '#111827', marginBottom: '12px' }}>등록 완료!</h2>
         <p style={{ fontSize: '16px', color: '#6B7280', lineHeight: '1.6', marginBottom: '40px', fontWeight: 500 }}>
-          정상적으로 접수되었습니다.<br />
-          관리자 승인 후 메인 화면에<br />
-          즉시 노출됩니다.
+          정상적으로 등록되었습니다.<br />
+          메인 화면에 즉시 노출됩니다.
         </p>
         <button onClick={onSuccess || onBack} style={{ width: '100%', padding: '20px', background: THEME_COLOR, color: 'white', borderRadius: '16px', fontWeight: 800, fontSize: '18px', boxShadow: '0 4px 12px rgba(0,0,0,0.1)', border: 'none' }}>확인</button>
       </div>

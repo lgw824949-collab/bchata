@@ -102,7 +102,7 @@ const PostLesson = ({ onBack, user }) => {
         city: formData.region,
         fee: formData.fee ? `${formData.fee}만원` : '참가비 문의',
         poster_url: posterUrl,
-        status: 'pending',
+        status: 'approved',
         category_type: 'class'
       }])
 
@@ -121,9 +121,9 @@ const PostLesson = ({ onBack, user }) => {
         <div style={{ width: '80px', height: '80px', borderRadius: '40px', background: '#FFF7ED', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 32px' }}>
           <Check size={40} color="#FF8C00" />
         </div>
-        <h2 style={{ fontSize: '24px', fontWeight: 800, color: '#111827', marginBottom: '12px' }}>등록 신청 완료!</h2>
+        <h2 style={{ fontSize: '24px', fontWeight: 800, color: '#111827', marginBottom: '12px' }}>등록 완료!</h2>
         <p style={{ fontSize: '15px', color: '#6B7280', lineHeight: '1.6', marginBottom: '40px' }}>
-          관리자 승인 후 강습 목록에 노출됩니다.<br />보통 1시간 내로 처리됩니다.
+          정상적으로 등록되었습니다.<br />강습 목록에 즉시 노출됩니다.
         </p>
         <button onClick={onBack} style={{ width: '100%', height: '56px', borderRadius: '16px', background: '#FF8C00', color: 'white', fontWeight: 800, fontSize: '16px', border: 'none' }}>확인</button>
       </div>
