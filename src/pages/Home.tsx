@@ -652,7 +652,7 @@ const HomePage = ({
         {[
           { icon: <Calendar size={22} color="#F97316" />, label: '행사달력', action: () => setShowFullCalendar(true) },
           { icon: <Utensils size={22} color="#C2185B" />, label: '맛집/뒷풀이', action: () => setView('restaurant') },
-          { icon: <MessageSquare size={22} color="#388E3C" />, label: '채팅문의', action: () => window.open('https://open.kakao.com/o/gP43rNri', '_blank') },
+          { icon: <HomeIcon size={22} color="#558B2F" />, label: '대관문의', action: () => setShowRentalModal(true) },
           { icon: <Camera size={22} color="#E53935" />, label: '라이브픽', badge: 'HOT', action: () => setView('community') },
           { icon: <PlusCircle size={22} color="#64748B" />, label: '더보기', action: () => { setGridRegion('more'); setShowGridModal(true); } },
         ].map((item, idx) => (
@@ -1412,7 +1412,7 @@ const HomePage = ({
                       { icon: <Navigation size={32} color="#303F9F" />, label: '지능형경로', badge: 'LIVE', action: () => openAnalysis(false) },
                       { icon: <Star size={32} color="#F9A825" />, label: '운명의좌표', action: () => setShowSaju(true) },
                       { icon: <MapPin size={32} color="#0097A7" />, label: '주변주차', action: () => setView('parking') },
-                      { icon: <HomeIcon size={32} color="#558B2F" />, label: '대관문의', action: () => setShowRentalModal(true) },
+                      { icon: <MessageSquare size={32} color="#388E3C" />, label: '채팅문의', action: () => window.open('https://open.kakao.com/o/gP43rNri', '_blank') },
                       { icon: <Users size={32} color="#E53935" />, label: '파트너구하기', badge: 'NEW', action: () => setShowPartner(true) },
                     ].map((item, idx) => (
                       <div key={idx} style={{ position: 'relative' }}>
