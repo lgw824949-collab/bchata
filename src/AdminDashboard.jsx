@@ -4,6 +4,8 @@ import { supabase } from './lib/supabase'
 import { ChevronLeft, Check, Trash2, ShieldCheck, X, RefreshCw, XCircle, Clock, Tent, Flag, Music2, Camera, Zap, Menu, User, Sparkles } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
 import RegisterForm from './RegisterForm'
+import gangturnPhoto from './assets/gangturn_photo.png'
+import ggomaeyaPhoto from './assets/ggomaeya_photo.jpg'
 
 const EventRanking = () => {
   const [rankings, setRankings] = useState([])
@@ -598,7 +600,15 @@ export default function AdminDashboard({ onBack }) {
         {category === 'event' ? <EventRanking /> : items.length === 0 ? <div style={{ textAlign: 'center', padding: '100px 0', color: '#94A3B8' }}>데이터가 없습니다.</div> : items.map(item => (
           <div key={item.id} style={{ backgroundColor: '#FFF', borderRadius: '20px', padding: '20px', marginBottom: '16px', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.1)', border: '1px solid #E2E8F0' }}>
             <div style={{ display: 'flex', gap: '16px' }}>
-              {(item.poster_url || item.photo_url || item.image_url) && <img src={item.poster_url || item.photo_url || item.image_url} style={{ width: '80px', height: '110px', objectFit: 'cover', borderRadius: '12px' }} />}
+              {(() => {
+                let img = item.poster_url || item.photo_url || item.image_url;
+                if (category === 'rental') {
+                  const key = `${item.name || ''}`.replace(/\s+/g, '').toLowerCase();
+                  if (key.includes('강남턴') || key.includes('강턴')) img = gangturnPhoto;
+                  else if (key.includes('꼼애야')) img = ggomaeyaPhoto;
+                }
+                return img ? <img src={img} style={{ width: '80px', height: '110px', objectFit: 'cover', borderRadius: '12px' }} /> : null;
+              })()}
               <div style={{ flex: 1 }}>
                 <div style={{ fontSize: '11px', color: '#94A3B8', marginBottom: '4px' }}>ID: {item.id} | {item.created_at?.split('T')[0]} {item.created_at?.split('T')[1]?.slice(0, 5)}</div>
                 
@@ -689,7 +699,11 @@ export default function AdminDashboard({ onBack }) {
                           <span style={{ color: '#E53935', fontWeight: 800 }}>💬 카카오: {item.kakao_url ? '연결됨' : '미등록'}</span>
                           <span style={{ color: '#C2185B', fontWeight: 800 }}>📸 인스타: {item.instagram_url ? '연결됨' : '미등록'}</span>
                         </div>
-                        {item.image_url && <div style={{ fontSize: '11px', color: '#94A3B8', marginTop: '2px', wordBreak: 'break-all' }}>이미지: {item.image_url}</div>}
+                        {(() => {
+                          const key = `${item.name || ''}`.replace(/\s+/g, '').toLowerCase();
+                          const isCustom = key.includes('강남턴') || key.includes('강턴') || key.includes('꼼애야');
+                          return (item.image_url || isCustom) && <div style={{ fontSize: '11px', color: '#94A3B8', marginTop: '2px', wordBreak: 'break-all' }}>이미지: {isCustom ? '✨ 내장 브랜드 고유 에셋 매핑 적용 완료' : item.image_url}</div>;
+                        })()}
                       </div>
                     ) : category === 'instructor' ? (
                       <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>

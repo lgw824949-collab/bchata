@@ -4,6 +4,7 @@ import { X, MapPin, MessageCircle, Globe, Plus, ChevronLeft, Loader2 } from 'luc
 import { supabase } from '../lib/supabase';
 import { findBarByName } from '../lib/BarLib';
 import gangturnPhoto from '../assets/gangturn_photo.png';
+import ggomaeyaPhoto from '../assets/ggomaeya_photo.jpg';
 
 const REGIONS_ORDER = [
   '서울',
@@ -92,11 +93,12 @@ export default function RentalModal({ onClose }) {
 
         const nameKey = `${loc.name || ''}`.replace(/\s+/g, '').toLowerCase();
         const isGangturn = nameKey.includes('강남턴') || nameKey.includes('강턴');
+        const isGgomaeya = nameKey.includes('꼼애야');
 
         return { 
           ...loc, 
           region, 
-          image_url: isGangturn ? gangturnPhoto : loc.image_url,
+          image_url: isGangturn ? gangturnPhoto : isGgomaeya ? ggomaeyaPhoto : loc.image_url,
           instagram_url: isGangturn ? 'https://www.instagram.com/turn_latinclub_no.1?igsh=MW94ajh3OHZ3NDZ6bg%3D%3D' : loc.instagram_url
         };
       });
