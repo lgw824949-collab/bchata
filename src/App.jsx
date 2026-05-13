@@ -10,6 +10,8 @@ const RegisterForm = lazy(() => import('./RegisterForm'));
 const AdminDashboard = lazy(() => import('./AdminDashboard'));
 const HomePage = lazy(() => import('./pages/Home'));
 const Community = lazy(() => import('./pages/Community'));
+const Instructors = lazy(() => import('./pages/Instructors'));
+const InstructorRegister = lazy(() => import('./components/InstructorRegister'));
 const PostClub = lazy(() => import('./pages/PostClub'));
 const Bootcamp = lazy(() => import('./pages/Bootcamp'));
 const Festival = lazy(() => import('./pages/Festival'));
@@ -541,6 +543,7 @@ function App() {
     const path = location.pathname;
     if (path === '/') setView('home');
     else if (path === '/livepick') setView('community');
+    else if (path === '/instructors') setView('instructors');
     else if (path === '/bootcamp') setView('bootcamp');
     else if (path === '/bootcamp/register') setView('bootcamp-register');
     else if (path === '/festival') setView('festival');
@@ -978,6 +981,8 @@ function App() {
         <Suspense fallback={<LoadingFallback />}>
           {view === 'home' ? <HomePage {...sharedProps} /> : 
            view === 'community' ? <Community setSelectedPoster={setSelectedPoster} setView={setView} /> :
+           view === 'instructors' ? <Instructors /> :
+           view === 'register-class' ? <InstructorRegister onBack={() => navigate('/instructors')} /> :
            view === 'bootcamp' ? <Bootcamp onBack={() => navigate('/')} /> :
            view === 'bootcamp-register' ? <Bootcamp onBack={() => navigate('/bootcamp')} initialView="register" /> :
            view === 'festival' ? <Festival onBack={() => navigate('/')} /> :
@@ -1055,26 +1060,30 @@ function App() {
             />
           )}
           <Music2 size={22} strokeWidth={location.pathname === '/' ? 2.5 : 2} style={{ marginBottom: '4px' }} />
-          <span style={{ fontSize: '10px', fontWeight: location.pathname === '/' ? 900 : 500 }}>SOCIAL</span>
+          <span style={{ fontSize: '10px', fontWeight: location.pathname === '/' ? 900 : 500 }}>
+            {i18n.language?.startsWith('en') ? 'Social' : '소셜'}
+          </span>
         </div>
 
         <div 
           className="nav-item" 
-          onClick={() => navigate('/livepick')}
+          onClick={() => navigate('/instructors')}
           style={{ 
             flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
             cursor: 'pointer', transition: 'all 0.3s', position: 'relative', height: '100%',
-            color: location.pathname === '/livepick' ? '#E11D48' : '#94A3B8'
+            color: location.pathname === '/instructors' ? '#E11D48' : '#94A3B8'
           }}
         >
-          {location.pathname === '/livepick' && (
+          {location.pathname === '/instructors' && (
             <motion.div 
               layoutId="nav-glow"
               style={{ position: 'absolute', width: '40px', height: '40px', borderRadius: '50%', background: 'rgba(225, 29, 72, 0.1)', filter: 'blur(8px)' }} 
             />
           )}
-          <Camera size={22} strokeWidth={location.pathname === '/livepick' ? 2.5 : 2} style={{ marginBottom: '4px' }} />
-          <span style={{ fontSize: '10px', fontWeight: location.pathname === '/livepick' ? 900 : 500 }}>LIVE PICK</span>
+          <Users size={22} strokeWidth={location.pathname === '/instructors' ? 2.5 : 2} style={{ marginBottom: '4px' }} />
+          <span style={{ fontSize: '10px', fontWeight: location.pathname === '/instructors' ? 900 : 500 }}>
+            {i18n.language?.startsWith('en') ? 'Master' : '강사'}
+          </span>
         </div>
 
         <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', position: 'relative', height: '100%' }}>
@@ -1084,6 +1093,8 @@ function App() {
             onClick={() => {
               if (location.pathname === '/livepick') {
                 window.dispatchEvent(new CustomEvent('open-community-upload'));
+              } else if (location.pathname === '/instructors') {
+                navigate('/register-class');
               } else if (location.pathname === '/bootcamp') {
                 navigate('/bootcamp/register');
               } else if (location.pathname === '/festival') {
@@ -1103,7 +1114,7 @@ function App() {
             <Plus size={30} strokeWidth={3} />
           </motion.button>
           <span style={{ fontSize: '10px', fontWeight: 900, color: '#D97706', position: 'absolute', bottom: '12px' }}>
-            {location.pathname === '/livepick' ? (i18n.language.startsWith('en') ? 'REPORT' : '리포트') : t('nav_register')}
+            {location.pathname === '/livepick' ? (i18n.language?.startsWith('en') ? 'REPORT' : '리포트') : t('nav_register')}
           </span>
         </div>
 
@@ -1123,7 +1134,9 @@ function App() {
             />
           )}
           <Tent size={22} strokeWidth={location.pathname === '/bootcamp' ? 2.5 : 2} style={{ marginBottom: '4px' }} />
-          <span style={{ fontSize: '10px', fontWeight: location.pathname === '/bootcamp' ? 900 : 500 }}>{t('nav_bootcamp')}</span>
+          <span style={{ fontSize: '10px', fontWeight: location.pathname === '/bootcamp' ? 900 : 500 }}>
+            {i18n.language?.startsWith('en') ? 'Bootcamp' : '부트캠프'}
+          </span>
         </div>
 
         <div 
@@ -1142,7 +1155,9 @@ function App() {
             />
           )}
           <Flag size={22} strokeWidth={location.pathname === '/festival' ? 2.5 : 2} style={{ marginBottom: '4px' }} />
-          <span style={{ fontSize: '10px', fontWeight: location.pathname === '/festival' ? 900 : 500 }}>{t('nav_festival')}</span>
+          <span style={{ fontSize: '10px', fontWeight: location.pathname === '/festival' ? 900 : 500 }}>
+            {i18n.language?.startsWith('en') ? 'Festival' : '페스티벌'}
+          </span>
         </div>
       </nav>
 
