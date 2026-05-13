@@ -1302,7 +1302,7 @@ const HomePage = ({
                           {/* 1. 이벤트 수 */}
                           <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontWeight: 800 }}>
                             <span style={{ color: '#E53935' }}>📅</span>
-                            <span>파티 {partyCount}개 / 부트캠프 {bootcampCount}개 / 페스티벌 {festivalCount}개</span>
+                            <span>파티 {partyCount}건 / 부트캠프 {bootcampCount}건 / 페스티벌 {festivalCount}건</span>
                           </div>
 
                           {/* 2. 지역별 */}
@@ -1310,7 +1310,7 @@ const HomePage = ({
                             <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap', fontWeight: 600, marginTop: '2px' }}>
                               {availableRegions.map((r, idx) => (
                                 <React.Fragment key={r}>
-                                  <span style={{ color: '#1E293B' }}>{r} <span style={{ color: '#E53935', fontWeight: 800 }}>{regionCounts[r]}</span>개</span>
+                                  <span style={{ color: '#1E293B' }}>{r} <span style={{ color: '#E53935', fontWeight: 800 }}>{regionCounts[r]}</span>건</span>
                                   {idx < availableRegions.length - 1 && <span style={{ color: '#CBD5E1' }}>·</span>}
                                 </React.Fragment>
                               ))}
@@ -1322,7 +1322,7 @@ const HomePage = ({
                             <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap', fontWeight: 600, marginTop: '2px' }}>
                               {availableGenres.map((g, idx) => (
                                 <React.Fragment key={g}>
-                                  <span style={{ color: '#1E293B' }}>{g} <span style={{ color: '#E53935', fontWeight: 800 }}>{genreCounts[g]}</span>개</span>
+                                  <span style={{ color: '#1E293B' }}>{g} <span style={{ color: '#E53935', fontWeight: 800 }}>{genreCounts[g]}</span>건</span>
                                   {idx < availableGenres.length - 1 && <span style={{ color: '#CBD5E1' }}>·</span>}
                                 </React.Fragment>
                               ))}
