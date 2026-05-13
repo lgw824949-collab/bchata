@@ -89,7 +89,15 @@ export default function RentalModal({ onClose }) {
           else region = '서울'; // 지정되지 않은 경우 기본값 서울 편입
         }
 
-        return { ...loc, region, image_url: null };
+        const nameKey = `${loc.name || ''}`.replace(/\s+/g, '').toLowerCase();
+        const isGangturn = nameKey.includes('강남턴') || nameKey.includes('강턴');
+
+        return { 
+          ...loc, 
+          region, 
+          image_url: isGangturn ? '/turn_logo.png' : null,
+          instagram_url: isGangturn ? 'https://www.instagram.com/turn_latinclub_no.1?igsh=MW94ajh3OHZ3NDZ6bg%3D%3D' : loc.instagram_url
+        };
       });
 
       classified.sort((a, b) => (a.name || '').localeCompare(b.name || ''));
