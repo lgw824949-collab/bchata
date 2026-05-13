@@ -15,6 +15,7 @@ const TITLE_EXAMPLES = [
 
 const RegisterForm = ({ onBack, onSuccess, isEdit = false, initialData = null }) => {
   const [file, setFile] = useState(null)
+  const [inputUrl, setInputUrl] = useState('')
   const [formData, setFormData] = useState({
     title: initialData?.title?.replace(/^\[.*?\]\s*/, '').replace(/ ㅣ 오늘밤빠$/, '') || '',
     location_name: initialData?.location_name || initialData?.locations?.name || '',
@@ -56,10 +57,18 @@ const RegisterForm = ({ onBack, onSuccess, isEdit = false, initialData = null })
     }
   };
 
+  const handleUrlChange = (e) => {
+    setInputUrl(e.target.value);
+    if (e.target.value) {
+      setFile(null);
+    }
+  };
+
   const handleFileUpload = (event) => {
     const uploadedFile = event.target.files[0]
     if (!uploadedFile) return
     setFile(uploadedFile)
+    setInputUrl('')
   }
 
   const classifyRegion = (address) => {
@@ -255,7 +264,7 @@ const RegisterForm = ({ onBack, onSuccess, isEdit = false, initialData = null })
         date: formData.date,
         time: formData.time,
         day_of_week: formData.day_of_week,
-        poster_url: finalPosterUrl || initialData?.poster_url,
+        poster_url: finalPosterUrl || inputUrl || initialData?.poster_url,
         s_ratio: formData.sRatio,
         b_ratio: formData.bRatio,
         j_ratio: formData.jRatio,
@@ -311,9 +320,9 @@ const RegisterForm = ({ onBack, onSuccess, isEdit = false, initialData = null })
         return (
           <motion.div key="step1" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} style={{ padding: '24px' }}>
             <label style={{ display: 'block', fontSize: '20px', fontWeight: 900, color: '#1E293B', marginBottom: '24px' }}>📸 {isEdit ? '포스터 변경 (선택)' : '파티 포스터 선택'}</label>
-            <div onClick={() => document.getElementById('poster-upload').click()} style={{ height: '350px', border: '2px dashed #E2E8F0', borderRadius: '24px', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', background: '#F8FAFC', overflow: 'hidden' }}>
-              {(file || initialData?.poster_url) ? (
-                <img src={file ? URL.createObjectURL(file) : initialData.poster_url} style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
+            <div onClick={() => document.getElementById('poster-upload').click()} style={{ height: '350px', border: '2px dashed #E2E8F0', borderRadius: '24px', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', background: '#F8FAFC', overflow: 'hidden', cursor: 'pointer' }}>
+              {(file || inputUrl || initialData?.poster_url) ? (
+                <img src={file ? URL.createObjectURL(file) : (inputUrl || initialData.poster_url)} style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
               ) : (
                 <>
                   <Plus size={40} color="#FF1744" style={{ marginBottom: '16px' }} />
@@ -322,6 +331,16 @@ const RegisterForm = ({ onBack, onSuccess, isEdit = false, initialData = null })
               )}
             </div>
             <input type="file" id="poster-upload" accept="image/*" onChange={handleFileUpload} style={{ display: 'none' }} />
+            <div style={{ marginTop: '20px' }}>
+              <label style={{ display: 'block', fontSize: '14px', fontWeight: 800, color: '#64748B', marginBottom: '8px' }}>또는 이미지 URL 직접 입력</label>
+              <input 
+                type="url" 
+                value={inputUrl} 
+                onChange={handleUrlChange} 
+                placeholder="https://example.com/poster.jpg" 
+                style={{ width: '100%', padding: '16px', border: '2px solid #E2E8F0', borderRadius: '16px', fontSize: '15px', background: '#F8FAFC', outline: 'none', color: '#1E293B', fontWeight: 600 }} 
+              />
+            </div>
           </motion.div>
         );
       case 2:
