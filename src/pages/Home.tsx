@@ -724,31 +724,40 @@ const HomePage = ({
           })}
         </div>
 
-        {/* 선택된 날짜의 장르 필터 버튼 */}
-        <div style={{ display: 'flex', overflowX: 'auto', gap: '6px', padding: '6px 10px 8px', borderTop: '1px solid var(--color-border)', msOverflowStyle: 'none', scrollbarWidth: 'none', WebkitOverflowScrolling: 'touch' }}>
-          {['전체', '바차타', '살사', '쥬크', '키좀바', '부트캠프', '페스티벌'].map(g => {
-            const isActive = activeDateGenre === g;
-            return (
-              <button
-                key={g}
-                onClick={() => setActiveDateGenre(g)}
-                style={{
-                  padding: '4px 12px',
-                  borderRadius: '14px',
-                  fontSize: '11px',
-                  fontWeight: isActive ? 900 : 700,
-                  backgroundColor: isActive ? '#E53935' : 'var(--color-card)',
-                  color: isActive ? '#fff' : 'var(--color-text-sub)',
-                  border: `1px solid ${isActive ? '#E53935' : 'var(--color-border)'}`,
-                  cursor: 'pointer',
-                  flexShrink: 0,
-                  transition: 'all 0.2s'
-                }}
-              >
-                {g}
-              </button>
-            );
-          })}
+        {/* 선택된 날짜의 장르 필터 바 */}
+        <div style={{ overflow: 'hidden', borderTop: '1px solid var(--color-border)' }}>
+          <motion.div
+            key={selectedDate}
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.2, ease: 'easeOut' }}
+            style={{ display: 'flex', overflowX: 'auto', gap: '6px', padding: '8px 10px', msOverflowStyle: 'none', scrollbarWidth: 'none', WebkitOverflowScrolling: 'touch' }}
+          >
+            {['전체', '바차타', '살사', '쥬크', '키좀바', '부트캠프', '페스티벌'].map(g => {
+              const isActive = activeDateGenre === g;
+              return (
+                <button
+                  key={g}
+                  onClick={() => setActiveDateGenre(g)}
+                  style={{
+                    padding: '6px 12px',
+                    borderRadius: '20px',
+                    fontSize: '12px',
+                    fontWeight: isActive ? 900 : 600,
+                    backgroundColor: isActive ? '#E53935' : '#fff',
+                    color: isActive ? '#fff' : '#64748B',
+                    border: `1px solid ${isActive ? '#E53935' : '#E2E8F0'}`,
+                    cursor: 'pointer',
+                    flexShrink: 0,
+                    boxShadow: isActive ? '0 2px 6px rgba(229,57,53,0.25)' : '0 1px 3px rgba(0,0,0,0.05)',
+                    transition: 'all 0.2s'
+                  }}
+                >
+                  {g}
+                </button>
+              );
+            })}
+          </motion.div>
         </div>
       </div>
 
