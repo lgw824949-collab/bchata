@@ -718,9 +718,13 @@ const HomePage = ({
               <div key={item.fullDate}
                 onClick={() => {
                   console.log('클릭한 날짜:', item.fullDate);
-                  setSelectedDate(item.fullDate);
-                  setActiveDateGenre('전체');
-                  setIsFilterBarVisible(true);
+                  if (selectedDate === item.fullDate) {
+                    setIsFilterBarVisible(v => !v);
+                  } else {
+                    setSelectedDate(item.fullDate);
+                    setActiveDateGenre('전체');
+                    setIsFilterBarVisible(true);
+                  }
                 }}
                 style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minWidth: '13.5%', cursor: 'pointer', position: 'relative', paddingBottom: '6px' }}
               >
