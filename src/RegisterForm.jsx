@@ -213,7 +213,12 @@ const RegisterForm = ({ onBack, onSuccess, isEdit = false, initialData = null })
       let finalPosterUrl = ''
       if (file) {
         const fileName = `${Math.random()}.jpg`
-        await supabase.storage.from('posters').upload(`posters/${fileName}`, file)
+        const { error: uploadError } = await supabase.storage.from('posters').upload(`posters/${fileName}`, file)
+        if (uploadError) {
+          alert('포스터 이미지 업로드 실패: ' + uploadError.message)
+          setLoading(false)
+          return
+        }
         const { data } = supabase.storage.from('posters').getPublicUrl(`posters/${fileName}`)
         finalPosterUrl = data.publicUrl
       }
