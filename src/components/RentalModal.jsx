@@ -101,7 +101,7 @@ export default function RentalModal({ onClose }) {
         const isGangturn = nameKey.includes('강남턴') || nameKey.includes('강턴');
         const isGgomaeya = nameKey.includes('꼼애야');
         const isNoriter = nameKey.includes('놀이터');
-        const isLatin = nameKey.includes('라틴');
+        const isLatin = nameKey.includes('라틴') && region !== '경기/인천' && !nameKey.includes('라틴크루');
         const isMacondo = nameKey.includes('마콘도');
         const isBonita = nameKey.includes('보니따');
         const isBuena = nameKey.includes('부에나');
