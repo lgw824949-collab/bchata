@@ -98,8 +98,16 @@ export default function AdminDashboard({ onBack }) {
     setImageFile(file)
     setPreview(URL.createObjectURL(file))
   }
+
+  const handleNewRentalImageChange = (e) => {
+    const file = e.target.files[0]
+    if (!file) return
+    setNewRentalFile(file)
+    setNewRentalPreview(URL.createObjectURL(file))
+  }
+
   const [items, setItems] = useState([])
-  const [category, setCategory] = useState('social') // 'social', 'live-mgmt', 'live', 'bootcamp', 'festival', 'instructor'
+  const [category, setCategory] = useState('social') // 'social', 'live-mgmt', 'live', 'bootcamp', 'festival', 'instructor', 'rental'
   const [activeTab, setActiveTab] = useState('pending') // 'pending', 'active', 'rejected'
   const [showMoreMenu, setShowMoreMenu] = useState(false)
   const [editingItem, setEditingItem] = useState(null)
@@ -107,6 +115,10 @@ export default function AdminDashboard({ onBack }) {
   const [currentItem, setCurrentItem] = useState(null)
   const [editFormData, setEditFormData] = useState({})
   const [loading, setLoading] = useState(false)
+
+  const [newRental, setNewRental] = useState({ name: '', address: '', kakao_url: '', instagram_url: '', image_url: '' })
+  const [newRentalFile, setNewRentalFile] = useState(null)
+  const [newRentalPreview, setNewRentalPreview] = useState(null)
 
   // 로그인 처리
   const handleLogin = (e) => {
@@ -141,14 +153,54 @@ export default function AdminDashboard({ onBack }) {
       } else if (category === 'instructor-classes') {
         const statusVal = activeTab === 'active' ? 'active' : activeTab;
         query = supabase.from('instructor_classes').select('*, instructors(name)').eq('status', statusVal);
+      } else if (category === 'rental') {
+        query = supabase.from('locations').select('*');
       }
-      const { data, error } = await query.order('created_at', { ascending: false })
+      const { data, error } = await (category === 'rental' ? query.order('name', { ascending: true }) : query.order('created_at', { ascending: false }))
       if (error) throw error
       setItems(data || [])
     } catch (err) { console.error(err) } finally { setLoading(false) }
   }
 
   useEffect(() => { if (isAdmin) fetchData() }, [category, activeTab, isAdmin])
+
+  const handleCreateRental = async (e) => {
+    e.preventDefault();
+    if (!newRental.name?.trim() || !newRental.address?.trim()) {
+      alert('BAR 이름과 주소를 모두 입력해주세요.');
+      return;
+    }
+    setLoading(true);
+    try {
+      let finalImageUrl = newRental.image_url || '';
+      if (newRentalFile) {
+        const ext = newRentalFile.name.split('.').pop();
+        const fileName = `posters/${Date.now()}_${Math.random().toString(36).substring(7)}.${ext}`;
+        const { error: uploadError } = await supabase.storage.from('posters').upload(fileName, newRentalFile);
+        if (uploadError) throw uploadError;
+        const { data: urlData } = supabase.storage.from('posters').getPublicUrl(fileName);
+        finalImageUrl = urlData.publicUrl;
+      }
+      const payload = {
+        name: newRental.name.trim(),
+        address: newRental.address.trim(),
+        image_url: finalImageUrl || null,
+        kakao_url: newRental.kakao_url?.trim() || null,
+        instagram_url: newRental.instagram_url?.trim() || null
+      };
+      const { error } = await supabase.from('locations').insert([payload]);
+      if (error) throw error;
+      alert('신규 BAR가 성공적으로 등재되었습니다!');
+      setNewRental({ name: '', address: '', kakao_url: '', instagram_url: '', image_url: '' });
+      setNewRentalFile(null);
+      setNewRentalPreview(null);
+      fetchData();
+    } catch (err) {
+      alert('등록 실패: ' + err.message);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   // 수정 시작
   const startEdit = (item) => {
@@ -200,14 +252,16 @@ export default function AdminDashboard({ onBack }) {
       else if (category === 'live') table = 'community_posts';
       else if (category === 'instructor') table = 'instructors';
       else if (category === 'instructor-classes') table = 'instructor_classes';
+      else if (category === 'rental') table = 'locations';
       else table = category === 'bootcamp' ? 'bootcamps' : 'festivals';
 
-      let finalPhotoUrl = editFormData.photo_url || '';
+      let finalPhotoUrl = editFormData.photo_url || editFormData.image_url || '';
 
-      // Upload image if a new file is selected (for instructors)
-      if (category === 'instructor' && imageFile) {
+      // Upload image if a new file is selected
+      if ((category === 'instructor' || category === 'rental') && imageFile) {
         const ext = imageFile.name.split('.').pop()
-        const fileName = `instructors/${Date.now()}_${Math.random().toString(36).substring(7)}.${ext}`
+        const folder = category === 'rental' ? 'posters' : 'instructors';
+        const fileName = `${folder}/${Date.now()}_${Math.random().toString(36).substring(7)}.${ext}`
         const { error: uploadError } = await supabase.storage
           .from('posters')
           .upload(fileName, imageFile)
@@ -221,13 +275,24 @@ export default function AdminDashboard({ onBack }) {
         finalPhotoUrl = urlData.publicUrl
       }
 
-      const { locations, created_at, id, locationName, location_name, ...updateData } = editFormData;
-      const { error } = await supabase.from(table).update({
-        ...updateData,
-        photo_url: category === 'instructor' ? finalPhotoUrl : (updateData.photo_url || updateData.poster_url)
-      }).eq('id', editingItem);
+      if (category === 'rental') {
+        const { error } = await supabase.from('locations').update({
+          name: editFormData.name?.trim(),
+          address: editFormData.address?.trim(),
+          image_url: finalPhotoUrl,
+          kakao_url: editFormData.kakao_url?.trim(),
+          instagram_url: editFormData.instagram_url?.trim()
+        }).eq('id', editingItem);
+        if (error) throw error;
+      } else {
+        const { locations, created_at, id, locationName, location_name, ...updateData } = editFormData;
+        const { error } = await supabase.from(table).update({
+          ...updateData,
+          photo_url: category === 'instructor' ? finalPhotoUrl : (updateData.photo_url || updateData.poster_url)
+        }).eq('id', editingItem);
+        if (error) throw error;
+      }
 
-      if (error) throw error;
       alert('수정되었습니다.');
       setEditingItem(null);
       setImageFile(null);
@@ -307,6 +372,7 @@ export default function AdminDashboard({ onBack }) {
       else if (category === 'live') table = 'community_posts';
       else if (category === 'instructor') table = 'instructors';
       else if (category === 'instructor-classes') table = 'instructor_classes';
+      else if (category === 'rental') table = 'locations';
       else table = category === 'bootcamp' ? 'bootcamps' : 'festivals';
       await supabase.from(table).delete().eq('id', id);
       fetchData();
@@ -354,6 +420,7 @@ export default function AdminDashboard({ onBack }) {
   ]
 
   const MORE_CATEGORIES = [
+    { id: 'rental', label: '대관문의 (BAR) 🍷', icon: <Sparkles size={16} color="#E53935" /> },
     { id: 'instructor', label: '강사 승인/관리 🌟', icon: <User size={16} /> },
     { id: 'live-mgmt', label: 'LIVE 관리', icon: <Zap size={16} color="#F59E0B" /> },
     { id: 'live', label: 'LIVE PICK', icon: <Camera size={16} /> },
@@ -456,7 +523,7 @@ export default function AdminDashboard({ onBack }) {
       </div>
 
       {/* 상태 탭 */}
-      {category !== 'live-mgmt' && category !== 'event' && (
+      {category !== 'live-mgmt' && category !== 'event' && category !== 'rental' && (
         <div style={{ display: 'flex', padding: '0 16px 16px', gap: '8px', backgroundColor: '#FFF' }}>
           {[
             { id: 'pending', label: '승인대기', color: '#F59E0B' },
@@ -483,6 +550,36 @@ export default function AdminDashboard({ onBack }) {
 
       {/* 리스트 */}
       <div style={{ padding: '16px' }}>
+        {category === 'rental' && (
+          <div style={{ backgroundColor: '#FFF', borderRadius: '20px', padding: '20px', marginBottom: '24px', boxShadow: '0 10px 25px rgba(229,57,53,0.1)', border: '2px solid #FFEBEE' }}>
+            <div style={{ fontSize: '15px', fontWeight: 950, color: '#E53935', marginBottom: '12px', display: 'flex', alignItems: 'center', gap: '6px' }}>
+              🍷 신규 대관처(BAR) 직접 등재
+            </div>
+            <form onSubmit={handleCreateRental} style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+              <input value={newRental.name} onChange={e => setNewRental({...newRental, name: e.target.value})} placeholder="BAR 이름 *" required style={{ padding: '12px', borderRadius: '12px', border: '1px solid #E2E8F0', fontWeight: 800 }} />
+              <input value={newRental.address} onChange={e => setNewRental({...newRental, address: e.target.value})} placeholder="상세 주소 *" required style={{ padding: '12px', borderRadius: '12px', border: '1px solid #E2E8F0' }} />
+              <input value={newRental.kakao_url} onChange={e => setNewRental({...newRental, kakao_url: e.target.value})} placeholder="카카오톡 문의 링크" style={{ padding: '12px', borderRadius: '12px', border: '1px solid #E2E8F0', fontSize: '13px' }} />
+              <input value={newRental.instagram_url} onChange={e => setNewRental({...newRental, instagram_url: e.target.value})} placeholder="인스타그램 링크" style={{ padding: '12px', borderRadius: '12px', border: '1px solid #E2E8F0', fontSize: '13px' }} />
+              
+              <div style={{ display: 'flex', gap: '12px', alignItems: 'center', padding: '10px', backgroundColor: '#F8FAFC', borderRadius: '12px' }}>
+                <label style={{ cursor: 'pointer', flexShrink: 0 }}>
+                  <input type="file" accept="image/*" onChange={handleNewRentalImageChange} style={{ display: 'none' }} />
+                  <div style={{ width: '50px', height: '50px', borderRadius: '10px', background: '#FFF', border: '1px dashed #CBD5E1', overflow: 'hidden', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                    {newRentalPreview ? <img src={newRentalPreview} style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : <Camera size={20} color="#94A3B8" />}
+                  </div>
+                </label>
+                <div style={{ flex: 1 }}>
+                  <div style={{ fontSize: '11px', fontWeight: 800, color: '#475569' }}>대표 이미지 선택</div>
+                  <input value={newRental.image_url} onChange={e => setNewRental({...newRental, image_url: e.target.value})} placeholder="또는 URL 직접 입력" style={{ width: '100%', padding: '4px 0', border: 'none', borderBottom: '1px solid #E2E8F0', background: 'transparent', fontSize: '12px' }} />
+                </div>
+              </div>
+
+              <button type="submit" disabled={loading} style={{ padding: '14px', background: '#E53935', color: '#FFF', border: 'none', borderRadius: '12px', fontWeight: 900, cursor: 'pointer', marginTop: '4px' }}>
+                등재 완료하기
+              </button>
+            </form>
+          </div>
+        )}
         {category === 'event' ? <EventRanking /> : items.length === 0 ? <div style={{ textAlign: 'center', padding: '100px 0', color: '#94A3B8' }}>데이터가 없습니다.</div> : items.map(item => (
           <div key={item.id} style={{ backgroundColor: '#FFF', borderRadius: '20px', padding: '20px', marginBottom: '16px', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.1)', border: '1px solid #E2E8F0' }}>
             <div style={{ display: 'flex', gap: '16px' }}>
@@ -494,6 +591,28 @@ export default function AdminDashboard({ onBack }) {
                   /* 수정 모드 */
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
                     <input value={editFormData.title || editFormData.name || ''} onChange={e => setEditFormData({ ...editFormData, title: e.target.value, name: e.target.value })} placeholder="제목/이름" style={{ width: '100%', padding: '10px', borderRadius: '10px', border: '1px solid #E2E8F0', fontWeight: 700 }} />
+                    {category === 'rental' && (
+                      <>
+                        <input value={editFormData.address || ''} onChange={e => setEditFormData({ ...editFormData, address: e.target.value })} placeholder="상세 주소" style={{ width: '100%', padding: '10px', borderRadius: '10px', border: '1px solid #E2E8F0' }} />
+                        <input value={editFormData.kakao_url || ''} onChange={e => setEditFormData({ ...editFormData, kakao_url: e.target.value })} placeholder="카카오톡 오픈챗 URL" style={{ width: '100%', padding: '10px', borderRadius: '10px', border: '1px solid #E2E8F0', fontSize: '12px' }} />
+                        <input value={editFormData.instagram_url || ''} onChange={e => setEditFormData({ ...editFormData, instagram_url: e.target.value })} placeholder="인스타그램 URL" style={{ width: '100%', padding: '10px', borderRadius: '10px', border: '1px solid #E2E8F0', fontSize: '12px' }} />
+                        
+                        <div style={{ display: 'flex', gap: '12px', alignItems: 'center', padding: '10px', backgroundColor: '#F1F5F9', borderRadius: '10px' }}>
+                          <label style={{ cursor: 'pointer', flexShrink: 0 }}>
+                            <input type="file" accept="image/*" onChange={handleAdminImageChange} style={{ display: 'none' }} />
+                            <div style={{ width: '60px', height: '60px', borderRadius: '12px', background: '#FFF', border: '1px dashed #94A3B8', overflow: 'hidden', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                              {(preview || editFormData.image_url) ? (
+                                <img src={preview || editFormData.image_url} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                              ) : <Camera size={24} color="#94A3B8" />}
+                            </div>
+                          </label>
+                          <div style={{ flex: 1 }}>
+                            <div style={{ fontSize: '11px', fontWeight: 800, color: '#475569' }}>대표 사진 업로드/교체</div>
+                            <input value={editFormData.image_url || ''} onChange={e => setEditFormData({ ...editFormData, image_url: e.target.value })} placeholder="또는 URL 직접 입력" style={{ width: '100%', padding: '5px 0', border: 'none', borderBottom: '1px solid #CBD5E1', backgroundColor: 'transparent', fontSize: '12px' }} />
+                          </div>
+                        </div>
+                      </>
+                    )}
                     {category === 'instructor' && (
                       <>
                         <div style={{ display: 'flex', gap: '8px' }}>
@@ -547,7 +666,17 @@ export default function AdminDashboard({ onBack }) {
                 ) : (
                   /* 보기 모드 */
                   <div style={{ flex: 1 }}>
-                    {category === 'instructor' ? (
+                    {category === 'rental' ? (
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                        <h3 style={{ fontSize: '16px', fontWeight: 950, color: '#1E293B' }}>🍷 {item.name}</h3>
+                        <div style={{ fontSize: '13px', color: '#64748B' }}>📍 {item.address || '주소 없음'}</div>
+                        <div style={{ display: 'flex', gap: '12px', fontSize: '12px', marginTop: '4px' }}>
+                          <span style={{ color: '#E53935', fontWeight: 800 }}>💬 카카오: {item.kakao_url ? '연결됨' : '미등록'}</span>
+                          <span style={{ color: '#C2185B', fontWeight: 800 }}>📸 인스타: {item.instagram_url ? '연결됨' : '미등록'}</span>
+                        </div>
+                        {item.image_url && <div style={{ fontSize: '11px', color: '#94A3B8', marginTop: '2px', wordBreak: 'break-all' }}>이미지: {item.image_url}</div>}
+                      </div>
+                    ) : category === 'instructor' ? (
                       <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
                         <h3 style={{ fontSize: '16px', fontWeight: 900, color: '#1E293B' }}>👤 {item.name} (@{item.custom_id})</h3>
                         <div style={{ fontSize: '13px', color: '#7C3AED', fontWeight: 800 }}>🎵 {Array.isArray(item.genre) ? item.genre.join(', ') : item.genre} | 📍 {item.city}</div>
@@ -578,42 +707,46 @@ export default function AdminDashboard({ onBack }) {
                     )}
 
                     <div style={{ display: 'flex', gap: '8px', marginTop: '16px' }}>
-                      <button 
-                        type="button"
-                        onClick={() => updateStatus(item, 'active')} 
-                        style={{ 
-                          flex: 1, padding: '10px', borderRadius: '10px', border: 'none', 
-                          background: '#E8F5E9', color: '#2E7D32', cursor: 'pointer', 
-                          pointerEvents: 'auto', position: 'relative', zIndex: 1 
-                        }} 
-                        title="승인"
-                      >
-                        <Check size={18} />
-                      </button>
-                      <button 
-                        type="button"
-                        onClick={() => updateStatus(item, 'pending')} 
-                        style={{ 
-                          flex: 1, padding: '10px', borderRadius: '10px', border: 'none', 
-                          background: '#FFF8E1', color: '#F59E0B', cursor: 'pointer', 
-                          pointerEvents: 'auto', position: 'relative', zIndex: 1 
-                        }} 
-                        title="보류"
-                      >
-                        <Clock size={18} />
-                      </button>
-                      <button 
-                        type="button"
-                        onClick={() => updateStatus(item, 'rejected')} 
-                        style={{ 
-                          flex: 1, padding: '10px', borderRadius: '10px', border: 'none', 
-                          background: '#FFEBEE', color: '#C62828', cursor: 'pointer', 
-                          pointerEvents: 'auto', position: 'relative', zIndex: 1 
-                        }} 
-                        title="반려"
-                      >
-                        <XCircle size={18} />
-                      </button>
+                      {category !== 'rental' && (
+                        <>
+                          <button 
+                            type="button"
+                            onClick={() => updateStatus(item, 'active')} 
+                            style={{ 
+                              flex: 1, padding: '10px', borderRadius: '10px', border: 'none', 
+                              background: '#E8F5E9', color: '#2E7D32', cursor: 'pointer', 
+                              pointerEvents: 'auto', position: 'relative', zIndex: 1 
+                            }} 
+                            title="승인"
+                          >
+                            <Check size={18} />
+                          </button>
+                          <button 
+                            type="button"
+                            onClick={() => updateStatus(item, 'pending')} 
+                            style={{ 
+                              flex: 1, padding: '10px', borderRadius: '10px', border: 'none', 
+                              background: '#FFF8E1', color: '#F59E0B', cursor: 'pointer', 
+                              pointerEvents: 'auto', position: 'relative', zIndex: 1 
+                            }} 
+                            title="보류"
+                          >
+                            <Clock size={18} />
+                          </button>
+                          <button 
+                            type="button"
+                            onClick={() => updateStatus(item, 'rejected')} 
+                            style={{ 
+                              flex: 1, padding: '10px', borderRadius: '10px', border: 'none', 
+                              background: '#FFEBEE', color: '#C62828', cursor: 'pointer', 
+                              pointerEvents: 'auto', position: 'relative', zIndex: 1 
+                            }} 
+                            title="반려"
+                          >
+                            <XCircle size={18} />
+                          </button>
+                        </>
+                      )}
                       <button 
                         type="button"
                         onClick={() => startEdit(item)} 
