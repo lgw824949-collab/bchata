@@ -698,6 +698,35 @@ function App() {
     }
   }, []);
 
+  useEffect(() => {
+    if (!isMenuOpen) return;
+    const fetchFollowed = async () => {
+      try {
+        let s = localStorage.getItem('oneulbam_session');
+        if (!s) return;
+        const { data: followData } = await supabase
+          .from('instructor_follows')
+          .select('instructor_id')
+          .eq('user_session', s);
+        
+        if (followData && followData.length > 0) {
+          const ids = followData.map(f => f.instructor_id);
+          const { data: instData } = await supabase
+            .from('instructors')
+            .select('*')
+            .in('id', ids)
+            .eq('status', 'active');
+          if (instData) setFollowedInstructors(instData);
+        } else {
+          setFollowedInstructors([]);
+        }
+      } catch (err) {
+        console.error('Failed to fetch followed instructors:', err);
+      }
+    };
+    fetchFollowed();
+  }, [isMenuOpen]);
+
   const fetchParties = async () => {
     setLoading(true);
     try {
@@ -915,35 +944,73 @@ function App() {
               position: 'fixed', top: 0, bottom: 0, left: 0,
               width: '75vw', maxWidth: '320px',
               zIndex: 1000000,
-              background: 'var(--color-bg)', padding: '24px',
+              background: '#121212', padding: '24px',
               display: 'flex', flexDirection: 'column',
               overflowY: 'auto',
-              borderRight: '1px solid var(--color-border)',
-              transition: 'background-color 0.3s, border-color 0.3s'
+              borderRight: '1px solid rgba(201,168,76,0.3)',
+              color: '#fff'
             }}
           >
-            <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: '32px' }}>
+            <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: '24px' }}>
               <motion.button 
                 whileTap={{ scale: 0.9 }}
                 onClick={handleCloseModal}
-                style={{ background: 'var(--color-card)', border: '1px solid var(--color-border)', borderRadius: '12px', padding: '10px', color: '#FF1744', cursor: 'pointer' }}
+                style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(201,168,76,0.3)', borderRadius: '12px', padding: '10px', color: '#C9A84C', cursor: 'pointer' }}
               >
                 <ChevronLeft size={24} />
               </motion.button>
             </div>
 
-            <div style={{ marginBottom: '40px' }}>
-              <h2 style={{ color: 'var(--color-text-main)', fontSize: '24px', fontWeight: 900, margin: 0 }}>마스터 전용 메뉴</h2>
-              <p style={{ color: 'var(--color-text-sub)', fontSize: '14px', marginTop: '4px' }}>강사 탐색 및 관리</p>
+            <div style={{ marginBottom: '32px' }}>
+              <h2 style={{ color: '#F8FAFC', fontSize: '22px', fontWeight: 900, margin: 0, display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <span style={{ color: '#C9A84C' }}>🌟</span> 마스터 전용 메뉴
+              </h2>
+              <p style={{ color: '#C9A84C', fontSize: '13px', marginTop: '4px', fontWeight: 700, letterSpacing: '0.5px' }}>VIP INSTRUCTOR LOUNGE</p>
             </div>
 
+            {/* 팔로우한 강사 원형 사진 가로 스크롤 표시 */}
+            <div style={{ marginBottom: '36px' }}>
+              <div style={{ fontSize: '11px', fontWeight: 900, color: '#94A3B8', marginBottom: '12px', letterSpacing: '1px' }}>
+                MY FOLLOWED MASTERS
+              </div>
+              <div style={{ display: 'flex', overflowX: 'auto', gap: '14px', paddingBottom: '10px' }}>
+                {followedInstructors.length === 0 ? (
+                  <div style={{ fontSize: '13px', color: '#64748B', padding: '10px 0', fontStyle: 'italic' }}>팔로우한 마스터가 없습니다.</div>
+                ) : (
+                  followedInstructors.map(inst => (
+                    <motion.div
+                      key={inst.id}
+                      whileHover={{ scale: 1.05 }}
+                      whileTap={{ scale: 0.95 }}
+                      onClick={() => {
+                        localStorage.setItem('selected_instructor_id', inst.id);
+                        navigate('/instructors');
+                        setIsMenuOpen(false);
+                      }}
+                      style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '6px', cursor: 'pointer', flexShrink: 0 }}
+                    >
+                      <div style={{ width: '58px', height: '58px', borderRadius: '50%', border: '2px solid #C9A84C', padding: '2px', background: '#000', boxShadow: '0 4px 12px rgba(201,168,76,0.2)' }}>
+                        <img src={inst.photo_url || 'https://via.placeholder.com/100'} style={{ width: '100%', height: '100%', borderRadius: '50%', objectFit: 'cover' }} alt={inst.name} />
+                      </div>
+                      <span style={{ fontSize: '11px', fontWeight: 800, color: '#E2E8F0', maxWidth: '60px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                        {inst.name.split(' ')[0]}
+                      </span>
+                    </motion.div>
+                  ))
+                )}
+              </div>
+            </div>
+
+            <div style={{ fontSize: '11px', fontWeight: 900, color: '#94A3B8', marginBottom: '12px', letterSpacing: '1px' }}>
+              VIP NAVIGATION
+            </div>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
               {[
                 { 
-                  icon: <Star color={'#C9A84C'} />, 
-                  text: '내가 팔로우한 강사 목록', 
+                  icon: <Users color={'#C9A84C'} />, 
+                  text: '전체 강사', 
                   action: () => { 
-                    localStorage.setItem('instructor_target_genre', '⭐ 내 팔로잉');
+                    localStorage.setItem('instructor_target_genre', '전체');
                     navigate('/instructors'); 
                     setIsMenuOpen(false); 
                     setTimeout(() => {
@@ -952,54 +1019,58 @@ function App() {
                   } 
                 },
                 { 
-                  icon: <Users color={'#FF1744'} />, 
-                  text: '전체 강사 목록', 
+                  icon: <Star color={'#C9A84C'} />, 
+                  text: '강사 클래스', 
                   action: () => { 
-                    navigate('/instructors'); 
-                    setIsMenuOpen(false); 
                     localStorage.setItem('instructor_target_genre', '전체');
-                    window.dispatchEvent(new CustomEvent('apply-instructor-filter'));
-                  } 
-                },
-                { 
-                  icon: <Search color={'#3B82F6'} />, 
-                  text: '강사 검색', 
-                  action: () => { 
                     navigate('/instructors'); 
                     setIsMenuOpen(false); 
                     setTimeout(() => {
-                      window.dispatchEvent(new CustomEvent('focus-instructor-search'));
-                    }, 100);
+                      window.dispatchEvent(new CustomEvent('apply-instructor-filter'));
+                    }, 300);
+                  } 
+                },
+                { 
+                  icon: <Camera color={'#C9A84C'} />, 
+                  text: '갤러리', 
+                  action: () => { 
+                    localStorage.setItem('instructor_target_genre', '전체');
+                    navigate('/instructors'); 
+                    setIsMenuOpen(false); 
+                    setTimeout(() => {
+                      window.dispatchEvent(new CustomEvent('apply-instructor-filter'));
+                    }, 300);
                   } 
                 },
               ].map((item, idx) => (
                 <motion.div
                   key={idx}
-                  whileHover={{ scale: 1.02, backgroundColor: 'var(--color-border)' }}
+                  whileHover={{ scale: 1.02, backgroundColor: 'rgba(255,255,255,0.08)' }}
                   whileTap={{ scale: 0.98 }}
                   onClick={item.action}
                   style={{
-                    background: 'var(--color-card)',
-                    border: '1px solid var(--color-border)',
-                    borderRadius: '12px',
+                    background: 'rgba(255,255,255,0.03)',
+                    border: '1px solid rgba(201,168,76,0.2)',
+                    borderRadius: '14px',
                     padding: '16px 20px',
                     display: 'flex',
                     alignItems: 'center',
                     gap: '16px',
                     cursor: 'pointer',
-                    transition: 'all 0.2s'
+                    transition: 'all 0.2s',
+                    boxShadow: '0 4px 15px rgba(0,0,0,0.2)'
                   }}
                 >
                   <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                     {item.icon}
                   </div>
-                  <span style={{ color: 'var(--color-text-main)', fontSize: '15px', fontWeight: 800 }}>{item.text}</span>
+                  <span style={{ color: '#F8FAFC', fontSize: '15px', fontWeight: 800 }}>{item.text}</span>
                 </motion.div>
               ))}
             </div>
 
             <div style={{ marginTop: 'auto', paddingTop: '40px', textAlign: 'center' }}>
-              <p style={{ color: '#94A3B8', fontSize: '12px' }}>© 2026 BAMPPA All Rights Reserved.</p>
+              <p style={{ color: '#64748B', fontSize: '11px', fontWeight: 700 }}>© 2026 BAMPPA VIP Lounge</p>
             </div>
           </motion.div>
         )}
@@ -1095,22 +1166,22 @@ function App() {
 
         <div 
           className="nav-item" 
-          onClick={() => navigate('/instructors')}
+          onClick={() => setShowPartner(true)}
           style={{ 
             flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
             cursor: 'pointer', transition: 'all 0.3s', position: 'relative', height: '100%',
-            color: location.pathname === '/instructors' ? '#E11D48' : '#94A3B8'
+            color: showPartner ? '#E11D48' : '#94A3B8'
           }}
         >
-          {location.pathname === '/instructors' && (
+          {showPartner && (
             <motion.div 
               layoutId="nav-glow"
               style={{ position: 'absolute', width: '40px', height: '40px', borderRadius: '50%', background: 'rgba(225, 29, 72, 0.1)', filter: 'blur(8px)' }} 
             />
           )}
-          <Users size={22} strokeWidth={location.pathname === '/instructors' ? 2.5 : 2} style={{ marginBottom: '4px' }} />
-          <span style={{ fontSize: '10px', fontWeight: location.pathname === '/instructors' ? 900 : 500 }}>
-            {i18n.language?.startsWith('en') ? 'Master' : '강사'}
+          <Heart size={22} strokeWidth={showPartner ? 2.5 : 2} style={{ marginBottom: '4px' }} />
+          <span style={{ fontSize: '10px', fontWeight: showPartner ? 900 : 500 }}>
+            {i18n.language?.startsWith('en') ? 'Partner' : '파트너'}
           </span>
         </div>
 
