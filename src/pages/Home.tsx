@@ -705,38 +705,79 @@ const HomePage = ({
           ) : (
             <div style={{ width: '100%', padding: '0 0 20px 0', backgroundColor: 'var(--color-bg)' }}>
               {(() => {
-                // 선택된 날짜의 포스터가 있는 파티 추출 (최신순 정렬)
+                // 선택된 날짜의 포스터가 있는 파티 추출 (최신순 기본 정렬)
                 const allPosterParties = (parties || [])
                   .filter(p => p.date === selectedDate)
                   .filter(p => p.poster_url && p.poster_url.trim() !== '')
                   .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
 
-                // 수도권 / 지방권 분리
-                const metroHot = allPosterParties.filter(p =>
-                  p.broadRegion === '서울' || p.broadRegion === '경기/인천'
-                );
+                // 중복된 포스터 무조건 제거
+                const uniquePosterParties: typeof allPosterParties = [];
+                const seenPosters = new Set<string>();
+                for (const p of allPosterParties) {
+                  if (!seenPosters.has(p.poster_url)) {
+                    seenPosters.add(p.poster_url);
+                    uniquePosterParties.push(p);
+                  }
+                }
 
-                const provincialHot = allPosterParties.filter(p =>
-                  p.broadRegion !== '서울' && p.broadRegion !== '경기/인천'
-                );
+                // 각 아이템별 시뮬레이션 조회수 점수 계산
+                // (지방권 포스터는 플러스 어드밴티지 추가 부여)
+                const itemsWithScores = uniquePosterParties.map(p => {
+                  const isProvincial = p.broadRegion !== '서울' && p.broadRegion !== '경기/인천';
+                  const advantage = isProvincial ? 500 : 0;
+                  // 안정적인 가상 조회수 점수 생성
+                  const baseViews = ((p.title || '').length * 15) + (parseInt(p.id?.slice(-2) || '0', 16) % 100) + 50;
+                  return {
+                    ...p,
+                    _viewScore: baseViews + advantage,
+                    _isProvincial: isProvincial
+                  };
+                });
+
+                // 1~5위: 조회수 점수가 높은 순서대로 5개 선정
+                const top5Sorted = [...itemsWithScores]
+                  .sort((a, b) => b._viewScore - a._viewScore)
+                  .slice(0, 5)
+                  .map((item, idx) => ({ ...item, _rankBadge: `TOP ${idx + 1}` }));
+
+                const top5Ids = new Set(top5Sorted.map(p => p.id));
+
+                // 나머지 3개: Top 5에 선정되지 않은 포스터 중 최신 등록 순(created_at)으로 3개 선정
+                const remainingNewest = itemsWithScores
+                  .filter(p => !top5Ids.has(p.id))
+                  .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
+                  .slice(0, 3)
+                  .map(item => ({ ...item, _rankBadge: 'NEW' }));
+
+                // 최종 8개의 포스터 롤링 목록 구성
+                const hotPickRollingItems = [...top5Sorted, ...remainingNewest];
 
                 return (
                   <>
-                    {/* [1] HOT PICK - 수도권 */}
-                    {metroHot.length > 0 && (
+                    {/* [1] HOT PICK 통합 트랙 (상위 8개 무한 롤링) */}
+                    {hotPickRollingItems.length > 0 && (
                       <div style={{ margin: '0 0 15px', padding: '10px 0 20px', background: 'var(--color-card)', borderBottom: '1px solid var(--color-border)' }}>
                         <div style={{ padding: '0 20px 15px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                           <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
                             <h2 style={{ fontSize: '18px', fontWeight: '950', color: 'var(--color-text-main)', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                              <span style={{ color: '#FF1744' }}>HOT</span> PICK <span style={{ fontSize: '12px', color: '#94A3B8', fontWeight: 700 }}>[수도권]</span>
+                              <span style={{ color: '#FF1744' }}>HOT</span> PICK <span style={{ fontSize: '11px', background: '#FF1744', color: '#fff', padding: '2px 6px', borderRadius: '6px', fontWeight: 900 }}>TOP 8</span>
                             </h2>
                           </div>
                         </div>
                         <div style={{ width: '100%', overflow: 'hidden', padding: '10px 0' }}>
                           <div className="hot-pick-track">
-                            {[...metroHot, ...metroHot].map((item, idx) => (
+                            {[...hotPickRollingItems, ...hotPickRollingItems].map((item, idx) => (
                               <div key={`${item.id}-${idx}`} onClick={() => handleOpenModal(setSelectedPoster, item.poster_url)} style={{ width: '140px', flexShrink: 0, borderRadius: '12px', overflow: 'hidden', boxShadow: '0 8px 20px rgba(0,0,0,0.12)', position: 'relative', background: '#000', margin: '0 10px' }}>
                                 <img src={item.poster_url} style={{ width: '100%', height: '210px', objectFit: 'cover' }} alt="Pick" />
+                                
+                                {/* 랭크 / 상태 배지 (TOP 1~5, NEW) */}
+                                {item._rankBadge && (
+                                  <div style={{ position: 'absolute', top: '8px', left: '8px', zIndex: 10, background: item._rankBadge.startsWith('TOP') ? '#FF1744' : '#1D9E75', color: '#fff', fontSize: '10px', fontWeight: 900, padding: '2px 6px', borderRadius: '6px', boxShadow: '0 2px 4px rgba(0,0,0,0.3)' }}>
+                                    {item._rankBadge}
+                                  </div>
+                                )}
+
                                 <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, padding: '12px 8px', background: 'linear-gradient(transparent, rgba(0,0,0,0.95))', color: 'white' }}>
                                   <div style={{ fontSize: '10px', color: '#FFEB3B', fontWeight: 900, marginBottom: '2px', textShadow: '0 1px 2px rgba(0,0,0,0.8)' }}>{translateDynamicText(item.locationName, isEn)}</div>
                                   <div style={{ fontSize: '11px', fontWeight: 900, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', marginBottom: '4px', textShadow: '0 1px 2px rgba(0,0,0,0.8)' }}>{translateDynamicText(item.title, isEn)}</div>
@@ -942,31 +983,7 @@ const HomePage = ({
 
                             </section>
 
-                            {/* 경기/인천 섹션 다음에 지방권 HOT PICK 배치 + 여백 확보 */}
-                            {regionName === '경기/인천' && provincialHot.length > 0 && (
-                              <div style={{ margin: '40px 0 15px', padding: '10px 0 20px', background: 'var(--color-card)', borderBottom: '1px solid var(--color-border)' }}>
-                                <div style={{ padding: '0 20px 15px' }}>
-                                  <h2 style={{ fontSize: '18px', fontWeight: '950', color: 'var(--color-text-main)', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                                    <span style={{ color: '#FF1744' }}>HOT</span> PICK 5 <span style={{ fontSize: '12px', color: '#94A3B8', fontWeight: 700 }}>[지방권]</span>
-                                  </h2>
-                                </div>
-                                <div style={{ width: '100%', overflow: 'hidden', padding: '10px 0' }}>
-                                  <div className="hot-pick-track">
-                                    {[...provincialHot, ...provincialHot].map((item, idx) => (
-                                      <div key={`${item.id}-${idx}`} onClick={() => handleOpenModal(setSelectedPoster, item.poster_url)} style={{ width: '140px', flexShrink: 0, borderRadius: '12px', overflow: 'hidden', boxShadow: '0 8px 20px rgba(0,0,0,0.12)', position: 'relative', background: '#000', margin: '0 10px' }}>
-                                        <img src={item.poster_url} style={{ width: '100%', height: '210px', objectFit: 'cover' }} alt="Pick" />
-                                        <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, padding: '12px 8px', background: 'linear-gradient(transparent, rgba(0,0,0,0.95))', color: 'white' }}>
-                                          <div style={{ fontSize: '10px', color: '#FFEB3B', fontWeight: 900, marginBottom: '2px', textShadow: '0 1px 2px rgba(0,0,0,0.8)' }}>{translateDynamicText(item.locationName, isEn)}</div>
-                                          <div style={{ fontSize: '11px', fontWeight: 900, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', marginBottom: '4px', textShadow: '0 1px 2px rgba(0,0,0,0.8)' }}>{translateDynamicText(item.title, isEn)}</div>
-                                        </div>
-                                      </div>
-                                    ))}
-                                  </div>
-                                </div>
-                                {/* 추후 광고 구좌를 위한 하단 여백 */}
-                                <div style={{ height: '20px' }}></div>
-                              </div>
-                            )}
+                            {/* 지방권 HOT PICK 별도 트랙은 최상단 통합 운영으로 삭제됨 */}
                           </React.Fragment>
                         );
                       });
