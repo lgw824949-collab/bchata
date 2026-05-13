@@ -484,6 +484,23 @@ const HomePage = ({
   const [adminTapCount, setAdminTapCount] = useState(0);
   const [lastAdminTap, setLastAdminTap] = useState(0);
   const [activeDateGenre, setActiveDateGenre] = useState('전체');
+  const [isFilterBarVisible, setIsFilterBarVisible] = useState(false);
+  const stickyHeaderRef = useRef(null);
+
+  useEffect(() => {
+    const handleClickOutside = (e) => {
+      if (stickyHeaderRef.current && !stickyHeaderRef.current.contains(e.target)) {
+        setIsFilterBarVisible(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    document.addEventListener('touchstart', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+      document.removeEventListener('touchstart', handleClickOutside);
+    };
+  }, []);
+
   const todayStr = useMemo(() => {
     const d = new Date();
     return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
@@ -670,7 +687,7 @@ const HomePage = ({
       </div>
 
       {/* 📌 [영역 B: 날짜 선택바 - 상단 고정(Sticky)] */}
-      <div style={{ position: 'sticky', top: 0, zIndex: 1000, background: 'var(--color-bg)', borderBottom: '1px solid var(--color-border)', boxShadow: '0 4px 12px rgba(0,0,0,0.03)', padding: '4px 0 0', transition: 'all 0.3s' }}>
+      <div ref={stickyHeaderRef} style={{ position: 'sticky', top: 0, zIndex: 1000, background: 'var(--color-bg)', borderBottom: '1px solid var(--color-border)', boxShadow: '0 4px 12px rgba(0,0,0,0.03)', padding: '4px 0 0', transition: 'all 0.3s' }}>
         <div style={{ flex: 1, display: 'flex', overflowX: 'auto', gap: '8px', padding: '6px 10px 4px', msOverflowStyle: 'none', scrollbarWidth: 'none', WebkitOverflowScrolling: 'touch' }} className="date-stream-bar">
           {fourteenDays.map((item) => {
             const isSelected = selectedDate === item.fullDate;
@@ -703,9 +720,7 @@ const HomePage = ({
                   console.log('클릭한 날짜:', item.fullDate);
                   setSelectedDate(item.fullDate);
                   setActiveDateGenre('전체');
-                  if (regionListRef.current) {
-                    regionListRef.current.scrollIntoView({ behavior: 'smooth', block: 'start' });
-                  }
+                  setIsFilterBarVisible(true);
                 }}
                 style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minWidth: '13.5%', cursor: 'pointer', position: 'relative', paddingBottom: '6px' }}
               >
@@ -725,40 +740,46 @@ const HomePage = ({
         </div>
 
         {/* 선택된 날짜의 장르 필터 바 */}
-        <div style={{ overflow: 'hidden', borderTop: '1px solid var(--color-border)' }}>
-          <motion.div
-            key={selectedDate}
-            initial={{ opacity: 0, y: -10 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.2, ease: 'easeOut' }}
-            style={{ display: 'flex', overflowX: 'auto', gap: '6px', padding: '8px 10px', msOverflowStyle: 'none', scrollbarWidth: 'none', WebkitOverflowScrolling: 'touch' }}
-          >
-            {['전체', '바차타', '살사', '쥬크', '키좀바', '부트캠프', '페스티벌'].map(g => {
-              const isActive = activeDateGenre === g;
-              return (
-                <button
-                  key={g}
-                  onClick={() => setActiveDateGenre(g)}
-                  style={{
-                    padding: '6px 12px',
-                    borderRadius: '20px',
-                    fontSize: '12px',
-                    fontWeight: isActive ? 900 : 600,
-                    backgroundColor: isActive ? '#E53935' : '#fff',
-                    color: isActive ? '#fff' : '#64748B',
-                    border: `1px solid ${isActive ? '#E53935' : '#E2E8F0'}`,
-                    cursor: 'pointer',
-                    flexShrink: 0,
-                    boxShadow: isActive ? '0 2px 6px rgba(229,57,53,0.25)' : '0 1px 3px rgba(0,0,0,0.05)',
-                    transition: 'all 0.2s'
-                  }}
-                >
-                  {g}
-                </button>
-              );
-            })}
-          </motion.div>
-        </div>
+        <AnimatePresence>
+          {isFilterBarVisible && (
+            <motion.div
+              initial={{ height: 0, opacity: 0 }}
+              animate={{ height: 'auto', opacity: 1 }}
+              exit={{ height: 0, opacity: 0 }}
+              transition={{ duration: 0.2, ease: 'easeInOut' }}
+              style={{ overflow: 'hidden', borderTop: '1px solid var(--color-border)' }}
+            >
+              <div
+                style={{ display: 'flex', overflowX: 'auto', gap: '6px', padding: '8px 10px', msOverflowStyle: 'none', scrollbarWidth: 'none', WebkitOverflowScrolling: 'touch' }}
+              >
+                {['전체', '바차타', '살사', '쥬크', '키좀바', '부트캠프', '페스티벌'].map(g => {
+                  const isActive = activeDateGenre === g;
+                  return (
+                    <button
+                      key={g}
+                      onClick={() => setActiveDateGenre(g)}
+                      style={{
+                        padding: '6px 12px',
+                        borderRadius: '20px',
+                        fontSize: '12px',
+                        fontWeight: isActive ? 900 : 600,
+                        backgroundColor: isActive ? '#E53935' : '#fff',
+                        color: isActive ? '#fff' : '#64748B',
+                        border: `1px solid ${isActive ? '#E53935' : '#E2E8F0'}`,
+                        cursor: 'pointer',
+                        flexShrink: 0,
+                        boxShadow: isActive ? '0 2px 6px rgba(229,57,53,0.25)' : '0 1px 3px rgba(0,0,0,0.05)',
+                        transition: 'all 0.2s'
+                      }}
+                    >
+                      {g}
+                    </button>
+                  );
+                })}
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
       </div>
 
       <div ref={scrollRef} style={{ width: '100%', background: 'var(--color-bg)' }}>
