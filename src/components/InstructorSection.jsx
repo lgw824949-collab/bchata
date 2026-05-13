@@ -76,8 +76,41 @@ const InstructorSection = () => {
           localStorage.removeItem('selected_instructor_id');
         }
       }
+
+      // 햄버거 메뉴를 통한 장르 필터 초기 적용 확인
+      const targetGenre = localStorage.getItem('instructor_target_genre');
+      if (targetGenre) {
+        setSelectedGenre(targetGenre);
+        localStorage.removeItem('instructor_target_genre');
+      }
     }
   }, [instructors]);
+
+  useEffect(() => {
+    const handleApplyFilter = () => {
+      const targetGenre = localStorage.getItem('instructor_target_genre');
+      if (targetGenre) {
+        setSelectedGenre(targetGenre);
+        localStorage.removeItem('instructor_target_genre');
+      }
+    };
+
+    const handleFocusSearch = () => {
+      const input = document.getElementById('instructor-search-input');
+      if (input) {
+        input.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        input.focus();
+      }
+    };
+
+    window.addEventListener('apply-instructor-filter', handleApplyFilter);
+    window.addEventListener('focus-instructor-search', handleFocusSearch);
+
+    return () => {
+      window.removeEventListener('apply-instructor-filter', handleApplyFilter);
+      window.removeEventListener('focus-instructor-search', handleFocusSearch);
+    };
+  }, []);
 
   useEffect(() => {
     if (!selectedInstructor) return
@@ -362,6 +395,7 @@ const InstructorSection = () => {
           <div style={{ flex: 1, position: 'relative' }}>
             <Search size={16} color="#475569" style={{ position: 'absolute', left: 15, top: '50%', transform: 'translateY(-50%)' }} />
             <input 
+              id="instructor-search-input"
               type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}

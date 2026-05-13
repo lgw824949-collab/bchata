@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo, useRef, lazy, Suspense } from 'react'
-import { Home as HomeIcon, Users, Plus, LogOut, Heart, X, MessageSquare, RefreshCw, CloudSun, Utensils, Zap, Languages, Bell, Star, Navigation, CreditCard, Settings, Map as MapIcon, BarChart, Gift, Coffee, User, Menu, Music2, Tent, Flag, Download, Globe, ShieldCheck, Calendar, Camera, ChevronLeft, ChevronRight, Loader2 } from 'lucide-react'
+import { Home as HomeIcon, Users, Plus, LogOut, Heart, X, MessageSquare, RefreshCw, CloudSun, Utensils, Zap, Languages, Bell, Star, Navigation, CreditCard, Settings, Map as MapIcon, BarChart, Gift, Coffee, User, Menu, Music2, Tent, Flag, Download, Globe, ShieldCheck, Calendar, Camera, ChevronLeft, ChevronRight, Loader2, Search } from 'lucide-react'
 import { useTranslation } from 'react-i18next';
 import { motion, AnimatePresence } from 'framer-motion'
 import { supabase, logActivity } from './lib/supabase'
@@ -887,7 +887,10 @@ function App() {
           dragElastic={0.05}
           whileDrag={{ scale: 1.1 }}
           whileTap={{ scale: 0.9 }}
-          onClick={() => handleOpenModal(setIsMenuOpen, true)}
+          onClick={() => {
+            navigate('/instructors');
+            handleOpenModal(setIsMenuOpen, true);
+          }}
           style={{ 
             position: 'fixed', top: '20px', right: '20px', zIndex: 1005,
             background: 'rgba(255,255,255,0.95)', backdropFilter: 'blur(10px)',
@@ -929,21 +932,43 @@ function App() {
             </div>
 
             <div style={{ marginBottom: '40px' }}>
-              <h2 style={{ color: 'var(--color-text-main)', fontSize: '24px', fontWeight: 900, margin: 0 }}>{t('premium_services')}</h2>
-              <p style={{ color: 'var(--color-text-sub)', fontSize: '14px', marginTop: '4px' }}>{t('platform_desc')}</p>
+              <h2 style={{ color: 'var(--color-text-main)', fontSize: '24px', fontWeight: 900, margin: 0 }}>마스터 전용 메뉴</h2>
+              <p style={{ color: 'var(--color-text-sub)', fontSize: '14px', marginTop: '4px' }}>강사 탐색 및 관리</p>
             </div>
 
             <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
               {[
-                { icon: <Calendar color={'#FF1744'} />, text: t('view_calendar'), action: () => { setIsMenuOpen(false); handleOpenModal(setShowFullCalendar, true); } },
-                { icon: <Utensils color={'#FF1744'} />, text: t('restaurant'), action: () => { setView('restaurant'); setIsMenuOpen(false); } },
-                { icon: <CloudSun color={'#FF1744'} />, text: t('weather'), action: () => { /* ... weather logic ... */ } },
                 { 
-                  icon: isDark ? <Zap color={'#F59E0B'} /> : <Zap color={'#64748B'} />, 
-                  text: isDark ? '라이트 모드로 보기' : '다크 모드로 보기', 
-                  action: () => setIsDark(!isDark) 
+                  icon: <Star color={'#C9A84C'} />, 
+                  text: '내가 팔로우한 강사 목록', 
+                  action: () => { 
+                    navigate('/instructors'); 
+                    setIsMenuOpen(false); 
+                    localStorage.setItem('instructor_target_genre', '⭐ 내 팔로잉');
+                    window.dispatchEvent(new CustomEvent('apply-instructor-filter'));
+                  } 
                 },
-                { icon: <MessageSquare color={'#FF1744'} />, text: t('open_chat'), action: () => { window.open('https://open.kakao.com/o/gP43rNri', '_blank'); setIsMenuOpen(false); } },
+                { 
+                  icon: <Users color={'#FF1744'} />, 
+                  text: '전체 강사 목록', 
+                  action: () => { 
+                    navigate('/instructors'); 
+                    setIsMenuOpen(false); 
+                    localStorage.setItem('instructor_target_genre', '전체');
+                    window.dispatchEvent(new CustomEvent('apply-instructor-filter'));
+                  } 
+                },
+                { 
+                  icon: <Search color={'#3B82F6'} />, 
+                  text: '강사 검색', 
+                  action: () => { 
+                    navigate('/instructors'); 
+                    setIsMenuOpen(false); 
+                    setTimeout(() => {
+                      window.dispatchEvent(new CustomEvent('focus-instructor-search'));
+                    }, 100);
+                  } 
+                },
               ].map((item, idx) => (
                 <motion.div
                   key={idx}
