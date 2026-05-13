@@ -628,6 +628,7 @@ function App() {
   };
 
   const handleCloseModal = () => {
+    setIsMenuOpen(false);
     setShowFullCalendar(false);
     setShowWeather(false);
     setShowWishlist(false);
