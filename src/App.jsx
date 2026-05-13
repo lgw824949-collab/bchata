@@ -714,16 +714,23 @@ function App() {
       const mappedParties = rawParties.map(p => {
         const locName = locationMap[p.location_id] || p.locationName || p.location_name || '장소 미지정';
         
-        const fullSearchText = `${p.address || ''} ${locName} ${p.cityName || ''}`;
         let broadRegion = '전국'; 
-        
-        if (fullSearchText.includes('부산') || fullSearchText.includes('대구') || fullSearchText.includes('울산') || fullSearchText.includes('경상') || fullSearchText.includes('경남') || fullSearchText.includes('경북') || fullSearchText.includes('창원') || fullSearchText.includes('포항') || fullSearchText.includes('김해')) broadRegion = '경상도';
-        else if (fullSearchText.includes('서울') || fullSearchText.includes('강남') || fullSearchText.includes('홍대') || fullSearchText.includes('잠실') || fullSearchText.includes('성수') || fullSearchText.includes('서초') || fullSearchText.includes('영등포') || fullSearchText.includes('신림') || fullSearchText.includes('건대')) broadRegion = '서울';
-        else if (fullSearchText.includes('경기') || fullSearchText.includes('인천') || fullSearchText.includes('부천') || fullSearchText.includes('수원') || fullSearchText.includes('안양') || fullSearchText.includes('의정부') || fullSearchText.includes('분당') || fullSearchText.includes('일산')) broadRegion = '경기/인천';
-        else if (fullSearchText.includes('광주') || fullSearchText.includes('전라') || fullSearchText.includes('전남') || fullSearchText.includes('전북') || fullSearchText.includes('전주') || fullSearchText.includes('목포') || fullSearchText.includes('여수') || fullSearchText.includes('순천')) broadRegion = '전라도';
-        else if (fullSearchText.includes('대전') || fullSearchText.includes('충남') || fullSearchText.includes('충북') || fullSearchText.includes('충청') || fullSearchText.includes('세종') || fullSearchText.includes('천안') || fullSearchText.includes('청주')) broadRegion = '충청도';
-        else if (fullSearchText.includes('강원') || fullSearchText.includes('제주') || fullSearchText.includes('춘천') || fullSearchText.includes('원주') || fullSearchText.includes('서귀포')) broadRegion = '강원/제주';
-        else broadRegion = '전국'; 
+        const tStr = p.title || '';
+        if (tStr.includes('[서울]')) broadRegion = '서울';
+        else if (tStr.includes('[경기/인천]') || tStr.includes('[인천광역시]') || tStr.includes('[인천]')) broadRegion = '경기/인천';
+        else if (tStr.includes('[경상도]')) broadRegion = '경상도';
+        else if (tStr.includes('[전라도]')) broadRegion = '전라도';
+        else if (tStr.includes('[충청도]')) broadRegion = '충청도';
+        else if (tStr.includes('[강원/제주]')) broadRegion = '강원/제주';
+        else {
+          const fullSearchText = `${p.address || ''} ${locName} ${p.cityName || ''}`;
+          if (fullSearchText.includes('부산') || fullSearchText.includes('대구') || fullSearchText.includes('울산') || fullSearchText.includes('경상') || fullSearchText.includes('경남') || fullSearchText.includes('경북') || fullSearchText.includes('창원') || fullSearchText.includes('포항') || fullSearchText.includes('김해')) broadRegion = '경상도';
+          else if (fullSearchText.includes('서울') || fullSearchText.includes('강남') || fullSearchText.includes('홍대') || fullSearchText.includes('잠실') || fullSearchText.includes('성수') || fullSearchText.includes('서초') || fullSearchText.includes('영등포') || fullSearchText.includes('신림') || fullSearchText.includes('건대')) broadRegion = '서울';
+          else if (fullSearchText.includes('경기') || fullSearchText.includes('인천') || fullSearchText.includes('부천') || fullSearchText.includes('수원') || fullSearchText.includes('안양') || fullSearchText.includes('의정부') || fullSearchText.includes('분당') || fullSearchText.includes('일산')) broadRegion = '경기/인천';
+          else if (fullSearchText.includes('광주') || fullSearchText.includes('전라') || fullSearchText.includes('전남') || fullSearchText.includes('전북') || fullSearchText.includes('전주') || fullSearchText.includes('목포') || fullSearchText.includes('여수') || fullSearchText.includes('순천')) broadRegion = '전라도';
+          else if (fullSearchText.includes('대전') || fullSearchText.includes('충남') || fullSearchText.includes('충북') || fullSearchText.includes('충청') || fullSearchText.includes('세종') || fullSearchText.includes('천안') || fullSearchText.includes('청주')) broadRegion = '충청도';
+          else if (fullSearchText.includes('강원') || fullSearchText.includes('제주') || fullSearchText.includes('춘천') || fullSearchText.includes('원주') || fullSearchText.includes('서귀포')) broadRegion = '강원/제주';
+        } 
         
         const barInfo = findBarByName(locName);
         const locationNameEn = barInfo?.name_en || locName;
@@ -976,7 +983,7 @@ function App() {
            view === 'festival-register' ? <Festival onBack={() => navigate('/festival')} initialView="register" /> :
            view === 'parking' ? <Parking onBack={() => navigate('/')} /> :
            view === 'restaurant' ? <Restaurant onBack={() => navigate('/')} /> :
-           view === 'register-party' ? <RegisterForm onBack={() => navigate('/')} /> :
+           view === 'register-party' ? <RegisterForm onBack={() => navigate('/')} initialData={{ date: selectedDate }} /> :
            view === 'admin' ? <AdminDashboard setView={setView} onBack={() => setView('admin-portal')} refreshData={fetchParties} /> :
            view === 'admin-portal' ? (
                 <div style={{ 
