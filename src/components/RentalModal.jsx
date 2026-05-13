@@ -49,6 +49,42 @@ export default function RentalModal({ onClose }) {
 
       const rawList = data || [];
 
+      // 빠/장소별 최신 파티 포스터를 백업 이미지로 활용하기 위해 parties 테이블에서 포스터 조회
+      const { data: partiesData } = await supabase
+        .from('parties')
+        .select('location_id, poster_url, title')
+        .not('poster_url', 'is', null)
+        .order('created_at', { ascending: false });
+
+      const partyPosterMap = new Map();
+      if (partiesData) {
+        partiesData.forEach(p => {
+          if (p.poster_url && p.poster_url.trim() !== '') {
+            if (p.location_id && !partyPosterMap.has(p.location_id)) {
+              partyPosterMap.set(p.location_id, p.poster_url);
+            }
+            const t = (p.title || '').replace(/\s+/g, '').toLowerCase();
+            if (t.includes('강남턴') || t.includes('강턴')) {
+              if (!partyPosterMap.has('강턴')) partyPosterMap.set('강턴', p.poster_url);
+            }
+          }
+        });
+      }
+
+      // 각 location에 대해 image_url이 없으면 최신 파티 포스터로 자동 보완
+      rawList.forEach(loc => {
+        if (!loc.image_url || loc.image_url.trim() === '') {
+          let key = (loc.name || '').replace(/\s+/g, '').toLowerCase();
+          if (key.includes('강남턴') || key.includes('강턴')) key = '강턴';
+          
+          if (partyPosterMap.has(loc.id)) {
+            loc.image_url = partyPosterMap.get(loc.id);
+          } else if (partyPosterMap.has(key)) {
+            loc.image_url = partyPosterMap.get(key);
+          }
+        }
+      });
+
       // 중복 제거: 이름 기준 정보가 가장 풍부하거나 최신인 레코드 1개만 병합 유지
       const uniqueMap = new Map();
       rawList.forEach(loc => {
@@ -167,15 +203,15 @@ export default function RentalModal({ onClose }) {
         const fileName = `${Date.now()}_${Math.random().toString(36).substring(2)}.${ext}`;
         
         const { error: uploadError } = await supabase.storage
-          .from('bar-images')
-          .upload(fileName, selectedFile);
+          .from('posters')
+          .upload(`posters/${fileName}`, selectedFile);
 
         if (uploadError) {
-          console.warn('스토리지 업로드 실패 (버킷 미생성 또는 권한):', uploadError.message);
+          console.warn('스토리지 업로드 실패:', uploadError.message);
         } else {
           const { data: pData } = supabase.storage
-            .from('bar-images')
-            .getPublicUrl(fileName);
+            .from('posters')
+            .getPublicUrl(`posters/${fileName}`);
           uploadedImageUrl = pData?.publicUrl || null;
         }
       }
