@@ -188,8 +188,15 @@ export default function AdminDashboard({ onBack }) {
         kakao_url: newRental.kakao_url?.trim() || null,
         instagram_url: newRental.instagram_url?.trim() || null
       };
-      const { error } = await supabase.from('locations').insert([payload]);
-      if (error) throw error;
+      let { error } = await supabase.from('locations').insert([payload]);
+      if (error && (error.message?.includes('column') || error.message?.includes('cache') || error.message?.includes('exist'))) {
+        console.warn('스키마 캐시 지연 감지: 기본 컬럼(name, address)으로만 안전하게 등재합니다.');
+        const safePayload = { name: newRental.name.trim(), address: newRental.address.trim() };
+        const { error: retryError } = await supabase.from('locations').insert([safePayload]);
+        if (retryError) throw retryError;
+      } else if (error) {
+        throw error;
+      }
       alert('신규 BAR가 성공적으로 등재되었습니다!');
       setNewRental({ name: '', address: '', kakao_url: '', instagram_url: '', image_url: '' });
       setNewRentalFile(null);
@@ -276,14 +283,22 @@ export default function AdminDashboard({ onBack }) {
       }
 
       if (category === 'rental') {
-        const { error } = await supabase.from('locations').update({
+        const payload = {
           name: editFormData.name?.trim(),
           address: editFormData.address?.trim(),
-          image_url: finalPhotoUrl,
-          kakao_url: editFormData.kakao_url?.trim(),
-          instagram_url: editFormData.instagram_url?.trim()
-        }).eq('id', editingItem);
-        if (error) throw error;
+          image_url: finalPhotoUrl || null,
+          kakao_url: editFormData.kakao_url?.trim() || null,
+          instagram_url: editFormData.instagram_url?.trim() || null
+        };
+        let { error } = await supabase.from('locations').update(payload).eq('id', editingItem);
+        if (error && (error.message?.includes('column') || error.message?.includes('cache') || error.message?.includes('exist'))) {
+          console.warn('스키마 캐시 지연 감지: 기본 컬럼(name, address)으로만 안전하게 수정 적용합니다.');
+          const safePayload = { name: editFormData.name?.trim(), address: editFormData.address?.trim() };
+          const { error: retryError } = await supabase.from('locations').update(safePayload).eq('id', editingItem);
+          if (retryError) throw retryError;
+        } else if (error) {
+          throw error;
+        }
       } else {
         const { locations, created_at, id, locationName, location_name, ...updateData } = editFormData;
         const { error } = await supabase.from(table).update({
