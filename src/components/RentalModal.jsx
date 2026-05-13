@@ -11,6 +11,7 @@ import macondoPhoto from '../assets/macondo_photo.png';
 import bonitaPhoto from '../assets/bonita_photo.png';
 import buenaPhoto from '../assets/buena_photo.png';
 import hongturnPhoto from '../assets/hongturn_photo.png';
+import bibigoPhoto from '../assets/bibigo_photo.png';
 
 const REGIONS_ORDER = [
   '서울',
@@ -106,6 +107,7 @@ export default function RentalModal({ onClose }) {
         const isBonita = nameKey.includes('보니따');
         const isBuena = nameKey.includes('부에나');
         const isHongturn = nameKey.includes('홍턴');
+        const isBibigo = nameKey.includes('비비고');
 
         let finalImg = loc.image_url;
         if (isGangturn) finalImg = gangturnPhoto;
@@ -116,6 +118,7 @@ export default function RentalModal({ onClose }) {
         else if (isBonita) finalImg = bonitaPhoto;
         else if (isBuena) finalImg = buenaPhoto;
         else if (isHongturn) finalImg = hongturnPhoto;
+        else if (isBibigo) finalImg = bibigoPhoto;
 
         return { 
           ...loc, 
