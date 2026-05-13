@@ -1215,44 +1215,151 @@ const HomePage = ({
                   })}
                 </div>
 
-                {/* 달력 아래 장르 필터 바 */}
+                {/* 달력 아래 장르 필터 바 및 요약 정보 */}
                 <AnimatePresence>
-                  {isModalFilterVisible && (
-                    <motion.div
-                      initial={{ height: 0, opacity: 0 }}
-                      animate={{ height: 'auto', opacity: 1 }}
-                      exit={{ height: 0, opacity: 0 }}
-                      transition={{ duration: 0.2 }}
-                      style={{ overflow: 'hidden', marginTop: '16px', paddingTop: '12px', borderTop: '1px solid var(--color-border)' }}
-                    >
-                      <div style={{ display: 'flex', overflowX: 'auto', gap: '6px', paddingBottom: '8px', msOverflowStyle: 'none', scrollbarWidth: 'none', WebkitOverflowScrolling: 'touch' }}>
-                        {['전체', '바차타', '살사', '쥬크', '키좀바', '부트캠프', '페스티벌'].map(g => {
-                          const isActive = activeDateGenre === g;
-                          return (
-                            <button
-                              key={g}
-                              onClick={() => setActiveDateGenre(g)}
-                              style={{
-                                padding: '6px 12px',
-                                borderRadius: '20px',
-                                fontSize: '12px',
-                                fontWeight: isActive ? 900 : 600,
-                                backgroundColor: isActive ? '#E53935' : '#fff',
-                                color: isActive ? '#fff' : '#64748B',
-                                border: `1px solid ${isActive ? '#E53935' : '#E2E8F0'}`,
-                                cursor: 'pointer',
-                                flexShrink: 0,
-                                boxShadow: isActive ? '0 2px 6px rgba(229,57,53,0.25)' : '0 1px 3px rgba(0,0,0,0.05)',
-                                transition: 'all 0.2s'
-                              }}
-                            >
-                              {g}
-                            </button>
-                          );
-                        })}
-                      </div>
-                    </motion.div>
-                  )}
+                  {isModalFilterVisible && (() => {
+                    const selParties = (parties || []).filter(p => p.date === selectedDate);
+                    const selBootcamps = (bootcamps || []).filter(b => {
+                      if (b.start_date && b.end_date) {
+                        return selectedDate >= b.start_date && selectedDate <= b.end_date;
+                      }
+                      return b.start_date === selectedDate;
+                    });
+                    const selFestivals = (festivals || []).filter(f => {
+                      if (f.start_date && f.end_date) {
+                        return selectedDate >= f.start_date && selectedDate <= f.end_date;
+                      }
+                      return f.start_date === selectedDate;
+                    });
+
+                    // 1. 이벤트 수
+                    const partyCount = selParties.length;
+                    const bootcampCount = selBootcamps.length;
+                    const festivalCount = selFestivals.length;
+
+                    // 2. 지역별 카운트 (통합된 모든 이벤트 대상)
+                    const regionCounts = {};
+                    const getRegionName = (item) => {
+                      if (item.broadRegion) return item.broadRegion;
+                      const r = item.region || item.address || item.locationName || item.venue || '';
+                      if (r.includes('서울')) return '서울';
+                      if (r.includes('경기') || r.includes('인천')) return '경기/인천';
+                      if (r.includes('경상') || r.includes('부산') || r.includes('대구') || r.includes('울산')) return '경상도';
+                      if (r.includes('전라') || r.includes('광주')) return '전라도';
+                      if (r.includes('충청') || r.includes('대전') || r.includes('세종')) return '충청도';
+                      return '강원/제주';
+                    };
+                    [...selParties, ...selBootcamps, ...selFestivals].forEach(item => {
+                      const r = getRegionName(item);
+                      regionCounts[r] = (regionCounts[r] || 0) + 1;
+                    });
+                    const orderRegions = ['서울', '경기/인천', '경상도', '전라도', '충청도', '강원/제주'];
+                    const availableRegions = orderRegions.filter(r => regionCounts[r] > 0);
+
+                    // 3. 장르별 카운트 (파티 대상)
+                    const genreCounts = { '바차타': 0, '살사': 0, '쥬크': 0, '키좀바': 0 };
+                    selParties.forEach(p => {
+                      let g = '소셜';
+                      const b = p.b_ratio ?? 0;
+                      const s = p.s_ratio ?? 0;
+                      const j = p.j_ratio ?? 0;
+                      const k = p.k_ratio ?? 0;
+                      const m = Math.max(b, s, j, k);
+                      if (m > 0) {
+                        if (m === b) g = '바차타';
+                        else if (m === s) g = '살사';
+                        else if (m === j) g = '쥬크';
+                        else if (m === k) g = '키좀바';
+                      }
+                      if (genreCounts[g] !== undefined) {
+                        genreCounts[g]++;
+                      }
+                    });
+                    const orderGenres = ['바차타', '살사', '쥬크', '키좀바'];
+                    const availableGenres = orderGenres.filter(g => genreCounts[g] > 0);
+
+                    return (
+                      <motion.div
+                        initial={{ height: 0, opacity: 0 }}
+                        animate={{ height: 'auto', opacity: 1 }}
+                        exit={{ height: 0, opacity: 0 }}
+                        transition={{ duration: 0.2 }}
+                        style={{ overflow: 'hidden', marginTop: '16px', paddingTop: '12px', borderTop: '1px solid var(--color-border)' }}
+                      >
+                        {/* 요약 정보 카드 */}
+                        <div style={{
+                          backgroundColor: '#F8FAFC',
+                          borderRadius: '16px',
+                          padding: '12px 16px',
+                          marginBottom: '12px',
+                          border: '1px solid #E2E8F0',
+                          display: 'flex',
+                          flexDirection: 'column',
+                          gap: '6px',
+                          fontSize: '12px',
+                          color: '#334155'
+                        }}>
+                          {/* 1. 이벤트 수 */}
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontWeight: 800 }}>
+                            <span style={{ color: '#E53935' }}>📅</span>
+                            <span>파티 {partyCount}개 / 부트캠프 {bootcampCount}개 / 페스티벌 {festivalCount}개</span>
+                          </div>
+
+                          {/* 2. 지역별 */}
+                          {availableRegions.length > 0 && (
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap', fontWeight: 600, marginTop: '2px' }}>
+                              {availableRegions.map((r, idx) => (
+                                <React.Fragment key={r}>
+                                  <span style={{ color: '#1E293B' }}>{r} <span style={{ color: '#E53935', fontWeight: 800 }}>{regionCounts[r]}</span>개</span>
+                                  {idx < availableRegions.length - 1 && <span style={{ color: '#CBD5E1' }}>·</span>}
+                                </React.Fragment>
+                              ))}
+                            </div>
+                          )}
+
+                          {/* 3. 장르별 */}
+                          {availableGenres.length > 0 && (
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap', fontWeight: 600, marginTop: '2px' }}>
+                              {availableGenres.map((g, idx) => (
+                                <React.Fragment key={g}>
+                                  <span style={{ color: '#1E293B' }}>{g} <span style={{ color: '#E53935', fontWeight: 800 }}>{genreCounts[g]}</span>개</span>
+                                  {idx < availableGenres.length - 1 && <span style={{ color: '#CBD5E1' }}>·</span>}
+                                </React.Fragment>
+                              ))}
+                            </div>
+                          )}
+                        </div>
+
+                        {/* 장르 필터 바 */}
+                        <div style={{ display: 'flex', overflowX: 'auto', gap: '6px', paddingBottom: '8px', msOverflowStyle: 'none', scrollbarWidth: 'none', WebkitOverflowScrolling: 'touch' }}>
+                          {['전체', '바차타', '살사', '쥬크', '키좀바', '부트캠프', '페스티벌'].map(g => {
+                            const isActive = activeDateGenre === g;
+                            return (
+                              <button
+                                key={g}
+                                onClick={() => setActiveDateGenre(g)}
+                                style={{
+                                  padding: '6px 12px',
+                                  borderRadius: '20px',
+                                  fontSize: '12px',
+                                  fontWeight: isActive ? 900 : 600,
+                                  backgroundColor: isActive ? '#E53935' : '#fff',
+                                  color: isActive ? '#fff' : '#64748B',
+                                  border: `1px solid ${isActive ? '#E53935' : '#E2E8F0'}`,
+                                  cursor: 'pointer',
+                                  flexShrink: 0,
+                                  boxShadow: isActive ? '0 2px 6px rgba(229,57,53,0.25)' : '0 1px 3px rgba(0,0,0,0.05)',
+                                  transition: 'all 0.2s'
+                                }}
+                              >
+                                {g}
+                              </button>
+                            );
+                          })}
+                        </div>
+                      </motion.div>
+                    );
+                  })()}
                 </AnimatePresence>
 
                 <div style={{ marginTop: '24px' }}>
