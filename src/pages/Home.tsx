@@ -669,14 +669,62 @@ const HomePage = ({
       </div>
 
       {/* 📌 [영역 B: 날짜 선택바 - 상단 고정(Sticky)] */}
-      <div style={{ position: 'sticky', top: 0, zIndex: 1000, background: 'var(--color-bg)', borderBottom: '1px solid var(--color-border)', boxShadow: '0 4px 12px rgba(0,0,0,0.03)', padding: '0 10px', transition: 'all 0.3s' }}>
-        <div style={{ flex: 1, display: 'flex', overflowX: 'auto', gap: '8px', padding: '6px 0', msOverflowStyle: 'none', scrollbarWidth: 'none', WebkitOverflowScrolling: 'touch' }} className="date-stream-bar">
+      <div style={{ position: 'sticky', top: 0, zIndex: 1000, background: 'var(--color-bg)', borderBottom: '1px solid var(--color-border)', boxShadow: '0 4px 12px rgba(0,0,0,0.03)', padding: '4px 10px 0', transition: 'all 0.3s' }}>
+        {/* 달력 상단 장르 범례 */}
+        <div style={{ display: 'flex', justifyContent: 'center', gap: '12px', paddingBottom: '4px', borderBottom: '1px solid var(--color-border)', opacity: 0.85 }}>
+          {[
+            { label: '바차타', color: '#E53935' },
+            { label: '살사', color: '#F97316' },
+            { label: '쥬크', color: '#7C3AED' },
+            { label: '키좀바', color: '#1D9E75' }
+          ].map(g => (
+            <div key={g.label} style={{ display: 'flex', alignItems: 'center', gap: '3px', fontSize: '10px', fontWeight: 700, color: 'var(--color-text-sub)' }}>
+              <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: g.color }} />
+              {g.label}
+            </div>
+          ))}
+        </div>
+
+        <div style={{ flex: 1, display: 'flex', overflowX: 'auto', gap: '8px', padding: '6px 0 4px', msOverflowStyle: 'none', scrollbarWidth: 'none', WebkitOverflowScrolling: 'touch' }} className="date-stream-bar">
           {fourteenDays.map((item) => {
             const isSelected = selectedDate === item.fullDate;
             const isHoliday = item.dayOfWeek === 0 || (item.month === '5' && item.date === '5');
             const isSaturday = item.dayOfWeek === 6;
             const dayColor = isSelected ? '#fff' : (isHoliday ? '#FF1744' : (isSaturday ? '#FF1744' : '#94A3B8'));
             const labelColor = isSelected ? '#FF1744' : (isHoliday ? '#FF1744' : (isSaturday ? '#FF1744' : '#94A3B8'));
+            
+            // 해당 날짜의 파티 중 가장 높은 장르 비율 계산
+            const dayParties = (parties || []).filter(p => p.date === item.fullDate);
+            let dominantDotColor: string | null = null;
+            
+            if (dayParties.length > 0) {
+              let maxRatio = -1;
+              let dominantGenre = '기타/소셜';
+              
+              for (const p of dayParties) {
+                const b = p.b_ratio ?? 0;
+                const s = p.s_ratio ?? 0;
+                const j = p.j_ratio ?? 0;
+                const k = p.k_ratio ?? 0;
+                
+                const localMax = Math.max(b, s, j, k);
+                if (localMax > maxRatio) {
+                  maxRatio = localMax;
+                  if (localMax === b) dominantGenre = '바차타';
+                  else if (localMax === s) dominantGenre = '살사';
+                  else if (localMax === j) dominantGenre = '쥬크';
+                  else if (localMax === k) dominantGenre = '키좀바';
+                  else dominantGenre = '기타/소셜';
+                }
+              }
+
+              if (dominantGenre === '바차타') dominantDotColor = '#E53935';
+              else if (dominantGenre === '살사') dominantDotColor = '#F97316';
+              else if (dominantGenre === '쥬크') dominantDotColor = '#7C3AED';
+              else if (dominantGenre === '키좀바') dominantDotColor = '#1D9E75';
+              else dominantDotColor = '#94A3B8';
+            }
+
             return (
               <div key={item.fullDate}
                 onClick={() => {
@@ -686,11 +734,17 @@ const HomePage = ({
                     regionListRef.current.scrollIntoView({ behavior: 'smooth', block: 'start' });
                   }
                 }}
-                style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minWidth: '13.5%', cursor: 'pointer' }}
+                style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minWidth: '13.5%', cursor: 'pointer', position: 'relative', paddingBottom: '6px' }}
               >
                 <span style={{ fontSize: '10px', fontWeight: '700', color: labelColor, marginBottom: '2px' }}>{item.dayName}</span>
                 <div style={{ width: '30px', height: '30px', borderRadius: '10px', display: 'flex', alignItems: 'center', justifyContent: 'center', backgroundColor: isSelected ? '#FF1744' : 'transparent', border: item.isToday && !isSelected ? '1px solid #FF1744' : 'none' }}>
                   <span style={{ fontSize: '15px', fontWeight: '800', color: isSelected ? '#fff' : dayColor }}>{item.date}</span>
+                </div>
+                {/* 장르 색깔 점 (5px 원형) */}
+                <div style={{ height: '5px', display: 'flex', alignItems: 'center', justifyContent: 'center', position: 'absolute', bottom: 0 }}>
+                  {dominantDotColor && (
+                    <span style={{ width: '5px', height: '5px', borderRadius: '50%', background: dominantDotColor }} />
+                  )}
                 </div>
               </div>
             );
