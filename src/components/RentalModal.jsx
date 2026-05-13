@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { X, MapPin, MessageCircle, Globe, Plus, ChevronLeft, Loader2 } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import { findBarByName } from '../lib/BarLib';
+import turnLogo from '../assets/turn_logo.png';
 
 const REGIONS_ORDER = [
   '서울',
@@ -95,7 +96,7 @@ export default function RentalModal({ onClose }) {
         return { 
           ...loc, 
           region, 
-          image_url: isGangturn ? '/turn_logo.png' : loc.image_url,
+          image_url: isGangturn ? turnLogo : loc.image_url,
           instagram_url: isGangturn ? 'https://www.instagram.com/turn_latinclub_no.1?igsh=MW94ajh3OHZ3NDZ6bg%3D%3D' : loc.instagram_url
         };
       });
