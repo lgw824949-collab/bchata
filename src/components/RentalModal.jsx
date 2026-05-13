@@ -1,22 +1,36 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, MapPin, MessageCircle, Globe } from 'lucide-react';
+import { X, MapPin, MessageCircle, Globe, Plus, ChevronLeft, Loader2 } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 
-const TABS = [
-  { id: '서울', label: '서울' },
-  { id: '경기/인천', label: '경기인천' },
-  { id: '경상도', label: '경상도' },
-  { id: '전라도', label: '전라도' },
-  { id: '충청도', label: '충청도' },
-  { id: '강원/제주', label: '강원제주' }
+const REGIONS_ORDER = [
+  '서울',
+  '경기/인천',
+  '경상도',
+  '전라도',
+  '충청도',
+  '강원/제주'
 ];
 
 export default function RentalModal({ onClose }) {
-  const [activeTab, setActiveTab] = useState('서울');
   const [locations, setLocations] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [selectedBar, setSelectedBar] = useState(null);
+  
+  // 전체보기 모드 제어 상태 (특정 지역 전체 리스트 표시용)
+  const [viewRegion, setViewRegion] = useState(null);
+
+  // 등록 폼 제어 상태
+  const [showRegisterForm, setShowRegisterForm] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [formData, setFormData] = useState({
+    name: '',
+    address: '',
+    kakao_url: '',
+    instagram_url: ''
+  });
+  const [selectedFile, setSelectedFile] = useState(null);
+  const [previewUrl, setPreviewUrl] = useState(null);
 
   useEffect(() => {
     fetchLocations();
@@ -36,8 +50,8 @@ export default function RentalModal({ onClose }) {
 
       // 주소(address) 컬럼 기준 지역 분류 로직
       const classified = rawList.map(loc => {
-        const text = `${loc.address || ''} ${loc.name || ''}`;
-        let region = '서울';
+        const text = `${loc.address || ''}`.toLowerCase();
+        let region = '기타';
 
         if (text.includes('서울')) region = '서울';
         else if (text.includes('경기') || text.includes('인천')) region = '경기/인천';
@@ -45,7 +59,14 @@ export default function RentalModal({ onClose }) {
         else if (text.includes('광주') || text.includes('전북') || text.includes('전남') || text.includes('여수') || text.includes('순천') || text.includes('목포')) region = '전라도';
         else if (text.includes('대전') || text.includes('충북') || text.includes('충남') || text.includes('세종') || text.includes('청주') || text.includes('천안')) region = '충청도';
         else if (text.includes('강원') || text.includes('제주') || text.includes('춘천') || text.includes('원주')) region = '강원/제주';
-        else region = '서울'; // 기본값
+        else {
+          // 이름 등에도 지역 단서가 있는지 보조 체크
+          const nameText = `${loc.name || ''}`.toLowerCase();
+          if (nameText.includes('서울')) region = '서울';
+          else if (nameText.includes('경기') || nameText.includes('인천')) region = '경기/인천';
+          else if (nameText.includes('부산') || nameText.includes('대구')) region = '경상도';
+          else region = '서울'; // 지정되지 않은 경우 기본값 서울 편입
+        }
 
         return { ...loc, region };
       });
@@ -69,38 +90,172 @@ export default function RentalModal({ onClose }) {
     }
   };
 
-  const currentBars = locations.filter(loc => loc.region === activeTab);
+  // 사진 파일 선택 핸들러
+  const handleFileChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      setSelectedFile(file);
+      setPreviewUrl(URL.createObjectURL(file));
+    }
+  };
+
+  // BAR 등록 제출 핸들러
+  const handleSubmitRegister = async (e) => {
+    e.preventDefault();
+    if (!formData.name.trim() || !formData.address.trim()) {
+      alert('BAR 이름과 주소를 모두 입력해주세요.');
+      return;
+    }
+
+    setIsSubmitting(true);
+    try {
+      let uploadedImageUrl = null;
+
+      // 1. 스토리지 이미지 업로드 처리
+      if (selectedFile) {
+        const ext = selectedFile.name.split('.').pop();
+        const fileName = `${Date.now()}_${Math.random().toString(36).substring(2)}.${ext}`;
+        
+        const { error: uploadError } = await supabase.storage
+          .from('bar-images')
+          .upload(fileName, selectedFile);
+
+        if (uploadError) {
+          console.warn('스토리지 업로드 실패 (버킷 미생성 또는 권한):', uploadError.message);
+        } else {
+          const { data: pData } = supabase.storage
+            .from('bar-images')
+            .getPublicUrl(fileName);
+          uploadedImageUrl = pData?.publicUrl || null;
+        }
+      }
+
+      // 2. DB insert 쿼리 실행
+      const payload = {
+        name: formData.name.trim(),
+        address: formData.address.trim()
+      };
+
+      // 3개 추가 컬럼 데이터를 안전하게 부여
+      if (uploadedImageUrl) payload.image_url = uploadedImageUrl;
+      if (formData.kakao_url.trim()) payload.kakao_url = formData.kakao_url.trim();
+      if (formData.instagram_url.trim()) payload.instagram_url = formData.instagram_url.trim();
+
+      // DB insert 시도 (신규 컬럼 미존재 시 자동 복구 지원)
+      let { error } = await supabase.from('locations').insert([payload]);
+
+      if (error && (error.message?.includes('column') || error.message?.includes('does not exist'))) {
+        console.warn('신규 컬럼이 DB에 없어 기본 컬럼(name, address)으로만 안전하게 등록합니다.');
+        const safePayload = {
+          name: formData.name.trim(),
+          address: formData.address.trim()
+        };
+        const { error: retryError } = await supabase.from('locations').insert([safePayload]);
+        if (retryError) throw retryError;
+      } else if (error) {
+        throw error;
+      }
+
+      alert('성공적으로 BAR 등록이 완료되었습니다!');
+      // 초기화
+      setFormData({ name: '', address: '', kakao_url: '', instagram_url: '' });
+      setSelectedFile(null);
+      setPreviewUrl(null);
+      setShowRegisterForm(false);
+      // 데이터 재조회
+      fetchLocations();
+    } catch (err) {
+      console.error('등록 중 에러 발생:', err);
+      alert(`BAR 등록에 실패했습니다: ${err.message}`);
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  // 특정 지역의 BAR 목록 렌더링 카드 뷰
+  const renderBarCard = (bar) => (
+    <motion.div
+      key={bar.id}
+      whileTap={{ scale: 0.96 }}
+      onClick={() => setSelectedBar(bar)}
+      style={{
+        flex: '0 0 auto',
+        width: '88px',
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+        cursor: 'pointer'
+      }}
+    >
+      <div style={{
+        width: '76px',
+        height: '76px',
+        borderRadius: '50%',
+        background: '#ffffff',
+        boxShadow: '0 4px 12px rgba(0,0,0,0.06)',
+        border: '2px solid #F1F5F9',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        overflow: 'hidden',
+        marginBottom: '8px',
+        position: 'relative'
+      }}>
+        {bar.image_url ? (
+          <img
+            src={bar.image_url}
+            alt={bar.name}
+            style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+          />
+        ) : (
+          <span style={{ fontSize: '32px', userSelect: 'none' }}>🎵</span>
+        )}
+      </div>
+      <span style={{
+        fontSize: '13px',
+        fontWeight: 900,
+        color: '#1E293B',
+        textAlign: 'center',
+        width: '100%',
+        overflow: 'hidden',
+        textOverflow: 'ellipsis',
+        whiteSpace: 'nowrap'
+      }}>
+        {bar.name || '이름 없음'}
+      </span>
+    </motion.div>
+  );
 
   return (
     <>
       {/* 백그라운드 오버레이 */}
-      <motion.div 
-        initial={{ opacity: 0 }} 
-        animate={{ opacity: 1 }} 
-        exit={{ opacity: 0 }} 
-        onClick={onClose} 
-        style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.85)', backdropFilter: 'blur(10px)', zIndex: 190000 }} 
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        exit={{ opacity: 0 }}
+        onClick={onClose}
+        style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.85)', backdropFilter: 'blur(10px)', zIndex: 190000 }}
       />
-      
-      {/* 메인 모달 윈도우 */}
-      <motion.div 
-        initial={{ y: '100%' }} 
-        animate={{ y: 0 }} 
-        exit={{ y: '100%' }} 
+
+      {/* 메인 모달 컨테이너 */}
+      <motion.div
+        initial={{ y: '100%' }}
+        animate={{ y: 0 }}
+        exit={{ y: '100%' }}
         transition={{ type: 'spring', damping: 25, stiffness: 220 }}
-        style={{ 
-          position: 'fixed', inset: 0, background: '#ffffff', zIndex: 190001, 
+        style={{
+          position: 'fixed', inset: 0, background: '#ffffff', zIndex: 190001,
           display: 'flex', flexDirection: 'column', height: '100dvh',
           paddingTop: 'env(safe-area-inset-top)', paddingBottom: 'env(safe-area-inset-bottom)'
         }}
       >
-        {/* 모달 상단 헤더 */}
+        {/* 상단 헤더 */}
         <div style={{ height: '70px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0 20px', borderBottom: '1px solid #F1F5F9', flexShrink: 0 }}>
           <div style={{ color: '#1E293B', fontSize: '18px', fontWeight: '950', display: 'flex', alignItems: 'center', gap: '8px' }}>
             <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#E53935' }} />
             전국 BAR 대관문의
           </div>
-          <button 
+          <button
             onClick={onClose}
             style={{ background: '#F1F5F9', border: 'none', borderRadius: '50%', width: '40px', height: '40px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#1E293B', cursor: 'pointer' }}
           >
@@ -108,147 +263,257 @@ export default function RentalModal({ onClose }) {
           </button>
         </div>
 
-        {/* 안내 텍스트 배너 */}
-        <div style={{ padding: '20px 20px 10px', flexShrink: 0 }}>
-          <h3 style={{ margin: 0, fontSize: '20px', fontWeight: 950, color: '#1E293B', letterSpacing: '-0.5px' }}>
-            원하시는 BAR를 선택해주세요
-          </h3>
-          <p style={{ margin: '4px 0 0', fontSize: '13px', color: '#64748B', fontWeight: 600 }}>
-            아이콘을 탭하시면 상세 주소 확인 및 실시간 대관 문의가 가능합니다.
-          </p>
+        {/* 상단 액션 배너 영역: "BAR 등록하기 +" 버튼 탑재 */}
+        <div style={{ padding: '20px 20px 10px', flexShrink: 0, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <div>
+            <h3 style={{ margin: 0, fontSize: '20px', fontWeight: 950, color: '#1E293B', letterSpacing: '-0.5px' }}>
+              HOT PICK 대관 제휴처
+            </h3>
+            <p style={{ margin: '4px 0 0', fontSize: '12px', color: '#64748B', fontWeight: 600 }}>
+              지역별 실시간 제휴 공간을 간편하게 확인하세요.
+            </p>
+          </div>
+          <button
+            onClick={() => setShowRegisterForm(true)}
+            style={{
+              background: '#E53935',
+              color: '#ffffff',
+              border: 'none',
+              borderRadius: '12px',
+              padding: '10px 14px',
+              fontWeight: 900,
+              fontSize: '13px',
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '6px',
+              boxShadow: '0 4px 12px rgba(229, 57, 53, 0.25)'
+            }}
+          >
+            <Plus size={16} strokeWidth={3} /> BAR 등록하기
+          </button>
         </div>
 
-        {/* 지역 탭 네비게이션 */}
-        <div style={{ display: 'flex', overflowX: 'auto', padding: '10px 20px 0', borderBottom: '1px solid #E2E8F0', flexShrink: 0, scrollbarWidth: 'none', gap: '16px' }}>
-          {TABS.map(tab => {
-            const isActive = activeTab === tab.id;
-            return (
-              <div
-                key={tab.id}
-                onClick={() => setActiveTab(tab.id)}
-                style={{
-                  flex: '0 0 auto',
-                  padding: '12px 4px',
-                  borderBottom: isActive ? '3px solid #E53935' : '3px solid transparent',
-                  color: isActive ? '#E53935' : '#94A3B8',
-                  fontWeight: 900,
-                  fontSize: '15px',
-                  cursor: 'pointer',
-                  transition: 'all 0.2s',
-                  position: 'relative'
-                }}
-              >
-                {tab.label}
-              </div>
-            );
-          })}
-        </div>
-
-        {/* 가로 스크롤 BAR 목록 컨테이너 */}
-        <div style={{ flex: 1, padding: '30px 20px', background: '#F8FAFC', display: 'flex', flexDirection: 'column' }}>
+        {/* 메인 스크롤 콘텐츠 영역 */}
+        <div style={{ flex: 1, overflowY: 'auto', padding: '20px 0', background: '#ffffff' }}>
           {isLoading ? (
-            <div style={{ margin: 'auto', color: '#94A3B8', fontWeight: 700, fontSize: '15px' }}>
-              BAR 정보를 불러오는 중...
+            <div style={{ padding: '60px 20px', textAlign: 'center', color: '#94A3B8', fontWeight: 700 }}>
+              전국 BAR 정보를 정렬하는 중...
             </div>
-          ) : currentBars.length === 0 ? (
-            <div style={{ margin: 'auto', textAlign: 'center', color: '#94A3B8' }}>
-              <p style={{ fontWeight: 900, fontSize: '16px', color: '#475569', margin: '0 0 4px' }}>등록된 BAR가 없습니다</p>
-              <p style={{ fontSize: '13px', margin: 0 }}>다른 지역 탭을 확인해보세요.</p>
+          ) : viewRegion ? (
+            /* 특정 지역 전체보기 화면 */
+            <div style={{ padding: '0 20px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '24px' }}>
+                <button
+                  onClick={() => setViewRegion(null)}
+                  style={{ background: '#F1F5F9', border: 'none', borderRadius: '10px', width: '36px', height: '36px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#1E293B', cursor: 'pointer' }}
+                >
+                  <ChevronLeft size={20} />
+                </button>
+                <span style={{ fontSize: '18px', fontWeight: 950, color: '#1E293B' }}>{viewRegion} 전체 리스트</span>
+              </div>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '20px 10px' }}>
+                {locations.filter(b => b.region === viewRegion).map(renderBarCard)}
+              </div>
             </div>
           ) : (
-            <div>
-              <p style={{ fontSize: '12px', fontWeight: 800, color: '#94A3B8', marginBottom: '16px' }}>
-                가로로 스크롤하여 탐색 ({currentBars.length}개)
-              </p>
-              
-              {/* 가로 스크롤 영역 */}
-              <div style={{ display: 'flex', overflowX: 'auto', gap: '20px', paddingBottom: '20px', scrollbarWidth: 'none' }}>
-                {currentBars.map(bar => (
-                  <motion.div
-                    key={bar.id}
-                    whileTap={{ scale: 0.95 }}
-                    onClick={() => setSelectedBar(bar)}
-                    style={{ 
-                      flex: '0 0 auto', 
-                      width: '84px', 
-                      display: 'flex', 
-                      flexDirection: 'column', 
-                      alignItems: 'center',
-                      cursor: 'pointer' 
-                    }}
-                  >
-                    {/* 원형 이미지 또는 기본 이모지 */}
-                    <div style={{ 
-                      width: '74px', 
-                      height: '74px', 
-                      borderRadius: '50%', 
-                      background: '#ffffff',
-                      boxShadow: '0 4px 12px rgba(0,0,0,0.06)',
-                      border: '2px solid #F1F5F9',
-                      display: 'flex', 
-                      alignItems: 'center', 
-                      justifyContent: 'center',
-                      overflow: 'hidden',
-                      marginBottom: '10px',
-                      position: 'relative'
-                    }}>
-                      {bar.image_url ? (
-                        <img 
-                          src={bar.image_url} 
-                          alt={bar.name} 
-                          style={{ width: '100%', height: '100%', objectFit: 'cover' }} 
-                        />
-                      ) : (
-                        <span style={{ fontSize: '32px', userSelect: 'none' }}>🎵</span>
-                      )}
+            /* 메인 레이아웃 구조: 지역별로 세로 나열 */
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '32px' }}>
+              {REGIONS_ORDER.map(region => {
+                const regionBars = locations.filter(bar => bar.region === region);
+                // 데이터 없는 지역은 표시 안함
+                if (regionBars.length === 0) return null;
+
+                return (
+                  <div key={region}>
+                    {/* 지역명 + 전체보기 버튼 */}
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '0 20px', marginBottom: '14px' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                        <span style={{ fontSize: '17px', fontWeight: 950, color: '#1E293B' }}>{region}</span>
+                        <span style={{ fontSize: '11px', background: '#F1F5F9', color: '#64748B', fontWeight: 800, padding: '2px 6px', borderRadius: '6px' }}>
+                          {regionBars.length}
+                        </span>
+                      </div>
+                      <button
+                        onClick={() => setViewRegion(region)}
+                        style={{ background: 'none', border: 'none', color: '#E53935', fontSize: '13px', fontWeight: 900, cursor: 'pointer', padding: '4px 0' }}
+                      >
+                        전체보기 &gt;
+                      </button>
                     </div>
 
-                    {/* BAR 이름 */}
-                    <span style={{ 
-                      fontSize: '13px', 
-                      fontWeight: 900, 
-                      color: '#1E293B', 
-                      textAlign: 'center',
-                      width: '100%',
-                      overflow: 'hidden',
-                      textOverflow: 'ellipsis',
-                      whiteSpace: 'nowrap'
-                    }}>
-                      {bar.name || '이름 없음'}
-                    </span>
-                  </motion.div>
-                ))}
-              </div>
+                    {/* 가로 스크롤로 BAR 5개씩 표시 */}
+                    <div style={{ display: 'flex', overflowX: 'auto', gap: '16px', padding: '0 20px', scrollbarWidth: 'none' }}>
+                      {regionBars.slice(0, 5).map(renderBarCard)}
+                    </div>
+                  </div>
+                );
+              })}
             </div>
           )}
         </div>
       </motion.div>
 
-      {/* BAR 클릭 시 나타나는 미니 팝업 모달 */}
+      {/* 팝업 1: BAR 등록 폼 모달 */}
+      <AnimatePresence>
+        {showRegisterForm && (
+          <div style={{ position: 'fixed', inset: 0, zIndex: 190010, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px' }}>
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setShowRegisterForm(false)}
+              style={{ position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.7)' }}
+            />
+
+            <motion.div
+              initial={{ scale: 0.9, opacity: 0, y: 20 }}
+              animate={{ scale: 1, opacity: 1, y: 0 }}
+              exit={{ scale: 0.9, opacity: 0, y: 20 }}
+              style={{
+                background: '#ffffff',
+                borderRadius: '24px',
+                padding: '24px',
+                width: '100%',
+                maxWidth: '360px',
+                maxHeight: '85dvh',
+                overflowY: 'auto',
+                position: 'relative',
+                boxShadow: '0 20px 40px rgba(0,0,0,0.25)',
+                display: 'flex',
+                flexDirection: 'column',
+                gap: '16px'
+              }}
+            >
+              <button
+                onClick={() => setShowRegisterForm(false)}
+                style={{ position: 'absolute', top: '20px', right: '20px', background: '#F1F5F9', border: 'none', borderRadius: '50%', width: '32px', height: '32px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#64748B', cursor: 'pointer' }}
+              >
+                <X size={18} />
+              </button>
+
+              <div>
+                <h4 style={{ margin: 0, fontSize: '18px', fontWeight: 950, color: '#1E293B' }}>신규 BAR 등재 신청</h4>
+                <p style={{ margin: '4px 0 0', fontSize: '12px', color: '#64748B' }}>모든 정보는 실시간 반영됩니다.</p>
+              </div>
+
+              <form onSubmit={handleSubmitRegister} style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+                <div>
+                  <label style={{ display: 'block', fontSize: '12px', fontWeight: 800, color: '#475569', marginBottom: '4px' }}>BAR 이름 *</label>
+                  <input
+                    type="text"
+                    required
+                    placeholder="예: 홍대 턴바"
+                    value={formData.name}
+                    onChange={e => setFormData({ ...formData, name: e.target.value })}
+                    style={{ width: '100%', padding: '12px', border: '1px solid #E2E8F0', borderRadius: '12px', fontSize: '14px', fontWeight: 600, outline: 'none' }}
+                  />
+                </div>
+
+                <div>
+                  <label style={{ display: 'block', fontSize: '12px', fontWeight: 800, color: '#475569', marginBottom: '4px' }}>상세 주소 *</label>
+                  <input
+                    type="text"
+                    required
+                    placeholder="예: 서울 마포구 동교동 123-4 B1"
+                    value={formData.address}
+                    onChange={e => setFormData({ ...formData, address: e.target.value })}
+                    style={{ width: '100%', padding: '12px', border: '1px solid #E2E8F0', borderRadius: '12px', fontSize: '14px', fontWeight: 600, outline: 'none' }}
+                  />
+                  <span style={{ fontSize: '10px', color: '#94A3B8', marginTop: '4px', display: 'block' }}>
+                    입력하신 주소 키워드를 기반으로 지역 탭이 자동 배정됩니다.
+                  </span>
+                </div>
+
+                <div>
+                  <label style={{ display: 'block', fontSize: '12px', fontWeight: 800, color: '#475569', marginBottom: '4px' }}>대표 이미지 사진</label>
+                  <input
+                    type="file"
+                    accept="image/*"
+                    onChange={handleFileChange}
+                    style={{ fontSize: '12px', width: '100%', padding: '8px', border: '1px dashed #CBD5E1', borderRadius: '12px', background: '#F8FAFC' }}
+                  />
+                  {previewUrl && (
+                    <div style={{ marginTop: '8px', width: '80px', height: '80px', borderRadius: '12px', overflow: 'hidden', border: '1px solid #E2E8F0' }}>
+                      <img src={previewUrl} alt="미리보기" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                    </div>
+                  )}
+                </div>
+
+                <div>
+                  <label style={{ display: 'block', fontSize: '12px', fontWeight: 800, color: '#475569', marginBottom: '4px' }}>카카오톡 문의 링크</label>
+                  <input
+                    type="url"
+                    placeholder="https://open.kakao.com/o/..."
+                    value={formData.kakao_url}
+                    onChange={e => setFormData({ ...formData, kakao_url: e.target.value })}
+                    style={{ width: '100%', padding: '12px', border: '1px solid #E2E8F0', borderRadius: '12px', fontSize: '13px', outline: 'none' }}
+                  />
+                </div>
+
+                <div>
+                  <label style={{ display: 'block', fontSize: '12px', fontWeight: 800, color: '#475569', marginBottom: '4px' }}>인스타그램 링크</label>
+                  <input
+                    type="url"
+                    placeholder="https://instagram.com/..."
+                    value={formData.instagram_url}
+                    onChange={e => setFormData({ ...formData, instagram_url: e.target.value })}
+                    style={{ width: '100%', padding: '12px', border: '1px solid #E2E8F0', borderRadius: '12px', fontSize: '13px', outline: 'none' }}
+                  />
+                </div>
+
+                <button
+                  type="submit"
+                  disabled={isSubmitting}
+                  style={{
+                    marginTop: '8px',
+                    width: '100%',
+                    padding: '14px',
+                    background: '#E53935',
+                    color: '#ffffff',
+                    border: 'none',
+                    borderRadius: '14px',
+                    fontWeight: 950,
+                    fontSize: '15px',
+                    cursor: isSubmitting ? 'not-allowed' : 'pointer',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    gap: '8px',
+                    opacity: isSubmitting ? 0.7 : 1
+                  }}
+                >
+                  {isSubmitting ? <Loader2 size={18} className="animate-spin" /> : 'BAR 등록 완료하기'}
+                </button>
+              </form>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+
+      {/* 팝업 2: BAR 클릭 시 나타나는 미니 팝업 모달 */}
       <AnimatePresence>
         {selectedBar && (
           <div style={{ position: 'fixed', inset: 0, zIndex: 190005, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '24px' }}>
-            {/* 팝업 뒷배경 클릭 시 닫힘 */}
-            <motion.div 
-              initial={{ opacity: 0 }} 
-              animate={{ opacity: 1 }} 
-              exit={{ opacity: 0 }} 
-              onClick={() => setSelectedBar(null)} 
-              style={{ position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.6)' }} 
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setSelectedBar(null)}
+              style={{ position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.6)' }}
             />
 
-            {/* 팝업 카드 */}
             <motion.div
               initial={{ scale: 0.9, opacity: 0, y: 10 }}
               animate={{ scale: 1, opacity: 1, y: 0 }}
               exit={{ scale: 0.9, opacity: 0, y: 10 }}
               transition={{ type: 'spring', damping: 20, stiffness: 300 }}
-              style={{ 
-                background: '#ffffff', 
-                borderRadius: '24px', 
-                padding: '24px', 
-                width: '100%', 
-                maxWidth: '340px', 
+              style={{
+                background: '#ffffff',
+                borderRadius: '24px',
+                padding: '24px',
+                width: '100%',
+                maxWidth: '340px',
                 position: 'relative',
                 boxShadow: '0 20px 40px rgba(0,0,0,0.2)',
                 display: 'flex',
@@ -256,7 +521,7 @@ export default function RentalModal({ onClose }) {
                 gap: '16px'
               }}
             >
-              <button 
+              <button
                 onClick={() => setSelectedBar(null)}
                 style={{ position: 'absolute', top: '16px', right: '16px', background: '#F1F5F9', border: 'none', borderRadius: '50%', width: '32px', height: '32px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#64748B', cursor: 'pointer' }}
               >
