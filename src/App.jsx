@@ -943,10 +943,12 @@ function App() {
                   icon: <Star color={'#C9A84C'} />, 
                   text: '내가 팔로우한 강사 목록', 
                   action: () => { 
+                    localStorage.setItem('instructor_target_genre', '⭐ 내 팔로잉');
                     navigate('/instructors'); 
                     setIsMenuOpen(false); 
-                    localStorage.setItem('instructor_target_genre', '⭐ 내 팔로잉');
-                    window.dispatchEvent(new CustomEvent('apply-instructor-filter'));
+                    setTimeout(() => {
+                      window.dispatchEvent(new CustomEvent('apply-instructor-filter'));
+                    }, 300);
                   } 
                 },
                 { 
