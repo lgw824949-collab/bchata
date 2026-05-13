@@ -533,6 +533,7 @@ function App() {
   const [parties, setParties] = useState([]);
   const [bootcamps, setBootcamps] = useState([]);
   const [festivals, setFestivals] = useState([]);
+  const [followedInstructors, setFollowedInstructors] = useState([]);
   const [displayParties, setDisplayParties] = useState([]);
   const [loading, setLoading] = useState(true);
   const [selectedDate, setSelectedDate] = useState(todayData.dateStr);
@@ -1006,7 +1007,7 @@ function App() {
         <Suspense fallback={<LoadingFallback />}>
           {view === 'home' ? <HomePage {...sharedProps} /> : 
            view === 'community' ? <Community setSelectedPoster={setSelectedPoster} setView={setView} /> :
-           view === 'instructors' ? <Instructors /> :
+           view === 'instructors' ? <Instructors followedInstructors={followedInstructors} setView={setView} /> :
            view === 'register-class' ? <InstructorRegister onBack={() => navigate('/instructors')} /> :
            view === 'bootcamp' ? <Bootcamp onBack={() => navigate('/')} /> :
            view === 'bootcamp-register' ? <Bootcamp onBack={() => navigate('/bootcamp')} initialView="register" /> :
