@@ -483,6 +483,7 @@ const HomePage = ({
   const [weatherMap, setWeatherMap] = useState({});
   const [adminTapCount, setAdminTapCount] = useState(0);
   const [lastAdminTap, setLastAdminTap] = useState(0);
+  const [activeDateGenre, setActiveDateGenre] = useState('전체');
   const todayStr = useMemo(() => {
     const d = new Date();
     return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
@@ -669,26 +670,8 @@ const HomePage = ({
       </div>
 
       {/* 📌 [영역 B: 날짜 선택바 - 상단 고정(Sticky)] */}
-      <div style={{ position: 'sticky', top: 0, zIndex: 1000, background: 'var(--color-bg)', borderBottom: '1px solid var(--color-border)', boxShadow: '0 4px 12px rgba(0,0,0,0.03)', padding: '4px 10px 0', transition: 'all 0.3s' }}>
-        {/* 달력 상단 장르 범례 */}
-        <div style={{ display: 'flex', justifyContent: 'center', gap: '6px', flexWrap: 'wrap', paddingBottom: '4px', borderBottom: '1px solid var(--color-border)', opacity: 0.85 }}>
-          {[
-            { label: '바차타', color: '#E53935' },
-            { label: '살사', color: '#F59E0B' },
-            { label: '쥬크', color: '#7C3AED' },
-            { label: '키좀바', color: '#1D9E75' },
-            { label: '소셜', color: '#1E293B' },
-            { label: '부트캠프', color: '#0EA5E9' },
-            { label: '페스티벌', color: '#EC4899' }
-          ].map(g => (
-            <div key={g.label} style={{ display: 'flex', alignItems: 'center', gap: '3px', fontSize: '10px', fontWeight: 700, color: 'var(--color-text-sub)' }}>
-              <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: g.color, flexShrink: 0 }} />
-              {g.label}
-            </div>
-          ))}
-        </div>
-
-        <div style={{ flex: 1, display: 'flex', overflowX: 'auto', gap: '8px', padding: '6px 0 4px', msOverflowStyle: 'none', scrollbarWidth: 'none', WebkitOverflowScrolling: 'touch' }} className="date-stream-bar">
+      <div style={{ position: 'sticky', top: 0, zIndex: 1000, background: 'var(--color-bg)', borderBottom: '1px solid var(--color-border)', boxShadow: '0 4px 12px rgba(0,0,0,0.03)', padding: '4px 0 0', transition: 'all 0.3s' }}>
+        <div style={{ flex: 1, display: 'flex', overflowX: 'auto', gap: '8px', padding: '6px 10px 4px', msOverflowStyle: 'none', scrollbarWidth: 'none', WebkitOverflowScrolling: 'touch' }} className="date-stream-bar">
           {fourteenDays.map((item) => {
             const isSelected = selectedDate === item.fullDate;
             const isHoliday = item.dayOfWeek === 0 || (item.month === '5' && item.date === '5');
@@ -696,7 +679,7 @@ const HomePage = ({
             const dayColor = isSelected ? '#fff' : (isHoliday ? '#FF1744' : (isSaturday ? '#FF1744' : '#94A3B8'));
             const labelColor = isSelected ? '#FF1744' : (isHoliday ? '#FF1744' : (isSaturday ? '#FF1744' : '#94A3B8'));
             
-            // 페스티벌, 부트캠프, 파티 여부 및 대표 색상 계산
+            // 페스티벌, 부트캠프, 파티 존재 여부 확인
             const isFestivalDay = (festivals || []).some(f => {
               if (f.start_date && f.end_date) {
                 return item.fullDate >= f.start_date && item.fullDate <= f.end_date;
@@ -712,48 +695,14 @@ const HomePage = ({
             });
 
             const dayParties = (parties || []).filter(p => p.date === item.fullDate);
-            let dominantDotColor: string | null = null;
-
-            if (isFestivalDay) {
-              dominantDotColor = '#EC4899';
-            } else if (isBootcampDay) {
-              dominantDotColor = '#0EA5E9';
-            } else if (dayParties.length > 0) {
-              let maxRatio = -1;
-              let dominantGenre = '';
-              
-              for (const p of dayParties) {
-                const b = p.b_ratio ?? 0;
-                const s = p.s_ratio ?? 0;
-                const j = p.j_ratio ?? 0;
-                const k = p.k_ratio ?? 0;
-                
-                const localMax = Math.max(b, s, j, k);
-                if (localMax > maxRatio) {
-                  maxRatio = localMax;
-                  if (localMax > 0) {
-                    if (localMax === b) dominantGenre = '바차타';
-                    else if (localMax === s) dominantGenre = '살사';
-                    else if (localMax === j) dominantGenre = '쥬크';
-                    else if (localMax === k) dominantGenre = '키좀바';
-                  } else {
-                    dominantGenre = '소셜';
-                  }
-                }
-              }
-
-              if (dominantGenre === '바차타') dominantDotColor = '#E53935';
-              else if (dominantGenre === '살사') dominantDotColor = '#F59E0B';
-              else if (dominantGenre === '쥬크') dominantDotColor = '#7C3AED';
-              else if (dominantGenre === '키좀바') dominantDotColor = '#1D9E75';
-              else dominantDotColor = '#1E293B'; // 소셜 (장르 없는 것)
-            }
+            const hasEvent = isFestivalDay || isBootcampDay || dayParties.length > 0;
 
             return (
               <div key={item.fullDate}
                 onClick={() => {
                   console.log('클릭한 날짜:', item.fullDate);
                   setSelectedDate(item.fullDate);
+                  setActiveDateGenre('전체');
                   if (regionListRef.current) {
                     regionListRef.current.scrollIntoView({ behavior: 'smooth', block: 'start' });
                   }
@@ -764,13 +713,40 @@ const HomePage = ({
                 <div style={{ width: '30px', height: '30px', borderRadius: '10px', display: 'flex', alignItems: 'center', justifyContent: 'center', backgroundColor: isSelected ? '#FF1744' : 'transparent', border: item.isToday && !isSelected ? '1px solid #FF1744' : 'none' }}>
                   <span style={{ fontSize: '15px', fontWeight: '800', color: isSelected ? '#fff' : dayColor }}>{item.date}</span>
                 </div>
-                {/* 장르 색깔 점 (5px 원형) */}
+                {/* 단순화된 빨간 점 하나만 표시 */}
                 <div style={{ height: '5px', display: 'flex', alignItems: 'center', justifyContent: 'center', position: 'absolute', bottom: 0 }}>
-                  {dominantDotColor && (
-                    <span style={{ width: '5px', height: '5px', borderRadius: '50%', background: dominantDotColor }} />
+                  {hasEvent && (
+                    <span style={{ width: '5px', height: '5px', borderRadius: '50%', background: '#E53935' }} />
                   )}
                 </div>
               </div>
+            );
+          })}
+        </div>
+
+        {/* 선택된 날짜의 장르 필터 버튼 */}
+        <div style={{ display: 'flex', overflowX: 'auto', gap: '6px', padding: '6px 10px 8px', borderTop: '1px solid var(--color-border)', msOverflowStyle: 'none', scrollbarWidth: 'none', WebkitOverflowScrolling: 'touch' }}>
+          {['전체', '바차타', '살사', '쥬크', '키좀바', '부트캠프', '페스티벌'].map(g => {
+            const isActive = activeDateGenre === g;
+            return (
+              <button
+                key={g}
+                onClick={() => setActiveDateGenre(g)}
+                style={{
+                  padding: '4px 12px',
+                  borderRadius: '14px',
+                  fontSize: '11px',
+                  fontWeight: isActive ? 900 : 700,
+                  backgroundColor: isActive ? '#E53935' : 'var(--color-card)',
+                  color: isActive ? '#fff' : 'var(--color-text-sub)',
+                  border: `1px solid ${isActive ? '#E53935' : 'var(--color-border)'}`,
+                  cursor: 'pointer',
+                  flexShrink: 0,
+                  transition: 'all 0.2s'
+                }}
+              >
+                {g}
+              </button>
             );
           })}
         </div>
@@ -783,11 +759,65 @@ const HomePage = ({
           ) : (
             <div style={{ width: '100%', padding: '0 0 20px 0', backgroundColor: 'var(--color-bg)' }}>
               {(() => {
+                const activeBootcamps = (bootcamps || []).filter(b => {
+                  if (b.start_date && b.end_date) {
+                    return selectedDate >= b.start_date && selectedDate <= b.end_date;
+                  }
+                  return b.start_date === selectedDate;
+                }).map(b => ({
+                  ...b,
+                  _itemGenre: '부트캠프',
+                  date: selectedDate,
+                  broadRegion: b.region?.includes('서울') ? '서울' : (b.region?.includes('경기') || b.region?.includes('인천') ? '경기/인천' : (b.region?.includes('경상') ? '경상도' : (b.region?.includes('전라') ? '전라도' : (b.region?.includes('충청') ? '충청도' : '강원/제주')))),
+                  locationName: b.venue || b.region,
+                  fee: b.fee || b.price_info,
+                  time: b.time || '13:00'
+                }));
+
+                const activeFestivals = (festivals || []).filter(f => {
+                  if (f.start_date && f.end_date) {
+                    return selectedDate >= f.start_date && selectedDate <= f.end_date;
+                  }
+                  return f.start_date === selectedDate;
+                }).map(f => ({
+                  ...f,
+                  _itemGenre: '페스티벌',
+                  date: selectedDate,
+                  broadRegion: f.region?.includes('서울') ? '서울' : (f.region?.includes('경기') || f.region?.includes('인천') ? '경기/인천' : (f.region?.includes('경상') ? '경상도' : (f.region?.includes('전라') ? '전라도' : (f.region?.includes('충청') ? '충청도' : '강원/제주')))),
+                  locationName: f.venue || f.region,
+                  fee: f.price_info || f.fee,
+                  time: f.time || '12:00'
+                }));
+
+                const activeParties = (parties || []).filter(p => p.date === selectedDate).map(p => {
+                  let genre = '소셜';
+                  const b = p.b_ratio ?? 0;
+                  const s = p.s_ratio ?? 0;
+                  const j = p.j_ratio ?? 0;
+                  const k = p.k_ratio ?? 0;
+                  const m = Math.max(b, s, j, k);
+                  if (m > 0) {
+                    if (m === b) genre = '바차타';
+                    else if (m === s) genre = '살사';
+                    else if (m === j) genre = '쥬크';
+                    else if (m === k) genre = '키좀바';
+                  }
+                  return {
+                    ...p,
+                    _itemGenre: genre
+                  };
+                });
+
+                // 통합된 해당 날짜의 모든 이벤트
+                const unifiedDayEvents = [...activeParties, ...activeBootcamps, ...activeFestivals].filter(item => {
+                  if (activeDateGenre === '전체') return true;
+                  return item._itemGenre === activeDateGenre;
+                });
+
                 // 선택된 날짜의 포스터가 있는 파티 추출 (최신순 기본 정렬)
-                const allPosterParties = (parties || [])
-                  .filter(p => p.date === selectedDate)
+                const allPosterParties = unifiedDayEvents
                   .filter(p => p.poster_url && p.poster_url.trim() !== '')
-                  .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
+                  .sort((a, b) => new Date(b.created_at || 0).getTime() - new Date(a.created_at || 0).getTime());
 
                 // 중복된 포스터 무조건 제거
                 const uniquePosterParties: typeof allPosterParties = [];
@@ -880,8 +910,7 @@ const HomePage = ({
                       const regions = ["서울", "경기/인천", "경상도", "전라도", "충청도", "강원/제주"];
 
                       return regions.map((regionName, idx) => {
-                        const regionParties = (parties || [])
-                          .filter(p => p.date === selectedDate)
+                        const regionParties = unifiedDayEvents
                           .filter(p => REGION_FILTER[regionName](p))
                           .filter(p => {
                             if (filterGenre && GENRE_MAP[filterGenre]) {
@@ -889,7 +918,7 @@ const HomePage = ({
                             }
                             return true;
                           })
-                          .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
+                          .sort((a, b) => new Date(b.created_at || 0).getTime() - new Date(a.created_at || 0).getTime());
 
                         // [사용자 요청] 15초 롤링 로직 적용
                         const rollingParties = [...regionParties];
@@ -1012,6 +1041,7 @@ const HomePage = ({
                                         <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                                           <span style={{ fontSize: '12px', fontWeight: '700', color: '#E53935', background: '#fff0f0', padding: '3px 10px', borderRadius: '8px', border: '1px solid #ffc9c9', flexShrink: 0 }}>
                                             {(() => {
+                                              if (item._itemGenre && item._itemGenre !== '소셜') return item._itemGenre;
                                               const entries = Object.entries(GENRE_MAP).filter(([_, info]) => item[info.key] > 0)
                                               if (entries.length === 0) return '소셜'
                                               const sorted = [...entries].sort((a, b) => item[b[1].key] - item[a[1].key])
@@ -1025,7 +1055,7 @@ const HomePage = ({
                                         </div>
 
                                         <div style={{ fontSize: '17px', fontWeight: '900', color: 'var(--color-text-main)', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden', textOverflow: 'ellipsis', letterSpacing: '-0.6px', lineHeight: 1.3, height: '44px', marginTop: '4px' }}>
-                                          {cleanTitle(item.title).replace(/^\[.*?\]\s*/, '').replace(/ㅣ\s*$/, '').trim()}
+                                          {cleanTitle(item.title || '').replace(/^\[.*?\]\s*/, '').replace(/ㅣ\s*$/, '').trim()}
                                         </div>
 
                                         <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
