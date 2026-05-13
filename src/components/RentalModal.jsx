@@ -17,8 +17,8 @@ export default function RentalModal({ onClose }) {
   const [isLoading, setIsLoading] = useState(true);
   const [selectedBar, setSelectedBar] = useState(null);
   
-  // 전체보기 모드 제어 상태 (특정 지역 전체 리스트 표시용)
-  const [viewRegion, setViewRegion] = useState(null);
+  // 지역별 펼쳐짐(더보기/전체보기) 상태 관리 객체
+  const [expandedRegions, setExpandedRegions] = useState({});
 
   // 등록 폼 제어 상태
   const [showRegisterForm, setShowRegisterForm] = useState(false);
@@ -88,6 +88,14 @@ export default function RentalModal({ onClose }) {
     if (url) {
       window.open(url, '_blank');
     }
+  };
+
+  // 펼치기 토글 핸들러
+  const toggleExpandRegion = (region) => {
+    setExpandedRegions(prev => ({
+      ...prev,
+      [region]: !prev[region]
+    }));
   };
 
   // 사진 파일 선택 핸들러
@@ -172,7 +180,7 @@ export default function RentalModal({ onClose }) {
     }
   };
 
-  // 특정 지역의 BAR 목록 렌더링 카드 뷰
+  // 개별 BAR 카드 렌더링 함수
   const renderBarCard = (bar) => (
     <motion.div
       key={bar.id}
@@ -208,7 +216,11 @@ export default function RentalModal({ onClose }) {
             style={{ width: '100%', height: '100%', objectFit: 'cover' }}
           />
         ) : (
-          <span style={{ fontSize: '32px', userSelect: 'none' }}>🎵</span>
+          <img
+            src="/logo.png"
+            alt={bar.name}
+            style={{ width: '65%', height: '65%', objectFit: 'contain', opacity: 0.85 }}
+          />
         )}
       </div>
       <span style={{
@@ -300,22 +312,6 @@ export default function RentalModal({ onClose }) {
             <div style={{ padding: '60px 20px', textAlign: 'center', color: '#94A3B8', fontWeight: 700 }}>
               전국 BAR 정보를 정렬하는 중...
             </div>
-          ) : viewRegion ? (
-            /* 특정 지역 전체보기 화면 */
-            <div style={{ padding: '0 20px' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '24px' }}>
-                <button
-                  onClick={() => setViewRegion(null)}
-                  style={{ background: '#F1F5F9', border: 'none', borderRadius: '10px', width: '36px', height: '36px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#1E293B', cursor: 'pointer' }}
-                >
-                  <ChevronLeft size={20} />
-                </button>
-                <span style={{ fontSize: '18px', fontWeight: 950, color: '#1E293B' }}>{viewRegion} 전체 리스트</span>
-              </div>
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '20px 10px' }}>
-                {locations.filter(b => b.region === viewRegion).map(renderBarCard)}
-              </div>
-            </div>
           ) : (
             /* 메인 레이아웃 구조: 지역별로 세로 나열 */
             <div style={{ display: 'flex', flexDirection: 'column', gap: '32px' }}>
@@ -324,9 +320,11 @@ export default function RentalModal({ onClose }) {
                 // 데이터 없는 지역은 표시 안함
                 if (regionBars.length === 0) return null;
 
+                const isExpanded = expandedRegions[region];
+
                 return (
                   <div key={region}>
-                    {/* 지역명 + 전체보기 버튼 */}
+                    {/* 지역명 + 전체보기/접기 버튼 */}
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '0 20px', marginBottom: '14px' }}>
                       <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                         <span style={{ fontSize: '17px', fontWeight: 950, color: '#1E293B' }}>{region}</span>
@@ -334,18 +332,83 @@ export default function RentalModal({ onClose }) {
                           {regionBars.length}
                         </span>
                       </div>
-                      <button
-                        onClick={() => setViewRegion(region)}
-                        style={{ background: 'none', border: 'none', color: '#E53935', fontSize: '13px', fontWeight: 900, cursor: 'pointer', padding: '4px 0' }}
-                      >
-                        전체보기 &gt;
-                      </button>
+                      {regionBars.length > 5 && (
+                        <button
+                          onClick={() => toggleExpandRegion(region)}
+                          style={{ background: 'none', border: 'none', color: '#E53935', fontSize: '13px', fontWeight: 900, cursor: 'pointer', padding: '4px 0' }}
+                        >
+                          {isExpanded ? '접기 ∧' : '전체보기 >'}
+                        </button>
+                      )}
                     </div>
 
-                    {/* 가로 스크롤로 BAR 5개씩 표시 */}
-                    <div style={{ display: 'flex', overflowX: 'auto', gap: '16px', padding: '0 20px', scrollbarWidth: 'none' }}>
-                      {regionBars.slice(0, 5).map(renderBarCard)}
-                    </div>
+                    {/* 리스트 출력: 펼쳐짐 상태에 따라 반응형 그리드 또는 가로 스크롤 캐러셀 적용 */}
+                    {isExpanded ? (
+                      /* 전체 펼쳐진 그리드 뷰 */
+                      <motion.div 
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        style={{ 
+                          display: 'grid', 
+                          gridTemplateColumns: 'repeat(4, 1fr)', 
+                          gap: '16px 8px', 
+                          padding: '0 20px' 
+                        }}
+                      >
+                        {regionBars.map(renderBarCard)}
+                      </motion.div>
+                    ) : (
+                      /* 기본 5개 가로 스크롤 + 더보기 원형 버튼 */
+                      <div style={{ display: 'flex', overflowX: 'auto', gap: '16px', padding: '0 20px', scrollbarWidth: 'none' }}>
+                        {regionBars.slice(0, 5).map(renderBarCard)}
+                        
+                        {/* 5개 초과 시 마지막에 "더보기" 원형 버튼 추가 */}
+                        {regionBars.length > 5 && (
+                          <motion.div
+                            whileTap={{ scale: 0.95 }}
+                            onClick={() => toggleExpandRegion(region)}
+                            style={{
+                              flex: '0 0 auto',
+                              width: '88px',
+                              display: 'flex',
+                              flexDirection: 'column',
+                              alignItems: 'center',
+                              cursor: 'pointer'
+                            }}
+                          >
+                            <div style={{
+                              width: '76px',
+                              height: '76px',
+                              borderRadius: '50%',
+                              background: '#FEF2F2',
+                              boxShadow: '0 4px 12px rgba(229, 57, 53, 0.08)',
+                              border: '2px solid #FEE2E2',
+                              display: 'flex',
+                              flexDirection: 'column',
+                              alignItems: 'center',
+                              justifyContent: 'center',
+                              marginBottom: '8px'
+                            }}>
+                              <span style={{ fontSize: '18px', fontWeight: 950, color: '#E53935' }}>
+                                +{regionBars.length - 5}
+                              </span>
+                              <span style={{ fontSize: '10px', fontWeight: 800, color: '#E53935', marginTop: '-2px' }}>
+                                BAR
+                              </span>
+                            </div>
+                            <span style={{
+                              fontSize: '13px',
+                              fontWeight: 900,
+                              color: '#E53935',
+                              textAlign: 'center',
+                              width: '100%'
+                            }}>
+                              더보기
+                            </span>
+                          </motion.div>
+                        )}
+                      </div>
+                    )}
                   </div>
                 );
               })}
