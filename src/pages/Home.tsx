@@ -671,14 +671,15 @@ const HomePage = ({
       {/* 📌 [영역 B: 날짜 선택바 - 상단 고정(Sticky)] */}
       <div style={{ position: 'sticky', top: 0, zIndex: 1000, background: 'var(--color-bg)', borderBottom: '1px solid var(--color-border)', boxShadow: '0 4px 12px rgba(0,0,0,0.03)', padding: '4px 10px 0', transition: 'all 0.3s' }}>
         {/* 달력 상단 장르 범례 */}
-        <div style={{ display: 'flex', justifyContent: 'center', gap: '8px', flexWrap: 'wrap', paddingBottom: '4px', borderBottom: '1px solid var(--color-border)', opacity: 0.85 }}>
+        <div style={{ display: 'flex', justifyContent: 'center', gap: '6px', flexWrap: 'wrap', paddingBottom: '4px', borderBottom: '1px solid var(--color-border)', opacity: 0.85 }}>
           {[
             { label: '바차타', color: '#E53935' },
-            { label: '살사', color: '#FF6B00' },
+            { label: '살사', color: '#F59E0B' },
             { label: '쥬크', color: '#7C3AED' },
             { label: '키좀바', color: '#1D9E75' },
+            { label: '소셜', color: '#1E293B' },
             { label: '부트캠프', color: '#0EA5E9' },
-            { label: '페스티벌', color: '#F59E0B' }
+            { label: '페스티벌', color: '#EC4899' }
           ].map(g => (
             <div key={g.label} style={{ display: 'flex', alignItems: 'center', gap: '3px', fontSize: '10px', fontWeight: 700, color: 'var(--color-text-sub)' }}>
               <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: g.color, flexShrink: 0 }} />
@@ -714,7 +715,7 @@ const HomePage = ({
             let dominantDotColor: string | null = null;
 
             if (isFestivalDay) {
-              dominantDotColor = '#F59E0B';
+              dominantDotColor = '#EC4899';
             } else if (isBootcampDay) {
               dominantDotColor = '#0EA5E9';
             } else if (dayParties.length > 0) {
@@ -742,10 +743,10 @@ const HomePage = ({
               }
 
               if (dominantGenre === '바차타') dominantDotColor = '#E53935';
-              else if (dominantGenre === '살사') dominantDotColor = '#FF6B00';
+              else if (dominantGenre === '살사') dominantDotColor = '#F59E0B';
               else if (dominantGenre === '쥬크') dominantDotColor = '#7C3AED';
               else if (dominantGenre === '키좀바') dominantDotColor = '#1D9E75';
-              else dominantDotColor = '#94A3B8'; // 소셜 (장르 없는 것)
+              else dominantDotColor = '#1E293B'; // 소셜 (장르 없는 것)
             }
 
             return (
