@@ -1121,29 +1121,63 @@ const HomePage = ({
 
               <div style={{ flex: 1, overflowY: 'auto', minHeight: '350px' }}>
                 {!showFilterPanel && !showFilteredResults ? (
-                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: '5px', textAlign: 'center' }}>
-                    {['일', '월', '화', '수', '목', '금', '토'].map(d => <div key={d} style={{ fontSize: '12px', fontWeight: 700, color: d === '일' ? '#FF1744' : d === '토' ? '#FF1744' : '#999', padding: '5px 0' }}>{d}</div>)}
-                    {allDatesInMonth.map((day) => {
-                      if (!day.date) return <div key={Math.random()} />;
-                      const isWeekend = day.dayName === '금' || day.dayName === '토';
-                      const isSelected = selectedDate === day.fullDate;
-                      return (
-                        <div
-                          key={day.fullDate}
-                          onClick={() => {
-                            if (day.fullDate < todayStr) return;
-                            setSelectedDate(day.fullDate);
-                            // 모든 날짜 클릭 시 3단계 필터 필터 플로우 활성화
-                            handleOpenModal(setShowFilterPanel, true);
-                            setFilterStep(1);
-                          }}
-                          style={{ height: '46px', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', fontSize: '15px', fontWeight: isSelected ? 800 : 600, color: isSelected ? '#fff' : (day.dayName === '일' ? '#FF1744' : (isWeekend ? '#FF1744' : 'var(--color-text-main)')), backgroundColor: isSelected ? '#FF1744' : 'transparent', borderRadius: '14px', cursor: day.fullDate < todayStr ? 'default' : 'pointer', opacity: day.fullDate < todayStr ? 0.3 : 1 }}
-                        >
-                          {day.date}
-                        </div>
-                      );
-                    })}
-                  </div>
+                  <>
+                    {/* 달력 상단 범례 */}
+                    <div style={{ display: 'flex', justifyContent: 'center', gap: '16px', marginBottom: '16px', fontSize: '12px', fontWeight: 700, color: 'var(--color-text-sub)' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                        <span style={{ width: '6px', height: '6px', borderRadius: '50%', backgroundColor: '#E53935' }} /> 파티
+                      </div>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                        <span style={{ width: '6px', height: '6px', borderRadius: '50%', backgroundColor: '#2563EB' }} /> 부트캠프
+                      </div>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                        <span style={{ width: '6px', height: '6px', borderRadius: '50%', backgroundColor: '#9333EA' }} /> 페스티벌
+                      </div>
+                    </div>
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: '5px', textAlign: 'center' }}>
+                      {['일', '월', '화', '수', '목', '금', '토'].map(d => <div key={d} style={{ fontSize: '12px', fontWeight: 700, color: d === '일' ? '#FF1744' : d === '토' ? '#FF1744' : '#999', padding: '5px 0' }}>{d}</div>)}
+                      {allDatesInMonth.map((day) => {
+                        if (!day.date) return <div key={Math.random()} />;
+                        const isWeekend = day.dayName === '금' || day.dayName === '토';
+                        const isSelected = selectedDate === day.fullDate;
+
+                        const hasParty = (parties || []).some(p => p.date === day.fullDate);
+                        const hasBootcamp = (bootcamps || []).some(b => {
+                          if (b.start_date && b.end_date) {
+                            return day.fullDate >= b.start_date && day.fullDate <= b.end_date;
+                          }
+                          return b.start_date === day.fullDate;
+                        });
+                        const hasFestival = (festivals || []).some(f => {
+                          if (f.start_date && f.end_date) {
+                            return day.fullDate >= f.start_date && day.fullDate <= f.end_date;
+                          }
+                          return f.start_date === day.fullDate;
+                        });
+
+                        return (
+                          <div
+                            key={day.fullDate}
+                            onClick={() => {
+                              if (day.fullDate < todayStr) return;
+                              setSelectedDate(day.fullDate);
+                              // 모든 날짜 클릭 시 3단계 필터 필터 플로우 활성화
+                              handleOpenModal(setShowFilterPanel, true);
+                              setFilterStep(1);
+                            }}
+                            style={{ height: '46px', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', position: 'relative', fontSize: '15px', fontWeight: isSelected ? 800 : 600, color: isSelected ? '#fff' : (day.dayName === '일' ? '#FF1744' : (isWeekend ? '#FF1744' : 'var(--color-text-main)')), backgroundColor: isSelected ? '#FF1744' : 'transparent', borderRadius: '14px', cursor: day.fullDate < todayStr ? 'default' : 'pointer', opacity: day.fullDate < todayStr ? 0.3 : 1 }}
+                          >
+                            <span style={{ lineHeight: 1 }}>{day.date}</span>
+                            <div style={{ display: 'flex', gap: '2px', position: 'absolute', bottom: '4px', height: '4px', alignItems: 'center', justifyContent: 'center' }}>
+                              {hasParty && <span style={{ width: '4px', height: '4px', borderRadius: '50%', backgroundColor: '#E53935', boxShadow: isSelected ? '0 0 0 0.5px #fff' : 'none' }} />}
+                              {hasBootcamp && <span style={{ width: '4px', height: '4px', borderRadius: '50%', backgroundColor: '#2563EB', boxShadow: isSelected ? '0 0 0 0.5px #fff' : 'none' }} />}
+                              {hasFestival && <span style={{ width: '4px', height: '4px', borderRadius: '50%', backgroundColor: '#9333EA', boxShadow: isSelected ? '0 0 0 0.5px #fff' : 'none' }} />}
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </>
                 ) : showFilterPanel && !showFilteredResults ? (
                   <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }}>
                     {filterStep === 1 ? (
