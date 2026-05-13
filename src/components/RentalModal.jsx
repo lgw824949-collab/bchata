@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, MapPin, MessageCircle, Globe, Plus, ChevronLeft, Loader2 } from 'lucide-react';
 import { supabase } from '../lib/supabase';
+import { findBarByName } from '../lib/BarLib';
 
 const REGIONS_ORDER = [
   '서울',
@@ -48,8 +49,28 @@ export default function RentalModal({ onClose }) {
 
       const rawList = data || [];
 
+      // 중복 제거: 이름 기준 정보가 가장 풍부하거나 최신인 레코드 1개만 병합 유지
+      const uniqueMap = new Map();
+      rawList.forEach(loc => {
+        let key = (loc.name || '').replace(/\s+/g, '').toLowerCase();
+        if (key.includes('강남턴') || key.includes('강턴')) key = '강턴';
+        if (!key) return;
+
+        if (!uniqueMap.has(key)) {
+          uniqueMap.set(key, loc);
+        } else {
+          const existing = uniqueMap.get(key);
+          const score = (loc.image_url ? 2 : 0) + (loc.kakao_url ? 1 : 0) + (loc.instagram_url ? 1 : 0);
+          const exScore = (existing.image_url ? 2 : 0) + (existing.kakao_url ? 1 : 0) + (existing.instagram_url ? 1 : 0);
+          if (score > exScore || (score === exScore && loc.id > existing.id)) {
+            uniqueMap.set(key, loc);
+          }
+        }
+      });
+      const deduplicatedList = Array.from(uniqueMap.values());
+
       // 주소(address) 컬럼 기준 지역 분류 로직
-      const classified = rawList.map(loc => {
+      const classified = deduplicatedList.map(loc => {
         const text = `${loc.address || ''}`.toLowerCase();
         let region = '기타';
 
@@ -71,6 +92,7 @@ export default function RentalModal({ onClose }) {
         return { ...loc, region };
       });
 
+      classified.sort((a, b) => (a.name || '').localeCompare(b.name || ''));
       setLocations(classified);
     } catch (err) {
       console.error('BAR 목록 로드 실패:', err);
@@ -80,14 +102,19 @@ export default function RentalModal({ onClose }) {
   };
 
   const handleKakaoClick = (url) => {
-    const targetUrl = url || 'https://open.kakao.com/o/gP43rNri';
-    window.open(targetUrl, '_blank');
+    if (!url || !url.trim()) {
+      alert('해당 대관처의 개별 카카오톡 문의 링크가 아직 등록되지 않았습니다.');
+      return;
+    }
+    window.open(url, '_blank');
   };
 
   const handleInstaClick = (url) => {
-    if (url) {
-      window.open(url, '_blank');
+    if (!url || !url.trim()) {
+      alert('해당 대관처의 개별 인스타그램 링크가 아직 등록되지 않았습니다.');
+      return;
     }
+    window.open(url, '_blank');
   };
 
   // 펼치기 토글 핸들러
@@ -105,6 +132,21 @@ export default function RentalModal({ onClose }) {
       setSelectedFile(file);
       setPreviewUrl(URL.createObjectURL(file));
     }
+  };
+
+  // BAR 이름 입력 시 자동 주소 연동 핸들러
+  const handleNameChange = (e) => {
+    const val = e.target.value;
+    setFormData(prev => {
+      const next = { ...prev, name: val };
+      if (val.length >= 1) {
+        const match = findBarByName(val);
+        if (match && match.address) {
+          next.address = match.address;
+        }
+      }
+      return next;
+    });
   };
 
   // BAR 등록 제출 핸들러
@@ -468,7 +510,7 @@ export default function RentalModal({ onClose }) {
                     required
                     placeholder="예: 홍대 턴바"
                     value={formData.name}
-                    onChange={e => setFormData({ ...formData, name: e.target.value })}
+                    onChange={handleNameChange}
                     style={{ width: '100%', padding: '12px', border: '1px solid #E2E8F0', borderRadius: '12px', fontSize: '14px', fontWeight: 600, outline: 'none' }}
                   />
                 </div>
@@ -624,33 +666,31 @@ export default function RentalModal({ onClose }) {
                     boxShadow: '0 4px 12px rgba(254, 229, 0, 0.2)'
                   }}
                 >
-                  <MessageCircle size={18} fill="#000" /> 카카오 문의
+                  💬 오픈카톡 문의
                 </button>
 
-                {/* 인스타 버튼 (instagram_url 있을 때만 표시) */}
-                {selectedBar.instagram_url && (
-                  <button
-                    onClick={() => handleInstaClick(selectedBar.instagram_url)}
-                    style={{
-                      width: '100%',
-                      padding: '14px',
-                      background: 'linear-gradient(45deg, #f09433 0%,#e6683c 25%,#dc2743 50%,#cc2366 75%,#bc1888 100%)',
-                      color: '#ffffff',
-                      border: 'none',
-                      borderRadius: '14px',
-                      fontWeight: 900,
-                      fontSize: '15px',
-                      cursor: 'pointer',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      gap: '8px',
-                      boxShadow: '0 4px 12px rgba(220, 39, 67, 0.2)'
-                    }}
-                  >
-                    <Globe size={18} /> 인스타 구경하기
-                  </button>
-                )}
+                {/* 인스타 버튼 */}
+                <button
+                  onClick={() => handleInstaClick(selectedBar.instagram_url)}
+                  style={{
+                    width: '100%',
+                    padding: '14px',
+                    background: 'linear-gradient(45deg, #f09433 0%,#e6683c 25%,#dc2743 50%,#cc2366 75%,#bc1888 100%)',
+                    color: '#ffffff',
+                    border: 'none',
+                    borderRadius: '14px',
+                    fontWeight: 900,
+                    fontSize: '15px',
+                    cursor: 'pointer',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    gap: '8px',
+                    boxShadow: '0 4px 12px rgba(220, 39, 67, 0.2)'
+                  }}
+                >
+                  📸 인스타그램 구경하기
+                </button>
               </div>
             </motion.div>
           </div>

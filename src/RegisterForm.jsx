@@ -104,15 +104,14 @@ const RegisterForm = ({ onBack, onSuccess, isEdit = false, initialData = null })
         setSuggestions(filtered)
       }
 
-      // 3. 정확히 일치하는 경우 자동 입력
+      // 3. 일치하는 빠 정보(별칭 포함)가 있는 경우 주소 자동 입력
       const exactMatch = findBarByName(name)
-      if (exactMatch && exactMatch.name === name) {
+      if (exactMatch) {
         setFormData(prev => ({ 
           ...prev, 
           address: exactMatch.address,
           region: exactMatch.region || classifyRegion(exactMatch.address)
         }))
-        setSuggestions([])
       }
     } else {
       setSuggestions([])
