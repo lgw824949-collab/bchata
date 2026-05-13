@@ -1156,7 +1156,7 @@ const HomePage = ({
 
               <div style={{ flex: 1, overflowY: 'auto', minHeight: '350px' }}>
                 {/* 달력 상단 범례 */}
-                <div style={{ display: 'flex', justifyContent: 'center', gap: '16px', marginBottom: '16px', fontSize: '12px', fontWeight: 700, color: 'var(--color-text-sub)' }}>
+                <div style={{ display: 'flex', justifyContent: 'center', gap: '16px', marginBottom: '16px', fontSize: '16px', fontWeight: 700, color: 'var(--color-text-sub)' }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
                     <span style={{ width: '6px', height: '6px', borderRadius: '50%', backgroundColor: '#E53935' }} /> 파티
                   </div>
@@ -1328,34 +1328,6 @@ const HomePage = ({
                               ))}
                             </div>
                           )}
-                        </div>
-
-                        {/* 장르 필터 바 */}
-                        <div style={{ display: 'flex', overflowX: 'auto', gap: '6px', paddingBottom: '8px', msOverflowStyle: 'none', scrollbarWidth: 'none', WebkitOverflowScrolling: 'touch' }}>
-                          {['전체', '바차타', '살사', '쥬크', '키좀바', '부트캠프', '페스티벌'].map(g => {
-                            const isActive = activeDateGenre === g;
-                            return (
-                              <button
-                                key={g}
-                                onClick={() => setActiveDateGenre(g)}
-                                style={{
-                                  padding: '6px 12px',
-                                  borderRadius: '20px',
-                                  fontSize: '12px',
-                                  fontWeight: isActive ? 900 : 600,
-                                  backgroundColor: isActive ? '#E53935' : '#fff',
-                                  color: isActive ? '#fff' : '#64748B',
-                                  border: `1px solid ${isActive ? '#E53935' : '#E2E8F0'}`,
-                                  cursor: 'pointer',
-                                  flexShrink: 0,
-                                  boxShadow: isActive ? '0 2px 6px rgba(229,57,53,0.25)' : '0 1px 3px rgba(0,0,0,0.05)',
-                                  transition: 'all 0.2s'
-                                }}
-                              >
-                                {g}
-                              </button>
-                            );
-                          })}
                         </div>
                       </motion.div>
                     );
