@@ -623,10 +623,10 @@ const HomePage = ({
         </p>
         <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between' }}>
           <div>
-            <p style={{ fontSize: '26px', fontWeight: 950, color: 'var(--color-text-main)', margin: 0, letterSpacing: '-1.0px', lineHeight: 1.2 }}>
+            <p style={{ fontSize: '38px', fontWeight: 950, color: 'var(--color-text-main)', margin: 0, letterSpacing: '-1.0px', lineHeight: 1.2 }}>
               {lang === 'ko' ? '전국 어디서든' : 'Anywhere in Korea'}
             </p>
-            <p style={{ fontSize: '26px', fontWeight: 950, color: '#E53935', margin: '0 0 10px', letterSpacing: '-1.0px', lineHeight: 1.2 }}>
+            <p style={{ fontSize: '38px', fontWeight: 950, color: '#E53935', margin: '0 0 10px', letterSpacing: '-1.0px', lineHeight: 1.2 }}>
               {lang === 'ko' ? '만원이면 충분해요' : 'Just $7 is enough'}
             </p>
             <div style={{ borderLeft: '2.5px solid #E53935', paddingLeft: '12px' }}>
@@ -658,7 +658,7 @@ const HomePage = ({
               }
               setLastAdminTap(now);
             }}
-            style={{ width: '64px', height: '64px', objectFit: 'contain', borderRadius: '14px', flexShrink: 0, marginLeft: '12px', cursor: 'pointer', userSelect: 'none' }}
+            style={{ width: '120px', height: '120px', objectFit: 'contain', borderRadius: '14px', flexShrink: 0, marginLeft: '12px', cursor: 'pointer', userSelect: 'none' }}
             onError={(e) => { e.currentTarget.style.display = 'none' }}
           />
         </div>
