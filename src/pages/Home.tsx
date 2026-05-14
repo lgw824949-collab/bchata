@@ -549,22 +549,14 @@ const HomePage = ({
     return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
   }, []);
 
-  const [weekOffset, setWeekOffset] = useState(0);
-  useEffect(() => {
-    setWeekOffset(0);
-  }, [selectedDate]);
-
-  const currentWeekDates = useMemo(() => {
-    const parts = (selectedDate || todayStr).split('-').map(Number);
-    const d = new Date(parts[0], parts[1] - 1, parts[2]);
-    const dayOfWeek = d.getDay();
-    d.setDate(d.getDate() - dayOfWeek + weekOffset * 7);
-
+  const streamDays = useMemo(() => {
+    const parts = todayStr.split('-').map(Number);
+    const base = new Date(parts[0], parts[1] - 1, parts[2]);
     const days = [];
     const dayNames = ['일', '월', '화', '수', '목', '금', '토'];
-    for (let i = 0; i < 7; i++) {
-      const cur = new Date(d);
-      cur.setDate(d.getDate() + i);
+    for (let i = 0; i < 14; i++) {
+      const cur = new Date(base);
+      cur.setDate(base.getDate() + i);
       const y = cur.getFullYear();
       const m = String(cur.getMonth() + 1).padStart(2, '0');
       const dt = String(cur.getDate()).padStart(2, '0');
@@ -573,13 +565,13 @@ const HomePage = ({
         fullDate,
         date: cur.getDate(),
         month: cur.getMonth() + 1,
-        dayOfWeek: i,
-        dayName: dayNames[i],
-        isToday: fullDate === todayStr
+        dayOfWeek: cur.getDay(),
+        dayName: dayNames[cur.getDay()],
+        isToday: i === 0
       });
     }
     return days;
-  }, [selectedDate, todayStr, weekOffset]);
+  }, [todayStr]);
   const isAfter9AM = useMemo(() => {
     const now = new Date();
     return now.getHours() >= 9;
@@ -855,76 +847,27 @@ const HomePage = ({
       {/* 📌 [영역 B: 날짜 선택바 - 상단 고정(Sticky)] */}
       <div ref={stickyHeaderRef} style={{ position: 'sticky', top: 0, zIndex: 1000, background: 'var(--color-bg)', borderBottom: '1px solid var(--color-border)', boxShadow: '0 4px 12px rgba(0,0,0,0.03)', padding: '4px 0 0', transition: 'all 0.3s' }}>
         <div style={{
-          background: '#1D9E75',
+          background: '#fff',
           borderRadius: '20px',
-          padding: '20px',
-          color: '#fff',
+          padding: '16px 12px',
           boxSizing: 'border-box',
           margin: '8px 12px 12px',
-          boxShadow: '0 8px 20px rgba(29, 158, 117, 0.2)'
+          boxShadow: '0 8px 24px rgba(29, 158, 117, 0.08)',
+          border: '1px solid rgba(29, 158, 117, 0.15)'
         }}>
-          {/* 상단 날짜 표시 및 좌우 화살표 */}
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '16px' }}>
-            <button
-              onClick={() => setWeekOffset(o => o - 1)}
-              style={{
-                background: 'rgba(255,255,255,0.2)',
-                border: 'none',
-                borderRadius: '10px',
-                width: '32px',
-                height: '32px',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                color: '#fff',
-                cursor: 'pointer',
-                transition: 'all 0.2s'
-              }}
-            >
-              <ChevronLeft size={18} />
-            </button>
-            <span style={{ fontSize: '20px', fontWeight: '900', letterSpacing: '1px' }}>
-              {selectedDate ? selectedDate.replace(/-/g, '.') : '2026.05.14'}
-            </span>
-            <button
-              onClick={() => setWeekOffset(o => o + 1)}
-              style={{
-                background: 'rgba(255,255,255,0.2)',
-                border: 'none',
-                borderRadius: '10px',
-                width: '32px',
-                height: '32px',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                color: '#fff',
-                cursor: 'pointer',
-                transition: 'all 0.2s'
-              }}
-            >
-              <ChevronRight size={18} />
-            </button>
-          </div>
-
-          {/* 요일 헤더 */}
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: '8px', textAlign: 'center', marginBottom: '10px' }}>
-            {['일', '월', '화', '수', '목', '금', '토'].map(d => (
-              <span key={d} style={{ fontSize: '12px', fontWeight: '700', color: '#fff', opacity: 0.9 }}>
-                {d}
-              </span>
-            ))}
-          </div>
-
-          {/* 날짜 카드 그리드 */}
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: '8px' }}>
-            {currentWeekDates.map((item) => {
+          <div style={{ display: 'flex', overflowX: 'auto', gap: '6px', msOverflowStyle: 'none', scrollbarWidth: 'none', WebkitOverflowScrolling: 'touch' }}>
+            {streamDays.map((item) => {
               const isSelected = selectedDate === item.fullDate;
-              let textColor = '#fff';
-              if (isSelected) {
-                textColor = '#1D9E75';
-              } else {
-                if (item.dayOfWeek === 0) textColor = '#FF5252'; // 빨간 텍스트
-                else if (item.dayOfWeek === 6) textColor = '#4FC3F7'; // 파란 텍스트
+              let dayTextColor = isSelected ? '#fff' : '#64748B';
+              let dateTextColor = isSelected ? '#fff' : '#1E293B';
+              if (!isSelected) {
+                if (item.dayOfWeek === 0) {
+                  dayTextColor = '#EF4444';
+                  dateTextColor = '#EF4444';
+                } else if (item.dayOfWeek === 6) {
+                  dayTextColor = '#0284C7';
+                  dateTextColor = '#0284C7';
+                }
               }
               const partyCount = (parties || []).filter(p => p.date === item.fullDate).length;
 
@@ -942,21 +885,27 @@ const HomePage = ({
                     }
                   }}
                   style={{
-                    background: isSelected ? '#fff' : '#178a65',
+                    flex: '0 0 auto',
+                    width: 'calc((100% - 36px) / 7)',
+                    minWidth: '42px',
+                    height: '68px',
                     borderRadius: '12px',
-                    padding: '10px 2px 8px',
+                    backgroundColor: isSelected ? '#1D9E75' : 'transparent',
                     display: 'flex',
                     flexDirection: 'column',
                     alignItems: 'center',
                     justifyContent: 'space-between',
-                    height: '68px',
+                    padding: '8px 2px 6px',
                     boxSizing: 'border-box',
                     cursor: 'pointer',
                     transition: 'all 0.2s',
-                    boxShadow: isSelected ? '0 4px 12px rgba(0,0,0,0.15)' : 'none'
+                    boxShadow: isSelected ? '0 4px 12px rgba(29, 158, 117, 0.25)' : 'none'
                   }}
                 >
-                  <span style={{ fontSize: '15px', fontWeight: '900', color: textColor, lineHeight: 1 }}>
+                  <span style={{ fontSize: '11px', fontWeight: '700', color: dayTextColor, lineHeight: 1 }}>
+                    {item.dayName}
+                  </span>
+                  <span style={{ fontSize: '16px', fontWeight: '900', color: dateTextColor, lineHeight: 1 }}>
                     {item.date}
                   </span>
                   <div style={{ height: '18px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
