@@ -109,15 +109,7 @@ export default function PartnerModal({ onClose }) {
         initial={{ opacity: 0 }} 
         animate={{ opacity: 1 }} 
         exit={{ opacity: 0 }} 
-        onClick={onClose} 
-        style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.85)', backdropFilter: 'blur(10px)', zIndex: 190000 }} 
-      />
-      
-      <motion.div 
-        initial={{ y: '100%' }} 
-        animate={{ y: 0 }} 
-        exit={{ y: '100%' }} 
-        transition={{ type: 'spring', damping: 25, stiffness: 200 }}
+        transition={{ duration: 0.15 }}
         style={{ 
           position: 'fixed', inset: 0, background: 'var(--color-bg, #ffffff)', zIndex: 190001, 
           display: 'flex', flexDirection: 'column', height: '100dvh',
