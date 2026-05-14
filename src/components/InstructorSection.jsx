@@ -801,7 +801,7 @@ const InstructorSection = () => {
                               {`🎓 아직 등록된 클래스가 없습니다.\n강사님께서 직접 마스터 메뉴에서 등록해 주세요!`}
                             </div>
                             <button
-                              onClick={() => setShowMasterMenu(true)}
+                              onClick={() => window.dispatchEvent(new CustomEvent('open-class-register'))}
                               style={{
                                 padding:'12px 24px', borderRadius:'14px', background:'#C9A84C', color:'#000',
                                 border:'none', fontSize:14, fontWeight:900, cursor:'pointer',

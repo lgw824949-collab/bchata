@@ -628,6 +628,12 @@ function App() {
     return () => window.removeEventListener('scroll', handleScroll)
   }, [])
 
+  useEffect(() => {
+    const handleOpenClassReg = () => setShowClassRegister(true);
+    window.addEventListener('open-class-register', handleOpenClassReg);
+    return () => window.removeEventListener('open-class-register', handleOpenClassReg);
+  }, []);
+
   const handleOpenModal = (setter, value = true) => {
     window.history.pushState({ modal: true }, '');
     setter(value);
@@ -1213,7 +1219,7 @@ function App() {
               if (location.pathname === '/livepick') {
                 window.dispatchEvent(new CustomEvent('open-community-upload'));
               } else if (location.pathname === '/instructors') {
-                navigate('/register-class');
+                setShowClassRegister(true);
               } else if (location.pathname === '/bootcamp') {
                 navigate('/bootcamp/register');
               } else if (location.pathname === '/festival') {
