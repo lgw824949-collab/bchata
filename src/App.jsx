@@ -710,7 +710,7 @@ function App() {
     if (!isMenuOpen) return;
     const fetchFollowed = async () => {
       try {
-        let s = localStorage.getItem('oneulbam_session');
+        let s = localStorage.getItem('user_session') || localStorage.getItem('oneulbam_session');
         if (!s) return;
         const { data: followData } = await supabase
           .from('instructor_follows')
@@ -976,40 +976,6 @@ function App() {
               <p style={{ color: '#C9A84C', fontSize: '13px', marginTop: '4px', fontWeight: 700, letterSpacing: '0.5px' }}>VIP INSTRUCTOR LOUNGE</p>
             </div>
 
-            {/* 팔로우한 강사 원형 사진 가로 스크롤 표시 */}
-            <div style={{ marginBottom: '36px' }}>
-              <div style={{ fontSize: '11px', fontWeight: 900, color: '#94A3B8', marginBottom: '12px', letterSpacing: '1px' }}>
-                MY FOLLOWED MASTERS
-              </div>
-              <div style={{ display: 'flex', overflowX: 'auto', gap: '14px', paddingBottom: '10px' }}>
-                {followedInstructors.length === 0 ? (
-                  <div style={{ fontSize: '13px', color: '#64748B', padding: '10px 0', fontStyle: 'italic' }}>팔로우한 마스터가 없습니다.</div>
-                ) : (
-                  followedInstructors.map(inst => (
-                    <motion.div
-                      key={inst.id}
-                      whileHover={{ scale: 1.05 }}
-                      whileTap={{ scale: 0.95 }}
-                      onClick={() => {
-                        localStorage.setItem('selected_instructor_id', inst.id);
-                        navigate('/instructors');
-                        setView('instructors');
-                        setIsMenuOpen(false);
-                      }}
-                      style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '6px', cursor: 'pointer', flexShrink: 0 }}
-                    >
-                      <div style={{ width: '58px', height: '58px', borderRadius: '50%', border: '2px solid #C9A84C', padding: '2px', background: '#000', boxShadow: '0 4px 12px rgba(201,168,76,0.2)' }}>
-                        <img src={inst.photo_url || 'https://via.placeholder.com/100'} style={{ width: '100%', height: '100%', borderRadius: '50%', objectFit: 'cover' }} alt={inst.name} />
-                      </div>
-                      <span style={{ fontSize: '11px', fontWeight: 800, color: '#E2E8F0', maxWidth: '60px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                        {inst.name.split(' ')[0]}
-                      </span>
-                    </motion.div>
-                  ))
-                )}
-              </div>
-            </div>
-
             <div style={{ fontSize: '11px', fontWeight: 900, color: '#94A3B8', marginBottom: '12px', letterSpacing: '1px' }}>
               VIP NAVIGATION
             </div>
@@ -1074,6 +1040,66 @@ function App() {
                   <span style={{ color: '#F8FAFC', fontSize: '15px', fontWeight: 800 }}>{item.text}</span>
                 </motion.div>
               ))}
+            </div>
+
+            {/* 기존 마스터 전용 메뉴 아래에 구분선 후 추가 */}
+            <div style={{ height: '1px', background: 'rgba(201,168,76,0.2)', margin: '32px 0 24px' }} />
+
+            {/* MY MASTERS 섹션 */}
+            <div style={{ marginBottom: '24px' }}>
+              <div style={{ fontSize: '13px', fontWeight: 950, color: '#F8FAFC', marginBottom: '16px', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                🌟 나의 마스터 / MY MASTERS
+              </div>
+              
+              {followedInstructors.length === 0 ? (
+                <div style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.05)', borderRadius: '16px', padding: '20px', textAlign: 'center' }}>
+                  <div style={{ fontSize: '13px', color: '#94A3B8', marginBottom: '14px', fontWeight: 600 }}>아직 팔로우한 강사가 없어요 💫</div>
+                  <motion.button
+                    whileHover={{ scale: 1.02 }}
+                    whileTap={{ scale: 0.98 }}
+                    onClick={() => {
+                      localStorage.setItem('instructor_target_genre', '전체');
+                      navigate('/instructors');
+                      setView('instructors');
+                      setIsMenuOpen(false);
+                      setTimeout(() => {
+                        window.dispatchEvent(new CustomEvent('apply-instructor-filter'));
+                      }, 300);
+                    }}
+                    style={{
+                      padding: '10px 20px', borderRadius: '12px', border: '1px solid rgba(201,168,76,0.3)',
+                      background: 'rgba(201,168,76,0.1)', color: '#C9A84C', fontSize: '12px', fontWeight: 800,
+                      cursor: 'pointer'
+                    }}
+                  >
+                    강사 찾기 →
+                  </motion.button>
+                </div>
+              ) : (
+                <div style={{ display: 'flex', overflowX: 'auto', gap: '14px', paddingBottom: '10px', scrollbarWidth: 'none' }}>
+                  {followedInstructors.map(inst => (
+                    <motion.div
+                      key={inst.id}
+                      whileHover={{ scale: 1.05 }}
+                      whileTap={{ scale: 0.95 }}
+                      onClick={() => {
+                        localStorage.setItem('selected_instructor_id', inst.id);
+                        navigate('/instructors');
+                        setView('instructors');
+                        setIsMenuOpen(false);
+                      }}
+                      style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '6px', cursor: 'pointer', flexShrink: 0 }}
+                    >
+                      <div style={{ width: '58px', height: '58px', borderRadius: '50%', border: '2px solid #C9A84C', padding: '2px', background: '#000', boxShadow: '0 4px 12px rgba(201,168,76,0.2)' }}>
+                        <img src={inst.photo_url || 'https://via.placeholder.com/100'} style={{ width: '100%', height: '100%', borderRadius: '50%', objectFit: 'cover' }} alt={inst.name} />
+                      </div>
+                      <span style={{ fontSize: '11px', fontWeight: 800, color: '#E2E8F0', maxWidth: '60px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                        {inst.name.split(' ')[0]}
+                      </span>
+                    </motion.div>
+                  ))}
+                </div>
+              )}
             </div>
 
             <div style={{ marginTop: 'auto', paddingTop: '40px', textAlign: 'center' }}>
