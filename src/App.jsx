@@ -1002,19 +1002,6 @@ function App() {
                     setTimeout(() => setShowClassRegister(true), 300);
                   } 
                 },
-                { 
-                  icon: <Camera color={'#C9A84C'} />, 
-                  text: '갤러리', 
-                  action: () => { 
-                    localStorage.setItem('instructor_target_genre', '전체');
-                    navigate('/instructors'); 
-                    setView('instructors');
-                    setIsMenuOpen(false); 
-                    setTimeout(() => {
-                      window.dispatchEvent(new CustomEvent('apply-instructor-filter'));
-                    }, 300);
-                  } 
-                },
               ].map((item, idx) => (
                 <motion.div
                   key={idx}
