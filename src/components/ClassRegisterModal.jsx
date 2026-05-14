@@ -1,16 +1,16 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { supabase } from '../lib/supabase';
-import { X, Calendar, Clock, MapPin, DollarSign, Users, Info } from 'lucide-react';
+import { X, Calendar, Clock, MapPin, DollarSign, Users, Info, User } from 'lucide-react';
 
 const ClassRegisterModal = ({ isOpen = true, onClose, instructorId = '' }) => {
   const [step, setStep] = useState(1);
   const [loading, setLoading] = useState(false);
   const [instructors, setInstructors] = useState([]);
-  const [selectedInstId, setSelectedInstId] = useState(instructorId || '');
   
-  // 직관적이고 매우 단순화된 Form state
+  // 직관적이고 매우 단순화된 Form state (강사명 직접 입력 필드 탑재)
   const [form, setForm] = useState({
+    instructorName: '', // 강사가 고정이 아니라 직접 자유롭게 텍스트로 적을 수 있도록 지원
     title: '',
     genre: '',
     level: '',
@@ -23,7 +23,7 @@ const ClassRegisterModal = ({ isOpen = true, onClose, instructorId = '' }) => {
     description: ''
   });
 
-  // 활성 강사 목록 조회 (드롭다운용 및 자동 선택)
+  // 활성 강사 목록 조회 (자동 매칭 및 기본 기입용)
   useEffect(() => {
     if (!isOpen) return;
     const fetchInstructors = async () => {
@@ -35,9 +35,16 @@ const ClassRegisterModal = ({ isOpen = true, onClose, instructorId = '' }) => {
           .order('follower_count', { ascending: false });
         if (data && data.length > 0) {
           setInstructors(data);
-          // 전달된 instructorId가 없을 경우, 목록의 첫 번째 강사로 자동 기본 선택하여 클릭 수 절약
-          if (!selectedInstId) {
-            setSelectedInstId(data[0].id);
+          
+          // 특정 강사 프로필 탭에서 진입한 경우 해당 강사명을 입력란에 기본으로 기입해두어 클릭/입력 최소화
+          if (instructorId) {
+            const target = data.find(i => i.id === instructorId);
+            if (target) {
+              setForm(prev => ({ ...prev, instructorName: target.name }));
+            }
+          } else if (!form.instructorName) {
+            // 전달된 계정이 없다면 목록 최상단 마스터 이름을 추천 기입
+            setForm(prev => ({ ...prev, instructorName: data[0].name }));
           }
         }
       } catch (err) {
@@ -45,19 +52,14 @@ const ClassRegisterModal = ({ isOpen = true, onClose, instructorId = '' }) => {
       }
     };
     fetchInstructors();
-  }, [isOpen]);
-
-  // props로 넘어온 instructorId가 바뀔 경우 동기화
-  useEffect(() => {
-    if (instructorId) setSelectedInstId(instructorId);
-  }, [instructorId]);
+  }, [isOpen, instructorId]);
 
   if (!isOpen) return null;
 
   const handleNext = () => {
     if (step === 1) {
-      if (!selectedInstId) {
-        alert('강사 프로필을 선택해주세요.');
+      if (!form.instructorName.trim()) {
+        alert('강사명을 입력해주세요.');
         return;
       }
       if (!form.title.trim()) {
@@ -98,8 +100,16 @@ const ClassRegisterModal = ({ isOpen = true, onClose, instructorId = '' }) => {
     
     setLoading(true);
     try {
+      // 강사가 직접 적은 이름과 기존 DB의 강사 계정을 스마트하게 매칭하여, 프로필 탭에서도 정상 연동되도록 지원
+      const cleanTypedName = form.instructorName.trim().toLowerCase().replace(/\s+/g, '');
+      const matchedInst = instructors.find(i => i.name.toLowerCase().replace(/\s+/g, '') === cleanTypedName) ||
+                          instructors.find(i => cleanTypedName.includes(i.name.toLowerCase().replace(/\s+/g, '')));
+      
+      const targetInstId = matchedInst ? matchedInst.id : (instructorId || null);
+
       const { error } = await supabase.from('instructor_classes').insert({
-        instructor_id: selectedInstId || null,
+        instructor_id: targetInstId,
+        instructor_name: form.instructorName.trim(), // 직접 입력한 텍스트 원본 별도 보존
         title: form.title,
         genre: form.genre,
         level: form.level,
@@ -184,26 +194,25 @@ const ClassRegisterModal = ({ isOpen = true, onClose, instructorId = '' }) => {
                 key="step1" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }}
                 style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}
               >
-                {/* 강사 프로필 선택 (드롭다운) */}
+                {/* 강사명 자유 직접 입력 필드 (고정 드롭다운 방식 제거) */}
                 <div>
-                  <label style={{ display: 'block', fontSize: '13px', fontWeight: 700, color: '#A1A1AA', marginBottom: '8px' }}>
-                    강사 프로필 선택 *
+                  <label style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '13px', fontWeight: 700, color: '#A1A1AA', marginBottom: '8px' }}>
+                    <User size={14} /> 강사명 (직접 입력) *
                   </label>
-                  <select
-                    value={selectedInstId}
-                    onChange={e => setSelectedInstId(e.target.value)}
+                  <input
+                    type="text"
+                    value={form.instructorName}
+                    onChange={e => setForm({ ...form, instructorName: e.target.value })}
+                    placeholder="예: 남궁건 & 클레어"
                     style={{
                       width: '100%', padding: '14px', borderRadius: '12px', background: 'rgba(255,255,255,0.05)',
-                      border: '1px solid rgba(255,255,255,0.1)', color: '#fff', fontSize: '14px', outline: 'none'
+                      border: '1px solid rgba(255,255,255,0.1)', color: '#fff', fontSize: '14px', outline: 'none',
+                      boxSizing: 'border-box'
                     }}
-                  >
-                    <option value="" style={{ color: '#000' }}>강사를 선택하세요</option>
-                    {instructors.map(inst => (
-                      <option key={inst.id} value={inst.id} style={{ color: '#000' }}>
-                        {inst.name} ({inst.city || '지역미상'})
-                      </option>
-                    ))}
-                  </select>
+                  />
+                  <div style={{ fontSize: '11px', color: '#8E8E93', marginTop: '6px' }}>
+                    💡 자유롭게 팀명이나 파트너 이름을 함께 적으실 수 있습니다.
+                  </div>
                 </div>
 
                 <div>
