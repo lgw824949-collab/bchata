@@ -1,11 +1,13 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { supabase } from '../lib/supabase';
-import { X, Plus, Trash2, Calendar, Clock, MapPin, DollarSign, Users } from 'lucide-react';
+import { X, Plus, Trash2, Calendar, Clock, MapPin, DollarSign, Users, Info } from 'lucide-react';
 
 const ClassRegisterModal = ({ isOpen = true, onClose, instructorId = '' }) => {
   const [step, setStep] = useState(1);
   const [loading, setLoading] = useState(false);
+  const [instructors, setInstructors] = useState([]);
+  const [selectedInstId, setSelectedInstId] = useState(instructorId || '');
   
   // Form state
   const [form, setForm] = useState({
@@ -15,13 +17,37 @@ const ClassRegisterModal = ({ isOpen = true, onClose, instructorId = '' }) => {
     date: '',
     location: '',
     fee: '',
-    capacity: ''
+    capacity: '',
+    description: ''
   });
 
   // Timeslots state
   const [startTime, setStartTime] = useState('');
   const [endTime, setEndTime] = useState('');
   const [timeslots, setTimeslots] = useState([]);
+
+  // 활성 강사 목록 조회 (드롭다운용)
+  useEffect(() => {
+    if (!isOpen) return;
+    const fetchInstructors = async () => {
+      try {
+        const { data } = await supabase
+          .from('instructors')
+          .select('id, name, city')
+          .eq('status', 'active')
+          .order('follower_count', { ascending: false });
+        if (data) setInstructors(data);
+      } catch (err) {
+        console.error('Instructors fetch error:', err);
+      }
+    };
+    fetchInstructors();
+  }, [isOpen]);
+
+  // props로 넘어온 instructorId가 바뀔 경우 동기화
+  useEffect(() => {
+    if (instructorId) setSelectedInstId(instructorId);
+  }, [instructorId]);
 
   if (!isOpen) return null;
 
@@ -41,6 +67,10 @@ const ClassRegisterModal = ({ isOpen = true, onClose, instructorId = '' }) => {
 
   const handleNext = () => {
     if (step === 1) {
+      if (!selectedInstId) {
+        alert('강사 프로필을 선택해주세요.');
+        return;
+      }
       if (!form.title.trim()) {
         alert('수업명을 입력해주세요.');
         return;
@@ -59,7 +89,17 @@ const ClassRegisterModal = ({ isOpen = true, onClose, instructorId = '' }) => {
         alert('날짜를 선택해주세요.');
         return;
       }
-      if (timeslots.length === 0) {
+      
+      // 모바일 편의성: 시간 입력 후 추가 버튼 누락 시 자동 추가 처리
+      let currentTimeslots = [...timeslots];
+      if (startTime && endTime) {
+        currentTimeslots.push({ startTime, endTime });
+        setTimeslots(currentTimeslots);
+        setStartTime('');
+        setEndTime('');
+      }
+
+      if (currentTimeslots.length === 0) {
         alert('최소 1개 이상의 시간대를 추가해주세요.');
         return;
       }
@@ -79,10 +119,10 @@ const ClassRegisterModal = ({ isOpen = true, onClose, instructorId = '' }) => {
     
     setLoading(true);
     try {
-      // 각 시간대별로 insert
+      // 각 시간대별로 개별 레코드 insert
       const insertPromises = timeslots.map(t => {
         return supabase.from('instructor_classes').insert({
-          instructor_id: instructorId || null,
+          instructor_id: selectedInstId || null,
           title: form.title,
           genre: form.genre,
           level: form.level,
@@ -90,6 +130,7 @@ const ClassRegisterModal = ({ isOpen = true, onClose, instructorId = '' }) => {
           location: form.location,
           fee: form.fee,
           capacity: form.capacity,
+          description: form.description,
           status: 'active'
         });
       });
@@ -103,6 +144,9 @@ const ClassRegisterModal = ({ isOpen = true, onClose, instructorId = '' }) => {
 
       alert('클래스가 성공적으로 등록되었습니다!');
       if (onClose) onClose();
+      
+      // 등록 후 리스트 갱신 이벤트 트리거
+      window.dispatchEvent(new CustomEvent('apply-instructor-filter'));
     } catch (err) {
       console.error('Class insert error:', err);
       alert('등록 중 오류가 발생했습니다: ' + err.message);
@@ -113,8 +157,8 @@ const ClassRegisterModal = ({ isOpen = true, onClose, instructorId = '' }) => {
 
   return (
     <div style={{
-      position: 'fixed', inset: 0, zIndex: 7000, background: 'rgba(0,0,0,0.75)',
-      backdropFilter: 'blur(8px)', display: 'flex', alignItems: 'center', justifyContent: 'center',
+      position: 'fixed', inset: 0, zIndex: 7000, background: 'rgba(0,0,0,0.8)',
+      backdropFilter: 'blur(10px)', display: 'flex', alignItems: 'center', justifyContent: 'center',
       padding: '20px', fontFamily: "'Outfit', sans-serif"
     }}>
       <motion.div
@@ -122,25 +166,30 @@ const ClassRegisterModal = ({ isOpen = true, onClose, instructorId = '' }) => {
         animate={{ opacity: 1, scale: 1, y: 0 }}
         exit={{ opacity: 0, scale: 0.95, y: 10 }}
         style={{
-          background: '#121212', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '24px',
-          width: '100%', maxWidth: '440px', overflow: 'hidden', boxShadow: '0 20px 40px rgba(0,0,0,0.5)',
-          color: '#fff', display: 'flex', flexDirection: 'column', maxHeight: '90vh'
+          background: '#121212', border: '1px solid rgba(201,168,76,0.2)', borderRadius: '24px',
+          width: '100%', maxWidth: '440px', overflow: 'hidden', boxShadow: '0 20px 40px rgba(0,0,0,0.6)',
+          color: '#fff', display: 'flex', flexDirection: 'column', maxHeight: '85vh', boxSizing: 'border-box'
         }}
       >
         {/* Header */}
         <div style={{
           padding: '20px 24px', borderBottom: '1px solid rgba(255,255,255,0.05)',
-          display: 'flex', justifyContent: 'space-between', alignItems: 'center'
+          display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start'
         }}>
           <div>
-            <div style={{ fontSize: '18px', fontWeight: 900, color: '#fff' }}>클래스 등록 모달 💃</div>
-            <div style={{ fontSize: '12px', color: '#E53935', fontWeight: 800, marginTop: '2px' }}>
-              STEP {step} / 3
+            <div style={{ fontSize: '18px', fontWeight: 900, color: '#fff' }}>클래스 등록 모달 👑</div>
+            {/* 상단 단계 표시 ① ② ③ */}
+            <div style={{ fontSize: '13px', color: '#C9A84C', fontWeight: 800, marginTop: '6px', display: 'flex', alignItems: 'center', gap: '6px' }}>
+              <span style={{ opacity: step === 1 ? 1 : 0.3 }}>① 기본 정보</span>
+              <span style={{ color: '#444' }}>›</span>
+              <span style={{ opacity: step === 2 ? 1 : 0.3 }}>② 일정</span>
+              <span style={{ color: '#444' }}>›</span>
+              <span style={{ opacity: step === 3 ? 1 : 0.3 }}>③ 장소/가격</span>
             </div>
           </div>
           <button
             onClick={onClose}
-            style={{ background: 'none', border: 'none', color: '#8E8E93', cursor: 'pointer', padding: 0 }}
+            style={{ background: 'none', border: 'none', color: '#8E8E93', cursor: 'pointer', padding: '4px' }}
           >
             <X size={22} />
           </button>
@@ -152,7 +201,7 @@ const ClassRegisterModal = ({ isOpen = true, onClose, instructorId = '' }) => {
             initial={{ width: 0 }}
             animate={{ width: `${(step / 3) * 100}%` }}
             transition={{ duration: 0.3 }}
-            style={{ height: '100%', background: '#E53935' }}
+            style={{ height: '100%', background: '#C9A84C' }}
           />
         </div>
 
@@ -164,6 +213,28 @@ const ClassRegisterModal = ({ isOpen = true, onClose, instructorId = '' }) => {
                 key="step1" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }}
                 style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}
               >
+                {/* 강사 프로필 선택 (드롭다운) */}
+                <div>
+                  <label style={{ display: 'block', fontSize: '13px', fontWeight: 700, color: '#A1A1AA', marginBottom: '8px' }}>
+                    강사 프로필 선택 *
+                  </label>
+                  <select
+                    value={selectedInstId}
+                    onChange={e => setSelectedInstId(e.target.value)}
+                    style={{
+                      width: '100%', padding: '14px', borderRadius: '12px', background: 'rgba(255,255,255,0.05)',
+                      border: '1px solid rgba(255,255,255,0.1)', color: '#fff', fontSize: '14px', outline: 'none'
+                    }}
+                  >
+                    <option value="" style={{ color: '#000' }}>강사를 선택하세요</option>
+                    {instructors.map(inst => (
+                      <option key={inst.id} value={inst.id} style={{ color: '#000' }}>
+                        {inst.name} ({inst.city || '지역미상'})
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
                 <div>
                   <label style={{ display: 'block', fontSize: '13px', fontWeight: 700, color: '#A1A1AA', marginBottom: '8px' }}>
                     수업명 *
@@ -193,9 +264,9 @@ const ClassRegisterModal = ({ isOpen = true, onClose, instructorId = '' }) => {
                         onClick={() => setForm({ ...form, genre: g })}
                         style={{
                           padding: '12px', borderRadius: '10px', fontSize: '14px', fontWeight: 700, cursor: 'pointer',
-                          background: form.genre === g ? '#E53935' : 'rgba(255,255,255,0.03)',
-                          color: form.genre === g ? '#fff' : '#A1A1AA',
-                          border: `1px solid ${form.genre === g ? '#E53935' : 'rgba(255,255,255,0.08)'}`,
+                          background: form.genre === g ? '#C9A84C' : 'rgba(255,255,255,0.03)',
+                          color: form.genre === g ? '#000' : '#A1A1AA',
+                          border: `1px solid ${form.genre === g ? '#C9A84C' : 'rgba(255,255,255,0.08)'}`,
                           transition: 'all 0.2s'
                         }}
                       >
@@ -217,9 +288,9 @@ const ClassRegisterModal = ({ isOpen = true, onClose, instructorId = '' }) => {
                         onClick={() => setForm({ ...form, level: lvl })}
                         style={{
                           padding: '12px', borderRadius: '10px', fontSize: '14px', fontWeight: 700, cursor: 'pointer',
-                          background: form.level === lvl ? '#E53935' : 'rgba(255,255,255,0.03)',
-                          color: form.level === lvl ? '#fff' : '#A1A1AA',
-                          border: `1px solid ${form.level === lvl ? '#E53935' : 'rgba(255,255,255,0.08)'}`,
+                          background: form.level === lvl ? '#C9A84C' : 'rgba(255,255,255,0.03)',
+                          color: form.level === lvl ? '#000' : '#A1A1AA',
+                          border: `1px solid ${form.level === lvl ? '#C9A84C' : 'rgba(255,255,255,0.08)'}`,
                           transition: 'all 0.2s'
                         }}
                       >
@@ -254,7 +325,7 @@ const ClassRegisterModal = ({ isOpen = true, onClose, instructorId = '' }) => {
 
                 <div>
                   <label style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '13px', fontWeight: 700, color: '#A1A1AA', marginBottom: '8px' }}>
-                    <Clock size={14} /> 시간대 추가 기능 *
+                    <Clock size={14} /> 시간대 설정 *
                   </label>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '10px' }}>
                     <input
@@ -283,12 +354,12 @@ const ClassRegisterModal = ({ isOpen = true, onClose, instructorId = '' }) => {
                     type="button"
                     onClick={handleAddTimeslot}
                     style={{
-                      width: '100%', padding: '12px', borderRadius: '10px', background: 'rgba(229,57,53,0.15)',
-                      color: '#E53935', border: '1px dashed #E53935', fontSize: '13px', fontWeight: 800,
+                      width: '100%', padding: '12px', borderRadius: '10px', background: 'rgba(201,168,76,0.15)',
+                      color: '#C9A84C', border: '1px dashed #C9A84C', fontSize: '13px', fontWeight: 800,
                       cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px'
                     }}
                   >
-                    <Plus size={16} /> 시간 추가
+                    <Plus size={16} /> + 시간 추가
                   </button>
                 </div>
 
@@ -302,7 +373,7 @@ const ClassRegisterModal = ({ isOpen = true, onClose, instructorId = '' }) => {
                       padding: '20px', textAlign: 'center', background: 'rgba(255,255,255,0.02)',
                       borderRadius: '10px', color: 'rgba(255,255,255,0.3)', fontSize: '13px'
                     }}>
-                      추가된 시간대가 없습니다
+                      아래 다음 단계 클릭 시 입력된 시간이 자동 추가됩니다
                     </div>
                   ) : (
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', maxHeight: '130px', overflowY: 'auto' }}>
@@ -336,7 +407,7 @@ const ClassRegisterModal = ({ isOpen = true, onClose, instructorId = '' }) => {
             {step === 3 && (
               <motion.div
                 key="step3" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }}
-                style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}
+                style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}
               >
                 <div>
                   <label style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '13px', fontWeight: 700, color: '#A1A1AA', marginBottom: '8px' }}>
@@ -388,6 +459,23 @@ const ClassRegisterModal = ({ isOpen = true, onClose, instructorId = '' }) => {
                     }}
                   />
                 </div>
+
+                <div>
+                  <label style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '13px', fontWeight: 700, color: '#A1A1AA', marginBottom: '8px' }}>
+                    <Info size={14} /> 설명 입력
+                  </label>
+                  <textarea
+                    value={form.description}
+                    onChange={e => setForm({ ...form, description: e.target.value })}
+                    placeholder="커리큘럼, 준비물 및 안내사항"
+                    rows={3}
+                    style={{
+                      width: '100%', padding: '14px', borderRadius: '12px', background: 'rgba(255,255,255,0.05)',
+                      border: '1px solid rgba(255,255,255,0.1)', color: '#fff', fontSize: '14px', outline: 'none',
+                      resize: 'none', boxSizing: 'border-box'
+                    }}
+                  />
+                </div>
               </motion.div>
             )}
           </AnimatePresence>
@@ -416,9 +504,9 @@ const ClassRegisterModal = ({ isOpen = true, onClose, instructorId = '' }) => {
               type="button"
               onClick={handleNext}
               style={{
-                flex: 2, padding: '14px', borderRadius: '12px', background: '#E53935',
-                color: '#fff', border: 'none', fontSize: '14px', fontWeight: 900, cursor: 'pointer',
-                boxShadow: '0 8px 16px rgba(229, 57, 53, 0.3)'
+                flex: 2, padding: '14px', borderRadius: '12px', background: '#C9A84C',
+                color: '#000', border: 'none', fontSize: '14px', fontWeight: 900, cursor: 'pointer',
+                boxShadow: '0 8px 16px rgba(201, 168, 76, 0.2)'
               }}
             >
               다음 단계
@@ -429,9 +517,9 @@ const ClassRegisterModal = ({ isOpen = true, onClose, instructorId = '' }) => {
               onClick={handleSubmit}
               disabled={loading}
               style={{
-                flex: 2, padding: '14px', borderRadius: '12px', background: '#E53935',
-                color: '#fff', border: 'none', fontSize: '14px', fontWeight: 900, cursor: 'pointer',
-                boxShadow: '0 8px 16px rgba(229, 57, 53, 0.3)', opacity: loading ? 0.7 : 1
+                flex: 2, padding: '14px', borderRadius: '12px', background: '#C9A84C',
+                color: '#000', border: 'none', fontSize: '14px', fontWeight: 900, cursor: 'pointer',
+                boxShadow: '0 8px 16px rgba(201, 168, 76, 0.2)', opacity: loading ? 0.7 : 1
               }}
             >
               {loading ? '등록 중...' : '클래스 최종 등록 🚀'}
