@@ -827,26 +827,10 @@ const HomePage = ({
             const isSelected = selectedDate === item.fullDate;
             const isHoliday = item.dayOfWeek === 0 || (item.month === '5' && item.date === '5');
             const isSaturday = item.dayOfWeek === 6;
-            const dayColor = isSelected ? '#fff' : (isHoliday ? '#FF1744' : (isSaturday ? '#FF1744' : '#94A3B8'));
-            const labelColor = isSelected ? '#FF1744' : (isHoliday ? '#FF1744' : (isSaturday ? '#FF1744' : '#94A3B8'));
+            const dayColor = isSelected ? '#fff' : (isHoliday ? '#FF1744' : (isSaturday ? '#FF1744' : '#1E293B'));
+            const labelColor = isSelected ? '#fff' : (isHoliday ? '#FF1744' : (isSaturday ? '#FF1744' : '#94A3B8'));
             
-            // 페스티벌, 부트캠프, 파티 존재 여부 확인
-            const isFestivalDay = (festivals || []).some(f => {
-              if (f.start_date && f.end_date) {
-                return item.fullDate >= f.start_date && item.fullDate <= f.end_date;
-              }
-              return f.start_date === item.fullDate;
-            });
-
-            const isBootcampDay = (bootcamps || []).some(b => {
-              if (b.start_date && b.end_date) {
-                return item.fullDate >= b.start_date && item.fullDate <= b.end_date;
-              }
-              return b.start_date === item.fullDate;
-            });
-
-            const dayParties = (parties || []).filter(p => p.date === item.fullDate);
-            const hasEvent = isFestivalDay || isBootcampDay || dayParties.length > 0;
+            const partyCount = (parties || []).filter(p => p.date === item.fullDate).length;
 
             return (
               <div key={item.fullDate}
@@ -860,16 +844,41 @@ const HomePage = ({
                     setIsFilterBarVisible(true);
                   }
                 }}
-                style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minWidth: '13.5%', cursor: 'pointer', position: 'relative', paddingBottom: '6px' }}
+                style={{
+                  display: 'flex',
+                  flexDirection: 'column',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  minWidth: '46px',
+                  height: '74px',
+                  padding: '8px 4px 6px',
+                  boxSizing: 'border-box',
+                  borderRadius: '10px',
+                  backgroundColor: isSelected ? '#E53935' : '#F1F5F9',
+                  border: item.isToday && !isSelected ? '1px solid #E53935' : '1px solid transparent',
+                  cursor: 'pointer',
+                  flexShrink: 0,
+                  transition: 'all 0.2s'
+                }}
               >
-                <span style={{ fontSize: '10px', fontWeight: '700', color: labelColor, marginBottom: '2px' }}>{item.dayName}</span>
-                <div style={{ width: '30px', height: '30px', borderRadius: '10px', display: 'flex', alignItems: 'center', justifyContent: 'center', backgroundColor: isSelected ? '#FF1744' : 'transparent', border: item.isToday && !isSelected ? '1px solid #FF1744' : 'none' }}>
-                  <span style={{ fontSize: '15px', fontWeight: '800', color: isSelected ? '#fff' : dayColor }}>{item.date}</span>
-                </div>
-                {/* 단순화된 빨간 점 하나만 표시 */}
-                <div style={{ height: '5px', display: 'flex', alignItems: 'center', justifyContent: 'center', position: 'absolute', bottom: 0 }}>
-                  {hasEvent && (
-                    <span style={{ width: '5px', height: '5px', borderRadius: '50%', background: '#E53935' }} />
+                <span style={{ fontSize: '10px', fontWeight: '700', color: labelColor, lineHeight: 1 }}>{item.dayName}</span>
+                <span style={{ fontSize: '16px', fontWeight: '800', color: dayColor, lineHeight: 1 }}>{item.date}</span>
+                <div style={{ height: '18px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  {partyCount > 0 && (
+                    <div style={{
+                      width: '18px',
+                      height: '18px',
+                      borderRadius: '50%',
+                      backgroundColor: '#F9A825',
+                      color: '#fff',
+                      fontSize: '10px',
+                      fontWeight: 'bold',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center'
+                    }}>
+                      {partyCount}
+                    </div>
                   )}
                 </div>
               </div>
