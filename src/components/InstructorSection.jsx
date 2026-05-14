@@ -29,6 +29,17 @@ const matchesRegion = (instructor, region) => {
   }
 };
 
+const getInstaLink = (inst) => {
+  if (!inst) return '';
+  if (inst.instagram_url) {
+    return inst.instagram_url.startsWith('http') ? inst.instagram_url : `https://${inst.instagram_url}`;
+  }
+  if (inst.instagram) {
+    return inst.instagram.startsWith('http') ? inst.instagram : `https://www.instagram.com/${inst.instagram.replace(/^@/, '')}`;
+  }
+  return '';
+};
+
 const SESSION_KEY = 'oneulbam_session'
 const getSession = () => {
   let s = localStorage.getItem(SESSION_KEY)
@@ -52,6 +63,11 @@ const InstructorSection = () => {
   const [processing, setProcessing] = useState({})
   const [classes, setClasses] = useState([])
   const [visibleCount, setVisibleCount] = useState(20)
+  const [showMasterMenu, setShowMasterMenu] = useState(false)
+  const [classForm, setClassForm] = useState({
+    instructor_id: '', title: '', schedule: '', location: '', fee: '', level: '', capacity: '', description: ''
+  })
+  const [submittingClass, setSubmittingClass] = useState(false)
 
   useEffect(() => {
     fetchInstructors()
@@ -162,6 +178,65 @@ const InstructorSection = () => {
     }
     fetchClasses()
   }, [activeTab, selectedInstructor])
+
+  useEffect(() => {
+    if (showMasterMenu) {
+      setClassForm(prev => ({
+        ...prev,
+        instructor_id: selectedInstructor ? selectedInstructor.id : (instructors[0]?.id || '')
+      }))
+    }
+  }, [showMasterMenu, selectedInstructor, instructors])
+
+  const handleClassSubmit = async (e) => {
+    e.preventDefault();
+    const targetInstructorId = classForm.instructor_id || (instructors[0]?.id);
+    if (!targetInstructorId) {
+      alert('강사를 선택해주세요.');
+      return;
+    }
+    if (!classForm.schedule) {
+      alert('날짜/시간을 입력해주세요.');
+      return;
+    }
+
+    setSubmittingClass(true);
+    try {
+      const { error } = await supabase.from('instructor_classes').insert({
+        instructor_id: targetInstructorId,
+        title: classForm.title || '스페셜 클래스',
+        schedule: classForm.schedule,
+        location: classForm.location,
+        fee: classForm.fee,
+        level: classForm.level,
+        capacity: classForm.capacity,
+        description: classForm.description,
+        status: 'active'
+      });
+
+      if (error) throw error;
+
+      alert('클래스가 성공적으로 등록되었습니다!');
+      setShowMasterMenu(false);
+      setClassForm({
+        instructor_id: '', title: '', schedule: '', location: '', fee: '', level: '', capacity: '', description: ''
+      });
+      if (selectedInstructor && selectedInstructor.id === targetInstructorId && activeTab === 'CLASSES') {
+        const { data } = await supabase
+          .from('instructor_classes')
+          .select('*')
+          .eq('instructor_id', selectedInstructor.id)
+          .eq('status', 'active')
+          .order('created_at', { ascending: false });
+        if (data) setClasses(data);
+      }
+    } catch (err) {
+      console.error('Class insert error:', err);
+      alert('클래스 등록에 실패했습니다: ' + (err.message || err));
+    } finally {
+      setSubmittingClass(false);
+    }
+  };
 
   const toggleFollow = async (e, instructorId) => {
     if (e) {
@@ -315,10 +390,20 @@ const InstructorSection = () => {
     <div style={{ background: '#0D0D0D', minHeight: '100vh', fontFamily: "'Outfit', sans-serif", color: '#fff' }}>
       
       {/* List Header */}
-      <div style={{ padding: '30px 25px 10px' }}>
+      <div style={{ padding: '30px 25px 10px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
         <h2 style={{ fontSize: '28px', fontWeight: 900, color: '#FFF', margin: 0, letterSpacing: '-1px' }}>
           DANCE <span style={{ color: '#C9A84C' }}>MASTERS</span>
         </h2>
+        <button
+          onClick={() => setShowMasterMenu(true)}
+          style={{
+            padding: '8px 14px', borderRadius: '12px', background: 'rgba(201,168,76,0.15)',
+            border: '1px solid #C9A84C', color: '#C9A84C', fontSize: '12px', fontWeight: 800,
+            cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '4px'
+          }}
+        >
+          👑 마스터 전용
+        </button>
       </div>
 
       {/* 스타일 삽입 (스크롤바 숨김) */}
@@ -691,7 +776,7 @@ const InstructorSection = () => {
                         {classes.length === 0 ? (
                           <div style={{ textAlign:'center', padding:'60px 0', color:'rgba(255,255,255,0.3)' }}>
                             <div style={{ fontSize:40, marginBottom:12 }}>📚</div>
-                            <div style={{ fontSize:14 }}>등록된 클래스가 없어요</div>
+                            <div style={{ fontSize:14, fontWeight:700 }}>등록된 클래스가 없습니다</div>
                           </div>
                         ) : (
                           classes.map(c => (
@@ -702,18 +787,21 @@ const InstructorSection = () => {
                               <div style={{ padding:16 }}>
                                 <div style={{ fontSize:17, fontWeight:900, color:'#fff', marginBottom:8 }}>{c.title}</div>
                                 <div style={{ fontSize:13, color:'rgba(255,255,255,0.6)', lineHeight:1.6, marginBottom:12 }}>{c.description}</div>
-                                <div style={{ display:'flex', flexWrap:'wrap', gap:10 }}>
+                                <div style={{ display:'flex', flexWrap:'wrap', gap:8 }}>
                                   {c.schedule && <div style={{ fontSize:12, color:'#FFD700', background:'rgba(255,215,0,0.1)', padding:'4px 10px', borderRadius:8 }}>⏰ {c.schedule}</div>}
                                   {c.location && <div style={{ fontSize:12, color:'rgba(255,255,255,0.5)', background:'rgba(255,255,255,0.05)', padding:'4px 10px', borderRadius:8 }}>📍 {c.location}</div>}
-                                  {c.fee && <div style={{ fontSize:12, color:'#E53935', fontWeight:800, background:'rgba(229,57,53,0.1)', padding:'4px 10px', borderRadius:8 }}>{c.fee}</div>}
+                                  {c.fee && <div style={{ fontSize:12, color:'#E53935', fontWeight:800, background:'rgba(229,57,53,0.1)', padding:'4px 10px', borderRadius:8 }}>💰 {c.fee}</div>}
+                                  {c.level && <div style={{ fontSize:12, color:'#4ADE80', background:'rgba(74,222,128,0.1)', padding:'4px 10px', borderRadius:8 }}>⭐ {c.level}</div>}
+                                  {c.capacity && <div style={{ fontSize:12, color:'#60A5FA', background:'rgba(96,165,250,0.1)', padding:'4px 10px', borderRadius:8 }}>👥 {c.capacity}</div>}
                                 </div>
                                 
-                                {selectedInstructor.kakao_link && (
-                                  <button
-                                    onClick={() => window.open(selectedInstructor.kakao_link, '_blank')}
-                                    style={{ width:'100%', marginTop:16, padding:'12px', borderRadius:14, border:'none', background:'#FEE500', color:'#000', fontSize:13, fontWeight:900, cursor:'pointer' }}
-                                  >문의 및 신청하기</button>
-                                )}
+                                <button
+                                  onClick={() => {
+                                    if (selectedInstructor.kakao_link) window.open(selectedInstructor.kakao_link, '_blank');
+                                    else alert('등록된 카카오 문의 링크가 없습니다.');
+                                  }}
+                                  style={{ width:'100%', marginTop:16, padding:'12px', borderRadius:14, border:'none', background:'#FEE500', color:'#000', fontSize:13, fontWeight:900, cursor:'pointer' }}
+                                >수강신청 (카카오톡 문의)</button>
                               </div>
                             </div>
                           ))
@@ -724,16 +812,29 @@ const InstructorSection = () => {
                     {activeTab === 'GALLERY' && (
                       <motion.div 
                         key="gallery" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }}
-                        style={{ padding: '0 20px', display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '8px' }}
+                        style={{ padding: '40px 20px', textAlign: 'center' }}
                       >
-                        {posts && posts.length > 0 ? posts.map((post, i) => (
-                          <div key={post.id || i} style={{ aspectRatio: '1/1', background: 'rgba(255,255,255,0.03)', borderRadius: '12px', overflow: 'hidden', border: '1px solid rgba(255,255,255,0.05)' }}>
-                            <img src={post.image_url} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                        {getInstaLink(selectedInstructor) ? (
+                          <div>
+                            <div style={{ fontSize: 48, marginBottom: 16 }}>📸</div>
+                            <div style={{ fontSize: 14, color: '#A1A1AA', marginBottom: 24, fontWeight: 600 }}>
+                              강사의 최신 활동과 갤러리를 인스타그램에서 확인하세요
+                            </div>
+                            <button
+                              onClick={() => window.open(getInstaLink(selectedInstructor), '_blank')}
+                              style={{
+                                padding: '14px 32px', borderRadius: '16px', background: 'linear-gradient(135deg, #E1306C, #833AB4)',
+                                color: '#fff', border: 'none', fontSize: '14px', fontWeight: 900, cursor: 'pointer',
+                                boxShadow: '0 10px 20px rgba(225, 48, 108, 0.3)'
+                              }}
+                            >
+                              인스타그램 갤러리 보기
+                            </button>
                           </div>
-                        )) : (
-                          <div style={{ gridColumn: 'span 3', textAlign: 'center', padding: '60px 0', color: 'rgba(255,255,255,0.3)' }}>
-                            <div style={{ fontSize: 40, marginBottom: 12 }}>📸</div>
-                            <div style={{ fontSize: 14 }}>아직 게시물이 없어요</div>
+                        ) : (
+                          <div style={{ color: 'rgba(255,255,255,0.3)', padding: '40px 0' }}>
+                            <div style={{ fontSize: 40, marginBottom: 12 }}>📷</div>
+                            <div style={{ fontSize: 14, fontWeight: 700 }}>갤러리가 없습니다</div>
                           </div>
                         )}
                       </motion.div>
@@ -742,6 +843,184 @@ const InstructorSection = () => {
                 </div>
               </div>
             </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* 마스터 전용 클래스 등록 모달 */}
+      <AnimatePresence>
+        {showMasterMenu && (
+          <motion.div
+            initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+            style={{
+              position: 'fixed', inset: 0, zIndex: 6000, background: 'rgba(0,0,0,0.8)',
+              backdropFilter: 'blur(10px)', display: 'flex', alignItems: 'center', justifyContent: 'center',
+              padding: '20px'
+            }}
+          >
+            <motion.div
+              initial={{ scale: 0.95, y: 20 }} animate={{ scale: 1, y: 0 }} exit={{ scale: 0.95, y: 20 }}
+              style={{
+                background: '#1A1A1A', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '24px',
+                width: '100%', maxWidth: '480px', maxHeight: '90vh', overflowY: 'auto', padding: '25px',
+                color: '#fff', position: 'relative', boxSizing: 'border-box'
+              }}
+            >
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
+                <div>
+                  <div style={{ fontSize: 18, fontWeight: 900, color: '#C9A84C' }}>마스터 전용 메뉴 👑</div>
+                  <div style={{ fontSize: 12, color: '#8E8E93', marginTop: 2 }}>새로운 클래스 일정을 등록합니다</div>
+                </div>
+                <button
+                  onClick={() => setShowMasterMenu(false)}
+                  style={{ background: 'none', border: 'none', color: '#8E8E93', fontSize: 24, cursor: 'pointer' }}
+                >
+                  ×
+                </button>
+              </div>
+
+              <form onSubmit={handleClassSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
+                <div>
+                  <label style={{ display: 'block', fontSize: 13, fontWeight: 700, color: '#A1A1AA', marginBottom: 6 }}>강사 프로필 선택 *</label>
+                  <select
+                    value={classForm.instructor_id}
+                    onChange={(e) => setClassForm(prev => ({ ...prev, instructor_id: e.target.value }))}
+                    style={{
+                      width: '100%', padding: '12px', borderRadius: '12px', background: 'rgba(255,255,255,0.05)',
+                      border: '1px solid rgba(255,255,255,0.1)', color: '#fff', fontSize: 14, outline: 'none'
+                    }}
+                    required
+                  >
+                    <option value="" style={{ color: '#000' }}>강사를 선택하세요</option>
+                    {instructors.map(inst => (
+                      <option key={inst.id} value={inst.id} style={{ color: '#000' }}>
+                        {inst.name} ({inst.city || '지역미상'})
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                <div>
+                  <label style={{ display: 'block', fontSize: 13, fontWeight: 700, color: '#A1A1AA', marginBottom: 6 }}>수업명 (Title) *</label>
+                  <input
+                    type="text"
+                    value={classForm.title}
+                    onChange={(e) => setClassForm(prev => ({ ...prev, title: e.target.value }))}
+                    placeholder="예: 바차타 정규 초급반"
+                    style={{
+                      width: '100%', padding: '12px', borderRadius: '12px', background: 'rgba(255,255,255,0.05)',
+                      border: '1px solid rgba(255,255,255,0.1)', color: '#fff', fontSize: 14, outline: 'none',
+                      boxSizing: 'border-box'
+                    }}
+                    required
+                  />
+                </div>
+
+                <div>
+                  <label style={{ display: 'block', fontSize: 13, fontWeight: 700, color: '#A1A1AA', marginBottom: 6 }}>날짜/시간 (Schedule) *</label>
+                  <input
+                    type="text"
+                    value={classForm.schedule}
+                    onChange={(e) => setClassForm(prev => ({ ...prev, schedule: e.target.value }))}
+                    placeholder="예: 매주 화요일 20:00 ~ 22:00"
+                    style={{
+                      width: '100%', padding: '12px', borderRadius: '12px', background: 'rgba(255,255,255,0.05)',
+                      border: '1px solid rgba(255,255,255,0.1)', color: '#fff', fontSize: 14, outline: 'none',
+                      boxSizing: 'border-box'
+                    }}
+                    required
+                  />
+                </div>
+
+                <div>
+                  <label style={{ display: 'block', fontSize: 13, fontWeight: 700, color: '#A1A1AA', marginBottom: 6 }}>장소 (Location)</label>
+                  <input
+                    type="text"
+                    value={classForm.location}
+                    onChange={(e) => setClassForm(prev => ({ ...prev, location: e.target.value }))}
+                    placeholder="예: 강남 턴바 정모장소"
+                    style={{
+                      width: '100%', padding: '12px', borderRadius: '12px', background: 'rgba(255,255,255,0.05)',
+                      border: '1px solid rgba(255,255,255,0.1)', color: '#fff', fontSize: 14, outline: 'none',
+                      boxSizing: 'border-box'
+                    }}
+                  />
+                </div>
+
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
+                  <div>
+                    <label style={{ display: 'block', fontSize: 13, fontWeight: 700, color: '#A1A1AA', marginBottom: 6 }}>가격 (Fee)</label>
+                    <input
+                      type="text"
+                      value={classForm.fee}
+                      onChange={(e) => setClassForm(prev => ({ ...prev, fee: e.target.value }))}
+                      placeholder="예: 4주 12만원"
+                      style={{
+                        width: '100%', padding: '12px', borderRadius: '12px', background: 'rgba(255,255,255,0.05)',
+                        border: '1px solid rgba(255,255,255,0.1)', color: '#fff', fontSize: 14, outline: 'none',
+                        boxSizing: 'border-box'
+                      }}
+                    />
+                  </div>
+                  <div>
+                    <label style={{ display: 'block', fontSize: 13, fontWeight: 700, color: '#A1A1AA', marginBottom: 6 }}>레벨 (Level)</label>
+                    <input
+                      type="text"
+                      value={classForm.level}
+                      onChange={(e) => setClassForm(prev => ({ ...prev, level: e.target.value }))}
+                      placeholder="예: 입문 / 초급"
+                      style={{
+                        width: '100%', padding: '12px', borderRadius: '12px', background: 'rgba(255,255,255,0.05)',
+                        border: '1px solid rgba(255,255,255,0.1)', color: '#fff', fontSize: 14, outline: 'none',
+                        boxSizing: 'border-box'
+                      }}
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <label style={{ display: 'block', fontSize: 13, fontWeight: 700, color: '#A1A1AA', marginBottom: 6 }}>정원 (Capacity)</label>
+                  <input
+                    type="text"
+                    value={classForm.capacity}
+                    onChange={(e) => setClassForm(prev => ({ ...prev, capacity: e.target.value }))}
+                    placeholder="예: 선착순 20명"
+                    style={{
+                      width: '100%', padding: '12px', borderRadius: '12px', background: 'rgba(255,255,255,0.05)',
+                      border: '1px solid rgba(255,255,255,0.1)', color: '#fff', fontSize: 14, outline: 'none',
+                      boxSizing: 'border-box'
+                    }}
+                  />
+                </div>
+
+                <div>
+                  <label style={{ display: 'block', fontSize: 13, fontWeight: 700, color: '#A1A1AA', marginBottom: 6 }}>설명 (Description)</label>
+                  <textarea
+                    value={classForm.description}
+                    onChange={(e) => setClassForm(prev => ({ ...prev, description: e.target.value }))}
+                    placeholder="클래스 커리큘럼 및 준비물 등 안내사항"
+                    rows={3}
+                    style={{
+                      width: '100%', padding: '12px', borderRadius: '12px', background: 'rgba(255,255,255,0.05)',
+                      border: '1px solid rgba(255,255,255,0.1)', color: '#fff', fontSize: 14, outline: 'none',
+                      resize: 'none', boxSizing: 'border-box'
+                    }}
+                  />
+                </div>
+
+                <button
+                  type="submit"
+                  disabled={submittingClass}
+                  style={{
+                    width: '100%', padding: '14px', borderRadius: '14px', background: '#C9A84C',
+                    color: '#000', border: 'none', fontSize: 15, fontWeight: 900, cursor: 'pointer',
+                    marginTop: '5px', opacity: submittingClass ? 0.7 : 1
+                  }}
+                >
+                  {submittingClass ? '등록 중...' : '클래스 등록하기 🚀'}
+                </button>
+              </form>
+            </motion.div>
           </motion.div>
         )}
       </AnimatePresence>
