@@ -747,27 +747,27 @@ const InstructorSection = () => {
                           {selectedInstructor.bio || `Passionate professional professional with years of experience. Focused on technique, expression, and artistry. Based in ${selectedInstructor.city}.`}
                         </p>
 
-                        <div style={{ display: 'flex', marginTop: '30px', gap: '40px' }}>
-                          <div style={{ flex: 1 }}>
+                        <div style={{ display: 'flex', marginTop: '30px', gap: '16px', alignItems: 'flex-end', justifyContent: 'space-between', flexWrap: 'wrap' }}>
+                          <div style={{ flex: 1, minWidth: '120px' }}>
                             <div style={{ fontSize: '14px', fontWeight: 900, color: '#FFF', marginBottom: '8px' }}>Specialties</div>
                             <div style={{ fontSize: '14px', color: '#8E8E93', fontWeight: 600, display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
                               {getGenre(selectedInstructor.genre).split(' · ').map(g => <span key={g} style={{ background: 'rgba(255,255,255,0.05)', padding: '4px 12px', borderRadius: '8px' }}>{g}</span>)}
                             </div>
                           </div>
-                        <div style={{ display:'flex', gap:8, marginTop:16 }}>
-                          {selectedInstructor.kakao_link && (
-                            <button
-                              onClick={() => window.open(selectedInstructor.kakao_link, '_blank')}
-                              style={{ flex:1, padding:'12px', borderRadius:14, border:'none', background:'#FEE500', color:'#000', fontSize:14, fontWeight:800, cursor:'pointer' }}
-                            >💬 카카오 문의</button>
-                          )}
-                          {selectedInstructor.instagram && (
-                            <button
-                              onClick={() => window.open(`https://instagram.com/${selectedInstructor.instagram}`, '_blank')}
-                              style={{ flex:1, padding:'12px', borderRadius:14, border:'1px solid #E5E7EB', background:'#fff', color:'#111', fontSize:14, fontWeight:800, cursor:'pointer' }}
-                            >📸 인스타그램</button>
-                          )}
-                        </div>
+                          <div style={{ display:'flex', gap:8 }}>
+                            {selectedInstructor.kakao_link && (
+                              <button
+                                onClick={() => window.open(selectedInstructor.kakao_link, '_blank')}
+                                style={{ padding:'12px 16px', borderRadius:14, border:'none', background:'#FEE500', color:'#000', fontSize:14, fontWeight:900, cursor:'pointer', whiteSpace: 'nowrap' }}
+                              >💬 카카오 문의</button>
+                            )}
+                            {getInstaLink(selectedInstructor) && (
+                              <button
+                                onClick={() => window.open(getInstaLink(selectedInstructor), '_blank')}
+                                style={{ padding:'12px 16px', borderRadius:14, border:'1px solid #C9A84C', background:'#fff', color:'#000', fontSize:14, fontWeight:900, cursor:'pointer', whiteSpace: 'nowrap', boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }}
+                              >📅 부킹 예약하기</button>
+                            )}
+                          </div>
                         </div>
                       </motion.div>
                     )}
