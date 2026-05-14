@@ -1019,7 +1019,7 @@ const HomePage = ({
 
                 return (
                   <>
-                    {/* HOT PICK 고퀄리티 개선 (부드러운 가로 스크롤 및 고품격 타이틀/포스터 레이아웃) */}
+                    {/* HOT PICK 고퀄리티 개선 (자연스러운 속도로 한쪽으로 무한 이동하는 프리미엄 롤링 마퀴) */}
                     {newest8GlobalEvents.length > 0 && (
                       <div style={{ margin: '0 0 15px', padding: '15px 0 20px', background: 'var(--color-card)', borderBottom: '1px solid var(--color-border)', overflow: 'hidden' }}>
                         <div style={{ padding: '0 20px 14px', display: 'flex', flexDirection: 'column', gap: '3px' }}>
@@ -1032,56 +1032,64 @@ const HomePage = ({
                           </div>
                           <span style={{ fontSize: '12px', color: '#64748B', fontWeight: 600 }}>지금 가장 핫한 파티</span>
                         </div>
-                        <div 
-                          style={{ 
-                            display: 'flex', 
-                            overflowX: 'auto', 
-                            gap: '12px', 
-                            padding: '4px 20px 12px', 
-                            scrollbarWidth: 'none', 
-                            msOverflowStyle: 'none', 
-                            WebkitOverflowScrolling: 'touch' 
-                          }}
-                        >
-                          {newest8GlobalEvents.map((item, idx) => (
-                            <div 
-                              key={`${item.id}-${idx}`} 
-                              onClick={async () => {
-                                handleOpenModal(setSelectedPoster, item.poster_url);
-                                if (item.id && item._table) {
-                                  try {
-                                    const currentClicks = item.click_count || 0;
-                                    await supabase.from(item._table).update({ click_count: currentClicks + 1 }).eq('id', item.id);
-                                  } catch (err) {}
-                                }
-                              }} 
-                              style={{ 
-                                width: '140px', 
-                                height: '210px', 
-                                flexShrink: 0, 
-                                borderRadius: '16px', 
-                                overflow: 'hidden', 
-                                boxShadow: '0 8px 24px rgba(0,0,0,0.15)', 
-                                position: 'relative', 
-                                background: '#000', 
-                                cursor: 'pointer', 
-                                transform: 'translateZ(0)' 
-                              }}
-                            >
-                              <img src={item.poster_url} style={{ width: '100%', height: '100%', objectFit: 'cover' }} alt="Pick" />
-                              
-                              {/* NEW 뱃지 표시 */}
-                              <div style={{ position: 'absolute', top: '8px', left: '8px', zIndex: 10, background: '#E53935', color: '#fff', fontSize: '10px', fontWeight: 900, padding: '3px 8px', borderRadius: '8px', boxShadow: '0 2px 4px rgba(0,0,0,0.2)' }}>
-                                NEW
-                              </div>
+                        <style>{`
+                          .hot-pick-track-premium {
+                            display: flex;
+                            width: max-content;
+                            gap: 12px;
+                            padding: 4px 20px 12px;
+                            animation: hotPickMarqueePremium 35s linear infinite;
+                          }
+                          .hot-pick-track-premium:hover {
+                            animation-play-state: paused;
+                          }
+                          @keyframes hotPickMarqueePremium {
+                            0% { transform: translate3d(0, 0, 0); }
+                            100% { transform: translate3d(calc(-50% - 6px), 0, 0); }
+                          }
+                        `}</style>
+                        <div style={{ width: '100%', overflow: 'hidden' }}>
+                          <div className="hot-pick-track-premium">
+                            {[...newest8GlobalEvents, ...newest8GlobalEvents].map((item, idx) => (
+                              <div 
+                                key={`${item.id}-${idx}`} 
+                                onClick={async () => {
+                                  handleOpenModal(setSelectedPoster, item.poster_url);
+                                  if (item.id && item._table) {
+                                    try {
+                                      const currentClicks = item.click_count || 0;
+                                      await supabase.from(item._table).update({ click_count: currentClicks + 1 }).eq('id', item.id);
+                                    } catch (err) {}
+                                  }
+                                }} 
+                                style={{ 
+                                  width: '140px', 
+                                  height: '210px', 
+                                  flexShrink: 0, 
+                                  borderRadius: '16px', 
+                                  overflow: 'hidden', 
+                                  boxShadow: '0 8px 24px rgba(0,0,0,0.15)', 
+                                  position: 'relative', 
+                                  background: '#000', 
+                                  cursor: 'pointer', 
+                                  transform: 'translateZ(0)' 
+                                }}
+                              >
+                                <img src={item.poster_url} style={{ width: '100%', height: '100%', objectFit: 'cover' }} alt="Pick" />
+                                
+                                {/* NEW 뱃지 표시 */}
+                                <div style={{ position: 'absolute', top: '8px', left: '8px', zIndex: 10, background: '#E53935', color: '#fff', fontSize: '10px', fontWeight: 900, padding: '3px 8px', borderRadius: '8px', boxShadow: '0 2px 4px rgba(0,0,0,0.2)' }}>
+                                  NEW
+                                </div>
 
-                              {/* 하단 그라데이션 오버레이 (검정) */}
-                              <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, padding: '18px 10px 12px', background: 'linear-gradient(transparent, rgba(0,0,0,0.95))', color: 'white' }}>
-                                <div style={{ fontSize: '11px', color: '#FFEB3B', fontWeight: 950, marginBottom: '2px', textShadow: '0 1px 2px rgba(0,0,0,0.8)' }}>{translateDynamicText(item.locationName, isEn)}</div>
-                                <div style={{ fontSize: '13px', fontWeight: 900, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', textShadow: '0 1px 2px rgba(0,0,0,0.8)' }}>{translateDynamicText(item.title, isEn)}</div>
+                                {/* 하단 그라데이션 오버레이 (검정) */}
+                                <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, padding: '18px 10px 12px', background: 'linear-gradient(transparent, rgba(0,0,0,0.95))', color: 'white' }}>
+                                  <div style={{ fontSize: '11px', color: '#FFEB3B', fontWeight: 950, marginBottom: '2px', textShadow: '0 1px 2px rgba(0,0,0,0.8)' }}>{translateDynamicText(item.locationName, isEn)}</div>
+                                  <div style={{ fontSize: '13px', fontWeight: 900, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', textShadow: '0 1px 2px rgba(0,0,0,0.8)' }}>{translateDynamicText(item.title, isEn)}</div>
+                                </div>
                               </div>
-                            </div>
-                          ))}
+                            ))}
+                          </div>
                         </div>
                       </div>
                     )}
