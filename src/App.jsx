@@ -1138,10 +1138,15 @@ function App() {
           transform: navVisible ? 'translateX(-50%) translateY(0)' : 'translateX(-50%) translateY(100%)',
           transition: 'transform 0.3s ease',
           width: '100%', maxWidth: '500px', height: '80px',
-          background: 'var(--color-nav-bg)', backdropFilter: 'blur(10px)',
+          background: 'rgba(255, 255, 255, 0.85)',
+          backdropFilter: 'blur(20px)',
+          WebkitBackdropFilter: 'blur(20px)',
           display: 'flex', alignItems: 'center', justifyContent: 'space-around',
-          borderTop: '1px solid var(--color-border)', zIndex: 1000,
-          paddingBottom: 'env(safe-area-inset-bottom)'
+          borderTop: '1px solid rgba(255, 255, 255, 0.5)',
+          boxShadow: '0 -4px 20px rgba(0, 0, 0, 0.08)',
+          zIndex: 1000,
+          paddingBottom: 'env(safe-area-inset-bottom)',
+          boxSizing: 'border-box'
         }}
       >
         <div 
@@ -1149,17 +1154,24 @@ function App() {
           onClick={() => navigate('/')}
           style={{ 
             flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
-            cursor: 'pointer', transition: 'all 0.3s', position: 'relative', height: '100%',
-            color: location.pathname === '/' ? '#E11D48' : '#94A3B8'
+            cursor: 'pointer', position: 'relative', height: '100%',
+            color: location.pathname === '/' ? '#E53935' : '#94A3B8'
           }}
         >
           {location.pathname === '/' && (
             <motion.div 
               layoutId="nav-glow"
-              style={{ position: 'absolute', width: '40px', height: '40px', borderRadius: '50%', background: 'rgba(225, 29, 72, 0.1)', filter: 'blur(8px)' }} 
+              style={{ position: 'absolute', width: '40px', height: '40px', borderRadius: '50%', background: 'rgba(229, 57, 53, 0.1)', filter: 'blur(8px)' }} 
             />
           )}
-          <Music2 size={22} strokeWidth={location.pathname === '/' ? 2.5 : 2} style={{ marginBottom: '4px' }} />
+          <motion.div
+            whileTap={{ scale: 0.75 }}
+            animate={{ scale: location.pathname === '/' ? 1.2 : 1 }}
+            transition={{ type: 'spring', stiffness: 400, damping: 10 }}
+            style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '4px' }}
+          >
+            <Music2 size={22} strokeWidth={location.pathname === '/' ? 2.5 : 2} style={{ color: location.pathname === '/' ? '#E53935' : '#94A3B8' }} />
+          </motion.div>
           <span style={{ fontSize: '10px', fontWeight: location.pathname === '/' ? 900 : 500 }}>
             {i18n.language?.startsWith('en') ? 'Social' : '소셜'}
           </span>
@@ -1170,17 +1182,24 @@ function App() {
           onClick={() => setShowPartner(true)}
           style={{ 
             flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
-            cursor: 'pointer', transition: 'all 0.3s', position: 'relative', height: '100%',
-            color: showPartner ? '#E11D48' : '#94A3B8'
+            cursor: 'pointer', position: 'relative', height: '100%',
+            color: showPartner ? '#E53935' : '#94A3B8'
           }}
         >
           {showPartner && (
             <motion.div 
               layoutId="nav-glow"
-              style={{ position: 'absolute', width: '40px', height: '40px', borderRadius: '50%', background: 'rgba(225, 29, 72, 0.1)', filter: 'blur(8px)' }} 
+              style={{ position: 'absolute', width: '40px', height: '40px', borderRadius: '50%', background: 'rgba(229, 57, 53, 0.1)', filter: 'blur(8px)' }} 
             />
           )}
-          <Heart size={22} strokeWidth={showPartner ? 2.5 : 2} style={{ marginBottom: '4px' }} />
+          <motion.div
+            whileTap={{ scale: 0.75 }}
+            animate={{ scale: showPartner ? 1.2 : 1 }}
+            transition={{ type: 'spring', stiffness: 400, damping: 10 }}
+            style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '4px' }}
+          >
+            <Heart size={22} strokeWidth={showPartner ? 2.5 : 2} style={{ color: showPartner ? '#E53935' : '#94A3B8' }} />
+          </motion.div>
           <span style={{ fontSize: '10px', fontWeight: showPartner ? 900 : 500 }}>
             {i18n.language?.startsWith('en') ? 'Partner' : '파트너'}
           </span>
@@ -1189,7 +1208,7 @@ function App() {
         <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', position: 'relative', height: '100%' }}>
           <motion.button
             whileHover={{ scale: 1.1 }}
-            whileTap={{ scale: 0.9 }}
+            whileTap={{ scale: 0.85 }}
             onClick={() => {
               if (location.pathname === '/livepick') {
                 window.dispatchEvent(new CustomEvent('open-community-upload'));
@@ -1205,15 +1224,15 @@ function App() {
             }}
             style={{
               width: '54px', height: '54px', borderRadius: '18px',
-              background: 'linear-gradient(135deg, #F59E0B, #D97706)',
+              background: 'linear-gradient(135deg, #EF5350, #D32F2F)',
               border: 'none', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center',
-              cursor: 'pointer', boxShadow: '0 8px 20px rgba(217, 119, 6, 0.3)',
+              cursor: 'pointer', boxShadow: '0 8px 20px rgba(229, 57, 53, 0.4), 0 4px 8px rgba(0, 0, 0, 0.2)',
               marginBottom: '18px'
             }}
           >
             <Plus size={30} strokeWidth={3} />
           </motion.button>
-          <span style={{ fontSize: '10px', fontWeight: 900, color: '#D97706', position: 'absolute', bottom: '12px' }}>
+          <span style={{ fontSize: '10px', fontWeight: 900, color: '#E53935', position: 'absolute', bottom: '12px' }}>
             {location.pathname === '/livepick' ? (i18n.language?.startsWith('en') ? 'REPORT' : '리포트') : t('nav_register')}
           </span>
         </div>
@@ -1223,17 +1242,24 @@ function App() {
           onClick={() => navigate('/bootcamp')}
           style={{ 
             flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
-            cursor: 'pointer', transition: 'all 0.3s', position: 'relative', height: '100%',
-            color: location.pathname === '/bootcamp' ? '#F97316' : '#94A3B8'
+            cursor: 'pointer', position: 'relative', height: '100%',
+            color: location.pathname === '/bootcamp' ? '#E53935' : '#94A3B8'
           }}
         >
           {location.pathname === '/bootcamp' && (
             <motion.div 
               layoutId="nav-glow"
-              style={{ position: 'absolute', width: '40px', height: '40px', borderRadius: '50%', background: 'rgba(249, 115, 22, 0.1)', filter: 'blur(8px)' }} 
+              style={{ position: 'absolute', width: '40px', height: '40px', borderRadius: '50%', background: 'rgba(229, 57, 53, 0.1)', filter: 'blur(8px)' }} 
             />
           )}
-          <Tent size={22} strokeWidth={location.pathname === '/bootcamp' ? 2.5 : 2} style={{ marginBottom: '4px' }} />
+          <motion.div
+            whileTap={{ scale: 0.75 }}
+            animate={{ scale: location.pathname === '/bootcamp' ? 1.2 : 1 }}
+            transition={{ type: 'spring', stiffness: 400, damping: 10 }}
+            style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '4px' }}
+          >
+            <Tent size={22} strokeWidth={location.pathname === '/bootcamp' ? 2.5 : 2} style={{ color: location.pathname === '/bootcamp' ? '#E53935' : '#94A3B8' }} />
+          </motion.div>
           <span style={{ fontSize: '10px', fontWeight: location.pathname === '/bootcamp' ? 900 : 500 }}>
             {i18n.language?.startsWith('en') ? 'Bootcamp' : '부트캠프'}
           </span>
@@ -1244,17 +1270,24 @@ function App() {
           onClick={() => navigate('/festival')}
           style={{ 
             flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
-            cursor: 'pointer', transition: 'all 0.3s', position: 'relative', height: '100%',
-            color: location.pathname === '/festival' ? '#F97316' : '#94A3B8'
+            cursor: 'pointer', position: 'relative', height: '100%',
+            color: location.pathname === '/festival' ? '#E53935' : '#94A3B8'
           }}
         >
           {location.pathname === '/festival' && (
             <motion.div 
               layoutId="nav-glow"
-              style={{ position: 'absolute', width: '40px', height: '40px', borderRadius: '50%', background: 'rgba(249, 115, 22, 0.1)', filter: 'blur(8px)' }} 
+              style={{ position: 'absolute', width: '40px', height: '40px', borderRadius: '50%', background: 'rgba(229, 57, 53, 0.1)', filter: 'blur(8px)' }} 
             />
           )}
-          <Flag size={22} strokeWidth={location.pathname === '/festival' ? 2.5 : 2} style={{ marginBottom: '4px' }} />
+          <motion.div
+            whileTap={{ scale: 0.75 }}
+            animate={{ scale: location.pathname === '/festival' ? 1.2 : 1 }}
+            transition={{ type: 'spring', stiffness: 400, damping: 10 }}
+            style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '4px' }}
+          >
+            <Flag size={22} strokeWidth={location.pathname === '/festival' ? 2.5 : 2} style={{ color: location.pathname === '/festival' ? '#E53935' : '#94A3B8' }} />
+          </motion.div>
           <span style={{ fontSize: '10px', fontWeight: location.pathname === '/festival' ? 900 : 500 }}>
             {i18n.language?.startsWith('en') ? 'Festival' : '페스티벌'}
           </span>
