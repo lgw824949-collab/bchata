@@ -479,6 +479,47 @@ const HomePage = ({
 
   const [isPaused, setIsPaused] = useState(false);
 
+  // [사용자 요청] 파티 카드 찜하기 상태 및 토글 핸들러
+  const [wishlistParties, setWishlistParties] = useState(() => {
+    try {
+      const str = localStorage.getItem('wishlist_parties') || localStorage.getItem('liked_ids') || '[]';
+      const parsed = JSON.parse(str);
+      return Array.isArray(parsed) ? parsed : [];
+    } catch (e) {
+      return [];
+    }
+  });
+
+  const toggleWishlistParty = (e: React.MouseEvent, partyObj: any) => {
+    e.stopPropagation(); // 카드 클릭 시 열리는 포스터 상세 모달 이벤트 차단
+    if (!partyObj || !partyObj.id) return;
+
+    setWishlistParties(prev => {
+      const isAlreadyWishlisted = prev.some(item => {
+        if (typeof item === 'object' && item !== null) return item.id === partyObj.id;
+        return item === partyObj.id;
+      });
+
+      let nextList;
+      if (isAlreadyWishlisted) {
+        nextList = prev.filter(item => {
+          if (typeof item === 'object' && item !== null) return item.id !== partyObj.id;
+          return item !== partyObj.id;
+        });
+      } else {
+        nextList = [...prev, partyObj];
+      }
+
+      try {
+        localStorage.setItem('wishlist_parties', JSON.stringify(nextList));
+        if (localStorage.getItem('liked_ids')) localStorage.setItem('liked_ids', JSON.stringify(nextList));
+        if (localStorage.getItem('liked_parties')) localStorage.setItem('liked_parties', JSON.stringify(nextList));
+      } catch (err) {}
+
+      return nextList;
+    });
+  };
+
   const [classGenre, setClassGenre] = useState('전체');
   const [classLevel, setClassLevel] = useState('전체');
   const [weatherMap, setWeatherMap] = useState({});
@@ -1072,9 +1113,40 @@ const HomePage = ({
                                         border: '1px solid var(--color-border)',
                                         cursor: 'pointer',
                                         height: '150px',
-                                        transition: 'all 0.3s'
+                                        transition: 'all 0.3s',
+                                        position: 'relative'
                                       }}
                                     >
+                                      {/* [사용자 요청] 파티 카드 우측 상단 찜하기 하트 버튼 */}
+                                      <button
+                                        onClick={(e) => toggleWishlistParty(e, item)}
+                                        style={{
+                                          position: 'absolute',
+                                          top: '12px',
+                                          right: '12px',
+                                          background: 'rgba(255, 255, 255, 0.85)',
+                                          backdropFilter: 'blur(4px)',
+                                          border: 'none',
+                                          borderRadius: '50%',
+                                          width: '32px',
+                                          height: '32px',
+                                          display: 'flex',
+                                          alignItems: 'center',
+                                          justifyContent: 'center',
+                                          cursor: 'pointer',
+                                          zIndex: 10,
+                                          boxShadow: '0 2px 8px rgba(0,0,0,0.1)'
+                                        }}
+                                      >
+                                        {(() => {
+                                          const isWish = wishlistParties.some(w => {
+                                            if (typeof w === 'object' && w !== null) return w.id === item.id;
+                                            return w === item.id;
+                                          });
+                                          return <span style={{ fontSize: '15px' }}>{isWish ? '❤️' : '🤍'}</span>;
+                                        })()}
+                                      </button>
+
                                       <div style={{ width: '100px', flexShrink: 0 }}>
                                         <img src={item.poster_url} style={{ width: '100%', height: '100%', objectFit: 'cover' }} alt="Poster" />
                                       </div>
