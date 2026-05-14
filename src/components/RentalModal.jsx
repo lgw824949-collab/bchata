@@ -353,9 +353,9 @@ export default function RentalModal({ onClose }) {
       >
         {/* 상단 헤더 */}
         <div style={{ height: '70px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0 20px', borderBottom: '1px solid #F1F5F9', flexShrink: 0 }}>
-          <div style={{ color: '#1E293B', fontSize: '18px', fontWeight: '950', display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#E53935' }} />
-            전국 BAR 대관문의
+          <div style={{ color: '#1E293B', fontSize: '18px', fontWeight: '950', display: 'flex', alignItems: 'center', gap: '8px', letterSpacing: '-0.5px' }}>
+            <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#10B981' }} />
+            전국 파티 장소 · 대관 안내
           </div>
           <button
             onClick={onClose}
@@ -368,11 +368,11 @@ export default function RentalModal({ onClose }) {
         {/* 상단 액션 배너 영역: "BAR 등록하기 +" 버튼 탑재 */}
         <div style={{ padding: '20px 20px 10px', flexShrink: 0, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <div>
-            <h3 style={{ margin: 0, fontSize: '20px', fontWeight: 950, color: '#1E293B', letterSpacing: '-0.5px' }}>
-              HOT PICK 대관 제휴처
+            <h3 style={{ margin: 0, fontSize: '19px', fontWeight: 950, color: '#1E293B', letterSpacing: '-0.5px', display: 'flex', alignItems: 'center', gap: '6px' }}>
+              <span style={{ color: '#10B981' }}>내 주변</span> 공간 찾기 & 대관
             </h3>
-            <p style={{ margin: '4px 0 0', fontSize: '12px', color: '#64748B', fontWeight: 600 }}>
-              지역별 실시간 제휴 공간을 간편하게 확인하세요.
+            <p style={{ margin: '5px 0 0', fontSize: '12.5px', color: '#64748B', fontWeight: 700, lineHeight: 1.4, letterSpacing: '-0.3px' }}>
+              전국 핫플레이스 BAR 위치 확인 및 대관을 한 번에!
             </p>
           </div>
           <button
