@@ -774,9 +774,20 @@ const InstructorSection = () => {
                     {activeTab === 'CLASSES' && (
                       <div style={{ padding:'16px' }}>
                         {classes.length === 0 ? (
-                          <div style={{ textAlign:'center', padding:'60px 0', color:'rgba(255,255,255,0.3)' }}>
-                            <div style={{ fontSize:40, marginBottom:12 }}>📚</div>
-                            <div style={{ fontSize:14, fontWeight:700 }}>등록된 클래스가 없습니다</div>
+                          <div style={{ textAlign:'center', padding:'50px 20px', background:'rgba(255,255,255,0.02)', borderRadius:'20px', border:'1px dashed rgba(255,255,255,0.1)' }}>
+                            <div style={{ fontSize:15, color:'#E4E4E7', lineHeight:1.6, fontWeight:600, whiteSpace:'pre-wrap', marginBottom:20 }}>
+                              {`🎓 아직 등록된 클래스가 없습니다.\n강사님께서 직접 마스터 메뉴에서 등록해 주세요!`}
+                            </div>
+                            <button
+                              onClick={() => setShowMasterMenu(true)}
+                              style={{
+                                padding:'12px 24px', borderRadius:'14px', background:'#C9A84C', color:'#000',
+                                border:'none', fontSize:14, fontWeight:900, cursor:'pointer',
+                                boxShadow:'0 4px 12px rgba(201,168,76,0.3)'
+                              }}
+                            >
+                              클래스 등록하기 →
+                            </button>
                           </div>
                         ) : (
                           classes.map(c => (
