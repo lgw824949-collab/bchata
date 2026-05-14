@@ -649,7 +649,7 @@ const HomePage = ({
         </div>
       </div>
 
-      {/* 🚀 [사용자 요청] 퀵 메뉴 가로 스크롤바로 개편 (더보기/파트너구하기 삭제, 총 9개 아이콘) */}
+      {/* 🚀 [사용자 요청] 퀵 메뉴 9개 전체 아이콘 가로 스크롤 개편 (더보기/파트너구하기 완전 삭제 반영) */}
       <div className="quick-menu-scroll" style={{ 
         display: 'flex', overflowX: 'auto', gap: '8px', padding: '8px 10px 12px', 
         scrollbarWidth: 'none', msOverflowStyle: 'none', WebkitOverflowScrolling: 'touch' 
