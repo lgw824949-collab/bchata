@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { supabase } from '../lib/supabase'
 import { ChevronLeft, Share2, Bell, Heart, User, MapPin, Globe, ShieldCheck, Zap, MessageCircle, Star, Info, Plus, Check, Search } from 'lucide-react'
+import ClassRegisterModal from './ClassRegisterModal'
 
 const REGIONS = ['전국', '서울', '경기인천', '경상도', '전라도', '충청도', '강원제주']
 const GENRE_TABS = ['전체', '바차타', '살사', '쥬크', '키좀바']
@@ -858,183 +859,14 @@ const InstructorSection = () => {
         )}
       </AnimatePresence>
 
-      {/* 마스터 전용 클래스 등록 모달 */}
-      <AnimatePresence>
-        {showMasterMenu && (
-          <motion.div
-            initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-            style={{
-              position: 'fixed', inset: 0, zIndex: 6000, background: 'rgba(0,0,0,0.8)',
-              backdropFilter: 'blur(10px)', display: 'flex', alignItems: 'center', justifyContent: 'center',
-              padding: '20px'
-            }}
-          >
-            <motion.div
-              initial={{ scale: 0.95, y: 20 }} animate={{ scale: 1, y: 0 }} exit={{ scale: 0.95, y: 20 }}
-              style={{
-                background: '#1A1A1A', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '24px',
-                width: '100%', maxWidth: '480px', maxHeight: '90vh', overflowY: 'auto', padding: '25px',
-                color: '#fff', position: 'relative', boxSizing: 'border-box'
-              }}
-            >
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
-                <div>
-                  <div style={{ fontSize: 18, fontWeight: 900, color: '#C9A84C' }}>마스터 전용 메뉴 👑</div>
-                  <div style={{ fontSize: 12, color: '#8E8E93', marginTop: 2 }}>새로운 클래스 일정을 등록합니다</div>
-                </div>
-                <button
-                  onClick={() => setShowMasterMenu(false)}
-                  style={{ background: 'none', border: 'none', color: '#8E8E93', fontSize: 24, cursor: 'pointer' }}
-                >
-                  ×
-                </button>
-              </div>
-
-              <form onSubmit={handleClassSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
-                <div>
-                  <label style={{ display: 'block', fontSize: 13, fontWeight: 700, color: '#A1A1AA', marginBottom: 6 }}>강사 프로필 선택 *</label>
-                  <select
-                    value={classForm.instructor_id}
-                    onChange={(e) => setClassForm(prev => ({ ...prev, instructor_id: e.target.value }))}
-                    style={{
-                      width: '100%', padding: '12px', borderRadius: '12px', background: 'rgba(255,255,255,0.05)',
-                      border: '1px solid rgba(255,255,255,0.1)', color: '#fff', fontSize: 14, outline: 'none'
-                    }}
-                    required
-                  >
-                    <option value="" style={{ color: '#000' }}>강사를 선택하세요</option>
-                    {instructors.map(inst => (
-                      <option key={inst.id} value={inst.id} style={{ color: '#000' }}>
-                        {inst.name} ({inst.city || '지역미상'})
-                      </option>
-                    ))}
-                  </select>
-                </div>
-
-                <div>
-                  <label style={{ display: 'block', fontSize: 13, fontWeight: 700, color: '#A1A1AA', marginBottom: 6 }}>수업명 (Title) *</label>
-                  <input
-                    type="text"
-                    value={classForm.title}
-                    onChange={(e) => setClassForm(prev => ({ ...prev, title: e.target.value }))}
-                    placeholder="예: 바차타 정규 초급반"
-                    style={{
-                      width: '100%', padding: '12px', borderRadius: '12px', background: 'rgba(255,255,255,0.05)',
-                      border: '1px solid rgba(255,255,255,0.1)', color: '#fff', fontSize: 14, outline: 'none',
-                      boxSizing: 'border-box'
-                    }}
-                    required
-                  />
-                </div>
-
-                <div>
-                  <label style={{ display: 'block', fontSize: 13, fontWeight: 700, color: '#A1A1AA', marginBottom: 6 }}>날짜/시간 (Schedule) *</label>
-                  <input
-                    type="text"
-                    value={classForm.schedule}
-                    onChange={(e) => setClassForm(prev => ({ ...prev, schedule: e.target.value }))}
-                    placeholder="예: 매주 화요일 20:00 ~ 22:00"
-                    style={{
-                      width: '100%', padding: '12px', borderRadius: '12px', background: 'rgba(255,255,255,0.05)',
-                      border: '1px solid rgba(255,255,255,0.1)', color: '#fff', fontSize: 14, outline: 'none',
-                      boxSizing: 'border-box'
-                    }}
-                    required
-                  />
-                </div>
-
-                <div>
-                  <label style={{ display: 'block', fontSize: 13, fontWeight: 700, color: '#A1A1AA', marginBottom: 6 }}>장소 (Location)</label>
-                  <input
-                    type="text"
-                    value={classForm.location}
-                    onChange={(e) => setClassForm(prev => ({ ...prev, location: e.target.value }))}
-                    placeholder="예: 강남 턴바 정모장소"
-                    style={{
-                      width: '100%', padding: '12px', borderRadius: '12px', background: 'rgba(255,255,255,0.05)',
-                      border: '1px solid rgba(255,255,255,0.1)', color: '#fff', fontSize: 14, outline: 'none',
-                      boxSizing: 'border-box'
-                    }}
-                  />
-                </div>
-
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
-                  <div>
-                    <label style={{ display: 'block', fontSize: 13, fontWeight: 700, color: '#A1A1AA', marginBottom: 6 }}>가격 (Fee)</label>
-                    <input
-                      type="text"
-                      value={classForm.fee}
-                      onChange={(e) => setClassForm(prev => ({ ...prev, fee: e.target.value }))}
-                      placeholder="예: 4주 12만원"
-                      style={{
-                        width: '100%', padding: '12px', borderRadius: '12px', background: 'rgba(255,255,255,0.05)',
-                        border: '1px solid rgba(255,255,255,0.1)', color: '#fff', fontSize: 14, outline: 'none',
-                        boxSizing: 'border-box'
-                      }}
-                    />
-                  </div>
-                  <div>
-                    <label style={{ display: 'block', fontSize: 13, fontWeight: 700, color: '#A1A1AA', marginBottom: 6 }}>레벨 (Level)</label>
-                    <input
-                      type="text"
-                      value={classForm.level}
-                      onChange={(e) => setClassForm(prev => ({ ...prev, level: e.target.value }))}
-                      placeholder="예: 입문 / 초급"
-                      style={{
-                        width: '100%', padding: '12px', borderRadius: '12px', background: 'rgba(255,255,255,0.05)',
-                        border: '1px solid rgba(255,255,255,0.1)', color: '#fff', fontSize: 14, outline: 'none',
-                        boxSizing: 'border-box'
-                      }}
-                    />
-                  </div>
-                </div>
-
-                <div>
-                  <label style={{ display: 'block', fontSize: 13, fontWeight: 700, color: '#A1A1AA', marginBottom: 6 }}>정원 (Capacity)</label>
-                  <input
-                    type="text"
-                    value={classForm.capacity}
-                    onChange={(e) => setClassForm(prev => ({ ...prev, capacity: e.target.value }))}
-                    placeholder="예: 선착순 20명"
-                    style={{
-                      width: '100%', padding: '12px', borderRadius: '12px', background: 'rgba(255,255,255,0.05)',
-                      border: '1px solid rgba(255,255,255,0.1)', color: '#fff', fontSize: 14, outline: 'none',
-                      boxSizing: 'border-box'
-                    }}
-                  />
-                </div>
-
-                <div>
-                  <label style={{ display: 'block', fontSize: 13, fontWeight: 700, color: '#A1A1AA', marginBottom: 6 }}>설명 (Description)</label>
-                  <textarea
-                    value={classForm.description}
-                    onChange={(e) => setClassForm(prev => ({ ...prev, description: e.target.value }))}
-                    placeholder="클래스 커리큘럼 및 준비물 등 안내사항"
-                    rows={3}
-                    style={{
-                      width: '100%', padding: '12px', borderRadius: '12px', background: 'rgba(255,255,255,0.05)',
-                      border: '1px solid rgba(255,255,255,0.1)', color: '#fff', fontSize: 14, outline: 'none',
-                      resize: 'none', boxSizing: 'border-box'
-                    }}
-                  />
-                </div>
-
-                <button
-                  type="submit"
-                  disabled={submittingClass}
-                  style={{
-                    width: '100%', padding: '14px', borderRadius: '14px', background: '#C9A84C',
-                    color: '#000', border: 'none', fontSize: 15, fontWeight: 900, cursor: 'pointer',
-                    marginTop: '5px', opacity: submittingClass ? 0.7 : 1
-                  }}
-                >
-                  {submittingClass ? '등록 중...' : '클래스 등록하기 🚀'}
-                </button>
-              </form>
-            </motion.div>
-          </motion.div>
-        )}
-      </AnimatePresence>
+      {/* 마스터 전용 클래스 등록 모달 (단계별 3단계 모달 연동) */}
+      {showMasterMenu && (
+        <ClassRegisterModal 
+          isOpen={showMasterMenu} 
+          onClose={() => setShowMasterMenu(false)} 
+          instructorId={selectedInstructor?.id || ''} 
+        />
+      )}
     </div>
   )
 }
