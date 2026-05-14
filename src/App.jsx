@@ -1137,13 +1137,13 @@ function App() {
           position: 'fixed', bottom: 0, left: '50%',
           transform: navVisible ? 'translateX(-50%) translateY(0)' : 'translateX(-50%) translateY(100%)',
           transition: 'transform 0.3s ease',
-          width: '100%', maxWidth: '500px', height: '80px',
-          background: 'rgba(255, 255, 255, 0.85)',
+          width: '100%', maxWidth: '500px', height: '72px',
+          background: 'rgba(255, 255, 255, 0.95)',
           backdropFilter: 'blur(20px)',
           WebkitBackdropFilter: 'blur(20px)',
           display: 'flex', alignItems: 'center', justifyContent: 'space-around',
-          borderTop: '1px solid rgba(255, 255, 255, 0.5)',
-          boxShadow: '0 -4px 20px rgba(0, 0, 0, 0.08)',
+          borderTop: '2px solid rgba(229, 57, 53, 0.15)',
+          boxShadow: '0 -8px 32px rgba(229, 57, 53, 0.12), 0 -2px 8px rgba(0, 0, 0, 0.06)',
           zIndex: 1000,
           paddingBottom: 'env(safe-area-inset-bottom)',
           boxSizing: 'border-box'
@@ -1161,7 +1161,7 @@ function App() {
           {location.pathname === '/' && (
             <motion.div 
               layoutId="nav-glow"
-              style={{ position: 'absolute', width: '40px', height: '40px', borderRadius: '50%', background: 'rgba(229, 57, 53, 0.1)', filter: 'blur(8px)' }} 
+              style={{ position: 'absolute', width: '40px', height: '40px', borderRadius: '50%', background: 'rgba(229, 57, 53, 0.2)', filter: 'blur(4px)' }} 
             />
           )}
           <motion.div
@@ -1172,7 +1172,7 @@ function App() {
           >
             <Music2 size={22} strokeWidth={location.pathname === '/' ? 2.5 : 2} style={{ color: location.pathname === '/' ? '#E53935' : '#94A3B8' }} />
           </motion.div>
-          <span style={{ fontSize: '10px', fontWeight: location.pathname === '/' ? 900 : 500 }}>
+          <span style={{ fontSize: '9px', fontWeight: location.pathname === '/' ? 900 : 500 }}>
             {i18n.language?.startsWith('en') ? 'Social' : '소셜'}
           </span>
         </div>
@@ -1189,7 +1189,7 @@ function App() {
           {showPartner && (
             <motion.div 
               layoutId="nav-glow"
-              style={{ position: 'absolute', width: '40px', height: '40px', borderRadius: '50%', background: 'rgba(229, 57, 53, 0.1)', filter: 'blur(8px)' }} 
+              style={{ position: 'absolute', width: '40px', height: '40px', borderRadius: '50%', background: 'rgba(229, 57, 53, 0.2)', filter: 'blur(4px)' }} 
             />
           )}
           <motion.div
@@ -1200,7 +1200,7 @@ function App() {
           >
             <Heart size={22} strokeWidth={showPartner ? 2.5 : 2} style={{ color: showPartner ? '#E53935' : '#94A3B8' }} />
           </motion.div>
-          <span style={{ fontSize: '10px', fontWeight: showPartner ? 900 : 500 }}>
+          <span style={{ fontSize: '9px', fontWeight: showPartner ? 900 : 500 }}>
             {i18n.language?.startsWith('en') ? 'Partner' : '파트너'}
           </span>
         </div>
@@ -1223,16 +1223,16 @@ function App() {
               }
             }}
             style={{
-              width: '54px', height: '54px', borderRadius: '18px',
+              width: '54px', height: '54px', borderRadius: '22px',
               background: 'linear-gradient(135deg, #EF5350, #D32F2F)',
               border: 'none', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center',
-              cursor: 'pointer', boxShadow: '0 8px 20px rgba(229, 57, 53, 0.4), 0 4px 8px rgba(0, 0, 0, 0.2)',
+              cursor: 'pointer', boxShadow: '0 12px 28px rgba(229, 57, 53, 0.5), 0 6px 12px rgba(0, 0, 0, 0.25)',
               marginBottom: '18px'
             }}
           >
             <Plus size={30} strokeWidth={3} />
           </motion.button>
-          <span style={{ fontSize: '10px', fontWeight: 900, color: '#E53935', position: 'absolute', bottom: '12px' }}>
+          <span style={{ fontSize: '9px', fontWeight: 900, color: '#E53935', position: 'absolute', bottom: '12px' }}>
             {location.pathname === '/livepick' ? (i18n.language?.startsWith('en') ? 'REPORT' : '리포트') : t('nav_register')}
           </span>
         </div>
@@ -1249,7 +1249,7 @@ function App() {
           {location.pathname === '/bootcamp' && (
             <motion.div 
               layoutId="nav-glow"
-              style={{ position: 'absolute', width: '40px', height: '40px', borderRadius: '50%', background: 'rgba(229, 57, 53, 0.1)', filter: 'blur(8px)' }} 
+              style={{ position: 'absolute', width: '40px', height: '40px', borderRadius: '50%', background: 'rgba(229, 57, 53, 0.2)', filter: 'blur(4px)' }} 
             />
           )}
           <motion.div
@@ -1260,7 +1260,7 @@ function App() {
           >
             <Tent size={22} strokeWidth={location.pathname === '/bootcamp' ? 2.5 : 2} style={{ color: location.pathname === '/bootcamp' ? '#E53935' : '#94A3B8' }} />
           </motion.div>
-          <span style={{ fontSize: '10px', fontWeight: location.pathname === '/bootcamp' ? 900 : 500 }}>
+          <span style={{ fontSize: '9px', fontWeight: location.pathname === '/bootcamp' ? 900 : 500 }}>
             {i18n.language?.startsWith('en') ? 'Bootcamp' : '부트캠프'}
           </span>
         </div>
@@ -1277,7 +1277,7 @@ function App() {
           {location.pathname === '/festival' && (
             <motion.div 
               layoutId="nav-glow"
-              style={{ position: 'absolute', width: '40px', height: '40px', borderRadius: '50%', background: 'rgba(229, 57, 53, 0.1)', filter: 'blur(8px)' }} 
+              style={{ position: 'absolute', width: '40px', height: '40px', borderRadius: '50%', background: 'rgba(229, 57, 53, 0.2)', filter: 'blur(4px)' }} 
             />
           )}
           <motion.div
@@ -1288,7 +1288,7 @@ function App() {
           >
             <Flag size={22} strokeWidth={location.pathname === '/festival' ? 2.5 : 2} style={{ color: location.pathname === '/festival' ? '#E53935' : '#94A3B8' }} />
           </motion.div>
-          <span style={{ fontSize: '10px', fontWeight: location.pathname === '/festival' ? 900 : 500 }}>
+          <span style={{ fontSize: '9px', fontWeight: location.pathname === '/festival' ? 900 : 500 }}>
             {i18n.language?.startsWith('en') ? 'Festival' : '페스티벌'}
           </span>
         </div>
