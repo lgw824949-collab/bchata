@@ -691,6 +691,13 @@ const HomePage = ({
       </div>
 
       {/* 🚀 [사용자 요청] 퀵 메뉴 9개 전체 아이콘 가로 스크롤 개편 (오늘날씨 반걸침 UX 최적화) */}
+      <style>{`
+        @keyframes gentleSparkle {
+          0% { box-shadow: 0 0 2px rgba(85, 139, 47, 0.1); filter: drop-shadow(0 0 1px rgba(85, 139, 47, 0.1)); }
+          50% { box-shadow: 0 0 12px rgba(85, 139, 47, 0.45); filter: drop-shadow(0 0 4px rgba(85, 139, 47, 0.25)); }
+          100% { box-shadow: 0 0 2px rgba(85, 139, 47, 0.1); filter: drop-shadow(0 0 1px rgba(85, 139, 47, 0.1)); }
+        }
+      `}</style>
       <div className="quick-menu-scroll" style={{ 
         display: 'flex', overflowX: 'auto', gap: '8px', padding: '8px 12px 12px', 
         scrollbarWidth: 'none', msOverflowStyle: 'none', WebkitOverflowScrolling: 'touch' 
@@ -709,8 +716,9 @@ const HomePage = ({
           <div key={idx} style={{ position: 'relative', flexShrink: 0, width: '75px' }}>
             <div style={{
               borderRadius: '14px', padding: '1.5px',
-              background: 'linear-gradient(135deg, #CBD5E1, #E2E8F0, #CBD5E1)',
-              boxShadow: '0 8px 16px rgba(0,0,0,0.04)'
+              background: item.label === '대관문의' ? 'linear-gradient(135deg, #8BC34A, #DCEDC8, #8BC34A)' : 'linear-gradient(135deg, #CBD5E1, #E2E8F0, #CBD5E1)',
+              boxShadow: item.label === '대관문의' ? '0 0 10px rgba(85, 139, 47, 0.3)' : '0 8px 16px rgba(0,0,0,0.04)',
+              animation: item.label === '대관문의' ? 'gentleSparkle 2.5s infinite ease-in-out' : 'none'
             }}>
               <motion.div
                 whileTap={{ scale: 0.92 }}
