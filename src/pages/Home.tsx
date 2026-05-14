@@ -530,6 +530,25 @@ const HomePage = ({
   const [isModalFilterVisible, setIsModalFilterVisible] = useState(false);
   const stickyHeaderRef = useRef(null);
 
+  useEffect(() => {
+    const handleClickOutside = (e) => {
+      if (stickyHeaderRef.current && !stickyHeaderRef.current.contains(e.target)) {
+        setIsFilterBarVisible(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    document.addEventListener('touchstart', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+      document.removeEventListener('touchstart', handleClickOutside);
+    };
+  }, []);
+
+  const todayStr = useMemo(() => {
+    const d = new Date();
+    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+  }, []);
+
   const [weekOffset, setWeekOffset] = useState(0);
   useEffect(() => {
     setWeekOffset(0);
@@ -561,25 +580,6 @@ const HomePage = ({
     }
     return days;
   }, [selectedDate, todayStr, weekOffset]);
-
-  useEffect(() => {
-    const handleClickOutside = (e) => {
-      if (stickyHeaderRef.current && !stickyHeaderRef.current.contains(e.target)) {
-        setIsFilterBarVisible(false);
-      }
-    };
-    document.addEventListener('mousedown', handleClickOutside);
-    document.addEventListener('touchstart', handleClickOutside);
-    return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
-      document.removeEventListener('touchstart', handleClickOutside);
-    };
-  }, []);
-
-  const todayStr = useMemo(() => {
-    const d = new Date();
-    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
-  }, []);
   const isAfter9AM = useMemo(() => {
     const now = new Date();
     return now.getHours() >= 9;
