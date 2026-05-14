@@ -530,6 +530,38 @@ const HomePage = ({
   const [isModalFilterVisible, setIsModalFilterVisible] = useState(false);
   const stickyHeaderRef = useRef(null);
 
+  const [weekOffset, setWeekOffset] = useState(0);
+  useEffect(() => {
+    setWeekOffset(0);
+  }, [selectedDate]);
+
+  const currentWeekDates = useMemo(() => {
+    const parts = (selectedDate || todayStr).split('-').map(Number);
+    const d = new Date(parts[0], parts[1] - 1, parts[2]);
+    const dayOfWeek = d.getDay();
+    d.setDate(d.getDate() - dayOfWeek + weekOffset * 7);
+
+    const days = [];
+    const dayNames = ['일', '월', '화', '수', '목', '금', '토'];
+    for (let i = 0; i < 7; i++) {
+      const cur = new Date(d);
+      cur.setDate(d.getDate() + i);
+      const y = cur.getFullYear();
+      const m = String(cur.getMonth() + 1).padStart(2, '0');
+      const dt = String(cur.getDate()).padStart(2, '0');
+      const fullDate = `${y}-${m}-${dt}`;
+      days.push({
+        fullDate,
+        date: cur.getDate(),
+        month: cur.getMonth() + 1,
+        dayOfWeek: i,
+        dayName: dayNames[i],
+        isToday: fullDate === todayStr
+      });
+    }
+    return days;
+  }, [selectedDate, todayStr, weekOffset]);
+
   useEffect(() => {
     const handleClickOutside = (e) => {
       if (stickyHeaderRef.current && !stickyHeaderRef.current.contains(e.target)) {
@@ -822,68 +854,133 @@ const HomePage = ({
 
       {/* 📌 [영역 B: 날짜 선택바 - 상단 고정(Sticky)] */}
       <div ref={stickyHeaderRef} style={{ position: 'sticky', top: 0, zIndex: 1000, background: 'var(--color-bg)', borderBottom: '1px solid var(--color-border)', boxShadow: '0 4px 12px rgba(0,0,0,0.03)', padding: '4px 0 0', transition: 'all 0.3s' }}>
-        <div style={{ flex: 1, display: 'flex', overflowX: 'auto', gap: '8px', padding: '6px 10px 4px', msOverflowStyle: 'none', scrollbarWidth: 'none', WebkitOverflowScrolling: 'touch' }} className="date-stream-bar">
-          {fourteenDays.map((item) => {
-            const isSelected = selectedDate === item.fullDate;
-            const isHoliday = item.dayOfWeek === 0 || (item.month === '5' && item.date === '5');
-            const isSaturday = item.dayOfWeek === 6;
-            const dayColor = isSelected ? '#fff' : (isHoliday ? '#FF1744' : (isSaturday ? '#FF1744' : '#1E293B'));
-            const labelColor = isSelected ? '#fff' : (isHoliday ? '#FF1744' : (isSaturday ? '#FF1744' : '#94A3B8'));
-            
-            const partyCount = (parties || []).filter(p => p.date === item.fullDate).length;
+        <div style={{
+          background: 'linear-gradient(135deg, #4F6BED, #6B8EF0)',
+          borderRadius: '20px',
+          padding: '20px',
+          color: '#fff',
+          boxSizing: 'border-box',
+          margin: '8px 12px 12px',
+          boxShadow: '0 8px 20px rgba(79, 107, 237, 0.2)'
+        }}>
+          {/* 상단 날짜 표시 및 좌우 화살표 */}
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '16px' }}>
+            <button
+              onClick={() => setWeekOffset(o => o - 1)}
+              style={{
+                background: 'rgba(255,255,255,0.2)',
+                border: 'none',
+                borderRadius: '10px',
+                width: '32px',
+                height: '32px',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                color: '#fff',
+                cursor: 'pointer',
+                transition: 'all 0.2s'
+              }}
+            >
+              <ChevronLeft size={18} />
+            </button>
+            <span style={{ fontSize: '20px', fontWeight: '900', letterSpacing: '1px' }}>
+              {selectedDate ? selectedDate.replace(/-/g, '.') : '2026.05.14'}
+            </span>
+            <button
+              onClick={() => setWeekOffset(o => o + 1)}
+              style={{
+                background: 'rgba(255,255,255,0.2)',
+                border: 'none',
+                borderRadius: '10px',
+                width: '32px',
+                height: '32px',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                color: '#fff',
+                cursor: 'pointer',
+                transition: 'all 0.2s'
+              }}
+            >
+              <ChevronRight size={18} />
+            </button>
+          </div>
 
-            return (
-              <div key={item.fullDate}
-                onClick={() => {
-                  console.log('클릭한 날짜:', item.fullDate);
-                  if (selectedDate === item.fullDate) {
-                    setIsFilterBarVisible(v => !v);
-                  } else {
-                    setSelectedDate(item.fullDate);
-                    setActiveDateGenre('전체');
-                    setIsFilterBarVisible(true);
-                  }
-                }}
-                style={{
-                  display: 'flex',
-                  flexDirection: 'column',
-                  alignItems: 'center',
-                  justifyContent: 'space-between',
-                  minWidth: '46px',
-                  height: '74px',
-                  padding: '8px 4px 6px',
-                  boxSizing: 'border-box',
-                  borderRadius: '10px',
-                  backgroundColor: isSelected ? '#E53935' : '#F1F5F9',
-                  border: item.isToday && !isSelected ? '1px solid #E53935' : '1px solid transparent',
-                  cursor: 'pointer',
-                  flexShrink: 0,
-                  transition: 'all 0.2s'
-                }}
-              >
-                <span style={{ fontSize: '10px', fontWeight: '700', color: labelColor, lineHeight: 1 }}>{item.dayName}</span>
-                <span style={{ fontSize: '16px', fontWeight: '800', color: dayColor, lineHeight: 1 }}>{item.date}</span>
-                <div style={{ height: '18px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                  {partyCount > 0 && (
-                    <div style={{
-                      width: '18px',
-                      height: '18px',
-                      borderRadius: '50%',
-                      backgroundColor: '#F9A825',
-                      color: '#fff',
-                      fontSize: '10px',
-                      fontWeight: 'bold',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center'
-                    }}>
-                      {partyCount}
-                    </div>
-                  )}
+          {/* 요일 헤더 */}
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: '8px', textAlign: 'center', marginBottom: '10px' }}>
+            {['일', '월', '화', '수', '목', '금', '토'].map(d => (
+              <span key={d} style={{ fontSize: '12px', fontWeight: '700', color: '#fff', opacity: 0.9 }}>
+                {d}
+              </span>
+            ))}
+          </div>
+
+          {/* 날짜 카드 그리드 */}
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: '8px' }}>
+            {currentWeekDates.map((item) => {
+              const isSelected = selectedDate === item.fullDate;
+              let textColor = '#fff';
+              if (isSelected) {
+                textColor = '#000';
+              } else {
+                if (item.dayOfWeek === 0) textColor = '#FF5252'; // 빨간 텍스트
+                else if (item.dayOfWeek === 6) textColor = '#4FC3F7'; // 파란 텍스트
+              }
+              const partyCount = (parties || []).filter(p => p.date === item.fullDate).length;
+
+              return (
+                <div
+                  key={item.fullDate}
+                  onClick={() => {
+                    console.log('클릭한 날짜:', item.fullDate);
+                    if (selectedDate === item.fullDate) {
+                      setIsFilterBarVisible(v => !v);
+                    } else {
+                      setSelectedDate(item.fullDate);
+                      setActiveDateGenre('전체');
+                      setIsFilterBarVisible(true);
+                    }
+                  }}
+                  style={{
+                    background: isSelected ? '#fff' : 'rgba(255,255,255,0.2)',
+                    borderRadius: '12px',
+                    padding: '10px 2px 8px',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    height: '68px',
+                    boxSizing: 'border-box',
+                    cursor: 'pointer',
+                    transition: 'all 0.2s',
+                    boxShadow: isSelected ? '0 4px 12px rgba(0,0,0,0.15)' : 'none'
+                  }}
+                >
+                  <span style={{ fontSize: '15px', fontWeight: '900', color: textColor, lineHeight: 1 }}>
+                    {item.date}
+                  </span>
+                  <div style={{ height: '18px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                    {partyCount > 0 && (
+                      <div style={{
+                        width: '18px',
+                        height: '18px',
+                        borderRadius: '50%',
+                        backgroundColor: '#F9A825',
+                        color: '#fff',
+                        fontSize: '10px',
+                        fontWeight: 'bold',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center'
+                      }}>
+                        {partyCount}
+                      </div>
+                    )}
+                  </div>
                 </div>
-              </div>
-            );
-          })}
+              );
+            })}
+          </div>
         </div>
 
         {/* 선택된 날짜의 장르 필터 바 */}
