@@ -548,30 +548,6 @@ const HomePage = ({
     const d = new Date();
     return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
   }, []);
-
-  const streamDays = useMemo(() => {
-    const parts = todayStr.split('-').map(Number);
-    const base = new Date(parts[0], parts[1] - 1, parts[2]);
-    const days = [];
-    const dayNames = ['일', '월', '화', '수', '목', '금', '토'];
-    for (let i = 0; i < 14; i++) {
-      const cur = new Date(base);
-      cur.setDate(base.getDate() + i);
-      const y = cur.getFullYear();
-      const m = String(cur.getMonth() + 1).padStart(2, '0');
-      const dt = String(cur.getDate()).padStart(2, '0');
-      const fullDate = `${y}-${m}-${dt}`;
-      days.push({
-        fullDate,
-        date: cur.getDate(),
-        month: cur.getMonth() + 1,
-        dayOfWeek: cur.getDay(),
-        dayName: dayNames[cur.getDay()],
-        isToday: i === 0
-      });
-    }
-    return days;
-  }, [todayStr]);
   const isAfter9AM = useMemo(() => {
     const now = new Date();
     return now.getHours() >= 9;
@@ -688,92 +664,217 @@ const HomePage = ({
         </div>
       </div>
 
-      {/* 📌 [영역 A: 날짜 메인 달력 - 상단 고정(Sticky)] */}
-      <div ref={stickyHeaderRef} style={{ position: 'sticky', top: 0, zIndex: 1000, background: 'var(--color-bg)', borderBottom: '1px solid var(--color-border)', boxShadow: '0 4px 12px rgba(0,0,0,0.03)', padding: '6px 0 0', transition: 'all 0.3s' }}>
-        <div style={{
-          background: '#fff',
-          borderRadius: '20px',
-          padding: '16px 12px',
-          boxSizing: 'border-box',
-          margin: '0 12px 12px',
-          boxShadow: '0 8px 24px rgba(29, 158, 117, 0.08)',
-          border: '1px solid rgba(29, 158, 117, 0.15)'
+      {/* 🔴 [LIVE 바 임팩트 영역 개편] */}
+      <div style={{ padding: '4px 20px 12px' }}>
+        {/* LiveCount를 감싸는 세련된 임팩트 컨테이너 및 전역 스타일 주입 */}
+        <div className="live-count-premium-wrapper" style={{ 
+          background: '#0F172A', 
+          borderRadius: '14px', 
+          overflow: 'hidden', 
+          boxShadow: '0 4px 12px rgba(15, 23, 42, 0.15)',
+          border: '1px solid rgba(255, 255, 255, 0.05)'
         }}>
-          <div style={{ display: 'flex', overflowX: 'auto', gap: '6px', msOverflowStyle: 'none', scrollbarWidth: 'none', WebkitOverflowScrolling: 'touch' }}>
-            {streamDays.map((item) => {
-              const isSelected = selectedDate === item.fullDate;
-              let dayTextColor = isSelected ? '#fff' : '#64748B';
-              let dateTextColor = isSelected ? '#fff' : '#1E293B';
-              if (!isSelected) {
-                if (item.dayOfWeek === 0) {
-                  dayTextColor = '#EF4444';
-                  dateTextColor = '#EF4444';
-                } else if (item.dayOfWeek === 6) {
-                  dayTextColor = '#0284C7';
-                  dateTextColor = '#0284C7';
-                }
-              }
-              const partyCount = (parties || []).filter(p => p.date === item.fullDate).length;
+          <style>{`
+            /* 햄버거 버튼 세련되게 축소 및 그림자 제거 (절대 규칙 완벽 준수 전역 오버라이드) */
+            button[style*="z-index: 1005"] {
+              width: 36px !important;
+              height: 36px !important;
+              padding: 0 !important;
+              border-radius: 10px !important;
+              box-shadow: none !important;
+              border: 1px solid rgba(0,0,0,0.08) !important;
+              background: rgba(255,255,255,0.9) !important;
+            }
+            button[style*="z-index: 1005"] svg {
+              width: 20px !important;
+              height: 20px !important;
+            }
 
-              return (
-                <div
-                  key={item.fullDate}
-                  onClick={() => {
-                    console.log('클릭한 날짜:', item.fullDate);
-                    if (selectedDate === item.fullDate) {
-                      setIsFilterBarVisible(v => !v);
-                    } else {
-                      setSelectedDate(item.fullDate);
-                      setActiveDateGenre('전체');
-                      setIsFilterBarVisible(true);
-                    }
-                  }}
-                  style={{
-                    flex: '0 0 auto',
-                    width: 'calc((100% - 36px) / 7)',
-                    minWidth: '42px',
-                    height: '68px',
-                    borderRadius: '12px',
-                    backgroundColor: isSelected ? '#1D9E75' : 'transparent',
-                    display: 'flex',
-                    flexDirection: 'column',
-                    alignItems: 'center',
-                    justifyContent: 'space-between',
-                    padding: '8px 2px 6px',
-                    boxSizing: 'border-box',
-                    cursor: 'pointer',
-                    transition: 'all 0.2s',
-                    boxShadow: isSelected ? '0 4px 12px rgba(29, 158, 117, 0.25)' : 'none'
-                  }}
-                >
-                  <span style={{ fontSize: '11px', fontWeight: '700', color: dayTextColor, lineHeight: 1 }}>
-                    {item.dayName}
-                  </span>
-                  <span style={{ fontSize: '16px', fontWeight: '900', color: dateTextColor, lineHeight: 1 }}>
-                    {item.date}
-                  </span>
-                  <div style={{ height: '18px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                    {partyCount > 0 && (
-                      <div style={{
-                        width: '18px',
-                        height: '18px',
-                        borderRadius: '50%',
-                        backgroundColor: '#F9A825',
-                        color: '#fff',
-                        fontSize: '10px',
-                        fontWeight: 'bold',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center'
-                      }}>
-                        {partyCount}
-                      </div>
-                    )}
-                  </div>
-                </div>
-              );
-            })}
+            /* LIVE 바 내부 요소 강제 레이아웃/스타일 최적화 */
+            .live-count-premium-wrapper > div {
+              height: 42px !important;
+              padding: 0 14px !important;
+              background: transparent !important;
+              box-sizing: border-box !important;
+              width: 100% !important;
+            }
+            .live-count-premium-wrapper .lc-tag {
+              background: #E53935 !important;
+              font-size: 10px !important;
+              font-weight: 950 !important;
+              padding: 2px 6px !important;
+              border-radius: 4px !important;
+              letter-spacing: 0.5px !important;
+            }
+            .live-count-premium-wrapper .lc-dot {
+              margin-left: -2px !important;
+              margin-right: 4px !important;
+            }
+            .live-count-premium-wrapper .lc-name {
+              color: #F8FAFC !important;
+              font-size: 13px !important;
+              font-weight: 800 !important;
+              font-family: inherit !important;
+              letter-spacing: -0.3px !important;
+            }
+            .live-count-premium-wrapper .lc-count {
+              color: #FF5252 !important;
+              font-size: 15px !important;
+              font-weight: 900 !important;
+              font-family: inherit !important;
+              background: rgba(229,57,53,0.15) !important;
+              padding: 1px 6px !important;
+              border-radius: 6px !important;
+              margin-left: 4px !important;
+            }
+            .live-count-premium-wrapper .lc-default {
+              color: #E2E8F0 !important;
+              font-size: 12px !important;
+              font-weight: 700 !important;
+              font-family: inherit !important;
+              letter-spacing: -0.3px !important;
+              white-space: nowrap !important;
+              overflow: hidden !important;
+              text-overflow: ellipsis !important;
+            }
+            .live-count-premium-wrapper .lc-lang {
+              margin-left: auto !important;
+              display: flex !important;
+              align-items: center !important;
+              background: rgba(255,255,255,0.06) !important;
+              padding: 2px 4px !important;
+              border-radius: 6px !important;
+              gap: 2px !important;
+            }
+            .live-count-premium-wrapper .lc-lang-btn {
+              padding: 2px 6px !important;
+              font-size: 9px !important;
+              font-weight: 800 !important;
+              border-radius: 4px !important;
+              color: #94A3B8 !important;
+              transition: all 0.2s !important;
+            }
+            .live-count-premium-wrapper .lc-lang-btn.on {
+              background: #E53935 !important;
+              color: #FFFFFF !important;
+            }
+            .live-count-premium-wrapper .lc-lang span {
+              display: none !important; /* 구분선 제거하고 깔끔한 버튼 그룹 형태 */
+            }
+          `}</style>
+          <LiveCount />
+        </div>
+      </div>
+
+      {/* 🚀 [사용자 요청] 퀵 메뉴 9개 전체 아이콘 가로 스크롤 개편 (오늘날씨 반걸침 UX 최적화) */}
+      <style>{`
+        @keyframes gentleSparkle {
+          0% { box-shadow: 0 0 2px rgba(85, 139, 47, 0.1); filter: drop-shadow(0 0 1px rgba(85, 139, 47, 0.1)); }
+          50% { box-shadow: 0 0 12px rgba(85, 139, 47, 0.45); filter: drop-shadow(0 0 4px rgba(85, 139, 47, 0.25)); }
+          100% { box-shadow: 0 0 2px rgba(85, 139, 47, 0.1); filter: drop-shadow(0 0 1px rgba(85, 139, 47, 0.1)); }
+        }
+      `}</style>
+      <div className="quick-menu-scroll" style={{ 
+        display: 'flex', overflowX: 'auto', gap: '8px', padding: '8px 12px 12px', 
+        scrollbarWidth: 'none', msOverflowStyle: 'none', WebkitOverflowScrolling: 'touch' 
+      }}>
+        {[
+          { icon: <Calendar size={22} color="#F97316" />, label: '행사달력', action: () => setShowFullCalendar(true) },
+          { icon: <Utensils size={22} color="#C2185B" />, label: '맛집뒷풀이', action: () => setView('restaurant') },
+          { icon: <MessageSquare size={22} color="#388E3C" />, label: '채팅문의', action: () => window.open('https://open.kakao.com/o/gP43rNri', '_blank') },
+          { icon: <Camera size={22} color="#E53935" />, label: '라이브픽', badge: 'HOT', action: () => setView('community') },
+          { icon: <CloudSun size={22} color="#1976D2" />, label: '오늘날씨', action: () => setShowWeather(true) },
+          { icon: <Heart size={22} color="#7B1FA2" />, label: '찜하기', action: () => setShowWishlist(true) },
+          { icon: <Navigation size={22} color="#303F9F" />, label: '지능형경로', badge: 'LIVE', action: () => openAnalysis(false) },
+          { icon: <Star size={22} color="#F9A825" />, label: '운명의좌표', action: () => setShowSaju(true) },
+          { icon: <MapPin size={22} color="#10B981" />, label: '위치·대관', action: () => setShowRentalModal(true) },
+        ].map((item, idx) => (
+          <div key={idx} style={{ position: 'relative', flexShrink: 0, width: '75px' }}>
+            <div style={{
+              borderRadius: '14px', padding: '1.5px',
+              background: item.label === '위치·대관' ? 'linear-gradient(135deg, #34D399, #A7F3D0, #34D399)' : 'linear-gradient(135deg, #CBD5E1, #E2E8F0, #CBD5E1)',
+              boxShadow: item.label === '위치·대관' ? '0 0 10px rgba(16, 185, 129, 0.3)' : '0 8px 16px rgba(0,0,0,0.04)',
+              animation: item.label === '위치·대관' ? 'gentleSparkle 2.5s infinite ease-in-out' : 'none'
+            }}>
+              <motion.div
+                whileTap={{ scale: 0.92 }}
+                onClick={item.action}
+                style={{
+                  display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
+                  gap: '6px', cursor: 'pointer', borderRadius: '12px',
+                  padding: '12px 4px 10px', background: '#fff', height: '66px', boxSizing: 'border-box'
+                }}
+              >
+                {item.icon}
+                <span style={{ fontSize: '10px', fontWeight: 600, color: '#1E293B', textAlign: 'center', lineHeight: 1.2, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', width: '100%' }}>
+                  {item.label}
+                </span>
+              </motion.div>
+            </div>
+            {item.badge && (
+              <span style={{ position: 'absolute', top: '-4px', right: '-4px', background: '#E53935', color: '#fff', fontSize: '7px', fontWeight: 700, padding: '1px 4px', borderRadius: '6px', zIndex: 1 }}>
+                {item.badge}
+              </span>
+            )}
           </div>
+        ))}
+      </div>
+
+      {/* 📌 [영역 B: 날짜 선택바 - 상단 고정(Sticky)] */}
+      <div ref={stickyHeaderRef} style={{ position: 'sticky', top: 0, zIndex: 1000, background: 'var(--color-bg)', borderBottom: '1px solid var(--color-border)', boxShadow: '0 4px 12px rgba(0,0,0,0.03)', padding: '4px 0 0', transition: 'all 0.3s' }}>
+        <div style={{ flex: 1, display: 'flex', overflowX: 'auto', gap: '8px', padding: '6px 10px 4px', msOverflowStyle: 'none', scrollbarWidth: 'none', WebkitOverflowScrolling: 'touch' }} className="date-stream-bar">
+          {fourteenDays.map((item) => {
+            const isSelected = selectedDate === item.fullDate;
+            const isHoliday = item.dayOfWeek === 0 || (item.month === '5' && item.date === '5');
+            const isSaturday = item.dayOfWeek === 6;
+            const dayColor = isSelected ? '#fff' : (isHoliday ? '#FF1744' : (isSaturday ? '#FF1744' : '#94A3B8'));
+            const labelColor = isSelected ? '#FF1744' : (isHoliday ? '#FF1744' : (isSaturday ? '#FF1744' : '#94A3B8'));
+            
+            // 페스티벌, 부트캠프, 파티 존재 여부 확인
+            const isFestivalDay = (festivals || []).some(f => {
+              if (f.start_date && f.end_date) {
+                return item.fullDate >= f.start_date && item.fullDate <= f.end_date;
+              }
+              return f.start_date === item.fullDate;
+            });
+
+            const isBootcampDay = (bootcamps || []).some(b => {
+              if (b.start_date && b.end_date) {
+                return item.fullDate >= b.start_date && item.fullDate <= b.end_date;
+              }
+              return b.start_date === item.fullDate;
+            });
+
+            const dayParties = (parties || []).filter(p => p.date === item.fullDate);
+            const hasEvent = isFestivalDay || isBootcampDay || dayParties.length > 0;
+
+            return (
+              <div key={item.fullDate}
+                onClick={() => {
+                  console.log('클릭한 날짜:', item.fullDate);
+                  if (selectedDate === item.fullDate) {
+                    setIsFilterBarVisible(v => !v);
+                  } else {
+                    setSelectedDate(item.fullDate);
+                    setActiveDateGenre('전체');
+                    setIsFilterBarVisible(true);
+                  }
+                }}
+                style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minWidth: '13.5%', cursor: 'pointer', position: 'relative', paddingBottom: '6px' }}
+              >
+                <span style={{ fontSize: '10px', fontWeight: '700', color: labelColor, marginBottom: '2px' }}>{item.dayName}</span>
+                <div style={{ width: '30px', height: '30px', borderRadius: '10px', display: 'flex', alignItems: 'center', justifyContent: 'center', backgroundColor: isSelected ? '#FF1744' : 'transparent', border: item.isToday && !isSelected ? '1px solid #FF1744' : 'none' }}>
+                  <span style={{ fontSize: '15px', fontWeight: '800', color: isSelected ? '#fff' : dayColor }}>{item.date}</span>
+                </div>
+                {/* 단순화된 빨간 점 하나만 표시 */}
+                <div style={{ height: '5px', display: 'flex', alignItems: 'center', justifyContent: 'center', position: 'absolute', bottom: 0 }}>
+                  {hasEvent && (
+                    <span style={{ width: '5px', height: '5px', borderRadius: '50%', background: '#E53935' }} />
+                  )}
+                </div>
+              </div>
+            );
+          })}
         </div>
 
         {/* 선택된 날짜의 장르 필터 바 */}
@@ -824,7 +925,7 @@ const HomePage = ({
           {loading ? (
             <div style={{ display: 'flex', flexDirection: 'column', marginTop: '120px' }}>{Array(6).fill(0).map((_, i) => <div key={i} style={{ height: '140px', width: '100%', background: 'var(--color-card)', borderBottom: '1px solid var(--color-border)' }} />)}</div>
           ) : (
-            <div style={{ width: '100%', padding: '0 0 110px 0', backgroundColor: 'var(--color-bg)' }}>
+            <div style={{ width: '100%', padding: '0 0 20px 0', backgroundColor: 'var(--color-bg)' }}>
               {(() => {
                 const activeBootcamps = (bootcamps || []).filter(b => {
                   if (b.start_date && b.end_date) {
@@ -918,9 +1019,80 @@ const HomePage = ({
 
                 return (
                   <>
+                    {/* HOT PICK 고퀄리티 개선 (자연스러운 속도로 한쪽으로 무한 이동하는 프리미엄 롤링 마퀴) */}
+                    {newest8GlobalEvents.length > 0 && (
+                      <div style={{ margin: '0 0 15px', padding: '15px 0 20px', background: 'var(--color-card)', borderBottom: '1px solid var(--color-border)', overflow: 'hidden' }}>
+                        <div style={{ padding: '0 20px 14px', display: 'flex', flexDirection: 'column', gap: '3px' }}>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                            <h2 style={{ fontSize: '20px', fontWeight: '950', margin: 0, display: 'flex', alignItems: 'center', gap: '5px' }}>
+                              <span style={{ color: '#E53935' }}>HOT</span>
+                              <span style={{ color: '#1E293B' }}>PICK</span>
+                            </h2>
+                            <span style={{ fontSize: '18px' }}>🔥</span>
+                          </div>
+                          <span style={{ fontSize: '12px', color: '#64748B', fontWeight: 600 }}>지금 가장 핫한 파티</span>
+                        </div>
+                        <style>{`
+                          .hot-pick-track-premium {
+                            display: flex;
+                            width: max-content;
+                            gap: 12px;
+                            padding: 4px 20px 12px;
+                            animation: hotPickMarqueePremium 35s linear infinite;
+                          }
+                          .hot-pick-track-premium:hover {
+                            animation-play-state: paused;
+                          }
+                          @keyframes hotPickMarqueePremium {
+                            0% { transform: translate3d(0, 0, 0); }
+                            100% { transform: translate3d(calc(-50% - 6px), 0, 0); }
+                          }
+                        `}</style>
+                        <div style={{ width: '100%', overflow: 'hidden' }}>
+                          <div className="hot-pick-track-premium">
+                            {[...newest8GlobalEvents, ...newest8GlobalEvents].map((item, idx) => (
+                              <div 
+                                key={`${item.id}-${idx}`} 
+                                onClick={async () => {
+                                  handleOpenModal(setSelectedPoster, item.poster_url);
+                                  if (item.id && item._table) {
+                                    try {
+                                      const currentClicks = item.click_count || 0;
+                                      await supabase.from(item._table).update({ click_count: currentClicks + 1 }).eq('id', item.id);
+                                    } catch (err) {}
+                                  }
+                                }} 
+                                style={{ 
+                                  width: '140px', 
+                                  height: '210px', 
+                                  flexShrink: 0, 
+                                  borderRadius: '16px', 
+                                  overflow: 'hidden', 
+                                  boxShadow: '0 8px 24px rgba(0,0,0,0.15)', 
+                                  position: 'relative', 
+                                  background: '#000', 
+                                  cursor: 'pointer', 
+                                  transform: 'translateZ(0)' 
+                                }}
+                              >
+                                <img src={item.poster_url} style={{ width: '100%', height: '100%', objectFit: 'cover' }} alt="Pick" />
+                                
+                                {/* NEW 뱃지 표시 */}
+                                <div style={{ position: 'absolute', top: '8px', left: '8px', zIndex: 10, background: '#E53935', color: '#fff', fontSize: '10px', fontWeight: 900, padding: '3px 8px', borderRadius: '8px', boxShadow: '0 2px 4px rgba(0,0,0,0.2)' }}>
+                                  NEW
+                                </div>
 
-
-
+                                {/* 하단 그라데이션 오버레이 (검정) */}
+                                <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, padding: '18px 10px 12px', background: 'linear-gradient(transparent, rgba(0,0,0,0.95))', color: 'white' }}>
+                                  <div style={{ fontSize: '11px', color: '#FFEB3B', fontWeight: 950, marginBottom: '2px', textShadow: '0 1px 2px rgba(0,0,0,0.8)' }}>{translateDynamicText(item.locationName, isEn)}</div>
+                                  <div style={{ fontSize: '13px', fontWeight: 900, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', textShadow: '0 1px 2px rgba(0,0,0,0.8)' }}>{translateDynamicText(item.title, isEn)}</div>
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      </div>
+                    )}
 
                     {/* [지역 리스트 처리 루프] */}
                     {(() => {
@@ -1148,32 +1320,29 @@ const HomePage = ({
                                             </span>
                                           </div>
 
-                                          {/* 카카오맵 · 구글맵 이모지 아이콘 링크 (대표님 첨부 이미지 기반 프리미엄 렌더링) */}
-                                          <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexShrink: 0 }}>
-                                            <img
-                                              src="/kakao_map.png"
-                                              alt="카카오맵"
+                                          {/* 카카오맵 · 구글맵 텍스트 링크 (작고 조용하게 10px, 연한 회색) */}
+                                          <div style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: '10px', fontWeight: '700', flexShrink: 0 }}>
+                                            <span
                                               onClick={(e) => {
                                                 e.stopPropagation();
                                                 const locQuery = encodeURIComponent(item.locationName || item.venue || '');
                                                 window.open(`https://map.kakao.com/link/search/${locQuery}`);
                                               }}
-                                              style={{ width: '16px', height: '16px', objectFit: 'contain', cursor: 'pointer', filter: 'drop-shadow(0 1px 2px rgba(0,0,0,0.1))', transition: 'transform 0.2s' }}
-                                              onMouseOver={(e) => e.currentTarget.style.transform = 'scale(1.2)'}
-                                              onMouseOut={(e) => e.currentTarget.style.transform = 'scale(1)'}
-                                            />
-                                            <img
-                                              src="/google_map.png"
-                                              alt="구글맵"
+                                              style={{ color: '#94A3B8', cursor: 'pointer', padding: '2px 0' }}
+                                            >
+                                              카카오맵
+                                            </span>
+                                            <span style={{ color: '#E2E8F0', fontSize: '9px' }}>·</span>
+                                            <span
                                               onClick={(e) => {
                                                 e.stopPropagation();
                                                 const locQuery = encodeURIComponent(item.locationName || item.venue || '');
                                                 window.open(`https://www.google.com/maps/search/${locQuery}`);
                                               }}
-                                              style={{ width: '16px', height: '16px', objectFit: 'contain', cursor: 'pointer', filter: 'drop-shadow(0 1px 2px rgba(0,0,0,0.1))', transition: 'transform 0.2s' }}
-                                              onMouseOver={(e) => e.currentTarget.style.transform = 'scale(1.2)'}
-                                              onMouseOut={(e) => e.currentTarget.style.transform = 'scale(1)'}
-                                            />
+                                              style={{ color: '#94A3B8', cursor: 'pointer', padding: '2px 0' }}
+                                            >
+                                              구글맵
+                                            </span>
                                           </div>
                                         </div>
 
@@ -1192,179 +1361,6 @@ const HomePage = ({
                         );
                       });
                     })()}
-
-                    {/* 4. HOT PICK 카드 섹션 (파티 리스트 하단으로 이동) */}
-                    {newest8GlobalEvents.length > 0 && (
-                      <div style={{ margin: '15px 0', padding: '15px 0 20px', background: 'var(--color-card)', borderBottom: '1px solid var(--color-border)', overflow: 'hidden' }}>
-                        <div style={{ padding: '0 20px 14px', display: 'flex', flexDirection: 'column', gap: '3px' }}>
-                          <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                            <h2 style={{ fontSize: '20px', fontWeight: '950', margin: 0, display: 'flex', alignItems: 'center', gap: '5px' }}>
-                              <span style={{ color: '#E53935' }}>HOT</span>
-                              <span style={{ color: '#1E293B' }}>PICK</span>
-                            </h2>
-                            <span style={{ fontSize: '18px' }}>🔥</span>
-                          </div>
-                          <span style={{ fontSize: '12px', color: '#64748B', fontWeight: 600 }}>지금 가장 핫한 파티</span>
-                        </div>
-                        <style>{`
-                          .hot-pick-track-premium {
-                            display: flex;
-                            width: max-content;
-                            gap: 12px;
-                            padding: 4px 20px 12px;
-                            animation: hotPickMarqueePremium 35s linear infinite;
-                          }
-                          .hot-pick-track-premium:hover {
-                            animation-play-state: paused;
-                          }
-                          @keyframes hotPickMarqueePremium {
-                            0% { transform: translate3d(0, 0, 0); }
-                            100% { transform: translate3d(calc(-50% - 6px), 0, 0); }
-                          }
-                        `}</style>
-                        <div style={{ width: '100%', overflow: 'hidden' }}>
-                          <div className="hot-pick-track-premium">
-                            {[...newest8GlobalEvents, ...newest8GlobalEvents].map((item, idx) => (
-                              <div 
-                                key={`${item.id}-${idx}`} 
-                                onClick={async () => {
-                                  handleOpenModal(setSelectedPoster, item.poster_url);
-                                  if (item.id && item._table) {
-                                    try {
-                                      const currentClicks = item.click_count || 0;
-                                      await supabase.from(item._table).update({ click_count: currentClicks + 1 }).eq('id', item.id);
-                                    } catch (err) {}
-                                  }
-                                }} 
-                                style={{ 
-                                  width: '140px', 
-                                  height: '210px', 
-                                  flexShrink: 0, 
-                                  borderRadius: '16px', 
-                                  overflow: 'hidden', 
-                                  boxShadow: '0 8px 24px rgba(0,0,0,0.15)', 
-                                  position: 'relative', 
-                                  background: '#000', 
-                                  cursor: 'pointer', 
-                                  transform: 'translateZ(0)' 
-                                }}
-                              >
-                                <img src={item.poster_url} style={{ width: '100%', height: '100%', objectFit: 'cover' }} alt="Pick" />
-                                
-                                {/* NEW 뱃지 표시 */}
-                                <div style={{ position: 'absolute', top: '8px', left: '8px', zIndex: 10, background: '#E53935', color: '#fff', fontSize: '10px', fontWeight: 900, padding: '3px 8px', borderRadius: '8px', boxShadow: '0 2px 4px rgba(0,0,0,0.2)' }}>
-                                  NEW
-                                </div>
-
-                                {/* 하단 그라데이션 오버레이 (검정) */}
-                                <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, padding: '18px 10px 12px', background: 'linear-gradient(transparent, rgba(0,0,0,0.95))', color: 'white' }}>
-                                  <div style={{ fontSize: '11px', color: '#FFEB3B', fontWeight: 950, marginBottom: '2px', textShadow: '0 1px 2px rgba(0,0,0,0.8)' }}>{translateDynamicText(item.locationName, isEn)}</div>
-                                  <div style={{ fontSize: '13px', fontWeight: 900, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', textShadow: '0 1px 2px rgba(0,0,0,0.8)' }}>{translateDynamicText(item.title, isEn)}</div>
-                                </div>
-                              </div>
-                            ))}
-                          </div>
-                        </div>
-                      </div>
-                    )}
-
-                    {/* 5. LIVE 배너 (HOT PICK 하단으로 이동) */}
-                    <div style={{ padding: '4px 20px 16px' }}>
-                      <div className="live-count-premium-wrapper" style={{ 
-                        background: '#0F172A', 
-                        borderRadius: '14px', 
-                        overflow: 'hidden', 
-                        boxShadow: '0 8px 24px rgba(15, 23, 42, 0.2)',
-                        border: '1px solid rgba(255, 255, 255, 0.05)'
-                      }}>
-                        <style>{`
-                          button[style*="z-index: 1005"] {
-                            width: 36px !important;
-                            height: 36px !important;
-                            padding: 0 !important;
-                            border-radius: 10px !important;
-                            box-shadow: none !important;
-                            border: 1px solid rgba(0,0,0,0.08) !important;
-                            background: rgba(255,255,255,0.9) !important;
-                          }
-                          button[style*="z-index: 1005"] svg {
-                            width: 20px !important;
-                            height: 20px !important;
-                          }
-                          .live-count-premium-wrapper > div {
-                            height: 42px !important;
-                            padding: 0 14px !important;
-                            background: transparent !important;
-                            box-sizing: border-box !important;
-                            width: 100% !important;
-                          }
-                          .live-count-premium-wrapper .lc-tag {
-                            background: #E53935 !important;
-                            font-size: 10px !important;
-                            font-weight: 950 !important;
-                            padding: 2px 6px !important;
-                            border-radius: 4px !important;
-                            letter-spacing: 0.5px !important;
-                          }
-                          .live-count-premium-wrapper .lc-dot {
-                            margin-left: -2px !important;
-                            margin-right: 4px !important;
-                          }
-                          .live-count-premium-wrapper .lc-name {
-                            color: #F8FAFC !important;
-                            font-size: 13px !important;
-                            font-weight: 800 !important;
-                            font-family: inherit !important;
-                            letter-spacing: -0.3px !important;
-                          }
-                          .live-count-premium-wrapper .lc-count {
-                            color: #FF5252 !important;
-                            font-size: 15px !important;
-                            font-weight: 900 !important;
-                            font-family: inherit !important;
-                            background: rgba(229,57,53,0.15) !important;
-                            padding: 1px 6px !important;
-                            border-radius: 6px !important;
-                            margin-left: 4px !important;
-                          }
-                          .live-count-premium-wrapper .lc-default {
-                            color: #E2E8F0 !important;
-                            font-size: 12px !important;
-                            font-weight: 700 !important;
-                            font-family: inherit !important;
-                            letter-spacing: -0.3px !important;
-                            white-space: nowrap !important;
-                            overflow: hidden !important;
-                            text-overflow: ellipsis !important;
-                          }
-                          .live-count-premium-wrapper .lc-lang {
-                            margin-left: auto !important;
-                            display: flex !important;
-                            align-items: center !important;
-                            background: rgba(255,255,255,0.06) !important;
-                            padding: 2px 4px !important;
-                            border-radius: 6px !important;
-                            gap: 2px !important;
-                          }
-                          .live-count-premium-wrapper .lc-lang-btn {
-                            padding: 2px 6px !important;
-                            font-size: 9px !important;
-                            font-weight: 800 !important;
-                            border-radius: 4px !important;
-                            color: #94A3B8 !important;
-                            transition: all 0.2s !important;
-                          }
-                          .live-count-premium-wrapper .lc-lang-btn.on {
-                            background: #E53935 !important;
-                            color: #FFFFFF !important;
-                          }
-                          .live-count-premium-wrapper .lc-lang span {
-                            display: none !important;
-                          }
-                        `}</style>
-                        <LiveCount />
-                      </div>
-                    </div>
                   </>
                 );
               })()}
@@ -1730,74 +1726,6 @@ const HomePage = ({
           </>
         )}
       </AnimatePresence>
-
-      {/* 🚀 6. 빠른메뉴: 하단 고정 탭바로 이동 (화면 최하단 고정 배치) */}
-      <div style={{
-        position: 'fixed',
-        bottom: 0,
-        left: 0,
-        right: 0,
-        zIndex: 2000,
-        background: 'var(--color-card)',
-        borderTop: '1px solid var(--color-border)',
-        boxShadow: '0 -4px 20px rgba(0,0,0,0.06)',
-        padding: '8px 12px 16px',
-        boxSizing: 'border-box'
-      }}>
-        <style>{`
-          @keyframes gentleSparkle {
-            0% { box-shadow: 0 0 2px rgba(85, 139, 47, 0.1); filter: drop-shadow(0 0 1px rgba(85, 139, 47, 0.1)); }
-            50% { box-shadow: 0 0 12px rgba(85, 139, 47, 0.45); filter: drop-shadow(0 0 4px rgba(85, 139, 47, 0.25)); }
-            100% { box-shadow: 0 0 2px rgba(85, 139, 47, 0.1); filter: drop-shadow(0 0 1px rgba(85, 139, 47, 0.1)); }
-          }
-        `}</style>
-        <div className="quick-menu-scroll" style={{ 
-          display: 'flex', overflowX: 'auto', gap: '8px', 
-          scrollbarWidth: 'none', msOverflowStyle: 'none', WebkitOverflowScrolling: 'touch' 
-        }}>
-          {[
-            { icon: <Calendar size={22} color="#F97316" />, label: '행사달력', action: () => setShowFullCalendar(true) },
-            { icon: <Utensils size={22} color="#C2185B" />, label: '맛집뒷풀이', action: () => setView('restaurant') },
-            { icon: <MessageSquare size={22} color="#388E3C" />, label: '채팅문의', action: () => window.open('https://open.kakao.com/o/gP43rNri', '_blank') },
-            { icon: <Camera size={22} color="#E53935" />, label: '라이브픽', badge: 'HOT', action: () => setView('community') },
-            { icon: <CloudSun size={22} color="#1976D2" />, label: '오늘날씨', action: () => setShowWeather(true) },
-            { icon: <Heart size={22} color="#7B1FA2" />, label: '찜하기', action: () => setShowWishlist(true) },
-            { icon: <Navigation size={22} color="#303F9F" />, label: '지능형경로', badge: 'LIVE', action: () => openAnalysis(false) },
-            { icon: <Star size={22} color="#F9A825" />, label: '운명의좌표', action: () => setShowSaju(true) },
-            { icon: <MapPin size={22} color="#10B981" />, label: '위치·대관', action: () => setShowRentalModal(true) },
-          ].map((item, idx) => (
-            <div key={idx} style={{ position: 'relative', flexShrink: 0, width: '75px' }}>
-              <div style={{
-                borderRadius: '14px', padding: '1.5px',
-                background: item.label === '위치·대관' ? 'linear-gradient(135deg, #34D399, #A7F3D0, #34D399)' : 'linear-gradient(135deg, #CBD5E1, #E2E8F0, #CBD5E1)',
-                boxShadow: item.label === '위치·대관' ? '0 0 10px rgba(16, 185, 129, 0.3)' : '0 4px 12px rgba(0,0,0,0.03)',
-                animation: item.label === '위치·대관' ? 'gentleSparkle 2.5s infinite ease-in-out' : 'none'
-              }}>
-                <motion.div
-                  whileTap={{ scale: 0.92 }}
-                  onClick={item.action}
-                  style={{
-                    display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
-                    gap: '6px', cursor: 'pointer', borderRadius: '12px',
-                    padding: '12px 4px 10px', background: '#fff', height: '66px', boxSizing: 'border-box'
-                  }}
-                >
-                  {item.icon}
-                  <span style={{ fontSize: '10px', fontWeight: 600, color: '#1E293B', textAlign: 'center', lineHeight: 1.2, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', width: '100%' }}>
-                    {item.label}
-                  </span>
-                </motion.div>
-              </div>
-              {item.badge && (
-                <span style={{ position: 'absolute', top: '-4px', right: '-4px', background: '#E53935', color: '#fff', fontSize: '7px', fontWeight: 700, padding: '1px 4px', borderRadius: '6px', zIndex: 1 }}>
-                  {item.badge}
-                </span>
-              )}
-            </div>
-          ))}
-        </div>
-      </div>
-
       <style>{`
         @keyframes blink {
           0%, 100% { opacity: 1; }
