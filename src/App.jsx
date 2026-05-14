@@ -535,7 +535,6 @@ function App() {
   const [bootcamps, setBootcamps] = useState([]);
   const [festivals, setFestivals] = useState([]);
   const [followedInstructors, setFollowedInstructors] = useState([]);
-  const [isCurrentUserInstructor, setIsCurrentUserInstructor] = useState(false);
   const [displayParties, setDisplayParties] = useState([]);
   const [loading, setLoading] = useState(true);
   const [selectedDate, setSelectedDate] = useState(todayData.dateStr);
@@ -711,17 +710,8 @@ function App() {
     if (!isMenuOpen) return;
     const fetchFollowed = async () => {
       try {
-        let s = localStorage.getItem('user_session') || localStorage.getItem('oneulbam_session');
+        let s = localStorage.getItem('oneulbam_session');
         if (!s) return;
-
-        // 1. 강사 여부 확인
-        const { data: isInst } = await supabase
-          .from('instructors')
-          .select('id')
-          .eq('user_session', s);
-        setIsCurrentUserInstructor(isInst && isInst.length > 0);
-
-        // 2. 팔로우한 강사 목록 조회
         const { data: followData } = await supabase
           .from('instructor_follows')
           .select('instructor_id')
@@ -979,154 +969,112 @@ function App() {
               </motion.button>
             </div>
 
-            {isCurrentUserInstructor ? (
-              <>
-                <div style={{ marginBottom: '32px' }}>
-                  <h2 style={{ color: '#F8FAFC', fontSize: '22px', fontWeight: 900, margin: 0, display: 'flex', alignItems: 'center', gap: '8px' }}>
-                    <span style={{ color: '#C9A84C' }}>👑</span> 마스터 전용 메뉴
-                  </h2>
-                  <p style={{ color: '#C9A84C', fontSize: '13px', marginTop: '4px', fontWeight: 700, letterSpacing: '0.5px' }}>VIP INSTRUCTOR LOUNGE</p>
-                </div>
+            <div style={{ marginBottom: '32px' }}>
+              <h2 style={{ color: '#F8FAFC', fontSize: '22px', fontWeight: 900, margin: 0, display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <span style={{ color: '#C9A84C' }}>🌟</span> 마스터 전용 메뉴
+              </h2>
+              <p style={{ color: '#C9A84C', fontSize: '13px', marginTop: '4px', fontWeight: 700, letterSpacing: '0.5px' }}>VIP INSTRUCTOR LOUNGE</p>
+            </div>
 
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-                  {[
-                    { 
-                      icon: <User color={'#C9A84C'} />, 
-                      text: '내 프로필 관리', 
-                      action: () => { 
-                        setIsMenuOpen(false); 
-                        setView('instructors');
-                        navigate('/instructors');
-                      } 
-                    },
-                    { 
-                      icon: <Plus color={'#C9A84C'} />, 
-                      text: '클래스 등록', 
-                      action: () => { 
-                        setIsMenuOpen(false);
-                        setTimeout(() => setShowClassRegister(true), 300);
-                      } 
-                    },
-                    { 
-                      icon: <Users color={'#C9A84C'} />, 
-                      text: '팔로워 현황', 
-                      action: () => { 
-                        setIsMenuOpen(false); 
-                        setView('instructors');
-                        navigate('/instructors');
-                      } 
-                    },
-                  ].map((item, idx) => (
+            {/* 팔로우한 강사 원형 사진 가로 스크롤 표시 */}
+            <div style={{ marginBottom: '36px' }}>
+              <div style={{ fontSize: '11px', fontWeight: 900, color: '#94A3B8', marginBottom: '12px', letterSpacing: '1px' }}>
+                MY FOLLOWED MASTERS
+              </div>
+              <div style={{ display: 'flex', overflowX: 'auto', gap: '14px', paddingBottom: '10px' }}>
+                {followedInstructors.length === 0 ? (
+                  <div style={{ fontSize: '13px', color: '#64748B', padding: '10px 0', fontStyle: 'italic' }}>팔로우한 마스터가 없습니다.</div>
+                ) : (
+                  followedInstructors.map(inst => (
                     <motion.div
-                      key={idx}
-                      whileHover={{ scale: 1.02, backgroundColor: 'rgba(255,255,255,0.08)' }}
-                      whileTap={{ scale: 0.98 }}
-                      onClick={item.action}
-                      style={{
-                        background: 'rgba(255,255,255,0.03)',
-                        border: '1px solid rgba(201,168,76,0.2)',
-                        borderRadius: '14px',
-                        padding: '16px 20px',
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: '16px',
-                        cursor: 'pointer',
-                        transition: 'all 0.2s',
-                        boxShadow: '0 4px 15px rgba(0,0,0,0.2)'
+                      key={inst.id}
+                      whileHover={{ scale: 1.05 }}
+                      whileTap={{ scale: 0.95 }}
+                      onClick={() => {
+                        localStorage.setItem('selected_instructor_id', inst.id);
+                        navigate('/instructors');
+                        setView('instructors');
+                        setIsMenuOpen(false);
                       }}
+                      style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '6px', cursor: 'pointer', flexShrink: 0 }}
                     >
-                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                        {item.icon}
+                      <div style={{ width: '58px', height: '58px', borderRadius: '50%', border: '2px solid #C9A84C', padding: '2px', background: '#000', boxShadow: '0 4px 12px rgba(201,168,76,0.2)' }}>
+                        <img src={inst.photo_url || 'https://via.placeholder.com/100'} style={{ width: '100%', height: '100%', borderRadius: '50%', objectFit: 'cover' }} alt={inst.name} />
                       </div>
-                      <span style={{ color: '#F8FAFC', fontSize: '15px', fontWeight: 800 }}>{item.text}</span>
+                      <span style={{ fontSize: '11px', fontWeight: 800, color: '#E2E8F0', maxWidth: '60px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                        {inst.name.split(' ')[0]}
+                      </span>
                     </motion.div>
-                  ))}
-                </div>
-              </>
-            ) : (
-              <>
-                <div style={{ marginBottom: '32px' }}>
-                  <h2 style={{ color: '#F8FAFC', fontSize: '20px', fontWeight: 900, margin: 0, display: 'flex', alignItems: 'center', gap: '8px' }}>
-                    <span style={{ color: '#C9A84C' }}>🌟</span> MY FOLLOWED MASTERS
-                  </h2>
-                </div>
+                  ))
+                )}
+              </div>
+            </div>
 
-                {/* 팔로우한 강사 원형 사진 가로 스크롤 */}
-                <div style={{ marginBottom: '28px' }}>
-                  <div style={{ display: 'flex', overflowX: 'auto', gap: '14px', paddingBottom: '10px', scrollbarWidth: 'none' }}>
-                    {followedInstructors.length === 0 ? (
-                      <div style={{ fontSize: '13px', color: '#64748B', padding: '10px 0', fontWeight: 600 }}>아직 팔로우한 강사가 없어요</div>
-                    ) : (
-                      followedInstructors.map(inst => (
-                        <motion.div
-                          key={inst.id}
-                          whileHover={{ scale: 1.05 }}
-                          whileTap={{ scale: 0.95 }}
-                          onClick={() => {
-                            localStorage.setItem('selected_instructor_id', inst.id);
-                            navigate('/instructors');
-                            setView('instructors');
-                            setIsMenuOpen(false);
-                          }}
-                          style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '6px', cursor: 'pointer', flexShrink: 0 }}
-                        >
-                          <div style={{ width: '58px', height: '58px', borderRadius: '50%', border: '2px solid #C9A84C', padding: '2px', background: '#000', boxShadow: '0 4px 12px rgba(201,168,76,0.2)' }}>
-                            <img src={inst.photo_url || 'https://via.placeholder.com/100'} style={{ width: '100%', height: '100%', borderRadius: '50%', objectFit: 'cover' }} alt={inst.name} />
-                          </div>
-                          <span style={{ fontSize: '11px', fontWeight: 800, color: '#E2E8F0', maxWidth: '60px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                            {inst.name.split(' ')[0]}
-                          </span>
-                        </motion.div>
-                      ))
-                    )}
-                  </div>
-                </div>
-
-                {/* "전체 강사 보러가기 →" 버튼 */}
-                <motion.button
-                  whileHover={{ scale: 1.02 }}
-                  whileTap={{ scale: 0.98 }}
-                  onClick={() => {
+            <div style={{ fontSize: '11px', fontWeight: 900, color: '#94A3B8', marginBottom: '12px', letterSpacing: '1px' }}>
+              VIP NAVIGATION
+            </div>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+              {[
+                { 
+                  icon: <Users color={'#C9A84C'} />, 
+                  text: '전체 강사', 
+                  action: () => { 
                     localStorage.setItem('instructor_target_genre', '전체');
-                    navigate('/instructors');
+                    navigate('/instructors'); 
                     setView('instructors');
-                    setIsMenuOpen(false);
+                    setIsMenuOpen(false); 
                     setTimeout(() => {
                       window.dispatchEvent(new CustomEvent('apply-instructor-filter'));
                     }, 300);
-                  }}
+                  } 
+                },
+                { 
+                  icon: <Star color={'#C9A84C'} />, 
+                  text: '강사 클래스', 
+                  action: () => { 
+                    setIsMenuOpen(false);
+                    setTimeout(() => setShowClassRegister(true), 300);
+                  } 
+                },
+                { 
+                  icon: <Camera color={'#C9A84C'} />, 
+                  text: '갤러리', 
+                  action: () => { 
+                    localStorage.setItem('instructor_target_genre', '전체');
+                    navigate('/instructors'); 
+                    setView('instructors');
+                    setIsMenuOpen(false); 
+                    setTimeout(() => {
+                      window.dispatchEvent(new CustomEvent('apply-instructor-filter'));
+                    }, 300);
+                  } 
+                },
+              ].map((item, idx) => (
+                <motion.div
+                  key={idx}
+                  whileHover={{ scale: 1.02, backgroundColor: 'rgba(255,255,255,0.08)' }}
+                  whileTap={{ scale: 0.98 }}
+                  onClick={item.action}
                   style={{
-                    width: '100%', padding: '16px', borderRadius: '16px', border: '1px solid rgba(201,168,76,0.3)',
-                    background: 'linear-gradient(135deg, rgba(201,168,76,0.15), rgba(201,168,76,0.05))',
-                    color: '#C9A84C', fontSize: '14px', fontWeight: 900, cursor: 'pointer',
-                    display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px',
-                    boxShadow: '0 4px 12px rgba(0,0,0,0.2)'
+                    background: 'rgba(255,255,255,0.03)',
+                    border: '1px solid rgba(201,168,76,0.2)',
+                    borderRadius: '14px',
+                    padding: '16px 20px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '16px',
+                    cursor: 'pointer',
+                    transition: 'all 0.2s',
+                    boxShadow: '0 4px 15px rgba(0,0,0,0.2)'
                   }}
                 >
-                  전체 강사 보러가기 →
-                </motion.button>
-
-                {/* 하단 공통 강사 등록 버튼 (일반 유저만) */}
-                <div style={{ marginTop: '24px' }}>
-                  <motion.button
-                    whileHover={{ scale: 1.02 }}
-                    whileTap={{ scale: 0.98 }}
-                    onClick={() => {
-                      setIsMenuOpen(false);
-                      setView('instructor-register');
-                      navigate('/register-class');
-                    }}
-                    style={{
-                      width: '100%', padding: '14px', borderRadius: '14px', border: 'none',
-                      background: 'rgba(255,255,255,0.08)', color: '#F8FAFC', fontSize: '13px', fontWeight: 800,
-                      cursor: 'pointer', transition: 'all 0.2s'
-                    }}
-                  >
-                    강사 등록하기 →
-                  </motion.button>
-                </div>
-              </>
-            )}
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                    {item.icon}
+                  </div>
+                  <span style={{ color: '#F8FAFC', fontSize: '15px', fontWeight: 800 }}>{item.text}</span>
+                </motion.div>
+              ))}
+            </div>
 
             <div style={{ marginTop: 'auto', paddingTop: '40px', textAlign: 'center' }}>
               <p style={{ color: '#64748B', fontSize: '11px', fontWeight: 700 }}>© 2026 BAMPPA VIP Lounge</p>
@@ -1140,7 +1088,7 @@ function App() {
           {view === 'home' ? <HomePage {...sharedProps} /> : 
            view === 'community' ? <Community setSelectedPoster={setSelectedPoster} setView={setView} /> :
            view === 'instructors' ? <Instructors followedInstructors={followedInstructors} setView={setView} /> :
-           (view === 'register-class' || view === 'instructor-register') ? <InstructorRegister onBack={() => { navigate('/instructors'); setView('instructors'); }} /> :
+           view === 'register-class' ? <InstructorRegister onBack={() => navigate('/instructors')} /> :
            view === 'bootcamp' ? <Bootcamp onBack={() => navigate('/')} /> :
            view === 'bootcamp-register' ? <Bootcamp onBack={() => navigate('/bootcamp')} initialView="register" /> :
            view === 'festival' ? <Festival onBack={() => navigate('/')} /> :
