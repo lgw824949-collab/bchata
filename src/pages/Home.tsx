@@ -616,7 +616,7 @@ const HomePage = ({
 
       {/* 📌 [영역 A: 브랜드 헤더 - 최종 확정] */}
       {/* 📌 [영역 A: 브랜드 헤더 - 최종 확정 고도화] */}
-      <div style={{ padding: '16px 20px 12px' }}>
+      <div style={{ padding: '16px 20px 12px', marginBottom: '24px' }}>
         <p style={{ fontSize: '9px', color: '#E53935', letterSpacing: '0.25em', fontWeight: 800, margin: '0 0 6px', opacity: 0.9 }}>SOCIAL CULTURE EXPERIENCE</p>
         <p style={{ fontSize: '12px', color: 'var(--color-text-sub)', margin: '0 0 6px', fontWeight: 500, letterSpacing: '-0.2px' }}>
           {lang === 'ko' ? '오늘 밤, 어디선가 파티가 시작되고 있어요' : 'Tonight, a party is starting somewhere'}
@@ -667,7 +667,7 @@ const HomePage = ({
       </div>
 
       {/* 🔴 [LIVE 바 임팩트 영역 개편] */}
-      <div style={{ padding: '4px 20px 12px' }}>
+      <div style={{ padding: '4px 20px 12px', marginBottom: '24px' }}>
         {/* LiveCount를 감싸는 세련된 임팩트 컨테이너 및 전역 스타일 주입 */}
         <div className="live-count-premium-wrapper" style={{ 
           background: '#0F172A', 
@@ -777,7 +777,7 @@ const HomePage = ({
         }
       `}</style>
       <div className="quick-menu-scroll" style={{ 
-        display: 'flex', overflowX: 'auto', gap: '8px', padding: '8px 12px 12px', 
+        display: 'flex', overflowX: 'auto', gap: '8px', padding: '8px 12px 12px', marginBottom: '24px',
         scrollbarWidth: 'none', msOverflowStyle: 'none', WebkitOverflowScrolling: 'touch' 
       }}>
         {[
@@ -922,6 +922,89 @@ const HomePage = ({
         </AnimatePresence>
       </div>
 
+      {/* 🔴 [신규 채널 박스 3개 - 가로 나열] */}
+      <div style={{ padding: '0 12px', marginBottom: '24px' }}>
+        <div style={{ display: 'flex', gap: '12px', justifyContent: 'space-between' }}>
+          {/* 1. 유튜브 */}
+          <div style={{
+            flex: 1,
+            background: '#FFF0F0',
+            borderRadius: '16px',
+            padding: '16px',
+            boxShadow: '0 2px 8px rgba(0,0,0,0.06)',
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            justifyContent: 'center',
+            gap: '6px',
+            boxSizing: 'border-box'
+          }}>
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#FF0000" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M22.54 6.42a2.78 2.78 0 0 0-1.95-1.96C18.88 4 12 4 12 4s-6.88 0-8.59.46a2.78 2.78 0 0 0-1.95 1.96A29 29 0 0 0 1 12a29 29 0 0 0 .46 5.58 2.78 2.78 0 0 0 1.95 1.96C5.12 20 12 20 12 20s6.88 0 8.59-.46a2.78 2.78 0 0 0 1.95-1.96A29 29 0 0 0 23 12a29 29 0 0 0-.46-5.58z"></path><polygon points="9.75 15.02 15.5 12 9.75 8.98 9.75 15.02" fill="#FF0000"></polygon></svg>
+            <span style={{ fontSize: '12px', fontWeight: 900, color: '#1E293B', letterSpacing: '-0.3px' }}>YouTube</span>
+            <span style={{ fontSize: '10px', fontWeight: 700, color: '#EF4444', letterSpacing: '-0.3px' }}>준비중 🎬</span>
+          </div>
+
+          {/* 2. 인스타그램 */}
+          <div
+            onClick={() => window.open('https://www.instagram.com', '_blank')}
+            style={{
+              flex: 1,
+              background: '#FFF0F5',
+              borderRadius: '16px',
+              padding: '16px',
+              boxShadow: '0 2px 8px rgba(0,0,0,0.06)',
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: '6px',
+              cursor: 'pointer',
+              boxSizing: 'border-box'
+            }}
+          >
+            {/* 인스타 그라데이션 아이콘 */}
+            <div style={{
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              background: 'linear-gradient(45deg, #f09433 0%,#e6683c 25%,#dc2743 50%,#cc2366 75%,#bc1888 100%)',
+              borderRadius: '8px', padding: '3px'
+            }}>
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="2" y="2" width="20" height="20" rx="5" ry="5"></rect><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"></path><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"></line></svg>
+            </div>
+            <span style={{ fontSize: '12px', fontWeight: 900, color: '#1E293B', letterSpacing: '-0.3px' }}>Instagram</span>
+            <span style={{ fontSize: '10px', fontWeight: 700, color: '#D81B60', letterSpacing: '-0.3px' }}>팔로우하기</span>
+          </div>
+
+          {/* 3. 카카오톡 */}
+          <div
+            onClick={() => window.open('https://open.kakao.com/o/gP43rNri', '_blank')}
+            style={{
+              flex: 1,
+              background: '#FFFDE7',
+              borderRadius: '16px',
+              padding: '16px',
+              boxShadow: '0 2px 8px rgba(0,0,0,0.06)',
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: '6px',
+              cursor: 'pointer',
+              boxSizing: 'border-box'
+            }}
+          >
+            {/* 카카오 노란색 아이콘 컨테이너 */}
+            <div style={{
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              background: '#FEE500', borderRadius: '8px', padding: '3px'
+            }}>
+              <MessageSquare size={18} color="#3C1E1E" fill="#3C1E1E" />
+            </div>
+            <span style={{ fontSize: '12px', fontWeight: 900, color: '#1E293B', letterSpacing: '-0.3px' }}>KakaoTalk</span>
+            <span style={{ fontSize: '10px', fontWeight: 700, color: '#F57F17', letterSpacing: '-0.3px' }}>오픈채팅</span>
+          </div>
+        </div>
+      </div>
+
       <div ref={scrollRef} style={{ width: '100%', background: 'var(--color-bg)' }}>
         <div style={{ minHeight: '101%' }}>
           {loading ? (
@@ -1023,7 +1106,7 @@ const HomePage = ({
                   <>
                     {/* HOT PICK 고퀄리티 개선 (자연스러운 속도로 한쪽으로 무한 이동하는 프리미엄 롤링 마퀴) */}
                     {newest8GlobalEvents.length > 0 && (
-                      <div style={{ margin: '0 0 15px', padding: '15px 0 20px', background: 'var(--color-card)', borderBottom: '1px solid var(--color-border)', overflow: 'hidden' }}>
+                      <div style={{ margin: '0 0 24px', padding: '15px 0 20px', background: 'var(--color-card)', borderBottom: '1px solid var(--color-border)', overflow: 'hidden' }}>
                         <div style={{ padding: '0 20px 14px', display: 'flex', flexDirection: 'column', gap: '3px' }}>
                           <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                             <h2 style={{ fontSize: '20px', fontWeight: '950', margin: 0, display: 'flex', alignItems: 'center', gap: '5px' }}>
@@ -1135,7 +1218,7 @@ const HomePage = ({
                           <React.Fragment key={regionName}>
                             <section
                               ref={isFirst ? regionListRef : null}
-                              style={{ marginBottom: '15px', background: 'var(--color-card)' }}
+                              style={{ marginBottom: '24px', background: 'var(--color-card)' }}
                             >
                               <div style={{ padding: '15px 20px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', color: 'var(--color-text-main)' }}>
                                 <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
