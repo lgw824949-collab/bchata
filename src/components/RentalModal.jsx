@@ -26,6 +26,7 @@ export default function RentalModal({ onClose }) {
   const [locations, setLocations] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [selectedBar, setSelectedBar] = useState(null);
+  const [selectedRegionTab, setSelectedRegionTab] = useState('전체');
   
   // 지역별 펼쳐짐(더보기/전체보기) 상태 관리 객체
   const [expandedRegions, setExpandedRegions] = useState({});
@@ -401,114 +402,90 @@ export default function RentalModal({ onClose }) {
           </p>
         </div>
 
-        {/* 메인 스크롤 콘텐츠 영역 */}
-        <div style={{ flex: 1, overflowY: 'auto', padding: '20px 0', background: '#ffffff' }}>
-          {isLoading ? (
-            <div style={{ padding: '60px 20px', textAlign: 'center', color: '#94A3B8', fontWeight: 700 }}>
-              전국 BAR 정보를 정렬하는 중...
-            </div>
-          ) : (
-            /* 메인 레이아웃 구조: 지역별로 세로 나열 */
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '32px' }}>
-              {REGIONS_ORDER.map(region => {
-                const regionBars = locations.filter(bar => bar.region === region);
-                // 데이터 없는 지역은 표시 안함
-                if (regionBars.length === 0) return null;
+        {/* 메인 스크롤 콘텐츠 영역 (상단 지역 탭 탑재) */}
+        <div style={{ flex: 1, overflowY: 'auto', display: 'flex', flexDirection: 'column', background: '#ffffff' }}>
+          {/* 수평 스크롤 지역 탭 바 */}
+          <div style={{
+            display: 'flex', overflowX: 'auto', gap: '8px', padding: '0 20px 16px',
+            borderBottom: '1px solid #F1F5F9', flexShrink: 0, scrollbarWidth: 'none'
+          }}>
+            {['전체', ...REGIONS_ORDER].map((tab) => {
+              const isSelected = selectedRegionTab === tab;
+              const count = tab === '전체' ? locations.length : locations.filter(b => b.region === tab).length;
 
-                const isExpanded = expandedRegions[region];
+              return (
+                <button
+                  key={tab}
+                  onClick={() => setSelectedRegionTab(tab)}
+                  style={{
+                    flexShrink: 0,
+                    padding: '8px 16px',
+                    background: isSelected ? '#FFF1F2' : '#F8FAFC',
+                    color: isSelected ? '#E53935' : '#64748B',
+                    border: isSelected ? '1px solid #FECDD3' : '1px solid #E2E8F0',
+                    borderRadius: '100px',
+                    fontWeight: isSelected ? 950 : 700,
+                    fontSize: '13px',
+                    cursor: 'pointer',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '6px',
+                    transition: 'all 0.2s ease'
+                  }}
+                >
+                  <span>{tab}</span>
+                  <span style={{
+                    fontSize: '10px',
+                    background: isSelected ? '#E53935' : '#E2E8F0',
+                    color: isSelected ? '#ffffff' : '#475569',
+                    padding: '1px 6px',
+                    borderRadius: '100px',
+                    fontWeight: 800
+                  }}>
+                    {count}
+                  </span>
+                </button>
+              );
+            })}
+          </div>
+
+          {/* 선택된 탭에 해당하는 리스트 그리드 출력 */}
+          <div style={{ padding: '20px', flex: 1 }}>
+            {isLoading ? (
+              <div style={{ padding: '60px 20px', textAlign: 'center', color: '#94A3B8', fontWeight: 700 }}>
+                전국 BAR 정보를 정렬하는 중...
+              </div>
+            ) : (
+              (() => {
+                const filteredBars = selectedRegionTab === '전체' 
+                  ? locations 
+                  : locations.filter(bar => bar.region === selectedRegionTab);
+
+                if (filteredBars.length === 0) {
+                  return (
+                    <div style={{ padding: '40px 20px', textAlign: 'center', color: '#94A3B8', fontSize: '13px', fontWeight: 600 }}>
+                      해당 지역에 등록된 제휴 공간이 없습니다.
+                    </div>
+                  );
+                }
 
                 return (
-                  <div key={region}>
-                    {/* 지역명 + 전체보기/접기 버튼 */}
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '0 20px', marginBottom: '14px' }}>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                        <span style={{ fontSize: '17px', fontWeight: 950, color: '#1E293B' }}>{region}</span>
-                        <span style={{ fontSize: '11px', background: '#F1F5F9', color: '#64748B', fontWeight: 800, padding: '2px 6px', borderRadius: '6px' }}>
-                          {regionBars.length}
-                        </span>
-                      </div>
-                      {regionBars.length > 5 && (
-                        <button
-                          onClick={() => toggleExpandRegion(region)}
-                          style={{ background: 'none', border: 'none', color: '#E53935', fontSize: '13px', fontWeight: 900, cursor: 'pointer', padding: '4px 0' }}
-                        >
-                          {isExpanded ? '접기 ∧' : '전체보기 >'}
-                        </button>
-                      )}
-                    </div>
-
-                    {/* 리스트 출력: 펼쳐짐 상태에 따라 반응형 그리드 또는 가로 스크롤 캐러셀 적용 */}
-                    {isExpanded ? (
-                      /* 전체 펼쳐진 그리드 뷰 */
-                      <motion.div 
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 1 }}
-                        style={{ 
-                          display: 'grid', 
-                          gridTemplateColumns: 'repeat(4, 1fr)', 
-                          gap: '16px 8px', 
-                          padding: '0 20px' 
-                        }}
-                      >
-                        {regionBars.map(renderBarCard)}
-                      </motion.div>
-                    ) : (
-                      /* 기본 5개 가로 스크롤 + 더보기 원형 버튼 */
-                      <div style={{ display: 'flex', overflowX: 'auto', gap: '16px', padding: '0 20px', scrollbarWidth: 'none' }}>
-                        {regionBars.slice(0, 5).map(renderBarCard)}
-                        
-                        {/* 5개 초과 시 마지막에 "더보기" 원형 버튼 추가 */}
-                        {regionBars.length > 5 && (
-                          <motion.div
-                            whileTap={{ scale: 0.95 }}
-                            onClick={() => toggleExpandRegion(region)}
-                            style={{
-                              flex: '0 0 auto',
-                              width: '88px',
-                              display: 'flex',
-                              flexDirection: 'column',
-                              alignItems: 'center',
-                              cursor: 'pointer'
-                            }}
-                          >
-                            <div style={{
-                              width: '76px',
-                              height: '76px',
-                              borderRadius: '50%',
-                              background: '#FEF2F2',
-                              boxShadow: '0 4px 12px rgba(229, 57, 53, 0.08)',
-                              border: '2px solid #FEE2E2',
-                              display: 'flex',
-                              flexDirection: 'column',
-                              alignItems: 'center',
-                              justifyContent: 'center',
-                              marginBottom: '8px'
-                            }}>
-                              <span style={{ fontSize: '18px', fontWeight: 950, color: '#E53935' }}>
-                                +{regionBars.length - 5}
-                              </span>
-                              <span style={{ fontSize: '10px', fontWeight: 800, color: '#E53935', marginTop: '-2px' }}>
-                                BAR
-                              </span>
-                            </div>
-                            <span style={{
-                              fontSize: '13px',
-                              fontWeight: 900,
-                              color: '#E53935',
-                              textAlign: 'center',
-                              width: '100%'
-                            }}>
-                              더보기
-                            </span>
-                          </motion.div>
-                        )}
-                      </div>
-                    )}
-                  </div>
+                  <motion.div 
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    key={selectedRegionTab}
+                    style={{ 
+                      display: 'grid', 
+                      gridTemplateColumns: 'repeat(4, 1fr)', 
+                      gap: '20px 8px'
+                    }}
+                  >
+                    {filteredBars.map(renderBarCard)}
+                  </motion.div>
                 );
-              })}
-            </div>
-          )}
+              })()
+            )}
+          </div>
         </div>
       </motion.div>
 
@@ -658,7 +635,7 @@ export default function RentalModal({ onClose }) {
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               onClick={() => setSelectedBar(null)}
-              style={{ position: 'absolute', inset: 0, background: 'rgba(15, 23, 42, 0.75)', backdropFilter: 'blur(8px)' }}
+              style={{ position: 'absolute', inset: 0, background: 'rgba(15, 23, 42, 0.6)', backdropFilter: 'blur(4px)' }}
             />
 
             <motion.div
@@ -668,80 +645,74 @@ export default function RentalModal({ onClose }) {
               transition={{ type: 'spring', damping: 22, stiffness: 320 }}
               style={{
                 background: '#ffffff',
-                borderRadius: '28px',
+                borderRadius: '24px',
                 width: '100%',
                 maxWidth: '340px',
                 overflow: 'hidden',
                 position: 'relative',
-                boxShadow: '0 24px 48px rgba(15, 23, 42, 0.2)',
+                boxShadow: '0 20px 40px rgba(0,0,0,0.15)',
                 display: 'flex',
                 flexDirection: 'column',
-                border: '1px solid rgba(255, 255, 255, 0.8)'
+                border: '1px solid #F1F5F9'
               }}
             >
-              {/* 상단 커버 이미지 영역 */}
+              {/* 상단 커버 이미지 영역 (사진 크게, 어두운 오버레이 없음) */}
               <div style={{
-                height: '130px',
+                height: '180px',
                 background: '#F8FAFC',
                 position: 'relative',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
                 overflow: 'hidden'
               }}>
                 {selectedBar.image_url ? (
-                  <>
-                    <img
-                      src={selectedBar.image_url}
-                      alt={selectedBar.name}
-                      style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-                    />
-                    <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to bottom, rgba(0,0,0,0.1), rgba(0,0,0,0.5))' }} />
-                  </>
+                  <img
+                    src={selectedBar.image_url}
+                    alt={selectedBar.name}
+                    style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                  />
                 ) : (
-                  <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(135deg, #1E293B, #0F172A)' }} />
+                  <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#F1F5F9' }}>
+                    <img src="/logo.png" alt="logo" style={{ width: '40%', objectFit: 'contain', opacity: 0.3 }} />
+                  </div>
                 )}
 
-                {/* 닫기 원형 버튼 (이미지 위 우측 상단 플로팅) */}
+                {/* 닫기 원형 버튼 (우측 상단 플로팅, 밝고 명확하게) */}
                 <button
                   onClick={() => setSelectedBar(null)}
                   style={{
-                    position: 'absolute', top: '14px', right: '14px',
-                    background: 'rgba(255, 255, 255, 0.85)', backdropFilter: 'blur(4px)',
+                    position: 'absolute', top: '12px', right: '12px',
+                    background: '#ffffff',
                     border: 'none', borderRadius: '50%', width: '30px', height: '30px',
                     display: 'flex', alignItems: 'center', justifyContent: 'center',
-                    color: '#0F172A', cursor: 'pointer', zIndex: 10
+                    color: '#1E293B', cursor: 'pointer', zIndex: 10,
+                    boxShadow: '0 2px 8px rgba(0,0,0,0.1)'
                   }}
                 >
                   <X size={16} strokeWidth={2.5} />
                 </button>
-
-                {/* 타이틀 오버레이 */}
-                <div style={{ position: 'absolute', bottom: '14px', left: '20px', right: '20px' }}>
-                  <span style={{ fontSize: '11px', color: '#A7F3D0', fontWeight: 800, textShadow: '0 2px 4px rgba(0,0,0,0.5)' }}>
-                    {selectedBar.region} 제휴 공간
-                  </span>
-                  <h4 style={{ margin: '2px 0 0', fontSize: '22px', fontWeight: 950, color: '#ffffff', textShadow: '0 2px 6px rgba(0,0,0,0.6)', letterSpacing: '-0.5px' }}>
-                    {selectedBar.name}
-                  </h4>
-                </div>
               </div>
 
-              {/* 하단 콘텐츠 및 액션 버튼 영역 */}
-              <div style={{ padding: '20px', display: 'flex', flexDirection: 'column', gap: '16px' }}>
-                {/* 주소 박스 */}
-                <div style={{
-                  display: 'flex', alignItems: 'center', gap: '8px',
-                  background: '#F8FAFC', border: '1px solid #F1F5F9',
-                  borderRadius: '16px', padding: '12px 14px'
-                }}>
-                  <MapPin size={18} color="#10B981" style={{ flexShrink: 0 }} />
-                  <span style={{ fontSize: '12.5px', color: '#334155', fontWeight: 700, lineHeight: 1.3, letterSpacing: '-0.2px' }}>
-                    {selectedBar.address || '등록된 상세 주소가 없습니다.'}
-                  </span>
+              {/* 하단 텍스트 및 액션 버튼 영역 (흰색 배경, 가독성 극대화) */}
+              <div style={{ padding: '20px', display: 'flex', flexDirection: 'column', gap: '16px', background: '#ffffff' }}>
+                <div>
+                  <div style={{ marginBottom: '6px' }}>
+                    <span style={{ fontSize: '11px', background: '#FFF1F2', color: '#E53935', fontWeight: 800, padding: '3px 8px', borderRadius: '6px' }}>
+                      {selectedBar.region} 제휴 공간
+                    </span>
+                  </div>
+                  <h4 style={{ margin: 0, fontSize: '22px', fontWeight: 950, color: '#1E293B', letterSpacing: '-0.5px', lineHeight: 1.3 }}>
+                    {selectedBar.name}
+                  </h4>
+                  
+                  {/* 주소 영역 (#E53935 포인트 아이콘 + 진한 회색 텍스트) */}
+                  <div style={{ display: 'flex', alignItems: 'flex-start', gap: '6px', marginTop: '8px' }}>
+                    <MapPin size={15} color="#E53935" style={{ flexShrink: 0, marginTop: '2px' }} />
+                    <span style={{ fontSize: '13px', color: '#334155', fontWeight: 700, lineHeight: 1.4, letterSpacing: '-0.2px' }}>
+                      {selectedBar.address || '등록된 상세 주소가 없습니다.'}
+                    </span>
+                  </div>
                 </div>
 
-                {/* 버튼 그룹 (최고급 정돈된 UI) */}
+                {/* 버튼 그룹 (최고급 세련된 UI 구성) */}
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
                   {/* 길찾기 2분할 버튼 */}
                   <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
@@ -750,18 +721,17 @@ export default function RentalModal({ onClose }) {
                       onClick={() => handleGoogleMapClick(selectedBar)}
                       style={{
                         padding: '12px 6px',
-                        background: '#ffffff',
-                        color: '#0F172A',
+                        background: '#F8FAFC',
+                        color: '#1E293B',
                         border: '1px solid #E2E8F0',
-                        borderRadius: '14px',
+                        borderRadius: '12px',
                         fontWeight: 800,
                         fontSize: '12.5px',
                         cursor: 'pointer',
                         display: 'flex',
                         alignItems: 'center',
-                        justifyContent: 'center',
-                        gap: '5px',
-                        boxShadow: '0 2px 4px rgba(0,0,0,0.02)'
+                        justifyCenter: 'center',
+                        gap: '5px'
                       }}
                     >
                       🗺️ 구글 길찾기
@@ -772,25 +742,24 @@ export default function RentalModal({ onClose }) {
                       onClick={() => handleKakaoMapClick(selectedBar)}
                       style={{
                         padding: '12px 6px',
-                        background: '#ffffff',
-                        color: '#0F172A',
+                        background: '#F8FAFC',
+                        color: '#1E293B',
                         border: '1px solid #E2E8F0',
-                        borderRadius: '14px',
+                        borderRadius: '12px',
                         fontWeight: 800,
                         fontSize: '12.5px',
                         cursor: 'pointer',
                         display: 'flex',
                         alignItems: 'center',
-                        justifyContent: 'center',
-                        gap: '5px',
-                        boxShadow: '0 2px 4px rgba(0,0,0,0.02)'
+                        justifyCenter: 'center',
+                        gap: '5px'
                       }}
                     >
                       📍 카카오 길찾기
                     </motion.button>
                   </div>
 
-                  {/* 카카오톡 대관 문의 (정돈된 카카오 시그니처 옐로우 톤) */}
+                  {/* 카카오톡 대관 문의 */}
                   <motion.button
                     whileTap={{ scale: 0.97 }}
                     onClick={() => handleKakaoClick(selectedBar.kakao_url)}
@@ -800,39 +769,37 @@ export default function RentalModal({ onClose }) {
                       background: '#FEE500',
                       color: '#1E293B',
                       border: 'none',
-                      borderRadius: '14px',
+                      borderRadius: '12px',
                       fontWeight: 900,
                       fontSize: '14px',
                       cursor: 'pointer',
                       display: 'flex',
                       alignItems: 'center',
                       justifyContent: 'center',
-                      gap: '7px',
-                      boxShadow: '0 4px 12px rgba(254, 229, 0, 0.2)'
+                      gap: '7px'
                     }}
                   >
                     💬 카카오톡 대관 문의
                   </motion.button>
 
-                  {/* 인스타그램 공간 구경하기 (모던 다크 럭셔리 스타일) */}
+                  {/* 인스타그램 공간 구경하기 */}
                   <motion.button
                     whileTap={{ scale: 0.97 }}
                     onClick={() => handleInstaClick(selectedBar.instagram_url)}
                     style={{
                       width: '100%',
                       padding: '14px',
-                      background: '#0F172A',
+                      background: '#1E293B',
                       color: '#ffffff',
                       border: 'none',
-                      borderRadius: '14px',
+                      borderRadius: '12px',
                       fontWeight: 900,
                       fontSize: '14px',
                       cursor: 'pointer',
                       display: 'flex',
                       alignItems: 'center',
                       justifyContent: 'center',
-                      gap: '7px',
-                      boxShadow: '0 4px 12px rgba(15, 23, 42, 0.15)'
+                      gap: '7px'
                     }}
                   >
                     📸 인스타그램 공간 구경
