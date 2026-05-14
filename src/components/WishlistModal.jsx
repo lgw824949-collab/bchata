@@ -218,7 +218,7 @@ export default function WishlistModal({ onClose }) {
                 <Heart size={32} color="#E53935" fill="#E53935" opacity={0.3} />
               </div>
               <div>
-                <p style={{ margin: '0 0 6px', color: '#1E293B', fontSize: '18px', fontWeight: 900 }}>찜한 항목이 없습니다</p>
+                <p style={{ margin: '0 0 6px', color: '#1E293B', fontSize: '18px', fontWeight: 900 }}>찜한 항목이 없습니다 🤍</p>
                 <p style={{ margin: 0, color: '#94A3B8', fontSize: '13px' }}>마음에 드는 항목의 하트를 눌러 보관해보세요!</p>
               </div>
             </div>
