@@ -627,7 +627,7 @@ const HomePage = ({
               {lang === 'ko' ? '전국 어디서든' : 'Anywhere in Korea'}
             </p>
             <p style={{ fontSize: '38px', fontWeight: 950, color: '#E53935', margin: '0 0 10px', letterSpacing: '-1.0px', lineHeight: 1.2 }}>
-              {lang === 'ko' ? '만원이면 충분해요' : 'Just $7 is enough'}
+              {lang === 'ko' ? '만원이면충분해요' : 'Just $7 is enough'}
             </p>
             <div style={{ borderLeft: '2.5px solid #E53935', paddingLeft: '12px' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
