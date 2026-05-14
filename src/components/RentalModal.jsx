@@ -153,6 +153,18 @@ export default function RentalModal({ onClose }) {
     window.open(url, '_blank');
   };
 
+  const handleGoogleMapClick = (bar) => {
+    const query = bar.address || bar.name;
+    if (!query) return;
+    window.open(`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(query)}`, '_blank');
+  };
+
+  const handleKakaoMapClick = (bar) => {
+    const query = bar.name || bar.address;
+    if (!query) return;
+    window.open(`https://map.kakao.com/link/search/${encodeURIComponent(query)}`, '_blank');
+  };
+
   // 펼치기 토글 핸들러
   const toggleExpandRegion = (region) => {
     setExpandedRegions(prev => ({
@@ -681,15 +693,63 @@ export default function RentalModal({ onClose }) {
                 </div>
               </div>
 
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginTop: '8px' }}>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', marginTop: '12px' }}>
+                {/* 지도/길찾기 사이드바이사이드 버튼 그룹 */}
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
+                  <motion.button
+                    whileTap={{ scale: 0.96 }}
+                    onClick={() => handleGoogleMapClick(selectedBar)}
+                    style={{
+                      padding: '12px 8px',
+                      background: '#F8FAFC',
+                      color: '#0284C7',
+                      border: '1px solid #E0F2FE',
+                      borderRadius: '12px',
+                      fontWeight: 900,
+                      fontSize: '13px',
+                      cursor: 'pointer',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      gap: '5px',
+                      boxShadow: '0 2px 6px rgba(2, 132, 199, 0.05)'
+                    }}
+                  >
+                    🗺️ 구글 지도
+                  </motion.button>
+
+                  <motion.button
+                    whileTap={{ scale: 0.96 }}
+                    onClick={() => handleKakaoMapClick(selectedBar)}
+                    style={{
+                      padding: '12px 8px',
+                      background: '#FFFBEB',
+                      color: '#D97706',
+                      border: '1px solid #FEF3C7',
+                      borderRadius: '12px',
+                      fontWeight: 900,
+                      fontSize: '13px',
+                      cursor: 'pointer',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      gap: '5px',
+                      boxShadow: '0 2px 6px rgba(217, 119, 6, 0.05)'
+                    }}
+                  >
+                    📍 카카오 지도
+                  </motion.button>
+                </div>
+
                 {/* 카카오 문의 버튼 */}
-                <button
+                <motion.button
+                  whileTap={{ scale: 0.97 }}
                   onClick={() => handleKakaoClick(selectedBar.kakao_url)}
                   style={{
                     width: '100%',
                     padding: '14px',
-                    background: '#FEE500',
-                    color: '#000000',
+                    background: 'linear-gradient(135deg, #FEE500 0%, #FFD600 100%)',
+                    color: '#1E293B',
                     border: 'none',
                     borderRadius: '14px',
                     fontWeight: 950,
@@ -699,14 +759,15 @@ export default function RentalModal({ onClose }) {
                     alignItems: 'center',
                     justifyContent: 'center',
                     gap: '8px',
-                    boxShadow: '0 4px 12px rgba(254, 229, 0, 0.2)'
+                    boxShadow: '0 6px 16px rgba(254, 229, 0, 0.25)'
                   }}
                 >
-                  💬 오픈카톡 문의
-                </button>
+                  💬 카카오톡 대관 문의
+                </motion.button>
 
                 {/* 인스타 버튼 */}
-                <button
+                <motion.button
+                  whileTap={{ scale: 0.97 }}
                   onClick={() => handleInstaClick(selectedBar.instagram_url)}
                   style={{
                     width: '100%',
@@ -722,11 +783,11 @@ export default function RentalModal({ onClose }) {
                     alignItems: 'center',
                     justifyContent: 'center',
                     gap: '8px',
-                    boxShadow: '0 4px 12px rgba(220, 39, 67, 0.2)'
+                    boxShadow: '0 6px 16px rgba(220, 39, 67, 0.25)'
                   }}
                 >
-                  📸 인스타그램 구경하기
-                </button>
+                  📸 인스타그램 공간 구경하기
+                </motion.button>
               </div>
             </motion.div>
           </div>
