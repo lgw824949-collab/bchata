@@ -855,13 +855,13 @@ const HomePage = ({
       {/* 📌 [영역 B: 날짜 선택바 - 상단 고정(Sticky)] */}
       <div ref={stickyHeaderRef} style={{ position: 'sticky', top: 0, zIndex: 1000, background: 'var(--color-bg)', borderBottom: '1px solid var(--color-border)', boxShadow: '0 4px 12px rgba(0,0,0,0.03)', padding: '4px 0 0', transition: 'all 0.3s' }}>
         <div style={{
-          background: 'linear-gradient(135deg, #4F6BED, #6B8EF0)',
+          background: '#1D9E75',
           borderRadius: '20px',
           padding: '20px',
           color: '#fff',
           boxSizing: 'border-box',
           margin: '8px 12px 12px',
-          boxShadow: '0 8px 20px rgba(79, 107, 237, 0.2)'
+          boxShadow: '0 8px 20px rgba(29, 158, 117, 0.2)'
         }}>
           {/* 상단 날짜 표시 및 좌우 화살표 */}
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '16px' }}>
@@ -921,7 +921,7 @@ const HomePage = ({
               const isSelected = selectedDate === item.fullDate;
               let textColor = '#fff';
               if (isSelected) {
-                textColor = '#000';
+                textColor = '#1D9E75';
               } else {
                 if (item.dayOfWeek === 0) textColor = '#FF5252'; // 빨간 텍스트
                 else if (item.dayOfWeek === 6) textColor = '#4FC3F7'; // 파란 텍스트
@@ -942,7 +942,7 @@ const HomePage = ({
                     }
                   }}
                   style={{
-                    background: isSelected ? '#fff' : 'rgba(255,255,255,0.2)',
+                    background: isSelected ? '#fff' : '#178a65',
                     borderRadius: '12px',
                     padding: '10px 2px 8px',
                     display: 'flex',
