@@ -365,35 +365,40 @@ export default function RentalModal({ onClose }) {
           </button>
         </div>
 
-        {/* 상단 액션 배너 영역: "BAR 등록하기 +" 버튼 탑재 */}
-        <div style={{ padding: '20px 20px 10px', flexShrink: 0, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <div>
-            <h3 style={{ margin: 0, fontSize: '19px', fontWeight: 950, color: '#1E293B', letterSpacing: '-0.5px', display: 'flex', alignItems: 'center', gap: '6px' }}>
-              <span style={{ color: '#10B981' }}>내 주변</span> 공간 찾기 & 대관
-            </h3>
-            <p style={{ margin: '5px 0 0', fontSize: '12.5px', color: '#64748B', fontWeight: 700, lineHeight: 1.4, letterSpacing: '-0.3px' }}>
-              전국 핫플레이스 BAR 위치 확인 및 대관을 한 번에!
-            </p>
+        {/* 프리미엄 웰컴 헤더 영역 */}
+        <div style={{ padding: '24px 20px 12px', flexShrink: 0 }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+            <div>
+              <span style={{ fontSize: '11px', fontWeight: 800, color: '#10B981', letterSpacing: '0.5px', textTransform: 'uppercase', background: '#ECFDF5', padding: '3px 8px', borderRadius: '6px' }}>
+                Premium Guide
+              </span>
+              <h3 style={{ margin: '8px 0 0', fontSize: '22px', fontWeight: 950, color: '#0F172A', letterSpacing: '-0.5px', lineHeight: 1.3 }}>
+                내 주변 파티 공간 찾기
+              </h3>
+            </div>
+            <button
+              onClick={() => setShowRegisterForm(true)}
+              style={{
+                background: '#F8FAFC',
+                color: '#334155',
+                border: '1px solid #E2E8F0',
+                borderRadius: '100px',
+                padding: '8px 14px',
+                fontWeight: 800,
+                fontSize: '12px',
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '5px',
+                boxShadow: '0 2px 4px rgba(0,0,0,0.02)'
+              }}
+            >
+              <Plus size={14} strokeWidth={2.5} /> 공간 등재 신청
+            </button>
           </div>
-          <button
-            onClick={() => setShowRegisterForm(true)}
-            style={{
-              background: '#E53935',
-              color: '#ffffff',
-              border: 'none',
-              borderRadius: '12px',
-              padding: '10px 14px',
-              fontWeight: 900,
-              fontSize: '13px',
-              cursor: 'pointer',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '6px',
-              boxShadow: '0 4px 12px rgba(229, 57, 53, 0.25)'
-            }}
-          >
-            <Plus size={16} strokeWidth={3} /> BAR 등록하기
-          </button>
+          <p style={{ margin: '8px 0 0', fontSize: '13px', color: '#64748B', fontWeight: 600, lineHeight: 1.5, letterSpacing: '-0.2px' }}>
+            사장님과 댄서분들이 함께 소통하는 전국 핫플레이스 위치 및 대관 안내 플랫폼입니다.
+          </p>
         </div>
 
         {/* 메인 스크롤 콘텐츠 영역 */}
@@ -647,147 +652,192 @@ export default function RentalModal({ onClose }) {
       {/* 팝업 2: BAR 클릭 시 나타나는 미니 팝업 모달 */}
       <AnimatePresence>
         {selectedBar && (
-          <div style={{ position: 'fixed', inset: 0, zIndex: 190005, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '24px' }}>
+          <div style={{ position: 'fixed', inset: 0, zIndex: 190005, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px' }}>
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               onClick={() => setSelectedBar(null)}
-              style={{ position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.6)' }}
+              style={{ position: 'absolute', inset: 0, background: 'rgba(15, 23, 42, 0.75)', backdropFilter: 'blur(8px)' }}
             />
 
             <motion.div
-              initial={{ scale: 0.9, opacity: 0, y: 10 }}
+              initial={{ scale: 0.92, opacity: 0, y: 16 }}
               animate={{ scale: 1, opacity: 1, y: 0 }}
-              exit={{ scale: 0.9, opacity: 0, y: 10 }}
-              transition={{ type: 'spring', damping: 20, stiffness: 300 }}
+              exit={{ scale: 0.92, opacity: 0, y: 16 }}
+              transition={{ type: 'spring', damping: 22, stiffness: 320 }}
               style={{
                 background: '#ffffff',
-                borderRadius: '24px',
-                padding: '24px',
+                borderRadius: '28px',
                 width: '100%',
                 maxWidth: '340px',
+                overflow: 'hidden',
                 position: 'relative',
-                boxShadow: '0 20px 40px rgba(0,0,0,0.2)',
+                boxShadow: '0 24px 48px rgba(15, 23, 42, 0.2)',
                 display: 'flex',
                 flexDirection: 'column',
-                gap: '16px'
+                border: '1px solid rgba(255, 255, 255, 0.8)'
               }}
             >
-              <button
-                onClick={() => setSelectedBar(null)}
-                style={{ position: 'absolute', top: '16px', right: '16px', background: '#F1F5F9', border: 'none', borderRadius: '50%', width: '32px', height: '32px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#64748B', cursor: 'pointer' }}
-              >
-                <X size={18} />
-              </button>
+              {/* 상단 커버 이미지 영역 */}
+              <div style={{
+                height: '130px',
+                background: '#F8FAFC',
+                position: 'relative',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                overflow: 'hidden'
+              }}>
+                {selectedBar.image_url ? (
+                  <>
+                    <img
+                      src={selectedBar.image_url}
+                      alt={selectedBar.name}
+                      style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                    />
+                    <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to bottom, rgba(0,0,0,0.1), rgba(0,0,0,0.5))' }} />
+                  </>
+                ) : (
+                  <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(135deg, #1E293B, #0F172A)' }} />
+                )}
 
-              <div style={{ paddingRight: '24px' }}>
-                <h4 style={{ margin: 0, fontSize: '20px', fontWeight: 950, color: '#1E293B' }}>
-                  {selectedBar.name}
-                </h4>
-                <div style={{ display: 'flex', alignItems: 'flex-start', gap: '6px', marginTop: '8px' }}>
-                  <MapPin size={15} color="#E53935" style={{ flexShrink: 0, marginTop: '2px' }} />
-                  <span style={{ fontSize: '13px', color: '#64748B', fontWeight: 600, lineHeight: 1.4 }}>
-                    {selectedBar.address || '등록된 상세 주소가 없습니다.'}
+                {/* 닫기 원형 버튼 (이미지 위 우측 상단 플로팅) */}
+                <button
+                  onClick={() => setSelectedBar(null)}
+                  style={{
+                    position: 'absolute', top: '14px', right: '14px',
+                    background: 'rgba(255, 255, 255, 0.85)', backdropFilter: 'blur(4px)',
+                    border: 'none', borderRadius: '50%', width: '30px', height: '30px',
+                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    color: '#0F172A', cursor: 'pointer', zIndex: 10
+                  }}
+                >
+                  <X size={16} strokeWidth={2.5} />
+                </button>
+
+                {/* 타이틀 오버레이 */}
+                <div style={{ position: 'absolute', bottom: '14px', left: '20px', right: '20px' }}>
+                  <span style={{ fontSize: '11px', color: '#A7F3D0', fontWeight: 800, textShadow: '0 2px 4px rgba(0,0,0,0.5)' }}>
+                    {selectedBar.region} 제휴 공간
                   </span>
+                  <h4 style={{ margin: '2px 0 0', fontSize: '22px', fontWeight: 950, color: '#ffffff', textShadow: '0 2px 6px rgba(0,0,0,0.6)', letterSpacing: '-0.5px' }}>
+                    {selectedBar.name}
+                  </h4>
                 </div>
               </div>
 
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', marginTop: '12px' }}>
-                {/* 지도/길찾기 사이드바이사이드 버튼 그룹 */}
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
-                  <motion.button
-                    whileTap={{ scale: 0.96 }}
-                    onClick={() => handleGoogleMapClick(selectedBar)}
-                    style={{
-                      padding: '12px 8px',
-                      background: '#F8FAFC',
-                      color: '#0284C7',
-                      border: '1px solid #E0F2FE',
-                      borderRadius: '12px',
-                      fontWeight: 900,
-                      fontSize: '13px',
-                      cursor: 'pointer',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      gap: '5px',
-                      boxShadow: '0 2px 6px rgba(2, 132, 199, 0.05)'
-                    }}
-                  >
-                    🗺️ 구글 지도
-                  </motion.button>
-
-                  <motion.button
-                    whileTap={{ scale: 0.96 }}
-                    onClick={() => handleKakaoMapClick(selectedBar)}
-                    style={{
-                      padding: '12px 8px',
-                      background: '#FFFBEB',
-                      color: '#D97706',
-                      border: '1px solid #FEF3C7',
-                      borderRadius: '12px',
-                      fontWeight: 900,
-                      fontSize: '13px',
-                      cursor: 'pointer',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      gap: '5px',
-                      boxShadow: '0 2px 6px rgba(217, 119, 6, 0.05)'
-                    }}
-                  >
-                    📍 카카오 지도
-                  </motion.button>
+              {/* 하단 콘텐츠 및 액션 버튼 영역 */}
+              <div style={{ padding: '20px', display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                {/* 주소 박스 */}
+                <div style={{
+                  display: 'flex', alignItems: 'center', gap: '8px',
+                  background: '#F8FAFC', border: '1px solid #F1F5F9',
+                  borderRadius: '16px', padding: '12px 14px'
+                }}>
+                  <MapPin size={18} color="#10B981" style={{ flexShrink: 0 }} />
+                  <span style={{ fontSize: '12.5px', color: '#334155', fontWeight: 700, lineHeight: 1.3, letterSpacing: '-0.2px' }}>
+                    {selectedBar.address || '등록된 상세 주소가 없습니다.'}
+                  </span>
                 </div>
 
-                {/* 카카오 문의 버튼 */}
-                <motion.button
-                  whileTap={{ scale: 0.97 }}
-                  onClick={() => handleKakaoClick(selectedBar.kakao_url)}
-                  style={{
-                    width: '100%',
-                    padding: '14px',
-                    background: 'linear-gradient(135deg, #FEE500 0%, #FFD600 100%)',
-                    color: '#1E293B',
-                    border: 'none',
-                    borderRadius: '14px',
-                    fontWeight: 950,
-                    fontSize: '15px',
-                    cursor: 'pointer',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    gap: '8px',
-                    boxShadow: '0 6px 16px rgba(254, 229, 0, 0.25)'
-                  }}
-                >
-                  💬 카카오톡 대관 문의
-                </motion.button>
+                {/* 버튼 그룹 (최고급 정돈된 UI) */}
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                  {/* 길찾기 2분할 버튼 */}
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
+                    <motion.button
+                      whileTap={{ scale: 0.96 }}
+                      onClick={() => handleGoogleMapClick(selectedBar)}
+                      style={{
+                        padding: '12px 6px',
+                        background: '#ffffff',
+                        color: '#0F172A',
+                        border: '1px solid #E2E8F0',
+                        borderRadius: '14px',
+                        fontWeight: 800,
+                        fontSize: '12.5px',
+                        cursor: 'pointer',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        gap: '5px',
+                        boxShadow: '0 2px 4px rgba(0,0,0,0.02)'
+                      }}
+                    >
+                      🗺️ 구글 길찾기
+                    </motion.button>
 
-                {/* 인스타 버튼 */}
-                <motion.button
-                  whileTap={{ scale: 0.97 }}
-                  onClick={() => handleInstaClick(selectedBar.instagram_url)}
-                  style={{
-                    width: '100%',
-                    padding: '14px',
-                    background: 'linear-gradient(45deg, #f09433 0%,#e6683c 25%,#dc2743 50%,#cc2366 75%,#bc1888 100%)',
-                    color: '#ffffff',
-                    border: 'none',
-                    borderRadius: '14px',
-                    fontWeight: 900,
-                    fontSize: '15px',
-                    cursor: 'pointer',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    gap: '8px',
-                    boxShadow: '0 6px 16px rgba(220, 39, 67, 0.25)'
-                  }}
-                >
-                  📸 인스타그램 공간 구경하기
-                </motion.button>
+                    <motion.button
+                      whileTap={{ scale: 0.96 }}
+                      onClick={() => handleKakaoMapClick(selectedBar)}
+                      style={{
+                        padding: '12px 6px',
+                        background: '#ffffff',
+                        color: '#0F172A',
+                        border: '1px solid #E2E8F0',
+                        borderRadius: '14px',
+                        fontWeight: 800,
+                        fontSize: '12.5px',
+                        cursor: 'pointer',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        gap: '5px',
+                        boxShadow: '0 2px 4px rgba(0,0,0,0.02)'
+                      }}
+                    >
+                      📍 카카오 길찾기
+                    </motion.button>
+                  </div>
+
+                  {/* 카카오톡 대관 문의 (정돈된 카카오 시그니처 옐로우 톤) */}
+                  <motion.button
+                    whileTap={{ scale: 0.97 }}
+                    onClick={() => handleKakaoClick(selectedBar.kakao_url)}
+                    style={{
+                      width: '100%',
+                      padding: '14px',
+                      background: '#FEE500',
+                      color: '#1E293B',
+                      border: 'none',
+                      borderRadius: '14px',
+                      fontWeight: 900,
+                      fontSize: '14px',
+                      cursor: 'pointer',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      gap: '7px',
+                      boxShadow: '0 4px 12px rgba(254, 229, 0, 0.2)'
+                    }}
+                  >
+                    💬 카카오톡 대관 문의
+                  </motion.button>
+
+                  {/* 인스타그램 공간 구경하기 (모던 다크 럭셔리 스타일) */}
+                  <motion.button
+                    whileTap={{ scale: 0.97 }}
+                    onClick={() => handleInstaClick(selectedBar.instagram_url)}
+                    style={{
+                      width: '100%',
+                      padding: '14px',
+                      background: '#0F172A',
+                      color: '#ffffff',
+                      border: 'none',
+                      borderRadius: '14px',
+                      fontWeight: 900,
+                      fontSize: '14px',
+                      cursor: 'pointer',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      gap: '7px',
+                      boxShadow: '0 4px 12px rgba(15, 23, 42, 0.15)'
+                    }}
+                  >
+                    📸 인스타그램 공간 구경
+                  </motion.button>
+                </div>
               </div>
             </motion.div>
           </div>
