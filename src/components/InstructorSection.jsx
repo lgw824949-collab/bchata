@@ -3,8 +3,31 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { supabase } from '../lib/supabase'
 import { ChevronLeft, Share2, Bell, Heart, User, MapPin, Globe, ShieldCheck, Zap, MessageCircle, Star, Info, Plus, Check, Search } from 'lucide-react'
 
-const GENRES = ['전체', '바차타', '살사', '키좀바', '쥬크', '⭐ 내 팔로잉']
-const CITIES = ['전국', '서울', '경기/인천', '부산', '대구', '대전', '광주']
+const REGIONS = ['전국', '서울', '경기인천', '경상도', '전라도', '충청도', '강원제주']
+const GENRE_TABS = ['전체', '바차타', '살사', '쥬크', '키좀바']
+
+const matchesRegion = (instructor, region) => {
+  if (region === '전국') return true;
+  const targetStr = ((instructor.city || '') + ' ' + (instructor.address || '')).toLowerCase();
+  if (!targetStr.trim()) return false;
+  
+  switch (region) {
+    case '서울':
+      return targetStr.includes('서울');
+    case '경기인천':
+      return targetStr.includes('경기') || targetStr.includes('인천');
+    case '경상도':
+      return targetStr.includes('부산') || targetStr.includes('대구') || targetStr.includes('울산') || targetStr.includes('경남') || targetStr.includes('경상남') || targetStr.includes('경북') || targetStr.includes('경상북');
+    case '전라도':
+      return targetStr.includes('광주') || targetStr.includes('전남') || targetStr.includes('전라남') || targetStr.includes('전북') || targetStr.includes('전라북');
+    case '충청도':
+      return targetStr.includes('대전') || targetStr.includes('세종') || targetStr.includes('충남') || targetStr.includes('충청남') || targetStr.includes('충북') || targetStr.includes('충청북');
+    case '강원제주':
+      return targetStr.includes('강원') || targetStr.includes('제주');
+    default:
+      return targetStr.includes(region.toLowerCase());
+  }
+};
 
 const SESSION_KEY = 'oneulbam_session'
 const getSession = () => {
@@ -28,6 +51,7 @@ const InstructorSection = () => {
   const [showMoreGenres, setShowMoreGenres] = useState(false)
   const [processing, setProcessing] = useState({})
   const [classes, setClasses] = useState([])
+  const [visibleCount, setVisibleCount] = useState(20)
 
   useEffect(() => {
     fetchInstructors()
@@ -234,16 +258,24 @@ const InstructorSection = () => {
     else if (type === 'like') toggleLike(e, id);
   }
 
+  const isFiltering = selectedGenre !== '전체' || selectedCity !== '전국' || searchQuery.trim() !== '';
+
   const filteredInstructors = instructors.filter(i => {
     const matchesGenre = selectedGenre === '전체' || 
                         (selectedGenre === '⭐ 내 팔로잉' ? follows[i.id] : 
                         (Array.isArray(i.genre) ? i.genre.join(' ').includes(selectedGenre) : (i.genre || '').includes(selectedGenre)));
-    const matchesCity = selectedCity === '전국' || (i.city || '').includes(selectedCity);
-    const matchesSearch = !searchQuery || 
-                         i.name.toLowerCase().includes(searchQuery.toLowerCase()) || 
-                         (i.bio || '').toLowerCase().includes(searchQuery.toLowerCase());
+    const matchesCity = matchesRegion(i, selectedCity);
+    const query = searchQuery.trim().toLowerCase();
+    const matchesSearch = !query || 
+                         (i.name || '').toLowerCase().includes(query) || 
+                         (Array.isArray(i.genre) ? i.genre.join(' ') : (i.genre || '')).toLowerCase().includes(query) ||
+                         ((i.city || '') + ' ' + (i.address || '')).toLowerCase().includes(query);
     return matchesGenre && matchesCity && matchesSearch;
   });
+
+  const currentList = isFiltering 
+    ? filteredInstructors 
+    : filteredInstructors.filter(i => !instructors.slice(0, 5).find(top => top.id === i.id));
 
   const getGenre = (genre) => Array.isArray(genre) ? genre.join(' · ') : (genre || '')
 
@@ -289,130 +321,93 @@ const InstructorSection = () => {
         </h2>
       </div>
 
-      {/* Filters & Search - Single Row Design */}
-      <div style={{ position: 'sticky', top: 0, zIndex: 100, background: 'rgba(13, 13, 13, 0.95)', backdropFilter: 'blur(20px)', padding: '15px 25px' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-          
-          {/* Location Chip (Folder Style) */}
-          <div style={{ position: 'relative' }}>
-            <button 
-              onClick={() => { setShowMoreCities(!showMoreCities); setShowMoreGenres(false); }}
-              style={{ 
-                display: 'flex', alignItems: 'center', gap: 6, padding: '10px 14px', borderRadius: '14px',
-                background: selectedCity !== '전국' || showMoreCities ? 'rgba(201,168,76,0.15)' : 'rgba(255,255,255,0.05)',
-                border: selectedCity !== '전국' || showMoreCities ? '1px solid #C9A84C' : '1px solid rgba(255,255,255,0.1)',
-                color: selectedCity !== '전국' || showMoreCities ? '#C9A84C' : '#8E8E93',
-                cursor: 'pointer', whiteSpace: 'nowrap', fontSize: '13px', fontWeight: 800
+      {/* 스타일 삽입 (스크롤바 숨김) */}
+      <style>{`
+        .hide-scrollbar::-webkit-scrollbar {
+          display: none;
+        }
+      `}</style>
+
+      {/* Filters & Search - 3-Step Header */}
+      <div style={{ 
+        position: 'sticky', top: 0, zIndex: 100, 
+        background: 'rgba(13, 13, 13, 0.95)', backdropFilter: 'blur(20px)', 
+        padding: '15px 25px', borderBottom: '1px solid rgba(255,255,255,0.05)',
+        display: 'flex', flexDirection: 'column', gap: '12px'
+      }}>
+        {/* 3. 검색창 (상단 고정) */}
+        <div style={{ position: 'relative' }}>
+          <Search size={16} color="#475569" style={{ position: 'absolute', left: 15, top: '50%', transform: 'translateY(-50%)' }} />
+          <input 
+            id="instructor-search-input"
+            type="text"
+            value={searchQuery}
+            onChange={(e) => { setSearchQuery(e.target.value); setVisibleCount(20); }}
+            placeholder="이름, 장르, 지역으로 검색"
+            style={{ 
+              width: '100%', padding: '12px 15px 12px 42px', borderRadius: '16px', 
+              background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', 
+              color: '#FFF', fontSize: '14px', fontWeight: 600, outline: 'none',
+              boxSizing: 'border-box'
+            }}
+          />
+        </div>
+
+        {/* 1. 지역 탭 (가로 스크롤) */}
+        <div className="hide-scrollbar" style={{ display: 'flex', alignItems: 'center', gap: '6px', overflowX: 'auto', scrollbarWidth: 'none', msOverflowStyle: 'none', paddingBottom: '2px' }}>
+          {REGIONS.map(r => (
+            <button
+              key={r}
+              onClick={() => { setSelectedCity(r); setVisibleCount(20); }}
+              style={{
+                padding: '8px 16px', borderRadius: '20px', border: 'none', whiteSpace: 'nowrap',
+                background: selectedCity === r ? 'rgba(201,168,76,0.15)' : 'rgba(255,255,255,0.03)',
+                color: selectedCity === r ? '#C9A84C' : '#8E8E93',
+                fontSize: '13px', fontWeight: selectedCity === r ? 800 : 600,
+                border: selectedCity === r ? '1px solid #C9A84C' : '1px solid rgba(255,255,255,0.05)',
+                cursor: 'pointer', transition: 'all 0.2s'
               }}
             >
-              {selectedCity === '전국' ? '전국' : selectedCity}
-              <Plus size={14} style={{ transform: showMoreCities ? 'rotate(45deg)' : 'none', transition: 'transform 0.2s' }} />
+              {r}
             </button>
-            
-            <AnimatePresence>
-              {showMoreCities && (
-                <motion.div 
-                  initial={{ opacity: 0, y: 10, scale: 0.95 }} 
-                  animate={{ opacity: 1, y: 5, scale: 1 }} 
-                  exit={{ opacity: 0, y: 10, scale: 0.95 }}
-                  style={{ 
-                    position: 'absolute', top: '100%', left: 0, minWidth: '140px',
-                    background: '#1A1A1A', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '18px',
-                    padding: '8px', boxShadow: '0 20px 40px rgba(0,0,0,0.5)', zIndex: 1000
-                  }}
-                >
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-                    {CITIES.map(c => (
-                      <button 
-                        key={c} 
-                        onClick={() => { setSelectedCity(c); setShowMoreCities(false); }}
-                        style={{ 
-                          padding: '12px 16px', borderRadius: '12px', border: 'none', textAlign: 'left',
-                          background: selectedCity === c ? 'rgba(201,168,76,0.1)' : 'transparent',
-                          color: selectedCity === c ? '#C9A84C' : '#A1A1AA',
-                          fontSize: '14px', fontWeight: 700, cursor: 'pointer'
-                        }}
-                      >
-                        {c}
-                      </button>
-                    ))}
-                  </div>
-                </motion.div>
-              )}
-            </AnimatePresence>
-          </div>
+          ))}
+        </div>
 
-          {/* Genre Chip (Folder Style) */}
-          <div style={{ position: 'relative' }}>
-            <button 
-              onClick={() => { setShowMoreGenres(!showMoreGenres); setShowMoreCities(false); }}
-              style={{ 
-                display: 'flex', alignItems: 'center', gap: 6, padding: '10px 14px', borderRadius: '14px',
-                background: selectedGenre !== '전체' || showMoreGenres ? 'rgba(201,168,76,0.15)' : 'rgba(255,255,255,0.05)',
-                border: selectedGenre !== '전체' || showMoreGenres ? '1px solid #C9A84C' : '1px solid rgba(255,255,255,0.1)',
-                color: selectedGenre !== '전체' || showMoreGenres ? '#C9A84C' : '#8E8E93',
-                cursor: 'pointer', whiteSpace: 'nowrap', fontSize: '13px', fontWeight: 800
+        {/* 2. 장르 탭 (가로 스크롤) */}
+        <div className="hide-scrollbar" style={{ display: 'flex', alignItems: 'center', gap: '6px', overflowX: 'auto', scrollbarWidth: 'none', msOverflowStyle: 'none', paddingBottom: '2px' }}>
+          {GENRE_TABS.map(g => (
+            <button
+              key={g}
+              onClick={() => { setSelectedGenre(g); setVisibleCount(20); }}
+              style={{
+                padding: '8px 16px', borderRadius: '20px', border: 'none', whiteSpace: 'nowrap',
+                background: selectedGenre === g ? 'rgba(201,168,76,0.15)' : 'rgba(255,255,255,0.03)',
+                color: selectedGenre === g ? '#C9A84C' : '#8E8E93',
+                fontSize: '13px', fontWeight: selectedGenre === g ? 800 : 600,
+                border: selectedGenre === g ? '1px solid #C9A84C' : '1px solid rgba(255,255,255,0.05)',
+                cursor: 'pointer', transition: 'all 0.2s'
               }}
             >
-              {selectedGenre === '전체' ? '전체' : selectedGenre}
-              <Plus size={14} style={{ transform: showMoreGenres ? 'rotate(45deg)' : 'none', transition: 'transform 0.2s' }} />
+              {g}
             </button>
-            
-            <AnimatePresence>
-              {showMoreGenres && (
-                <motion.div 
-                  initial={{ opacity: 0, y: 10, scale: 0.95 }} 
-                  animate={{ opacity: 1, y: 5, scale: 1 }} 
-                  exit={{ opacity: 0, y: 10, scale: 0.95 }}
-                  style={{ 
-                    position: 'absolute', top: '100%', left: 0, minWidth: '160px',
-                    background: '#1A1A1A', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '18px',
-                    padding: '8px', boxShadow: '0 20px 40px rgba(0,0,0,0.5)', zIndex: 1000
-                  }}
-                >
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: 2, maxHeight: '300px', overflowY: 'auto' }}>
-                    {GENRES.map(g => (
-                      <button 
-                        key={g} 
-                        onClick={() => { setSelectedGenre(g); setShowMoreGenres(false); }}
-                        style={{ 
-                          padding: '12px 16px', borderRadius: '12px', border: 'none', textAlign: 'left',
-                          background: selectedGenre === g ? 'rgba(201,168,76,0.1)' : 'transparent',
-                          color: selectedGenre === g ? '#C9A84C' : '#A1A1AA',
-                          fontSize: '14px', fontWeight: 700, cursor: 'pointer'
-                        }}
-                      >
-                        {g}
-                      </button>
-                    ))}
-                  </div>
-                </motion.div>
-              )}
-            </AnimatePresence>
-          </div>
-
-          {/* Search Input */}
-          <div style={{ flex: 1, position: 'relative' }}>
-            <Search size={16} color="#475569" style={{ position: 'absolute', left: 15, top: '50%', transform: 'translateY(-50%)' }} />
-            <input 
-              id="instructor-search-input"
-              type="text"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="마스터 검색"
-              style={{ 
-                width: '100%', padding: '12px 15px 12px 42px', borderRadius: '16px', 
-                background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', 
-                color: '#FFF', fontSize: '14px', fontWeight: 600, outline: 'none' 
+          ))}
+          {selectedGenre === '⭐ 내 팔로잉' && (
+            <button
+              onClick={() => { setSelectedGenre('⭐ 내 팔로잉'); setVisibleCount(20); }}
+              style={{
+                padding: '8px 16px', borderRadius: '20px', border: 'none', whiteSpace: 'nowrap',
+                background: 'rgba(201,168,76,0.15)', color: '#C9A84C', fontSize: '13px', fontWeight: 800,
+                border: '1px solid #C9A84C', cursor: 'pointer'
               }}
-            />
-          </div>
-
+            >
+              ⭐ 내 팔로잉
+            </button>
+          )}
         </div>
       </div>
 
       {/* TOP 5 MASTERS - High Impact Showcase */}
-      {!loading && instructors.length > 0 && (
+      {!loading && instructors.length > 0 && !isFiltering && (
         <div style={{ padding: '10px 25px 30px' }}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '18px' }}>
             <h3 style={{ fontSize: '13px', fontWeight: 900, color: '#C9A84C', letterSpacing: '2px', margin: 0 }}>TOP 5 MASTERS</h3>
@@ -470,13 +465,15 @@ const InstructorSection = () => {
         </div>
       )}
 
-      {/* List View - Others */}
+      {/* List View - Others / Search Results */}
       <div style={{ padding: '0 25px 100px' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: '20px' }}>
-          <h3 style={{ fontSize: '12px', fontWeight: 800, color: '#475569', letterSpacing: '1px', margin: 0 }}>EXPLORE ALL MASTERS</h3>
+          <h3 style={{ fontSize: '12px', fontWeight: 800, color: isFiltering ? '#C9A84C' : '#475569', letterSpacing: '1px', margin: 0 }}>
+            {isFiltering ? `검색 결과 (${currentList.length}명)` : 'EXPLORE ALL MASTERS'}
+          </h3>
           <div style={{ flex: 1, height: '1px', background: 'rgba(255,255,255,0.05)' }} />
         </div>
-        {filteredInstructors.filter(i => !instructors.slice(0, 5).find(top => top.id === i.id)).map((instructor) => (
+        {currentList.slice(0, visibleCount).map((instructor) => (
           <motion.div
             key={instructor.id}
             initial={{ opacity: 0, y: 15 }}
@@ -503,6 +500,22 @@ const InstructorSection = () => {
             </div>
           </motion.div>
         ))}
+
+        {/* 더 보기 버튼 */}
+        {currentList.length > visibleCount && (
+          <div style={{ textAlign: 'center', marginTop: '25px' }}>
+            <button
+              onClick={() => setVisibleCount(prev => prev + 20)}
+              style={{
+                padding: '12px 28px', borderRadius: '16px', border: '1px solid rgba(201,168,76,0.3)',
+                background: 'rgba(201,168,76,0.1)', color: '#C9A84C', fontSize: '13px', fontWeight: 800,
+                cursor: 'pointer', transition: 'all 0.2s'
+              }}
+            >
+              더 보기 ({visibleCount} / {currentList.length})
+            </button>
+          </div>
+        )}
       </div>
 
       {/* Detail View (Pixel Perfect to Mockup) */}
