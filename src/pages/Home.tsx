@@ -922,59 +922,7 @@ const HomePage = ({
         </AnimatePresence>
       </div>
 
-      {/* 🔴 [신규 채널 박스 - 가로 나열 (오픈채팅 중복 제거)] */}
-      <div style={{ padding: '0 12px', marginBottom: '24px' }}>
-        <div style={{ display: 'flex', gap: '12px', justifyContent: 'space-between' }}>
-          {/* 1. 유튜브 */}
-          <div style={{
-            flex: 1,
-            background: '#FFF0F0',
-            borderRadius: '16px',
-            padding: '16px',
-            boxShadow: '0 2px 8px rgba(0,0,0,0.06)',
-            display: 'flex',
-            flexDirection: 'column',
-            alignItems: 'center',
-            justifyContent: 'center',
-            gap: '6px',
-            boxSizing: 'border-box'
-          }}>
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#FF0000" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M22.54 6.42a2.78 2.78 0 0 0-1.95-1.96C18.88 4 12 4 12 4s-6.88 0-8.59.46a2.78 2.78 0 0 0-1.95 1.96A29 29 0 0 0 1 12a29 29 0 0 0 .46 5.58 2.78 2.78 0 0 0 1.95 1.96C5.12 20 12 20 12 20s6.88 0 8.59-.46a2.78 2.78 0 0 0 1.95-1.96A29 29 0 0 0 23 12a29 29 0 0 0-.46-5.58z"></path><polygon points="9.75 15.02 15.5 12 9.75 8.98 9.75 15.02" fill="#FF0000"></polygon></svg>
-            <span style={{ fontSize: '12px', fontWeight: 900, color: '#1E293B', letterSpacing: '-0.3px' }}>YouTube</span>
-            <span style={{ fontSize: '10px', fontWeight: 700, color: '#EF4444', letterSpacing: '-0.3px' }}>준비중 🎬</span>
-          </div>
 
-          {/* 2. 인스타그램 */}
-          <div
-            onClick={() => window.open('https://www.instagram.com', '_blank')}
-            style={{
-              flex: 1,
-              background: '#FFF0F5',
-              borderRadius: '16px',
-              padding: '16px',
-              boxShadow: '0 2px 8px rgba(0,0,0,0.06)',
-              display: 'flex',
-              flexDirection: 'column',
-              alignItems: 'center',
-              justifyContent: 'center',
-              gap: '6px',
-              cursor: 'pointer',
-              boxSizing: 'border-box'
-            }}
-          >
-            {/* 인스타 그라데이션 아이콘 */}
-            <div style={{
-              display: 'flex', alignItems: 'center', justifyContent: 'center',
-              background: 'linear-gradient(45deg, #f09433 0%,#e6683c 25%,#dc2743 50%,#cc2366 75%,#bc1888 100%)',
-              borderRadius: '8px', padding: '3px'
-            }}>
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="2" y="2" width="20" height="20" rx="5" ry="5"></rect><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"></path><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"></line></svg>
-            </div>
-            <span style={{ fontSize: '12px', fontWeight: 900, color: '#1E293B', letterSpacing: '-0.3px' }}>Instagram</span>
-            <span style={{ fontSize: '10px', fontWeight: 700, color: '#D81B60', letterSpacing: '-0.3px' }}>팔로우하기</span>
-          </div>
-        </div>
-      </div>
 
       <div ref={scrollRef} style={{ width: '100%', background: 'var(--color-bg)' }}>
         <div style={{ minHeight: '101%' }}>
