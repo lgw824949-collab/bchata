@@ -922,7 +922,7 @@ const HomePage = ({
         </AnimatePresence>
       </div>
 
-      {/* 🔴 [신규 채널 박스 3개 - 가로 나열] */}
+      {/* 🔴 [신규 채널 박스 - 가로 나열 (오픈채팅 중복 제거)] */}
       <div style={{ padding: '0 12px', marginBottom: '24px' }}>
         <div style={{ display: 'flex', gap: '12px', justifyContent: 'space-between' }}>
           {/* 1. 유튜브 */}
@@ -972,35 +972,6 @@ const HomePage = ({
             </div>
             <span style={{ fontSize: '12px', fontWeight: 900, color: '#1E293B', letterSpacing: '-0.3px' }}>Instagram</span>
             <span style={{ fontSize: '10px', fontWeight: 700, color: '#D81B60', letterSpacing: '-0.3px' }}>팔로우하기</span>
-          </div>
-
-          {/* 3. 카카오톡 */}
-          <div
-            onClick={() => window.open('https://open.kakao.com/o/gP43rNri', '_blank')}
-            style={{
-              flex: 1,
-              background: '#FFFDE7',
-              borderRadius: '16px',
-              padding: '16px',
-              boxShadow: '0 2px 8px rgba(0,0,0,0.06)',
-              display: 'flex',
-              flexDirection: 'column',
-              alignItems: 'center',
-              justifyContent: 'center',
-              gap: '6px',
-              cursor: 'pointer',
-              boxSizing: 'border-box'
-            }}
-          >
-            {/* 카카오 노란색 아이콘 컨테이너 */}
-            <div style={{
-              display: 'flex', alignItems: 'center', justifyContent: 'center',
-              background: '#FEE500', borderRadius: '8px', padding: '3px'
-            }}>
-              <MessageSquare size={18} color="#3C1E1E" fill="#3C1E1E" />
-            </div>
-            <span style={{ fontSize: '12px', fontWeight: 900, color: '#1E293B', letterSpacing: '-0.3px' }}>KakaoTalk</span>
-            <span style={{ fontSize: '10px', fontWeight: 700, color: '#F57F17', letterSpacing: '-0.3px' }}>오픈채팅</span>
           </div>
         </div>
       </div>
