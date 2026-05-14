@@ -664,28 +664,8 @@ const HomePage = ({
         </div>
       </div>
 
-      {/* 🔴 [LIVE 바 및 포스터 이벤트 영역 개편] */}
+      {/* 🔴 [LIVE 바 임팩트 영역 개편] */}
       <div style={{ padding: '4px 20px 12px' }}>
-        <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: '8px' }}>
-          <button
-            onClick={() => window.dispatchEvent(new CustomEvent('open-id-register'))}
-            style={{
-              display: 'flex', alignItems: 'center', gap: 4,
-              background: '#FFF5F5', border: '1px solid #FFE4E6',
-              borderRadius: 12, padding: '4px 10px',
-              cursor: 'pointer', fontSize: '10px',
-              color: '#E53935', fontWeight: 800
-            }}
-          >
-            <span style={{
-              width: 5, height: 5, background: '#E53935', borderRadius: '50%', flexShrink: 0,
-              display: 'inline-block', animation: 'ev-blink 1s infinite'
-            }} />
-            🥃 포스터 이벤트
-          </button>
-          <style>{`@keyframes ev-blink{0%,100%{opacity:1}50%{opacity:0.3}}`}</style>
-        </div>
-
         {/* LiveCount를 감싸는 세련된 임팩트 컨테이너 및 전역 스타일 주입 */}
         <div className="live-count-premium-wrapper" style={{ 
           background: '#0F172A', 
@@ -1039,9 +1019,9 @@ const HomePage = ({
 
                 return (
                   <>
-                    {/* HOT PICK 통합 트랙 (가로 스크롤) */}
+                    {/* HOT PICK 통합 트랙 (자연스럽게 왼쪽으로 무한 롤링되는 자동 마퀴 스크롤) */}
                     {newest8GlobalEvents.length > 0 && (
-                      <div style={{ margin: '0 0 15px', padding: '10px 0 20px', background: 'var(--color-card)', borderBottom: '1px solid var(--color-border)' }}>
+                      <div style={{ margin: '0 0 15px', padding: '10px 0 20px', background: 'var(--color-card)', borderBottom: '1px solid var(--color-border)', overflow: 'hidden' }}>
                         <div style={{ padding: '0 20px 15px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                           <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
                             <h2 style={{ fontSize: '18px', fontWeight: '950', color: 'var(--color-text-main)', display: 'flex', alignItems: 'center', gap: '8px' }}>
@@ -1049,9 +1029,25 @@ const HomePage = ({
                             </h2>
                           </div>
                         </div>
+                        <style>{`
+                          .hot-pick-track-premium {
+                            display: flex;
+                            width: max-content;
+                            gap: 12px;
+                            padding: 5px 20px 10px;
+                            animation: hotPickMarquee 35s linear infinite;
+                          }
+                          .hot-pick-track-premium:hover {
+                            animation-play-state: paused;
+                          }
+                          @keyframes hotPickMarquee {
+                            0% { transform: translate3d(0, 0, 0); }
+                            100% { transform: translate3d(-50%, 0, 0); }
+                          }
+                        `}</style>
                         <div style={{ width: '100%', overflow: 'hidden' }}>
-                          <div style={{ display: 'flex', overflowX: 'auto', gap: '12px', padding: '5px 20px 10px', msOverflowStyle: 'none', scrollbarWidth: 'none', WebkitOverflowScrolling: 'touch' }}>
-                            {newest8GlobalEvents.map((item, idx) => (
+                          <div className="hot-pick-track-premium">
+                            {[...newest8GlobalEvents, ...newest8GlobalEvents].map((item, idx) => (
                               <div 
                                 key={`${item.id}-${idx}`} 
                                 onClick={async () => {
@@ -1063,7 +1059,7 @@ const HomePage = ({
                                     } catch (err) {}
                                   }
                                 }} 
-                                style={{ width: '140px', flexShrink: 0, borderRadius: '12px', overflow: 'hidden', boxShadow: '0 8px 20px rgba(0,0,0,0.12)', position: 'relative', background: '#000', cursor: 'pointer' }}
+                                style={{ width: '140px', flexShrink: 0, borderRadius: '12px', overflow: 'hidden', boxShadow: '0 8px 20px rgba(0,0,0,0.12)', position: 'relative', background: '#000', cursor: 'pointer', transform: 'translateZ(0)' }}
                               >
                                 <img src={item.poster_url} style={{ width: '100%', height: '210px', objectFit: 'cover' }} alt="Pick" />
                                 
