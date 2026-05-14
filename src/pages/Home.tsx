@@ -1206,11 +1206,12 @@ const HomePage = ({
                                       style={{
                                         width: '340px',
                                         flexShrink: 0,
-                                        borderRadius: '16px',
+                                        borderRadius: '20px',
                                         overflow: 'hidden',
                                         display: 'flex',
                                         background: 'var(--color-card)',
-                                        border: '1px solid var(--color-border)',
+                                        border: '1px solid #FFE4E4',
+                                        boxShadow: '0 4px 16px rgba(229, 57, 53, 0.08)',
                                         cursor: 'pointer',
                                         height: '150px',
                                         transition: 'all 0.3s',
@@ -1244,7 +1245,7 @@ const HomePage = ({
                                             if (typeof w === 'object' && w !== null) return w.id === item.id;
                                             return w === item.id;
                                           });
-                                          return <span style={{ fontSize: '13px' }}>{isWish ? '❤️' : '🤍'}</span>;
+                                          return <Heart size={15} color={isWish ? '#FF4081' : '#FFCDD2'} fill={isWish ? '#FF4081' : '#FFCDD2'} />;
                                         })()}
                                       </button>
 
@@ -1253,12 +1254,12 @@ const HomePage = ({
                                         <img src={item.poster_url} style={{ width: '100%', height: '100%', objectFit: 'cover' }} alt="Poster" />
                                       </div>
 
-                                      {/* 오른쪽 정보 영역: 깔끔하게 정렬 */}
-                                      <div style={{ flex: 1, padding: '12px 14px', display: 'flex', flexDirection: 'column', justifyContent: 'space-between', minWidth: 0, boxSizing: 'border-box' }}>
+                                      {/* 오른쪽 정보 영역: 여성 감각으로 세련되게 정렬 */}
+                                      <div style={{ flex: 1, padding: '12px', display: 'flex', flexDirection: 'column', justifyContent: 'space-between', minWidth: 0, boxSizing: 'border-box' }}>
                                         
-                                        {/* 1. 장르 뱃지 (바차타/살사 등) */}
+                                        {/* 1. 장르 뱃지 (파스텔 핑크 + 딥 로즈) */}
                                         <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                                          <span style={{ fontSize: '11px', fontWeight: '800', color: '#E53935', background: '#FFF0F0', padding: '2px 8px', borderRadius: '6px', flexShrink: 0 }}>
+                                          <span style={{ fontSize: '11px', fontWeight: '800', color: '#D81B60', background: '#FFF0F5', padding: '2px 8px', borderRadius: '20px', flexShrink: 0 }}>
                                             {(() => {
                                               if (item._itemGenre && item._itemGenre !== '소셜') return item._itemGenre;
                                               const entries = Object.entries(GENRE_MAP).filter(([_, info]) => item[info.key] > 0)
@@ -1273,12 +1274,12 @@ const HomePage = ({
                                           )}
                                         </div>
 
-                                        {/* 2. 파티명 (굵게, 크게) */}
-                                        <div style={{ fontSize: '18px', fontWeight: 'bold', color: '#1E293B', display: '-webkit-box', WebkitLineClamp: 1, WebkitBoxOrient: 'vertical', overflow: 'hidden', textOverflow: 'ellipsis', letterSpacing: '-0.5px', lineHeight: 1.2, marginTop: '2px' }}>
+                                        {/* 2. 파티명 (굵게, 크게, 아래 여백 6px) */}
+                                        <div style={{ fontSize: '18px', fontWeight: 'bold', color: '#1E293B', display: '-webkit-box', WebkitLineClamp: 1, WebkitBoxOrient: 'vertical', overflow: 'hidden', textOverflow: 'ellipsis', letterSpacing: '-0.5px', lineHeight: 1.2, marginTop: '2px', marginBottom: '6px' }}>
                                           {cleanTitle(item.title || '').replace(/^\[.*?\]\s*/, '').replace(/ㅣ\s*$/, '').trim()}
                                         </div>
 
-                                        {/* 3. 시간 아이콘 + 시간 */}
+                                        {/* 3. 시간 아이콘 + 시간 (간격 4px) */}
                                         <div style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: '15px', color: '#1E293B', fontWeight: '500', marginTop: '-2px' }}>
                                           <Clock size={14} color="#1E293B" style={{ flexShrink: 0 }} />
                                           <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
@@ -1291,7 +1292,7 @@ const HomePage = ({
                                           )}
                                         </div>
 
-                                        {/* 4. 장소 아이콘 + 장소명 · 가격 및 지도 텍스트 링크 */}
+                                        {/* 4. 장소 아이콘 + 장소명 · 가격 및 지도 텍스트 링크 (간격 4px) */}
                                         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '4px', marginTop: 'auto' }}>
                                           <div style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: '13px', color: '#E53935', fontWeight: 'bold', overflow: 'hidden', whiteSpace: 'nowrap', textOverflow: 'ellipsis' }}>
                                             <Navigation size={13} color="#E53935" fill="#E53935" style={{ flexShrink: 0 }} />
@@ -1299,31 +1300,31 @@ const HomePage = ({
                                               {translateDynamicText(item.locationName, isEn)}
                                             </span>
                                             <span style={{ opacity: 0.4, margin: '0 2px' }}>·</span>
-                                            <span style={{ flexShrink: 0 }}>
+                                            <span style={{ color: '#E53935', fontWeight: '900', flexShrink: 0 }}>
                                               {formatPrice(item.fee)}
                                             </span>
                                           </div>
 
-                                          {/* 카카오맵 · 구글맵 텍스트 링크 */}
-                                          <div style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: '11px', fontWeight: '800', flexShrink: 0 }}>
+                                          {/* 카카오맵 · 구글맵 텍스트 링크 (작고 조용하게 10px, 연한 회색) */}
+                                          <div style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: '10px', fontWeight: '700', flexShrink: 0 }}>
                                             <span
                                               onClick={(e) => {
                                                 e.stopPropagation();
                                                 const locQuery = encodeURIComponent(item.locationName || item.venue || '');
                                                 window.open(`https://map.kakao.com/link/search/${locQuery}`);
                                               }}
-                                              style={{ color: '#F9A825', cursor: 'pointer', padding: '2px 0' }}
+                                              style={{ color: '#94A3B8', cursor: 'pointer', padding: '2px 0' }}
                                             >
                                               카카오맵
                                             </span>
-                                            <span style={{ color: '#CBD5E1', fontSize: '10px' }}>·</span>
+                                            <span style={{ color: '#E2E8F0', fontSize: '9px' }}>·</span>
                                             <span
                                               onClick={(e) => {
                                                 e.stopPropagation();
                                                 const locQuery = encodeURIComponent(item.locationName || item.venue || '');
                                                 window.open(`https://www.google.com/maps/search/${locQuery}`);
                                               }}
-                                              style={{ color: '#4285F4', cursor: 'pointer', padding: '2px 0' }}
+                                              style={{ color: '#94A3B8', cursor: 'pointer', padding: '2px 0' }}
                                             >
                                               구글맵
                                             </span>
