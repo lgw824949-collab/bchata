@@ -747,25 +747,46 @@ const InstructorSection = () => {
                           {selectedInstructor.bio || `Passionate professional professional with years of experience. Focused on technique, expression, and artistry. Based in ${selectedInstructor.city}.`}
                         </p>
 
-                        <div style={{ display: 'flex', marginTop: '30px', gap: '16px', alignItems: 'flex-end', justifyContent: 'space-between', flexWrap: 'wrap' }}>
-                          <div style={{ flex: 1, minWidth: '120px' }}>
-                            <div style={{ fontSize: '14px', fontWeight: 900, color: '#FFF', marginBottom: '8px' }}>Specialties</div>
-                            <div style={{ fontSize: '14px', color: '#8E8E93', fontWeight: 600, display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
-                              {getGenre(selectedInstructor.genre).split(' · ').map(g => <span key={g} style={{ background: 'rgba(255,255,255,0.05)', padding: '4px 12px', borderRadius: '8px' }}>{g}</span>)}
-                            </div>
+                        <div style={{ marginTop: '30px' }}>
+                          <div style={{ fontSize: '14px', fontWeight: 900, color: '#FFF', marginBottom: '8px' }}>Specialties</div>
+                          <div style={{ fontSize: '14px', color: '#8E8E93', fontWeight: 600, display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
+                            {getGenre(selectedInstructor.genre).split(' · ').map(g => <span key={g} style={{ background: 'rgba(255,255,255,0.05)', padding: '4px 12px', borderRadius: '8px', border: '1px solid rgba(255,255,255,0.05)' }}>{g}</span>)}
                           </div>
-                          <div style={{ display:'flex', gap:8 }}>
+                        </div>
+
+                        {/* 고품격 문의/예약 전용 프리미엄 박스 영역 */}
+                        <div style={{ 
+                          marginTop: '24px', padding: '18px', borderRadius: '20px', 
+                          background: 'linear-gradient(145deg, rgba(24,24,24,0.7) 0%, rgba(12,12,12,0.9) 100%)',
+                          border: '1px solid rgba(201,168,76,0.2)', boxShadow: '0 12px 32px rgba(0,0,0,0.6)'
+                        }}>
+                          <div style={{ fontSize: '11px', fontWeight: 800, color: '#C9A84C', letterSpacing: '0.5px', marginBottom: '14px', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                            <span>✨ DIRECT INQUIRY & BOOKING</span>
+                          </div>
+                          <div style={{ display: 'flex', gap: '10px' }}>
                             {selectedInstructor.kakao_link && (
                               <button
                                 onClick={() => window.open(selectedInstructor.kakao_link, '_blank')}
-                                style={{ padding:'12px 16px', borderRadius:14, border:'none', background:'#FEE500', color:'#000', fontSize:14, fontWeight:900, cursor:'pointer', whiteSpace: 'nowrap' }}
-                              >💬 카카오 문의</button>
+                                style={{ 
+                                  flex: 1, padding: '14px 8px', borderRadius: '14px', border: 'none', 
+                                  background: 'linear-gradient(135deg, #FEE500 0%, #E6CF00 100%)', color: '#111', 
+                                  fontSize: '13px', fontWeight: 900, cursor: 'pointer', textAlign: 'center',
+                                  boxShadow: '0 6px 16px rgba(254, 229, 0, 0.2)', transition: 'all 0.2s'
+                                }}
+                              >💬 수업·레슨 문의</button>
                             )}
                             {getInstaLink(selectedInstructor) && (
                               <button
                                 onClick={() => window.open(getInstaLink(selectedInstructor), '_blank')}
-                                style={{ padding:'12px 16px', borderRadius:14, border:'1px solid #C9A84C', background:'#fff', color:'#000', fontSize:14, fontWeight:900, cursor:'pointer', whiteSpace: 'nowrap', boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }}
-                              >📅 부킹 예약하기</button>
+                                style={{ 
+                                  flex: 1, padding: '14px 8px', borderRadius: '14px', 
+                                  border: '1px solid rgba(201,168,76,0.4)', 
+                                  background: 'linear-gradient(135deg, rgba(201,168,76,0.15) 0%, rgba(201,168,76,0.05) 100%)', 
+                                  color: '#E5C266', fontSize: '13px', fontWeight: 900, cursor: 'pointer', textAlign: 'center',
+                                  boxShadow: '0 6px 16px rgba(201, 168, 76, 0.1)', backdropFilter: 'blur(8px)',
+                                  transition: 'all 0.2s'
+                                }}
+                              >📅 부킹·예약 문의</button>
                             )}
                           </div>
                         </div>
