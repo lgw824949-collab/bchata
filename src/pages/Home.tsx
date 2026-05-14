@@ -649,16 +649,23 @@ const HomePage = ({
         </div>
       </div>
 
-      {/* 🚀 [사용자 요청] 퀵 메뉴 그리드 (벤치마킹 디자인 적용) */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: '4px', padding: '8px 10px 12px' }}>
+      {/* 🚀 [사용자 요청] 퀵 메뉴 가로 스크롤바로 개편 (더보기/파트너구하기 삭제, 총 9개 아이콘) */}
+      <div className="quick-menu-scroll" style={{ 
+        display: 'flex', overflowX: 'auto', gap: '8px', padding: '8px 10px 12px', 
+        scrollbarWidth: 'none', msOverflowStyle: 'none', WebkitOverflowScrolling: 'touch' 
+      }}>
         {[
           { icon: <Calendar size={22} color="#F97316" />, label: '행사달력', action: () => setShowFullCalendar(true) },
-          { icon: <Utensils size={22} color="#C2185B" />, label: '맛집/뒷풀이', action: () => setView('restaurant') },
-          { icon: <HomeIcon size={22} color="#558B2F" />, label: '대관문의', action: () => setShowRentalModal(true) },
+          { icon: <Utensils size={22} color="#C2185B" />, label: '맛집뒷풀이', action: () => setView('restaurant') },
+          { icon: <MessageSquare size={22} color="#388E3C" />, label: '채팅문의', action: () => window.open('https://open.kakao.com/o/gP43rNri', '_blank') },
           { icon: <Camera size={22} color="#E53935" />, label: '라이브픽', badge: 'HOT', action: () => setView('community') },
-          { icon: <PlusCircle size={22} color="#64748B" />, label: '더보기', action: () => { setGridRegion('more'); setShowGridModal(true); } },
+          { icon: <CloudSun size={22} color="#1976D2" />, label: '오늘날씨', action: () => setShowWeather(true) },
+          { icon: <Heart size={22} color="#7B1FA2" />, label: '찜하기', action: () => setShowWishlist(true) },
+          { icon: <Navigation size={22} color="#303F9F" />, label: '지능형경로', badge: 'LIVE', action: () => openAnalysis(false) },
+          { icon: <Star size={22} color="#F9A825" />, label: '운명의좌표', action: () => setShowSaju(true) },
+          { icon: <HomeIcon size={22} color="#558B2F" />, label: '대관문의', action: () => setShowRentalModal(true) },
         ].map((item, idx) => (
-          <div key={idx} style={{ position: 'relative' }}>
+          <div key={idx} style={{ position: 'relative', flexShrink: 0, width: '68px' }}>
             <div style={{
               borderRadius: '14px', padding: '1.5px',
               background: 'linear-gradient(135deg, #CBD5E1, #E2E8F0, #CBD5E1)',
@@ -670,11 +677,11 @@ const HomePage = ({
                 style={{
                   display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
                   gap: '6px', cursor: 'pointer', borderRadius: '12px',
-                  padding: '12px 4px 10px', background: '#fff'
+                  padding: '12px 4px 10px', background: '#fff', height: '64px', boxSizing: 'border-box'
                 }}
               >
                 {item.icon}
-                <span style={{ fontSize: '10px', fontWeight: 500, color: '#1E293B', textAlign: 'center', lineHeight: 1.3, wordBreak: 'keep-all' }}>
+                <span style={{ fontSize: '10px', fontWeight: 600, color: '#1E293B', textAlign: 'center', lineHeight: 1.2, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', width: '100%' }}>
                   {item.label}
                 </span>
               </motion.div>
@@ -1404,7 +1411,6 @@ const HomePage = ({
                       { icon: <Star size={32} color="#F9A825" />, label: '운명의좌표', action: () => setShowSaju(true) },
                       { icon: <MapPin size={32} color="#0097A7" />, label: '주변주차', action: () => setView('parking') },
                       { icon: <MessageSquare size={32} color="#388E3C" />, label: '채팅문의', action: () => window.open('https://open.kakao.com/o/gP43rNri', '_blank') },
-                      { icon: <Users size={32} color="#E53935" />, label: '파트너구하기', badge: 'NEW', action: () => setShowPartner(true) },
                     ].map((item, idx) => (
                       <div key={idx} style={{ position: 'relative' }}>
                         <div style={{
@@ -1503,6 +1509,7 @@ const HomePage = ({
         }
         .filter-scroll::-webkit-scrollbar { display: none; }
         .date-stream-bar::-webkit-scrollbar { display: none; }
+        .quick-menu-scroll::-webkit-scrollbar { display: none; }
         .hot-pick-track { display: flex; animation: hotPickScroll 40s linear infinite; }
         @keyframes hotPickScroll {
           0% { transform: translateX(0); }
