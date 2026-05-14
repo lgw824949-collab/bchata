@@ -23,6 +23,7 @@ const WeatherModal = lazy(() => import('./components/WeatherModal'));
 import PartnerModal from './components/PartnerModal';
 import WishlistModal from './components/WishlistModal';
 import RentalModal from './components/RentalModal';
+import ClassRegisterModal from './components/ClassRegisterModal';
 
 // 로딩 스피너 컴포넌트
 const LoadingFallback = () => (
@@ -573,6 +574,7 @@ function App() {
   const [showWeather, setShowWeather] = useState(false);
   const [showSaju, setShowSaju] = useState(false);
   const [showPartner, setShowPartner] = useState(false);
+  const [showClassRegister, setShowClassRegister] = useState(false);
   const [showFullCalendar, setShowFullCalendar] = useState(false);
   const [showFilterPanel, setShowFilterPanel] = useState(false);
   const [showFilteredResults, setShowFilteredResults] = useState(false);
@@ -1024,13 +1026,8 @@ function App() {
                   icon: <Star color={'#C9A84C'} />, 
                   text: '강사 클래스', 
                   action: () => { 
-                    localStorage.setItem('instructor_target_genre', '전체');
-                    navigate('/instructors'); 
-                    setView('instructors');
-                    setIsMenuOpen(false); 
-                    setTimeout(() => {
-                      window.dispatchEvent(new CustomEvent('apply-instructor-filter'));
-                    }, 300);
+                    setIsMenuOpen(false);
+                    setTimeout(() => setShowClassRegister(true), 300);
                   } 
                 },
                 { 
@@ -1471,6 +1468,7 @@ function App() {
     
     {/* [B] [포스터 확대 모달 - 컨테이너 외부 최상위 배치] */}
     {showPartner && <PartnerModal onClose={() => setShowPartner(false)} />}
+    {showClassRegister && <ClassRegisterModal onClose={() => setShowClassRegister(false)} />}
     <AnimatePresence>
       {selectedPoster && (
         <motion.div
