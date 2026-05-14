@@ -694,11 +694,6 @@ export default function RentalModal({ onClose }) {
               {/* 하단 텍스트 및 액션 버튼 영역 (흰색 배경, 가독성 극대화) */}
               <div style={{ padding: '20px', display: 'flex', flexDirection: 'column', gap: '16px', background: '#ffffff' }}>
                 <div>
-                  <div style={{ marginBottom: '6px' }}>
-                    <span style={{ fontSize: '11px', background: '#FFF1F2', color: '#E53935', fontWeight: 800, padding: '3px 8px', borderRadius: '6px' }}>
-                      {selectedBar.region} 제휴 공간
-                    </span>
-                  </div>
                   <h4 style={{ margin: 0, fontSize: '22px', fontWeight: 950, color: '#1E293B', letterSpacing: '-0.5px', lineHeight: 1.3 }}>
                     {selectedBar.name}
                   </h4>
