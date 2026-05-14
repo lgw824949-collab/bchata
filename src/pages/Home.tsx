@@ -649,9 +649,9 @@ const HomePage = ({
         </div>
       </div>
 
-      {/* 🚀 [사용자 요청] 퀵 메뉴 9개 전체 아이콘 가로 스크롤 개편 (더보기/파트너구하기 완전 삭제 반영) */}
+      {/* 🚀 [사용자 요청] 퀵 메뉴 9개 전체 아이콘 가로 스크롤 개편 (오늘날씨 반걸침 UX 최적화) */}
       <div className="quick-menu-scroll" style={{ 
-        display: 'flex', overflowX: 'auto', gap: '8px', padding: '8px 10px 12px', 
+        display: 'flex', overflowX: 'auto', gap: '8px', padding: '8px 12px 12px', 
         scrollbarWidth: 'none', msOverflowStyle: 'none', WebkitOverflowScrolling: 'touch' 
       }}>
         {[
@@ -665,7 +665,7 @@ const HomePage = ({
           { icon: <Star size={22} color="#F9A825" />, label: '운명의좌표', action: () => setShowSaju(true) },
           { icon: <HomeIcon size={22} color="#558B2F" />, label: '대관문의', action: () => setShowRentalModal(true) },
         ].map((item, idx) => (
-          <div key={idx} style={{ position: 'relative', flexShrink: 0, width: '68px' }}>
+          <div key={idx} style={{ position: 'relative', flexShrink: 0, width: '75px' }}>
             <div style={{
               borderRadius: '14px', padding: '1.5px',
               background: 'linear-gradient(135deg, #CBD5E1, #E2E8F0, #CBD5E1)',
@@ -677,7 +677,7 @@ const HomePage = ({
                 style={{
                   display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
                   gap: '6px', cursor: 'pointer', borderRadius: '12px',
-                  padding: '12px 4px 10px', background: '#fff', height: '64px', boxSizing: 'border-box'
+                  padding: '12px 4px 10px', background: '#fff', height: '66px', boxSizing: 'border-box'
                 }}
               >
                 {item.icon}
