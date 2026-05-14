@@ -1204,7 +1204,7 @@ const HomePage = ({
                                       key={item.id}
                                       onClick={() => handleOpenModal(setSelectedPoster, item.poster_url)}
                                       style={{
-                                        width: '320px',
+                                        width: '340px',
                                         flexShrink: 0,
                                         borderRadius: '16px',
                                         overflow: 'hidden',
@@ -1214,22 +1214,23 @@ const HomePage = ({
                                         cursor: 'pointer',
                                         height: '150px',
                                         transition: 'all 0.3s',
-                                        position: 'relative'
+                                        position: 'relative',
+                                        boxSizing: 'border-box'
                                       }}
                                     >
-                                      {/* [사용자 요청] 파티 카드 우측 상단 찜하기 하트 버튼 */}
+                                      {/* 파티 카드 우측 상단 찜하기 하트 버튼 */}
                                       <button
                                         onClick={(e) => toggleWishlistParty(e, item)}
                                         style={{
                                           position: 'absolute',
-                                          top: '12px',
-                                          right: '12px',
+                                          top: '10px',
+                                          right: '10px',
                                           background: 'rgba(255, 255, 255, 0.85)',
                                           backdropFilter: 'blur(4px)',
                                           border: 'none',
                                           borderRadius: '50%',
-                                          width: '32px',
-                                          height: '32px',
+                                          width: '28px',
+                                          height: '28px',
                                           display: 'flex',
                                           alignItems: 'center',
                                           justifyContent: 'center',
@@ -1243,16 +1244,21 @@ const HomePage = ({
                                             if (typeof w === 'object' && w !== null) return w.id === item.id;
                                             return w === item.id;
                                           });
-                                          return <span style={{ fontSize: '15px' }}>{isWish ? '❤️' : '🤍'}</span>;
+                                          return <span style={{ fontSize: '13px' }}>{isWish ? '❤️' : '🤍'}</span>;
                                         })()}
                                       </button>
 
-                                      <div style={{ width: '100px', flexShrink: 0 }}>
+                                      {/* 포스터 이미지: 왼쪽 고정, 크기 110px x 150px */}
+                                      <div style={{ width: '110px', height: '150px', flexShrink: 0, background: '#000' }}>
                                         <img src={item.poster_url} style={{ width: '100%', height: '100%', objectFit: 'cover' }} alt="Poster" />
                                       </div>
-                                      <div style={{ flex: 1, padding: '16px 20px', display: 'flex', flexDirection: 'column', justifyContent: 'space-between', minWidth: 0 }}>
-                                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                                          <span style={{ fontSize: '12px', fontWeight: '700', color: '#E53935', background: '#fff0f0', padding: '3px 10px', borderRadius: '8px', border: '1px solid #ffc9c9', flexShrink: 0 }}>
+
+                                      {/* 오른쪽 정보 영역: 깔끔하게 정렬 */}
+                                      <div style={{ flex: 1, padding: '12px 14px', display: 'flex', flexDirection: 'column', justifyContent: 'space-between', minWidth: 0, boxSizing: 'border-box' }}>
+                                        
+                                        {/* 1. 장르 뱃지 (바차타/살사 등) */}
+                                        <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                                          <span style={{ fontSize: '11px', fontWeight: '800', color: '#E53935', background: '#FFF0F0', padding: '2px 8px', borderRadius: '6px', flexShrink: 0 }}>
                                             {(() => {
                                               if (item._itemGenre && item._itemGenre !== '소셜') return item._itemGenre;
                                               const entries = Object.entries(GENRE_MAP).filter(([_, info]) => item[info.key] > 0)
@@ -1263,37 +1269,72 @@ const HomePage = ({
                                             })()}
                                           </span>
                                           {isItemLive && (
-                                            <span style={{ background: '#E53935', color: '#fff', fontSize: '10px', fontWeight: '950', padding: '2px 6px', borderRadius: '4px', animation: 'blink 1.5s infinite', boxShadow: '0 0 8px rgba(229, 57, 53, 0.5)' }}>LIVE</span>
+                                            <span style={{ background: '#E53935', color: '#fff', fontSize: '9px', fontWeight: '950', padding: '2px 5px', borderRadius: '4px', animation: 'blink 1.5s infinite' }}>LIVE</span>
                                           )}
                                         </div>
 
-                                        <div style={{ fontSize: '17px', fontWeight: '900', color: 'var(--color-text-main)', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden', textOverflow: 'ellipsis', letterSpacing: '-0.6px', lineHeight: 1.3, height: '44px', marginTop: '4px' }}>
+                                        {/* 2. 파티명 (굵게, 크게) */}
+                                        <div style={{ fontSize: '18px', fontWeight: 'bold', color: '#1E293B', display: '-webkit-box', WebkitLineClamp: 1, WebkitBoxOrient: 'vertical', overflow: 'hidden', textOverflow: 'ellipsis', letterSpacing: '-0.5px', lineHeight: 1.2, marginTop: '2px' }}>
                                           {cleanTitle(item.title || '').replace(/^\[.*?\]\s*/, '').replace(/ㅣ\s*$/, '').trim()}
                                         </div>
 
-                                        <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                                          <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                                            <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '15px', color: 'var(--color-text-sub)', fontWeight: 800 }}>
-                                              <Clock size={15} />
-                                              {item.time?.split('-')[0].trim() || '21:00'}
-                                            </div>
-                                            {isItemLive && (
-                                              <span style={{ fontSize: '12px', fontWeight: '800', color: '#FFB300', background: 'rgba(255,179,0,0.1)', padding: '2px 8px', borderRadius: '10px' }}>
-                                                실시간 {item.locationName?.includes('라틴크루') || item.title?.includes('라틴크루') || item.studio_name?.includes('라틴크루') ? '120' : '1'}
-                                              </span>
-                                            )}
-                                          </div>
-                                          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
-                                            <div style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: '14px', color: 'var(--color-text-sub)', fontWeight: 700 }}>
-                                              <Navigation size={14} color="#E53935" fill="#E53935" />
-                                              {translateDynamicText(item.locationName, isEn)}
-                                            </div>
-                                            <span style={{ color: 'var(--color-text-sub)', opacity: 0.3 }}>•</span>
-                                            <span style={{ fontSize: '14px', fontWeight: '900', color: '#E53935' }}>
-                                              {formatPrice(item.fee)}
+                                        {/* 3. 시간 아이콘 + 시간 */}
+                                        <div style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: '15px', color: '#1E293B', fontWeight: '500', marginTop: '-2px' }}>
+                                          <Clock size={14} color="#1E293B" style={{ flexShrink: 0 }} />
+                                          <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                                            {item.time?.split('-')[0].trim() || '21:00'}
+                                          </span>
+                                          {isItemLive && (
+                                            <span style={{ fontSize: '11px', fontWeight: '800', color: '#FFB300', background: 'rgba(255,179,0,0.1)', padding: '1px 6px', borderRadius: '8px', marginLeft: 'auto' }}>
+                                              실시간 {item.locationName?.includes('라틴크루') || item.title?.includes('라틴크루') || item.studio_name?.includes('라틴크루') ? '120' : '1'}
                                             </span>
-                                          </div>
+                                          )}
                                         </div>
+
+                                        {/* 4. 장소 아이콘 + 장소명 · 가격 */}
+                                        <div style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: '13px', color: '#E53935', fontWeight: 'bold', overflow: 'hidden', whiteSpace: 'nowrap', textOverflow: 'ellipsis' }}>
+                                          <Navigation size={13} color="#E53935" fill="#E53935" style={{ flexShrink: 0 }} />
+                                          <span style={{ overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                                            {translateDynamicText(item.locationName, isEn)}
+                                          </span>
+                                          <span style={{ opacity: 0.4, margin: '0 2px' }}>·</span>
+                                          <span style={{ flexShrink: 0 }}>
+                                            {formatPrice(item.fee)}
+                                          </span>
+                                        </div>
+
+                                        {/* 5. 지도 버튼: 카카오맵 / 구글맵 (작은 버튼으로 우측 하단 배치) */}
+                                        <div style={{ display: 'flex', gap: '4px', justifyContent: 'flex-end', marginTop: '2px' }}>
+                                          <button
+                                            onClick={(e) => {
+                                              e.stopPropagation();
+                                              const locQuery = encodeURIComponent(item.locationName || item.venue || '');
+                                              window.open(`https://map.kakao.com/link/search/${locQuery}`);
+                                            }}
+                                            style={{
+                                              background: '#FEE500', color: '#1E293B', fontSize: '10px', fontWeight: 'bold',
+                                              padding: '2px 6px', borderRadius: '4px', border: 'none', cursor: 'pointer',
+                                              display: 'flex', alignItems: 'center'
+                                            }}
+                                          >
+                                            카카오맵
+                                          </button>
+                                          <button
+                                            onClick={(e) => {
+                                              e.stopPropagation();
+                                              const locQuery = encodeURIComponent(item.locationName || item.venue || '');
+                                              window.open(`https://www.google.com/maps/search/${locQuery}`);
+                                            }}
+                                            style={{
+                                              background: '#4285F4', color: '#FFFFFF', fontSize: '10px', fontWeight: 'bold',
+                                              padding: '2px 6px', borderRadius: '4px', border: 'none', cursor: 'pointer',
+                                              display: 'flex', alignItems: 'center'
+                                            }}
+                                          >
+                                            구글맵
+                                          </button>
+                                        </div>
+
                                       </div>
                                     </div>
                                   )
