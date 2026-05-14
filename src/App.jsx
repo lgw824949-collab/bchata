@@ -1278,7 +1278,7 @@ function App() {
         </Suspense>
       </AnimatePresence>
       <AnimatePresence>
-        {showWishlist && <WishlistModal onClose={() => setShowWishlist(false)} />}
+        {showWishlist && <WishlistModal onClose={() => setShowWishlist(false)} setSelectedPoster={setSelectedPoster} />}
       </AnimatePresence>
       <AnimatePresence>
         {showRentalModal && <RentalModal onClose={() => setShowRentalModal(false)} />}

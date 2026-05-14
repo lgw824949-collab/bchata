@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { X, Heart, Navigation, Clock, Calendar, User } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 
-export default function WishlistModal({ onClose }) {
+export default function WishlistModal({ onClose, setSelectedPoster }) {
   const [activeTab, setActiveTab] = useState('parties'); // 'parties' | 'bootcamps' | 'festivals'
   const [items, setItems] = useState({
     parties: [],
@@ -245,12 +245,16 @@ export default function WishlistModal({ onClose }) {
                       position: 'relative'
                     }}
                   >
-                    {/* 포스터 썸네일 */}
+                    {/* 포스터 썸네일 (클릭 시 확대 모달 연동) */}
                     {item.poster_url ? (
                       <img 
                         src={item.poster_url} 
-                        style={{ width: '75px', height: '100px', objectFit: 'cover', borderRadius: '10px', flexShrink: 0, background: '#F1F5F9' }} 
+                        onClick={() => {
+                          if (setSelectedPoster) setSelectedPoster(item.poster_url);
+                        }}
+                        style={{ width: '75px', height: '100px', objectFit: 'cover', borderRadius: '10px', flexShrink: 0, background: '#F1F5F9', cursor: 'pointer' }} 
                         alt={item.title || '포스터'} 
+                        title="포스터 크게 보기"
                       />
                     ) : (
                       <div style={{ width: '75px', height: '100px', borderRadius: '10px', background: '#F1F5F9', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
