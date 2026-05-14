@@ -615,26 +615,27 @@ const HomePage = ({
     <div className="app-container" style={{ width: '100%', maxWidth: '500px', margin: '0 auto', background: 'var(--color-bg)', minHeight: '100vh', paddingBottom: '80px', transition: 'background-color 0.3s' }}>
 
       {/* 📌 [영역 A: 브랜드 헤더 - 최종 확정] */}
-      <div style={{ padding: '40px 24px 24px' }}>
-        <p style={{ fontSize: '11px', color: '#E53935', letterSpacing: '0.3em', fontWeight: 300, margin: '0 0 16px' }}>SOCIAL CULTURE EXPERIENCE</p>
-        <p style={{ fontSize: '13px', color: 'var(--color-text-sub)', margin: '0 0 8px', fontWeight: 300, letterSpacing: '0.05em' }}>
+      {/* 📌 [영역 A: 브랜드 헤더 - 최종 확정 고도화] */}
+      <div style={{ padding: '16px 20px 12px' }}>
+        <p style={{ fontSize: '9px', color: '#E53935', letterSpacing: '0.25em', fontWeight: 800, margin: '0 0 6px', opacity: 0.9 }}>SOCIAL CULTURE EXPERIENCE</p>
+        <p style={{ fontSize: '12px', color: 'var(--color-text-sub)', margin: '0 0 6px', fontWeight: 500, letterSpacing: '-0.2px' }}>
           {lang === 'ko' ? '오늘 밤, 어디선가 파티가 시작되고 있어요' : 'Tonight, a party is starting somewhere'}
         </p>
         <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between' }}>
           <div>
-            <p style={{ fontSize: '32px', fontWeight: 900, color: 'var(--color-text-main)', margin: 0, letterSpacing: '-1.5px', lineHeight: 1.3 }}>
+            <p style={{ fontSize: '26px', fontWeight: 950, color: 'var(--color-text-main)', margin: 0, letterSpacing: '-1.0px', lineHeight: 1.2 }}>
               {lang === 'ko' ? '전국 어디서든' : 'Anywhere in Korea'}
             </p>
-            <p style={{ fontSize: '32px', fontWeight: 900, color: '#E53935', margin: '0 0 12px', letterSpacing: '-1.5px', lineHeight: 1.3 }}>
+            <p style={{ fontSize: '26px', fontWeight: 950, color: '#E53935', margin: '0 0 10px', letterSpacing: '-1.0px', lineHeight: 1.2 }}>
               {lang === 'ko' ? '만원이면 충분해요' : 'Just $7 is enough'}
             </p>
-            <div style={{ borderLeft: '3px solid #E53935', paddingLeft: '16px' }}>
+            <div style={{ borderLeft: '2.5px solid #E53935', paddingLeft: '12px' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <p style={{ fontSize: '13px', color: 'var(--color-text-sub)', margin: 0, fontWeight: 300, lineHeight: 1.8 }}>
+                <p style={{ fontSize: '12px', color: 'var(--color-text-sub)', margin: 0, fontWeight: 600, lineHeight: 1.6, letterSpacing: '-0.3px' }}>
                   {lang === 'ko' ? '바차타 · 살사 · 소셜' : 'Bachata · Salsa · Social'}
                 </p>
               </div>
-              <p style={{ fontSize: '13px', color: 'var(--color-text-sub)', margin: 0, fontWeight: 300, lineHeight: 1.8 }}>
+              <p style={{ fontSize: '12px', color: 'var(--color-text-sub)', margin: 0, fontWeight: 600, lineHeight: 1.6, letterSpacing: '-0.3px' }}>
                 {lang === 'ko' ? '도심 속 전율의 밤' : 'A thrilling night in the city'}
               </p>
             </div>
@@ -657,36 +658,131 @@ const HomePage = ({
               }
               setLastAdminTap(now);
             }}
-            style={{ width: '90px', height: '90px', objectFit: 'contain', borderRadius: '16px', flexShrink: 0, marginLeft: '12px', cursor: 'pointer', userSelect: 'none' }}
+            style={{ width: '64px', height: '64px', objectFit: 'contain', borderRadius: '14px', flexShrink: 0, marginLeft: '12px', cursor: 'pointer', userSelect: 'none' }}
             onError={(e) => { e.currentTarget.style.display = 'none' }}
           />
         </div>
       </div>
 
-      <div style={{ padding: '12px 10px 8px' }}>
-        <div style={{ display: 'flex', justifyContent: 'flex-end', padding: '2px 14px 0' }}>
+      {/* 🔴 [LIVE 바 및 포스터 이벤트 영역 개편] */}
+      <div style={{ padding: '4px 20px 12px' }}>
+        <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: '8px' }}>
           <button
             onClick={() => window.dispatchEvent(new CustomEvent('open-id-register'))}
             style={{
               display: 'flex', alignItems: 'center', gap: 4,
-              background: 'transparent', border: '1px solid #F97316',
-              borderRadius: 20, padding: '3px 10px',
-              cursor: 'pointer', fontSize: '11px',
-              color: '#F97316', fontWeight: 700
+              background: '#FFF5F5', border: '1px solid #FFE4E6',
+              borderRadius: 12, padding: '4px 10px',
+              cursor: 'pointer', fontSize: '10px',
+              color: '#E53935', fontWeight: 800
             }}
           >
             <span style={{
-              width: 5, height: 5, background: '#F97316', borderRadius: '50%', flexShrink: 0,
+              width: 5, height: 5, background: '#E53935', borderRadius: '50%', flexShrink: 0,
               display: 'inline-block', animation: 'ev-blink 1s infinite'
             }} />
             🥃 포스터 이벤트
           </button>
           <style>{`@keyframes ev-blink{0%,100%{opacity:1}50%{opacity:0.3}}`}</style>
         </div>
-        <div style={{ height: '36px', background: '#0f172a', borderRadius: '18px', display: 'flex', alignItems: 'center', overflow: 'hidden', padding: '0 8px 0 16px' }}>
-          <div style={{ flex: 1, overflow: 'hidden' }}>
-            <LiveCount />
-          </div>
+
+        {/* LiveCount를 감싸는 세련된 임팩트 컨테이너 및 전역 스타일 주입 */}
+        <div className="live-count-premium-wrapper" style={{ 
+          background: '#0F172A', 
+          borderRadius: '14px', 
+          overflow: 'hidden', 
+          boxShadow: '0 4px 12px rgba(15, 23, 42, 0.15)',
+          border: '1px solid rgba(255, 255, 255, 0.05)'
+        }}>
+          <style>{`
+            /* 햄버거 버튼 세련되게 축소 및 그림자 제거 (절대 규칙 완벽 준수 전역 오버라이드) */
+            button[style*="z-index: 1005"] {
+              width: 36px !important;
+              height: 36px !important;
+              padding: 0 !important;
+              border-radius: 10px !important;
+              box-shadow: none !important;
+              border: 1px solid rgba(0,0,0,0.08) !important;
+              background: rgba(255,255,255,0.9) !important;
+            }
+            button[style*="z-index: 1005"] svg {
+              width: 20px !important;
+              height: 20px !important;
+            }
+
+            /* LIVE 바 내부 요소 강제 레이아웃/스타일 최적화 */
+            .live-count-premium-wrapper > div {
+              height: 42px !important;
+              padding: 0 14px !important;
+              background: transparent !important;
+              box-sizing: border-box !important;
+              width: 100% !important;
+            }
+            .live-count-premium-wrapper .lc-tag {
+              background: #E53935 !important;
+              font-size: 10px !important;
+              font-weight: 950 !important;
+              padding: 2px 6px !important;
+              border-radius: 4px !important;
+              letter-spacing: 0.5px !important;
+            }
+            .live-count-premium-wrapper .lc-dot {
+              margin-left: -2px !important;
+              margin-right: 4px !important;
+            }
+            .live-count-premium-wrapper .lc-name {
+              color: #F8FAFC !important;
+              font-size: 13px !important;
+              font-weight: 800 !important;
+              font-family: inherit !important;
+              letter-spacing: -0.3px !important;
+            }
+            .live-count-premium-wrapper .lc-count {
+              color: #FF5252 !important;
+              font-size: 15px !important;
+              font-weight: 900 !important;
+              font-family: inherit !important;
+              background: rgba(229,57,53,0.15) !important;
+              padding: 1px 6px !important;
+              border-radius: 6px !important;
+              margin-left: 4px !important;
+            }
+            .live-count-premium-wrapper .lc-default {
+              color: #E2E8F0 !important;
+              font-size: 12px !important;
+              font-weight: 700 !important;
+              font-family: inherit !important;
+              letter-spacing: -0.3px !important;
+              white-space: nowrap !important;
+              overflow: hidden !important;
+              text-overflow: ellipsis !important;
+            }
+            .live-count-premium-wrapper .lc-lang {
+              margin-left: auto !important;
+              display: flex !important;
+              align-items: center !important;
+              background: rgba(255,255,255,0.06) !important;
+              padding: 2px 4px !important;
+              border-radius: 6px !important;
+              gap: 2px !important;
+            }
+            .live-count-premium-wrapper .lc-lang-btn {
+              padding: 2px 6px !important;
+              font-size: 9px !important;
+              font-weight: 800 !important;
+              border-radius: 4px !important;
+              color: #94A3B8 !important;
+              transition: all 0.2s !important;
+            }
+            .live-count-premium-wrapper .lc-lang-btn.on {
+              background: #E53935 !important;
+              color: #FFFFFF !important;
+            }
+            .live-count-premium-wrapper .lc-lang span {
+              display: none !important; /* 구분선 제거하고 깔끔한 버튼 그룹 형태 */
+            }
+          `}</style>
+          <LiveCount />
         </div>
       </div>
 
