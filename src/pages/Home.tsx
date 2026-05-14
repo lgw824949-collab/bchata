@@ -1291,48 +1291,43 @@ const HomePage = ({
                                           )}
                                         </div>
 
-                                        {/* 4. 장소 아이콘 + 장소명 · 가격 */}
-                                        <div style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: '13px', color: '#E53935', fontWeight: 'bold', overflow: 'hidden', whiteSpace: 'nowrap', textOverflow: 'ellipsis' }}>
-                                          <Navigation size={13} color="#E53935" fill="#E53935" style={{ flexShrink: 0 }} />
-                                          <span style={{ overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                                            {translateDynamicText(item.locationName, isEn)}
-                                          </span>
-                                          <span style={{ opacity: 0.4, margin: '0 2px' }}>·</span>
-                                          <span style={{ flexShrink: 0 }}>
-                                            {formatPrice(item.fee)}
-                                          </span>
-                                        </div>
+                                        {/* 4. 장소 아이콘 + 장소명 · 가격 및 지도 텍스트 링크 */}
+                                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '4px', marginTop: 'auto' }}>
+                                          <div style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: '13px', color: '#E53935', fontWeight: 'bold', overflow: 'hidden', whiteSpace: 'nowrap', textOverflow: 'ellipsis' }}>
+                                            <Navigation size={13} color="#E53935" fill="#E53935" style={{ flexShrink: 0 }} />
+                                            <span style={{ overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                                              {translateDynamicText(item.locationName, isEn)}
+                                            </span>
+                                            <span style={{ opacity: 0.4, margin: '0 2px' }}>·</span>
+                                            <span style={{ flexShrink: 0 }}>
+                                              {formatPrice(item.fee)}
+                                            </span>
+                                          </div>
 
-                                        {/* 5. 지도 버튼: 카카오맵 / 구글맵 (작은 버튼으로 우측 하단 배치) */}
-                                        <div style={{ display: 'flex', gap: '4px', justifyContent: 'flex-end', marginTop: '2px' }}>
-                                          <button
-                                            onClick={(e) => {
-                                              e.stopPropagation();
-                                              const locQuery = encodeURIComponent(item.locationName || item.venue || '');
-                                              window.open(`https://map.kakao.com/link/search/${locQuery}`);
-                                            }}
-                                            style={{
-                                              background: '#FEE500', color: '#1E293B', fontSize: '10px', fontWeight: 'bold',
-                                              padding: '2px 6px', borderRadius: '4px', border: 'none', cursor: 'pointer',
-                                              display: 'flex', alignItems: 'center'
-                                            }}
-                                          >
-                                            카카오맵
-                                          </button>
-                                          <button
-                                            onClick={(e) => {
-                                              e.stopPropagation();
-                                              const locQuery = encodeURIComponent(item.locationName || item.venue || '');
-                                              window.open(`https://www.google.com/maps/search/${locQuery}`);
-                                            }}
-                                            style={{
-                                              background: '#4285F4', color: '#FFFFFF', fontSize: '10px', fontWeight: 'bold',
-                                              padding: '2px 6px', borderRadius: '4px', border: 'none', cursor: 'pointer',
-                                              display: 'flex', alignItems: 'center'
-                                            }}
-                                          >
-                                            구글맵
-                                          </button>
+                                          {/* 카카오맵 · 구글맵 텍스트 링크 */}
+                                          <div style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: '11px', fontWeight: '800', flexShrink: 0 }}>
+                                            <span
+                                              onClick={(e) => {
+                                                e.stopPropagation();
+                                                const locQuery = encodeURIComponent(item.locationName || item.venue || '');
+                                                window.open(`https://map.kakao.com/link/search/${locQuery}`);
+                                              }}
+                                              style={{ color: '#F9A825', cursor: 'pointer', padding: '2px 0' }}
+                                            >
+                                              카카오맵
+                                            </span>
+                                            <span style={{ color: '#CBD5E1', fontSize: '10px' }}>·</span>
+                                            <span
+                                              onClick={(e) => {
+                                                e.stopPropagation();
+                                                const locQuery = encodeURIComponent(item.locationName || item.venue || '');
+                                                window.open(`https://www.google.com/maps/search/${locQuery}`);
+                                              }}
+                                              style={{ color: '#4285F4', cursor: 'pointer', padding: '2px 0' }}
+                                            >
+                                              구글맵
+                                            </span>
+                                          </div>
                                         </div>
 
                                       </div>
