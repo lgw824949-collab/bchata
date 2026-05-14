@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { supabase } from '../lib/supabase';
-import { X, Plus, Trash2, Calendar, Clock, MapPin, DollarSign, Users, Info } from 'lucide-react';
+import { X, Calendar, Clock, MapPin, DollarSign, Users, Info } from 'lucide-react';
 
 const ClassRegisterModal = ({ isOpen = true, onClose, instructorId = '' }) => {
   const [step, setStep] = useState(1);
@@ -9,24 +9,21 @@ const ClassRegisterModal = ({ isOpen = true, onClose, instructorId = '' }) => {
   const [instructors, setInstructors] = useState([]);
   const [selectedInstId, setSelectedInstId] = useState(instructorId || '');
   
-  // Form state
+  // 직관적이고 매우 단순화된 Form state
   const [form, setForm] = useState({
     title: '',
     genre: '',
     level: '',
     date: '',
+    startTime: '20:00', // 강사들이 가장 많이 쓰는 저녁 8시 기본 세팅
+    endTime: '22:00',   // 2시간 코스 기본 세팅
     location: '',
     fee: '',
     capacity: '',
     description: ''
   });
 
-  // Timeslots state
-  const [startTime, setStartTime] = useState('');
-  const [endTime, setEndTime] = useState('');
-  const [timeslots, setTimeslots] = useState([]);
-
-  // 활성 강사 목록 조회 (드롭다운용)
+  // 활성 강사 목록 조회 (드롭다운용 및 자동 선택)
   useEffect(() => {
     if (!isOpen) return;
     const fetchInstructors = async () => {
@@ -36,7 +33,13 @@ const ClassRegisterModal = ({ isOpen = true, onClose, instructorId = '' }) => {
           .select('id, name, city')
           .eq('status', 'active')
           .order('follower_count', { ascending: false });
-        if (data) setInstructors(data);
+        if (data && data.length > 0) {
+          setInstructors(data);
+          // 전달된 instructorId가 없을 경우, 목록의 첫 번째 강사로 자동 기본 선택하여 클릭 수 절약
+          if (!selectedInstId) {
+            setSelectedInstId(data[0].id);
+          }
+        }
       } catch (err) {
         console.error('Instructors fetch error:', err);
       }
@@ -50,20 +53,6 @@ const ClassRegisterModal = ({ isOpen = true, onClose, instructorId = '' }) => {
   }, [instructorId]);
 
   if (!isOpen) return null;
-
-  const handleAddTimeslot = () => {
-    if (!startTime || !endTime) {
-      alert('시작 시간과 종료 시간을 모두 입력해주세요.');
-      return;
-    }
-    setTimeslots(prev => [...prev, { startTime, endTime }]);
-    setStartTime('');
-    setEndTime('');
-  };
-
-  const handleRemoveTimeslot = (index) => {
-    setTimeslots(prev => prev.filter((_, i) => i !== index));
-  };
 
   const handleNext = () => {
     if (step === 1) {
@@ -89,18 +78,8 @@ const ClassRegisterModal = ({ isOpen = true, onClose, instructorId = '' }) => {
         alert('날짜를 선택해주세요.');
         return;
       }
-      
-      // 모바일 편의성: 시간 입력 후 추가 버튼 누락 시 자동 추가 처리
-      let currentTimeslots = [...timeslots];
-      if (startTime && endTime) {
-        currentTimeslots.push({ startTime, endTime });
-        setTimeslots(currentTimeslots);
-        setStartTime('');
-        setEndTime('');
-      }
-
-      if (currentTimeslots.length === 0) {
-        alert('최소 1개 이상의 시간대를 추가해주세요.');
+      if (!form.startTime || !form.endTime) {
+        alert('시작 시간과 종료 시간을 설정해주세요.');
         return;
       }
       setStep(3);
@@ -119,28 +98,20 @@ const ClassRegisterModal = ({ isOpen = true, onClose, instructorId = '' }) => {
     
     setLoading(true);
     try {
-      // 각 시간대별로 개별 레코드 insert
-      const insertPromises = timeslots.map(t => {
-        return supabase.from('instructor_classes').insert({
-          instructor_id: selectedInstId || null,
-          title: form.title,
-          genre: form.genre,
-          level: form.level,
-          schedule: `${form.date} ${t.startTime} ~ ${t.endTime}`,
-          location: form.location,
-          fee: form.fee,
-          capacity: form.capacity,
-          description: form.description,
-          status: 'active'
-        });
+      const { error } = await supabase.from('instructor_classes').insert({
+        instructor_id: selectedInstId || null,
+        title: form.title,
+        genre: form.genre,
+        level: form.level,
+        schedule: `${form.date} ${form.startTime} ~ ${form.endTime}`,
+        location: form.location,
+        fee: form.fee,
+        capacity: form.capacity,
+        description: form.description,
+        status: 'active'
       });
 
-      const results = await Promise.all(insertPromises);
-      const hasError = results.some(res => res.error);
-
-      if (hasError) {
-        throw new Error('일부 시간대 등록에 실패했습니다.');
-      }
+      if (error) throw error;
 
       alert('클래스가 성공적으로 등록되었습니다!');
       if (onClose) onClose();
@@ -327,11 +298,11 @@ const ClassRegisterModal = ({ isOpen = true, onClose, instructorId = '' }) => {
                   <label style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '13px', fontWeight: 700, color: '#A1A1AA', marginBottom: '8px' }}>
                     <Clock size={14} /> 시간대 설정 *
                   </label>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '10px' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                     <input
                       type="time"
-                      value={startTime}
-                      onChange={e => setStartTime(e.target.value)}
+                      value={form.startTime}
+                      onChange={e => setForm({ ...form, startTime: e.target.value })}
                       style={{
                         flex: 1, padding: '12px', borderRadius: '10px', background: 'rgba(255,255,255,0.05)',
                         border: '1px solid rgba(255,255,255,0.1)', color: '#fff', fontSize: '14px', outline: 'none',
@@ -341,8 +312,8 @@ const ClassRegisterModal = ({ isOpen = true, onClose, instructorId = '' }) => {
                     <span style={{ color: '#8E8E93', fontWeight: 900 }}>~</span>
                     <input
                       type="time"
-                      value={endTime}
-                      onChange={e => setEndTime(e.target.value)}
+                      value={form.endTime}
+                      onChange={e => setForm({ ...form, endTime: e.target.value })}
                       style={{
                         flex: 1, padding: '12px', borderRadius: '10px', background: 'rgba(255,255,255,0.05)',
                         border: '1px solid rgba(255,255,255,0.1)', color: '#fff', fontSize: '14px', outline: 'none',
@@ -350,56 +321,39 @@ const ClassRegisterModal = ({ isOpen = true, onClose, instructorId = '' }) => {
                       }}
                     />
                   </div>
-                  <button
-                    type="button"
-                    onClick={handleAddTimeslot}
-                    style={{
-                      width: '100%', padding: '12px', borderRadius: '10px', background: 'rgba(201,168,76,0.15)',
-                      color: '#C9A84C', border: '1px dashed #C9A84C', fontSize: '13px', fontWeight: 800,
-                      cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px'
-                    }}
-                  >
-                    <Plus size={16} /> + 시간 추가
-                  </button>
-                </div>
 
-                {/* Added timeslots list */}
-                <div>
-                  <div style={{ fontSize: '12px', fontWeight: 700, color: '#8E8E93', marginBottom: '8px' }}>
-                    추가된 시간대 목록 ({timeslots.length})
-                  </div>
-                  {timeslots.length === 0 ? (
-                    <div style={{
-                      padding: '20px', textAlign: 'center', background: 'rgba(255,255,255,0.02)',
-                      borderRadius: '10px', color: 'rgba(255,255,255,0.3)', fontSize: '13px'
-                    }}>
-                      아래 다음 단계 클릭 시 입력된 시간이 자동 추가됩니다
+                  {/* 모바일 강사들을 배려한 황금시간대 원터치 프리셋 버튼 */}
+                  <div style={{ marginTop: '14px' }}>
+                    <div style={{ fontSize: '11px', color: '#8E8E93', fontWeight: 700, marginBottom: '6px' }}>
+                      ⚡ 원터치 시간대 자동 입력 (스크롤 조작 없이 클릭 한 번으로 세팅)
                     </div>
-                  ) : (
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', maxHeight: '130px', overflowY: 'auto' }}>
-                      {timeslots.map((t, index) => (
-                        <div
-                          key={index}
-                          style={{
-                            display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-                            padding: '10px 14px', background: 'rgba(255,255,255,0.04)', borderRadius: '10px',
-                            border: '1px solid rgba(255,255,255,0.05)'
-                          }}
-                        >
-                          <span style={{ fontSize: '14px', fontWeight: 800, color: '#fff' }}>
-                            ⏰ {t.startTime} ~ {t.endTime}
-                          </span>
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
+                      {[
+                        { label: '🌞 주말 오후반 (14:00~16:00)', start: '14:00', end: '16:00' },
+                        { label: '🌆 퇴근 직후반 (19:00~21:00)', start: '19:00', end: '21:00' },
+                        { label: '⭐ 황금 시간대 (20:00~22:00)', start: '20:00', end: '22:00' },
+                        { label: '🌙 심야 집중반 (21:00~23:00)', start: '21:00', end: '23:00' }
+                      ].map(preset => {
+                        const isSelected = form.startTime === preset.start && form.endTime === preset.end;
+                        return (
                           <button
+                            key={preset.label}
                             type="button"
-                            onClick={() => handleRemoveTimeslot(index)}
-                            style={{ background: 'none', border: 'none', color: '#EF4444', cursor: 'pointer', padding: '4px' }}
+                            onClick={() => setForm({ ...form, startTime: preset.start, endTime: preset.end })}
+                            style={{
+                              padding: '10px', borderRadius: '10px', fontSize: '12px', fontWeight: 700, cursor: 'pointer',
+                              background: isSelected ? 'rgba(201,168,76,0.15)' : 'rgba(255,255,255,0.02)',
+                              color: isSelected ? '#C9A84C' : '#A1A1AA',
+                              border: `1px solid ${isSelected ? '#C9A84C' : 'rgba(255,255,255,0.05)'}`,
+                              transition: 'all 0.2s', textAlign: 'center', lineHeight: 1.3
+                            }}
                           >
-                            <Trash2 size={16} />
+                            {preset.label}
                           </button>
-                        </div>
-                      ))}
+                        );
+                      })}
                     </div>
-                  )}
+                  </div>
                 </div>
               </motion.div>
             )}
