@@ -68,6 +68,8 @@ const ChatBot = () => {
 
     let response, data;
     try {
+      /* 
+      // Gemini API (Commented out for future use)
       const apiKey = import.meta.env.VITE_GEMINI_API_KEY;
       if (!apiKey) {
         throw new Error('API key is missing');
@@ -114,7 +116,6 @@ ${dataContext}
 - 데이터에 없는 정보는 절대 지어내지 마세요.
 - 답변이 길어지면 무조건 탈락입니다. 핵심만 찌르세요.`;
       
-      // Skip the initial static greeting to ensure the conversation starts with a 'user' role
       const historyToSend = newMessages.slice(1).slice(-6);
       
       const apiContents = historyToSend.map(msg => ({
@@ -133,14 +134,13 @@ ${dataContext}
         }
       };
 
-      response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=${apiKey}`, {
+      response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-latest:generateContent?key=${apiKey}`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify(requestBody)
       });
-
 
       data = await response.json();
       if (!response.ok) throw new Error(data.error?.message || 'API request failed');
@@ -150,6 +150,53 @@ ${dataContext}
         setMessages(prev => [...prev, { role: 'model', content: reply }]);
       } else {
          setMessages(prev => [...prev, { role: 'model', content: "죄송합니다, 답변을 생성하지 못했습니다." }]);
+      }
+      */
+
+      // Groq API Implementation
+      const groqApiKey = import.meta.env.VITE_GROQ_API_KEY;
+      if (!groqApiKey) throw new Error('Groq API key is missing');
+
+      let dataContext = "현재 실시간 데이터베이스 정보가 없습니다.";
+      if (dbData) {
+        const partiesInfo = dbData.parties.map(p => `- ${p.title} (${p.locationName || p.location_name})`).join('\n').slice(0, 500);
+        const bootcampsInfo = dbData.bootcamps.map(b => `- ${b.title}`).join('\n').slice(0, 300);
+        const instructorsInfo = dbData.instructors.map(i => `- ${i.name}(${i.genres})`).join('\n').slice(0, 300);
+        dataContext = `\n\n[실시간 플랫폼 정보]\n* 파티: ${partiesInfo}\n* 강의: ${bootcampsInfo}\n* 강사: ${instructorsInfo}\n${ADMIN_KNOWLEDGE}`;
+      }
+
+      const systemPrompt = `당신은 '오늘밤빠' 라틴댄스 커뮤니티의 AI 길잡이 '밤빠봇'입니다.\n\n역할:\n- 전국 라틴댄스 파티, 부트캠프, 페스티벌 정보 안내\n- 강사 및 댄스 장소 추천\n- 초보자 댄스 입문 가이드\n- 바차타, 살사, 쥬크, 키좀바 장르 정보 제공\n\n답변 스타일:\n- 친근하고 활기차게 🎶\n- 짧고 핵심만 명확하게\n- 이모지 적절히 활용\n- 모르는 건 솔직하게${dataContext}`;
+
+      const apiMessages = [
+        { role: "system", content: systemPrompt },
+        ...newMessages.slice(-8).map(msg => ({
+          role: msg.role === 'model' ? 'assistant' : 'user',
+          content: msg.content
+        }))
+      ];
+
+      response = await fetch("https://api.groq.com/openai/v1/chat/completions", {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${groqApiKey}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          model: "llama3-8b-8192",
+          messages: apiMessages,
+          temperature: 0.7,
+          max_tokens: 1024
+        })
+      });
+
+      data = await response.json();
+      if (!response.ok) throw new Error(data.error?.message || 'Groq API request failed');
+
+      if (data.choices && data.choices.length > 0) {
+        const reply = data.choices[0].message.content;
+        setMessages(prev => [...prev, { role: 'model', content: reply }]);
+      } else {
+        setMessages(prev => [...prev, { role: 'model', content: "죄송합니다, 답변을 생성하지 못했습니다." }]);
       }
 
     } catch (error) {
