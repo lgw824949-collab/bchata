@@ -633,6 +633,70 @@ export default function AdminDashboard({ onBack }) {
                   /* 수정 모드 */
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
                     <input value={editFormData.title || editFormData.name || ''} onChange={e => setEditFormData({ ...editFormData, title: e.target.value, name: e.target.value })} placeholder="제목/이름" style={{ width: '100%', padding: '10px', borderRadius: '10px', border: '1px solid #E2E8F0', fontWeight: 700 }} />
+
+                    {/* ── 페스티벌 전용 필드 ── */}
+                    {category === 'festival' && (
+                      <>
+                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
+                          <input value={editFormData.organizer || ''} onChange={e => setEditFormData({ ...editFormData, organizer: e.target.value })} placeholder="주최자" style={{ padding: '10px', borderRadius: '10px', border: '1px solid #E2E8F0' }} />
+                          <select value={editFormData.genre || '바차타'} onChange={e => setEditFormData({ ...editFormData, genre: e.target.value })} style={{ padding: '10px', borderRadius: '10px', border: '1px solid #E2E8F0' }}>
+                            {['바차타','살사','키좀바','쥬크'].map(g => <option key={g}>{g}</option>)}
+                          </select>
+                        </div>
+                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
+                          <input type="date" value={editFormData.start_date || ''} onChange={e => setEditFormData({ ...editFormData, start_date: e.target.value })} style={{ padding: '10px', borderRadius: '10px', border: '1px solid #E2E8F0' }} />
+                          <input type="date" value={editFormData.end_date || ''} onChange={e => setEditFormData({ ...editFormData, end_date: e.target.value })} style={{ padding: '10px', borderRadius: '10px', border: '1px solid #E2E8F0' }} />
+                        </div>
+                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
+                          <select value={editFormData.region || '서울'} onChange={e => setEditFormData({ ...editFormData, region: e.target.value })} style={{ padding: '10px', borderRadius: '10px', border: '1px solid #E2E8F0' }}>
+                            {['서울','경기/인천','강원','제주','부산/경남','전라도','충청도'].map(r => <option key={r}>{r}</option>)}
+                          </select>
+                          <input value={editFormData.price || ''} onChange={e => setEditFormData({ ...editFormData, price: e.target.value })} placeholder="가격" style={{ padding: '10px', borderRadius: '10px', border: '1px solid #E2E8F0' }} />
+                        </div>
+                        <input value={editFormData.location || ''} onChange={e => setEditFormData({ ...editFormData, location: e.target.value })} placeholder="상세 장소" style={{ width: '100%', padding: '10px', borderRadius: '10px', border: '1px solid #E2E8F0' }} />
+                        <textarea rows={3} value={editFormData.description || ''} onChange={e => setEditFormData({ ...editFormData, description: e.target.value })} placeholder="설명" style={{ width: '100%', padding: '10px', borderRadius: '10px', border: '1px solid #E2E8F0', resize: 'none' }} />
+                        <input value={editFormData.poster_url || ''} onChange={e => setEditFormData({ ...editFormData, poster_url: e.target.value })} placeholder="포스터 URL" style={{ width: '100%', padding: '10px', borderRadius: '10px', border: '1px solid #E2E8F0', fontSize: '12px' }} />
+                      </>
+                    )}
+
+                    {/* ── 부트캠프 전용 필드 ── */}
+                    {category === 'bootcamp' && (
+                      <>
+                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
+                          <input value={editFormData.instructor || ''} onChange={e => setEditFormData({ ...editFormData, instructor: e.target.value })} placeholder="강사명" style={{ padding: '10px', borderRadius: '10px', border: '1px solid #E2E8F0' }} />
+                          <select value={editFormData.genre || '바차타'} onChange={e => setEditFormData({ ...editFormData, genre: e.target.value })} style={{ padding: '10px', borderRadius: '10px', border: '1px solid #E2E8F0' }}>
+                            {['바차타','살사','키좀바','쥬크'].map(g => <option key={g}>{g}</option>)}
+                          </select>
+                        </div>
+                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
+                          <select value={editFormData.level || '전체'} onChange={e => setEditFormData({ ...editFormData, level: e.target.value })} style={{ padding: '10px', borderRadius: '10px', border: '1px solid #E2E8F0' }}>
+                            {['초급','중급','상급','전체'].map(l => <option key={l}>{l}</option>)}
+                          </select>
+                          <select value={editFormData.type || 'domestic'} onChange={e => setEditFormData({ ...editFormData, type: e.target.value })} style={{ padding: '10px', borderRadius: '10px', border: '1px solid #E2E8F0' }}>
+                            <option value="domestic">국내</option>
+                            <option value="overseas">해외</option>
+                          </select>
+                        </div>
+                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
+                          <input type="date" value={editFormData.start_date || ''} onChange={e => setEditFormData({ ...editFormData, start_date: e.target.value })} style={{ padding: '10px', borderRadius: '10px', border: '1px solid #E2E8F0' }} />
+                          <input type="date" value={editFormData.end_date || ''} onChange={e => setEditFormData({ ...editFormData, end_date: e.target.value })} style={{ padding: '10px', borderRadius: '10px', border: '1px solid #E2E8F0' }} />
+                        </div>
+                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
+                          <select value={editFormData.region || '서울'} onChange={e => setEditFormData({ ...editFormData, region: e.target.value })} style={{ padding: '10px', borderRadius: '10px', border: '1px solid #E2E8F0' }}>
+                            {['서울','경기/인천','경상도','전라도','충청도','강원/제주','해외'].map(r => <option key={r}>{r}</option>)}
+                          </select>
+                          <input value={editFormData.fee || ''} onChange={e => setEditFormData({ ...editFormData, fee: e.target.value })} placeholder="가격/참가비" style={{ padding: '10px', borderRadius: '10px', border: '1px solid #E2E8F0' }} />
+                        </div>
+                        <input value={editFormData.venue || ''} onChange={e => setEditFormData({ ...editFormData, venue: e.target.value })} placeholder="상세 장소" style={{ width: '100%', padding: '10px', borderRadius: '10px', border: '1px solid #E2E8F0' }} />
+                        <textarea rows={3} value={editFormData.description || ''} onChange={e => setEditFormData({ ...editFormData, description: e.target.value })} placeholder="설명" style={{ width: '100%', padding: '10px', borderRadius: '10px', border: '1px solid #E2E8F0', resize: 'none' }} />
+                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
+                          <input value={editFormData.instagram || ''} onChange={e => setEditFormData({ ...editFormData, instagram: e.target.value })} placeholder="인스타그램 URL" style={{ padding: '10px', borderRadius: '10px', border: '1px solid #E2E8F0', fontSize: '12px' }} />
+                          <input value={editFormData.youtube || ''} onChange={e => setEditFormData({ ...editFormData, youtube: e.target.value })} placeholder="유튜브 URL" style={{ padding: '10px', borderRadius: '10px', border: '1px solid #E2E8F0', fontSize: '12px' }} />
+                        </div>
+                        <input value={editFormData.poster_url || ''} onChange={e => setEditFormData({ ...editFormData, poster_url: e.target.value })} placeholder="포스터 URL" style={{ width: '100%', padding: '10px', borderRadius: '10px', border: '1px solid #E2E8F0', fontSize: '12px' }} />
+                      </>
+                    )}
+
                     {category === 'rental' && (
                       <>
                         <input value={editFormData.address || ''} onChange={e => setEditFormData({ ...editFormData, address: e.target.value })} placeholder="상세 주소" style={{ width: '100%', padding: '10px', borderRadius: '10px', border: '1px solid #E2E8F0' }} />
