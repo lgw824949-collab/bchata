@@ -110,7 +110,7 @@ const ChatBot = () => {
           return `- 파티명: ${p.title} | 장소: ${venue} | 날짜: ${p.date} | 입장료: ${p.fee || '정보 없음'} | 지역: ${p.broadRegion || p.region || '전국'} | 이미지: ${p.imageUrl || '없음'}`;
         }).join('\n');
         const instructorsInfo = dbData.instructors.map(i => `- 강사명: ${i.name} | 장르: ${i.genres || '정보 없음'} | 지역: ${i.region || i.broadRegion || '정보 없음'} | SNS: ${i.instagram_id || i.sns_id || '없음'} | 가격: ${i.price || '문의'}`).join('\n');
-        dataContext = `\n\n[실시간 팩트 데이터]\n오늘 날짜: ${todayStr}\n* 파티:\n${partiesInfo}\n* 강사:\n${instructorsInfo}\n${ADMIN_KNOWLEDGE}`;
+        dataContext = `\n\n[실시간 플랫폼 정보]\n오늘 날짜: ${todayStr}\n* 파티:\n${partiesInfo}\n* 강사:\n${instructorsInfo}\n${ADMIN_KNOWLEDGE}`;
       }
 
       const systemPrompt = `당신은 밤빠 컨시어지입니다. 아래 규칙을 절대 준수하세요.
@@ -120,8 +120,12 @@ const ChatBot = () => {
 2. 첫 질문: "어떤 장르요? 1.바차타 2.살사 3.쥬크 4.키좀바"
 3. 장르 선택 후: "오늘 근처 파티 찾을까요? Y/N"
 4. Y면 DB에서 가까운 파티 최대 2개만 출력 (형식: "🎵 파티명 | 시간 | 입장료")
-5. 모르면 "정보 없어요 😢" 한 줄로 끝
-6. 설명, 인사말, 긴 문장 절대 금지
+5. 설명, 인사말, 긴 문장 절대 금지
+
+[데이터 규칙 - 절대 준수]
+- 파티 추천 시 반드시 위에서 전달된 [실시간 플랫폼 정보] 데이터만 사용
+- DB에 없는 파티명, 장소, 시간, 금액은 절대 지어내지 말 것
+- DB 데이터가 없으면 "현재 근처 파티 정보가 없어요 😢" 한 줄로 끝
 
 ${dataContext}`;
 
