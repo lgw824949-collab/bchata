@@ -12,7 +12,7 @@ const ADMIN_KNOWLEDGE = `
 const ChatBot = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [messages, setMessages] = useState([
-    { role: 'model', content: "안녕하세요! 밤빠 AI예요 🎶\n오늘 파티, 강사, 장소 뭐든 물어보세요!" }
+    { role: 'model', content: "안녕하세요! 밤빠 컨시어지예요 ✨\n오늘 밤, 당신의 완벽한 댄스 파티를 함께 찾아드릴게요! 💖" }
   ]);
   const [input, setInput] = useState('');
   const [isRecording, setIsRecording] = useState(false);
@@ -207,20 +207,22 @@ ${dataContext}
           width: '60px',
           height: '60px',
           borderRadius: '50%',
-          backgroundColor: '#E53935',
+          backgroundColor: '#FF8A80',
           color: 'white',
           border: 'none',
-          boxShadow: '0 4px 12px rgba(0,0,0,0.3)',
+          boxShadow: '0 4px 15px rgba(255, 138, 128, 0.4)',
           cursor: 'pointer',
           display: isOpen ? 'none' : 'flex',
           alignItems: 'center',
           justifyContent: 'center',
-          fontSize: '24px',
+          fontSize: '28px',
           zIndex: 9999,
-          transition: 'transform 0.2s',
+          transition: 'all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275)',
         }}
+        onMouseEnter={(e) => e.currentTarget.style.transform = 'scale(1.1)'}
+        onMouseLeave={(e) => e.currentTarget.style.transform = 'scale(1)'}
       >
-        🎵
+        ✨
       </button>
 
       {isOpen && (
@@ -249,24 +251,25 @@ ${dataContext}
           </style>
           
           <div style={{
-            backgroundColor: '#E53935',
-            color: 'white',
-            padding: '16px',
+            backgroundColor: 'white',
+            color: '#333',
+            padding: '16px 20px',
             display: 'flex',
             justifyContent: 'space-between',
-            alignItems: 'center'
+            alignItems: 'center',
+            borderBottom: '1px solid #F0F0F0'
           }}>
             <div>
-              <div style={{ fontWeight: 'bold', fontSize: '18px' }}>🎶 밤빠 AI</div>
-              <div style={{ fontSize: '12px', opacity: 0.9, marginTop: '2px' }}>
-                {isDataLoaded ? "실시간 데이터 연동 중..." : "데이터 불러오는 중..."}
+              <div style={{ fontWeight: '800', fontSize: '18px', color: '#FF8A80' }}>✨ 밤빠 컨시어지</div>
+              <div style={{ fontSize: '12px', color: '#888', marginTop: '2px', fontWeight: '500' }}>
+                {isDataLoaded ? "실시간 연동 중" : "정보를 불러오고 있어요"}
               </div>
             </div>
             <button 
               onClick={() => setIsOpen(false)}
-              style={{ background: 'none', border: 'none', color: 'white', cursor: 'pointer', fontSize: '24px', lineHeight: 1 }}
+              style={{ background: 'none', border: 'none', color: '#BBB', cursor: 'pointer', fontSize: '22px', padding: '4px' }}
             >
-              ×
+              ✕
             </button>
           </div>
 
@@ -277,23 +280,25 @@ ${dataContext}
             display: 'flex',
             flexDirection: 'column',
             gap: '12px',
-            backgroundColor: '#f8f9fa'
+            backgroundColor: 'white'
           }}>
             {messages.map((msg, idx) => (
               <div key={idx} style={{
                 alignSelf: msg.role === 'model' ? 'flex-start' : 'flex-end',
-                backgroundColor: msg.role === 'model' ? 'white' : '#E53935',
-                color: msg.role === 'model' ? '#333' : 'white',
-                padding: '10px 14px',
-                borderRadius: '16px',
-                borderTopLeftRadius: msg.role === 'model' ? '4px' : '16px',
-                borderTopRightRadius: msg.role === 'user' ? '4px' : '16px',
+                backgroundColor: msg.role === 'model' ? '#FFFFFF' : '#FCE4EC',
+                color: msg.role === 'model' ? '#444' : '#555',
+                padding: '12px 16px',
+                borderRadius: '18px',
+                borderTopLeftRadius: msg.role === 'model' ? '4px' : '18px',
+                borderTopRightRadius: msg.role === 'user' ? '4px' : '18px',
+                border: msg.role === 'model' ? '1px solid #EAEAEA' : 'none',
                 maxWidth: '85%',
                 wordBreak: 'break-word',
                 whiteSpace: 'pre-wrap',
-                boxShadow: '0 1px 2px rgba(0,0,0,0.05)',
-                fontSize: '14px',
-                lineHeight: '1.5'
+                boxShadow: '0 2px 4px rgba(0,0,0,0.02)',
+                fontSize: '14.5px',
+                lineHeight: '1.6',
+                fontWeight: '500'
               }}>
                 {msg.content}
               </div>
@@ -353,15 +358,16 @@ ${dataContext}
               onClick={handleSend}
               disabled={isLoading || !input.trim() || !isDataLoaded}
               style={{
-                background: (isLoading || !input.trim() || !isDataLoaded) ? '#ccc' : '#E53935',
+                background: (isLoading || !input.trim() || !isDataLoaded) ? '#EEE' : '#FF8A80',
                 color: 'white',
                 border: 'none',
-                padding: '8px 16px',
+                padding: '8px 18px',
                 borderRadius: '20px',
                 cursor: (isLoading || !input.trim() || !isDataLoaded) ? 'not-allowed' : 'pointer',
                 fontSize: '14px',
-                fontWeight: 'bold',
-                transition: 'background-color 0.2s'
+                fontWeight: '700',
+                transition: 'all 0.2s',
+                boxShadow: (isLoading || !input.trim() || !isDataLoaded) ? 'none' : '0 2px 8px rgba(255, 138, 128, 0.3)'
               }}
             >
               전송
