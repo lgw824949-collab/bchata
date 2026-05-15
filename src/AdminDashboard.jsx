@@ -661,6 +661,16 @@ export default function AdminDashboard({ onBack }) {
                         <textarea rows={3} value={editFormData.description || ''} onChange={e => setEditFormData({ ...editFormData, description: e.target.value })} placeholder="설명" style={{ width: '100%', padding: '10px', borderRadius: '10px', border: '1px solid #E2E8F0', resize: 'none' }} />
                         <input value={editFormData.poster_url || ''} onChange={e => setEditFormData({ ...editFormData, poster_url: e.target.value })} placeholder="포스터 URL" style={{ width: '100%', padding: '10px', borderRadius: '10px', border: '1px solid #E2E8F0', fontSize: '12px' }} />
                         <input value={editFormData.bank_info || ''} onChange={e => setEditFormData({ ...editFormData, bank_info: e.target.value })} placeholder="입금 계좌 (예: 카카오뱅크 3333-01-123 홍길동)" style={{ width: '100%', padding: '10px', borderRadius: '10px', border: '1px solid #E2E8F0', fontSize: '12px' }} />
+                        <div>
+                          <div style={{ fontSize: '11px', fontWeight: 800, color: '#475569', marginBottom: 6 }}>유형</div>
+                          <div style={{ display: 'flex', gap: 8 }}>
+                            {[['festival','🎪 페스티벌'],['mt','🏕️ MT']].map(([val, label]) => (
+                              <button key={val} type="button" onClick={() => setEditFormData({ ...editFormData, event_type: val })}
+                                style={{ flex: 1, padding: '8px', borderRadius: 8, border: `1px solid ${editFormData.event_type === val ? '#C9A84C' : '#E2E8F0'}`, background: editFormData.event_type === val ? 'rgba(201,168,76,0.1)' : '#fff', color: editFormData.event_type === val ? '#B8860B' : '#64748B', fontWeight: 700, fontSize: 13, cursor: 'pointer' }}
+                              >{label}</button>
+                            ))}
+                          </div>
+                        </div>
                       </>
                     )}
 

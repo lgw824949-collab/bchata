@@ -6,6 +6,7 @@ import { supabase } from '../lib/supabase';
 const Festival = ({ onBack }) => {
   const [festivals, setFestivals] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [activeTab, setActiveTab] = useState('festival'); // 'festival' | 'mt'
   const [selectedRegion, setSelectedRegion] = useState('전체');
   const [selectedFestival, setSelectedFestival] = useState(null);
   const [showBookingGuide, setShowBookingGuide] = useState(false);
@@ -18,14 +19,14 @@ const Festival = ({ onBack }) => {
   const [formData, setFormData] = useState({
     title: '', start_date: '', end_date: '', region: '서울',
     location: '', price: '', description: '', poster_url: '',
-    organizer: '', genre: '바차타', bank_info: ''
+    organizer: '', genre: '바차타', bank_info: '', event_type: 'festival'
   });
 
   const regions = ['전체', '수도권', '강원', '제주', '부산/경남', '전라', '충청'];
 
   useEffect(() => {
     fetchFestivals();
-  }, [selectedRegion]);
+  }, [selectedRegion, activeTab]);
 
   const REGION_MAP = {
     '수도권': ['서울', '경기/인천', '수도권'],
@@ -39,8 +40,10 @@ const Festival = ({ onBack }) => {
   const fetchFestivals = async () => {
     setLoading(true);
     try {
-      let query = supabase.from('festivals').select('*').eq('status', 'active');
-      const { data, error } = await query.order('start_date', { ascending: true });
+      const { data, error } = await supabase
+        .from('festivals').select('*').eq('status', 'active')
+        .eq('event_type', activeTab === 'mt' ? 'mt' : 'festival')
+        .order('start_date', { ascending: true });
       if (error) throw error;
       const all = data || [];
       if (selectedRegion === '전체') {
@@ -88,6 +91,7 @@ const Festival = ({ onBack }) => {
       description: fest.description || '',
       poster_url:  fest.poster_url || '',
       bank_info:   fest.bank_info || '',
+      event_type:  fest.event_type || 'festival',
     });
     setEditingId(fest.id);
     setCurrentStep(1);
@@ -111,6 +115,7 @@ const Festival = ({ onBack }) => {
         description: formData.description,
         poster_url:  formData.poster_url || null,
         bank_info:   formData.bank_info || null,
+        event_type:  formData.event_type || 'festival',
         status:      'active'
       };
       let error;
@@ -202,11 +207,27 @@ const Festival = ({ onBack }) => {
             backdropFilter: 'blur(20px)', borderBottom: '1px solid rgba(255,255,255,0.08)',
             padding: '12px 20px', display: 'flex', alignItems: 'center', justifyContent: 'space-between'
           }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
               <button onClick={onBack} style={{ background: 'none', border: 'none', cursor: 'pointer' }}><ChevronLeft size={24} color="#f8fafc" /></button>
-              <h1 style={{ fontSize: '18px', fontWeight: 950, color: '#f8fafc', margin: 0, letterSpacing: '1px' }}>
-                <span style={{ color: '#C9A84C' }}>PREMIUM</span> FESTIVAL
-              </h1>
+              {/* FESTIVAL / MT 탭 */}
+              <div style={{ display: 'flex', gap: 6, background: 'rgba(255,255,255,0.06)', borderRadius: 14, padding: '4px' }}>
+                {[
+                  { key: 'festival', label: 'FESTIVAL' },
+                  { key: 'mt', label: 'MT' }
+                ].map(tab => (
+                  <button
+                    key={tab.key}
+                    onClick={() => { setActiveTab(tab.key); setSelectedRegion('전체'); }}
+                    style={{
+                      padding: '7px 14px', borderRadius: 10, border: 'none', cursor: 'pointer',
+                      background: activeTab === tab.key ? '#C9A84C' : 'transparent',
+                      color: activeTab === tab.key ? '#000' : '#8E8E93',
+                      fontSize: 13, fontWeight: 900, letterSpacing: '0.5px',
+                      transition: 'all 0.2s'
+                    }}
+                  >{tab.label}</button>
+                ))}
+              </div>
             </div>
             
             <div style={{ display: 'flex', gap: '8px' }}>
@@ -298,12 +319,20 @@ const Festival = ({ onBack }) => {
                 ))
               ) : festivals.length === 0 ? (
                 <div style={{ marginTop: 40, textAlign: 'center', padding: '40px 20px', borderRadius: 24, border: '1px dashed rgba(201,168,76,0.25)', background: 'rgba(201,168,76,0.03)' }}>
-                  <div style={{ fontSize: 36, marginBottom: 14 }}>🎪</div>
+                  <div style={{ fontSize: 36, marginBottom: 14 }}>{activeTab === 'mt' ? '🏕️' : '🎪'}</div>
                   <div style={{ fontSize: 16, fontWeight: 900, color: '#fff', marginBottom: 8 }}>
-                    {selectedRegion === '전체' ? '등록된 페스티벌이 없습니다' : `${selectedRegion} 지역 페스티벌이 없습니다`}
+                    {selectedRegion === '전체'
+                      ? `등록된 ${activeTab === 'mt' ? 'MT' : '페스티벌'}이 없습니다`
+                      : `${selectedRegion} 지역 ${activeTab === 'mt' ? 'MT' : '페스티벌'}이 없습니다`}
                   </div>
-                  <div style={{ fontSize: 13, color: '#64748b', marginBottom: 24 }}>첫 번째 페스티벌을 등록해 보세요!</div>
-                  <button onClick={() => setTimeout(() => setIsRegistering(true), 50)} style={{ background: 'linear-gradient(135deg, #C9A84C, #A68A3D)', color: '#000', border: 'none', padding: '13px 28px', borderRadius: 14, fontSize: 14, fontWeight: 900, cursor: 'pointer' }}>+ 페스티벌 등록</button>
+                  <div style={{ fontSize: 13, color: '#64748b', marginBottom: 24 }}>
+                    {activeTab === 'mt' ? '첫 번째 MT를 등록해 보세요!' : '첫 번째 페스티벌을 등록해 보세요!'}
+                  </div>
+                  <button
+                    onClick={() => { setFormData(prev => ({ ...prev, event_type: activeTab })); setTimeout(() => setIsRegistering(true), 50); }}
+                    style={{ background: 'linear-gradient(135deg, #C9A84C, #A68A3D)', color: '#000', border: 'none', padding: '13px 28px', borderRadius: 14, fontSize: 14, fontWeight: 900, cursor: 'pointer' }}>
+                    + {activeTab === 'mt' ? 'MT' : '페스티벌'} 등록
+                  </button>
                 </div>
               ) : (
                 festivals.map((fest) => (
@@ -412,7 +441,20 @@ const Festival = ({ onBack }) => {
             <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '28px' }}>
               {currentStep === 1 && (
                 <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} style={{ display: 'flex', flexDirection: 'column', gap: '28px' }}>
-                  <div><label style={{ display: 'block', fontSize: '12px', fontWeight: 900, color: '#C9A84C', marginBottom: '12px', letterSpacing: '1.5px' }}>1. 페스티벌 이름 (최대 18자)</label><input required maxLength={18} value={formData.title} onChange={e => setFormData(prev => ({ ...prev, title: e.target.value }))} placeholder="축제 이름을 입력하세요" style={{ width: '100%', padding: '20px', borderRadius: '18px', border: '1px solid rgba(255,255,255,0.1)', background: '#1A1A1A', fontSize: '16px', color: '#f8fafc', outline: 'none' }} /></div>
+                  <div>
+                    <label style={{ display: 'block', fontSize: '12px', fontWeight: 900, color: '#C9A84C', marginBottom: '12px', letterSpacing: '1.5px' }}>1. 유형 선택</label>
+                    <div style={{ display: 'flex', gap: 10 }}>
+                      {[['festival','🎪 페스티벌'], ['mt','🏕️ MT']].map(([val, label]) => (
+                        <button key={val} type="button" onClick={() => setFormData(prev => ({ ...prev, event_type: val }))}
+                          style={{ flex: 1, padding: '16px', borderRadius: 14, fontWeight: 900, fontSize: 15, cursor: 'pointer',
+                            border: `1px solid ${formData.event_type === val ? '#C9A84C' : 'rgba(255,255,255,0.1)'}`,
+                            background: formData.event_type === val ? 'rgba(201,168,76,0.15)' : '#1A1A1A',
+                            color: formData.event_type === val ? '#C9A84C' : '#8E8E93' }}
+                        >{label}</button>
+                      ))}
+                    </div>
+                  </div>
+                  <div><label style={{ display: 'block', fontSize: '12px', fontWeight: 900, color: '#C9A84C', marginBottom: '12px', letterSpacing: '1.5px' }}>2. 이름 (최대 18자)</label><input required maxLength={18} value={formData.title} onChange={e => setFormData(prev => ({ ...prev, title: e.target.value }))} placeholder="이름을 입력하세요" style={{ width: '100%', padding: '20px', borderRadius: '18px', border: '1px solid rgba(255,255,255,0.1)', background: '#1A1A1A', fontSize: '16px', color: '#f8fafc', outline: 'none' }} /></div>
                   <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '15px' }}>
                     <div><label style={{ display: 'block', fontSize: '12px', fontWeight: 900, color: '#C9A84C', marginBottom: '12px', letterSpacing: '1.5px' }}>2. 주최/주관</label><input required value={formData.organizer} onChange={e => setFormData(prev => ({ ...prev, organizer: e.target.value }))} placeholder="단체 또는 이름" style={{ width: '100%', padding: '20px', borderRadius: '18px', border: '1px solid rgba(255,255,255,0.1)', background: '#1A1A1A', fontSize: '16px', color: '#f8fafc', outline: 'none' }} /></div>
                     <div><label style={{ display: 'block', fontSize: '12px', fontWeight: 900, color: '#C9A84C', marginBottom: '12px', letterSpacing: '1.5px' }}>3. 주요 장르</label><select value={formData.genre} onChange={e => setFormData(prev => ({ ...prev, genre: e.target.value }))} style={{ width: '100%', padding: '20px', borderRadius: '18px', border: '1px solid rgba(255,255,255,0.1)', background: '#1A1A1A', fontSize: '16px', color: '#f8fafc', outline: 'none' }}><option value="바차타">바차타</option><option value="살사">살사</option><option value="키좀바">키좀바</option><option value="쥬크">쥬크</option></select></div>
