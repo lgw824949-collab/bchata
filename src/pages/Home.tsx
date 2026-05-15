@@ -1039,32 +1039,27 @@ const HomePage = ({
                           </div>
                           {/* 컨시어지 버튼 */}
                           <style>{`
-                            @keyframes concierge-pulse {
-                              0%, 100% { box-shadow: 0 0 0 0 rgba(229,57,53,0.4); }
-                              50% { box-shadow: 0 0 0 6px rgba(229,57,53,0); }
+                            @keyframes dot-blink {
+                              0%, 100% { opacity: 1; }
+                              50% { opacity: 0.2; }
                             }
-                            @keyframes bot-twinkle {
-                              0%, 100% { opacity: 1; transform: scale(1); }
-                              50% { opacity: 0.6; transform: scale(1.15); }
-                            }
-                            .concierge-btn { animation: concierge-pulse 2s ease-in-out infinite; }
-                            .concierge-btn .bot-icon { animation: bot-twinkle 1.8s ease-in-out infinite; }
+                            .concierge-dot { animation: dot-blink 1.5s ease-in-out infinite; }
                           `}</style>
                           <button
-                            className="concierge-btn"
                             onClick={() => window.dispatchEvent(new CustomEvent('open-chatbot'))}
                             style={{
                               display: 'flex', alignItems: 'center', gap: 6,
                               padding: '8px 14px', borderRadius: 20,
-                              background: '#FFF5F5', border: '1px solid #FCA5A5',
-                              cursor: 'pointer', color: '#E53935',
-                              fontSize: 12, fontWeight: 800,
+                              background: '#F8FAFC', border: '1px solid #E2E8F0',
+                              cursor: 'pointer', color: '#334155',
+                              fontSize: 12, fontWeight: 700,
                             }}
                           >
-                            <span className="bot-icon" style={{ display: 'flex' }}>
-                              <Bot size={15} color="#E53935" strokeWidth={2.5} />
-                            </span>
-                            ✦ Concierge
+                            <span className="concierge-dot" style={{
+                              width: 6, height: 6, borderRadius: '50%',
+                              background: '#E53935', display: 'inline-block', flexShrink: 0
+                            }} />
+                            Concierge
                           </button>
                         </div>
                         <style>{`
