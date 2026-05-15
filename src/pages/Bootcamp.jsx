@@ -17,6 +17,7 @@ const Bootcamp = ({ onBack, initialView = 'list' }) => {
   const [bootcamps, setBootcamps] = useState([]);
   const [loading, setLoading] = useState(true);
   const [view, setView] = useState(initialView);
+  const [editingId, setEditingId] = useState(null);
 
   useEffect(() => {
     setView(initialView);
@@ -143,17 +144,53 @@ const Bootcamp = ({ onBack, initialView = 'list' }) => {
     }
   };
 
+  const openEdit = (camp) => {
+    setFormData({
+      title:       camp.title || '',
+      instructor:  camp.instructor || '',
+      type:        camp.type || 'domestic',
+      region:      camp.region || '서울',
+      country:     camp.country || '',
+      start_date:  camp.start_date || '',
+      end_date:    camp.end_date || '',
+      venue:       camp.venue || '',
+      fee:         camp.fee || '',
+      description: camp.description || '',
+      poster_url:  camp.poster_url || '',
+      genre:       camp.genre || '바차타',
+      level:       camp.level || '초급',
+      instagram:   camp.instagram || '',
+      youtube:     camp.youtube || '',
+    });
+    setEditingId(camp.id);
+    setCurrentStep(1);
+    setSelectedBootcamp(null);
+    setView('register');
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setSubmitting(true);
     try {
-      const { error } = await supabase.from('bootcamps').insert({
-        ...formData,
+      const payload = {
+        title: formData.title, instructor: formData.instructor,
+        type: formData.type, region: formData.region, country: formData.country,
+        start_date: formData.start_date, end_date: formData.end_date,
+        venue: formData.venue, fee: formData.fee, description: formData.description,
+        poster_url: formData.poster_url || null, genre: formData.genre,
+        level: formData.level, instagram: formData.instagram, youtube: formData.youtube,
         status: 'active'
-      });
+      };
+      let error;
+      if (editingId) {
+        ({ error } = await supabase.from('bootcamps').update(payload).eq('id', editingId));
+      } else {
+        ({ error } = await supabase.from('bootcamps').insert(payload));
+      }
       if (error) throw error;
-      alert('등록되었습니다!');
+      alert(editingId ? '수정되었습니다!' : '등록되었습니다!');
       setView('list');
+      setEditingId(null);
       setCurrentStep(1);
       setFormData({
         title: '', instructor: '', type: 'domestic', region: '서울', country: '',
@@ -162,7 +199,7 @@ const Bootcamp = ({ onBack, initialView = 'list' }) => {
       });
       fetchBootcamps();
     } catch (err) {
-      alert('등록 실패: ' + err.message);
+      alert('실패: ' + err.message);
     } finally {
       setSubmitting(false);
     }
@@ -279,7 +316,7 @@ const Bootcamp = ({ onBack, initialView = 'list' }) => {
             cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '4px'
           }}
         >
-          {view === 'register' ? '취소' : '💎 캠프 등록'}
+          {view === 'register' ? (editingId ? '수정 취소' : '취소') : '💎 캠프 등록'}
         </button>
       </div>
 
@@ -446,7 +483,7 @@ const Bootcamp = ({ onBack, initialView = 'list' }) => {
             cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '4px'
           }}
         >
-          {view === 'register' ? '취소' : '💎 캠프 등록'}
+          {view === 'register' ? (editingId ? '수정 취소' : '취소') : '💎 캠프 등록'}
         </button>
       </div>
 
@@ -941,8 +978,9 @@ const Bootcamp = ({ onBack, initialView = 'list' }) => {
                     style={{ width: 44, height: 44, borderRadius: '50%', background: 'rgba(0,0,0,0.4)', backdropFilter: 'blur(10px)', border: '1px solid rgba(255,255,255,0.1)', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}
                   ><ChevronLeft size={22} /></button>
                   <button
-                    style={{ width: 44, height: 44, borderRadius: '50%', background: 'rgba(0,0,0,0.4)', backdropFilter: 'blur(10px)', border: '1px solid rgba(255,255,255,0.1)', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}
-                  ><Share2 size={20} /></button>
+                    onClick={() => openEdit(selectedBootcamp)}
+                    style={{ padding: '0 16px', height: 44, borderRadius: 14, background: 'rgba(201,168,76,0.2)', backdropFilter: 'blur(10px)', border: '1px solid #C9A84C', color: '#C9A84C', fontSize: 13, fontWeight: 900, cursor: 'pointer' }}
+                  >수정</button>
                 </div>
 
                 {/* Identity overlay at bottom of hero */}

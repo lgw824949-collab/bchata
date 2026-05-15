@@ -11,6 +11,7 @@ const Festival = ({ onBack }) => {
   const [showBookingGuide, setShowBookingGuide] = useState(false);
   const [copied, setCopied] = useState(false);
   const [isRegistering, setIsRegistering] = useState(false);
+  const [editingId, setEditingId] = useState(null);
   const [currentStep, setCurrentStep] = useState(1);
   const [uploading, setUploading] = useState(false);
   const [submitting, setSubmitting] = useState(false);
@@ -74,11 +75,30 @@ const Festival = ({ onBack }) => {
     }
   };
 
+  const openEdit = (fest) => {
+    setFormData({
+      title:       fest.title || '',
+      organizer:   fest.organizer || '',
+      genre:       fest.genre || '바차타',
+      start_date:  fest.start_date || '',
+      end_date:    fest.end_date || '',
+      region:      fest.region || '서울',
+      location:    fest.location || '',
+      price:       fest.price || '',
+      description: fest.description || '',
+      poster_url:  fest.poster_url || '',
+    });
+    setEditingId(fest.id);
+    setCurrentStep(1);
+    setSelectedFestival(null);
+    setTimeout(() => setIsRegistering(true), 50);
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setSubmitting(true);
     try {
-      const { error } = await supabase.from('festivals').insert([{
+      const payload = {
         title:       formData.title,
         organizer:   formData.organizer,
         genre:       formData.genre,
@@ -90,14 +110,21 @@ const Festival = ({ onBack }) => {
         description: formData.description,
         poster_url:  formData.poster_url || null,
         status:      'active'
-      }]);
+      };
+      let error;
+      if (editingId) {
+        ({ error } = await supabase.from('festivals').update(payload).eq('id', editingId));
+      } else {
+        ({ error } = await supabase.from('festivals').insert([payload]));
+      }
       if (error) throw error;
-      alert('등록되었습니다!');
+      alert(editingId ? '수정되었습니다!' : '등록되었습니다!');
       setIsRegistering(false);
+      setEditingId(null);
       setCurrentStep(1);
       fetchFestivals();
     } catch (err) {
-      alert('등록 실패');
+      alert('실패: ' + err.message);
     } finally {
       setSubmitting(false);
     }
@@ -370,8 +397,8 @@ const Festival = ({ onBack }) => {
             }}
           >
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '30px' }}>
-              <h2 style={{ fontSize: '24px', fontWeight: 950, color: '#f8fafc', margin: 0 }}>페스티벌 신청 ({currentStep}/4)</h2>
-              <button onClick={() => { setIsRegistering(false); setCurrentStep(1); }} style={{ background: '#1e293b', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '50%', width: '44px', height: '44px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><X size={24} color="#94a3b8" /></button>
+              <h2 style={{ fontSize: '24px', fontWeight: 950, color: '#f8fafc', margin: 0 }}>{editingId ? '페스티벌 수정' : '페스티벌 신청'} ({currentStep}/4)</h2>
+              <button onClick={() => { setIsRegistering(false); setEditingId(null); setCurrentStep(1); }} style={{ background: '#1e293b', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '50%', width: '44px', height: '44px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><X size={24} color="#94a3b8" /></button>
             </div>
 
             <div style={{ display: 'flex', gap: '8px', marginBottom: '40px' }}>
@@ -442,7 +469,10 @@ const Festival = ({ onBack }) => {
             <div style={{ padding: '15px 20px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderBottom: '1px solid rgba(255,255,255,0.1)', background: 'rgba(13, 13, 13, 0.95)', backdropFilter: 'blur(20px)', color: '#f8fafc' }}>
               <X size={32} onClick={() => setSelectedFestival(null)} style={{ cursor: 'pointer' }} />
               <span style={{ fontSize: '16px', fontWeight: 900, letterSpacing: '1px' }}>FESTIVAL DETAIL</span>
-              <div style={{ width: '32px' }}></div>
+              <button
+                onClick={() => openEdit(selectedFestival)}
+                style={{ background: 'rgba(201,168,76,0.15)', border: '1px solid #C9A84C', color: '#C9A84C', padding: '7px 14px', borderRadius: 10, fontSize: 12, fontWeight: 900, cursor: 'pointer' }}
+              >수정</button>
             </div>
             <div style={{ flex: 1, overflowY: 'auto' }}>
               <div style={{ position: 'relative', background: '#000', minHeight: '300px', display: 'flex', alignItems: 'center' }}>
