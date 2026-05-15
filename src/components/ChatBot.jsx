@@ -21,6 +21,23 @@ const ChatBot = () => {
 
   const [dbData, setDbData] = useState(null);
   const [isDataLoaded, setIsDataLoaded] = useState(false);
+  const [userLocation, setUserLocation] = useState(null);
+
+  // 유저 위치 권한 확인 및 감지
+  useEffect(() => {
+    if (isOpen && !userLocation && navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(
+        (position) => {
+          setUserLocation({
+            lat: position.coords.latitude,
+            lng: position.coords.longitude
+          });
+        },
+        (error) => console.log('Location access denied or error:', error),
+        { enableHighAccuracy: true }
+      );
+    }
+  }, [isOpen, userLocation]);
 
   // 챗봇 오픈 시 플랫폼 실시간 데이터 로드
   useEffect(() => {
@@ -92,16 +109,20 @@ const ChatBot = () => {
       }
 
       const systemPrompt = `당신은 '오늘밤빠' 플랫폼의 퍼널 가이드 '밤빠봇'입니다. 
-유저와 한 단계씩 대화하며 범위를 좁히는 '티키타카' 방식을 절대 사수하세요.
+유저와 한 단계씩 대화하며 범위를 좁히는 '티키타카' 방식을 사수하되, 이미 알고 있는 정보는 다시 묻지 마세요.
+
+[유저 현재 상황]
+- 오늘 날짜: ${todayStr}
+- 유저 위치: ${userLocation ? `위도 ${userLocation.lat}, 경도 ${userLocation.lng} (현재 위치 기반 추천 가능)` : '위치 정보 없음 (지역을 먼저 물어보세요)'}
 
 [절대 규칙 1: 퍼널 대화 (티키타카)]
-1. 지역 우선: 유저의 첫 질문에 지역(수도권/지방) 정보가 없으면 **무조건** 아래 문장만 내뱉으세요. 리스트를 먼저 주면 절대 안 됩니다.
+1. 지역 파악: 유저 위치 정보가 있다면 "수도권/지방" 질문을 생략하고 바로 해당 지역 기반으로 대화를 시작하세요. 위치 정보가 없다면 아래 질문부터 하세요.
    - "오늘 어디로 모실까요? ✨ 1. 수도권, 2. 지방"
-2. 단계적 확장: 지역 선택 후 -> 장르 질문 -> (수업문의 시) 레벨 질문 순으로 진행하세요.
+2. 단계적 확장: 위치 파악 후 -> 장르 질문 -> (수업문의 시) 레벨 질문 순으로 진행하세요.
 
 [절대 규칙 2: 추천 포맷]
 1. 바(파티) 추천: "🎶 파티명 | 날짜 | 장소 | 입장료" (최대 3개)
-   - 반드시 ${todayStr} 이후의 파티만 추천하세요.
+   - 반드시 ${todayStr} 이후의 파티만 추천하세요. 유저 위치와 가까운 곳을 최우선으로 하세요.
 2. 강사 추천: "🎵 강사명 | 장르 | 지역 | SNS" (최대 3개)
 3. 예외 처리: 매칭 정보가 없으면 "현재 조건에 맞는 정보가 없어요 😢"라고만 답하세요.
 
