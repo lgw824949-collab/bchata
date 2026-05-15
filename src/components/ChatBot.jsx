@@ -200,7 +200,7 @@ ${dataContext}
       }
 
     } catch (error) {
-      console.error('Gemini API Error:', error);
+      console.error('Groq API Error:', error);
       const isQuotaError = response?.status === 429 || error.message?.includes('429') || error.message?.includes('quota');
       const errorMessage = isQuotaError 
         ? "지금 대화가 너무 많아 밤빠가 조금 힘들어하네요! 😅\n약 1분 뒤에 다시 말을 걸어주시면 감사하겠습니다! ✨"
