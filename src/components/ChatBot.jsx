@@ -113,30 +113,30 @@ ${dataContext}
 - 데이터베이스에 없는 정보는 절대 지어내지 마세요.
 - 답변은 무조건 3~4줄 이내로 간결하게 작성하세요. 서론/결론은 생략하고 핵심만 찌르세요.`;
       
-      const apiContents = [];
-      apiContents.push({
-          role: 'user',
+      const apiContents = newMessages.slice(-6).map(msg => ({
+          role: msg.role,
+          parts: [{ text: msg.content }]
+      }));
+
+      const requestBody = {
+        contents: apiContents,
+        system_instruction: {
           parts: [{ text: systemPrompt }]
-      });
-      apiContents.push({
-          role: 'model',
-          parts: [{ text: "네, 유저님의 노력이 담긴 플랫폼의 가치를 잘 전달할 수 있도록 실시간 데이터를 기반으로 센스 있게 응대하겠습니다." }]
-      });
+        },
+        generationConfig: {
+          maxOutputTokens: 500,
+          temperature: 0.7,
+        }
+      };
 
-      for (let i = 1; i < newMessages.length; i++) {
-          apiContents.push({
-              role: newMessages[i].role,
-              parts: [{ text: newMessages[i].content }]
-          });
-      }
-
-      response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-latest:generateContent?key=${apiKey}`, {
+      response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ contents: apiContents })
+        body: JSON.stringify(requestBody)
       });
+
 
       data = await response.json();
       if (!response.ok) throw new Error(data.error?.message || 'API request failed');
