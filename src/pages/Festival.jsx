@@ -209,76 +209,85 @@ const Festival = ({ onBack, initialView = 'list' }) => {
         {/* Main Content Area */}
         {!isRegistering && (
           <div style={{ position: 'relative', zIndex: 1 }}>
-            <AnimatePresence>
-              {showFilters && (
-                <motion.div initial={{ height: 0 }} animate={{ height: 'auto' }} exit={{ height: 0 }} style={{ overflow: 'hidden', background: '#111111' }}>
-                  <div style={{ padding: '15px', display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '8px' }}>
-                    {regions.map(r => (
-                      <button key={r} onClick={() => { setSelectedRegion(r); setShowFilters(false); }} style={{ padding: '14px 0', borderRadius: '12px', background: selectedRegion === r ? 'rgba(201,168,76,0.15)' : 'rgba(255,255,255,0.05)', border: '1px solid', borderColor: selectedRegion === r ? '#C9A84C' : 'rgba(255,255,255,0.1)', color: selectedRegion === r ? '#C9A84C' : '#94a3b8', fontSize: '13px', fontWeight: 900 }}>{r}</button>
-                    ))}
-                  </div>
-                </motion.div>
-              )}
-            </AnimatePresence>
 
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '15px', padding: '15px' }}>
+            {/* ── 히어로 배너 ── */}
+            <div style={{ position: 'relative', width: '100%', height: '220px', overflow: 'hidden' }}>
+              <img
+                src="/festival_hero_2026.png"
+                alt="KEEP FESTIVAL-ING IN 2026"
+                style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'center' }}
+              />
+              <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to bottom, transparent 40%, #0D0D0D 100%)' }} />
+              {/* 지역 필터 오버레이 */}
+              <div style={{ position: 'absolute', bottom: 14, left: 15, right: 15, display: 'flex', gap: 6, overflowX: 'auto' }} className="hide-scrollbar">
+                {regions.map(r => (
+                  <button key={r} onClick={() => setSelectedRegion(r)} style={{
+                    padding: '6px 14px', borderRadius: 20, whiteSpace: 'nowrap', fontSize: 12, fontWeight: 800, cursor: 'pointer',
+                    background: selectedRegion === r ? 'rgba(201,168,76,0.9)' : 'rgba(0,0,0,0.55)',
+                    border: `1px solid ${selectedRegion === r ? '#C9A84C' : 'rgba(255,255,255,0.2)'}`,
+                    color: selectedRegion === r ? '#000' : '#fff',
+                    backdropFilter: 'blur(8px)'
+                  }}>{r}</button>
+                ))}
+              </div>
+            </div>
+
+            {/* ── 카드 리스트 ── */}
+            <div style={{ padding: '16px 15px 100px', display: 'flex', flexDirection: 'column', gap: '12px' }}>
               {loading ? (
-                <>
-                  {[0, 1, 2].map(i => (
-                    <div key={i} style={{ borderRadius: '24px', overflow: 'hidden', border: '1px solid rgba(255,255,255,0.06)' }}>
-                      <div className="skeleton-fest" style={{ width: '100%', height: '240px', borderRadius: 0 }} />
-                      <div style={{ padding: '20px', background: '#141414', display: 'flex', flexDirection: 'column', gap: 12 }}>
-                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                          <div className="skeleton-fest" style={{ height: 14, width: '50%' }} />
-                          <div className="skeleton-fest" style={{ height: 30, width: 80 }} />
-                        </div>
-                        <div className="skeleton-fest" style={{ height: 13, width: '70%' }} />
-                      </div>
+                [0, 1, 2].map(i => (
+                  <div key={i} style={{ display: 'flex', height: 110, borderRadius: 20, overflow: 'hidden', border: '1px solid rgba(255,255,255,0.06)', background: '#141414' }}>
+                    <div className="skeleton-fest" style={{ width: '33%', borderRadius: 0 }} />
+                    <div style={{ flex: 1, padding: 14, display: 'flex', flexDirection: 'column', gap: 10 }}>
+                      <div className="skeleton-fest" style={{ height: 14, width: '70%' }} />
+                      <div className="skeleton-fest" style={{ height: 11, width: '50%' }} />
+                      <div className="skeleton-fest" style={{ height: 11, width: '40%' }} />
                     </div>
-                  ))}
-                </>
+                  </div>
+                ))
               ) : festivals.length === 0 ? (
-                <div style={{ textAlign: 'center', padding: '100px 20px', color: '#94a3b8' }}>
+                <div style={{ textAlign: 'center', padding: '80px 20px', color: '#94a3b8' }}>
                   <p style={{ fontWeight: 800, marginBottom: '20px' }}>준비 중인 일정이 없습니다.</p>
-                  <button 
-                    onClick={() => setIsRegistering(true)}
-                    style={{
-                      background: 'rgba(201, 168, 76, 0.1)',
-                      color: '#C9A84C',
-                      border: '1px solid rgba(201, 168, 76, 0.2)',
-                      padding: '12px 24px',
-                      borderRadius: '15px',
-                      fontSize: '14px',
-                      fontWeight: 900,
-                      cursor: 'pointer'
-                    }}
-                  >
-                    직접 등록하기
-                  </button>
+                  <button onClick={() => setIsRegistering(true)} style={{ background: 'rgba(201,168,76,0.1)', color: '#C9A84C', border: '1px solid rgba(201,168,76,0.2)', padding: '12px 24px', borderRadius: '15px', fontSize: '14px', fontWeight: 900, cursor: 'pointer' }}>직접 등록하기</button>
                 </div>
               ) : (
                 festivals.map((fest) => (
-                  <motion.div 
-                    key={fest.id} 
-                    initial={{ opacity: 0, y: 10 }} 
+                  <motion.div
+                    key={fest.id}
+                    initial={{ opacity: 0, y: 10 }}
                     whileInView={{ opacity: 1, y: 0 }}
                     viewport={{ once: true }}
                     onClick={() => setSelectedFestival(fest)}
-                    style={{ width: '100%', cursor: 'pointer', background: '#141414', borderRadius: '24px', overflow: 'hidden', border: '1px solid rgba(255,255,255,0.08)', boxShadow: '0 10px 30px rgba(0,0,0,0.6)' }}
+                    style={{ display: 'flex', cursor: 'pointer', background: '#141414', borderRadius: '20px', overflow: 'hidden', border: '1px solid rgba(255,255,255,0.07)', boxShadow: '0 4px 20px rgba(0,0,0,0.5)' }}
                   >
-                    <div style={{ width: '100%', position: 'relative', height: '240px', overflow: 'hidden', background: '#000' }}>
-                      <div style={{ position: 'absolute', inset: 0, backgroundImage: `url(${fest.poster_url})`, backgroundSize: 'cover', backgroundPosition: 'center', filter: 'blur(20px) brightness(0.4)', transform: 'scale(1.1)' }} />
-                      <img src={fest.poster_url} style={{ width: '100%', height: '100%', objectFit: 'contain', display: 'block', position: 'relative', zIndex: 1 }} />
-                      <div style={{ position: 'absolute', top: '15px', right: '15px', background: 'rgba(201, 168, 76, 0.95)', color: '#000', padding: '6px 12px', borderRadius: '10px', fontSize: '13px', fontWeight: 950, boxShadow: '0 4px 15px rgba(201, 168, 76, 0.4)', backdropFilter: 'blur(5px)', zIndex: 2 }}>{getDDay(fest.start_date)}</div>
-                      <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to bottom, transparent 60%, rgba(0,0,0,0.8) 100%)', zIndex: 2 }} />
-                      <div style={{ position: 'absolute', bottom: '20px', left: '20px', right: '20px', zIndex: 3 }}><h3 style={{ fontSize: '20px', fontWeight: 950, color: '#fff', margin: 0, lineHeight: 1.2, textShadow: '0 2px 4px rgba(0,0,0,0.5)' }}>{fest.title}</h3></div>
+                    {/* 포스터 1/3 */}
+                    <div style={{ width: '33%', flexShrink: 0, position: 'relative', minHeight: 120, background: '#000' }}>
+                      <div style={{ position: 'absolute', inset: 0, backgroundImage: `url(${fest.poster_url})`, backgroundSize: 'cover', backgroundPosition: 'center top', filter: 'blur(12px) brightness(0.4)', transform: 'scale(1.1)' }} />
+                      <img src={fest.poster_url} style={{ width: '100%', height: '100%', objectFit: 'contain', position: 'relative', zIndex: 1, display: 'block' }} alt={fest.title} />
+                      <div style={{ position: 'absolute', top: 8, left: 8, background: 'rgba(201,168,76,0.92)', color: '#000', padding: '3px 7px', borderRadius: 8, fontSize: 10, fontWeight: 900, zIndex: 2 }}>{getDDay(fest.start_date)}</div>
                     </div>
-                    <div style={{ padding: '20px', background: '#141414' }}>
-                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: '#94a3b8', fontSize: '13px', fontWeight: 800 }}><Calendar size={14} color="#C9A84C" /><span>{formatDate(fest.start_date)} - {formatDate(fest.end_date)}</span></div>
-                        <div style={{ background: 'rgba(201,168,76,0.2)', padding: '6px 12px', borderRadius: '10px', border: '1px solid rgba(201,168,76,0.4)' }}><span style={{ fontSize: '14px', fontWeight: 1000, color: '#C9A84C' }}>₩{fest.price_info?.split('/')[0]?.replace(/[^0-9]/g, '')?.toLocaleString() || '0'}</span></div>
+
+                    {/* 정보 2/3 */}
+                    <div style={{ flex: 1, padding: '14px 16px', display: 'flex', flexDirection: 'column', justifyContent: 'space-between', minHeight: 120 }}>
+                      <div>
+                        <div style={{ fontSize: 10, color: '#C9A84C', fontWeight: 800, marginBottom: 5, letterSpacing: '0.5px' }}>{fest.genre} · {fest.region}</div>
+                        <div style={{ fontSize: 15, fontWeight: 900, color: '#fff', lineHeight: 1.3, marginBottom: 8 }}>{fest.title}</div>
                       </div>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: '#94a3b8', fontSize: '13px', fontWeight: 700 }}><MapPin size={14} color="#C9A84C" /><span>{fest.region} {fest.venue || fest.location}</span></div>
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 5, fontSize: 12, color: '#94a3b8' }}>
+                          <Calendar size={11} color="#C9A84C" />
+                          <span>{formatDate(fest.start_date)}{fest.end_date && fest.end_date !== fest.start_date ? ` - ${formatDate(fest.end_date)}` : ''}</span>
+                        </div>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 5, fontSize: 12, color: '#94a3b8' }}>
+                          <MapPin size={11} color="#C9A84C" />
+                          <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{fest.venue || fest.region}</span>
+                        </div>
+                        {fest.price_info && (
+                          <div style={{ marginTop: 4, alignSelf: 'flex-start', background: 'rgba(201,168,76,0.12)', border: '1px solid rgba(201,168,76,0.3)', borderRadius: 8, padding: '3px 10px', fontSize: 12, fontWeight: 900, color: '#C9A84C' }}>
+                            {fest.price_info.split('/')[0]?.trim()}
+                          </div>
+                        )}
+                      </div>
                     </div>
                   </motion.div>
                 ))
