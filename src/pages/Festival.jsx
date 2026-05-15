@@ -10,6 +10,15 @@ const Festival = ({ onBack }) => {
   const [selectedFestival, setSelectedFestival] = useState(null);
   const [showBookingGuide, setShowBookingGuide] = useState(false);
   const [copied, setCopied] = useState(false);
+  const [isRegistering, setIsRegistering] = useState(false);
+  const [currentStep, setCurrentStep] = useState(1);
+  const [uploading, setUploading] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
+  const [formData, setFormData] = useState({
+    title: '', start_date: '', end_date: '', region: '수도권',
+    venue: '', price_info: '', description: '', poster_url: '',
+    organizer: '', genre: '바차타', bank_info: ''
+  });
 
   const regions = ['전체', '수도권', '강원', '제주', '부산/경남', '전라', '충청'];
 
@@ -43,6 +52,42 @@ const Festival = ({ onBack }) => {
       console.error('Error fetching festivals:', err);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleImageUpload = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    setUploading(true);
+    try {
+      const fileExt = file.name.split('.').pop();
+      const fileName = `${Math.random()}.${fileExt}`;
+      const filePath = `festivals/${fileName}`;
+      const { error: uploadError } = await supabase.storage.from('posters').upload(filePath, file);
+      if (uploadError) throw uploadError;
+      const { data: { publicUrl } } = supabase.storage.from('posters').getPublicUrl(filePath);
+      setFormData(prev => ({ ...prev, poster_url: publicUrl }));
+    } catch (err) {
+      alert('이미지 업로드 실패');
+    } finally {
+      setUploading(false);
+    }
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setSubmitting(true);
+    try {
+      const { error } = await supabase.from('festivals').insert([{ ...formData, status: 'active' }]);
+      if (error) throw error;
+      alert('등록되었습니다!');
+      setIsRegistering(false);
+      setCurrentStep(1);
+      fetchFestivals();
+    } catch (err) {
+      alert('등록 실패');
+    } finally {
+      setSubmitting(false);
     }
   };
 
