@@ -1151,87 +1151,88 @@ function App() {
         </Suspense>
       </main>
 
+      {/* [Premium Floating Capsule Navigation] */}
       <nav 
         className="bottom-nav" 
         style={{ 
-          position: 'fixed', bottom: 0, left: '50%',
+          position: 'fixed', 
+          bottom: '15px', 
+          left: '50%',
           transform: 'translateX(-50%)',
-          width: '100%', maxWidth: '500px', height: '64px',
-          background: 'rgba(0,0,0,0.85)',
-          backdropFilter: 'blur(10px)',
-          WebkitBackdropFilter: 'blur(10px)',
-          display: 'flex', alignItems: 'center', justifyContent: 'center',
-          gap: '15px',
-          zIndex: 1000,
-          paddingBottom: 'env(safe-area-inset-bottom)',
-          boxSizing: 'border-box'
+          width: '94%', 
+          maxWidth: '460px', 
+          height: '68px',
+          background: '#0a0a0a',
+          borderRadius: '34px', // 완전한 캡슐형
+          display: 'flex', 
+          alignItems: 'center', 
+          justifyContent: 'space-between',
+          padding: '0 20px',
+          zIndex: 10000,
+          boxShadow: '0 10px 30px rgba(0,0,0,0.5)',
+          boxSizing: 'border-box',
+          border: '1px solid rgba(255,255,255,0.05)'
         }}
       >
         <div 
-          className="nav-item" 
           onClick={() => navigate('/')}
           style={{ 
-            display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
-            cursor: 'pointer', padding: '0 10px',
-            color: location.pathname === '/' ? '#FFFFFF' : 'rgba(255,255,255,0.4)'
+            flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
+            cursor: 'pointer', transition: 'all 0.2s',
+            color: location.pathname === '/' ? '#FFFFFF' : 'rgba(255,255,255,0.3)'
           }}
         >
-          <Music2 size={24} strokeWidth={location.pathname === '/' ? 3 : 2} />
-          <span style={{ fontSize: '10px', fontWeight: location.pathname === '/' ? 900 : 500, marginTop: '2px' }}>
+          <Music2 size={22} strokeWidth={location.pathname === '/' ? 2.5 : 1.5} />
+          <span style={{ fontSize: '9px', fontWeight: location.pathname === '/' ? 900 : 500, marginTop: '3px' }}>
             {i18n.language?.startsWith('en') ? 'Social' : '소셜'}
           </span>
         </div>
 
         <div 
-          className="nav-item" 
           onClick={() => setShowPartner(true)}
           style={{ 
-            display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
-            cursor: 'pointer', padding: '0 10px',
-            color: showPartner ? '#FFFFFF' : 'rgba(255,255,255,0.4)'
+            flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
+            cursor: 'pointer', transition: 'all 0.2s',
+            color: showPartner ? '#FFFFFF' : 'rgba(255,255,255,0.3)'
           }}
         >
-          <Heart size={24} strokeWidth={showPartner ? 3 : 2} />
-          <span style={{ fontSize: '10px', fontWeight: showPartner ? 900 : 500, marginTop: '2px' }}>
+          <Heart size={22} strokeWidth={showPartner ? 2.5 : 1.5} />
+          <span style={{ fontSize: '9px', fontWeight: showPartner ? 900 : 500, marginTop: '3px' }}>
             {i18n.language?.startsWith('en') ? 'Partner' : '파트너'}
           </span>
         </div>
 
-        <motion.button
-          whileTap={{ scale: 0.9 }}
-          onClick={() => {
-            if (location.pathname === '/livepick') {
-              window.dispatchEvent(new CustomEvent('open-community-upload'));
-            } else if (location.pathname === '/instructors') {
-              setShowClassRegister(true);
-            } else if (location.pathname === '/bootcamp') {
-              navigate('/bootcamp/register');
-            } else if (location.pathname === '/festival') {
-              navigate('/festival/register');
-            } else {
-              navigate('/register-party');
-            }
-          }}
-          style={{
-            width: '48px', height: '48px', borderRadius: '16px',
-            background: 'linear-gradient(135deg, #FF5252, #D32F2F)',
-            border: 'none', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center',
-            cursor: 'pointer', margin: '0 5px'
-          }}
-        >
-          <Plus size={28} strokeWidth={3} />
-        </motion.button>
+        {/* Center Red Point Button */}
+        <div style={{ flex: 1, display: 'flex', justifyContent: 'center' }}>
+          <motion.button
+            whileTap={{ scale: 0.9 }}
+            onClick={() => {
+              if (location.pathname === '/livepick') {
+                window.dispatchEvent(new CustomEvent('open-community-upload'));
+              } else if (location.pathname === '/instructors') {
+                setShowClassRegister(true);
+              } else if (location.pathname === '/bootcamp') {
+                navigate('/bootcamp/register');
+              } else if (location.pathname === '/festival') {
+                navigate('/festival/register');
+              } else {
+                navigate('/register-party');
+              }
+            }}
+            style={{
+              width: '52px', height: '48px', borderRadius: '15px',
+              background: '#FF3B30', // 이미지와 유사한 레드
+              border: 'none', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center',
+              cursor: 'pointer', boxShadow: '0 4px 15px rgba(255, 59, 48, 0.3)'
+            }}
+          >
+            <Plus size={26} strokeWidth={3} />
+          </motion.button>
+        </div>
 
         <div 
-          className="nav-item" 
           onClick={() => navigate('/bootcamp')}
           style={{ 
-            display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
-            cursor: 'pointer', padding: '0 10px',
-            color: location.pathname === '/bootcamp' ? '#FFFFFF' : 'rgba(255,255,255,0.4)'
-          }}
-        >
-          <Tent size={24} strokeWidth={location.pathname === '/bootcamp' ? 3 : 2} />
           <span style={{ fontSize: '10px', fontWeight: location.pathname === '/bootcamp' ? 900 : 500, marginTop: '2px' }}>
             {i18n.language?.startsWith('en') ? 'Bootcamp' : '부트캠프'}
           </span>
