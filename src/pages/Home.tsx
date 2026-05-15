@@ -666,6 +666,42 @@ const HomePage = ({
         </div>
       </div>
 
+      {/* 밤빠 컨시어지 배너 */}
+      <div
+        onClick={() => window.dispatchEvent(new CustomEvent('open-chatbot'))}
+        style={{
+          margin: '0 20px 20px',
+          padding: '16px 20px',
+          borderRadius: '18px',
+          background: 'linear-gradient(135deg, #0F172A 0%, #1E293B 100%)',
+          border: '1px solid rgba(255,59,48,0.25)',
+          cursor: 'pointer',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          boxShadow: '0 4px 20px rgba(0,0,0,0.15)'
+        }}
+      >
+        <div>
+          <div style={{ fontSize: '11px', color: '#FF8A80', fontWeight: 800, letterSpacing: '1px', marginBottom: 6 }}>
+            ✨ 밤빠 컨시어지
+          </div>
+          <div style={{ fontSize: '15px', fontWeight: 900, color: '#fff', marginBottom: 4 }}>
+            {lang === 'ko' ? '오늘 어디 갈지 모르겠어요?' : "Not sure where to go tonight?"}
+          </div>
+          <div style={{ fontSize: '12px', color: '#94a3b8', fontWeight: 500 }}>
+            {lang === 'ko' ? '파티 · 강습 · 부트캠프 · 페스티벌 안내' : 'Party · Class · Bootcamp · Festival guide'}
+          </div>
+        </div>
+        <div style={{
+          width: 44, height: 44, borderRadius: '50%',
+          background: 'rgba(255,138,128,0.15)',
+          border: '1px solid rgba(255,138,128,0.3)',
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+          fontSize: '22px', flexShrink: 0
+        }}>✨</div>
+      </div>
+
       {/* 🔴 [LIVE 바 임팩트 영역 개편] */}
       <div style={{ padding: '4px 20px 12px', marginBottom: '24px' }}>
         {/* LiveCount를 감싸는 세련된 임팩트 컨테이너 및 전역 스타일 주입 */}
