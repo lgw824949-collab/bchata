@@ -1123,7 +1123,35 @@ function App() {
                   gap: '20px'
                 }}>
                   <div style={{ textAlign: 'center', marginBottom: '30px' }}>
-                    <nav 
+                    <ShieldCheck size={64} color="#FF1744" style={{ margin: '0 auto 16px' }} />
+                    <h2 style={{ color: 'white', fontSize: '24px', fontWeight: 900 }}>{t('admin_portal')}</h2>
+                    <p style={{ color: '#94A3B8', fontSize: '14px' }}>{t('admin_portal_desc')}</p>
+                  </div>
+                  
+                  <button 
+                    onClick={() => setView('admin')}
+                    style={{ 
+                      width: '100%', maxWidth: '320px', padding: '24px', 
+                      borderRadius: '20px', background: '#1E293B', color: 'white', 
+                      border: '1px solid #334155', fontSize: '18px', fontWeight: 800,
+                      cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '15px'
+                    }}
+                  >
+                    <Music2 size={24} color="#FF1744" /> {t('admin_manage_party')}
+                  </button>
+                  
+                  <button 
+                    onClick={() => navigate('/')}
+                    style={{ marginTop: '40px', background: 'none', border: 'none', color: '#64748B', fontWeight: 700, cursor: 'pointer' }}
+                  >
+                    {t('back_to_main')}
+                  </button>
+                </div>
+              ) : <AdminDashboard onBack={() => navigate('/')} refreshData={fetchParties} />}
+        </Suspense>
+      </main>
+
+      <nav 
         className="bottom-nav" 
         style={{ 
           position: 'fixed', bottom: 0, left: '50%',
