@@ -225,48 +225,61 @@ ${dataContext}`;
       </button>
 
       {isOpen && (
-        <div style={{
-          position: 'fixed',
-          bottom: '24px',
-          right: '24px',
-          width: '350px',
-          height: '70vh',
-          backgroundColor: 'white',
-          borderRadius: '16px',
-          boxShadow: '0 8px 24px rgba(0,0,0,0.2)',
-          display: 'flex',
-          flexDirection: 'column',
-          zIndex: 10000,
-          overflow: 'hidden',
-          animation: 'slideUp 0.3s ease-out'
-        }}>
+        <div 
+          className="chatbot-window"
+          style={{
+            position: 'fixed',
+            bottom: '24px',
+            right: '24px',
+            width: '380px',
+            height: '75vh',
+            backgroundColor: 'white',
+            borderRadius: '16px',
+            boxShadow: '0 12px 40px rgba(0,0,0,0.15)',
+            display: 'flex',
+            flexDirection: 'column',
+            zIndex: 10000,
+            overflow: 'hidden',
+            animation: 'slideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1)'
+          }}
+        >
           <style>
             {`
               @keyframes slideUp {
-                from { transform: translateY(20px); opacity: 0; }
+                from { transform: translateY(30px); opacity: 0; }
                 to { transform: translateY(0); opacity: 1; }
+              }
+              @media (max-width: 600px) {
+                .chatbot-window {
+                  width: 100% !important;
+                  height: 100dvh !important;
+                  bottom: 0 !important;
+                  right: 0 !important;
+                  border-radius: 0 !important;
+                  z-index: 999999 !important;
+                }
               }
             `}
           </style>
           
           <div style={{
-            backgroundColor: 'white',
+            backgroundColor: '#FFFFFF',
             color: '#333',
-            padding: '16px 20px',
+            padding: '20px',
             display: 'flex',
             justifyContent: 'space-between',
             alignItems: 'center',
             borderBottom: '1px solid #F0F0F0'
           }}>
             <div>
-              <div style={{ fontWeight: '800', fontSize: '18px', color: '#FF8A80' }}>✨ 밤빠 컨시어지</div>
-              <div style={{ fontSize: '12px', color: '#888', marginTop: '2px', fontWeight: '500' }}>
-                {isDataLoaded ? "실시간 연동 중" : "정보를 불러오고 있어요"}
+              <div style={{ fontWeight: '850', fontSize: '19px', color: '#FF8A80', letterSpacing: '-0.5px' }}>✨ 밤빠 컨시어지</div>
+              <div style={{ fontSize: '12px', color: '#999', marginTop: '3px', fontWeight: '600' }}>
+                {isDataLoaded ? "실시간 AI 가이드 가동 중" : "정보를 불러오는 중..."}
               </div>
             </div>
             <button 
               onClick={() => setIsOpen(false)}
-              style={{ background: 'none', border: 'none', color: '#BBB', cursor: 'pointer', fontSize: '22px', padding: '4px' }}
+              style={{ background: '#F5F5F5', border: 'none', color: '#888', cursor: 'pointer', fontSize: '18px', width: '32px', height: '32px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
             >
               ✕
             </button>
@@ -274,28 +287,28 @@ ${dataContext}`;
 
           <div style={{
             flex: 1,
-            padding: '16px',
+            padding: '20px 16px',
             overflowY: 'auto',
             display: 'flex',
             flexDirection: 'column',
-            gap: '12px',
-            backgroundColor: 'white'
+            gap: '16px',
+            backgroundColor: '#FAFAFA'
           }}>
             {messages.map((msg, idx) => (
               <div key={idx} style={{
                 alignSelf: msg.role === 'model' ? 'flex-start' : 'flex-end',
-                backgroundColor: msg.role === 'model' ? '#FFFFFF' : '#FCE4EC',
-                color: msg.role === 'model' ? '#444' : '#555',
-                padding: '12px 16px',
-                borderRadius: '18px',
-                borderTopLeftRadius: msg.role === 'model' ? '4px' : '18px',
-                borderTopRightRadius: msg.role === 'user' ? '4px' : '18px',
+                backgroundColor: msg.role === 'model' ? '#FFFFFF' : '#FF8A80',
+                color: msg.role === 'model' ? '#333' : '#FFFFFF',
+                padding: '12px 18px',
+                borderRadius: '20px',
+                borderTopLeftRadius: msg.role === 'model' ? '4px' : '20px',
+                borderTopRightRadius: msg.role === 'user' ? '4px' : '20px',
                 border: msg.role === 'model' ? '1px solid #EAEAEA' : 'none',
-                maxWidth: '85%',
+                maxWidth: '88%',
                 wordBreak: 'break-word',
                 whiteSpace: 'pre-wrap',
-                boxShadow: '0 2px 4px rgba(0,0,0,0.02)',
-                fontSize: '14.5px',
+                boxShadow: msg.role === 'model' ? '0 2px 5px rgba(0,0,0,0.03)' : '0 4px 10px rgba(255, 138, 128, 0.25)',
+                fontSize: '15px',
                 lineHeight: '1.6',
                 fontWeight: '500'
               }}>
@@ -303,34 +316,37 @@ ${dataContext}`;
               </div>
             ))}
             {isLoading && (
-              <div style={{ alignSelf: 'flex-start', fontSize: '12px', color: '#888', marginLeft: '4px' }}>
-                입력 중...
+              <div style={{ alignSelf: 'flex-start', fontSize: '12px', color: '#AAA', marginLeft: '8px', fontStyle: 'italic' }}>
+                밤빠봇이 생각 중입니다...
               </div>
             )}
             <div ref={messagesEndRef} />
           </div>
 
           <div style={{
-            padding: '12px',
+            padding: '16px',
             backgroundColor: 'white',
             borderTop: '1px solid #eee',
             display: 'flex',
-            gap: '8px',
-            alignItems: 'center'
+            gap: '10px',
+            alignItems: 'center',
+            paddingBottom: 'calc(16px + env(safe-area-inset-bottom))'
           }}>
             <button
               onClick={startVoiceRecognition}
               style={{
-                background: isRecording ? '#ffebee' : 'transparent',
+                background: isRecording ? '#ffebee' : '#F5F5F5',
                 border: 'none',
                 cursor: 'pointer',
                 fontSize: '20px',
-                padding: '8px',
+                width: '42px',
+                height: '42px',
                 borderRadius: '50%',
-                color: isRecording ? '#E53935' : '#666',
+                color: isRecording ? '#E53935' : '#777',
                 display: 'flex',
                 alignItems: 'center',
-                justifyContent: 'center'
+                justifyContent: 'center',
+                flexShrink: 0
               }}
               title="음성 입력"
             >
@@ -341,16 +357,16 @@ ${dataContext}`;
               value={input}
               onChange={(e) => setInput(e.target.value)}
               onKeyDown={(e) => e.key === 'Enter' && handleSend()}
-              placeholder={isDataLoaded ? "메시지를 입력하세요..." : "데이터 로딩 중..."}
+              placeholder={isDataLoaded ? "메시지를 입력하세요..." : "로딩 중..."}
               disabled={!isDataLoaded}
               style={{
                 flex: 1,
-                padding: '10px 14px',
-                border: '1px solid #ddd',
-                borderRadius: '20px',
+                padding: '12px 16px',
+                border: '1px solid #EEE',
+                borderRadius: '24px',
                 outline: 'none',
-                fontSize: '14px',
-                backgroundColor: isDataLoaded ? 'white' : '#f5f5f5'
+                fontSize: '15px',
+                backgroundColor: isDataLoaded ? '#F9F9F9' : '#F5F5F5'
               }}
             />
             <button
@@ -360,13 +376,14 @@ ${dataContext}`;
                 background: (isLoading || !input.trim() || !isDataLoaded) ? '#EEE' : '#FF8A80',
                 color: 'white',
                 border: 'none',
-                padding: '8px 18px',
-                borderRadius: '20px',
+                padding: '10px 20px',
+                borderRadius: '24px',
                 cursor: (isLoading || !input.trim() || !isDataLoaded) ? 'not-allowed' : 'pointer',
                 fontSize: '14px',
-                fontWeight: '700',
+                fontWeight: '800',
                 transition: 'all 0.2s',
-                boxShadow: (isLoading || !input.trim() || !isDataLoaded) ? 'none' : '0 2px 8px rgba(255, 138, 128, 0.3)'
+                boxShadow: (isLoading || !input.trim() || !isDataLoaded) ? 'none' : '0 4px 12px rgba(255, 138, 128, 0.3)',
+                flexShrink: 0
               }}
             >
               전송
