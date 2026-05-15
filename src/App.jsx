@@ -596,22 +596,11 @@ function App() {
   const [navVisible, setNavVisible] = useState(true)
   const lastScrollY = useRef(0)
 
-  // 다크 모드 상태 관리
-  const [isDark, setIsDark] = useState(() => {
-    const saved = localStorage.getItem('theme');
-    if (saved) return saved === 'dark';
-    return window.matchMedia('(prefers-color-scheme: dark)').matches;
-  });
-
+  // 다크 모드 완전 삭제 및 항상 라이트 테마 고정
   useEffect(() => {
-    if (isDark) {
-      document.documentElement.setAttribute('data-theme', 'dark');
-      localStorage.setItem('theme', 'dark');
-    } else {
-      document.documentElement.removeAttribute('data-theme');
-      localStorage.setItem('theme', 'light');
-    }
-  }, [isDark]);
+    document.documentElement.removeAttribute('data-theme');
+    localStorage.removeItem('theme');
+  }, []);
 
   useEffect(() => {
     const handleScroll = () => {
