@@ -99,33 +99,30 @@ const ChatBot = () => {
   const handleSend = async () => {
     if (!input.trim()) return;
 
+    // 파티 추천 직접 처리 (AI 호출 전에 가로채기)
+    const lowerInput = input.trim().toLowerCase();
+    const isYes = lowerInput === 'y' || lowerInput === 'ㅛ' || lowerInput === '네' || lowerInput === 'yes';
+
+    if (isYes && dbData?.parties?.length > 0) {
+      const today = new Date().toISOString().split('T')[0];
+      const upcoming = dbData.parties
+        .filter(p => p.date >= today)
+        .slice(0, 2);
+      
+      const reply = upcoming.length > 0
+        ? upcoming.map(p => `🎵 ${p.title} | ${p.time?.split('-')[0].trim()} | ${p.fee}`).join('\n')
+        : '현재 등록된 파티가 없어요 😢';
+      
+      setMessages(prev => [...prev, { role: 'user', content: input }, { role: 'model', content: reply }]);
+      setInput('');
+      setIsLoading(false);
+      return; // AI API 호출 안 함
+    }
+
     const newMessages = [...messages, { role: 'user', content: input }];
     setMessages(newMessages);
     setInput('');
     setIsLoading(true);
-
-    // [Direct Logic] Y/y 입력 시 AI를 거치지 않고 DB에서 직접 추출
-    const trimmedInput = input.trim().toLowerCase();
-    if (trimmedInput === 'y') {
-      const now = new Date();
-      const todayStr = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
-      
-      const upcomingParties = dbData?.parties
-        ? dbData.parties
-            .filter(p => p.date >= todayStr)
-            .sort((a, b) => new Date(a.date) - new Date(b.date))
-            .slice(0, 2)
-        : [];
-
-      if (upcomingParties.length > 0) {
-        const partyList = upcomingParties.map(p => `🎵 ${p.title} | ${p.time || '시간 미정'} | ${p.fee || '입장료 미정'}`).join('\n');
-        setMessages(prev => [...prev, { role: 'model', content: partyList }]);
-      } else {
-        setMessages(prev => [...prev, { role: 'model', content: "현재 등록된 파티가 없어요 😢" }]);
-      }
-      setIsLoading(false);
-      return;
-    }
 
     try {
       const groqApiKey = import.meta.env.VITE_GROQ_API_KEY;
