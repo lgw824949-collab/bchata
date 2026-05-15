@@ -68,91 +68,6 @@ const ChatBot = () => {
 
     let response, data;
     try {
-      /* 
-      // Gemini API (Commented out for future use)
-      const apiKey = import.meta.env.VITE_GEMINI_API_KEY;
-      if (!apiKey) {
-        throw new Error('API key is missing');
-      }
-
-      let dataContext = "현재 실시간 데이터베이스 정보가 없습니다.";
-      if (dbData) {
-        const partiesInfo = dbData.parties.map(p => `- ${p.title} (${p.locationName || p.location_name})`).join('\n').slice(0, 500);
-        const bootcampsInfo = dbData.bootcamps.map(b => `- ${b.title}`).join('\n').slice(0, 300);
-        const instructorsInfo = dbData.instructors.map(i => `- ${i.name}(${i.genres})`).join('\n').slice(0, 300);
-        
-        dataContext = `
-[최신 플랫폼 데이터]
-* 파티:
-${partiesInfo || '예정된 파티 없음'}
-
-* 모집 중인 강의:
-${bootcampsInfo || '모집 중인 강의 없음'}
-
-* 강사 목록:
-${instructorsInfo || '강사 목록 없음'}
-`;
-      }
-
-      const systemPrompt = `당신은 '오늘밤빠'의 초간편 컨시어지입니다. 
-
-[대화 규칙 - 절대 준수]
-1. 모든 답변은 '번호와 선택지' 위주로 극도로 짧게 작성하세요. (최대 2줄 이내)
-2. 인사말, 긴 설명, 불필요한 홍보 멘트는 절대 금지입니다. 
-3. 유저가 번호만 보고 고를 수 있게 하세요.
-
-[대화 예시]
-유저: 바 추천
-AI: "어디로 모실까요? 1. 수도권, 2. 지방"
-유저: 1
-AI: "좋아하는 장르는? 1. 바차타, 2. 살사, 3. 기타"
-유저: 2
-AI: "오늘 홍대 [XX빠] 살사 파티가 핫해요! (20:00 시작)"
-
-${ADMIN_KNOWLEDGE}
-${dataContext}
-
-[엄격한 금기사항]
-- 데이터에 없는 정보는 절대 지어내지 마세요.
-- 답변이 길어지면 무조건 탈락입니다. 핵심만 찌르세요.`;
-      
-      const historyToSend = newMessages.slice(1).slice(-6);
-      
-      const apiContents = historyToSend.map(msg => ({
-          role: msg.role === 'model' ? 'model' : 'user',
-          parts: [{ text: msg.content }]
-      }));
-
-      const requestBody = {
-        contents: apiContents,
-        system_instruction: {
-          parts: [{ text: systemPrompt }]
-        },
-        generationConfig: {
-          maxOutputTokens: 300,
-          temperature: 0.7,
-        }
-      };
-
-      response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-latest:generateContent?key=${apiKey}`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(requestBody)
-      });
-
-      data = await response.json();
-      if (!response.ok) throw new Error(data.error?.message || 'API request failed');
-      
-      if (data.candidates && data.candidates.length > 0) {
-        const reply = data.candidates[0].content.parts[0].text;
-        setMessages(prev => [...prev, { role: 'model', content: reply }]);
-      } else {
-         setMessages(prev => [...prev, { role: 'model', content: "죄송합니다, 답변을 생성하지 못했습니다." }]);
-      }
-      */
-
       // Groq API Implementation
       const groqApiKey = import.meta.env.VITE_GROQ_API_KEY;
       if (!groqApiKey) {
@@ -163,26 +78,30 @@ ${dataContext}
 
       let dataContext = "현재 실시간 데이터베이스 정보가 없습니다.";
       if (dbData) {
-        const partiesInfo = dbData.parties.map(p => `- 파티명: [${p.title}] | 장소: ${p.locationName || p.location_name || '장소 정보 없음'} | 날짜: ${p.date}`).join('\n');
-        const bootcampsInfo = dbData.bootcamps.map(b => `- 강의명: [${b.title}] | 강사: ${b.instructor_name || '강사 정보 없음'}`).join('\n');
-        const instructorsInfo = dbData.instructors.map(i => `- 강사명: [${i.name}] | 장르: ${i.genres}`).join('\n');
-        dataContext = `\n\n[실시간 팩트 데이터]\n* 파티 목록:\n${partiesInfo}\n* 강의 목록:\n${bootcampsInfo}\n* 강사 목록:\n${instructorsInfo}\n${ADMIN_KNOWLEDGE}`;
+        const partiesInfo = dbData.parties.map(p => {
+          const venue = p.locationName || p.location_name || '장소 정보 확인 필요';
+          const region = p.region ? `[${p.region}] ` : '';
+          return `- ${region}${p.title} | 장소: ${venue}`;
+        }).join('\n');
+        const bootcampsInfo = dbData.bootcamps.map(b => `- ${b.title} | 강사: ${b.instructor_name || '정보 없음'}`).join('\n');
+        const instructorsInfo = dbData.instructors.map(i => `- ${i.name} [${i.genres}]`).join('\n');
+        dataContext = `\n\n[실시간 팩트 데이터]\n* 파티:\n${partiesInfo}\n* 강의:\n${bootcampsInfo}\n* 강사:\n${instructorsInfo}\n${ADMIN_KNOWLEDGE}`;
       }
 
-      const systemPrompt = `당신은 '오늘밤빠' 라틴댄스 플랫폼의 팩트 기반 가이드 '밤빠봇'입니다. 
-데이터베이스에 있는 '진짜 정보'만 말해야 합니다.
+      const systemPrompt = `당신은 '오늘밤빠' 라틴댄스 플랫폼의 팩트 가이드 '밤빠봇'입니다. 
 
-[절대 규칙: 팩트 체크]
-1. 데이터 기반: 오직 위 [실시간 팩트 데이터]에 있는 정보만 사용하세요. 없는 정보는 절대 지어내지 마세요.
-2. 기능 제한: 현재 '참가 신청'이나 '예약' 기능은 없습니다. 유저가 신청을 원하면 "자세한 신청은 앱의 상세 페이지를 확인하세요"라고 안내하세요. 절대 "신청 완료"라고 거짓말하지 마세요.
-3. 장소 안내: 파티명 옆에 적힌 '장소' 정보를 정확히 전달하세요. 
-4. 3C 원칙 준수: 답변은 3줄 이내, 번호 선택형으로 짧고 명확하게 하세요.
+[절대 규칙: 답변 포맷]
+1. 한 줄 요약: 파티 안내 시 [지역] 파티명 | 장소명 형식으로 짧게 한 줄씩만 쓰세요.
+2. 중복 금지: 답변 끝에 '오늘밤빠'를 반복해서 붙이지 마세요.
+3. 팩트 우선: 데이터에 '장소'가 있으면 무조건 그 장소명을 말하세요. 데이터가 있는데 "정보가 없다"고 말하면 절대 안 됩니다.
+4. 기능 제한: 현재 '참가 신청' 기능은 없습니다. 유저가 신청을 원하면 "상세 페이지에서 확인하세요"라고 안내하세요. 절대 "신청 완료"라고 거짓말하지 마세요.
+5. 3C 원칙: 답변은 이모지 포함 3줄 이내, 번호 선택형으로 답변하세요.
 
 ${dataContext}
 
 [답변 예시]
-유저: 파티 장소 알려줘
-밤빠봇: "[XX 파티]는 '홍대 XX빠'에서 열려요! 📍\n1. 다른 파티 보기\n2. 상세 위치 확인(지도)"`;
+유저: 파티 알려줘
+밤빠봇: "오늘 열리는 파티들이에요! 💃\n1. [서울] 주말 피크 | 홍대 보나따\n2. [부산] 부산 라틴 | 서면 마콘도\n상세 정보가 궁금한 번호를 눌러주세요."`;
 
       const apiMessages = [
         { role: "system", content: systemPrompt },
