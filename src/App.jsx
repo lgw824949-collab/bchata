@@ -1142,62 +1142,6 @@ function App() {
 
 
 
-        {/* Center Red Point Button */}
-        <div style={{ flex: 1, display: 'flex', justifyContent: 'center' }}>
-          <motion.button
-            whileTap={{ scale: 0.9 }}
-            onClick={() => {
-              if (location.pathname === '/livepick') {
-                window.dispatchEvent(new CustomEvent('open-community-upload'));
-              } else if (location.pathname === '/instructors') {
-                setShowClassRegister(true);
-              } else if (location.pathname === '/bootcamp') {
-                navigate('/bootcamp/register');
-              } else if (location.pathname === '/festival') {
-                navigate('/festival/register');
-              } else {
-                navigate('/register-party');
-              }
-            }}
-            style={{
-              width: '52px', height: '48px', borderRadius: '15px',
-              background: '#FF3B30', // 이미지와 유사한 레드
-              border: 'none', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center',
-              cursor: 'pointer', boxShadow: '0 4px 15px rgba(255, 59, 48, 0.3)'
-            }}
-          >
-            <Plus size={26} strokeWidth={3} />
-          </motion.button>
-        </div>
-
-        <div 
-          onClick={() => navigate('/bootcamp')}
-          style={{ 
-            flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
-            cursor: 'pointer', transition: 'all 0.2s',
-            color: location.pathname === '/bootcamp' ? '#FFFFFF' : 'rgba(255,255,255,0.3)'
-          }}
-        >
-          <Tent size={22} strokeWidth={location.pathname === '/bootcamp' ? 2.5 : 1.5} />
-          <span style={{ fontSize: '9px', fontWeight: location.pathname === '/bootcamp' ? 900 : 500, marginTop: '3px' }}>
-            {i18n.language?.startsWith('en') ? 'Bootcamp' : '부트캠프'}
-          </span>
-        </div>
-
-        <div 
-          onClick={() => navigate('/festival')}
-          style={{ 
-            flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
-            cursor: 'pointer', transition: 'all 0.2s',
-            color: location.pathname === '/festival' ? '#FFFFFF' : 'rgba(255,255,255,0.3)'
-          }}
-        >
-          <Flag size={22} strokeWidth={location.pathname === '/festival' ? 2.5 : 1.5} />
-          <span style={{ fontSize: '9px', fontWeight: location.pathname === '/festival' ? 900 : 500, marginTop: '3px' }}>
-            {i18n.language?.startsWith('en') ? 'Festival' : '페스티벌'}
-          </span>
-        </div>
-      </nav>
 
       <DynamicAnalysisModal isOpen={showIncheonModal} onClose={() => setShowIncheonModal(false)} userCoords={userCoords} isSajuCall={isSajuCall} />
       <AnimatePresence>
