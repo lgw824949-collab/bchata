@@ -71,7 +71,7 @@ const Bootcamp = ({ onBack, initialView = 'list' }) => {
   
   const [formData, setFormData] = useState({
     title: '', instructor: '', type: 'domestic', region: '서울', country: '',
-    start_date: '', end_date: '', venue: '', price: '', description: '',
+    start_date: '', end_date: '', venue: '', fee: '', description: '',
     poster_url: '', genre: '바차타', level: '초급', instagram: '', youtube: ''
   });
   const [uploading, setUploading] = useState(false);
@@ -157,7 +157,7 @@ const Bootcamp = ({ onBack, initialView = 'list' }) => {
       setCurrentStep(1);
       setFormData({
         title: '', instructor: '', type: 'domestic', region: '서울', country: '',
-        start_date: '', end_date: '', venue: '', price: '', description: '',
+        start_date: '', end_date: '', venue: '', fee: '', description: '',
         poster_url: '', genre: '바차타', level: '초급', instagram: '', youtube: ''
       });
       fetchBootcamps();
@@ -379,7 +379,7 @@ const Bootcamp = ({ onBack, initialView = 'list' }) => {
               <div style={{ display: 'flex', gap: '10px', marginTop: '20px' }}>
                 <StatCard label="DATE" value={selectedBootcamp.start_date} icon={<Calendar size={12} color="#C9A84C" />} />
                 <StatCard label="VENUE" value={selectedBootcamp.region} icon={<MapPin size={12} color="#C9A84C" />} />
-                <StatCard label="FEE" value={selectedBootcamp.price} icon={<Zap size={12} color="#C9A84C" />} />
+                <StatCard label="FEE" value={selectedBootcamp.fee} icon={<Zap size={12} color="#C9A84C" />} />
               </div>
 
               <div style={{ marginTop: '40px', padding: '24px', borderRadius: '24px', background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.05)' }}>
@@ -413,7 +413,7 @@ const Bootcamp = ({ onBack, initialView = 'list' }) => {
               <p style={{ color: '#94a3b8', lineHeight: 1.6, marginBottom: '25px' }}>입금 시 성함 뒤에 <span style={{ color: '#C9A84C', fontWeight: 900 }}>'밤빠'</span>를 꼭 적어주세요!</p>
               <div style={{ background: '#000', padding: '20px', borderRadius: '20px', marginBottom: '20px', textAlign: 'left' }}>
                 <p style={{ fontSize: '11px', color: '#475569', fontWeight: 900, marginBottom: '8px' }}>ACCOUNT INFO</p>
-                <p style={{ fontSize: '16px', color: '#fff', fontWeight: 800, margin: 0 }}>{selectedBootcamp?.price}</p>
+                <p style={{ fontSize: '16px', color: '#fff', fontWeight: 800, margin: 0 }}>{selectedBootcamp?.fee}</p>
               </div>
               <button onClick={() => setShowBookingGuide(false)} style={{ width: '100%', padding: '18px', borderRadius: '16px', background: '#C9A84C', color: '#000', fontWeight: 900, border: 'none' }}>확인했습니다</button>
             </div>
@@ -576,7 +576,7 @@ const Bootcamp = ({ onBack, initialView = 'list' }) => {
                 <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
                   <div>
                     <label style={{ display: 'block', fontSize: 11, fontWeight: 900, color: '#C9A84C', marginBottom: 10, letterSpacing: '1.5px' }}>10. 가격 정보</label>
-                    <input required value={formData.price} onChange={e => setFormData(p => ({ ...p, price: e.target.value }))} placeholder="예: 풀패스 250,000 / 파티 50,000" style={{ width: '100%', padding: '18px', borderRadius: 16, border: '1px solid rgba(255,255,255,0.1)', background: '#1A1A1A', fontSize: 15, color: '#fff', outline: 'none', boxSizing: 'border-box' }} />
+                    <input required value={formData.fee} onChange={e => setFormData(p => ({ ...p, fee: e.target.value }))} placeholder="예: 풀패스 250,000 / 파티 50,000" style={{ width: '100%', padding: '18px', borderRadius: 16, border: '1px solid rgba(255,255,255,0.1)', background: '#1A1A1A', fontSize: 15, color: '#fff', outline: 'none', boxSizing: 'border-box' }} />
                   </div>
                   <div>
                     <label style={{ display: 'block', fontSize: 11, fontWeight: 900, color: '#C9A84C', marginBottom: 10, letterSpacing: '1.5px' }}>12. 인스타그램 (선택)</label>
@@ -964,7 +964,7 @@ const Bootcamp = ({ onBack, initialView = 'list' }) => {
                   <StatCard label="START" value={selectedBootcamp.start_date?.slice(0, 10)} icon={<Calendar size={12} color="#C9A84C" />} />
                   <StatCard label="END" value={selectedBootcamp.end_date?.slice(0, 10)} icon={<Calendar size={12} color="#C9A84C" />} />
                   <StatCard label="VENUE" value={selectedBootcamp.venue || selectedBootcamp.region} icon={<MapPin size={12} color="#C9A84C" />} />
-                  <StatCard label="FEE" value={selectedBootcamp.fee || selectedBootcamp.price} icon={<Zap size={12} color="#C9A84C" />} />
+                  <StatCard label="FEE" value={selectedBootcamp.fee || selectedBootcamp.fee} icon={<Zap size={12} color="#C9A84C" />} />
                 </div>
 
                 {/* Description */}
@@ -1038,7 +1038,7 @@ const Bootcamp = ({ onBack, initialView = 'list' }) => {
               </p>
               <div style={{ background: '#000', padding: '20px', borderRadius: '20px', marginBottom: '20px', textAlign: 'left' }}>
                 <p style={{ fontSize: '11px', color: '#475569', fontWeight: 900, marginBottom: '8px' }}>ACCOUNT INFO</p>
-                <p style={{ fontSize: '16px', color: '#fff', fontWeight: 800, margin: 0 }}>{selectedBootcamp?.price}</p>
+                <p style={{ fontSize: '16px', color: '#fff', fontWeight: 800, margin: 0 }}>{selectedBootcamp?.fee}</p>
               </div>
               <button
                 onClick={() => setShowBookingGuide(false)}
