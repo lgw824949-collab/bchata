@@ -309,11 +309,14 @@ export default function AdminDashboard({ onBack }) {
           throw error;
         }
       } else {
-        const { locations, created_at, id, locationName, location_name, ...updateData } = editFormData;
-        const { error } = await supabase.from(table).update({
-          ...updateData,
-          photo_url: category === 'instructor' ? finalPhotoUrl : (updateData.photo_url || updateData.poster_url)
-        }).eq('id', editingItem);
+        const { locations, created_at, id, locationName, location_name, photo_url: _photo, ...updateData } = editFormData;
+        const finalUpdate = { ...updateData };
+        if (category === 'instructor') {
+          finalUpdate.photo_url = finalPhotoUrl;
+        } else {
+          finalUpdate.poster_url = updateData.poster_url || _photo || '';
+        }
+        const { error } = await supabase.from(table).update(finalUpdate).eq('id', editingItem);
         if (error) throw error;
       }
 
