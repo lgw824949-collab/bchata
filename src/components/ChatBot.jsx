@@ -335,15 +335,20 @@ const ChatBot = () => {
             to { transform: translateY(0); }
           }
         `}</style>
-        {/* 모바일: 풀스크린 / 데스크톱: 우측 하단 패널 */}
+        {/* 챗봇: visualViewport 높이에 맞게 조정 → 키보드 올라와도 딱 맞음 */}
         <div style={{
-          position: 'fixed', inset: 0, zIndex: 999999,
-          display: 'flex', flexDirection: 'column',
+          position: 'fixed',
+          top: window.visualViewport ? window.visualViewport.offsetTop : 0,
+          left: 0,
+          width: '100%',
+          height: `${viewportHeight}px`,
+          zIndex: 999999,
+          display: 'flex',
+          flexDirection: 'column',
           backgroundColor: 'white',
           animation: 'slideUpChat 0.25s ease-out'
         }}>
-          <div // 실제 채팅 컨테이너 - flex column으로 키보드 자동 처리
-            style={{ display: 'flex', flexDirection: 'column', height: '100%', overflow: 'hidden' }}
+          <div style={{ display: 'flex', flexDirection: 'column', height: '100%', overflow: 'hidden' }}
           >
           
           <div style={{
