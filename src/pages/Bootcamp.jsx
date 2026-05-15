@@ -154,15 +154,15 @@ const Bootcamp = ({ onBack, initialView = 'list' }) => {
   const StatCard = ({ label, value, icon }) => (
     <div style={{
       flex: 1, padding: '15px 8px', borderRadius: '16px',
-      background: 'linear-gradient(135deg, rgba(0,0,0,0.04) 0%, rgba(0,0,0,0.02) 100%)',
-      border: '1px solid rgba(0,0,0,0.08)',
+      background: 'linear-gradient(135deg, rgba(255,255,255,0.06) 0%, rgba(255,255,255,0.02) 100%)',
+      border: '1px solid rgba(255,255,255,0.08)',
       display: 'flex', flexDirection: 'column', alignItems: 'center',
       position: 'relative', overflow: 'hidden',
-      boxShadow: '0 2px 8px rgba(0,0,0,0.06)'
+      boxShadow: '0 2px 8px rgba(0,0,0,0.3)'
     }}>
       {icon && <div style={{ position: 'absolute', top: 5, right: 8 }}>{icon}</div>}
-      <div style={{ fontSize: '9px', color: '#94A3B8', fontWeight: 600, textTransform: 'uppercase', marginBottom: '8px', letterSpacing: '0.5px', textAlign: 'center' }}>{label}</div>
-      <div style={{ fontSize: '12px', fontWeight: 900, color: '#1E293B', textAlign: 'center', lineHeight: 1.3 }}>{value || '-'}</div>
+      <div style={{ fontSize: '9px', color: '#8E8E93', fontWeight: 600, textTransform: 'uppercase', marginBottom: '8px', letterSpacing: '0.5px', textAlign: 'center' }}>{label}</div>
+      <div style={{ fontSize: '12px', fontWeight: 900, color: '#FFFFFF', textAlign: 'center', lineHeight: 1.3 }}>{value || '-'}</div>
     </div>
   );
 
@@ -333,15 +333,15 @@ const Bootcamp = ({ onBack, initialView = 'list' }) => {
   */
 
   return (
-    <div style={{ background: '#FFFFFF', minHeight: '100vh', fontFamily: "'Outfit', sans-serif", color: '#1E293B' }}>
+    <div style={{ background: '#0D0D0D', minHeight: '100vh', fontFamily: "'Outfit', sans-serif", color: '#FFFFFF' }}>
 
       {/* Header */}
       <div style={{ padding: '30px 25px 10px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
           <button onClick={onBack} style={{ background: 'none', border: 'none', cursor: 'pointer' }}>
-            <ChevronLeft size={24} color="#1E293B" />
+            <ChevronLeft size={24} color="#FFFFFF" />
           </button>
-          <h2 style={{ fontSize: '24px', fontWeight: 900, color: '#1E293B', margin: 0, letterSpacing: '-0.5px' }}>
+          <h2 style={{ fontSize: '24px', fontWeight: 900, color: '#FFFFFF', margin: 0, letterSpacing: '-0.5px' }}>
             BOOTCAMP <span style={{ color: '#C9A84C' }}>MASTERS</span>
           </h2>
         </div>
@@ -362,20 +362,20 @@ const Bootcamp = ({ onBack, initialView = 'list' }) => {
       {/* Sticky Filter Header */}
       <div style={{
         position: 'sticky', top: 0, zIndex: 100,
-        background: 'rgba(255, 255, 255, 0.95)', backdropFilter: 'blur(20px)',
-        padding: '15px 25px', borderBottom: '1px solid rgba(0,0,0,0.08)',
+        background: 'rgba(13, 13, 13, 0.95)', backdropFilter: 'blur(20px)',
+        padding: '15px 25px', borderBottom: '1px solid rgba(255,255,255,0.08)',
         display: 'flex', flexDirection: 'column', gap: '12px'
       }}>
         <div style={{ position: 'relative' }}>
-          <SearchIcon size={16} color="#94A3B8" style={{ position: 'absolute', left: 15, top: '50%', transform: 'translateY(-50%)' }} />
+          <SearchIcon size={16} color="#8E8E93" style={{ position: 'absolute', left: 15, top: '50%', transform: 'translateY(-50%)' }} />
           <input
             value={searchTerm}
             onChange={e => { setSearchTerm(e.target.value); setVisibleCount(20); }}
             placeholder="캠프명 또는 강사명 검색"
             style={{
               width: '100%', padding: '12px 15px 12px 42px', borderRadius: '16px',
-              background: 'rgba(0,0,0,0.04)', border: '1px solid rgba(0,0,0,0.1)',
-              color: '#1E293B', fontSize: '14px', fontWeight: 600, outline: 'none', boxSizing: 'border-box'
+              background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)',
+              color: '#FFFFFF', fontSize: '14px', fontWeight: 600, outline: 'none', boxSizing: 'border-box'
             }}
           />
         </div>
@@ -386,10 +386,10 @@ const Bootcamp = ({ onBack, initialView = 'list' }) => {
               onClick={() => { setSelectedRegion(r); setVisibleCount(20); }}
               style={{
                 padding: '8px 16px', borderRadius: '20px', whiteSpace: 'nowrap',
-                background: selectedRegion === r ? 'rgba(201,168,76,0.15)' : 'rgba(0,0,0,0.04)',
-                color: selectedRegion === r ? '#B8860B' : '#64748B',
+                background: selectedRegion === r ? 'rgba(201,168,76,0.15)' : 'rgba(255,255,255,0.03)',
+                color: selectedRegion === r ? '#C9A84C' : '#8E8E93',
                 fontSize: '13px', fontWeight: selectedRegion === r ? 800 : 600,
-                border: `1px solid ${selectedRegion === r ? '#C9A84C' : 'rgba(0,0,0,0.08)'}`,
+                border: `1px solid ${selectedRegion === r ? '#C9A84C' : 'rgba(255,255,255,0.05)'}`,
                 cursor: 'pointer', transition: 'all 0.2s'
               }}
             >{r}</button>
@@ -402,10 +402,10 @@ const Bootcamp = ({ onBack, initialView = 'list' }) => {
               onClick={() => { setSelectedGenre(g); setVisibleCount(20); }}
               style={{
                 padding: '8px 16px', borderRadius: '20px', whiteSpace: 'nowrap',
-                background: selectedGenre === g ? 'rgba(201,168,76,0.15)' : 'rgba(0,0,0,0.04)',
-                color: selectedGenre === g ? '#B8860B' : '#64748B',
+                background: selectedGenre === g ? 'rgba(201,168,76,0.15)' : 'rgba(255,255,255,0.03)',
+                color: selectedGenre === g ? '#C9A84C' : '#8E8E93',
                 fontSize: '13px', fontWeight: selectedGenre === g ? 800 : 600,
-                border: `1px solid ${selectedGenre === g ? '#C9A84C' : 'rgba(0,0,0,0.08)'}`,
+                border: `1px solid ${selectedGenre === g ? '#C9A84C' : 'rgba(255,255,255,0.05)'}`,
                 cursor: 'pointer', transition: 'all 0.2s'
               }}
             >{g}</button>
@@ -418,7 +418,7 @@ const Bootcamp = ({ onBack, initialView = 'list' }) => {
         <div style={{ padding: '10px 25px 30px' }}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '18px' }}>
             <h3 style={{ fontSize: '13px', fontWeight: 900, color: '#C9A84C', letterSpacing: '2px', margin: 0 }}>TOP BOOTCAMPS</h3>
-            <div style={{ width: '40px', height: '1px', background: 'linear-gradient(90deg, #C9A84C, transparent)' }} />
+            <div style={{ width: '40px', height: '1px', background: 'linear-gradient(90deg, #C9A84C, transparent)', marginLeft: 'auto' }} />
           </div>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '12px' }}>
             {bootcamps[0] && (
@@ -472,7 +472,7 @@ const Bootcamp = ({ onBack, initialView = 'list' }) => {
           <h3 style={{ fontSize: '12px', fontWeight: 800, color: isFiltering ? '#C9A84C' : '#475569', letterSpacing: '1px', margin: 0 }}>
             {isFiltering ? `검색 결과 (${filteredList.length}개)` : 'EXPLORE ALL BOOTCAMPS'}
           </h3>
-          <div style={{ flex: 1, height: '1px', background: 'rgba(0,0,0,0.08)' }} />
+          <div style={{ flex: 1, height: '1px', background: 'rgba(255,255,255,0.08)' }} />
         </div>
 
         {loading ? (
@@ -480,7 +480,7 @@ const Bootcamp = ({ onBack, initialView = 'list' }) => {
             <Loader2 size={32} color="#C9A84C" style={{ animation: 'spin 1s linear infinite' }} />
           </div>
         ) : filteredList.length === 0 ? (
-          <div style={{ textAlign: 'center', padding: '60px 0', color: '#475569' }}>
+          <div style={{ textAlign: 'center', padding: '60px 0', color: '#8E8E93' }}>
             <div style={{ fontSize: 40, marginBottom: 12 }}>🏕️</div>
             <div style={{ fontSize: 14, fontWeight: 700 }}>등록된 부트캠프가 없습니다</div>
           </div>
@@ -498,20 +498,20 @@ const Bootcamp = ({ onBack, initialView = 'list' }) => {
                 style={{
                   display: 'flex', alignItems: 'center', gap: 18,
                   padding: '16px 20px', borderRadius: '22px',
-                  background: 'rgba(0,0,0,0.02)',
-                  marginBottom: '10px', border: '1px solid rgba(0,0,0,0.06)',
+                  background: 'rgba(255,255,255,0.03)',
+                  marginBottom: '10px', border: '1px solid rgba(255,255,255,0.06)',
                   cursor: 'pointer'
                 }}
               >
-                <div style={{ width: 60, height: 60, borderRadius: '16px', overflow: 'hidden', background: '#F1F5F9', border: '1px solid rgba(0,0,0,0.08)', flexShrink: 0 }}>
+                <div style={{ width: 60, height: 60, borderRadius: '16px', overflow: 'hidden', background: 'rgba(255,255,255,0.08)', border: '1px solid rgba(255,255,255,0.1)', flexShrink: 0 }}>
                   {item.poster_url
                     ? <img src={item.poster_url} style={{ width: '100%', height: '100%', objectFit: 'cover' }} alt={item.instructor} />
                     : <div style={{ fontSize: 24, display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100%' }}>🏕️</div>
                   }
                 </div>
                 <div style={{ flex: 1, minWidth: 0 }}>
-                  <div style={{ fontSize: 17, fontWeight: 900, color: '#1E293B', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{item.instructor}</div>
-                  <div style={{ fontSize: 12, color: '#64748B', fontWeight: 600 }}>{item.genre} · {item.venue || item.region}</div>
+                  <div style={{ fontSize: 17, fontWeight: 900, color: '#FFFFFF', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{item.instructor}</div>
+                  <div style={{ fontSize: 12, color: '#8E8E93', fontWeight: 600 }}>{item.genre} · {item.venue || item.region}</div>
                 </div>
                 <div style={{ textAlign: 'right', flexShrink: 0 }}>
                   <div style={{ fontSize: 13, fontWeight: 900, color: '#C9A84C' }}>{item.start_date?.slice(5, 10)}</div>
