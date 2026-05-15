@@ -328,6 +328,12 @@ const ChatBot = () => {
     <>
 
       {isOpen && (
+        <>
+          {/* 딤 배경 */}
+          <div
+            onClick={() => setIsOpen(false)}
+            style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', zIndex: 99998, backdropFilter: 'blur(3px)' }}
+          />
         <div 
           className="chatbot-window"
           style={{
@@ -341,27 +347,29 @@ const ChatBot = () => {
             boxShadow: '0 12px 40px rgba(0,0,0,0.15)',
             display: 'flex',
             flexDirection: 'column',
-            zIndex: 10000,
+            zIndex: 99999,
             overflow: 'hidden',
-            animation: 'slideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1)'
+            animation: 'slideUpChat 0.3s cubic-bezier(0.16, 1, 0.3, 1)'
           }}
         >
           <style>
             {`
-              @keyframes slideUp {
-                from { transform: translateY(30px); opacity: 0; }
+              @keyframes slideUpChat {
+                from { transform: translateY(100%); opacity: 0; }
                 to { transform: translateY(0); opacity: 1; }
               }
               @media (max-width: 600px) {
                 .chatbot-window {
                   width: 100% !important;
-                  height: ${viewportHeight}px !important;
+                  height: 65vh !important;
+                  max-height: 65vh !important;
                   bottom: 0 !important;
                   right: 0 !important;
-                  border-radius: 0 !important;
+                  border-radius: 24px 24px 0 0 !important;
                   z-index: 999999 !important;
                   position: fixed !important;
-                  top: ${window.visualViewport ? window.visualViewport.offsetTop : 0}px !important;
+                  top: auto !important;
+                  animation: slideUpChat 0.3s cubic-bezier(0.16, 1, 0.3, 1) !important;
                 }
               }
             `}
@@ -535,6 +543,7 @@ const ChatBot = () => {
             </button>
           </div>
         </div>
+        </>
       )}
     </>
   );
