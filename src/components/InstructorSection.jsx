@@ -245,44 +245,46 @@ const InstructorSection = () => {
       e.stopPropagation();
     }
     
-    // Immediate Visual Feedback
-    console.log(`[FOLLOW CLICK] Instructor ID: ${instructorId}`);
-    
+    if (localStorage.getItem(`followed_${instructorId}`)) {
+      alert("이미 팔로우한 강사입니다");
+      return;
+    }
+
     if (processing[instructorId]) return;
 
     const session = getSession();
-    const isFollowing = !!follows[instructorId];
     const instructor = instructors.find(i => i.id === instructorId);
     
     setProcessing(prev => ({ ...prev, [instructorId]: true }));
     
     try {
-      if (isFollowing) {
-        const { error } = await supabase.from('instructor_follows').delete().eq('instructor_id', instructorId).eq('user_session', session);
-        if (error) throw error;
-        await supabase.from('instructors').update({ follower_count: Math.max(0, (instructor?.follower_count || 1) - 1) }).eq('id', instructorId);
-      } else {
-        const { error } = await supabase.from('instructor_follows').insert({ instructor_id: instructorId, user_session: session });
-        if (error) throw error;
-        await supabase.from('instructors').update({ follower_count: (instructor?.follower_count || 0) + 1 }).eq('id', instructorId);
-      }
+      // Always insert, never delete (unfollow disabled)
+      const { error } = await supabase.from('instructor_follows').insert({ instructor_id: instructorId, user_session: session });
+      if (error) throw error;
+      await supabase.from('instructors').update({ follower_count: (instructor?.follower_count || 0) + 1 }).eq('id', instructorId);
       
-      const newFollows = { ...follows, [instructorId]: !isFollowing };
+      localStorage.setItem(`followed_${instructorId}`, "true");
+      
+      const newFollows = { ...follows, [instructorId]: true };
       setFollows(newFollows);
       localStorage.setItem('instructor_follows', JSON.stringify(newFollows));
       
       setInstructors(prev => prev.map(i => i.id === instructorId
-        ? { ...i, follower_count: Math.max(0, (i.follower_count || 0) + (isFollowing ? -1 : 1)) }
+        ? { ...i, follower_count: (i.follower_count || 0) + 1 }
         : i
       ));
       
-      // Trigger a refresh event for the sidebar if needed (via window event)
       window.dispatchEvent(new CustomEvent('refresh-sidebar')); 
-      
-      alert(isFollowing ? '팔로우가 취소되었습니다.' : '마스터를 팔로우했습니다! 사이드바에서 확인하세요.');
+      alert('마스터를 팔로우했습니다! 사이드바에서 확인하세요.');
     } catch (err) {
       console.error('Follow error:', err);
-      alert('처리 중 오류가 발생했습니다: ' + (err.message || '잠시 후 다시 시도해주세요.'));
+      // If error is duplicate key, it means already followed in DB but maybe not in localStorage
+      if (err.code === '23505') {
+        localStorage.setItem(`followed_${instructorId}`, "true");
+        alert("이미 팔로우한 강사입니다");
+      } else {
+        alert('처리 중 오류가 발생했습니다: ' + (err.message || '잠시 후 다시 시도해주세요.'));
+      }
     } finally {
       setProcessing(prev => ({ ...prev, [instructorId]: false }));
     }
