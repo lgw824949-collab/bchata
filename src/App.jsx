@@ -1233,26 +1233,27 @@ function App() {
         <div 
           onClick={() => navigate('/bootcamp')}
           style={{ 
-          <span style={{ fontSize: '10px', fontWeight: location.pathname === '/bootcamp' ? 900 : 500, marginTop: '2px' }}>
+            flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
+            cursor: 'pointer', transition: 'all 0.2s',
+            color: location.pathname === '/bootcamp' ? '#FFFFFF' : 'rgba(255,255,255,0.3)'
+          }}
+        >
+          <Tent size={22} strokeWidth={location.pathname === '/bootcamp' ? 2.5 : 1.5} />
+          <span style={{ fontSize: '9px', fontWeight: location.pathname === '/bootcamp' ? 900 : 500, marginTop: '3px' }}>
             {i18n.language?.startsWith('en') ? 'Bootcamp' : '부트캠프'}
           </span>
         </div>
 
         <div 
-          className="nav-item" 
           onClick={() => navigate('/festival')}
           style={{ 
             flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
-            cursor: 'pointer', position: 'relative', height: '100%',
-            color: location.pathname === '/festival' ? '#FFFFFF' : '#666666'
+            cursor: 'pointer', transition: 'all 0.2s',
+            color: location.pathname === '/festival' ? '#FFFFFF' : 'rgba(255,255,255,0.3)'
           }}
         >
-          <div
-            style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '4px' }}
-          >
-            <Flag size={22} strokeWidth={location.pathname === '/festival' ? 2.5 : 1.5} style={{ color: location.pathname === '/festival' ? '#FFFFFF' : '#666666' }} />
-          </div>
-          <span style={{ fontSize: '9px', fontWeight: location.pathname === '/festival' ? 900 : 400 }}>
+          <Flag size={22} strokeWidth={location.pathname === '/festival' ? 2.5 : 1.5} />
+          <span style={{ fontSize: '9px', fontWeight: location.pathname === '/festival' ? 900 : 500, marginTop: '3px' }}>
             {i18n.language?.startsWith('en') ? 'Festival' : '페스티벌'}
           </span>
         </div>
