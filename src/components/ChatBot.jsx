@@ -22,6 +22,28 @@ const ChatBot = () => {
   const [dbData, setDbData] = useState(null);
   const [isDataLoaded, setIsDataLoaded] = useState(false);
   const [userLocation, setUserLocation] = useState(null);
+  const [viewportHeight, setViewportHeight] = useState(window.innerHeight);
+
+  // 키보드 대응: 비주얼 뷰포트 높이 감지
+  useEffect(() => {
+    if (!window.visualViewport) return;
+
+    const handleResize = () => {
+      setViewportHeight(window.visualViewport.height);
+      // 키보드가 올라올 때 스크롤 최하단 유지
+      if (isOpen) {
+        setTimeout(scrollToBottom, 100);
+      }
+    };
+
+    window.visualViewport.addEventListener('resize', handleResize);
+    window.visualViewport.addEventListener('scroll', handleResize);
+
+    return () => {
+      window.visualViewport.removeEventListener('resize', handleResize);
+      window.visualViewport.removeEventListener('scroll', handleResize);
+    };
+  }, [isOpen]);
 
   // 유저 위치 실시간 감지 (이동성 고려)
   useEffect(() => {
@@ -285,11 +307,13 @@ ${dataContext}`;
               @media (max-width: 600px) {
                 .chatbot-window {
                   width: 100% !important;
-                  height: 100dvh !important;
+                  height: ${viewportHeight}px !important;
                   bottom: 0 !important;
                   right: 0 !important;
                   border-radius: 0 !important;
                   z-index: 999999 !important;
+                  position: fixed !important;
+                  top: ${window.visualViewport ? window.visualViewport.offsetTop : 0}px !important;
                 }
               }
             `}
