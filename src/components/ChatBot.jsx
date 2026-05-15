@@ -48,14 +48,12 @@ const ChatBot = () => {
           const today = new Date();
           const todayStr = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
           
-          const [partiesRes, bootcampsRes, instructorsRes] = await Promise.all([
+          const [partiesRes, instructorsRes] = await Promise.all([
             supabase.from('parties').select('*').eq('status', 'approved').gte('date', todayStr).limit(10),
-            supabase.from('bootcamps').select('*').eq('status', 'active'),
             supabase.from('instructors').select('*').eq('status', 'active')
           ]);
           setDbData({
             parties: partiesRes.data || [],
-            bootcamps: bootcampsRes.data || [],
             instructors: instructorsRes.data || []
           });
         } catch (e) {
@@ -84,29 +82,23 @@ const ChatBot = () => {
     setInput('');
     setIsLoading(true);
 
-    let response, data;
     try {
-      // Groq API Implementation
       const groqApiKey = import.meta.env.VITE_GROQ_API_KEY;
-      if (!groqApiKey) {
-        console.error('Groq API key is missing');
-        setIsLoading(false);
-        return;
-      }
+      if (!groqApiKey) throw new Error('Groq API key is missing');
 
       const now = new Date();
       const todayStr = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
 
-      // 좌표 기반 지역 명칭 추출 (인천, 서울 등)
+      // 좌표 기반 지역 명칭 추출
       const getRegionName = (loc) => {
         if (!loc) return null;
         const { lat, lng } = loc;
         if (lat > 37.3 && lat < 37.7 && lng > 126.8 && lng < 127.3) return '서울';
         if (lat > 37.2 && lat < 37.6 && lng > 126.4 && lng < 126.8) return '인천';
-        if (lat > 37.0 && lat < 37.8 && lng > 126.5 && lng < 127.8) return '수도권';
+        if (lat > 37.0 && lat < 37.8 && lng > 126.5 && lng < 127.8) return '수도권/경기';
         if (lat > 34.9 && lat < 35.4 && lng > 128.8 && lng < 129.4) return '부산';
         if (lat > 35.6 && lat < 36.1 && lng > 128.4 && lng < 128.8) return '대구';
-        return '지방';
+        return '지방권';
       };
 
       const currentRegion = getRegionName(userLocation);
@@ -114,7 +106,7 @@ const ChatBot = () => {
       let dataContext = "현재 실시간 데이터베이스 정보가 없습니다.";
       if (dbData) {
         const partiesInfo = dbData.parties.map(p => {
-          const venue = p.locationName || p.location_name || '장소 확인 필요';
+          const venue = p.locationName || p.location_name || p.studio_name || '장소 확인 필요';
           return `- 파티명: ${p.title} | 장소: ${venue} | 날짜: ${p.date} | 입장료: ${p.fee || '정보 없음'} | 지역: ${p.broadRegion || p.region || '전국'}`;
         }).join('\n');
         const instructorsInfo = dbData.instructors.map(i => `- 강사명: ${i.name} | 장르: ${i.genres || '정보 없음'} | 지역: ${i.region || i.broadRegion || '정보 없음'} | SNS: ${i.instagram_id || i.sns_id || '없음'} | 가격: ${i.price || '문의'}`).join('\n');
@@ -129,13 +121,14 @@ const ChatBot = () => {
 - 유저 실시간 위치: ${currentRegion ? `${currentRegion} (지금 여기 계시네요!)` : '위치 파악 중'}
 
 [절대 규칙 1: 실시간 동적 추천]
-1. "어디가 핫해?" 대응: 유저가 추천을 요청하면, 무조건 유저의 **실시간 위치(${currentRegion || '주변'})** 데이터를 1순위로 필터링하세요.
-2. 질문 생략: 이미 위치를 알고 있다면 "어디 계세요?"를 묻지 마세요. "지금 계신 ${currentRegion} 근처 정보를 바로 보여드릴까요?"라고 제안하며 대화를 리드하세요.
-3. 티키타카: 모든 답변은 번호 선택지(1. 예, 2. 아니오 등)를 포함하여 유저가 빠르게 응답할 수 있게 하세요.
+1. 지역 최우선 배치: 추천 리스트 구성 시, 유저의 현재 위치(${currentRegion || '주변'})와 일치하는 정보를 **반드시 최상단(1번)**에 배치하세요.
+2. 정직한 안내: 유저 지역(${currentRegion})에 정보가 없을 경우, "해당 지역 정보는 없지만 가장 가까운 주변 정보를 추천해 드릴게요"라고 솔직하게 말하고 인접 지역 정보를 제공하세요.
+3. 질문 생략: 위치를 알면 "어디 사세요?"라고 묻지 마세요. "지금 계신 ${currentRegion} 근처 정보를 바로 보여드릴까요?"라고 제안하며 대화를 리드하세요.
+4. 티키타카: 모든 답변은 번호 선택지(1. 예, 2. 아니오 등)를 포함하여 유저가 빠르게 응답할 수 있게 하세요.
 
 [절대 규칙 2: 데이터 매칭]
 1. 'undefined' 노출은 절대 금지입니다. 데이터가 없으면 '정보 없음'으로 표시하세요.
-2. 바(파티) 추천: "🎶 파티명 | 장소 | 날짜 | 입장료" 형식으로 최대 3개만 안내하세요.
+2. 바(파티) 추천: "🎶 [지역명] 파티명 | 장소 | 날짜 | 입장료" 형식으로 최대 3개만 안내하세요.
 3. 강사 추천: "🎵 강사명 | 장르 | 지역 | SNS" 형식으로 최대 3개만 안내하세요.
 
 [절대 규칙 3: 극강의 간결함]
@@ -151,7 +144,7 @@ ${dataContext}`;
         }))
       ];
 
-      response = await fetch("https://api.groq.com/openai/v1/chat/completions", {
+      const response = await fetch("https://api.groq.com/openai/v1/chat/completions", {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${groqApiKey}`,
@@ -165,7 +158,7 @@ ${dataContext}`;
         })
       });
 
-      data = await response.json();
+      const data = await response.json();
       if (!response.ok) throw new Error(data.error?.message || 'Groq API request failed');
 
       if (data.choices && data.choices.length > 0) {
@@ -177,8 +170,7 @@ ${dataContext}`;
 
     } catch (error) {
       console.error('Groq API Error:', error);
-      const isQuotaError = response?.status === 429 || error.message?.includes('429') || error.message?.includes('quota');
-      const errorMessage = isQuotaError 
+      const errorMessage = error.message?.includes('429') || error.message?.includes('quota')
         ? "지금 대화가 너무 많아 밤빠가 조금 힘들어하네요! 😅\n약 1분 뒤에 다시 말을 걸어주시면 감사하겠습니다! ✨"
         : "오류가 발생했습니다. 잠시 후 다시 시도해주세요.";
       setMessages(prev => [...prev, { role: 'model', content: errorMessage }]);
