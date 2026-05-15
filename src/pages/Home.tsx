@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo, useRef } from 'react';
-import { Heart, MapPin, Calendar, Clock, User, Users, Music, ChevronRight, ShieldCheck, X, Home as HomeIcon, ChevronLeft, CloudSun, Utensils, Zap, PlusCircle, Languages, Bell, Globe, Navigation, CalendarDays, Star, Camera, MessageSquare } from 'lucide-react';
+import { Heart, MapPin, Calendar, Clock, User, Users, Music, ChevronRight, ShieldCheck, X, Home as HomeIcon, ChevronLeft, CloudSun, Utensils, Zap, PlusCircle, Languages, Bell, Globe, Navigation, CalendarDays, Star, Camera, MessageSquare, Bot } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { motion, AnimatePresence } from 'framer-motion';
 import QuickPinchZoom, { make3dTransformValue } from 'react-quick-pinch-zoom';
@@ -666,42 +666,6 @@ const HomePage = ({
         </div>
       </div>
 
-      {/* 밤빠 컨시어지 배너 */}
-      <div
-        onClick={() => window.dispatchEvent(new CustomEvent('open-chatbot'))}
-        style={{
-          margin: '0 20px 20px',
-          padding: '16px 20px',
-          borderRadius: '18px',
-          background: 'linear-gradient(135deg, #0F172A 0%, #1E293B 100%)',
-          border: '1px solid rgba(255,59,48,0.25)',
-          cursor: 'pointer',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-          boxShadow: '0 4px 20px rgba(0,0,0,0.15)'
-        }}
-      >
-        <div>
-          <div style={{ fontSize: '11px', color: '#FF8A80', fontWeight: 800, letterSpacing: '1px', marginBottom: 6 }}>
-            ✨ 밤빠 컨시어지
-          </div>
-          <div style={{ fontSize: '15px', fontWeight: 900, color: '#fff', marginBottom: 4 }}>
-            {lang === 'ko' ? '오늘 어디 갈지 모르겠어요?' : "Not sure where to go tonight?"}
-          </div>
-          <div style={{ fontSize: '12px', color: '#94a3b8', fontWeight: 500 }}>
-            {lang === 'ko' ? '파티 · 강습 · 부트캠프 · 페스티벌 안내' : 'Party · Class · Bootcamp · Festival guide'}
-          </div>
-        </div>
-        <div style={{
-          width: 44, height: 44, borderRadius: '50%',
-          background: 'rgba(255,138,128,0.15)',
-          border: '1px solid rgba(255,138,128,0.3)',
-          display: 'flex', alignItems: 'center', justifyContent: 'center',
-          fontSize: '22px', flexShrink: 0
-        }}>✨</div>
-      </div>
-
       {/* 🔴 [LIVE 바 임팩트 영역 개편] */}
       <div style={{ padding: '4px 20px 12px', marginBottom: '24px' }}>
         {/* LiveCount를 감싸는 세련된 임팩트 컨테이너 및 전역 스타일 주입 */}
@@ -1062,15 +1026,32 @@ const HomePage = ({
                     {/* HOT PICK 고퀄리티 개선 (자연스러운 속도로 한쪽으로 무한 이동하는 프리미엄 롤링 마퀴) */}
                     {newest8GlobalEvents.length > 0 && (
                       <div style={{ margin: '0 0 24px', padding: '15px 0 20px', background: 'var(--color-card)', borderBottom: '1px solid var(--color-border)', overflow: 'hidden' }}>
-                        <div style={{ padding: '0 20px 14px', display: 'flex', flexDirection: 'column', gap: '3px' }}>
-                          <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                            <h2 style={{ fontSize: '20px', fontWeight: '950', margin: 0, display: 'flex', alignItems: 'center', gap: '5px' }}>
-                              <span style={{ color: '#E53935' }}>HOT</span>
-                              <span style={{ color: '#1E293B' }}>PICK</span>
-                            </h2>
-                            <span style={{ fontSize: '18px' }}>🔥</span>
+                        <div style={{ padding: '0 20px 14px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                          <div style={{ display: 'flex', flexDirection: 'column', gap: '3px' }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                              <h2 style={{ fontSize: '20px', fontWeight: '950', margin: 0, display: 'flex', alignItems: 'center', gap: '5px' }}>
+                                <span style={{ color: '#E53935' }}>HOT</span>
+                                <span style={{ color: '#1E293B' }}>PICK</span>
+                              </h2>
+                              <span style={{ fontSize: '18px' }}>🔥</span>
+                            </div>
+                            <span style={{ fontSize: '12px', color: '#64748B', fontWeight: 600 }}>지금 가장 핫한 파티</span>
                           </div>
-                          <span style={{ fontSize: '12px', color: '#64748B', fontWeight: 600 }}>지금 가장 핫한 파티</span>
+                          {/* 컨시어지 버튼 */}
+                          <button
+                            onClick={() => window.dispatchEvent(new CustomEvent('open-chatbot'))}
+                            style={{
+                              display: 'flex', alignItems: 'center', gap: 6,
+                              padding: '8px 14px', borderRadius: 20,
+                              background: '#F8FAFC', border: '1px solid #E2E8F0',
+                              cursor: 'pointer', color: '#475569',
+                              fontSize: 12, fontWeight: 700,
+                              boxShadow: '0 1px 4px rgba(0,0,0,0.08)'
+                            }}
+                          >
+                            <Bot size={15} color="#E53935" strokeWidth={2} />
+                            {lang === 'ko' ? '길 안내' : 'Guide'}
+                          </button>
                         </div>
                         <style>{`
                           .hot-pick-track-premium {
