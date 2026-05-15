@@ -480,7 +480,7 @@ const Bootcamp = ({ onBack, initialView = 'list' }) => {
                 style={{ gridColumn: 'span 2', height: '244px', cursor: 'pointer' }}
               >
                 <div className="spinning-border-inner" style={{ position: 'relative', height: '240px' }}>
-                  <img src={bootcamps[0].poster_url || 'https://via.placeholder.com/500'} style={{ width: '100%', height: '100%', objectFit: 'cover' }} alt={bootcamps[0].instructor} />
+                  <img src={bootcamps[0].poster_url || 'https://via.placeholder.com/500'} style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'center top' }} alt={bootcamps[0].instructor} />
                   <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to top, rgba(0,0,0,0.9) 0%, transparent 60%)' }} />
                   <div style={{ position: 'absolute', top: 15, left: 15, background: 'rgba(201,168,76,0.9)', color: '#000', padding: '4px 10px', borderRadius: '10px', fontSize: '10px', fontWeight: 900 }}>NEXT BOOTCAMP</div>
                   <div style={{ position: 'absolute', bottom: 20, left: 20, right: 20 }}>
@@ -503,7 +503,7 @@ const Bootcamp = ({ onBack, initialView = 'list' }) => {
                 whileTap={{ scale: 0.96 }}
                 style={{ position: 'relative', height: '180px', borderRadius: '24px', overflow: 'hidden', cursor: 'pointer', border: '1px solid rgba(255,255,255,0.05)' }}
               >
-                <img src={item.poster_url || 'https://via.placeholder.com/300'} style={{ width: '100%', height: '100%', objectFit: 'cover' }} alt={item.instructor} />
+                <img src={item.poster_url || 'https://via.placeholder.com/300'} style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'center top' }} alt={item.instructor} />
                 <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to top, rgba(0,0,0,0.8) 0%, transparent 70%)' }} />
                 <div style={{ position: 'absolute', top: 12, right: 12 }}>
                   <div style={{ background: 'rgba(0,0,0,0.5)', backdropFilter: 'blur(4px)', color: '#FFF', padding: '4px 8px', borderRadius: '8px', fontSize: '9px', fontWeight: 800, border: '1px solid rgba(255,255,255,0.1)' }}>
@@ -571,7 +571,7 @@ const Bootcamp = ({ onBack, initialView = 'list' }) => {
               >
                 <div style={{ width: 60, height: 60, borderRadius: '16px', overflow: 'hidden', background: 'rgba(255,255,255,0.08)', border: '1px solid rgba(255,255,255,0.1)', flexShrink: 0 }}>
                   {item.poster_url
-                    ? <img src={item.poster_url} style={{ width: '100%', height: '100%', objectFit: 'cover' }} alt={item.instructor} />
+                    ? <img src={item.poster_url} style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'center top' }} alt={item.instructor} />
                     : <div style={{ fontSize: 24, display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100%' }}>🏕️</div>
                   }
                 </div>
@@ -618,7 +618,7 @@ const Bootcamp = ({ onBack, initialView = 'list' }) => {
               <div style={{ position: 'relative', height: '480px', overflow: 'hidden' }}>
                 <div style={{
                   position: 'absolute', inset: 0,
-                  background: selectedBootcamp.poster_url ? `url(${selectedBootcamp.poster_url}) center/cover` : '#1A1A1A',
+                  background: selectedBootcamp.poster_url ? `url(${selectedBootcamp.poster_url}) center top / cover` : '#1A1A1A',
                   filter: 'brightness(0.7)'
                 }} />
                 <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to bottom, rgba(0,0,0,0.3) 0%, transparent 40%, #0D0D0D 100%)' }} />
