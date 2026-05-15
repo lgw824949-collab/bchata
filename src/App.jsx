@@ -1140,56 +1140,7 @@ function App() {
         </Suspense>
       </main>
 
-      {/* [Premium Floating Capsule Navigation] */}
-      <nav 
-        className="bottom-nav" 
-        style={{ 
-          position: 'fixed', 
-          bottom: '15px', 
-          left: '50%',
-          transform: 'translateX(-50%)',
-          width: '94%', 
-          maxWidth: '460px', 
-          height: '68px',
-          background: '#0a0a0a',
-          borderRadius: '34px', // 완전한 캡슐형
-          display: 'flex', 
-          alignItems: 'center', 
-          justifyContent: 'space-between',
-          padding: '0 20px',
-          zIndex: 10000,
-          boxShadow: '0 10px 30px rgba(0,0,0,0.5)',
-          boxSizing: 'border-box',
-          border: '1px solid rgba(255,255,255,0.05)'
-        }}
-      >
-        <div 
-          onClick={() => navigate('/')}
-          style={{ 
-            flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
-            cursor: 'pointer', transition: 'all 0.2s',
-            color: (location.pathname === '/' && !showPartner) ? '#FFFFFF' : 'rgba(255,255,255,0.3)'
-          }}
-        >
-          <Music2 size={22} strokeWidth={(location.pathname === '/' && !showPartner) ? 2.5 : 1.5} />
-          <span style={{ fontSize: '9px', fontWeight: (location.pathname === '/' && !showPartner) ? 900 : 500, marginTop: '3px' }}>
-            {i18n.language?.startsWith('en') ? 'Social' : '소셜'}
-          </span>
-        </div>
 
-        <div 
-          onClick={() => handleOpenModal(setShowPartner)}
-          style={{ 
-            flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
-            cursor: 'pointer', transition: 'all 0.2s',
-            color: showPartner ? '#FFFFFF' : 'rgba(255,255,255,0.3)'
-          }}
-        >
-          <Heart size={22} strokeWidth={showPartner ? 2.5 : 1.5} />
-          <span style={{ fontSize: '9px', fontWeight: showPartner ? 900 : 500, marginTop: '3px' }}>
-            {i18n.language?.startsWith('en') ? 'Partner' : '파트너'}
-          </span>
-        </div>
 
         {/* Center Red Point Button */}
         <div style={{ flex: 1, display: 'flex', justifyContent: 'center' }}>
@@ -1471,6 +1422,114 @@ function App() {
         </motion.div>
       )}
     </AnimatePresence>
+    {/* [Premium Floating Capsule Navigation - Root Level Persistence] */}
+    <nav 
+      className="bottom-nav" 
+      style={{ 
+        position: 'fixed', 
+        bottom: '15px', 
+        left: '50%',
+        transform: 'translateX(-50%)',
+        width: '94%', 
+        maxWidth: '460px', 
+        height: '68px',
+        background: '#0a0a0a',
+        borderRadius: '34px', // 완전한 캡슐형
+        display: 'flex', 
+        alignItems: 'center', 
+        justifyContent: 'space-between',
+        padding: '0 20px',
+        zIndex: 2100000, // 최상위 모달보다 높게 설정
+        boxShadow: '0 10px 40px rgba(0,0,0,0.6)',
+        boxSizing: 'border-box',
+        border: '1px solid rgba(255,255,255,0.1)',
+        backdropFilter: 'blur(10px)'
+      }}
+    >
+      <div 
+        onClick={() => { navigate('/'); setShowPartner(false); }}
+        style={{ 
+          flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
+          cursor: 'pointer', transition: 'all 0.2s',
+          color: (location.pathname === '/' && !showPartner) ? '#FFFFFF' : 'rgba(255,255,255,0.3)'
+        }}
+      >
+        <Music2 size={22} strokeWidth={(location.pathname === '/' && !showPartner) ? 2.5 : 1.5} />
+        <span style={{ fontSize: '9px', fontWeight: (location.pathname === '/' && !showPartner) ? 900 : 500, marginTop: '3px' }}>
+          {i18n.language?.startsWith('en') ? 'Social' : '소셜'}
+        </span>
+      </div>
+
+      <div 
+        onClick={() => handleOpenModal(setShowPartner)}
+        style={{ 
+          flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
+          cursor: 'pointer', transition: 'all 0.2s',
+          color: showPartner ? '#FFFFFF' : 'rgba(255,255,255,0.3)'
+        }}
+      >
+        <Heart size={22} strokeWidth={showPartner ? 2.5 : 1.5} />
+        <span style={{ fontSize: '9px', fontWeight: showPartner ? 900 : 500, marginTop: '3px' }}>
+          {i18n.language?.startsWith('en') ? 'Partner' : '파트너'}
+        </span>
+      </div>
+
+      {/* Center Red Point Button */}
+      <div style={{ flex: 1, display: 'flex', justifyContent: 'center' }}>
+        <motion.button
+          whileTap={{ scale: 0.9 }}
+          onClick={() => {
+            if (location.pathname === '/livepick') {
+              window.dispatchEvent(new CustomEvent('open-community-upload'));
+            } else if (location.pathname === '/instructors') {
+              setShowClassRegister(true);
+            } else if (location.pathname === '/bootcamp') {
+              navigate('/bootcamp/register');
+            } else if (location.pathname === '/festival') {
+              navigate('/festival/register');
+            } else {
+              navigate('/register-party');
+            }
+          }}
+          style={{
+            width: '52px', height: '48px', borderRadius: '15px',
+            background: '#FF3B30', 
+            border: 'none', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center',
+            cursor: 'pointer', boxShadow: '0 4px 15px rgba(255, 59, 48, 0.3)'
+          }}
+        >
+          <Plus size={26} strokeWidth={3} />
+        </motion.button>
+      </div>
+
+      <div 
+        onClick={() => { navigate('/bootcamp'); setShowPartner(false); }}
+        style={{ 
+          flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
+          cursor: 'pointer', transition: 'all 0.2s',
+          color: (location.pathname === '/bootcamp' && !showPartner) ? '#FFFFFF' : 'rgba(255,255,255,0.3)'
+        }}
+      >
+        <Tent size={22} strokeWidth={(location.pathname === '/bootcamp' && !showPartner) ? 2.5 : 1.5} />
+        <span style={{ fontSize: '9px', fontWeight: (location.pathname === '/bootcamp' && !showPartner) ? 900 : 500, marginTop: '3px' }}>
+          {i18n.language?.startsWith('en') ? 'Bootcamp' : '부트캠프'}
+        </span>
+      </div>
+
+      <div 
+        onClick={() => { navigate('/festival'); setShowPartner(false); }}
+        style={{ 
+          flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
+          cursor: 'pointer', transition: 'all 0.2s',
+          color: (location.pathname === '/festival' && !showPartner) ? '#FFFFFF' : 'rgba(255,255,255,0.3)'
+        }}
+      >
+        <Flag size={22} strokeWidth={(location.pathname === '/festival' && !showPartner) ? 2.5 : 1.5} />
+        <span style={{ fontSize: '9px', fontWeight: (location.pathname === '/festival' && !showPartner) ? 900 : 500, marginTop: '3px' }}>
+          {i18n.language?.startsWith('en') ? 'Festival' : '페스티벌'}
+        </span>
+      </div>
+    </nav>
     <ChatBot />
     </>
   );
