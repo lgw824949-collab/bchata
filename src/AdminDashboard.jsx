@@ -316,6 +316,10 @@ export default function AdminDashboard({ onBack }) {
         } else {
           finalUpdate.poster_url = updateData.poster_url || _photo || '';
         }
+        // 빈 문자열 날짜 → null 변환 (DB date 타입 오류 방지)
+        ['start_date', 'end_date', 'date'].forEach(k => {
+          if (finalUpdate[k] === '') finalUpdate[k] = null;
+        });
         const { error } = await supabase.from(table).update(finalUpdate).eq('id', editingItem);
         if (error) throw error;
       }
