@@ -24,6 +24,7 @@ import PartnerModal from './components/PartnerModal';
 import WishlistModal from './components/WishlistModal';
 import RentalModal from './components/RentalModal';
 import ClassRegisterModal from './components/ClassRegisterModal';
+import ChatBot from './components/ChatBot';
 
 // 로딩 스피너 컴포넌트
 const LoadingFallback = () => (
@@ -1536,6 +1537,7 @@ function App() {
         </motion.div>
       )}
     </AnimatePresence>
+    <ChatBot />
     </>
   );
 }
