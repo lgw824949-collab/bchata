@@ -369,6 +369,30 @@ const Bootcamp = ({ onBack, initialView = 'list' }) => {
           animation: shimmer 1.4s infinite linear;
           border-radius: 12px;
         }
+        @keyframes spin-border {
+          0% { transform: rotate(0deg); }
+          100% { transform: rotate(360deg); }
+        }
+        .spinning-border-wrap {
+          position: relative;
+          border-radius: 28px;
+          padding: 2px;
+          overflow: hidden;
+        }
+        .spinning-border-wrap::before {
+          content: '';
+          position: absolute;
+          inset: -100%;
+          background: conic-gradient(from 0deg, transparent 0%, transparent 60%, #C9A84C 72%, #FFF3C4 80%, #C9A84C 88%, transparent 100%);
+          animation: spin-border 2.4s linear infinite;
+        }
+        .spinning-border-inner {
+          position: relative;
+          z-index: 1;
+          border-radius: 26px;
+          overflow: hidden;
+          height: 100%;
+        }
       `}</style>
 
       {/* Sticky Filter Header */}
@@ -452,18 +476,21 @@ const Bootcamp = ({ onBack, initialView = 'list' }) => {
               <motion.div
                 onClick={() => setSelectedBootcamp(bootcamps[0])}
                 whileTap={{ scale: 0.98 }}
-                style={{ gridColumn: 'span 2', position: 'relative', height: '240px', borderRadius: '28px', overflow: 'hidden', cursor: 'pointer', border: '1px solid rgba(201,168,76,0.2)' }}
+                className="spinning-border-wrap"
+                style={{ gridColumn: 'span 2', height: '244px', cursor: 'pointer' }}
               >
-                <img src={bootcamps[0].poster_url || 'https://via.placeholder.com/500'} style={{ width: '100%', height: '100%', objectFit: 'cover' }} alt={bootcamps[0].instructor} />
-                <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to top, rgba(0,0,0,0.9) 0%, transparent 60%)' }} />
-                <div style={{ position: 'absolute', top: 15, left: 15, background: 'rgba(201,168,76,0.9)', color: '#000', padding: '4px 10px', borderRadius: '10px', fontSize: '10px', fontWeight: 900 }}>NEXT BOOTCAMP</div>
-                <div style={{ position: 'absolute', bottom: 20, left: 20, right: 20 }}>
-                  <div style={{ fontSize: '24px', fontWeight: 950, color: '#FFF', marginBottom: '4px' }}>{bootcamps[0].instructor}</div>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                    <div style={{ fontSize: '12px', color: '#A1A1AA', fontWeight: 600 }}>{bootcamps[0].genre}</div>
-                    <div style={{ width: 4, height: 4, borderRadius: '50%', background: '#C9A84C' }} />
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 4, fontSize: '12px', color: '#C9A84C', fontWeight: 800 }}>
-                      <Calendar size={12} /> {bootcamps[0].start_date?.slice(0, 10)}
+                <div className="spinning-border-inner" style={{ position: 'relative', height: '240px' }}>
+                  <img src={bootcamps[0].poster_url || 'https://via.placeholder.com/500'} style={{ width: '100%', height: '100%', objectFit: 'cover' }} alt={bootcamps[0].instructor} />
+                  <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to top, rgba(0,0,0,0.9) 0%, transparent 60%)' }} />
+                  <div style={{ position: 'absolute', top: 15, left: 15, background: 'rgba(201,168,76,0.9)', color: '#000', padding: '4px 10px', borderRadius: '10px', fontSize: '10px', fontWeight: 900 }}>NEXT BOOTCAMP</div>
+                  <div style={{ position: 'absolute', bottom: 20, left: 20, right: 20 }}>
+                    <div style={{ fontSize: '24px', fontWeight: 950, color: '#FFF', marginBottom: '4px' }}>{bootcamps[0].instructor}</div>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                      <div style={{ fontSize: '12px', color: '#A1A1AA', fontWeight: 600 }}>{bootcamps[0].genre}</div>
+                      <div style={{ width: 4, height: 4, borderRadius: '50%', background: '#C9A84C' }} />
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 4, fontSize: '12px', color: '#C9A84C', fontWeight: 800 }}>
+                        <Calendar size={12} /> {bootcamps[0].start_date?.slice(0, 10)}
+                      </div>
                     </div>
                   </div>
                 </div>
