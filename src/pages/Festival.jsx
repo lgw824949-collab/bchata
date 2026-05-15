@@ -143,9 +143,17 @@ const Festival = ({ onBack, initialView = 'list' }) => {
     return date.slice(5).replace('-', '.');
   };
 
+  const formatDateWithDay = (date) => {
+    if (!date) return '';
+    const d = new Date(date);
+    const days = ['일', '월', '화', '수', '목', '금', '토'];
+    return `${date.slice(5).replace('-', '.')} (${days[d.getDay()]})`;
+  };
+
   return (
     <>
       <style>{`
+        @import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&display=swap');
         @keyframes shimmer-fest {
           0% { background-position: -600px 0; }
           100% { background-position: 600px 0; }
@@ -156,6 +164,7 @@ const Festival = ({ onBack, initialView = 'list' }) => {
           animation: shimmer-fest 1.4s infinite linear;
           border-radius: 12px;
         }
+        .hide-scrollbar::-webkit-scrollbar { display: none; }
       `}</style>
       <div style={{ background: '#0D0D0D', minHeight: '100vh', paddingBottom: '100px', color: '#f8fafc', fontFamily: "'Pretendard', sans-serif", position: 'relative' }}>
         
@@ -282,34 +291,57 @@ const Festival = ({ onBack, initialView = 'list' }) => {
                     whileInView={{ opacity: 1, y: 0 }}
                     viewport={{ once: true }}
                     onClick={() => setSelectedFestival(fest)}
-                    style={{ display: 'flex', cursor: 'pointer', background: '#141414', borderRadius: '20px', overflow: 'hidden', border: '1px solid rgba(255,255,255,0.08)', minHeight: 130 }}
+                    style={{ display: 'flex', cursor: 'pointer', background: '#111', borderRadius: '18px', overflow: 'hidden', border: '1px solid rgba(255,255,255,0.07)' }}
                   >
-                    {/* 포스터 1/3 */}
-                    <div style={{ width: '36%', flexShrink: 0, position: 'relative', background: '#000' }}>
-                      <div style={{ position: 'absolute', inset: 0, backgroundImage: `url(${fest.poster_url})`, backgroundSize: 'cover', backgroundPosition: 'center top', filter: 'blur(14px) brightness(0.35)', transform: 'scale(1.1)' }} />
-                      <img src={fest.poster_url} style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'top', position: 'relative', zIndex: 1, display: 'block' }} alt={fest.title} />
-                      <div style={{ position: 'absolute', top: 8, left: 8, background: '#C9A84C', color: '#000', padding: '3px 8px', borderRadius: 7, fontSize: 10, fontWeight: 900, zIndex: 2 }}>{getDDay(fest.start_date)}</div>
+                    {/* 포스터 */}
+                    <div style={{ width: '38%', flexShrink: 0, position: 'relative', minHeight: 140, background: '#000' }}>
+                      <img
+                        src={fest.poster_url}
+                        style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'top', display: 'block', position: 'absolute', inset: 0 }}
+                        alt={fest.title}
+                      />
                     </div>
 
-                    {/* 정보 2/3 */}
-                    <div style={{ flex: 1, padding: '14px 14px 14px 16px', display: 'flex', flexDirection: 'column', gap: 6 }}>
-                      <div style={{ fontSize: 10, color: '#C9A84C', fontWeight: 800, letterSpacing: '0.5px' }}>{fest.genre} · {fest.region}</div>
-                      <div style={{ fontSize: 15, fontWeight: 900, color: '#fff', lineHeight: 1.35 }}>{fest.title}</div>
-                      <div style={{ flex: 1 }} />
-                      <div style={{ display: 'flex', flexDirection: 'column', gap: 5 }}>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: 5, fontSize: 12, color: '#94a3b8' }}>
-                          <Calendar size={11} color="#C9A84C" strokeWidth={2.5} />
-                          <span>{formatDate(fest.start_date)}{fest.end_date && fest.end_date !== fest.start_date ? ` ~ ${formatDate(fest.end_date)}` : ''}</span>
+                    {/* 정보 */}
+                    <div style={{ flex: 1, padding: '16px 16px 16px 18px', display: 'flex', flexDirection: 'column', justifyContent: 'space-between', borderLeft: '1px solid rgba(255,255,255,0.06)' }}>
+
+                      {/* 상단: 장르 + D-day */}
+                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
+                        <span style={{ fontSize: 11, fontWeight: 700, color: '#C9A84C', letterSpacing: '1px', textTransform: 'uppercase' }}>
+                          {fest.genre}
+                        </span>
+                        <span style={{
+                          fontSize: 11, fontWeight: 900, letterSpacing: '0.5px',
+                          color: getDDay(fest.start_date) === '종료' ? '#475569' : getDDay(fest.start_date) === 'D-DAY' ? '#fff' : '#C9A84C',
+                          background: getDDay(fest.start_date) === 'D-DAY' ? '#C9A84C' : 'rgba(201,168,76,0.1)',
+                          border: '1px solid rgba(201,168,76,0.3)',
+                          padding: '3px 9px', borderRadius: 6
+                        }}>
+                          {getDDay(fest.start_date)}
+                        </span>
+                      </div>
+
+                      {/* 제목 — 주인공 */}
+                      <div style={{
+                        fontFamily: "'Bebas Neue', 'Black Han Sans', sans-serif",
+                        fontSize: 22, letterSpacing: '0.5px', lineHeight: 1.2,
+                        color: '#ffffff', marginBottom: 12
+                      }}>
+                        {fest.title}
+                      </div>
+
+                      {/* 하단: 날짜 + 장소 */}
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 7, fontSize: 12, color: '#94a3b8' }}>
+                          <Calendar size={12} color="#C9A84C" strokeWidth={2} />
+                          <span>{formatDateWithDay(fest.start_date)}{fest.end_date && fest.end_date !== fest.start_date ? ` — ${formatDate(fest.end_date)}` : ''}</span>
                         </div>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: 5, fontSize: 12, color: '#94a3b8' }}>
-                          <MapPin size={11} color="#C9A84C" strokeWidth={2.5} />
-                          <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{fest.venue || fest.region}</span>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 7, fontSize: 12, color: '#94a3b8' }}>
+                          <MapPin size={12} color="#C9A84C" strokeWidth={2} />
+                          <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                            {fest.venue && fest.venue !== '추후 공지' ? fest.venue : fest.region}
+                          </span>
                         </div>
-                        {fest.price_info && (
-                          <div style={{ alignSelf: 'flex-start', background: 'rgba(201,168,76,0.12)', border: '1px solid rgba(201,168,76,0.3)', borderRadius: 7, padding: '3px 10px', fontSize: 11, fontWeight: 900, color: '#C9A84C' }}>
-                            {fest.price_info.split('/')[0]?.trim()}
-                          </div>
-                        )}
                       </div>
                     </div>
                   </motion.div>
