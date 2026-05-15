@@ -52,7 +52,7 @@ const ChatBot = () => {
           });
       }
 
-      response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`, {
+      response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-latest:generateContent?key=${apiKey}`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -61,6 +61,7 @@ const ChatBot = () => {
       });
 
       data = await response.json();
+      if (!response.ok) throw new Error(data.error?.message || 'API request failed');
       
       if (data.candidates && data.candidates.length > 0) {
         const reply = data.candidates[0].content.parts[0].text;
