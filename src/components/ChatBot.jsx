@@ -329,51 +329,22 @@ const ChatBot = () => {
 
       {isOpen && (
         <>
-          {/* 딤 배경 */}
-          <div
-            onClick={() => setIsOpen(false)}
-            style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', zIndex: 99998, backdropFilter: 'blur(3px)' }}
-          />
-        <div 
-          className="chatbot-window"
-          style={{
-            position: 'fixed',
-            bottom: '24px',
-            right: '24px',
-            width: '380px',
-            height: '75vh',
-            backgroundColor: 'white',
-            borderRadius: '16px',
-            boxShadow: '0 12px 40px rgba(0,0,0,0.15)',
-            display: 'flex',
-            flexDirection: 'column',
-            zIndex: 99999,
-            overflow: 'hidden',
-            animation: 'slideUpChat 0.3s cubic-bezier(0.16, 1, 0.3, 1)'
-          }}
-        >
-          <style>
-            {`
-              @keyframes slideUpChat {
-                from { transform: translateY(100%); opacity: 0; }
-                to { transform: translateY(0); opacity: 1; }
-              }
-              @media (max-width: 600px) {
-                .chatbot-window {
-                  width: 100% !important;
-                  height: 65vh !important;
-                  max-height: 65vh !important;
-                  bottom: 0 !important;
-                  right: 0 !important;
-                  border-radius: 24px 24px 0 0 !important;
-                  z-index: 999999 !important;
-                  position: fixed !important;
-                  top: auto !important;
-                  animation: slideUpChat 0.3s cubic-bezier(0.16, 1, 0.3, 1) !important;
-                }
-              }
-            `}
-          </style>
+        <style>{`
+          @keyframes slideUpChat {
+            from { transform: translateY(100%); }
+            to { transform: translateY(0); }
+          }
+        `}</style>
+        {/* 모바일: 풀스크린 / 데스크톱: 우측 하단 패널 */}
+        <div style={{
+          position: 'fixed', inset: 0, zIndex: 999999,
+          display: 'flex', flexDirection: 'column',
+          backgroundColor: 'white',
+          animation: 'slideUpChat 0.25s ease-out'
+        }}>
+          <div // 실제 채팅 컨테이너 - flex column으로 키보드 자동 처리
+            style={{ display: 'flex', flexDirection: 'column', height: '100%', overflow: 'hidden' }}
+          >
           
           <div style={{
             backgroundColor: '#FFFFFF',
@@ -541,6 +512,7 @@ const ChatBot = () => {
             >
               전송
             </button>
+          </div>
           </div>
         </div>
         </>
