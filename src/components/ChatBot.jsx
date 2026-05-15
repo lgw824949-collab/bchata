@@ -26,6 +26,7 @@ const ChatBot = () => {
     setInput('');
     setIsLoading(true);
 
+    let response, data;
     try {
       const apiKey = import.meta.env.VITE_GEMINI_API_KEY;
       if (!apiKey) {
@@ -51,7 +52,7 @@ const ChatBot = () => {
           });
       }
 
-      const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`, {
+      response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -59,7 +60,7 @@ const ChatBot = () => {
         body: JSON.stringify({ contents: apiContents })
       });
 
-      const data = await response.json();
+      data = await response.json();
       
       if (data.candidates && data.candidates.length > 0) {
         const reply = data.candidates[0].content.parts[0].text;
@@ -69,7 +70,9 @@ const ChatBot = () => {
       }
 
     } catch (error) {
-      console.error(error);
+      console.error('Gemini API Error:', error);
+      console.error('Response status:', response?.status);
+      console.error('Response data:', JSON.stringify(data));
       setMessages(prev => [...prev, { role: 'model', content: "오류가 발생했습니다. 잠시 후 다시 시도해주세요." }]);
     } finally {
       setIsLoading(false);
