@@ -1179,17 +1179,17 @@ function App() {
           style={{ 
             flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
             cursor: 'pointer', transition: 'all 0.2s',
-            color: location.pathname === '/' ? '#FFFFFF' : 'rgba(255,255,255,0.3)'
+            color: (location.pathname === '/' && !showPartner) ? '#FFFFFF' : 'rgba(255,255,255,0.3)'
           }}
         >
-          <Music2 size={22} strokeWidth={location.pathname === '/' ? 2.5 : 1.5} />
-          <span style={{ fontSize: '9px', fontWeight: location.pathname === '/' ? 900 : 500, marginTop: '3px' }}>
+          <Music2 size={22} strokeWidth={(location.pathname === '/' && !showPartner) ? 2.5 : 1.5} />
+          <span style={{ fontSize: '9px', fontWeight: (location.pathname === '/' && !showPartner) ? 900 : 500, marginTop: '3px' }}>
             {i18n.language?.startsWith('en') ? 'Social' : '소셜'}
           </span>
         </div>
 
         <div 
-          onClick={() => setShowPartner(true)}
+          onClick={() => handleOpenModal(setShowPartner)}
           style={{ 
             flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
             cursor: 'pointer', transition: 'all 0.2s',
