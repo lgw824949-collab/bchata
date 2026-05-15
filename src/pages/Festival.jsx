@@ -1,49 +1,21 @@
 import React, { useState, useEffect } from 'react';
-import { 
-  ChevronLeft, Plus, X, Calendar, MapPin, 
-  Image as ImageIcon, Loader2, Camera, Zap, ChevronDown, ChevronUp 
-} from 'lucide-react';
+import { ChevronLeft, Calendar, MapPin, Zap, X } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { supabase } from '../lib/supabase';
 
-const Festival = ({ onBack, initialView = 'list' }) => {
+const Festival = ({ onBack }) => {
   const [festivals, setFestivals] = useState([]);
   const [loading, setLoading] = useState(true);
   const [selectedRegion, setSelectedRegion] = useState('전체');
-  const [showFilters, setShowFilters] = useState(false);
   const [selectedFestival, setSelectedFestival] = useState(null);
   const [showBookingGuide, setShowBookingGuide] = useState(false);
   const [copied, setCopied] = useState(false);
-  const [isRegistering, setIsRegistering] = useState(initialView === 'register');
-  const [currentStep, setCurrentStep] = useState(1);
-  
-  const [formData, setFormData] = useState({
-    title: '',
-    start_date: '',
-    end_date: '',
-    region: '서울',
-    venue: '',
-    price_info: '',
-    description: '',
-    poster_url: '',
-    organizer: '',
-    genre: '바차타',
-    bank_info: ''
-  });
-  const [uploading, setUploading] = useState(false);
-  const [submitting, setSubmitting] = useState(false);
 
   const regions = ['전체', '수도권', '강원', '제주', '부산/경남', '전라', '충청'];
 
   useEffect(() => {
     fetchFestivals();
   }, [selectedRegion]);
-
-  useEffect(() => {
-    if (initialView === 'register') {
-      setIsRegistering(true);
-    }
-  }, [initialView]);
 
   const REGION_MAP = {
     '수도권': ['서울', '경기/인천', '수도권'],
@@ -71,42 +43,6 @@ const Festival = ({ onBack, initialView = 'list' }) => {
       console.error('Error fetching festivals:', err);
     } finally {
       setLoading(false);
-    }
-  };
-
-  const handleImageUpload = async (e) => {
-    const file = e.target.files[0];
-    if (!file) return;
-    setUploading(true);
-    try {
-      const fileExt = file.name.split('.').pop();
-      const fileName = `${Math.random()}.${fileExt}`;
-      const filePath = `festivals/${fileName}`;
-      const { error: uploadError } = await supabase.storage.from('posters').upload(filePath, file);
-      if (uploadError) throw uploadError;
-      const { data: { publicUrl } } = supabase.storage.from('posters').getPublicUrl(filePath);
-      setFormData(prev => ({ ...prev, poster_url: publicUrl }));
-    } catch (err) {
-      alert('이미지 업로드 실패');
-    } finally {
-      setUploading(false);
-    }
-  };
-
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    setSubmitting(true);
-    try {
-      const { error } = await supabase.from('festivals').insert([{ ...formData, status: 'active' }]);
-      if (error) throw error;
-      alert('등록되었습니다! 지금 즉시 리스트에서 확인하실 수 있습니다.');
-      setIsRegistering(false);
-      setCurrentStep(1);
-    } catch (err) {
-      console.error('festival insert error:', err);
-      alert('등록 실패');
-    } finally {
-      setSubmitting(false);
     }
   };
 
@@ -166,7 +102,7 @@ const Festival = ({ onBack, initialView = 'list' }) => {
         }
         .hide-scrollbar::-webkit-scrollbar { display: none; }
       `}</style>
-      <div style={{ background: '#0D0D0D', minHeight: '100vh', paddingBottom: '100px', color: '#f8fafc', fontFamily: "'Pretendard', sans-serif", position: 'relative' }}>
+      <div style={{ background: '#0D0D0D', minHeight: '100vh', paddingBottom: '100px', color: '#f8fafc', fontFamily: "'Pretendard', sans-serif", position: 'relative', overscrollBehavior: 'none' }}>
         
         {/* Background Glow */}
         <div style={{ position: 'fixed', inset: 0, zIndex: 0, opacity: 0.15, pointerEvents: 'none' }}>
@@ -206,7 +142,7 @@ const Festival = ({ onBack, initialView = 'list' }) => {
                 {selectedRegion} <ChevronDown size={14} color="#C9A84C" />
               </button>
               <button 
-                onClick={() => setIsRegistering(true)}
+                onClick={() => setTimeout(() => setIsRegistering(true), 50)}
                 style={{ 
                   background: 'linear-gradient(135deg, #C9A84C, #A68A3D)', 
                   color: '#000', 
@@ -281,7 +217,7 @@ const Festival = ({ onBack, initialView = 'list' }) => {
                     {selectedRegion === '전체' ? '등록된 페스티벌이 없습니다' : `${selectedRegion} 지역 페스티벌이 없습니다`}
                   </div>
                   <div style={{ fontSize: 13, color: '#64748b', marginBottom: 24 }}>첫 번째 페스티벌을 등록해 보세요!</div>
-                  <button onClick={() => setIsRegistering(true)} style={{ background: 'linear-gradient(135deg, #C9A84C, #A68A3D)', color: '#000', border: 'none', padding: '13px 28px', borderRadius: 14, fontSize: 14, fontWeight: 900, cursor: 'pointer' }}>+ 페스티벌 등록</button>
+                  <button onClick={() => setTimeout(() => setIsRegistering(true), 50)} style={{ background: 'linear-gradient(135deg, #C9A84C, #A68A3D)', color: '#000', border: 'none', padding: '13px 28px', borderRadius: 14, fontSize: 14, fontWeight: 900, cursor: 'pointer' }}>+ 페스티벌 등록</button>
                 </div>
               ) : (
                 festivals.map((fest) => (

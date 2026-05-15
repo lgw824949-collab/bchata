@@ -1432,7 +1432,7 @@ function App() {
             } else if (location.pathname === '/bootcamp' || view === 'bootcamp' || view === 'bootcamp-register') {
               navigate('/bootcamp/register');
             } else if (location.pathname === '/festival' || view === 'festival' || view === 'festival-register') {
-              navigate('/festival/register');
+              // 페스티벌 등록은 페이지 내 버튼으로만 접근 (+ 버튼 비활성화)
             } else {
               navigate('/register-party');
             }
