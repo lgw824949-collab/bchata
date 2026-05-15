@@ -15,8 +15,8 @@ const Festival = ({ onBack }) => {
   const [uploading, setUploading] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [formData, setFormData] = useState({
-    title: '', start_date: '', end_date: '', region: '수도권',
-    venue: '', price_info: '', description: '', poster_url: '',
+    title: '', start_date: '', end_date: '', region: '서울',
+    location: '', price_info: '', description: '', poster_url: '',
     organizer: '', genre: '바차타', bank_info: ''
   });
 
@@ -388,11 +388,11 @@ const Festival = ({ onBack }) => {
                   <div>
                     <label style={{ display: 'block', fontSize: '12px', fontWeight: 900, color: '#C9A84C', marginBottom: '12px', letterSpacing: '1.5px' }}>6. 상세 장소/주소</label>
                     <div style={{ display: 'flex', gap: '10px' }}>
-                      <input required value={formData.venue} onChange={e => setFormData(prev => ({ ...prev, venue: e.target.value }))} placeholder="상세 장소 입력 (미정 시 우측 버튼)" style={{ flex: 1, padding: '20px', borderRadius: '18px', border: '1px solid rgba(255,255,255,0.1)', background: '#1A1A1A', fontSize: '16px', color: '#f8fafc', outline: 'none' }} />
-                      <button type="button" onClick={() => setFormData(prev => ({ ...prev, venue: '추후 공지' }))} style={{ padding: '0 20px', borderRadius: '18px', background: formData.venue === '추후 공지' ? '#C9A84C' : 'rgba(255,255,255,0.05)', color: formData.venue === '추후 공지' ? '#000' : '#94a3b8', fontSize: '13px', fontWeight: 900, border: '1px solid rgba(255,255,255,0.1)', whiteSpace: 'nowrap' }}>추후 공지</button>
+                      <input required value={formData.location} onChange={e => setFormData(prev => ({ ...prev, location: e.target.value }))} placeholder="상세 장소 입력 (미정 시 우측 버튼)" style={{ flex: 1, padding: '20px', borderRadius: '18px', border: '1px solid rgba(255,255,255,0.1)', background: '#1A1A1A', fontSize: '16px', color: '#f8fafc', outline: 'none' }} />
+                      <button type="button" onClick={() => setFormData(prev => ({ ...prev, location: '추후 공지' }))} style={{ padding: '0 20px', borderRadius: '18px', background: formData.location === '추후 공지' ? '#C9A84C' : 'rgba(255,255,255,0.05)', color: formData.location === '추후 공지' ? '#000' : '#94a3b8', fontSize: '13px', fontWeight: 900, border: '1px solid rgba(255,255,255,0.1)', whiteSpace: 'nowrap' }}>추후 공지</button>
                     </div>
                   </div>
-                  <div><label style={{ display: 'block', fontSize: '12px', fontWeight: 900, color: '#C9A84C', marginBottom: '12px', letterSpacing: '1.5px' }}>7. 지역</label><select value={formData.region} onChange={e => setFormData(prev => ({ ...prev, region: e.target.value }))} style={{ width: '100%', padding: '20px', borderRadius: '18px', border: '1px solid rgba(255,255,255,0.1)', background: '#1A1A1A', fontSize: '16px', color: '#f8fafc', outline: 'none' }}>{regions.filter(r => r !== '전체').map(r => <option key={r} value={r}>{r}</option>)}</select></div>
+                  <div><label style={{ display: 'block', fontSize: '12px', fontWeight: 900, color: '#C9A84C', marginBottom: '12px', letterSpacing: '1.5px' }}>7. 지역</label><select value={formData.region} onChange={e => setFormData(prev => ({ ...prev, region: e.target.value }))} style={{ width: '100%', padding: '20px', borderRadius: '18px', border: '1px solid rgba(255,255,255,0.1)', background: '#1A1A1A', fontSize: '16px', color: '#f8fafc', outline: 'none' }}>{['서울','경기/인천','강원','제주','부산/경남','전라도','충청도'].map(r => <option key={r} value={r}>{r}</option>)}</select></div>
                 </motion.div>
               )}
 
