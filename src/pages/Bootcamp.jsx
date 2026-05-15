@@ -7,6 +7,7 @@ import {
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { supabase } from '../lib/supabase';
+import { analyzePoster } from '../lib/analyzePoster';
 import { useTranslation } from 'react-i18next';
 
 const GENRES = ['전체', '바차타', '살사', '키좀바', '쥬크'];
@@ -76,6 +77,7 @@ const Bootcamp = ({ onBack, initialView = 'list' }) => {
   });
   const [uploading, setUploading] = useState(false);
   const [submitting, setSubmitting] = useState(false);
+  const [analyzing, setAnalyzing] = useState(false);
 
   useEffect(() => {
     fetchBootcamps();
@@ -140,6 +142,33 @@ const Bootcamp = ({ onBack, initialView = 'list' }) => {
       alert('이미지 업로드 실패');
     } finally {
       setUploading(false);
+    }
+  };
+
+  const handleAIAnalyze = async (imageUrl) => {
+    if (!imageUrl) { alert('먼저 포스터 이미지를 업로드하세요.'); return; }
+    setAnalyzing(true);
+    try {
+      const result = await analyzePoster(imageUrl);
+      setFormData(prev => ({
+        ...prev,
+        title:       result.title       || prev.title,
+        instructor:  result.instructor  || prev.instructor,
+        genre:       ['바차타','살사','키좀바','쥬크'].includes(result.genre) ? result.genre : prev.genre,
+        level:       ['초급','중급','상급','전체'].includes(result.level) ? result.level : prev.level,
+        start_date:  result.start_date  || prev.start_date,
+        end_date:    result.end_date    || prev.end_date,
+        venue:       result.venue       || prev.venue,
+        region:      result.region      || prev.region,
+        price_info:  result.price_info  || prev.price_info,
+        description: result.description || prev.description,
+      }));
+      setCurrentStep(1);
+      alert('AI 분석 완료! 내용을 확인하고 수정해 주세요.');
+    } catch (err) {
+      alert('분석 실패: ' + err.message);
+    } finally {
+      setAnalyzing(false);
     }
   };
 
@@ -495,6 +524,53 @@ const Bootcamp = ({ onBack, initialView = 'list' }) => {
             initial={{ opacity: 0, y: 40 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 40 }}
             style={{ padding: '10px 25px 120px', overflowY: 'auto' }}
           >
+            {/* AI 포스터 자동 입력 */}
+            <div style={{ marginBottom: 24, padding: '16px 18px', borderRadius: 18, background: 'rgba(201,168,76,0.06)', border: '1px solid rgba(201,168,76,0.2)' }}>
+              <div style={{ fontSize: 12, fontWeight: 800, color: '#C9A84C', marginBottom: 10, letterSpacing: '0.5px' }}>✦ AI 자동 입력</div>
+              <div style={{ fontSize: 13, color: '#94a3b8', marginBottom: 14, lineHeight: 1.5 }}>
+                포스터 이미지를 먼저 업로드하면 AI가 강사명, 날짜, 장소, 가격 등을 자동으로 채워드려요.
+              </div>
+              <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
+                <div style={{ position: 'relative', flex: 1 }}>
+                  <input
+                    type="file" accept="image/*"
+                    onChange={async (e) => {
+                      const file = e.target.files?.[0];
+                      if (!file) return;
+                      setUploading(true);
+                      try {
+                        const fileExt = file.name.split('.').pop();
+                        const fileName = `${Math.random()}.${fileExt}`;
+                        const filePath = `bootcamps/${fileName}`;
+                        const { error: uploadError } = await supabase.storage.from('posters').upload(filePath, file);
+                        if (uploadError) throw uploadError;
+                        const { data: { publicUrl } } = supabase.storage.from('posters').getPublicUrl(filePath);
+                        setFormData(prev => ({ ...prev, poster_url: publicUrl }));
+                      } catch { alert('업로드 실패'); }
+                      finally { setUploading(false); }
+                    }}
+                    style={{ position: 'absolute', inset: 0, opacity: 0, cursor: 'pointer' }}
+                  />
+                  <div style={{ padding: '11px 16px', borderRadius: 12, background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', fontSize: 13, color: formData.poster_url ? '#C9A84C' : '#64748b', fontWeight: 700, textAlign: 'center' }}>
+                    {uploading ? '업로드 중...' : formData.poster_url ? '✓ 포스터 업로드됨' : '포스터 선택'}
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => handleAIAnalyze(formData.poster_url)}
+                  disabled={analyzing || !formData.poster_url}
+                  style={{
+                    padding: '11px 18px', borderRadius: 12, border: 'none', cursor: formData.poster_url ? 'pointer' : 'not-allowed',
+                    background: formData.poster_url ? 'linear-gradient(135deg, #C9A84C, #A68A3D)' : 'rgba(255,255,255,0.05)',
+                    color: formData.poster_url ? '#000' : '#475569',
+                    fontSize: 13, fontWeight: 900, whiteSpace: 'nowrap'
+                  }}
+                >
+                  {analyzing ? 'AI 분석 중...' : 'AI 자동 입력'}
+                </button>
+              </div>
+            </div>
+
             {/* 단계 진행바 */}
             <div style={{ display: 'flex', gap: 8, marginBottom: 32 }}>
               {[1,2,3,4].map(s => (

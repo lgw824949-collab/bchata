@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { ChevronLeft, Calendar, MapPin, Zap, X, ChevronDown, Plus, Image as ImageIcon } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { supabase } from '../lib/supabase';
+import { analyzePoster } from '../lib/analyzePoster';
 
 const Festival = ({ onBack }) => {
   const [festivals, setFestivals] = useState([]);
@@ -14,6 +15,7 @@ const Festival = ({ onBack }) => {
   const [currentStep, setCurrentStep] = useState(1);
   const [uploading, setUploading] = useState(false);
   const [submitting, setSubmitting] = useState(false);
+  const [analyzing, setAnalyzing] = useState(false);
   const [formData, setFormData] = useState({
     title: '', start_date: '', end_date: '', region: '수도권',
     venue: '', price_info: '', description: '', poster_url: '',
@@ -71,6 +73,32 @@ const Festival = ({ onBack }) => {
       alert('이미지 업로드 실패');
     } finally {
       setUploading(false);
+    }
+  };
+
+  const handleAIAnalyze = async (imageUrl) => {
+    if (!imageUrl) { alert('먼저 포스터 이미지를 업로드하세요.'); return; }
+    setAnalyzing(true);
+    try {
+      const result = await analyzePoster(imageUrl);
+      setFormData(prev => ({
+        ...prev,
+        title:       result.title       || prev.title,
+        organizer:   result.organizer   || prev.organizer,
+        genre:       ['바차타','살사','키좀바','쥬크'].includes(result.genre) ? result.genre : prev.genre,
+        start_date:  result.start_date  || prev.start_date,
+        end_date:    result.end_date    || prev.end_date,
+        venue:       result.venue       || prev.venue,
+        region:      result.region      || prev.region,
+        price_info:  result.price_info  || prev.price_info,
+        description: result.description || prev.description,
+      }));
+      setCurrentStep(1);
+      alert('AI 분석 완료! 내용을 확인하고 수정해 주세요.');
+    } catch (err) {
+      alert('분석 실패: ' + err.message);
+    } finally {
+      setAnalyzing(false);
     }
   };
 
@@ -360,6 +388,39 @@ const Festival = ({ onBack }) => {
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '30px' }}>
               <h2 style={{ fontSize: '24px', fontWeight: 950, color: '#f8fafc', margin: 0 }}>페스티벌 신청 ({currentStep}/4)</h2>
               <button onClick={() => { setIsRegistering(false); setCurrentStep(1); }} style={{ background: '#1e293b', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '50%', width: '44px', height: '44px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><X size={24} color="#94a3b8" /></button>
+            </div>
+
+            {/* AI 포스터 자동 입력 */}
+            <div style={{ marginBottom: 24, padding: '16px 18px', borderRadius: 18, background: 'rgba(201,168,76,0.06)', border: '1px solid rgba(201,168,76,0.2)' }}>
+              <div style={{ fontSize: 12, fontWeight: 800, color: '#C9A84C', marginBottom: 10, letterSpacing: '0.5px' }}>✦ AI 자동 입력</div>
+              <div style={{ fontSize: 13, color: '#94a3b8', marginBottom: 14, lineHeight: 1.5 }}>
+                포스터 이미지를 먼저 업로드하면 AI가 제목, 날짜, 장소, 가격 등을 자동으로 채워드려요.
+              </div>
+              <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
+                <div style={{ position: 'relative', flex: 1 }}>
+                  <input
+                    type="file" accept="image/*"
+                    onChange={handleImageUpload}
+                    style={{ position: 'absolute', inset: 0, opacity: 0, cursor: 'pointer' }}
+                  />
+                  <div style={{ padding: '11px 16px', borderRadius: 12, background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', fontSize: 13, color: formData.poster_url ? '#C9A84C' : '#64748b', fontWeight: 700, textAlign: 'center' }}>
+                    {uploading ? '업로드 중...' : formData.poster_url ? '✓ 포스터 업로드됨' : '포스터 선택'}
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => handleAIAnalyze(formData.poster_url)}
+                  disabled={analyzing || !formData.poster_url}
+                  style={{
+                    padding: '11px 18px', borderRadius: 12, border: 'none', cursor: formData.poster_url ? 'pointer' : 'not-allowed',
+                    background: formData.poster_url ? 'linear-gradient(135deg, #C9A84C, #A68A3D)' : 'rgba(255,255,255,0.05)',
+                    color: formData.poster_url ? '#000' : '#475569',
+                    fontSize: 13, fontWeight: 900, whiteSpace: 'nowrap'
+                  }}
+                >
+                  {analyzing ? 'AI 분석 중...' : 'AI 자동 입력'}
+                </button>
+              </div>
             </div>
 
             <div style={{ display: 'flex', gap: '8px', marginBottom: '40px' }}>
