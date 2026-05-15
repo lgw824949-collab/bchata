@@ -242,7 +242,47 @@ const Bootcamp = ({ onBack, initialView = 'list' }) => {
                 ))}
               </div>
 
-              <div style={{ padding: '0 15px', marginTop: '20px' }}>
+              {/* HOT PICK Section */}
+              <div style={{ padding: '20px 0 10px' }}>
+                <div style={{ padding: '0 20px 12px' }}>
+                  <h2 style={{ fontSize: '18px', fontWeight: 950, margin: 0, display: 'flex', alignItems: 'center', gap: '6px' }}>
+                    <span style={{ color: '#E53935' }}>HOT</span>
+                    <span style={{ color: '#f8fafc' }}>PICK</span>
+                    <span style={{ fontSize: '16px' }}>🔥</span>
+                  </h2>
+                </div>
+                <div style={{ 
+                  display: 'flex', 
+                  overflowX: 'auto', 
+                  gap: '12px', 
+                  padding: '4px 20px 15px', 
+                  msOverflowStyle: 'none', 
+                  scrollbarWidth: 'none',
+                  WebkitOverflowScrolling: 'touch'
+                }}>
+                  {bootcamps.slice(0, 3).map((item) => (
+                    <div 
+                      key={item.id} 
+                      onClick={() => setSelectedBootcamp(item)}
+                      style={{ 
+                        width: '140px', 
+                        height: '200px', 
+                        flexShrink: 0, 
+                        borderRadius: '12px', 
+                        overflow: 'hidden', 
+                        boxShadow: '0 8px 24px rgba(0,0,0,0.3)',
+                        background: '#000',
+                        cursor: 'pointer',
+                        border: '1px solid rgba(255,255,255,0.05)'
+                      }}
+                    >
+                      <img src={item.poster_url} style={{ width: '100%', height: '100%', objectFit: 'cover' }} alt="Pick" />
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div style={{ padding: '0 15px', marginTop: '10px' }}>
                 {loading ? (
                   <div style={{ textAlign: 'center', padding: '100px', color: '#94a3b8' }}><Loader2 size={40} className="animate-spin" style={{ margin: '0 auto 20px' }} />로딩 중..</div>
                 ) : filteredList.length === 0 ? (
