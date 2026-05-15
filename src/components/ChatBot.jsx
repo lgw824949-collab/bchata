@@ -31,7 +31,7 @@ const ChatBot = () => {
           const todayStr = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
           
           const [partiesRes, bootcampsRes, instructorsRes] = await Promise.all([
-            supabase.from('parties').select('*').eq('status', 'approved').gte('date', todayStr).limit(30),
+            supabase.from('parties').select('*').eq('status', 'approved').gte('date', todayStr).limit(15),
             supabase.from('bootcamps').select('*').eq('status', 'active'),
             supabase.from('instructors').select('*').eq('status', 'active')
           ]);
@@ -75,9 +75,9 @@ const ChatBot = () => {
 
       let dataContext = "현재 실시간 데이터베이스 정보가 없습니다.";
       if (dbData) {
-        const partiesInfo = dbData.parties.map(p => `- [${p.date}] ${p.title} (${p.locationName || p.location_name || '장소 미정'})`).join('\n').slice(0, 1500);
-        const bootcampsInfo = dbData.bootcamps.map(b => `- ${b.title} (강사: ${b.instructor_name || '미상'})`).join('\n').slice(0, 1500);
-        const instructorsInfo = dbData.instructors.map(i => `- ${i.name} (장르: ${i.genres || '미상'})`).join('\n').slice(0, 1500);
+        const partiesInfo = dbData.parties.map(p => `- [${p.date}] ${p.title} (${p.locationName || p.location_name || '장소 미정'})`).join('\n').slice(0, 800);
+        const bootcampsInfo = dbData.bootcamps.map(b => `- ${b.title} (강사: ${b.instructor_name || '미상'})`).join('\n').slice(0, 800);
+        const instructorsInfo = dbData.instructors.map(i => `- ${i.name} (장르: ${i.genres || '미상'})`).join('\n').slice(0, 800);
         
         dataContext = `
 [최신 플랫폼 데이터]
@@ -130,7 +130,7 @@ ${dataContext}
           });
       }
 
-      response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-latest:generateContent?key=${apiKey}`, {
+      response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
