@@ -1,4 +1,15 @@
 import React, { useState, useRef, useEffect } from 'react';
+import { supabase } from '../lib/supabase';
+
+// 관리자가 수동으로 동호회/빠 변동 사항을 기록하는 공간
+const ADMIN_KNOWLEDGE = `
+[관리자 팩트 체크 및 주의사항]
+- 이 영역에 작성된 내용은 시스템이 인식하는 최우선 팩트입니다.
+- 특정 동호회가 활동을 중단했거나 장소를 옮겼을 경우 아래에 명시된 내용을 바탕으로 대답하세요.
+(예: A동호회는 홍대 마콘도에서 강남 턴으로 이동함)
+- B동호회는 더 이상 활동하지 않음.
+- 기타 특이사항 발생 시 여기에 추가 기록하세요.
+`;
 
 const ChatBot = () => {
   const [isOpen, setIsOpen] = useState(false);
@@ -9,6 +20,37 @@ const ChatBot = () => {
   const [isRecording, setIsRecording] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const messagesEndRef = useRef(null);
+
+  const [dbData, setDbData] = useState(null);
+  const [isDataLoaded, setIsDataLoaded] = useState(false);
+
+  // 챗봇 오픈 시 플랫폼 실시간 데이터 로드
+  useEffect(() => {
+    if (isOpen && !isDataLoaded) {
+      const fetchData = async () => {
+        try {
+          const today = new Date();
+          const todayStr = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
+          
+          const [partiesRes, bootcampsRes, instructorsRes] = await Promise.all([
+            supabase.from('parties').select('*').eq('status', 'approved').gte('date', todayStr).limit(30),
+            supabase.from('bootcamps').select('*').eq('status', 'active'),
+            supabase.from('instructors').select('*').eq('status', 'active')
+          ]);
+          setDbData({
+            parties: partiesRes.data || [],
+            bootcamps: bootcampsRes.data || [],
+            instructors: instructorsRes.data || []
+          });
+        } catch (e) {
+          console.error('Failed to fetch DB data for ChatBot', e);
+        } finally {
+          setIsDataLoaded(true);
+        }
+      };
+      fetchData();
+    }
+  }, [isOpen, isDataLoaded]);
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -33,7 +75,37 @@ const ChatBot = () => {
         throw new Error('API key is missing');
       }
 
-      const systemPrompt = "당신은 오늘밤빠 라틴댄스 파티 플랫폼의 AI 어시스턴트입니다. 파티/강사/장소/일정 관련 질문에 답변해주세요. 한국어로 친근하게 답변하세요.";
+      let dataContext = "현재 실시간 데이터베이스 정보가 없습니다.";
+      if (dbData) {
+        // 토큰 절약을 위해 일부 텍스트만 요약 (최대 1000자 내외)
+        const partiesInfo = dbData.parties.map(p => `- [${p.date}] ${p.title} (${p.locationName || p.location_name || '장소 미정'})`).join('\n').slice(0, 1500);
+        const bootcampsInfo = dbData.bootcamps.map(b => `- ${b.title} (강사: ${b.instructor_name || '미상'})`).join('\n').slice(0, 1500);
+        const instructorsInfo = dbData.instructors.map(i => `- ${i.name}`).join('\n').slice(0, 1500);
+        
+        dataContext = `
+[최신 플랫폼 데이터]
+* 예정된 파티(최근 30개 요약):
+${partiesInfo || '예정된 파티 없음'}
+
+* 모집 중인 부트캠프:
+${bootcampsInfo || '모집 중인 강의 없음'}
+
+* 활동 중인 강사 목록:
+${instructorsInfo || '강사 목록 없음'}
+`;
+      }
+
+      const systemPrompt = `당신은 '오늘밤빠' 라틴댄스 파티 플랫폼의 공식 AI 어시스턴트입니다.
+사용자의 질문에 한국어로 친근하고 예의 바르게 답변하세요.
+
+${ADMIN_KNOWLEDGE}
+
+${dataContext}
+
+[엄격한 제약조건]
+1. 위 [최신 플랫폼 데이터] 및 [관리자 팩트 체크]에 명시되지 않은 동호회, 빠, 강사 정보에 대해 질문받으면, "해당 정보는 현재 데이터에 없습니다" 또는 "업데이트된 정보가 없습니다"라고 답하고 절대 상상해서 지어내지(Hallucination) 마세요.
+2. 사실이 아닌 내용을 그럴싸하게 꾸며내는 거짓말은 절대 금지됩니다.
+3. 주어진 데이터 내에서 매칭되는 내용이 있다면, 그 내용을 바탕으로 친절하게 추천해 주세요.`;
       
       const apiContents = [];
       apiContents.push({
@@ -42,7 +114,7 @@ const ChatBot = () => {
       });
       apiContents.push({
           role: 'model',
-          parts: [{ text: "네, 알겠습니다. 오늘밤빠 라틴댄스 파티 플랫폼의 AI 어시스턴트로서 친근하게 답변해 드리겠습니다." }]
+          parts: [{ text: "네, 엄격한 제약조건과 제공해주신 실시간 데이터를 바탕으로 정확하고 친절하게 답변하겠습니다." }]
       });
 
       for (let i = 1; i < newMessages.length; i++) {
@@ -175,7 +247,9 @@ const ChatBot = () => {
           }}>
             <div>
               <div style={{ fontWeight: 'bold', fontSize: '18px' }}>🎶 밤빠 AI</div>
-              <div style={{ fontSize: '12px', opacity: 0.9, marginTop: '2px' }}>오늘 어떤 파티 찾으세요?</div>
+              <div style={{ fontSize: '12px', opacity: 0.9, marginTop: '2px' }}>
+                {isDataLoaded ? "실시간 데이터 연동 중..." : "데이터 불러오는 중..."}
+              </div>
             </div>
             <button 
               onClick={() => setIsOpen(false)}
@@ -252,26 +326,28 @@ const ChatBot = () => {
               value={input}
               onChange={(e) => setInput(e.target.value)}
               onKeyDown={(e) => e.key === 'Enter' && handleSend()}
-              placeholder="메시지를 입력하세요..."
+              placeholder={isDataLoaded ? "메시지를 입력하세요..." : "데이터 로딩 중..."}
+              disabled={!isDataLoaded}
               style={{
                 flex: 1,
                 padding: '10px 14px',
                 border: '1px solid #ddd',
                 borderRadius: '20px',
                 outline: 'none',
-                fontSize: '14px'
+                fontSize: '14px',
+                backgroundColor: isDataLoaded ? 'white' : '#f5f5f5'
               }}
             />
             <button
               onClick={handleSend}
-              disabled={isLoading || !input.trim()}
+              disabled={isLoading || !input.trim() || !isDataLoaded}
               style={{
-                background: (isLoading || !input.trim()) ? '#ccc' : '#E53935',
+                background: (isLoading || !input.trim() || !isDataLoaded) ? '#ccc' : '#E53935',
                 color: 'white',
                 border: 'none',
                 padding: '8px 16px',
                 borderRadius: '20px',
-                cursor: (isLoading || !input.trim()) ? 'not-allowed' : 'pointer',
+                cursor: (isLoading || !input.trim() || !isDataLoaded) ? 'not-allowed' : 'pointer',
                 fontSize: '14px',
                 fontWeight: 'bold',
                 transition: 'background-color 0.2s'
