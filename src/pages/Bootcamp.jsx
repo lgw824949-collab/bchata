@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { 
   ChevronLeft, Search, Plus, X, Calendar, MapPin, 
   Image as ImageIcon, Loader2, Zap, Search as SearchIcon, 
@@ -39,23 +39,29 @@ const Bootcamp = ({ onBack, initialView = 'list' }) => {
     fetchBootcamps();
   }, [activeTab]);
 
-  // Push a history entry when the detail modal opens so the system back button can close it
+  // ref 로 항상 최신 selectedBootcamp 값 유지 (stale closure 방지)
+  const selectedBootcampRef = useRef(null);
+  useEffect(() => {
+    selectedBootcampRef.current = selectedBootcamp;
+  }, [selectedBootcamp]);
+
+  // 모달이 열릴 때 히스토리 스택에 항목 추가
   useEffect(() => {
     if (selectedBootcamp) {
       window.history.pushState({ bootcampDetail: true }, '', window.location.pathname);
     }
   }, [selectedBootcamp]);
 
-  // System / hardware back button closes the detail modal instead of leaving the page
+  // 컴포넌트 마운트 시 한 번만 등록 — ref 를 읽으므로 항상 최신 상태 반영
   useEffect(() => {
     const handlePop = () => {
-      if (selectedBootcamp) {
+      if (selectedBootcampRef.current) {
         setSelectedBootcamp(null);
       }
     };
     window.addEventListener('popstate', handlePop);
     return () => window.removeEventListener('popstate', handlePop);
-  }, [selectedBootcamp]);
+  }, []);
 
   const fetchBootcamps = async () => {
     setLoading(true);

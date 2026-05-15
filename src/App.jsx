@@ -1093,7 +1093,7 @@ function App() {
            view === 'community' ? <Community setSelectedPoster={setSelectedPoster} setView={setView} /> :
            view === 'instructors' ? <Instructors followedInstructors={followedInstructors} setView={setView} /> :
            view === 'register-class' ? <InstructorRegister onBack={() => navigate('/instructors')} /> :
-           view === 'bootcamp' ? <Bootcamp onBack={() => navigate('/')} /> :
+           view === 'bootcamp' ? <Bootcamp onBack={() => window.history.back()} /> :
            view === 'bootcamp-register' ? <Bootcamp onBack={() => navigate('/bootcamp')} initialView="register" /> :
            view === 'festival' ? <Festival onBack={() => navigate('/')} /> :
            view === 'festival-register' ? <Festival onBack={() => navigate('/festival')} initialView="register" /> :
