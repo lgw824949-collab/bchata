@@ -836,12 +836,9 @@ function App() {
       navigator.geolocation.getCurrentPosition(
         (pos) => {
           setUserCoords({ lat: pos.coords.latitude, lon: pos.coords.longitude });
-          console.log("Location obtained:", pos.coords.latitude, pos.coords.longitude);
         },
-        (err) => {
-          console.error("Location request error:", err);
-        },
-        { enableHighAccuracy: true, timeout: 5000, maximumAge: 0 }
+        () => {},
+        { enableHighAccuracy: false, timeout: 5000, maximumAge: 60000 }
       );
     }
   };
