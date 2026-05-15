@@ -330,12 +330,12 @@ const Bootcamp = ({ onBack, initialView = 'list' }) => {
                       key={item.id} 
                       onClick={() => setSelectedBootcamp(item)}
                       style={{ 
-                        width: '140px', 
-                        height: '200px', 
+                        width: '130px', 
+                        height: '180px', 
                         flexShrink: 0, 
                         borderRadius: '12px', 
                         overflow: 'hidden', 
-                        boxShadow: '0 8px 24px rgba(0,0,0,0.12)',
+                        boxShadow: '0 4px 15px rgba(0,0,0,0.08)',
                         background: '#f8fafc',
                         cursor: 'pointer',
                         border: '1px solid rgba(0,0,0,0.05)'
