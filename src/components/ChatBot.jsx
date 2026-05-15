@@ -31,7 +31,7 @@ const ChatBot = () => {
           const todayStr = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
           
           const [partiesRes, bootcampsRes, instructorsRes] = await Promise.all([
-            supabase.from('parties').select('*').eq('status', 'approved').gte('date', todayStr).limit(15),
+            supabase.from('parties').select('*').eq('status', 'approved').gte('date', todayStr).limit(10),
             supabase.from('bootcamps').select('*').eq('status', 'active'),
             supabase.from('instructors').select('*').eq('status', 'active')
           ]);
@@ -75,9 +75,9 @@ const ChatBot = () => {
 
       let dataContext = "현재 실시간 데이터베이스 정보가 없습니다.";
       if (dbData) {
-        const partiesInfo = dbData.parties.map(p => `- [${p.date}] ${p.title} (${p.locationName || p.location_name || '장소 미정'})`).join('\n').slice(0, 800);
-        const bootcampsInfo = dbData.bootcamps.map(b => `- ${b.title} (강사: ${b.instructor_name || '미상'})`).join('\n').slice(0, 800);
-        const instructorsInfo = dbData.instructors.map(i => `- ${i.name} (장르: ${i.genres || '미상'})`).join('\n').slice(0, 800);
+        const partiesInfo = dbData.parties.map(p => `- ${p.title} (${p.locationName || p.location_name})`).join('\n').slice(0, 500);
+        const bootcampsInfo = dbData.bootcamps.map(b => `- ${b.title}`).join('\n').slice(0, 300);
+        const instructorsInfo = dbData.instructors.map(i => `- ${i.name}(${i.genres})`).join('\n').slice(0, 300);
         
         dataContext = `
 [최신 플랫폼 데이터]
@@ -92,26 +92,27 @@ ${instructorsInfo || '강사 목록 없음'}
 `;
       }
 
-      const systemPrompt = `당신은 사용자의 귀찮음을 해결해 주는 센스 있고 위트 있는 '오늘밤빠' 전용 프리미엄 컨시어지입니다. 
+      const systemPrompt = `당신은 '오늘밤빠'의 초간편 컨시어지입니다. 
 
-[대화의 대원칙]
-1. 절대 한 번에 정보를 쏟아내지 마세요(정보 공해 금지). 유저의 답변을 듣고 한 번에 딱 한 가지 질문만 던집니다.
-2. **[중요] 플랫폼 안내 멘트는 대화 중간에 절대 하지 마세요.** 오직 모든 질문이 끝나고 **최종 추천을 하는 마지막 단계에서만** 딱 한 번 안내하세요. (예: "더 자세한 정보는 '오늘밤빠' 메뉴에서 확인하실 수 있어요! ✨")
-3. 유저가 '놀고 싶을 때(빠/파티)'와 '배우고 싶을 때(강사/강의)'를 명확히 구분하여 응대하세요.
+[대화 규칙 - 절대 준수]
+1. 모든 답변은 '번호와 선택지' 위주로 극도로 짧게 작성하세요. (최대 2줄 이내)
+2. 인사말, 긴 설명, 불필요한 홍보 멘트는 절대 금지입니다. 
+3. 유저가 번호만 보고 고를 수 있게 하세요.
 
-[시나리오 A: 파티/빠 추천을 원할 때]
-1단계(지역) -> 2단계(구역) -> 3단계(장르) -> 4단계(최종 추천 + 플랫폼 안내) 순서로 진행.
-
-[시나리오 B: 강사/강의 추천을 원할 때]
-1단계(장르) -> 2단계(레벨) -> 3단계(최종 추천 + 플랫폼 안내) 순서로 진행.
+[대화 예시]
+유저: 바 추천
+AI: "어디로 모실까요? 1. 수도권, 2. 지방"
+유저: 1
+AI: "좋아하는 장르는? 1. 바차타, 2. 살사, 3. 기타"
+유저: 2
+AI: "오늘 홍대 [XX빠] 살사 파티가 핫해요! (20:00 시작)"
 
 ${ADMIN_KNOWLEDGE}
-
 ${dataContext}
 
 [엄격한 금기사항]
-- 데이터베이스에 없는 정보는 절대 지어내지 마세요.
-- 답변은 무조건 3~4줄 이내로 간결하게 작성하세요. 서론/결론은 생략하고 핵심만 찌르세요.`;
+- 데이터에 없는 정보는 절대 지어내지 마세요.
+- 답변이 길어지면 무조건 탈락입니다. 핵심만 찌르세요.`;
       
       const apiContents = newMessages.slice(-6).map(msg => ({
           role: msg.role,
