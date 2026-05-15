@@ -39,6 +39,24 @@ const Bootcamp = ({ onBack, initialView = 'list' }) => {
     fetchBootcamps();
   }, [activeTab]);
 
+  // Push a history entry when the detail modal opens so the system back button can close it
+  useEffect(() => {
+    if (selectedBootcamp) {
+      window.history.pushState({ bootcampDetail: true }, '', window.location.pathname);
+    }
+  }, [selectedBootcamp]);
+
+  // System / hardware back button closes the detail modal instead of leaving the page
+  useEffect(() => {
+    const handlePop = () => {
+      if (selectedBootcamp) {
+        setSelectedBootcamp(null);
+      }
+    };
+    window.addEventListener('popstate', handlePop);
+    return () => window.removeEventListener('popstate', handlePop);
+  }, [selectedBootcamp]);
+
   const fetchBootcamps = async () => {
     setLoading(true);
     try {
@@ -537,7 +555,7 @@ const Bootcamp = ({ onBack, initialView = 'list' }) => {
                 {/* Top Nav */}
                 <div style={{ position: 'absolute', top: '50px', left: '25px', right: '25px', display: 'flex', justifyContent: 'space-between', zIndex: 20 }}>
                   <button
-                    onClick={() => setSelectedBootcamp(null)}
+                    onClick={() => window.history.back()}
                     style={{ width: 44, height: 44, borderRadius: '50%', background: 'rgba(0,0,0,0.4)', backdropFilter: 'blur(10px)', border: '1px solid rgba(255,255,255,0.1)', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}
                   ><ChevronLeft size={22} /></button>
                   <button

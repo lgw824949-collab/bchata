@@ -676,7 +676,8 @@ function App() {
       const newHash = window.location.hash.replace('#', '');
       if (newHash && newHash !== view) {
         setView(newHash);
-      } else if (!newHash && view !== 'home') {
+      } else if (window.location.pathname === '/' && !newHash && view !== 'home') {
+        // Only navigate to home when the URL actually returned to '/'
         setView('home');
       }
     };
