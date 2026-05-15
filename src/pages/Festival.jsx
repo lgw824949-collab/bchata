@@ -326,7 +326,7 @@ const Festival = ({ onBack }) => {
                         <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 11, color: '#94a3b8' }}>
                           <MapPin size={11} color="#C9A84C" strokeWidth={2} style={{ flexShrink: 0 }} />
                           <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                            {fest.venue && fest.venue !== '추후 공지' ? fest.venue : fest.region}
+                            {(fest.location || fest.venue) && (fest.location || fest.venue) !== '추후 공지' ? (fest.location || fest.venue) : fest.region}
                           </span>
                         </div>
                       </div>
