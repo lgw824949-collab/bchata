@@ -26,6 +26,40 @@ const Bootcamp = ({ onBack, initialView = 'list' }) => {
   const [copied, setCopied] = useState(false);
   const [currentStep, setCurrentStep] = useState(1);
   const [visibleCount, setVisibleCount] = useState(20);
+  const [openGroups, setOpenGroups] = useState({ thisMonth: true, nextMonth: false, later: false });
+
+  const groupBootcampsByDate = (list) => {
+    const now = new Date();
+    now.setHours(0, 0, 0, 0);
+    const thisYear = now.getFullYear();
+    const thisMonth = now.getMonth();
+    const nextMonthDate = new Date(thisYear, thisMonth + 1, 1);
+    const nextYear = nextMonthDate.getFullYear();
+    const nextMonth = nextMonthDate.getMonth();
+    const twoMonthsLater = new Date(thisYear, thisMonth + 2, 1);
+
+    const groups = {
+      thisMonth: { label: `이번 달 (${thisMonth + 1}월)`, emoji: '🔥', items: [] },
+      nextMonth: { label: `다음 달 (${nextMonth + 1}월)`, emoji: '📅', items: [] },
+      later:     { label: '3개월 후 이상', emoji: '🌟', items: [] },
+    };
+
+    list.forEach(item => {
+      const d = new Date(item.start_date);
+      if (d < now) return;
+      const y = d.getFullYear();
+      const m = d.getMonth();
+      if (y === thisYear && m === thisMonth) {
+        groups.thisMonth.items.push(item);
+      } else if (y === nextYear && m === nextMonth) {
+        groups.nextMonth.items.push(item);
+      } else {
+        groups.later.items.push(item);
+      }
+    });
+
+    return groups;
+  };
   
   const [formData, setFormData] = useState({
     title: '', instructor: '', type: 'domestic', region: '서울', country: '',
@@ -150,6 +184,55 @@ const Bootcamp = ({ onBack, initialView = 'list' }) => {
     </div>
   );
   */
+
+  const BootcampRow = ({ item, onClick }) => (
+    <motion.div
+      initial={{ opacity: 0, y: 10 }}
+      animate={{ opacity: 1, y: 0 }}
+      onClick={onClick}
+      style={{
+        display: 'flex', alignItems: 'center', gap: 16,
+        padding: '14px 18px', cursor: 'pointer',
+        borderBottom: '1px solid rgba(255,255,255,0.04)',
+      }}
+    >
+      <div style={{ width: 58, height: 58, borderRadius: '14px', overflow: 'hidden', background: 'rgba(255,255,255,0.08)', flexShrink: 0 }}>
+        {item.poster_url
+          ? <img src={item.poster_url} style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'center top' }} alt={item.instructor} />
+          : <div style={{ fontSize: 22, display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100%' }}>🏕️</div>
+        }
+      </div>
+      <div style={{ flex: 1, minWidth: 0 }}>
+        <div style={{ fontSize: 16, fontWeight: 900, color: '#FFFFFF', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{item.instructor}</div>
+        <div style={{ fontSize: 12, color: '#8E8E93', fontWeight: 600, marginTop: 2 }}>{item.genre} · {item.venue || item.region}</div>
+      </div>
+      <div style={{ textAlign: 'right', flexShrink: 0 }}>
+        <div style={{ fontSize: 13, fontWeight: 900, color: '#C9A84C' }}>{item.start_date?.slice(5, 10)}</div>
+        <div style={{ fontSize: 9, color: '#475569', fontWeight: 700, marginTop: 2 }}>DATE</div>
+      </div>
+    </motion.div>
+  );
+
+  const SkeletonRow = () => (
+    <div style={{ display: 'flex', alignItems: 'center', gap: 16, padding: '14px 18px', borderBottom: '1px solid rgba(255,255,255,0.04)' }}>
+      <div className="skeleton" style={{ width: 58, height: 58, borderRadius: '14px', flexShrink: 0 }} />
+      <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 8 }}>
+        <div className="skeleton" style={{ height: 15, width: '55%' }} />
+        <div className="skeleton" style={{ height: 11, width: '38%' }} />
+      </div>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 5, alignItems: 'flex-end' }}>
+        <div className="skeleton" style={{ height: 13, width: 34 }} />
+        <div className="skeleton" style={{ height: 9, width: 26 }} />
+      </div>
+    </div>
+  );
+
+  const EmptyState = () => (
+    <div style={{ textAlign: 'center', padding: '60px 0', color: '#8E8E93' }}>
+      <div style={{ fontSize: 40, marginBottom: 12 }}>🏕️</div>
+      <div style={{ fontSize: 14, fontWeight: 700 }}>등록된 부트캠프가 없습니다</div>
+    </div>
+  );
 
   const StatCard = ({ label, value, icon }) => (
     <div style={{
@@ -520,89 +603,98 @@ const Bootcamp = ({ onBack, initialView = 'list' }) => {
         </div>
       )}
 
-      {/* Explore All */}
-      <div style={{ padding: '0 25px 100px' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: '20px' }}>
-          <h3 style={{ fontSize: '12px', fontWeight: 800, color: isFiltering ? '#C9A84C' : '#475569', letterSpacing: '1px', margin: 0 }}>
-            {isFiltering ? `검색 결과 (${filteredList.length}개)` : 'EXPLORE ALL BOOTCAMPS'}
-          </h3>
-          <div style={{ flex: 1, height: '1px', background: 'rgba(255,255,255,0.08)' }} />
+      {/* Explore All — 검색 중일 때 */}
+      {isFiltering && (
+        <div style={{ padding: '0 25px 100px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: '20px' }}>
+            <h3 style={{ fontSize: '12px', fontWeight: 800, color: '#C9A84C', letterSpacing: '1px', margin: 0 }}>
+              검색 결과 ({filteredList.length}개)
+            </h3>
+            <div style={{ flex: 1, height: '1px', background: 'rgba(255,255,255,0.08)' }} />
+          </div>
+          {loading ? (
+            <div>{[0,1,2,3,4,5].map(i => <SkeletonRow key={i} />)}</div>
+          ) : filteredList.length === 0 ? (
+            <EmptyState />
+          ) : (
+            filteredList.map(item => <BootcampRow key={item.id} item={item} onClick={() => setSelectedBootcamp(item)} />)
+          )}
         </div>
+      )}
 
-        {loading ? (
-          <div>
-            {[0, 1, 2, 3, 4, 5].map(i => (
-              <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 18, padding: '16px 20px', borderRadius: '22px', marginBottom: '10px', border: '1px solid rgba(255,255,255,0.04)' }}>
-                <div className="skeleton" style={{ width: 60, height: 60, borderRadius: '16px', flexShrink: 0 }} />
-                <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 8 }}>
-                  <div className="skeleton" style={{ height: 16, width: '60%' }} />
-                  <div className="skeleton" style={{ height: 12, width: '40%' }} />
-                </div>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: 6, alignItems: 'flex-end' }}>
-                  <div className="skeleton" style={{ height: 14, width: 36 }} />
-                  <div className="skeleton" style={{ height: 10, width: 28 }} />
-                </div>
-              </div>
-            ))}
-          </div>
-        ) : filteredList.length === 0 ? (
-          <div style={{ textAlign: 'center', padding: '60px 0', color: '#8E8E93' }}>
-            <div style={{ fontSize: 40, marginBottom: 12 }}>🏕️</div>
-            <div style={{ fontSize: 14, fontWeight: 700 }}>등록된 부트캠프가 없습니다</div>
-          </div>
-        ) : (
-          <>
-            {(isFiltering
-              ? filteredList
-              : filteredList.filter(i => !bootcamps.slice(0, 5).find(top => top.id === i.id))
-            ).slice(0, visibleCount).map((item) => (
-              <motion.div
-                key={item.id}
-                initial={{ opacity: 0, y: 15 }}
-                animate={{ opacity: 1, y: 0 }}
-                onClick={() => setSelectedBootcamp(item)}
-                style={{
-                  display: 'flex', alignItems: 'center', gap: 18,
-                  padding: '16px 20px', borderRadius: '22px',
-                  background: 'rgba(255,255,255,0.03)',
-                  marginBottom: '10px', border: '1px solid rgba(255,255,255,0.06)',
-                  cursor: 'pointer'
-                }}
-              >
-                <div style={{ width: 60, height: 60, borderRadius: '16px', overflow: 'hidden', background: 'rgba(255,255,255,0.08)', border: '1px solid rgba(255,255,255,0.1)', flexShrink: 0 }}>
-                  {item.poster_url
-                    ? <img src={item.poster_url} style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'center top' }} alt={item.instructor} />
-                    : <div style={{ fontSize: 24, display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100%' }}>🏕️</div>
-                  }
-                </div>
-                <div style={{ flex: 1, minWidth: 0 }}>
-                  <div style={{ fontSize: 17, fontWeight: 900, color: '#FFFFFF', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{item.instructor}</div>
-                  <div style={{ fontSize: 12, color: '#8E8E93', fontWeight: 600 }}>{item.genre} · {item.venue || item.region}</div>
-                </div>
-                <div style={{ textAlign: 'right', flexShrink: 0 }}>
-                  <div style={{ fontSize: 13, fontWeight: 900, color: '#C9A84C' }}>{item.start_date?.slice(5, 10)}</div>
-                  <div style={{ fontSize: 9, color: '#475569', fontWeight: 700 }}>DATE</div>
-                </div>
-              </motion.div>
-            ))}
-            {(() => {
-              const list = isFiltering
-                ? filteredList
-                : filteredList.filter(i => !bootcamps.slice(0, 5).find(top => top.id === i.id));
-              return list.length > visibleCount ? (
-                <div style={{ textAlign: 'center', marginTop: '25px' }}>
+      {/* Explore All — 날짜 그룹 (필터 없을 때) */}
+      {!isFiltering && (
+        <div style={{ padding: '0 25px 100px' }}>
+          {loading ? (
+            <div>{[0,1,2,3,4,5].map(i => <SkeletonRow key={i} />)}</div>
+          ) : (() => {
+            const groups = groupBootcampsByDate(filteredList);
+            const topIds = new Set(bootcamps.slice(0, 5).map(b => b.id));
+            const allEmpty = Object.values(groups).every(g => g.items.filter(i => !topIds.has(i.id)).length === 0);
+            if (allEmpty) return <EmptyState />;
+
+            return Object.entries(groups).map(([key, group]) => {
+              const items = group.items.filter(i => !topIds.has(i.id));
+              if (items.length === 0) return null;
+              const isOpen = openGroups[key];
+              return (
+                <div key={key} style={{ marginBottom: '12px' }}>
+                  {/* 그룹 헤더 */}
                   <button
-                    onClick={() => setVisibleCount(v => v + 20)}
-                    style={{ padding: '12px 28px', borderRadius: '16px', border: '1px solid rgba(201,168,76,0.3)', background: 'rgba(201,168,76,0.1)', color: '#C9A84C', fontSize: '13px', fontWeight: 800, cursor: 'pointer', transition: 'all 0.2s' }}
+                    onClick={() => setOpenGroups(prev => ({ ...prev, [key]: !prev[key] }))}
+                    style={{
+                      width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+                      padding: '14px 18px', borderRadius: isOpen ? '20px 20px 0 0' : '20px',
+                      background: isOpen ? 'rgba(201,168,76,0.08)' : 'rgba(255,255,255,0.03)',
+                      border: `1px solid ${isOpen ? 'rgba(201,168,76,0.25)' : 'rgba(255,255,255,0.06)'}`,
+                      borderBottom: isOpen ? 'none' : undefined,
+                      cursor: 'pointer', transition: 'all 0.2s'
+                    }}
                   >
-                    더 보기 ({visibleCount} / {list.length})
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                      <span style={{ fontSize: 16 }}>{group.emoji}</span>
+                      <span style={{ fontSize: 14, fontWeight: 900, color: isOpen ? '#C9A84C' : '#FFFFFF' }}>{group.label}</span>
+                      <span style={{
+                        background: isOpen ? '#C9A84C' : 'rgba(255,255,255,0.1)',
+                        color: isOpen ? '#000' : '#8E8E93',
+                        fontSize: 11, fontWeight: 900,
+                        padding: '2px 8px', borderRadius: 20
+                      }}>{items.length}</span>
+                    </div>
+                    {isOpen
+                      ? <ChevronUp size={18} color="#C9A84C" />
+                      : <ChevronDown size={18} color="#8E8E93" />
+                    }
                   </button>
+
+                  {/* 그룹 내용 */}
+                  <AnimatePresence>
+                    {isOpen && (
+                      <motion.div
+                        initial={{ height: 0, opacity: 0 }}
+                        animate={{ height: 'auto', opacity: 1 }}
+                        exit={{ height: 0, opacity: 0 }}
+                        transition={{ duration: 0.25 }}
+                        style={{
+                          overflow: 'hidden',
+                          border: '1px solid rgba(201,168,76,0.25)',
+                          borderTop: 'none',
+                          borderRadius: '0 0 20px 20px',
+                          background: 'rgba(201,168,76,0.03)'
+                        }}
+                      >
+                        <div style={{ padding: '8px 0 4px' }}>
+                          {items.map(item => <BootcampRow key={item.id} item={item} onClick={() => setSelectedBootcamp(item)} />)}
+                        </div>
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
                 </div>
-              ) : null;
-            })()}
-          </>
-        )}
-      </div>
+              );
+            });
+          })()}
+        </div>
+      )}
 
       {/* Detail Modal */}
       <AnimatePresence>
