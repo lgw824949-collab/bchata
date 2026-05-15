@@ -150,9 +150,11 @@ ${dataContext}
 
     } catch (error) {
       console.error('Gemini API Error:', error);
-      console.error('Response status:', response?.status);
-      console.error('Response data:', JSON.stringify(data));
-      setMessages(prev => [...prev, { role: 'model', content: "오류가 발생했습니다. 잠시 후 다시 시도해주세요." }]);
+      const isQuotaError = response?.status === 429 || error.message?.includes('429') || error.message?.includes('quota');
+      const errorMessage = isQuotaError 
+        ? "지금 대화가 너무 많아 밤빠가 조금 힘들어하네요! 😅\n약 1분 뒤에 다시 말을 걸어주시면 감사하겠습니다! ✨"
+        : "오류가 발생했습니다. 잠시 후 다시 시도해주세요.";
+      setMessages(prev => [...prev, { role: 'model', content: errorMessage }]);
     } finally {
       setIsLoading(false);
     }
