@@ -1064,7 +1064,7 @@ const HomePage = ({
                             <span className="bot-icon" style={{ display: 'flex' }}>
                               <Bot size={15} color="#E53935" strokeWidth={2.5} />
                             </span>
-                            Concierge
+                            ✦ Concierge
                           </button>
                         </div>
                         <style>{`
