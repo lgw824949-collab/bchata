@@ -155,7 +155,11 @@ ${dataContext}
 
       // Groq API Implementation
       const groqApiKey = import.meta.env.VITE_GROQ_API_KEY;
-      if (!groqApiKey) throw new Error('Groq API key is missing');
+      if (!groqApiKey) {
+        console.error('Groq API key is missing');
+        setIsLoading(false);
+        return;
+      }
 
       let dataContext = "현재 실시간 데이터베이스 정보가 없습니다.";
       if (dbData) {
