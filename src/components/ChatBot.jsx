@@ -82,6 +82,29 @@ const ChatBot = () => {
     setInput('');
     setIsLoading(true);
 
+    // [Direct Logic] Y/y 입력 시 AI를 거치지 않고 DB에서 직접 추출
+    const trimmedInput = input.trim().toLowerCase();
+    if (trimmedInput === 'y') {
+      const now = new Date();
+      const todayStr = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
+      
+      const upcomingParties = dbData?.parties
+        ? dbData.parties
+            .filter(p => p.date >= todayStr)
+            .sort((a, b) => new Date(a.date) - new Date(b.date))
+            .slice(0, 2)
+        : [];
+
+      if (upcomingParties.length > 0) {
+        const partyList = upcomingParties.map(p => `🎵 ${p.title} | ${p.time || '시간 미정'} | ${p.fee || '입장료 미정'}`).join('\n');
+        setMessages(prev => [...prev, { role: 'model', content: partyList }]);
+      } else {
+        setMessages(prev => [...prev, { role: 'model', content: "현재 등록된 파티가 없어요 😢" }]);
+      }
+      setIsLoading(false);
+      return;
+    }
+
     try {
       const groqApiKey = import.meta.env.VITE_GROQ_API_KEY;
       if (!groqApiKey) throw new Error('Groq API key is missing');
