@@ -80,8 +80,7 @@ const ChatBot = () => {
       if (dbData) {
         const partiesInfo = dbData.parties.map(p => {
           const venue = p.locationName || p.location_name || '장소 정보 확인 필요';
-          const region = p.region ? `[${p.region}] ` : '';
-          return `- ${region}${p.title} | 장소: ${venue}`;
+          return `- 파티명: ${p.title} | 장소: ${venue} | 날짜: ${p.date} | 입장료: ${p.price || '정보 없음'} | 지역: ${p.region || '정보 없음'}`;
         }).join('\n');
         const bootcampsInfo = dbData.bootcamps.map(b => `- ${b.title} | 강사: ${b.instructor_name || '정보 없음'}`).join('\n');
         const instructorsInfo = dbData.instructors.map(i => `- 강사명: ${i.name} | 장르: ${i.genres} | 지역: ${i.region || '정보 없음'} | SNS: ${i.instagram_id || i.sns_id || '없음'} | 상세링크: /instructors/${i.id} | 가격: ${i.price || '문의'}`).join('\n');
@@ -100,6 +99,17 @@ const ChatBot = () => {
 6. 가격 정보는 유저가 직접 물어볼 때만 안내하세요.
 7. 강사 상세링크가 있다면 함께 안내하세요.
 8. 한 번에 최대 3명까지만 추천하세요.
+
+[바(파티장소) 추천 규칙 - 절대 준수]
+1. 바 추천 시 반드시 위 [실시간 팩트 데이터]의 파티 데이터를 사용하세요. (지어내기 금지)
+2. 추천 형식: 파티명 + 날짜 + 장소 + 입장료 순서로 안내하세요.
+   - 예: "🎶 [XX빠] 바차타 나잇 | 5/17(토) | 홍대 XX | 12,000원"
+3. 유저가 장르를 말하면 해당 장르의 파티만 필터링하세요.
+4. 유저가 지역을 말하면 해당 지역의 파티만 필터링하세요.
+5. 오늘 이후 날짜의 파티만 추천하세요. (지난 파티 추천 금지)
+6. 매칭 파티가 없으면 "현재 해당 조건의 파티 정보가 없어요 😢" 라고만 답하세요.
+7. 한 번에 최대 3개까지만 추천하세요.
+8. 유저가 "오늘", "이번 주말" 등 시간 표현을 쓰면 해당 날짜에 맞는 파티를 필터링하세요.
 
 [대화 전략: 티키타카 퍼널]
 1. 단계적 질문: 지역 -> 장르 -> 레벨 순으로 질문하여 범위를 좁히세요.
