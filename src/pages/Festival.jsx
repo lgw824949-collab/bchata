@@ -18,7 +18,7 @@ const Festival = ({ onBack }) => {
   const [formData, setFormData] = useState({
     title: '', start_date: '', end_date: '', region: '서울',
     location: '', price: '', description: '', poster_url: '',
-    organizer: '', genre: '바차타'
+    organizer: '', genre: '바차타', bank_info: ''
   });
 
   const regions = ['전체', '수도권', '강원', '제주', '부산/경남', '전라', '충청'];
@@ -87,6 +87,7 @@ const Festival = ({ onBack }) => {
       price:       fest.price || '',
       description: fest.description || '',
       poster_url:  fest.poster_url || '',
+      bank_info:   fest.bank_info || '',
     });
     setEditingId(fest.id);
     setCurrentStep(1);
@@ -109,6 +110,7 @@ const Festival = ({ onBack }) => {
         price:       formData.price,
         description: formData.description,
         poster_url:  formData.poster_url || null,
+        bank_info:   formData.bank_info || null,
         status:      'active'
       };
       let error;
@@ -449,7 +451,8 @@ const Festival = ({ onBack }) => {
 
               {currentStep === 4 && (
                 <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} style={{ display: 'flex', flexDirection: 'column', gap: '28px' }}>
-                  <div><label style={{ display: 'block', fontSize: '12px', fontWeight: 900, color: '#C9A84C', marginBottom: '12px', letterSpacing: '1.5px' }}>10. 상세 설명</label><textarea rows={6} value={formData.description} onChange={e => setFormData(prev => ({ ...prev, description: e.target.value }))} placeholder="상세 내용 입력" style={{ width: '100%', padding: '20px', borderRadius: '18px', border: '1px solid rgba(255,255,255,0.1)', background: '#1A1A1A', fontSize: '16px', color: '#f8fafc', outline: 'none', resize: 'none' }} /></div>
+                  <div><label style={{ display: 'block', fontSize: '12px', fontWeight: 900, color: '#C9A84C', marginBottom: '12px', letterSpacing: '1.5px' }}>10. 상세 설명</label><textarea rows={4} value={formData.description} onChange={e => setFormData(prev => ({ ...prev, description: e.target.value }))} placeholder="상세 내용 입력" style={{ width: '100%', padding: '20px', borderRadius: '18px', border: '1px solid rgba(255,255,255,0.1)', background: '#1A1A1A', fontSize: '16px', color: '#f8fafc', outline: 'none', resize: 'none' }} /></div>
+                  <div><label style={{ display: 'block', fontSize: '12px', fontWeight: 900, color: '#C9A84C', marginBottom: '12px', letterSpacing: '1.5px' }}>11. 입금 계좌 정보</label><input value={formData.bank_info} onChange={e => setFormData(prev => ({ ...prev, bank_info: e.target.value }))} placeholder="예: 카카오뱅크 3333-01-1234567 홍길동" style={{ width: '100%', padding: '20px', borderRadius: '18px', border: '1px solid rgba(255,255,255,0.1)', background: '#1A1A1A', fontSize: '16px', color: '#f8fafc', outline: 'none', boxSizing: 'border-box' }} /></div>
                 </motion.div>
               )}
 
@@ -509,9 +512,16 @@ const Festival = ({ onBack }) => {
                     <div style={{ width: '70px', height: '70px', background: 'rgba(201,168,76,0.1)', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 24px' }}><Zap size={32} color="#C9A84C" fill="#C9A84C" /></div>
                     <h3 style={{ fontSize: '22px', fontWeight: 950, color: '#fff', marginBottom: '15px' }}>잠깐! 확인해 주세요</h3>
                     <p style={{ color: '#94a3b8', fontSize: '15px', lineHeight: 1.6, marginBottom: '30px' }}>입금 시 입금자명 뒤에 <br /><span style={{ color: '#C9A84C', fontWeight: 900 }}>'밤빠'</span>를 꼭 기재해 주세요!<br />(예: 홍길동 밤빠)</p>
-                    <div style={{ background: 'rgba(0,0,0,0.4)', padding: '24px', borderRadius: '24px', marginBottom: '20px', textAlign: 'left', border: '1px solid rgba(255,255,255,0.05)', position: 'relative', overflow: 'hidden' }}>
-                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}><p style={{ fontSize: '11px', color: '#64748b', fontWeight: 900, letterSpacing: '1.5px' }}>PRICE INFO</p></div>
-                      <p style={{ fontSize: '18px', color: '#fff', fontWeight: 850, lineHeight: 1.5, margin: 0 }}>{selectedFestival.price || '가격 정보 없음'}</p>
+                    <div
+                      onClick={() => selectedFestival.bank_info && copyToClipboard(selectedFestival.bank_info)}
+                      style={{ background: 'rgba(0,0,0,0.4)', padding: '24px', borderRadius: '24px', marginBottom: '20px', textAlign: 'left', border: '1px solid rgba(255,255,255,0.05)', cursor: selectedFestival.bank_info ? 'pointer' : 'default', position: 'relative', overflow: 'hidden' }}
+                    >
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
+                        <p style={{ fontSize: '11px', color: '#64748b', fontWeight: 900, letterSpacing: '1.5px' }}>ACCOUNT INFO</p>
+                        {selectedFestival.bank_info && <span style={{ fontSize: '10px', color: '#C9A84C', fontWeight: 900 }}>{copied ? '복사 완료!' : '탭하여 복사'}</span>}
+                      </div>
+                      <p style={{ fontSize: '16px', color: '#fff', fontWeight: 850, lineHeight: 1.5, margin: 0 }}>{selectedFestival.bank_info || '계좌 정보 없음'}</p>
+                      {copied && <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} style={{ position: 'absolute', inset: 0, background: 'rgba(201,168,76,0.1)', pointerEvents: 'none' }} />}
                       {copied && <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} style={{ position: 'absolute', inset: 0, background: 'rgba(201,168,76,0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', pointerEvents: 'none' }} />}
                     </div>
                     <p style={{ fontSize: '13px', color: '#C9A84C', fontWeight: 800, marginBottom: '25px', letterSpacing: '-0.2px' }}>✨ 복사하기로 송금할 수 있습니다</p>

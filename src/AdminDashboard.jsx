@@ -660,6 +660,7 @@ export default function AdminDashboard({ onBack }) {
                         <input value={editFormData.location || ''} onChange={e => setEditFormData({ ...editFormData, location: e.target.value })} placeholder="상세 장소" style={{ width: '100%', padding: '10px', borderRadius: '10px', border: '1px solid #E2E8F0' }} />
                         <textarea rows={3} value={editFormData.description || ''} onChange={e => setEditFormData({ ...editFormData, description: e.target.value })} placeholder="설명" style={{ width: '100%', padding: '10px', borderRadius: '10px', border: '1px solid #E2E8F0', resize: 'none' }} />
                         <input value={editFormData.poster_url || ''} onChange={e => setEditFormData({ ...editFormData, poster_url: e.target.value })} placeholder="포스터 URL" style={{ width: '100%', padding: '10px', borderRadius: '10px', border: '1px solid #E2E8F0', fontSize: '12px' }} />
+                        <input value={editFormData.bank_info || ''} onChange={e => setEditFormData({ ...editFormData, bank_info: e.target.value })} placeholder="입금 계좌 (예: 카카오뱅크 3333-01-123 홍길동)" style={{ width: '100%', padding: '10px', borderRadius: '10px', border: '1px solid #E2E8F0', fontSize: '12px' }} />
                       </>
                     )}
 
@@ -698,6 +699,7 @@ export default function AdminDashboard({ onBack }) {
                           <input value={editFormData.youtube || ''} onChange={e => setEditFormData({ ...editFormData, youtube: e.target.value })} placeholder="유튜브 URL" style={{ padding: '10px', borderRadius: '10px', border: '1px solid #E2E8F0', fontSize: '12px' }} />
                         </div>
                         <input value={editFormData.poster_url || ''} onChange={e => setEditFormData({ ...editFormData, poster_url: e.target.value })} placeholder="포스터 URL" style={{ width: '100%', padding: '10px', borderRadius: '10px', border: '1px solid #E2E8F0', fontSize: '12px' }} />
+                        <input value={editFormData.bank_info || ''} onChange={e => setEditFormData({ ...editFormData, bank_info: e.target.value })} placeholder="입금 계좌 (예: 카카오뱅크 3333-01-123 홍길동)" style={{ width: '100%', padding: '10px', borderRadius: '10px', border: '1px solid #E2E8F0', fontSize: '12px' }} />
                       </>
                     )}
 

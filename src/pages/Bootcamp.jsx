@@ -73,7 +73,7 @@ const Bootcamp = ({ onBack, initialView = 'list' }) => {
   const [formData, setFormData] = useState({
     title: '', instructor: '', type: 'domestic', region: '서울', country: '',
     start_date: '', end_date: '', venue: '', fee: '', description: '',
-    poster_url: '', genre: '바차타', level: '초급', instagram: '', youtube: ''
+    poster_url: '', genre: '바차타', level: '초급', instagram: '', youtube: '', bank_info: ''
   });
   const [uploading, setUploading] = useState(false);
   const [submitting, setSubmitting] = useState(false);
@@ -161,6 +161,7 @@ const Bootcamp = ({ onBack, initialView = 'list' }) => {
       level:       camp.level || '초급',
       instagram:   camp.instagram || '',
       youtube:     camp.youtube || '',
+      bank_info:   camp.bank_info || '',
     });
     setEditingId(camp.id);
     setCurrentStep(1);
@@ -178,7 +179,8 @@ const Bootcamp = ({ onBack, initialView = 'list' }) => {
         start_date: formData.start_date, end_date: formData.end_date,
         venue: formData.venue, fee: formData.fee, description: formData.description,
         poster_url: formData.poster_url || null, genre: formData.genre,
-        level: formData.level, instagram: formData.instagram, youtube: formData.youtube,
+        level: formData.level,         instagram: formData.instagram, youtube: formData.youtube,
+        bank_info: formData.bank_info || null,
         status: 'active'
       };
       let error;
@@ -195,7 +197,7 @@ const Bootcamp = ({ onBack, initialView = 'list' }) => {
       setFormData({
         title: '', instructor: '', type: 'domestic', region: '서울', country: '',
         start_date: '', end_date: '', venue: '', fee: '', description: '',
-        poster_url: '', genre: '바차타', level: '초급', instagram: '', youtube: ''
+        poster_url: '', genre: '바차타', level: '초급', instagram: '', youtube: '', bank_info: ''
       });
       fetchBootcamps();
     } catch (err) {
@@ -622,6 +624,10 @@ const Bootcamp = ({ onBack, initialView = 'list' }) => {
                   <div>
                     <label style={{ display: 'block', fontSize: 11, fontWeight: 900, color: '#C9A84C', marginBottom: 10, letterSpacing: '1.5px' }}>13. 유튜브 (선택)</label>
                     <input value={formData.youtube} onChange={e => setFormData(p => ({ ...p, youtube: e.target.value }))} placeholder="https://youtube.com/..." style={{ width: '100%', padding: '18px', borderRadius: 16, border: '1px solid rgba(255,255,255,0.1)', background: '#1A1A1A', fontSize: 15, color: '#fff', outline: 'none', boxSizing: 'border-box' }} />
+                  </div>
+                  <div>
+                    <label style={{ display: 'block', fontSize: 11, fontWeight: 900, color: '#C9A84C', marginBottom: 10, letterSpacing: '1.5px' }}>14. 입금 계좌 정보</label>
+                    <input value={formData.bank_info} onChange={e => setFormData(p => ({ ...p, bank_info: e.target.value }))} placeholder="예: 카카오뱅크 3333-01-1234567 홍길동" style={{ width: '100%', padding: '18px', borderRadius: 16, border: '1px solid rgba(255,255,255,0.1)', background: '#1A1A1A', fontSize: 15, color: '#fff', outline: 'none', boxSizing: 'border-box' }} />
                   </div>
                 </motion.div>
               )}
@@ -1074,10 +1080,17 @@ const Bootcamp = ({ onBack, initialView = 'list' }) => {
               <p style={{ color: '#94a3b8', lineHeight: 1.6, marginBottom: '25px' }}>
                 입금 시 성함 뒤에 <span style={{ color: '#C9A84C', fontWeight: 900 }}>'밤빠'</span>를 꼭 적어주세요!
               </p>
-              <div style={{ background: '#000', padding: '20px', borderRadius: '20px', marginBottom: '20px', textAlign: 'left' }}>
-                <p style={{ fontSize: '11px', color: '#475569', fontWeight: 900, marginBottom: '8px' }}>ACCOUNT INFO</p>
-                <p style={{ fontSize: '16px', color: '#fff', fontWeight: 800, margin: 0 }}>{selectedBootcamp?.fee}</p>
+              <div
+                onClick={() => selectedBootcamp?.bank_info && navigator.clipboard.writeText(selectedBootcamp.bank_info)}
+                style={{ background: '#000', padding: '20px', borderRadius: '20px', marginBottom: '8px', textAlign: 'left', cursor: selectedBootcamp?.bank_info ? 'pointer' : 'default' }}
+              >
+                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 8 }}>
+                  <p style={{ fontSize: '11px', color: '#475569', fontWeight: 900 }}>ACCOUNT INFO</p>
+                  {selectedBootcamp?.bank_info && <span style={{ fontSize: '10px', color: '#C9A84C', fontWeight: 900 }}>탭하여 복사</span>}
+                </div>
+                <p style={{ fontSize: '16px', color: '#fff', fontWeight: 800, margin: 0 }}>{selectedBootcamp?.bank_info || '계좌 정보 없음'}</p>
               </div>
+              <p style={{ fontSize: '12px', color: '#C9A84C', fontWeight: 800, marginBottom: '20px', textAlign: 'center' }}>✦ 탭하면 계좌번호가 복사됩니다</p>
               <button
                 onClick={() => setShowBookingGuide(false)}
                 style={{ width: '100%', padding: '18px', borderRadius: '16px', background: '#C9A84C', color: '#000', fontWeight: 900, border: 'none', cursor: 'pointer' }}
