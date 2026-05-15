@@ -114,8 +114,11 @@ ${dataContext}
 - 데이터에 없는 정보는 절대 지어내지 마세요.
 - 답변이 길어지면 무조건 탈락입니다. 핵심만 찌르세요.`;
       
-      const apiContents = newMessages.slice(-6).map(msg => ({
-          role: msg.role,
+      // Skip the initial static greeting to ensure the conversation starts with a 'user' role
+      const historyToSend = newMessages.slice(1).slice(-6);
+      
+      const apiContents = historyToSend.map(msg => ({
+          role: msg.role === 'model' ? 'model' : 'user',
           parts: [{ text: msg.content }]
       }));
 
@@ -125,12 +128,12 @@ ${dataContext}
           parts: [{ text: systemPrompt }]
         },
         generationConfig: {
-          maxOutputTokens: 500,
+          maxOutputTokens: 300,
           temperature: 0.7,
         }
       };
 
-      response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-latest:generateContent?key=${apiKey}`, {
+      response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=${apiKey}`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
