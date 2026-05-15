@@ -116,7 +116,6 @@ const Bootcamp = ({ onBack, initialView = 'list' }) => {
     }
   };
 
-  /* [OLD] handleImageUpload
   const handleImageUpload = async (e) => {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -135,9 +134,7 @@ const Bootcamp = ({ onBack, initialView = 'list' }) => {
       setUploading(false);
     }
   };
-  */
 
-  /* [OLD] handleSubmit
   const handleSubmit = async (e) => {
     e.preventDefault();
     setSubmitting(true);
@@ -149,14 +146,19 @@ const Bootcamp = ({ onBack, initialView = 'list' }) => {
       if (error) throw error;
       alert('등록되었습니다!');
       setView('list');
+      setCurrentStep(1);
+      setFormData({
+        title: '', instructor: '', type: 'domestic', region: '서울', country: '',
+        start_date: '', end_date: '', venue: '', price_info: '', description: '',
+        poster_url: '', bank_info: '', genre: '바차타', level: '초급', instagram: '', youtube: ''
+      });
       fetchBootcamps();
     } catch (err) {
-      alert('등록 실패');
+      alert('등록 실패: ' + err.message);
     } finally {
       setSubmitting(false);
     }
   };
-  */
 
   const filteredList = bootcamps.filter(item => {
     const regionMatch = selectedRegion === '전국' || item.region === selectedRegion;
@@ -478,6 +480,150 @@ const Bootcamp = ({ onBack, initialView = 'list' }) => {
         }
       `}</style>
 
+      {/* ── 등록 폼 ── */}
+      <AnimatePresence>
+        {view === 'register' && (
+          <motion.div
+            initial={{ opacity: 0, y: 40 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 40 }}
+            style={{ padding: '10px 25px 120px', overflowY: 'auto' }}
+          >
+            {/* 단계 진행바 */}
+            <div style={{ display: 'flex', gap: 8, marginBottom: 32 }}>
+              {[1,2,3,4].map(s => (
+                <div key={s} style={{ flex: 1, height: 4, borderRadius: 2, background: s <= currentStep ? '#C9A84C' : 'rgba(255,255,255,0.1)', transition: 'all 0.3s' }} />
+              ))}
+            </div>
+
+            <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
+
+              {/* STEP 1 — 기본 정보 */}
+              {currentStep === 1 && (
+                <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
+                  <div>
+                    <label style={{ display: 'block', fontSize: 11, fontWeight: 900, color: '#C9A84C', marginBottom: 10, letterSpacing: '1.5px' }}>1. 강사명</label>
+                    <input required value={formData.instructor} onChange={e => setFormData(p => ({ ...p, instructor: e.target.value }))} placeholder="강사 이름 입력" style={{ width: '100%', padding: '18px', borderRadius: 16, border: '1px solid rgba(255,255,255,0.1)', background: '#1A1A1A', fontSize: 16, color: '#fff', outline: 'none', boxSizing: 'border-box' }} />
+                  </div>
+                  <div>
+                    <label style={{ display: 'block', fontSize: 11, fontWeight: 900, color: '#C9A84C', marginBottom: 10, letterSpacing: '1.5px' }}>2. 캠프 제목</label>
+                    <input required value={formData.title} onChange={e => setFormData(p => ({ ...p, title: e.target.value }))} placeholder="캠프 제목 입력" style={{ width: '100%', padding: '18px', borderRadius: 16, border: '1px solid rgba(255,255,255,0.1)', background: '#1A1A1A', fontSize: 16, color: '#fff', outline: 'none', boxSizing: 'border-box' }} />
+                  </div>
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+                    <div>
+                      <label style={{ display: 'block', fontSize: 11, fontWeight: 900, color: '#C9A84C', marginBottom: 10, letterSpacing: '1.5px' }}>3. 장르</label>
+                      <select value={formData.genre} onChange={e => setFormData(p => ({ ...p, genre: e.target.value }))} style={{ width: '100%', padding: '18px', borderRadius: 16, border: '1px solid rgba(255,255,255,0.1)', background: '#1A1A1A', fontSize: 16, color: '#fff', outline: 'none' }}>
+                        {['바차타','살사','키좀바','쥬크'].map(g => <option key={g} value={g}>{g}</option>)}
+                      </select>
+                    </div>
+                    <div>
+                      <label style={{ display: 'block', fontSize: 11, fontWeight: 900, color: '#C9A84C', marginBottom: 10, letterSpacing: '1.5px' }}>4. 레벨</label>
+                      <select value={formData.level} onChange={e => setFormData(p => ({ ...p, level: e.target.value }))} style={{ width: '100%', padding: '18px', borderRadius: 16, border: '1px solid rgba(255,255,255,0.1)', background: '#1A1A1A', fontSize: 16, color: '#fff', outline: 'none' }}>
+                        {['초급','중급','상급','전체'].map(l => <option key={l} value={l}>{l}</option>)}
+                      </select>
+                    </div>
+                  </div>
+                  <div>
+                    <label style={{ display: 'block', fontSize: 11, fontWeight: 900, color: '#C9A84C', marginBottom: 10, letterSpacing: '1.5px' }}>5. 국내/해외</label>
+                    <div style={{ display: 'flex', gap: 10 }}>
+                      {[['domestic','국내'],['overseas','해외']].map(([val, label]) => (
+                        <button key={val} type="button" onClick={() => setFormData(p => ({ ...p, type: val }))}
+                          style={{ flex: 1, padding: '16px', borderRadius: 14, fontWeight: 900, fontSize: 15, cursor: 'pointer', border: `1px solid ${formData.type === val ? '#C9A84C' : 'rgba(255,255,255,0.1)'}`, background: formData.type === val ? 'rgba(201,168,76,0.15)' : '#1A1A1A', color: formData.type === val ? '#C9A84C' : '#8E8E93' }}
+                        >{label}</button>
+                      ))}
+                    </div>
+                  </div>
+                </motion.div>
+              )}
+
+              {/* STEP 2 — 일정/장소 */}
+              {currentStep === 2 && (
+                <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+                    <div>
+                      <label style={{ display: 'block', fontSize: 11, fontWeight: 900, color: '#C9A84C', marginBottom: 10, letterSpacing: '1.5px' }}>6. 시작일</label>
+                      <input type="date" required value={formData.start_date} onChange={e => setFormData(p => ({ ...p, start_date: e.target.value }))} style={{ width: '100%', padding: '18px', borderRadius: 16, border: '1px solid rgba(255,255,255,0.1)', background: '#1A1A1A', fontSize: 15, color: '#fff', outline: 'none', boxSizing: 'border-box' }} />
+                    </div>
+                    <div>
+                      <label style={{ display: 'block', fontSize: 11, fontWeight: 900, color: '#C9A84C', marginBottom: 10, letterSpacing: '1.5px' }}>7. 종료일</label>
+                      <input type="date" required value={formData.end_date} onChange={e => setFormData(p => ({ ...p, end_date: e.target.value }))} style={{ width: '100%', padding: '18px', borderRadius: 16, border: '1px solid rgba(255,255,255,0.1)', background: '#1A1A1A', fontSize: 15, color: '#fff', outline: 'none', boxSizing: 'border-box' }} />
+                    </div>
+                  </div>
+                  <div>
+                    <label style={{ display: 'block', fontSize: 11, fontWeight: 900, color: '#C9A84C', marginBottom: 10, letterSpacing: '1.5px' }}>8. 지역</label>
+                    <select value={formData.region} onChange={e => setFormData(p => ({ ...p, region: e.target.value }))} style={{ width: '100%', padding: '18px', borderRadius: 16, border: '1px solid rgba(255,255,255,0.1)', background: '#1A1A1A', fontSize: 16, color: '#fff', outline: 'none' }}>
+                      {['서울','경기/인천','경상도','전라도','충청도','강원/제주','해외'].map(r => <option key={r} value={r}>{r}</option>)}
+                    </select>
+                  </div>
+                  <div>
+                    <label style={{ display: 'block', fontSize: 11, fontWeight: 900, color: '#C9A84C', marginBottom: 10, letterSpacing: '1.5px' }}>9. 상세 장소</label>
+                    <div style={{ display: 'flex', gap: 10 }}>
+                      <input value={formData.venue} onChange={e => setFormData(p => ({ ...p, venue: e.target.value }))} placeholder="장소 입력 (미정이면 우측 버튼)" style={{ flex: 1, padding: '18px', borderRadius: 16, border: '1px solid rgba(255,255,255,0.1)', background: '#1A1A1A', fontSize: 15, color: '#fff', outline: 'none' }} />
+                      <button type="button" onClick={() => setFormData(p => ({ ...p, venue: '추후 공지' }))} style={{ padding: '0 16px', borderRadius: 16, background: formData.venue === '추후 공지' ? '#C9A84C' : '#1A1A1A', color: formData.venue === '추후 공지' ? '#000' : '#8E8E93', fontWeight: 900, fontSize: 12, border: '1px solid rgba(255,255,255,0.1)', whiteSpace: 'nowrap', cursor: 'pointer' }}>추후 공지</button>
+                    </div>
+                  </div>
+                </motion.div>
+              )}
+
+              {/* STEP 3 — 가격/계좌 */}
+              {currentStep === 3 && (
+                <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
+                  <div>
+                    <label style={{ display: 'block', fontSize: 11, fontWeight: 900, color: '#C9A84C', marginBottom: 10, letterSpacing: '1.5px' }}>10. 가격 정보</label>
+                    <input required value={formData.price_info} onChange={e => setFormData(p => ({ ...p, price_info: e.target.value }))} placeholder="예: 풀패스 250,000 / 파티 50,000" style={{ width: '100%', padding: '18px', borderRadius: 16, border: '1px solid rgba(255,255,255,0.1)', background: '#1A1A1A', fontSize: 15, color: '#fff', outline: 'none', boxSizing: 'border-box' }} />
+                  </div>
+                  <div>
+                    <label style={{ display: 'block', fontSize: 11, fontWeight: 900, color: '#C9A84C', marginBottom: 10, letterSpacing: '1.5px' }}>11. 입금 계좌 (필수)</label>
+                    <input required value={formData.bank_info} onChange={e => setFormData(p => ({ ...p, bank_info: e.target.value }))} placeholder="예: 카카오뱅크 3333-01-1234567 홍길동" style={{ width: '100%', padding: '18px', borderRadius: 16, border: '1px solid rgba(255,255,255,0.1)', background: '#1A1A1A', fontSize: 15, color: '#fff', outline: 'none', boxSizing: 'border-box' }} />
+                  </div>
+                  <div>
+                    <label style={{ display: 'block', fontSize: 11, fontWeight: 900, color: '#C9A84C', marginBottom: 10, letterSpacing: '1.5px' }}>12. 인스타그램 (선택)</label>
+                    <input value={formData.instagram} onChange={e => setFormData(p => ({ ...p, instagram: e.target.value }))} placeholder="https://instagram.com/..." style={{ width: '100%', padding: '18px', borderRadius: 16, border: '1px solid rgba(255,255,255,0.1)', background: '#1A1A1A', fontSize: 15, color: '#fff', outline: 'none', boxSizing: 'border-box' }} />
+                  </div>
+                  <div>
+                    <label style={{ display: 'block', fontSize: 11, fontWeight: 900, color: '#C9A84C', marginBottom: 10, letterSpacing: '1.5px' }}>13. 유튜브 (선택)</label>
+                    <input value={formData.youtube} onChange={e => setFormData(p => ({ ...p, youtube: e.target.value }))} placeholder="https://youtube.com/..." style={{ width: '100%', padding: '18px', borderRadius: 16, border: '1px solid rgba(255,255,255,0.1)', background: '#1A1A1A', fontSize: 15, color: '#fff', outline: 'none', boxSizing: 'border-box' }} />
+                  </div>
+                </motion.div>
+              )}
+
+              {/* STEP 4 — 포스터 & 설명 */}
+              {currentStep === 4 && (
+                <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
+                  <div>
+                    <label style={{ display: 'block', fontSize: 11, fontWeight: 900, color: '#C9A84C', marginBottom: 10, letterSpacing: '1.5px' }}>14. 포스터 이미지</label>
+                    <div style={{ width: '100%', height: 220, borderRadius: 20, border: '2px dashed rgba(201,168,76,0.3)', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', background: '#1A1A1A', cursor: 'pointer', position: 'relative', overflow: 'hidden' }}>
+                      {formData.poster_url
+                        ? <img src={formData.poster_url} style={{ width: '100%', height: '100%', objectFit: 'contain' }} alt="poster" />
+                        : <><div style={{ fontSize: 36, marginBottom: 8 }}>🖼️</div><span style={{ fontSize: 13, color: '#8E8E93' }}>{uploading ? '업로드 중...' : '포스터 선택'}</span></>
+                      }
+                      <input type="file" accept="image/*" onChange={handleImageUpload} style={{ position: 'absolute', inset: 0, opacity: 0 }} />
+                    </div>
+                  </div>
+                  <div>
+                    <label style={{ display: 'block', fontSize: 11, fontWeight: 900, color: '#C9A84C', marginBottom: 10, letterSpacing: '1.5px' }}>15. 상세 설명</label>
+                    <textarea rows={5} value={formData.description} onChange={e => setFormData(p => ({ ...p, description: e.target.value }))} placeholder="캠프 상세 내용을 입력하세요" style={{ width: '100%', padding: '18px', borderRadius: 16, border: '1px solid rgba(255,255,255,0.1)', background: '#1A1A1A', fontSize: 15, color: '#fff', outline: 'none', resize: 'none', boxSizing: 'border-box' }} />
+                  </div>
+                </motion.div>
+              )}
+
+              {/* 버튼 */}
+              <div style={{ display: 'flex', gap: 12, paddingTop: 8 }}>
+                {currentStep > 1 && (
+                  <button type="button" onClick={() => setCurrentStep(s => s - 1)} style={{ flex: 1, padding: '18px', borderRadius: 16, background: 'rgba(255,255,255,0.05)', color: '#fff', fontWeight: 900, border: '1px solid rgba(255,255,255,0.1)', cursor: 'pointer' }}>이전</button>
+                )}
+                {currentStep < 4 ? (
+                  <button type="button" onClick={() => setCurrentStep(s => s + 1)} style={{ flex: 2, padding: '18px', borderRadius: 16, background: 'linear-gradient(135deg, #C9A84C, #A68A3D)', color: '#000', fontWeight: 900, fontSize: 16, border: 'none', cursor: 'pointer' }}>다음 단계</button>
+                ) : (
+                  <button type="submit" disabled={submitting} style={{ flex: 2, padding: '20px', borderRadius: 16, background: 'linear-gradient(135deg, #C9A84C, #A68A3D)', color: '#000', fontWeight: 900, fontSize: 16, border: 'none', cursor: 'pointer' }}>{submitting ? '등록 중...' : '✅ 등록 완료'}</button>
+                )}
+              </div>
+            </form>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* ── 리스트 뷰 ── */}
+      {view === 'list' && <>
+
       {/* Sticky Filter Header */}
       <div style={{
         position: 'sticky', top: 0, zIndex: 100,
@@ -695,6 +841,8 @@ const Bootcamp = ({ onBack, initialView = 'list' }) => {
           })()}
         </div>
       )}
+
+      </> }
 
       {/* Detail Modal */}
       <AnimatePresence>
