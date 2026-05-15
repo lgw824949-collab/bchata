@@ -13,7 +13,21 @@ const LEVELS = ['입문', '초급', '중급', '상급'];
 const REGIONS = ['전체', '서울', '경기/인천', '경상도', '전라도', '충청도', '강원/제주', '해외'];
 
 const Bootcamp = ({ onBack, initialView = 'list' }) => {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
+  const formatDateToKSTString = (date) => {
+    const formatter = new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Seoul', year: 'numeric', month: '2-digit', day: '2-digit' });
+    return formatter.format(date);
+  };
+  const [selectedDate, setSelectedDate] = useState(formatDateToKSTString(new Date()));
+
+  const DAYS_KOR = ['일', '월', '화', '수', '목', '금', '토'];
+  const DAYS_EN = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+  const fourteenDays = Array.from({ length: 14 }).map((_, i) => {
+    const d = new Date();
+    d.setDate(d.getDate() + i);
+    const dayName = i18n?.language?.startsWith('en') ? DAYS_EN[d.getDay()] : DAYS_KOR[d.getDay()];
+    return { fullDate: formatDateToKSTString(d), date: String(d.getDate()), dayName, isToday: i === 0 };
+  });
   const [bootcamps, setBootcamps] = useState([]);
   const [loading, setLoading] = useState(true);
   const [view, setView] = useState(initialView);
@@ -129,6 +143,7 @@ const Bootcamp = ({ onBack, initialView = 'list' }) => {
   };
 
   const filteredList = bootcamps.filter(item => {
+    const dateMatch = item.start_date === selectedDate;
     const regionMatch = selectedRegion === '전체' || item.region === selectedRegion;
     const genreMatch = selectedGenre === '전체' || item.genre === selectedGenre;
     const levelMatch = selectedLevel === '전체' || item.level === selectedLevel;
@@ -136,27 +151,27 @@ const Bootcamp = ({ onBack, initialView = 'list' }) => {
       item.instructor?.toLowerCase().includes(searchTerm.toLowerCase()) || 
       item.title?.toLowerCase().includes(searchTerm.toLowerCase());
     
-    return regionMatch && genreMatch && levelMatch && searchMatch;
+    return dateMatch && regionMatch && genreMatch && levelMatch && searchMatch;
   });
 
   return (
     <>
-      <div style={{ background: '#0f172a', minHeight: '100vh', padding: '0 0 100px', color: '#f8fafc', fontFamily: "'Pretendard', sans-serif", position: 'relative' }}>
+      <div style={{ background: '#FFFFFF', minHeight: '100vh', padding: '0 0 100px', color: '#1e293b', fontFamily: "'Pretendard', sans-serif", position: 'relative' }}>
         
-        <div style={{ position: 'fixed', inset: 0, zIndex: 0, opacity: 0.15, pointerEvents: 'none' }}>
-          <div style={{ position: 'absolute', top: '10%', right: '10%', width: '50%', height: '50%', background: 'radial-gradient(circle, rgba(124, 58, 237, 0.4) 0%, transparent 70%)', filter: 'blur(80px)' }} />
+        <div style={{ position: 'fixed', inset: 0, zIndex: 0, opacity: 0.05, pointerEvents: 'none' }}>
+          <div style={{ position: 'absolute', top: '10%', right: '10%', width: '50%', height: '50%', background: 'radial-gradient(circle, rgba(124, 58, 237, 0.1) 0%, transparent 70%)', filter: 'blur(80px)' }} />
         </div>
 
         {/* Header */}
         <div style={{ 
-          position: 'sticky', top: 0, zIndex: 2000, background: 'rgba(15, 23, 42, 0.95)', 
-          backdropFilter: 'blur(20px)', borderBottom: '1px solid rgba(255,255,255,0.08)',
+          position: 'sticky', top: 0, zIndex: 2000, background: 'rgba(255, 255, 255, 0.95)', 
+          backdropFilter: 'blur(20px)', borderBottom: '1px solid rgba(0,0,0,0.05)',
           padding: '12px 20px', display: 'flex', alignItems: 'center', justifyContent: 'space-between'
         }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
-            <button onClick={onBack} style={{ background: 'none', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center' }}><ChevronLeft size={24} color="#f8fafc" /></button>
-            <h1 style={{ fontSize: '18px', fontWeight: 950, color: '#f8fafc', margin: 0, letterSpacing: '1px' }}>
-              <span style={{ color: '#F59E0B' }}>PREMIUM</span> BOOTCAMP
+            <button onClick={onBack} style={{ background: 'none', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center' }}><ChevronLeft size={24} color="#1e293b" /></button>
+            <h1 style={{ fontSize: '18px', fontWeight: 950, color: '#1e293b', margin: 0, letterSpacing: '1px' }}>
+              <span style={{ color: '#E53935' }}>PREMIUM</span> BOOTCAMP
             </h1>
           </div>
           <button 
@@ -228,10 +243,10 @@ const Bootcamp = ({ onBack, initialView = 'list' }) => {
                     style={{ 
                       padding: '8px 15px', 
                       borderRadius: '10px', 
-                      background: selectedGenre === g ? 'rgba(124, 58, 237, 0.2)' : 'transparent', 
+                      background: selectedGenre === g ? 'rgba(229, 57, 53, 0.1)' : '#f1f5f9', 
                       border: '1px solid', 
-                      borderColor: selectedGenre === g ? '#7C3AED' : 'rgba(255,255,255,0.1)', 
-                      color: selectedGenre === g ? '#fff' : '#64748b', 
+                      borderColor: selectedGenre === g ? '#E53935' : 'transparent', 
+                      color: selectedGenre === g ? '#E53935' : '#64748b', 
                       fontSize: '12px', 
                       fontWeight: 800, 
                       whiteSpace: 'nowrap' 
@@ -242,12 +257,62 @@ const Bootcamp = ({ onBack, initialView = 'list' }) => {
                 ))}
               </div>
 
+              {/* Calendar Section */}
+              <div style={{ 
+                display: 'flex', 
+                overflowX: 'auto', 
+                gap: '12px', 
+                padding: '10px 20px', 
+                msOverflowStyle: 'none', 
+                scrollbarWidth: 'none',
+                WebkitOverflowScrolling: 'touch',
+                borderBottom: '1px solid #f1f5f9'
+              }}>
+                {fourteenDays.map((day) => {
+                  const isSelected = selectedDate === day.fullDate;
+                  const hasEvent = bootcamps.some(b => b.start_date === day.fullDate);
+                  return (
+                    <div 
+                      key={day.fullDate}
+                      onClick={() => setSelectedDate(day.fullDate)}
+                      style={{ 
+                        flexShrink: 0,
+                        width: '44px',
+                        height: '60px',
+                        borderRadius: '22px',
+                        display: 'flex',
+                        flexDirection: 'column',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        background: isSelected ? '#E53935' : 'transparent',
+                        transition: 'all 0.2s',
+                        cursor: 'pointer',
+                        position: 'relative'
+                      }}
+                    >
+                      <span style={{ fontSize: '10px', fontWeight: 800, color: isSelected ? '#fff' : '#94a3b8', marginBottom: '2px' }}>{day.dayName}</span>
+                      <span style={{ fontSize: '15px', fontWeight: 950, color: isSelected ? '#fff' : '#1e293b' }}>{day.date}</span>
+                      {hasEvent && (
+                        <div style={{ 
+                          position: 'absolute', 
+                          bottom: '6px', 
+                          width: '4px', 
+                          height: '4px', 
+                          borderRadius: '50%', 
+                          background: isSelected ? '#fff' : '#E53935' 
+                        }} />
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+
               {/* HOT PICK Section */}
               <div style={{ padding: '20px 0 10px' }}>
                 <div style={{ padding: '0 20px 12px' }}>
                   <h2 style={{ fontSize: '18px', fontWeight: 950, margin: 0, display: 'flex', alignItems: 'center', gap: '6px' }}>
                     <span style={{ color: '#E53935' }}>HOT</span>
-                    <span style={{ color: '#f8fafc' }}>PICK</span>
+                    <span style={{ color: '#1e293b' }}>PICK</span>
                     <span style={{ fontSize: '16px' }}>🔥</span>
                   </h2>
                 </div>
@@ -270,10 +335,10 @@ const Bootcamp = ({ onBack, initialView = 'list' }) => {
                         flexShrink: 0, 
                         borderRadius: '12px', 
                         overflow: 'hidden', 
-                        boxShadow: '0 8px 24px rgba(0,0,0,0.3)',
-                        background: '#000',
+                        boxShadow: '0 8px 24px rgba(0,0,0,0.12)',
+                        background: '#f8fafc',
                         cursor: 'pointer',
-                        border: '1px solid rgba(255,255,255,0.05)'
+                        border: '1px solid rgba(0,0,0,0.05)'
                       }}
                     >
                       <img src={item.poster_url} style={{ width: '100%', height: '100%', objectFit: 'cover' }} alt="Pick" />
