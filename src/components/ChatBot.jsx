@@ -49,7 +49,7 @@ const ChatBot = () => {
           const todayStr = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
           
           const [partiesRes, instructorsRes] = await Promise.all([
-            supabase.from('parties').select('*').eq('status', 'approved').gte('date', todayStr).limit(10),
+            supabase.from('parties').select('*, imageUrl').eq('status', 'approved').gte('date', todayStr).limit(10),
             supabase.from('instructors').select('*').eq('status', 'active')
           ]);
           setDbData({
@@ -107,25 +107,30 @@ const ChatBot = () => {
       if (dbData) {
         const partiesInfo = dbData.parties.map(p => {
           const venue = p.locationName || p.location_name || p.studio_name || '장소 확인 필요';
-          return `- 파티명: ${p.title} | 장소: ${venue} | 날짜: ${p.date} | 입장료: ${p.fee || '정보 없음'} | 지역: ${p.broadRegion || p.region || '전국'}`;
+          return `- 파티명: ${p.title} | 장소: ${venue} | 날짜: ${p.date} | 입장료: ${p.fee || '정보 없음'} | 지역: ${p.broadRegion || p.region || '전국'} | 이미지: ${p.imageUrl || '없음'}`;
         }).join('\n');
         const instructorsInfo = dbData.instructors.map(i => `- 강사명: ${i.name} | 장르: ${i.genres || '정보 없음'} | 지역: ${i.region || i.broadRegion || '정보 없음'} | SNS: ${i.instagram_id || i.sns_id || '없음'} | 가격: ${i.price || '문의'}`).join('\n');
         dataContext = `\n\n[실시간 팩트 데이터]\n오늘 날짜: ${todayStr}\n* 파티:\n${partiesInfo}\n* 강사:\n${instructorsInfo}\n${ADMIN_KNOWLEDGE}`;
       }
 
-      const systemPrompt = `당신은 '오늘밤빠'의 초정밀 티키타카 가이드 '밤빠봇'입니다.
-절대 정보를 한꺼번에 주지 마세요. 유저의 답변을 기다리며 한 단계씩 질문하세요.
+      const systemPrompt = `당신은 '오늘밤빠'의 실시간 컨시어지 '밤빠봇'입니다. 
+유저가 추천을 요청하면 아래 3단계 프로세스를 엄격히 따르세요.
 
-[유저 현재 상황]
-- 오늘 날짜: ${todayStr}
-- 실시간 위치: ${currentRegion || '확인 중'}
+[1단계: 장르 확인]
+- 즉시 질문: "어떤 장르를 즐기시나요? 1. 바차타, 2. 살사, 3. 전체"
 
-[절대 규칙: 티키타카 퍼널]
-1. 위치 확인 단계: 유저가 정보를 요청하면 리스트를 먼저 내뱉지 말고 무조건 "지금 계신 ${currentRegion || '이 지역'} 정보를 바로 보여드릴까요? 1. 예, 2. 다른 지역" 이라고만 물으세요.
-2. 장르 확인 단계: 위치가 확인되면 "좋아요! 어떤 장르를 선호하세요? 1. 바차타, 2. 살사, 3. 전체" 라고 물으세요.
-3. 최종 추천 단계: 장르까지 확정된 후에만 해당 조건의 파티를 딱 1~2개만 핵심 정보를 안내하세요.
-4. 초보자 중심: 복잡한 데이터 나열은 피하고 "여기가 초보자분들도 가기 좋은 핫스팟이에요! ✨" 처럼 친근하고 짧게 답변하세요.
-5. 장문 금지: 인사/설명 생략. 무조건 3줄 이내, 번호 선택형 중심. 'undefined' 노출 시 즉시 차단.
+[2단계: 실시간 근거리 추천]
+- 장르 선택 시, 유저의 현재 위치(${currentRegion || '주변'})에서 가장 가까운 파티 3개를 추천 순서대로 안내하세요.
+- 포맷: "1. [지역명] 파티명 | 날짜 | 입장료"
+- **포스터 노출**: 이미지 정보가 있다면 반드시 마지막에 ![poster](이미지URL) 형식으로 한 장만 포함하세요.
+
+[3단계: 지도 및 연결 안내]
+- 유저가 지도/상세정보를 원하면: "상세 페이지 하단에 지도가 연결되어 있어요! 즐거운 시간 되세요! ✨" 라고 답하고 대화를 종료하세요.
+
+[절대 규칙]
+1. 인사/설명/수식어 모두 생략. 무조건 3줄 이내, 번호 선택형 답변만 하세요.
+2. 유저의 현재 실시간 위치(${currentRegion || '주변'}) 정보를 최우선으로 합니다.
+3. 'undefined' 노출 금지. 데이터가 없으면 '정보 없음'으로 표시하세요.
 
 ${dataContext}`;
 
@@ -304,27 +309,48 @@ ${dataContext}`;
             gap: '16px',
             backgroundColor: '#FAFAFA'
           }}>
-            {messages.map((msg, idx) => (
-              <div key={idx} style={{
-                alignSelf: msg.role === 'model' ? 'flex-start' : 'flex-end',
-                backgroundColor: msg.role === 'model' ? '#FFFFFF' : '#FF8A80',
-                color: msg.role === 'model' ? '#333' : '#FFFFFF',
-                padding: '12px 18px',
-                borderRadius: '20px',
-                borderTopLeftRadius: msg.role === 'model' ? '4px' : '20px',
-                borderTopRightRadius: msg.role === 'user' ? '4px' : '20px',
-                border: msg.role === 'model' ? '1px solid #EAEAEA' : 'none',
-                maxWidth: '88%',
-                wordBreak: 'break-word',
-                whiteSpace: 'pre-wrap',
-                boxShadow: msg.role === 'model' ? '0 2px 5px rgba(0,0,0,0.03)' : '0 4px 10px rgba(255, 138, 128, 0.25)',
-                fontSize: '15px',
-                lineHeight: '1.6',
-                fontWeight: '500'
-              }}>
-                {msg.content}
-              </div>
-            ))}
+            {messages.map((msg, idx) => {
+              const renderContent = (content) => {
+                const imgRegex = /!\[poster\]\((.*?)\)/;
+                const match = content.match(imgRegex);
+                if (match) {
+                  const textPart = content.replace(imgRegex, '').trim();
+                  return (
+                    <>
+                      {textPart && <div style={{ marginBottom: '8px' }}>{textPart}</div>}
+                      <img 
+                        src={match[1]} 
+                        alt="Party Poster" 
+                        style={{ width: '100%', borderRadius: '12px', marginTop: '5px', display: 'block' }} 
+                      />
+                    </>
+                  );
+                }
+                return content;
+              };
+
+              return (
+                <div key={idx} style={{
+                  alignSelf: msg.role === 'model' ? 'flex-start' : 'flex-end',
+                  backgroundColor: msg.role === 'model' ? '#FFFFFF' : '#FF8A80',
+                  color: msg.role === 'model' ? '#333' : '#FFFFFF',
+                  padding: '12px 18px',
+                  borderRadius: '20px',
+                  borderTopLeftRadius: msg.role === 'model' ? '4px' : '20px',
+                  borderTopRightRadius: msg.role === 'user' ? '4px' : '20px',
+                  border: msg.role === 'model' ? '1px solid #EAEAEA' : 'none',
+                  maxWidth: '88%',
+                  wordBreak: 'break-word',
+                  whiteSpace: 'pre-wrap',
+                  boxShadow: msg.role === 'model' ? '0 2px 5px rgba(0,0,0,0.03)' : '0 4px 10px rgba(255, 138, 128, 0.25)',
+                  fontSize: '15px',
+                  lineHeight: '1.6',
+                  fontWeight: '500'
+                }}>
+                  {renderContent(msg.content)}
+                </div>
+              );
+            })}
             {isLoading && (
               <div style={{ alignSelf: 'flex-start', fontSize: '12px', color: '#AAA', marginLeft: '8px', fontStyle: 'italic' }}>
                 밤빠봇이 생각 중입니다...
