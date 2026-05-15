@@ -23,21 +23,22 @@ const ChatBot = () => {
   const [isDataLoaded, setIsDataLoaded] = useState(false);
   const [userLocation, setUserLocation] = useState(null);
 
-  // 유저 위치 권한 확인 및 감지
+  // 유저 위치 실시간 감지 (이동성 고려)
   useEffect(() => {
-    if (isOpen && !userLocation && navigator.geolocation) {
-      navigator.geolocation.getCurrentPosition(
+    if (isOpen && navigator.geolocation) {
+      const watchId = navigator.geolocation.watchPosition(
         (position) => {
           setUserLocation({
             lat: position.coords.latitude,
             lng: position.coords.longitude
           });
         },
-        (error) => console.log('Location access denied or error:', error),
-        { enableHighAccuracy: true }
+        (error) => console.log('Location watch error:', error),
+        { enableHighAccuracy: true, timeout: 5000, maximumAge: 0 }
       );
+      return () => navigator.geolocation.clearWatch(watchId);
     }
-  }, [isOpen, userLocation]);
+  }, [isOpen]);
 
   // 챗봇 오픈 시 플랫폼 실시간 데이터 로드
   useEffect(() => {
@@ -96,39 +97,49 @@ const ChatBot = () => {
       const now = new Date();
       const todayStr = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
 
+      // 좌표 기반 지역 명칭 추출 (인천, 서울 등)
+      const getRegionName = (loc) => {
+        if (!loc) return null;
+        const { lat, lng } = loc;
+        if (lat > 37.3 && lat < 37.7 && lng > 126.8 && lng < 127.3) return '서울';
+        if (lat > 37.2 && lat < 37.6 && lng > 126.4 && lng < 126.8) return '인천';
+        if (lat > 37.0 && lat < 37.8 && lng > 126.5 && lng < 127.8) return '수도권';
+        if (lat > 34.9 && lat < 35.4 && lng > 128.8 && lng < 129.4) return '부산';
+        if (lat > 35.6 && lat < 36.1 && lng > 128.4 && lng < 128.8) return '대구';
+        return '지방';
+      };
+
+      const currentRegion = getRegionName(userLocation);
+
       let dataContext = "현재 실시간 데이터베이스 정보가 없습니다.";
       if (dbData) {
         const partiesInfo = dbData.parties.map(p => {
           const venue = p.locationName || p.location_name || '장소 확인 필요';
-          const price = p.fee || p.price || '정보 없음';
-          return `- 파티명: ${p.title} | 장소: ${venue} | 날짜: ${p.date} | 입장료: ${price} | 지역: ${p.broadRegion || p.region || '전국'}`;
+          return `- 파티명: ${p.title} | 장소: ${venue} | 날짜: ${p.date} | 입장료: ${p.fee || '정보 없음'} | 지역: ${p.broadRegion || p.region || '전국'}`;
         }).join('\n');
-        const bootcampsInfo = dbData.bootcamps.map(b => `- ${b.title} | 강사: ${b.instructor_name || '정보 없음'}`).join('\n');
-        const instructorsInfo = dbData.instructors.map(i => `- 강사명: ${i.name} | 장르: ${i.genres || '정보 없음'} | 지역: ${i.region || i.broadRegion || '정보 없음'} | SNS: ${i.instagram_id || i.sns_id || '없음'} | 상세링크: /instructors/${i.id} | 가격: ${i.price || '문의'}`).join('\n');
-        dataContext = `\n\n[실시간 팩트 데이터]\n오늘 날짜: ${todayStr}\n* 파티:\n${partiesInfo}\n* 강의:\n${bootcampsInfo}\n* 강사:\n${instructorsInfo}\n${ADMIN_KNOWLEDGE}`;
+        const instructorsInfo = dbData.instructors.map(i => `- 강사명: ${i.name} | 장르: ${i.genres || '정보 없음'} | 지역: ${i.region || i.broadRegion || '정보 없음'} | SNS: ${i.instagram_id || i.sns_id || '없음'} | 가격: ${i.price || '문의'}`).join('\n');
+        dataContext = `\n\n[실시간 팩트 데이터]\n오늘 날짜: ${todayStr}\n* 파티:\n${partiesInfo}\n* 강사:\n${instructorsInfo}\n${ADMIN_KNOWLEDGE}`;
       }
 
-      const systemPrompt = `당신은 '오늘밤빠' 플랫폼의 퍼널 가이드 '밤빠봇'입니다. 
-유저와 한 단계씩 대화하며 범위를 좁히는 '티키타카' 방식을 사수하되, 이미 알고 있는 정보는 다시 묻지 마세요.
+      const systemPrompt = `당신은 '오늘밤빠' 플랫폼의 지능형 실시간 컨시어지 '밤빠봇'입니다. 
+유저는 이동 중일 수 있으며, 당신의 목표는 **'지금 유저가 있는 곳'**을 기준으로 가장 핫한 정보를 제공하는 것입니다.
 
-[유저 현재 상황]
+[실시간 상황 정보]
 - 오늘 날짜: ${todayStr}
-- 유저 위치: ${userLocation ? `위도 ${userLocation.lat}, 경도 ${userLocation.lng} (현재 위치 기반 추천 가능)` : '위치 정보 없음 (지역을 먼저 물어보세요)'}
+- 유저 실시간 위치: ${currentRegion ? `${currentRegion} (지금 여기 계시네요!)` : '위치 파악 중'}
 
-[절대 규칙 1: 퍼널 대화 (티키타카)]
-1. 지역 파악: 유저 위치 정보가 있다면 "수도권/지방" 질문을 생략하고 바로 해당 지역 기반으로 대화를 시작하세요. 위치 정보가 없다면 아래 질문부터 하세요.
-   - "오늘 어디로 모실까요? ✨ 1. 수도권, 2. 지방"
-2. 단계적 확장: 위치 파악 후 -> 장르 질문 -> (수업문의 시) 레벨 질문 순으로 진행하세요.
+[절대 규칙 1: 실시간 동적 추천]
+1. "어디가 핫해?" 대응: 유저가 추천을 요청하면, 무조건 유저의 **실시간 위치(${currentRegion || '주변'})** 데이터를 1순위로 필터링하세요.
+2. 질문 생략: 이미 위치를 알고 있다면 "어디 계세요?"를 묻지 마세요. "지금 계신 ${currentRegion} 근처 정보를 바로 보여드릴까요?"라고 제안하며 대화를 리드하세요.
+3. 티키타카: 모든 답변은 번호 선택지(1. 예, 2. 아니오 등)를 포함하여 유저가 빠르게 응답할 수 있게 하세요.
 
-[절대 규칙 2: 추천 포맷]
-1. 바(파티) 추천: "🎶 파티명 | 날짜 | 장소 | 입장료" (최대 3개)
-   - 반드시 ${todayStr} 이후의 파티만 추천하세요. 유저 위치와 가까운 곳을 최우선으로 하세요.
-2. 강사 추천: "🎵 강사명 | 장르 | 지역 | SNS" (최대 3개)
-3. 예외 처리: 매칭 정보가 없으면 "현재 조건에 맞는 정보가 없어요 😢"라고만 답하세요.
+[절대 규칙 2: 데이터 매칭]
+1. 'undefined' 노출은 절대 금지입니다. 데이터가 없으면 '정보 없음'으로 표시하세요.
+2. 바(파티) 추천: "🎶 파티명 | 장소 | 날짜 | 입장료" 형식으로 최대 3개만 안내하세요.
+3. 강사 추천: "🎵 강사명 | 장르 | 지역 | SNS" 형식으로 최대 3개만 안내하세요.
 
-[절대 규칙 3: 가독성]
-1. 'undefined' 노출 금지: 데이터가 없으면 '정보 없음'으로 표시하세요.
-2. 3C 원칙: 답변은 인사 생략, 무조건 3줄 이내, 번호 선택형 중심.
+[절대 규칙 3: 극강의 간결함]
+- 인사 생략, 서술 생략. 무조건 3줄 이내, 번호 선택형 답변만 하세요.
 
 ${dataContext}`;
 
