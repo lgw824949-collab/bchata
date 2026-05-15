@@ -33,7 +33,7 @@ const Festival = ({ onBack, initialView = 'list' }) => {
   const [uploading, setUploading] = useState(false);
   const [submitting, setSubmitting] = useState(false);
 
-  const regions = ['전체', '서울', '경기/인천', '경상도', '전라도', '충청도', '강원/제주'];
+  const regions = ['전체', '수도권', '강원', '제주', '부산/경남', '전라', '충청'];
 
   useEffect(() => {
     fetchFestivals();
@@ -45,16 +45,28 @@ const Festival = ({ onBack, initialView = 'list' }) => {
     }
   }, [initialView]);
 
+  const REGION_MAP = {
+    '수도권': ['서울', '경기/인천', '수도권'],
+    '강원':   ['강원', '강원도', '강원/제주'],
+    '제주':   ['제주', '제주도', '강원/제주'],
+    '부산/경남': ['부산', '경남', '경상도', '부산/경남'],
+    '전라':   ['전라', '전라도', '전북', '전남'],
+    '충청':   ['충청', '충청도', '충북', '충남'],
+  };
+
   const fetchFestivals = async () => {
     setLoading(true);
     try {
       let query = supabase.from('festivals').select('*').eq('status', 'active');
-      if (selectedRegion !== '전체') {
-        query = query.eq('region', selectedRegion);
-      }
       const { data, error } = await query.order('start_date', { ascending: true });
       if (error) throw error;
-      setFestivals(data || []);
+      const all = data || [];
+      if (selectedRegion === '전체') {
+        setFestivals(all);
+      } else {
+        const aliases = REGION_MAP[selectedRegion] || [selectedRegion];
+        setFestivals(all.filter(f => aliases.some(a => (f.region || '').includes(a))));
+      }
     } catch (err) {
       console.error('Error fetching festivals:', err);
     } finally {
@@ -211,44 +223,56 @@ const Festival = ({ onBack, initialView = 'list' }) => {
           <div style={{ position: 'relative', zIndex: 1 }}>
 
             {/* ── 히어로 배너 ── */}
-            <div style={{ position: 'relative', width: '100%', height: '220px', overflow: 'hidden' }}>
+            <div style={{ position: 'relative', width: '100%', height: '200px', overflow: 'hidden' }}>
               <img
                 src="/festival_hero_2026.png"
                 alt="KEEP FESTIVAL-ING IN 2026"
                 style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'center' }}
               />
-              <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to bottom, transparent 40%, #0D0D0D 100%)' }} />
-              {/* 지역 필터 오버레이 */}
-              <div style={{ position: 'absolute', bottom: 14, left: 15, right: 15, display: 'flex', gap: 6, overflowX: 'auto' }} className="hide-scrollbar">
-                {regions.map(r => (
-                  <button key={r} onClick={() => setSelectedRegion(r)} style={{
-                    padding: '6px 14px', borderRadius: 20, whiteSpace: 'nowrap', fontSize: 12, fontWeight: 800, cursor: 'pointer',
-                    background: selectedRegion === r ? 'rgba(201,168,76,0.9)' : 'rgba(0,0,0,0.55)',
-                    border: `1px solid ${selectedRegion === r ? '#C9A84C' : 'rgba(255,255,255,0.2)'}`,
-                    color: selectedRegion === r ? '#000' : '#fff',
-                    backdropFilter: 'blur(8px)'
-                  }}>{r}</button>
-                ))}
+              <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to bottom, rgba(0,0,0,0.1) 30%, #0D0D0D 100%)' }} />
+            </div>
+
+            {/* ── 지역 필터 탭 ── */}
+            <div style={{ padding: '0 15px', marginTop: 14, marginBottom: 4 }}>
+              <div className="hide-scrollbar" style={{ display: 'flex', gap: 8, overflowX: 'auto' }}>
+                {regions.map(r => {
+                  const active = selectedRegion === r;
+                  return (
+                    <button key={r} onClick={() => setSelectedRegion(r)} style={{
+                      padding: '8px 16px', borderRadius: 20, whiteSpace: 'nowrap',
+                      fontSize: 13, fontWeight: active ? 900 : 600, cursor: 'pointer',
+                      background: active ? '#C9A84C' : 'rgba(255,255,255,0.06)',
+                      border: `1px solid ${active ? '#C9A84C' : 'rgba(255,255,255,0.1)'}`,
+                      color: active ? '#000' : '#94a3b8',
+                      transition: 'all 0.2s'
+                    }}>{r}</button>
+                  );
+                })}
               </div>
             </div>
 
             {/* ── 카드 리스트 ── */}
-            <div style={{ padding: '16px 15px 100px', display: 'flex', flexDirection: 'column', gap: '12px' }}>
+            <div style={{ padding: '12px 15px 100px', display: 'flex', flexDirection: 'column', gap: '10px' }}>
               {loading ? (
                 [0, 1, 2].map(i => (
-                  <div key={i} style={{ display: 'flex', height: 110, borderRadius: 20, overflow: 'hidden', border: '1px solid rgba(255,255,255,0.06)', background: '#141414' }}>
-                    <div className="skeleton-fest" style={{ width: '33%', borderRadius: 0 }} />
-                    <div style={{ flex: 1, padding: 14, display: 'flex', flexDirection: 'column', gap: 10 }}>
-                      <div className="skeleton-fest" style={{ height: 14, width: '70%' }} />
-                      <div className="skeleton-fest" style={{ height: 11, width: '50%' }} />
+                  <div key={i} style={{ display: 'flex', height: 130, borderRadius: 20, overflow: 'hidden', border: '1px solid rgba(255,255,255,0.06)', background: '#141414' }}>
+                    <div className="skeleton-fest" style={{ width: '36%', borderRadius: 0, flexShrink: 0 }} />
+                    <div style={{ flex: 1, padding: '14px 16px', display: 'flex', flexDirection: 'column', gap: 10 }}>
+                      <div className="skeleton-fest" style={{ height: 10, width: '45%' }} />
+                      <div className="skeleton-fest" style={{ height: 15, width: '80%' }} />
+                      <div className="skeleton-fest" style={{ height: 11, width: '55%' }} />
                       <div className="skeleton-fest" style={{ height: 11, width: '40%' }} />
                     </div>
                   </div>
                 ))
               ) : festivals.length === 0 ? (
-                <div style={{ textAlign: 'center', padding: '80px 20px', color: '#94a3b8' }}>
-                  <p style={{ fontWeight: 800, marginBottom: '20px' }}>준비 중인 일정이 없습니다.</p>
-                  <button onClick={() => setIsRegistering(true)} style={{ background: 'rgba(201,168,76,0.1)', color: '#C9A84C', border: '1px solid rgba(201,168,76,0.2)', padding: '12px 24px', borderRadius: '15px', fontSize: '14px', fontWeight: 900, cursor: 'pointer' }}>직접 등록하기</button>
+                <div style={{ marginTop: 40, textAlign: 'center', padding: '40px 20px', borderRadius: 24, border: '1px dashed rgba(201,168,76,0.25)', background: 'rgba(201,168,76,0.03)' }}>
+                  <div style={{ fontSize: 36, marginBottom: 14 }}>🎪</div>
+                  <div style={{ fontSize: 16, fontWeight: 900, color: '#fff', marginBottom: 8 }}>
+                    {selectedRegion === '전체' ? '등록된 페스티벌이 없습니다' : `${selectedRegion} 지역 페스티벌이 없습니다`}
+                  </div>
+                  <div style={{ fontSize: 13, color: '#64748b', marginBottom: 24 }}>첫 번째 페스티벌을 등록해 보세요!</div>
+                  <button onClick={() => setIsRegistering(true)} style={{ background: 'linear-gradient(135deg, #C9A84C, #A68A3D)', color: '#000', border: 'none', padding: '13px 28px', borderRadius: 14, fontSize: 14, fontWeight: 900, cursor: 'pointer' }}>+ 페스티벌 등록</button>
                 </div>
               ) : (
                 festivals.map((fest) => (
@@ -258,32 +282,31 @@ const Festival = ({ onBack, initialView = 'list' }) => {
                     whileInView={{ opacity: 1, y: 0 }}
                     viewport={{ once: true }}
                     onClick={() => setSelectedFestival(fest)}
-                    style={{ display: 'flex', cursor: 'pointer', background: '#141414', borderRadius: '20px', overflow: 'hidden', border: '1px solid rgba(255,255,255,0.07)', boxShadow: '0 4px 20px rgba(0,0,0,0.5)' }}
+                    style={{ display: 'flex', cursor: 'pointer', background: '#141414', borderRadius: '20px', overflow: 'hidden', border: '1px solid rgba(255,255,255,0.08)', minHeight: 130 }}
                   >
                     {/* 포스터 1/3 */}
-                    <div style={{ width: '33%', flexShrink: 0, position: 'relative', minHeight: 120, background: '#000' }}>
-                      <div style={{ position: 'absolute', inset: 0, backgroundImage: `url(${fest.poster_url})`, backgroundSize: 'cover', backgroundPosition: 'center top', filter: 'blur(12px) brightness(0.4)', transform: 'scale(1.1)' }} />
-                      <img src={fest.poster_url} style={{ width: '100%', height: '100%', objectFit: 'contain', position: 'relative', zIndex: 1, display: 'block' }} alt={fest.title} />
-                      <div style={{ position: 'absolute', top: 8, left: 8, background: 'rgba(201,168,76,0.92)', color: '#000', padding: '3px 7px', borderRadius: 8, fontSize: 10, fontWeight: 900, zIndex: 2 }}>{getDDay(fest.start_date)}</div>
+                    <div style={{ width: '36%', flexShrink: 0, position: 'relative', background: '#000' }}>
+                      <div style={{ position: 'absolute', inset: 0, backgroundImage: `url(${fest.poster_url})`, backgroundSize: 'cover', backgroundPosition: 'center top', filter: 'blur(14px) brightness(0.35)', transform: 'scale(1.1)' }} />
+                      <img src={fest.poster_url} style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'top', position: 'relative', zIndex: 1, display: 'block' }} alt={fest.title} />
+                      <div style={{ position: 'absolute', top: 8, left: 8, background: '#C9A84C', color: '#000', padding: '3px 8px', borderRadius: 7, fontSize: 10, fontWeight: 900, zIndex: 2 }}>{getDDay(fest.start_date)}</div>
                     </div>
 
                     {/* 정보 2/3 */}
-                    <div style={{ flex: 1, padding: '14px 16px', display: 'flex', flexDirection: 'column', justifyContent: 'space-between', minHeight: 120 }}>
-                      <div>
-                        <div style={{ fontSize: 10, color: '#C9A84C', fontWeight: 800, marginBottom: 5, letterSpacing: '0.5px' }}>{fest.genre} · {fest.region}</div>
-                        <div style={{ fontSize: 15, fontWeight: 900, color: '#fff', lineHeight: 1.3, marginBottom: 8 }}>{fest.title}</div>
-                      </div>
-                      <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+                    <div style={{ flex: 1, padding: '14px 14px 14px 16px', display: 'flex', flexDirection: 'column', gap: 6 }}>
+                      <div style={{ fontSize: 10, color: '#C9A84C', fontWeight: 800, letterSpacing: '0.5px' }}>{fest.genre} · {fest.region}</div>
+                      <div style={{ fontSize: 15, fontWeight: 900, color: '#fff', lineHeight: 1.35 }}>{fest.title}</div>
+                      <div style={{ flex: 1 }} />
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: 5 }}>
                         <div style={{ display: 'flex', alignItems: 'center', gap: 5, fontSize: 12, color: '#94a3b8' }}>
-                          <Calendar size={11} color="#C9A84C" />
-                          <span>{formatDate(fest.start_date)}{fest.end_date && fest.end_date !== fest.start_date ? ` - ${formatDate(fest.end_date)}` : ''}</span>
+                          <Calendar size={11} color="#C9A84C" strokeWidth={2.5} />
+                          <span>{formatDate(fest.start_date)}{fest.end_date && fest.end_date !== fest.start_date ? ` ~ ${formatDate(fest.end_date)}` : ''}</span>
                         </div>
                         <div style={{ display: 'flex', alignItems: 'center', gap: 5, fontSize: 12, color: '#94a3b8' }}>
-                          <MapPin size={11} color="#C9A84C" />
+                          <MapPin size={11} color="#C9A84C" strokeWidth={2.5} />
                           <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{fest.venue || fest.region}</span>
                         </div>
                         {fest.price_info && (
-                          <div style={{ marginTop: 4, alignSelf: 'flex-start', background: 'rgba(201,168,76,0.12)', border: '1px solid rgba(201,168,76,0.3)', borderRadius: 8, padding: '3px 10px', fontSize: 12, fontWeight: 900, color: '#C9A84C' }}>
+                          <div style={{ alignSelf: 'flex-start', background: 'rgba(201,168,76,0.12)', border: '1px solid rgba(201,168,76,0.3)', borderRadius: 7, padding: '3px 10px', fontSize: 11, fontWeight: 900, color: '#C9A84C' }}>
                             {fest.price_info.split('/')[0]?.trim()}
                           </div>
                         )}
