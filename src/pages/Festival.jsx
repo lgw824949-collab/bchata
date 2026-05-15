@@ -133,6 +133,18 @@ const Festival = ({ onBack, initialView = 'list' }) => {
 
   return (
     <>
+      <style>{`
+        @keyframes shimmer-fest {
+          0% { background-position: -600px 0; }
+          100% { background-position: 600px 0; }
+        }
+        .skeleton-fest {
+          background: linear-gradient(90deg, rgba(255,255,255,0.04) 25%, rgba(255,255,255,0.10) 50%, rgba(255,255,255,0.04) 75%);
+          background-size: 1200px 100%;
+          animation: shimmer-fest 1.4s infinite linear;
+          border-radius: 12px;
+        }
+      `}</style>
       <div style={{ background: '#0D0D0D', minHeight: '100vh', paddingBottom: '100px', color: '#f8fafc', fontFamily: "'Pretendard', sans-serif", position: 'relative' }}>
         
         {/* Background Glow */}
@@ -211,7 +223,20 @@ const Festival = ({ onBack, initialView = 'list' }) => {
 
             <div style={{ display: 'flex', flexDirection: 'column', gap: '15px', padding: '15px' }}>
               {loading ? (
-                <div style={{ textAlign: 'center', padding: '100px', color: '#94a3b8' }}>로딩 중..</div>
+                <>
+                  {[0, 1, 2].map(i => (
+                    <div key={i} style={{ borderRadius: '24px', overflow: 'hidden', border: '1px solid rgba(255,255,255,0.06)' }}>
+                      <div className="skeleton-fest" style={{ width: '100%', height: '240px', borderRadius: 0 }} />
+                      <div style={{ padding: '20px', background: '#141414', display: 'flex', flexDirection: 'column', gap: 12 }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                          <div className="skeleton-fest" style={{ height: 14, width: '50%' }} />
+                          <div className="skeleton-fest" style={{ height: 30, width: 80 }} />
+                        </div>
+                        <div className="skeleton-fest" style={{ height: 13, width: '70%' }} />
+                      </div>
+                    </div>
+                  ))}
+                </>
               ) : festivals.length === 0 ? (
                 <div style={{ textAlign: 'center', padding: '100px 20px', color: '#94a3b8' }}>
                   <p style={{ fontWeight: 800, marginBottom: '20px' }}>준비 중인 일정이 없습니다.</p>

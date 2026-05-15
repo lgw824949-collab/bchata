@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { 
   ChevronLeft, Search, Plus, X, Calendar, MapPin, 
-  Image as ImageIcon, Loader2, Zap, Search as SearchIcon, 
+  Image as ImageIcon, Zap, Search as SearchIcon, 
   ChevronDown, ChevronUp, Map as MapIcon, Info, Copy, Tent,
   Share2, Bell, Heart, User, Globe, Star
 } from 'lucide-react';
@@ -357,7 +357,19 @@ const Bootcamp = ({ onBack, initialView = 'list' }) => {
         </button>
       </div>
 
-      <style>{`.hide-scrollbar::-webkit-scrollbar { display: none; }`}</style>
+      <style>{`
+        .hide-scrollbar::-webkit-scrollbar { display: none; }
+        @keyframes shimmer {
+          0% { background-position: -600px 0; }
+          100% { background-position: 600px 0; }
+        }
+        .skeleton {
+          background: linear-gradient(90deg, rgba(255,255,255,0.04) 25%, rgba(255,255,255,0.10) 50%, rgba(255,255,255,0.04) 75%);
+          background-size: 1200px 100%;
+          animation: shimmer 1.4s infinite linear;
+          border-radius: 12px;
+        }
+      `}</style>
 
       {/* Sticky Filter Header */}
       <div style={{
@@ -412,6 +424,21 @@ const Bootcamp = ({ onBack, initialView = 'list' }) => {
           ))}
         </div>
       </div>
+
+      {/* TOP BOOTCAMPS Skeleton */}
+      {loading && !isFiltering && (
+        <div style={{ padding: '10px 25px 30px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '18px' }}>
+            <div className="skeleton" style={{ width: 140, height: 14 }} />
+          </div>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '12px' }}>
+            <div className="skeleton" style={{ gridColumn: 'span 2', height: '240px', borderRadius: '28px' }} />
+            {[0, 1, 2, 3].map(i => (
+              <div key={i} className="skeleton" style={{ height: '180px', borderRadius: '24px' }} />
+            ))}
+          </div>
+        </div>
+      )}
 
       {/* TOP BOOTCAMPS Showcase */}
       {!loading && bootcamps.length > 0 && !isFiltering && (
@@ -476,8 +503,20 @@ const Bootcamp = ({ onBack, initialView = 'list' }) => {
         </div>
 
         {loading ? (
-          <div style={{ textAlign: 'center', padding: '60px 0' }}>
-            <Loader2 size={32} color="#C9A84C" style={{ animation: 'spin 1s linear infinite' }} />
+          <div>
+            {[0, 1, 2, 3, 4, 5].map(i => (
+              <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 18, padding: '16px 20px', borderRadius: '22px', marginBottom: '10px', border: '1px solid rgba(255,255,255,0.04)' }}>
+                <div className="skeleton" style={{ width: 60, height: 60, borderRadius: '16px', flexShrink: 0 }} />
+                <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 8 }}>
+                  <div className="skeleton" style={{ height: 16, width: '60%' }} />
+                  <div className="skeleton" style={{ height: 12, width: '40%' }} />
+                </div>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 6, alignItems: 'flex-end' }}>
+                  <div className="skeleton" style={{ height: 14, width: 36 }} />
+                  <div className="skeleton" style={{ height: 10, width: 28 }} />
+                </div>
+              </div>
+            ))}
           </div>
         ) : filteredList.length === 0 ? (
           <div style={{ textAlign: 'center', padding: '60px 0', color: '#8E8E93' }}>
