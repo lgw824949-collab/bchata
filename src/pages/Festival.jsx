@@ -78,7 +78,19 @@ const Festival = ({ onBack }) => {
     e.preventDefault();
     setSubmitting(true);
     try {
-      const { error } = await supabase.from('festivals').insert([{ ...formData, status: 'active' }]);
+      const { error } = await supabase.from('festivals').insert([{
+        title:       formData.title,
+        organizer:   formData.organizer,
+        genre:       formData.genre,
+        start_date:  formData.start_date,
+        end_date:    formData.end_date,
+        region:      formData.region,
+        location:    formData.location,
+        price:       formData.price,
+        description: formData.description,
+        poster_url:  formData.poster_url || null,
+        status:      'active'
+      }]);
       if (error) throw error;
       alert('등록되었습니다!');
       setIsRegistering(false);
