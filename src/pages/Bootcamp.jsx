@@ -32,6 +32,9 @@ const Bootcamp = ({ onBack, initialView = 'list' }) => {
   const [currentStep, setCurrentStep] = useState(1);
   const [visibleCount, setVisibleCount] = useState(20);
   const [openGroups, setOpenGroups] = useState({ thisMonth: true, nextMonth: false, later: false });
+  const [showFilterSheet, setShowFilterSheet] = useState(false);
+  const [tempRegion, setTempRegion] = useState('전국');
+  const [tempGenre, setTempGenre] = useState('전체');
 
   const groupBootcampsByDate = (list) => {
     const now = new Date();
@@ -629,59 +632,126 @@ const Bootcamp = ({ onBack, initialView = 'list' }) => {
       {/* ── 리스트 뷰 ── */}
       {view === 'list' && <>
 
-      {/* Sticky Filter Header */}
+      {/* Sticky Filter Header — 검색 + 필터 버튼 한 줄 */}
       <div style={{
         position: 'sticky', top: 0, zIndex: 100,
         background: 'rgba(13, 13, 13, 0.95)', backdropFilter: 'blur(20px)',
-        padding: '15px 25px', borderBottom: '1px solid rgba(255,255,255,0.08)',
-        display: 'flex', flexDirection: 'column', gap: '12px'
+        padding: '12px 20px', borderBottom: '1px solid rgba(255,255,255,0.06)',
+        display: 'flex', gap: '10px', alignItems: 'center'
       }}>
-        <div style={{ position: 'relative' }}>
-          <SearchIcon size={16} color="#8E8E93" style={{ position: 'absolute', left: 15, top: '50%', transform: 'translateY(-50%)' }} />
+        {/* 검색창 */}
+        <div style={{ position: 'relative', flex: 1 }}>
+          <SearchIcon size={15} color="#8E8E93" style={{ position: 'absolute', left: 13, top: '50%', transform: 'translateY(-50%)' }} />
           <input
             value={searchTerm}
             onChange={e => { setSearchTerm(e.target.value); setVisibleCount(20); }}
             placeholder="캠프명 또는 강사명 검색"
             style={{
-              width: '100%', padding: '12px 15px 12px 42px', borderRadius: '16px',
+              width: '100%', padding: '11px 12px 11px 38px', borderRadius: '14px',
               background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)',
-              color: '#FFFFFF', fontSize: '14px', fontWeight: 600, outline: 'none', boxSizing: 'border-box'
+              color: '#FFFFFF', fontSize: '14px', fontWeight: 500, outline: 'none', boxSizing: 'border-box'
             }}
           />
         </div>
-        <div className="hide-scrollbar" style={{ display: 'flex', alignItems: 'center', gap: '6px', overflowX: 'auto', scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
-          {REGIONS.map(r => (
+
+        {/* 필터 버튼 */}
+        {(() => {
+          const isActive = selectedRegion !== '전국' || selectedGenre !== '전체';
+          const label = isActive
+            ? [selectedRegion !== '전국' ? selectedRegion : null, selectedGenre !== '전체' ? selectedGenre : null].filter(Boolean).join(' · ')
+            : '필터';
+          return (
             <button
-              key={r}
-              onClick={() => { setSelectedRegion(r); setVisibleCount(20); }}
+              onClick={() => { setTempRegion(selectedRegion); setTempGenre(selectedGenre); setShowFilterSheet(true); }}
               style={{
-                padding: '8px 16px', borderRadius: '20px', whiteSpace: 'nowrap',
-                background: selectedRegion === r ? 'rgba(201,168,76,0.15)' : 'rgba(255,255,255,0.03)',
-                color: selectedRegion === r ? '#C9A84C' : '#8E8E93',
-                fontSize: '13px', fontWeight: selectedRegion === r ? 800 : 600,
-                border: `1px solid ${selectedRegion === r ? '#C9A84C' : 'rgba(255,255,255,0.05)'}`,
-                cursor: 'pointer', transition: 'all 0.2s'
+                display: 'flex', alignItems: 'center', gap: 6,
+                padding: '11px 14px', borderRadius: '14px', whiteSpace: 'nowrap',
+                background: isActive ? 'rgba(201,168,76,0.15)' : 'rgba(255,255,255,0.05)',
+                border: `1px solid ${isActive ? '#C9A84C' : 'rgba(255,255,255,0.1)'}`,
+                color: isActive ? '#C9A84C' : '#8E8E93',
+                fontSize: '13px', fontWeight: 800, cursor: 'pointer', flexShrink: 0
               }}
-            >{r}</button>
-          ))}
-        </div>
-        <div className="hide-scrollbar" style={{ display: 'flex', alignItems: 'center', gap: '6px', overflowX: 'auto', scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
-          {GENRES.map(g => (
-            <button
-              key={g}
-              onClick={() => { setSelectedGenre(g); setVisibleCount(20); }}
-              style={{
-                padding: '8px 16px', borderRadius: '20px', whiteSpace: 'nowrap',
-                background: selectedGenre === g ? 'rgba(201,168,76,0.15)' : 'rgba(255,255,255,0.03)',
-                color: selectedGenre === g ? '#C9A84C' : '#8E8E93',
-                fontSize: '13px', fontWeight: selectedGenre === g ? 800 : 600,
-                border: `1px solid ${selectedGenre === g ? '#C9A84C' : 'rgba(255,255,255,0.05)'}`,
-                cursor: 'pointer', transition: 'all 0.2s'
-              }}
-            >{g}</button>
-          ))}
-        </div>
+            >
+              {isActive && <span style={{ width: 6, height: 6, borderRadius: '50%', background: '#C9A84C', display: 'inline-block' }} />}
+              {label}
+              <ChevronDown size={13} />
+            </button>
+          );
+        })()}
       </div>
+
+      {/* 필터 바텀시트 */}
+      <AnimatePresence>
+        {showFilterSheet && (
+          <>
+            {/* 딤 배경 */}
+            <motion.div
+              initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+              onClick={() => setShowFilterSheet(false)}
+              style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.6)', zIndex: 300, backdropFilter: 'blur(4px)' }}
+            />
+            {/* 시트 */}
+            <motion.div
+              initial={{ y: '100%' }} animate={{ y: 0 }} exit={{ y: '100%' }}
+              transition={{ type: 'spring', damping: 28, stiffness: 260 }}
+              style={{
+                position: 'fixed', bottom: 0, left: 0, right: 0, zIndex: 301,
+                background: '#111111', borderRadius: '28px 28px 0 0',
+                padding: '12px 24px 40px', maxHeight: '80vh', overflowY: 'auto'
+              }}
+            >
+              {/* 핸들 */}
+              <div style={{ width: 40, height: 4, borderRadius: 2, background: 'rgba(255,255,255,0.2)', margin: '0 auto 24px' }} />
+
+              {/* 지역 */}
+              <div style={{ marginBottom: 24 }}>
+                <div style={{ fontSize: 11, fontWeight: 900, color: '#C9A84C', letterSpacing: '1.5px', marginBottom: 14 }}>지역</div>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 8 }}>
+                  {REGIONS.map(r => (
+                    <button key={r} onClick={() => setTempRegion(r)}
+                      style={{
+                        padding: '12px 0', borderRadius: 12, fontSize: 13, fontWeight: 700, cursor: 'pointer',
+                        background: tempRegion === r ? 'rgba(201,168,76,0.15)' : 'rgba(255,255,255,0.05)',
+                        border: `1px solid ${tempRegion === r ? '#C9A84C' : 'rgba(255,255,255,0.08)'}`,
+                        color: tempRegion === r ? '#C9A84C' : '#8E8E93'
+                      }}
+                    >{r}</button>
+                  ))}
+                </div>
+              </div>
+
+              {/* 장르 */}
+              <div style={{ marginBottom: 32 }}>
+                <div style={{ fontSize: 11, fontWeight: 900, color: '#C9A84C', letterSpacing: '1.5px', marginBottom: 14 }}>장르</div>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 8 }}>
+                  {GENRES.map(g => (
+                    <button key={g} onClick={() => setTempGenre(g)}
+                      style={{
+                        padding: '14px 0', borderRadius: 12, fontSize: 14, fontWeight: 700, cursor: 'pointer',
+                        background: tempGenre === g ? 'rgba(201,168,76,0.15)' : 'rgba(255,255,255,0.05)',
+                        border: `1px solid ${tempGenre === g ? '#C9A84C' : 'rgba(255,255,255,0.08)'}`,
+                        color: tempGenre === g ? '#C9A84C' : '#8E8E93'
+                      }}
+                    >{g}</button>
+                  ))}
+                </div>
+              </div>
+
+              {/* 버튼 */}
+              <div style={{ display: 'flex', gap: 10 }}>
+                <button
+                  onClick={() => { setTempRegion('전국'); setTempGenre('전체'); }}
+                  style={{ flex: 1, padding: '16px', borderRadius: 16, background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', color: '#8E8E93', fontWeight: 800, fontSize: 14, cursor: 'pointer' }}
+                >초기화</button>
+                <button
+                  onClick={() => { setSelectedRegion(tempRegion); setSelectedGenre(tempGenre); setVisibleCount(20); setShowFilterSheet(false); }}
+                  style={{ flex: 2, padding: '16px', borderRadius: 16, background: 'linear-gradient(135deg, #C9A84C, #A68A3D)', border: 'none', color: '#000', fontWeight: 900, fontSize: 15, cursor: 'pointer' }}
+                >적용하기</button>
+              </div>
+            </motion.div>
+          </>
+        )}
+      </AnimatePresence>
 
       {/* TOP BOOTCAMPS Skeleton */}
       {loading && !isFiltering && (
