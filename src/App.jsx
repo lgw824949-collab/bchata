@@ -1424,13 +1424,13 @@ function App() {
         <motion.button
           whileTap={{ scale: 0.9 }}
           onClick={() => {
-            if (location.pathname === '/livepick') {
+            if (location.pathname === '/livepick' || view === 'community') {
               window.dispatchEvent(new CustomEvent('open-community-upload'));
-            } else if (location.pathname === '/instructors') {
+            } else if (location.pathname === '/instructors' || view === 'instructors') {
               setShowClassRegister(true);
-            } else if (location.pathname === '/bootcamp') {
+            } else if (location.pathname === '/bootcamp' || view === 'bootcamp' || view === 'bootcamp-register') {
               navigate('/bootcamp/register');
-            } else if (location.pathname === '/festival') {
+            } else if (location.pathname === '/festival' || view === 'festival' || view === 'festival-register') {
               navigate('/festival/register');
             } else {
               navigate('/register-party');

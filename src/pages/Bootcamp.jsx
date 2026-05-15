@@ -17,6 +17,11 @@ const Bootcamp = ({ onBack, initialView = 'list' }) => {
   const [bootcamps, setBootcamps] = useState([]);
   const [loading, setLoading] = useState(true);
   const [view, setView] = useState(initialView);
+
+  useEffect(() => {
+    setView(initialView);
+    if (initialView === 'register') setCurrentStep(1);
+  }, [initialView]);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedRegion, setSelectedRegion] = useState('전국');
   const [selectedGenre, setSelectedGenre] = useState('전체');
