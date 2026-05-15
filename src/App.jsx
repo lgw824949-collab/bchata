@@ -1175,7 +1175,7 @@ function App() {
           style={{ 
             flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
             cursor: 'pointer', position: 'relative', height: '100%',
-            color: location.pathname === '/' ? 'var(--color-primary)' : '#888'
+            color: location.pathname === '/' ? '#FF8A80' : '#888888'
           }}
         >
           {location.pathname === '/' && (
@@ -1190,7 +1190,7 @@ function App() {
             transition={{ type: 'spring', stiffness: 400, damping: 10 }}
             style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '4px' }}
           >
-            <Music2 size={22} strokeWidth={location.pathname === '/' ? 2.5 : 2} style={{ color: location.pathname === '/' ? 'var(--color-primary)' : '#888' }} />
+            <Music2 size={22} strokeWidth={location.pathname === '/' ? 2.5 : 2} style={{ color: location.pathname === '/' ? '#FF8A80' : '#888888' }} />
           </motion.div>
           <span style={{ fontSize: '9px', fontWeight: location.pathname === '/' ? 900 : 500 }}>
             {i18n.language?.startsWith('en') ? 'Social' : '소셜'}
@@ -1203,7 +1203,7 @@ function App() {
           style={{ 
             flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
             cursor: 'pointer', position: 'relative', height: '100%',
-            color: showPartner ? 'var(--color-primary)' : '#888'
+            color: showPartner ? '#FF8A80' : '#888888'
           }}
         >
           {showPartner && (
@@ -1218,7 +1218,7 @@ function App() {
             transition={{ type: 'spring', stiffness: 400, damping: 10 }}
             style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '4px' }}
           >
-            <Heart size={22} strokeWidth={showPartner ? 2.5 : 2} style={{ color: showPartner ? 'var(--color-primary)' : '#888' }} />
+            <Heart size={22} strokeWidth={showPartner ? 2.5 : 2} style={{ color: showPartner ? '#FF8A80' : '#888888' }} />
           </motion.div>
           <span style={{ fontSize: '9px', fontWeight: showPartner ? 900 : 500 }}>
             {i18n.language?.startsWith('en') ? 'Partner' : '파트너'}
@@ -1252,7 +1252,7 @@ function App() {
           >
             <Plus size={30} strokeWidth={3} />
           </motion.button>
-          <span style={{ fontSize: '9px', fontWeight: 900, color: '#E53935', position: 'absolute', bottom: '12px' }}>
+          <span style={{ fontSize: '9px', fontWeight: 900, color: '#FF8A80', position: 'absolute', bottom: '12px' }}>
             {location.pathname === '/livepick' ? (i18n.language?.startsWith('en') ? 'REPORT' : '리포트') : t('nav_register')}
           </span>
         </div>
@@ -1263,7 +1263,7 @@ function App() {
           style={{ 
             flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
             cursor: 'pointer', position: 'relative', height: '100%',
-            color: location.pathname === '/bootcamp' ? 'var(--color-primary)' : '#888'
+            color: location.pathname === '/bootcamp' ? '#FF8A80' : '#888888'
           }}
         >
           {location.pathname === '/bootcamp' && (
@@ -1278,7 +1278,7 @@ function App() {
             transition={{ type: 'spring', stiffness: 400, damping: 10 }}
             style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '4px' }}
           >
-            <Tent size={22} strokeWidth={location.pathname === '/bootcamp' ? 2.5 : 2} style={{ color: location.pathname === '/bootcamp' ? 'var(--color-primary)' : '#888' }} />
+            <Tent size={22} strokeWidth={location.pathname === '/bootcamp' ? 2.5 : 2} style={{ color: location.pathname === '/bootcamp' ? '#FF8A80' : '#888888' }} />
           </motion.div>
           <span style={{ fontSize: '9px', fontWeight: location.pathname === '/bootcamp' ? 900 : 500 }}>
             {i18n.language?.startsWith('en') ? 'Bootcamp' : '부트캠프'}
@@ -1291,7 +1291,7 @@ function App() {
           style={{ 
             flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
             cursor: 'pointer', position: 'relative', height: '100%',
-            color: location.pathname === '/festival' ? 'var(--color-primary)' : '#888'
+            color: location.pathname === '/festival' ? '#FF8A80' : '#888888'
           }}
         >
           {location.pathname === '/festival' && (
@@ -1306,7 +1306,7 @@ function App() {
             transition={{ type: 'spring', stiffness: 400, damping: 10 }}
             style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '4px' }}
           >
-            <Flag size={22} strokeWidth={location.pathname === '/festival' ? 2.5 : 2} style={{ color: location.pathname === '/festival' ? 'var(--color-primary)' : '#888' }} />
+            <Flag size={22} strokeWidth={location.pathname === '/festival' ? 2.5 : 2} style={{ color: location.pathname === '/festival' ? '#FF8A80' : '#888888' }} />
           </motion.div>
           <span style={{ fontSize: '9px', fontWeight: location.pathname === '/festival' ? 900 : 500 }}>
             {i18n.language?.startsWith('en') ? 'Festival' : '페스티벌'}
