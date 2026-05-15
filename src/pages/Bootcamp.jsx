@@ -362,55 +362,58 @@ const Bootcamp = ({ onBack, initialView = 'list' }) => {
                         viewport={{ once: true }}
                         onClick={() => setSelectedBootcamp(item)}
                         style={{ 
-                          background: '#1e293b', 
-                          borderRadius: '24px', 
+                          background: '#fff', 
+                          borderRadius: '20px', 
                           overflow: 'hidden', 
-                          border: '1px solid rgba(255,255,255,0.05)',
+                          border: '1px solid #f1f5f9',
                           cursor: 'pointer',
-                          boxShadow: '0 10px 30px rgba(0,0,0,0.4)'
+                          boxShadow: '0 4px 20px rgba(0,0,0,0.06)'
                         }}
                       >
-                        {/* Wide Poster Area */}
-                        <div style={{ width: '100%', position: 'relative', height: '260px', overflow: 'hidden', background: '#000' }}>
-                          <div style={{ 
-                            position: 'absolute', 
-                            inset: 0, 
-                            backgroundImage: `url(${item.poster_url})`, 
-                            backgroundSize: 'cover', 
-                            backgroundPosition: 'center', 
-                            filter: 'blur(20px) brightness(0.4)',
-                            transform: 'scale(1.1)' 
-                          }} />
-                          <img src={item.poster_url} style={{ width: '100%', height: '100%', objectFit: 'contain', position: 'relative', zIndex: 1 }} />
-                          <div style={{ position: 'absolute', top: '15px', right: '15px', background: 'rgba(245, 158, 11, 0.95)', color: '#000', padding: '6px 12px', borderRadius: '10px', fontSize: '13px', fontWeight: 1000, zIndex: 2 }}>{item.genre}</div>
-                          <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to bottom, transparent 50%, rgba(15,23,42,0.9) 100%)', zIndex: 1 }} />
-                          <div style={{ position: 'absolute', bottom: '20px', left: '20px', right: '20px', zIndex: 2 }}>
-                            <div style={{ fontSize: '14px', color: '#F59E0B', fontWeight: 900, marginBottom: '4px' }}>{item.instructor}</div>
-                            <h3 style={{ fontSize: '22px', fontWeight: 950, color: '#fff', margin: 0 }}>{item.title}</h3>
+                        {/* Poster Area */}
+                        <div style={{ width: '100%', position: 'relative', height: '200px', overflow: 'hidden' }}>
+                          <img src={item.poster_url} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                          <div style={{ position: 'absolute', top: '15px', left: '15px', display: 'flex', gap: '6px' }}>
+                            <div style={{ background: 'rgba(0,0,0,0.6)', backdropFilter: 'blur(10px)', color: '#fff', padding: '4px 10px', borderRadius: '8px', fontSize: '11px', fontWeight: 800 }}>{item.type === 'domestic' ? '국내' : '국외'}</div>
+                            <div style={{ background: '#E53935', color: '#fff', padding: '4px 10px', borderRadius: '8px', fontSize: '11px', fontWeight: 800 }}>{item.genre}</div>
                           </div>
                         </div>
 
-                        {/* Info Area */}
-                        <div style={{ padding: '20px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                          <div style={{ display: 'flex', gap: '15px' }}>
-                            <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: '#94a3b8', fontSize: '13px', fontWeight: 800 }}>
-                              <Calendar size={14} color="#F59E0B" />
-                              <span>{item.start_date?.slice(5)} ~ {item.end_date?.slice(5)}</span>
+                        {/* Card Body */}
+                        <div style={{ padding: '20px' }}>
+                          <div style={{ fontSize: '20px', fontWeight: 950, color: '#1e293b', marginBottom: '4px' }}>{item.instructor}</div>
+                          <div style={{ fontSize: '15px', fontWeight: 600, color: '#64748b', marginBottom: '12px' }}>{item.title}</div>
+                          
+                          <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                            <div style={{ fontSize: '13px', color: '#94a3b8', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '6px' }}>
+                              <Calendar size={14} /> {item.start_date} ~ {item.end_date} | <span style={{ color: '#E53935' }}>{item.price_info}</span>
                             </div>
-                            <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: '#94a3b8', fontSize: '13px', fontWeight: 800 }}>
-                              <MapPin size={14} color="#E53935" />
-                              <span>{item.region} {item.venue}</span>
+                            <div style={{ fontSize: '13px', color: '#94a3b8', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '6px' }}>
+                              <MapPin size={14} /> {item.region} {item.venue}
                             </div>
                           </div>
-                          <div 
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              setSelectedBootcamp(item);
-                            }}
-                            style={{ background: 'rgba(245,158,11,0.1)', padding: '6px 12px', borderRadius: '10px', border: '1px solid rgba(245,158,11,0.2)' }}
-                          >
-                            <span style={{ fontSize: '14px', fontWeight: 1000, color: '#F59E0B' }}>자세히 보기</span>
-                          </div>
+
+                          {/* Social Buttons */}
+                          {(item.instagram || item.youtube) && (
+                            <div style={{ display: 'flex', gap: '8px', marginTop: '15px', paddingTop: '15px', borderTop: '1px solid #f1f5f9' }}>
+                              {item.instagram && (
+                                <button 
+                                  onClick={(e) => { e.stopPropagation(); window.open(item.instagram, '_blank'); }}
+                                  style={{ flex: 1, padding: '10px', borderRadius: '12px', border: '1px solid #f1f5f9', background: '#fff', color: '#1e293b', fontSize: '12px', fontWeight: 800, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px' }}
+                                >
+                                  Instagram
+                                </button>
+                              )}
+                              {item.youtube && (
+                                <button 
+                                  onClick={(e) => { e.stopPropagation(); window.open(item.youtube, '_blank'); }}
+                                  style={{ flex: 1, padding: '10px', borderRadius: '12px', border: '1px solid #f1f5f9', background: '#fff', color: '#1e293b', fontSize: '12px', fontWeight: 800, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px' }}
+                                >
+                                  YouTube
+                                </button>
+                              )}
+                            </div>
+                          )}
                         </div>
                       </motion.div>
                     ))}
