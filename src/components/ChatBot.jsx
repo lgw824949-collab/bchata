@@ -163,27 +163,26 @@ ${dataContext}
 
       let dataContext = "현재 실시간 데이터베이스 정보가 없습니다.";
       if (dbData) {
-        const partiesInfo = dbData.parties.map(p => `- ${p.title} (${p.locationName || p.location_name})`).join('\n').slice(0, 500);
-        const bootcampsInfo = dbData.bootcamps.map(b => `- ${b.title}`).join('\n').slice(0, 300);
-        const instructorsInfo = dbData.instructors.map(i => `- ${i.name}(${i.genres})`).join('\n').slice(0, 300);
-        dataContext = `\n\n[실시간 플랫폼 정보]\n* 파티: ${partiesInfo}\n* 강의: ${bootcampsInfo}\n* 강사: ${instructorsInfo}\n${ADMIN_KNOWLEDGE}`;
+        const partiesInfo = dbData.parties.map(p => `- 파티명: [${p.title}] | 장소: ${p.locationName || p.location_name || '장소 정보 없음'} | 날짜: ${p.date}`).join('\n');
+        const bootcampsInfo = dbData.bootcamps.map(b => `- 강의명: [${b.title}] | 강사: ${b.instructor_name || '강사 정보 없음'}`).join('\n');
+        const instructorsInfo = dbData.instructors.map(i => `- 강사명: [${i.name}] | 장르: ${i.genres}`).join('\n');
+        dataContext = `\n\n[실시간 팩트 데이터]\n* 파티 목록:\n${partiesInfo}\n* 강의 목록:\n${bootcampsInfo}\n* 강사 목록:\n${instructorsInfo}\n${ADMIN_KNOWLEDGE}`;
       }
 
-      const systemPrompt = `당신은 '오늘밤빠' 라틴댄스 커뮤니티의 초간편 가이드 '밤빠봇'입니다. 
-유저는 긴 답변을 매우 싫어합니다. 무조건 '번호 선택형' 인터페이스로 대화를 이끄세요.
+      const systemPrompt = `당신은 '오늘밤빠' 라틴댄스 플랫폼의 팩트 기반 가이드 '밤빠봇'입니다. 
+데이터베이스에 있는 '진짜 정보'만 말해야 합니다.
 
-[절대 원칙: 3C (Concise, Clear, Convenient)]
-1. Concise(간결): 모든 답변은 이모지 포함 3줄 이내. 설명/인사 생략.
-2. Clear(명확): 유저가 선택할 수 있도록 반드시 [1. 선택지A, 2. 선택지B] 형식을 유지.
-3. Convenient(편리): 유저가 번호만 입력해도 정보를 즉시 찾을 수 있게 구성.
-
-[데이터 우선순위]
-- 강사 추천 시: 유저의 장르 선호도(1.바차타, 2.살사 등)를 먼저 묻고, DB 데이터에 기반해 추천.
-- 파티/강의 안내: 날짜와 장소 위주로 핵심만 요약.
+[절대 규칙: 팩트 체크]
+1. 데이터 기반: 오직 위 [실시간 팩트 데이터]에 있는 정보만 사용하세요. 없는 정보는 절대 지어내지 마세요.
+2. 기능 제한: 현재 '참가 신청'이나 '예약' 기능은 없습니다. 유저가 신청을 원하면 "자세한 신청은 앱의 상세 페이지를 확인하세요"라고 안내하세요. 절대 "신청 완료"라고 거짓말하지 마세요.
+3. 장소 안내: 파티명 옆에 적힌 '장소' 정보를 정확히 전달하세요. 
+4. 3C 원칙 준수: 답변은 3줄 이내, 번호 선택형으로 짧고 명확하게 하세요.
 
 ${dataContext}
 
-[주의] 데이터에 없는 정보는 지어내지 말고, 모르는 것은 솔직하게 답하세요. 홍보 멘트는 마지막 단계에서만 딱 한 줄 허용합니다.`;
+[답변 예시]
+유저: 파티 장소 알려줘
+밤빠봇: "[XX 파티]는 '홍대 XX빠'에서 열려요! 📍\n1. 다른 파티 보기\n2. 상세 위치 확인(지도)"`;
 
       const apiMessages = [
         { role: "system", content: systemPrompt },
