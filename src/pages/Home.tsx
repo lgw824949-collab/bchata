@@ -266,12 +266,12 @@ const LiveExposureStrip = ({ pool, selectedDate, todayStr, onSelect, cleanTitle,
                 onClick={() => onSelect(item)}
                 style={{
                   padding: 0,
-                  border: '1px solid rgba(201, 168, 76, 0.35)',
-                  borderRadius: 16,
-                  overflow: 'hidden',
+                  border: 'none',
+                  borderRadius: 12,
+                  overflow: 'visible',
                   cursor: 'pointer',
-                  background: '#0d0d0d',
-                  boxShadow: '0 6px 20px rgba(0,0,0,0.35)',
+                  background: 'transparent',
+                  boxShadow: 'none',
                   textAlign: 'left',
                   display: 'flex',
                   flexDirection: 'column',
@@ -279,23 +279,31 @@ const LiveExposureStrip = ({ pool, selectedDate, todayStr, onSelect, cleanTitle,
               >
                 <motion.div
                   style={{
-                    aspectRatio: '3/4',
                     width: '100%',
+                    minHeight: 200,
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
                     background: '#111',
-                    padding: 6,
+                    padding: '10px 8px',
                     boxSizing: 'border-box',
+                    borderRadius: 12,
                   }}
                 >
                   <img
                     src={item.poster_url}
                     alt=""
-                    style={{ maxWidth: '100%', maxHeight: '100%', width: 'auto', height: 'auto', objectFit: 'contain', display: 'block' }}
+                    style={{
+                      width: '100%',
+                      height: 'auto',
+                      maxHeight: 280,
+                      objectFit: 'contain',
+                      objectPosition: 'center top',
+                      display: 'block',
+                    }}
                   />
                 </motion.div>
-                <div style={{ padding: '10px 10px 12px', borderTop: '1px solid rgba(201,168,76,0.12)' }}>
+                <div style={{ padding: '8px 4px 0' }}>
                   <div
                     style={{
                       fontSize: 10,
