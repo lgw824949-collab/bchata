@@ -1575,7 +1575,8 @@ const HomePage = ({
                                 style={{
                                   display: 'flex',
                                   flexDirection: 'row',
-                                  overflowX: 'auto',
+                                  overflowX: 'scroll',
+                                  touchAction: 'pan-x',
                                   gap: '16px',
                                   padding: '10px 20px 40px',
                                   msOverflowStyle: 'none',
@@ -2136,6 +2137,10 @@ const HomePage = ({
           50% { opacity: 0.3; }
         }
         .filter-scroll::-webkit-scrollbar { display: none; }
+        .region-scroll-container {
+          overflow-x: scroll;
+          touch-action: pan-x;
+        }
         .region-scroll-container::-webkit-scrollbar { display: none; }
         .date-stream-bar::-webkit-scrollbar { display: none; }
         .quick-menu-scroll::-webkit-scrollbar { display: none; }

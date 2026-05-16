@@ -1087,6 +1087,7 @@ function App() {
     return () => window.removeEventListener('open-vip-master-login', onOpenVip);
   }, [vipLoggedIn]);
 
+  /* 지역 캐러셀 연동 스크롤 — 독립 스크롤로 전환, 구 로직 주석 보관
   useEffect(() => {
     if (view !== 'home') return undefined;
 
@@ -1132,6 +1133,7 @@ function App() {
       while (cleanups.length) cleanups.pop()();
     };
   }, [view, selectedDate, loading, displayParties.length]);
+  */
 
   useEffect(() => {
     if (view !== 'instructors') return undefined;
