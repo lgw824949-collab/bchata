@@ -1092,6 +1092,19 @@ const HomePage = ({
       }}>
         {[
           { icon: <Calendar size={22} color="#F97316" />, label: '행사달력', action: () => setShowFullCalendar(true) },
+          {
+            icon: <Users size={22} color="#C9A84C" />,
+            label: '강사찾기',
+            action: () => {
+              localStorage.setItem('instructor_target_genre', '전체');
+              setView('instructors');
+              window.history.pushState({}, '', '/instructors');
+              window.dispatchEvent(new PopStateEvent('popstate'));
+              setTimeout(() => {
+                window.dispatchEvent(new CustomEvent('apply-instructor-filter'));
+              }, 300);
+            },
+          },
           { icon: <Utensils size={22} color="#C2185B" />, label: '맛집뒷풀이', action: () => setView('restaurant') },
           // { icon: <MessageSquare size={22} color="#FF8A80" />, label: '컨시어지', action: () => window.dispatchEvent(new CustomEvent('open-chatbot')) },
           { textIcon: '1:1', label: '채팅문의', action: () => window.open('https://open.kakao.com/o/gP43rNri', '_blank') },
