@@ -825,34 +825,41 @@ function App() {
     }
   }, []);
 
-  useEffect(() => {
-    if (!isMenuOpen) return;
-    const fetchFollowed = async () => {
-      try {
-        let s = localStorage.getItem('user_session') || localStorage.getItem('oneulbam_session');
-        if (!s) return;
-        const { data: followData } = await supabase
-          .from('instructor_follows')
-          .select('instructor_id')
-          .eq('user_session', s);
-        
-        if (followData && followData.length > 0) {
-          const ids = followData.map(f => f.instructor_id);
-          const { data: instData } = await supabase
-            .from('instructors')
-            .select('*')
-            .in('id', ids)
-            .eq('status', 'active');
-          if (instData) setFollowedInstructors(instData);
-        } else {
-          setFollowedInstructors([]);
-        }
-      } catch (err) {
-        console.error('Failed to fetch followed instructors:', err);
+  const fetchFollowedInstructors = async () => {
+    try {
+      const s = localStorage.getItem('user_session') || localStorage.getItem('oneulbam_session');
+      if (!s) return;
+      const { data: followData } = await supabase
+        .from('instructor_follows')
+        .select('instructor_id')
+        .eq('user_session', s);
+
+      if (followData && followData.length > 0) {
+        const ids = followData.map((f) => f.instructor_id);
+        const { data: instData } = await supabase
+          .from('instructors')
+          .select('*')
+          .in('id', ids)
+          .eq('status', 'active');
+        setFollowedInstructors(instData || []);
+      } else {
+        setFollowedInstructors([]);
       }
-    };
-    fetchFollowed();
-  }, [isMenuOpen]);
+    } catch (err) {
+      console.error('Failed to fetch followed instructors:', err);
+    }
+  };
+
+  useEffect(() => {
+    if (view !== 'instructors' && view !== 'home' && !isMenuOpen) return;
+    fetchFollowedInstructors();
+  }, [isMenuOpen, view]);
+
+  useEffect(() => {
+    const onRefresh = () => fetchFollowedInstructors();
+    window.addEventListener('refresh-sidebar', onRefresh);
+    return () => window.removeEventListener('refresh-sidebar', onRefresh);
+  }, []);
 
   const fetchParties = async () => {
     setLoading(true);
@@ -1012,7 +1019,8 @@ function App() {
     openAnalysis,
     setShowRoute: withHistory(showRoute, setShowRoute),
     setShowPlaceInquiry: withHistory(showPlaceInquiry, setShowPlaceInquiry),
-    logActivity: () => {}, regionalTheme: { welcomeMsg: "전국 댄서들을 위한 실시간 정보", specialBanner: true }
+    logActivity: () => {}, regionalTheme: { welcomeMsg: "전국 댄서들을 위한 실시간 정보", specialBanner: true },
+    followedInstructors,
   };
 
   // 파티/클래스/부트캠프/페스티벌 등록 중에는 하단 네비 숨김 (등록 폼 버튼 가림 방지)
@@ -1168,7 +1176,7 @@ function App() {
             {/* MY MASTERS 섹션 */}
             <div style={{ marginBottom: '24px' }}>
               <div style={{ fontSize: '13px', fontWeight: 950, color: '#F8FAFC', marginBottom: '16px', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                🌟 나의 마스터 / MY MASTERS
+                🌟 내 강사
               </div>
               
               {followedInstructors.length === 0 ? (

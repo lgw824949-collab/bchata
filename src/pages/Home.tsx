@@ -1165,6 +1165,52 @@ const HomePage = ({
         ))}
       </div>
 
+      {followedInstructors?.length > 0 && (
+        <div style={{ padding: '0 12px 14px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8, padding: '0 4px' }}>
+            <span style={{ fontSize: 13, fontWeight: 800, color: '#1E293B' }}>내 강사</span>
+            <button
+              type="button"
+              onClick={() => {
+                localStorage.removeItem('selected_instructor_id');
+                localStorage.setItem('instructor_target_genre', '전체');
+                setView('instructors');
+                window.history.pushState({}, '', '/instructors');
+                window.dispatchEvent(new PopStateEvent('popstate'));
+              }}
+              style={{
+                padding: '5px 10px', borderRadius: 8, border: '1px solid #E2E8F0',
+                background: '#fff', color: '#64748B', fontSize: 11, fontWeight: 700, cursor: 'pointer',
+              }}
+            >
+              전체 보기
+            </button>
+          </div>
+          <div style={{ display: 'flex', gap: 12, overflowX: 'auto', scrollbarWidth: 'none', msOverflowStyle: 'none', paddingBottom: 2 }}>
+            {followedInstructors.map((inst) => (
+              <motion.div
+                key={inst.id}
+                whileTap={{ scale: 0.95 }}
+                onClick={() => {
+                  localStorage.setItem('selected_instructor_id', inst.id);
+                  setView('instructors');
+                  window.history.pushState({}, '', '/instructors');
+                  window.dispatchEvent(new PopStateEvent('popstate'));
+                }}
+                style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4, flexShrink: 0, cursor: 'pointer' }}
+              >
+                <div style={{ width: 52, height: 52, borderRadius: '50%', border: '2px solid #C9A84C', padding: 2, background: '#fff', boxShadow: '0 2px 8px rgba(0,0,0,0.08)' }}>
+                  <img src={inst.photo_url || 'https://via.placeholder.com/100'} alt={inst.name} style={{ width: '100%', height: '100%', borderRadius: '50%', objectFit: 'cover' }} />
+                </div>
+                <span style={{ fontSize: 10, fontWeight: 700, color: '#475569', maxWidth: 56, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                  {(inst.name || '').split(' ')[0]}
+                </span>
+              </motion.div>
+            ))}
+          </div>
+        </div>
+      )}
+
       {/* 📌 [영역 B: 날짜 선택바 - 상단 고정(Sticky)] */}
       <div ref={stickyHeaderRef} style={{ position: 'sticky', top: 0, zIndex: 1000, background: 'var(--color-bg)', borderBottom: '1px solid var(--color-border)', boxShadow: '0 4px 12px rgba(0,0,0,0.03)', padding: '4px 0 0', transition: 'all 0.3s' }}>
         <div style={{ flex: 1, display: 'flex', overflowX: 'auto', gap: '8px', padding: '6px 10px 4px', msOverflowStyle: 'none', scrollbarWidth: 'none', WebkitOverflowScrolling: 'touch' }} className="date-stream-bar">
