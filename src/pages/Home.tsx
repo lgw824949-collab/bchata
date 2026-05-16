@@ -82,6 +82,9 @@ const translateDynamicText = (text, isEn) => {
   return translated;
 };
 
+/** 캐러셀 파티 카드 줌인 (호버·터치) */
+const partyCarouselCardTransition = { transition: 'transform 0.3s ease, box-shadow 0.3s ease' };
+
 /** 행사달력: 날짜 문자열 통일 (YYYY-MM-DD) */
 const normDate = (d) => (d ? String(d).slice(0, 10) : '');
 
@@ -422,9 +425,10 @@ const PartyCard = ({ item, onSelect }) => {
 
 
   return (
-    <div
+    <motion.div
+      className="party-carousel-card"
       onClick={() => onSelect(item.poster_url)}
-      style={{ display: 'flex', flexDirection: 'row', alignItems: 'stretch', backgroundColor: 'var(--color-card)', borderRadius: '16px', overflow: 'hidden', border: '1px solid var(--color-border)', cursor: 'pointer', height: '150px', marginBottom: '12px', transition: 'all 0.3s' }}
+      style={{ display: 'flex', flexDirection: 'row', alignItems: 'stretch', backgroundColor: 'var(--color-card)', borderRadius: '16px', overflow: 'hidden', border: '1px solid var(--color-border)', cursor: 'pointer', height: '150px', marginBottom: '12px', ...partyCarouselCardTransition }}
     >
       <div style={{ width: '100px', flexShrink: 0 }}>
         <img src={item.poster_url} style={{ width: '100%', height: '100%', objectFit: 'cover' }} alt="Poster" />
@@ -479,7 +483,7 @@ const PartyCard = ({ item, onSelect }) => {
         </div>
 
       </div>
-    </div>
+    </motion.div>
   );
 
 
@@ -501,6 +505,7 @@ const ClassCard = ({ item, onSelect }) => {
 
   return (
     <div
+      className="party-carousel-card"
       onClick={() => onSelect(item.poster_url)}
       style={{
         width: '160px',
@@ -515,7 +520,7 @@ const ClassCard = ({ item, onSelect }) => {
         scrollSnapAlign: 'start',
         border: '1px solid var(--color-border)',
         boxShadow: '0 2px 8px rgba(0,0,0,0.06)',
-        transition: 'all 0.3s'
+        ...partyCarouselCardTransition,
       }}
     >
       {/* 포스터 영역 (160x200) */}
@@ -580,7 +585,8 @@ const ClassCard = ({ item, onSelect }) => {
 
 const BootcampCard = ({ item, onSelect }) => {
   return (
-    <div
+    <motion.div
+      className="party-carousel-card"
       onClick={() => onSelect(item.poster_url)}
       style={{
         display: 'flex',
@@ -591,7 +597,8 @@ const BootcampCard = ({ item, onSelect }) => {
         cursor: 'pointer',
         height: '110px',
         marginBottom: '12px',
-        boxShadow: '0 4px 6px -1px rgba(0,0,0,0.05)'
+        boxShadow: '0 4px 6px -1px rgba(0,0,0,0.05)',
+        ...partyCarouselCardTransition,
       }}
     >
       <div style={{ width: '80px', height: '100%', flexShrink: 0 }}>
@@ -607,13 +614,14 @@ const BootcampCard = ({ item, onSelect }) => {
           📍 {item.venue || item.region} | 💰 {item.fee}
         </div>
       </div>
-    </div>
+    </motion.div>
   );
 };
 
 const FestivalCard = ({ item, onSelect }) => {
   return (
     <div
+      className="party-carousel-card"
       onClick={() => onSelect(item.poster_url)}
       style={{
         display: 'flex',
@@ -624,7 +632,8 @@ const FestivalCard = ({ item, onSelect }) => {
         cursor: 'pointer',
         height: '110px',
         marginBottom: '12px',
-        boxShadow: '0 4px 6px -1px rgba(0,0,0,0.05)'
+        boxShadow: '0 4px 6px -1px rgba(0,0,0,0.05)',
+        ...partyCarouselCardTransition,
       }}
     >
       <div style={{ width: '80px', height: '100%', flexShrink: 0 }}>
@@ -1452,7 +1461,8 @@ const HomePage = ({
                         <div style={{ width: '100%', overflow: 'hidden' }}>
                           <div className="hot-pick-track-premium">
                             {[...newest8GlobalEvents, ...newest8GlobalEvents].map((item, idx) => (
-                              <div 
+                              <div
+                                className="party-carousel-card"
                                 key={`${item.id}-${idx}`} 
                                 onClick={async () => {
                                   openPartyWithAfterParty(item);
@@ -1472,8 +1482,8 @@ const HomePage = ({
                                   boxShadow: '0 8px 24px rgba(0,0,0,0.15)', 
                                   position: 'relative', 
                                   background: '#000', 
-                                  cursor: 'pointer', 
-                                  transform: 'translateZ(0)' 
+                                  cursor: 'pointer',
+                                  ...partyCarouselCardTransition,
                                 }}
                               >
                                 <img src={item.poster_url} style={{ width: '100%', height: '100%', objectFit: 'cover' }} alt="Pick" />
@@ -1614,6 +1624,7 @@ const HomePage = ({
                                   }
                                   return (
                                     <div
+                                      className="party-carousel-card"
                                       key={item.id}
                                       onClick={() => openPartyWithAfterParty(item)}
                                       style={{
@@ -1630,7 +1641,7 @@ const HomePage = ({
                                         boxShadow: '0 4px 16px rgba(229, 57, 53, 0.08)',
                                         cursor: 'pointer',
                                         height: '150px',
-                                        transition: 'all 0.3s',
+                                        ...partyCarouselCardTransition,
                                         position: 'relative',
                                         boxSizing: 'border-box',
                                       }}
@@ -2094,9 +2105,10 @@ const HomePage = ({
 
                       return regionalPosterParties.map(item => (
                         <div
+                          className="party-carousel-card"
                           key={item.id}
                           onClick={() => openPartyWithAfterParty(item)}
-                          style={{ aspectRatio: '1 / 1.4', overflow: 'hidden', background: 'var(--color-card)', position: 'relative' }}
+                          style={{ aspectRatio: '1 / 1.4', overflow: 'hidden', background: 'var(--color-card)', position: 'relative', ...partyCarouselCardTransition }}
                         >
                           <img
                             src={item.poster_url}
@@ -2146,6 +2158,25 @@ const HomePage = ({
           touch-action: pan-x;
         }
         .region-scroll-container::-webkit-scrollbar { display: none; }
+        .party-carousel-card {
+          transform-origin: center center;
+          will-change: transform;
+        }
+        .party-carousel-card:hover,
+        .party-carousel-card:active {
+          transform: scale(1.05) translateY(-4px);
+          z-index: 5;
+          position: relative;
+          box-shadow: 0 12px 28px rgba(0, 0, 0, 0.2) !important;
+        }
+        .hot-pick-track-premium .party-carousel-card:hover,
+        .hot-pick-track-premium .party-carousel-card:active {
+          box-shadow: 0 16px 40px rgba(0, 0, 0, 0.32) !important;
+        }
+        .region-scroll-container .party-carousel-card:hover,
+        .region-scroll-container .party-carousel-card:active {
+          box-shadow: 0 12px 28px rgba(229, 57, 53, 0.25) !important;
+        }
         .date-stream-bar::-webkit-scrollbar { display: none; }
         .quick-menu-scroll::-webkit-scrollbar { display: none; }
         .hot-pick-track { display: flex; animation: hotPickScroll 40s linear infinite; }
