@@ -1037,6 +1037,52 @@ function App() {
   }, [vipLoggedIn]);
 
   useEffect(() => {
+    if (view !== 'home') return undefined;
+
+    let syncing = false;
+    const cleanups = [];
+
+    const bindRegionCarouselSync = () => {
+      while (cleanups.length) cleanups.pop()();
+      const containers = document.querySelectorAll('.region-scroll-container');
+      if (containers.length < 2) return;
+
+      containers.forEach((source) => {
+        const onScroll = () => {
+          if (syncing) return;
+          syncing = true;
+          const left = source.scrollLeft;
+          containers.forEach((el) => {
+            if (el !== source) el.scrollLeft = left;
+          });
+          requestAnimationFrame(() => {
+            syncing = false;
+          });
+        };
+        source.addEventListener('scroll', onScroll, { passive: true });
+        cleanups.push(() => source.removeEventListener('scroll', onScroll));
+      });
+    };
+
+    bindRegionCarouselSync();
+    const t1 = window.setTimeout(bindRegionCarouselSync, 400);
+    const t2 = window.setTimeout(bindRegionCarouselSync, 1200);
+
+    const root = document.querySelector('[data-bchata-app-root]');
+    const mo = root
+      ? new MutationObserver(() => bindRegionCarouselSync())
+      : null;
+    if (root && mo) mo.observe(root, { childList: true, subtree: true });
+
+    return () => {
+      clearTimeout(t1);
+      clearTimeout(t2);
+      mo?.disconnect();
+      while (cleanups.length) cleanups.pop()();
+    };
+  }, [view, selectedDate, loading, displayParties.length]);
+
+  useEffect(() => {
     if (view !== 'instructors') return undefined;
     const bindMasterBtn = () => {
       const btn = Array.from(document.querySelectorAll('button')).find(
@@ -1252,7 +1298,9 @@ function App() {
 
   return (
     <>
-    <div style={{ 
+    <div
+      data-bchata-app-root
+      style={{ 
       width: '100%', maxWidth: '500px', margin: '0 auto', 
       background: 'var(--color-bg)', color: 'var(--color-text-main)',
       minHeight: '100vh', position: 'relative',
