@@ -730,6 +730,15 @@ body {
 .chip-time { background: var(--color-bg-soft); color: var(--color-text-mid); }
 
 /* Bottom Nav Glassmorphism */
+/* 파티 등록 중 하단 네비 강제 숨김 (React 상태와 무관하게 적용) */
+body.party-register-open nav.bottom-nav,
+body.party-register-open .bottom-nav {
+  display: none !important;
+  visibility: hidden !important;
+  pointer-events: none !important;
+  opacity: 0 !important;
+}
+
 .bottom-nav {
   position: fixed;
   bottom: 20px; /* Floating look */

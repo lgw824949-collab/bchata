@@ -663,6 +663,16 @@ function App() {
   const [view, setView] = useState('home');
 
   useEffect(() => {
+    const onRegisterParty = location.pathname === '/register-party' || view === 'register-party'
+    if (onRegisterParty) {
+      document.body.classList.add('party-register-open')
+    } else {
+      document.body.classList.remove('party-register-open')
+    }
+    return () => document.body.classList.remove('party-register-open')
+  }, [location.pathname, view])
+
+  useEffect(() => {
     const path = location.pathname;
     if (path === '/') setView('home');
     else if (path === '/livepick') setView('community');
@@ -1489,7 +1499,7 @@ function App() {
     {/* [B] [포스터 확대 모달 - 컨테이너 외부 최상위 배치] */}
     {showPartner && <PartnerModal onClose={() => setShowPartner(false)} />}
     {showClassRegister && <ClassRegisterModal onClose={() => setShowClassRegister(false)} />}
-    {view === 'register-party' && (
+    {(view === 'register-party' || location.pathname === '/register-party') && (
       <Suspense fallback={<LoadingFallback />}>
         <RegisterForm
           onBack={() => navigate('/')}

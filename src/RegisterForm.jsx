@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+import { createPortal } from 'react-dom'
 import { Plus, ChevronLeft, Check, X, MapPin } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { supabase } from './lib/supabase'
@@ -12,6 +13,9 @@ const TITLE_EXAMPLES = [
   "[청주] 살사사랑 화요일 정모 맛집 ㅣ 오늘밤빠",
   "[대구] 바야 구라짱이랑 놀자! 라틴 성지 ㅣ 오늘밤빠"
 ];
+
+const PARTY_REGISTER_Z = 3000000
+const PARTY_REGISTER_BODY_CLASS = 'party-register-open'
 
 const RegisterForm = ({ onBack, onSuccess, isEdit = false, initialData = null }) => {
   const [file, setFile] = useState(null)
@@ -41,6 +45,16 @@ const RegisterForm = ({ onBack, onSuccess, isEdit = false, initialData = null })
   const TOTAL_STEPS = 5
 
   const DAYS_KOR = ['일', '월', '화', '수', '목', '금', '토']
+
+  useEffect(() => {
+    document.body.classList.add(PARTY_REGISTER_BODY_CLASS)
+    const prevOverflow = document.body.style.overflow
+    document.body.style.overflow = 'hidden'
+    return () => {
+      document.body.classList.remove(PARTY_REGISTER_BODY_CLASS)
+      document.body.style.overflow = prevOverflow
+    }
+  }, [])
 
   useEffect(() => {
     if (formData.date) {
@@ -305,8 +319,8 @@ const RegisterForm = ({ onBack, onSuccess, isEdit = false, initialData = null })
   })();
 
   if (submitted) {
-    return (
-      <motion.div style={{ position: 'fixed', inset: 0, zIndex: 2200000, background: 'rgba(0,0,0,0.8)', backdropFilter: 'blur(10px)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px' }}>
+    return createPortal(
+      <div style={{ position: 'fixed', inset: 0, zIndex: PARTY_REGISTER_Z, background: 'rgba(0,0,0,0.8)', backdropFilter: 'blur(10px)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px' }}>
         <motion.div initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} style={{ background: '#fff', borderRadius: '32px', padding: '40px', width: '100%', maxWidth: '400px', textAlign: 'center' }}>
           <div style={{ backgroundColor: '#FF1744', width: '80px', height: '80px', borderRadius: '40px', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 24px' }}>
             <Check size={40} color="white" />
@@ -315,7 +329,8 @@ const RegisterForm = ({ onBack, onSuccess, isEdit = false, initialData = null })
           <p style={{ fontSize: '16px', color: '#64748B', lineHeight: '1.6', marginBottom: '32px' }}>지금 즉시 메인 화면에 게시되었습니다.</p>
           <button onClick={onSuccess || onBack} style={{ width: '100%', padding: '20px', background: '#FF1744', color: 'white', borderRadius: '16px', fontWeight: 900, fontSize: '18px', border: 'none' }}>확인</button>
         </motion.div>
-      </motion.div>
+      </div>,
+      document.body
     )
   }
 
@@ -510,40 +525,41 @@ const RegisterForm = ({ onBack, onSuccess, isEdit = false, initialData = null })
     }
   }
 
-  return (
-    <motion.div style={{ position: 'fixed', inset: 0, zIndex: 2200000, display: 'flex', alignItems: 'flex-end', justifyContent: 'center' }}>
+  return createPortal(
+    <motion.div style={{ position: 'fixed', inset: 0, zIndex: PARTY_REGISTER_Z, display: 'flex', justifyContent: 'center' }}>
       <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={onBack} style={{ position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.6)', backdropFilter: 'blur(5px)' }} />
       <motion.div 
         initial={{ y: '100%' }} 
         animate={{ y: 0 }} 
         exit={{ y: '100%' }} 
         transition={{ type: 'spring', damping: 25, stiffness: 300 }}
-        style={{ position: 'relative', width: '100%', maxWidth: '500px', background: '#fff', borderRadius: '32px 32px 0 0', maxHeight: 'calc(100dvh - env(safe-area-inset-top))', overflow: 'hidden', display: 'flex', flexDirection: 'column', boxShadow: '0 -8px 40px rgba(0,0,0,0.15)' }}
+        style={{ position: 'relative', width: '100%', maxWidth: '500px', height: '100dvh', background: '#fff', overflow: 'hidden', display: 'flex', flexDirection: 'column' }}
       >
-        <div style={{ padding: '20px', borderBottom: '1px solid #F1F5F9', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+        <div style={{ padding: '20px', borderBottom: '1px solid #F1F5F9', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexShrink: 0 }}>
           <button onClick={() => { if(step > 1) setStep(step - 1); else onBack(); }} style={{ border: 'none', background: 'none', color: '#1E293B' }}><ChevronLeft size={24} /></button>
           <span style={{ fontWeight: 900, fontSize: '18px' }}>파티 등록 신청 ({step}/{TOTAL_STEPS})</span>
           <button onClick={onBack} style={{ border: 'none', background: 'none', color: '#94A3B8' }}><X size={24} /></button>
         </div>
 
-        <div style={{ height: '4px', background: '#F1F5F9', width: '100%' }}>
+        <div style={{ height: '4px', background: '#F1F5F9', width: '100%', flexShrink: 0 }}>
           <motion.div initial={{ width: 0 }} animate={{ width: `${(step / TOTAL_STEPS) * 100}%` }} style={{ height: '100%', background: '#FF1744' }} />
         </div>
 
-        <div style={{ flex: 1, overflowY: 'auto' }}>
+        <div style={{ flex: 1, minHeight: 0, overflowY: 'auto', WebkitOverflowScrolling: 'touch' }}>
           <AnimatePresence mode="wait">
             {renderStepContent()}
           </AnimatePresence>
         </div>
 
         <div style={{
-          padding: '20px',
-          paddingBottom: 'calc(20px + env(safe-area-inset-bottom))',
+          padding: '16px 20px',
+          paddingBottom: 'calc(16px + env(safe-area-inset-bottom, 0px))',
           borderTop: '1px solid #F1F5F9',
           display: 'flex',
           gap: '12px',
           flexShrink: 0,
           background: '#fff',
+          boxShadow: '0 -4px 24px rgba(0,0,0,0.08)',
         }}>
           {step > 1 && <button onClick={() => setStep(step - 1)} style={{ flex: 1, height: '60px', borderRadius: '18px', background: '#F1F5F9', color: '#64748B', fontWeight: 900, border: 'none' }}>이전</button>}
           <button 
@@ -555,7 +571,8 @@ const RegisterForm = ({ onBack, onSuccess, isEdit = false, initialData = null })
           </button>
         </div>
       </motion.div>
-    </motion.div>
+    </motion.div>,
+    document.body
   )
 }
 
