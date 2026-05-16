@@ -1599,8 +1599,10 @@ function App() {
     location.pathname === '/bootcamp/register' ||
     location.pathname === '/festival/register';
 
-  const navActiveColor = isSocialLightNav ? '#E53935' : '#FFFFFF'
-  const navInactiveColor = isSocialLightNav ? '#94A3B8' : 'rgba(255,255,255,0.3)'
+  // const navActiveColor = isSocialLightNav ? '#E53935' : '#FFFFFF'
+  // const navInactiveColor = isSocialLightNav ? '#94A3B8' : 'rgba(255,255,255,0.3)'
+  const navActiveColor = '#FFFFFF'
+  const navInactiveColor = '#666666'
   const isSocialTabActive = location.pathname === '/' && view === 'home' && !showPartner
 
   return (
@@ -2340,7 +2342,7 @@ function App() {
           color: isSocialTabActive ? navActiveColor : navInactiveColor
         }}
       >
-        <Music2 size={22} strokeWidth={isSocialTabActive ? 2.5 : 1.5} />
+        <Music2 size={24} strokeWidth={isSocialTabActive ? 2.5 : 1.5} />
         <span style={{ fontSize: '9px', fontWeight: isSocialTabActive ? 900 : 500, marginTop: '3px' }}>
           {i18n.language?.startsWith('en') ? 'Social' : '소셜'}
         </span>
@@ -2355,7 +2357,7 @@ function App() {
           color: showPartner ? navActiveColor : navInactiveColor
         }}
       >
-        <Heart size={22} strokeWidth={showPartner ? 2.5 : 1.5} />
+        <Users size={24} strokeWidth={showPartner ? 2.5 : 1.5} />
         <span style={{ fontSize: '9px', fontWeight: showPartner ? 900 : 500, marginTop: '3px' }}>
           {i18n.language?.startsWith('en') ? 'Partner' : '파트너'}
         </span>
@@ -2398,7 +2400,7 @@ function App() {
           color: (location.pathname === '/bootcamp' && !showPartner) ? navActiveColor : navInactiveColor
         }}
       >
-        <Tent size={22} strokeWidth={(location.pathname === '/bootcamp' && !showPartner) ? 2.5 : 1.5} />
+        <Tent size={24} strokeWidth={(location.pathname === '/bootcamp' && !showPartner) ? 2.5 : 1.5} />
         <span style={{ fontSize: '9px', fontWeight: (location.pathname === '/bootcamp' && !showPartner) ? 900 : 500, marginTop: '3px' }}>
           {i18n.language?.startsWith('en') ? 'Bootcamp' : '부트캠프'}
         </span>
@@ -2413,7 +2415,7 @@ function App() {
           color: (location.pathname === '/festival' && !showPartner) ? navActiveColor : navInactiveColor
         }}
       >
-        <Flag size={22} strokeWidth={(location.pathname === '/festival' && !showPartner) ? 2.5 : 1.5} />
+        <Flag size={24} strokeWidth={(location.pathname === '/festival' && !showPartner) ? 2.5 : 1.5} />
         <span style={{ fontSize: '9px', fontWeight: (location.pathname === '/festival' && !showPartner) ? 900 : 500, marginTop: '3px' }}>
           {i18n.language?.startsWith('en') ? 'Festival' : '페스티벌'}
         </span>
