@@ -739,30 +739,40 @@ body.party-register-open .bottom-nav {
   opacity: 0 !important;
 }
 
+nav.bottom-nav,
 .bottom-nav {
-  position: fixed;
+  position: fixed !important;
+  top: auto !important;
   /* bottom: 20px; Floating look */
   bottom: 0 !important;
-  left: 50%;
-  transform: translateX(-50%);
+  /* left: 50%; */
+  left: 0 !important;
+  right: 0 !important;
+  margin-left: auto !important;
+  margin-right: auto !important;
+  /* transform: translateX(-50%); */
+  transform: none !important;
+  transition: none !important;
   /* width: calc(100% - 40px); */
   width: 100% !important;
   /* max-width: 460px; */
   max-width: 500px !important;
-  height: 72px;
+  /* height: 72px; */
+  min-height: 68px !important;
+  height: auto !important;
   background: rgba(255, 255, 255, 0.75);
   backdrop-filter: blur(25px);
   -webkit-backdrop-filter: blur(25px);
   border: 1px solid rgba(255, 255, 255, 0.4);
-  display: flex;
+  display: flex !important;
   justify-content: space-around;
   align-items: center;
-  padding: 0 10px;
-  padding-bottom: calc(10px + env(safe-area-inset-bottom));
-  box-sizing: border-box;
+  padding: 0 20px !important;
+  padding-bottom: calc(12px + env(safe-area-inset-bottom)) !important;
+  box-sizing: border-box !important;
   /* border-radius: 30px; Rounded corners for floating */
   border-radius: 0 !important;
-  z-index: 1000;
+  z-index: 2100000 !important;
   box-shadow: 0 -4px 20px rgba(0,0,0,0.12);
 }
 
