@@ -3,6 +3,7 @@ import { Home as HomeIcon, Users, Plus, LogOut, Heart, X, MessageSquare, Refresh
 import { useTranslation } from 'react-i18next';
 import { motion, AnimatePresence } from 'framer-motion'
 import { supabase, logActivity } from './lib/supabase'
+import { KAKAO_BRAND, SHARE_BUILD, sharePartyToKakao } from './lib/kakaoShare'
 import QuickPinchZoom, { make3dTransformValue } from 'react-quick-pinch-zoom';
 
 // 페이지 지연 로딩 (Lazy Loading)
@@ -152,36 +153,12 @@ const PosterModal = ({ src, onClose, shareTitle, shareDesc }) => {
     }
   };
 
-  const handleKakaoShare = () => {
-    if (!window.Kakao) {
-      handleCopyLink();
-      return;
-    }
-    const k = import.meta.env.VITE_KAKAO_API_KEY;
-    if (!k) {
-      handleCopyLink();
-      return;
-    }
-    if (!window.Kakao.isInitialized()) {
-      window.Kakao.init(k);
-    }
-    window.Kakao.Share.sendDefault({
-      objectType: 'feed',
-      content: {
-        title: resolvedTitle,
-        description: `${resolvedDesc}\n${linkUrl}`,
-        imageUrl: absoluteImageUrl || `${window.location.origin}/logo.png`,
-        link: {
-          mobileWebUrl: linkUrl,
-          webUrl: linkUrl,
-        },
-      },
-      buttons: [
-        {
-          title: '파티 보러가기',
-          link: { mobileWebUrl: linkUrl, webUrl: linkUrl },
-        },
-      ],
+  const handleKakaoShare = async () => {
+    await sharePartyToKakao({
+      title: resolvedTitle,
+      description: resolvedDesc,
+      posterUrl: src,
+      linkUrl,
     });
   };
 
@@ -285,7 +262,7 @@ const PosterModal = ({ src, onClose, shareTitle, shareDesc }) => {
         <button
           type="button"
           onClick={handleKakaoShare}
-          title="카카오톡"
+          title="카톡으로 공유 (오늘밤빠)"
           style={{
             ...btnRound,
             background: '#FEE500',
@@ -299,7 +276,7 @@ const PosterModal = ({ src, onClose, shareTitle, shareDesc }) => {
             borderRadius: '24px',
           }}
         >
-          Kakao
+          {KAKAO_BRAND}
         </button>
         <button type="button" onClick={handleCopyLink} title="홈 링크 복사" style={btnRound}>
           <Copy size={20} />
@@ -308,6 +285,7 @@ const PosterModal = ({ src, onClose, shareTitle, shareDesc }) => {
           <Download size={22} />
         </button>
       </div>
+      <span style={{ position: 'absolute', bottom: 'calc(8px + env(safe-area-inset-bottom))', left: '50%', transform: 'translateX(-50%)', fontSize: 9, color: 'rgba(255,255,255,0.35)', zIndex: 100002 }}>{SHARE_BUILD}</span>
     </div>
   );
 };

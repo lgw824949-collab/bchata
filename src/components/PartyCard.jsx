@@ -1,6 +1,7 @@
 import React from 'react';
 import { Clock, Navigation } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
+import { sharePartyToKakao } from '../lib/kakaoShare';
 
 const GENRE_MAP = {
   '바차타': { key: 'b_ratio', label: 'B', label_en: 'Bachata', color: '#FF1744' },
@@ -89,33 +90,12 @@ const PartyCard = ({ item, onSelect }) => {
   const displayTime = item.time?.split('-')[0].trim() || '21:00';
   const displayFee = formatPrice(item.fee);
 
-  const handleKakaoShare = (e) => {
+  const handleKakaoShare = async (e) => {
     e.stopPropagation();
-    if (!window.Kakao) return;
-    if (!window.Kakao.isInitialized()) {
-      window.Kakao.init(import.meta.env.VITE_KAKAO_API_KEY);
-    }
-    
-    window.Kakao.Share.sendDefault({
-      objectType: 'feed',
-      content: {
-        title: item.title,
-        description: `${item.date} | ${item.locationName || item.studio_name} | ${item.fee}`,
-        imageUrl: item.poster_url,
-        link: {
-          mobileWebUrl: 'https://bchata.vercel.app',
-          webUrl: 'https://bchata.vercel.app',
-        },
-      },
-      buttons: [
-        {
-          title: '파티 보러가기',
-          link: {
-            mobileWebUrl: 'https://bchata.vercel.app',
-            webUrl: 'https://bchata.vercel.app',
-          },
-        },
-      ],
+    await sharePartyToKakao({
+      title: item.title,
+      description: `${item.date} | ${item.locationName || item.studio_name} | ${item.fee}`,
+      posterUrl: item.poster_url,
     });
   };
 

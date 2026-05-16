@@ -1,4 +1,4 @@
-const CACHE = 'bchata-shell-v3';
+const CACHE = 'bchata-shell-v4';
 
 self.addEventListener('install', (event) => {
   event.waitUntil(
