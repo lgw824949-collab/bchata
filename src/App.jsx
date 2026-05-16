@@ -838,32 +838,57 @@ const formatDateToKSTString = (date) => {
 };
 
 const SplashScreen = () => {
-  const [stage, setStage] = useState(1);
+  const [phase, setPhase] = useState('rotate');
 
   useEffect(() => {
-    const timer = setTimeout(() => setStage(2), 2000);
-    return () => clearTimeout(timer);
+    const holdTimer = setTimeout(() => setPhase('hold'), 800);
+    const exitTimer = setTimeout(() => setPhase('exit'), 1300);
+    return () => {
+      clearTimeout(holdTimer);
+      clearTimeout(exitTimer);
+    };
   }, []);
+
+  const exitDuration = 1.7;
 
   return (
     <motion.div
       initial={{ opacity: 1 }}
-      exit={{ opacity: 0 }}
-      transition={{ duration: 0.3 }}
+      animate={{ opacity: phase === 'exit' ? 0 : 1 }}
+      transition={{ duration: phase === 'exit' ? exitDuration : 0, ease: 'easeInOut' }}
       style={{
         position: 'fixed',
         inset: 0,
         zIndex: 9999,
         backgroundColor: '#0a0a0a',
         display: 'flex',
-        flexDirection: 'column',
         alignItems: 'center',
         justifyContent: 'center',
-        overflow: 'hidden'
+        overflow: 'hidden',
       }}
     >
-      <AnimatePresence mode="wait">
-        {stage === 1 ? (
+      <motion.img
+        src="/logo.png"
+        alt="BAMPPA"
+        initial={{ rotate: 0, scale: 1, opacity: 1 }}
+        animate={
+          phase === 'rotate'
+            ? { rotate: 360, scale: 1, opacity: 1 }
+            : phase === 'hold'
+              ? { rotate: 360, scale: 1, opacity: 1 }
+              : { rotate: 360, scale: 1.8, opacity: 0 }
+        }
+        transition={
+          phase === 'rotate'
+            ? { duration: 0.8, ease: 'easeInOut' }
+            : phase === 'exit'
+              ? { duration: exitDuration, ease: 'easeIn' }
+              : { duration: 0 }
+        }
+        style={{ width: '200px', objectFit: 'contain' }}
+      />
+      {/* 이전 stage 1/2 — 보관
+        {false && stage === 1 ? (
           <motion.img
             key="stage1"
             src="/logo.png"
@@ -899,7 +924,7 @@ const SplashScreen = () => {
             </motion.div>
           </motion.div>
         )}
-      </AnimatePresence>
+      */}
     </motion.div>
   );
 };
@@ -936,7 +961,7 @@ function App() {
     const timer = setTimeout(() => {
       localStorage.setItem('splash_shown', 'true');
       setShowSplash(false);
-    }, 4000);
+    }, 3000);
     return () => clearTimeout(timer);
   }, [showSplash]);
 
@@ -1595,7 +1620,7 @@ function App() {
       <motion.div 
         initial={{ opacity: 0 }} 
         animate={{ opacity: showSplash ? 0 : 1 }} 
-        transition={{ duration: 0.3, delay: showSplash ? 0 : 0.3 }}
+        transition={{ duration: 0.5, ease: 'easeOut', delay: showSplash ? 0 : 0.1 }}
         style={{ width: '100%', minHeight: '100vh', position: 'relative' }}
       >
       <AnimatePresence>{isAnalyzing && <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} style={{ position: 'fixed', inset: 0, zIndex: 1000000, background: 'rgba(255,255,255,0.9)', backdropFilter: 'blur(30px)', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}><motion.div animate={{ rotate: 360 }} transition={{ duration: 1, repeat: Infinity, ease: 'linear' }} style={{ width: '60px', height: '60px', border: '4px solid #FFEBEE', borderTop: '4px solid #E53935', borderRadius: '50%', marginBottom: '20px' }} /><h2 style={{ color: '#1E293B', fontSize: '20px', fontWeight: '900' }}>실시간 지능형 분석 중...</h2></motion.div>}</AnimatePresence>
