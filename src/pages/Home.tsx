@@ -82,8 +82,16 @@ const translateDynamicText = (text, isEn) => {
   return translated;
 };
 
-/** 캐러셀 파티 카드 줌인 (호버·터치) */
-const partyCarouselCardTransition = { transition: 'transform 0.3s ease, box-shadow 0.3s ease' };
+/** 파티 카드 줌인 (호버·터치) */
+const partyCardZoomBaseStyle = { transition: 'transform 0.25s ease', transform: 'scale(1) translateY(0)' };
+const setPartyCardZoomIn = (e) => { e.currentTarget.style.transform = 'scale(1.05) translateY(-4px)'; };
+const setPartyCardZoomOut = (e) => { e.currentTarget.style.transform = 'scale(1) translateY(0)'; };
+const partyCardZoomHandlers = {
+  onMouseEnter: setPartyCardZoomIn,
+  onMouseLeave: setPartyCardZoomOut,
+  onTouchStart: setPartyCardZoomIn,
+  onTouchEnd: setPartyCardZoomOut,
+};
 
 /** 행사달력: 날짜 문자열 통일 (YYYY-MM-DD) */
 const normDate = (d) => (d ? String(d).slice(0, 10) : '');
@@ -427,8 +435,9 @@ const PartyCard = ({ item, onSelect }) => {
   return (
     <motion.div
       className="party-carousel-card"
+      {...partyCardZoomHandlers}
       onClick={() => onSelect(item.poster_url)}
-      style={{ display: 'flex', flexDirection: 'row', alignItems: 'stretch', backgroundColor: 'var(--color-card)', borderRadius: '16px', overflow: 'hidden', border: '1px solid var(--color-border)', cursor: 'pointer', height: '150px', marginBottom: '12px', ...partyCarouselCardTransition }}
+      style={{ display: 'flex', flexDirection: 'row', alignItems: 'stretch', backgroundColor: 'var(--color-card)', borderRadius: '16px', overflow: 'hidden', border: '1px solid var(--color-border)', cursor: 'pointer', height: '150px', marginBottom: '12px', ...partyCardZoomBaseStyle }}
     >
       <div style={{ width: '100px', flexShrink: 0 }}>
         <img src={item.poster_url} style={{ width: '100%', height: '100%', objectFit: 'cover' }} alt="Poster" />
@@ -506,6 +515,7 @@ const ClassCard = ({ item, onSelect }) => {
   return (
     <div
       className="party-carousel-card"
+      {...partyCardZoomHandlers}
       onClick={() => onSelect(item.poster_url)}
       style={{
         width: '160px',
@@ -520,7 +530,7 @@ const ClassCard = ({ item, onSelect }) => {
         scrollSnapAlign: 'start',
         border: '1px solid var(--color-border)',
         boxShadow: '0 2px 8px rgba(0,0,0,0.06)',
-        ...partyCarouselCardTransition,
+        ...partyCardZoomBaseStyle,
       }}
     >
       {/* 포스터 영역 (160x200) */}
@@ -587,6 +597,7 @@ const BootcampCard = ({ item, onSelect }) => {
   return (
     <motion.div
       className="party-carousel-card"
+      {...partyCardZoomHandlers}
       onClick={() => onSelect(item.poster_url)}
       style={{
         display: 'flex',
@@ -598,7 +609,7 @@ const BootcampCard = ({ item, onSelect }) => {
         height: '110px',
         marginBottom: '12px',
         boxShadow: '0 4px 6px -1px rgba(0,0,0,0.05)',
-        ...partyCarouselCardTransition,
+        ...partyCardZoomBaseStyle,
       }}
     >
       <div style={{ width: '80px', height: '100%', flexShrink: 0 }}>
@@ -622,6 +633,7 @@ const FestivalCard = ({ item, onSelect }) => {
   return (
     <div
       className="party-carousel-card"
+      {...partyCardZoomHandlers}
       onClick={() => onSelect(item.poster_url)}
       style={{
         display: 'flex',
@@ -633,7 +645,7 @@ const FestivalCard = ({ item, onSelect }) => {
         height: '110px',
         marginBottom: '12px',
         boxShadow: '0 4px 6px -1px rgba(0,0,0,0.05)',
-        ...partyCarouselCardTransition,
+        ...partyCardZoomBaseStyle,
       }}
     >
       <div style={{ width: '80px', height: '100%', flexShrink: 0 }}>
@@ -1463,6 +1475,7 @@ const HomePage = ({
                             {[...newest8GlobalEvents, ...newest8GlobalEvents].map((item, idx) => (
                               <div
                                 className="party-carousel-card"
+                                {...partyCardZoomHandlers}
                                 key={`${item.id}-${idx}`} 
                                 onClick={async () => {
                                   openPartyWithAfterParty(item);
@@ -1483,7 +1496,7 @@ const HomePage = ({
                                   position: 'relative', 
                                   background: '#000', 
                                   cursor: 'pointer',
-                                  ...partyCarouselCardTransition,
+                                  ...partyCardZoomBaseStyle,
                                 }}
                               >
                                 <img src={item.poster_url} style={{ width: '100%', height: '100%', objectFit: 'cover' }} alt="Pick" />
@@ -1589,19 +1602,20 @@ const HomePage = ({
                                 style={{
                                   display: 'flex',
                                   flexDirection: 'row',
-                                  overflowX: 'scroll',
+                                  overflowX: 'auto',
                                   touchAction: 'pan-x',
                                   gap: '12px',
                                   paddingTop: '10px',
                                   paddingRight: '16px',
                                   paddingBottom: '40px',
                                   paddingLeft: '16px',
-                                  scrollPaddingLeft: '16px',
                                   msOverflowStyle: 'none',
                                   scrollbarWidth: 'none',
                                   WebkitOverflowScrolling: 'touch',
-                                  scrollSnapType: 'x mandatory',
                                   scrollBehavior: 'smooth',
+                                  // scrollSnapType: 'x mandatory',
+                                  // scrollPaddingLeft: '16px',
+                                  // overflowX: 'scroll',
                                 }}
                               >
                                 {rollingParties.length === 0 ? (
@@ -1629,12 +1643,13 @@ const HomePage = ({
                                   return (
                                     <div
                                       className="party-carousel-card"
+                                      {...partyCardZoomHandlers}
                                       key={item.id}
                                       onClick={() => openPartyWithAfterParty(item)}
                                       style={{
                                         width: 'min(340px, calc(100vw - 56px))',
                                         flexShrink: 0,
-                                        scrollSnapAlign: 'start',
+                                        // scrollSnapAlign: 'start',
                                         borderRadius: '20px',
                                         overflow: 'hidden',
                                         display: 'flex',
@@ -1645,7 +1660,7 @@ const HomePage = ({
                                         boxShadow: '0 4px 16px rgba(229, 57, 53, 0.08)',
                                         cursor: 'pointer',
                                         height: '150px',
-                                        ...partyCarouselCardTransition,
+                                        ...partyCardZoomBaseStyle,
                                         position: 'relative',
                                         boxSizing: 'border-box',
                                       }}
@@ -2110,9 +2125,10 @@ const HomePage = ({
                       return regionalPosterParties.map(item => (
                         <div
                           className="party-carousel-card"
+                          {...partyCardZoomHandlers}
                           key={item.id}
                           onClick={() => openPartyWithAfterParty(item)}
-                          style={{ aspectRatio: '1 / 1.4', overflow: 'hidden', background: 'var(--color-card)', position: 'relative', ...partyCarouselCardTransition }}
+                          style={{ aspectRatio: '1 / 1.4', overflow: 'hidden', background: 'var(--color-card)', position: 'relative', ...partyCardZoomBaseStyle }}
                         >
                           <img
                             src={item.poster_url}
@@ -2158,13 +2174,15 @@ const HomePage = ({
         }
         .filter-scroll::-webkit-scrollbar { display: none; }
         .region-scroll-container {
-          overflow-x: scroll;
+          overflow-x: auto;
           touch-action: pan-x;
           scroll-behavior: smooth;
           -webkit-overflow-scrolling: touch;
-          scroll-snap-type: x mandatory;
+          /* scroll-snap-type: x mandatory; */
         }
         .region-scroll-container::-webkit-scrollbar { display: none; }
+        /* .party-carousel-card:hover/active — JS onMouseEnter·onTouchStart 로 줌 처리 */
+        /*
         .party-carousel-card {
           transform-origin: center center;
           will-change: transform;
@@ -2184,6 +2202,7 @@ const HomePage = ({
         .region-scroll-container .party-carousel-card:active {
           box-shadow: 0 12px 28px rgba(229, 57, 53, 0.25) !important;
         }
+        */
         .date-stream-bar::-webkit-scrollbar { display: none; }
         .quick-menu-scroll::-webkit-scrollbar { display: none; }
         .hot-pick-track { display: flex; animation: hotPickScroll 40s linear infinite; }
