@@ -1,7 +1,7 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { 
   ChevronLeft, Search, Plus, X, Calendar, MapPin, 
-  Image as ImageIcon, Loader2, Zap, Search as SearchIcon, 
+  Image as ImageIcon, Zap, Search as SearchIcon, 
   ChevronDown, ChevronUp, Map as MapIcon, Info, Copy, Tent,
   Share2, Bell, Heart, User, Globe, Star
 } from 'lucide-react';
@@ -17,6 +17,12 @@ const Bootcamp = ({ onBack, initialView = 'list' }) => {
   const [bootcamps, setBootcamps] = useState([]);
   const [loading, setLoading] = useState(true);
   const [view, setView] = useState(initialView);
+  const [editingId, setEditingId] = useState(null);
+
+  useEffect(() => {
+    setView(initialView);
+    if (initialView === 'register') setCurrentStep(1);
+  }, [initialView]);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedRegion, setSelectedRegion] = useState('전국');
   const [selectedGenre, setSelectedGenre] = useState('전체');
@@ -26,11 +32,48 @@ const Bootcamp = ({ onBack, initialView = 'list' }) => {
   const [copied, setCopied] = useState(false);
   const [currentStep, setCurrentStep] = useState(1);
   const [visibleCount, setVisibleCount] = useState(20);
+  const [openGroups, setOpenGroups] = useState({ thisMonth: true, nextMonth: false, later: false });
+  const [showFilterSheet, setShowFilterSheet] = useState(false);
+  const [tempRegion, setTempRegion] = useState('전국');
+  const [tempGenre, setTempGenre] = useState('전체');
+
+  const groupBootcampsByDate = (list) => {
+    const now = new Date();
+    now.setHours(0, 0, 0, 0);
+    const thisYear = now.getFullYear();
+    const thisMonth = now.getMonth();
+    const nextMonthDate = new Date(thisYear, thisMonth + 1, 1);
+    const nextYear = nextMonthDate.getFullYear();
+    const nextMonth = nextMonthDate.getMonth();
+    const twoMonthsLater = new Date(thisYear, thisMonth + 2, 1);
+
+    const groups = {
+      thisMonth: { label: `이번 달 (${thisMonth + 1}월)`, emoji: '🔥', items: [] },
+      nextMonth: { label: `다음 달 (${nextMonth + 1}월)`, emoji: '📅', items: [] },
+      later:     { label: '3개월 후 이상', emoji: '🌟', items: [] },
+    };
+
+    list.forEach(item => {
+      const d = new Date(item.start_date);
+      if (d < now) return;
+      const y = d.getFullYear();
+      const m = d.getMonth();
+      if (y === thisYear && m === thisMonth) {
+        groups.thisMonth.items.push(item);
+      } else if (y === nextYear && m === nextMonth) {
+        groups.nextMonth.items.push(item);
+      } else {
+        groups.later.items.push(item);
+      }
+    });
+
+    return groups;
+  };
   
   const [formData, setFormData] = useState({
     title: '', instructor: '', type: 'domestic', region: '서울', country: '',
-    start_date: '', end_date: '', venue: '', price_info: '', description: '',
-    poster_url: '', bank_info: '', genre: '바차타', level: '초급', instagram: '', youtube: ''
+    start_date: '', end_date: '', venue: '', fee: '', description: '',
+    poster_url: '', genre: '바차타', level: '초급', instagram: '', youtube: '', bank_info: ''
   });
   const [uploading, setUploading] = useState(false);
   const [submitting, setSubmitting] = useState(false);
@@ -38,6 +81,30 @@ const Bootcamp = ({ onBack, initialView = 'list' }) => {
   useEffect(() => {
     fetchBootcamps();
   }, [activeTab]);
+
+  // ref 로 항상 최신 selectedBootcamp 값 유지 (stale closure 방지)
+  const selectedBootcampRef = useRef(null);
+  useEffect(() => {
+    selectedBootcampRef.current = selectedBootcamp;
+  }, [selectedBootcamp]);
+
+  // 모달이 열릴 때 히스토리 스택에 항목 추가
+  useEffect(() => {
+    if (selectedBootcamp) {
+      window.history.pushState({ bootcampDetail: true }, '', window.location.pathname);
+    }
+  }, [selectedBootcamp]);
+
+  // 컴포넌트 마운트 시 한 번만 등록 — ref 를 읽으므로 항상 최신 상태 반영
+  useEffect(() => {
+    const handlePop = () => {
+      if (selectedBootcampRef.current) {
+        setSelectedBootcamp(null);
+      }
+    };
+    window.addEventListener('popstate', handlePop);
+    return () => window.removeEventListener('popstate', handlePop);
+  }, []);
 
   const fetchBootcamps = async () => {
     setLoading(true);
@@ -77,20 +144,64 @@ const Bootcamp = ({ onBack, initialView = 'list' }) => {
     }
   };
 
+  const openEdit = (camp) => {
+    setFormData({
+      title:       camp.title || '',
+      instructor:  camp.instructor || '',
+      type:        camp.type || 'domestic',
+      region:      camp.region || '서울',
+      country:     camp.country || '',
+      start_date:  camp.start_date || '',
+      end_date:    camp.end_date || '',
+      venue:       camp.venue || '',
+      fee:         camp.fee || '',
+      description: camp.description || '',
+      poster_url:  camp.poster_url || '',
+      genre:       camp.genre || '바차타',
+      level:       camp.level || '초급',
+      instagram:   camp.instagram || '',
+      youtube:     camp.youtube || '',
+      bank_info:   camp.bank_info || '',
+    });
+    setEditingId(camp.id);
+    setCurrentStep(1);
+    setSelectedBootcamp(null);
+    setView('register');
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setSubmitting(true);
     try {
-      const { error } = await supabase.from('bootcamps').insert({
-        ...formData,
+      const payload = {
+        title: formData.title, instructor: formData.instructor,
+        type: formData.type, region: formData.region, country: formData.country,
+        start_date: formData.start_date, end_date: formData.end_date,
+        venue: formData.venue, fee: formData.fee, description: formData.description,
+        poster_url: formData.poster_url || null, genre: formData.genre,
+        level: formData.level,         instagram: formData.instagram, youtube: formData.youtube,
+        bank_info: formData.bank_info || null,
         status: 'active'
-      });
+      };
+      let error;
+      if (editingId) {
+        ({ error } = await supabase.from('bootcamps').update(payload).eq('id', editingId));
+      } else {
+        ({ error } = await supabase.from('bootcamps').insert(payload));
+      }
       if (error) throw error;
-      alert('등록되었습니다!');
+      alert(editingId ? '수정되었습니다!' : '등록되었습니다!');
       setView('list');
+      setEditingId(null);
+      setCurrentStep(1);
+      setFormData({
+        title: '', instructor: '', type: 'domestic', region: '서울', country: '',
+        start_date: '', end_date: '', venue: '', fee: '', description: '',
+        poster_url: '', genre: '바차타', level: '초급', instagram: '', youtube: '', bank_info: ''
+      });
       fetchBootcamps();
     } catch (err) {
-      alert('등록 실패');
+      alert('실패: ' + err.message);
     } finally {
       setSubmitting(false);
     }
@@ -105,6 +216,9 @@ const Bootcamp = ({ onBack, initialView = 'list' }) => {
     return regionMatch && genreMatch && searchMatch;
   });
 
+  const isFiltering = selectedGenre !== '전체' || selectedRegion !== '전국' || searchTerm.trim() !== '';
+
+  /* [OLD] StatCard
   const StatCard = ({ label, value, icon }) => (
     <div style={{
       flex: 1, padding: '15px 10px', borderRadius: '16px',
@@ -118,11 +232,77 @@ const Bootcamp = ({ onBack, initialView = 'list' }) => {
       <div style={{ fontSize: '14px', fontWeight: 900, color: '#FFF' }}>{value}</div>
     </div>
   );
+  */
 
+  const BootcampRow = ({ item, onClick }) => (
+    <motion.div
+      initial={{ opacity: 0, y: 10 }}
+      animate={{ opacity: 1, y: 0 }}
+      onClick={onClick}
+      style={{
+        display: 'flex', alignItems: 'center', gap: 16,
+        padding: '14px 18px', cursor: 'pointer',
+        borderBottom: '1px solid rgba(255,255,255,0.04)',
+      }}
+    >
+      <div style={{ width: 58, height: 58, borderRadius: '14px', overflow: 'hidden', background: 'rgba(255,255,255,0.08)', flexShrink: 0 }}>
+        {item.poster_url
+          ? <img src={item.poster_url} style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'center top' }} alt={item.instructor} />
+          : <div style={{ fontSize: 22, display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100%' }}>🏕️</div>
+        }
+      </div>
+      <div style={{ flex: 1, minWidth: 0 }}>
+        <div style={{ fontSize: 16, fontWeight: 900, color: '#FFFFFF', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{item.instructor}</div>
+        <div style={{ fontSize: 12, color: '#8E8E93', fontWeight: 600, marginTop: 2 }}>{item.genre} · {item.venue || item.region}</div>
+      </div>
+      <div style={{ textAlign: 'right', flexShrink: 0 }}>
+        <div style={{ fontSize: 13, fontWeight: 900, color: '#C9A84C' }}>{item.start_date?.slice(5, 10)}</div>
+        <div style={{ fontSize: 9, color: '#475569', fontWeight: 700, marginTop: 2 }}>DATE</div>
+      </div>
+    </motion.div>
+  );
+
+  const SkeletonRow = () => (
+    <div style={{ display: 'flex', alignItems: 'center', gap: 16, padding: '14px 18px', borderBottom: '1px solid rgba(255,255,255,0.04)' }}>
+      <div className="skeleton" style={{ width: 58, height: 58, borderRadius: '14px', flexShrink: 0 }} />
+      <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 8 }}>
+        <div className="skeleton" style={{ height: 15, width: '55%' }} />
+        <div className="skeleton" style={{ height: 11, width: '38%' }} />
+      </div>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 5, alignItems: 'flex-end' }}>
+        <div className="skeleton" style={{ height: 13, width: 34 }} />
+        <div className="skeleton" style={{ height: 9, width: 26 }} />
+      </div>
+    </div>
+  );
+
+  const EmptyState = () => (
+    <div style={{ textAlign: 'center', padding: '60px 0', color: '#8E8E93' }}>
+      <div style={{ fontSize: 40, marginBottom: 12 }}>🏕️</div>
+      <div style={{ fontSize: 14, fontWeight: 700 }}>등록된 부트캠프가 없습니다</div>
+    </div>
+  );
+
+  const StatCard = ({ label, value, icon }) => (
+    <div style={{
+      flex: 1, padding: '15px 8px', borderRadius: '16px',
+      background: 'linear-gradient(135deg, rgba(255,255,255,0.06) 0%, rgba(255,255,255,0.02) 100%)',
+      border: '1px solid rgba(255,255,255,0.08)',
+      display: 'flex', flexDirection: 'column', alignItems: 'center',
+      position: 'relative', overflow: 'hidden',
+      boxShadow: '0 2px 8px rgba(0,0,0,0.3)'
+    }}>
+      {icon && <div style={{ position: 'absolute', top: 5, right: 8 }}>{icon}</div>}
+      <div style={{ fontSize: '9px', color: '#8E8E93', fontWeight: 600, textTransform: 'uppercase', marginBottom: '8px', letterSpacing: '0.5px', textAlign: 'center' }}>{label}</div>
+      <div style={{ fontSize: '12px', fontWeight: 900, color: '#FFFFFF', textAlign: 'center', lineHeight: 1.3 }}>{value || '-'}</div>
+    </div>
+  );
+
+  /* [OLD] return block — replaced with InstructorSection-style layout below
   return (
     <div style={{ background: '#0D0D0D', minHeight: '100vh', fontFamily: "'Outfit', sans-serif", color: '#fff' }}>
       
-      {/* Header */}
+      { Header }
       <div style={{ padding: '30px 25px 10px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
           <button onClick={onBack} style={{ background: 'none', border: 'none', cursor: 'pointer' }}><ChevronLeft size={24} color="#FFF" /></button>
@@ -138,7 +318,7 @@ const Bootcamp = ({ onBack, initialView = 'list' }) => {
             cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '4px'
           }}
         >
-          {view === 'register' ? '취소' : '💎 캠프 등록'}
+          {view === 'register' ? (editingId ? '수정 취소' : '취소') : '💎 캠프 등록'}
         </button>
       </div>
 
@@ -146,7 +326,7 @@ const Bootcamp = ({ onBack, initialView = 'list' }) => {
 
       {view === 'list' ? (
         <>
-          {/* Filters */}
+          { Filters }
           <div style={{ 
             position: 'sticky', top: 0, zIndex: 100, 
             background: 'rgba(13, 13, 13, 0.95)', backdropFilter: 'blur(20px)', 
@@ -178,7 +358,7 @@ const Bootcamp = ({ onBack, initialView = 'list' }) => {
             </div>
           </div>
 
-          {/* List Content */}
+          { List Content }
           <div style={{ padding: '20px 25px 100px' }}>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '15px' }}>
               {filteredList.slice(0, visibleCount).map((item) => (
@@ -209,7 +389,7 @@ const Bootcamp = ({ onBack, initialView = 'list' }) => {
           </div>
         </>
       ) : (
-        /* Register View */
+        { Register View }
         <div style={{ padding: '30px' }}>
           <h2 style={{ fontSize: '22px', fontWeight: 900, color: '#FFF', marginBottom: '30px' }}>캠프 등록 (준비 중)</h2>
           <p style={{ color: '#8E8E93' }}>디자인 개편으로 인해 등록 폼은 추후 업데이트 예정입니다.</p>
@@ -217,7 +397,7 @@ const Bootcamp = ({ onBack, initialView = 'list' }) => {
         </div>
       )}
 
-      {/* Detail Modal */}
+      { Detail Modal }
       <AnimatePresence>
         {selectedBootcamp && (
           <motion.div initial={{ y: '100%' }} animate={{ y: 0 }} exit={{ y: '100%' }} style={{ position: 'fixed', inset: 0, zIndex: 5000, background: '#0D0D0D', overflowY: 'auto' }}>
@@ -238,7 +418,7 @@ const Bootcamp = ({ onBack, initialView = 'list' }) => {
               <div style={{ display: 'flex', gap: '10px', marginTop: '20px' }}>
                 <StatCard label="DATE" value={selectedBootcamp.start_date} icon={<Calendar size={12} color="#C9A84C" />} />
                 <StatCard label="VENUE" value={selectedBootcamp.region} icon={<MapPin size={12} color="#C9A84C" />} />
-                <StatCard label="FEE" value={selectedBootcamp.price_info} icon={<Zap size={12} color="#C9A84C" />} />
+                <StatCard label="FEE" value={selectedBootcamp.fee} icon={<Zap size={12} color="#C9A84C" />} />
               </div>
 
               <div style={{ marginTop: '40px', padding: '24px', borderRadius: '24px', background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.05)' }}>
@@ -262,7 +442,7 @@ const Bootcamp = ({ onBack, initialView = 'list' }) => {
         )}
       </AnimatePresence>
 
-      {/* Booking Guide Modal */}
+      { Booking Guide Modal }
       <AnimatePresence>
         {showBookingGuide && (
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} style={{ position: 'fixed', inset: 0, zIndex: 6000, background: 'rgba(0,0,0,0.8)', backdropFilter: 'blur(10px)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '30px' }}>
@@ -272,9 +452,649 @@ const Bootcamp = ({ onBack, initialView = 'list' }) => {
               <p style={{ color: '#94a3b8', lineHeight: 1.6, marginBottom: '25px' }}>입금 시 성함 뒤에 <span style={{ color: '#C9A84C', fontWeight: 900 }}>'밤빠'</span>를 꼭 적어주세요!</p>
               <div style={{ background: '#000', padding: '20px', borderRadius: '20px', marginBottom: '20px', textAlign: 'left' }}>
                 <p style={{ fontSize: '11px', color: '#475569', fontWeight: 900, marginBottom: '8px' }}>ACCOUNT INFO</p>
-                <p style={{ fontSize: '16px', color: '#fff', fontWeight: 800, margin: 0 }}>{selectedBootcamp?.bank_info}</p>
+                <p style={{ fontSize: '16px', color: '#fff', fontWeight: 800, margin: 0 }}>{selectedBootcamp?.fee}</p>
               </div>
               <button onClick={() => setShowBookingGuide(false)} style={{ width: '100%', padding: '18px', borderRadius: '16px', background: '#C9A84C', color: '#000', fontWeight: 900, border: 'none' }}>확인했습니다</button>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+    </div>
+  );
+  */
+
+  return (
+    <div style={{ background: '#0D0D0D', minHeight: '100vh', fontFamily: "'Outfit', sans-serif", color: '#FFFFFF' }}>
+
+      {/* Header */}
+      <div style={{ padding: '30px 25px 10px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
+          <button onClick={onBack} style={{ background: 'none', border: 'none', cursor: 'pointer' }}>
+            <ChevronLeft size={24} color="#FFFFFF" />
+          </button>
+          <h2 style={{ fontSize: '24px', fontWeight: 900, color: '#FFFFFF', margin: 0, letterSpacing: '-0.5px' }}>
+            BOOTCAMP <span style={{ color: '#C9A84C' }}>MASTERS</span>
+          </h2>
+        </div>
+        <button
+          onClick={() => setView(view === 'register' ? 'list' : 'register')}
+          style={{
+            padding: '8px 14px', borderRadius: '12px', background: 'rgba(201,168,76,0.15)',
+            border: '1px solid #C9A84C', color: '#C9A84C', fontSize: '12px', fontWeight: 800,
+            cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '4px'
+          }}
+        >
+          {view === 'register' ? (editingId ? '수정 취소' : '취소') : '💎 캠프 등록'}
+        </button>
+      </div>
+
+      <style>{`
+        .hide-scrollbar::-webkit-scrollbar { display: none; }
+        @keyframes shimmer {
+          0% { background-position: -600px 0; }
+          100% { background-position: 600px 0; }
+        }
+        .skeleton {
+          background: linear-gradient(90deg, rgba(255,255,255,0.04) 25%, rgba(255,255,255,0.10) 50%, rgba(255,255,255,0.04) 75%);
+          background-size: 1200px 100%;
+          animation: shimmer 1.4s infinite linear;
+          border-radius: 12px;
+        }
+        @keyframes spin-border {
+          0% { transform: rotate(0deg); }
+          100% { transform: rotate(360deg); }
+        }
+        .spinning-border-wrap {
+          position: relative;
+          border-radius: 28px;
+          padding: 2px;
+          overflow: hidden;
+        }
+        .spinning-border-wrap::before {
+          content: '';
+          position: absolute;
+          inset: -100%;
+          background: conic-gradient(from 0deg, transparent 0%, transparent 60%, #C9A84C 72%, #FFF3C4 80%, #C9A84C 88%, transparent 100%);
+          animation: spin-border 2.4s linear infinite;
+        }
+        .spinning-border-inner {
+          position: relative;
+          z-index: 1;
+          border-radius: 26px;
+          overflow: hidden;
+          height: 100%;
+        }
+      `}</style>
+
+      {/* ── 등록 폼 ── */}
+      <AnimatePresence>
+        {view === 'register' && (
+          <motion.div
+            initial={{ opacity: 0, y: 40 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 40 }}
+            style={{ padding: '10px 25px 120px', overflowY: 'auto' }}
+          >
+            {/* 단계 진행바 */}
+            <div style={{ display: 'flex', gap: 8, marginBottom: 32 }}>
+              {[1,2,3,4].map(s => (
+                <div key={s} style={{ flex: 1, height: 4, borderRadius: 2, background: s <= currentStep ? '#C9A84C' : 'rgba(255,255,255,0.1)', transition: 'all 0.3s' }} />
+              ))}
+            </div>
+
+            <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
+
+              {/* STEP 1 — 기본 정보 */}
+              {currentStep === 1 && (
+                <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
+                  <div>
+                    <label style={{ display: 'block', fontSize: 11, fontWeight: 900, color: '#C9A84C', marginBottom: 10, letterSpacing: '1.5px' }}>1. 강사명</label>
+                    <input required value={formData.instructor} onChange={e => setFormData(p => ({ ...p, instructor: e.target.value }))} placeholder="강사 이름 입력" style={{ width: '100%', padding: '18px', borderRadius: 16, border: '1px solid rgba(255,255,255,0.1)', background: '#1A1A1A', fontSize: 16, color: '#fff', outline: 'none', boxSizing: 'border-box' }} />
+                  </div>
+                  <div>
+                    <label style={{ display: 'block', fontSize: 11, fontWeight: 900, color: '#C9A84C', marginBottom: 10, letterSpacing: '1.5px' }}>2. 캠프 제목</label>
+                    <input required value={formData.title} onChange={e => setFormData(p => ({ ...p, title: e.target.value }))} placeholder="캠프 제목 입력" style={{ width: '100%', padding: '18px', borderRadius: 16, border: '1px solid rgba(255,255,255,0.1)', background: '#1A1A1A', fontSize: 16, color: '#fff', outline: 'none', boxSizing: 'border-box' }} />
+                  </div>
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+                    <div>
+                      <label style={{ display: 'block', fontSize: 11, fontWeight: 900, color: '#C9A84C', marginBottom: 10, letterSpacing: '1.5px' }}>3. 장르</label>
+                      <select value={formData.genre} onChange={e => setFormData(p => ({ ...p, genre: e.target.value }))} style={{ width: '100%', padding: '18px', borderRadius: 16, border: '1px solid rgba(255,255,255,0.1)', background: '#1A1A1A', fontSize: 16, color: '#fff', outline: 'none' }}>
+                        {['바차타','살사','키좀바','쥬크'].map(g => <option key={g} value={g}>{g}</option>)}
+                      </select>
+                    </div>
+                    <div>
+                      <label style={{ display: 'block', fontSize: 11, fontWeight: 900, color: '#C9A84C', marginBottom: 10, letterSpacing: '1.5px' }}>4. 레벨</label>
+                      <select value={formData.level} onChange={e => setFormData(p => ({ ...p, level: e.target.value }))} style={{ width: '100%', padding: '18px', borderRadius: 16, border: '1px solid rgba(255,255,255,0.1)', background: '#1A1A1A', fontSize: 16, color: '#fff', outline: 'none' }}>
+                        {['초급','중급','상급','전체'].map(l => <option key={l} value={l}>{l}</option>)}
+                      </select>
+                    </div>
+                  </div>
+                  <div>
+                    <label style={{ display: 'block', fontSize: 11, fontWeight: 900, color: '#C9A84C', marginBottom: 10, letterSpacing: '1.5px' }}>5. 국내/해외</label>
+                    <div style={{ display: 'flex', gap: 10 }}>
+                      {[['domestic','국내'],['overseas','해외']].map(([val, label]) => (
+                        <button key={val} type="button" onClick={() => setFormData(p => ({ ...p, type: val }))}
+                          style={{ flex: 1, padding: '16px', borderRadius: 14, fontWeight: 900, fontSize: 15, cursor: 'pointer', border: `1px solid ${formData.type === val ? '#C9A84C' : 'rgba(255,255,255,0.1)'}`, background: formData.type === val ? 'rgba(201,168,76,0.15)' : '#1A1A1A', color: formData.type === val ? '#C9A84C' : '#8E8E93' }}
+                        >{label}</button>
+                      ))}
+                    </div>
+                  </div>
+                </motion.div>
+              )}
+
+              {/* STEP 2 — 일정/장소 */}
+              {currentStep === 2 && (
+                <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+                    <div>
+                      <label style={{ display: 'block', fontSize: 11, fontWeight: 900, color: '#C9A84C', marginBottom: 10, letterSpacing: '1.5px' }}>6. 시작일</label>
+                      <input type="date" required value={formData.start_date} onChange={e => setFormData(p => ({ ...p, start_date: e.target.value }))} style={{ width: '100%', padding: '18px', borderRadius: 16, border: '1px solid rgba(255,255,255,0.1)', background: '#1A1A1A', fontSize: 15, color: '#fff', outline: 'none', boxSizing: 'border-box' }} />
+                    </div>
+                    <div>
+                      <label style={{ display: 'block', fontSize: 11, fontWeight: 900, color: '#C9A84C', marginBottom: 10, letterSpacing: '1.5px' }}>7. 종료일</label>
+                      <input type="date" required value={formData.end_date} onChange={e => setFormData(p => ({ ...p, end_date: e.target.value }))} style={{ width: '100%', padding: '18px', borderRadius: 16, border: '1px solid rgba(255,255,255,0.1)', background: '#1A1A1A', fontSize: 15, color: '#fff', outline: 'none', boxSizing: 'border-box' }} />
+                    </div>
+                  </div>
+                  <div>
+                    <label style={{ display: 'block', fontSize: 11, fontWeight: 900, color: '#C9A84C', marginBottom: 10, letterSpacing: '1.5px' }}>8. 지역</label>
+                    <select value={formData.region} onChange={e => setFormData(p => ({ ...p, region: e.target.value }))} style={{ width: '100%', padding: '18px', borderRadius: 16, border: '1px solid rgba(255,255,255,0.1)', background: '#1A1A1A', fontSize: 16, color: '#fff', outline: 'none' }}>
+                      {['서울','경기/인천','경상도','전라도','충청도','강원/제주','해외'].map(r => <option key={r} value={r}>{r}</option>)}
+                    </select>
+                  </div>
+                  <div>
+                    <label style={{ display: 'block', fontSize: 11, fontWeight: 900, color: '#C9A84C', marginBottom: 10, letterSpacing: '1.5px' }}>9. 상세 장소</label>
+                    <div style={{ display: 'flex', gap: 10 }}>
+                      <input value={formData.venue} onChange={e => setFormData(p => ({ ...p, venue: e.target.value }))} placeholder="장소 입력 (미정이면 우측 버튼)" style={{ flex: 1, padding: '18px', borderRadius: 16, border: '1px solid rgba(255,255,255,0.1)', background: '#1A1A1A', fontSize: 15, color: '#fff', outline: 'none' }} />
+                      <button type="button" onClick={() => setFormData(p => ({ ...p, venue: '추후 공지' }))} style={{ padding: '0 16px', borderRadius: 16, background: formData.venue === '추후 공지' ? '#C9A84C' : '#1A1A1A', color: formData.venue === '추후 공지' ? '#000' : '#8E8E93', fontWeight: 900, fontSize: 12, border: '1px solid rgba(255,255,255,0.1)', whiteSpace: 'nowrap', cursor: 'pointer' }}>추후 공지</button>
+                    </div>
+                  </div>
+                </motion.div>
+              )}
+
+              {/* STEP 3 — 가격/계좌 */}
+              {currentStep === 3 && (
+                <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
+                  <div>
+                    <label style={{ display: 'block', fontSize: 11, fontWeight: 900, color: '#C9A84C', marginBottom: 10, letterSpacing: '1.5px' }}>10. 가격 정보</label>
+                    <input required value={formData.fee} onChange={e => setFormData(p => ({ ...p, fee: e.target.value }))} placeholder="예: 풀패스 250,000 / 파티 50,000" style={{ width: '100%', padding: '18px', borderRadius: 16, border: '1px solid rgba(255,255,255,0.1)', background: '#1A1A1A', fontSize: 15, color: '#fff', outline: 'none', boxSizing: 'border-box' }} />
+                  </div>
+                  <div>
+                    <label style={{ display: 'block', fontSize: 11, fontWeight: 900, color: '#C9A84C', marginBottom: 10, letterSpacing: '1.5px' }}>12. 인스타그램 (선택)</label>
+                    <input value={formData.instagram} onChange={e => setFormData(p => ({ ...p, instagram: e.target.value }))} placeholder="https://instagram.com/..." style={{ width: '100%', padding: '18px', borderRadius: 16, border: '1px solid rgba(255,255,255,0.1)', background: '#1A1A1A', fontSize: 15, color: '#fff', outline: 'none', boxSizing: 'border-box' }} />
+                  </div>
+                  <div>
+                    <label style={{ display: 'block', fontSize: 11, fontWeight: 900, color: '#C9A84C', marginBottom: 10, letterSpacing: '1.5px' }}>13. 유튜브 (선택)</label>
+                    <input value={formData.youtube} onChange={e => setFormData(p => ({ ...p, youtube: e.target.value }))} placeholder="https://youtube.com/..." style={{ width: '100%', padding: '18px', borderRadius: 16, border: '1px solid rgba(255,255,255,0.1)', background: '#1A1A1A', fontSize: 15, color: '#fff', outline: 'none', boxSizing: 'border-box' }} />
+                  </div>
+                  <div>
+                    <label style={{ display: 'block', fontSize: 11, fontWeight: 900, color: '#C9A84C', marginBottom: 10, letterSpacing: '1.5px' }}>14. 입금 계좌 정보</label>
+                    <input value={formData.bank_info} onChange={e => setFormData(p => ({ ...p, bank_info: e.target.value }))} placeholder="예: 카카오뱅크 3333-01-1234567 홍길동" style={{ width: '100%', padding: '18px', borderRadius: 16, border: '1px solid rgba(255,255,255,0.1)', background: '#1A1A1A', fontSize: 15, color: '#fff', outline: 'none', boxSizing: 'border-box' }} />
+                  </div>
+                </motion.div>
+              )}
+
+              {/* STEP 4 — 포스터 & 설명 */}
+              {currentStep === 4 && (
+                <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
+                  <div>
+                    <label style={{ display: 'block', fontSize: 11, fontWeight: 900, color: '#C9A84C', marginBottom: 10, letterSpacing: '1.5px' }}>14. 포스터 이미지</label>
+                    <div style={{ width: '100%', height: 220, borderRadius: 20, border: '2px dashed rgba(201,168,76,0.3)', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', background: '#1A1A1A', cursor: 'pointer', position: 'relative', overflow: 'hidden' }}>
+                      {formData.poster_url
+                        ? <img src={formData.poster_url} style={{ width: '100%', height: '100%', objectFit: 'contain' }} alt="poster" />
+                        : <><div style={{ fontSize: 36, marginBottom: 8 }}>🖼️</div><span style={{ fontSize: 13, color: '#8E8E93' }}>{uploading ? '업로드 중...' : '포스터 선택'}</span></>
+                      }
+                      <input type="file" accept="image/*" onChange={handleImageUpload} style={{ position: 'absolute', inset: 0, opacity: 0 }} />
+                    </div>
+                  </div>
+                  <div>
+                    <label style={{ display: 'block', fontSize: 11, fontWeight: 900, color: '#C9A84C', marginBottom: 10, letterSpacing: '1.5px' }}>15. 상세 설명</label>
+                    <textarea rows={5} value={formData.description} onChange={e => setFormData(p => ({ ...p, description: e.target.value }))} placeholder="캠프 상세 내용을 입력하세요" style={{ width: '100%', padding: '18px', borderRadius: 16, border: '1px solid rgba(255,255,255,0.1)', background: '#1A1A1A', fontSize: 15, color: '#fff', outline: 'none', resize: 'none', boxSizing: 'border-box' }} />
+                  </div>
+                </motion.div>
+              )}
+
+              {/* 버튼 */}
+              <div style={{ display: 'flex', gap: 12, paddingTop: 8 }}>
+                {currentStep > 1 && (
+                  <button type="button" onClick={() => setCurrentStep(s => s - 1)} style={{ flex: 1, padding: '18px', borderRadius: 16, background: 'rgba(255,255,255,0.05)', color: '#fff', fontWeight: 900, border: '1px solid rgba(255,255,255,0.1)', cursor: 'pointer' }}>이전</button>
+                )}
+                {currentStep < 4 ? (
+                  <button type="button" onClick={() => setCurrentStep(s => s + 1)} style={{ flex: 2, padding: '18px', borderRadius: 16, background: 'linear-gradient(135deg, #C9A84C, #A68A3D)', color: '#000', fontWeight: 900, fontSize: 16, border: 'none', cursor: 'pointer' }}>다음 단계</button>
+                ) : (
+                  <button type="submit" disabled={submitting} style={{ flex: 2, padding: '20px', borderRadius: 16, background: 'linear-gradient(135deg, #C9A84C, #A68A3D)', color: '#000', fontWeight: 900, fontSize: 16, border: 'none', cursor: 'pointer' }}>{submitting ? '등록 중...' : '✅ 등록 완료'}</button>
+                )}
+              </div>
+            </form>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* ── 리스트 뷰 ── */}
+      {view === 'list' && <>
+
+      {/* Sticky Filter Header — 검색 + 필터 버튼 한 줄 */}
+      <div style={{
+        position: 'sticky', top: 0, zIndex: 100,
+        background: 'rgba(13, 13, 13, 0.95)', backdropFilter: 'blur(20px)',
+        padding: '12px 20px', borderBottom: '1px solid rgba(255,255,255,0.06)',
+        display: 'flex', gap: '10px', alignItems: 'center'
+      }}>
+        {/* 검색창 */}
+        <div style={{ position: 'relative', flex: 1 }}>
+          <SearchIcon size={15} color="#8E8E93" style={{ position: 'absolute', left: 13, top: '50%', transform: 'translateY(-50%)' }} />
+          <input
+            value={searchTerm}
+            onChange={e => { setSearchTerm(e.target.value); setVisibleCount(20); }}
+            placeholder="캠프명 또는 강사명 검색"
+            style={{
+              width: '100%', padding: '11px 12px 11px 38px', borderRadius: '14px',
+              background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)',
+              color: '#FFFFFF', fontSize: '14px', fontWeight: 500, outline: 'none', boxSizing: 'border-box'
+            }}
+          />
+        </div>
+
+        {/* 필터 버튼 */}
+        {(() => {
+          const isActive = selectedRegion !== '전국' || selectedGenre !== '전체';
+          const label = isActive
+            ? [selectedRegion !== '전국' ? selectedRegion : null, selectedGenre !== '전체' ? selectedGenre : null].filter(Boolean).join(' · ')
+            : '필터';
+          return (
+            <button
+              onClick={() => { setTempRegion(selectedRegion); setTempGenre(selectedGenre); setShowFilterSheet(true); }}
+              style={{
+                display: 'flex', alignItems: 'center', gap: 6,
+                padding: '11px 14px', borderRadius: '14px', whiteSpace: 'nowrap',
+                background: isActive ? 'rgba(201,168,76,0.15)' : 'rgba(255,255,255,0.05)',
+                border: `1px solid ${isActive ? '#C9A84C' : 'rgba(255,255,255,0.1)'}`,
+                color: isActive ? '#C9A84C' : '#8E8E93',
+                fontSize: '13px', fontWeight: 800, cursor: 'pointer', flexShrink: 0
+              }}
+            >
+              {isActive && <span style={{ width: 6, height: 6, borderRadius: '50%', background: '#C9A84C', display: 'inline-block' }} />}
+              {label}
+              <ChevronDown size={13} />
+            </button>
+          );
+        })()}
+      </div>
+
+      {/* 필터 바텀시트 */}
+      <AnimatePresence>
+        {showFilterSheet && (
+          <>
+            {/* 딤 배경 */}
+            <motion.div
+              initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+              onClick={() => setShowFilterSheet(false)}
+              style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.6)', zIndex: 300, backdropFilter: 'blur(4px)' }}
+            />
+            {/* 시트 */}
+            <motion.div
+              initial={{ y: '100%' }} animate={{ y: 0 }} exit={{ y: '100%' }}
+              transition={{ type: 'spring', damping: 28, stiffness: 260 }}
+              style={{
+                position: 'fixed', bottom: 0, left: 0, right: 0, zIndex: 301,
+                background: '#111111', borderRadius: '28px 28px 0 0',
+                padding: '12px 24px 40px', maxHeight: '80vh', overflowY: 'auto'
+              }}
+            >
+              {/* 핸들 */}
+              <div style={{ width: 40, height: 4, borderRadius: 2, background: 'rgba(255,255,255,0.2)', margin: '0 auto 24px' }} />
+
+              {/* 지역 */}
+              <div style={{ marginBottom: 24 }}>
+                <div style={{ fontSize: 11, fontWeight: 900, color: '#C9A84C', letterSpacing: '1.5px', marginBottom: 14 }}>지역</div>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 8 }}>
+                  {REGIONS.map(r => (
+                    <button key={r} onClick={() => setTempRegion(r)}
+                      style={{
+                        padding: '12px 0', borderRadius: 12, fontSize: 13, fontWeight: 700, cursor: 'pointer',
+                        background: tempRegion === r ? 'rgba(201,168,76,0.15)' : 'rgba(255,255,255,0.05)',
+                        border: `1px solid ${tempRegion === r ? '#C9A84C' : 'rgba(255,255,255,0.08)'}`,
+                        color: tempRegion === r ? '#C9A84C' : '#8E8E93'
+                      }}
+                    >{r}</button>
+                  ))}
+                </div>
+              </div>
+
+              {/* 장르 */}
+              <div style={{ marginBottom: 32 }}>
+                <div style={{ fontSize: 11, fontWeight: 900, color: '#C9A84C', letterSpacing: '1.5px', marginBottom: 14 }}>장르</div>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 8 }}>
+                  {GENRES.map(g => (
+                    <button key={g} onClick={() => setTempGenre(g)}
+                      style={{
+                        padding: '14px 0', borderRadius: 12, fontSize: 14, fontWeight: 700, cursor: 'pointer',
+                        background: tempGenre === g ? 'rgba(201,168,76,0.15)' : 'rgba(255,255,255,0.05)',
+                        border: `1px solid ${tempGenre === g ? '#C9A84C' : 'rgba(255,255,255,0.08)'}`,
+                        color: tempGenre === g ? '#C9A84C' : '#8E8E93'
+                      }}
+                    >{g}</button>
+                  ))}
+                </div>
+              </div>
+
+              {/* 버튼 */}
+              <div style={{ display: 'flex', gap: 10 }}>
+                <button
+                  onClick={() => { setTempRegion('전국'); setTempGenre('전체'); }}
+                  style={{ flex: 1, padding: '16px', borderRadius: 16, background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', color: '#8E8E93', fontWeight: 800, fontSize: 14, cursor: 'pointer' }}
+                >초기화</button>
+                <button
+                  onClick={() => { setSelectedRegion(tempRegion); setSelectedGenre(tempGenre); setVisibleCount(20); setShowFilterSheet(false); }}
+                  style={{ flex: 2, padding: '16px', borderRadius: 16, background: 'linear-gradient(135deg, #C9A84C, #A68A3D)', border: 'none', color: '#000', fontWeight: 900, fontSize: 15, cursor: 'pointer' }}
+                >적용하기</button>
+              </div>
+            </motion.div>
+          </>
+        )}
+      </AnimatePresence>
+
+      {/* TOP BOOTCAMPS Skeleton */}
+      {loading && !isFiltering && (
+        <div style={{ padding: '10px 25px 30px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '18px' }}>
+            <div className="skeleton" style={{ width: 140, height: 14 }} />
+          </div>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '12px' }}>
+            <div className="skeleton" style={{ gridColumn: 'span 2', height: '240px', borderRadius: '28px' }} />
+            {[0, 1, 2, 3].map(i => (
+              <div key={i} className="skeleton" style={{ height: '180px', borderRadius: '24px' }} />
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* TOP BOOTCAMPS Showcase */}
+      {!loading && bootcamps.length > 0 && !isFiltering && (
+        <div style={{ padding: '10px 25px 30px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '18px' }}>
+            <h3 style={{ fontSize: '13px', fontWeight: 900, color: '#C9A84C', letterSpacing: '2px', margin: 0 }}>TOP BOOTCAMPS</h3>
+            <div style={{ width: '40px', height: '1px', background: 'linear-gradient(90deg, #C9A84C, transparent)', marginLeft: 'auto' }} />
+          </div>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '12px' }}>
+            {bootcamps[0] && (
+              <motion.div
+                onClick={() => setSelectedBootcamp(bootcamps[0])}
+                whileTap={{ scale: 0.98 }}
+                className="spinning-border-wrap"
+                style={{ gridColumn: 'span 2', height: '244px', cursor: 'pointer' }}
+              >
+                <div className="spinning-border-inner" style={{ position: 'relative', height: '240px' }}>
+                  <img src={bootcamps[0].poster_url || 'https://via.placeholder.com/500'} style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'center top' }} alt={bootcamps[0].instructor} />
+                  <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to top, rgba(0,0,0,0.9) 0%, transparent 60%)' }} />
+                  <div style={{ position: 'absolute', top: 15, left: 15, background: 'rgba(201,168,76,0.9)', color: '#000', padding: '4px 10px', borderRadius: '10px', fontSize: '10px', fontWeight: 900 }}>NEXT BOOTCAMP</div>
+                  <div style={{ position: 'absolute', bottom: 20, left: 20, right: 20 }}>
+                    <div style={{ fontSize: '24px', fontWeight: 950, color: '#FFF', marginBottom: '4px' }}>{bootcamps[0].instructor}</div>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                      <div style={{ fontSize: '12px', color: '#A1A1AA', fontWeight: 600 }}>{bootcamps[0].genre}</div>
+                      <div style={{ width: 4, height: 4, borderRadius: '50%', background: '#C9A84C' }} />
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 4, fontSize: '12px', color: '#C9A84C', fontWeight: 800 }}>
+                        <Calendar size={12} /> {bootcamps[0].start_date?.slice(0, 10)}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </motion.div>
+            )}
+            {bootcamps.slice(1, 5).map((item, idx) => (
+              <motion.div
+                key={item.id}
+                onClick={() => setSelectedBootcamp(item)}
+                whileTap={{ scale: 0.96 }}
+                style={{ position: 'relative', height: '180px', borderRadius: '24px', overflow: 'hidden', cursor: 'pointer', border: '1px solid rgba(255,255,255,0.05)' }}
+              >
+                <img src={item.poster_url || 'https://via.placeholder.com/300'} style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'center top' }} alt={item.instructor} />
+                <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to top, rgba(0,0,0,0.8) 0%, transparent 70%)' }} />
+                <div style={{ position: 'absolute', top: 12, right: 12 }}>
+                  <div style={{ background: 'rgba(0,0,0,0.5)', backdropFilter: 'blur(4px)', color: '#FFF', padding: '4px 8px', borderRadius: '8px', fontSize: '9px', fontWeight: 800, border: '1px solid rgba(255,255,255,0.1)' }}>
+                    #{idx + 2}
+                  </div>
+                </div>
+                <div style={{ position: 'absolute', bottom: 15, left: 15, right: 15 }}>
+                  <div style={{ fontSize: '15px', fontWeight: 900, color: '#FFF', marginBottom: '2px' }}>{item.instructor}</div>
+                  <div style={{ fontSize: '10px', color: '#C9A84C', fontWeight: 700 }}>{item.genre} · {item.start_date?.slice(0, 10)}</div>
+                </div>
+              </motion.div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Explore All — 검색 중일 때 */}
+      {isFiltering && (
+        <div style={{ padding: '0 25px 100px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: '20px' }}>
+            <h3 style={{ fontSize: '12px', fontWeight: 800, color: '#C9A84C', letterSpacing: '1px', margin: 0 }}>
+              검색 결과 ({filteredList.length}개)
+            </h3>
+            <div style={{ flex: 1, height: '1px', background: 'rgba(255,255,255,0.08)' }} />
+          </div>
+          {loading ? (
+            <div>{[0,1,2,3,4,5].map(i => <SkeletonRow key={i} />)}</div>
+          ) : filteredList.length === 0 ? (
+            <EmptyState />
+          ) : (
+            filteredList.map(item => <BootcampRow key={item.id} item={item} onClick={() => setSelectedBootcamp(item)} />)
+          )}
+        </div>
+      )}
+
+      {/* Explore All — 날짜 그룹 (필터 없을 때) */}
+      {!isFiltering && (
+        <div style={{ padding: '0 25px 100px' }}>
+          {loading ? (
+            <div>{[0,1,2,3,4,5].map(i => <SkeletonRow key={i} />)}</div>
+          ) : (() => {
+            const groups = groupBootcampsByDate(filteredList);
+            const topIds = new Set(bootcamps.slice(0, 5).map(b => b.id));
+            const allEmpty = Object.values(groups).every(g => g.items.filter(i => !topIds.has(i.id)).length === 0);
+            if (allEmpty) return <EmptyState />;
+
+            return Object.entries(groups).map(([key, group]) => {
+              const items = group.items.filter(i => !topIds.has(i.id));
+              if (items.length === 0) return null;
+              const isOpen = openGroups[key];
+              return (
+                <div key={key} style={{ marginBottom: '12px' }}>
+                  {/* 그룹 헤더 */}
+                  <button
+                    onClick={() => setOpenGroups(prev => ({ ...prev, [key]: !prev[key] }))}
+                    style={{
+                      width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+                      padding: '14px 18px', borderRadius: isOpen ? '20px 20px 0 0' : '20px',
+                      background: isOpen ? 'rgba(201,168,76,0.08)' : 'rgba(255,255,255,0.03)',
+                      border: `1px solid ${isOpen ? 'rgba(201,168,76,0.25)' : 'rgba(255,255,255,0.06)'}`,
+                      borderBottom: isOpen ? 'none' : undefined,
+                      cursor: 'pointer', transition: 'all 0.2s'
+                    }}
+                  >
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                      <span style={{ fontSize: 16 }}>{group.emoji}</span>
+                      <span style={{ fontSize: 14, fontWeight: 900, color: isOpen ? '#C9A84C' : '#FFFFFF' }}>{group.label}</span>
+                      <span style={{
+                        background: isOpen ? '#C9A84C' : 'rgba(255,255,255,0.1)',
+                        color: isOpen ? '#000' : '#8E8E93',
+                        fontSize: 11, fontWeight: 900,
+                        padding: '2px 8px', borderRadius: 20
+                      }}>{items.length}</span>
+                    </div>
+                    {isOpen
+                      ? <ChevronUp size={18} color="#C9A84C" />
+                      : <ChevronDown size={18} color="#8E8E93" />
+                    }
+                  </button>
+
+                  {/* 그룹 내용 */}
+                  <AnimatePresence>
+                    {isOpen && (
+                      <motion.div
+                        initial={{ height: 0, opacity: 0 }}
+                        animate={{ height: 'auto', opacity: 1 }}
+                        exit={{ height: 0, opacity: 0 }}
+                        transition={{ duration: 0.25 }}
+                        style={{
+                          overflow: 'hidden',
+                          border: '1px solid rgba(201,168,76,0.25)',
+                          borderTop: 'none',
+                          borderRadius: '0 0 20px 20px',
+                          background: 'rgba(201,168,76,0.03)'
+                        }}
+                      >
+                        <div style={{ padding: '8px 0 4px' }}>
+                          {items.map(item => <BootcampRow key={item.id} item={item} onClick={() => setSelectedBootcamp(item)} />)}
+                        </div>
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
+                </div>
+              );
+            });
+          })()}
+        </div>
+      )}
+
+      </> }
+
+      {/* Detail Modal */}
+      <AnimatePresence>
+        {selectedBootcamp && (
+          <motion.div
+            initial={{ y: '100%' }} animate={{ y: 0 }} exit={{ y: '100%' }}
+            transition={{ type: 'spring', damping: 25, stiffness: 200 }}
+            style={{ position: 'fixed', inset: 0, zIndex: 5000, background: '#000', display: 'flex', justifyContent: 'center' }}
+          >
+            <div style={{ width: '100%', maxWidth: '500px', height: '100%', background: '#0D0D0D', color: '#fff', overflowY: 'auto', position: 'relative', boxShadow: '0 0 100px rgba(0,0,0,0.8)' }}>
+
+              {/* Hero Image */}
+              <div style={{ position: 'relative', height: '480px', overflow: 'hidden' }}>
+                <div style={{
+                  position: 'absolute', inset: 0,
+                  background: selectedBootcamp.poster_url ? `url(${selectedBootcamp.poster_url}) center top / cover` : '#1A1A1A',
+                  filter: 'brightness(0.7)'
+                }} />
+                <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to bottom, rgba(0,0,0,0.3) 0%, transparent 40%, #0D0D0D 100%)' }} />
+
+                {/* Top Nav */}
+                <div style={{ position: 'absolute', top: '50px', left: '25px', right: '25px', display: 'flex', justifyContent: 'space-between', zIndex: 20 }}>
+                  <button
+                    onClick={() => window.history.back()}
+                    style={{ width: 44, height: 44, borderRadius: '50%', background: 'rgba(0,0,0,0.4)', backdropFilter: 'blur(10px)', border: '1px solid rgba(255,255,255,0.1)', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}
+                  ><ChevronLeft size={22} /></button>
+                  <button
+                    onClick={() => openEdit(selectedBootcamp)}
+                    style={{ padding: '0 16px', height: 44, borderRadius: 14, background: 'rgba(201,168,76,0.2)', backdropFilter: 'blur(10px)', border: '1px solid #C9A84C', color: '#C9A84C', fontSize: 13, fontWeight: 900, cursor: 'pointer' }}
+                  >수정</button>
+                </div>
+
+                {/* Identity overlay at bottom of hero */}
+                <div style={{ position: 'absolute', bottom: '30px', left: '25px', right: '25px' }}>
+                  <div style={{ color: '#C9A84C', fontSize: '14px', fontWeight: 900, marginBottom: '6px' }}>{selectedBootcamp.genre}</div>
+                  <h1 style={{ fontSize: '34px', fontWeight: 950, color: '#FFF', margin: 0, letterSpacing: '-1px', textTransform: 'uppercase' }}>{selectedBootcamp.instructor}</h1>
+                </div>
+              </div>
+
+              {/* Content */}
+              <div style={{ padding: '0 25px', marginTop: '-10px', position: 'relative', zIndex: 40 }}>
+
+                {selectedBootcamp.title && (
+                  <div style={{ fontSize: '17px', fontWeight: 700, color: '#A1A1AA', marginBottom: '20px', marginTop: '10px' }}>{selectedBootcamp.title}</div>
+                )}
+
+                {/* Stat Grid */}
+                <div style={{ display: 'flex', gap: '8px', marginTop: '10px' }}>
+                  <StatCard label="START" value={selectedBootcamp.start_date?.slice(0, 10)} icon={<Calendar size={12} color="#C9A84C" />} />
+                  <StatCard label="END" value={selectedBootcamp.end_date?.slice(0, 10)} icon={<Calendar size={12} color="#C9A84C" />} />
+                  <StatCard label="VENUE" value={selectedBootcamp.venue || selectedBootcamp.region} icon={<MapPin size={12} color="#C9A84C" />} />
+                  <StatCard label="FEE" value={selectedBootcamp.fee || selectedBootcamp.fee} icon={<Zap size={12} color="#C9A84C" />} />
+                </div>
+
+                {/* Description */}
+                {selectedBootcamp.description && (
+                  <div style={{ marginTop: '30px', padding: '24px', borderRadius: '24px', background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.05)' }}>
+                    <h3 style={{ fontSize: '16px', fontWeight: 900, margin: '0 0 12px 0' }}>Description</h3>
+                    <p style={{ fontSize: '15px', color: '#A1A1AA', lineHeight: 1.6, whiteSpace: 'pre-wrap', margin: 0 }}>{selectedBootcamp.description}</p>
+                  </div>
+                )}
+
+                {/* Instagram / YouTube — shown only when values exist */}
+                {(selectedBootcamp.instagram || selectedBootcamp.youtube) && (
+                  <div style={{
+                    marginTop: '20px', padding: '18px', borderRadius: '20px',
+                    background: 'linear-gradient(145deg, rgba(24,24,24,0.7) 0%, rgba(12,12,12,0.9) 100%)',
+                    border: '1px solid rgba(201,168,76,0.2)', boxShadow: '0 12px 32px rgba(0,0,0,0.6)'
+                  }}>
+                    <div style={{ fontSize: '11px', fontWeight: 800, color: '#C9A84C', letterSpacing: '0.5px', marginBottom: '14px' }}>✨ CONNECT</div>
+                    <div style={{ display: 'flex', gap: '10px' }}>
+                      {selectedBootcamp.instagram && (
+                        <button
+                          onClick={() => window.open(selectedBootcamp.instagram, '_blank')}
+                          style={{
+                            flex: 1, padding: '14px 8px', borderRadius: '14px',
+                            border: '1px solid rgba(201,168,76,0.4)',
+                            background: 'linear-gradient(135deg, rgba(201,168,76,0.15) 0%, rgba(201,168,76,0.05) 100%)',
+                            color: '#E5C266', fontSize: '13px', fontWeight: 900, cursor: 'pointer', textAlign: 'center'
+                          }}
+                        >📸 INSTAGRAM</button>
+                      )}
+                      {selectedBootcamp.youtube && (
+                        <button
+                          onClick={() => window.open(selectedBootcamp.youtube, '_blank')}
+                          style={{
+                            flex: 1, padding: '14px 8px', borderRadius: '14px',
+                            border: '1px solid rgba(255,0,0,0.3)',
+                            background: 'linear-gradient(135deg, rgba(255,0,0,0.1) 0%, rgba(255,0,0,0.05) 100%)',
+                            color: '#FF4444', fontSize: '13px', fontWeight: 900, cursor: 'pointer', textAlign: 'center'
+                          }}
+                        >▶ YOUTUBE</button>
+                      )}
+                    </div>
+                  </div>
+                )}
+
+                {/* Booking Button */}
+                <button
+                  onClick={() => setShowBookingGuide(true)}
+                  style={{ width: '100%', marginTop: '20px', marginBottom: '60px', padding: '20px', borderRadius: '20px', background: 'linear-gradient(135deg, #C9A84C, #A68A3D)', color: '#000', fontWeight: 1000, fontSize: '18px', border: 'none', cursor: 'pointer' }}
+                >
+                  지금 예약하기
+                </button>
+              </div>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Booking Guide Modal */}
+      <AnimatePresence>
+        {showBookingGuide && (
+          <motion.div
+            initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+            style={{ position: 'fixed', inset: 0, zIndex: 6000, background: 'rgba(0,0,0,0.8)', backdropFilter: 'blur(10px)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '30px' }}
+          >
+            <div style={{ width: '100%', maxWidth: '400px', background: '#1A1A1A', borderRadius: '32px', padding: '40px 30px', textAlign: 'center', border: '1px solid #C9A84C' }}>
+              <Zap size={40} color="#C9A84C" style={{ marginBottom: '20px' }} />
+              <h3 style={{ fontSize: '22px', fontWeight: 900, color: '#fff', marginBottom: '15px' }}>예약 안내</h3>
+              <p style={{ color: '#94a3b8', lineHeight: 1.6, marginBottom: '25px' }}>
+                입금 시 성함 뒤에 <span style={{ color: '#C9A84C', fontWeight: 900 }}>'밤빠'</span>를 꼭 적어주세요!
+              </p>
+              <div
+                onClick={() => selectedBootcamp?.bank_info && navigator.clipboard.writeText(selectedBootcamp.bank_info)}
+                style={{ background: '#000', padding: '20px', borderRadius: '20px', marginBottom: '8px', textAlign: 'left', cursor: selectedBootcamp?.bank_info ? 'pointer' : 'default' }}
+              >
+                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 8 }}>
+                  <p style={{ fontSize: '11px', color: '#475569', fontWeight: 900 }}>ACCOUNT INFO</p>
+                  {selectedBootcamp?.bank_info && <span style={{ fontSize: '10px', color: '#C9A84C', fontWeight: 900 }}>탭하여 복사</span>}
+                </div>
+                <p style={{ fontSize: '16px', color: '#fff', fontWeight: 800, margin: 0 }}>{selectedBootcamp?.bank_info || '계좌 정보 없음'}</p>
+              </div>
+              <p style={{ fontSize: '12px', color: '#C9A84C', fontWeight: 800, marginBottom: '20px', textAlign: 'center' }}>✦ 탭하면 계좌번호가 복사됩니다</p>
+              <button
+                onClick={() => setShowBookingGuide(false)}
+                style={{ width: '100%', padding: '18px', borderRadius: '16px', background: '#C9A84C', color: '#000', fontWeight: 900, border: 'none', cursor: 'pointer' }}
+              >확인했습니다</button>
             </div>
           </motion.div>
         )}

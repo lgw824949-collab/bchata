@@ -676,7 +676,8 @@ function App() {
       const newHash = window.location.hash.replace('#', '');
       if (newHash && newHash !== view) {
         setView(newHash);
-      } else if (!newHash && view !== 'home') {
+      } else if (window.location.pathname === '/' && !newHash && view !== 'home') {
+        // Only navigate to home when the URL actually returned to '/'
         setView('home');
       }
     };
@@ -835,12 +836,9 @@ function App() {
       navigator.geolocation.getCurrentPosition(
         (pos) => {
           setUserCoords({ lat: pos.coords.latitude, lon: pos.coords.longitude });
-          console.log("Location obtained:", pos.coords.latitude, pos.coords.longitude);
         },
-        (err) => {
-          console.error("Location request error:", err);
-        },
-        { enableHighAccuracy: true, timeout: 5000, maximumAge: 0 }
+        () => {},
+        { enableHighAccuracy: false, timeout: 5000, maximumAge: 60000 }
       );
     }
   };
@@ -1092,7 +1090,7 @@ function App() {
            view === 'community' ? <Community setSelectedPoster={setSelectedPoster} setView={setView} /> :
            view === 'instructors' ? <Instructors followedInstructors={followedInstructors} setView={setView} /> :
            view === 'register-class' ? <InstructorRegister onBack={() => navigate('/instructors')} /> :
-           view === 'bootcamp' ? <Bootcamp onBack={() => navigate('/')} /> :
+           view === 'bootcamp' ? <Bootcamp onBack={() => window.history.back()} /> :
            view === 'bootcamp-register' ? <Bootcamp onBack={() => navigate('/bootcamp')} initialView="register" /> :
            view === 'festival' ? <Festival onBack={() => navigate('/')} /> :
            view === 'festival-register' ? <Festival onBack={() => navigate('/festival')} initialView="register" /> :
@@ -1373,12 +1371,13 @@ function App() {
         position: 'fixed', 
         bottom: '15px', 
         left: '50%',
-        transform: 'translateX(-50%)',
+        transform: `translateX(-50%) translateY(${navVisible ? '0' : '100px'})`,
+        transition: 'transform 0.35s cubic-bezier(0.4, 0, 0.2, 1)',
         width: '94%', 
         maxWidth: '460px', 
         height: '68px',
         background: '#0a0a0a',
-        borderRadius: '34px', // 완전한 캡슐형
+        borderRadius: '34px',
         display: 'flex', 
         alignItems: 'center', 
         justifyContent: 'space-between',
@@ -1423,14 +1422,14 @@ function App() {
         <motion.button
           whileTap={{ scale: 0.9 }}
           onClick={() => {
-            if (location.pathname === '/livepick') {
+            if (location.pathname === '/livepick' || view === 'community') {
               window.dispatchEvent(new CustomEvent('open-community-upload'));
-            } else if (location.pathname === '/instructors') {
+            } else if (location.pathname === '/instructors' || view === 'instructors') {
               setShowClassRegister(true);
-            } else if (location.pathname === '/bootcamp') {
+            } else if (location.pathname === '/bootcamp' || view === 'bootcamp' || view === 'bootcamp-register') {
               navigate('/bootcamp/register');
-            } else if (location.pathname === '/festival') {
-              navigate('/festival/register');
+            } else if (location.pathname === '/festival' || view === 'festival' || view === 'festival-register') {
+              // 페스티벌 등록은 페이지 내 버튼으로만 접근 (+ 버튼 비활성화)
             } else {
               navigate('/register-party');
             }

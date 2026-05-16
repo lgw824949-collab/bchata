@@ -1032,15 +1032,41 @@ const HomePage = ({
                     {/* HOT PICK 고퀄리티 개선 (자연스러운 속도로 한쪽으로 무한 이동하는 프리미엄 롤링 마퀴) */}
                     {newest8GlobalEvents.length > 0 && (
                       <div style={{ margin: '0 0 24px', padding: '15px 0 20px', background: 'var(--color-card)', borderBottom: '1px solid var(--color-border)', overflow: 'hidden' }}>
-                        <div style={{ padding: '0 20px 14px', display: 'flex', flexDirection: 'column', gap: '3px' }}>
-                          <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                            <h2 style={{ fontSize: '20px', fontWeight: '950', margin: 0, display: 'flex', alignItems: 'center', gap: '5px' }}>
-                              <span style={{ color: '#E53935' }}>HOT</span>
-                              <span style={{ color: '#1E293B' }}>PICK</span>
-                            </h2>
-                            {/* <span style={{ fontSize: '18px' }}>🔥</span> */}
+                        <div style={{ padding: '0 20px 14px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                          <div style={{ display: 'flex', flexDirection: 'column', gap: '3px' }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                              <h2 style={{ fontSize: '20px', fontWeight: '950', margin: 0, display: 'flex', alignItems: 'center', gap: '5px' }}>
+                                <span style={{ color: '#E53935' }}>HOT</span>
+                                <span style={{ color: '#1E293B' }}>PICK</span>
+                              </h2>
+                              {/* <span style={{ fontSize: '18px' }}>🔥</span> */}
+                            </div>
+                            <span style={{ fontSize: '12px', color: '#64748B', fontWeight: 600 }}>지금 가장 핫한 파티</span>
                           </div>
-                          <span style={{ fontSize: '12px', color: '#64748B', fontWeight: 600 }}>지금 가장 핫한 파티</span>
+                          {/* 컨시어지 버튼 */}
+                          <style>{`
+                            @keyframes dot-blink {
+                              0%, 100% { opacity: 1; }
+                              50% { opacity: 0.2; }
+                            }
+                            .concierge-dot { animation: dot-blink 1.5s ease-in-out infinite; }
+                          `}</style>
+                          <button
+                            onClick={() => window.dispatchEvent(new CustomEvent('open-chatbot'))}
+                            style={{
+                              display: 'flex', alignItems: 'center', gap: 6,
+                              padding: '8px 14px', borderRadius: 20,
+                              background: '#F8FAFC', border: '1px solid #E2E8F0',
+                              cursor: 'pointer', color: '#334155',
+                              fontSize: 12, fontWeight: 700,
+                            }}
+                          >
+                            <span className="concierge-dot" style={{
+                              width: 6, height: 6, borderRadius: '50%',
+                              background: '#E53935', display: 'inline-block', flexShrink: 0
+                            }} />
+                            Concierge
+                          </button>
                         </div>
                         <style>{`
                           .hot-pick-track-premium {
