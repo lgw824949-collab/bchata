@@ -670,11 +670,14 @@ const HomePage = ({
       <div style={{ padding: '4px 20px 12px', marginBottom: '24px' }}>
         {/* LiveCount를 감싸는 세련된 임팩트 컨테이너 및 전역 스타일 주입 */}
         <div className="live-count-premium-wrapper" style={{ 
-          background: '#0F172A', 
+          // background: '#0F172A', 
+          background: '#F8FAFC',
           borderRadius: '14px', 
           overflow: 'hidden', 
-          boxShadow: '0 4px 12px rgba(15, 23, 42, 0.15)',
-          border: '1px solid rgba(255, 255, 255, 0.05)'
+          // boxShadow: '0 4px 12px rgba(15, 23, 42, 0.15)',
+          boxShadow: '0 2px 8px rgba(15, 23, 42, 0.06)',
+          // border: '1px solid rgba(255, 255, 255, 0.05)'
+          border: '1px solid #E2E8F0'
         }}>
           <style>{`
             /* 햄버거 버튼 세련되게 축소 및 그림자 제거 (절대 규칙 완벽 준수 전역 오버라이드) */
@@ -713,7 +716,8 @@ const HomePage = ({
               margin-right: 4px !important;
             }
             .live-count-premium-wrapper .lc-name {
-              color: #F8FAFC !important;
+              /* color: #F8FAFC !important; */
+              color: #334155 !important;
               font-size: 13px !important;
               font-weight: 800 !important;
               font-family: inherit !important;
@@ -730,7 +734,8 @@ const HomePage = ({
               margin-left: 4px !important;
             }
             .live-count-premium-wrapper .lc-default {
-              color: #E2E8F0 !important;
+              /* color: #E2E8F0 !important; */
+              color: #64748B !important;
               font-size: 12px !important;
               font-weight: 700 !important;
               font-family: inherit !important;
@@ -743,7 +748,8 @@ const HomePage = ({
               margin-left: auto !important;
               display: flex !important;
               align-items: center !important;
-              background: rgba(255,255,255,0.06) !important;
+              /* background: rgba(255,255,255,0.06) !important; */
+              background: rgba(15, 23, 42, 0.06) !important;
               padding: 2px 4px !important;
               border-radius: 6px !important;
               gap: 2px !important;
@@ -784,10 +790,10 @@ const HomePage = ({
           { icon: <Calendar size={22} color="#F97316" />, label: '행사달력', action: () => setShowFullCalendar(true) },
           { icon: <Utensils size={22} color="#C2185B" />, label: '맛집뒷풀이', action: () => setView('restaurant') },
           { icon: <MessageSquare size={22} color="#388E3C" />, label: '채팅문의', action: () => window.open('https://open.kakao.com/o/gP43rNri', '_blank') },
-          { icon: <Camera size={22} color="#E53935" />, label: '라이브픽', badge: 'HOT', action: () => setView('community') },
+          { icon: <Camera size={22} color="#E53935" />, label: '라이브픽', /* badge: 'HOT', */ action: () => setView('community') },
           { icon: <CloudSun size={22} color="#1976D2" />, label: '오늘날씨', action: () => setShowWeather(true) },
           { icon: <Heart size={22} color="#7B1FA2" />, label: '찜하기', action: () => setShowWishlist(true) },
-          { icon: <Navigation size={22} color="#303F9F" />, label: '지능형경로', badge: 'LIVE', action: () => openAnalysis(false) },
+          { icon: <Navigation size={22} color="#303F9F" />, label: '지능형경로', /* badge: 'LIVE', */ action: () => openAnalysis(false) },
           { icon: <Star size={22} color="#F9A825" />, label: '운명의좌표', action: () => setShowSaju(true) },
           { icon: <MapPin size={22} color="#10B981" />, label: '위치·대관', action: () => setShowRentalModal(true) },
         ].map((item, idx) => (
@@ -1032,7 +1038,7 @@ const HomePage = ({
                               <span style={{ color: '#E53935' }}>HOT</span>
                               <span style={{ color: '#1E293B' }}>PICK</span>
                             </h2>
-                            <span style={{ fontSize: '18px' }}>🔥</span>
+                            {/* <span style={{ fontSize: '18px' }}>🔥</span> */}
                           </div>
                           <span style={{ fontSize: '12px', color: '#64748B', fontWeight: 600 }}>지금 가장 핫한 파티</span>
                         </div>
@@ -1081,10 +1087,11 @@ const HomePage = ({
                               >
                                 <img src={item.poster_url} style={{ width: '100%', height: '100%', objectFit: 'cover' }} alt="Pick" />
                                 
-                                {/* NEW 뱃지 표시 */}
+                                {/* NEW 뱃지 표시
                                 <div style={{ position: 'absolute', top: '8px', left: '8px', zIndex: 10, background: '#E53935', color: '#fff', fontSize: '10px', fontWeight: 900, padding: '3px 8px', borderRadius: '8px', boxShadow: '0 2px 4px rgba(0,0,0,0.2)' }}>
                                   NEW
                                 </div>
+                                */}
 
                                 {/* 하단 그라데이션 오버레이 (검정) */}
                                 <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, padding: '18px 10px 12px', background: 'linear-gradient(transparent, rgba(0,0,0,0.95))', color: 'white' }}>
@@ -1635,7 +1642,7 @@ const HomePage = ({
                     {[
                       { icon: <CloudSun size={32} color="#1976D2" />, label: '오늘날씨', action: () => setShowWeather(true) },
                       { icon: <Heart size={32} color="#7B1FA2" />, label: '찜하기', action: () => setShowWishlist(true) },
-                      { icon: <Navigation size={32} color="#303F9F" />, label: '지능형경로', badge: 'LIVE', action: () => openAnalysis(false) },
+                      { icon: <Navigation size={32} color="#303F9F" />, label: '지능형경로', /* badge: 'LIVE', */ action: () => openAnalysis(false) },
                       { icon: <Star size={32} color="#F9A825" />, label: '운명의좌표', action: () => setShowSaju(true) },
                       { icon: <MapPin size={32} color="#0097A7" />, label: '주변주차', action: () => setView('parking') },
                       { icon: <MessageSquare size={32} color="#388E3C" />, label: '채팅문의', action: () => window.open('https://open.kakao.com/o/gP43rNri', '_blank') },
