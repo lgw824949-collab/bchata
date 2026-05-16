@@ -710,6 +710,12 @@ function App() {
   const [showFilterPanel, setShowFilterPanel] = useState(false);
   const [showFilteredResults, setShowFilteredResults] = useState(false);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [showVipLogin, setShowVipLogin] = useState(false);
+  const [showVipMenu, setShowVipMenu] = useState(false);
+  const [vipLoggedIn, setVipLoggedIn] = useState(false);
+  const [vipLoginId, setVipLoginId] = useState('');
+  const [vipLoginPw, setVipLoginPw] = useState('');
+  const [vipLoginLoading, setVipLoginLoading] = useState(false);
   const [filterRegion, setFilterRegion] = useState('');
   const [filterGenre, setFilterGenre] = useState('');
   const [selectedMonth, setSelectedMonth] = useState(todayData.month);
@@ -759,8 +765,59 @@ function App() {
     setter(value);
   };
 
+  const handleVipLogout = () => {
+    setVipLoggedIn(false);
+    setShowVipMenu(false);
+    setShowVipLogin(false);
+    setVipLoginId('');
+    setVipLoginPw('');
+    localStorage.removeItem('vip_instructor_session');
+  };
+
+  const handleVipLoginSubmit = async () => {
+    const id = vipLoginId.trim();
+    const pw = vipLoginPw;
+    if (!id || !pw) {
+      alert('아이디와 비밀번호를 입력해주세요');
+      return;
+    }
+    setVipLoginLoading(true);
+    try {
+      const { data, error } = await supabase
+        .from('instructors')
+        .select('id, login_id')
+        .eq('login_id', id)
+        .eq('login_password', pw)
+        .eq('status', 'active')
+        .maybeSingle();
+      if (error || !data) {
+        alert('아이디 또는 비밀번호가 틀렸습니다');
+        return;
+      }
+      setVipLoggedIn(true);
+      localStorage.setItem('vip_instructor_session', JSON.stringify({ id: data.id, login_id: data.login_id }));
+      setShowVipLogin(false);
+      setShowVipMenu(true);
+      setVipLoginPw('');
+    } catch {
+      alert('아이디 또는 비밀번호가 틀렸습니다');
+    } finally {
+      setVipLoginLoading(false);
+    }
+  };
+
+  const openVipMasterFlow = () => {
+    if (vipLoggedIn) {
+      setShowVipMenu(true);
+    } else {
+      setShowVipLogin(true);
+    }
+  };
+
   const handleCloseModal = () => {
     setIsMenuOpen(false);
+    setShowVipLogin(false);
+    setShowVipMenu(false);
     setShowFullCalendar(false);
     setShowWeather(false);
     setShowWishlist(false);
@@ -862,6 +919,56 @@ function App() {
     window.addEventListener('refresh-sidebar', onRefresh);
     return () => window.removeEventListener('refresh-sidebar', onRefresh);
   }, []);
+
+  useEffect(() => {
+    try {
+      const raw = localStorage.getItem('vip_instructor_session');
+      if (raw) setVipLoggedIn(true);
+    } catch (_) { /* ignore */ }
+  }, []);
+
+  useEffect(() => {
+    const onOpenVip = () => openVipMasterFlow();
+    window.addEventListener('open-vip-master-login', onOpenVip);
+    return () => window.removeEventListener('open-vip-master-login', onOpenVip);
+  }, [vipLoggedIn]);
+
+  useEffect(() => {
+    if (view !== 'instructors') return undefined;
+    const bindMasterBtn = () => {
+      const btn = Array.from(document.querySelectorAll('button')).find(
+        (b) => b.textContent?.includes('마스터 전용') && !b.dataset.vipBound
+      );
+      if (!btn) return undefined;
+      btn.dataset.vipBound = '1';
+      const handler = (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        e.stopImmediatePropagation();
+        openVipMasterFlow();
+      };
+      btn.addEventListener('click', handler, true);
+      return () => {
+        delete btn.dataset.vipBound;
+        btn.removeEventListener('click', handler, true);
+      };
+    };
+    let cleanup = bindMasterBtn();
+    const t = setTimeout(() => {
+      if (cleanup) cleanup();
+      cleanup = bindMasterBtn() || cleanup;
+    }, 400);
+    const obs = new MutationObserver(() => {
+      if (cleanup) cleanup();
+      cleanup = bindMasterBtn() || cleanup;
+    });
+    obs.observe(document.body, { childList: true, subtree: true });
+    return () => {
+      clearTimeout(t);
+      obs.disconnect();
+      if (cleanup) cleanup();
+    };
+  }, [view, vipLoggedIn]);
 
   const fetchParties = async () => {
     setLoading(true);
@@ -1060,32 +1167,18 @@ function App() {
       >
       <AnimatePresence>{isAnalyzing && <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} style={{ position: 'fixed', inset: 0, zIndex: 1000000, background: 'rgba(255,255,255,0.9)', backdropFilter: 'blur(30px)', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}><motion.div animate={{ rotate: 360 }} transition={{ duration: 1, repeat: Infinity, ease: 'linear' }} style={{ width: '60px', height: '60px', border: '4px solid #FFEBEE', borderTop: '4px solid #E53935', borderRadius: '50%', marginBottom: '20px' }} /><h2 style={{ color: '#1E293B', fontSize: '20px', fontWeight: '900' }}>실시간 지능형 분석 중...</h2></motion.div>}</AnimatePresence>
 
+      {/* 햄버거 메뉴 버튼 — 비활성화
       {!isMenuOpen && (
         <motion.button 
           drag
-          dragConstraints={{ left: -450, right: 0, top: 0, bottom: 800 }}
-          dragMomentum={false}
-          dragElastic={0.05}
-          whileDrag={{ scale: 1.1 }}
-          whileTap={{ scale: 0.9 }}
-          onClick={() => {
-            navigate('/instructors');
-            handleOpenModal(setIsMenuOpen, true);
-          }}
-          style={{ 
-            position: 'fixed', top: '20px', right: '20px', zIndex: 1005,
-            background: 'rgba(255,255,255,0.95)', backdropFilter: 'blur(10px)',
-            border: '1px solid #F1F5F9', borderRadius: '14px', padding: '12px',
-            boxShadow: '0 8px 25px rgba(0,0,0,0.12)', cursor: 'pointer',
-            display: 'flex', alignItems: 'center', justifyContent: 'center'
-          }}
-        >
-          <Menu size={24} color={'#FF1744'} />
+          ...
         </motion.button>
       )}
+      */}
 
+      {/* 햄버거 드로어 — 비활성화 */}
       <AnimatePresence>
-        {isMenuOpen && (
+        {false && isMenuOpen && (
           <motion.div
             initial={{ x: '-100%' }}
             animate={{ x: 0 }}
@@ -1244,6 +1337,124 @@ function App() {
             <div style={{ marginTop: 'auto', paddingTop: '40px', textAlign: 'center' }}>
               <p style={{ color: '#64748B', fontSize: '11px', fontWeight: 700 }}>© 2026 BAMPPA VIP Lounge</p>
             </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {showVipLogin && (
+        <div
+          style={{ position: 'fixed', inset: 0, zIndex: 2000002, background: 'rgba(0,0,0,0.55)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20 }}
+          onClick={() => setShowVipLogin(false)}
+        >
+          <div
+            onClick={(e) => e.stopPropagation()}
+            style={{ width: '100%', maxWidth: 340, background: '#121212', borderRadius: 16, padding: 24, border: '1px solid rgba(201,168,76,0.35)' }}
+          >
+            <h3 style={{ margin: '0 0 8px', color: '#F8FAFC', fontSize: 18, fontWeight: 900 }}>마스터 로그인</h3>
+            <p style={{ margin: '0 0 20px', color: '#94A3B8', fontSize: 12, fontWeight: 600 }}>VIP INSTRUCTOR LOUNGE</p>
+            <input
+              type="text"
+              placeholder="아이디"
+              value={vipLoginId}
+              onChange={(e) => setVipLoginId(e.target.value)}
+              style={{ width: '100%', boxSizing: 'border-box', marginBottom: 10, padding: '12px 14px', borderRadius: 10, border: '1px solid rgba(201,168,76,0.25)', background: 'rgba(255,255,255,0.05)', color: '#fff', fontSize: 14 }}
+            />
+            <input
+              type="password"
+              placeholder="비밀번호"
+              value={vipLoginPw}
+              onChange={(e) => setVipLoginPw(e.target.value)}
+              onKeyDown={(e) => e.key === 'Enter' && handleVipLoginSubmit()}
+              style={{ width: '100%', boxSizing: 'border-box', marginBottom: 16, padding: '12px 14px', borderRadius: 10, border: '1px solid rgba(201,168,76,0.25)', background: 'rgba(255,255,255,0.05)', color: '#fff', fontSize: 14 }}
+            />
+            <button
+              type="button"
+              disabled={vipLoginLoading}
+              onClick={handleVipLoginSubmit}
+              style={{ width: '100%', padding: 14, borderRadius: 12, border: 'none', background: '#C9A84C', color: '#121212', fontSize: 15, fontWeight: 900, cursor: vipLoginLoading ? 'wait' : 'pointer', opacity: vipLoginLoading ? 0.7 : 1 }}
+            >
+              {vipLoginLoading ? '확인 중...' : '로그인'}
+            </button>
+          </div>
+        </div>
+      )}
+
+      <AnimatePresence>
+        {showVipMenu && vipLoggedIn && (
+          <motion.div
+            initial={{ x: '-100%' }}
+            animate={{ x: 0 }}
+            exit={{ x: '-100%' }}
+            transition={{ type: 'spring', damping: 25, stiffness: 200 }}
+            style={{
+              position: 'fixed', top: 0, bottom: 0, left: 0,
+              width: '75vw', maxWidth: '320px',
+              zIndex: 2000001,
+              background: '#121212', padding: '24px',
+              display: 'flex', flexDirection: 'column',
+              overflowY: 'auto',
+              borderRight: '1px solid rgba(201,168,76,0.3)',
+              color: '#fff',
+            }}
+          >
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24 }}>
+              <motion.button
+                type="button"
+                whileTap={{ scale: 0.9 }}
+                onClick={handleVipLogout}
+                style={{ padding: '8px 14px', borderRadius: 10, border: '1px solid rgba(201,168,76,0.35)', background: 'rgba(201,168,76,0.12)', color: '#C9A84C', fontSize: 12, fontWeight: 800, cursor: 'pointer' }}
+              >
+                로그아웃
+              </motion.button>
+              <motion.button
+                type="button"
+                whileTap={{ scale: 0.9 }}
+                onClick={() => setShowVipMenu(false)}
+                style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(201,168,76,0.3)', borderRadius: 12, padding: 10, color: '#C9A84C', cursor: 'pointer' }}
+              >
+                <ChevronLeft size={24} />
+              </motion.button>
+            </div>
+            <motion.div style={{ marginBottom: 32 }}>
+              <h2 style={{ color: '#F8FAFC', fontSize: 22, fontWeight: 900, margin: 0, display: 'flex', alignItems: 'center', gap: 8 }}>
+                <span style={{ color: '#C9A84C' }}>🌟</span> 마스터 전용 메뉴
+              </h2>
+              <p style={{ color: '#C9A84C', fontSize: 13, marginTop: 4, fontWeight: 700, letterSpacing: '0.5px' }}>VIP INSTRUCTOR LOUNGE</p>
+            </motion.div>
+            <motion.div style={{ fontSize: 11, fontWeight: 900, color: '#94A3B8', marginBottom: 12, letterSpacing: '1px' }}>VIP NAVIGATION</motion.div>
+            <motion.div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+              {[
+                { icon: <span style={{ fontSize: 20, lineHeight: 1 }}>📋</span>, text: '수강생 관리' },
+                { icon: <span style={{ fontSize: 20, lineHeight: 1 }}>💰</span>, text: '수입 집계' },
+                { icon: <span style={{ fontSize: 20, lineHeight: 1 }}>📅</span>, text: '내 클래스 일정' },
+                { icon: <span style={{ fontSize: 20, lineHeight: 1 }}>📊</span>, text: '내 프로필 통계' },
+                { icon: <span style={{ fontSize: 20, lineHeight: 1 }}>📢</span>, text: '공지 보내기' },
+              ].map((item, idx) => (
+                <motion.div
+                  key={idx}
+                  whileHover={{ scale: 1.02, backgroundColor: 'rgba(255,255,255,0.08)' }}
+                  whileTap={{ scale: 0.98 }}
+                  onClick={() => { setShowVipMenu(false); alert('준비 중입니다 🔧'); }}
+                  style={{
+                    background: 'rgba(255,255,255,0.03)',
+                    border: '1px solid rgba(201,168,76,0.2)',
+                    borderRadius: 14,
+                    padding: '16px 20px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 16,
+                    cursor: 'pointer',
+                    boxShadow: '0 4px 15px rgba(0,0,0,0.2)',
+                  }}
+                >
+                  <motion.div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>{item.icon}</motion.div>
+                  <span style={{ color: '#F8FAFC', fontSize: 15, fontWeight: 800 }}>{item.text}</span>
+                </motion.div>
+              ))}
+            </motion.div>
+            <motion.div style={{ marginTop: 'auto', paddingTop: 40, textAlign: 'center' }}>
+              <p style={{ color: '#64748B', fontSize: 11, fontWeight: 700 }}>© 2026 BAMPPA VIP Lounge</p>
+            </motion.div>
           </motion.div>
         )}
       </AnimatePresence>
