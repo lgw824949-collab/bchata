@@ -1591,8 +1591,12 @@ const HomePage = ({
                                   flexDirection: 'row',
                                   overflowX: 'scroll',
                                   touchAction: 'pan-x',
-                                  gap: '16px',
-                                  padding: '10px 20px 40px',
+                                  gap: '12px',
+                                  paddingTop: '10px',
+                                  paddingRight: '16px',
+                                  paddingBottom: '40px',
+                                  paddingLeft: '16px',
+                                  scrollPaddingLeft: '16px',
                                   msOverflowStyle: 'none',
                                   scrollbarWidth: 'none',
                                   WebkitOverflowScrolling: 'touch',
@@ -2156,6 +2160,9 @@ const HomePage = ({
         .region-scroll-container {
           overflow-x: scroll;
           touch-action: pan-x;
+          scroll-behavior: smooth;
+          -webkit-overflow-scrolling: touch;
+          scroll-snap-type: x mandatory;
         }
         .region-scroll-container::-webkit-scrollbar { display: none; }
         .party-carousel-card {
