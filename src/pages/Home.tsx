@@ -773,6 +773,7 @@ const HomePage = ({
   };
 
   const [isPaused, setIsPaused] = useState(false);
+  const [myInstructorsOpen, setMyInstructorsOpen] = useState(false);
 
   // [사용자 요청] 파티 카드 찜하기 상태 및 토글 핸들러
   const [wishlistParties, setWishlistParties] = useState(() => {
@@ -1171,22 +1172,20 @@ const HomePage = ({
             <span style={{ fontSize: 13, fontWeight: 800, color: '#1E293B' }}>내 강사</span>
             <button
               type="button"
-              onClick={() => {
-                localStorage.removeItem('selected_instructor_id');
-                localStorage.setItem('instructor_target_genre', '전체');
-                setView('instructors');
-                window.history.pushState({}, '', '/instructors');
-                window.dispatchEvent(new PopStateEvent('popstate'));
-              }}
+              onClick={() => setMyInstructorsOpen((open) => !open)}
               style={{
-                padding: '5px 10px', borderRadius: 8, border: '1px solid #E2E8F0',
-                background: '#fff', color: '#64748B', fontSize: 11, fontWeight: 700, cursor: 'pointer',
+                padding: '5px 10px', borderRadius: 8,
+                border: myInstructorsOpen ? '1px solid #C9A84C' : '1px solid #E2E8F0',
+                background: myInstructorsOpen ? 'rgba(201,168,76,0.12)' : '#fff',
+                color: myInstructorsOpen ? '#B8860B' : '#64748B',
+                fontSize: 11, fontWeight: 700, cursor: 'pointer',
               }}
             >
-              전체 보기
+              {myInstructorsOpen ? '닫기' : '전체 보기'}
             </button>
           </div>
-          <div style={{ display: 'flex', gap: 12, overflowX: 'auto', scrollbarWidth: 'none', msOverflowStyle: 'none', paddingBottom: 2 }}>
+          {myInstructorsOpen && (
+          <motion.div style={{ display: 'flex', gap: 12, overflowX: 'auto', scrollbarWidth: 'none', msOverflowStyle: 'none', paddingBottom: 2 }}>
             {followedInstructors.map((inst) => (
               <motion.div
                 key={inst.id}
@@ -1207,7 +1206,8 @@ const HomePage = ({
                 </span>
               </motion.div>
             ))}
-          </div>
+          </motion.div>
+          )}
         </div>
       )}
 

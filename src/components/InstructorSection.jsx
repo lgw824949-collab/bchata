@@ -341,6 +341,13 @@ const InstructorSection = () => {
     [instructors, follows]
   );
 
+  const isFollowingFilterOpen = selectedGenre === '⭐ 내 팔로잉';
+
+  const toggleFollowingFilter = () => {
+    setSelectedGenre((prev) => (prev === '⭐ 내 팔로잉' ? '전체' : '⭐ 내 팔로잉'));
+    setVisibleCount(20);
+  };
+
   const isFiltering = selectedGenre !== '전체' || selectedCity !== '전국' || searchQuery.trim() !== '';
 
   const filteredInstructors = instructors.filter(i => {
@@ -421,13 +428,15 @@ const InstructorSection = () => {
             <span style={{ fontSize: '14px', fontWeight: 950, color: '#F8FAFC' }}>내 강사</span>
             <button
               type="button"
-              onClick={() => { setSelectedGenre('⭐ 내 팔로잉'); setVisibleCount(20); }}
+              onClick={toggleFollowingFilter}
               style={{
-                padding: '6px 12px', borderRadius: '10px', border: '1px solid rgba(201,168,76,0.35)',
-                background: 'rgba(201,168,76,0.1)', color: '#C9A84C', fontSize: '11px', fontWeight: 800, cursor: 'pointer',
+                padding: '6px 12px', borderRadius: '10px',
+                border: isFollowingFilterOpen ? '1px solid #C9A84C' : '1px solid rgba(201,168,76,0.35)',
+                background: isFollowingFilterOpen ? 'rgba(201,168,76,0.25)' : 'rgba(201,168,76,0.1)',
+                color: '#C9A84C', fontSize: '11px', fontWeight: 800, cursor: 'pointer',
               }}
             >
-              전체 보기
+              {isFollowingFilterOpen ? '닫기' : '전체 보기'}
             </button>
           </motion.div>
           <div className="hide-scrollbar" style={{ display: 'flex', gap: '14px', overflowX: 'auto', scrollbarWidth: 'none', msOverflowStyle: 'none', paddingBottom: 4 }}>
@@ -507,7 +516,14 @@ const InstructorSection = () => {
           {GENRE_TABS.map(g => (
             <button
               key={g}
-              onClick={() => { setSelectedGenre(g); setVisibleCount(20); }}
+              onClick={() => {
+                if (g === '⭐ 내 팔로잉' && selectedGenre === g) {
+                  setSelectedGenre('전체');
+                } else {
+                  setSelectedGenre(g);
+                }
+                setVisibleCount(20);
+              }}
               style={{
                 padding: '8px 16px', borderRadius: '20px', border: 'none', whiteSpace: 'nowrap',
                 background: selectedGenre === g ? 'rgba(201,168,76,0.15)' : 'rgba(255,255,255,0.03)',
