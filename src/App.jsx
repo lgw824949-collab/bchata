@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo, useRef, lazy, Suspense } from 'react'
-import { Home as HomeIcon, Users, Plus, LogOut, Heart, X, MessageSquare, RefreshCw, CloudSun, Utensils, Zap, Languages, Bell, Star, Navigation, CreditCard, Settings, Map as MapIcon, BarChart, Gift, Coffee, User, Menu, Music2, Tent, Flag, Download, Globe, ShieldCheck, Calendar, Camera, ChevronLeft, ChevronRight, Loader2, Search, Share2, Copy } from 'lucide-react'
+import { Home as HomeIcon, Users, Plus, LogOut, Heart, X, MessageSquare, RefreshCw, CloudSun, Utensils, Zap, Languages, Bell, Star, Navigation, CreditCard, Settings, Map as MapIcon, BarChart, BarChart2, Gift, Coffee, User, Menu, Music2, Tent, Flag, Download, Globe, ShieldCheck, Calendar, CalendarDays, Camera, ChevronLeft, ChevronRight, Loader2, Search, Share2, Copy, TrendingUp } from 'lucide-react'
 import { useTranslation } from 'react-i18next';
 import { motion, AnimatePresence } from 'framer-motion'
 import { supabase, logActivity } from './lib/supabase'
@@ -1562,11 +1562,11 @@ function App() {
             <motion.div style={{ fontSize: 11, fontWeight: 900, color: '#94A3B8', marginBottom: 12, letterSpacing: '1px' }}>VIP NAVIGATION</motion.div>
             <motion.div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
               {[
-                { icon: <span style={{ fontSize: 20, lineHeight: 1 }}>📋</span>, text: '수강생 관리' },
-                { icon: <span style={{ fontSize: 20, lineHeight: 1 }}>💰</span>, text: '수입 집계' },
-                { icon: <span style={{ fontSize: 20, lineHeight: 1 }}>📅</span>, text: '내 클래스 일정' },
-                { icon: <span style={{ fontSize: 20, lineHeight: 1 }}>📊</span>, text: '내 프로필 통계' },
-                { icon: <span style={{ fontSize: 20, lineHeight: 1 }}>📢</span>, text: '공지 보내기' },
+                { icon: <Users size={20} color="#C9A84C" />, text: '수강생 관리' },
+                { icon: <TrendingUp size={20} color="#C9A84C" />, text: '수입 집계' },
+                { icon: <CalendarDays size={20} color="#C9A84C" />, text: '내 클래스 일정' },
+                { icon: <BarChart2 size={20} color="#C9A84C" />, text: '내 프로필 통계' },
+                { icon: <Bell size={20} color="#C9A84C" />, text: '공지 보내기' },
               ].map((item, idx) => (
                 <motion.div
                   key={idx}
