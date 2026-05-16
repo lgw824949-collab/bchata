@@ -502,7 +502,7 @@ const LiveExposureStrip = ({ pool, selectedDate, todayStr, onSelect, cleanTitle,
           animate={{ opacity: 1, y: 0 }}
           exit={{ opacity: 0, y: -6 }}
           transition={{ duration: 0.55, ease: 'easeOut' }}
-          style={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'center', gap: 16 }}
+          style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}
         >
           {featured.map((item) => {
             const title = cleanTitle(item.title || '')
@@ -525,15 +525,15 @@ const LiveExposureStrip = ({ pool, selectedDate, todayStr, onSelect, cleanTitle,
                   textAlign: 'left',
                   display: 'flex',
                   flexDirection: 'column',
-                  alignItems: 'center',
-                  width: 160,
-                  flexShrink: 0,
+                  alignItems: 'stretch',
+                  width: '100%',
+                  minWidth: 0,
                 }}
               >
-                <div
+                <motion.div
                   style={{
-                    width: 160,
-                    height: 220,
+                    width: '100%',
+                    height: 200,
                     flexShrink: 0,
                     overflow: 'hidden',
                     background: '#111',
@@ -553,8 +553,8 @@ const LiveExposureStrip = ({ pool, selectedDate, todayStr, onSelect, cleanTitle,
                       display: 'block',
                     }}
                   />
-                </div>
-                <div style={{ width: 160, padding: '8px 0 0', boxSizing: 'border-box' }}>
+                </motion.div>
+                <div style={{ width: '100%', padding: '8px 0 0', boxSizing: 'border-box' }}>
                   <motion.div
                     style={{
                       fontSize: 10,
