@@ -306,7 +306,7 @@ const RegisterForm = ({ onBack, onSuccess, isEdit = false, initialData = null })
 
   if (submitted) {
     return (
-      <div style={{ position: 'fixed', inset: 0, zIndex: 1000000, background: 'rgba(0,0,0,0.8)', backdropFilter: 'blur(10px)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px' }}>
+      <motion.div style={{ position: 'fixed', inset: 0, zIndex: 2200000, background: 'rgba(0,0,0,0.8)', backdropFilter: 'blur(10px)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px' }}>
         <motion.div initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} style={{ background: '#fff', borderRadius: '32px', padding: '40px', width: '100%', maxWidth: '400px', textAlign: 'center' }}>
           <div style={{ backgroundColor: '#FF1744', width: '80px', height: '80px', borderRadius: '40px', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 24px' }}>
             <Check size={40} color="white" />
@@ -315,7 +315,7 @@ const RegisterForm = ({ onBack, onSuccess, isEdit = false, initialData = null })
           <p style={{ fontSize: '16px', color: '#64748B', lineHeight: '1.6', marginBottom: '32px' }}>지금 즉시 메인 화면에 게시되었습니다.</p>
           <button onClick={onSuccess || onBack} style={{ width: '100%', padding: '20px', background: '#FF1744', color: 'white', borderRadius: '16px', fontWeight: 900, fontSize: '18px', border: 'none' }}>확인</button>
         </motion.div>
-      </div>
+      </motion.div>
     )
   }
 
@@ -511,14 +511,14 @@ const RegisterForm = ({ onBack, onSuccess, isEdit = false, initialData = null })
   }
 
   return (
-    <div style={{ position: 'fixed', inset: 0, zIndex: 10000, display: 'flex', alignItems: 'flex-end', justifyContent: 'center' }}>
+    <motion.div style={{ position: 'fixed', inset: 0, zIndex: 2200000, display: 'flex', alignItems: 'flex-end', justifyContent: 'center' }}>
       <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={onBack} style={{ position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.6)', backdropFilter: 'blur(5px)' }} />
       <motion.div 
         initial={{ y: '100%' }} 
         animate={{ y: 0 }} 
         exit={{ y: '100%' }} 
         transition={{ type: 'spring', damping: 25, stiffness: 300 }}
-        style={{ position: 'relative', width: '100%', maxWidth: '500px', background: '#fff', borderRadius: '32px 32px 0 0', maxHeight: '95vh', overflow: 'hidden', display: 'flex', flexDirection: 'column' }}
+        style={{ position: 'relative', width: '100%', maxWidth: '500px', background: '#fff', borderRadius: '32px 32px 0 0', maxHeight: 'calc(100dvh - env(safe-area-inset-top))', overflow: 'hidden', display: 'flex', flexDirection: 'column', boxShadow: '0 -8px 40px rgba(0,0,0,0.15)' }}
       >
         <div style={{ padding: '20px', borderBottom: '1px solid #F1F5F9', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
           <button onClick={() => { if(step > 1) setStep(step - 1); else onBack(); }} style={{ border: 'none', background: 'none', color: '#1E293B' }}><ChevronLeft size={24} /></button>
@@ -536,7 +536,15 @@ const RegisterForm = ({ onBack, onSuccess, isEdit = false, initialData = null })
           </AnimatePresence>
         </div>
 
-        <div style={{ padding: '20px', borderTop: '1px solid #F1F5F9', display: 'flex', gap: '12px' }}>
+        <div style={{
+          padding: '20px',
+          paddingBottom: 'calc(20px + env(safe-area-inset-bottom))',
+          borderTop: '1px solid #F1F5F9',
+          display: 'flex',
+          gap: '12px',
+          flexShrink: 0,
+          background: '#fff',
+        }}>
           {step > 1 && <button onClick={() => setStep(step - 1)} style={{ flex: 1, height: '60px', borderRadius: '18px', background: '#F1F5F9', color: '#64748B', fontWeight: 900, border: 'none' }}>이전</button>}
           <button 
             onClick={() => { if(step < TOTAL_STEPS) setStep(step + 1); else handleSubmit(); }} 
@@ -547,7 +555,7 @@ const RegisterForm = ({ onBack, onSuccess, isEdit = false, initialData = null })
           </button>
         </div>
       </motion.div>
-    </div>
+    </motion.div>
   )
 }
 
