@@ -322,9 +322,9 @@ const LiveExposureStrip = ({ pool, selectedDate, todayStr, onSelect, cleanTitle,
                       >
                         {translateDynamicText(title, isEn)}
                       </motion.div>
-                    </motion.div>
-                  </motion.div>
-                </motion.div>
+                    </div>
+                  </div>
+                </div>
               </button>
             );
           })}
