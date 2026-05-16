@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo, useRef, lazy, Suspense } from 'react'
-import { Home as HomeIcon, Users, Plus, LogOut, Heart, X, MessageSquare, RefreshCw, CloudSun, Utensils, Zap, Languages, Bell, Star, Navigation, CreditCard, Settings, Map as MapIcon, BarChart, Gift, Coffee, User, Menu, Music2, Tent, Flag, Download, Globe, ShieldCheck, Calendar, Camera, ChevronLeft, ChevronRight, Loader2, Search } from 'lucide-react'
+import { Home as HomeIcon, Users, Plus, LogOut, Heart, X, MessageSquare, RefreshCw, CloudSun, Utensils, Zap, Languages, Bell, Star, Navigation, CreditCard, Settings, Map as MapIcon, BarChart, Gift, Coffee, User, Menu, Music2, Tent, Flag, Download, Globe, ShieldCheck, Calendar, Camera, ChevronLeft, ChevronRight, Loader2, Search, Share2, Copy } from 'lucide-react'
 import { useTranslation } from 'react-i18next';
 import { motion, AnimatePresence } from 'framer-motion'
 import { supabase, logActivity } from './lib/supabase'
@@ -76,10 +76,16 @@ const CITY_MAP_EN = {
   '의정부': 'Uijeongbu', '안산': 'Ansan', '고양': 'Goyang', '용인': 'Yongin', '부천': 'Bucheon'
 };
 
+const SHARE_HOME_URL = () => `${window.location.origin}/`;
+
 // [포스터 줌 전용 컴포넌트 - 전역 분리]
-const PosterModal = ({ src, onClose }) => {
+const PosterModal = ({ src, onClose, shareTitle, shareDesc }) => {
   const imgRef = useRef();
-  
+
+  const resolvedTitle = shareTitle?.trim() || '오늘밤빠 — 전국 라틴·소셜 파티';
+  const resolvedDesc = shareDesc?.trim() || '전국 플로어 정보는 앱에서 한눈에!';
+  const linkUrl = SHARE_HOME_URL();
+
   const onUpdate = ({ x, y, scale }) => {
     if (imgRef.current) {
       imgRef.current.style.transform = make3dTransformValue({ x, y, scale });
@@ -100,6 +106,99 @@ const PosterModal = ({ src, onClose }) => {
       console.error('Save failed:', err);
       window.open(src, '_blank');
     }
+  };
+
+  const absoluteImageUrl = (() => {
+    if (!src) return '';
+    if (/^https?:\/\//i.test(src)) return src;
+    return `${window.location.origin}${src.startsWith('/') ? '' : '/'}${src}`;
+  })();
+
+  const handleCopyLink = async () => {
+    try {
+      await navigator.clipboard.writeText(linkUrl);
+    } catch (e) {
+      window.prompt('링크를 복사하세요:', linkUrl);
+    }
+  };
+
+  const handleNativeShare = async () => {
+    const sharePayload = {
+      title: resolvedTitle,
+      text: `${resolvedDesc}\n${linkUrl}`,
+      url: linkUrl,
+    };
+    try {
+      if (navigator.share) {
+        if (navigator.canShare && absoluteImageUrl) {
+          try {
+            const res = await fetch(src);
+            const blob = await res.blob();
+            const ext = blob.type?.includes('png') ? 'png' : 'jpg';
+            const file = new File([blob], `poster.${ext}`, { type: blob.type || 'image/jpeg' });
+            const withFile = { ...sharePayload, files: [file] };
+            if (navigator.canShare(withFile)) {
+              await navigator.share(withFile);
+              return;
+            }
+          } catch (_) { /* fall through */ }
+        }
+        await navigator.share(sharePayload);
+      } else {
+        await handleCopyLink();
+      }
+    } catch (err) {
+      if (err?.name !== 'AbortError') console.error(err);
+    }
+  };
+
+  const handleKakaoShare = () => {
+    if (!window.Kakao) {
+      handleCopyLink();
+      return;
+    }
+    const k = import.meta.env.VITE_KAKAO_API_KEY;
+    if (!k) {
+      handleCopyLink();
+      return;
+    }
+    if (!window.Kakao.isInitialized()) {
+      window.Kakao.init(k);
+    }
+    window.Kakao.Share.sendDefault({
+      objectType: 'feed',
+      content: {
+        title: resolvedTitle,
+        description: `${resolvedDesc}\n${linkUrl}`,
+        imageUrl: absoluteImageUrl || `${window.location.origin}/logo.png`,
+        link: {
+          mobileWebUrl: linkUrl,
+          webUrl: linkUrl,
+        },
+      },
+      buttons: [
+        {
+          title: '파티 보러가기',
+          link: { mobileWebUrl: linkUrl, webUrl: linkUrl },
+        },
+      ],
+    });
+  };
+
+  const btnRound = {
+    background: 'rgba(255,255,255,0.12)',
+    color: 'white',
+    width: '48px',
+    height: '48px',
+    borderRadius: '50%',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    border: '1px solid rgba(255,255,255,0.35)',
+    cursor: 'pointer',
+    backdropFilter: 'blur(8px)',
+    boxShadow: '0 4px 15px rgba(0,0,0,0.3)',
+    flexShrink: 0,
   };
 
   return (
@@ -166,25 +265,46 @@ const PosterModal = ({ src, onClose }) => {
         </QuickPinchZoom>
       </div>
       
-      {/* 하단 저장 버튼 */}
-      <div style={{ position: 'absolute', bottom: 'calc(40px + env(safe-area-inset-bottom))', left: '50%', transform: 'translateX(-50%)', zIndex: 100002 }}>
-        <button 
-          onClick={handleSave}
-          style={{ 
-            background: 'rgba(255,255,255,0.1)',
-            color: 'white',
-            width: '48px',
-            height: '48px',
-            borderRadius: '50%',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            border: '1px solid rgba(255,255,255,0.3)',
-            cursor: 'pointer',
-            backdropFilter: 'blur(5px)',
-            boxShadow: '0 4px 15px rgba(0,0,0,0.3)'
+      {/* 하단: 공유 · 카카오 · 링크복사 · 저장 (A안: 공유 URL은 항상 사이트 홈) */}
+      <div style={{
+        position: 'absolute',
+        bottom: 'calc(28px + env(safe-area-inset-bottom))',
+        left: '50%',
+        transform: 'translateX(-50%)',
+        zIndex: 100002,
+        display: 'flex',
+        alignItems: 'center',
+        gap: '10px',
+        maxWidth: '96vw',
+        flexWrap: 'wrap',
+        justifyContent: 'center',
+      }}>
+        <button type="button" onClick={handleNativeShare} title="공유" style={btnRound}>
+          <Share2 size={20} />
+        </button>
+        <button
+          type="button"
+          onClick={handleKakaoShare}
+          title="카카오톡"
+          style={{
+            ...btnRound,
+            background: '#FEE500',
+            color: '#3C1E1E',
+            border: '1px solid rgba(60,30,30,0.25)',
+            fontSize: '11px',
+            fontWeight: 900,
+            width: 'auto',
+            minWidth: '48px',
+            padding: '0 12px',
+            borderRadius: '24px',
           }}
         >
+          Kakao
+        </button>
+        <button type="button" onClick={handleCopyLink} title="홈 링크 복사" style={btnRound}>
+          <Copy size={20} />
+        </button>
+        <button type="button" onClick={handleSave} title="이미지 저장" style={btnRound}>
           <Download size={22} />
         </button>
       </div>
@@ -885,6 +1005,17 @@ function App() {
     logActivity: () => {}, regionalTheme: { welcomeMsg: "전국 댄서들을 위한 실시간 정보", specialBanner: true }
   };
 
+  // 파티/클래스/부트캠프/페스티벌 등록 중에는 하단 네비 숨김 (등록 폼 버튼 가림 방지)
+  const hideBottomNav =
+    view === 'register-party' ||
+    view === 'register-class' ||
+    view === 'bootcamp-register' ||
+    view === 'festival-register' ||
+    location.pathname === '/register-party' ||
+    location.pathname === '/register-class' ||
+    location.pathname === '/bootcamp/register' ||
+    location.pathname === '/festival/register';
+
   return (
     <>
     <div style={{ 
@@ -1096,7 +1227,8 @@ function App() {
            view === 'festival-register' ? <Festival onBack={() => navigate('/festival')} initialView="register" /> :
            view === 'parking' ? <Parking onBack={() => navigate('/')} /> :
            view === 'restaurant' ? <Restaurant onBack={() => navigate('/')} /> :
-           view === 'register-party' ? <RegisterForm onBack={() => navigate('/')} initialData={{ date: selectedDate }} /> :
+           /* register-party: main 밖 최상위에서 렌더 (하단 네비 z-index 충돌 방지) */
+           view === 'register-party' ? null :
            view === 'admin' ? <AdminDashboard setView={setView} onBack={() => setView('admin-portal')} refreshData={fetchParties} /> :
            view === 'admin-portal' ? (
                 <div style={{ 
@@ -1248,7 +1380,15 @@ function App() {
                             const matchesGenre = filterGenre ? p[GENRE_MAP[filterGenre]?.key] > 0 : true;
                             return p.date === selectedDate && matchesRegion && matchesGenre;
                           }).map(item => (
-                            <div key={item.id} onClick={() => setSelectedPoster(item.poster_url)} style={{ background: '#F8FAFC', borderRadius: '16px', padding: '12px', display: 'flex', gap: '15px', border: '1px solid #EDF2F7', cursor: 'pointer' }}>
+                            <div key={item.id} onClick={() => {
+                              window.history.pushState({ modal: true }, '');
+                              const t = (item.title || '').split(' ㅣ ')[0].replace(/^\[.*?\]\s*/, '').trim();
+                              setSelectedPoster({
+                                src: item.poster_url,
+                                title: t || undefined,
+                                desc: [item.date, item.location_name || item.region, item.fee || item.price_info].filter(Boolean).join(' · ') || undefined,
+                              });
+                            }} style={{ background: '#F8FAFC', borderRadius: '16px', padding: '12px', display: 'flex', gap: '15px', border: '1px solid #EDF2F7', cursor: 'pointer' }}>
                               <img src={item.poster_url} style={{ width: '80px', height: '100px', objectFit: 'cover', borderRadius: '10px' }} alt="Poster" />
                               <div style={{ flex: 1 }}>
                                 <div style={{ fontSize: '11px', color: '#FF1744', fontWeight: 800 }}>{item.displayBroadRegion}</div>
@@ -1349,6 +1489,15 @@ function App() {
     {/* [B] [포스터 확대 모달 - 컨테이너 외부 최상위 배치] */}
     {showPartner && <PartnerModal onClose={() => setShowPartner(false)} />}
     {showClassRegister && <ClassRegisterModal onClose={() => setShowClassRegister(false)} />}
+    {view === 'register-party' && (
+      <Suspense fallback={<LoadingFallback />}>
+        <RegisterForm
+          onBack={() => navigate('/')}
+          onSuccess={() => { fetchParties(); navigate('/'); }}
+          initialData={{ date: selectedDate }}
+        />
+      </Suspense>
+    )}
     <AnimatePresence>
       {selectedPoster && (
         <motion.div
@@ -1358,13 +1507,16 @@ function App() {
           style={{ position: 'fixed', inset: 0, zIndex: 2000000 }}
         >
           <PosterModal 
-            src={selectedPoster} 
+            src={selectedPoster.src} 
+            shareTitle={selectedPoster.title}
+            shareDesc={selectedPoster.desc}
             onClose={() => setSelectedPoster(null)} 
           />
         </motion.div>
       )}
     </AnimatePresence>
     {/* [Premium Floating Capsule Navigation - Root Level Persistence] */}
+    {!hideBottomNav && (
     <nav 
       className="bottom-nav" 
       style={{ 
@@ -1473,6 +1625,7 @@ function App() {
         </span>
       </div>
     </nav>
+    )}
     <ChatBot />
     </>
   );
