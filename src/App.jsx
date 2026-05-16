@@ -166,8 +166,8 @@ const PosterModal = ({ src, onClose, shareTitle, shareDesc }) => {
   const btnRound = {
     background: 'rgba(0,0,0,0.5)',
     color: 'white',
-    width: '48px',
-    height: '48px',
+    width: '36px',
+    height: '36px',
     borderRadius: '50%',
     display: 'flex',
     alignItems: 'center',
@@ -178,33 +178,82 @@ const PosterModal = ({ src, onClose, shareTitle, shareDesc }) => {
   };
 
   return (
-    <div style={{ 
+    <motion.div style={{ 
       position:'fixed', 
       inset:0, 
       zIndex:2000000, 
       backgroundColor:'#000', 
-      display:'block',
-      height: '100dvh', // 모바일 브라우저 주소창 고려
-      paddingTop: 'env(safe-area-inset-top)',
-      paddingBottom: 'env(safe-area-inset-bottom)'
+      display:'flex',
+      flexDirection:'column',
+      height: '100dvh',
+      paddingBottom: 'env(safe-area-inset-bottom)',
     }}>
-      {/* 닫기 버튼 */}
-      <button 
-        onClick={onClose} 
-        style={{ 
-          position:'absolute', top:'calc(40px + env(safe-area-inset-top))', left:'20px', 
-          background:'rgba(0,0,0,0.5)', border:'none', 
-          borderRadius:'50%', width:'52px', height:'52px', 
-          color:'#fff', display:'flex', alignItems:'center', justifyContent:'center', cursor:'pointer',
-          zIndex: 2000001,
-        }}
-      ><ChevronLeft size={32} /></button>
+      <header style={{
+        flexShrink: 0,
+        height: 'calc(50px + env(safe-area-inset-top))',
+        boxSizing: 'border-box',
+        paddingTop: 'env(safe-area-inset-top)',
+        paddingLeft: '12px',
+        paddingRight: '12px',
+        background: '#000000',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        position: 'relative',
+        zIndex: 2000001,
+      }}>
+        <button
+          type="button"
+          onClick={onClose}
+          aria-label="뒤로가기"
+          style={{
+            background: 'rgba(0,0,0,0.5)',
+            border: 'none',
+            borderRadius: '50%',
+            width: '36px',
+            height: '36px',
+            color: '#fff',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            cursor: 'pointer',
+            flexShrink: 0,
+          }}
+        >
+          <ChevronLeft size={24} />
+        </button>
+        <span style={{
+          position: 'absolute',
+          left: '50%',
+          transform: 'translateX(-50%)',
+          color: '#C9A84C',
+          fontSize: '16px',
+          fontWeight: 900,
+          letterSpacing: '-0.3px',
+          pointerEvents: 'none',
+        }}>
+          오늘밤빠
+        </span>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexShrink: 0 }}>
+          <button type="button" onClick={handleNativeShare} title="공유" style={btnRound}>
+            <Share2 size={18} />
+          </button>
+          <button type="button" onClick={handleCopyLink} title="홈 링크 복사" style={btnRound}>
+            <Copy size={18} />
+          </button>
+        </div>
+      </header>
 
-      {/* 줌 컨테이너 (Viewport 전체 사용) */}
+      {/* 닫기 버튼 — 헤더로 이동, 구 레이아웃 주석 보관
+      <button onClick={onClose} style={{ position:'absolute', top:'calc(40px + env(safe-area-inset-top))', left:'20px', ... }}><ChevronLeft size={32} /></button>
+      */}
+
+      {/* 줌 컨테이너 (헤더 아래 전체 영역) */}
       <div style={{ 
-        position: 'absolute',
-        inset: 0,
+        flex: 1,
+        position: 'relative',
         overflow: 'hidden',
+        minHeight: 0,
       }}>
         <QuickPinchZoom 
           onUpdate={onUpdate} 
@@ -278,6 +327,7 @@ const PosterModal = ({ src, onClose, shareTitle, shareDesc }) => {
         </button>
       </div>
       */}
+      {/* 상단 우측: 공유 · 카카오 · 복사 · 저장 — 헤더로 이동, 구 레이아웃 주석 보관
       <motion.div style={{
         position: 'absolute',
         top: 'calc(40px + env(safe-area-inset-top))',
@@ -316,8 +366,9 @@ const PosterModal = ({ src, onClose, shareTitle, shareDesc }) => {
           <Download size={22} />
         </button>
       </motion.div>
+      */}
       <span style={{ position: 'absolute', bottom: 'calc(8px + env(safe-area-inset-bottom))', left: '50%', transform: 'translateX(-50%)', fontSize: 9, color: 'rgba(255,255,255,0.35)', zIndex: 100002 }}>{SHARE_BUILD}</span>
-    </div>
+    </motion.div>
   );
 };
 
