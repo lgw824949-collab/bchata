@@ -383,6 +383,223 @@ const PosterModal = ({ src, onClose, shareTitle, shareDesc }) => {
   );
 };
 
+const EXPOSURE_ROTATE_MS = 4 * 60 * 1000;
+const normDateExposure = (d) => (d ? String(d).slice(0, 10) : '');
+const locationKeyExposure = (item) =>
+  String(item?.location_name || item?.locationName || item?.studio_name || item?.venue || item?.id || '')
+    .trim()
+    .toLowerCase();
+const exposureScore = (item, todayStr) => {
+  let score = (item?.click_count || 0) * 3;
+  if (normDateExposure(item?.date) === todayStr) score += 400;
+  const t = item?.time?.split('-')[0]?.trim() || '21:00';
+  const [h] = t.split(':').map(Number);
+  if (!Number.isNaN(h) && h >= 18) score += 80;
+  score += new Date(item?.created_at || 0).getTime() / 1e12;
+  return score;
+};
+const pickExposurePair = (pool, rotationIndex, todayStr) => {
+  if (!pool?.length) return [];
+  const sorted = [...pool].sort((a, b) => exposureScore(b, todayStr) - exposureScore(a, todayStr));
+  const n = sorted.length;
+  if (n === 1) return [sorted[0]];
+  const start = (rotationIndex * 2) % n;
+  const picked = [];
+  const usedLoc = new Set();
+  for (let i = 0; i < n * 2 && picked.length < 2; i++) {
+    const item = sorted[(start + i) % n];
+    const loc = locationKeyExposure(item);
+    if (picked.some((p) => p.id === item.id)) continue;
+    if (picked.length === 1 && loc && usedLoc.has(loc)) continue;
+    picked.push(item);
+    if (loc) usedLoc.add(loc);
+  }
+  return picked;
+};
+
+/** 선택한 날짜 · 하단 2칸 실시간 로테이션 노출 (지금 노출 중) */
+const LiveExposureStrip = ({ pool, selectedDate, todayStr, onSelect, cleanTitle, translateDynamicText, isEn }) => {
+  const [rotationIndex, setRotationIndex] = useState(0);
+
+  useEffect(() => {
+    setRotationIndex(0);
+  }, [selectedDate, pool.length]);
+
+  useEffect(() => {
+    if (pool.length < 2) return undefined;
+    const timer = setInterval(() => setRotationIndex((v) => v + 1), EXPOSURE_ROTATE_MS);
+    return () => clearInterval(timer);
+  }, [pool.length, selectedDate]);
+
+  const featured = useMemo(() => {
+    const picked = pickExposurePair(pool, rotationIndex, todayStr);
+    if (picked.length) return picked;
+    return pool.length ? [pool[0]] : [];
+  }, [pool, rotationIndex, todayStr]);
+
+  if (!pool.length) return null;
+
+  return (
+    <section
+      style={{
+        margin: '8px 16px 88px',
+        padding: '18px 16px 20px',
+        borderRadius: '24px',
+        background: 'linear-gradient(165deg, #141414 0%, #0a0a0a 55%, #1a1510 100%)',
+        border: '1px solid rgba(201, 168, 76, 0.45)',
+        boxShadow: '0 12px 40px rgba(201, 168, 76, 0.12), inset 0 1px 0 rgba(255,255,255,0.06)',
+      }}
+    >
+      <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 12, marginBottom: 16 }}>
+        <div>
+          <motion.div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
+            <Star size={16} color="#C9A84C" fill="#C9A84C" />
+            <span style={{ fontSize: 16, fontWeight: 900, color: '#F5E6C8', letterSpacing: '-0.3px' }}>
+              {isEn ? 'Now Showing' : '지금 노출 중'}
+            </span>
+            <span
+              style={{
+                fontSize: 10,
+                fontWeight: 800,
+                color: '#1a1a1a',
+                background: 'linear-gradient(135deg, #C9A84C, #FFF3C4)',
+                padding: '3px 8px',
+                borderRadius: 8,
+              }}
+            >
+              LIVE 2
+            </span>
+          </motion.div>
+          <p style={{ margin: 0, fontSize: 11, color: '#94A3B8', fontWeight: 600, lineHeight: 1.45 }}>
+            {isEn
+              ? 'Two spots rotate every 4 min · one venue at a time'
+              : '4분마다 2곳 교체 · 같은 장소 동시 노출 없음'}
+          </p>
+        </div>
+        <button
+          type="button"
+          onClick={() => window.open('https://open.kakao.com/o/gP43rNri', '_blank')}
+          style={{
+            flexShrink: 0,
+            padding: '8px 12px',
+            borderRadius: 12,
+            border: '1px solid rgba(201,168,76,0.35)',
+            background: 'rgba(201,168,76,0.08)',
+            color: '#C9A84C',
+            fontSize: 11,
+            fontWeight: 800,
+            cursor: 'pointer',
+          }}
+        >
+          {isEn ? 'Exposure' : '노출 문의'}
+        </button>
+      </div>
+
+      <AnimatePresence mode="wait">
+        <motion.div
+          key={`${rotationIndex}-${featured.map((f) => f.id).join('-')}`}
+          initial={{ opacity: 0, y: 8 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0, y: -6 }}
+          transition={{ duration: 0.55, ease: 'easeOut' }}
+          style={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'center', gap: 16 }}
+        >
+          {featured.map((item) => {
+            const title = cleanTitle(item.title || '')
+              .replace(/^\[.*?\]\s*/, '')
+              .replace(/ㅣ\s*$/, '')
+              .trim();
+            return (
+              <button
+                key={item.id}
+                type="button"
+                onClick={() => onSelect(item)}
+                style={{
+                  padding: 0,
+                  border: 'none',
+                  borderRadius: 0,
+                  overflow: 'visible',
+                  cursor: 'pointer',
+                  background: 'transparent',
+                  boxShadow: 'none',
+                  textAlign: 'left',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  alignItems: 'center',
+                  width: 160,
+                  flexShrink: 0,
+                }}
+              >
+                <div
+                  style={{
+                    width: 160,
+                    height: 220,
+                    flexShrink: 0,
+                    overflow: 'hidden',
+                    background: '#111',
+                    border: '2px solid #C9A84C',
+                    borderRadius: 12,
+                    boxSizing: 'border-box',
+                  }}
+                >
+                  <img
+                    src={item.poster_url}
+                    alt=""
+                    style={{
+                      width: '100%',
+                      height: '100%',
+                      objectFit: 'cover',
+                      objectPosition: 'center center',
+                      display: 'block',
+                    }}
+                  />
+                </div>
+                <div style={{ width: 160, padding: '8px 0 0', boxSizing: 'border-box' }}>
+                  <motion.div
+                    style={{
+                      fontSize: 10,
+                      fontWeight: 800,
+                      color: '#C9A84C',
+                      marginBottom: 4,
+                      overflow: 'hidden',
+                      textOverflow: 'ellipsis',
+                      whiteSpace: 'nowrap',
+                    }}
+                  >
+                    {translateDynamicText(item.locationName || item.location_name, isEn)}
+                  </motion.div>
+                  <div
+                    style={{
+                      fontSize: 13,
+                      fontWeight: 900,
+                      color: '#fff',
+                      lineHeight: 1.25,
+                      display: '-webkit-box',
+                      WebkitLineClamp: 2,
+                      WebkitBoxOrient: 'vertical',
+                      overflow: 'hidden',
+                    }}
+                  >
+                    {translateDynamicText(title, isEn)}
+                  </div>
+                </div>
+              </button>
+            );
+          })}
+        </motion.div>
+      </AnimatePresence>
+
+      {pool.length > 2 ? (
+        <p style={{ margin: '14px 0 0', textAlign: 'center', fontSize: 10, color: '#64748B', fontWeight: 600 }}>
+          {isEn
+            ? `${pool.length} parties today · fair rotation`
+            : `오늘 ${pool.length}개 파티 · 공정 순환 노출`}
+        </p>
+      ) : null}
+    </section>
+  );
+};
+
 // --- [BAMPPA PREMIUM ENGINE: GPS & NATIONWIDE INTELLIGENCE] ---
 const calculateDistance = (lat1, lon1, lat2, lon2) => {
   const R = 6371; 
@@ -1343,6 +1560,7 @@ function App() {
     setShowPlaceInquiry: withHistory(showPlaceInquiry, setShowPlaceInquiry),
     logActivity: () => {}, regionalTheme: { welcomeMsg: "전국 댄서들을 위한 실시간 정보", specialBanner: true },
     followedInstructors,
+    LiveExposureStrip,
   };
 
   // 파티/클래스/부트캠프/페스티벌 등록 중에는 하단 네비 숨김 (등록 폼 버튼 가림 방지)

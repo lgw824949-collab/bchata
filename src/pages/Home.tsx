@@ -135,6 +135,8 @@ const festivalsOnDate = (list, fullDate) =>
     return normDate(f.start_date) === fullDate;
   });
 
+// 지금 노출 중 — App.jsx LiveExposureStrip 사용, 구 구현 보관 (if false)
+if (false) {
 const EXPOSURE_ROTATE_MS = 4 * 60 * 1000;
 
 const locationKey = (item) =>
@@ -353,6 +355,7 @@ const LiveExposureStrip = ({ pool, selectedDate, todayStr, onSelect, cleanTitle,
     </section>
   );
 };
+}
 
 const PosterImage = ({ src, onClick, alt = "파티 포스터" }) => {
   const imgRef = useRef();
@@ -714,7 +717,8 @@ const HomePage = ({
   showLatinModal, setShowLatinModal, setShowSaju, setShowWishlist, latinCat, setLatinCat, selPatternId, setSelPatternId, regionalTheme, recordTraffic, IncheonBanner, venueCounts, openAnalysis,
   showGridModal, setShowGridModal, gridRegion, setGridRegion, filterStep, setFilterStep,
   handleOpenModal, handleCloseModal,
-  isDark, setIsDark, followedInstructors, likedLivePicks, setShowRentalModal, setShowPartner
+  isDark, setIsDark, followedInstructors, likedLivePicks, setShowRentalModal, setShowPartner,
+  LiveExposureStrip,
 }) => {
   const { t, i18n } = useTranslation();
   const isEn = i18n.language.startsWith('en');
