@@ -10,9 +10,9 @@
 /** @type {{ id: string, partyIds?: string[], locationContains?: string[], addressContains?: string[], broadRegion?: string, spots: AfterPartySpot[] }[]} */
 export const AFTER_PARTY_RULES = [
   {
-    id: 'rule-bupyeong-sipjeong',
-    locationContains: ['부평', '십정', '인천', '부평구'],
-    addressContains: ['십정', '부평'],
+    id: 'rule-bupyeong-incheon',
+    locationContains: ['부평', '십정', '인천', '부평구', '열우물'],
+    addressContains: ['십정', '부평', '열우물'],
     spots: [
       {
         id: 'bp-halmae-chicken',
@@ -20,6 +20,14 @@ export const AFTER_PARTY_RULES = [
         address: '인천광역시 부평구 십정동 406-4',
         category: '닭요리',
         mapQuery: '인천 부평구 십정동 할매닭한마리',
+        note: '파티 후 뒷풀이 추천',
+      },
+      {
+        id: 'bp-hwangga-ggom',
+        name: '황가네꼼장군',
+        address: '인천광역시 부평구 열우물로 35',
+        category: '한식',
+        mapQuery: '인천 부평구 황가네꼼장군',
         note: '파티 후 뒷풀이 추천',
       },
     ],
