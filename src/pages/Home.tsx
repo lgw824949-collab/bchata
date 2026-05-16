@@ -1125,24 +1125,24 @@ const HomePage = ({
                 }}
               >
                 {item.textIcon ? (
-                  <div
+                  <motion.div
                     style={{
-                      width: 22,
-                      height: 22,
+                      width: 28,
+                      height: 28,
                       aspectRatio: '1 / 1',
                       display: 'flex',
                       alignItems: 'center',
                       justifyContent: 'center',
-                      fontSize: 9,
+                      fontSize: 14,
                       fontWeight: 900,
                       color: '#388E3C',
-                      letterSpacing: '-0.5px',
+                      letterSpacing: '-0.8px',
                       lineHeight: 1,
                       flexShrink: 0,
                     }}
                   >
                     {item.textIcon}
-                  </div>
+                  </motion.div>
                 ) : item.icon}
                 <span style={{ fontSize: '10px', fontWeight: 600, color: '#1E293B', textAlign: 'center', lineHeight: 1.2, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', width: '100%' }}>
                   {item.label}
