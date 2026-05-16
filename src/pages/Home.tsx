@@ -32,7 +32,7 @@ const REGION_FILTER = {
   '광주': (p) => p.broadRegion === '전라도',
   '기타': (p) => true
 };
-const MAIN_REGIONS = ['서울', '경기/인천', '경상', '전라', '충청', '강원/제주'];
+const MAIN_REGIONS = ['경기/인천', '서울', '경상', '전라', '충청', '강원/제주'];
 const REGION_MAP_EN = {
   '서울': 'Seoul', '경기/인천': 'Gyeonggi/Incheon', '경상도': 'Gyeongsang',
   '전라도': 'Jeolla', '충청도': 'Chungcheong', '강원/제주': 'Gangwon/Jeju'
@@ -385,7 +385,7 @@ const RollingContainer = ({ items, onSelect }) => {
 const FilterBar = ({ filterRegion, setFilterRegion, filterGenre, setFilterGenre }) => {
   const { i18n } = useTranslation();
   const isEn = i18n.language.startsWith('en');
-  const regions = ['서울', '경기/인천', '경상도', '전라도', '충청도', '강원/제주'];
+  const regions = ['경기/인천', '서울', '경상도', '전라도', '충청도', '강원/제주'];
   const genres = Object.keys(GENRE_MAP);
   return (
     <div style={{ padding: '0 15px 12px', background: '#fff', display: 'flex', flexDirection: 'column', gap: '12px' }}>
@@ -475,6 +475,18 @@ const HomePage = ({
     const manValue = num / 10000;
     if (num % 10000 === 0) return `${manValue}만`;
     return `${manValue.toFixed(1).replace('.0', '')}만`;
+  };
+
+  const posterSharePayload = (item: any) => {
+    const posterUrl = item?.poster_url;
+    if (!posterUrl || String(posterUrl).trim() === '') return null;
+    const titlePart = String(item.title || '').split(' ㅣ ')[0];
+    const title =
+      cleanTitle(titlePart.replace(/^\[.*?\]\s*/, '').replace(/ㅣ\s*$/, '').trim()) || '라틴·소셜 파티';
+    const loc = item.locationName || item.location_name || item.studio_name || item.venue;
+    const fee = item.fee ?? item.price_info;
+    const desc = [item.date, loc, fee].filter(Boolean).join(' · ');
+    return { src: String(posterUrl).trim(), title, ...(desc ? { desc } : {}) };
   };
 
   const [isPaused, setIsPaused] = useState(false);
@@ -1090,7 +1102,8 @@ const HomePage = ({
                               <div 
                                 key={`${item.id}-${idx}`} 
                                 onClick={async () => {
-                                  handleOpenModal(setSelectedPoster, item.poster_url);
+                                  const p = posterSharePayload(item);
+                                  if (p) handleOpenModal(setSelectedPoster, p);
                                   if (item.id && item._table) {
                                     try {
                                       const currentClicks = item.click_count || 0;
@@ -1141,7 +1154,7 @@ const HomePage = ({
                         "충청도": "region_chungcheong",
                         "강원/제주": "region_gangwon_jeju"
                       };
-                      const regions = ["서울", "경기/인천", "경상도", "전라도", "충청도", "강원/제주"];
+                      const regions = ["경기/인천", "서울", "경상도", "전라도", "충청도", "강원/제주"];
 
                       return regions.map((regionName, idx) => {
                         const regionParties = unifiedDayEvents
@@ -1164,7 +1177,7 @@ const HomePage = ({
                           }
                         }
 
-                        const isFirst = regionName === '서울';
+                        const isFirst = regionName === '경기/인천';
 
                         return (
                           <React.Fragment key={regionName}>
@@ -1254,7 +1267,10 @@ const HomePage = ({
                                   return (
                                     <div
                                       key={item.id}
-                                      onClick={() => handleOpenModal(setSelectedPoster, item.poster_url)}
+                                      onClick={() => {
+                                        const p = posterSharePayload(item);
+                                        if (p) handleOpenModal(setSelectedPoster, p);
+                                      }}
                                       style={{
                                         width: '340px',
                                         flexShrink: 0,
@@ -1520,7 +1536,7 @@ const HomePage = ({
                       const r = getRegionName(item);
                       regionCounts[r] = (regionCounts[r] || 0) + 1;
                     });
-                    const orderRegions = ['서울', '경기/인천', '경상도', '전라도', '충청도', '강원/제주'];
+                    const orderRegions = ['경기/인천', '서울', '경상도', '전라도', '충청도', '강원/제주'];
                     const availableRegions = orderRegions.filter(r => regionCounts[r] > 0);
 
                     // 3. 장르별 카운트 (파티 대상)
@@ -1722,7 +1738,8 @@ const HomePage = ({
                         <div
                           key={item.id}
                           onClick={() => {
-                            handleOpenModal(setSelectedPoster, item.poster_url);
+                            const p = posterSharePayload(item);
+                            if (p) handleOpenModal(setSelectedPoster, p);
                           }}
                           style={{ aspectRatio: '1 / 1.4', overflow: 'hidden', background: 'var(--color-card)', position: 'relative' }}
                         >
