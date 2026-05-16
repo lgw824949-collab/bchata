@@ -6,7 +6,7 @@ import QuickPinchZoom, { make3dTransformValue } from 'react-quick-pinch-zoom';
 import LiveCount from '../components/LiveCount'
 import { KMA_REGION_COORDS, fetchWeatherForecast, parseKmaWeather, HOME_REGION_MAP } from '../utils/kmaApi'
 import { supabase } from '../lib/supabase'
-import { getAfterPartySpotsForParty, openAfterPartyMap } from '../data/afterPartySpots'
+// import { getAfterPartySpotsForParty, openAfterPartyMap } from '../data/afterPartySpots'
 
 const DAYS_KOR = ['일', '월', '화', '수', '목', '금', '토'];
 const DAYS_EN = ['SUN', 'MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT'];
@@ -766,15 +766,9 @@ const HomePage = ({
     return { src: String(posterUrl).trim(), title, ...(desc ? { desc } : {}) };
   };
 
-  const [afterPartySheet, setAfterPartySheet] = useState(null);
-
   const openPartyWithAfterParty = (item) => {
     const p = posterSharePayload(item);
     if (!p) return;
-    setAfterPartySheet({
-      item,
-      spots: getAfterPartySpotsForParty(item),
-    });
     handleOpenModal(setSelectedPoster, p);
   };
 
@@ -2101,169 +2095,7 @@ const HomePage = ({
         }
       `}</style>
 
-      <AnimatePresence>
-        {afterPartySheet && (
-          <>
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              onClick={() => setAfterPartySheet(null)}
-              style={{
-                position: 'fixed',
-                inset: 0,
-                zIndex: 2000002,
-                background: 'rgba(0,0,0,0.35)',
-              }}
-            />
-            <motion.div
-              initial={{ y: '100%' }}
-              animate={{ y: 0 }}
-              exit={{ y: '100%' }}
-              transition={{ type: 'spring', damping: 28, stiffness: 320 }}
-              style={{
-                position: 'fixed',
-                left: 0,
-                right: 0,
-                bottom: 0,
-                zIndex: 2000003,
-                maxWidth: '500px',
-                margin: '0 auto',
-                background: '#fff',
-                borderTopLeftRadius: '20px',
-                borderTopRightRadius: '20px',
-                padding: '16px 16px calc(16px + env(safe-area-inset-bottom))',
-                boxShadow: '0 -8px 32px rgba(0,0,0,0.15)',
-                maxHeight: '55vh',
-                overflowY: 'auto',
-              }}
-            >
-              <motion.div style={{ width: 40, height: 4, background: '#E2E8F0', borderRadius: 2, margin: '0 auto 14px' }} />
-              <motion.div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: 12 }}>
-                <motion.div>
-                  <motion.div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 4 }}>
-                    <Utensils size={18} color="#C2185B" />
-                    <motion.span style={{ fontSize: 16, fontWeight: 900, color: '#1E293B' }}>이 파티 근처 뒷풀이</motion.span>
-                  </motion.div>
-                  <motion.p style={{ fontSize: 12, color: '#64748B', margin: 0, fontWeight: 600 }}>
-                    {afterPartySheet.item?.locationName ||
-                      afterPartySheet.item?.location_name ||
-                      afterPartySheet.item?.studio_name ||
-                      '장소 확인 중'}
-                  </motion.p>
-                  <motion.p style={{ fontSize: 11, color: '#94A3B8', margin: '4px 0 0', fontWeight: 500 }}>
-                    퀵메뉴 「맛집뒷풀이」는 내 GPS 주변 · 여기는 파티 장소 기준
-                  </motion.p>
-                </motion.div>
-                <motion.button
-                  type="button"
-                  onClick={() => setAfterPartySheet(null)}
-                  style={{
-                    background: '#F1F5F9',
-                    border: 'none',
-                    borderRadius: '50%',
-                    width: 32,
-                    height: 32,
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    cursor: 'pointer',
-                    flexShrink: 0,
-                  }}
-                >
-                  <X size={18} color="#64748B" />
-                </motion.button>
-              </motion.div>
-
-              <motion.div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-                {afterPartySheet.spots.map((spot) => (
-                  <motion.div
-                    key={spot.id}
-                    style={{
-                      padding: '14px',
-                      borderRadius: 14,
-                      border: spot.isPlaceholder ? '1px dashed #E2E8F0' : '1px solid #FCE4EC',
-                      background: spot.isPlaceholder ? '#FAFAFA' : '#FFF5F7',
-                    }}
-                  >
-                    <motion.div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 8 }}>
-                      <motion.div style={{ minWidth: 0, flex: 1 }}>
-                        <motion.div style={{ fontSize: 15, fontWeight: 800, color: '#1E293B' }}>{spot.name}</motion.div>
-                        <motion.div style={{ fontSize: 12, color: '#64748B', marginTop: 4 }}>{spot.address}</motion.div>
-                        {spot.note ? (
-                          <motion.div style={{ fontSize: 11, color: '#E53935', marginTop: 6, fontWeight: 700 }}>{spot.note}</motion.div>
-                        ) : null}
-                      </motion.div>
-                      {spot.category ? (
-                        <motion.span
-                          style={{
-                            fontSize: 10,
-                            fontWeight: 800,
-                            color: '#C2185B',
-                            background: '#FCE4EC',
-                            padding: '4px 8px',
-                            borderRadius: 8,
-                            flexShrink: 0,
-                          }}
-                        >
-                          {spot.category}
-                        </motion.span>
-                      ) : null}
-                    </motion.div>
-                    {!spot.isPlaceholder ? (
-                      <motion.button
-                        type="button"
-                        onClick={() => openAfterPartyMap(spot)}
-                        style={{
-                          marginTop: 10,
-                          width: '100%',
-                          padding: '10px',
-                          borderRadius: 10,
-                          border: 'none',
-                          background: '#E53935',
-                          color: '#fff',
-                          fontSize: 13,
-                          fontWeight: 800,
-                          cursor: 'pointer',
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'center',
-                          gap: 6,
-                        }}
-                      >
-                        <Navigation size={14} />
-                        카카오맵 길찾기
-                      </motion.button>
-                    ) : null}
-                  </motion.div>
-                ))}
-              </motion.div>
-
-              <motion.button
-                type="button"
-                onClick={() => {
-                  setAfterPartySheet(null);
-                  setView('restaurant');
-                }}
-                style={{
-                  marginTop: 14,
-                  width: '100%',
-                  padding: 12,
-                  borderRadius: 12,
-                  border: '1px solid #E2E8F0',
-                  background: '#fff',
-                  color: '#64748B',
-                  fontSize: 13,
-                  fontWeight: 700,
-                  cursor: 'pointer',
-                }}
-              >
-                내 주변 맛집 전체 보기 (GPS)
-              </motion.button>
-            </motion.div>
-          </>
-        )}
-      </AnimatePresence>
+      {/* afterPartySheet UI removed */}
     </div>
   )
 }

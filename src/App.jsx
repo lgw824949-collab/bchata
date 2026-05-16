@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo, useRef, lazy, Suspense } from 'react'
-import { Home as HomeIcon, Users, Plus, LogOut, Heart, X, MessageSquare, RefreshCw, CloudSun, Utensils, Zap, Languages, Bell, Star, Navigation, CreditCard, Settings, Map as MapIcon, BarChart, Gift, Coffee, User, Menu, Music2, Tent, Flag, Download, Globe, ShieldCheck, Calendar, Camera, ChevronLeft, ChevronRight, Loader2, Search, Share2, Copy, Sparkles, GraduationCap } from 'lucide-react'
+import { Home as HomeIcon, Users, Plus, LogOut, Heart, X, MessageSquare, RefreshCw, CloudSun, Utensils, Zap, Languages, Bell, Star, Navigation, CreditCard, Settings, Map as MapIcon, BarChart, Gift, Coffee, User, Menu, Music2, Tent, Flag, Download, Globe, ShieldCheck, Calendar, Camera, ChevronLeft, ChevronRight, Loader2, Search, Share2, Copy } from 'lucide-react'
 import { useTranslation } from 'react-i18next';
 import { motion, AnimatePresence } from 'framer-motion'
 import { supabase, logActivity } from './lib/supabase'
@@ -722,19 +722,7 @@ function App() {
   const [lastWeatherTap, setLastWeatherTap] = useState(0);
   const weatherTimeoutRef = useRef(null);
   const [navVisible, setNavVisible] = useState(true)
-  const [conciergeOpen, setConciergeOpen] = useState(false)
   const lastScrollY = useRef(0)
-
-  useEffect(() => {
-    const onOpen = () => setConciergeOpen(true)
-    const onClose = () => setConciergeOpen(false)
-    window.addEventListener('open-chatbot', onOpen)
-    window.addEventListener('close-chatbot', onClose)
-    return () => {
-      window.removeEventListener('open-chatbot', onOpen)
-      window.removeEventListener('close-chatbot', onClose)
-    }
-  }, [])
 
   // 다크 모드 완전 삭제 및 항상 라이트 테마 고정
   useEffect(() => {
@@ -1041,8 +1029,6 @@ function App() {
   const navActiveColor = isSocialLightNav ? '#E53935' : '#FFFFFF'
   const navInactiveColor = isSocialLightNav ? '#94A3B8' : 'rgba(255,255,255,0.3)'
   const isSocialTabActive = location.pathname === '/' && view === 'home' && !showPartner
-  const isConciergeNavActive = isSocialLightNav && conciergeOpen && !showPartner
-  const isMasterTabActive = (location.pathname === '/instructors' || view === 'instructors') && !showPartner
 
   return (
     <>
@@ -1602,25 +1588,6 @@ function App() {
         </span>
       </div>
 
-      {isSocialLightNav && (
-      <motion.div
-        onClick={() => {
-          setShowPartner(false)
-          window.dispatchEvent(new CustomEvent('open-chatbot'))
-        }}
-        style={{
-          flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
-          cursor: 'pointer', transition: 'all 0.2s',
-          color: isConciergeNavActive ? navActiveColor : navInactiveColor
-        }}
-      >
-        <Sparkles size={22} strokeWidth={isConciergeNavActive ? 2.5 : 1.5} />
-        <span style={{ fontSize: '9px', fontWeight: isConciergeNavActive ? 900 : 500, marginTop: '3px' }}>
-          {i18n.language?.startsWith('en') ? 'Concierge' : '컨시어지'}
-        </span>
-      </motion.div>
-      )}
-
       {/* Center Red Point Button */}
       <div style={{ flex: 1, display: 'flex', justifyContent: 'center' }}>
         <motion.button
@@ -1649,19 +1616,6 @@ function App() {
         </motion.button>
       </div>
 
-      <div
-        onClick={() => { navigate('/instructors'); setShowPartner(false); }}
-        style={{
-          flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
-          cursor: 'pointer', transition: 'all 0.2s',
-          color: isMasterTabActive ? navActiveColor : navInactiveColor
-        }}
-      >
-        <GraduationCap size={22} strokeWidth={isMasterTabActive ? 2.5 : 1.5} />
-        <span style={{ fontSize: '9px', fontWeight: isMasterTabActive ? 900 : 500, marginTop: '3px' }}>
-          {i18n.language?.startsWith('en') ? 'Master' : '마스터'}
-        </span>
-      </div>
       <div 
         onClick={() => { navigate('/bootcamp'); setShowPartner(false); }}
         style={{ 
