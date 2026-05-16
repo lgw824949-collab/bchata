@@ -10,8 +10,10 @@ const ADMIN_KNOWLEDGE = `
 `;
 
 const GENRE_MAP = { '1': '바차타', '2': '살사', '3': '쥬크', '4': '키좀바' };
-const MENU_MSG = '오늘 뭘 찾으세요?\n1. 파티 (소셜)\n2. 강습\n3. 부트캠프\n4. 페스티벌';
+const PARTY_GENRE_KEY = { 바차타: 'b_ratio', 살사: 's_ratio', 쥬크: 'j_ratio', 키좀바: 'k_ratio' };
+const MENU_MSG = '오늘 뭘 찾으세요?\n1. 파티\n2. 강습\n3. 부트캠프\n4. 페스티벌';
 const GENRE_MSG = '장르는?\n1. 바차타\n2. 살사\n3. 쥬크\n4. 키좀바';
+const RESTART_MSG = '다시 찾으시겠어요?\n1. 예  2. 아니오';
 
 const ChatBot = () => {
   const [isOpen, setIsOpen] = useState(false);
@@ -35,7 +37,7 @@ const ChatBot = () => {
   const [userLocation, setUserLocation] = useState(null);
   const [viewportHeight, setViewportHeight] = useState(window.innerHeight);
 
-  // Step-based flow state: 1=카테고리 선택, 2=장르 선택, 3=재검색?
+  // step 0 텍스트는 초기 messages의 MENU_MSG / useState step: 1=카테고리, 2=장르, 3=재검색 여부
   const [step, setStep] = useState(1);
   const [category, setCategory] = useState(null);
   const [genre, setGenre] = useState(null);
@@ -194,6 +196,7 @@ const ChatBot = () => {
   };
   */
 
+  /* [OLD] getResultItems — 결과를 카드 타입으로 반환 (주석 보존)
   const getResultItems = (catNum, genreName) => {
     if (!dbData) return [];
 
@@ -235,45 +238,74 @@ const ChatBot = () => {
     }
     return [];
   };
+  */
+  const getResultLines = (catNum, genreName) => {
+    if (!dbData) return [];
+
+    if (catNum === '1') {
+      const key = PARTY_GENRE_KEY[genreName];
+      return (dbData.parties || [])
+        .filter((p) => (key ? (p[key] || 0) > 0 : (p.genre || '').includes(genreName)))
+        .slice(0, 3)
+        .map((p) => `🎵 ${p.title} | ${p.date} | ${p.fee ?? p.price ?? '문의'}`);
+    }
+    if (catNum === '2') {
+      return (dbData.instructors || [])
+        .filter((i) => (Array.isArray(i.genre) ? i.genre.join(' ') : String(i.genre || '')).includes(genreName))
+        .slice(0, 3)
+        .map((i) => `🎵 ${i.name} | ${i.region || i.broadRegion || '-'} | ${i.price || i.fee || '문의'}`);
+    }
+    if (catNum === '3') {
+      return (dbData.bootcamps || [])
+        .filter((b) => String(b.genre || '').includes(genreName))
+        .slice(0, 3)
+        .map((b) => `🎵 ${b.instructor || b.title || '-'} | ${b.start_date?.slice(0, 10) || '-'} | ${b.fee || b.price_info || '문의'}`);
+    }
+    if (catNum === '4') {
+      const fest = dbData.festivals || [];
+      return fest
+        .filter((f) => String(f.genre || '').includes(genreName))
+        .slice(0, 3)
+        .map((f) => `🎵 ${f.title || f.name || '-'} | ${String(f.start_date || f.date || '-').slice(0, 10)} | ${f.fee || '확인 필요'}`);
+    }
+    return [];
+  };
 
   const handleSend = () => {
     if (!input.trim()) return;
 
     const userInput = input.trim();
     setInput('');
+    setIsLoading(false);
     const userMsg = { role: 'user', content: userInput };
 
     if (step === 1) {
       if (!['1', '2', '3', '4'].includes(userInput)) {
-        setMessages(prev => [...prev, userMsg, { role: 'model', content: '번호로 선택해주세요 😊' }]);
+        setMessages((prev) => [...prev, userMsg, { role: 'model', content: '번호로 선택해주세요 😊' }]);
         return;
       }
       setCategory(userInput);
       setStep(2);
-      setMessages(prev => [...prev, userMsg, { role: 'model', content: GENRE_MSG }]);
+      setMessages((prev) => [...prev, userMsg, { role: 'model', content: GENRE_MSG }]);
       return;
     }
 
     if (step === 2) {
       if (!['1', '2', '3', '4'].includes(userInput)) {
-        setMessages(prev => [...prev, userMsg, { role: 'model', content: '번호로 선택해주세요 😊' }]);
+        setMessages((prev) => [...prev, userMsg, { role: 'model', content: '번호로 선택해주세요 😊' }]);
         return;
       }
       const selectedGenre = GENRE_MAP[userInput];
       setGenre(userInput);
       setStep(3);
 
-      const resultItems = getResultItems(category, selectedGenre);
-      const resultMsg = resultItems.length > 0
-        ? { role: 'model', type: 'results', items: resultItems }
-        : { role: 'model', content: '현재 등록된 정보가 없어요 😢' };
+      const lines = getResultLines(category, selectedGenre);
+      const resultMsg =
+        lines.length > 0
+          ? { role: 'model', content: lines.join('\n') }
+          : { role: 'model', content: '현재 등록된 정보가 없어요 😢' };
 
-      setMessages(prev => [
-        ...prev,
-        userMsg,
-        resultMsg,
-        { role: 'model', content: '다시 찾으시겠어요? 1.예 2.아니오' }
-      ]);
+      setMessages((prev) => [...prev, userMsg, resultMsg, { role: 'model', content: RESTART_MSG }]);
       return;
     }
 
@@ -282,12 +314,17 @@ const ChatBot = () => {
         setStep(1);
         setCategory(null);
         setGenre(null);
-        setMessages(prev => [...prev, userMsg, { role: 'model', content: MENU_MSG }]);
-      } else if (userInput === '2') {
-        setMessages(prev => [...prev, userMsg, { role: 'model', content: '즐거운 댄스 되세요! 🎶' }]);
-      } else {
-        setMessages(prev => [...prev, userMsg, { role: 'model', content: '번호로 선택해주세요 😊' }]);
+        setMessages((prev) => [...prev, userMsg, { role: 'model', content: MENU_MSG }]);
+        return;
       }
+      if (userInput === '2') {
+        setStep(1);
+        setCategory(null);
+        setGenre(null);
+        setMessages((prev) => [...prev, userMsg, { role: 'model', content: '즐거운 댄스 되세요! 🎶' }]);
+        return;
+      }
+      setMessages((prev) => [...prev, userMsg, { role: 'model', content: '번호로 선택해주세요 😊' }]);
     }
   };
 
