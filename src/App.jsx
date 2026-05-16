@@ -704,6 +704,8 @@ function App() {
   }, [isSocialLightNav])
 
   const [showClassRegister, setShowClassRegister] = useState(false);
+  const [showStudentManager, setShowStudentManager] = useState(false);
+  const [showRevenueStats, setShowRevenueStats] = useState(false);
   const [showFullCalendar, setShowFullCalendar] = useState(false);
   const [showFilterPanel, setShowFilterPanel] = useState(false);
   const [showFilteredResults, setShowFilteredResults] = useState(false);
@@ -1143,6 +1145,22 @@ function App() {
                     setTimeout(() => setShowClassRegister(true), 300);
                   } 
                 },
+                { 
+                  icon: <span style={{ fontSize: '20px', lineHeight: 1 }}>📋</span>, 
+                  text: '수강생 관리', 
+                  action: () => { 
+                    setIsMenuOpen(false);
+                    setTimeout(() => setShowStudentManager(true), 300);
+                  } 
+                },
+                { 
+                  icon: <span style={{ fontSize: '20px', lineHeight: 1 }}>💰</span>, 
+                  text: '수입 집계', 
+                  action: () => { 
+                    setIsMenuOpen(false);
+                    setTimeout(() => setShowRevenueStats(true), 300);
+                  } 
+                },
               ].map((item, idx) => (
                 <motion.div
                   key={idx}
@@ -1511,6 +1529,26 @@ function App() {
     {/* [B] [포스터 확대 모달 - 컨테이너 외부 최상위 배치] */}
     {showPartner && <PartnerModal onClose={() => setShowPartner(false)} />}
     {showClassRegister && <ClassRegisterModal onClose={() => setShowClassRegister(false)} />}
+    {showStudentManager && (
+      <div
+        style={{ position: 'fixed', inset: 0, zIndex: 2000001, background: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+        onClick={() => setShowStudentManager(false)}
+      >
+        <motion.div onClick={(e) => e.stopPropagation()} style={{ width: '90%', maxWidth: '400px', minHeight: '200px', background: '#121212', borderRadius: '16px', border: '1px solid rgba(201,168,76,0.3)' }}>
+          <div />
+        </motion.div>
+      </div>
+    )}
+    {showRevenueStats && (
+      <div
+        style={{ position: 'fixed', inset: 0, zIndex: 2000001, background: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+        onClick={() => setShowRevenueStats(false)}
+      >
+        <motion.div onClick={(e) => e.stopPropagation()} style={{ width: '90%', maxWidth: '400px', minHeight: '200px', background: '#121212', borderRadius: '16px', border: '1px solid rgba(201,168,76,0.3)' }}>
+          <div />
+        </motion.div>
+      </div>
+    )}
     {(view === 'register-party' || location.pathname === '/register-party') && (
       <Suspense fallback={<LoadingFallback />}>
         <RegisterForm
