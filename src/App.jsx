@@ -1421,9 +1421,17 @@ function App() {
         >
           <div
             onClick={(e) => e.stopPropagation()}
-            style={{ width: '100%', maxWidth: 340, background: '#121212', borderRadius: 16, padding: 24, border: '1px solid rgba(201,168,76,0.35)' }}
+            style={{ position: 'relative', width: '100%', maxWidth: 340, background: '#121212', borderRadius: 16, padding: 24, border: '1px solid rgba(201,168,76,0.35)' }}
           >
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 20 }}>
+            <button
+              type="button"
+              onClick={() => { setShowVipLogin(false); resetVipAuthToLogin(); }}
+              aria-label="닫기"
+              style={{ position: 'absolute', top: 16, right: 16, background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(201,168,76,0.3)', borderRadius: 12, padding: 8, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}
+            >
+              <X size={20} color="#C9A84C" />
+            </button>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 20, paddingRight: 40 }}>
               <motion.div>
                 <h3 style={{ margin: '0 0 8px', color: '#F8FAFC', fontSize: 18, fontWeight: 900 }}>{vipAuthMode === 'login' ? '마스터 로그인' : vipAuthMode === 'signup' ? '회원가입' : '비밀번호 찾기'}</h3>
                 <p style={{ margin: 0, color: '#94A3B8', fontSize: 12, fontWeight: 600 }}>VIP INSTRUCTOR LOUNGE</p>
