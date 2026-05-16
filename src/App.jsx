@@ -823,7 +823,13 @@ function App() {
     try {
       const { error } = await supabase
         .from('instructors')
-        .insert({ login_id: id, login_password: pw });
+        .insert({
+          login_id: id,
+          login_password: pw,
+          name: id,
+          custom_id: id,
+          status: 'active',
+        });
       if (error) {
         alert('가입에 실패했습니다. 다시 시도해주세요.');
         return;
