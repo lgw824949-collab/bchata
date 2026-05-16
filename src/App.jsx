@@ -222,26 +222,37 @@ const PosterModal = ({ src, onClose, shareTitle, shareDesc }) => {
         >
           <ChevronLeft size={24} />
         </button>
-        <span style={{
-          position: 'absolute',
-          left: '50%',
-          transform: 'translateX(-50%)',
-          color: '#C9A84C',
-          fontSize: '16px',
-          fontWeight: 900,
-          letterSpacing: '-0.3px',
-          pointerEvents: 'none',
-        }}>
-          오늘밤빠
-        </span>
+        {/* 헤더 중앙: 오늘밤빠 · 우측 공유/복사 — 카카오 버튼으로 교체, 구 레이아웃 주석 보관
+        <span style={{ position: 'absolute', left: '50%', transform: 'translateX(-50%)', color: '#C9A84C', fontSize: '16px', fontWeight: 900, pointerEvents: 'none' }}>오늘밤빠</span>
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexShrink: 0 }}>
-          <button type="button" onClick={handleNativeShare} title="공유" style={btnRound}>
-            <Share2 size={18} />
-          </button>
-          <button type="button" onClick={handleCopyLink} title="홈 링크 복사" style={btnRound}>
-            <Copy size={18} />
-          </button>
+          <button type="button" onClick={handleNativeShare} title="공유" style={btnRound}><Share2 size={18} /></button>
+          <button type="button" onClick={handleCopyLink} title="홈 링크 복사" style={btnRound}><Copy size={18} /></button>
         </div>
+        */}
+        <button
+          type="button"
+          onClick={handleKakaoShare}
+          title="카카오로 공유하기"
+          style={{
+            position: 'absolute',
+            left: '50%',
+            transform: 'translateX(-50%)',
+            background: '#FEE500',
+            color: '#3E2723',
+            border: 'none',
+            borderRadius: '20px',
+            padding: '8px 14px',
+            fontSize: '13px',
+            fontWeight: 800,
+            cursor: 'pointer',
+            whiteSpace: 'nowrap',
+            maxWidth: 'calc(100% - 100px)',
+            overflow: 'hidden',
+            textOverflow: 'ellipsis',
+          }}
+        >
+          💬 카카오로 공유하기
+        </button>
       </header>
 
       {/* 닫기 버튼 — 헤더로 이동, 구 레이아웃 주석 보관
