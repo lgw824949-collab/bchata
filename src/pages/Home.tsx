@@ -92,6 +92,11 @@ const partyCardZoomHandlers = {
   onTouchStart: setPartyCardZoomIn,
   onTouchEnd: setPartyCardZoomOut,
 };
+/** 캐러셀 카드: 터치 줌 제외 (가로 스크롤과 충돌 방지) */
+const partyCardZoomDesktopOnly = {
+  onMouseEnter: setPartyCardZoomIn,
+  onMouseLeave: setPartyCardZoomOut,
+};
 
 /** 행사달력: 날짜 문자열 통일 (YYYY-MM-DD) */
 const normDate = (d) => (d ? String(d).slice(0, 10) : '');
@@ -886,13 +891,13 @@ const HomePage = ({
   const regionListRef = useRef(null);
   const [shuffleOffset, setShuffleOffset] = useState(0);
 
-  // [사용자 요청] 15초 롤링 시스템: 모든 지역의 파티 순서를 15초마다 순환시킴
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setShuffleOffset(prev => prev + 1);
-    }, 15000);
-    return () => clearInterval(interval);
-  }, []);
+  // [사용자 요청] 15초 롤링 — shuffleOffset 미사용, 캐러셀 스크롤 중 리렌더 방지
+  // useEffect(() => {
+  //   const interval = setInterval(() => {
+  //     setShuffleOffset(prev => prev + 1);
+  //   }, 15000);
+  //   return () => clearInterval(interval);
+  // }, []);
 
   useEffect(() => {
     const loadRegionalWeather = async () => {
@@ -1603,7 +1608,7 @@ const HomePage = ({
                                   display: 'flex',
                                   flexDirection: 'row',
                                   overflowX: 'auto',
-                                  touchAction: 'pan-x',
+                                  overflowY: 'hidden',
                                   gap: '12px',
                                   paddingTop: '10px',
                                   paddingRight: '16px',
@@ -1612,10 +1617,11 @@ const HomePage = ({
                                   msOverflowStyle: 'none',
                                   scrollbarWidth: 'none',
                                   WebkitOverflowScrolling: 'touch',
-                                  scrollBehavior: 'smooth',
-                                  // scrollSnapType: 'x mandatory',
-                                  // scrollPaddingLeft: '16px',
-                                  // overflowX: 'scroll',
+                                  scrollSnapType: 'x mandatory',
+                                  scrollPaddingLeft: '16px',
+                                  scrollPaddingRight: '16px',
+                                  // overscrollBehaviorX: 'contain',
+                                  // scrollBehavior: 'smooth',
                                 }}
                               >
                                 {rollingParties.length === 0 ? (
@@ -1642,14 +1648,15 @@ const HomePage = ({
                                   }
                                   return (
                                     <div
-                                      className="party-carousel-card"
-                                      {...partyCardZoomHandlers}
+                                      className="party-carousel-card region-carousel-card"
+                                      {...partyCardZoomDesktopOnly}
                                       key={item.id}
                                       onClick={() => openPartyWithAfterParty(item)}
                                       style={{
                                         width: 'min(340px, calc(100vw - 56px))',
                                         flexShrink: 0,
-                                        // scrollSnapAlign: 'start',
+                                        scrollSnapAlign: 'start',
+                                        scrollSnapStop: 'always',
                                         borderRadius: '20px',
                                         overflow: 'hidden',
                                         display: 'flex',
@@ -1660,13 +1667,14 @@ const HomePage = ({
                                         boxShadow: '0 4px 16px rgba(229, 57, 53, 0.08)',
                                         cursor: 'pointer',
                                         height: '150px',
-                                        ...partyCardZoomBaseStyle,
                                         position: 'relative',
                                         boxSizing: 'border-box',
                                       }}
                                     >
                                       {/* 파티 카드 우측 상단 찜하기 하트 버튼 */}
                                       <button
+                                        type="button"
+                                        onTouchStart={(e) => e.stopPropagation()}
                                         onClick={(e) => toggleWishlistParty(e, item)}
                                         style={{
                                           position: 'absolute',
@@ -2175,13 +2183,25 @@ const HomePage = ({
         .filter-scroll::-webkit-scrollbar { display: none; }
         .region-scroll-container {
           overflow-x: auto;
-          touch-action: pan-x;
-          scroll-behavior: smooth;
+          overflow-y: hidden;
           -webkit-overflow-scrolling: touch;
-          /* scroll-snap-type: x mandatory; */
-          /* scroll-padding-left: 16px; */
+          scroll-snap-type: x mandatory;
+          scroll-padding-left: 16px;
+          scroll-padding-right: 16px;
+          /* overscroll-behavior-x: contain; */
+          /* touch-action: pan-x pan-y; */
         }
         .region-scroll-container::-webkit-scrollbar { display: none; }
+        .region-scroll-container .region-carousel-card {
+          scroll-snap-align: start;
+          scroll-snap-stop: always;
+          /* touch-action: manipulation; */
+        }
+        @media (hover: hover) {
+          .region-scroll-container .region-carousel-card {
+            transition: transform 0.25s ease;
+          }
+        }
         /* .party-carousel-card:hover/active — JS onMouseEnter·onTouchStart 로 줌 처리 */
         /*
         .party-carousel-card {
