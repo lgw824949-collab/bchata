@@ -527,7 +527,7 @@ const ClassCard = ({ item, onSelect }) => {
         cursor: 'pointer',
         display: 'flex',
         flexDirection: 'column',
-        scrollSnapAlign: 'start',
+        // scrollSnapAlign: 'start',
         border: '1px solid var(--color-border)',
         boxShadow: '0 2px 8px rgba(0,0,0,0.06)',
         ...partyCardZoomBaseStyle,
@@ -1613,8 +1613,8 @@ const HomePage = ({
                                   scrollbarWidth: 'none',
                                   WebkitOverflowScrolling: 'touch',
                                   scrollBehavior: 'smooth',
-                                  scrollSnapType: 'x mandatory',
-                                  scrollPaddingLeft: '16px',
+                                  // scrollSnapType: 'x mandatory',
+                                  // scrollPaddingLeft: '16px',
                                   // overflowX: 'scroll',
                                 }}
                               >
@@ -1649,7 +1649,7 @@ const HomePage = ({
                                       style={{
                                         width: 'min(340px, calc(100vw - 56px))',
                                         flexShrink: 0,
-                                        scrollSnapAlign: 'start',
+                                        // scrollSnapAlign: 'start',
                                         borderRadius: '20px',
                                         overflow: 'hidden',
                                         display: 'flex',
@@ -2178,8 +2178,8 @@ const HomePage = ({
           touch-action: pan-x;
           scroll-behavior: smooth;
           -webkit-overflow-scrolling: touch;
-          scroll-snap-type: x mandatory;
-          scroll-padding-left: 16px;
+          /* scroll-snap-type: x mandatory; */
+          /* scroll-padding-left: 16px; */
         }
         .region-scroll-container::-webkit-scrollbar { display: none; }
         /* .party-carousel-card:hover/active — JS onMouseEnter·onTouchStart 로 줌 처리 */
