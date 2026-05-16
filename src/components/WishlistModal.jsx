@@ -250,7 +250,16 @@ export default function WishlistModal({ onClose, setSelectedPoster }) {
                       <img 
                         src={item.poster_url} 
                         onClick={() => {
-                          if (setSelectedPoster) setSelectedPoster(item.poster_url);
+                          window.history.pushState({ modal: true }, '');
+                          const titlePart = String(item.title || '').split(' ㅣ ')[0].replace(/^\[.*?\]\s*/, '').trim();
+                          const loc = item.locationName || item.location_name || item.venue || item.region;
+                          const fee = item.fee ?? item.price_info;
+                          const desc = [item.date, loc, fee].filter(Boolean).join(' · ');
+                          setSelectedPoster({
+                            src: item.poster_url,
+                            title: titlePart || undefined,
+                            desc: desc || undefined,
+                          });
                         }}
                         style={{ width: '75px', height: '100px', objectFit: 'cover', borderRadius: '10px', flexShrink: 0, background: '#F1F5F9', cursor: 'pointer' }} 
                         alt={item.title || '포스터'} 
