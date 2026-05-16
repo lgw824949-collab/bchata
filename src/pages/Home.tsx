@@ -1099,8 +1099,8 @@ const HomePage = ({
         {[
           { icon: <Calendar size={22} color="#F97316" />, label: '행사달력', action: () => setShowFullCalendar(true) },
           { icon: <Utensils size={22} color="#C2185B" />, label: '맛집뒷풀이', action: () => setView('restaurant') },
-          { icon: <MessageSquare size={22} color="#FF8A80" />, label: '컨시어지', action: () => window.dispatchEvent(new CustomEvent('open-chatbot')) },
-          { icon: <MessageSquare size={22} color="#388E3C" />, label: '채팅문의', action: () => window.open('https://open.kakao.com/o/gP43rNri', '_blank') },
+          // { icon: <MessageSquare size={22} color="#FF8A80" />, label: '컨시어지', action: () => window.dispatchEvent(new CustomEvent('open-chatbot')) },
+          { textIcon: '1:1', label: '채팅문의', action: () => window.open('https://open.kakao.com/o/gP43rNri', '_blank') },
           { icon: <Camera size={22} color="#E53935" />, label: '라이브픽', /* badge: 'HOT', */ action: () => setView('community') },
           { icon: <CloudSun size={22} color="#1976D2" />, label: '오늘날씨', action: () => setShowWeather(true) },
           { icon: <Heart size={22} color="#7B1FA2" />, label: '찜하기', action: () => setShowWishlist(true) },
@@ -1124,7 +1124,26 @@ const HomePage = ({
                   padding: '12px 4px 10px', background: '#fff', height: '66px', boxSizing: 'border-box'
                 }}
               >
-                {item.icon}
+                {item.textIcon ? (
+                  <div
+                    style={{
+                      width: 22,
+                      height: 22,
+                      aspectRatio: '1 / 1',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      fontSize: 9,
+                      fontWeight: 900,
+                      color: '#388E3C',
+                      letterSpacing: '-0.5px',
+                      lineHeight: 1,
+                      flexShrink: 0,
+                    }}
+                  >
+                    {item.textIcon}
+                  </div>
+                ) : item.icon}
                 <span style={{ fontSize: '10px', fontWeight: 600, color: '#1E293B', textAlign: 'center', lineHeight: 1.2, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', width: '100%' }}>
                   {item.label}
                 </span>

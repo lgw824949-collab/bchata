@@ -25,7 +25,7 @@ const ChatBot = () => {
     return () => window.removeEventListener('open-chatbot', handler);
   }, []);
   const [messages, setMessages] = useState([
-    { role: 'model', content: "안녕하세요! 밤빠 컨시어지예요 ✨\n오늘 밤, 당신의 완벽한 댄스 파티를 함께 찾아드릴게요! 💖" },
+    { role: 'model', content: "안녕하세요! 밤빠 컨시어지예요.\n오늘 밤, 당신의 완벽한 댄스 파티를 함께 찾아드릴게요!" },
     { role: 'model', content: MENU_MSG }
   ]);
   const [input, setInput] = useState('');
@@ -359,40 +359,13 @@ const ChatBot = () => {
     recognition.start();
   };
 
+  const handleClose = () => {
+    setIsOpen(false);
+    window.dispatchEvent(new CustomEvent('close-chatbot'));
+  };
+
   return (
     <>
-      {!isOpen && (
-        <>
-        <style>{`@keyframes conciergePulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.35; } }`}</style>
-        <button
-          type="button"
-          onClick={() => setIsOpen(true)}
-          aria-label="밤빠 컨시어지"
-          style={{
-            position: 'fixed',
-            right: 16,
-            bottom: 'calc(76px + env(safe-area-inset-bottom))',
-            zIndex: 2099999,
-            display: 'flex',
-            alignItems: 'center',
-            gap: 8,
-            padding: '12px 16px',
-            borderRadius: 28,
-            border: 'none',
-            background: 'linear-gradient(135deg, #FF8A80, #FF5252)',
-            color: '#fff',
-            fontSize: 13,
-            fontWeight: 800,
-            boxShadow: '0 6px 20px rgba(255, 82, 82, 0.45)',
-            cursor: 'pointer',
-          }}
-        >
-          <span style={{ width: 8, height: 8, borderRadius: '50%', background: '#fff', animation: 'conciergePulse 1.5s infinite' }} />
-          ✨ 컨시어지
-        </button>
-        </>
-      )}
-
       {isOpen && (
         <>
         <style>{`
@@ -427,13 +400,13 @@ const ChatBot = () => {
             borderBottom: '1px solid #F0F0F0'
           }}>
             <div>
-              <div style={{ fontWeight: '850', fontSize: '19px', color: '#FF8A80', letterSpacing: '-0.5px' }}>✨ 밤빠 컨시어지</div>
+              <div style={{ fontWeight: '850', fontSize: '19px', color: '#FF8A80', letterSpacing: '-0.5px' }}>밤빠 컨시어지</div>
               <div style={{ fontSize: '12px', color: '#999', marginTop: '3px', fontWeight: '600' }}>
                 {isDataLoaded ? "실시간 AI 가이드 가동 중" : "정보를 불러오는 중..."}
               </div>
             </div>
             <button 
-              onClick={() => setIsOpen(false)}
+              onClick={handleClose}
               style={{ background: '#F5F5F5', border: 'none', color: '#888', cursor: 'pointer', fontSize: '18px', width: '32px', height: '32px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
             >
               ✕
