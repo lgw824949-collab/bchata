@@ -687,6 +687,22 @@ function App() {
   const [showWeather, setShowWeather] = useState(false);
   const [showSaju, setShowSaju] = useState(false);
   const [showPartner, setShowPartner] = useState(false);
+
+  const isSocialLightNav = (location.pathname === '/' && view === 'home') || showPartner
+
+  useEffect(() => {
+    if (isSocialLightNav) {
+      document.body.classList.add('bottom-nav-social-light')
+    } else {
+      document.body.classList.remove('bottom-nav-social-light')
+    }
+    const themeMeta = document.querySelector('meta[name="theme-color"]')
+    if (themeMeta) {
+      themeMeta.setAttribute('content', isSocialLightNav ? '#ffffff' : '#FF1744')
+    }
+    return () => document.body.classList.remove('bottom-nav-social-light')
+  }, [isSocialLightNav])
+
   const [showClassRegister, setShowClassRegister] = useState(false);
   const [showFullCalendar, setShowFullCalendar] = useState(false);
   const [showFilterPanel, setShowFilterPanel] = useState(false);
@@ -1009,6 +1025,10 @@ function App() {
     location.pathname === '/register-class' ||
     location.pathname === '/bootcamp/register' ||
     location.pathname === '/festival/register';
+
+  const navActiveColor = isSocialLightNav ? '#E53935' : '#FFFFFF'
+  const navInactiveColor = isSocialLightNav ? '#94A3B8' : 'rgba(255,255,255,0.3)'
+  const isSocialTabActive = location.pathname === '/' && view === 'home' && !showPartner
 
   return (
     <>
@@ -1512,7 +1532,7 @@ function App() {
     {/* [Premium Floating Capsule Navigation - Root Level Persistence] */}
     {!hideBottomNav && (
     <nav 
-      className="bottom-nav" 
+      className={`bottom-nav${isSocialLightNav ? ' bottom-nav--social-light' : ''}`}
       style={{ 
         position: 'fixed', 
         bottom: '15px', 
@@ -1522,17 +1542,20 @@ function App() {
         width: '94%', 
         maxWidth: '460px', 
         height: '68px',
-        background: '#0a0a0a',
+        // background: '#0a0a0a',
+        background: isSocialLightNav ? '#ffffff' : '#0a0a0a',
         borderRadius: '34px',
         display: 'flex', 
         alignItems: 'center', 
         justifyContent: 'space-between',
         padding: '0 20px',
         zIndex: 2100000, // 최상위 모달보다 높게 설정
-        boxShadow: '0 10px 40px rgba(0,0,0,0.6)',
+        // boxShadow: '0 10px 40px rgba(0,0,0,0.6)',
+        boxShadow: isSocialLightNav ? '0 -4px 16px rgba(0,0,0,0.06)' : '0 10px 40px rgba(0,0,0,0.6)',
         boxSizing: 'border-box',
-        border: '1px solid rgba(255,255,255,0.1)',
-        backdropFilter: 'blur(10px)'
+        // border: '1px solid rgba(255,255,255,0.1)',
+        border: isSocialLightNav ? '1px solid #e2e8f0' : '1px solid rgba(255,255,255,0.1)',
+        backdropFilter: isSocialLightNav ? 'none' : 'blur(10px)'
       }}
     >
       <div 
@@ -1540,11 +1563,12 @@ function App() {
         style={{ 
           flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
           cursor: 'pointer', transition: 'all 0.2s',
-          color: (location.pathname === '/' && !showPartner) ? '#FFFFFF' : 'rgba(255,255,255,0.3)'
+          // color: (location.pathname === '/' && !showPartner) ? '#FFFFFF' : 'rgba(255,255,255,0.3)'
+          color: isSocialTabActive ? navActiveColor : navInactiveColor
         }}
       >
-        <Music2 size={22} strokeWidth={(location.pathname === '/' && !showPartner) ? 2.5 : 1.5} />
-        <span style={{ fontSize: '9px', fontWeight: (location.pathname === '/' && !showPartner) ? 900 : 500, marginTop: '3px' }}>
+        <Music2 size={22} strokeWidth={isSocialTabActive ? 2.5 : 1.5} />
+        <span style={{ fontSize: '9px', fontWeight: isSocialTabActive ? 900 : 500, marginTop: '3px' }}>
           {i18n.language?.startsWith('en') ? 'Social' : '소셜'}
         </span>
       </div>
@@ -1554,7 +1578,8 @@ function App() {
         style={{ 
           flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
           cursor: 'pointer', transition: 'all 0.2s',
-          color: showPartner ? '#FFFFFF' : 'rgba(255,255,255,0.3)'
+          // color: showPartner ? '#FFFFFF' : 'rgba(255,255,255,0.3)'
+          color: showPartner ? navActiveColor : navInactiveColor
         }}
       >
         <Heart size={22} strokeWidth={showPartner ? 2.5 : 1.5} />
@@ -1596,11 +1621,12 @@ function App() {
         style={{ 
           flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
           cursor: 'pointer', transition: 'all 0.2s',
-          color: (location.pathname === '/bootcamp' && !showPartner) ? '#FFFFFF' : 'rgba(255,255,255,0.3)'
+          // color: (location.pathname === '/bootcamp' && !showPartner) ? '#FFFFFF' : 'rgba(255,255,255,0.3)'
+          color: (!isSocialLightNav && location.pathname === '/bootcamp' && !showPartner) ? navActiveColor : navInactiveColor
         }}
       >
-        <Tent size={22} strokeWidth={(location.pathname === '/bootcamp' && !showPartner) ? 2.5 : 1.5} />
-        <span style={{ fontSize: '9px', fontWeight: (location.pathname === '/bootcamp' && !showPartner) ? 900 : 500, marginTop: '3px' }}>
+        <Tent size={22} strokeWidth={(!isSocialLightNav && location.pathname === '/bootcamp' && !showPartner) ? 2.5 : 1.5} />
+        <span style={{ fontSize: '9px', fontWeight: (!isSocialLightNav && location.pathname === '/bootcamp' && !showPartner) ? 900 : 500, marginTop: '3px' }}>
           {i18n.language?.startsWith('en') ? 'Bootcamp' : '부트캠프'}
         </span>
       </div>
@@ -1610,11 +1636,12 @@ function App() {
         style={{ 
           flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
           cursor: 'pointer', transition: 'all 0.2s',
-          color: (location.pathname === '/festival' && !showPartner) ? '#FFFFFF' : 'rgba(255,255,255,0.3)'
+          // color: (location.pathname === '/festival' && !showPartner) ? '#FFFFFF' : 'rgba(255,255,255,0.3)'
+          color: (!isSocialLightNav && location.pathname === '/festival' && !showPartner) ? navActiveColor : navInactiveColor
         }}
       >
-        <Flag size={22} strokeWidth={(location.pathname === '/festival' && !showPartner) ? 2.5 : 1.5} />
-        <span style={{ fontSize: '9px', fontWeight: (location.pathname === '/festival' && !showPartner) ? 900 : 500, marginTop: '3px' }}>
+        <Flag size={22} strokeWidth={(!isSocialLightNav && location.pathname === '/festival' && !showPartner) ? 2.5 : 1.5} />
+        <span style={{ fontSize: '9px', fontWeight: (!isSocialLightNav && location.pathname === '/festival' && !showPartner) ? 900 : 500, marginTop: '3px' }}>
           {i18n.language?.startsWith('en') ? 'Festival' : '페스티벌'}
         </span>
       </div>
