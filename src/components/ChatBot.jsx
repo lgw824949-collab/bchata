@@ -363,6 +363,37 @@ const ChatBot = () => {
 
   return (
     <>
+      {!isOpen && (
+        <>
+        <style>{`@keyframes conciergePulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.35; } }`}</style>
+        <button
+          type="button"
+          onClick={() => setIsOpen(true)}
+          aria-label="밤빠 컨시어지"
+          style={{
+            position: 'fixed',
+            right: 16,
+            bottom: 'calc(76px + env(safe-area-inset-bottom))',
+            zIndex: 2099999,
+            display: 'flex',
+            alignItems: 'center',
+            gap: 8,
+            padding: '12px 16px',
+            borderRadius: 28,
+            border: 'none',
+            background: 'linear-gradient(135deg, #FF8A80, #FF5252)',
+            color: '#fff',
+            fontSize: 13,
+            fontWeight: 800,
+            boxShadow: '0 6px 20px rgba(255, 82, 82, 0.45)',
+            cursor: 'pointer',
+          }}
+        >
+          <span style={{ width: 8, height: 8, borderRadius: '50%', background: '#fff', animation: 'conciergePulse 1.5s infinite' }} />
+          ✨ 컨시어지
+        </button>
+        </>
+      )}
 
       {isOpen && (
         <>

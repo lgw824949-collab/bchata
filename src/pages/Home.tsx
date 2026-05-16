@@ -18,8 +18,12 @@ const GENRE_MAP = {
   '키좀바': { key: 'k_ratio', label: 'K', label_en: 'Kizomba', color: '#FF1744' },
 };
 
+const SEOUL_HINT = /서울|강남|홍대|잠실|건대|신림|서초|영등포|성수|이태원|왕십리|목동|구로/;
+
 const REGION_FILTER = {
-  '서울': (p) => p.broadRegion === '서울',
+  '서울': (p) =>
+    p.broadRegion === '서울' ||
+    SEOUL_HINT.test(`${p.title || ''} ${p.address || ''} ${p.region || ''} ${p.location_name || ''} ${p.locationName || ''}`),
   '경기/인천': (p) => p.broadRegion === '경기/인천',
   '경상도': (p) => p.broadRegion === '경상도',
   '전라도': (p) => p.broadRegion === '전라도',
@@ -182,17 +186,18 @@ const LiveExposureStrip = ({ pool, selectedDate, todayStr, onSelect, cleanTitle,
     return () => clearInterval(timer);
   }, [pool.length, selectedDate]);
 
-  const featured = useMemo(
-    () => pickExposurePair(pool, rotationIndex, todayStr),
-    [pool, rotationIndex, todayStr]
-  );
+  const featured = useMemo(() => {
+    const picked = pickExposurePair(pool, rotationIndex, todayStr);
+    if (picked.length) return picked;
+    return pool.length ? [pool[0]] : [];
+  }, [pool, rotationIndex, todayStr]);
 
-  if (!featured.length) return null;
+  if (!pool.length) return null;
 
   return (
     <section
       style={{
-        margin: '8px 16px 32px',
+        margin: '8px 16px 88px',
         padding: '18px 16px 20px',
         borderRadius: '24px',
         background: 'linear-gradient(165deg, #141414 0%, #0a0a0a 55%, #1a1510 100%)',
@@ -1094,6 +1099,7 @@ const HomePage = ({
         {[
           { icon: <Calendar size={22} color="#F97316" />, label: '행사달력', action: () => setShowFullCalendar(true) },
           { icon: <Utensils size={22} color="#C2185B" />, label: '맛집뒷풀이', action: () => setView('restaurant') },
+          { icon: <MessageSquare size={22} color="#FF8A80" />, label: '컨시어지', action: () => window.dispatchEvent(new CustomEvent('open-chatbot')) },
           { icon: <MessageSquare size={22} color="#388E3C" />, label: '채팅문의', action: () => window.open('https://open.kakao.com/o/gP43rNri', '_blank') },
           { icon: <Camera size={22} color="#E53935" />, label: '라이브픽', /* badge: 'HOT', */ action: () => setView('community') },
           { icon: <CloudSun size={22} color="#1976D2" />, label: '오늘날씨', action: () => setShowWeather(true) },
@@ -1481,6 +1487,7 @@ const HomePage = ({
                                   </span>
                                 </div>
                                 <button
+                                  type="button"
                                   onClick={() => {
                                     setGridRegion(regionName);
                                     handleOpenModal(setShowGridModal, true);
@@ -1681,7 +1688,7 @@ const HomePage = ({
 
                     <LiveExposureStrip
                       pool={dedupePartiesByPoster(
-                        partiesOnDate(calendarParties, selectedDate).filter(
+                        unifiedDayEvents.filter(
                           (p) => p.poster_url && String(p.poster_url).trim()
                         )
                       )}

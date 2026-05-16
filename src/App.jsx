@@ -855,9 +855,11 @@ function App() {
       const mappedParties = rawParties.map(p => {
         const locName = locationMap[p.location_id] || p.locationName || p.location_name || '장소 미지정';
         
-        let broadRegion = '전국'; 
+        let broadRegion = '전국';
+        const regionStr = String(p.region || '');
         const tStr = p.title || '';
-        if (tStr.includes('[서울]')) broadRegion = '서울';
+        if (regionStr.includes('서울')) broadRegion = '서울';
+        else if (tStr.includes('[서울]')) broadRegion = '서울';
         else if (tStr.includes('[경기/인천]') || tStr.includes('[인천광역시]') || tStr.includes('[인천]')) broadRegion = '경기/인천';
         else if (tStr.includes('[경상도]')) broadRegion = '경상도';
         else if (tStr.includes('[전라도]')) broadRegion = '전라도';
