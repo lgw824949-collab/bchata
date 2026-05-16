@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next';
 import { motion, AnimatePresence } from 'framer-motion'
 import { supabase, logActivity } from './lib/supabase'
 import { KAKAO_BRAND, SHARE_BUILD, sharePartyToKakao } from './lib/kakaoShare'
+import { getUserCoords, isGeoDenied, readCachedCoords, syncGeoPermissionState } from './lib/geoCache'
 import QuickPinchZoom, { make3dTransformValue } from 'react-quick-pinch-zoom';
 
 // 페이지 지연 로딩 (Lazy Loading)
@@ -673,7 +674,10 @@ function App() {
   const [showIncheonModal, setShowIncheonModal] = useState(false);
   const [isSajuCall, setIsSajuCall] = useState(false);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
-  const [userCoords, setUserCoords] = useState(null);
+  const [userCoords, setUserCoords] = useState(() => {
+    const c = readCachedCoords(24 * 60 * 60 * 1000);
+    return c ? { lat: c.lat, lon: c.lng } : null;
+  });
   const [selectedPoster, setSelectedPoster] = useState(null);
   const [modalScale, setModalScale] = useState(1);
   const [modalPos, setModalPos] = useState({ x: 0, y: 0 });
@@ -941,20 +945,20 @@ function App() {
     }
   };
 
-  const requestLocation = () => {
-    if (navigator.geolocation) {
-      navigator.geolocation.getCurrentPosition(
-        (pos) => {
-          setUserCoords({ lat: pos.coords.latitude, lon: pos.coords.longitude });
-        },
-        () => {},
-        { enableHighAccuracy: false, timeout: 5000, maximumAge: 60000 }
-      );
-    }
+  const requestLocation = (force = false) => {
+    getUserCoords({ force, enableHighAccuracy: false })
+      .then((c) => setUserCoords({ lat: c.lat, lon: c.lng }))
+      .catch(() => {});
   };
 
   useEffect(() => {
-    requestLocation();
+    syncGeoPermissionState();
+    const cached = readCachedCoords();
+    if (cached) {
+      setUserCoords({ lat: cached.lat, lon: cached.lng });
+      return;
+    }
+    if (!isGeoDenied()) requestLocation();
   }, []);
 
   const withHistory = (isOpen, setter) => (v) => {

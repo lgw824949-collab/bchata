@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { ChevronLeft, MapPin, Navigation, Info, AlertCircle, Utensils } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useTranslation } from 'react-i18next';
+import { getUserCoords, isGeoDenied, readCachedCoords } from '../lib/geoCache';
 
 const SkeletonCard = () => (
   <div style={{
@@ -33,38 +34,34 @@ const Restaurant = ({ onBack }) => {
   const [error, setError] = useState(null);
   const [restaurants, setRestaurants] = useState([]); 
   const [coords, setCoords] = useState(() => {
-    const cached = localStorage.getItem('last_coords');
-    return cached ? JSON.parse(cached) : null;
+    const c = readCachedCoords(24 * 60 * 60 * 1000);
+    return c ? { lat: c.lat, lon: c.lng } : null;
   });
   const [isFallback, setIsFallback] = useState(false);
   const [isRefreshing, setIsRefreshing] = useState(false);
 
-  // 1. 현위치 가져오기
+  // 1. 현위치 — 캐시 우선 (한 번 허용 후 재팝업 없음)
   useEffect(() => {
-    if (!navigator.geolocation) {
-      setError('GPS를 지원하지 않는 브라우저입니다.');
-      setLoading(false);
+    const applyCoords = (c, fallback = false) => {
+      setCoords({ lat: c.lat, lon: c.lng ?? c.lon });
+      setIsFallback(fallback);
+      setError(null);
+    };
+
+    const cached = readCachedCoords(24 * 60 * 60 * 1000);
+    if (cached) {
+      applyCoords(cached);
       return;
     }
 
-    navigator.geolocation.getCurrentPosition(
-      (pos) => {
-        const newCoords = { lat: pos.coords.latitude, lon: pos.coords.longitude };
-        setCoords(newCoords);
-        localStorage.setItem('last_coords', JSON.stringify(newCoords));
-        setIsFallback(false);
-      },
-      (err) => {
-        console.warn('Geolocation error:', err);
-        if (!coords) {
-          const seoul = { lat: 37.5665, lon: 126.9780 };
-          setCoords(seoul);
-          setIsFallback(true);
-        }
-        setError(null);
-      },
-      { timeout: 5000, enableHighAccuracy: false }
-    );
+    if (isGeoDenied()) {
+      applyCoords({ lat: 37.5665, lng: 126.978 }, true);
+      return;
+    }
+
+    getUserCoords({ enableHighAccuracy: false })
+      .then((c) => applyCoords(c))
+      .catch(() => applyCoords({ lat: 37.5665, lng: 126.978 }, true));
   }, []);
 
   // 2. API 호출

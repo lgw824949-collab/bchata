@@ -1,5 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { supabase } from '../lib/supabase';
+import { getUserCoords, isGeoDenied, readCachedCoords } from '../lib/geoCache';
 
 // 관리자가 수동으로 동호회/빠 변동 사항을 기록하는 공간
 const ADMIN_KNOWLEDGE = `
@@ -63,21 +64,18 @@ const ChatBot = () => {
     };
   }, [isOpen]);
 
-  // 유저 위치 실시간 감지 (이동성 고려)
+  // 위치: 캐시 우선 (한 번 허용 후 재팝업 없음)
   useEffect(() => {
-    if (isOpen && navigator.geolocation) {
-      const watchId = navigator.geolocation.watchPosition(
-        (position) => {
-          setUserLocation({
-            lat: position.coords.latitude,
-            lng: position.coords.longitude
-          });
-        },
-        (error) => console.log('Location watch error:', error),
-        { enableHighAccuracy: true, timeout: 5000, maximumAge: 0 }
-      );
-      return () => navigator.geolocation.clearWatch(watchId);
+    if (!isOpen) return;
+    const cached = readCachedCoords();
+    if (cached) {
+      setUserLocation({ lat: cached.lat, lng: cached.lng });
+      return;
     }
+    if (isGeoDenied()) return;
+    getUserCoords({ enableHighAccuracy: false })
+      .then((c) => setUserLocation({ lat: c.lat, lng: c.lng }))
+      .catch(() => {});
   }, [isOpen]);
 
   // 챗봇 오픈 시 플랫폼 실시간 데이터 로드

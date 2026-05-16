@@ -3,6 +3,7 @@ import { X, Navigation, MapPin, Info } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { useTranslation } from 'react-i18next';
 import { BAR_DATABASE } from '../lib/BarLib';
+import { getUserCoords, isGeoDenied, readCachedCoords } from '../lib/geoCache';
 
 const IncheonRoute = ({ parties, onClose }) => {
   const { t, i18n } = useTranslation();
@@ -37,25 +38,37 @@ const IncheonRoute = ({ parties, onClose }) => {
       return
     }
 
-    setLoading(true)
-    navigator.geolocation.getCurrentPosition(
-      (pos) => {
-        setLoading(false)
-        const url = isEn 
-          ? `https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(destAddress)}`
-          : `https://map.kakao.com/link/to/${encodeURIComponent(destAddress)}`;
-        window.open(url, '_blank');
-      },
-      (err) => {
+    const openSearch = () => {
+      const url = isEn
+        ? `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(destAddress)}`
+        : `https://map.kakao.com/link/search/${encodeURIComponent(destAddress)}`;
+      window.open(url, '_blank');
+    };
+
+    const openDirections = () => {
+      const url = isEn
+        ? `https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(destAddress)}`
+        : `https://map.kakao.com/link/to/${encodeURIComponent(destAddress)}`;
+      window.open(url, '_blank');
+    };
+
+    const cached = readCachedCoords();
+    if (cached || isGeoDenied()) {
+      openDirections();
+      return;
+    }
+
+    setLoading(true);
+    getUserCoords({ enableHighAccuracy: true })
+      .then(() => {
         setLoading(false);
-        const url = isEn 
-          ? `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(destAddress)}`
-          : `https://map.kakao.com/link/search/${encodeURIComponent(destAddress)}`;
-        window.open(url, '_blank');
-      },
-      { enableHighAccuracy: true, timeout: 5000 }
-    )
-  }
+        openDirections();
+      })
+      .catch(() => {
+        setLoading(false);
+        openSearch();
+      });
+  };
 
   return (
     <motion.div 

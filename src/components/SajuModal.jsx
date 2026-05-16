@@ -141,10 +141,10 @@ const SajuModal = ({ parties, onClose, lang = 'ko' }) => {
     // 1. GPS 위치 획득 및 거리순 파티 조회 (공통 로직)
     let userLat = null, userLon = null
     try {
-      const position = await new Promise((resolve, reject) => {
-        navigator.geolocation.getCurrentPosition(resolve, reject, { timeout: 2000, maximumAge: 60000 })
-      })
-      userLat = position.coords.latitude; userLon = position.coords.longitude
+      const { getUserCoords, readCachedCoords } = await import('../lib/geoCache');
+      const c = readCachedCoords() || (await getUserCoords({ maxAgeMs: 60 * 60 * 1000 }));
+      userLat = c.lat;
+      userLon = c.lng;
     } catch (e) { console.log('GPS Skip') }
 
     const { data: bars } = await supabase
