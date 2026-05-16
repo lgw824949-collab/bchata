@@ -266,63 +266,62 @@ const LiveExposureStrip = ({ pool, selectedDate, todayStr, onSelect, cleanTitle,
                 onClick={() => onSelect(item)}
                 style={{
                   padding: 0,
-                  border: 'none',
-                  borderRadius: 18,
+                  border: '1px solid rgba(201, 168, 76, 0.35)',
+                  borderRadius: 16,
                   overflow: 'hidden',
                   cursor: 'pointer',
-                  background: '#000',
-                  boxShadow: '0 8px 28px rgba(0,0,0,0.45)',
+                  background: '#0d0d0d',
+                  boxShadow: '0 6px 20px rgba(0,0,0,0.35)',
                   textAlign: 'left',
+                  display: 'flex',
+                  flexDirection: 'column',
                 }}
               >
-                <div
+                <motion.div
                   style={{
-                    padding: 3,
-                    background: 'linear-gradient(135deg, #C9A84C, #8B6914, #C9A84C)',
+                    aspectRatio: '3/4',
+                    width: '100%',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    background: '#111',
+                    padding: 6,
+                    boxSizing: 'border-box',
                   }}
                 >
-                  <div style={{ borderRadius: 15, overflow: 'hidden', position: 'relative', aspectRatio: '3/4' }}>
-                    <img
-                      src={item.poster_url}
-                      alt=""
-                      style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
-                    />
-                    <motion.div
-                      style={{
-                        position: 'absolute',
-                        inset: 0,
-                        background: 'linear-gradient(transparent 35%, rgba(0,0,0,0.92) 100%)',
-                      }}
-                    />
-                    <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, padding: '12px 10px' }}>
-                      <motion.div
-                        style={{
-                          fontSize: 10,
-                          fontWeight: 800,
-                          color: '#C9A84C',
-                          marginBottom: 4,
-                          overflow: 'hidden',
-                          textOverflow: 'ellipsis',
-                          whiteSpace: 'nowrap',
-                        }}
-                      >
-                        {translateDynamicText(item.locationName || item.location_name, isEn)}
-                      </motion.div>
-                      <motion.div
-                        style={{
-                          fontSize: 13,
-                          fontWeight: 900,
-                          color: '#fff',
-                          lineHeight: 1.25,
-                          display: '-webkit-box',
-                          WebkitLineClamp: 2,
-                          WebkitBoxOrient: 'vertical',
-                          overflow: 'hidden',
-                        }}
-                      >
-                        {translateDynamicText(title, isEn)}
-                      </motion.div>
-                    </div>
+                  <img
+                    src={item.poster_url}
+                    alt=""
+                    style={{ maxWidth: '100%', maxHeight: '100%', width: 'auto', height: 'auto', objectFit: 'contain', display: 'block' }}
+                  />
+                </motion.div>
+                <div style={{ padding: '10px 10px 12px', borderTop: '1px solid rgba(201,168,76,0.12)' }}>
+                  <div
+                    style={{
+                      fontSize: 10,
+                      fontWeight: 800,
+                      color: '#C9A84C',
+                      marginBottom: 4,
+                      overflow: 'hidden',
+                      textOverflow: 'ellipsis',
+                      whiteSpace: 'nowrap',
+                    }}
+                  >
+                    {translateDynamicText(item.locationName || item.location_name, isEn)}
+                  </div>
+                  <div
+                    style={{
+                      fontSize: 13,
+                      fontWeight: 900,
+                      color: '#fff',
+                      lineHeight: 1.25,
+                      display: '-webkit-box',
+                      WebkitLineClamp: 2,
+                      WebkitBoxOrient: 'vertical',
+                      overflow: 'hidden',
+                    }}
+                  >
+                    {translateDynamicText(title, isEn)}
                   </div>
                 </div>
               </button>
