@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo, useRef, lazy, Suspense } from 'react'
-import { Home as HomeIcon, Users, Plus, LogOut, Heart, X, MessageSquare, RefreshCw, CloudSun, Utensils, Zap, Languages, Bell, Star, Navigation, CreditCard, Settings, Map as MapIcon, BarChart, Gift, Coffee, User, Menu, Music2, Tent, Flag, Download, Globe, ShieldCheck, Calendar, Camera, ChevronLeft, ChevronRight, Loader2, Search, Share2, Copy, Sparkles } from 'lucide-react'
+import { Home as HomeIcon, Users, Plus, LogOut, Heart, X, MessageSquare, RefreshCw, CloudSun, Utensils, Zap, Languages, Bell, Star, Navigation, CreditCard, Settings, Map as MapIcon, BarChart, Gift, Coffee, User, Menu, Music2, Tent, Flag, Download, Globe, ShieldCheck, Calendar, Camera, ChevronLeft, ChevronRight, Loader2, Search, Share2, Copy, Sparkles, GraduationCap } from 'lucide-react'
 import { useTranslation } from 'react-i18next';
 import { motion, AnimatePresence } from 'framer-motion'
 import { supabase, logActivity } from './lib/supabase'
@@ -1042,6 +1042,7 @@ function App() {
   const navInactiveColor = isSocialLightNav ? '#94A3B8' : 'rgba(255,255,255,0.3)'
   const isSocialTabActive = location.pathname === '/' && view === 'home' && !showPartner
   const isConciergeNavActive = isSocialLightNav && conciergeOpen && !showPartner
+  const isMasterTabActive = (location.pathname === '/instructors' || view === 'instructors') && !showPartner
 
   return (
     <>
@@ -1648,17 +1649,30 @@ function App() {
         </motion.button>
       </div>
 
+      <div
+        onClick={() => { navigate('/instructors'); setShowPartner(false); }}
+        style={{
+          flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
+          cursor: 'pointer', transition: 'all 0.2s',
+          color: isMasterTabActive ? navActiveColor : navInactiveColor
+        }}
+      >
+        <GraduationCap size={22} strokeWidth={isMasterTabActive ? 2.5 : 1.5} />
+        <span style={{ fontSize: '9px', fontWeight: isMasterTabActive ? 900 : 500, marginTop: '3px' }}>
+          {i18n.language?.startsWith('en') ? 'Master' : '마스터'}
+        </span>
+      </div>
       <div 
         onClick={() => { navigate('/bootcamp'); setShowPartner(false); }}
         style={{ 
           flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
           cursor: 'pointer', transition: 'all 0.2s',
           // color: (location.pathname === '/bootcamp' && !showPartner) ? '#FFFFFF' : 'rgba(255,255,255,0.3)'
-          color: (!isSocialLightNav && location.pathname === '/bootcamp' && !showPartner) ? navActiveColor : navInactiveColor
+          color: (location.pathname === '/bootcamp' && !showPartner) ? navActiveColor : navInactiveColor
         }}
       >
-        <Tent size={22} strokeWidth={(!isSocialLightNav && location.pathname === '/bootcamp' && !showPartner) ? 2.5 : 1.5} />
-        <span style={{ fontSize: '9px', fontWeight: (!isSocialLightNav && location.pathname === '/bootcamp' && !showPartner) ? 900 : 500, marginTop: '3px' }}>
+        <Tent size={22} strokeWidth={(location.pathname === '/bootcamp' && !showPartner) ? 2.5 : 1.5} />
+        <span style={{ fontSize: '9px', fontWeight: (location.pathname === '/bootcamp' && !showPartner) ? 900 : 500, marginTop: '3px' }}>
           {i18n.language?.startsWith('en') ? 'Bootcamp' : '부트캠프'}
         </span>
       </div>
@@ -1669,11 +1683,11 @@ function App() {
           flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
           cursor: 'pointer', transition: 'all 0.2s',
           // color: (location.pathname === '/festival' && !showPartner) ? '#FFFFFF' : 'rgba(255,255,255,0.3)'
-          color: (!isSocialLightNav && location.pathname === '/festival' && !showPartner) ? navActiveColor : navInactiveColor
+          color: (location.pathname === '/festival' && !showPartner) ? navActiveColor : navInactiveColor
         }}
       >
-        <Flag size={22} strokeWidth={(!isSocialLightNav && location.pathname === '/festival' && !showPartner) ? 2.5 : 1.5} />
-        <span style={{ fontSize: '9px', fontWeight: (!isSocialLightNav && location.pathname === '/festival' && !showPartner) ? 900 : 500, marginTop: '3px' }}>
+        <Flag size={22} strokeWidth={(location.pathname === '/festival' && !showPartner) ? 2.5 : 1.5} />
+        <span style={{ fontSize: '9px', fontWeight: (location.pathname === '/festival' && !showPartner) ? 900 : 500, marginTop: '3px' }}>
           {i18n.language?.startsWith('en') ? 'Festival' : '페스티벌'}
         </span>
       </div>
