@@ -164,7 +164,7 @@ const PosterModal = ({ src, onClose, shareTitle, shareDesc }) => {
   };
 
   const btnRound = {
-    background: 'rgba(255,255,255,0.12)',
+    background: 'rgba(0,0,0,0.5)',
     color: 'white',
     width: '48px',
     height: '48px',
@@ -172,10 +172,8 @@ const PosterModal = ({ src, onClose, shareTitle, shareDesc }) => {
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
-    border: '1px solid rgba(255,255,255,0.35)',
+    border: 'none',
     cursor: 'pointer',
-    backdropFilter: 'blur(8px)',
-    boxShadow: '0 4px 15px rgba(0,0,0,0.3)',
     flexShrink: 0,
   };
 
@@ -184,10 +182,8 @@ const PosterModal = ({ src, onClose, shareTitle, shareDesc }) => {
       position:'fixed', 
       inset:0, 
       zIndex:2000000, 
-      backgroundColor:'rgba(0,0,0,0.98)', 
-      display:'flex', 
-      alignItems:'center', 
-      justifyContent:'center',
+      backgroundColor:'#000', 
+      display:'block',
       height: '100dvh', // 모바일 브라우저 주소창 고려
       paddingTop: 'env(safe-area-inset-top)',
       paddingBottom: 'env(safe-area-inset-bottom)'
@@ -197,23 +193,18 @@ const PosterModal = ({ src, onClose, shareTitle, shareDesc }) => {
         onClick={onClose} 
         style={{ 
           position:'absolute', top:'calc(40px + env(safe-area-inset-top))', left:'20px', 
-          background:'rgba(255,255,255,0.2)', border:'none', 
+          background:'rgba(0,0,0,0.5)', border:'none', 
           borderRadius:'50%', width:'52px', height:'52px', 
           color:'#fff', display:'flex', alignItems:'center', justifyContent:'center', cursor:'pointer',
           zIndex: 2000001,
-          backdropFilter: 'blur(15px)'
         }}
       ><ChevronLeft size={32} /></button>
 
       {/* 줌 컨테이너 (Viewport 전체 사용) */}
       <div style={{ 
-        width: '100vw', 
-        height: '100vh', 
-        position: 'relative', 
-        overflow: 'hidden', 
-        display: 'flex', 
-        alignItems: 'center', 
-        justifyContent: 'center' 
+        position: 'absolute',
+        inset: 0,
+        overflow: 'hidden',
       }}>
         <QuickPinchZoom 
           onUpdate={onUpdate} 
@@ -233,7 +224,7 @@ const PosterModal = ({ src, onClose, shareTitle, shareDesc }) => {
             style={{ 
               width: '100%',
               height: '100%',
-              objectFit: 'contain',
+              objectFit: 'cover',
               display: 'block',
               willChange: 'transform',
               userSelect: 'none',
@@ -243,7 +234,7 @@ const PosterModal = ({ src, onClose, shareTitle, shareDesc }) => {
         </QuickPinchZoom>
       </div>
       
-      {/* 하단: 공유 · 카카오 · 링크복사 · 저장 (A안: 공유 URL은 항상 사이트 홈) */}
+      {/* 하단: 공유 · 카카오 · 링크복사 · 저장 (A안) — 상단 우측으로 이동, 구 레이아웃 주석 보관
       <div style={{
         position: 'absolute',
         bottom: 'calc(28px + env(safe-area-inset-bottom))',
@@ -286,6 +277,45 @@ const PosterModal = ({ src, onClose, shareTitle, shareDesc }) => {
           <Download size={22} />
         </button>
       </div>
+      */}
+      <motion.div style={{
+        position: 'absolute',
+        top: 'calc(40px + env(safe-area-inset-top))',
+        right: '20px',
+        zIndex: 2000001,
+        display: 'flex',
+        alignItems: 'center',
+        gap: '10px',
+        maxWidth: 'calc(100vw - 100px)',
+        flexWrap: 'wrap',
+        justifyContent: 'flex-end',
+      }}>
+        <button type="button" onClick={handleNativeShare} title="공유" style={btnRound}>
+          <Share2 size={20} />
+        </button>
+        <button
+          type="button"
+          onClick={handleKakaoShare}
+          title="카톡으로 공유 (오늘밤빠)"
+          style={{
+            ...btnRound,
+            fontSize: '11px',
+            fontWeight: 900,
+            width: 'auto',
+            minWidth: '48px',
+            padding: '0 12px',
+            borderRadius: '24px',
+          }}
+        >
+          {KAKAO_BRAND}
+        </button>
+        <button type="button" onClick={handleCopyLink} title="홈 링크 복사" style={btnRound}>
+          <Copy size={20} />
+        </button>
+        <button type="button" onClick={handleSave} title="이미지 저장" style={btnRound}>
+          <Download size={22} />
+        </button>
+      </motion.div>
       <span style={{ position: 'absolute', bottom: 'calc(8px + env(safe-area-inset-bottom))', left: '50%', transform: 'translateX(-50%)', fontSize: 9, color: 'rgba(255,255,255,0.35)', zIndex: 100002 }}>{SHARE_BUILD}</span>
     </div>
   );
