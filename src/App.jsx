@@ -716,6 +716,7 @@ function App() {
   const [vipLoginId, setVipLoginId] = useState('');
   const [vipLoginPw, setVipLoginPw] = useState('');
   const [vipLoginLoading, setVipLoginLoading] = useState(false);
+  const [vipAuthMode, setVipAuthMode] = useState('login');
   const [filterRegion, setFilterRegion] = useState('');
   const [filterGenre, setFilterGenre] = useState('');
   const [selectedMonth, setSelectedMonth] = useState(todayData.month);
@@ -771,7 +772,34 @@ function App() {
     setShowVipLogin(false);
     setVipLoginId('');
     setVipLoginPw('');
+    setVipAuthMode('login');
     localStorage.removeItem('vip_instructor_session');
+  };
+
+  const handleVipSignupSubmit = async () => {
+    const id = vipLoginId.trim();
+    const pw = vipLoginPw;
+    if (!id || !pw) {
+      alert('아이디와 비밀번호를 입력해주세요');
+      return;
+    }
+    setVipLoginLoading(true);
+    try {
+      const { error } = await supabase
+        .from('instructors')
+        .insert({ login_id: id, login_password: pw });
+      if (error) {
+        alert('가입에 실패했습니다. 다시 시도해주세요.');
+        return;
+      }
+      alert('가입 완료! 로그인해주세요');
+      setVipAuthMode('login');
+      setVipLoginPw('');
+    } catch {
+      alert('가입에 실패했습니다. 다시 시도해주세요.');
+    } finally {
+      setVipLoginLoading(false);
+    }
   };
 
   const handleVipLoginSubmit = async () => {
@@ -817,6 +845,7 @@ function App() {
   const handleCloseModal = () => {
     setIsMenuOpen(false);
     setShowVipLogin(false);
+    setVipAuthMode('login');
     setShowVipMenu(false);
     setShowFullCalendar(false);
     setShowWeather(false);
@@ -1344,14 +1373,25 @@ function App() {
       {showVipLogin && (
         <div
           style={{ position: 'fixed', inset: 0, zIndex: 2000002, background: 'rgba(0,0,0,0.55)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20 }}
-          onClick={() => setShowVipLogin(false)}
+          onClick={() => { setShowVipLogin(false); setVipAuthMode('login'); }}
         >
           <div
             onClick={(e) => e.stopPropagation()}
             style={{ width: '100%', maxWidth: 340, background: '#121212', borderRadius: 16, padding: 24, border: '1px solid rgba(201,168,76,0.35)' }}
           >
-            <h3 style={{ margin: '0 0 8px', color: '#F8FAFC', fontSize: 18, fontWeight: 900 }}>마스터 로그인</h3>
-            <p style={{ margin: '0 0 20px', color: '#94A3B8', fontSize: 12, fontWeight: 600 }}>VIP INSTRUCTOR LOUNGE</p>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 20 }}>
+              <motion.div>
+                <h3 style={{ margin: '0 0 8px', color: '#F8FAFC', fontSize: 18, fontWeight: 900 }}>{vipAuthMode === 'login' ? '마스터 로그인' : '회원가입'}</h3>
+                <p style={{ margin: 0, color: '#94A3B8', fontSize: 12, fontWeight: 600 }}>VIP INSTRUCTOR LOUNGE</p>
+              </motion.div>
+              <button
+                type="button"
+                onClick={() => setVipAuthMode(vipAuthMode === 'login' ? 'signup' : 'login')}
+                style={{ flexShrink: 0, marginTop: 2, padding: 0, border: 'none', background: 'transparent', color: '#C9A84C', fontSize: 13, fontWeight: 800, cursor: 'pointer', textDecoration: 'underline' }}
+              >
+                {vipAuthMode === 'login' ? '회원가입' : '로그인'}
+              </button>
+            </div>
             <input
               type="text"
               placeholder="아이디"
@@ -1364,16 +1404,16 @@ function App() {
               placeholder="비밀번호"
               value={vipLoginPw}
               onChange={(e) => setVipLoginPw(e.target.value)}
-              onKeyDown={(e) => e.key === 'Enter' && handleVipLoginSubmit()}
+              onKeyDown={(e) => e.key === 'Enter' && (vipAuthMode === 'login' ? handleVipLoginSubmit() : handleVipSignupSubmit())}
               style={{ width: '100%', boxSizing: 'border-box', marginBottom: 16, padding: '12px 14px', borderRadius: 10, border: '1px solid rgba(201,168,76,0.25)', background: 'rgba(255,255,255,0.05)', color: '#fff', fontSize: 14 }}
             />
             <button
               type="button"
               disabled={vipLoginLoading}
-              onClick={handleVipLoginSubmit}
+              onClick={vipAuthMode === 'login' ? handleVipLoginSubmit : handleVipSignupSubmit}
               style={{ width: '100%', padding: 14, borderRadius: 12, border: 'none', background: '#C9A84C', color: '#121212', fontSize: 15, fontWeight: 900, cursor: vipLoginLoading ? 'wait' : 'pointer', opacity: vipLoginLoading ? 0.7 : 1 }}
             >
-              {vipLoginLoading ? '확인 중...' : '로그인'}
+              {vipLoginLoading ? (vipAuthMode === 'login' ? '확인 중...' : '가입 중...') : (vipAuthMode === 'login' ? '로그인' : '가입')}
             </button>
           </div>
         </div>
