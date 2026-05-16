@@ -717,6 +717,8 @@ function App() {
   const [vipLoginPw, setVipLoginPw] = useState('');
   const [vipLoginLoading, setVipLoginLoading] = useState(false);
   const [vipAuthMode, setVipAuthMode] = useState('login');
+  const [vipRecoverEmail, setVipRecoverEmail] = useState('');
+  const [vipRecoveredPassword, setVipRecoveredPassword] = useState('');
   const [filterRegion, setFilterRegion] = useState('');
   const [filterGenre, setFilterGenre] = useState('');
   const [selectedMonth, setSelectedMonth] = useState(todayData.month);
@@ -773,7 +775,41 @@ function App() {
     setVipLoginId('');
     setVipLoginPw('');
     setVipAuthMode('login');
+    setVipRecoverEmail('');
+    setVipRecoveredPassword('');
     localStorage.removeItem('vip_instructor_session');
+  };
+
+  const resetVipAuthToLogin = () => {
+    setVipAuthMode('login');
+    setVipRecoverEmail('');
+    setVipRecoveredPassword('');
+  };
+
+  const handleVipPasswordRecover = async () => {
+    const email = vipRecoverEmail.trim();
+    if (!email) {
+      alert('이메일을 입력해주세요');
+      return;
+    }
+    setVipLoginLoading(true);
+    setVipRecoveredPassword('');
+    try {
+      const { data, error } = await supabase
+        .from('instructors')
+        .select('login_password')
+        .eq('email', email)
+        .maybeSingle();
+      if (error || !data) {
+        alert('등록된 이메일이 없습니다');
+        return;
+      }
+      setVipRecoveredPassword(data.login_password || '');
+    } catch {
+      alert('등록된 이메일이 없습니다');
+    } finally {
+      setVipLoginLoading(false);
+    }
   };
 
   const handleVipSignupSubmit = async () => {
@@ -846,6 +882,8 @@ function App() {
     setIsMenuOpen(false);
     setShowVipLogin(false);
     setVipAuthMode('login');
+    setVipRecoverEmail('');
+    setVipRecoveredPassword('');
     setShowVipMenu(false);
     setShowFullCalendar(false);
     setShowWeather(false);
@@ -1373,7 +1411,7 @@ function App() {
       {showVipLogin && (
         <div
           style={{ position: 'fixed', inset: 0, zIndex: 2000002, background: 'rgba(0,0,0,0.55)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20 }}
-          onClick={() => { setShowVipLogin(false); setVipAuthMode('login'); }}
+          onClick={() => { setShowVipLogin(false); resetVipAuthToLogin(); }}
         >
           <div
             onClick={(e) => e.stopPropagation()}
@@ -1381,17 +1419,52 @@ function App() {
           >
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 20 }}>
               <motion.div>
-                <h3 style={{ margin: '0 0 8px', color: '#F8FAFC', fontSize: 18, fontWeight: 900 }}>{vipAuthMode === 'login' ? '마스터 로그인' : '회원가입'}</h3>
+                <h3 style={{ margin: '0 0 8px', color: '#F8FAFC', fontSize: 18, fontWeight: 900 }}>{vipAuthMode === 'login' ? '마스터 로그인' : vipAuthMode === 'signup' ? '회원가입' : '비밀번호 찾기'}</h3>
                 <p style={{ margin: 0, color: '#94A3B8', fontSize: 12, fontWeight: 600 }}>VIP INSTRUCTOR LOUNGE</p>
               </motion.div>
-              <button
-                type="button"
-                onClick={() => setVipAuthMode(vipAuthMode === 'login' ? 'signup' : 'login')}
-                style={{ flexShrink: 0, marginTop: 2, padding: 0, border: 'none', background: 'transparent', color: '#C9A84C', fontSize: 13, fontWeight: 800, cursor: 'pointer', textDecoration: 'underline' }}
-              >
-                {vipAuthMode === 'login' ? '회원가입' : '로그인'}
-              </button>
+              {vipAuthMode !== 'recover' && (
+                <button
+                  type="button"
+                  onClick={() => setVipAuthMode(vipAuthMode === 'login' ? 'signup' : 'login')}
+                  style={{ flexShrink: 0, marginTop: 2, padding: 0, border: 'none', background: 'transparent', color: '#C9A84C', fontSize: 13, fontWeight: 800, cursor: 'pointer', textDecoration: 'underline' }}
+                >
+                  {vipAuthMode === 'login' ? '회원가입' : '로그인'}
+                </button>
+              )}
             </div>
+            {vipAuthMode === 'recover' ? (
+              <>
+                <input
+                  type="email"
+                  placeholder="이메일"
+                  value={vipRecoverEmail}
+                  onChange={(e) => setVipRecoverEmail(e.target.value)}
+                  onKeyDown={(e) => e.key === 'Enter' && handleVipPasswordRecover()}
+                  style={{ width: '100%', boxSizing: 'border-box', marginBottom: 10, padding: '12px 14px', borderRadius: 10, border: '1px solid rgba(201,168,76,0.25)', background: 'rgba(255,255,255,0.05)', color: '#fff', fontSize: 14 }}
+                />
+                {vipRecoveredPassword !== '' && (
+                  <p style={{ margin: '0 0 12px', padding: '12px 14px', borderRadius: 10, background: 'rgba(201,168,76,0.12)', border: '1px solid rgba(201,168,76,0.35)', color: '#F8FAFC', fontSize: 14, fontWeight: 700, wordBreak: 'break-all' }}>
+                    비밀번호: {vipRecoveredPassword}
+                  </p>
+                )}
+                <button
+                  type="button"
+                  disabled={vipLoginLoading}
+                  onClick={handleVipPasswordRecover}
+                  style={{ width: '100%', padding: 14, borderRadius: 12, border: 'none', background: '#C9A84C', color: '#121212', fontSize: 15, fontWeight: 900, cursor: vipLoginLoading ? 'wait' : 'pointer', opacity: vipLoginLoading ? 0.7 : 1, marginBottom: 12 }}
+                >
+                  {vipLoginLoading ? '확인 중...' : '확인'}
+                </button>
+                <button
+                  type="button"
+                  onClick={resetVipAuthToLogin}
+                  style={{ width: '100%', padding: 0, border: 'none', background: 'transparent', color: '#94A3B8', fontSize: 13, fontWeight: 700, cursor: 'pointer', textDecoration: 'underline' }}
+                >
+                  다시 로그인으로 돌아가기
+                </button>
+              </>
+            ) : (
+              <>
             <input
               type="text"
               placeholder="아이디"
@@ -1415,6 +1488,17 @@ function App() {
             >
               {vipLoginLoading ? (vipAuthMode === 'login' ? '확인 중...' : '가입 중...') : (vipAuthMode === 'login' ? '로그인' : '가입')}
             </button>
+                {vipAuthMode === 'login' && (
+                  <button
+                    type="button"
+                    onClick={() => { setVipAuthMode('recover'); setVipRecoveredPassword(''); }}
+                    style={{ width: '100%', marginTop: 14, padding: 0, border: 'none', background: 'transparent', color: '#94A3B8', fontSize: 13, fontWeight: 700, cursor: 'pointer', textDecoration: 'underline' }}
+                  >
+                    비밀번호 찾기
+                  </button>
+                )}
+              </>
+            )}
           </div>
         </div>
       )}
