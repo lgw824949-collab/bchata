@@ -704,8 +704,8 @@ function App() {
   }, [isSocialLightNav])
 
   const [showClassRegister, setShowClassRegister] = useState(false);
-  const [showStudentManager, setShowStudentManager] = useState(false);
-  const [showRevenueStats, setShowRevenueStats] = useState(false);
+  // const [showStudentManager, setShowStudentManager] = useState(false);
+  // const [showRevenueStats, setShowRevenueStats] = useState(false);
   const [showFullCalendar, setShowFullCalendar] = useState(false);
   const [showFilterPanel, setShowFilterPanel] = useState(false);
   const [showFilteredResults, setShowFilteredResults] = useState(false);
@@ -1123,43 +1123,34 @@ function App() {
               VIP NAVIGATION
             </div>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+              {/*
+              전체 강사 / 강사 클래스 / 구 VIP 메뉴 — 주석 보관
+              */}
               {[
-                { 
-                  icon: <Users color={'#C9A84C'} />, 
-                  text: '전체 강사', 
-                  action: () => { 
-                    localStorage.setItem('instructor_target_genre', '전체');
-                    navigate('/instructors'); 
-                    setView('instructors');
-                    setIsMenuOpen(false); 
-                    setTimeout(() => {
-                      window.dispatchEvent(new CustomEvent('apply-instructor-filter'));
-                    }, 300);
-                  } 
+                {
+                  icon: <span style={{ fontSize: '20px', lineHeight: 1 }}>📋</span>,
+                  text: '수강생 관리',
+                  action: () => { setIsMenuOpen(false); alert('준비 중입니다 🔧'); },
                 },
-                { 
-                  icon: <Star color={'#C9A84C'} />, 
-                  text: '강사 클래스', 
-                  action: () => { 
-                    setIsMenuOpen(false);
-                    setTimeout(() => setShowClassRegister(true), 300);
-                  } 
+                {
+                  icon: <span style={{ fontSize: '20px', lineHeight: 1 }}>💰</span>,
+                  text: '수입 집계',
+                  action: () => { setIsMenuOpen(false); alert('준비 중입니다 🔧'); },
                 },
-                { 
-                  icon: <span style={{ fontSize: '20px', lineHeight: 1 }}>📋</span>, 
-                  text: '수강생 관리', 
-                  action: () => { 
-                    setIsMenuOpen(false);
-                    setTimeout(() => setShowStudentManager(true), 300);
-                  } 
+                {
+                  icon: <span style={{ fontSize: '20px', lineHeight: 1 }}>📅</span>,
+                  text: '내 클래스 일정',
+                  action: () => { setIsMenuOpen(false); alert('준비 중입니다 🔧'); },
                 },
-                { 
-                  icon: <span style={{ fontSize: '20px', lineHeight: 1 }}>💰</span>, 
-                  text: '수입 집계', 
-                  action: () => { 
-                    setIsMenuOpen(false);
-                    setTimeout(() => setShowRevenueStats(true), 300);
-                  } 
+                {
+                  icon: <span style={{ fontSize: '20px', lineHeight: 1 }}>📊</span>,
+                  text: '내 프로필 통계',
+                  action: () => { setIsMenuOpen(false); alert('준비 중입니다 🔧'); },
+                },
+                {
+                  icon: <span style={{ fontSize: '20px', lineHeight: 1 }}>📢</span>,
+                  text: '공지 보내기',
+                  action: () => { setIsMenuOpen(false); alert('준비 중입니다 🔧'); },
                 },
               ].map((item, idx) => (
                 <motion.div
@@ -1188,6 +1179,7 @@ function App() {
               ))}
             </div>
 
+            {false && (<>
             {/* 기존 마스터 전용 메뉴 아래에 구분선 후 추가 */}
             <div style={{ height: '1px', background: 'rgba(201,168,76,0.2)', margin: '32px 0 24px' }} />
 
@@ -1247,6 +1239,7 @@ function App() {
                 </div>
               )}
             </div>
+            </>)}
 
             <div style={{ marginTop: 'auto', paddingTop: '40px', textAlign: 'center' }}>
               <p style={{ color: '#64748B', fontSize: '11px', fontWeight: 700 }}>© 2026 BAMPPA VIP Lounge</p>
@@ -1529,7 +1522,7 @@ function App() {
     {/* [B] [포스터 확대 모달 - 컨테이너 외부 최상위 배치] */}
     {showPartner && <PartnerModal onClose={() => setShowPartner(false)} />}
     {showClassRegister && <ClassRegisterModal onClose={() => setShowClassRegister(false)} />}
-    {showStudentManager && (
+    {false && false && (
       <div
         style={{ position: 'fixed', inset: 0, zIndex: 2000001, background: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
         onClick={() => setShowStudentManager(false)}
@@ -1539,7 +1532,7 @@ function App() {
         </motion.div>
       </div>
     )}
-    {showRevenueStats && (
+    {false && false && (
       <div
         style={{ position: 'fixed', inset: 0, zIndex: 2000001, background: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
         onClick={() => setShowRevenueStats(false)}
