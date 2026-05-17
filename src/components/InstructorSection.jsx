@@ -563,9 +563,9 @@ const InstructorSection = () => {
                 </div>
                 <div style={{ position: 'absolute', bottom: 15, left: 15, right: 15 }}>
                   <div style={{ fontSize: '16px', fontWeight: 900, color: '#FFF', marginBottom: '2px' }}>{inst.name}</div>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 5, fontSize: '10px', color: '#C9A84C', fontWeight: 700 }}>
+                  {/* <div style={{ display: 'flex', alignItems: 'center', gap: 5, fontSize: '10px', color: '#C9A84C', fontWeight: 700 }}>
                     <Heart size={10} fill="#C9A84C" /> {inst.likes_count?.toLocaleString()}
-                  </div>
+                  </div> */}
                 </div>
               </motion.div>
             ))}
