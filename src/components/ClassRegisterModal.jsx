@@ -7,6 +7,8 @@ const ClassRegisterModal = ({ isOpen = true, onClose, instructorId = '' }) => {
   const [step, setStep] = useState(1);
   const [loading, setLoading] = useState(false);
   const [instructors, setInstructors] = useState([]);
+  const [posterFile, setPosterFile] = useState(null);
+  const [posterPreview, setPosterPreview] = useState(null);
   
   // 직관적이고 매우 단순화된 Form state (강사명 직접 입력 필드 탑재)
   const [form, setForm] = useState({
@@ -92,6 +94,13 @@ const ClassRegisterModal = ({ isOpen = true, onClose, instructorId = '' }) => {
     setStep(prev => prev - 1);
   };
 
+  const handlePosterChange = (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setPosterFile(file);
+    setPosterPreview(URL.createObjectURL(file));
+  };
+
   const handleSubmit = async () => {
     if (!form.location.trim()) {
       alert('장소를 입력해주세요.');
@@ -107,6 +116,20 @@ const ClassRegisterModal = ({ isOpen = true, onClose, instructorId = '' }) => {
       
       const targetInstId = matchedInst ? matchedInst.id : (instructorId || null);
 
+      let posterUrl = null;
+      if (posterFile) {
+        const ext = posterFile.name.split('.').pop();
+        const fileName = `classes/${Date.now()}.${ext}`;
+        const { error: uploadError } = await supabase.storage
+          .from('posters')
+          .upload(fileName, posterFile);
+        if (uploadError) throw uploadError;
+        const { data: urlData } = supabase.storage
+          .from('posters')
+          .getPublicUrl(fileName);
+        posterUrl = urlData.publicUrl;
+      }
+
       const { error } = await supabase.from('instructor_classes').insert({
         instructor_id: targetInstId,
         instructor_name: form.instructorName.trim(), // 직접 입력한 텍스트 원본 별도 보존
@@ -118,6 +141,7 @@ const ClassRegisterModal = ({ isOpen = true, onClose, instructorId = '' }) => {
         fee: form.fee,
         capacity: form.capacity,
         description: form.description,
+        poster_url: posterUrl,
         status: 'active'
       });
 
@@ -438,6 +462,29 @@ const ClassRegisterModal = ({ isOpen = true, onClose, instructorId = '' }) => {
                       resize: 'none', boxSizing: 'border-box'
                     }}
                   />
+                </div>
+
+                <div>
+                  <label style={{ display: 'block', fontSize: '13px', fontWeight: 700, color: '#A1A1AA', marginBottom: '8px' }}>
+                    포스터 이미지 (선택)
+                  </label>
+                  <input
+                    type="file"
+                    accept="image/*"
+                    onChange={handlePosterChange}
+                    style={{
+                      width: '100%', padding: '12px', borderRadius: '12px', background: 'rgba(255,255,255,0.05)',
+                      border: '1px solid rgba(255,255,255,0.1)', color: '#fff', fontSize: '13px',
+                      boxSizing: 'border-box'
+                    }}
+                  />
+                  {posterPreview && (
+                    <img
+                      src={posterPreview}
+                      alt="포스터 미리보기"
+                      style={{ width: '100%', marginTop: '10px', borderRadius: '12px', maxHeight: '200px', objectFit: 'cover' }}
+                    />
+                  )}
                 </div>
               </motion.div>
             )}
