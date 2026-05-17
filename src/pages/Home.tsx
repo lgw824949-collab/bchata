@@ -955,7 +955,7 @@ const HomePage = ({
   }, []);
 
   const quickMenuSectionTitleStyle = { fontSize: '14px', color: '#888', fontWeight: '700', letterSpacing: '1px', marginBottom: '8px' };
-  const quickMenuFloatStyle = { display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '6px', cursor: 'pointer', padding: '12px 4px', minHeight: 'auto', boxSizing: 'border-box' };
+  const quickMenuFloatStyle = { display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', background: 'rgba(255,255,255,0.08)', border: '1px solid rgba(255,255,255,0.15)', borderRadius: '14px', boxShadow: '0 2px 8px rgba(0,0,0,0.15)', padding: '10px 4px 8px', cursor: 'pointer' };
   const quickMenuIconWrapStyle = { width: '40px', height: '40px', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, filter: 'drop-shadow(0 2px 4px rgba(0,0,0,0.15))' };
   const quickMenuLabelStyle = { color: '#1E293B', fontWeight: 600, fontSize: '11px', marginTop: '4px', textAlign: 'center', lineHeight: 1.25, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', width: '100%' };
 
