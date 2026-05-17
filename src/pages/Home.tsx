@@ -1137,6 +1137,7 @@ const HomePage = ({
             },
           },
           { icon: <Utensils size={22} color="#C2185B" />, label: '맛집뒷풀이', action: () => setView('restaurant') },
+          { icon: <MapPin size={22} color="#10B981" />, label: '위치·대관', action: () => setShowRentalModal(true) },
           // { icon: <MessageSquare size={22} color="#FF8A80" />, label: '컨시어지', action: () => window.dispatchEvent(new CustomEvent('open-chatbot')) },
           { textIcon: '1:1', label: '채팅문의', action: () => window.open('https://open.kakao.com/o/gP43rNri', '_blank') },
           { icon: <Camera size={22} color="#E53935" />, label: '라이브픽', /* badge: 'HOT', */ action: () => setView('community') },
@@ -1144,14 +1145,13 @@ const HomePage = ({
           { icon: <Heart size={22} color="#7B1FA2" />, label: '찜하기', action: () => setShowWishlist(true) },
           { icon: <Navigation size={22} color="#303F9F" />, label: '지능형경로', /* badge: 'LIVE', */ action: () => openAnalysis(false) },
           { icon: <Star size={22} color="#F9A825" />, label: '운명의좌표', action: () => setShowSaju(true) },
-          { icon: <MapPin size={22} color="#10B981" />, label: '바 사장님', action: () => setShowRentalModal(true) },
         ].map((item, idx) => (
           <div key={idx} style={{ position: 'relative', flexShrink: 0, width: '75px' }}>
             <div style={{
               borderRadius: '14px', padding: '1.5px',
-              background: item.label === '바 사장님' ? 'linear-gradient(135deg, #34D399, #A7F3D0, #34D399)' : 'linear-gradient(135deg, #CBD5E1, #E2E8F0, #CBD5E1)',
-              boxShadow: item.label === '바 사장님' ? '0 0 10px rgba(16, 185, 129, 0.3)' : '0 8px 16px rgba(0,0,0,0.04)',
-              animation: item.label === '바 사장님' ? 'gentleSparkle 2.5s infinite ease-in-out' : 'none'
+              background: item.label === '위치·대관' ? 'linear-gradient(135deg, #34D399, #A7F3D0, #34D399)' : 'linear-gradient(135deg, #CBD5E1, #E2E8F0, #CBD5E1)',
+              boxShadow: item.label === '위치·대관' ? '0 0 10px rgba(16, 185, 129, 0.3)' : '0 8px 16px rgba(0,0,0,0.04)',
+              animation: item.label === '위치·대관' ? 'gentleSparkle 2.5s infinite ease-in-out' : 'none'
             }}>
               <motion.div
                 whileTap={{ scale: 0.92 }}
@@ -2083,7 +2083,6 @@ const HomePage = ({
                       { icon: <Navigation size={32} color="#303F9F" />, label: '지능형경로', /* badge: 'LIVE', */ action: () => openAnalysis(false) },
                       { icon: <Star size={32} color="#F9A825" />, label: '운명의좌표', action: () => setShowSaju(true) },
                       { icon: <MapPin size={32} color="#0097A7" />, label: '주변주차', action: () => setView('parking') },
-                      { icon: <MessageSquare size={32} color="#388E3C" />, label: '채팅문의', action: () => window.open('https://open.kakao.com/o/gP43rNri', '_blank') },
                     ].map((item, idx) => (
                       <div key={idx} style={{ position: 'relative' }}>
                         <div style={{
