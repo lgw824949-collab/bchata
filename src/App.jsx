@@ -1995,8 +1995,7 @@ function App() {
         <Suspense fallback={<LoadingFallback />}>
           {view === 'home' ? <HomePage {...sharedProps} /> : 
            view === 'community' ? <Community setSelectedPoster={setSelectedPoster} setView={setView} /> :
-           view === 'instructors' ? <Instructors followedInstructors={followedInstructors} setView={setView} /> :
-           view === 'register-class' ? <InstructorRegister onBack={() => navigate('/instructors')} /> :
+           view === 'instructors' || view === 'register-class' ? <Instructors followedInstructors={followedInstructors} setView={setView} /> :
            view === 'bootcamp' ? <Bootcamp onBack={() => window.history.back()} /> :
            view === 'bootcamp-register' ? <Bootcamp onBack={() => navigate('/bootcamp')} initialView="register" /> :
            view === 'festival' ? <Festival onBack={() => navigate('/')} /> :
@@ -2265,6 +2264,11 @@ function App() {
     {/* [B] [포스터 확대 모달 - 컨테이너 외부 최상위 배치] */}
     {showPartner && <PartnerModal onClose={() => setShowPartner(false)} />}
     {showClassRegister && <ClassRegisterModal onClose={() => setShowClassRegister(false)} />}
+    {(view === 'register-class' || location.pathname === '/register-class') && (
+      <Suspense fallback={null}>
+        <InstructorRegister onBack={() => navigate('/instructors')} />
+      </Suspense>
+    )}
     {false && false && (
       <div
         style={{ position: 'fixed', inset: 0, zIndex: 2000001, background: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}

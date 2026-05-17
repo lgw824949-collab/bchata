@@ -402,11 +402,11 @@ const InstructorSection = () => {
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
           <button
             type="button"
-            onClick={() => setShowInstructorRegister(true)}
+            onClick={() => setShowInstructorRegister((prev) => !prev)}
             style={{
-              border: '1px solid #FF1744',
-              color: '#FF1744',
-              background: 'rgba(255,23,68,0.1)',
+              border: '1px solid #C9A84C',
+              color: '#C9A84C',
+              background: 'rgba(201,168,76,0.1)',
               borderRadius: '12px',
               padding: '8px 14px',
               fontSize: '12px',
@@ -912,7 +912,17 @@ const InstructorSection = () => {
         />
       )}
       {showInstructorRegister && (
-        <InstructorRegister onBack={() => setShowInstructorRegister(false)} />
+        <motion.div
+          style={{
+            position: 'fixed',
+            inset: 0,
+            zIndex: 6000,
+            background: '#fff',
+            overflowY: 'auto',
+          }}
+        >
+          <InstructorRegister onBack={() => setShowInstructorRegister(false)} />
+        </motion.div>
       )}
     </div>
   )
