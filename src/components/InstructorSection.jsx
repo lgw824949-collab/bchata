@@ -42,6 +42,33 @@ const getInstaLink = (inst) => {
   return '';
 };
 
+const extractCareerFromBio = (bio) => {
+  if (!bio || typeof bio !== 'string') return '';
+  const careerLine = bio.split('\n').find((line) => /경력/i.test(line));
+  if (careerLine) {
+    const stripped = careerLine.replace(/^.*?경력\s*[:：]?\s*/i, '').trim();
+    return stripped || careerLine.trim();
+  }
+  const yearMatch = bio.match(/\d+\s*년\s*(이상\s*)?(경력|차)?[^\n.]*/);
+  return yearMatch ? yearMatch[0].trim() : '';
+};
+
+const getInstructorCareer = (inst) => {
+  if (!inst) return '';
+  if (inst.career?.trim()) return inst.career.trim();
+  return extractCareerFromBio(inst.bio);
+};
+
+const formatClassType = (classType) => {
+  if (!classType) return '';
+  const map = { '1:1': '1:1', '1대1': '1:1', group: '그룹', 그룹: '그룹', online: '온라인', 온라인: '온라인' };
+  return String(classType)
+    .split(/[,，/|·\s]+/)
+    .map((s) => map[s.trim()] || s.trim())
+    .filter(Boolean)
+    .join(' · ');
+};
+
 const SESSION_KEY = 'oneulbam_session'
 const getSession = () => {
   let s = localStorage.getItem(SESSION_KEY)
@@ -778,6 +805,31 @@ const InstructorSection = () => {
                             {getGenre(selectedInstructor.genre).split(' · ').map(g => <span key={g} style={{ background: 'rgba(255,255,255,0.05)', padding: '4px 12px', borderRadius: '8px', border: '1px solid rgba(255,255,255,0.05)' }}>{g}</span>)}
                           </div>
                         </div>
+
+                        {selectedInstructor.city && (
+                          <div style={{ marginTop: '10px' }}>
+                            <div style={{ fontSize: '14px', fontWeight: 900, color: '#FFF', marginBottom: '4px' }}>활동 지역</div>
+                            <div style={{ fontSize: '14px', color: '#8E8E93', fontWeight: 600 }}>{selectedInstructor.city}</div>
+                          </div>
+                        )}
+                        {getInstructorCareer(selectedInstructor) && (
+                          <div style={{ marginTop: '10px' }}>
+                            <div style={{ fontSize: '14px', fontWeight: 900, color: '#FFF', marginBottom: '4px' }}>경력</div>
+                            <div style={{ fontSize: '14px', color: '#8E8E93', fontWeight: 600, whiteSpace: 'pre-wrap' }}>{getInstructorCareer(selectedInstructor)}</div>
+                          </div>
+                        )}
+                        {formatClassType(selectedInstructor.class_type) && (
+                          <div style={{ marginTop: '10px' }}>
+                            <div style={{ fontSize: '14px', fontWeight: 900, color: '#FFF', marginBottom: '4px' }}>수업 방식</div>
+                            <div style={{ fontSize: '14px', color: '#8E8E93', fontWeight: 600 }}>{formatClassType(selectedInstructor.class_type)}</div>
+                          </div>
+                        )}
+                        {selectedInstructor.awards?.trim() && (
+                          <div style={{ marginTop: '10px' }}>
+                            <div style={{ fontSize: '14px', fontWeight: 900, color: '#FFF', marginBottom: '4px' }}>수상 경력</div>
+                            <div style={{ fontSize: '14px', color: '#8E8E93', fontWeight: 600, whiteSpace: 'pre-wrap' }}>{selectedInstructor.awards.trim()}</div>
+                          </div>
+                        )}
 
                         {/* <span>✨ DIRECT INQUIRY & BOOKING</span> */}
                         {(selectedInstructor.kakao_link || getInstaLink(selectedInstructor) || selectedInstructor.instagram) && (
