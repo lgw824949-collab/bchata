@@ -948,6 +948,8 @@ const HomePage = ({
     return () => window.removeEventListener('resize', setVh);
   }, []);
 
+  const quickMenuFloatStyle = { display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '6px', cursor: 'pointer', borderRadius: '12px', padding: '10px 8px', background: '#fff', minHeight: 'auto', boxSizing: 'border-box' };
+
   return (
     <div className="app-container" style={{ width: '100%', maxWidth: '500px', margin: '0 auto', background: 'var(--color-bg)', minHeight: '100vh', paddingBottom: '80px', transition: 'background-color 0.3s' }}>
 
@@ -1139,11 +1141,7 @@ const HomePage = ({
               <motion.div
                 whileTap={{ scale: 0.92 }}
                 onClick={item.action}
-                style={{
-                  display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
-                  gap: '6px', cursor: 'pointer', borderRadius: '12px',
-                  padding: '12px 4px 10px', background: '#fff', height: '66px', boxSizing: 'border-box'
-                }}
+                style={quickMenuFloatStyle}
               >
                 {item.textIcon ? (
                   <motion.div
@@ -1197,7 +1195,7 @@ const HomePage = ({
         ].map((item, idx) => (
           <div key={`people-${idx}`} style={{ position: 'relative', flexShrink: 0, width: '100%' }}>
             <div style={{ borderRadius: '14px', padding: '1.5px', background: 'linear-gradient(135deg, #CBD5E1, #E2E8F0, #CBD5E1)', boxShadow: '0 8px 16px rgba(0,0,0,0.04)' }}>
-              <motion.div whileTap={{ scale: 0.92 }} onClick={item.action} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '6px', cursor: 'pointer', borderRadius: '12px', padding: '12px 4px 10px', background: '#fff', height: '66px', boxSizing: 'border-box' }}>
+              <motion.div whileTap={{ scale: 0.92 }} onClick={item.action} style={quickMenuFloatStyle}>
                 {item.textIcon ? (
                   <motion.div style={{ width: 28, height: 28, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 14, fontWeight: 900, color: '#388E3C', letterSpacing: '-0.8px', lineHeight: 1, flexShrink: 0 }}>{item.textIcon}</motion.div>
                 ) : item.icon}
@@ -1222,7 +1220,7 @@ const HomePage = ({
         ].map((item, idx) => (
           <motion.div key={`tool-${idx}`} style={{ position: 'relative', flexShrink: 0, width: '100%' }}>
             <div style={{ borderRadius: '14px', padding: '1.5px', background: item.label === '위치·대관' ? 'linear-gradient(135deg, #34D399, #A7F3D0, #34D399)' : 'linear-gradient(135deg, #CBD5E1, #E2E8F0, #CBD5E1)', boxShadow: item.label === '위치·대관' ? '0 0 10px rgba(16, 185, 129, 0.3)' : '0 8px 16px rgba(0,0,0,0.04)', animation: item.label === '위치·대관' ? 'gentleSparkle 2.5s infinite ease-in-out' : 'none' }}>
-              <motion.div whileTap={{ scale: 0.92 }} onClick={item.action} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '6px', cursor: 'pointer', borderRadius: '12px', padding: '12px 4px 10px', background: '#fff', height: '66px', boxSizing: 'border-box' }}>
+              <motion.div whileTap={{ scale: 0.92 }} onClick={item.action} style={quickMenuFloatStyle}>
                 {item.icon}
                 <span style={{ fontSize: '10px', fontWeight: 600, color: '#1E293B', textAlign: 'center', lineHeight: 1.2, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', width: '100%' }}>{item.label}</span>
               </motion.div>
@@ -1271,7 +1269,7 @@ const HomePage = ({
         ].map((item, idx) => (
           <motion.div key={idx} style={{ position: 'relative', flexShrink: 0, width: '75px' }}>
             <motion.div style={{ borderRadius: '14px', padding: '1.5px', background: item.label === '위치·대관' ? 'linear-gradient(135deg, #34D399, #A7F3D0, #34D399)' : 'linear-gradient(135deg, #CBD5E1, #E2E8F0, #CBD5E1)', boxShadow: item.label === '위치·대관' ? '0 0 10px rgba(16, 185, 129, 0.3)' : '0 8px 16px rgba(0,0,0,0.04)', animation: item.label === '위치·대관' ? 'gentleSparkle 2.5s infinite ease-in-out' : 'none' }}>
-              <motion.div whileTap={{ scale: 0.92 }} onClick={item.action} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '6px', cursor: 'pointer', borderRadius: '12px', padding: '12px 4px 10px', background: '#fff', height: '66px', boxSizing: 'border-box' }}>
+              <motion.div whileTap={{ scale: 0.92 }} onClick={item.action} style={quickMenuFloatStyle}>
                 {item.textIcon ? (
                   <motion.div style={{ width: 28, height: 28, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 14, fontWeight: 900, color: '#388E3C', letterSpacing: '-0.8px', lineHeight: 1, flexShrink: 0 }}>{item.textIcon}</motion.div>
                 ) : item.icon}
