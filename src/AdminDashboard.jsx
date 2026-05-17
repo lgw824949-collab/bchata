@@ -792,6 +792,12 @@ export default function AdminDashboard({ onBack }) {
                         <input value={editFormData.instructor_id || ''} onChange={e => setEditFormData({ ...editFormData, instructor_id: e.target.value })} placeholder="강사 UUID (직접 수정시 주의)" style={{ width: '100%', padding: '10px', borderRadius: '10px', border: '1px solid #E2E8F0', fontSize: '11px' }} />
                       </div>
                     )}
+                    {(category === 'social' || category === 'live-mgmt') && (
+                      <>
+                        <div style={{ fontSize: '11px', fontWeight: 800, color: '#475569', marginBottom: 6 }}>실시간 인원</div>
+                        <input type="number" value={editFormData.view_count || 0} onChange={e => setEditFormData({ ...editFormData, view_count: e.target.value })} style={{ width: '100%', padding: '10px', borderRadius: '10px', border: '1px solid #E2E8F0' }} />
+                      </>
+                    )}
                     <div style={{ display: 'flex', gap: '8px' }}>
                       <button onClick={saveEdit} style={{ flex: 1, padding: '10px', background: '#10B981', color: '#FFF', border: 'none', borderRadius: '10px', fontWeight: 800 }}>SAVE</button>
                       <button onClick={cancelEdit} style={{ flex: 1, padding: '10px', background: '#EEE', color: '#666', border: 'none', borderRadius: '10px', fontWeight: 800 }}>CANCEL</button>
