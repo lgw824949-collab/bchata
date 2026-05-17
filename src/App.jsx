@@ -1986,6 +1986,44 @@ function App() {
         )}
       </AnimatePresence>
 
+      {location.pathname === '/' && view === 'home' && !showPartner && !showSplash && (
+        <div
+          style={{
+            position: 'fixed',
+            top: 'max(10px, env(safe-area-inset-top, 0px))',
+            left: '50%',
+            transform: 'translateX(-50%)',
+            width: '100%',
+            maxWidth: '500px',
+            zIndex: 99999,
+            padding: '0 16px',
+            boxSizing: 'border-box',
+            display: 'flex',
+            justifyContent: 'flex-end',
+            pointerEvents: 'none',
+          }}
+        >
+          <button
+            type="button"
+            onClick={() => navigate('/register-class')}
+            style={{
+              pointerEvents: 'auto',
+              padding: '8px 14px',
+              borderRadius: '12px',
+              border: 'none',
+              background: '#FF1744',
+              color: '#fff',
+              fontSize: '12px',
+              fontWeight: 800,
+              cursor: 'pointer',
+              boxShadow: '0 4px 12px rgba(255, 23, 68, 0.25)',
+            }}
+          >
+            강사등록
+          </button>
+        </div>
+      )}
+
       <main>
         <Suspense fallback={<LoadingFallback />}>
           {view === 'home' ? <HomePage {...sharedProps} /> : 
