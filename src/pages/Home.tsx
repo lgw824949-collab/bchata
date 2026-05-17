@@ -1179,7 +1179,7 @@ const HomePage = ({
         ))}
         </div>
         <p style={{ fontSize: '12px', color: '#888', fontWeight: 700, letterSpacing: '1px', marginBottom: '8px', marginTop: '20px' }}>파트너 & 강사</p>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '8px', width: '100%' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '8px', width: '100%' }}>
         {[
           { icon: <Users size={22} color="#FF1744" />, label: '파트너', action: () => setActiveTab('partner') },
           {
@@ -1194,6 +1194,7 @@ const HomePage = ({
             },
           },
           { textIcon: '1:1', label: '채팅문의', action: () => window.open('https://open.kakao.com/o/gP43rNri', '_blank') },
+          { icon: <MessageSquare size={32} color="#C9A84C" />, label: '컨시어지', action: () => window.dispatchEvent(new CustomEvent('open-chatbot')) },
         ].map((item, idx) => (
           <div key={`people-${idx}`} style={{ position: 'relative', flexShrink: 0, width: '100%' }}>
             <div style={{ borderRadius: '14px', padding: '1.5px', background: 'linear-gradient(135deg, #CBD5E1, #E2E8F0, #CBD5E1)', boxShadow: '0 8px 16px rgba(0,0,0,0.04)' }}>
@@ -1214,7 +1215,6 @@ const HomePage = ({
           { icon: <Heart size={22} color="#7B1FA2" />, label: '찜하기', action: () => setShowWishlist(true) },
           { icon: <Utensils size={22} color="#C2185B" />, label: '맛집뒷풀이', action: () => setView('restaurant') },
           { icon: <MapPin size={22} color="#10B981" />, label: '위치·대관', action: () => setShowRentalModal(true) },
-          { icon: <MessageSquare size={22} color="#FF8A80" />, label: '컨시어지', action: () => window.dispatchEvent(new CustomEvent('open-chatbot')) },
           { icon: <Camera size={22} color="#E53935" />, label: '라이브픽', action: () => setView('community') },
           { icon: <CloudSun size={22} color="#1976D2" />, label: '오늘날씨', action: () => setShowWeather(true) },
           { icon: <Navigation size={22} color="#303F9F" />, label: '지능형경로', action: () => openAnalysis(false) },
