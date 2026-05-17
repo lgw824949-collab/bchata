@@ -664,25 +664,26 @@ const InstructorSection = () => {
                   </div>
                 </div>
 
-                {/* Action Buttons (Right Bottom of Hero) - 팔로우/좋아요 UI 숨김
-                <div style={{ position: 'absolute', bottom: '170px', right: '25px', display: 'flex', gap: '12px', zIndex: 99999, pointerEvents: 'auto' }}>
-                  <button 
+                <motion.div style={{ position: 'absolute', bottom: '170px', right: '25px', display: 'flex', gap: '12px', zIndex: 99999, pointerEvents: 'auto' }}>
+                  <button
+                    type="button"
                     onClick={(e) => toggleFollow(e, selectedInstructor.id)}
                     disabled={processing[selectedInstructor.id]}
-                    style={{ 
-                      width: 54, height: 54, borderRadius: '50%', 
-                      background: follows[selectedInstructor.id] ? 'rgba(201,168,76,0.4)' : 'rgba(255,255,255,0.2)', 
-                      backdropFilter: 'blur(20px)', 
-                      border: follows[selectedInstructor.id] ? '2px solid #C9A84C' : '1px solid rgba(255,255,255,0.3)', 
-                      color: follows[selectedInstructor.id] ? '#C9A84C' : '#fff', 
-                      display: 'flex', alignItems: 'center', justifyContent: 'center', 
-                      cursor: 'pointer', transition: 'all 0.3s',
+                    style={{
+                      background: follows[selectedInstructor.id] ? '#888' : '#FF1744',
+                      color: '#fff',
+                      borderRadius: '20px',
+                      padding: '10px 20px',
+                      fontSize: '14px',
+                      fontWeight: 900,
+                      border: 'none',
+                      cursor: 'pointer',
                       opacity: processing[selectedInstructor.id] ? 0.6 : 1,
-                      boxShadow: '0 4px 15px rgba(0,0,0,0.3)'
                     }}
                   >
-                    <Bell size={24} fill={follows[selectedInstructor.id] ? '#C9A84C' : 'none'} style={{ pointerEvents: 'none' }} />
+                    {follows[selectedInstructor.id] ? '내 찐강사 ✅' : '내 찐강사 ❤️‍🔥'}
                   </button>
+                  {/* 좋아요 UI 숨김
                   <button 
                     onClick={(e) => toggleLike(e, selectedInstructor.id)}
                     disabled={processing[`like_${selectedInstructor.id}`]}
@@ -700,8 +701,8 @@ const InstructorSection = () => {
                   >
                     <Heart size={24} fill={likes[selectedInstructor.id] ? '#FF1744' : 'none'} style={{ pointerEvents: 'none' }} />
                   </button>
-                </div>
-                */}
+                  */}
+                </motion.div>
               </div>
 
               {/* 2. Identity Section */}
