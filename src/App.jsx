@@ -2388,9 +2388,9 @@ function App() {
           color: isSocialTabActive ? socialPartnerNavActive : socialPartnerNavInactive
         }}
       >
-        <Music2 size={24} strokeWidth={isSocialTabActive ? 2.5 : 1.5} />
+        <HomeIcon size={24} strokeWidth={isSocialTabActive ? 2.5 : 1.5} />
         <span style={{ fontSize: '9px', fontWeight: isSocialTabActive ? 900 : 500, marginTop: '3px' }}>
-          {i18n.language?.startsWith('en') ? 'Social' : '소셜'}
+          {i18n.language?.startsWith('en') ? 'Home' : '홈'}
         </span>
       </div>
 
