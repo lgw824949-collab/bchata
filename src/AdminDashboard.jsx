@@ -763,6 +763,9 @@ export default function AdminDashboard({ onBack }) {
                         </div>
 
                         <textarea value={editFormData.bio || ''} onChange={e => setEditFormData({ ...editFormData, bio: e.target.value })} placeholder="자기소개" style={{ width: '100%', padding: '10px', borderRadius: '10px', border: '1px solid #E2E8F0', minHeight: '80px' }} />
+                        <input value={editFormData.career || ''} onChange={e => setEditFormData({ ...editFormData, career: e.target.value })} placeholder="경력" style={{ width: '100%', padding: '10px', borderRadius: '10px', border: '1px solid #E2E8F0' }} />
+                        <input value={editFormData.class_type || ''} onChange={e => setEditFormData({ ...editFormData, class_type: e.target.value })} placeholder="수업 방식" style={{ width: '100%', padding: '10px', borderRadius: '10px', border: '1px solid #E2E8F0' }} />
+                        <input value={editFormData.awards || ''} onChange={e => setEditFormData({ ...editFormData, awards: e.target.value })} placeholder="수상 경력" style={{ width: '100%', padding: '10px', borderRadius: '10px', border: '1px solid #E2E8F0' }} />
                       </>
                     )}
                     {category === 'instructor-classes' && (
