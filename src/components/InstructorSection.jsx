@@ -1,11 +1,11 @@
-import React, { useEffect, useState, useMemo } from 'react'
+import React, { useEffect, useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { supabase } from '../lib/supabase'
 import { ChevronLeft, Share2, Bell, Heart, User, MapPin, Globe, ShieldCheck, Zap, MessageCircle, Star, Info, Plus, Check, Search } from 'lucide-react'
 import ClassRegisterModal from './ClassRegisterModal'
 
 const REGIONS = ['전국', '서울', '경기인천', '경상도', '전라도', '충청도', '강원제주']
-const GENRE_TABS = ['전체', '⭐ 내 팔로잉', '바차타', '살사', '쥬크', '키좀바']
+const GENRE_TABS = ['전체', '바차타', '살사', '쥬크', '키좀바']
 
 const matchesRegion = (instructor, region) => {
   if (region === '전국') return true;
@@ -274,8 +274,8 @@ const InstructorSection = () => {
         : i
       ));
       
-      window.dispatchEvent(new CustomEvent('refresh-sidebar'));
-      alert('강사를 팔로우했어요! 위 「내 강사」에서 다시 볼 수 있어요.');
+      window.dispatchEvent(new CustomEvent('refresh-sidebar')); 
+      alert('마스터를 팔로우했습니다! 사이드바에서 확인하세요.');
     } catch (err) {
       console.error('Follow error:', err);
       // If error is duplicate key, it means already followed in DB but maybe not in localStorage
@@ -335,18 +335,6 @@ const InstructorSection = () => {
     if (type === 'follow') toggleFollow(e, id);
     else if (type === 'like') toggleLike(e, id);
   }
-
-  const followedList = useMemo(
-    () => instructors.filter((i) => follows[i.id]),
-    [instructors, follows]
-  );
-
-  const isFollowingFilterOpen = selectedGenre === '⭐ 내 팔로잉';
-
-  const toggleFollowingFilter = () => {
-    setSelectedGenre((prev) => (prev === '⭐ 내 팔로잉' ? '전체' : '⭐ 내 팔로잉'));
-    setVisibleCount(20);
-  };
 
   const isFiltering = selectedGenre !== '전체' || selectedCity !== '전국' || searchQuery.trim() !== '';
 
@@ -421,44 +409,6 @@ const InstructorSection = () => {
         </button>
       </div>
 
-      {/* 내 강사 — 팔로우한 강사 */}
-      {followedList.length > 0 && (
-        <div style={{ padding: '0 25px 18px' }}>
-          <motion.div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
-            <span style={{ fontSize: '14px', fontWeight: 950, color: '#F8FAFC' }}>내 강사</span>
-            <button
-              type="button"
-              onClick={toggleFollowingFilter}
-              style={{
-                padding: '6px 12px', borderRadius: '10px',
-                border: isFollowingFilterOpen ? '1px solid #C9A84C' : '1px solid rgba(201,168,76,0.35)',
-                background: isFollowingFilterOpen ? 'rgba(201,168,76,0.25)' : 'rgba(201,168,76,0.1)',
-                color: '#C9A84C', fontSize: '11px', fontWeight: 800, cursor: 'pointer',
-              }}
-            >
-              {isFollowingFilterOpen ? '닫기' : '전체 보기'}
-            </button>
-          </motion.div>
-          <div className="hide-scrollbar" style={{ display: 'flex', gap: '14px', overflowX: 'auto', scrollbarWidth: 'none', msOverflowStyle: 'none', paddingBottom: 4 }}>
-            {followedList.map((inst) => (
-              <motion.div
-                key={inst.id}
-                whileTap={{ scale: 0.95 }}
-                onClick={() => setSelectedInstructor(inst)}
-                style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 6, cursor: 'pointer', flexShrink: 0 }}
-              >
-                <div style={{ width: 58, height: 58, borderRadius: '50%', border: '2px solid #C9A84C', padding: 2, background: '#000', boxShadow: '0 4px 12px rgba(201,168,76,0.2)' }}>
-                  <img src={inst.photo_url || 'https://via.placeholder.com/100'} alt={inst.name} style={{ width: '100%', height: '100%', borderRadius: '50%', objectFit: 'cover' }} />
-                </div>
-                <span style={{ fontSize: 11, fontWeight: 800, color: '#E2E8F0', maxWidth: 60, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                  {(inst.name || '').split(' ')[0]}
-                </span>
-              </motion.div>
-            ))}
-          </div>
-        </div>
-      )}
-
       {/* 스타일 삽입 (스크롤바 숨김) */}
       <style>{`
         .hide-scrollbar::-webkit-scrollbar {
@@ -516,14 +466,7 @@ const InstructorSection = () => {
           {GENRE_TABS.map(g => (
             <button
               key={g}
-              onClick={() => {
-                if (g === '⭐ 내 팔로잉' && selectedGenre === g) {
-                  setSelectedGenre('전체');
-                } else {
-                  setSelectedGenre(g);
-                }
-                setVisibleCount(20);
-              }}
+              onClick={() => { setSelectedGenre(g); setVisibleCount(20); }}
               style={{
                 padding: '8px 16px', borderRadius: '20px', border: 'none', whiteSpace: 'nowrap',
                 background: selectedGenre === g ? 'rgba(201,168,76,0.15)' : 'rgba(255,255,255,0.03)',
@@ -536,6 +479,18 @@ const InstructorSection = () => {
               {g}
             </button>
           ))}
+          {selectedGenre === '⭐ 내 팔로잉' && (
+            <button
+              onClick={() => { setSelectedGenre('⭐ 내 팔로잉'); setVisibleCount(20); }}
+              style={{
+                padding: '8px 16px', borderRadius: '20px', border: 'none', whiteSpace: 'nowrap',
+                background: 'rgba(201,168,76,0.15)', color: '#C9A84C', fontSize: '13px', fontWeight: 800,
+                border: '1px solid #C9A84C', cursor: 'pointer'
+              }}
+            >
+              ⭐ 내 팔로잉
+            </button>
+          )}
         </div>
       </div>
 
