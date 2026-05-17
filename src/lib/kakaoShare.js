@@ -2,41 +2,26 @@
 export const KAKAO_BRAND = '오늘밤빠';
 export const SHARE_BUILD = '20260516b';
 
-const homeUrl = () => `${window.location.origin}/`;
-
-const brandTitle = (title) =>
-  title?.includes(KAKAO_BRAND) ? title : `${KAKAO_BRAND} | ${title || '라틴·소셜 파티'}`;
+const SHARE_LINK = 'https://bchata.vercel.app';
 
 /** @returns {Promise<boolean>} */
-export const sharePartyToKakao = async ({ title, description, posterUrl, linkUrl = homeUrl() }) => {
+export const sharePartyToKakao = async ({ title, description, posterUrl, imageUrl }) => {
   if (!window.Kakao) return false;
   if (!window.Kakao.isInitialized()) {
     window.Kakao.init(import.meta.env.VITE_KAKAO_API_KEY);
   }
 
-  const url = linkUrl || homeUrl();
-  const fullTitle = brandTitle(title);
-
   window.Kakao.Share.sendDefault({
     objectType: 'feed',
     content: {
-      title: fullTitle,
+      title,
       description: description || '',
-      imageUrl: posterUrl,
+      imageUrl: posterUrl || imageUrl,
       link: {
-        mobileWebUrl: url,
-        webUrl: url,
+        mobileWebUrl: SHARE_LINK,
+        webUrl: SHARE_LINK,
       },
     },
-    buttons: [
-      {
-        title: '파티 보러가기',
-        link: {
-          mobileWebUrl: url,
-          webUrl: url,
-        },
-      },
-    ],
   });
 
   return true;
