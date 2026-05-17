@@ -1603,6 +1603,8 @@ function App() {
   // const navInactiveColor = isSocialLightNav ? '#94A3B8' : 'rgba(255,255,255,0.3)'
   const navActiveColor = '#FFFFFF'
   const navInactiveColor = '#666666'
+  const socialPartnerNavActive = '#FF4444'
+  const socialPartnerNavInactive = '#666666'
   const isSocialTabActive = location.pathname === '/' && view === 'home' && !showPartner
 
   return (
@@ -2339,7 +2341,7 @@ function App() {
           flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
           cursor: 'pointer', transition: 'all 0.2s',
           // color: (location.pathname === '/' && !showPartner) ? '#FFFFFF' : 'rgba(255,255,255,0.3)'
-          color: isSocialTabActive ? navActiveColor : navInactiveColor
+          color: isSocialTabActive ? socialPartnerNavActive : socialPartnerNavInactive
         }}
       >
         <Music2 size={24} strokeWidth={isSocialTabActive ? 2.5 : 1.5} />
@@ -2354,7 +2356,7 @@ function App() {
           flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
           cursor: 'pointer', transition: 'all 0.2s',
           // color: showPartner ? '#FFFFFF' : 'rgba(255,255,255,0.3)'
-          color: showPartner ? navActiveColor : navInactiveColor
+          color: showPartner ? socialPartnerNavActive : socialPartnerNavInactive
         }}
       >
         <Users size={24} strokeWidth={showPartner ? 2.5 : 1.5} />
