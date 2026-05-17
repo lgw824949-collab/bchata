@@ -417,7 +417,7 @@ const InstructorSection = () => {
             강사 등록
           </button>
           <button
-            onClick={() => setShowMasterMenu(true)}
+            onClick={() => window.dispatchEvent(new CustomEvent('open-vip-master-login'))}
             style={{
               padding: '8px 14px', borderRadius: '12px', background: 'rgba(201,168,76,0.15)',
               border: '1px solid #C9A84C', color: '#C9A84C', fontSize: '12px', fontWeight: 800,
