@@ -1144,14 +1144,14 @@ const HomePage = ({
           { icon: <Heart size={22} color="#7B1FA2" />, label: '찜하기', action: () => setShowWishlist(true) },
           { icon: <Navigation size={22} color="#303F9F" />, label: '지능형경로', /* badge: 'LIVE', */ action: () => openAnalysis(false) },
           { icon: <Star size={22} color="#F9A825" />, label: '운명의좌표', action: () => setShowSaju(true) },
-          { icon: <MapPin size={22} color="#10B981" />, label: '위치·대관', action: () => setShowRentalModal(true) },
+          { icon: <MapPin size={22} color="#10B981" />, label: '바 사장님', action: () => setShowRentalModal(true) },
         ].map((item, idx) => (
           <div key={idx} style={{ position: 'relative', flexShrink: 0, width: '75px' }}>
             <div style={{
               borderRadius: '14px', padding: '1.5px',
-              background: item.label === '위치·대관' ? 'linear-gradient(135deg, #34D399, #A7F3D0, #34D399)' : 'linear-gradient(135deg, #CBD5E1, #E2E8F0, #CBD5E1)',
-              boxShadow: item.label === '위치·대관' ? '0 0 10px rgba(16, 185, 129, 0.3)' : '0 8px 16px rgba(0,0,0,0.04)',
-              animation: item.label === '위치·대관' ? 'gentleSparkle 2.5s infinite ease-in-out' : 'none'
+              background: item.label === '바 사장님' ? 'linear-gradient(135deg, #34D399, #A7F3D0, #34D399)' : 'linear-gradient(135deg, #CBD5E1, #E2E8F0, #CBD5E1)',
+              boxShadow: item.label === '바 사장님' ? '0 0 10px rgba(16, 185, 129, 0.3)' : '0 8px 16px rgba(0,0,0,0.04)',
+              animation: item.label === '바 사장님' ? 'gentleSparkle 2.5s infinite ease-in-out' : 'none'
             }}>
               <motion.div
                 whileTap={{ scale: 0.92 }}
