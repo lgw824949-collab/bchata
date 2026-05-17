@@ -1139,7 +1139,7 @@ const HomePage = ({
             gap: '12px',
             width: '100%',
             background: 'rgba(201,168,76,0.13)',
-            border: '1.5px solid rgba(201,168,76,0.5)',
+            border: '2px solid rgba(201,168,76,0.9)',
             borderRadius: '20px',
             padding: '20px 0',
             cursor: 'pointer',
@@ -1183,7 +1183,7 @@ const HomePage = ({
             ) : (
               <motion.div style={{ ...quickMenuIconWrapStyle, width: '32px', height: '32px' }}>{item.icon}</motion.div>
             )}
-            <span style={quickMenuLabelStyle}>{item.label}</span>
+            <span style={{ ...quickMenuLabelStyle, fontSize: '13px' }}>{item.label}</span>
           </motion.div>
         ))}
         </div>
