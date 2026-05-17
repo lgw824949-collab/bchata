@@ -764,7 +764,7 @@ const InstructorSection = () => {
                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '15px' }}>
                           <h3 style={{ fontSize: '18px', fontWeight: 900, color: '#FFF', margin: 0 }}>About {selectedInstructor.name.split(' ')[0]}</h3>
                           <div style={{ display: 'flex', gap: '15px' }}>
-                            <button onClick={() => window.open(`https://www.instagram.com/${selectedInstructor.instagram}`, '_blank')} style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer' }}><Globe size={20} color="#8E8E93" /></button>
+                            {/* <button onClick={() => window.open(`https://www.instagram.com/${selectedInstructor.instagram}`, '_blank')} style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer' }}><Globe size={20} color="#8E8E93" /></button> */}
                             <button onClick={() => { navigator.share?.({ title: selectedInstructor.name, url: window.location.href }); }} style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer' }}><Share2 size={20} color="#8E8E93" /></button>
                           </div>
                         </div>
@@ -780,7 +780,7 @@ const InstructorSection = () => {
                         </div>
 
                         {/* <span>✨ DIRECT INQUIRY & BOOKING</span> */}
-                        {(selectedInstructor.kakao_link || getInstaLink(selectedInstructor)) && (
+                        {(selectedInstructor.kakao_link || getInstaLink(selectedInstructor) || selectedInstructor.instagram) && (
                           <div style={{ marginTop: '16px', display: 'flex', gap: '10px' }}>
                             {selectedInstructor.kakao_link && (
                               <button
@@ -792,36 +792,39 @@ const InstructorSection = () => {
                                 }}
                               >💬 수업·레슨 문의</button>
                             )}
-                            {getInstaLink(selectedInstructor) && (
-                              <button
-                                onClick={() => window.open(getInstaLink(selectedInstructor), '_blank')}
-                                style={{
-                                  flex: 1, padding: '12px 8px', borderRadius: '12px',
-                                  border: '1px solid rgba(255,255,255,0.2)', background: 'transparent',
-                                  color: '#E4E4E7', fontSize: '13px', fontWeight: 700, cursor: 'pointer', textAlign: 'center',
-                                }}
-                              >📅 문의하기</button>
+                            {(getInstaLink(selectedInstructor) || selectedInstructor.instagram) && (
+                              <div style={{ display: 'flex', flexDirection: 'row', gap: '8px', flex: 1 }}>
+                                {getInstaLink(selectedInstructor) && (
+                                  <button
+                                    onClick={() => window.open(getInstaLink(selectedInstructor), '_blank')}
+                                    style={{
+                                      flex: 1, padding: '12px 8px', borderRadius: '12px',
+                                      border: '1px solid rgba(255,255,255,0.2)', background: 'transparent',
+                                      color: '#E4E4E7', fontSize: '13px', fontWeight: 700, cursor: 'pointer', textAlign: 'center',
+                                    }}
+                                  >📅 문의하기</button>
+                                )}
+                                {selectedInstructor.instagram && (
+                                  <button
+                                    type="button"
+                                    onClick={() => window.open(getInstaLink(selectedInstructor) || `https://www.instagram.com/${String(selectedInstructor.instagram).replace(/^@/, '')}`, '_blank')}
+                                    style={{
+                                      width: '48px', height: '48px', borderRadius: '14px', border: '1px solid rgba(255,255,255,0.1)',
+                                      background: 'rgba(255,255,255,0.05)', color: '#E1306C', cursor: 'pointer',
+                                      display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                    }}
+                                    aria-label="인스타그램"
+                                  >
+                                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><rect x="2" y="2" width="20" height="20" rx="5" ry="5"/><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"/></svg>
+                                  </button>
+                                )}
+                              </div>
                             )}
                           </div>
                         )}
 
-                        {(selectedInstructor.instagram || selectedInstructor.youtube) && (
+                        {selectedInstructor.youtube && (
                           <div style={{ marginTop: '24px', display: 'flex', gap: '12px', justifyContent: 'center' }}>
-                            {selectedInstructor.instagram && (
-                              <button
-                                type="button"
-                                onClick={() => window.open(getInstaLink(selectedInstructor) || `https://www.instagram.com/${String(selectedInstructor.instagram).replace(/^@/, '')}`, '_blank')}
-                                style={{
-                                  width: '48px', height: '48px', borderRadius: '14px', border: '1px solid rgba(255,255,255,0.1)',
-                                  background: 'rgba(255,255,255,0.05)', color: '#E1306C', cursor: 'pointer',
-                                  display: 'flex', alignItems: 'center', justifyContent: 'center',
-                                }}
-                                aria-label="인스타그램"
-                              >
-                                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><rect x="2" y="2" width="20" height="20" rx="5" ry="5"/><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"/></svg>
-                              </button>
-                            )}
-                            {selectedInstructor.youtube && (
                               <button
                                 type="button"
                                 onClick={() => {
@@ -839,7 +842,6 @@ const InstructorSection = () => {
                               >
                                 <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M22.54 6.42a2.78 2.78 0 0 0-1.95-2C18.88 4 12 4 12 4s-6.88 0-8.59.42a2.78 2.78 0 0 0-1.95 2 2.78 2.78 0 0 0-.42 1.58v3.84a2.78 2.78 0 0 0 .42 1.58 2.78 2.78 0 0 0 1.95 2C5.12 20 12 20 12 20s6.88 0 8.59-.42a2.78 2.78 0 0 0 1.95-2 2.78 2.78 0 0 0 .42-1.58V8a2.78 2.78 0 0 0-.42-1.58zM10 15.5v-7l6 3.5-6 3.5z"/></svg>
                               </button>
-                            )}
                           </div>
                         )}
                       </motion.div>
