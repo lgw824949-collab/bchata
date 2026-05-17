@@ -937,7 +937,7 @@ const InstructorSection = () => {
                             <div key={c.id} style={{ background:'#1a1a1a', borderRadius:20, overflow:'hidden', marginBottom:20, border:'1px solid rgba(255,255,255,0.05)' }}>
                               <div style={{ padding:16 }}>
                                 {c.poster_url && (
-                                  <motion.div style={{ marginBottom: '16px', paddingBottom: '16px', borderBottom: '1px solid rgba(255,255,255,0.08)' }}>
+                                  <div style={{ marginBottom: '16px', paddingBottom: '16px', borderBottom: '1px solid rgba(255,255,255,0.08)' }}>
                                     <img src={c.poster_url} alt={c.title} style={{ borderRadius: '12px', width: '100%', objectFit: 'cover', display: 'block' }} />
                                   </div>
                                 )}

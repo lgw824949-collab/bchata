@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo, useRef } from 'react';
-import { Heart, MapPin, Calendar, Clock, User, Users, Music, ChevronRight, ShieldCheck, X, Home as HomeIcon, ChevronLeft, CloudSun, Utensils, Zap, PlusCircle, Languages, Bell, Globe, Navigation, CalendarDays, Star, Camera, MessageSquare } from 'lucide-react';
+import { Heart, MapPin, Calendar, Clock, User, Users, Music, ChevronRight, ShieldCheck, X, Home as HomeIcon, ChevronLeft, CloudSun, Utensils, Zap, PlusCircle, Languages, Bell, Globe, Navigation, CalendarDays, Star, Camera, MessageSquare, Tent, Map } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { motion, AnimatePresence } from 'framer-motion';
 import QuickPinchZoom, { make3dTransformValue } from 'react-quick-pinch-zoom';
@@ -751,6 +751,15 @@ const HomePage = ({
   const isEn = i18n.language.startsWith('en');
   const lang = isEn ? 'en' : 'ko';
 
+  const setActiveTab = (tab) => {
+    if (tab === 'social') {
+      setView('home');
+      setShowPartner(false);
+    } else if (tab === 'partner') {
+      setShowPartner(true);
+    }
+  };
+
   // [사용자 요청] 지역 포스터 리스트 자동 스크롤 비활성화 (좌측 고정 및 수동 스크롤만 허용)
   useEffect(() => {
     // 자동 스크롤 로직 제거됨
@@ -1113,6 +1122,11 @@ const HomePage = ({
         scrollbarWidth: 'none', msOverflowStyle: 'none', WebkitOverflowScrolling: 'touch' 
       }}>
         {[
+          { icon: <Music size={22} color="#FF1744" />, label: '소셜', action: () => setActiveTab('social') },
+          { icon: <Users size={22} color="#FF1744" />, label: '파트너', action: () => setActiveTab('partner') },
+          { icon: <Tent size={22} color="#FF1744" />, label: '부트캠프', action: () => setView('bootcamp') },
+          { icon: <Star size={22} color="#FF1744" />, label: '페스티벌', action: () => setView('festival') },
+          { icon: <Map size={22} color="#FF1744" />, label: 'MT', action: () => setView('mt') },
           { icon: <Calendar size={22} color="#F97316" />, label: '행사달력', action: () => setShowFullCalendar(true) },
           {
             icon: <Users size={22} color="#C9A84C" />,
