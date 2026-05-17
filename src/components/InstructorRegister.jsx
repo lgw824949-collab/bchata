@@ -3,12 +3,16 @@ import { supabase } from '../lib/supabase'
 
 const GENRES = ['바차타', '살사', '키좀바', '쥬크']
 const CITIES = ['서울', '경기', '인천', '부산', '대구', '광주', '대전', '울산', '제주', '기타']
+const CLASS_TYPES = ['1:1', '그룹', '온라인']
 
 const InstructorRegister = ({ onBack }) => {
   const [name, setName] = useState('')
   const [genre, setGenre] = useState([])
   const [city, setCity] = useState('')
   const [bio, setBio] = useState('')
+  const [career, setCareer] = useState('')
+  const [classType, setClassType] = useState('')
+  const [awards, setAwards] = useState('')
   const [instagram, setInstagram] = useState('')
   const [kakaoLink, setKakaoLink] = useState('')
   const [imageFile, setImageFile] = useState(null)
@@ -53,6 +57,9 @@ const InstructorRegister = ({ onBack }) => {
         genre,
         city,
         bio,
+        career: career.trim() || null,
+        class_type: classType || null,
+        awards: awards.trim() || null,
         instagram,
         kakao_link: kakaoLink,
         photo_url: photoUrl,
@@ -164,6 +171,43 @@ const InstructorRegister = ({ onBack }) => {
             placeholder="예: 바차타 10년 경력 · 전국 파티 강사"
             rows={3}
             style={{ width: '100%', padding: '14px', borderRadius: 12, border: '1px solid #E5E7EB', fontSize: 14, resize: 'none', boxSizing: 'border-box' }}
+          />
+        </div>
+
+        {/* 경력 */}
+        <div style={{ marginBottom: 20 }}>
+          <div style={{ fontSize: 14, fontWeight: 700, color: '#111', marginBottom: 8 }}>경력</div>
+          <input
+            value={career}
+            onChange={e => setCareer(e.target.value)}
+            placeholder="예: 바차타 10년, 전국 파티 강사"
+            style={{ width: '100%', padding: '14px', borderRadius: 12, border: '1px solid #E5E7EB', fontSize: 14, boxSizing: 'border-box' }}
+          />
+        </div>
+
+        {/* 수업 방식 */}
+        <div style={{ marginBottom: 20 }}>
+          <div style={{ fontSize: 14, fontWeight: 700, color: '#111', marginBottom: 8 }}>수업 방식</div>
+          <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+            {CLASS_TYPES.map(t => (
+              <button
+                key={t}
+                type="button"
+                onClick={() => setClassType(t)}
+                style={{ padding: '8px 16px', borderRadius: 20, border: classType === t ? 'none' : '1px solid #E5E7EB', background: classType === t ? '#7C3AED' : '#fff', color: classType === t ? '#fff' : '#666', fontSize: 13, fontWeight: 700, cursor: 'pointer' }}
+              >{t}</button>
+            ))}
+          </div>
+        </div>
+
+        {/* 수상 경력 */}
+        <div style={{ marginBottom: 20 }}>
+          <div style={{ fontSize: 14, fontWeight: 700, color: '#111', marginBottom: 8 }}>수상 경력 (선택)</div>
+          <input
+            value={awards}
+            onChange={e => setAwards(e.target.value)}
+            placeholder="예: 2023 코리아 살사 챔피언십 입상"
+            style={{ width: '100%', padding: '14px', borderRadius: 12, border: '1px solid #E5E7EB', fontSize: 14, boxSizing: 'border-box' }}
           />
         </div>
 
