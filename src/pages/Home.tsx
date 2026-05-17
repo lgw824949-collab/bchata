@@ -955,7 +955,7 @@ const HomePage = ({
   }, []);
 
   const quickMenuSectionTitleStyle = { fontSize: '14px', color: '#888', fontWeight: '700', letterSpacing: '1px', marginBottom: '8px' };
-  const quickMenuFloatStyle = { display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', background: 'rgba(255,255,255,0.08)', border: '1px solid rgba(255,255,255,0.15)', borderRadius: '14px', boxShadow: '0 2px 8px rgba(0,0,0,0.15)', padding: '10px 4px 8px', cursor: 'pointer' };
+  const quickMenuFloatStyle = { display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', background: '#ffffff', border: '1px solid #F1F5F9', borderRadius: '12px', boxShadow: '0 2px 8px rgba(0,0,0,0.06)', padding: '8px 6px 6px', cursor: 'pointer', width: 'fit-content', minWidth: '60px', maxWidth: '80px' };
   const quickMenuIconWrapStyle = { width: '40px', height: '40px', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, filter: 'drop-shadow(0 2px 4px rgba(0,0,0,0.15))' };
   const quickMenuLabelStyle = { color: '#1E293B', fontWeight: 600, fontSize: '11px', marginTop: '4px', textAlign: 'center', lineHeight: 1.25, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', width: '100%' };
 
@@ -1114,7 +1114,7 @@ const HomePage = ({
       <div id="quickmenu-section" style={{ padding: '8px 12px 12px', marginBottom: '24px' }}>
         {/* 파티 & 이벤트 */}
         <p style={{ ...quickMenuSectionTitleStyle, marginTop: 0 }}>파티 & 이벤트</p>
-        <motion.div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '8px', width: '100%', marginBottom: '16px' }}>
+        <motion.div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, auto)', gap: '6px', width: '100%', justifyContent: 'start', marginBottom: '16px' }}>
         {[
           { icon: <Tent size={32} strokeWidth={1.2} color="#E53935" />, label: '부트캠프', action: () => setView('bootcamp') },
           { icon: <Star size={32} strokeWidth={1.2} color="#E53935" />, label: '페스티벌', action: () => setView('festival') },
@@ -1130,7 +1130,7 @@ const HomePage = ({
 
         {/* 파트너 & 강사 */}
         <p style={{ ...quickMenuSectionTitleStyle }}>파트너 & 강사</p>
-        <motion.div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '8px', width: '100%', marginBottom: '16px' }}>
+        <motion.div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, auto)', gap: '6px', width: '100%', justifyContent: 'start', marginBottom: '16px' }}>
         {[
           { icon: <Users size={32} strokeWidth={1.2} color="#C9A84C" />, label: '파트너', action: () => setActiveTab('partner') },
           { icon: <Users size={32} strokeWidth={1.2} color="#C9A84C" />, label: '강사찾기', action: () => { localStorage.setItem('instructor_target_genre', '전체'); setView('instructors'); window.history.pushState({}, '', '/instructors'); window.dispatchEvent(new PopStateEvent('popstate')); setTimeout(() => { window.dispatchEvent(new CustomEvent('apply-instructor-filter')); }, 300); } },
@@ -1150,7 +1150,7 @@ const HomePage = ({
 
         {/* 도구 & 정보 */}
         <p style={{ ...quickMenuSectionTitleStyle }}>도구 & 정보</p>
-        <motion.div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '8px', width: '100%' }}>
+        <motion.div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, auto)', gap: '6px', width: '100%', justifyContent: 'start' }}>
         {[
           { icon: <Calendar size={32} strokeWidth={1.2} color="#1976D2" />, label: '행사달력', action: () => setShowFullCalendar(true) },
           { icon: <Heart size={32} strokeWidth={1.2} color="#1976D2" />, label: '찜하기', action: () => setShowWishlist(true) },
