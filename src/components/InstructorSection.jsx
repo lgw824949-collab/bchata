@@ -836,9 +836,9 @@ const InstructorSection = () => {
                           ))}
                         </div>
 
-                        <div style={{ marginBottom: '16px', fontSize: '13px', color: 'var(--color-text-sub)' }}>
+                        {/* <div style={{ marginBottom: '16px', fontSize: '13px', color: 'var(--color-text-sub)' }}>
                           📍 {selectedInstructor.city || '-'}
-                        </div>
+                        </div> */}
 
                         {/* <span>✨ DIRECT INQUIRY & BOOKING</span> */}
                         {(selectedInstructor.kakao_link || getInstaLink(selectedInstructor) || selectedInstructor.instagram) && (
