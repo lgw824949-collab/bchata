@@ -750,8 +750,10 @@ const HomePage = ({
   const { t, i18n } = useTranslation();
   const isEn = i18n.language.startsWith('en');
   const lang = isEn ? 'en' : 'ko';
+  const [activeTab, setActiveTabState] = useState(null);
 
   const setActiveTab = (tab) => {
+    setActiveTabState(tab);
     if (tab === 'social') {
       setView('home');
       setShowPartner(false);
@@ -1201,6 +1203,8 @@ const HomePage = ({
         ))}
       </div>
 
+      {activeTab === 'social' && (
+      <>
       {followedInstructors?.length > 0 && (
         <div style={{ padding: '0 12px 14px' }}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8, padding: '0 4px' }}>
@@ -1830,6 +1834,8 @@ const HomePage = ({
           )}
         </div>
       </div>
+      </>
+      )}
 
       <AnimatePresence>
         {showFullCalendar && (
