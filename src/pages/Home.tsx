@@ -948,6 +948,11 @@ const HomePage = ({
     return () => window.removeEventListener('resize', setVh);
   }, []);
 
+  const quickMenuFloatStyle = { display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', background: 'none', border: 'none', boxShadow: 'none', backdropFilter: 'none', WebkitBackdropFilter: 'none', padding: '8px', cursor: 'pointer' };
+  const quickMenuIconWrapStyle = { width: '52px', height: '52px', display: 'flex', alignItems: 'center', justifyContent: 'center', filter: 'drop-shadow(0 6px 12px rgba(0,0,0,0.6))' };
+  const quickMenuLabelStyle = { color: '#ffffff', fontWeight: 800, fontSize: '13px', textShadow: '0 2px 6px rgba(0,0,0,0.9)', marginTop: '6px', textAlign: 'center', lineHeight: 1.2, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', width: '100%' };
+  const quickMenuSectionTitleStyle = { fontSize: '12px', color: 'rgba(255,255,255,0.6)', fontWeight: 700, letterSpacing: '1px', marginBottom: '8px', textShadow: '0 1px 4px rgba(0,0,0,0.8)' };
+
   return (
     <div className="app-container" style={{ position: 'relative', width: '100%', maxWidth: '500px', margin: '0 auto', backgroundImage: "url('/Photo/네이버2.png')", backgroundSize: 'cover', backgroundPosition: 'center', backgroundAttachment: 'fixed', minHeight: '100vh', paddingBottom: '80px', transition: 'background-color 0.3s' }}>
       <div aria-hidden style={{ position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.3)', zIndex: 0, pointerEvents: 'none' }} />
@@ -1123,69 +1128,31 @@ const HomePage = ({
       `}</style>
       {activeTab === null && (
       <div style={{ padding: '8px 12px 12px', marginBottom: '24px' }}>
-        <p style={{ fontSize: '12px', color: '#ffffff', fontWeight: 700, letterSpacing: '1px', marginBottom: '8px', marginTop: 0 }}>파티 & 이벤트</p>
+        <p style={{ ...quickMenuSectionTitleStyle, marginTop: 0 }}>파티 & 이벤트</p>
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px', width: '100%' }}>
         {[
-          { icon: <Music size={22} color="#FF1744" />, label: '소셜', action: () => setActiveTab('social') },
-          { icon: <Tent size={22} color="#FF1744" />, label: '부트캠프', action: () => setView('bootcamp') },
-          { icon: <Star size={22} color="#FF1744" />, label: '페스티벌', action: () => setView('festival') },
-          { icon: <Map size={22} color="#FF1744" />, label: 'MT', action: () => setView('mt') },
+          { icon: <Music size={52} color="#FF1744" />, label: '소셜', action: () => setActiveTab('social') },
+          { icon: <Tent size={52} color="#FF1744" />, label: '부트캠프', action: () => setView('bootcamp') },
+          { icon: <Star size={52} color="#FF1744" />, label: '페스티벌', action: () => setView('festival') },
+          { icon: <Map size={52} color="#FF1744" />, label: 'MT', action: () => setView('mt') },
         ].map((item, idx) => (
-          <div key={`party-${idx}`} style={{ position: 'relative', flexShrink: 0, width: '100%' }}>
-            <div style={{
-              borderRadius: '14px', padding: '1.5px',
-              background: item.label === '위치·대관' ? 'linear-gradient(135deg, #34D399, #A7F3D0, #34D399)' : 'linear-gradient(135deg, #CBD5E1, #E2E8F0, #CBD5E1)',
-              boxShadow: item.label === '위치·대관' ? '0 0 10px rgba(16, 185, 129, 0.3)' : '0 8px 16px rgba(0,0,0,0.04)',
-              animation: item.label === '위치·대관' ? 'gentleSparkle 2.5s infinite ease-in-out' : 'none'
-            }}>
-              <motion.div
-                whileTap={{ scale: 0.92 }}
-                onClick={item.action}
-                style={{
-                  display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
-                  gap: '6px', cursor: 'pointer', borderRadius: '12px',
-                  padding: '12px 4px 10px', background: 'rgba(255,255,255,0.15)', backdropFilter: 'blur(12px)', WebkitBackdropFilter: 'blur(12px)', border: '1px solid rgba(255,255,255,0.3)', color: '#ffffff', height: '66px', boxSizing: 'border-box'
-                }}
-              >
-                {item.textIcon ? (
-                  <motion.div
-                    style={{
-                      width: 28,
-                      height: 28,
-                      aspectRatio: '1 / 1',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      fontSize: 14,
-                      fontWeight: 900,
-                      color: '#388E3C',
-                      letterSpacing: '-0.8px',
-                      lineHeight: 1,
-                      flexShrink: 0,
-                    }}
-                  >
-                    {item.textIcon}
-                  </motion.div>
-                ) : item.icon}
-                <span style={{ fontSize: '10px', fontWeight: 600, color: '#ffffff', textAlign: 'center', lineHeight: 1.2, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', width: '100%' }}>
-                  {item.label}
-                </span>
-              </motion.div>
-            </div>
+          <motion.div key={`party-${idx}`} whileTap={{ scale: 0.92 }} onClick={item.action} style={{ ...quickMenuFloatStyle, position: 'relative', width: '100%' }}>
+            <motion.div style={quickMenuIconWrapStyle}>{item.icon}</motion.div>
+            <span style={quickMenuLabelStyle}>{item.label}</span>
             {item.badge && (
               <span style={{ position: 'absolute', top: '-4px', right: '-4px', background: '#E53935', color: '#fff', fontSize: '7px', fontWeight: 700, padding: '1px 4px', borderRadius: '6px', zIndex: 1 }}>
                 {item.badge}
               </span>
             )}
-          </div>
+          </motion.div>
         ))}
         </div>
-        <p style={{ fontSize: '12px', color: '#ffffff', fontWeight: 700, letterSpacing: '1px', marginBottom: '8px', marginTop: '20px' }}>파트너 & 강사</p>
+        <p style={{ ...quickMenuSectionTitleStyle, marginTop: '20px' }}>파트너 & 강사</p>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '8px', width: '100%' }}>
         {[
-          { icon: <Users size={22} color="#FF1744" />, label: '파트너', action: () => setActiveTab('partner') },
+          { icon: <Users size={52} color="#FF1744" />, label: '파트너', action: () => setActiveTab('partner') },
           {
-            icon: <Users size={22} color="#C9A84C" />,
+            icon: <Users size={52} color="#C9A84C" />,
             label: '강사찾기',
             action: () => {
               localStorage.setItem('instructor_target_genre', '전체');
@@ -1197,38 +1164,32 @@ const HomePage = ({
           },
           { textIcon: '1:1', label: '채팅문의', action: () => window.open('https://open.kakao.com/o/gP43rNri', '_blank') },
         ].map((item, idx) => (
-          <div key={`people-${idx}`} style={{ position: 'relative', flexShrink: 0, width: '100%' }}>
-            <div style={{ borderRadius: '14px', padding: '1.5px', background: 'linear-gradient(135deg, #CBD5E1, #E2E8F0, #CBD5E1)', boxShadow: '0 8px 16px rgba(0,0,0,0.04)' }}>
-              <motion.div whileTap={{ scale: 0.92 }} onClick={item.action} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '6px', cursor: 'pointer', borderRadius: '12px', padding: '12px 4px 10px', background: 'rgba(255,255,255,0.15)', backdropFilter: 'blur(12px)', WebkitBackdropFilter: 'blur(12px)', border: '1px solid rgba(255,255,255,0.3)', color: '#ffffff', height: '66px', boxSizing: 'border-box' }}>
-                {item.textIcon ? (
-                  <motion.div style={{ width: 28, height: 28, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 14, fontWeight: 900, color: '#388E3C', letterSpacing: '-0.8px', lineHeight: 1, flexShrink: 0 }}>{item.textIcon}</motion.div>
-                ) : item.icon}
-                <span style={{ fontSize: '10px', fontWeight: 600, color: '#ffffff', textAlign: 'center', lineHeight: 1.2, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', width: '100%' }}>{item.label}</span>
-              </motion.div>
-            </div>
-          </div>
+          <motion.div key={`people-${idx}`} whileTap={{ scale: 0.92 }} onClick={item.action} style={{ ...quickMenuFloatStyle, position: 'relative', width: '100%' }}>
+            {item.textIcon ? (
+              <motion.div style={{ ...quickMenuIconWrapStyle, fontSize: 20, fontWeight: 900, color: '#388E3C', letterSpacing: '-0.8px' }}>{item.textIcon}</motion.div>
+            ) : (
+              <motion.div style={quickMenuIconWrapStyle}>{item.icon}</motion.div>
+            )}
+            <span style={quickMenuLabelStyle}>{item.label}</span>
+          </motion.div>
         ))}
         </div>
-        <p style={{ fontSize: '12px', color: '#ffffff', fontWeight: 700, letterSpacing: '1px', marginBottom: '8px', marginTop: '20px' }}>도구 & 정보</p>
+        <p style={{ ...quickMenuSectionTitleStyle, marginTop: '20px' }}>도구 & 정보</p>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '8px', width: '100%' }}>
         {[
-          { icon: <Calendar size={22} color="#F97316" />, label: '행사달력', action: () => setShowFullCalendar(true) },
-          { icon: <Heart size={22} color="#7B1FA2" />, label: '찜하기', action: () => setShowWishlist(true) },
-          { icon: <Utensils size={22} color="#C2185B" />, label: '맛집뒷풀이', action: () => setView('restaurant') },
-          { icon: <MapPin size={22} color="#10B981" />, label: '위치·대관', action: () => setShowRentalModal(true) },
-          { icon: <MessageSquare size={22} color="#FF8A80" />, label: '컨시어지', action: () => window.dispatchEvent(new CustomEvent('open-chatbot')) },
-          { icon: <Camera size={22} color="#E53935" />, label: '라이브픽', action: () => setView('community') },
-          { icon: <CloudSun size={22} color="#1976D2" />, label: '오늘날씨', action: () => setShowWeather(true) },
-          { icon: <Navigation size={22} color="#303F9F" />, label: '지능형경로', action: () => openAnalysis(false) },
-          { icon: <Star size={22} color="#F9A825" />, label: '운명의좌표', action: () => setShowSaju(true) },
+          { icon: <Calendar size={52} color="#F97316" />, label: '행사달력', action: () => setShowFullCalendar(true) },
+          { icon: <Heart size={52} color="#7B1FA2" />, label: '찜하기', action: () => setShowWishlist(true) },
+          { icon: <Utensils size={52} color="#C2185B" />, label: '맛집뒷풀이', action: () => setView('restaurant') },
+          { icon: <MapPin size={52} color="#10B981" />, label: '위치·대관', action: () => setShowRentalModal(true) },
+          { icon: <MessageSquare size={52} color="#FF8A80" />, label: '컨시어지', action: () => window.dispatchEvent(new CustomEvent('open-chatbot')) },
+          { icon: <Camera size={52} color="#E53935" />, label: '라이브픽', action: () => setView('community') },
+          { icon: <CloudSun size={52} color="#1976D2" />, label: '오늘날씨', action: () => setShowWeather(true) },
+          { icon: <Navigation size={52} color="#303F9F" />, label: '지능형경로', action: () => openAnalysis(false) },
+          { icon: <Star size={52} color="#F9A825" />, label: '운명의좌표', action: () => setShowSaju(true) },
         ].map((item, idx) => (
-          <motion.div key={`tool-${idx}`} style={{ position: 'relative', flexShrink: 0, width: '100%' }}>
-            <div style={{ borderRadius: '14px', padding: '1.5px', background: item.label === '위치·대관' ? 'linear-gradient(135deg, #34D399, #A7F3D0, #34D399)' : 'linear-gradient(135deg, #CBD5E1, #E2E8F0, #CBD5E1)', boxShadow: item.label === '위치·대관' ? '0 0 10px rgba(16, 185, 129, 0.3)' : '0 8px 16px rgba(0,0,0,0.04)', animation: item.label === '위치·대관' ? 'gentleSparkle 2.5s infinite ease-in-out' : 'none' }}>
-              <motion.div whileTap={{ scale: 0.92 }} onClick={item.action} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '6px', cursor: 'pointer', borderRadius: '12px', padding: '12px 4px 10px', background: 'rgba(255,255,255,0.15)', backdropFilter: 'blur(12px)', WebkitBackdropFilter: 'blur(12px)', border: '1px solid rgba(255,255,255,0.3)', color: '#ffffff', height: '66px', boxSizing: 'border-box' }}>
-                {item.icon}
-                <span style={{ fontSize: '10px', fontWeight: 600, color: '#ffffff', textAlign: 'center', lineHeight: 1.2, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', width: '100%' }}>{item.label}</span>
-              </motion.div>
-            </div>
+          <motion.div key={`tool-${idx}`} whileTap={{ scale: 0.92 }} onClick={item.action} style={{ ...quickMenuFloatStyle, position: 'relative', width: '100%' }}>
+            <motion.div style={quickMenuIconWrapStyle}>{item.icon}</motion.div>
+            <span style={quickMenuLabelStyle}>{item.label}</span>
           </motion.div>
         ))}
         </div>
