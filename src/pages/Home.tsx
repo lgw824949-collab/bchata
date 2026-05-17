@@ -6,6 +6,7 @@ import QuickPinchZoom, { make3dTransformValue } from 'react-quick-pinch-zoom';
 // import LiveCount from '../components/LiveCount'
 import { KMA_REGION_COORDS, fetchWeatherForecast, parseKmaWeather, HOME_REGION_MAP } from '../utils/kmaApi'
 import { supabase } from '../lib/supabase'
+import { buildPartyShareCard } from '../lib/partyShareCard'
 // import { getAfterPartySpotsForParty, openAfterPartyMap } from '../data/afterPartySpots'
 
 const DAYS_KOR = ['일', '월', '화', '수', '목', '금', '토'];
@@ -784,17 +785,7 @@ const HomePage = ({
     return `${manValue.toFixed(1).replace('.0', '')}만`;
   };
 
-  const posterSharePayload = (item: any) => {
-    const posterUrl = item?.poster_url;
-    if (!posterUrl || String(posterUrl).trim() === '') return null;
-    const titlePart = String(item.title || '').split(' ㅣ ')[0];
-    const title =
-      cleanTitle(titlePart.replace(/^\[.*?\]\s*/, '').replace(/ㅣ\s*$/, '').trim()) || '라틴·소셜 파티';
-    const loc = item.locationName || item.location_name || item.studio_name || item.venue;
-    const fee = item.fee ?? item.price_info;
-    const desc = [item.date, loc, fee].filter(Boolean).join(' · ');
-    return { src: String(posterUrl).trim(), title, ...(desc ? { desc } : {}) };
-  };
+  const posterSharePayload = (item: any) => buildPartyShareCard(item);
 
   const openPartyWithAfterParty = (item) => {
     const p = posterSharePayload(item);

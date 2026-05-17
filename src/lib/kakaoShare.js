@@ -10,7 +10,7 @@ const brandTitle = (title) =>
 /** @returns {Promise<boolean>} */
 export const sharePartyToKakao = async ({ title, description, posterUrl, linkUrl = homeUrl() }) => {
   const fullTitle = brandTitle(title);
-  const text = [fullTitle, description, linkUrl].filter(Boolean).join('\n');
+  const text = [fullTitle, description, linkUrl].filter(Boolean).join('\n\n');
 
   if (navigator.share) {
     try {

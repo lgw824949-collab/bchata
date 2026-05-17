@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next';
 import { motion, AnimatePresence } from 'framer-motion'
 import { supabase, logActivity } from './lib/supabase'
 import { KAKAO_BRAND, SHARE_BUILD, sharePartyToKakao } from './lib/kakaoShare'
+import { buildPartyShareCard } from './lib/partyShareCard'
 import { getUserCoords, isGeoDenied, readCachedCoords, syncGeoPermissionState } from './lib/geoCache'
 import QuickPinchZoom, { make3dTransformValue } from 'react-quick-pinch-zoom';
 
@@ -81,11 +82,16 @@ const CITY_MAP_EN = {
 const SHARE_HOME_URL = () => `${window.location.origin}/`;
 
 // [포스터 줌 전용 컴포넌트 - 전역 분리]
-const PosterModal = ({ src, onClose, shareTitle, shareDesc }) => {
+const PosterModal = ({ src, onClose, shareTitle, shareDesc, shareLines }) => {
   const imgRef = useRef();
 
   const resolvedTitle = shareTitle?.trim() || '오늘밤빠 — 전국 라틴·소셜 파티';
-  const resolvedDesc = shareDesc?.trim() || '전국 플로어 정보는 앱에서 한눈에!';
+  const cardLines = Array.isArray(shareLines) && shareLines.length > 0
+    ? shareLines
+    : (shareDesc?.trim() ? shareDesc.split('\n').filter(Boolean) : []);
+  const resolvedDesc = cardLines.length > 0
+    ? cardLines.join('\n')
+    : (shareDesc?.trim() || '전국 플로어 정보는 앱에서 한눈에!');
   const linkUrl = SHARE_HOME_URL();
 
   const onUpdate = ({ x, y, scale }) => {
@@ -297,6 +303,26 @@ const PosterModal = ({ src, onClose, shareTitle, shareDesc }) => {
           />
         </QuickPinchZoom>
       </div>
+
+      {cardLines.length > 0 && (
+        <div
+          style={{
+            flexShrink: 0,
+            padding: '12px 16px calc(12px + env(safe-area-inset-bottom))',
+            background: '#0a0a0a',
+            borderTop: '1px solid rgba(255,255,255,0.12)',
+          }}
+        >
+          <div style={{ fontSize: '15px', fontWeight: 900, color: '#fff', marginBottom: '8px', letterSpacing: '-0.3px' }}>
+            {resolvedTitle}
+          </div>
+          {cardLines.map((line) => (
+            <div key={line} style={{ fontSize: '14px', fontWeight: 700, color: '#CBD5E1', lineHeight: 1.45, marginTop: '2px' }}>
+              {line}
+            </div>
+          ))}
+        </div>
+      )}
       
       {/* 하단: 공유 · 카카오 · 링크복사 · 저장 (A안) — 상단 우측으로 이동, 구 레이아웃 주석 보관
       <div style={{
@@ -2161,11 +2187,13 @@ function App() {
                           }).map(item => (
                             <div key={item.id} onClick={() => {
                               window.history.pushState({ modal: true }, '');
-                              const t = (item.title || '').split(' ㅣ ')[0].replace(/^\[.*?\]\s*/, '').trim();
+                              const card = buildPartyShareCard(item);
+                              if (!card) return;
                               setSelectedPoster({
-                                src: item.poster_url,
-                                title: t || undefined,
-                                desc: [item.date, item.location_name || item.region, item.fee || item.price_info].filter(Boolean).join(' · ') || undefined,
+                                src: card.src,
+                                title: card.title,
+                                desc: card.desc,
+                                lines: card.lines,
                               });
                             }} style={{ background: '#F8FAFC', borderRadius: '16px', padding: '12px', display: 'flex', gap: '15px', border: '1px solid #EDF2F7', cursor: 'pointer' }}>
                               <img src={item.poster_url} style={{ width: '80px', height: '100px', objectFit: 'cover', borderRadius: '10px' }} alt="Poster" />
@@ -2314,6 +2342,7 @@ function App() {
             src={selectedPoster.src} 
             shareTitle={selectedPoster.title}
             shareDesc={selectedPoster.desc}
+            shareLines={selectedPoster.lines}
             onClose={() => setSelectedPoster(null)} 
           />
         </motion.div>

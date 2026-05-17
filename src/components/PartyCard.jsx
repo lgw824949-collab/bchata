@@ -2,6 +2,7 @@ import React from 'react';
 import { Clock } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { sharePartyToKakao } from '../lib/kakaoShare';
+import { buildPartyShareCard } from '../lib/partyShareCard';
 import { supabase } from '../lib/supabase';
 
 const GENRE_MAP = {
@@ -99,9 +100,10 @@ const PartyCard = ({ item, onSelect }) => {
 
   const handleKakaoShare = async (e) => {
     e.stopPropagation();
+    const card = buildPartyShareCard(item);
     await sharePartyToKakao({
-      title: item.title,
-      description: `${item.date} | ${item.locationName || item.studio_name} | ${item.fee}`,
+      title: card?.title || item.title,
+      description: card?.desc || `${item.date} | ${item.locationName || item.studio_name} | ${item.fee}`,
       posterUrl: item.poster_url,
     });
   };

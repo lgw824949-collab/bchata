@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, Heart, Navigation, Clock, Calendar, User } from 'lucide-react';
 import { supabase } from '../lib/supabase';
+import { buildPartyShareCard } from '../lib/partyShareCard';
 
 export default function WishlistModal({ onClose, setSelectedPoster }) {
   const [activeTab, setActiveTab] = useState('parties'); // 'parties' | 'bootcamps' | 'festivals'
@@ -251,14 +252,13 @@ export default function WishlistModal({ onClose, setSelectedPoster }) {
                         src={item.poster_url} 
                         onClick={() => {
                           window.history.pushState({ modal: true }, '');
-                          const titlePart = String(item.title || '').split(' ㅣ ')[0].replace(/^\[.*?\]\s*/, '').trim();
-                          const loc = item.locationName || item.location_name || item.venue || item.region;
-                          const fee = item.fee ?? item.price_info;
-                          const desc = [item.date, loc, fee].filter(Boolean).join(' · ');
+                          const card = buildPartyShareCard(item);
+                          if (!card) return;
                           setSelectedPoster({
-                            src: item.poster_url,
-                            title: titlePart || undefined,
-                            desc: desc || undefined,
+                            src: card.src,
+                            title: card.title,
+                            desc: card.desc,
+                            lines: card.lines,
                           });
                         }}
                         style={{ width: '75px', height: '100px', objectFit: 'cover', borderRadius: '10px', flexShrink: 0, background: '#F1F5F9', cursor: 'pointer' }} 
