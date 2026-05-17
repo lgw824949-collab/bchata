@@ -1205,6 +1205,7 @@ const HomePage = ({
 
       {activeTab === 'social' && (
       <>
+      {/* 내 강사 섹션 — 메인 바탕화면 정리로 비활성
       {followedInstructors?.length > 0 && (
         <div style={{ padding: '0 12px 14px' }}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8, padding: '0 4px' }}>
@@ -1249,6 +1250,7 @@ const HomePage = ({
           )}
         </div>
       )}
+      */}
 
       {/* 📌 [영역 B: 날짜 선택바 - 상단 고정(Sticky)] */}
       <div ref={stickyHeaderRef} style={{ position: 'sticky', top: 0, zIndex: 1000, background: 'var(--color-bg)', borderBottom: '1px solid var(--color-border)', boxShadow: '0 4px 12px rgba(0,0,0,0.03)', padding: '4px 0 0', transition: 'all 0.3s' }}>
