@@ -937,7 +937,9 @@ const InstructorSection = () => {
                             <div key={c.id} style={{ background:'#1a1a1a', borderRadius:20, overflow:'hidden', marginBottom:20, border:'1px solid rgba(255,255,255,0.05)' }}>
                               <div style={{ padding:16 }}>
                                 {c.poster_url && (
-                                  <img src={c.poster_url} alt={c.title} style={{ borderRadius: '12px', marginBottom: '16px', width: '100%', objectFit: 'cover' }} />
+                                  <motion.div style={{ marginBottom: '16px', paddingBottom: '16px', borderBottom: '1px solid rgba(255,255,255,0.08)' }}>
+                                    <img src={c.poster_url} alt={c.title} style={{ borderRadius: '12px', width: '100%', objectFit: 'cover', display: 'block' }} />
+                                  </div>
                                 )}
                                 <div style={{ fontSize:17, fontWeight:900, color:'#fff', marginBottom:12 }}>{c.title}</div>
                                 {c.schedule && (
