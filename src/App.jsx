@@ -417,7 +417,7 @@ const pickExposurePair = (pool, rotationIndex, todayStr) => {
   return picked;
 };
 
-/** 선택한 날짜 · 하단 2칸 실시간 로테이션 노출 (지금 노출 중) */
+/** 선택한 날짜 · 2칸 파티 미리보기 (오늘 밤, 어디서 춤 출래요?) */
 const LiveExposureStrip = ({ pool, selectedDate, todayStr, onSelect, cleanTitle, translateDynamicText, isEn }) => {
   const [rotationIndex, setRotationIndex] = useState(0);
 
@@ -443,57 +443,26 @@ const LiveExposureStrip = ({ pool, selectedDate, todayStr, onSelect, cleanTitle,
     <section
       style={{
         margin: '8px 16px 88px',
-        padding: '18px 16px 20px',
-        borderRadius: '24px',
-        background: 'linear-gradient(165deg, #141414 0%, #0a0a0a 55%, #1a1510 100%)',
-        border: '1px solid rgba(201, 168, 76, 0.45)',
-        boxShadow: '0 12px 40px rgba(201, 168, 76, 0.12), inset 0 1px 0 rgba(255,255,255,0.06)',
+        padding: '16px 16px 18px',
+        borderRadius: '20px',
+        background: '#FFFFFF',
+        border: '1px solid #E2E8F0',
+        boxShadow: '0 4px 20px rgba(15, 23, 42, 0.06)',
       }}
     >
-      <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 12, marginBottom: 16 }}>
-        <div>
-          <motion.div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
-            <Star size={16} color="#C9A84C" fill="#C9A84C" />
-            <span style={{ fontSize: 16, fontWeight: 900, color: '#F5E6C8', letterSpacing: '-0.3px' }}>
-              {isEn ? 'Now Showing' : '지금 노출 중'}
-            </span>
-            <span
-              style={{
-                fontSize: 10,
-                fontWeight: 800,
-                color: '#1a1a1a',
-                background: 'linear-gradient(135deg, #C9A84C, #FFF3C4)',
-                padding: '3px 8px',
-                borderRadius: 8,
-              }}
-            >
-              LIVE 2
-            </span>
-          </motion.div>
-          <p style={{ margin: 0, fontSize: 11, color: '#94A3B8', fontWeight: 600, lineHeight: 1.45 }}>
-            {isEn
-              ? 'Two spots rotate every 4 min · one venue at a time'
-              : '4분마다 2곳 교체 · 같은 장소 동시 노출 없음'}
-          </p>
-        </div>
-        <button
-          type="button"
-          onClick={() => window.open('https://open.kakao.com/o/gP43rNri', '_blank')}
-          style={{
-            flexShrink: 0,
-            padding: '8px 12px',
-            borderRadius: 12,
-            border: '1px solid rgba(201,168,76,0.35)',
-            background: 'rgba(201,168,76,0.08)',
-            color: '#C9A84C',
-            fontSize: 11,
-            fontWeight: 800,
-            cursor: 'pointer',
-          }}
-        >
-          {isEn ? 'Exposure' : '노출 문의'}
-        </button>
-      </div>
+      {/* [OLD] 노출 프레임: Star, LIVE 2, 4분 교체 안내, 노출 문의 버튼 */}
+      <h2
+        style={{
+          margin: '0 0 14px',
+          fontSize: 17,
+          fontWeight: 800,
+          color: '#1E293B',
+          letterSpacing: '-0.4px',
+          lineHeight: 1.35,
+        }}
+      >
+        {isEn ? 'Where will you dance tonight?' : '오늘 밤, 어디서 춤 출래요?'}
+      </h2>
 
       <AnimatePresence mode="wait">
         <motion.div
@@ -536,8 +505,8 @@ const LiveExposureStrip = ({ pool, selectedDate, todayStr, onSelect, cleanTitle,
                     height: 200,
                     flexShrink: 0,
                     overflow: 'hidden',
-                    background: '#111',
-                    border: '2px solid #C9A84C',
+                    background: '#F1F5F9',
+                    border: '1px solid #E2E8F0',
                     borderRadius: 12,
                     boxSizing: 'border-box',
                   }}
@@ -558,8 +527,8 @@ const LiveExposureStrip = ({ pool, selectedDate, todayStr, onSelect, cleanTitle,
                   <motion.div
                     style={{
                       fontSize: 10,
-                      fontWeight: 800,
-                      color: '#C9A84C',
+                      fontWeight: 700,
+                      color: '#64748B',
                       marginBottom: 4,
                       overflow: 'hidden',
                       textOverflow: 'ellipsis',
@@ -571,8 +540,8 @@ const LiveExposureStrip = ({ pool, selectedDate, todayStr, onSelect, cleanTitle,
                   <div
                     style={{
                       fontSize: 13,
-                      fontWeight: 900,
-                      color: '#fff',
+                      fontWeight: 800,
+                      color: '#1E293B',
                       lineHeight: 1.25,
                       display: '-webkit-box',
                       WebkitLineClamp: 2,
@@ -590,10 +559,8 @@ const LiveExposureStrip = ({ pool, selectedDate, todayStr, onSelect, cleanTitle,
       </AnimatePresence>
 
       {pool.length > 2 ? (
-        <p style={{ margin: '14px 0 0', textAlign: 'center', fontSize: 10, color: '#64748B', fontWeight: 600 }}>
-          {isEn
-            ? `${pool.length} parties today · fair rotation`
-            : `오늘 ${pool.length}개 파티 · 공정 순환 노출`}
+        <p style={{ margin: '14px 0 0', textAlign: 'center', fontSize: 11, color: '#94A3B8', fontWeight: 500 }}>
+          {isEn ? `${pool.length} parties today` : `오늘 ${pool.length}곳`}
         </p>
       ) : null}
     </section>
