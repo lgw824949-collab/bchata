@@ -965,31 +965,11 @@ const HomePage = ({
       {/* 📌 [영역 A: 브랜드 헤더 - 최종 확정] */}
       {/* 📌 [영역 A: 브랜드 헤더 - 최종 확정 고도화] */}
       <div style={{ padding: '16px 20px 12px', marginBottom: '24px' }}>
-        <p style={{ fontSize: '9px', color: '#E53935', letterSpacing: '0.25em', fontWeight: 800, margin: '0 0 6px', opacity: 0.9 }}>SOCIAL CULTURE EXPERIENCE</p>
-        <p style={{ fontSize: '12px', color: 'var(--color-text-sub)', margin: '0 0 6px', fontWeight: 500, letterSpacing: '-0.2px' }}>
-          {lang === 'ko' ? '오늘 밤, 어디선가 파티가 시작되고 있어요' : 'Tonight, a party is starting somewhere'}
-        </p>
-        <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between' }}>
-          <div>
-            <p style={{ fontSize: '38px', fontWeight: 950, color: 'var(--color-text-main)', margin: 0, letterSpacing: '-1.0px', lineHeight: 1.2 }}>
-              {lang === 'ko' ? '전국 어디서든' : 'Anywhere in Korea'}
-            </p>
-            <p style={{ fontSize: '38px', fontWeight: 950, color: '#E53935', margin: '0 0 10px', letterSpacing: '-1.0px', lineHeight: 1.2 }}>
-              {lang === 'ko' ? (
-                <>만원이면<br />충분해요</>
-              ) : 'Just $7 is enough'}
-            </p>
-            <div style={{ borderLeft: '2.5px solid #E53935', paddingLeft: '12px' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <p style={{ fontSize: '12px', color: 'var(--color-text-sub)', margin: 0, fontWeight: 600, lineHeight: 1.6, letterSpacing: '-0.3px' }}>
-                  {lang === 'ko' ? '바차타 · 살사 · 소셜' : 'Bachata · Salsa · Social'}
-                </p>
-              </div>
-              <p style={{ fontSize: '12px', color: 'var(--color-text-sub)', margin: 0, fontWeight: 600, lineHeight: 1.6, letterSpacing: '-0.3px' }}>
-                {lang === 'ko' ? '도심 속 전율의 밤' : 'A thrilling night in the city'}
-              </p>
-            </div>
-          </div>
+        <p style={{ fontSize: '9px', color: '#E53935', letterSpacing: '0.25em', fontWeight: 800, margin: '0 0 10px', opacity: 0.9 }}>SOCIAL CULTURE EXPERIENCE</p>
+        <p style={{ fontSize: '32px', fontWeight: 950, color: 'var(--color-text-main)', margin: '0 0 8px', letterSpacing: '-1.0px', lineHeight: 1.2 }}>오늘 어디서 춤출래?</p>
+        <p style={{ fontSize: '16px', fontWeight: 600, color: 'var(--color-text-sub)', margin: '0 0 8px', letterSpacing: '-0.3px' }}>켜고, 찾고, 가면 끝.</p>
+        <p style={{ fontSize: '12px', fontWeight: 600, color: 'var(--color-text-sub)', margin: '0 0 16px' }}>내 주변 라틴 파티 실시간</p>
+        <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'flex-end' }}>
           <img
             src="/logo.png"
             alt="오늘밤빠 로고"
