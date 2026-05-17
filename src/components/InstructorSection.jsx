@@ -69,6 +69,12 @@ const formatClassType = (classType) => {
     .join(' · ');
 };
 
+const formatDate = (dateStr) => {
+  if (!dateStr) return ''
+  const [, month, day] = dateStr.split('-')
+  return `${parseInt(month)}월 ${parseInt(day)}일`
+}
+
 const SESSION_KEY = 'oneulbam_session'
 const getSession = () => {
   let s = localStorage.getItem(SESSION_KEY)
@@ -937,7 +943,7 @@ const InstructorSection = () => {
                                 {c.schedule && (
                                   <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px', fontSize: '15px', fontWeight: 700, color: '#ffffff' }}>
                                     <Calendar size={14} color="#C9A84C" />
-                                    <span>{c.schedule}</span>
+                                    <span>{formatDate(c.schedule)}</span>
                                   </div>
                                 )}
                                 {c.location && (
