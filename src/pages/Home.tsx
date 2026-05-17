@@ -762,6 +762,12 @@ const HomePage = ({
     }
   };
 
+  useEffect(() => {
+    const onHomeActiveTab = (e) => setActiveTab(e.detail ?? null);
+    window.addEventListener('home-active-tab', onHomeActiveTab);
+    return () => window.removeEventListener('home-active-tab', onHomeActiveTab);
+  }, []);
+
   // [사용자 요청] 지역 포스터 리스트 자동 스크롤 비활성화 (좌측 고정 및 수동 스크롤만 허용)
   useEffect(() => {
     // 자동 스크롤 로직 제거됨
@@ -1125,7 +1131,7 @@ const HomePage = ({
         }
       `}</style>
       {activeTab === null && (
-      <div style={{ padding: '8px 12px 12px', marginBottom: '24px' }}>
+      <div id="quickmenu-section" style={{ padding: '8px 12px 12px', marginBottom: '24px' }}>
         {/* 파티 & 이벤트 */}
         <p style={{ ...quickMenuSectionTitleStyle, marginTop: 0 }}>파티 & 이벤트</p>
         <motion.div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '8px', width: '100%', marginBottom: '16px' }}>

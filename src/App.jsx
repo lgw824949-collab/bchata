@@ -1603,6 +1603,9 @@ function App() {
   const socialPartnerNavActive = '#FF4444'
   const socialPartnerNavInactive = '#666666'
   const isSocialTabActive = location.pathname === '/' && view === 'home' && !showPartner
+  const setActiveTab = (tab) => {
+    window.dispatchEvent(new CustomEvent('home-active-tab', { detail: tab }));
+  };
 
   return (
     <>
@@ -2380,7 +2383,7 @@ function App() {
       }}
     >
       <div 
-        onClick={() => { navigate('/'); setShowPartner(false); }}
+        onClick={() => { navigate('/'); setShowPartner(false); setActiveTab(null); setTimeout(() => { const el = document.getElementById('quickmenu-section'); if (el) el.scrollIntoView({ behavior: 'smooth' }); }, 100); }}
         style={{ 
           flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
           cursor: 'pointer', transition: 'all 0.2s',
