@@ -929,27 +929,58 @@ const InstructorSection = () => {
                         ) : (
                           classes.map(c => (
                             <div key={c.id} style={{ background:'#1a1a1a', borderRadius:20, overflow:'hidden', marginBottom:20, border:'1px solid rgba(255,255,255,0.05)' }}>
-                              {c.poster_url && (
-                                <img src={c.poster_url} style={{ width:'100%', height:'200px', objectFit:'cover' }} alt={c.title} />
-                              )}
                               <div style={{ padding:16 }}>
-                                <div style={{ fontSize:17, fontWeight:900, color:'#fff', marginBottom:8 }}>{c.title}</div>
-                                <div style={{ fontSize:13, color:'rgba(255,255,255,0.6)', lineHeight:1.6, marginBottom:12 }}>{c.description}</div>
-                                <div style={{ display:'flex', flexWrap:'wrap', gap:8 }}>
-                                  {c.schedule && <div style={{ fontSize:12, color:'#FFD700', background:'rgba(255,215,0,0.1)', padding:'4px 10px', borderRadius:8 }}>⏰ {c.schedule}</div>}
-                                  {c.location && <div style={{ fontSize:12, color:'rgba(255,255,255,0.5)', background:'rgba(255,255,255,0.05)', padding:'4px 10px', borderRadius:8 }}>📍 {c.location}</div>}
-                                  {c.fee && <div style={{ fontSize:12, color:'#E53935', fontWeight:800, background:'rgba(229,57,53,0.1)', padding:'4px 10px', borderRadius:8 }}>💰 {c.fee}</div>}
-                                  {c.level && <div style={{ fontSize:12, color:'#4ADE80', background:'rgba(74,222,128,0.1)', padding:'4px 10px', borderRadius:8 }}>⭐ {c.level}</div>}
-                                  {c.capacity && <div style={{ fontSize:12, color:'#60A5FA', background:'rgba(96,165,250,0.1)', padding:'4px 10px', borderRadius:8 }}>👥 {c.capacity}</div>}
+                                {c.poster_url && (
+                                  <img src={c.poster_url} alt={c.title} style={{ borderRadius: '12px', marginBottom: '16px', width: '100%', objectFit: 'cover' }} />
+                                )}
+                                <div style={{ fontSize:17, fontWeight:900, color:'#fff', marginBottom:12 }}>{c.title}</div>
+                                {c.schedule && (
+                                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px', fontSize: '15px', fontWeight: 800, color: 'var(--color-text-main)' }}>
+                                    <span>📅</span>
+                                    <span>{c.schedule}</span>
+                                  </div>
+                                )}
+                                {c.location && (
+                                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px', fontSize: '15px', fontWeight: 800, color: 'var(--color-text-main)' }}>
+                                    <span>📍</span>
+                                    <span>{c.location}</span>
+                                  </div>
+                                )}
+                                {c.fee && (
+                                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px', fontSize: '15px', fontWeight: 800, color: 'var(--color-text-main)' }}>
+                                    <span>💰</span>
+                                    <span>{c.fee}</span>
+                                  </div>
+                                )}
+                                <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap', marginBottom: '16px' }}>
+                                  {c.level && (
+                                    <span style={{ background: 'rgba(255,255,255,0.07)', borderRadius: '20px', padding: '4px 12px', fontSize: '12px', fontWeight: 700, color: '#E4E4E7' }}>{c.level}</span>
+                                  )}
+                                  {c.capacity && (
+                                    <span style={{ background: 'rgba(255,255,255,0.07)', borderRadius: '20px', padding: '4px 12px', fontSize: '12px', fontWeight: 700, color: '#E4E4E7' }}>👥 {c.capacity}</span>
+                                  )}
+                                  {c.genre && (
+                                    <span style={{ background: 'rgba(255,255,255,0.07)', borderRadius: '20px', padding: '4px 12px', fontSize: '12px', fontWeight: 700, color: '#E4E4E7' }}>{c.genre}</span>
+                                  )}
                                 </div>
-                                
                                 <button
+                                  type="button"
                                   onClick={() => {
                                     if (selectedInstructor.kakao_link) window.open(selectedInstructor.kakao_link, '_blank');
                                     else alert('등록된 카카오 문의 링크가 없습니다.');
                                   }}
-                                  style={{ width:'100%', marginTop:16, padding:'12px', borderRadius:14, border:'none', background:'#FEE500', color:'#000', fontSize:13, fontWeight:900, cursor:'pointer' }}
-                                >수강신청 (카카오톡 문의)</button>
+                                  style={{
+                                    background: 'linear-gradient(135deg, #C9A84C, #FFE066)',
+                                    color: '#000',
+                                    borderRadius: '14px',
+                                    padding: '14px',
+                                    fontSize: '15px',
+                                    fontWeight: 900,
+                                    width: '100%',
+                                    border: 'none',
+                                    cursor: 'pointer',
+                                  }}
+                                >수업 문의하기</button>
                               </div>
                             </div>
                           ))
