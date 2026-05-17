@@ -202,11 +202,12 @@ const InstructorRegister = ({ onBack }) => {
 
         {/* 수상 경력 */}
         <div style={{ marginBottom: 20 }}>
-          <div style={{ fontSize: 14, fontWeight: 700, color: '#111', marginBottom: 8 }}>수상 경력 (선택)</div>
+          <div style={{ fontSize: 14, fontWeight: 700, color: '#111', marginBottom: 8 }}>수상 횟수</div>
           <input
+            type="number"
             value={awards}
             onChange={e => setAwards(e.target.value)}
-            placeholder="예: 2023 코리아 살사 챔피언십 입상"
+            placeholder="수상 횟수 (예: 3)"
             style={{ width: '100%', padding: '14px', borderRadius: 12, border: '1px solid #E5E7EB', fontSize: 14, boxSizing: 'border-box' }}
           />
         </div>
