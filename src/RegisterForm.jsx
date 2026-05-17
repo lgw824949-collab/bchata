@@ -3,7 +3,7 @@ import { createPortal } from 'react-dom'
 import { Plus, ChevronLeft, Check, X, MapPin } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { supabase } from './lib/supabase'
-import { findBarByName, BAR_DATABASE } from './lib/BarLib'
+// import { findBarByName, BAR_DATABASE } from './lib/BarLib'
 
 const METRO_REGIONS = ['서울', '인천', '경기', '부산', '대구', '광주', '대전', '울산', '세종', '강원', '충북', '충남', '전북', '전남', '경북', '경남', '제주']
 
@@ -98,44 +98,73 @@ const RegisterForm = ({ onBack, onSuccess, isEdit = false, initialData = null })
     return ''
   }
 
+  const dedupeLocationSuggestions = (rows) => {
+    const seen = new Set()
+    const unique = []
+    for (const row of rows || []) {
+      const venueName = (row.name || '').trim()
+      const venueAddress = (row.address || '').trim()
+      if (!venueName) continue
+      const key = `${venueName}|||${venueAddress}`
+      if (seen.has(key)) continue
+      seen.add(key)
+      unique.push({
+        name: venueName,
+        address: venueAddress,
+        latitude: row.latitude,
+        longitude: row.longitude,
+        region: classifyRegion(venueAddress),
+      })
+    }
+    return unique
+  }
+
   const handleLocationNameChange = async (name) => {
     setFormData(prev => ({ ...prev, location_name: name }))
-    
-    if (name.length >= 1) {
-      // 1. 로컬 BAR_DATABASE에서 먼저 검색
-      const filtered = BAR_DATABASE.filter(bar => 
-        bar.name.toLowerCase().includes(name.toLowerCase()) || 
-        (bar.aliases && bar.aliases.some(a => a.toLowerCase().includes(name.toLowerCase())))
-      ).slice(0, 5)
 
-      // 2. Supabase locations 에서도 검색해서 자동완성에 추가
+    if (name.length >= 1) {
       const { data: dbLocs } = await supabase
         .from('locations')
         .select('name, address, latitude, longitude')
-        .ilike('name', `%${name}%`)
-        .limit(5)
+        .or(`name.ilike.%${name}%,address.ilike.%${name}%`)
+        .limit(50)
 
-      if (dbLocs && dbLocs.length > 0) {
-        const dbSuggestions = dbLocs.map(l => ({
-          name: l.name,
-          address: l.address || '',
-          latitude: l.latitude,
-          longitude: l.longitude
-        }))
-        setSuggestions([...filtered, ...dbSuggestions].slice(0, 5))
-      } else {
-        setSuggestions(filtered)
-      }
+      setSuggestions(dedupeLocationSuggestions(dbLocs).slice(0, 5))
 
-      // 3. 일치하는 빠 정보(별칭 포함)가 있는 경우 주소 자동 입력
-      const exactMatch = findBarByName(name)
-      if (exactMatch) {
-        setFormData(prev => ({ 
-          ...prev, 
-          address: exactMatch.address,
-          region: exactMatch.region || classifyRegion(exactMatch.address)
-        }))
-      }
+      // // 1. 로컬 BAR_DATABASE에서 먼저 검색
+      // const filtered = BAR_DATABASE.filter(bar =>
+      //   bar.name.toLowerCase().includes(name.toLowerCase()) ||
+      //   (bar.aliases && bar.aliases.some(a => a.toLowerCase().includes(name.toLowerCase())))
+      // ).slice(0, 5)
+      //
+      // // 2. Supabase locations 에서도 검색해서 자동완성에 추가
+      // const { data: dbLocs } = await supabase
+      //   .from('locations')
+      //   .select('name, address, latitude, longitude')
+      //   .ilike('name', `%${name}%`)
+      //   .limit(5)
+      //
+      // if (dbLocs && dbLocs.length > 0) {
+      //   const dbSuggestions = dbLocs.map(l => ({
+      //     name: l.name,
+      //     address: l.address || '',
+      //     latitude: l.latitude,
+      //     longitude: l.longitude
+      //   }))
+      //   setSuggestions([...filtered, ...dbSuggestions].slice(0, 5))
+      // } else {
+      //   setSuggestions(filtered)
+      // }
+      //
+      // // 3. 일치하는 빠 정보(별칭 포함)가 있는 경우 주소 자동 입력
+      // const exactMatch = findBarByName(name)
+      // if (exactMatch) {
+      //   setFormData(prev => ({
+      //     ...prev,
+      //     address: exactMatch.address,
+      //     region: exactMatch.region || classifyRegion(exactMatch.address)
+      //   }))
+      // }
     } else {
       setSuggestions([])
     }
@@ -146,7 +175,9 @@ const RegisterForm = ({ onBack, onSuccess, isEdit = false, initialData = null })
       ...prev,
       location_name: bar.name,
       address: bar.address,
-      region: bar.region || classifyRegion(bar.address)
+      region: bar.region || classifyRegion(bar.address),
+      latitude: bar.latitude ?? prev.latitude,
+      longitude: bar.longitude ?? prev.longitude,
     }))
     setSuggestions([])
   }
@@ -390,7 +421,7 @@ const RegisterForm = ({ onBack, onSuccess, isEdit = false, initialData = null })
                 {suggestions.length > 0 && (
                   <motion.div initial={{ opacity:0, y:-10 }} animate={{ opacity:1, y:0 }} exit={{ opacity:0 }} style={{ position: 'absolute', top: '100%', left: 0, right: 0, zIndex: 100, background: '#fff', borderRadius: '16px', boxShadow: '0 10px 30px rgba(0,0,0,0.1)', marginTop: '8px', border: '1px solid #F1F5F9', overflow: 'hidden' }}>
                     {suggestions.map((bar, i) => (
-                      <div key={i} onClick={() => selectSuggestion(bar)} style={{ padding: '16px', borderBottom: i === suggestions.length - 1 ? 'none' : '1px solid #F1F5F9', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '12px' }}>
+                      <div key={`${bar.name}|||${bar.address}`} onClick={() => selectSuggestion(bar)} style={{ padding: '16px', borderBottom: i === suggestions.length - 1 ? 'none' : '1px solid #F1F5F9', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '12px' }}>
                         <div style={{ background: '#FEF2F2', padding: '8px', borderRadius: '8px' }}>
                           <MapPin size={16} color="#FF1744" />
                         </div>
