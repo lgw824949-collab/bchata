@@ -948,9 +948,9 @@ const HomePage = ({
     return () => window.removeEventListener('resize', setVh);
   }, []);
 
-  const quickMenuFloatStyle = { display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', background: 'none', border: 'none', boxShadow: 'none', backdropFilter: 'none', WebkitBackdropFilter: 'none', padding: '8px', cursor: 'pointer' };
-  const quickMenuIconWrapStyle = { width: '52px', height: '52px', display: 'flex', alignItems: 'center', justifyContent: 'center', filter: 'drop-shadow(0 6px 12px rgba(0,0,0,0.6))' };
-  const quickMenuLabelStyle = { color: '#ffffff', fontWeight: 800, fontSize: '13px', textShadow: '0 2px 6px rgba(0,0,0,0.9)', marginTop: '6px', textAlign: 'center', lineHeight: 1.2, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', width: '100%' };
+  const quickMenuTileStyle = { display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'flex-start', background: 'var(--color-bg-soft)', border: '1px solid var(--color-border)', borderRadius: '12px', padding: '10px 4px 8px', cursor: 'pointer', minHeight: '76px', boxSizing: 'border-box', width: '100%', boxShadow: '0 1px 3px rgba(15,23,42,0.06)' };
+  const quickMenuIconWrapStyle = { width: '40px', height: '40px', display: 'flex', alignItems: 'center', justifyContent: 'center', borderRadius: '10px', background: 'var(--color-bg)', flexShrink: 0 };
+  const quickMenuLabelStyle = { color: 'var(--color-text-main)', fontWeight: 600, fontSize: '11px', marginTop: '4px', textAlign: 'center', lineHeight: 1.25, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', width: '100%' };
   const quickMenuSectionTitleStyle = { fontSize: '12px', color: 'rgba(255,255,255,0.6)', fontWeight: 700, letterSpacing: '1px', marginBottom: '8px', textShadow: '0 1px 4px rgba(0,0,0,0.8)' };
 
   const qmSvgSocialHero = <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="#C9A84C" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M9 18V5l12-2v13" /><circle cx="6" cy="18" r="3" /><circle cx="18" cy="16" r="3" /></svg>;
@@ -1159,14 +1159,14 @@ const HomePage = ({
             borderRadius: '20px',
             padding: '20px 0',
             cursor: 'pointer',
-            marginBottom: '8px',
-            boxShadow: '0 0 20px rgba(201,168,76,0.4)',
+            marginBottom: '10px',
+            boxShadow: '0 2px 8px rgba(201,168,76,0.2)',
           }}
         >
           {qmSvgSocialHero}
-          <span style={{ color: '#FFF8EE', fontWeight: 800, fontSize: '15px', textShadow: '0 2px 6px rgba(0,0,0,0.9)' }}>소셜 파티 찾기</span>
+          <span style={{ color: 'var(--color-text-main)', fontWeight: 800, fontSize: '15px' }}>소셜 파티 찾기</span>
         </motion.div>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '8px', width: '100%' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '10px', width: '100%' }}>
         {[
           { icon: qmSvgBootcamp, label: '부트캠프', action: () => setView('bootcamp') },
           { icon: qmSvgFestival, label: '페스티벌', action: () => setView('festival') },
@@ -1194,13 +1194,13 @@ const HomePage = ({
           { icon: qmSvgRoute, label: '지능형경로', action: () => openAnalysis(false) },
           { icon: qmSvgSaju, label: '운명의좌표', action: () => setShowSaju(true) },
         ].map((item, idx) => (
-          <motion.div key={`main-qm-${idx}`} whileTap={{ scale: 0.92 }} onClick={item.action} style={{ ...quickMenuFloatStyle, position: 'relative', width: '100%' }}>
+          <motion.div key={`main-qm-${idx}`} whileTap={{ scale: 0.96 }} onClick={item.action} style={quickMenuTileStyle}>
             {item.textIcon ? (
-              <motion.div style={{ ...quickMenuIconWrapStyle, width: '32px', height: '32px', fontSize: 14, fontWeight: 900, color: '#C9A84C', letterSpacing: '-0.8px' }}>{item.textIcon}</motion.div>
+              <div style={{ ...quickMenuIconWrapStyle, fontSize: 14, fontWeight: 900, color: '#C9A84C', letterSpacing: '-0.8px' }}>{item.textIcon}</div>
             ) : (
-              <motion.div style={{ ...quickMenuIconWrapStyle, width: '32px', height: '32px' }}>{item.icon}</motion.div>
+              <div style={quickMenuIconWrapStyle}>{item.icon}</div>
             )}
-            <span style={{ ...quickMenuLabelStyle, fontSize: '13px' }}>{item.label}</span>
+            <span style={quickMenuLabelStyle}>{item.label}</span>
           </motion.div>
         ))}
         </div>
