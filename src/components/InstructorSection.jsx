@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { supabase } from '../lib/supabase'
-import { ChevronLeft, Share2, Bell, Heart, User, MapPin, Globe, ShieldCheck, Zap, MessageCircle, Star, Info, Plus, Check, Search } from 'lucide-react'
+import { ChevronLeft, Share2, Bell, Heart, User, MapPin, Globe, ShieldCheck, Zap, MessageCircle, Star, Info, Plus, Check, Search, Calendar, CreditCard, Users, Music } from 'lucide-react'
 import ClassRegisterModal from './ClassRegisterModal'
 import InstructorRegister from './InstructorRegister'
 
@@ -935,32 +935,41 @@ const InstructorSection = () => {
                                 )}
                                 <div style={{ fontSize:17, fontWeight:900, color:'#fff', marginBottom:12 }}>{c.title}</div>
                                 {c.schedule && (
-                                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px', fontSize: '15px', fontWeight: 800, color: 'var(--color-text-main)' }}>
-                                    <span>📅</span>
+                                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px', fontSize: '15px', fontWeight: 700, color: '#ffffff' }}>
+                                    <Calendar size={14} color="#C9A84C" />
                                     <span>{c.schedule}</span>
                                   </div>
                                 )}
                                 {c.location && (
-                                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px', fontSize: '15px', fontWeight: 800, color: 'var(--color-text-main)' }}>
-                                    <span>📍</span>
+                                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px', fontSize: '15px', fontWeight: 700, color: '#ffffff' }}>
+                                    <MapPin size={14} color="#C9A84C" />
                                     <span>{c.location}</span>
                                   </div>
                                 )}
                                 {c.fee && (
-                                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px', fontSize: '15px', fontWeight: 800, color: 'var(--color-text-main)' }}>
-                                    <span>💰</span>
+                                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px', fontSize: '15px', fontWeight: 700, color: '#ffffff' }}>
+                                    <CreditCard size={14} color="#C9A84C" />
                                     <span>{c.fee}</span>
                                   </div>
                                 )}
                                 <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap', marginBottom: '16px' }}>
                                   {c.level && (
-                                    <span style={{ background: 'rgba(255,255,255,0.07)', borderRadius: '20px', padding: '4px 12px', fontSize: '12px', fontWeight: 700, color: '#E4E4E7' }}>{c.level}</span>
+                                    <span style={{ background: 'rgba(255,255,255,0.07)', borderRadius: '20px', padding: '4px 12px', fontSize: '12px', fontWeight: 700, color: '#ffffff', display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+                                      <Star size={14} color="#C9A84C" />
+                                      {c.level}
+                                    </span>
                                   )}
                                   {c.capacity && (
-                                    <span style={{ background: 'rgba(255,255,255,0.07)', borderRadius: '20px', padding: '4px 12px', fontSize: '12px', fontWeight: 700, color: '#E4E4E7' }}>👥 {c.capacity}</span>
+                                    <span style={{ background: 'rgba(255,255,255,0.07)', borderRadius: '20px', padding: '4px 12px', fontSize: '12px', fontWeight: 700, color: '#ffffff', display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+                                      <Users size={14} color="#C9A84C" />
+                                      {c.capacity}
+                                    </span>
                                   )}
                                   {c.genre && (
-                                    <span style={{ background: 'rgba(255,255,255,0.07)', borderRadius: '20px', padding: '4px 12px', fontSize: '12px', fontWeight: 700, color: '#E4E4E7' }}>{c.genre}</span>
+                                    <span style={{ background: 'rgba(255,255,255,0.07)', borderRadius: '20px', padding: '4px 12px', fontSize: '12px', fontWeight: 700, color: '#ffffff', display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+                                      <Music size={14} color="#C9A84C" />
+                                      {c.genre}
+                                    </span>
                                   )}
                                 </div>
                                 <button
