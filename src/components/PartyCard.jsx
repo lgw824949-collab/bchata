@@ -103,7 +103,7 @@ const PartyCard = ({ item, onSelect }) => {
     const card = buildPartyShareCard(item);
     await sharePartyToKakao({
       title: card?.title || item.title,
-      description: card?.desc || `${item.date} | ${item.locationName || item.studio_name} | ${item.fee}`,
+      description: card?.feedDesc || `${item.date} · ${item.locationName || item.studio_name || ''} · ${item.fee || ''}`.replace(/ · $/, '').replace(/^ · /, ''),
       posterUrl: item.poster_url,
     });
   };
@@ -112,7 +112,7 @@ const PartyCard = ({ item, onSelect }) => {
     if (item?.id) {
       await supabase.from('parties').update({ view_count: (item.view_count || 0) + 1 }).eq('id', item.id);
     }
-    onSelect(item.poster_url);
+    onSelect(item);
   };
 
   return (

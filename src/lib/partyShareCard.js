@@ -74,6 +74,7 @@ export const buildPartyShareCard = (item) => {
   const line2 = [timeLabel, genre !== '소셜' ? genre : ''].filter(Boolean).join(' · ');
   const lines = [line1, line2].filter(Boolean);
   const desc = lines.join('\n');
+  const feedDesc = [item.date, loc, item.fee ?? item.price_info].filter(Boolean).join(' · ');
 
-  return { src: posterUrl, title, desc, lines };
+  return { src: posterUrl, title, desc, lines, feedDesc };
 };

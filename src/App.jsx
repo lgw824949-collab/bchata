@@ -82,7 +82,7 @@ const CITY_MAP_EN = {
 const SHARE_HOME_URL = () => `${window.location.origin}/`;
 
 // [포스터 줌 전용 컴포넌트 - 전역 분리]
-const PosterModal = ({ src, onClose, shareTitle, shareDesc, shareLines }) => {
+const PosterModal = ({ src, onClose, shareTitle, shareDesc, shareLines, shareFeedDesc }) => {
   const imgRef = useRef();
 
   const resolvedTitle = shareTitle?.trim() || '오늘밤빠 — 전국 라틴·소셜 파티';
@@ -163,8 +163,8 @@ const PosterModal = ({ src, onClose, shareTitle, shareDesc, shareLines }) => {
   const handleKakaoShare = async () => {
     await sharePartyToKakao({
       title: resolvedTitle,
-      description: resolvedDesc,
-      posterUrl: src,
+      description: shareFeedDesc || cardLines.join(' · ') || resolvedDesc,
+      posterUrl: absoluteImageUrl,
       linkUrl,
     });
   };
@@ -2194,6 +2194,7 @@ function App() {
                                 title: card.title,
                                 desc: card.desc,
                                 lines: card.lines,
+                                feedDesc: card.feedDesc,
                               });
                             }} style={{ background: '#F8FAFC', borderRadius: '16px', padding: '12px', display: 'flex', gap: '15px', border: '1px solid #EDF2F7', cursor: 'pointer' }}>
                               <img src={item.poster_url} style={{ width: '80px', height: '100px', objectFit: 'cover', borderRadius: '10px' }} alt="Poster" />
@@ -2343,6 +2344,7 @@ function App() {
             shareTitle={selectedPoster.title}
             shareDesc={selectedPoster.desc}
             shareLines={selectedPoster.lines}
+            shareFeedDesc={selectedPoster.feedDesc}
             onClose={() => setSelectedPoster(null)} 
           />
         </motion.div>

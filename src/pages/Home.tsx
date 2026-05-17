@@ -442,7 +442,7 @@ const PartyCard = ({ item, onSelect }) => {
     <motion.div
       className="party-carousel-card"
       {...partyCardZoomHandlers}
-      onClick={() => onSelect(item.poster_url)}
+      onClick={() => onSelect(item)}
       style={{ display: 'flex', flexDirection: 'row', alignItems: 'stretch', backgroundColor: 'var(--color-card)', borderRadius: '16px', overflow: 'hidden', border: '1px solid var(--color-border)', cursor: 'pointer', height: '150px', marginBottom: '12px', ...partyCardZoomBaseStyle }}
     >
       <div style={{ width: '100px', flexShrink: 0 }}>
@@ -522,7 +522,7 @@ const ClassCard = ({ item, onSelect }) => {
     <div
       className="party-carousel-card"
       {...partyCardZoomHandlers}
-      onClick={() => onSelect(item.poster_url)}
+      onClick={() => onSelect(item)}
       style={{
         width: '160px',
         minWidth: '160px',
@@ -604,7 +604,7 @@ const BootcampCard = ({ item, onSelect }) => {
     <motion.div
       className="party-carousel-card"
       {...partyCardZoomHandlers}
-      onClick={() => onSelect(item.poster_url)}
+      onClick={() => onSelect(item)}
       style={{
         display: 'flex',
         backgroundColor: '#FFFFFF',
@@ -640,7 +640,7 @@ const FestivalCard = ({ item, onSelect }) => {
     <div
       className="party-carousel-card"
       {...partyCardZoomHandlers}
-      onClick={() => onSelect(item.poster_url)}
+      onClick={() => onSelect(item)}
       style={{
         display: 'flex',
         backgroundColor: '#FFFFFF',
