@@ -1209,7 +1209,7 @@ const HomePage = ({
         ))}
         </div>
         <p style={{ fontSize: '12px', color: '#888', fontWeight: 700, letterSpacing: '1px', marginBottom: '8px', marginTop: '20px' }}>도구 & 정보</p>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '8px', width: '100%' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '8px', width: '100%' }}>
         {[
           { icon: <Calendar size={22} color="#F97316" />, label: '행사달력', action: () => setShowFullCalendar(true) },
           { icon: <Heart size={22} color="#7B1FA2" />, label: '찜하기', action: () => setShowWishlist(true) },
