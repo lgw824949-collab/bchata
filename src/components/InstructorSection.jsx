@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { supabase } from '../lib/supabase'
 import { ChevronLeft, Share2, Bell, Heart, User, MapPin, Globe, ShieldCheck, Zap, MessageCircle, Star, Info, Plus, Check, Search } from 'lucide-react'
 import ClassRegisterModal from './ClassRegisterModal'
+import InstructorRegister from './InstructorRegister'
 
 const REGIONS = ['전국', '서울', '경기인천', '경상도', '전라도', '충청도', '강원제주']
 const GENRE_TABS = ['전체', '바차타', '살사', '쥬크', '키좀바']
@@ -65,6 +66,7 @@ const InstructorSection = () => {
   const [classes, setClasses] = useState([])
   const [visibleCount, setVisibleCount] = useState(20)
   const [showMasterMenu, setShowMasterMenu] = useState(false)
+  const [showInstructorRegister, setShowInstructorRegister] = useState(false)
   const [classForm, setClassForm] = useState({
     instructor_id: '', title: '', schedule: '', location: '', fee: '', level: '', capacity: '', description: ''
   })
@@ -397,16 +399,34 @@ const InstructorSection = () => {
         <h2 style={{ fontSize: '28px', fontWeight: 900, color: '#FFF', margin: 0, letterSpacing: '-1px' }}>
           DANCE <span style={{ color: '#C9A84C' }}>MASTERS</span>
         </h2>
-        <button
-          onClick={() => setShowMasterMenu(true)}
-          style={{
-            padding: '8px 14px', borderRadius: '12px', background: 'rgba(201,168,76,0.15)',
-            border: '1px solid #C9A84C', color: '#C9A84C', fontSize: '12px', fontWeight: 800,
-            cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '4px'
-          }}
-        >
-          👑 마스터 전용
-        </button>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <button
+            type="button"
+            onClick={() => setShowInstructorRegister(true)}
+            style={{
+              border: '1px solid #FF1744',
+              color: '#FF1744',
+              background: 'rgba(255,23,68,0.1)',
+              borderRadius: '12px',
+              padding: '8px 14px',
+              fontSize: '12px',
+              fontWeight: 800,
+              cursor: 'pointer',
+            }}
+          >
+            강사 등록
+          </button>
+          <button
+            onClick={() => setShowMasterMenu(true)}
+            style={{
+              padding: '8px 14px', borderRadius: '12px', background: 'rgba(201,168,76,0.15)',
+              border: '1px solid #C9A84C', color: '#C9A84C', fontSize: '12px', fontWeight: 800,
+              cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '4px'
+            }}
+          >
+            👑 마스터 전용
+          </button>
+        </div>
       </div>
 
       {/* 스타일 삽입 (스크롤바 숨김) */}
@@ -644,7 +664,7 @@ const InstructorSection = () => {
                   </div>
                 </div>
 
-                {/* Action Buttons (Right Bottom of Hero) - Maximum Z-Index to ensure clickability */}
+                {/* Action Buttons (Right Bottom of Hero) - 팔로우/좋아요 UI 숨김
                 <div style={{ position: 'absolute', bottom: '170px', right: '25px', display: 'flex', gap: '12px', zIndex: 99999, pointerEvents: 'auto' }}>
                   <button 
                     onClick={(e) => toggleFollow(e, selectedInstructor.id)}
@@ -681,6 +701,7 @@ const InstructorSection = () => {
                     <Heart size={24} fill={likes[selectedInstructor.id] ? '#FF1744' : 'none'} style={{ pointerEvents: 'none' }} />
                   </button>
                 </div>
+                */}
               </div>
 
               {/* 2. Identity Section */}
@@ -889,6 +910,9 @@ const InstructorSection = () => {
           onClose={() => setShowMasterMenu(false)} 
           instructorId={selectedInstructor?.id || ''} 
         />
+      )}
+      {showInstructorRegister && (
+        <InstructorRegister onBack={() => setShowInstructorRegister(false)} />
       )}
     </div>
   )
