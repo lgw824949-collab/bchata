@@ -790,11 +790,11 @@ const InstructorSection = () => {
                       >
                         {/* BIO legacy: About header + old bio paragraph */}
                         <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', marginBottom: '16px' }}>
-                          {selectedInstructor.career?.trim() && (
+                          {/* {selectedInstructor.career?.trim() && (
                             <span style={{ background: 'rgba(201,168,76,0.15)', border: '1px solid #C9A84C', color: '#C9A84C', borderRadius: '20px', padding: '4px 12px', fontSize: '12px', fontWeight: 700 }}>
                               ⭐ {selectedInstructor.career.trim()}
                             </span>
-                          )}
+                          )} */}
                           {selectedInstructor.city && (
                             <span style={{ background: 'rgba(201,168,76,0.15)', border: '1px solid #C9A84C', color: '#C9A84C', borderRadius: '20px', padding: '4px 12px', fontSize: '12px', fontWeight: 700 }}>
                               {selectedInstructor.city}
