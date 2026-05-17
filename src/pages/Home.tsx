@@ -950,38 +950,38 @@ const HomePage = ({
 
   const quickMenuFloatStyle = { display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', background: 'none', border: 'none', boxShadow: 'none', backdropFilter: 'none', WebkitBackdropFilter: 'none', padding: '8px', cursor: 'pointer' };
   const quickMenuIconWrapStyle = { width: '52px', height: '52px', display: 'flex', alignItems: 'center', justifyContent: 'center', filter: 'drop-shadow(0 6px 12px rgba(0,0,0,0.6))' };
-  const quickMenuLabelStyle = { color: '#ffffff', fontWeight: 800, fontSize: '13px', textShadow: '0 2px 6px rgba(0,0,0,0.9)', marginTop: '6px', textAlign: 'center', lineHeight: 1.2, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', width: '100%' };
+  const quickMenuLabelStyle = { color: '#FFF8EE', fontWeight: 800, fontSize: '13px', textShadow: '0 2px 6px rgba(0,0,0,0.9)', marginTop: '6px', textAlign: 'center', lineHeight: 1.2, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', width: '100%' };
   const quickMenuSectionTitleStyle = { fontSize: '12px', color: 'rgba(255,255,255,0.6)', fontWeight: 700, letterSpacing: '1px', marginBottom: '8px', textShadow: '0 1px 4px rgba(0,0,0,0.8)' };
 
   return (
     <div className="app-container" style={{ position: 'relative', width: '100%', maxWidth: '500px', margin: '0 auto', backgroundImage: "url('/Photo/네이버2.png')", backgroundSize: 'cover', backgroundPosition: 'center', backgroundAttachment: 'fixed', minHeight: '100vh', paddingBottom: '80px', transition: 'background-color 0.3s' }}>
-      <div aria-hidden style={{ position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.3)', zIndex: 0, pointerEvents: 'none' }} />
+      <div aria-hidden style={{ position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.2)', zIndex: 0, pointerEvents: 'none' }} />
       <div style={{ position: 'relative', zIndex: 1 }}>
 
       {/* 📌 [영역 A: 브랜드 헤더 - 최종 확정] */}
       {/* 📌 [영역 A: 브랜드 헤더 - 최종 확정 고도화] */}
       <div style={{ padding: '16px 20px 12px', marginBottom: '24px' }}>
         <p style={{ fontSize: '9px', color: '#E53935', letterSpacing: '0.25em', fontWeight: 800, margin: '0 0 6px', opacity: 0.9 }}>SOCIAL CULTURE EXPERIENCE</p>
-        <p style={{ fontSize: '12px', color: 'var(--color-text-sub)', margin: '0 0 6px', fontWeight: 500, letterSpacing: '-0.2px' }}>
+        <p style={{ fontSize: '12px', color: '#FFF8EE', margin: '0 0 6px', fontWeight: 500, letterSpacing: '-0.2px', opacity: 0.8 }}>
           {lang === 'ko' ? '오늘 밤, 어디선가 파티가 시작되고 있어요' : 'Tonight, a party is starting somewhere'}
         </p>
         <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between' }}>
           <div>
-            <p style={{ fontSize: '38px', fontWeight: 950, color: 'var(--color-text-main)', margin: 0, letterSpacing: '-1.0px', lineHeight: 1.2 }}>
+            <p style={{ fontSize: '38px', fontWeight: 950, color: '#FFF8EE', margin: 0, letterSpacing: '-1.0px', lineHeight: 1.2 }}>
               {lang === 'ko' ? '전국 어디서든' : 'Anywhere in Korea'}
             </p>
-            <p style={{ fontSize: '38px', fontWeight: 950, color: '#E53935', margin: '0 0 10px', letterSpacing: '-1.0px', lineHeight: 1.2 }}>
+            <p style={{ fontSize: '38px', fontWeight: 950, margin: '0 0 10px', letterSpacing: '-1.0px', lineHeight: 1.2, background: 'linear-gradient(135deg, #C9A84C, #FFE4A0)', WebkitBackgroundClip: 'text', backgroundClip: 'text', color: 'transparent', WebkitTextFillColor: 'transparent' }}>
               {lang === 'ko' ? (
                 <>만원이면<br />충분해요</>
               ) : 'Just $7 is enough'}
             </p>
             <div style={{ borderLeft: '2.5px solid #E53935', paddingLeft: '12px' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <p style={{ fontSize: '12px', color: 'var(--color-text-sub)', margin: 0, fontWeight: 600, lineHeight: 1.6, letterSpacing: '-0.3px' }}>
+                <p style={{ fontSize: '12px', color: '#FFF8EE', margin: 0, fontWeight: 600, lineHeight: 1.6, letterSpacing: '-0.3px', opacity: 0.8 }}>
                   {lang === 'ko' ? '바차타 · 살사 · 소셜' : 'Bachata · Salsa · Social'}
                 </p>
               </div>
-              <p style={{ fontSize: '12px', color: 'var(--color-text-sub)', margin: 0, fontWeight: 600, lineHeight: 1.6, letterSpacing: '-0.3px' }}>
+              <p style={{ fontSize: '12px', color: '#FFF8EE', margin: 0, fontWeight: 600, lineHeight: 1.6, letterSpacing: '-0.3px', opacity: 0.8 }}>
                 {lang === 'ko' ? '도심 속 전율의 밤' : 'A thrilling night in the city'}
               </p>
             </div>
@@ -1011,7 +1011,7 @@ const HomePage = ({
       </div>
 
       {/* 🔴 [LIVE 바 임팩트 영역 개편] */}
-      <div style={{ padding: '4px 20px 12px', marginBottom: '24px' }}>
+      <div style={{ padding: '4px 20px 12px', marginBottom: '24px', display: 'none' }}>
         {/* LiveCount를 감싸는 세련된 임팩트 컨테이너 및 전역 스타일 주입 */}
         <div className="live-count-premium-wrapper" style={{ 
           // background: '#0F172A', 
@@ -1144,10 +1144,11 @@ const HomePage = ({
             padding: '20px 0',
             cursor: 'pointer',
             marginBottom: '8px',
+            boxShadow: '0 0 20px rgba(201,168,76,0.4)',
           }}
         >
           <Music size={32} color="#C9A84C" />
-          <span style={{ color: '#ffffff', fontWeight: 800, fontSize: '15px', textShadow: '0 2px 6px rgba(0,0,0,0.9)' }}>소셜 파티 찾기</span>
+          <span style={{ color: '#FFF8EE', fontWeight: 800, fontSize: '15px', textShadow: '0 2px 6px rgba(0,0,0,0.9)' }}>소셜 파티 찾기</span>
         </motion.div>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '8px', width: '100%' }}>
         {[
