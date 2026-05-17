@@ -3,7 +3,7 @@ import { Heart, MapPin, Calendar, Clock, User, Users, Music, ChevronRight, Shiel
 import { useTranslation } from 'react-i18next';
 import { motion, AnimatePresence } from 'framer-motion';
 import QuickPinchZoom, { make3dTransformValue } from 'react-quick-pinch-zoom';
-// import LiveCount from '../components/LiveCount'
+import LiveCount from '../components/LiveCount'
 import { KMA_REGION_COORDS, fetchWeatherForecast, parseKmaWeather, HOME_REGION_MAP } from '../utils/kmaApi'
 import { supabase } from '../lib/supabase'
 import { buildPartyShareCard } from '../lib/partyShareCard'
@@ -1098,7 +1098,7 @@ const HomePage = ({
               display: none !important; /* 구분선 제거하고 깔끔한 버튼 그룹 형태 */
             }
           `}</style>
-          {/* <LiveCount /> */}
+          <LiveCount />
         </div>
       </div>
 
