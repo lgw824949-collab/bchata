@@ -948,7 +948,7 @@ const HomePage = ({
     return () => window.removeEventListener('resize', setVh);
   }, []);
 
-  const quickMenuFloatStyle = { display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '6px', cursor: 'pointer', borderRadius: '12px', padding: '10px 8px', background: '#fff', minHeight: 'auto', boxSizing: 'border-box' };
+  const quickMenuFloatStyle = { display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '6px', cursor: 'pointer', padding: '12px 4px', minHeight: 'auto', boxSizing: 'border-box' };
 
   return (
     <div className="app-container" style={{ width: '100%', maxWidth: '500px', margin: '0 auto', background: 'var(--color-bg)', minHeight: '100vh', paddingBottom: '80px', transition: 'background-color 0.3s' }}>
@@ -2171,11 +2171,11 @@ const HomePage = ({
                 {gridRegion === 'more' ? (
                   <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '10px', padding: '20px' }}>
                     {[
-                      { icon: <CloudSun size={32} color="#1976D2" />, label: '오늘날씨', action: () => setShowWeather(true) },
-                      { icon: <Heart size={32} color="#7B1FA2" />, label: '찜하기', action: () => setShowWishlist(true) },
-                      { icon: <Navigation size={32} color="#303F9F" />, label: '지능형경로', /* badge: 'LIVE', */ action: () => openAnalysis(false) },
-                      { icon: <Star size={32} color="#F9A825" />, label: '운명의좌표', action: () => setShowSaju(true) },
-                      { icon: <MapPin size={32} color="#0097A7" />, label: '주변주차', action: () => setView('parking') },
+                      { icon: <CloudSun size={40} color="#1976D2" />, label: '오늘날씨', action: () => setShowWeather(true) },
+                      { icon: <Heart size={40} color="#7B1FA2" />, label: '찜하기', action: () => setShowWishlist(true) },
+                      { icon: <Navigation size={40} color="#303F9F" />, label: '지능형경로', /* badge: 'LIVE', */ action: () => openAnalysis(false) },
+                      { icon: <Star size={40} color="#F9A825" />, label: '운명의좌표', action: () => setShowSaju(true) },
+                      { icon: <MapPin size={40} color="#0097A7" />, label: '주변주차', action: () => setView('parking') },
                     ].map((item, idx) => (
                       <div key={idx} style={{ position: 'relative' }}>
                         <div style={{
