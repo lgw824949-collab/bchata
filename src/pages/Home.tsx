@@ -953,6 +953,23 @@ const HomePage = ({
   const quickMenuLabelStyle = { color: '#FFF8EE', fontWeight: 800, fontSize: '13px', textShadow: '0 2px 6px rgba(0,0,0,0.9)', marginTop: '6px', textAlign: 'center', lineHeight: 1.2, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', width: '100%' };
   const quickMenuSectionTitleStyle = { fontSize: '12px', color: 'rgba(255,255,255,0.6)', fontWeight: 700, letterSpacing: '1px', marginBottom: '8px', textShadow: '0 1px 4px rgba(0,0,0,0.8)' };
 
+  const qmSvgSocialHero = <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="#C9A84C" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M9 18V5l12-2v13" /><circle cx="6" cy="18" r="3" /><circle cx="18" cy="16" r="3" /></svg>;
+  const qmSvgBootcamp = <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#C9A84C" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M3 12l9-9 9 9" /><path d="M9 21V12h6v9" /></svg>;
+  const qmSvgFestival = <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#C9A84C" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" /></svg>;
+  const qmSvgMt = <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#C9A84C" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M3 20h18L12 4z" /><path d="M3 20l6-8 4 4 3-3 5 7" /></svg>;
+  const qmSvgPartner = <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#C9A84C" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M12 21c-4 0-8-2-8-5s4-5 8-5 8 2 8 5-4 5-8 5z" /><circle cx="12" cy="7" r="4" /></svg>;
+  const qmSvgInstructor = <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#C9A84C" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><circle cx="11" cy="11" r="8" /><path d="M21 21l-4.35-4.35" /><path d="M11 8v6M8 11h6" /></svg>;
+  const qmSvgChat = <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#C9A84C" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" /></svg>;
+  const qmSvgCalendar = <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#C9A84C" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" /><path d="M16 2v4M8 2v4M3 10h18" /></svg>;
+  const qmSvgWishlist = <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#C9A84C" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" /></svg>;
+  const qmSvgRestaurant = <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#C9A84C" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M3 2v7c0 1.1.9 2 2 2h4a2 2 0 0 0 2-2V2" /><path d="M7 2v20M21 15V2a5 5 0 0 0-5 5v6h5zm0 0v7" /></svg>;
+  const qmSvgRental = <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#C9A84C" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z" /><circle cx="12" cy="9" r="2.5" /></svg>;
+  const qmSvgConcierge = <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#C9A84C" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10" /><path d="M12 8v4l3 3" /></svg>;
+  const qmSvgLivePick = <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#C9A84C" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M23 7l-7 5 7 5V7z" /><rect x="1" y="5" width="15" height="14" rx="2" /></svg>;
+  const qmSvgWeather = <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#C9A84C" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="4" /><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41" /></svg>;
+  const qmSvgRoute = <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#C9A84C" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5" /></svg>;
+  const qmSvgSaju = <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#C9A84C" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10" /><path d="M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20" /><path d="M2 12h20" /></svg>;
+
   return (
     <div className="app-container" style={{ width: '100%', maxWidth: '500px', margin: '0 auto', background: 'var(--color-bg)', minHeight: '100vh', paddingBottom: '80px', transition: 'background-color 0.3s' }}>
       <div style={{ position: 'relative', zIndex: 1 }}>
@@ -1146,17 +1163,17 @@ const HomePage = ({
             boxShadow: '0 0 20px rgba(201,168,76,0.4)',
           }}
         >
-          <Music size={32} color="#C9A84C" />
+          {qmSvgSocialHero}
           <span style={{ color: '#FFF8EE', fontWeight: 800, fontSize: '15px', textShadow: '0 2px 6px rgba(0,0,0,0.9)' }}>소셜 파티 찾기</span>
         </motion.div>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '8px', width: '100%' }}>
         {[
-          { icon: <Tent size={32} color="#C9A84C" />, label: '부트캠프', action: () => setView('bootcamp') },
-          { icon: <Star size={32} color="#C9A84C" />, label: '페스티벌', action: () => setView('festival') },
-          { icon: <Map size={32} color="#C9A84C" />, label: 'MT', action: () => setView('mt') },
-          { icon: <Users size={32} color="#C9A84C" />, label: '파트너', action: () => setActiveTab('partner') },
+          { icon: qmSvgBootcamp, label: '부트캠프', action: () => setView('bootcamp') },
+          { icon: qmSvgFestival, label: '페스티벌', action: () => setView('festival') },
+          { icon: qmSvgMt, label: 'MT', action: () => setView('mt') },
+          { icon: qmSvgPartner, label: '파트너', action: () => setActiveTab('partner') },
           {
-            icon: <Users size={32} color="#C9A84C" />,
+            icon: qmSvgInstructor,
             label: '강사찾기',
             action: () => {
               localStorage.setItem('instructor_target_genre', '전체');
@@ -1166,16 +1183,16 @@ const HomePage = ({
               setTimeout(() => { window.dispatchEvent(new CustomEvent('apply-instructor-filter')); }, 300);
             },
           },
-          { textIcon: '1:1', label: '채팅문의', action: () => window.open('https://open.kakao.com/o/gP43rNri', '_blank') },
-          { icon: <Calendar size={32} color="#C9A84C" />, label: '행사달력', action: () => setShowFullCalendar(true) },
-          { icon: <Heart size={32} color="#C9A84C" />, label: '찜하기', action: () => setShowWishlist(true) },
-          { icon: <Utensils size={32} color="#C9A84C" />, label: '맛집뒷풀이', action: () => setView('restaurant') },
-          { icon: <MapPin size={32} color="#C9A84C" />, label: '위치·대관', action: () => setShowRentalModal(true) },
-          { icon: <MessageSquare size={32} color="#C9A84C" />, label: '컨시어지', action: () => window.dispatchEvent(new CustomEvent('open-chatbot')) },
-          { icon: <Camera size={32} color="#C9A84C" />, label: '라이브픽', action: () => setView('community') },
-          { icon: <CloudSun size={32} color="#C9A84C" />, label: '오늘날씨', action: () => setShowWeather(true) },
-          { icon: <Navigation size={32} color="#C9A84C" />, label: '지능형경로', action: () => openAnalysis(false) },
-          { icon: <Star size={32} color="#C9A84C" />, label: '운명의좌표', action: () => setShowSaju(true) },
+          { icon: qmSvgChat, label: '채팅문의', action: () => window.open('https://open.kakao.com/o/gP43rNri', '_blank') },
+          { icon: qmSvgCalendar, label: '행사달력', action: () => setShowFullCalendar(true) },
+          { icon: qmSvgWishlist, label: '찜하기', action: () => setShowWishlist(true) },
+          { icon: qmSvgRestaurant, label: '맛집뒷풀이', action: () => setView('restaurant') },
+          { icon: qmSvgRental, label: '위치·대관', action: () => setShowRentalModal(true) },
+          { icon: qmSvgConcierge, label: '컨시어지', action: () => window.dispatchEvent(new CustomEvent('open-chatbot')) },
+          { icon: qmSvgLivePick, label: '라이브픽', action: () => setView('community') },
+          { icon: qmSvgWeather, label: '오늘날씨', action: () => setShowWeather(true) },
+          { icon: qmSvgRoute, label: '지능형경로', action: () => openAnalysis(false) },
+          { icon: qmSvgSaju, label: '운명의좌표', action: () => setShowSaju(true) },
         ].map((item, idx) => (
           <motion.div key={`main-qm-${idx}`} whileTap={{ scale: 0.92 }} onClick={item.action} style={{ ...quickMenuFloatStyle, position: 'relative', width: '100%' }}>
             {item.textIcon ? (
