@@ -1733,8 +1733,9 @@ const HomePage = ({
                                           {cleanTitle(item.title || '').replace(/^\[.*?\]\s*/, '').replace(/ㅣ\s*$/, '').trim()}
                                         </div>
 
+                                        <div style={{ display: 'flex', flexDirection: 'column', gap: '3px' }}>
                                         {/* 3. 시간 아이콘 + 시간 (간격 4px) */}
-                                        <div style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: '15px', color: '#1E293B', fontWeight: '500', marginTop: '-2px' }}>
+                                        <div style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: '15px', color: '#1E293B', fontWeight: '500' }}>
                                           <Clock size={14} color="#1E293B" style={{ flexShrink: 0 }} />
                                           <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                                             {item.time?.split('-')[0].trim() || '21:00'}
@@ -1747,7 +1748,7 @@ const HomePage = ({
                                         </div>
 
                                         {/* 4. 장소 아이콘 + 장소명 · 가격 및 지도 텍스트 링크 (간격 4px) */}
-                                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '4px', marginTop: 'auto' }}>
+                                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '4px' }}>
                                           <div style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: '13px', color: '#E53935', fontWeight: 'bold', overflow: 'hidden', whiteSpace: 'nowrap', textOverflow: 'ellipsis', minWidth: 0, flex: 1 }}>
                                             <MapPin size={13} color="#E53935" style={{ flexShrink: 0 }} />
                                             <span style={{ overflow: 'hidden', textOverflow: 'ellipsis' }}>
@@ -1783,6 +1784,7 @@ const HomePage = ({
                                               구글맵
                                             </span>
                                           </div>
+                                        </div>
                                         </div>
 
                                       </div>
