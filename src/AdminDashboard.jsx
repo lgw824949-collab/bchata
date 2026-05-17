@@ -926,7 +926,10 @@ export default function AdminDashboard({ onBack }) {
               <div style={{ marginTop: '16px', paddingTop: '16px', borderTop: '1px dashed #E2E8F0', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                 <div style={{ fontSize: '13px', fontWeight: 800, color: '#F59E0B' }}>수동 인원 조절</div>
                 <div style={{ display: 'flex', gap: '8px' }}>
-                  <button onClick={() => addManualCheckin(item)} style={{ padding: '8px 16px', background: '#F59E0B', color: '#FFF', border: 'none', borderRadius: '8px', fontSize: '12px', fontWeight: 900 }}>+1명 추가</button>
+                  <button onClick={() => supabase.from('parties').update({ view_count: (item.view_count || 0) + 20 }).eq('id', item.id)} style={{ padding: '8px 16px', background: '#F59E0B', color: '#FFF', border: 'none', borderRadius: '8px', fontSize: '12px', fontWeight: 900 }}>+20명</button>
+                  <button onClick={() => supabase.from('parties').update({ view_count: (item.view_count || 0) + 30 }).eq('id', item.id)} style={{ padding: '8px 16px', background: '#F59E0B', color: '#FFF', border: 'none', borderRadius: '8px', fontSize: '12px', fontWeight: 900 }}>+30명</button>
+                  <button onClick={() => supabase.from('parties').update({ view_count: (item.view_count || 0) + 50 }).eq('id', item.id)} style={{ padding: '8px 16px', background: '#F59E0B', color: '#FFF', border: 'none', borderRadius: '8px', fontSize: '12px', fontWeight: 900 }}>+50명</button>
+                  <button onClick={() => supabase.from('parties').update({ view_count: (item.view_count || 0) + 100 }).eq('id', item.id)} style={{ padding: '8px 16px', background: '#F59E0B', color: '#FFF', border: 'none', borderRadius: '8px', fontSize: '12px', fontWeight: 900 }}>+100명</button>
                 </div>
               </div>
             )}
