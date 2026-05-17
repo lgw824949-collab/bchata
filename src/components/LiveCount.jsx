@@ -69,8 +69,8 @@ const LiveCount = () => {
 
   useEffect(() => {
     fetchCounts()
-    const channel = supabase.channel('live_checkins').on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'bar_checkins' }, () => fetchCounts()).subscribe()
-    return () => { supabase.removeChannel(channel) }
+    // const channel = supabase.channel('live_checkins').on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'bar_checkins' }, () => fetchCounts()).subscribe()
+    // return () => { supabase.removeChannel(channel) }
   }, [])
 
   const abbreviateRegion = (region) => {
