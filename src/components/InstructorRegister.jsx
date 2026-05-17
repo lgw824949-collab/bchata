@@ -78,18 +78,18 @@ const InstructorRegister = ({ onBack }) => {
       animate={{ opacity: 1, scale: 1 }}
       style={{ padding: '60px 40px', textAlign: 'center', minHeight: '100vh', background: '#fff', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}
     >
-      <div style={{ width: 100, height: 100, borderRadius: '40px', background: '#F5F3FF', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 24, boxShadow: '0 20px 40px rgba(255, 23, 68, 0.1)' }}>
-        <Sparkles size={48} color="#FF1744" />
+      <div style={{ width: 100, height: 100, borderRadius: '40px', background: '#F5F3FF', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 24, boxShadow: '0 20px 40px rgba(124, 58, 237, 0.1)' }}>
+        <Sparkles size={48} color="#7C3AED" />
       </div>
       <div style={{ fontSize: 28, fontWeight: 950, color: '#1E293B', marginBottom: 12, letterSpacing: '-0.5px' }}>등록이 완료되었습니다!</div>
       <div style={{ fontSize: 16, color: '#64748B', lineHeight: 1.8, marginBottom: 40, fontWeight: 500 }}>
         지금 즉시 마스터 리스트에서<br/>
         나의 프로필을 확인하실 수 있습니다.<br/>
-        <span style={{ color: '#FF1744', fontWeight: 800 }}>활동을 시작해보세요</span> 💜
+        <span style={{ color: '#7C3AED', fontWeight: 800 }}>활동을 시작해보세요</span> 💜
       </div>
       <button
         onClick={onBack}
-        style={{ width: '100%', maxWidth: 200, padding: '18px', borderRadius: '20px', background: '#FF1744', color: '#fff', border: 'none', fontSize: 16, fontWeight: 900, cursor: 'pointer', boxShadow: '0 10px 20px rgba(255, 23, 68, 0.2)' }}
+        style={{ width: '100%', maxWidth: 200, padding: '18px', borderRadius: '20px', background: '#7C3AED', color: '#fff', border: 'none', fontSize: 16, fontWeight: 900, cursor: 'pointer', boxShadow: '0 10px 20px rgba(124, 58, 237, 0.2)' }}
       >확인</button>
     </motion.div>
   )
@@ -139,7 +139,7 @@ const InstructorRegister = ({ onBack }) => {
                   )}
                 </div>
                 {preview && (
-                  <div style={{ position: 'absolute', bottom: -5, right: -5, background: '#FF1744', width: 32, height: 32, borderRadius: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center', border: '3px solid #fff' }}>
+                  <div style={{ position: 'absolute', bottom: -5, right: -5, background: '#7C3AED', width: 32, height: 32, borderRadius: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center', border: '3px solid #fff' }}>
                     <Check size={16} color="#fff" strokeWidth={4} />
                   </div>
                 )}
@@ -184,9 +184,9 @@ const InstructorRegister = ({ onBack }) => {
                   onClick={() => toggleGenre(g)}
                   style={{
                     padding: '12px 24px', borderRadius: '16px', fontSize: '15px', fontWeight: 800,
-                    border: genre.includes(g) ? '2px solid #FF1744' : '1px solid #E2E8F0',
+                    border: genre.includes(g) ? '2px solid #7C3AED' : '1px solid #E2E8F0',
                     background: genre.includes(g) ? '#F5F3FF' : '#fff',
-                    color: genre.includes(g) ? '#FF1744' : '#64748B',
+                    color: genre.includes(g) ? '#7C3AED' : '#64748B',
                     cursor: 'pointer', transition: 'all 0.2s ease'
                   }}
                 >{g}</button>
@@ -206,9 +206,9 @@ const InstructorRegister = ({ onBack }) => {
                   onClick={() => setCity(c)}
                   style={{
                     padding: '10px 0', borderRadius: '12px', fontSize: '13px', fontWeight: 700,
-                    border: city === c ? '2px solid #FF1744' : '1px solid #E2E8F0',
+                    border: city === c ? '2px solid #7C3AED' : '1px solid #E2E8F0',
                     background: city === c ? '#F5F3FF' : '#fff',
-                    color: city === c ? '#FF1744' : '#64748B',
+                    color: city === c ? '#7C3AED' : '#64748B',
                     cursor: 'pointer'
                   }}
                 >{c}</button>
@@ -250,9 +250,9 @@ const InstructorRegister = ({ onBack }) => {
               disabled={loading}
               style={{
                 width: '100%', padding: '24px', borderRadius: '24px', border: 'none',
-                background: loading ? '#94A3B8' : 'linear-gradient(90deg, #FF1744, #D50032)',
+                background: loading ? '#94A3B8' : 'linear-gradient(90deg, #7C3AED, #6D28D9)',
                 color: '#fff', fontSize: '18px', fontWeight: 900, cursor: loading ? 'not-allowed' : 'pointer',
-                boxShadow: '0 15px 30px rgba(255, 23, 68, 0.2)',
+                boxShadow: '0 15px 30px rgba(124, 58, 237, 0.2)',
                 display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10
               }}
             >
