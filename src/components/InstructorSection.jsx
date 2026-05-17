@@ -788,48 +788,57 @@ const InstructorSection = () => {
                         key="bio" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }}
                         style={{ padding: '0 20px' }}
                       >
-                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '15px' }}>
-                          <h3 style={{ fontSize: '18px', fontWeight: 900, color: '#FFF', margin: 0 }}>About {selectedInstructor.name.split(' ')[0]}</h3>
-                          <div style={{ display: 'flex', gap: '15px' }}>
-                            {/* <button onClick={() => window.open(`https://www.instagram.com/${selectedInstructor.instagram}`, '_blank')} style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer' }}><Globe size={20} color="#8E8E93" /></button> */}
-                            <button onClick={() => { navigator.share?.({ title: selectedInstructor.name, url: window.location.href }); }} style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer' }}><Share2 size={20} color="#8E8E93" /></button>
-                          </div>
+                        {/* BIO legacy: About header + old bio paragraph */}
+                        <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', marginBottom: '16px' }}>
+                          {[
+                            selectedInstructor.career?.trim(),
+                            selectedInstructor.city,
+                            getGenre(selectedInstructor.genre),
+                          ].map((tag, i) => (
+                            <span
+                              key={i}
+                              style={{
+                                background: 'rgba(201,168,76,0.15)', border: '1px solid #C9A84C', color: '#C9A84C',
+                                borderRadius: '20px', padding: '4px 12px', fontSize: '12px', fontWeight: 700,
+                              }}
+                            >
+                              {tag || '-'}
+                            </span>
+                          ))}
                         </div>
-                        <p style={{ fontSize: '15px', color: '#A1A1AA', lineHeight: 1.6, fontWeight: 500, whiteSpace: 'pre-wrap', margin: '0 0 10px 0' }}>
+
+                        <p style={{ fontSize: '14px', lineHeight: '1.8', color: 'var(--color-text-sub)', whiteSpace: 'pre-wrap', margin: '0 0 16px 0' }}>
                           {selectedInstructor.bio || `Passionate professional professional with years of experience. Focused on technique, expression, and artistry. Based in ${selectedInstructor.city}.`}
                         </p>
 
-                        <div style={{ marginTop: '10px' }}>
-                          <div style={{ fontSize: '14px', fontWeight: 900, color: '#FFF', marginBottom: '4px' }}>Specialties</div>
-                          <div style={{ fontSize: '14px', color: '#8E8E93', fontWeight: 600, display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
-                            {getGenre(selectedInstructor.genre).split(' · ').map(g => <span key={g} style={{ background: 'rgba(255,255,255,0.05)', padding: '4px 12px', borderRadius: '8px', border: '1px solid rgba(255,255,255,0.05)' }}>{g}</span>)}
-                          </div>
+                        {/* BIO legacy: Specialties / 활동지역 / 경력 / 수업방식 / 수상경력 sections */}
+
+                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '8px', marginBottom: '16px' }}>
+                          {[
+                            { icon: '⭐', label: '경력', value: selectedInstructor.career?.trim() },
+                            { icon: '🏆', label: '수상', value: selectedInstructor.awards?.trim() },
+                            { icon: '🎓', label: '수업방식', value: formatClassType(selectedInstructor.class_type) },
+                          ].map((card) => (
+                            <div
+                              key={card.label}
+                              style={{
+                                background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(201,168,76,0.3)',
+                                borderRadius: '12px', padding: '12px 8px', textAlign: 'center',
+                              }}
+                            >
+                              <div style={{ fontSize: '11px', color: '#C9A84C', fontWeight: 700, marginBottom: '6px' }}>
+                                {card.icon} {card.label}
+                              </div>
+                              <div style={{ fontSize: '12px', color: '#E4E4E7', fontWeight: 600, lineHeight: 1.4, wordBreak: 'break-word' }}>
+                                {card.value || '-'}
+                              </div>
+                            </div>
+                          ))}
                         </div>
 
-                        {selectedInstructor.city && (
-                          <div style={{ marginTop: '10px' }}>
-                            <div style={{ fontSize: '14px', fontWeight: 900, color: '#FFF', marginBottom: '4px' }}>활동 지역</div>
-                            <div style={{ fontSize: '14px', color: '#8E8E93', fontWeight: 600 }}>{selectedInstructor.city}</div>
-                          </div>
-                        )}
-                        {getInstructorCareer(selectedInstructor) && (
-                          <div style={{ marginTop: '10px' }}>
-                            <div style={{ fontSize: '14px', fontWeight: 900, color: '#FFF', marginBottom: '4px' }}>경력</div>
-                            <div style={{ fontSize: '14px', color: '#8E8E93', fontWeight: 600, whiteSpace: 'pre-wrap' }}>{getInstructorCareer(selectedInstructor)}</div>
-                          </div>
-                        )}
-                        {formatClassType(selectedInstructor.class_type) && (
-                          <div style={{ marginTop: '10px' }}>
-                            <div style={{ fontSize: '14px', fontWeight: 900, color: '#FFF', marginBottom: '4px' }}>수업 방식</div>
-                            <div style={{ fontSize: '14px', color: '#8E8E93', fontWeight: 600 }}>{formatClassType(selectedInstructor.class_type)}</div>
-                          </div>
-                        )}
-                        {selectedInstructor.awards?.trim() && (
-                          <div style={{ marginTop: '10px' }}>
-                            <div style={{ fontSize: '14px', fontWeight: 900, color: '#FFF', marginBottom: '4px' }}>수상 경력</div>
-                            <div style={{ fontSize: '14px', color: '#8E8E93', fontWeight: 600, whiteSpace: 'pre-wrap' }}>{selectedInstructor.awards.trim()}</div>
-                          </div>
-                        )}
+                        <div style={{ marginBottom: '16px', fontSize: '13px', color: 'var(--color-text-sub)' }}>
+                          📍 {selectedInstructor.city || '-'}
+                        </div>
 
                         {/* <span>✨ DIRECT INQUIRY & BOOKING</span> */}
                         {(selectedInstructor.kakao_link || getInstaLink(selectedInstructor) || selectedInstructor.instagram) && (
