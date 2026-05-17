@@ -409,8 +409,9 @@ const InstructorSection = () => {
               background: 'rgba(201,168,76,0.1)',
               borderRadius: '12px',
               padding: '8px 14px',
-              fontSize: '12px',
-              fontWeight: 800,
+              fontSize: '13px',
+              fontWeight: 700,
+              whiteSpace: 'nowrap',
               cursor: 'pointer',
             }}
           >
@@ -420,7 +421,7 @@ const InstructorSection = () => {
             onClick={() => window.dispatchEvent(new CustomEvent('open-vip-master-login'))}
             style={{
               padding: '8px 14px', borderRadius: '12px', background: 'rgba(201,168,76,0.15)',
-              border: '1px solid #C9A84C', color: '#C9A84C', fontSize: '12px', fontWeight: 800,
+              border: '1px solid #C9A84C', color: '#C9A84C', fontSize: '13px', fontWeight: 700,
               cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '4px', whiteSpace: 'nowrap'
             }}
           >
