@@ -2,6 +2,7 @@ import React from 'react';
 import { Clock } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { sharePartyToKakao } from '../lib/kakaoShare';
+import { supabase } from '../lib/supabase';
 
 const GENRE_MAP = {
   '바차타': { key: 'b_ratio', label: 'B', label_en: 'Bachata', color: '#FF1744' },
@@ -105,9 +106,16 @@ const PartyCard = ({ item, onSelect }) => {
     });
   };
 
+  const handleCardClick = async () => {
+    if (item?.id) {
+      await supabase.from('parties').update({ view_count: (item.view_count || 0) + 1 }).eq('id', item.id);
+    }
+    onSelect(item.poster_url);
+  };
+
   return (
     <div
-      onClick={() => onSelect(item.poster_url)}
+      onClick={handleCardClick}
       style={{ display: 'flex', flexDirection: 'row', alignItems: 'stretch', backgroundColor: 'var(--color-card)', borderRadius: '16px', overflow: 'hidden', border: '1px solid var(--color-border)', cursor: 'pointer', height: '180px', marginBottom: '12px', transition: 'all 0.3s' }}
     >
       <div style={{ width: '100px', flexShrink: 0 }}>

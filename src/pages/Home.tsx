@@ -3,7 +3,7 @@ import { Heart, MapPin, Calendar, Clock, User, Users, Music, ChevronRight, Shiel
 import { useTranslation } from 'react-i18next';
 import { motion, AnimatePresence } from 'framer-motion';
 import QuickPinchZoom, { make3dTransformValue } from 'react-quick-pinch-zoom';
-import LiveCount from '../components/LiveCount'
+// import LiveCount from '../components/LiveCount'
 import { KMA_REGION_COORDS, fetchWeatherForecast, parseKmaWeather, HOME_REGION_MAP } from '../utils/kmaApi'
 import { supabase } from '../lib/supabase'
 // import { getAfterPartySpotsForParty, openAfterPartyMap } from '../data/afterPartySpots'
@@ -476,7 +476,9 @@ const PartyCard = ({ item, onSelect }) => {
               {displayTime}
             </span>
             {isTimeLive && (
-              <LiveCount barName={item.locationName || item.studio_name} />
+              <span style={{ fontSize: '12px', fontWeight: '800', color: '#FFB300', background: 'rgba(255,179,0,0.1)', padding: '2px 8px', borderRadius: '10px' }}>
+                {item.view_count || 0}
+              </span>
             )}
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
@@ -1103,7 +1105,7 @@ const HomePage = ({
               display: none !important; /* 구분선 제거하고 깔끔한 버튼 그룹 형태 */
             }
           `}</style>
-          <LiveCount />
+          {/* <LiveCount /> */}
         </div>
       </div>
 
@@ -1738,7 +1740,9 @@ const HomePage = ({
                                             {item.time?.split('-')[0].trim() || '21:00'}
                                           </span>
                                           {isItemLive && (
-                                            <LiveCount barName={item.locationName || item.studio_name} />
+                                            <span style={{ fontSize: '11px', fontWeight: '800', color: '#FFB300', background: 'rgba(255,179,0,0.1)', padding: '1px 6px', borderRadius: '8px', marginLeft: 'auto' }}>
+                                              {item.view_count || 0}
+                                            </span>
                                           )}
                                         </div>
 
