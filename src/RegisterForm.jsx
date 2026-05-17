@@ -3,6 +3,7 @@ import { createPortal } from 'react-dom'
 import { Plus, ChevronLeft, Check, X, MapPin } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { supabase } from './lib/supabase'
+import { getKakaoApiKey } from './lib/kakaoEnv'
 // import { findBarByName, BAR_DATABASE } from './lib/BarLib'
 
 const METRO_REGIONS = ['서울', '인천', '경기', '부산', '대구', '광주', '대전', '울산', '세종', '강원', '충북', '충남', '전북', '전남', '경북', '경남', '제주']
@@ -195,7 +196,7 @@ const RegisterForm = ({ onBack, onSuccess, isEdit = false, initialData = null })
         // Geocoding
         try {
           const response = await fetch(`https://dapi.kakao.com/v2/local/search/address.json?query=${encodeURIComponent(fullAddress)}`, {
-            headers: { Authorization: `KakaoAK ${import.meta.env.VITE_KAKAO_REST_API_KEY}` }
+            headers: { Authorization: `KakaoAK ${getKakaoApiKey()}` }
           });
           const result = await response.json();
           if (result.documents && result.documents.length > 0) {

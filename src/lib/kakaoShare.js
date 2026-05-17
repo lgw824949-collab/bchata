@@ -1,6 +1,8 @@
+import { getKakaoApiKey } from './kakaoEnv';
+
 /** 카톡 공유 — Kakao SDK 피드 + 포스터 이미지 */
 export const KAKAO_BRAND = '오늘밤빠';
-export const SHARE_BUILD = '20260516b';
+export const SHARE_BUILD = '20260517c';
 
 const SHARE_LINK = 'https://bchata.vercel.app';
 
@@ -11,9 +13,6 @@ const toAbsoluteImageUrl = (url) => {
   return `${window.location.origin}${trimmed.startsWith('/') ? '' : '/'}${trimmed}`;
 };
 
-const getKakaoJsKey = () =>
-  import.meta.env.VITE_KAKAO_API_KEY || import.meta.env.VITE_KAKAO_JAVASCRIPT_KEY || '';
-
 /** @returns {Promise<boolean>} */
 export const sharePartyToKakao = async ({ title, description, posterUrl, imageUrl, linkUrl }) => {
   if (!window.Kakao) {
@@ -21,12 +20,11 @@ export const sharePartyToKakao = async ({ title, description, posterUrl, imageUr
     return false;
   }
 
-  const kakaoAppKey = getKakaoJsKey();
+  const kakaoAppKey = getKakaoApiKey();
   if (!kakaoAppKey) {
     window.alert(
       '카카오 JavaScript 키가 없습니다.\n' +
-        'developers.kakao.com → 앱 → JavaScript 키를 VITE_KAKAO_API_KEY 로 Vercel/.env에 넣어 주세요.\n' +
-        '(REST API 키는 공유에 쓸 수 없습니다.)'
+        'VITE_KAKAO_API_KEY 를 .env / Vercel에 설정해 주세요.'
     );
     return false;
   }
