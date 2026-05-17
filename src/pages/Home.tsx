@@ -1124,7 +1124,7 @@ const HomePage = ({
       {activeTab === null && (
       <div style={{ padding: '8px 12px 12px', marginBottom: '24px' }}>
         <p style={{ ...quickMenuSectionTitleStyle, marginTop: 0 }}>파티 & 이벤트</p>
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px', width: '100%' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '8px', width: '100%' }}>
         {[
           { icon: <Music size={22} color="#FF1744" />, label: '소셜', action: () => setActiveTab('social') },
           { icon: <Tent size={22} color="#FF1744" />, label: '부트캠프', action: () => setView('bootcamp') },
