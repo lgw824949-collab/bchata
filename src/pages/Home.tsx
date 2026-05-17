@@ -1643,6 +1643,7 @@ const HomePage = ({
                         );
 
                         const isFirst = regionName === '경기/인천';
+                        const weather = regionName === '서울' && weatherMap['서울'] ? { temperature: weatherMap['서울'].temp, icon: weatherMap['서울'].icon } : null;
 
                         return (
                           <React.Fragment key={regionName}>
@@ -1674,6 +1675,11 @@ const HomePage = ({
                                   >
                                     {t(regionKeys[regionName] || regionName)}
                                   </span>
+                                  {weather && regionName === '서울' && (
+                                    <span style={{ fontSize: '12px', color: '#C9A84C', fontWeight: '600', marginLeft: '4px' }}>
+                                      {weather.temperature}° {weather.icon}
+                                    </span>
+                                  )}
                                   <span style={{ fontSize: '12px', color: 'var(--color-text-secondary)', fontWeight: '600', marginLeft: '4px' }}>
                                     {(() => {
                                       const d = new Date(selectedDate);
