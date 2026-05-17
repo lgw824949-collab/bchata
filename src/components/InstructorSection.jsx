@@ -421,10 +421,10 @@ const InstructorSection = () => {
             style={{
               padding: '8px 14px', borderRadius: '12px', background: 'rgba(201,168,76,0.15)',
               border: '1px solid #C9A84C', color: '#C9A84C', fontSize: '12px', fontWeight: 800,
-              cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '4px'
+              cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '4px', whiteSpace: 'nowrap'
             }}
           >
-            👑 마스터 전용
+            👑 강사 전용
           </button>
         </div>
       </div>
@@ -537,10 +537,10 @@ const InstructorSection = () => {
                   <div style={{ fontSize: '24px', fontWeight: 950, color: '#FFF', marginBottom: '4px' }}>{instructors[0].name}</div>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
                     <div style={{ fontSize: '12px', color: '#A1A1AA', fontWeight: 600 }}>{getGenre(instructors[0].genre)}</div>
-                    <div style={{ width: 4, height: 4, borderRadius: '50%', background: '#C9A84C' }} />
+                    {/* <div style={{ width: 4, height: 4, borderRadius: '50%', background: '#C9A84C' }} />
                     <div style={{ display: 'flex', alignItems: 'center', gap: 4, fontSize: '12px', color: '#C9A84C', fontWeight: 800 }}>
                       <Star size={12} fill="#C9A84C" /> {instructors[0].follower_count?.toLocaleString()} Followers
-                    </div>
+                    </div> */}
                   </div>
                 </div>
               </motion.div>
@@ -713,7 +713,7 @@ const InstructorSection = () => {
 
                 {/* 3. Stat Grid */}
                 <div style={{ display: 'flex', gap: '10px', marginTop: '25px' }}>
-                  <StatCard 
+                  {/* <StatCard 
                     label="Followers" 
                     value={getDynamicStat(selectedInstructor, 'followers')} 
                     subValue="0 new" 
@@ -724,7 +724,7 @@ const InstructorSection = () => {
                     value={getDynamicStat(selectedInstructor, 'likes')} 
                     subValue="0 new" 
                     icon={<Heart size={10} fill="#C9A84C" color="#C9A84C" />} 
-                  />
+                  /> */}
                   <StatCard label="Classes" value={getDynamicStat(selectedInstructor, 'classes')} />
                   <StatCard label="Bookings" value={getDynamicStat(selectedInstructor, 'bookings')} />
                 </div>
