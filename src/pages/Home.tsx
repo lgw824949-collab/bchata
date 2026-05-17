@@ -954,8 +954,7 @@ const HomePage = ({
   const quickMenuSectionTitleStyle = { fontSize: '12px', color: 'rgba(255,255,255,0.6)', fontWeight: 700, letterSpacing: '1px', marginBottom: '8px', textShadow: '0 1px 4px rgba(0,0,0,0.8)' };
 
   return (
-    <div className="app-container" style={{ position: 'relative', width: '100%', maxWidth: '500px', margin: '0 auto', backgroundImage: "url('/Photo/네이버2.png')", backgroundSize: 'cover', backgroundPosition: 'center', backgroundAttachment: 'fixed', minHeight: '100vh', paddingBottom: '80px', transition: 'background-color 0.3s' }}>
-      <div aria-hidden style={{ position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.2)', zIndex: 0, pointerEvents: 'none' }} />
+    <div className="app-container" style={{ width: '100%', maxWidth: '500px', margin: '0 auto', background: 'var(--color-bg)', minHeight: '100vh', paddingBottom: '80px', transition: 'background-color 0.3s' }}>
       <div style={{ position: 'relative', zIndex: 1 }}>
 
       {/* 📌 [영역 A: 브랜드 헤더 - 최종 확정] */}
