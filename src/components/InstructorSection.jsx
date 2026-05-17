@@ -277,7 +277,7 @@ const InstructorSection = () => {
       ));
       
       window.dispatchEvent(new CustomEvent('refresh-sidebar')); 
-      alert('마스터를 팔로우했습니다! 사이드바에서 확인하세요.');
+      alert('즐겁고 행복한 수업 되세요! 🎶');
     } catch (err) {
       console.error('Follow error:', err);
       // If error is duplicate key, it means already followed in DB but maybe not in localStorage
