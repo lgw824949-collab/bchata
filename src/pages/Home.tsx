@@ -751,6 +751,19 @@ const HomePage = ({
   const isEn = i18n.language.startsWith('en');
   const lang = isEn ? 'en' : 'ko';
   const [activeTab, setActiveTabState] = useState(null);
+  const [particles, setParticles] = useState<{id: number, x: number, y: number, emoji: string}[]>([]);
+
+  const triggerParticle = (e: React.MouseEvent, emoji: string) => {
+    const rect = (e.currentTarget as HTMLElement).getBoundingClientRect();
+    const newParticles = Array.from({length: 6}, (_, i) => ({
+      id: Date.now() + i,
+      x: rect.left + rect.width / 2,
+      y: rect.top + rect.height / 2,
+      emoji,
+    }));
+    setParticles(prev => [...prev, ...newParticles]);
+    setTimeout(() => setParticles(prev => prev.filter(p => !newParticles.find(n => n.id === p.id))), 800);
+  };
 
   const setActiveTab = (tab) => {
     setActiveTabState(tab);
@@ -1116,12 +1129,12 @@ const HomePage = ({
         <p style={{ ...quickMenuSectionTitleStyle, marginTop: 0 }}>파티 & 이벤트</p>
         <motion.div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, auto)', gap: '6px', width: '100%', justifyContent: 'start', marginBottom: '16px' }}>
         {[
-          { icon: <Tent size={32} strokeWidth={1.2} color="#E53935" />, label: '부트캠프', action: () => setView('bootcamp') },
-          { icon: <Star size={32} strokeWidth={1.2} color="#E53935" />, label: '페스티벌', action: () => setView('festival') },
-          { icon: <Map size={32} strokeWidth={1.2} color="#E53935" />, label: 'MT', action: () => setView('festival') },
-          { icon: <Music size={32} strokeWidth={1.2} color="#E53935" />, label: '소셜', action: () => setActiveTab('social') },
+          { icon: <Tent size={32} strokeWidth={1.2} color="#E53935" />, label: '부트캠프', particles: '⛺', action: () => setView('bootcamp') },
+          { icon: <Star size={32} strokeWidth={1.2} color="#E53935" />, label: '페스티벌', particles: '⭐', action: () => setView('festival') },
+          { icon: <Map size={32} strokeWidth={1.2} color="#E53935" />, label: 'MT', particles: '🏔', action: () => setView('festival') },
+          { icon: <Music size={32} strokeWidth={1.2} color="#E53935" />, label: '소셜', particles: '🎵', action: () => setActiveTab('social') },
         ].map((item, idx) => (
-          <motion.div key={`party-${idx}`} whileTap={{ scale: 0.92 }} onClick={item.action} style={{ ...quickMenuFloatStyle, position: 'relative', width: '100%' }}>
+          <motion.div key={`party-${idx}`} whileTap={{ scale: 0.92 }} onClick={(e) => { triggerParticle(e, item.particles); item.action(); }} style={{ ...quickMenuFloatStyle, position: 'relative', width: '100%' }}>
             <motion.div style={{ ...quickMenuIconWrapStyle, width: '44px', height: '44px' }}>{item.icon}</motion.div>
             <span style={{ ...quickMenuLabelStyle, fontSize: '11px' }}>{item.label}</span>
           </motion.div>
@@ -1132,12 +1145,12 @@ const HomePage = ({
         <p style={{ ...quickMenuSectionTitleStyle }}>파트너 & 강사</p>
         <motion.div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, auto)', gap: '6px', width: '100%', justifyContent: 'start', marginBottom: '16px' }}>
         {[
-          { icon: <Users size={32} strokeWidth={1.2} color="#C9A84C" />, label: '파트너', action: () => setActiveTab('partner') },
-          { icon: <Users size={32} strokeWidth={1.2} color="#C9A84C" />, label: '강사찾기', action: () => { localStorage.setItem('instructor_target_genre', '전체'); setView('instructors'); window.history.pushState({}, '', '/instructors'); window.dispatchEvent(new PopStateEvent('popstate')); setTimeout(() => { window.dispatchEvent(new CustomEvent('apply-instructor-filter')); }, 300); } },
-          { textIcon: '1:1', label: '채팅문의', action: () => window.open('https://open.kakao.com/o/gP43rNri', '_blank') },
-          { icon: <MessageSquare size={32} strokeWidth={1.2} color="#C9A84C" />, label: '컨시어지', action: () => window.dispatchEvent(new CustomEvent('open-chatbot')) },
+          { icon: <Users size={32} strokeWidth={1.2} color="#C9A84C" />, label: '파트너', particles: '💑', action: () => setActiveTab('partner') },
+          { icon: <Users size={32} strokeWidth={1.2} color="#C9A84C" />, label: '강사찾기', particles: '🕺', action: () => { localStorage.setItem('instructor_target_genre', '전체'); setView('instructors'); window.history.pushState({}, '', '/instructors'); window.dispatchEvent(new PopStateEvent('popstate')); setTimeout(() => { window.dispatchEvent(new CustomEvent('apply-instructor-filter')); }, 300); } },
+          { textIcon: '1:1', label: '채팅문의', particles: '💬', action: () => window.open('https://open.kakao.com/o/gP43rNri', '_blank') },
+          { icon: <MessageSquare size={32} strokeWidth={1.2} color="#C9A84C" />, label: '컨시어지', particles: '✨', action: () => window.dispatchEvent(new CustomEvent('open-chatbot')) },
         ].map((item, idx) => (
-          <motion.div key={`partner-${idx}`} whileTap={{ scale: 0.92 }} onClick={item.action} style={{ ...quickMenuFloatStyle, position: 'relative', width: '100%' }}>
+          <motion.div key={`partner-${idx}`} whileTap={{ scale: 0.92 }} onClick={(e) => { triggerParticle(e, item.particles); item.action(); }} style={{ ...quickMenuFloatStyle, position: 'relative', width: '100%' }}>
             {item.textIcon ? (
               <motion.div style={{ ...quickMenuIconWrapStyle, width: '44px', height: '44px', fontSize: 18, fontWeight: 900, color: '#C9A84C', letterSpacing: '-0.8px' }}>{item.textIcon}</motion.div>
             ) : (
@@ -1152,21 +1165,35 @@ const HomePage = ({
         <p style={{ ...quickMenuSectionTitleStyle }}>도구 & 정보</p>
         <motion.div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, auto)', gap: '6px', width: '100%', justifyContent: 'start' }}>
         {[
-          { icon: <Calendar size={32} strokeWidth={1.2} color="#1976D2" />, label: '행사달력', action: () => setShowFullCalendar(true) },
-          { icon: <Heart size={32} strokeWidth={1.2} color="#1976D2" />, label: '찜하기', action: () => setShowWishlist(true) },
-          { icon: <Utensils size={32} strokeWidth={1.2} color="#1976D2" />, label: '맛집뒷풀이', action: () => setView('restaurant') },
-          { icon: <MapPin size={32} strokeWidth={1.2} color="#1976D2" />, label: '위치·대관', action: () => setShowRentalModal(true) },
-          { icon: <Camera size={32} strokeWidth={1.2} color="#1976D2" />, label: '라이브픽', action: () => setView('community') },
-          { icon: <CloudSun size={32} strokeWidth={1.2} color="#1976D2" />, label: '오늘날씨', action: () => setShowWeather(true) },
-          { icon: <Navigation size={32} strokeWidth={1.2} color="#1976D2" />, label: '지능형경로', action: () => openAnalysis(false) },
-          { icon: <Star size={32} strokeWidth={1.2} color="#1976D2" />, label: '운명의좌표', action: () => setShowSaju(true) },
+          { icon: <Calendar size={32} strokeWidth={1.2} color="#1976D2" />, label: '행사달력', particles: '📅', action: () => setShowFullCalendar(true) },
+          { icon: <Heart size={32} strokeWidth={1.2} color="#1976D2" />, label: '찜하기', particles: '❤️', action: () => setShowWishlist(true) },
+          { icon: <Utensils size={32} strokeWidth={1.2} color="#1976D2" />, label: '맛집뒷풀이', particles: '🍽', action: () => setView('restaurant') },
+          { icon: <MapPin size={32} strokeWidth={1.2} color="#1976D2" />, label: '위치·대관', particles: '📍', action: () => setShowRentalModal(true) },
+          { icon: <Camera size={32} strokeWidth={1.2} color="#1976D2" />, label: '라이브픽', particles: '📸', action: () => setView('community') },
+          { icon: <CloudSun size={32} strokeWidth={1.2} color="#1976D2" />, label: '오늘날씨', particles: '☀️', action: () => setShowWeather(true) },
+          { icon: <Navigation size={32} strokeWidth={1.2} color="#1976D2" />, label: '지능형경로', particles: '🧭', action: () => openAnalysis(false) },
+          { icon: <Star size={32} strokeWidth={1.2} color="#1976D2" />, label: '운명의좌표', particles: '🌟', action: () => setShowSaju(true) },
         ].map((item, idx) => (
-          <motion.div key={`tool-${idx}`} whileTap={{ scale: 0.92 }} onClick={item.action} style={{ ...quickMenuFloatStyle, position: 'relative', width: '100%' }}>
+          <motion.div key={`tool-${idx}`} whileTap={{ scale: 0.92 }} onClick={(e) => { triggerParticle(e, item.particles); item.action(); }} style={{ ...quickMenuFloatStyle, position: 'relative', width: '100%' }}>
             <motion.div style={{ ...quickMenuIconWrapStyle, width: '44px', height: '44px' }}>{item.icon}</motion.div>
             <span style={{ ...quickMenuLabelStyle, fontSize: '11px' }}>{item.label}</span>
           </motion.div>
         ))}
         </motion.div>
+        <AnimatePresence>
+        {particles.map(p => (
+          <motion.div
+            key={p.id}
+            initial={{ opacity: 1, y: 0, x: 0, scale: 1 }}
+            animate={{ opacity: 0, y: -60, x: (Math.random() - 0.5) * 80, scale: 1.5 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.7, ease: 'easeOut' }}
+            style={{ position: 'fixed', left: p.x, top: p.y, fontSize: '20px', pointerEvents: 'none', zIndex: 9999 }}
+          >
+            {p.emoji}
+          </motion.div>
+        ))}
+        </AnimatePresence>
       </div>
       )}
 
