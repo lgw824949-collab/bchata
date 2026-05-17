@@ -1,5 +1,5 @@
 import React from 'react';
-import { Clock, Navigation } from 'lucide-react';
+import { Clock } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { sharePartyToKakao } from '../lib/kakaoShare';
 
@@ -89,6 +89,12 @@ const PartyCard = ({ item, onSelect }) => {
   const cleanTitleStr = item.title?.split(' ㅣ ')[0] || '';
   const displayTime = item.time?.split('-')[0].trim() || '21:00';
   const displayFee = formatPrice(item.fee);
+  const todayStr = (() => {
+    const d = new Date();
+    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+  })();
+  const timeLabel = item.date === todayStr ? `오늘 ${displayTime}` : displayTime;
+  const mapQuery = encodeURIComponent(item.address || item.locationName || '');
 
   const handleKakaoShare = async (e) => {
     e.stopPropagation();
@@ -110,7 +116,7 @@ const PartyCard = ({ item, onSelect }) => {
 
       <div style={{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'space-between', minWidth: 0, padding: '14px 16px' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-          <span style={{ fontSize: '11px', fontWeight: '700', color: '#E53935', background: '#fff0f0', padding: '2px 8px', borderRadius: '6px', border: '1px solid #ffc9c9', flexShrink: 0 }}>
+          <span style={{ fontSize: '11px', fontWeight: '700', color: '#E53935', background: '#111', padding: '2px 8px', borderRadius: '4px', flexShrink: 0 }}>
             {(() => {
               const entries = Object.entries(GENRE_MAP).filter(([_, info]) => item[info.key] > 0)
               if (entries.length === 0) return '소셜'
@@ -124,25 +130,35 @@ const PartyCard = ({ item, onSelect }) => {
           )}
         </div>
 
-        <div style={{ fontSize: '15px', fontWeight: '900', color: 'var(--color-text-main)', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden', textOverflow: 'ellipsis', letterSpacing: '-0.5px', lineHeight: 1.2, marginTop: '4px' }}>
+        <div style={{ fontSize: '16px', fontWeight: '900', color: 'var(--color-text-main)', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden', textOverflow: 'ellipsis', letterSpacing: '-0.8px', lineHeight: 1.2, marginTop: '4px' }}>
           {translateDynamicText(cleanTitleStr.replace(/^\[.*?\]\s*/, '').replace(/ㅣ\s*$/, '').trim(), isEn)}
         </div>
 
         <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '3px', flexWrap: 'wrap' }}>
             <span style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: '13px', color: 'var(--color-text-sub)', fontWeight: 700 }}>
               <Clock size={13} />
-              {displayTime}
+              {timeLabel}
             </span>
-            <span
-              onClick={(e) => { e.stopPropagation(); const addr = item.address || item.locationName; const query = encodeURIComponent(addr); window.open(isEn ? `https://www.google.com/maps/search/?api=1&query=${query}` : `https://map.kakao.com/link/search/${query}`, '_blank') }}
-              style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: '13px', color: 'var(--color-text-sub)', cursor: 'pointer', fontWeight: 700 }}
-            >
-              <Navigation size={13} color="#E53935" fill="#E53935" />
+            <span style={{ fontSize: '13px', color: 'var(--color-text-sub)', fontWeight: 700 }}>
               {translateDynamicText(item.locationName || item.studio_name || '장소 미지정', isEn)}
             </span>
+            <button
+              type="button"
+              onClick={(e) => { e.stopPropagation(); window.open(`https://map.kakao.com/link/search/${mapQuery}`, '_blank'); }}
+              style={{ padding: '4px 8px', borderRadius: '8px', border: '1px solid var(--color-border)', background: 'var(--color-card)', cursor: 'pointer', fontSize: '14px', lineHeight: 1 }}
+            >
+              🗺️
+            </button>
+            <button
+              type="button"
+              onClick={(e) => { e.stopPropagation(); window.open(`https://www.google.com/maps/search/?api=1&query=${mapQuery}`, '_blank'); }}
+              style={{ padding: '4px 8px', borderRadius: '8px', border: '1px solid var(--color-border)', background: 'var(--color-card)', cursor: 'pointer', fontSize: '14px', lineHeight: 1 }}
+            >
+              🗺️
+            </button>
           </div>
-          <span style={{ fontSize: '14px', fontWeight: '900', color: '#E53935' }}>
+          <span style={{ fontSize: '15px', fontWeight: '900', color: '#E53935' }}>
             {displayFee}
           </span>
         </div>
@@ -154,7 +170,7 @@ const PartyCard = ({ item, onSelect }) => {
             color: '#3E2723',
             border: 'none',
             borderRadius: '10px',
-            padding: '8px 0',
+            padding: '8px 12px',
             fontSize: '13px',
             fontWeight: '900',
             marginTop: '8px',
@@ -162,12 +178,12 @@ const PartyCard = ({ item, onSelect }) => {
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
-            gap: '6px',
-            width: '100%',
+            width: 'auto',
+            alignSelf: 'flex-end',
             boxShadow: '0 2px 4px rgba(0,0,0,0.05)'
           }}
         >
-          <span style={{ fontSize: '16px' }}>💬</span> 카카오톡 공유
+          <span style={{ fontSize: '16px' }}>💬</span>
         </button>
       </div>
     </div>
