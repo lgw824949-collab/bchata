@@ -1138,7 +1138,7 @@ const HomePage = ({
         {[
           { icon: <Tent size={32} strokeWidth={1.2} color="#E53935" />, label: '부트캠프', action: () => setView('bootcamp') },
           { icon: <Star size={32} strokeWidth={1.2} color="#E53935" />, label: '페스티벌', action: () => setView('festival') },
-          { icon: <Map size={32} strokeWidth={1.2} color="#E53935" />, label: 'MT', action: () => setView('mt') },
+          { icon: <Map size={32} strokeWidth={1.2} color="#E53935" />, label: 'MT', action: () => setView('festival') },
           { icon: <Music size={32} strokeWidth={1.2} color="#E53935" />, label: '소셜', action: () => setActiveTab('social') },
         ].map((item, idx) => (
           <motion.div key={`party-${idx}`} whileTap={{ scale: 0.92 }} onClick={item.action} style={{ ...quickMenuFloatStyle, position: 'relative', width: '100%' }}>
