@@ -476,9 +476,7 @@ const PartyCard = ({ item, onSelect }) => {
               {displayTime}
             </span>
             {isTimeLive && (
-              <span style={{ fontSize: '12px', fontWeight: '800', color: '#FFB300', background: 'rgba(255,179,0,0.1)', padding: '2px 8px', borderRadius: '10px' }}>
-                실시간 {item.locationName?.includes('라틴크루') || item.title?.includes('라틴크루') || item.studio_name?.includes('라틴크루') ? '120' : '1'}
-              </span>
+              <LiveCount barName={item.locationName || item.studio_name} />
             )}
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
@@ -1740,9 +1738,7 @@ const HomePage = ({
                                             {item.time?.split('-')[0].trim() || '21:00'}
                                           </span>
                                           {isItemLive && (
-                                            <span style={{ fontSize: '11px', fontWeight: '800', color: '#FFB300', background: 'rgba(255,179,0,0.1)', padding: '1px 6px', borderRadius: '8px', marginLeft: 'auto' }}>
-                                              실시간 {item.locationName?.includes('라틴크루') || item.title?.includes('라틴크루') || item.studio_name?.includes('라틴크루') ? '120' : '1'}
-                                            </span>
+                                            <LiveCount barName={item.locationName || item.studio_name} />
                                           )}
                                         </div>
 
