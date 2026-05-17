@@ -273,7 +273,10 @@ const PosterModal = ({ src, onClose, shareTitle, shareDesc }) => {
           containerProps={{
             style: {
               width: '100%',
-              height: '100%'
+              height: '100%',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
             }
           }}
         >
@@ -284,7 +287,8 @@ const PosterModal = ({ src, onClose, shareTitle, shareDesc }) => {
             style={{ 
               width: '100%',
               height: '100%',
-              objectFit: 'cover',
+              objectFit: 'contain',
+              objectPosition: 'center center',
               display: 'block',
               willChange: 'transform',
               userSelect: 'none',
