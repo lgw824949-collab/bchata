@@ -1136,9 +1136,9 @@ const HomePage = ({
               }, 300);
             },
           },
+          { icon: <MessageSquare size={22} color="#FF8A80" />, label: '컨시어지', action: () => window.dispatchEvent(new CustomEvent('open-chatbot')) },
           { icon: <Utensils size={22} color="#C2185B" />, label: '맛집뒷풀이', action: () => setView('restaurant') },
           { icon: <MapPin size={22} color="#10B981" />, label: '위치·대관', action: () => setShowRentalModal(true) },
-          // { icon: <MessageSquare size={22} color="#FF8A80" />, label: '컨시어지', action: () => window.dispatchEvent(new CustomEvent('open-chatbot')) },
           { textIcon: '1:1', label: '채팅문의', action: () => window.open('https://open.kakao.com/o/gP43rNri', '_blank') },
           { icon: <Camera size={22} color="#E53935" />, label: '라이브픽', /* badge: 'HOT', */ action: () => setView('community') },
           { icon: <CloudSun size={22} color="#1976D2" />, label: '오늘날씨', action: () => setShowWeather(true) },
