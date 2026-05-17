@@ -949,7 +949,9 @@ const HomePage = ({
   }, []);
 
   return (
-    <div className="app-container" style={{ width: '100%', maxWidth: '500px', margin: '0 auto', background: 'var(--color-bg)', minHeight: '100vh', paddingBottom: '80px', transition: 'background-color 0.3s' }}>
+    <div className="app-container" style={{ position: 'relative', width: '100%', maxWidth: '500px', margin: '0 auto', backgroundImage: "url('/Photo/네이버2.png')", backgroundSize: 'cover', backgroundPosition: 'center', backgroundAttachment: 'fixed', minHeight: '100vh', paddingBottom: '80px', transition: 'background-color 0.3s' }}>
+      <div aria-hidden style={{ position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.55)', zIndex: 0, pointerEvents: 'none' }} />
+      <div style={{ position: 'relative', zIndex: 1 }}>
 
       {/* 📌 [영역 A: 브랜드 헤더 - 최종 확정] */}
       {/* 📌 [영역 A: 브랜드 헤더 - 최종 확정 고도화] */}
@@ -1121,7 +1123,7 @@ const HomePage = ({
       `}</style>
       {activeTab === null && (
       <div style={{ padding: '8px 12px 12px', marginBottom: '24px' }}>
-        <p style={{ fontSize: '12px', color: '#888', fontWeight: 700, letterSpacing: '1px', marginBottom: '8px', marginTop: 0 }}>파티 & 이벤트</p>
+        <p style={{ fontSize: '12px', color: '#ffffff', fontWeight: 700, letterSpacing: '1px', marginBottom: '8px', marginTop: 0 }}>파티 & 이벤트</p>
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px', width: '100%' }}>
         {[
           { icon: <Music size={22} color="#FF1744" />, label: '소셜', action: () => setActiveTab('social') },
@@ -1142,7 +1144,7 @@ const HomePage = ({
                 style={{
                   display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
                   gap: '6px', cursor: 'pointer', borderRadius: '12px',
-                  padding: '12px 4px 10px', background: '#fff', height: '66px', boxSizing: 'border-box'
+                  padding: '12px 4px 10px', background: 'rgba(0,0,0,0.45)', backdropFilter: 'blur(12px)', WebkitBackdropFilter: 'blur(12px)', border: '1px solid rgba(255,255,255,0.12)', color: '#ffffff', height: '66px', boxSizing: 'border-box'
                 }}
               >
                 {item.textIcon ? (
@@ -1165,7 +1167,7 @@ const HomePage = ({
                     {item.textIcon}
                   </motion.div>
                 ) : item.icon}
-                <span style={{ fontSize: '10px', fontWeight: 600, color: '#1E293B', textAlign: 'center', lineHeight: 1.2, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', width: '100%' }}>
+                <span style={{ fontSize: '10px', fontWeight: 600, color: '#ffffff', textAlign: 'center', lineHeight: 1.2, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', width: '100%' }}>
                   {item.label}
                 </span>
               </motion.div>
@@ -1178,7 +1180,7 @@ const HomePage = ({
           </div>
         ))}
         </div>
-        <p style={{ fontSize: '12px', color: '#888', fontWeight: 700, letterSpacing: '1px', marginBottom: '8px', marginTop: '20px' }}>파트너 & 강사</p>
+        <p style={{ fontSize: '12px', color: '#ffffff', fontWeight: 700, letterSpacing: '1px', marginBottom: '8px', marginTop: '20px' }}>파트너 & 강사</p>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '8px', width: '100%' }}>
         {[
           { icon: <Users size={22} color="#FF1744" />, label: '파트너', action: () => setActiveTab('partner') },
@@ -1197,17 +1199,17 @@ const HomePage = ({
         ].map((item, idx) => (
           <div key={`people-${idx}`} style={{ position: 'relative', flexShrink: 0, width: '100%' }}>
             <div style={{ borderRadius: '14px', padding: '1.5px', background: 'linear-gradient(135deg, #CBD5E1, #E2E8F0, #CBD5E1)', boxShadow: '0 8px 16px rgba(0,0,0,0.04)' }}>
-              <motion.div whileTap={{ scale: 0.92 }} onClick={item.action} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '6px', cursor: 'pointer', borderRadius: '12px', padding: '12px 4px 10px', background: '#fff', height: '66px', boxSizing: 'border-box' }}>
+              <motion.div whileTap={{ scale: 0.92 }} onClick={item.action} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '6px', cursor: 'pointer', borderRadius: '12px', padding: '12px 4px 10px', background: 'rgba(0,0,0,0.45)', backdropFilter: 'blur(12px)', WebkitBackdropFilter: 'blur(12px)', border: '1px solid rgba(255,255,255,0.12)', color: '#ffffff', height: '66px', boxSizing: 'border-box' }}>
                 {item.textIcon ? (
                   <motion.div style={{ width: 28, height: 28, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 14, fontWeight: 900, color: '#388E3C', letterSpacing: '-0.8px', lineHeight: 1, flexShrink: 0 }}>{item.textIcon}</motion.div>
                 ) : item.icon}
-                <span style={{ fontSize: '10px', fontWeight: 600, color: '#1E293B', textAlign: 'center', lineHeight: 1.2, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', width: '100%' }}>{item.label}</span>
+                <span style={{ fontSize: '10px', fontWeight: 600, color: '#ffffff', textAlign: 'center', lineHeight: 1.2, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', width: '100%' }}>{item.label}</span>
               </motion.div>
             </div>
           </div>
         ))}
         </div>
-        <p style={{ fontSize: '12px', color: '#888', fontWeight: 700, letterSpacing: '1px', marginBottom: '8px', marginTop: '20px' }}>도구 & 정보</p>
+        <p style={{ fontSize: '12px', color: '#ffffff', fontWeight: 700, letterSpacing: '1px', marginBottom: '8px', marginTop: '20px' }}>도구 & 정보</p>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '8px', width: '100%' }}>
         {[
           { icon: <Calendar size={22} color="#F97316" />, label: '행사달력', action: () => setShowFullCalendar(true) },
@@ -1222,9 +1224,9 @@ const HomePage = ({
         ].map((item, idx) => (
           <motion.div key={`tool-${idx}`} style={{ position: 'relative', flexShrink: 0, width: '100%' }}>
             <div style={{ borderRadius: '14px', padding: '1.5px', background: item.label === '위치·대관' ? 'linear-gradient(135deg, #34D399, #A7F3D0, #34D399)' : 'linear-gradient(135deg, #CBD5E1, #E2E8F0, #CBD5E1)', boxShadow: item.label === '위치·대관' ? '0 0 10px rgba(16, 185, 129, 0.3)' : '0 8px 16px rgba(0,0,0,0.04)', animation: item.label === '위치·대관' ? 'gentleSparkle 2.5s infinite ease-in-out' : 'none' }}>
-              <motion.div whileTap={{ scale: 0.92 }} onClick={item.action} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '6px', cursor: 'pointer', borderRadius: '12px', padding: '12px 4px 10px', background: '#fff', height: '66px', boxSizing: 'border-box' }}>
+              <motion.div whileTap={{ scale: 0.92 }} onClick={item.action} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '6px', cursor: 'pointer', borderRadius: '12px', padding: '12px 4px 10px', background: 'rgba(0,0,0,0.45)', backdropFilter: 'blur(12px)', WebkitBackdropFilter: 'blur(12px)', border: '1px solid rgba(255,255,255,0.12)', color: '#ffffff', height: '66px', boxSizing: 'border-box' }}>
                 {item.icon}
-                <span style={{ fontSize: '10px', fontWeight: 600, color: '#1E293B', textAlign: 'center', lineHeight: 1.2, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', width: '100%' }}>{item.label}</span>
+                <span style={{ fontSize: '10px', fontWeight: 600, color: '#ffffff', textAlign: 'center', lineHeight: 1.2, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', width: '100%' }}>{item.label}</span>
               </motion.div>
             </div>
           </motion.div>
@@ -2336,6 +2338,7 @@ const HomePage = ({
       `}</style>
 
       {/* afterPartySheet UI removed */}
+      </div>
     </div>
   )
 }
