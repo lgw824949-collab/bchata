@@ -170,9 +170,32 @@ const Instructors = () => {
       }}
     >
       <motion.div style={{ padding: '28px 20px 8px' }}>
-        <h1 style={{ margin: 0, fontSize: '24px', fontWeight: 800, letterSpacing: '-0.5px', color: '#FAFAFA' }}>
-          강사 찾기
-        </h1>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '12px' }}>
+          <h1 style={{ margin: 0, fontSize: '24px', fontWeight: 800, letterSpacing: '-0.5px', color: '#FAFAFA' }}>
+            강사 찾기
+          </h1>
+          <button
+            type="button"
+            onClick={() => {
+              window.history.pushState({}, '', '/register-class');
+              window.dispatchEvent(new PopStateEvent('popstate'));
+            }}
+            style={{
+              flexShrink: 0,
+              padding: '8px 14px',
+              borderRadius: '12px',
+              border: 'none',
+              background: '#FF1744',
+              color: '#fff',
+              fontSize: '12px',
+              fontWeight: 800,
+              cursor: 'pointer',
+              boxShadow: '0 4px 12px rgba(255, 23, 68, 0.25)',
+            }}
+          >
+            강사등록
+          </button>
+        </div>
         <p style={{ margin: '8px 0 0', fontSize: '14px', color: '#A1A1AA', fontWeight: 500, lineHeight: 1.5 }}>
           장르·지역·수업 정보를 확인하고 연락하세요.
         </p>

@@ -1986,7 +1986,7 @@ function App() {
         )}
       </AnimatePresence>
 
-      {location.pathname === '/' && view === 'home' && !showPartner && !showSplash && (
+      {false && location.pathname === '/' && view === 'home' && !showPartner && !showSplash && (
         <div
           style={{
             position: 'fixed',
@@ -2411,7 +2411,7 @@ function App() {
             if (location.pathname === '/livepick' || view === 'community') {
               window.dispatchEvent(new CustomEvent('open-community-upload'));
             } else if (location.pathname === '/instructors' || view === 'instructors') {
-              setShowClassRegister(true);
+              navigate('/register-class');
             } else if (location.pathname === '/bootcamp' || view === 'bootcamp' || view === 'bootcamp-register') {
               navigate('/bootcamp/register');
             } else if (location.pathname === '/festival' || view === 'festival' || view === 'festival-register') {
