@@ -768,53 +768,42 @@ const InstructorSection = () => {
                             <button onClick={() => { navigator.share?.({ title: selectedInstructor.name, url: window.location.href }); }} style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer' }}><Share2 size={20} color="#8E8E93" /></button>
                           </div>
                         </div>
-                        <p style={{ fontSize: '15px', color: '#A1A1AA', lineHeight: 1.6, fontWeight: 500, whiteSpace: 'pre-wrap' }}>
+                        <p style={{ fontSize: '15px', color: '#A1A1AA', lineHeight: 1.6, fontWeight: 500, whiteSpace: 'pre-wrap', margin: '0 0 10px 0' }}>
                           {selectedInstructor.bio || `Passionate professional professional with years of experience. Focused on technique, expression, and artistry. Based in ${selectedInstructor.city}.`}
                         </p>
 
-                        <div style={{ marginTop: '30px' }}>
-                          <div style={{ fontSize: '14px', fontWeight: 900, color: '#FFF', marginBottom: '8px' }}>Specialties</div>
-                          <div style={{ fontSize: '14px', color: '#8E8E93', fontWeight: 600, display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
+                        <div style={{ marginTop: '10px' }}>
+                          <div style={{ fontSize: '14px', fontWeight: 900, color: '#FFF', marginBottom: '4px' }}>Specialties</div>
+                          <div style={{ fontSize: '14px', color: '#8E8E93', fontWeight: 600, display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
                             {getGenre(selectedInstructor.genre).split(' · ').map(g => <span key={g} style={{ background: 'rgba(255,255,255,0.05)', padding: '4px 12px', borderRadius: '8px', border: '1px solid rgba(255,255,255,0.05)' }}>{g}</span>)}
                           </div>
                         </div>
 
-                        {/* 고품격 문의/예약 전용 프리미엄 박스 영역 */}
-                        <div style={{ 
-                          marginTop: '24px', padding: '18px', borderRadius: '20px', 
-                          background: 'linear-gradient(145deg, rgba(24,24,24,0.7) 0%, rgba(12,12,12,0.9) 100%)',
-                          border: '1px solid rgba(201,168,76,0.2)', boxShadow: '0 12px 32px rgba(0,0,0,0.6)'
-                        }}>
-                          <div style={{ fontSize: '11px', fontWeight: 800, color: '#C9A84C', letterSpacing: '0.5px', marginBottom: '14px', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                            <span>✨ DIRECT INQUIRY & BOOKING</span>
-                          </div>
-                          <div style={{ display: 'flex', gap: '10px' }}>
+                        {/* <span>✨ DIRECT INQUIRY & BOOKING</span> */}
+                        {(selectedInstructor.kakao_link || getInstaLink(selectedInstructor)) && (
+                          <div style={{ marginTop: '16px', display: 'flex', gap: '10px' }}>
                             {selectedInstructor.kakao_link && (
                               <button
                                 onClick={() => window.open(selectedInstructor.kakao_link, '_blank')}
-                                style={{ 
-                                  flex: 1, padding: '14px 8px', borderRadius: '14px', border: 'none', 
-                                  background: 'linear-gradient(135deg, #FEE500 0%, #E6CF00 100%)', color: '#111', 
-                                  fontSize: '13px', fontWeight: 900, cursor: 'pointer', textAlign: 'center',
-                                  boxShadow: '0 6px 16px rgba(254, 229, 0, 0.2)', transition: 'all 0.2s'
+                                style={{
+                                  flex: 1, padding: '12px 8px', borderRadius: '12px',
+                                  border: '1px solid rgba(255,255,255,0.2)', background: 'transparent',
+                                  color: '#E4E4E7', fontSize: '13px', fontWeight: 700, cursor: 'pointer', textAlign: 'center',
                                 }}
                               >💬 수업·레슨 문의</button>
                             )}
                             {getInstaLink(selectedInstructor) && (
                               <button
                                 onClick={() => window.open(getInstaLink(selectedInstructor), '_blank')}
-                                style={{ 
-                                  flex: 1, padding: '14px 8px', borderRadius: '14px', 
-                                  border: '1px solid rgba(201,168,76,0.4)', 
-                                  background: 'linear-gradient(135deg, rgba(201,168,76,0.15) 0%, rgba(201,168,76,0.05) 100%)', 
-                                  color: '#E5C266', fontSize: '13px', fontWeight: 900, cursor: 'pointer', textAlign: 'center',
-                                  boxShadow: '0 6px 16px rgba(201, 168, 76, 0.1)', backdropFilter: 'blur(8px)',
-                                  transition: 'all 0.2s'
+                                style={{
+                                  flex: 1, padding: '12px 8px', borderRadius: '12px',
+                                  border: '1px solid rgba(255,255,255,0.2)', background: 'transparent',
+                                  color: '#E4E4E7', fontSize: '13px', fontWeight: 700, cursor: 'pointer', textAlign: 'center',
                                 }}
                               >📅 부킹·예약 문의</button>
                             )}
                           </div>
-                        </div>
+                        )}
 
                         {(selectedInstructor.instagram || selectedInstructor.youtube) && (
                           <div style={{ marginTop: '24px', display: 'flex', gap: '12px', justifyContent: 'center' }}>
