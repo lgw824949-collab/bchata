@@ -734,7 +734,7 @@ const InstructorSection = () => {
                 {/* 4. Tabs */}
                 <div style={{ marginTop: '40px', borderBottom: '1px solid rgba(255,255,255,0.05)', position: 'relative' }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', padding: '0 10px' }}>
-                    {['BIO', 'CLASSES', 'GALLERY'].map(tab => (
+                    {['BIO', 'CLASSES' /* , 'GALLERY' */].map(tab => (
                       <button 
                         key={tab} 
                         onClick={() => setActiveTab(tab)}
@@ -815,6 +815,44 @@ const InstructorSection = () => {
                             )}
                           </div>
                         </div>
+
+                        {(selectedInstructor.instagram || selectedInstructor.youtube) && (
+                          <div style={{ marginTop: '24px', display: 'flex', gap: '12px', justifyContent: 'center' }}>
+                            {selectedInstructor.instagram && (
+                              <button
+                                type="button"
+                                onClick={() => window.open(getInstaLink(selectedInstructor) || `https://www.instagram.com/${String(selectedInstructor.instagram).replace(/^@/, '')}`, '_blank')}
+                                style={{
+                                  width: '48px', height: '48px', borderRadius: '14px', border: '1px solid rgba(255,255,255,0.1)',
+                                  background: 'rgba(255,255,255,0.05)', color: '#E1306C', cursor: 'pointer',
+                                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                }}
+                                aria-label="인스타그램"
+                              >
+                                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><rect x="2" y="2" width="20" height="20" rx="5" ry="5"/><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"/></svg>
+                              </button>
+                            )}
+                            {selectedInstructor.youtube && (
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  const url = selectedInstructor.youtube.startsWith('http')
+                                    ? selectedInstructor.youtube
+                                    : `https://${selectedInstructor.youtube}`;
+                                  window.open(url, '_blank');
+                                }}
+                                style={{
+                                  width: '48px', height: '48px', borderRadius: '14px', border: '1px solid rgba(255,255,255,0.1)',
+                                  background: 'rgba(255,255,255,0.05)', color: '#FF0000', cursor: 'pointer',
+                                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                }}
+                                aria-label="유튜브"
+                              >
+                                <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M22.54 6.42a2.78 2.78 0 0 0-1.95-2C18.88 4 12 4 12 4s-6.88 0-8.59.42a2.78 2.78 0 0 0-1.95 2 2.78 2.78 0 0 0-.42 1.58v3.84a2.78 2.78 0 0 0 .42 1.58 2.78 2.78 0 0 0 1.95 2C5.12 20 12 20 12 20s6.88 0 8.59-.42a2.78 2.78 0 0 0 1.95-2 2.78 2.78 0 0 0 .42-1.58V8a2.78 2.78 0 0 0-.42-1.58zM10 15.5v-7l6 3.5-6 3.5z"/></svg>
+                              </button>
+                            )}
+                          </div>
+                        )}
                       </motion.div>
                     )}
 
@@ -867,7 +905,7 @@ const InstructorSection = () => {
                       </div>
                     )}
 
-                    {activeTab === 'GALLERY' && (
+                    {/* {activeTab === 'GALLERY' && (
                       <motion.div 
                         key="gallery" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }}
                         style={{ padding: '40px 20px', textAlign: 'center' }}
@@ -896,7 +934,7 @@ const InstructorSection = () => {
                           </div>
                         )}
                       </motion.div>
-                    )}
+                    )} */}
                   </AnimatePresence>
                 </div>
               </div>
