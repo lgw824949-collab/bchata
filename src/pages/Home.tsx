@@ -948,6 +948,8 @@ const HomePage = ({
     return () => window.removeEventListener('resize', setVh);
   }, []);
 
+  const quickMenuSectionTitleStyle = { fontSize: '14px', color: '#888', fontWeight: '700', letterSpacing: '1px', marginBottom: '8px' };
+
   return (
     <div className="app-container" style={{ width: '100%', maxWidth: '500px', margin: '0 auto', background: 'var(--color-bg)', minHeight: '100vh', paddingBottom: '80px', transition: 'background-color 0.3s' }}>
 
@@ -1121,7 +1123,7 @@ const HomePage = ({
       `}</style>
       {activeTab === null && (
       <div style={{ padding: '8px 12px 12px', marginBottom: '24px' }}>
-        <p style={{ fontSize: '12px', color: '#888', fontWeight: 700, letterSpacing: '1px', marginBottom: '8px', marginTop: 0 }}>파티 & 이벤트</p>
+        <p style={{ ...quickMenuSectionTitleStyle, marginTop: 0 }}>파티 & 이벤트</p>
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px', width: '100%' }}>
         {[
           { icon: <Music size={22} color="#FF1744" />, label: '소셜', action: () => setActiveTab('social') },
@@ -1178,7 +1180,7 @@ const HomePage = ({
           </div>
         ))}
         </div>
-        <p style={{ fontSize: '12px', color: '#888', fontWeight: 700, letterSpacing: '1px', marginBottom: '8px', marginTop: '20px' }}>파트너 & 강사</p>
+        <p style={{ ...quickMenuSectionTitleStyle, marginTop: '20px' }}>파트너 & 강사</p>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '8px', width: '100%' }}>
         {[
           { icon: <Users size={22} color="#FF1744" />, label: '파트너', action: () => setActiveTab('partner') },
@@ -1208,7 +1210,7 @@ const HomePage = ({
           </div>
         ))}
         </div>
-        <p style={{ fontSize: '12px', color: '#888', fontWeight: 700, letterSpacing: '1px', marginBottom: '8px', marginTop: '20px' }}>도구 & 정보</p>
+        <p style={{ ...quickMenuSectionTitleStyle, marginTop: '20px' }}>도구 & 정보</p>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '8px', width: '100%' }}>
         {[
           { icon: <Calendar size={22} color="#F97316" />, label: '행사달력', action: () => setShowFullCalendar(true) },
