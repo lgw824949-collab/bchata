@@ -950,7 +950,7 @@ const HomePage = ({
 
   const quickMenuSectionTitleStyle = { fontSize: '14px', color: '#888', fontWeight: '700', letterSpacing: '1px', marginBottom: '8px' };
   const quickMenuFloatStyle = { display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '6px', cursor: 'pointer', padding: '12px 4px', minHeight: 'auto', boxSizing: 'border-box' };
-  const quickMenuIconWrapStyle = { width: '40px', height: '40px', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 };
+  const quickMenuIconWrapStyle = { width: '40px', height: '40px', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, filter: 'drop-shadow(0 2px 4px rgba(0,0,0,0.15))' };
   const quickMenuLabelStyle = { color: '#1E293B', fontWeight: 600, fontSize: '11px', marginTop: '4px', textAlign: 'center', lineHeight: 1.25, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', width: '100%' };
 
   return (
@@ -1130,10 +1130,10 @@ const HomePage = ({
         <p style={{ ...quickMenuSectionTitleStyle, marginTop: 0 }}>파티 & 이벤트</p>
         <motion.div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '8px', width: '100%', marginBottom: '16px' }}>
         {[
-          { icon: <Tent size={32} color="#E53935" />, label: '부트캠프', action: () => setView('bootcamp') },
-          { icon: <Star size={32} color="#E53935" />, label: '페스티벌', action: () => setView('festival') },
-          { icon: <Map size={32} color="#E53935" />, label: 'MT', action: () => setView('mt') },
-          { icon: <Music size={32} color="#E53935" />, label: '소셜', action: () => setActiveTab('social') },
+          { icon: <Tent size={32} strokeWidth={1.2} color="#E53935" />, label: '부트캠프', action: () => setView('bootcamp') },
+          { icon: <Star size={32} strokeWidth={1.2} color="#E53935" />, label: '페스티벌', action: () => setView('festival') },
+          { icon: <Map size={32} strokeWidth={1.2} color="#E53935" />, label: 'MT', action: () => setView('mt') },
+          { icon: <Music size={32} strokeWidth={1.2} color="#E53935" />, label: '소셜', action: () => setActiveTab('social') },
         ].map((item, idx) => (
           <motion.div key={`party-${idx}`} whileTap={{ scale: 0.92 }} onClick={item.action} style={{ ...quickMenuFloatStyle, position: 'relative', width: '100%' }}>
             <motion.div style={{ ...quickMenuIconWrapStyle, width: '44px', height: '44px' }}>{item.icon}</motion.div>
@@ -1146,10 +1146,10 @@ const HomePage = ({
         <p style={{ ...quickMenuSectionTitleStyle }}>파트너 & 강사</p>
         <motion.div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '8px', width: '100%', marginBottom: '16px' }}>
         {[
-          { icon: <Users size={32} color="#C9A84C" />, label: '파트너', action: () => setActiveTab('partner') },
-          { icon: <Users size={32} color="#C9A84C" />, label: '강사찾기', action: () => { localStorage.setItem('instructor_target_genre', '전체'); setView('instructors'); window.history.pushState({}, '', '/instructors'); window.dispatchEvent(new PopStateEvent('popstate')); setTimeout(() => { window.dispatchEvent(new CustomEvent('apply-instructor-filter')); }, 300); } },
+          { icon: <Users size={32} strokeWidth={1.2} color="#C9A84C" />, label: '파트너', action: () => setActiveTab('partner') },
+          { icon: <Users size={32} strokeWidth={1.2} color="#C9A84C" />, label: '강사찾기', action: () => { localStorage.setItem('instructor_target_genre', '전체'); setView('instructors'); window.history.pushState({}, '', '/instructors'); window.dispatchEvent(new PopStateEvent('popstate')); setTimeout(() => { window.dispatchEvent(new CustomEvent('apply-instructor-filter')); }, 300); } },
           { textIcon: '1:1', label: '채팅문의', action: () => window.open('https://open.kakao.com/o/gP43rNri', '_blank') },
-          { icon: <MessageSquare size={32} color="#C9A84C" />, label: '컨시어지', action: () => window.dispatchEvent(new CustomEvent('open-chatbot')) },
+          { icon: <MessageSquare size={32} strokeWidth={1.2} color="#C9A84C" />, label: '컨시어지', action: () => window.dispatchEvent(new CustomEvent('open-chatbot')) },
         ].map((item, idx) => (
           <motion.div key={`partner-${idx}`} whileTap={{ scale: 0.92 }} onClick={item.action} style={{ ...quickMenuFloatStyle, position: 'relative', width: '100%' }}>
             {item.textIcon ? (
@@ -1166,14 +1166,14 @@ const HomePage = ({
         <p style={{ ...quickMenuSectionTitleStyle }}>도구 & 정보</p>
         <motion.div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '8px', width: '100%' }}>
         {[
-          { icon: <Calendar size={32} color="#1976D2" />, label: '행사달력', action: () => setShowFullCalendar(true) },
-          { icon: <Heart size={32} color="#1976D2" />, label: '찜하기', action: () => setShowWishlist(true) },
-          { icon: <Utensils size={32} color="#1976D2" />, label: '맛집뒷풀이', action: () => setView('restaurant') },
-          { icon: <MapPin size={32} color="#1976D2" />, label: '위치·대관', action: () => setShowRentalModal(true) },
-          { icon: <Camera size={32} color="#1976D2" />, label: '라이브픽', action: () => setView('community') },
-          { icon: <CloudSun size={32} color="#1976D2" />, label: '오늘날씨', action: () => setShowWeather(true) },
-          { icon: <Navigation size={32} color="#1976D2" />, label: '지능형경로', action: () => openAnalysis(false) },
-          { icon: <Star size={32} color="#1976D2" />, label: '운명의좌표', action: () => setShowSaju(true) },
+          { icon: <Calendar size={32} strokeWidth={1.2} color="#1976D2" />, label: '행사달력', action: () => setShowFullCalendar(true) },
+          { icon: <Heart size={32} strokeWidth={1.2} color="#1976D2" />, label: '찜하기', action: () => setShowWishlist(true) },
+          { icon: <Utensils size={32} strokeWidth={1.2} color="#1976D2" />, label: '맛집뒷풀이', action: () => setView('restaurant') },
+          { icon: <MapPin size={32} strokeWidth={1.2} color="#1976D2" />, label: '위치·대관', action: () => setShowRentalModal(true) },
+          { icon: <Camera size={32} strokeWidth={1.2} color="#1976D2" />, label: '라이브픽', action: () => setView('community') },
+          { icon: <CloudSun size={32} strokeWidth={1.2} color="#1976D2" />, label: '오늘날씨', action: () => setShowWeather(true) },
+          { icon: <Navigation size={32} strokeWidth={1.2} color="#1976D2" />, label: '지능형경로', action: () => openAnalysis(false) },
+          { icon: <Star size={32} strokeWidth={1.2} color="#1976D2" />, label: '운명의좌표', action: () => setShowSaju(true) },
         ].map((item, idx) => (
           <motion.div key={`tool-${idx}`} whileTap={{ scale: 0.92 }} onClick={item.action} style={{ ...quickMenuFloatStyle, position: 'relative', width: '100%' }}>
             <motion.div style={{ ...quickMenuIconWrapStyle, width: '44px', height: '44px' }}>{item.icon}</motion.div>
