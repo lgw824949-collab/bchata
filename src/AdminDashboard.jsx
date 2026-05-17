@@ -768,6 +768,18 @@ export default function AdminDashboard({ onBack }) {
                     {category === 'instructor-classes' && (
                       <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
                         <input value={editFormData.title || ''} onChange={e => setEditFormData({ ...editFormData, title: e.target.value })} placeholder="클래스 제목" style={{ width: '100%', padding: '10px', borderRadius: '10px', border: '1px solid #E2E8F0', fontWeight: 700 }} />
+                        <motion.div style={{ display: 'flex', gap: '8px' }}>
+                          <input value={editFormData.instructor_name || ''} onChange={e => setEditFormData({ ...editFormData, instructor_name: e.target.value })} placeholder="강사명" style={{ flex: 1, padding: '10px', borderRadius: '10px', border: '1px solid #E2E8F0' }} />
+                          <select value={editFormData.genre || '바차타'} onChange={e => setEditFormData({ ...editFormData, genre: e.target.value })} style={{ flex: 1, padding: '10px', borderRadius: '10px', border: '1px solid #E2E8F0' }}>
+                            {['바차타', '살사', '키좀바', '쥬크'].map(g => <option key={g}>{g}</option>)}
+                          </select>
+                        </motion.div>
+                        <motion.div style={{ display: 'flex', gap: '8px' }}>
+                          <select value={editFormData.level || '초급'} onChange={e => setEditFormData({ ...editFormData, level: e.target.value })} style={{ flex: 1, padding: '10px', borderRadius: '10px', border: '1px solid #E2E8F0' }}>
+                            {['초급', '중급', '상급'].map(l => <option key={l}>{l}</option>)}
+                          </select>
+                          <input value={editFormData.capacity || ''} onChange={e => setEditFormData({ ...editFormData, capacity: e.target.value })} placeholder="정원" style={{ flex: 1, padding: '10px', borderRadius: '10px', border: '1px solid #E2E8F0' }} />
+                        </motion.div>
                         <textarea value={editFormData.description || ''} onChange={e => setEditFormData({ ...editFormData, description: e.target.value })} placeholder="클래스 설명" style={{ width: '100%', padding: '10px', borderRadius: '10px', border: '1px solid #E2E8F0', minHeight: '80px' }} />
                         <div style={{ display: 'flex', gap: '8px' }}>
                           <input value={editFormData.schedule || ''} onChange={e => setEditFormData({ ...editFormData, schedule: e.target.value })} placeholder="일정 (예: 매주 토 2시)" style={{ flex: 1, padding: '10px', borderRadius: '10px', border: '1px solid #E2E8F0' }} />
