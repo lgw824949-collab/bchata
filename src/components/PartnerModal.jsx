@@ -117,7 +117,7 @@ export default function PartnerModal({ onClose }) {
         }}
       >
         <img
-          src="/Photo/파트너.png"
+          src="/Photo/파트너1.png"
           alt="파트너 배너"
           onError={(e) => { e.target.style.display = 'none'; }}
           style={{ width: '100%', height: '200px', objectFit: 'cover', display: 'block' }}
