@@ -76,5 +76,5 @@ export const buildPartyShareCard = (item) => {
   const desc = lines.join('\n');
   const feedDesc = [item.date, loc, item.fee ?? item.price_info].filter(Boolean).join(' · ');
 
-  return { src: posterUrl, title, desc, lines, feedDesc };
+  return { src: posterUrl, title, desc, lines, feedDesc, partyId: item.id };
 };

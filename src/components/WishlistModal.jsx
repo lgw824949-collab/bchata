@@ -259,6 +259,8 @@ export default function WishlistModal({ onClose, setSelectedPoster }) {
                             title: card.title,
                             desc: card.desc,
                             lines: card.lines,
+                            feedDesc: card.feedDesc,
+                            partyId: card.partyId ?? item.id,
                           });
                         }}
                         style={{ width: '75px', height: '100px', objectFit: 'cover', borderRadius: '10px', flexShrink: 0, background: '#F1F5F9', cursor: 'pointer' }} 
