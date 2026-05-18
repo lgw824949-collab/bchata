@@ -1005,10 +1005,10 @@ const HomePage = ({
             style={{ width: '120px', height: '120px', objectFit: 'contain', borderRadius: '14px', flexShrink: 0, marginLeft: '12px', cursor: 'pointer', userSelect: 'none' }}
             onError={(e) => { e.currentTarget.style.display = 'none' }}
           />
-          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '2px', marginTop: '4px' }}>
-            <span style={{ fontSize: '9px', color: 'rgba(255,255,255,0.7)', fontWeight: 600, letterSpacing: '0.5px' }}>전국 라틴 통합 플랫폼</span>
-            <span style={{ fontSize: '9px', color: '#E53935', fontWeight: 700, letterSpacing: '0.5px' }}>전국 실시간 업데이트</span>
-            <span style={{ fontSize: '9px', color: 'rgba(255,255,255,0.4)', fontWeight: 500 }}>Since 2026</span>
+          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '2px', marginTop: '4px', textAlign: 'center', maxWidth: '120px' }}>
+            <span style={{ fontSize: '9px', color: 'var(--color-text-sub)', fontWeight: 600, letterSpacing: '0.5px', lineHeight: 1.3 }}>전국 라틴 통합 플랫폼</span>
+            <span style={{ fontSize: '9px', color: '#E53935', fontWeight: 700, letterSpacing: '0.5px', lineHeight: 1.3 }}>전국 실시간 업데이트</span>
+            <span style={{ fontSize: '9px', color: 'var(--color-text-sub)', fontWeight: 500, lineHeight: 1.3, opacity: 0.85 }}>Since 2026 Thank you for watching!</span>
           </div>
           </div>
         </div>
@@ -1134,11 +1134,10 @@ const HomePage = ({
       <div id="quickmenu-section" style={{ padding: '8px 12px 12px', marginBottom: '24px' }}>
         {/* 파티 & 이벤트 */}
         <p style={{ ...quickMenuSectionTitleStyle, marginTop: 0 }}>파티 & 이벤트</p>
-        <motion.div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '6px', width: '100%', justifyContent: 'start', marginBottom: '16px' }}>
+        <motion.div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '6px', width: '100%', justifyContent: 'start', marginBottom: '16px' }}>
         {[
           { icon: <Tent size={32} strokeWidth={1.2} color="#E53935" />, label: '부트캠프', particles: '⛺', action: () => setView('bootcamp') },
           { icon: <Star size={32} strokeWidth={1.2} color="#E53935" />, label: '페스티벌', particles: '⭐', action: () => setView('festival') },
-          { icon: <Map size={32} strokeWidth={1.2} color="#E53935" />, label: 'MT', particles: '🏔', action: () => setView('festival') },
           { icon: <Music size={32} strokeWidth={1.2} color="#E53935" />, label: '소셜', particles: '🎵', action: () => setActiveTab('social') },
         ].map((item, idx) => (
           <motion.div key={`party-${idx}`} whileTap={{ scale: 0.92 }} onClick={(e) => { triggerParticle(e, item.particles); item.action(); }} style={{ ...quickMenuFloatStyle, position: 'relative', width: '100%' }}>
