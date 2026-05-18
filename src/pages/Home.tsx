@@ -1451,20 +1451,6 @@ const HomePage = ({
             );
           })}
         </div>
-        <motion.div
-          className="quick-menu-scroll"
-          style={{ display: 'flex', gap: '8px', width: '100%', marginBottom: '16px', overflowX: 'auto', scrollSnapType: 'x mandatory', scrollbarWidth: 'none', msOverflowStyle: 'none', WebkitOverflowScrolling: 'touch' }}
-        >
-        {[
-          { icon: <Calendar size={32} strokeWidth={1.2} color="#E53935" />, label: '행사달력', particles: '📅', action: () => setShowFullCalendar(true) },
-          { icon: <MapPin size={32} strokeWidth={1.2} color="#E53935" />, label: '위치·대관', particles: '📍', action: () => setShowRentalModal(true) },
-        ].map((item, idx) => (
-          <motion.div key={`party-extra-${idx}`} whileTap={{ scale: 0.92 }} onClick={(e) => { triggerParticle(e, item.particles); item.action(); }} style={{ ...quickMenuFloatStyle, position: 'relative', width: 'calc(50% - 4px)', minWidth: 'calc(50% - 4px)', flexShrink: 0, scrollSnapAlign: 'start' }}>
-            <motion.div style={{ ...quickMenuIconWrapStyle, width: '44px', height: '44px' }}>{item.icon}</motion.div>
-            <span style={{ ...quickMenuLabelStyle, fontSize: '11px' }}>{item.label}</span>
-          </motion.div>
-        ))}
-        </motion.div>
 
         {/* 파트너 & 강사 */}
         <p style={{ ...quickMenuSectionTitleStyle }}>파트너 & 강사</p>
@@ -1483,6 +1469,8 @@ const HomePage = ({
           }}
         >
           {[
+            { icon: <Calendar size={32} strokeWidth={1.2} color="#E53935" />, label: '행사달력', particles: '📅', action: () => setShowFullCalendar(true) },
+            { icon: <MapPin size={32} strokeWidth={1.2} color="#E53935" />, label: '위치·대관', particles: '📍', action: () => setShowRentalModal(true) },
             { icon: <Users size={32} strokeWidth={1.2} color="#C9A84C" />, label: '파트너', particles: '💑', action: () => { window.history.pushState({}, '', '#partner'); setActiveTab('partner'); } },
             { icon: <Users size={32} strokeWidth={1.2} color="#C9A84C" />, label: '강사찾기', particles: '🕺', action: () => { localStorage.setItem('instructor_target_genre', '전체'); setView('instructors'); window.history.pushState({}, '', '/instructors'); window.dispatchEvent(new PopStateEvent('popstate')); setTimeout(() => { window.dispatchEvent(new CustomEvent('apply-instructor-filter')); }, 300); } },
             { textIcon: '1:1', label: '채팅문의', particles: '💬', action: () => window.open('https://open.kakao.com/o/gP43rNri', '_blank') },
