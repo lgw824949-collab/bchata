@@ -912,16 +912,25 @@ const HomePage = ({
       !p.region?.includes('인천')
     );
 
+    const partyDistrictLabel = (p) => {
+      const r = (p.region || '').trim();
+      if (r) return r;
+      const b = (p.broadRegion || '').trim();
+      if (b) return b;
+      const v = (p.locationName || p.venue || '').trim();
+      return v;
+    };
+
     const getTopDistricts = (list) => {
       const counts = {};
-      list.forEach(p => {
-        const r = p.region || '';
-        if (r) counts[r] = (counts[r] || 0) + 1;
+      list.forEach((p) => {
+        const label = partyDistrictLabel(p);
+        if (label) counts[label] = (counts[label] || 0) + 1;
       });
       return Object.entries(counts)
         .sort((a, b) => b[1] - a[1])
         .slice(0, 2)
-        .map(([r]) => r)
+        .map(([name]) => name)
         .join(' · ');
     };
 
@@ -1024,25 +1033,28 @@ const HomePage = ({
         <p style={{ fontSize: '32px', fontWeight: 950, color: 'var(--color-text-main)', margin: '0 0 8px', letterSpacing: '-1.0px', lineHeight: 1.2 }}>오늘 어디서 춤출래?</p>
         <p style={{ fontSize: '16px', fontWeight: 600, color: 'var(--color-text-sub)', margin: '0 0 8px', letterSpacing: '-0.3px' }}>켜고, 찾고, 가면 끝.</p>
         <p style={{ fontSize: '12px', fontWeight: 600, color: 'var(--color-text-sub)', margin: '0 0 16px' }}>내 주변 라틴 파티 실시간</p>
-        <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: '12px', width: '100%' }}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '12px', width: '100%' }}>
           <div style={{ display: 'flex', flexDirection: 'row', alignItems: 'stretch', gap: '6px', flex: 1, minWidth: 0 }}>
             {[
               { label: '서울', count: regionCounts.seoul, districts: regionCounts.seoulDistricts, live: true },
               { label: '수도권', count: regionCounts.metro, districts: regionCounts.metroDistricts, live: false },
               { label: '전국권', count: regionCounts.national, districts: regionCounts.nationalDistricts, live: false },
             ].map((r, i) => (
-              <div key={i} style={{ background: 'rgba(0,0,0,0.45)', border: `1px solid ${r.live ? 'rgba(201,168,76,0.5)' : 'rgba(255,255,255,0.1)'}`, borderRadius: '10px', padding: '6px 8px', flex: 1, minWidth: 0, textAlign: 'left', height: '80px', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                  <span style={{ fontSize: '10px', color: 'rgba(255,255,255,0.6)', fontWeight: 600 }}>{r.label}</span>
-                  {r.live && <span style={{ background: '#E53935', color: '#fff', fontSize: '8px', fontWeight: 800, padding: '1px 5px', borderRadius: '10px' }}>LIVE</span>}
+              <div key={i} style={{ background: 'rgba(0,0,0,0.45)', border: `1px solid ${r.live ? 'rgba(201,168,76,0.5)' : 'rgba(255,255,255,0.1)'}`, borderRadius: '10px', padding: '8px 7px', flex: 1, minWidth: 0, boxSizing: 'border-box', height: '80px', display: 'flex', flexDirection: 'column', justifyContent: 'flex-start', gap: '4px', overflow: 'hidden' }}>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '4px', flexShrink: 0 }}>
+                  <span style={{ fontSize: '10px', color: 'rgba(255,255,255,0.6)', fontWeight: 600, whiteSpace: 'nowrap' }}>{r.label}</span>
+                  {r.live && <span style={{ background: '#E53935', color: '#fff', fontSize: '7px', fontWeight: 800, padding: '1px 4px', borderRadius: '8px', flexShrink: 0 }}>LIVE</span>}
                 </div>
-                <div style={{ fontSize: '11px', color: '#C9A84C', fontWeight: 700 }}>
-                  오늘 {r.count}개 진행중
+                <div style={{ fontSize: '10px', color: '#C9A84C', fontWeight: 700, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', lineHeight: 1.2 }}>
+                  오늘 {r.count}건 진행
                 </div>
-                <div style={{ fontSize: '10px', color: 'rgba(255,255,255,0.45)' }}>
-                  {r.districts || '파티 정보 없음'}
-                </div>
-                {r.live && <div style={{ fontSize: '9px', color: '#E53935', fontWeight: 700 }}>● LIVE NOW</div>}
+                {r.districts ? (
+                  <div style={{ fontSize: '9px', color: 'rgba(255,255,255,0.45)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', lineHeight: 1.2 }}>
+                    {r.districts}
+                  </div>
+                ) : r.count === 0 ? (
+                  <div style={{ fontSize: '9px', color: 'rgba(255,255,255,0.3)', lineHeight: 1.2 }}>오늘 없음</div>
+                ) : null}
               </div>
             ))}
           </div>
