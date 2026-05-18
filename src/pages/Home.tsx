@@ -994,13 +994,13 @@ const HomePage = ({
         <p style={{ fontSize: '16px', fontWeight: 600, color: 'var(--color-text-sub)', margin: '0 0 8px', letterSpacing: '-0.3px' }}>켜고, 찾고, 가면 끝.</p>
         <p style={{ fontSize: '12px', fontWeight: 600, color: 'var(--color-text-sub)', margin: '0 0 16px' }}>내 주변 라틴 파티 실시간</p>
         <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: '12px', width: '100%' }}>
-          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'stretch', gap: '6px', flexShrink: 0, minWidth: '100px' }}>
+          <div style={{ display: 'flex', flexDirection: 'row', alignItems: 'stretch', gap: '6px', flex: 1, minWidth: 0 }}>
             {[
               { label: '서울', count: regionCounts.seoul, live: true },
               { label: '수도권', count: regionCounts.metro, live: false },
               { label: '전국권', count: regionCounts.national, live: false },
             ].map((r, i) => (
-              <div key={i} style={{ background: 'rgba(0,0,0,0.45)', border: `1px solid ${r.live ? 'rgba(201,168,76,0.5)' : 'rgba(255,255,255,0.1)'}`, borderRadius: '10px', padding: '6px 10px', minWidth: '90px', textAlign: 'left' }}>
+              <div key={i} style={{ background: 'rgba(0,0,0,0.45)', border: `1px solid ${r.live ? 'rgba(201,168,76,0.5)' : 'rgba(255,255,255,0.1)'}`, borderRadius: '10px', padding: '6px 8px', flex: 1, minWidth: 0, textAlign: 'left' }}>
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '6px', marginBottom: '2px' }}>
                   <span style={{ fontSize: '10px', color: 'rgba(255,255,255,0.6)', fontWeight: 600 }}>{r.label}</span>
                   {r.live && <span style={{ background: '#E53935', color: '#fff', fontSize: '8px', fontWeight: 800, padding: '1px 5px', borderRadius: '10px' }}>LIVE</span>}
