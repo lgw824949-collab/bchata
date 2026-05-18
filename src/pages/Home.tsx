@@ -811,27 +811,17 @@ const HomePage = ({
 
   useEffect(() => {
     const fetchPosters = async () => {
-      const today = getKSTTodayStr();
-      const { data, error } = await supabase
-        .from('parties')
-        .select('poster_url, title')
-        .gte('date', today)
-        .not('poster_url', 'is', null);
+      const today = new Date().toISOString().split('T')[0];
 
-      console.log('parties sample:', data?.[0]);
-      if (error) console.log('fetchPosters error:', error);
+      const [s, b, f] = await Promise.all([
+        supabase.from('parties').select('poster_url').gte('date', today).not('poster_url', 'is', null),
+        supabase.from('bootcamps').select('poster_url').gte('start_date', today).not('poster_url', 'is', null),
+        supabase.from('festivals').select('poster_url').gte('start_date', today).not('poster_url', 'is', null),
+      ]);
 
-      const partiesRows = data || [];
-      const socialRows = partiesRows.filter((r) => {
-        const title = String(r?.title ?? '');
-        return !title.includes('부트캠프') && !title.includes('페스티벌');
-      });
-      const bootcampRows = partiesRows.filter((r) => String(r?.title ?? '').includes('부트캠프'));
-      const festivalRows = partiesRows.filter((r) => String(r?.title ?? '').includes('페스티벌'));
-
-      setSocialPosters(posterUrlsFromRows(socialRows));
-      setBootcampPosters(posterUrlsFromRows(bootcampRows));
-      setFestivalPosters(posterUrlsFromRows(festivalRows));
+      setSocialPosters((s.data || []).map((p) => p.poster_url));
+      setBootcampPosters((b.data || []).map((p) => p.poster_url));
+      setFestivalPosters((f.data || []).map((p) => p.poster_url));
     };
     fetchPosters();
   }, []);
