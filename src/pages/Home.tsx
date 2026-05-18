@@ -757,7 +757,12 @@ const HomePage = ({
     national: 0, nationalDistricts: ''
   });
   const [particles, setParticles] = useState<{id: number, x: number, y: number, emoji: string}[]>([]);
-  const [festivalPosterMissing, setFestivalPosterMissing] = useState(false);
+  const [socialPosters, setSocialPosters] = useState([]);
+  const [bootcampPosters, setBootcampPosters] = useState([]);
+  const [festivalPosters, setFestivalPosters] = useState([]);
+  const [socialIdx, setSocialIdx] = useState(0);
+  const [bootcampIdx, setBootcampIdx] = useState(0);
+  const [festivalIdx, setFestivalIdx] = useState(0);
 
   const triggerParticle = (e: React.MouseEvent, emoji: string) => {
     const rect = (e.currentTarget as HTMLElement).getBoundingClientRect();
@@ -786,6 +791,25 @@ const HomePage = ({
     window.addEventListener('home-active-tab', onHomeActiveTab);
     return () => window.removeEventListener('home-active-tab', onHomeActiveTab);
   }, []);
+
+  useEffect(() => {
+    const fetchPosters = async () => {
+      const { data } = await supabase.from('parties').select('poster_url, _itemGenre').not('poster_url', 'is', null);
+      if (data) {
+        setSocialPosters(data.filter(p => !p._itemGenre || p._itemGenre === '소셜').map(p => p.poster_url));
+        setBootcampPosters(data.filter(p => p._itemGenre === '부트캠프').map(p => p.poster_url));
+        setFestivalPosters(data.filter(p => p._itemGenre === '페스티벌').map(p => p.poster_url));
+      }
+    };
+    fetchPosters();
+  }, []);
+
+  useEffect(() => {
+    const t1 = setInterval(() => setSocialIdx(i => (i + 1) % (socialPosters.length || 1)), 5000);
+    const t2 = setInterval(() => setBootcampIdx(i => (i + 1) % (bootcampPosters.length || 1)), 5000);
+    const t3 = setInterval(() => setFestivalIdx(i => (i + 1) % (festivalPosters.length || 1)), 5000);
+    return () => { clearInterval(t1); clearInterval(t2); clearInterval(t3); };
+  }, [socialPosters, bootcampPosters, festivalPosters]);
 
   // [사용자 요청] 지역 포스터 리스트 자동 스크롤 비활성화 (좌측 고정 및 수동 스크롤만 허용)
   useEffect(() => {
@@ -1239,35 +1263,23 @@ const HomePage = ({
       `}</style>
       {activeTab === null && (
       <div id="quickmenu-section" style={{ padding: '8px 12px 12px', marginBottom: '24px' }}>
-        {/* 파티 & 이벤트 포스터 3분할 */}
+        {/* 파티 & 이벤트 포스터 3칸 - Supabase 실시간 연동 */}
         <p style={{ fontSize: '14px', color: '#888', fontWeight: '700', letterSpacing: '1px', marginBottom: '8px', marginTop: 0 }}>파티 & 이벤트</p>
-        <div style={{ display: 'flex', gap: '8px', marginBottom: '20px' }}>
+        <div style={{ display: 'flex', gap: '8px', marginBottom: '12px' }}>
           {[
-            { src: '/Photo/소셜.png', label: '소셜', action: () => { window.history.pushState({}, '', '#social'); setActiveTab('social'); } },
-            { src: '/Photo/부트캠프.png', label: '부트캠프', action: () => { window.history.pushState({}, '', '#bootcamp'); setView('bootcamp'); } },
-            { src: '/Photo/페스티벌.png', label: '페스티벌', action: () => { window.history.pushState({}, '', '#festival'); setView('festival'); } },
+            { posters: socialPosters, idx: socialIdx, label: '소셜', fallback: '/Photo/소셜.png', action: () => { window.history.pushState({}, '', '#social'); setActiveTab('social'); }},
+            { posters: bootcampPosters, idx: bootcampIdx, label: '부트캠프', fallback: '/Photo/부트캠프.png', action: () => { window.history.pushState({}, '', '#bootcamp'); setView('bootcamp'); }},
+            { posters: festivalPosters, idx: festivalIdx, label: '페스티벌', fallback: '/Photo/페스티벌.png', action: () => { window.history.pushState({}, '', '#festival'); setView('festival'); }},
           ].map((item, idx) => (
             <div key={idx} onClick={item.action} style={{ flex: 1, borderRadius: '12px', border: '2px solid #E53935', overflow: 'hidden', cursor: 'pointer', position: 'relative', aspectRatio: '9/16' }}>
-              {item.label === '페스티벌' && festivalPosterMissing ? (
-                <div style={{ width: '100%', height: '100%', background: '#1a1a1a', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '12px', boxSizing: 'border-box' }}>
-                  <span style={{ color: '#94A3B8', fontSize: '11px', fontWeight: 700, textAlign: 'center', lineHeight: 1.4 }}>페스티벌 포스터 준비중</span>
-                </div>
-              ) : (
-                <img
-                  src={item.src}
-                  alt={item.label}
-                  onError={(e) => {
-                    if (item.label === '페스티벌') {
-                      setFestivalPosterMissing(true);
-                    } else {
-                      e.currentTarget.style.background = '#1a1a1a';
-                    }
-                  }}
-                  style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
-                />
-              )}
-              <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, background: 'linear-gradient(transparent, rgba(0,0,0,0.7))', padding: '16px 8px 8px', textAlign: 'center' }}>
-                <span style={{ color: '#fff', fontSize: '12px', fontWeight: 800 }}>{item.label}</span>
+              <img
+                src={item.posters[item.idx] || item.fallback}
+                alt={item.label}
+                onError={(e) => { e.currentTarget.src = item.fallback; }}
+                style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
+              />
+              <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, background: 'linear-gradient(transparent, rgba(0,0,0,0.75))', padding: '16px 8px 8px', textAlign: 'center' }}>
+                <span style={{ color: '#fff', fontSize: '13px', fontWeight: 800 }}>{item.label}</span>
               </div>
             </div>
           ))}
