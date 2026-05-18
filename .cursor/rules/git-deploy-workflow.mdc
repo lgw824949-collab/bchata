@@ -1,0 +1,16 @@
+---
+description: After code changes, run build, commit, and push to origin main without asking.
+alwaysApply: true
+---
+
+# Git deploy workflow (bchata)
+
+When you finish implementing or fixing code in this repo:
+
+1. Run `npm run build` and fix failures until it succeeds.
+2. Commit only the files changed for the task (never commit secrets).
+3. Run `git push origin main` immediately — do not ask the user to confirm push.
+
+Report briefly when done: build result, commit hash/message, and that push completed. No "should I push?" prompts.
+
+Only skip push if the user explicitly says not to push in that message, or if commit is impossible (nothing to commit).
