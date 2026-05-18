@@ -1000,7 +1000,7 @@ const HomePage = ({
               { label: '수도권', count: regionCounts.metro, live: false },
               { label: '전국권', count: regionCounts.national, live: false },
             ].map((r, i) => (
-              <div key={i} style={{ background: 'rgba(0,0,0,0.45)', border: `1px solid ${r.live ? 'rgba(201,168,76,0.5)' : 'rgba(255,255,255,0.1)'}`, borderRadius: '10px', padding: '6px 8px', flex: 1, minWidth: 0, textAlign: 'left' }}>
+              <div key={i} style={{ background: 'rgba(0,0,0,0.45)', border: `1px solid ${r.live ? 'rgba(201,168,76,0.5)' : 'rgba(255,255,255,0.1)'}`, borderRadius: '10px', padding: '6px 8px', flex: 1, minWidth: 0, textAlign: 'left', height: '80px', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '6px', marginBottom: '2px' }}>
                   <span style={{ fontSize: '10px', color: 'rgba(255,255,255,0.6)', fontWeight: 600 }}>{r.label}</span>
                   {r.live && <span style={{ background: '#E53935', color: '#fff', fontSize: '8px', fontWeight: 800, padding: '1px 5px', borderRadius: '10px' }}>LIVE</span>}
