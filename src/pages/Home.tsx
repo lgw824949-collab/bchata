@@ -780,6 +780,7 @@ const HomePage = ({
   const [socialIdx, setSocialIdx] = useState(0);
   const [bootcampIdx, setBootcampIdx] = useState(0);
   const [festivalIdx, setFestivalIdx] = useState(0);
+  const [activePosterSlot, setActivePosterSlot] = useState('social');
 
   const triggerParticle = (e: React.MouseEvent, emoji: string) => {
     const rect = (e.currentTarget as HTMLElement).getBoundingClientRect();
@@ -832,6 +833,14 @@ const HomePage = ({
     const t3 = setInterval(() => setFestivalIdx(i => (i + 1) % (festivalPosters.length || 1)), 5000);
     return () => { clearInterval(t1); clearInterval(t2); clearInterval(t3); };
   }, [socialPosters, bootcampPosters, festivalPosters]);
+
+  useEffect(() => {
+    const order = ['social', 'bootcamp', 'festival'];
+    const t = setInterval(() => {
+      setActivePosterSlot((prev) => order[(order.indexOf(prev) + 1) % order.length]);
+    }, 5000);
+    return () => clearInterval(t);
+  }, []);
 
   // [사용자 요청] 지역 포스터 리스트 자동 스크롤 비활성화 (좌측 고정 및 수동 스크롤만 허용)
   useEffect(() => {
@@ -1310,25 +1319,137 @@ const HomePage = ({
           50% { box-shadow: 0 0 12px rgba(85, 139, 47, 0.45); filter: drop-shadow(0 0 4px rgba(85, 139, 47, 0.25)); }
           100% { box-shadow: 0 0 2px rgba(85, 139, 47, 0.1); filter: drop-shadow(0 0 1px rgba(85, 139, 47, 0.1)); }
         }
+        .home-poster-border-wrap {
+          flex: 1;
+          position: relative;
+          min-width: 0;
+          border-radius: 12px;
+          cursor: pointer;
+        }
+        .home-poster-border-wrap.is-idle {
+          border: 2px solid #555;
+          overflow: hidden;
+        }
+        .home-poster-border-wrap.is-active {
+          overflow: hidden;
+          padding: 2px;
+          background: #3a3a3a;
+        }
+        .home-poster-border-wrap.is-active::before {
+          content: '';
+          position: absolute;
+          z-index: 2;
+          pointer-events: none;
+          animation: homePosterGoldTrace 2.4s linear infinite;
+        }
+        @keyframes homePosterGoldTrace {
+          0% {
+            top: 0;
+            left: -40%;
+            width: 40%;
+            height: 2px;
+            background: linear-gradient(90deg, transparent, #C9A84C, #FFD700, transparent);
+          }
+          24% {
+            top: 0;
+            left: 100%;
+            width: 40%;
+            height: 2px;
+            background: linear-gradient(90deg, transparent, #C9A84C, #FFD700, transparent);
+          }
+          25% {
+            top: -40%;
+            right: 0;
+            left: auto;
+            width: 2px;
+            height: 40%;
+            background: linear-gradient(180deg, transparent, #C9A84C, #FFD700, transparent);
+          }
+          49% {
+            top: 100%;
+            right: 0;
+            left: auto;
+            width: 2px;
+            height: 40%;
+            background: linear-gradient(180deg, transparent, #C9A84C, #FFD700, transparent);
+          }
+          50% {
+            bottom: 0;
+            top: auto;
+            left: 100%;
+            width: 40%;
+            height: 2px;
+            background: linear-gradient(270deg, transparent, #C9A84C, #FFD700, transparent);
+          }
+          74% {
+            bottom: 0;
+            top: auto;
+            left: -40%;
+            width: 40%;
+            height: 2px;
+            background: linear-gradient(270deg, transparent, #C9A84C, #FFD700, transparent);
+          }
+          75% {
+            bottom: -40%;
+            top: auto;
+            left: 0;
+            width: 2px;
+            height: 40%;
+            background: linear-gradient(0deg, transparent, #C9A84C, #FFD700, transparent);
+          }
+          99% {
+            top: -40%;
+            bottom: auto;
+            left: 0;
+            width: 2px;
+            height: 40%;
+            background: linear-gradient(0deg, transparent, #C9A84C, #FFD700, transparent);
+          }
+          100% {
+            top: 0;
+            left: -40%;
+            width: 40%;
+            height: 2px;
+            background: linear-gradient(90deg, transparent, #C9A84C, #FFD700, transparent);
+          }
+        }
+        .home-poster-border-inner {
+          position: relative;
+          z-index: 1;
+          width: 100%;
+          aspect-ratio: 9 / 16;
+          border-radius: 10px;
+          overflow: hidden;
+          background: #111;
+        }
       `}</style>
       {activeTab === null && (
       <div id="quickmenu-section" style={{ padding: '8px 12px 12px', marginBottom: '24px' }}>
         {/* 파티 & 이벤트 포스터 3칸 - Supabase 실시간 연동 */}
         <p style={{ fontSize: '14px', color: '#888', fontWeight: '700', letterSpacing: '1px', marginBottom: '8px', marginTop: 0 }}>파티 & 이벤트</p>
         <div style={{ display: 'flex', gap: '8px', marginBottom: '12px' }}>
-          {homePosterSlots.map((item) => (
-            <div key={item.id} onClick={item.action} style={{ flex: 1, borderRadius: '12px', border: '2px solid #E53935', overflow: 'hidden', cursor: 'pointer', position: 'relative', aspectRatio: '9/16' }}>
-              <img
-                src={item.posters[item.idx] || item.fallback}
-                alt={item.label}
-                onError={(e) => { e.currentTarget.src = item.fallback; }}
-                style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
-              />
-              <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, background: 'linear-gradient(transparent, rgba(0,0,0,0.75))', padding: '16px 8px 8px', textAlign: 'center' }}>
-                <span style={{ color: '#fff', fontSize: '13px', fontWeight: 800 }}>{item.label}</span>
+          {homePosterSlots.map((item) => {
+            const isActive = activePosterSlot === item.id;
+            return (
+              <div
+                key={item.id}
+                className={`home-poster-border-wrap ${isActive ? 'is-active' : 'is-idle'}`}
+                onClick={item.action}
+              >
+                <div className="home-poster-border-inner">
+                  <img
+                    src={item.posters[item.idx] || item.fallback}
+                    alt={item.label}
+                    onError={(e) => { e.currentTarget.src = item.fallback; }}
+                    style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
+                  />
+                  <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, background: 'linear-gradient(transparent, rgba(0,0,0,0.75))', padding: '16px 8px 8px', textAlign: 'center' }}>
+                    <span style={{ color: '#fff', fontSize: '13px', fontWeight: 800 }}>{item.label}</span>
+                  </div>
+                </div>
               </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
         <motion.div
           className="quick-menu-scroll"
