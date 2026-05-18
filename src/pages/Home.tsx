@@ -823,13 +823,7 @@ const HomePage = ({
         .not('poster_url', 'is', null)
         .gte('date', todayStr);
 
-      console.log('전체 data:', data);
-      console.log('_itemGenre 샘플:', data?.[0]);
-      console.log('genre/category/event_type 샘플:', data?.[0] ? {
-        genre: data[0].genre,
-        category: data[0].category,
-        event_type: data[0].event_type,
-      } : null);
+      console.log('parties sample:', data?.[0]);
       if (error) console.log('fetchPosters error:', error);
 
       const partiesRows = data || [];
