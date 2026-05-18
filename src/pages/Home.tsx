@@ -112,15 +112,9 @@ const getKSTTodayStr = () => {
 };
 
 /** parties 행: title 키워드로 슬롯 분류 (DB에 genre/category 없음 — RegisterForm·App select('*') 기준) */
-const partyRowIsBootcamp = (row) => {
-  const title = String(row?.title ?? '').toLowerCase();
-  return title.includes('부트캠프') || title.includes('bootcamp');
-};
+const partyRowIsBootcamp = (row) => String(row?.title ?? '').includes('부트캠프');
 
-const partyRowIsFestival = (row) => {
-  const title = String(row?.title ?? '').toLowerCase();
-  return title.includes('페스티벌') || title.includes('festival');
-};
+const partyRowIsFestival = (row) => String(row?.title ?? '').includes('페스티벌');
 
 const partyRowMatchesSlot = (row, slot) => {
   const isBoot = partyRowIsBootcamp(row);
@@ -817,32 +811,23 @@ const HomePage = ({
 
   useEffect(() => {
     const fetchPosters = async () => {
-      const todayStr = getKSTTodayStr();
+      const today = getKSTTodayStr();
       const { data, error } = await supabase
         .from('parties')
-        .select('id, poster_url, title, date')
-        .eq('status', 'approved')
-        .not('poster_url', 'is', null)
-        .gte('date', todayStr);
+        .select('poster_url, title')
+        .gte('date', today)
+        .not('poster_url', 'is', null);
 
       console.log('parties sample:', data?.[0]);
       if (error) console.log('fetchPosters error:', error);
 
       const partiesRows = data || [];
-      const [bootcampsRes, festivalsRes] = await Promise.all([
-        supabase.from('bootcamps').select('poster_url').eq('status', 'active').not('poster_url', 'is', null),
-        supabase.from('festivals').select('poster_url').eq('status', 'active').not('poster_url', 'is', null),
-      ]);
-
-      const socialRows = partiesRows.filter((r) => partyRowMatchesSlot(r, '소셜'));
-      const bootcampRows = [
-        ...partiesRows.filter((r) => partyRowMatchesSlot(r, '부트캠프')),
-        ...(bootcampsRes.data || []),
-      ];
-      const festivalRows = [
-        ...partiesRows.filter((r) => partyRowMatchesSlot(r, '페스티벌')),
-        ...(festivalsRes.data || []),
-      ];
+      const socialRows = partiesRows.filter((r) => {
+        const title = String(r?.title ?? '');
+        return !title.includes('부트캠프') && !title.includes('페스티벌');
+      });
+      const bootcampRows = partiesRows.filter((r) => String(r?.title ?? '').includes('부트캠프'));
+      const festivalRows = partiesRows.filter((r) => String(r?.title ?? '').includes('페스티벌'));
 
       setSocialPosters(posterUrlsFromRows(socialRows));
       setBootcampPosters(posterUrlsFromRows(bootcampRows));
