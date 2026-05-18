@@ -57,10 +57,17 @@ export const sharePartyToKakao = async ({ title, description, posterUrl, imageUr
     },
     buttons: [
       {
-        title: '파티 보러가기',
+        title: '📍 파티 상세보기',
         link: {
           mobileWebUrl: url,
           webUrl: url,
+        },
+      },
+      {
+        title: '🎵 오늘밤빠 앱 열기',
+        link: {
+          mobileWebUrl: 'https://bchata.vercel.app',
+          webUrl: 'https://bchata.vercel.app',
         },
       },
     ],
