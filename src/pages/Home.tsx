@@ -111,21 +111,23 @@ const getKSTTodayStr = () => {
   return `${y}-${m.padStart(2, '0')}-${d.padStart(2, '0')}`;
 };
 
-/** parties.genre / parties.category / event_type 기준 슬롯 매칭 */
+/** parties 행: title 키워드로 슬롯 분류 (DB에 genre/category 없음 — RegisterForm·App select('*') 기준) */
+const partyRowIsBootcamp = (row) => {
+  const title = String(row?.title ?? '').toLowerCase();
+  return title.includes('부트캠프') || title.includes('bootcamp');
+};
+
+const partyRowIsFestival = (row) => {
+  const title = String(row?.title ?? '').toLowerCase();
+  return title.includes('페스티벌') || title.includes('festival');
+};
+
 const partyRowMatchesSlot = (row, slot) => {
-  const genre = String(row?.genre ?? '').trim();
-  const category = String(row?.category ?? '').trim().toLowerCase();
-  const eventType = String(row?.event_type ?? '').trim().toLowerCase();
-  if (slot === '소셜') {
-    return genre === '소셜' || category === '소셜' || category === 'social'
-      || (!genre && !category && eventType !== 'festival' && category !== 'bootcamp');
-  }
-  if (slot === '부트캠프') {
-    return genre.includes('부트') || category.includes('부트') || category === 'bootcamp';
-  }
-  if (slot === '페스티벌') {
-    return genre.includes('페스') || category.includes('페스') || category === 'festival' || eventType === 'festival';
-  }
+  const isBoot = partyRowIsBootcamp(row);
+  const isFest = partyRowIsFestival(row);
+  if (slot === '소셜') return !isBoot && !isFest;
+  if (slot === '부트캠프') return isBoot;
+  if (slot === '페스티벌') return isFest;
   return false;
 };
 
@@ -818,7 +820,7 @@ const HomePage = ({
       const todayStr = getKSTTodayStr();
       const { data, error } = await supabase
         .from('parties')
-        .select('poster_url, genre, category, event_type')
+        .select('id, poster_url, title, date')
         .eq('status', 'approved')
         .not('poster_url', 'is', null)
         .gte('date', todayStr);
@@ -828,32 +830,23 @@ const HomePage = ({
 
       const partiesRows = data || [];
       const [bootcampsRes, festivalsRes] = await Promise.all([
-        supabase.from('bootcamps').select('poster_url, genre').eq('status', 'active').not('poster_url', 'is', null),
-        supabase.from('festivals').select('poster_url, genre, event_type').eq('status', 'active').not('poster_url', 'is', null),
+        supabase.from('bootcamps').select('poster_url').eq('status', 'active').not('poster_url', 'is', null),
+        supabase.from('festivals').select('poster_url').eq('status', 'active').not('poster_url', 'is', null),
       ]);
 
-      const bootcampRows = (bootcampsRes.data || []).map((r) => ({
-        poster_url: r.poster_url,
-        genre: '부트캠프',
-        category: 'bootcamp',
-        event_type: '',
-      }));
-      const festivalRows = (festivalsRes.data || []).map((r) => ({
-        poster_url: r.poster_url,
-        genre: '페스티벌',
-        category: 'festival',
-        event_type: r.event_type || 'festival',
-      }));
-
-      setSocialPosters(posterUrlsFromRows(partiesRows.filter((r) => partyRowMatchesSlot(r, '소셜'))));
-      setBootcampPosters(posterUrlsFromRows([
+      const socialRows = partiesRows.filter((r) => partyRowMatchesSlot(r, '소셜'));
+      const bootcampRows = [
         ...partiesRows.filter((r) => partyRowMatchesSlot(r, '부트캠프')),
-        ...bootcampRows,
-      ]));
-      setFestivalPosters(posterUrlsFromRows([
+        ...(bootcampsRes.data || []),
+      ];
+      const festivalRows = [
         ...partiesRows.filter((r) => partyRowMatchesSlot(r, '페스티벌')),
-        ...festivalRows,
-      ]));
+        ...(festivalsRes.data || []),
+      ];
+
+      setSocialPosters(posterUrlsFromRows(socialRows));
+      setBootcampPosters(posterUrlsFromRows(bootcampRows));
+      setFestivalPosters(posterUrlsFromRows(festivalRows));
     };
     fetchPosters();
   }, []);
