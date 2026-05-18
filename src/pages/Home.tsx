@@ -1256,12 +1256,6 @@ const HomePage = ({
         </motion.div>
 
         {/* 파트너 & 강사 */}
-        <img
-          src="/Photo/파트너1.png"
-          alt=""
-          style={{ width: '100%', height: '160px', objectFit: 'cover', borderRadius: '12px', display: 'block', marginBottom: '12px' }}
-          onError={(e) => { e.currentTarget.style.display = 'none' }}
-        />
         <p style={{ ...quickMenuSectionTitleStyle }}>파트너 & 강사</p>
         <div
           className="quick-menu-scroll"
