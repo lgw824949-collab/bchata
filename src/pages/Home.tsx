@@ -1172,7 +1172,7 @@ const HomePage = ({
 
         {/* 도구 & 정보 */}
         <p style={{ ...quickMenuSectionTitleStyle }}>도구 & 정보</p>
-        <motion.div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '6px', width: '100%', justifyContent: 'start' }}>
+        <motion.div style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: '6px', width: '100%', justifyContent: 'start' }}>
         {[
           { icon: <Heart size={32} strokeWidth={1.2} color="#1976D2" />, label: '찜하기', particles: '❤️', action: () => setShowWishlist(true) },
           { icon: <Utensils size={32} strokeWidth={1.2} color="#1976D2" />, label: '맛집뒷풀이', particles: '🍽', action: () => setView('restaurant') },
