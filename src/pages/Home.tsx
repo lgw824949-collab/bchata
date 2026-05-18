@@ -1005,10 +1005,8 @@ const HomePage = ({
             style={{ width: '120px', height: '120px', objectFit: 'contain', borderRadius: '14px', flexShrink: 0, marginLeft: '12px', cursor: 'pointer', userSelect: 'none' }}
             onError={(e) => { e.currentTarget.style.display = 'none' }}
           />
-          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '2px', marginTop: '4px', textAlign: 'center', maxWidth: '120px' }}>
-            <span style={{ fontSize: '9px', color: 'var(--color-text-sub)', fontWeight: 600, letterSpacing: '0.5px', lineHeight: 1.3 }}>전국 라틴 통합 플랫폼</span>
-            <span style={{ fontSize: '9px', color: '#E53935', fontWeight: 700, letterSpacing: '0.5px', lineHeight: 1.3 }}>전국 실시간 업데이트</span>
-            <span style={{ fontSize: '9px', color: 'var(--color-text-sub)', fontWeight: 500, lineHeight: 1.3, opacity: 0.85 }}>Since 2026</span>
+          <div style={{ marginTop: '4px', textAlign: 'center', maxWidth: '120px' }}>
+            <span style={{ fontSize: '9px', color: '#475569', fontWeight: 700, letterSpacing: '0.3px', lineHeight: 1.1, whiteSpace: 'nowrap' }}>전국 실시간 라틴 플랫폼</span>
           </div>
           </div>
         </div>
