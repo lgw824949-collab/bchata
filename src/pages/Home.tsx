@@ -674,7 +674,7 @@ const RollingContainer = ({ items, onSelect }) => {
     if (items.length <= 1) return;
     const timer = setInterval(() => {
       setIndex((prev) => (prev + 1) % items.length);
-    }, 3000);
+    }, 5000);
     return () => clearInterval(timer);
   }, [items.length]);
 
@@ -757,6 +757,7 @@ const HomePage = ({
     national: 0, nationalDistricts: ''
   });
   const [particles, setParticles] = useState<{id: number, x: number, y: number, emoji: string}[]>([]);
+  const [festivalPosterMissing, setFestivalPosterMissing] = useState(false);
 
   const triggerParticle = (e: React.MouseEvent, emoji: string) => {
     const rect = (e.currentTarget as HTMLElement).getBoundingClientRect();
@@ -1247,7 +1248,24 @@ const HomePage = ({
             { src: '/Photo/페스티벌.png', label: '페스티벌', action: () => { window.history.pushState({}, '', '#festival'); setView('festival'); } },
           ].map((item, idx) => (
             <div key={idx} onClick={item.action} style={{ flex: 1, borderRadius: '12px', border: '2px solid #E53935', overflow: 'hidden', cursor: 'pointer', position: 'relative', aspectRatio: '9/16' }}>
-              <img src={item.src} alt={item.label} onError={(e) => { e.currentTarget.style.background = '#1a1a1a'; }} style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
+              {item.label === '페스티벌' && festivalPosterMissing ? (
+                <div style={{ width: '100%', height: '100%', background: '#1a1a1a', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '12px', boxSizing: 'border-box' }}>
+                  <span style={{ color: '#94A3B8', fontSize: '11px', fontWeight: 700, textAlign: 'center', lineHeight: 1.4 }}>페스티벌 포스터 준비중</span>
+                </div>
+              ) : (
+                <img
+                  src={item.src}
+                  alt={item.label}
+                  onError={(e) => {
+                    if (item.label === '페스티벌') {
+                      setFestivalPosterMissing(true);
+                    } else {
+                      e.currentTarget.style.background = '#1a1a1a';
+                    }
+                  }}
+                  style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
+                />
+              )}
               <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, background: 'linear-gradient(transparent, rgba(0,0,0,0.7))', padding: '16px 8px 8px', textAlign: 'center' }}>
                 <span style={{ color: '#fff', fontSize: '12px', fontWeight: 800 }}>{item.label}</span>
               </div>
@@ -1259,13 +1277,10 @@ const HomePage = ({
           style={{ display: 'flex', gap: '8px', width: '100%', marginBottom: '16px', overflowX: 'auto', scrollSnapType: 'x mandatory', scrollbarWidth: 'none', msOverflowStyle: 'none', WebkitOverflowScrolling: 'touch' }}
         >
         {[
-          { icon: <Music size={32} strokeWidth={1.2} color="#E53935" />, label: '소셜', particles: '🎵', action: () => { window.history.pushState({}, '', '#social'); setActiveTab('social'); } },
-          { icon: <Tent size={32} strokeWidth={1.2} color="#E53935" />, label: '부트캠프', particles: '⛺', action: () => { window.history.pushState({}, '', '#bootcamp'); setView('bootcamp'); } },
-          { icon: <Star size={32} strokeWidth={1.2} color="#E53935" />, label: '페스티벌', particles: '⭐', action: () => { window.history.pushState({}, '', '#festival'); setView('festival'); } },
           { icon: <Calendar size={32} strokeWidth={1.2} color="#E53935" />, label: '행사달력', particles: '📅', action: () => setShowFullCalendar(true) },
           { icon: <MapPin size={32} strokeWidth={1.2} color="#E53935" />, label: '위치·대관', particles: '📍', action: () => setShowRentalModal(true) },
         ].map((item, idx) => (
-          <motion.div key={`party-extra-${idx}`} whileTap={{ scale: 0.92 }} onClick={(e) => { triggerParticle(e, item.particles); item.action(); }} style={{ ...quickMenuFloatStyle, position: 'relative', width: 'calc(22% - 6px)', minWidth: 'calc(22% - 6px)', flexShrink: 0, scrollSnapAlign: 'start' }}>
+          <motion.div key={`party-extra-${idx}`} whileTap={{ scale: 0.92 }} onClick={(e) => { triggerParticle(e, item.particles); item.action(); }} style={{ ...quickMenuFloatStyle, position: 'relative', width: 'calc(50% - 4px)', minWidth: 'calc(50% - 4px)', flexShrink: 0, scrollSnapAlign: 'start' }}>
             <motion.div style={{ ...quickMenuIconWrapStyle, width: '44px', height: '44px' }}>{item.icon}</motion.div>
             <span style={{ ...quickMenuLabelStyle, fontSize: '11px' }}>{item.label}</span>
           </motion.div>
