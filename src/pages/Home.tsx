@@ -757,20 +757,6 @@ const HomePage = ({
     national: 0, nationalDistricts: ''
   });
   const [particles, setParticles] = useState<{id: number, x: number, y: number, emoji: string}[]>([]);
-  const [showHomeMoreMenu, setShowHomeMoreMenu] = useState(false);
-
-  const isHomeGate = activeTab === null;
-  const HOME_DARK = {
-    bg: 'linear-gradient(165deg, #1A0A0E 0%, #141018 45%, #0F172A 100%)',
-    card: '#252018',
-    cardHover: '#2E2820',
-    border: 'rgba(201, 168, 76, 0.22)',
-    borderSoft: 'rgba(255, 255, 255, 0.08)',
-    text: '#F8FAFC',
-    textSub: '#94A3B8',
-    gold: '#C9A84C',
-    red: '#E53935',
-  };
 
   const triggerParticle = (e: React.MouseEvent, emoji: string) => {
     const rect = (e.currentTarget as HTMLElement).getBoundingClientRect();
@@ -1032,40 +1018,13 @@ const HomePage = ({
     return () => window.removeEventListener('resize', setVh);
   }, []);
 
-  const quickMenuSectionTitleStyle = isHomeGate
-    ? { fontSize: '12px', color: HOME_DARK.gold, fontWeight: '800', letterSpacing: '1.2px', marginBottom: '10px', textTransform: 'uppercase' as const }
-    : { fontSize: '14px', color: '#888', fontWeight: '700', letterSpacing: '1px', marginBottom: '8px' };
-  const quickMenuTileStyle = (accent?: string) => ({
-    display: 'flex',
-    flexDirection: 'column' as const,
-    alignItems: 'center',
-    justifyContent: 'center',
-    background: isHomeGate ? HOME_DARK.card : '#ffffff',
-    border: isHomeGate ? `1px solid ${accent ? `${accent}33` : HOME_DARK.borderSoft}` : '1px solid #F1F5F9',
-    borderRadius: '14px',
-    boxShadow: isHomeGate ? '0 4px 16px rgba(0,0,0,0.35)' : '0 2px 8px rgba(0,0,0,0.06)',
-    padding: '10px 6px 8px',
-    cursor: 'pointer',
-    width: '100%',
-    height: isHomeGate ? '88px' : '90px',
-  });
-  const quickMenuIconWrapStyle = { width: '40px', height: '40px', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, filter: isHomeGate ? 'drop-shadow(0 2px 6px rgba(229,57,53,0.35))' : 'drop-shadow(0 2px 4px rgba(0,0,0,0.15))' };
-  const quickMenuLabelStyle = { color: isHomeGate ? HOME_DARK.text : '#1E293B', fontWeight: 600, fontSize: '11px', marginTop: '4px', textAlign: 'center' as const, lineHeight: 1.25, whiteSpace: 'normal' as const, overflow: 'hidden', textOverflow: 'ellipsis', width: '100%' };
-
-  const homeMoreItems = [
-    { icon: <MapPin size={28} strokeWidth={1.2} color={HOME_DARK.gold} />, label: '위치·대관', particles: '📍', action: () => { window.history.pushState({}, '', '#rental'); setShowRentalModal(true); } },
-    { textIcon: '1:1', label: '채팅문의', particles: '💬', action: () => window.open('https://open.kakao.com/o/gP43rNri', '_blank') },
-    { icon: <MessageSquare size={28} strokeWidth={1.2} color={HOME_DARK.gold} />, label: '컨시어지', particles: '✨', action: () => window.dispatchEvent(new CustomEvent('open-chatbot')) },
-    { icon: <Star size={28} strokeWidth={1.2} color={HOME_DARK.gold} />, label: '운명의좌표', particles: '🌟', action: () => { window.history.pushState({}, '', '#saju'); setShowSaju(true); } },
-    { icon: <Heart size={28} strokeWidth={1.2} color="#FF8A80" />, label: '찜하기', particles: '❤️', action: () => { window.history.pushState({}, '', '#wishlist'); setShowWishlist(true); } },
-    { icon: <Utensils size={28} strokeWidth={1.2} color="#FF8A80" />, label: '맛집뒷풀이', particles: '🍽', action: () => { window.history.pushState({}, '', '#restaurant'); setView('restaurant'); } },
-    { icon: <Camera size={28} strokeWidth={1.2} color="#FF8A80" />, label: '라이브픽', particles: '📸', action: () => { window.history.pushState({}, '', '#community'); setView('community'); } },
-    { icon: <CloudSun size={28} strokeWidth={1.2} color="#FF8A80" />, label: '오늘날씨', particles: '☀️', action: () => { window.history.pushState({}, '', '#weather'); setShowWeather(true); } },
-    { icon: <Navigation size={28} strokeWidth={1.2} color="#FF8A80" />, label: '지능형경로', particles: '🧭', action: () => { window.history.pushState({}, '', '#route'); openAnalysis(false); } },
-  ];
+  const quickMenuSectionTitleStyle = { fontSize: '14px', color: '#888', fontWeight: '700', letterSpacing: '1px', marginBottom: '8px' };
+  const quickMenuFloatStyle = { display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', background: '#ffffff', border: '1px solid #F1F5F9', borderRadius: '12px', boxShadow: '0 2px 8px rgba(0,0,0,0.06)', padding: '8px 6px 6px', cursor: 'pointer', width: '100%', height: '90px' };
+  const quickMenuIconWrapStyle = { width: '40px', height: '40px', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, filter: 'drop-shadow(0 2px 4px rgba(0,0,0,0.15))' };
+  const quickMenuLabelStyle = { color: '#1E293B', fontWeight: 600, fontSize: '11px', marginTop: '4px', textAlign: 'center', lineHeight: 1.25, whiteSpace: 'normal', overflow: 'hidden', textOverflow: 'ellipsis', width: '100%' };
 
   return (
-    <div className="app-container" style={{ width: '100%', maxWidth: '500px', margin: '0 auto', background: isHomeGate ? HOME_DARK.bg : 'var(--color-bg)', minHeight: '100vh', paddingBottom: '80px', transition: 'background 0.35s ease' }}>
+    <div className="app-container" style={{ width: '100%', maxWidth: '500px', margin: '0 auto', background: 'var(--color-bg)', minHeight: '100vh', paddingBottom: '80px', transition: 'background-color 0.3s' }}>
 
       {/* 📌 [영역 A: 히어로 / 메인 게이트] */}
       <div style={{ padding: '16px 20px 8px', marginBottom: '12px' }}>
@@ -1082,17 +1041,17 @@ const HomePage = ({
               } else { setAdminTapCount(1); }
               setLastAdminTap(now);
             }}
-            style={{ width: '44px', height: '44px', objectFit: 'contain', borderRadius: '12px', cursor: 'pointer', userSelect: 'none', boxShadow: isHomeGate ? '0 4px 12px rgba(0,0,0,0.4)' : '0 2px 8px rgba(0,0,0,0.06)' }}
+            style={{ width: '44px', height: '44px', objectFit: 'contain', borderRadius: '12px', cursor: 'pointer', userSelect: 'none', boxShadow: '0 2px 8px rgba(0,0,0,0.06)' }}
             onError={(e) => { e.currentTarget.style.display = 'none' }}
           />
         </div>
 
-        <h1 style={{ fontSize: '28px', fontWeight: 950, color: isHomeGate ? HOME_DARK.text : 'var(--color-text-main)', margin: '0 0 6px', letterSpacing: '-0.8px', lineHeight: 1.2 }}>오늘 어디서 춤출래?</h1>
-        <p style={{ fontSize: '14px', fontWeight: 600, color: isHomeGate ? HOME_DARK.gold : 'var(--color-text-sub)', margin: '0 0 14px', letterSpacing: '-0.2px' }}>켜고, 찾고, 가면 끝!</p>
+        <h1 style={{ fontSize: '28px', fontWeight: 950, color: 'var(--color-text-main)', margin: '0 0 6px', letterSpacing: '-0.8px', lineHeight: 1.2 }}>오늘 어디서 춤출래?</h1>
+        <p style={{ fontSize: '14px', fontWeight: 600, color: 'var(--color-text-sub)', margin: '0 0 14px', letterSpacing: '-0.2px' }}>켜고, 찾고, 가면 끝!</p>
 
-        <p style={{ fontSize: '13px', fontWeight: 700, color: isHomeGate ? HOME_DARK.textSub : 'var(--color-text-sub)', margin: '0 0 10px' }}>
+        <p style={{ fontSize: '13px', fontWeight: 700, color: 'var(--color-text-sub)', margin: '0 0 10px' }}>
           오늘 전국{' '}
-          <span style={{ color: isHomeGate ? HOME_DARK.gold : 'var(--color-text-main)', fontWeight: 900, fontSize: '15px' }}>
+          <span style={{ color: 'var(--color-text-main)', fontWeight: 900, fontSize: '15px' }}>
             {regionCounts.seoul + regionCounts.metro + regionCounts.national}
           </span>
           건
@@ -1120,20 +1079,16 @@ const HomePage = ({
                   minWidth: 0,
                   padding: '10px 8px',
                   borderRadius: '12px',
-                  border: isSelected ? '1.5px solid rgba(201, 168, 76, 0.7)' : `1px solid ${isHomeGate ? HOME_DARK.borderSoft : 'var(--color-border)'}`,
-                  background: isSelected ? 'rgba(201, 168, 76, 0.18)' : (isHomeGate ? 'rgba(255,255,255,0.06)' : 'var(--color-card)'),
+                  border: isSelected ? '1.5px solid rgba(201, 168, 76, 0.7)' : '1px solid var(--color-border)',
+                  background: isSelected ? 'rgba(201, 168, 76, 0.1)' : 'var(--color-card)',
                   cursor: 'pointer',
-                  display: 'flex',
-                  flexDirection: 'column',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  textAlign: 'center',
-                  boxShadow: isHomeGate ? '0 4px 12px rgba(0,0,0,0.25)' : '0 1px 3px rgba(15, 23, 42, 0.04)',
+                  textAlign: 'left',
+                  boxShadow: '0 1px 3px rgba(15, 23, 42, 0.04)',
                 }}
               >
-                <div style={{ fontSize: '11px', fontWeight: 700, color: isHomeGate ? HOME_DARK.textSub : 'var(--color-text-sub)', marginBottom: '4px', width: '100%', textAlign: 'center' }}>{r.label}</div>
-                <div style={{ fontSize: '18px', fontWeight: 900, color: isHomeGate ? HOME_DARK.text : 'var(--color-text-main)', lineHeight: 1, width: '100%', textAlign: 'center' }}>
-                  {r.count}<span style={{ fontSize: '11px', fontWeight: 700, color: isHomeGate ? HOME_DARK.textSub : 'var(--color-text-sub)', marginLeft: '2px' }}>건</span>
+                <div style={{ fontSize: '11px', fontWeight: 700, color: 'var(--color-text-sub)', marginBottom: '4px' }}>{r.label}</div>
+                <div style={{ fontSize: '18px', fontWeight: 900, color: 'var(--color-text-main)', lineHeight: 1 }}>
+                  {r.count}<span style={{ fontSize: '11px', fontWeight: 700, color: 'var(--color-text-sub)', marginLeft: '2px' }}>건</span>
                 </div>
               </button>
             );
@@ -1144,22 +1099,26 @@ const HomePage = ({
       {/* 🔴 [LIVE 바 임팩트 영역 개편] */}
       <div style={{ padding: '4px 20px 12px', marginBottom: '24px' }}>
         {/* LiveCount를 감싸는 세련된 임팩트 컨테이너 및 전역 스타일 주입 */}
-        <div className="live-count-premium-wrapper" style={{
-          background: isHomeGate ? '#0F172A' : '#F8FAFC',
-          borderRadius: '14px',
-          overflow: 'hidden',
-          boxShadow: isHomeGate ? '0 4px 16px rgba(0,0,0,0.45)' : '0 2px 8px rgba(15, 23, 42, 0.06)',
-          border: isHomeGate ? '1px solid rgba(255, 255, 255, 0.08)' : '1px solid #E2E8F0',
+        <div className="live-count-premium-wrapper" style={{ 
+          // background: '#0F172A', 
+          background: '#F8FAFC',
+          borderRadius: '14px', 
+          overflow: 'hidden', 
+          // boxShadow: '0 4px 12px rgba(15, 23, 42, 0.15)',
+          boxShadow: '0 2px 8px rgba(15, 23, 42, 0.06)',
+          // border: '1px solid rgba(255, 255, 255, 0.05)'
+          border: '1px solid #E2E8F0'
         }}>
           <style>{`
+            /* 햄버거 버튼 세련되게 축소 및 그림자 제거 (절대 규칙 완벽 준수 전역 오버라이드) */
             button[style*="z-index: 1005"] {
               width: 36px !important;
               height: 36px !important;
               padding: 0 !important;
               border-radius: 10px !important;
               box-shadow: none !important;
-              border: 1px solid ${isHomeGate ? 'rgba(255,255,255,0.12)' : 'rgba(0,0,0,0.08)'} !important;
-              background: ${isHomeGate ? 'rgba(255,255,255,0.08)' : 'rgba(255,255,255,0.9)'} !important;
+              border: 1px solid rgba(0,0,0,0.08) !important;
+              background: rgba(255,255,255,0.9) !important;
             }
             button[style*="z-index: 1005"] svg {
               width: 20px !important;
@@ -1187,7 +1146,8 @@ const HomePage = ({
               margin-right: 4px !important;
             }
             .live-count-premium-wrapper .lc-name {
-              color: ${isHomeGate ? '#F8FAFC' : '#334155'} !important;
+              /* color: #F8FAFC !important; */
+              color: #334155 !important;
               font-size: 13px !important;
               font-weight: 800 !important;
               font-family: inherit !important;
@@ -1204,7 +1164,8 @@ const HomePage = ({
               margin-left: 4px !important;
             }
             .live-count-premium-wrapper .lc-default {
-              color: ${isHomeGate ? '#E2E8F0' : '#64748B'} !important;
+              /* color: #E2E8F0 !important; */
+              color: #64748B !important;
               font-size: 12px !important;
               font-weight: 700 !important;
               font-family: inherit !important;
@@ -1217,7 +1178,8 @@ const HomePage = ({
               margin-left: auto !important;
               display: flex !important;
               align-items: center !important;
-              background: ${isHomeGate ? 'rgba(255,255,255,0.06)' : 'rgba(15, 23, 42, 0.06)'} !important;
+              /* background: rgba(255,255,255,0.06) !important; */
+              background: rgba(15, 23, 42, 0.06) !important;
               padding: 2px 4px !important;
               border-radius: 6px !important;
               gap: 2px !important;
@@ -1252,110 +1214,61 @@ const HomePage = ({
         }
       `}</style>
       {activeTab === null && (
-      <div id="quickmenu-section" style={{ padding: '8px 16px 12px', marginBottom: '24px' }}>
-        <motion.div
-          whileTap={{ scale: 0.98 }}
-          onClick={(e) => { triggerParticle(e, '🎵'); window.history.pushState({}, '', '#social'); setActiveTab('social'); }}
-          style={{
-            marginBottom: '16px',
-            borderRadius: '16px',
-            padding: '18px 20px',
-            cursor: 'pointer',
-            background: 'linear-gradient(135deg, #E53935 0%, #B71C1C 48%, #1A0A0E 100%)',
-            border: '1px solid rgba(255,255,255,0.14)',
-            boxShadow: '0 10px 28px rgba(229, 57, 53, 0.4)',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-          }}
-        >
-          <div>
-            <div style={{ fontSize: '11px', fontWeight: 800, color: 'rgba(255,255,255,0.7)', letterSpacing: '1px', marginBottom: '4px' }}>TONIGHT</div>
-            <div style={{ fontSize: '21px', fontWeight: 950, color: '#FFFFFF', letterSpacing: '-0.6px' }}>소셜 · 파티 찾기</div>
-          </div>
-          <Music size={42} color="#FFFFFF" strokeWidth={1.4} />
-        </motion.div>
-
-        <p style={{ ...quickMenuSectionTitleStyle, marginTop: 0 }}>바로 가기</p>
-        <motion.div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '8px', width: '100%' }}>
+      <div id="quickmenu-section" style={{ padding: '8px 12px 12px', marginBottom: '24px' }}>
+        {/* 파티 & 이벤트 */}
+        <p style={{ ...quickMenuSectionTitleStyle, marginTop: 0 }}>파티 & 이벤트</p>
+        <motion.div style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: '6px', width: '100%', justifyContent: 'start', marginBottom: '16px' }}>
         {[
-          { icon: <Calendar size={30} strokeWidth={1.2} color={HOME_DARK.red} />, label: '행사달력', particles: '📅', accent: HOME_DARK.red, action: () => { window.history.pushState({}, '', '#calendar'); setShowFullCalendar(true); } },
-          { icon: <Tent size={30} strokeWidth={1.2} color={HOME_DARK.red} />, label: '부트캠프', particles: '⛺', accent: HOME_DARK.red, action: () => { window.history.pushState({}, '', '#bootcamp'); setView('bootcamp'); } },
-          { icon: <Star size={30} strokeWidth={1.2} color={HOME_DARK.red} />, label: '페스티벌', particles: '⭐', accent: HOME_DARK.red, action: () => { window.history.pushState({}, '', '#festival'); setView('festival'); } },
-          { icon: <Users size={30} strokeWidth={1.2} color={HOME_DARK.gold} />, label: '파트너', particles: '💑', accent: HOME_DARK.gold, action: () => { window.history.pushState({}, '', '#partner'); setActiveTab('partner'); } },
-          { icon: <Users size={30} strokeWidth={1.2} color={HOME_DARK.gold} />, label: '강사찾기', particles: '🕺', accent: HOME_DARK.gold, action: () => { localStorage.setItem('instructor_target_genre', '전체'); setView('instructors'); window.history.pushState({}, '', '/instructors'); window.dispatchEvent(new PopStateEvent('popstate')); setTimeout(() => { window.dispatchEvent(new CustomEvent('apply-instructor-filter')); }, 300); } },
-          { icon: <PlusCircle size={30} strokeWidth={1.2} color={HOME_DARK.gold} />, label: '더보기', particles: '✨', accent: HOME_DARK.gold, action: () => setShowHomeMoreMenu(true) },
+          { icon: <Tent size={32} strokeWidth={1.2} color="#E53935" />, label: '부트캠프', particles: '⛺', action: () => { window.history.pushState({}, '', '#bootcamp'); setView('bootcamp'); } },
+          { icon: <Star size={32} strokeWidth={1.2} color="#E53935" />, label: '페스티벌', particles: '⭐', action: () => { window.history.pushState({}, '', '#festival'); setView('festival'); } },
+          { icon: <Music size={32} strokeWidth={1.2} color="#E53935" />, label: '소셜', particles: '🎵', action: () => { window.history.pushState({}, '', '#social'); setActiveTab('social'); } },
+          { icon: <Calendar size={32} strokeWidth={1.2} color="#E53935" />, label: '행사달력', particles: '📅', action: () => { window.history.pushState({}, '', '#calendar'); setShowFullCalendar(true); } },
+          { icon: <MapPin size={32} strokeWidth={1.2} color="#E53935" />, label: '위치·대관', particles: '📍', action: () => { window.history.pushState({}, '', '#rental'); setShowRentalModal(true); } },
         ].map((item, idx) => (
-          <motion.div key={`home-${idx}`} whileTap={{ scale: 0.92 }} onClick={(e) => { triggerParticle(e, item.particles); item.action(); }} style={{ ...quickMenuTileStyle(item.accent), position: 'relative' }}>
-            <div style={{ ...quickMenuIconWrapStyle, width: '42px', height: '42px' }}>{item.icon}</div>
-            <span style={quickMenuLabelStyle}>{item.label}</span>
+          <motion.div key={`party-${idx}`} whileTap={{ scale: 0.92 }} onClick={(e) => { triggerParticle(e, item.particles); item.action(); }} style={{ ...quickMenuFloatStyle, position: 'relative', width: '100%' }}>
+            <motion.div style={{ ...quickMenuIconWrapStyle, width: '44px', height: '44px' }}>{item.icon}</motion.div>
+            <span style={{ ...quickMenuLabelStyle, fontSize: '11px' }}>{item.label}</span>
           </motion.div>
         ))}
         </motion.div>
 
-        <AnimatePresence>
-        {showHomeMoreMenu && (
-          <>
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              onClick={() => setShowHomeMoreMenu(false)}
-              style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.75)', zIndex: 190000 }}
-            />
-            <motion.div
-              initial={{ y: '100%' }}
-              animate={{ y: 0 }}
-              exit={{ y: '100%' }}
-              transition={{ type: 'spring', damping: 28, stiffness: 320 }}
-              style={{
-                position: 'fixed',
-                left: '50%',
-                transform: 'translateX(-50%)',
-                bottom: 0,
-                width: '100%',
-                maxWidth: '500px',
-                background: 'linear-gradient(180deg, #252018 0%, #1A0A0E 100%)',
-                borderRadius: '20px 20px 0 0',
-                border: '1px solid rgba(201, 168, 76, 0.25)',
-                borderBottom: 'none',
-                padding: '20px 16px calc(24px + env(safe-area-inset-bottom))',
-                zIndex: 190001,
-                maxHeight: '72vh',
-                overflowY: 'auto',
-              }}
-            >
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '16px' }}>
-                <span style={{ fontSize: '18px', fontWeight: 900, color: HOME_DARK.gold }}>더보기</span>
-                <button type="button" onClick={() => setShowHomeMoreMenu(false)} style={{ background: 'rgba(255,255,255,0.08)', border: 'none', borderRadius: '50%', width: '36px', height: '36px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: HOME_DARK.text, cursor: 'pointer' }}>
-                  <X size={20} />
-                </button>
-              </div>
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '8px' }}>
-                {homeMoreItems.map((item, idx) => (
-                  <motion.div
-                    key={`more-${idx}`}
-                    whileTap={{ scale: 0.92 }}
-                    onClick={(e) => {
-                      triggerParticle(e, item.particles);
-                      setShowHomeMoreMenu(false);
-                      setTimeout(() => item.action(), 200);
-                    }}
-                    style={{ ...quickMenuTileStyle(HOME_DARK.gold), height: '84px' }}
-                  >
-                    {item.textIcon ? (
-                      <div style={{ ...quickMenuIconWrapStyle, fontSize: 16, fontWeight: 900, color: HOME_DARK.gold, letterSpacing: '-0.8px' }}>{item.textIcon}</div>
-                    ) : (
-                      <div style={quickMenuIconWrapStyle}>{item.icon}</div>
-                    )}
-                    <span style={quickMenuLabelStyle}>{item.label}</span>
-                  </motion.div>
-                ))}
-              </div>
-            </motion.div>
-          </>
-        )}
-        </AnimatePresence>
+        {/* 파트너 & 강사 */}
+        <p style={{ ...quickMenuSectionTitleStyle }}>파트너 & 강사</p>
+        <motion.div style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: '6px', width: '100%', justifyContent: 'start', marginBottom: '16px' }}>
+        {[
+          { icon: <Users size={32} strokeWidth={1.2} color="#C9A84C" />, label: '파트너', particles: '💑', action: () => { window.history.pushState({}, '', '#partner'); setActiveTab('partner'); } },
+          { icon: <Users size={32} strokeWidth={1.2} color="#C9A84C" />, label: '강사찾기', particles: '🕺', action: () => { localStorage.setItem('instructor_target_genre', '전체'); setView('instructors'); window.history.pushState({}, '', '/instructors'); window.dispatchEvent(new PopStateEvent('popstate')); setTimeout(() => { window.dispatchEvent(new CustomEvent('apply-instructor-filter')); }, 300); } },
+          { textIcon: '1:1', label: '채팅문의', particles: '💬', action: () => window.open('https://open.kakao.com/o/gP43rNri', '_blank') },
+          { icon: <MessageSquare size={32} strokeWidth={1.2} color="#C9A84C" />, label: '컨시어지', particles: '✨', action: () => window.dispatchEvent(new CustomEvent('open-chatbot')) },
+          { icon: <Star size={32} strokeWidth={1.2} color="#C9A84C" />, label: '운명의좌표', particles: '🌟', action: () => { window.history.pushState({}, '', '#saju'); setShowSaju(true); } },
+        ].map((item, idx) => (
+          <motion.div key={`partner-${idx}`} whileTap={{ scale: 0.92 }} onClick={(e) => { triggerParticle(e, item.particles); item.action(); }} style={{ ...quickMenuFloatStyle, position: 'relative', width: '100%' }}>
+            {item.textIcon ? (
+              <motion.div style={{ ...quickMenuIconWrapStyle, width: '44px', height: '44px', fontSize: 18, fontWeight: 900, color: '#C9A84C', letterSpacing: '-0.8px' }}>{item.textIcon}</motion.div>
+            ) : (
+              <motion.div style={{ ...quickMenuIconWrapStyle, width: '44px', height: '44px' }}>{item.icon}</motion.div>
+            )}
+            <span style={{ ...quickMenuLabelStyle, fontSize: '11px' }}>{item.label}</span>
+          </motion.div>
+        ))}
+        </motion.div>
+
+        {/* 도구 & 정보 */}
+        <p style={{ ...quickMenuSectionTitleStyle }}>도구 & 정보</p>
+        <motion.div style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: '6px', width: '100%', justifyContent: 'start' }}>
+        {[
+          { icon: <Heart size={32} strokeWidth={1.2} color="#1976D2" />, label: '찜하기', particles: '❤️', action: () => { window.history.pushState({}, '', '#wishlist'); setShowWishlist(true); } },
+          { icon: <Utensils size={32} strokeWidth={1.2} color="#1976D2" />, label: '맛집뒷풀이', particles: '🍽', action: () => { window.history.pushState({}, '', '#restaurant'); setView('restaurant'); } },
+          { icon: <Camera size={32} strokeWidth={1.2} color="#1976D2" />, label: '라이브픽', particles: '📸', action: () => { window.history.pushState({}, '', '#community'); setView('community'); } },
+          { icon: <CloudSun size={32} strokeWidth={1.2} color="#1976D2" />, label: '오늘날씨', particles: '☀️', action: () => { window.history.pushState({}, '', '#weather'); setShowWeather(true); } },
+          { icon: <Navigation size={32} strokeWidth={1.2} color="#1976D2" />, label: '지능형경로', particles: '🧭', action: () => { window.history.pushState({}, '', '#route'); openAnalysis(false); } },
+        ].map((item, idx) => (
+          <motion.div key={`tool-${idx}`} whileTap={{ scale: 0.92 }} onClick={(e) => { triggerParticle(e, item.particles); item.action(); }} style={{ ...quickMenuFloatStyle, position: 'relative', width: '100%' }}>
+            <motion.div style={{ ...quickMenuIconWrapStyle, width: '44px', height: '44px' }}>{item.icon}</motion.div>
+            <span style={{ ...quickMenuLabelStyle, fontSize: '11px' }}>{item.label}</span>
+          </motion.div>
+        ))}
+        </motion.div>
         <AnimatePresence>
         {particles.map(p => (
           <motion.div
