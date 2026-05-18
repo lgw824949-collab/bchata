@@ -983,6 +983,7 @@ const HomePage = ({
         <p style={{ fontSize: '16px', fontWeight: 600, color: 'var(--color-text-sub)', margin: '0 0 8px', letterSpacing: '-0.3px' }}>켜고, 찾고, 가면 끝.</p>
         <p style={{ fontSize: '12px', fontWeight: 600, color: 'var(--color-text-sub)', margin: '0 0 16px' }}>내 주변 라틴 파티 실시간</p>
         <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'flex-end' }}>
+          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
           <img
             src="/logo.png"
             alt="오늘밤빠 로고"
@@ -1004,6 +1005,12 @@ const HomePage = ({
             style={{ width: '120px', height: '120px', objectFit: 'contain', borderRadius: '14px', flexShrink: 0, marginLeft: '12px', cursor: 'pointer', userSelect: 'none' }}
             onError={(e) => { e.currentTarget.style.display = 'none' }}
           />
+          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '2px', marginTop: '4px' }}>
+            <span style={{ fontSize: '9px', color: 'rgba(255,255,255,0.7)', fontWeight: 600, letterSpacing: '0.5px' }}>전국 라틴 통합 플랫폼</span>
+            <span style={{ fontSize: '9px', color: '#E53935', fontWeight: 700, letterSpacing: '0.5px' }}>전국 실시간 업데이트</span>
+            <span style={{ fontSize: '9px', color: 'rgba(255,255,255,0.4)', fontWeight: 500 }}>Since 2026</span>
+          </div>
+          </div>
         </div>
       </div>
 
