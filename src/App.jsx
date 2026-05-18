@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo, useRef, lazy, Suspense } from 'react'
-import { Home as HomeIcon, Users, Plus, LogOut, Heart, X, MessageSquare, RefreshCw, CloudSun, Utensils, Zap, Languages, Bell, Star, Navigation, CreditCard, Settings, Map as MapIcon, BarChart, BarChart2, Gift, Coffee, User, Menu, Music2, Tent, Flag, Download, Globe, ShieldCheck, Calendar, CalendarDays, Camera, ChevronLeft, ChevronRight, Loader2, Search, Share2, Copy, TrendingUp } from 'lucide-react'
+import { Home as HomeIcon, Users, LogOut, Heart, X, MessageSquare, RefreshCw, CloudSun, Utensils, Zap, Languages, Bell, Star, Navigation, CreditCard, Settings, Map as MapIcon, BarChart, BarChart2, Gift, Coffee, User, Menu, Music2, Tent, Flag, Download, Globe, ShieldCheck, Calendar, CalendarDays, Camera, ChevronLeft, ChevronRight, Loader2, Search, Share2, Copy, TrendingUp, GraduationCap } from 'lucide-react'
 import { useTranslation } from 'react-i18next';
 import { motion, AnimatePresence } from 'framer-motion'
 import { supabase, logActivity } from './lib/supabase'
@@ -2441,14 +2441,26 @@ function App() {
           {i18n.language?.startsWith('en') ? 'Home' : '홈'}
         </span>
       </div>
-
-      <div 
-        onClick={() => handleOpenModal(setShowPartner)}
-        style={{ 
+      <div
+        onClick={() => { navigate('/bootcamp'); setShowPartner(false); }}
+        style={{
           flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
           cursor: 'pointer', transition: 'all 0.2s',
-          // color: showPartner ? '#FFFFFF' : 'rgba(255,255,255,0.3)'
-          color: showPartner ? socialPartnerNavActive : socialPartnerNavInactive
+          color: (location.pathname === '/bootcamp' && !showPartner) ? navActiveColor : navInactiveColor,
+        }}
+      >
+        <Tent size={24} strokeWidth={(location.pathname === '/bootcamp' && !showPartner) ? 2.5 : 1.5} />
+        <span style={{ fontSize: '9px', fontWeight: (location.pathname === '/bootcamp' && !showPartner) ? 900 : 500, marginTop: '3px' }}>
+          {i18n.language?.startsWith('en') ? 'Bootcamp' : '부트캠프'}
+        </span>
+      </div>
+
+      <div
+        onClick={() => handleOpenModal(setShowPartner)}
+        style={{
+          flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
+          cursor: 'pointer', transition: 'all 0.2s',
+          color: showPartner ? socialPartnerNavActive : socialPartnerNavInactive,
         }}
       >
         <Users size={24} strokeWidth={showPartner ? 2.5 : 1.5} />
@@ -2457,46 +2469,22 @@ function App() {
         </span>
       </div>
 
-      {/* Center Red Point Button */}
-      <div style={{ flex: 1, display: 'flex', justifyContent: 'center' }}>
-        <motion.button
-          whileTap={{ scale: 0.9 }}
-          onClick={() => {
-            if (location.pathname === '/livepick' || view === 'community') {
-              window.dispatchEvent(new CustomEvent('open-community-upload'));
-            } else if (location.pathname === '/instructors' || view === 'instructors') {
-              navigate('/register-class');
-            } else if (location.pathname === '/bootcamp' || view === 'bootcamp' || view === 'bootcamp-register') {
-              navigate('/bootcamp/register');
-            } else if (location.pathname === '/festival' || view === 'festival' || view === 'festival-register') {
-              // 페스티벌 등록은 페이지 내 버튼으로만 접근 (+ 버튼 비활성화)
-            } else {
-              navigate('/register-party');
-            }
-          }}
-          style={{
-            width: '52px', height: '48px', borderRadius: '15px',
-            background: '#FF3B30', 
-            border: 'none', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center',
-            cursor: 'pointer', boxShadow: '0 4px 15px rgba(255, 59, 48, 0.3)'
-          }}
-        >
-          <Plus size={26} strokeWidth={3} />
-        </motion.button>
-      </div>
-
-      <div 
-        onClick={() => { navigate('/bootcamp'); setShowPartner(false); }}
-        style={{ 
+      <div
+        onClick={() => {
+          setShowPartner(false);
+          localStorage.setItem('instructor_target_genre', '전체');
+          navigate('/instructors');
+          setTimeout(() => { window.dispatchEvent(new CustomEvent('apply-instructor-filter')); }, 300);
+        }}
+        style={{
           flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
           cursor: 'pointer', transition: 'all 0.2s',
-          // color: (location.pathname === '/bootcamp' && !showPartner) ? '#FFFFFF' : 'rgba(255,255,255,0.3)'
-          color: (location.pathname === '/bootcamp' && !showPartner) ? navActiveColor : navInactiveColor
+          color: ((location.pathname === '/instructors' || view === 'instructors') && !showPartner) ? navActiveColor : navInactiveColor,
         }}
       >
-        <Tent size={24} strokeWidth={(location.pathname === '/bootcamp' && !showPartner) ? 2.5 : 1.5} />
-        <span style={{ fontSize: '9px', fontWeight: (location.pathname === '/bootcamp' && !showPartner) ? 900 : 500, marginTop: '3px' }}>
-          {i18n.language?.startsWith('en') ? 'Bootcamp' : '부트캠프'}
+        <GraduationCap size={24} strokeWidth={((location.pathname === '/instructors' || view === 'instructors') && !showPartner) ? 2.5 : 1.5} />
+        <span style={{ fontSize: '9px', fontWeight: ((location.pathname === '/instructors' || view === 'instructors') && !showPartner) ? 900 : 500, marginTop: '3px' }}>
+          {i18n.language?.startsWith('en') ? 'Instructors' : '강사찾기'}
         </span>
       </div>
 
