@@ -1046,9 +1046,15 @@ const HomePage = ({
           />
         </div>
 
+        {activeTab === null && (
+        <>
         <h1 style={{ fontSize: '28px', fontWeight: 950, color: 'var(--color-text-main)', margin: '0 0 6px', letterSpacing: '-0.8px', lineHeight: 1.2 }}>오늘 어디서 춤출래?</h1>
         <p style={{ fontSize: '14px', fontWeight: 600, color: 'var(--color-text-sub)', margin: '0 0 14px', letterSpacing: '-0.2px' }}>켜고, 찾고, 가면 끝!</p>
+        </>
+        )}
 
+        {activeTab === null && (
+        <>
         <p style={{ fontSize: '13px', fontWeight: 700, color: 'var(--color-text-sub)', margin: '0 0 10px' }}>
           오늘 전국{' '}
           <span style={{ color: 'var(--color-text-main)', fontWeight: 900, fontSize: '15px' }}>
@@ -1098,6 +1104,8 @@ const HomePage = ({
             );
           })}
         </div>
+        </>
+        )}
       </div>
 
       {/* 🔴 [LIVE 바 임팩트 영역 개편] */}
