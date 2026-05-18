@@ -1127,7 +1127,7 @@ const HomePage = ({
       <div id="quickmenu-section" style={{ padding: '8px 12px 12px', marginBottom: '24px' }}>
         {/* 파티 & 이벤트 */}
         <p style={{ ...quickMenuSectionTitleStyle, marginTop: 0 }}>파티 & 이벤트</p>
-        <motion.div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, auto)', gap: '6px', width: '100%', justifyContent: 'start', marginBottom: '16px' }}>
+        <motion.div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '6px', width: '100%', justifyContent: 'start', marginBottom: '16px' }}>
         {[
           { icon: <Tent size={32} strokeWidth={1.2} color="#E53935" />, label: '부트캠프', particles: '⛺', action: () => setView('bootcamp') },
           { icon: <Star size={32} strokeWidth={1.2} color="#E53935" />, label: '페스티벌', particles: '⭐', action: () => setView('festival') },
@@ -1143,7 +1143,7 @@ const HomePage = ({
 
         {/* 파트너 & 강사 */}
         <p style={{ ...quickMenuSectionTitleStyle }}>파트너 & 강사</p>
-        <motion.div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, auto)', gap: '6px', width: '100%', justifyContent: 'start', marginBottom: '16px' }}>
+        <motion.div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '6px', width: '100%', justifyContent: 'start', marginBottom: '16px' }}>
         {[
           { icon: <Users size={32} strokeWidth={1.2} color="#C9A84C" />, label: '파트너', particles: '💑', action: () => setActiveTab('partner') },
           { icon: <Users size={32} strokeWidth={1.2} color="#C9A84C" />, label: '강사찾기', particles: '🕺', action: () => { localStorage.setItem('instructor_target_genre', '전체'); setView('instructors'); window.history.pushState({}, '', '/instructors'); window.dispatchEvent(new PopStateEvent('popstate')); setTimeout(() => { window.dispatchEvent(new CustomEvent('apply-instructor-filter')); }, 300); } },
@@ -1163,7 +1163,7 @@ const HomePage = ({
 
         {/* 도구 & 정보 */}
         <p style={{ ...quickMenuSectionTitleStyle }}>도구 & 정보</p>
-        <motion.div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, auto)', gap: '6px', width: '100%', justifyContent: 'start' }}>
+        <motion.div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '6px', width: '100%', justifyContent: 'start' }}>
         {[
           { icon: <Calendar size={32} strokeWidth={1.2} color="#1976D2" />, label: '행사달력', particles: '📅', action: () => setShowFullCalendar(true) },
           { icon: <Heart size={32} strokeWidth={1.2} color="#1976D2" />, label: '찜하기', particles: '❤️', action: () => setShowWishlist(true) },
