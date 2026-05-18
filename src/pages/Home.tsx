@@ -1037,6 +1037,7 @@ const HomePage = ({
 
       {/* 📌 [영역 A: 히어로 / 메인 게이트] */}
       <div style={{ padding: '16px 20px 8px', marginBottom: '12px' }}>
+        {activeTab === null && (
         <div style={{ marginBottom: '12px' }}>
           <img
             src="/logo.png"
@@ -1054,6 +1055,7 @@ const HomePage = ({
             onError={(e) => { e.currentTarget.style.display = 'none' }}
           />
         </div>
+        )}
 
         {activeTab === null && (
         <>
