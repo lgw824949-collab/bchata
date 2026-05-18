@@ -111,6 +111,27 @@ const getKSTTodayStr = () => {
   return `${y}-${m.padStart(2, '0')}-${d.padStart(2, '0')}`;
 };
 
+/** parties.genre / parties.category / event_type 기준 슬롯 매칭 */
+const partyRowMatchesSlot = (row, slot) => {
+  const genre = String(row?.genre ?? '').trim();
+  const category = String(row?.category ?? '').trim().toLowerCase();
+  const eventType = String(row?.event_type ?? '').trim().toLowerCase();
+  if (slot === '소셜') {
+    return genre === '소셜' || category === '소셜' || category === 'social'
+      || (!genre && !category && eventType !== 'festival' && category !== 'bootcamp');
+  }
+  if (slot === '부트캠프') {
+    return genre.includes('부트') || category.includes('부트') || category === 'bootcamp';
+  }
+  if (slot === '페스티벌') {
+    return genre.includes('페스') || category.includes('페스') || category === 'festival' || eventType === 'festival';
+  }
+  return false;
+};
+
+const posterUrlsFromRows = (rows) =>
+  [...new Set((rows || []).map((r) => String(r?.poster_url || '').trim()).filter(Boolean))];
+
 /** 같은 날·같은 포스터 URL은 1건 (신규 포스터 URL이면 +1) */
 const dedupePartiesByPoster = (list) => {
   const seen = new Set();
@@ -794,12 +815,51 @@ const HomePage = ({
 
   useEffect(() => {
     const fetchPosters = async () => {
-      const { data } = await supabase.from('parties').select('poster_url, _itemGenre').not('poster_url', 'is', null);
-      if (data) {
-        setSocialPosters(data.filter(p => !p._itemGenre || p._itemGenre === '소셜').map(p => p.poster_url));
-        setBootcampPosters(data.filter(p => p._itemGenre === '부트캠프').map(p => p.poster_url));
-        setFestivalPosters(data.filter(p => p._itemGenre === '페스티벌').map(p => p.poster_url));
-      }
+      const todayStr = getKSTTodayStr();
+      const { data, error } = await supabase
+        .from('parties')
+        .select('poster_url, genre, category, event_type')
+        .eq('status', 'approved')
+        .not('poster_url', 'is', null)
+        .gte('date', todayStr);
+
+      console.log('전체 data:', data);
+      console.log('_itemGenre 샘플:', data?.[0]);
+      console.log('genre/category/event_type 샘플:', data?.[0] ? {
+        genre: data[0].genre,
+        category: data[0].category,
+        event_type: data[0].event_type,
+      } : null);
+      if (error) console.log('fetchPosters error:', error);
+
+      const partiesRows = data || [];
+      const [bootcampsRes, festivalsRes] = await Promise.all([
+        supabase.from('bootcamps').select('poster_url, genre').eq('status', 'active').not('poster_url', 'is', null),
+        supabase.from('festivals').select('poster_url, genre, event_type').eq('status', 'active').not('poster_url', 'is', null),
+      ]);
+
+      const bootcampRows = (bootcampsRes.data || []).map((r) => ({
+        poster_url: r.poster_url,
+        genre: '부트캠프',
+        category: 'bootcamp',
+        event_type: '',
+      }));
+      const festivalRows = (festivalsRes.data || []).map((r) => ({
+        poster_url: r.poster_url,
+        genre: '페스티벌',
+        category: 'festival',
+        event_type: r.event_type || 'festival',
+      }));
+
+      setSocialPosters(posterUrlsFromRows(partiesRows.filter((r) => partyRowMatchesSlot(r, '소셜'))));
+      setBootcampPosters(posterUrlsFromRows([
+        ...partiesRows.filter((r) => partyRowMatchesSlot(r, '부트캠프')),
+        ...bootcampRows,
+      ]));
+      setFestivalPosters(posterUrlsFromRows([
+        ...partiesRows.filter((r) => partyRowMatchesSlot(r, '페스티벌')),
+        ...festivalRows,
+      ]));
     };
     fetchPosters();
   }, []);
