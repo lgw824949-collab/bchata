@@ -105,7 +105,7 @@ const PartyCard = ({ item, onSelect }) => {
       title: card?.title || item.title,
       description: card?.feedDesc || `${item.date} · ${item.locationName || item.studio_name || ''} · ${item.fee || ''}`.replace(/ · $/, '').replace(/^ · /, ''),
       posterUrl: item.poster_url,
-      linkUrl: `https://bchata.vercel.app/?party=${item.id}`,
+      linkUrl: `https://bchata.vercel.app/?party=${item.id}&open=true`,
     });
   };
 

@@ -5,6 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
+    "setup:env": "powershell -NoProfile -ExecutionPolicy Bypass -File ./scripts/setup-env.ps1",
     "build": "vite build",
     "lint": "eslint .",
     "preview": "vite preview"
