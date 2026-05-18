@@ -49,7 +49,7 @@ export const sharePartyToKakao = async ({ title, description, posterUrl, imageUr
       description: desc,
       imageUrl: image,
       imageWidth: 800,
-      imageHeight: 800,
+      imageHeight: 1200,
       link: {
         mobileWebUrl: url,
         webUrl: url,
