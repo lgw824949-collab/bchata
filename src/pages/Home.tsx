@@ -994,7 +994,7 @@ const HomePage = ({
         <p style={{ fontSize: '16px', fontWeight: 600, color: 'var(--color-text-sub)', margin: '0 0 8px', letterSpacing: '-0.3px' }}>켜고, 찾고, 가면 끝.</p>
         <p style={{ fontSize: '12px', fontWeight: 600, color: 'var(--color-text-sub)', margin: '0 0 16px' }}>내 주변 라틴 파티 실시간</p>
         <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'flex-end' }}>
-          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '6px', marginLeft: '12px', flexShrink: 0 }}>
           <img
             src="/logo.png"
             alt="오늘밤빠 로고"
@@ -1002,23 +1002,27 @@ const HomePage = ({
               const now = Date.now();
               if (now - lastAdminTap < 2000) {
                 const nextCount = adminTapCount + 1;
-                if (nextCount >= 3) {
-                  setView('admin-portal');
-                  setAdminTapCount(0);
-                } else {
-                  setAdminTapCount(nextCount);
-                }
-              } else {
-                setAdminTapCount(1);
-              }
+                if (nextCount >= 3) { setView('admin-portal'); setAdminTapCount(0); }
+                else { setAdminTapCount(nextCount); }
+              } else { setAdminTapCount(1); }
               setLastAdminTap(now);
             }}
-            style={{ width: '120px', height: '120px', objectFit: 'contain', borderRadius: '14px', flexShrink: 0, marginLeft: '12px', cursor: 'pointer', userSelect: 'none' }}
+            style={{ width: '80px', height: '80px', objectFit: 'contain', borderRadius: '14px', cursor: 'pointer', userSelect: 'none' }}
             onError={(e) => { e.currentTarget.style.display = 'none' }}
           />
-          <div style={{ marginTop: '4px', textAlign: 'center', maxWidth: '120px' }}>
-            <span style={{ fontSize: '9px', color: '#475569', fontWeight: 700, letterSpacing: '0.3px', lineHeight: 1.1, whiteSpace: 'nowrap' }}>전국 실시간 라틴 플랫폼</span>
-          </div>
+            {[
+              { label: '서울', count: regionCounts.seoul, live: true },
+              { label: '수도권', count: regionCounts.metro, live: false },
+              { label: '전국권', count: regionCounts.national, live: false },
+            ].map((r, i) => (
+              <div key={i} style={{ background: 'rgba(0,0,0,0.45)', border: `1px solid ${r.live ? 'rgba(201,168,76,0.5)' : 'rgba(255,255,255,0.1)'}`, borderRadius: '10px', padding: '6px 10px', minWidth: '90px', textAlign: 'right' }}>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '6px', marginBottom: '2px' }}>
+                  <span style={{ fontSize: '10px', color: 'rgba(255,255,255,0.6)', fontWeight: 600 }}>{r.label}</span>
+                  {r.live && <span style={{ background: '#E53935', color: '#fff', fontSize: '8px', fontWeight: 800, padding: '1px 5px', borderRadius: '10px' }}>LIVE</span>}
+                </div>
+                <div style={{ fontSize: '16px', fontWeight: 900, color: '#C9A84C', lineHeight: 1 }}>{r.count}개</div>
+              </div>
+            ))}
           </div>
         </div>
       </div>
@@ -1131,44 +1135,6 @@ const HomePage = ({
         </div>
       </div>
 
-      {activeTab === null && (
-      <div style={{ padding: '0 12px 16px', display: 'flex', flexDirection: 'column', gap: '8px' }}>
-
-        {/* 서울 */}
-        <div style={{ background: 'rgba(0,0,0,0.5)', border: '1px solid rgba(201,168,76,0.4)', borderRadius: '16px', padding: '16px 22px' }}>
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '6px' }}>
-            <span style={{ fontSize: '15px', fontWeight: 700, color: '#fff' }}>서울</span>
-            <span style={{ background: '#E53935', color: '#fff', fontSize: '10px', fontWeight: 800, padding: '3px 10px', borderRadius: '20px', letterSpacing: '1px' }}>LIVE NOW</span>
-          </div>
-          <div style={{ fontSize: '30px', fontWeight: 900, color: '#C9A84C', lineHeight: 1.1, marginBottom: '8px' }}>{regionCounts.seoul}개 진행중</div>
-          <div style={{ fontSize: '12px', color: 'rgba(255,255,255,0.65)', marginBottom: '2px' }}>강남 · 홍대 · 성수</div>
-          <div style={{ fontSize: '11px', color: 'rgba(255,255,255,0.35)' }}>새벽 2시까지</div>
-        </div>
-
-        {/* 수도권 */}
-        <div style={{ background: 'rgba(0,0,0,0.4)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '16px', padding: '16px 22px' }}>
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '6px' }}>
-            <span style={{ fontSize: '15px', fontWeight: 700, color: '#fff' }}>수도권</span>
-            <span style={{ background: 'rgba(255,255,255,0.08)', color: 'rgba(255,255,255,0.45)', fontSize: '10px', fontWeight: 700, padding: '3px 10px', borderRadius: '20px' }}>진행중</span>
-          </div>
-          <div style={{ fontSize: '30px', fontWeight: 900, color: '#C9A84C', lineHeight: 1.1, marginBottom: '8px' }}>{regionCounts.metro}개 진행중</div>
-          <div style={{ fontSize: '12px', color: 'rgba(255,255,255,0.65)', marginBottom: '2px' }}>수원 · 부천 · 인천</div>
-          <div style={{ fontSize: '11px', color: 'rgba(255,255,255,0.35)' }}>초보 모임 증가중</div>
-        </div>
-
-        {/* 전국권 */}
-        <div style={{ background: 'rgba(0,0,0,0.4)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '16px', padding: '16px 22px' }}>
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '6px' }}>
-            <span style={{ fontSize: '15px', fontWeight: 700, color: '#fff' }}>전국권</span>
-            <span style={{ background: 'rgba(255,255,255,0.08)', color: 'rgba(255,255,255,0.45)', fontSize: '10px', fontWeight: 700, padding: '3px 10px', borderRadius: '20px' }}>진행중</span>
-          </div>
-          <div style={{ fontSize: '30px', fontWeight: 900, color: '#C9A84C', lineHeight: 1.1, marginBottom: '8px' }}>{regionCounts.national}개 진행중</div>
-          <div style={{ fontSize: '12px', color: 'rgba(255,255,255,0.65)', marginBottom: '2px' }}>부산 · 대구 · 광주</div>
-          <div style={{ fontSize: '11px', color: 'rgba(255,255,255,0.35)' }}>주말 원정 활발</div>
-        </div>
-
-      </div>
-      )}
 
       {/* 메인 퀵메뉴: activeTab === null → 3섹션 그리드 / 소셜 탭 → 가로 스크롤 */}
       <style>{`
