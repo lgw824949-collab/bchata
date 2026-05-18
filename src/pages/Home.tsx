@@ -751,7 +751,11 @@ const HomePage = ({
   const isEn = i18n.language.startsWith('en');
   const lang = isEn ? 'en' : 'ko';
   const [activeTab, setActiveTabState] = useState(null);
-  const [regionCounts, setRegionCounts] = useState({ seoul: 0, metro: 0, national: 0 });
+  const [regionCounts, setRegionCounts] = useState({
+    seoul: 0, seoulDistricts: '',
+    metro: 0, metroDistricts: '',
+    national: 0, nationalDistricts: ''
+  });
   const [particles, setParticles] = useState<{id: number, x: number, y: number, emoji: string}[]>([]);
 
   const triggerParticle = (e: React.MouseEvent, emoji: string) => {
@@ -898,10 +902,37 @@ const HomePage = ({
     if (!parties || parties.length === 0) return;
     const today = getKSTTodayStr();
     const todayParties = parties.filter((p) => p.date === today && p.status === 'approved');
-    const seoul = todayParties.filter((p) => p.broadRegion === '서울' || p.region?.includes('서울')).length;
-    const metro = todayParties.filter((p) => p.broadRegion === '수도권' || p.region?.includes('경기') || p.region?.includes('인천')).length;
-    const national = todayParties.filter((p) => !p.broadRegion?.includes('서울') && !p.region?.includes('서울') && !p.region?.includes('경기') && !p.region?.includes('인천')).length;
-    setRegionCounts({ seoul, metro, national });
+
+    const seoulParties = todayParties.filter((p) => p.broadRegion === '서울' || p.region?.includes('서울'));
+    const metroParties = todayParties.filter((p) => p.broadRegion === '경기/인천' || p.region?.includes('경기') || p.region?.includes('인천'));
+    const nationalParties = todayParties.filter((p) =>
+      !p.broadRegion?.includes('서울') &&
+      !p.region?.includes('서울') &&
+      !p.region?.includes('경기') &&
+      !p.region?.includes('인천')
+    );
+
+    const getTopDistricts = (list) => {
+      const counts = {};
+      list.forEach(p => {
+        const r = p.region || '';
+        if (r) counts[r] = (counts[r] || 0) + 1;
+      });
+      return Object.entries(counts)
+        .sort((a, b) => b[1] - a[1])
+        .slice(0, 2)
+        .map(([r]) => r)
+        .join(' · ');
+    };
+
+    setRegionCounts({
+      seoul: seoulParties.length,
+      seoulDistricts: getTopDistricts(seoulParties),
+      metro: metroParties.length,
+      metroDistricts: getTopDistricts(metroParties),
+      national: nationalParties.length,
+      nationalDistricts: getTopDistricts(nationalParties),
+    });
   }, [parties]);
 
   /** 오늘 이후 등록 파티 (포스터 URL 중복 제거) — 행사달력·날짜바·요약 건수 */
@@ -996,16 +1027,22 @@ const HomePage = ({
         <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: '12px', width: '100%' }}>
           <div style={{ display: 'flex', flexDirection: 'row', alignItems: 'stretch', gap: '6px', flex: 1, minWidth: 0 }}>
             {[
-              { label: '서울', count: regionCounts.seoul, live: true },
-              { label: '수도권', count: regionCounts.metro, live: false },
-              { label: '전국권', count: regionCounts.national, live: false },
+              { label: '서울', count: regionCounts.seoul, districts: regionCounts.seoulDistricts, live: true },
+              { label: '수도권', count: regionCounts.metro, districts: regionCounts.metroDistricts, live: false },
+              { label: '전국권', count: regionCounts.national, districts: regionCounts.nationalDistricts, live: false },
             ].map((r, i) => (
               <div key={i} style={{ background: 'rgba(0,0,0,0.45)', border: `1px solid ${r.live ? 'rgba(201,168,76,0.5)' : 'rgba(255,255,255,0.1)'}`, borderRadius: '10px', padding: '6px 8px', flex: 1, minWidth: 0, textAlign: 'left', height: '80px', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '6px', marginBottom: '2px' }}>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                   <span style={{ fontSize: '10px', color: 'rgba(255,255,255,0.6)', fontWeight: 600 }}>{r.label}</span>
                   {r.live && <span style={{ background: '#E53935', color: '#fff', fontSize: '8px', fontWeight: 800, padding: '1px 5px', borderRadius: '10px' }}>LIVE</span>}
                 </div>
-                <div style={{ fontSize: '16px', fontWeight: 900, color: '#C9A84C', lineHeight: 1 }}>{r.count}개</div>
+                <div style={{ fontSize: '11px', color: '#C9A84C', fontWeight: 700 }}>
+                  오늘 {r.count}개 진행중
+                </div>
+                <div style={{ fontSize: '10px', color: 'rgba(255,255,255,0.45)' }}>
+                  {r.districts || '파티 정보 없음'}
+                </div>
+                {r.live && <div style={{ fontSize: '9px', color: '#E53935', fontWeight: 700 }}>● LIVE NOW</div>}
               </div>
             ))}
           </div>
