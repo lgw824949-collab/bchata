@@ -1102,13 +1102,42 @@ const HomePage = ({
     },
   ];
 
-  const quickMenuSectionTitleStyle = { fontSize: '14px', color: '#888', fontWeight: '700', letterSpacing: '1px', marginBottom: '8px' };
-  const quickMenuFloatStyle = { display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', background: '#ffffff', border: '1px solid #F1F5F9', borderRadius: '12px', boxShadow: '0 2px 8px rgba(0,0,0,0.06)', padding: '8px 6px 6px', cursor: 'pointer', width: '100%', height: '90px' };
-  const quickMenuIconWrapStyle = { width: '40px', height: '40px', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, filter: 'drop-shadow(0 2px 4px rgba(0,0,0,0.15))' };
-  const quickMenuLabelStyle = { color: '#1E293B', fontWeight: 600, fontSize: '11px', marginTop: '4px', textAlign: 'center', lineHeight: 1.25, whiteSpace: 'normal', overflow: 'hidden', textOverflow: 'ellipsis', width: '100%' };
+  const homePartySectionTitleStyle = {
+    fontSize: '14px',
+    fontWeight: 800,
+    color: '#1A1A1A',
+    margin: '0 0 12px',
+    paddingLeft: '10px',
+    borderLeft: '3px solid #D4436E',
+    lineHeight: 1.4,
+  };
+  const homePartnerSectionTitleStyle = {
+    fontSize: '14px',
+    fontWeight: 800,
+    color: '#1A1A1A',
+    margin: '20px 0 12px',
+    paddingLeft: '10px',
+    borderLeft: '3px solid #C9A84C',
+    lineHeight: 1.4,
+  };
+  const quickMenuFloatStyle = {
+    display: 'flex',
+    flexDirection: 'column',
+    alignItems: 'center',
+    justifyContent: 'center',
+    background: '#FFFFFF',
+    border: '1px solid #F0F0F0',
+    borderRadius: '14px',
+    padding: '8px 6px 6px',
+    cursor: 'pointer',
+    width: '100%',
+    height: '90px',
+  };
+  const quickMenuIconWrapStyle = { width: '40px', height: '40px', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 };
+  const quickMenuLabelStyle = { color: '#333333', fontWeight: 600, fontSize: '11px', marginTop: '4px', textAlign: 'center', lineHeight: 1.4, whiteSpace: 'normal', overflow: 'hidden', textOverflow: 'ellipsis', width: '100%' };
 
   return (
-    <div className="app-container" style={{ width: '100%', maxWidth: '500px', margin: '0 auto', background: 'var(--color-bg)', minHeight: '100vh', paddingBottom: '80px', transition: 'background-color 0.3s' }}>
+    <div className="app-container" style={{ width: '100%', maxWidth: '500px', margin: '0 auto', background: '#FFFFFF', minHeight: '100vh', paddingBottom: '80px' }}>
 
       {activeTab === 'social' && (
         <img
@@ -1120,7 +1149,7 @@ const HomePage = ({
       )}
 
       {/* 📌 [영역 A: 히어로 / 메인 게이트] */}
-      <div style={{ padding: '16px 20px 8px', marginBottom: '12px' }}>
+      <div style={{ padding: '16px 16px 0', marginBottom: '20px' }}>
         {activeTab === null && (
         <div style={{ marginBottom: '12px' }}>
           <img
@@ -1143,26 +1172,19 @@ const HomePage = ({
 
         {activeTab === null && (
         <>
-        <h1 style={{ fontSize: '28px', fontWeight: 950, color: 'var(--color-text-main)', margin: '0 0 6px', letterSpacing: '-0.8px', lineHeight: 1.2 }}>오늘 어디서 춤출래?</h1>
-        <p style={{ fontSize: '14px', fontWeight: 600, color: 'var(--color-text-sub)', margin: '0 0 14px', letterSpacing: '-0.2px' }}>켜고, 찾고, 가면 끝!</p>
+        <h1 style={{ fontSize: '26px', fontWeight: 900, color: '#1A1A1A', margin: 0, letterSpacing: '-0.5px', lineHeight: 1.4 }}>오늘 어디서 춤추실까요?</h1>
+        <p style={{ fontSize: '15px', fontWeight: 700, color: '#D4436E', margin: '8px 0 0', lineHeight: 1.4 }}>만원의 행복</p>
+        <p style={{ fontSize: '12px', fontWeight: 400, color: '#999999', margin: '4px 0 0', lineHeight: 1.4 }}>켜고 찾고 가면 끝</p>
         </>
         )}
 
         {activeTab === null && (
         <>
-        <p style={{ fontSize: '13px', fontWeight: 700, color: 'var(--color-text-sub)', margin: '0 0 10px' }}>
-          오늘 전국{' '}
-          <span style={{ color: 'var(--color-text-main)', fontWeight: 900, fontSize: '15px' }}>
-            {regionCounts.seoul + regionCounts.metro + regionCounts.national}
-          </span>
-          건
-        </p>
-
-        <div style={{ display: 'flex', gap: '8px' }}>
+        <div style={{ display: 'flex', gap: '8px', marginTop: '16px' }}>
           {[
             { label: '서울', count: regionCounts.seoul, filter: '서울' },
             { label: '수도권', count: regionCounts.metro, filter: '경기/인천' },
-            { label: '전국', count: regionCounts.national, filter: '' },
+            { label: '지방권', count: regionCounts.national, filter: '' },
           ].map((r) => {
             const isSelected = filterRegion === r.filter;
             return (
@@ -1178,22 +1200,21 @@ const HomePage = ({
                 style={{
                   flex: 1,
                   minWidth: 0,
-                  padding: '10px 8px',
-                  borderRadius: '12px',
-                  border: isSelected ? '1.5px solid rgba(201, 168, 76, 0.7)' : '1px solid var(--color-border)',
-                  background: isSelected ? 'rgba(201, 168, 76, 0.1)' : 'var(--color-card)',
+                  padding: '12px',
+                  borderRadius: '14px',
+                  border: isSelected ? '1.5px solid #C9A84C' : '1px solid #F0F0F0',
+                  background: isSelected ? '#FFFBF0' : '#FFFFFF',
                   cursor: 'pointer',
                   display: 'flex',
                   flexDirection: 'column',
                   alignItems: 'center',
                   justifyContent: 'center',
                   textAlign: 'center',
-                  boxShadow: '0 1px 3px rgba(15, 23, 42, 0.04)',
                 }}
               >
-                <div style={{ fontSize: '11px', fontWeight: 700, color: 'var(--color-text-sub)', marginBottom: '4px', width: '100%', textAlign: 'center' }}>{r.label}</div>
-                <div style={{ fontSize: '18px', fontWeight: 900, color: 'var(--color-text-main)', lineHeight: 1, width: '100%', textAlign: 'center' }}>
-                  {r.count}<span style={{ fontSize: '11px', fontWeight: 700, color: 'var(--color-text-sub)', marginLeft: '2px' }}>건</span>
+                <div style={{ fontSize: '12px', fontWeight: 400, color: '#999999', marginBottom: '4px', width: '100%', textAlign: 'center', lineHeight: 1.4 }}>{r.label}</div>
+                <div style={{ fontSize: '20px', fontWeight: 900, color: '#1A1A1A', lineHeight: 1.4, width: '100%', textAlign: 'center' }}>
+                  {r.count}<span style={{ fontSize: '12px', fontWeight: 400, color: '#999999', marginLeft: '2px' }}>건</span>
                 </div>
               </button>
             );
@@ -1204,17 +1225,11 @@ const HomePage = ({
       </div>
 
       {/* 🔴 [LIVE 바 임팩트 영역 개편] */}
-      <div style={{ padding: '4px 20px 12px', marginBottom: '24px' }}>
-        {/* LiveCount를 감싸는 세련된 임팩트 컨테이너 및 전역 스타일 주입 */}
-        <div className="live-count-premium-wrapper" style={{ 
-          // background: '#0F172A', 
-          background: '#F8FAFC',
-          borderRadius: '14px', 
-          overflow: 'hidden', 
-          // boxShadow: '0 4px 12px rgba(15, 23, 42, 0.15)',
-          boxShadow: '0 2px 8px rgba(15, 23, 42, 0.06)',
-          // border: '1px solid rgba(255, 255, 255, 0.05)'
-          border: '1px solid #E2E8F0'
+      <div style={{ padding: '0 16px', marginBottom: '20px' }}>
+        <div className="live-count-premium-wrapper" style={{
+          background: 'linear-gradient(135deg, #D4436E, #C9A84C)',
+          borderRadius: '14px',
+          overflow: 'hidden',
         }}>
           <style>{`
             /* 햄버거 버튼 세련되게 축소 및 그림자 제거 (절대 규칙 완벽 준수 전역 오버라이드) */
@@ -1241,7 +1256,8 @@ const HomePage = ({
               width: 100% !important;
             }
             .live-count-premium-wrapper .lc-tag {
-              background: #E53935 !important;
+              background: #FFFFFF !important;
+              color: #D4436E !important;
               font-size: 10px !important;
               font-weight: 950 !important;
               padding: 2px 6px !important;
@@ -1253,26 +1269,24 @@ const HomePage = ({
               margin-right: 4px !important;
             }
             .live-count-premium-wrapper .lc-name {
-              /* color: #F8FAFC !important; */
-              color: #334155 !important;
+              color: #FFFFFF !important;
               font-size: 13px !important;
               font-weight: 800 !important;
               font-family: inherit !important;
               letter-spacing: -0.3px !important;
             }
             .live-count-premium-wrapper .lc-count {
-              color: #FF5252 !important;
+              color: #FFFFFF !important;
               font-size: 15px !important;
               font-weight: 900 !important;
               font-family: inherit !important;
-              background: rgba(229,57,53,0.15) !important;
+              background: rgba(255,255,255,0.2) !important;
               padding: 1px 6px !important;
               border-radius: 6px !important;
               margin-left: 4px !important;
             }
             .live-count-premium-wrapper .lc-default {
-              /* color: #E2E8F0 !important; */
-              color: #64748B !important;
+              color: #FFFFFF !important;
               font-size: 12px !important;
               font-weight: 700 !important;
               font-family: inherit !important;
@@ -1285,8 +1299,7 @@ const HomePage = ({
               margin-left: auto !important;
               display: flex !important;
               align-items: center !important;
-              /* background: rgba(255,255,255,0.06) !important; */
-              background: rgba(15, 23, 42, 0.06) !important;
+              background: rgba(255,255,255,0.2) !important;
               padding: 2px 4px !important;
               border-radius: 6px !important;
               gap: 2px !important;
@@ -1296,12 +1309,12 @@ const HomePage = ({
               font-size: 9px !important;
               font-weight: 800 !important;
               border-radius: 4px !important;
-              color: #94A3B8 !important;
+              color: rgba(255,255,255,0.75) !important;
               transition: all 0.2s !important;
             }
             .live-count-premium-wrapper .lc-lang-btn.on {
-              background: #E53935 !important;
-              color: #FFFFFF !important;
+              background: #FFFFFF !important;
+              color: #D4436E !important;
             }
             .live-count-premium-wrapper .lc-lang span {
               display: none !important; /* 구분선 제거하고 깔끔한 버튼 그룹 형태 */
@@ -1327,91 +1340,12 @@ const HomePage = ({
           cursor: pointer;
         }
         .home-poster-border-wrap.is-idle {
-          border: 2px solid #555;
+          border: 1px solid #F0F0F0;
           overflow: hidden;
         }
         .home-poster-border-wrap.is-active {
+          border: 2px solid #C9A84C;
           overflow: hidden;
-          padding: 2px;
-          background: #3a3a3a;
-        }
-        .home-poster-border-wrap.is-active::before {
-          content: '';
-          position: absolute;
-          z-index: 2;
-          pointer-events: none;
-          animation: homePosterGoldTrace 2.4s linear infinite;
-        }
-        @keyframes homePosterGoldTrace {
-          0% {
-            top: 0;
-            left: -40%;
-            width: 40%;
-            height: 2px;
-            background: linear-gradient(90deg, transparent, #C9A84C, #FFD700, transparent);
-          }
-          24% {
-            top: 0;
-            left: 100%;
-            width: 40%;
-            height: 2px;
-            background: linear-gradient(90deg, transparent, #C9A84C, #FFD700, transparent);
-          }
-          25% {
-            top: -40%;
-            right: 0;
-            left: auto;
-            width: 2px;
-            height: 40%;
-            background: linear-gradient(180deg, transparent, #C9A84C, #FFD700, transparent);
-          }
-          49% {
-            top: 100%;
-            right: 0;
-            left: auto;
-            width: 2px;
-            height: 40%;
-            background: linear-gradient(180deg, transparent, #C9A84C, #FFD700, transparent);
-          }
-          50% {
-            bottom: 0;
-            top: auto;
-            left: 100%;
-            width: 40%;
-            height: 2px;
-            background: linear-gradient(270deg, transparent, #C9A84C, #FFD700, transparent);
-          }
-          74% {
-            bottom: 0;
-            top: auto;
-            left: -40%;
-            width: 40%;
-            height: 2px;
-            background: linear-gradient(270deg, transparent, #C9A84C, #FFD700, transparent);
-          }
-          75% {
-            bottom: -40%;
-            top: auto;
-            left: 0;
-            width: 2px;
-            height: 40%;
-            background: linear-gradient(0deg, transparent, #C9A84C, #FFD700, transparent);
-          }
-          99% {
-            top: -40%;
-            bottom: auto;
-            left: 0;
-            width: 2px;
-            height: 40%;
-            background: linear-gradient(0deg, transparent, #C9A84C, #FFD700, transparent);
-          }
-          100% {
-            top: 0;
-            left: -40%;
-            width: 40%;
-            height: 2px;
-            background: linear-gradient(90deg, transparent, #C9A84C, #FFD700, transparent);
-          }
         }
         .home-poster-border-inner {
           position: relative;
@@ -1424,10 +1358,10 @@ const HomePage = ({
         }
       `}</style>
       {activeTab === null && (
-      <div id="quickmenu-section" style={{ padding: '8px 12px 12px', marginBottom: '24px' }}>
+      <div id="quickmenu-section" style={{ padding: '0 16px', marginBottom: '20px' }}>
         {/* 파티 & 이벤트 포스터 3칸 - Supabase 실시간 연동 */}
-        <p style={{ fontSize: '14px', color: '#888', fontWeight: '700', letterSpacing: '1px', marginBottom: '8px', marginTop: 0 }}>파티 & 이벤트</p>
-        <div style={{ display: 'flex', gap: '8px', marginBottom: '12px' }}>
+        <p style={homePartySectionTitleStyle}>파티 & 이벤트</p>
+        <div style={{ display: 'flex', gap: '8px', marginBottom: '20px' }}>
           {homePosterSlots.map((item) => {
             const isActive = activePosterSlot === item.id;
             return (
@@ -1444,7 +1378,7 @@ const HomePage = ({
                     style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
                   />
                   <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, background: 'linear-gradient(transparent, rgba(0,0,0,0.75))', padding: '16px 8px 8px', textAlign: 'center' }}>
-                    <span style={{ color: '#fff', fontSize: '13px', fontWeight: 800 }}>{item.label}</span>
+                    <span style={{ color: '#fff', fontSize: '14px', fontWeight: 800 }}>{item.label}</span>
                   </div>
                 </div>
               </div>
@@ -1453,14 +1387,14 @@ const HomePage = ({
         </div>
 
         {/* 파트너 & 강사 */}
-        <p style={{ ...quickMenuSectionTitleStyle }}>파트너 & 강사</p>
+        <p style={homePartnerSectionTitleStyle}>파트너 & 강사</p>
         <div
           className="quick-menu-scroll"
           style={{
             display: 'flex',
             gap: '8px',
             width: '100%',
-            marginBottom: '16px',
+            marginBottom: '20px',
             overflowX: 'auto',
             scrollSnapType: 'x mandatory',
             scrollbarWidth: 'none',
@@ -1469,8 +1403,8 @@ const HomePage = ({
           }}
         >
           {[
-            { icon: <Calendar size={32} strokeWidth={1.2} color="#E53935" />, label: '행사달력', particles: '📅', action: () => setShowFullCalendar(true) },
-            { icon: <MapPin size={32} strokeWidth={1.2} color="#E53935" />, label: '위치·대관', particles: '📍', action: () => setShowRentalModal(true) },
+            { icon: <Calendar size={32} strokeWidth={1.2} color="#D4436E" />, label: '행사달력', particles: '📅', action: () => setShowFullCalendar(true) },
+            { icon: <MapPin size={32} strokeWidth={1.2} color="#D4436E" />, label: '위치·대관', particles: '📍', action: () => setShowRentalModal(true) },
             { icon: <Users size={32} strokeWidth={1.2} color="#C9A84C" />, label: '파트너', particles: '💑', action: () => { window.history.pushState({}, '', '#partner'); setActiveTab('partner'); } },
             { icon: <Users size={32} strokeWidth={1.2} color="#C9A84C" />, label: '강사찾기', particles: '🕺', action: () => { localStorage.setItem('instructor_target_genre', '전체'); setView('instructors'); window.history.pushState({}, '', '/instructors'); window.dispatchEvent(new PopStateEvent('popstate')); setTimeout(() => { window.dispatchEvent(new CustomEvent('apply-instructor-filter')); }, 300); } },
             { textIcon: '1:1', label: '채팅문의', particles: '💬', action: () => window.open('https://open.kakao.com/o/gP43rNri', '_blank') },
