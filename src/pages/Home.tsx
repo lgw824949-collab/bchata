@@ -1082,12 +1082,16 @@ const HomePage = ({
                   border: isSelected ? '1.5px solid rgba(201, 168, 76, 0.7)' : '1px solid var(--color-border)',
                   background: isSelected ? 'rgba(201, 168, 76, 0.1)' : 'var(--color-card)',
                   cursor: 'pointer',
-                  textAlign: 'left',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  textAlign: 'center',
                   boxShadow: '0 1px 3px rgba(15, 23, 42, 0.04)',
                 }}
               >
-                <div style={{ fontSize: '11px', fontWeight: 700, color: 'var(--color-text-sub)', marginBottom: '4px' }}>{r.label}</div>
-                <div style={{ fontSize: '18px', fontWeight: 900, color: 'var(--color-text-main)', lineHeight: 1 }}>
+                <div style={{ fontSize: '11px', fontWeight: 700, color: 'var(--color-text-sub)', marginBottom: '4px', width: '100%', textAlign: 'center' }}>{r.label}</div>
+                <div style={{ fontSize: '18px', fontWeight: 900, color: 'var(--color-text-main)', lineHeight: 1, width: '100%', textAlign: 'center' }}>
                   {r.count}<span style={{ fontSize: '11px', fontWeight: 700, color: 'var(--color-text-sub)', marginLeft: '2px' }}>건</span>
                 </div>
               </button>
@@ -1241,6 +1245,11 @@ const HomePage = ({
           { textIcon: '1:1', label: '채팅문의', particles: '💬', action: () => window.open('https://open.kakao.com/o/gP43rNri', '_blank') },
           { icon: <MessageSquare size={32} strokeWidth={1.2} color="#C9A84C" />, label: '컨시어지', particles: '✨', action: () => window.dispatchEvent(new CustomEvent('open-chatbot')) },
           { icon: <Star size={32} strokeWidth={1.2} color="#C9A84C" />, label: '운명의좌표', particles: '🌟', action: () => { window.history.pushState({}, '', '#saju'); setShowSaju(true); } },
+          { icon: <Heart size={32} strokeWidth={1.2} color="#C9A84C" />, label: '찜하기', particles: '❤️', action: () => { window.history.pushState({}, '', '#wishlist'); setShowWishlist(true); } },
+          { icon: <Utensils size={32} strokeWidth={1.2} color="#C9A84C" />, label: '맛집뒷풀이', particles: '🍽', action: () => { window.history.pushState({}, '', '#restaurant'); setView('restaurant'); } },
+          { icon: <Camera size={32} strokeWidth={1.2} color="#C9A84C" />, label: '라이브픽', particles: '📸', action: () => { window.history.pushState({}, '', '#community'); setView('community'); } },
+          { icon: <CloudSun size={32} strokeWidth={1.2} color="#C9A84C" />, label: '오늘날씨', particles: '☀️', action: () => { window.history.pushState({}, '', '#weather'); setShowWeather(true); } },
+          { icon: <Navigation size={32} strokeWidth={1.2} color="#C9A84C" />, label: '지능형경로', particles: '🧭', action: () => { window.history.pushState({}, '', '#route'); openAnalysis(false); } },
         ].map((item, idx) => (
           <motion.div key={`partner-${idx}`} whileTap={{ scale: 0.92 }} onClick={(e) => { triggerParticle(e, item.particles); item.action(); }} style={{ ...quickMenuFloatStyle, position: 'relative', width: '100%' }}>
             {item.textIcon ? (
@@ -1248,23 +1257,6 @@ const HomePage = ({
             ) : (
               <motion.div style={{ ...quickMenuIconWrapStyle, width: '44px', height: '44px' }}>{item.icon}</motion.div>
             )}
-            <span style={{ ...quickMenuLabelStyle, fontSize: '11px' }}>{item.label}</span>
-          </motion.div>
-        ))}
-        </motion.div>
-
-        {/* 도구 & 정보 */}
-        <p style={{ ...quickMenuSectionTitleStyle }}>도구 & 정보</p>
-        <motion.div style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: '6px', width: '100%', justifyContent: 'start' }}>
-        {[
-          { icon: <Heart size={32} strokeWidth={1.2} color="#1976D2" />, label: '찜하기', particles: '❤️', action: () => { window.history.pushState({}, '', '#wishlist'); setShowWishlist(true); } },
-          { icon: <Utensils size={32} strokeWidth={1.2} color="#1976D2" />, label: '맛집뒷풀이', particles: '🍽', action: () => { window.history.pushState({}, '', '#restaurant'); setView('restaurant'); } },
-          { icon: <Camera size={32} strokeWidth={1.2} color="#1976D2" />, label: '라이브픽', particles: '📸', action: () => { window.history.pushState({}, '', '#community'); setView('community'); } },
-          { icon: <CloudSun size={32} strokeWidth={1.2} color="#1976D2" />, label: '오늘날씨', particles: '☀️', action: () => { window.history.pushState({}, '', '#weather'); setShowWeather(true); } },
-          { icon: <Navigation size={32} strokeWidth={1.2} color="#1976D2" />, label: '지능형경로', particles: '🧭', action: () => { window.history.pushState({}, '', '#route'); openAnalysis(false); } },
-        ].map((item, idx) => (
-          <motion.div key={`tool-${idx}`} whileTap={{ scale: 0.92 }} onClick={(e) => { triggerParticle(e, item.particles); item.action(); }} style={{ ...quickMenuFloatStyle, position: 'relative', width: '100%' }}>
-            <motion.div style={{ ...quickMenuIconWrapStyle, width: '44px', height: '44px' }}>{item.icon}</motion.div>
             <span style={{ ...quickMenuLabelStyle, fontSize: '11px' }}>{item.label}</span>
           </motion.div>
         ))}
