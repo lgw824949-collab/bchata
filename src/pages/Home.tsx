@@ -813,15 +813,15 @@ const HomePage = ({
     const fetchPosters = async () => {
       const today = new Date().toISOString().split('T')[0];
 
-      const [s, b, f] = await Promise.all([
+      const [partiesRes, bootcampsRes, festivalsRes] = await Promise.all([
         supabase.from('parties').select('poster_url').gte('date', today).not('poster_url', 'is', null),
         supabase.from('bootcamps').select('poster_url').gte('start_date', today).not('poster_url', 'is', null),
         supabase.from('festivals').select('poster_url').gte('start_date', today).not('poster_url', 'is', null),
       ]);
 
-      setSocialPosters((s.data || []).map((p) => p.poster_url));
-      setBootcampPosters((b.data || []).map((p) => p.poster_url));
-      setFestivalPosters((f.data || []).map((p) => p.poster_url));
+      setSocialPosters((partiesRes.data || []).map((p) => p.poster_url));
+      setBootcampPosters((bootcampsRes.data || []).map((p) => p.poster_url));
+      setFestivalPosters((festivalsRes.data || []).map((p) => p.poster_url));
     };
     fetchPosters();
   }, []);
@@ -1065,6 +1065,34 @@ const HomePage = ({
     return () => window.removeEventListener('resize', setVh);
   }, []);
 
+  /** 홈 포스터 3칸 순서 고정: 좌→우 소셜 · 부트캠프 · 페스티벌 */
+  const homePosterSlots = [
+    {
+      id: 'social',
+      posters: socialPosters,
+      idx: socialIdx,
+      label: '소셜',
+      fallback: '/Photo/소셜.png',
+      action: () => { window.history.pushState({}, '', '#social'); setActiveTab('social'); },
+    },
+    {
+      id: 'bootcamp',
+      posters: bootcampPosters,
+      idx: bootcampIdx,
+      label: '부트캠프',
+      fallback: '/Photo/부트캠프.png',
+      action: () => { window.history.pushState({}, '', '#bootcamp'); setView('bootcamp'); },
+    },
+    {
+      id: 'festival',
+      posters: festivalPosters,
+      idx: festivalIdx,
+      label: '페스티벌',
+      fallback: '/Photo/페스티벌.png',
+      action: () => { window.history.pushState({}, '', '#festival'); setView('festival'); },
+    },
+  ];
+
   const quickMenuSectionTitleStyle = { fontSize: '14px', color: '#888', fontWeight: '700', letterSpacing: '1px', marginBottom: '8px' };
   const quickMenuFloatStyle = { display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', background: '#ffffff', border: '1px solid #F1F5F9', borderRadius: '12px', boxShadow: '0 2px 8px rgba(0,0,0,0.06)', padding: '8px 6px 6px', cursor: 'pointer', width: '100%', height: '90px' };
   const quickMenuIconWrapStyle = { width: '40px', height: '40px', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, filter: 'drop-shadow(0 2px 4px rgba(0,0,0,0.15))' };
@@ -1288,12 +1316,8 @@ const HomePage = ({
         {/* 파티 & 이벤트 포스터 3칸 - Supabase 실시간 연동 */}
         <p style={{ fontSize: '14px', color: '#888', fontWeight: '700', letterSpacing: '1px', marginBottom: '8px', marginTop: 0 }}>파티 & 이벤트</p>
         <div style={{ display: 'flex', gap: '8px', marginBottom: '12px' }}>
-          {[
-            { posters: socialPosters, idx: socialIdx, label: '소셜', fallback: '/Photo/소셜.png', action: () => { window.history.pushState({}, '', '#social'); setActiveTab('social'); }},
-            { posters: bootcampPosters, idx: bootcampIdx, label: '부트캠프', fallback: '/Photo/부트캠프.png', action: () => { window.history.pushState({}, '', '#bootcamp'); setView('bootcamp'); }},
-            { posters: festivalPosters, idx: festivalIdx, label: '페스티벌', fallback: '/Photo/페스티벌.png', action: () => { window.history.pushState({}, '', '#festival'); setView('festival'); }},
-          ].map((item, idx) => (
-            <div key={idx} onClick={item.action} style={{ flex: 1, borderRadius: '12px', border: '2px solid #E53935', overflow: 'hidden', cursor: 'pointer', position: 'relative', aspectRatio: '9/16' }}>
+          {homePosterSlots.map((item) => (
+            <div key={item.id} onClick={item.action} style={{ flex: 1, borderRadius: '12px', border: '2px solid #E53935', overflow: 'hidden', cursor: 'pointer', position: 'relative', aspectRatio: '9/16' }}>
               <img
                 src={item.posters[item.idx] || item.fallback}
                 alt={item.label}
