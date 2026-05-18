@@ -751,6 +751,7 @@ const HomePage = ({
   const isEn = i18n.language.startsWith('en');
   const lang = isEn ? 'en' : 'ko';
   const [activeTab, setActiveTabState] = useState(null);
+  const [regionCounts, setRegionCounts] = useState({ seoul: 0, metro: 0, national: 0 });
   const [particles, setParticles] = useState<{id: number, x: number, y: number, emoji: string}[]>([]);
 
   const triggerParticle = (e: React.MouseEvent, emoji: string) => {
@@ -892,6 +893,16 @@ const HomePage = ({
   }, []);
 
   const todayStr = useMemo(() => getKSTTodayStr(), []);
+
+  useEffect(() => {
+    if (!parties || parties.length === 0) return;
+    const today = getKSTTodayStr();
+    const todayParties = parties.filter((p) => p.date === today && p.status === 'approved');
+    const seoul = todayParties.filter((p) => p.broadRegion === '서울' || p.region?.includes('서울')).length;
+    const metro = todayParties.filter((p) => p.broadRegion === '수도권' || p.region?.includes('경기') || p.region?.includes('인천')).length;
+    const national = todayParties.filter((p) => !p.broadRegion?.includes('서울') && !p.region?.includes('서울') && !p.region?.includes('경기') && !p.region?.includes('인천')).length;
+    setRegionCounts({ seoul, metro, national });
+  }, [parties]);
 
   /** 오늘 이후 등록 파티 (포스터 URL 중복 제거) — 행사달력·날짜바·요약 건수 */
   const calendarParties = useMemo(
@@ -1119,6 +1130,45 @@ const HomePage = ({
           <LiveCount />
         </div>
       </div>
+
+      {activeTab === null && (
+      <div style={{ padding: '0 12px 16px', display: 'flex', flexDirection: 'column', gap: '8px' }}>
+
+        {/* 서울 */}
+        <div style={{ background: 'rgba(0,0,0,0.5)', border: '1px solid rgba(201,168,76,0.4)', borderRadius: '16px', padding: '16px 22px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '6px' }}>
+            <span style={{ fontSize: '15px', fontWeight: 700, color: '#fff' }}>서울</span>
+            <span style={{ background: '#E53935', color: '#fff', fontSize: '10px', fontWeight: 800, padding: '3px 10px', borderRadius: '20px', letterSpacing: '1px' }}>LIVE NOW</span>
+          </div>
+          <div style={{ fontSize: '30px', fontWeight: 900, color: '#C9A84C', lineHeight: 1.1, marginBottom: '8px' }}>{regionCounts.seoul}개 진행중</div>
+          <div style={{ fontSize: '12px', color: 'rgba(255,255,255,0.65)', marginBottom: '2px' }}>강남 · 홍대 · 성수</div>
+          <div style={{ fontSize: '11px', color: 'rgba(255,255,255,0.35)' }}>새벽 2시까지</div>
+        </div>
+
+        {/* 수도권 */}
+        <div style={{ background: 'rgba(0,0,0,0.4)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '16px', padding: '16px 22px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '6px' }}>
+            <span style={{ fontSize: '15px', fontWeight: 700, color: '#fff' }}>수도권</span>
+            <span style={{ background: 'rgba(255,255,255,0.08)', color: 'rgba(255,255,255,0.45)', fontSize: '10px', fontWeight: 700, padding: '3px 10px', borderRadius: '20px' }}>진행중</span>
+          </div>
+          <div style={{ fontSize: '30px', fontWeight: 900, color: '#C9A84C', lineHeight: 1.1, marginBottom: '8px' }}>{regionCounts.metro}개 진행중</div>
+          <div style={{ fontSize: '12px', color: 'rgba(255,255,255,0.65)', marginBottom: '2px' }}>수원 · 부천 · 인천</div>
+          <div style={{ fontSize: '11px', color: 'rgba(255,255,255,0.35)' }}>초보 모임 증가중</div>
+        </div>
+
+        {/* 전국권 */}
+        <div style={{ background: 'rgba(0,0,0,0.4)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '16px', padding: '16px 22px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '6px' }}>
+            <span style={{ fontSize: '15px', fontWeight: 700, color: '#fff' }}>전국권</span>
+            <span style={{ background: 'rgba(255,255,255,0.08)', color: 'rgba(255,255,255,0.45)', fontSize: '10px', fontWeight: 700, padding: '3px 10px', borderRadius: '20px' }}>진행중</span>
+          </div>
+          <div style={{ fontSize: '30px', fontWeight: 900, color: '#C9A84C', lineHeight: 1.1, marginBottom: '8px' }}>{regionCounts.national}개 진행중</div>
+          <div style={{ fontSize: '12px', color: 'rgba(255,255,255,0.65)', marginBottom: '2px' }}>부산 · 대구 · 광주</div>
+          <div style={{ fontSize: '11px', color: 'rgba(255,255,255,0.35)' }}>주말 원정 활발</div>
+        </div>
+
+      </div>
+      )}
 
       {/* 메인 퀵메뉴: activeTab === null → 3섹션 그리드 / 소셜 탭 → 가로 스크롤 */}
       <style>{`
