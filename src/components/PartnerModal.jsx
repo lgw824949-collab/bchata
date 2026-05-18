@@ -116,6 +116,8 @@ export default function PartnerModal({ onClose }) {
           paddingTop: 'env(safe-area-inset-top)', paddingBottom: 'env(safe-area-inset-bottom)'
         }}
       >
+        <img src="/Photo/파트너1.png" style={{ width: '100%', height: '200px', objectFit: 'cover' }} />
+
         {/* 헤더 */}
         <div style={{ height: '70px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0 20px', borderBottom: '1px solid var(--color-border, #e2e8f0)', background: 'var(--color-bg, #ffffff)', flexShrink: 0 }}>
           <div style={{ color: 'var(--color-text-main, #1e293b)', fontSize: '18px', fontWeight: '900', display: 'flex', alignItems: 'center', gap: '8px' }}>
