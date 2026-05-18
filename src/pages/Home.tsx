@@ -1026,38 +1026,9 @@ const HomePage = ({
   return (
     <div className="app-container" style={{ width: '100%', maxWidth: '500px', margin: '0 auto', background: 'var(--color-bg)', minHeight: '100vh', paddingBottom: '80px', transition: 'background-color 0.3s' }}>
 
-      {/* 📌 [영역 A: 브랜드 헤더 - 최종 확정] */}
-      {/* 📌 [영역 A: 브랜드 헤더 - 최종 확정 고도화] */}
-      <div style={{ padding: '16px 20px 12px', marginBottom: '24px' }}>
-        <p style={{ fontSize: '9px', color: '#E53935', letterSpacing: '0.25em', fontWeight: 800, margin: '0 0 10px', opacity: 0.9 }}>SOCIAL CULTURE EXPERIENCE</p>
-        <p style={{ fontSize: '32px', fontWeight: 950, color: 'var(--color-text-main)', margin: '0 0 8px', letterSpacing: '-1.0px', lineHeight: 1.2 }}>오늘 어디서 춤출래?</p>
-        <p style={{ fontSize: '16px', fontWeight: 600, color: 'var(--color-text-sub)', margin: '0 0 8px', letterSpacing: '-0.3px' }}>켜고, 찾고, 가면 끝.</p>
-        <p style={{ fontSize: '12px', fontWeight: 600, color: 'var(--color-text-sub)', margin: '0 0 16px' }}>내 주변 라틴 파티 실시간</p>
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '12px', width: '100%' }}>
-          <div style={{ display: 'flex', flexDirection: 'row', alignItems: 'stretch', gap: '6px', flex: 1, minWidth: 0 }}>
-            {[
-              { label: '서울', count: regionCounts.seoul, districts: regionCounts.seoulDistricts, live: true },
-              { label: '수도권', count: regionCounts.metro, districts: regionCounts.metroDistricts, live: false },
-              { label: '전국권', count: regionCounts.national, districts: regionCounts.nationalDistricts, live: false },
-            ].map((r, i) => (
-              <div key={i} style={{ background: 'rgba(0,0,0,0.45)', border: `1px solid ${r.live ? 'rgba(201,168,76,0.5)' : 'rgba(255,255,255,0.1)'}`, borderRadius: '10px', padding: '8px 7px', flex: 1, minWidth: 0, boxSizing: 'border-box', height: '80px', display: 'flex', flexDirection: 'column', justifyContent: 'flex-start', gap: '4px', overflow: 'hidden' }}>
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '4px', flexShrink: 0 }}>
-                  <span style={{ fontSize: '10px', color: 'rgba(255,255,255,0.6)', fontWeight: 600, whiteSpace: 'nowrap' }}>{r.label}</span>
-                  {r.live && <span style={{ background: '#E53935', color: '#fff', fontSize: '7px', fontWeight: 800, padding: '1px 4px', borderRadius: '8px', flexShrink: 0 }}>LIVE</span>}
-                </div>
-                <div style={{ fontSize: '10px', color: '#C9A84C', fontWeight: 700, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', lineHeight: 1.2 }}>
-                  오늘 {r.count}건 진행
-                </div>
-                {r.districts ? (
-                  <div style={{ fontSize: '9px', color: 'rgba(255,255,255,0.45)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', lineHeight: 1.2 }}>
-                    {r.districts}
-                  </div>
-                ) : r.count === 0 ? (
-                  <div style={{ fontSize: '9px', color: 'rgba(255,255,255,0.3)', lineHeight: 1.2 }}>오늘 없음</div>
-                ) : null}
-              </div>
-            ))}
-          </div>
+      {/* 📌 [영역 A: 히어로 / 메인 게이트] */}
+      <div style={{ padding: '16px 20px 8px', marginBottom: '12px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '14px' }}>
           <img
             src="/logo.png"
             alt="오늘밤빠 로고"
@@ -1070,10 +1041,88 @@ const HomePage = ({
               } else { setAdminTapCount(1); }
               setLastAdminTap(now);
             }}
-            style={{ width: '80px', height: '80px', objectFit: 'contain', borderRadius: '14px', cursor: 'pointer', userSelect: 'none', flexShrink: 0 }}
+            style={{ width: '44px', height: '44px', objectFit: 'contain', borderRadius: '12px', cursor: 'pointer', userSelect: 'none', flexShrink: 0, boxShadow: '0 2px 8px rgba(0,0,0,0.08)' }}
             onError={(e) => { e.currentTarget.style.display = 'none' }}
           />
+          <div style={{ minWidth: 0 }}>
+            <div style={{ fontSize: '15px', fontWeight: 900, color: 'var(--color-text-main)', letterSpacing: '-0.3px', lineHeight: 1.2 }}>오늘밤 Latin 빠</div>
+            <div style={{ fontSize: '11px', fontWeight: 600, color: 'var(--color-text-sub)', marginTop: '2px' }}>라틴 파티 실시간</div>
+          </div>
         </div>
+
+        <h1 style={{ fontSize: '28px', fontWeight: 950, color: 'var(--color-text-main)', margin: '0 0 6px', letterSpacing: '-0.8px', lineHeight: 1.2 }}>오늘 어디서 춤출래?</h1>
+        <p style={{ fontSize: '14px', fontWeight: 600, color: 'var(--color-text-sub)', margin: '0 0 14px', letterSpacing: '-0.2px' }}>켜고, 찾고, 가면 끝.</p>
+
+        <p style={{ fontSize: '13px', fontWeight: 700, color: 'var(--color-text-main)', margin: '0 0 10px' }}>
+          오늘 전국{' '}
+          <span style={{ color: '#E53935', fontWeight: 900, fontSize: '15px' }}>
+            {regionCounts.seoul + regionCounts.metro + regionCounts.national}
+          </span>
+          건
+        </p>
+
+        <div style={{ display: 'flex', gap: '8px', marginBottom: '12px' }}>
+          {[
+            { label: '서울', count: regionCounts.seoul, districts: regionCounts.seoulDistricts, filter: '서울', accent: true },
+            { label: '수도권', count: regionCounts.metro, districts: regionCounts.metroDistricts, filter: '경기/인천', accent: false },
+            { label: '전국', count: regionCounts.national, districts: regionCounts.nationalDistricts, filter: '', accent: false },
+          ].map((r) => (
+            <button
+              key={r.label}
+              type="button"
+              onClick={() => {
+                setActiveTab('social');
+                setFilterRegion(r.filter);
+                setIsFilterBarVisible(true);
+                window.setTimeout(() => stickyHeaderRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 80);
+              }}
+              style={{
+                flex: 1,
+                minWidth: 0,
+                padding: '10px 8px',
+                borderRadius: '12px',
+                border: r.accent ? '1.5px solid rgba(201, 168, 76, 0.55)' : '1px solid var(--color-border)',
+                background: 'var(--color-card)',
+                cursor: 'pointer',
+                textAlign: 'left',
+                boxShadow: '0 1px 4px rgba(15, 23, 42, 0.04)',
+              }}
+            >
+              <div style={{ fontSize: '11px', fontWeight: 700, color: 'var(--color-text-sub)', marginBottom: '4px' }}>{r.label}</div>
+              <div style={{ fontSize: '18px', fontWeight: 900, color: 'var(--color-text-main)', lineHeight: 1 }}>
+                {r.count}<span style={{ fontSize: '11px', fontWeight: 700, color: 'var(--color-text-sub)', marginLeft: '2px' }}>건</span>
+              </div>
+              {r.districts ? (
+                <div style={{ fontSize: '9px', fontWeight: 600, color: 'var(--color-text-sub)', marginTop: '4px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                  {r.districts}
+                </div>
+              ) : null}
+            </button>
+          ))}
+        </div>
+
+        <button
+          type="button"
+          onClick={() => {
+            setActiveTab('social');
+            window.setTimeout(() => stickyHeaderRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 80);
+          }}
+          style={{
+            width: '100%',
+            padding: '12px',
+            borderRadius: '12px',
+            border: 'none',
+            background: '#E53935',
+            color: '#fff',
+            fontSize: '14px',
+            fontWeight: 800,
+            cursor: 'pointer',
+            letterSpacing: '-0.2px',
+            boxShadow: '0 4px 12px rgba(229, 57, 53, 0.25)',
+          }}
+        >
+          오늘 파티 보기
+        </button>
       </div>
 
       {/* 🔴 [LIVE 바 임팩트 영역 개편] */}
