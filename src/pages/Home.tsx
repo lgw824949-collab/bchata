@@ -1238,17 +1238,31 @@ const HomePage = ({
       `}</style>
       {activeTab === null && (
       <div id="quickmenu-section" style={{ padding: '8px 12px 12px', marginBottom: '24px' }}>
-        {/* 파티 & 이벤트 */}
-        <p style={{ ...quickMenuSectionTitleStyle, marginTop: 0 }}>파티 & 이벤트</p>
-        <motion.div style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: '6px', width: '100%', justifyContent: 'start', marginBottom: '16px' }}>
+        {/* 파티 & 이벤트 포스터 3분할 */}
+        <p style={{ fontSize: '14px', color: '#888', fontWeight: '700', letterSpacing: '1px', marginBottom: '8px', marginTop: 0 }}>파티 & 이벤트</p>
+        <div style={{ display: 'flex', gap: '8px', marginBottom: '20px' }}>
+          {[
+            { src: '/Photo/소셜.png', label: '소셜', action: () => { window.history.pushState({}, '', '#social'); setActiveTab('social'); } },
+            { src: '/Photo/부트캠프.png', label: '부트캠프', action: () => { window.history.pushState({}, '', '#bootcamp'); setView('bootcamp'); } },
+            { src: '/Photo/페스티벌.png', label: '페스티벌', action: () => { window.history.pushState({}, '', '#festival'); setView('festival'); } },
+          ].map((item, idx) => (
+            <div key={idx} onClick={item.action} style={{ flex: 1, borderRadius: '12px', border: '2px solid #E53935', overflow: 'hidden', cursor: 'pointer', position: 'relative', aspectRatio: '9/16' }}>
+              <img src={item.src} alt={item.label} onError={(e) => { e.currentTarget.style.background = '#1a1a1a'; }} style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
+              <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, background: 'linear-gradient(transparent, rgba(0,0,0,0.7))', padding: '16px 8px 8px', textAlign: 'center' }}>
+                <span style={{ color: '#fff', fontSize: '12px', fontWeight: 800 }}>{item.label}</span>
+              </div>
+            </div>
+          ))}
+        </div>
+        <motion.div
+          className="quick-menu-scroll"
+          style={{ display: 'flex', gap: '8px', width: '100%', marginBottom: '16px', overflowX: 'auto', scrollSnapType: 'x mandatory', scrollbarWidth: 'none', msOverflowStyle: 'none', WebkitOverflowScrolling: 'touch' }}
+        >
         {[
-          { icon: <Tent size={32} strokeWidth={1.2} color="#E53935" />, label: '부트캠프', particles: '⛺', action: () => { window.history.pushState({}, '', '#bootcamp'); setView('bootcamp'); } },
-          { icon: <Star size={32} strokeWidth={1.2} color="#E53935" />, label: '페스티벌', particles: '⭐', action: () => { window.history.pushState({}, '', '#festival'); setView('festival'); } },
-          { icon: <Music size={32} strokeWidth={1.2} color="#E53935" />, label: '소셜', particles: '🎵', action: () => { window.history.pushState({}, '', '#social'); setActiveTab('social'); } },
           { icon: <Calendar size={32} strokeWidth={1.2} color="#E53935" />, label: '행사달력', particles: '📅', action: () => { window.history.pushState({}, '', '#calendar'); setShowFullCalendar(true); } },
           { icon: <MapPin size={32} strokeWidth={1.2} color="#E53935" />, label: '위치·대관', particles: '📍', action: () => { window.history.pushState({}, '', '#rental'); setShowRentalModal(true); } },
         ].map((item, idx) => (
-          <motion.div key={`party-${idx}`} whileTap={{ scale: 0.92 }} onClick={(e) => { triggerParticle(e, item.particles); item.action(); }} style={{ ...quickMenuFloatStyle, position: 'relative', width: '100%' }}>
+          <motion.div key={`party-extra-${idx}`} whileTap={{ scale: 0.92 }} onClick={(e) => { triggerParticle(e, item.particles); item.action(); }} style={{ ...quickMenuFloatStyle, position: 'relative', width: 'calc(22% - 6px)', minWidth: 'calc(22% - 6px)', flexShrink: 0, scrollSnapAlign: 'start' }}>
             <motion.div style={{ ...quickMenuIconWrapStyle, width: '44px', height: '44px' }}>{item.icon}</motion.div>
             <span style={{ ...quickMenuLabelStyle, fontSize: '11px' }}>{item.label}</span>
           </motion.div>
