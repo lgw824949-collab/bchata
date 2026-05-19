@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo, useRef, lazy, Suspense } from 'react'
+﻿import { useState, useEffect, useMemo, useRef, lazy, Suspense } from 'react'
 import { Home as HomeIcon, Users, LogOut, Heart, X, MessageSquare, RefreshCw, CloudSun, Utensils, Zap, Languages, Bell, Star, Navigation, CreditCard, Settings, Map as MapIcon, BarChart, BarChart2, Gift, Coffee, User, Menu, Music2, Tent, Flag, Download, Globe, ShieldCheck, Calendar, CalendarDays, Camera, ChevronLeft, ChevronRight, Loader2, Search, Share2, Copy, TrendingUp, GraduationCap } from 'lucide-react'
 import { useTranslation } from 'react-i18next';
 import { motion, AnimatePresence } from 'framer-motion'
@@ -69,7 +69,7 @@ const GENRE_MAP = {
 // [번역 비용 최적화를 위한 정적 맵핑]
 const REGION_MAP_EN = {
   '전국': 'Nationwide',
-  '서울': 'Seoul', '경기/인천': 'Gyeonggi/Incheon', '경상도': 'Gyeongsang', 
+  '서울': 'Seoul', '경인': 'Gyeonggi/Incheon', '경상도': 'Gyeongsang', 
   '전라도': 'Jeolla', '충청도': 'Chungcheong', '강원/제주': 'Gangwon/Jeju'
 };
 
@@ -827,7 +827,7 @@ const IncheonPremiumBanner = ({ onClick, t }) => (
   </div>
 );
 
-const BROAD_REGIONS = { '서울': '서울', '인천': '경기/인천', '경기': '경기/인천', '부산': '경상도', '대구': '경상도', '광주': '전라도', '대전': '충청도', '충남': '충청도', '충북': '충청도', '전남': '전라도', '전북': '전라도', '경남': '경상도', '경북': '경상도', '강원': '강원/제주', '제주': '강원/제주' };
+const BROAD_REGIONS = { '서울': '서울', '인천': '경인', '경기': '경인', '부산': '경상도', '대구': '경상도', '광주': '전라도', '대전': '충청도', '충남': '충청도', '충북': '충청도', '전남': '전라도', '전북': '전라도', '경남': '경상도', '경북': '경상도', '강원': '강원/제주', '제주': '강원/제주' };
 const SHORT_CITY_NAMES = { '인천': '인천', '서울': '서울', '경기': '경기', '부산': '부산', '대구': '대구', '광주': '광주', '대전': '대전' };
 const DAYS_KOR = ['일', '월', '화', '수', '목', '금', '토'];
 
@@ -1045,6 +1045,7 @@ function App() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [showVipLogin, setShowVipLogin] = useState(false);
   const [showVipMenu, setShowVipMenu] = useState(false);
+  const [vipPendingClassRegister, setVipPendingClassRegister] = useState(false);
   const [vipLoggedIn, setVipLoggedIn] = useState(false);
   const [vipLoginId, setVipLoginId] = useState('');
   const [vipLoginPw, setVipLoginPw] = useState('');
@@ -1110,6 +1111,7 @@ function App() {
     setVipAuthMode('login');
     setVipRecoverEmail('');
     setVipRecoveredPassword('');
+    setVipPendingClassRegister(false);
     localStorage.removeItem('vip_instructor_session');
   };
 
@@ -1200,7 +1202,12 @@ function App() {
       setVipLoggedIn(true);
       localStorage.setItem('vip_instructor_session', JSON.stringify({ id: data.id, login_id: data.login_id }));
       setShowVipLogin(false);
-      setShowVipMenu(true);
+      if (vipPendingClassRegister) {
+        setVipPendingClassRegister(false);
+        setShowClassRegister(true);
+      } else {
+        setShowVipMenu(true);
+      }
       setVipLoginPw('');
     } catch {
       alert('아이디 또는 비밀번호가 틀렸습니다');
@@ -1209,7 +1216,18 @@ function App() {
     }
   };
 
+  const openVipClassRegisterFlow = () => {
+    if (vipLoggedIn) {
+      setShowVipMenu(false);
+      setShowClassRegister(true);
+      return;
+    }
+    setVipPendingClassRegister(true);
+    setShowVipLogin(true);
+  };
+
   const openVipMasterFlow = () => {
+    setVipPendingClassRegister(false);
     if (vipLoggedIn) {
       setShowVipMenu(true);
     } else {
@@ -1224,6 +1242,7 @@ function App() {
     setVipRecoverEmail('');
     setVipRecoveredPassword('');
     setShowVipMenu(false);
+    setVipPendingClassRegister(false);
     setShowFullCalendar(false);
     setShowWeather(false);
     setShowWishlist(false);
@@ -1333,11 +1352,21 @@ function App() {
     } catch (_) { /* ignore */ }
   }, []);
 
+  const openVipMasterFlowRef = useRef(openVipMasterFlow);
+  openVipMasterFlowRef.current = openVipMasterFlow;
+  const openVipClassRegisterFlowRef = useRef(openVipClassRegisterFlow);
+  openVipClassRegisterFlowRef.current = openVipClassRegisterFlow;
+
   useEffect(() => {
-    const onOpenVip = () => openVipMasterFlow();
+    const onOpenVip = () => openVipMasterFlowRef.current();
+    const onOpenVipClass = () => openVipClassRegisterFlowRef.current();
     window.addEventListener('open-vip-master-login', onOpenVip);
-    return () => window.removeEventListener('open-vip-master-login', onOpenVip);
-  }, [vipLoggedIn]);
+    window.addEventListener('open-vip-class-register', onOpenVipClass);
+    return () => {
+      window.removeEventListener('open-vip-master-login', onOpenVip);
+      window.removeEventListener('open-vip-class-register', onOpenVipClass);
+    };
+  }, []);
 
   /* 지역 캐러셀 연동 스크롤 — 독립 스크롤로 전환, 구 로직 주석 보관
   useEffect(() => {
@@ -1391,7 +1420,7 @@ function App() {
     if (view !== 'instructors') return undefined;
     const bindMasterBtn = () => {
       const btn = Array.from(document.querySelectorAll('button')).find(
-        (b) => b.textContent?.includes('마스터 전용') && !b.dataset.vipBound
+        (b) => (b.textContent?.includes('강사 전용') || b.textContent?.includes('마스터 전용')) && !b.dataset.vipBound
       );
       if (!btn) return undefined;
       btn.dataset.vipBound = '1';
@@ -1450,7 +1479,7 @@ function App() {
         const tStr = p.title || '';
         if (regionStr.includes('서울')) broadRegion = '서울';
         else if (tStr.includes('[서울]')) broadRegion = '서울';
-        else if (tStr.includes('[경기/인천]') || tStr.includes('[인천광역시]') || tStr.includes('[인천]')) broadRegion = '경기/인천';
+        else if (tStr.includes('[경인]') || tStr.includes('[경기/인천]') || tStr.includes('[인천광역시]') || tStr.includes('[인천]')) broadRegion = '경인';
         else if (tStr.includes('[경상도]')) broadRegion = '경상도';
         else if (tStr.includes('[전라도]')) broadRegion = '전라도';
         else if (tStr.includes('[충청도]')) broadRegion = '충청도';
@@ -1459,7 +1488,7 @@ function App() {
           const fullSearchText = `${p.address || ''} ${locName} ${p.cityName || ''}`;
           if (fullSearchText.includes('부산') || fullSearchText.includes('대구') || fullSearchText.includes('울산') || fullSearchText.includes('경상') || fullSearchText.includes('경남') || fullSearchText.includes('경북') || fullSearchText.includes('창원') || fullSearchText.includes('포항') || fullSearchText.includes('김해')) broadRegion = '경상도';
           else if (fullSearchText.includes('서울') || fullSearchText.includes('강남') || fullSearchText.includes('홍대') || fullSearchText.includes('잠실') || fullSearchText.includes('성수') || fullSearchText.includes('서초') || fullSearchText.includes('영등포') || fullSearchText.includes('신림') || fullSearchText.includes('건대')) broadRegion = '서울';
-          else if (fullSearchText.includes('경기') || fullSearchText.includes('인천') || fullSearchText.includes('부천') || fullSearchText.includes('수원') || fullSearchText.includes('안양') || fullSearchText.includes('의정부') || fullSearchText.includes('분당') || fullSearchText.includes('일산')) broadRegion = '경기/인천';
+          else if (fullSearchText.includes('경기') || fullSearchText.includes('인천') || fullSearchText.includes('부천') || fullSearchText.includes('수원') || fullSearchText.includes('안양') || fullSearchText.includes('의정부') || fullSearchText.includes('분당') || fullSearchText.includes('일산')) broadRegion = '경인';
           else if (fullSearchText.includes('광주') || fullSearchText.includes('전라') || fullSearchText.includes('전남') || fullSearchText.includes('전북') || fullSearchText.includes('전주') || fullSearchText.includes('목포') || fullSearchText.includes('여수') || fullSearchText.includes('순천')) broadRegion = '전라도';
           else if (fullSearchText.includes('대전') || fullSearchText.includes('충남') || fullSearchText.includes('충북') || fullSearchText.includes('충청') || fullSearchText.includes('세종') || fullSearchText.includes('천안') || fullSearchText.includes('청주')) broadRegion = '충청도';
           else if (fullSearchText.includes('강원') || fullSearchText.includes('제주') || fullSearchText.includes('춘천') || fullSearchText.includes('원주') || fullSearchText.includes('서귀포')) broadRegion = '강원/제주';
@@ -1658,11 +1687,11 @@ function App() {
   };
 
   return (
-    <>
+    <div className="bchata-app-shell">
     <div
       data-bchata-app-root
       style={{ 
-      width: '100%', maxWidth: '500px', margin: '0 auto', 
+      width: '100%',
       background: 'var(--color-bg)', color: 'var(--color-text-main)',
       minHeight: '100vh', position: 'relative',
       transition: 'background-color 0.3s, color 0.3s'
@@ -2001,6 +2030,11 @@ function App() {
             <motion.div style={{ fontSize: 11, fontWeight: 900, color: '#94A3B8', marginBottom: 12, letterSpacing: '1px' }}>VIP NAVIGATION</motion.div>
             <motion.div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
               {[
+                {
+                  icon: <GraduationCap size={20} color="#C9A84C" />,
+                  text: '클래스등록',
+                  action: () => openVipClassRegisterFlow(),
+                },
                 { icon: <Users size={20} color="#C9A84C" />, text: '수강생 관리' },
                 { icon: <TrendingUp size={20} color="#C9A84C" />, text: '수입 집계' },
                 { icon: <CalendarDays size={20} color="#C9A84C" />, text: '내 클래스 일정' },
@@ -2011,7 +2045,14 @@ function App() {
                   key={idx}
                   whileHover={{ scale: 1.02, backgroundColor: 'rgba(255,255,255,0.08)' }}
                   whileTap={{ scale: 0.98 }}
-                  onClick={() => { setShowVipMenu(false); alert('준비 중입니다 🔧'); }}
+                  onClick={() => {
+                    if (item.action) {
+                      item.action();
+                      return;
+                    }
+                    setShowVipMenu(false);
+                    alert('준비 중입니다 🔧');
+                  }}
                   style={{
                     background: 'rgba(255,255,255,0.03)',
                     border: '1px solid rgba(201,168,76,0.2)',
@@ -2078,7 +2119,7 @@ function App() {
         <Suspense fallback={<LoadingFallback />}>
           {view === 'home' ? <HomePage {...sharedProps} /> : 
            view === 'community' ? <Community setSelectedPoster={setSelectedPoster} setView={setView} /> :
-           view === 'instructors' || view === 'register-class' ? <Instructors followedInstructors={followedInstructors} setView={setView} /> :
+           view === 'instructors' ? <Instructors onOpenVipMaster={openVipMasterFlow} /> :
            view === 'bootcamp' ? <Bootcamp onBack={() => window.history.back()} /> :
            view === 'bootcamp-register' ? <Bootcamp onBack={() => navigate('/bootcamp')} initialView="register" /> :
            view === 'festival' ? <Festival onBack={() => navigate('/')} /> :
@@ -2212,7 +2253,7 @@ function App() {
 
                     {filterStep === 1 ? (
                       <div style={{ display: 'flex', overflowX: 'auto', gap: '10px', paddingBottom: '15px' }}>
-                        {['서울', '경기/인천', '부산', '대구', '대전', '광주', '기타'].map(r => (
+                        {['서울', '경인', '부산', '대구', '대전', '광주', '기타'].map(r => (
                           <button key={r} onClick={() => { setFilterRegion(r); setFilterStep(2); }} style={{ flexShrink: 0, padding: '14px 24px', borderRadius: '14px', background: filterRegion === r ? '#FF1744' : '#F8FAFC', color: filterRegion === r ? '#fff' : '#64748B', fontWeight: 700, border: 'none' }}>{r}</button>
                         ))}
                       </div>
@@ -2343,11 +2384,34 @@ function App() {
     
     {/* [B] [포스터 확대 모달 - 컨테이너 외부 최상위 배치] */}
     {showPartner && <PartnerModal onClose={() => setShowPartner(false)} />}
-    {showClassRegister && <ClassRegisterModal onClose={() => setShowClassRegister(false)} />}
+    {showClassRegister && (
+      <ClassRegisterModal
+        onClose={() => setShowClassRegister(false)}
+        instructorId={(() => {
+          try {
+            const raw = localStorage.getItem('vip_instructor_session');
+            return raw ? JSON.parse(raw).id || '' : '';
+          } catch {
+            return '';
+          }
+        })()}
+      />
+    )}
     {(view === 'register-class' || location.pathname === '/register-class') && (
-      <Suspense fallback={null}>
-        <InstructorRegister onBack={() => navigate('/instructors')} />
-      </Suspense>
+      <div
+        style={{
+          position: 'fixed',
+          inset: 0,
+          zIndex: 2200000,
+          background: '#fff',
+          overflowY: 'auto',
+          WebkitOverflowScrolling: 'touch',
+        }}
+      >
+        <Suspense fallback={null}>
+          <InstructorRegister onBack={() => { navigate('/instructors'); setView('instructors'); }} />
+        </Suspense>
+      </div>
     )}
     {false && false && (
       <div
@@ -2384,7 +2448,7 @@ function App() {
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
-          style={{ position: 'fixed', inset: 0, zIndex: 2000000 }}
+          style={{ position: 'fixed', inset: 0, zIndex: 2600000 }}
         >
           <PosterModal 
             src={selectedPoster.src} 
@@ -2428,7 +2492,18 @@ function App() {
       }}
     >
       <div 
-        onClick={() => { navigate('/'); setShowPartner(false); setActiveTab(null); setTimeout(() => { const el = document.getElementById('quickmenu-section'); if (el) el.scrollIntoView({ behavior: 'smooth' }); }, 100); }}
+        onClick={() => {
+          const alreadyOnMainHome = location.pathname === '/' && view === 'home' && !showPartner;
+          navigate('/');
+          setShowPartner(false);
+          setActiveTab(null);
+          if (!alreadyOnMainHome) {
+            setTimeout(() => {
+              const el = document.getElementById('quickmenu-section');
+              if (el) el.scrollIntoView({ behavior: 'smooth' });
+            }, 100);
+          }
+        }}
         style={{ 
           flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
           cursor: 'pointer', transition: 'all 0.2s',
@@ -2505,7 +2580,7 @@ function App() {
     </nav>
     )}
     <ChatBot />
-    </>
+    </div>
   );
 }
 

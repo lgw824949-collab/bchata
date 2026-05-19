@@ -1,5 +1,5 @@
-import React, { useState, useEffect, useMemo, useRef } from 'react';
-import { Heart, MapPin, Calendar, Clock, User, Users, Music, ChevronRight, ShieldCheck, X, Home as HomeIcon, ChevronLeft, CloudSun, Utensils, Zap, PlusCircle, Languages, Bell, Globe, Navigation, CalendarDays, Star, Camera, MessageSquare, Tent, Map, Loader2 } from 'lucide-react';
+﻿import React, { useState, useEffect, useMemo, useRef } from 'react';
+import { Heart, MapPin, Calendar, Clock, User, Users, Music, ChevronRight, ShieldCheck, X, Home as HomeIcon, ChevronLeft, CloudSun, Utensils, Zap, PlusCircle, Languages, Bell, Globe, Navigation, CalendarDays, Star, Camera, MessageSquare, Tent, Loader2, Plus } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { motion, AnimatePresence } from 'framer-motion';
 import QuickPinchZoom, { make3dTransformValue } from 'react-quick-pinch-zoom';
@@ -7,6 +7,13 @@ import LiveCount from '../components/LiveCount'
 import { KMA_REGION_COORDS, fetchWeatherForecast, parseKmaWeather, HOME_REGION_MAP } from '../utils/kmaApi'
 import { supabase } from '../lib/supabase'
 import { BAR_DATABASE } from '../lib/BarLib'
+import {
+  dedupeVenueList,
+  normalizeVenueAddressKey,
+  normalizeVenueNameKey,
+} from '../lib/venueDedupe'
+import VenueDetailModal from '../components/VenueDetailModal'
+import BarRegisterFormModal from '../components/BarRegisterFormModal'
 import gangturnPhoto from '../assets/gangturn_photo.png'
 import ggomaeyaPhoto from '../assets/ggomaeya_photo.jpg'
 import noriterPhoto from '../assets/noriter_photo.png'
@@ -17,25 +24,19 @@ import buenaPhoto from '../assets/buena_photo.png'
 import hongturnPhoto from '../assets/hongturn_photo.png'
 import bibigoPhoto from '../assets/bibigo_photo.png'
 
-const REGIONS_ORDER = [
+/** 메인 홈 지역 pill 순서 (표시 개수는 DB 분류 결과) */
+const HOME_REGIONS_ORDER = [
   '서울',
-  '경기/인천',
+  '경인',
   '경상도',
-  '전라도',
   '충청도',
-  '강원/제주'
+  '전라도',
 ];
-
-const normalizeVenueNameKey = (name) => {
-  let key = (name || '').replace(/\s+/g, '').toLowerCase();
-  if (key.includes('강남턴') || key.includes('강턴')) key = '강턴';
-  return key;
-};
 
 const mapBarLibRegionToPill = (regionLabel) => {
   const r = `${regionLabel || ''}`;
   if (r.includes('서울')) return '서울';
-  if (r.includes('경기') || r.includes('인천')) return '경기/인천';
+  if (r.includes('경기') || r.includes('인천')) return '경인';
   if (r.includes('경상') || r.includes('부산') || r.includes('대구')) return '경상도';
   if (r.includes('전라') || r.includes('광주')) return '전라도';
   if (r.includes('충청') || r.includes('대전') || r.includes('세종')) return '충청도';
@@ -50,7 +51,7 @@ const classifyVenueLocation = (loc) => {
   let region = '기타';
 
   if (combined.includes('서울')) region = '서울';
-  else if (combined.includes('경기') || combined.includes('인천')) region = '경기/인천';
+  else if (combined.includes('경기') || combined.includes('인천')) region = '경인';
   else if (
     combined.includes('경상') || combined.includes('부산') || combined.includes('대구') ||
     combined.includes('울산') || combined.includes('창원') || combined.includes('포항') ||
@@ -74,11 +75,25 @@ const classifyVenueLocation = (loc) => {
     region = mapped || '기타';
   }
 
+  const masterMatch = BAR_DATABASE.find((b) => {
+    const locName = normalizeVenueNameKey(loc.name);
+    const barName = normalizeVenueNameKey(b.name);
+    if (locName && barName && locName === barName) return true;
+    if (locName && (b.aliases || []).some((a) => normalizeVenueNameKey(a) === locName)) return true;
+    const locAddr = normalizeVenueAddressKey(loc.address);
+    const barAddr = normalizeVenueAddressKey(b.address);
+    return locAddr && barAddr && locAddr === barAddr;
+  });
+  if (masterMatch) {
+    const mapped = mapBarLibRegionToPill(masterMatch.region);
+    if (mapped) region = mapped;
+  }
+
   const nameKey = normalizeVenueNameKey(loc.name);
   const isGangturn = nameKey.includes('강남턴') || nameKey === '강턴';
   const isGgomaeya = nameKey.includes('꼼애야');
   const isNoriter = nameKey.includes('놀이터');
-  const isLatin = nameKey.includes('라틴') && region !== '경기/인천' && !nameKey.includes('라틴크루');
+  const isLatin = nameKey === '라틴';
   const isMacondo = nameKey.includes('마콘도');
   const isBonita = nameKey.includes('보니따');
   const isBuena = nameKey.includes('부에나') && !nameKey.includes('비스타');
@@ -104,38 +119,18 @@ const classifyVenueLocation = (loc) => {
   };
 };
 
-const dedupeVenueList = (rawList) => {
-  const uniqueMap = new Map();
-  rawList.forEach((loc) => {
-    const key = normalizeVenueNameKey(loc.name);
-    if (!key) return;
-    if (!uniqueMap.has(key)) {
-      uniqueMap.set(key, loc);
-    } else {
-      const existing = uniqueMap.get(key);
-      const score = (loc) =>
-        (loc.image_url ? 2 : 0) + (loc.kakao_url ? 1 : 0) + (loc.instagram_url ? 1 : 0) +
-        ((loc.address || '').length > 8 ? 2 : 0);
-      const scoreNew = score(loc);
-      const scoreOld = score(existing);
-      if (scoreNew > scoreOld || (scoreNew === scoreOld && String(loc.id) > String(existing.id))) {
-        uniqueMap.set(key, loc);
-      }
-    }
-  });
-  return Array.from(uniqueMap.values());
-};
-
 const buildVenueListFromDatabase = () =>
-  BAR_DATABASE.map((bar, index) =>
-    classifyVenueLocation({
-      id: `bar-${index}`,
-      name: bar.name,
-      address: bar.address,
-      image_url: null,
-      kakao_url: null,
-      instagram_url: null,
-    })
+  dedupeVenueList(
+    BAR_DATABASE.map((bar, index) =>
+      classifyVenueLocation({
+        id: `bar-${index}`,
+        name: bar.name,
+        address: bar.address,
+        image_url: null,
+        kakao_url: null,
+        instagram_url: null,
+      })
+    )
   );
 
 const buildPartyShareCard = (item) => {
@@ -168,22 +163,22 @@ const REGION_FILTER = {
   '서울': (p) =>
     p.broadRegion === '서울' ||
     SEOUL_HINT.test(`${p.title || ''} ${p.address || ''} ${p.region || ''} ${p.location_name || ''} ${p.locationName || ''}`),
-  '경기/인천': (p) => p.broadRegion === '경기/인천',
+  '경인': (p) => p.broadRegion === '경인' || p.broadRegion === '경기/인천',
   '경상도': (p) => p.broadRegion === '경상도',
   '전라도': (p) => p.broadRegion === '전라도',
   '충청도': (p) => p.broadRegion === '충청도',
   '강원/제주': (p) => p.broadRegion === '강원/제주',
   // 별칭/도시별 매핑 (필터링 충돌 방지)
-  '인천': (p) => p.broadRegion === '경기/인천',
+  '인천': (p) => p.broadRegion === '경인',
   '부산': (p) => p.broadRegion === '경상도',
   '대구': (p) => p.broadRegion === '경상도',
   '대전': (p) => p.broadRegion === '충청도',
   '광주': (p) => p.broadRegion === '전라도',
   '기타': (p) => true
 };
-const MAIN_REGIONS = ['경기/인천', '서울', '경상', '전라', '충청', '강원/제주'];
+const MAIN_REGIONS = ['경인', '서울', '경상', '전라', '충청', '강원/제주'];
 const REGION_MAP_EN = {
-  '서울': 'Seoul', '경기/인천': 'Gyeonggi/Incheon', '경상도': 'Gyeongsang',
+  '서울': 'Seoul', '경인': 'Gyeonggi/Incheon', '경상도': 'Gyeongsang',
   '전라도': 'Jeolla', '충청도': 'Chungcheong', '강원/제주': 'Gangwon/Jeju'
 };
 
@@ -852,7 +847,7 @@ const RollingContainer = ({ items, onSelect }) => {
 const FilterBar = ({ filterRegion, setFilterRegion, filterGenre, setFilterGenre }) => {
   const { i18n } = useTranslation();
   const isEn = i18n.language.startsWith('en');
-  const regions = ['경기/인천', '서울', '경상도', '전라도', '충청도', '강원/제주'];
+  const regions = ['경인', '서울', '경상도', '전라도', '충청도', '강원/제주'];
   const genres = Object.keys(GENRE_MAP);
   return (
     <div style={{ padding: '0 15px 12px', background: '#fff', display: 'flex', flexDirection: 'column', gap: '12px' }}>
@@ -925,6 +920,12 @@ const HomePage = ({
   const [festivalIdx, setFestivalIdx] = useState(0);
   const [activePosterSlot, setActivePosterSlot] = useState('social');
 
+  const navigateAppPath = (path) => {
+    if (window.location.pathname === path) return;
+    window.history.pushState({}, '', path);
+    window.dispatchEvent(new PopStateEvent('popstate'));
+  };
+
   const triggerParticle = (e: React.MouseEvent, emoji: string) => {
     const rect = (e.currentTarget as HTMLElement).getBoundingClientRect();
     const newParticles = Array.from({length: 6}, (_, i) => ({
@@ -940,10 +941,12 @@ const HomePage = ({
   const setActiveTab = (tab) => {
     setActiveTabState(tab);
     if (tab === 'social') {
-      setView('home');
       setShowPartner(false);
+      navigateAppPath('/');
     } else if (tab === 'partner') {
       setShowPartner(true);
+    } else if (tab === null) {
+      setShowPartner(false);
     }
   };
 
@@ -990,6 +993,7 @@ const HomePage = ({
     if (!title) return '';
     return title
       .replace(/\[서울\]/g, '')
+      .replace(/\[경인\]/g, '')
       .replace(/\[경기\/인천\]/g, '')
       .replace(/\[경상도\]/g, '')
       .replace(/\[전라도\]/g, '')
@@ -1098,7 +1102,9 @@ const HomePage = ({
     const todayParties = parties.filter((p) => p.date === today && p.status === 'approved');
 
     const seoulParties = todayParties.filter((p) => p.broadRegion === '서울' || p.region?.includes('서울'));
-    const metroParties = todayParties.filter((p) => p.broadRegion === '경기/인천' || p.region?.includes('경기') || p.region?.includes('인천'));
+    const metroParties = todayParties.filter(
+      (p) => p.broadRegion === '경인' || p.broadRegion === '경기/인천' || p.region === '경인' || p.region === '경기/인천' || p.region?.includes('경기') || p.region?.includes('인천')
+    );
     const nationalParties = todayParties.filter((p) =>
       !p.broadRegion?.includes('서울') &&
       !p.region?.includes('서울') &&
@@ -1155,10 +1161,16 @@ const HomePage = ({
   }, []);
   const scrollRef = useRef(null);
   const regionListRef = useRef(null);
+  const barSectionRef = useRef(null);
   const [shuffleOffset, setShuffleOffset] = useState(0);
   const [locations, setLocations] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [selectedRegionTab, setSelectedRegionTab] = useState('서울');
+  const [barListExpanded, setBarListExpanded] = useState(false);
+  const [selectedVenue, setSelectedVenue] = useState(null);
+  const [showBarRegisterForm, setShowBarRegisterForm] = useState(false);
+
+  const BAR_PREVIEW_COUNT = 6;
 
   // [사용자 요청] 15초 롤링 — shuffleOffset 미사용, 캐러셀 스크롤 중 리렌더 방지
   // useEffect(() => {
@@ -1233,12 +1245,22 @@ const HomePage = ({
       if (classified.length === 0) {
         classified = buildVenueListFromDatabase();
       } else {
-        const keys = new Set(classified.map((b) => normalizeVenueNameKey(b.name)));
+        const addressKeys = new Set(
+          classified.map((b) => normalizeVenueAddressKey(b.address)).filter(Boolean)
+        );
+        const nameKeys = new Set(classified.map((b) => normalizeVenueNameKey(b.name)).filter(Boolean));
+        const extras = [];
         BAR_DATABASE.forEach((bar, index) => {
-          const key = normalizeVenueNameKey(bar.name);
-          if (!key || keys.has(key)) return;
-          keys.add(key);
-          classified.push(classifyVenueLocation({
+          const addrKey = normalizeVenueAddressKey(bar.address);
+          const nameKey = normalizeVenueNameKey(bar.name);
+          const aliasKeys = (bar.aliases || []).map((a) => normalizeVenueNameKey(a));
+          if (addrKey && addressKeys.has(addrKey)) return;
+          if (nameKey && nameKeys.has(nameKey)) return;
+          if (aliasKeys.some((k) => k && nameKeys.has(k))) return;
+          if (addrKey) addressKeys.add(addrKey);
+          if (nameKey) nameKeys.add(nameKey);
+          aliasKeys.forEach((k) => { if (k) nameKeys.add(k); });
+          extras.push(classifyVenueLocation({
             id: `bar-${index}`,
             name: bar.name,
             address: bar.address,
@@ -1247,6 +1269,7 @@ const HomePage = ({
             instagram_url: null,
           }));
         });
+        classified = dedupeVenueList([...classified, ...extras]);
       }
 
       classified.sort((a, b) => (a.name || '').localeCompare(b.name || ''));
@@ -1259,24 +1282,61 @@ const HomePage = ({
     }
   };
 
-  const renderBarCard = (bar) => (
+  const scoreBarForPreview = (bar) => {
+    let score = 0;
+    if (bar.image_url) score += 10;
+    if (bar.kakao_url) score += 1;
+    if (bar.instagram_url) score += 1;
+    return score;
+  };
+
+  const sortBarsByRichness = (bars) =>
+    [...bars].sort((a, b) => scoreBarForPreview(b) - scoreBarForPreview(a));
+
+  const getBarPreviewList = (bars) =>
+    sortBarsByRichness(bars).slice(0, Math.min(BAR_PREVIEW_COUNT, bars.length));
+
+  const barBucketCounts = useMemo(() => ({
+    seoul: locations.filter((b) => b.region === '서울').length,
+    metro: locations.filter((b) => b.region === '경인').length,
+    national: locations.filter((b) => !['서울', '경인'].includes(b.region)).length,
+  }), [locations]);
+
+  const scrollToBarRegion = (tab) => {
+    if (tab) setSelectedRegionTab(tab);
+    else {
+      const first = HOME_REGIONS_ORDER.find(
+        (r) => !['서울', '경인'].includes(r) && locations.some((b) => b.region === r)
+      );
+      if (first) setSelectedRegionTab(first);
+    }
+    window.setTimeout(
+      () => barSectionRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' }),
+      80
+    );
+  };
+
+  const renderBarCard = (bar, { carousel = false } = {}) => (
     <motion.div
       key={bar.id}
-      whileTap={{ scale: 0.96 }}
-      onClick={() => setShowRentalModal(true)}
+      role="button"
+      tabIndex={0}
+      onClick={() => setSelectedVenue(bar)}
+      onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setSelectedVenue(bar); } }}
       style={{
-        width: '100%',
-        maxWidth: '64px',
+        width: carousel ? '72px' : '100%',
+        maxWidth: carousel ? '72px' : '72px',
         margin: '0 auto',
         display: 'flex',
         flexDirection: 'column',
         alignItems: 'center',
-        cursor: 'pointer'
+        cursor: 'pointer',
+        flexShrink: carousel ? 0 : undefined,
       }}
     >
       <motion.div style={{
-        width: '52px',
-        height: '52px',
+        width: carousel ? '56px' : '52px',
+        height: carousel ? '56px' : '52px',
         borderRadius: '50%',
         background: '#ffffff',
         boxShadow: '0 2px 8px rgba(0,0,0,0.05)',
@@ -1297,8 +1357,8 @@ const HomePage = ({
         ) : (
           <img
             src="/logo.png"
-            alt={bar.name}
-            style={{ width: '60%', height: '60%', objectFit: 'contain', opacity: 0.85 }}
+            alt=""
+            style={{ width: '62%', height: '62%', objectFit: 'contain', opacity: 0.9 }}
           />
         )}
       </motion.div>
@@ -1326,9 +1386,13 @@ const HomePage = ({
     if (isLoading || locations.length === 0) return;
     const hasCurrent = locations.some((b) => b.region === selectedRegionTab);
     if (hasCurrent) return;
-    const firstWithVenues = REGIONS_ORDER.find((r) => locations.some((b) => b.region === r));
+    const firstWithVenues = HOME_REGIONS_ORDER.find((r) => locations.some((b) => b.region === r));
     if (firstWithVenues) setSelectedRegionTab(firstWithVenues);
   }, [locations, isLoading, selectedRegionTab]);
+
+  useEffect(() => {
+    setBarListExpanded(false);
+  }, [selectedRegionTab]);
 
   /** 홈 포스터 3칸 순서 고정: 좌→우 소셜 · 부트캠프 · 페스티벌 */
   const homePosterSlots = [
@@ -1338,7 +1402,7 @@ const HomePage = ({
       idx: socialIdx,
       label: '소셜',
       fallback: '/Photo/소셜.png',
-      action: () => { window.history.pushState({}, '', '#social'); setActiveTab('social'); },
+      action: () => { setActivePosterSlot('social'); setActiveTab('social'); },
     },
     {
       id: 'bootcamp',
@@ -1346,7 +1410,7 @@ const HomePage = ({
       idx: bootcampIdx,
       label: '부트캠프',
       fallback: '/Photo/부트캠프.png',
-      action: () => { window.history.pushState({}, '', '#bootcamp'); setView('bootcamp'); },
+      action: () => { setActivePosterSlot('bootcamp'); navigateAppPath('/bootcamp'); },
     },
     {
       id: 'festival',
@@ -1354,9 +1418,10 @@ const HomePage = ({
       idx: festivalIdx,
       label: '페스티벌',
       fallback: '/Photo/페스티벌.png',
-      action: () => { window.history.pushState({}, '', '#festival'); setView('festival'); },
+      action: () => { setActivePosterSlot('festival'); navigateAppPath('/festival'); },
     },
   ];
+
 
   const homePartySectionTitleStyle = {
     fontSize: '14px',
@@ -1391,6 +1456,20 @@ const HomePage = ({
   };
   const quickMenuIconWrapStyle = { width: '40px', height: '40px', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 };
   const quickMenuLabelStyle = { color: '#333333', fontWeight: 600, fontSize: '11px', marginTop: '4px', textAlign: 'center', lineHeight: 1.4, whiteSpace: 'normal', overflow: 'hidden', textOverflow: 'ellipsis', width: '100%' };
+
+  /** 메인 노출·등록 우선 — 하단탭(홈·부트캠프·파트너·강사·페스티벌) 및 포스터3칸과 중복 제외 */
+  const quickMenuItems = useMemo(() => [
+    { id: 'party-register', icon: <Music size={32} strokeWidth={1.2} color="#D4436E" />, label: '파티등록', particles: '🎉', action: () => handleRegister('party') },
+    { id: 'class-register', icon: <User size={32} strokeWidth={1.2} color="#D4436E" />, label: '클래스등록', particles: '📚', action: () => window.dispatchEvent(new CustomEvent('open-vip-class-register')) },
+    { id: 'calendar', icon: <Calendar size={32} strokeWidth={1.2} color="#D4436E" />, label: '행사달력', particles: '📅', action: () => setShowFullCalendar(true) },
+    { id: 'livepick', icon: <Camera size={32} strokeWidth={1.2} color="#C9A84C" />, label: '라이브픽', particles: '📸', action: () => { window.history.pushState({}, '', '#community'); setView('community'); } },
+    { id: 'wishlist', icon: <Heart size={32} strokeWidth={1.2} color="#C9A84C" />, label: '찜하기', particles: '❤️', action: () => { window.history.pushState({}, '', '#wishlist'); setShowWishlist(true); } },
+    { id: 'chat', textIcon: '1:1', label: '채팅문의', particles: '💬', action: () => window.open('https://open.kakao.com/o/gP43rNri', '_blank') },
+    { id: 'saju', icon: <Star size={32} strokeWidth={1.2} color="#C9A84C" />, label: '운명의좌표', particles: '🌟', action: () => { window.history.pushState({}, '', '#saju'); setShowSaju(true); } },
+    { id: 'restaurant', icon: <Utensils size={32} strokeWidth={1.2} color="#C9A84C" />, label: '맛집뒷풀이', particles: '🍽', action: () => { window.history.pushState({}, '', '#restaurant'); setView('restaurant'); } },
+    { id: 'weather', icon: <CloudSun size={32} strokeWidth={1.2} color="#C9A84C" />, label: '오늘날씨', particles: '☀️', action: () => { window.history.pushState({}, '', '#weather'); setShowWeather(true); } },
+    { id: 'route', icon: <Navigation size={32} strokeWidth={1.2} color="#C9A84C" />, label: '지능형경로', particles: '🧭', action: () => { window.history.pushState({}, '', '#route'); openAnalysis(false); } },
+  ], [handleRegister, setShowFullCalendar, setView, setShowWishlist, setShowSaju, setShowWeather, openAnalysis]);
 
   return (
     <div className="app-container" style={{ width: '100%', maxWidth: '500px', margin: '0 auto', background: '#FFFFFF', minHeight: '100vh', paddingBottom: '80px' }}>
@@ -1438,21 +1517,19 @@ const HomePage = ({
         <>
         <div style={{ display: 'flex', gap: '8px', marginTop: '16px' }}>
           {[
-            { label: '서울', count: regionCounts.seoul, filter: '서울' },
-            { label: '수도권', count: regionCounts.metro, filter: '경기/인천' },
-            { label: '지방권', count: regionCounts.national, filter: '' },
+            { label: '서울', count: barBucketCounts.seoul, tab: '서울' },
+            { label: '수도권', count: barBucketCounts.metro, tab: '경인' },
+            { label: '지방권', count: barBucketCounts.national, tab: null },
           ].map((r) => {
-            const isSelected = filterRegion === r.filter;
+            const isSelected =
+              (r.tab === '서울' && selectedRegionTab === '서울') ||
+              (r.tab === '경인' && selectedRegionTab === '경인') ||
+              (r.tab === null && !['서울', '경인'].includes(selectedRegionTab));
             return (
               <button
                 key={r.label}
                 type="button"
-                onClick={() => {
-                  setActiveTab('social');
-                  setFilterRegion(filterRegion === r.filter ? '' : r.filter);
-                  setIsFilterBarVisible(true);
-                  window.setTimeout(() => stickyHeaderRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 80);
-                }}
+                onClick={() => scrollToBarRegion(r.tab)}
                 style={{
                   flex: 1,
                   minWidth: 0,
@@ -1468,9 +1545,11 @@ const HomePage = ({
                   textAlign: 'center',
                 }}
               >
+
                 <div style={{ fontSize: '12px', fontWeight: 400, color: '#999999', marginBottom: '4px', width: '100%', textAlign: 'center', lineHeight: 1.4 }}>{r.label}</div>
                 <div style={{ fontSize: '20px', fontWeight: 900, color: '#1A1A1A', lineHeight: 1.4, width: '100%', textAlign: 'center' }}>
-                  {r.count}<span style={{ fontSize: '12px', fontWeight: 400, color: '#999999', marginLeft: '2px' }}>건</span>
+                  {isLoading ? '—' : r.count}
+                  <span style={{ fontSize: '12px', fontWeight: 400, color: '#999999', marginLeft: '2px' }}>곳</span>
                 </div>
               </button>
             );
@@ -1658,13 +1737,65 @@ const HomePage = ({
           })}
         </div>
 
-        {/* RentalModal 인라인: 지역 pill + 원형 그리드 */}
-        <div style={{ display: 'flex', flexDirection: 'column', background: '#ffffff' }}>
+        {/* BAR 쉘: 지역 pill + 원형 그리드 */}
+        <div ref={barSectionRef} style={{ display: 'flex', flexDirection: 'column', background: '#ffffff' }}>
+          <motion.div
+            className="quick-menu-scroll"
+            style={{
+              display: 'flex',
+              gap: '8px',
+              width: '100%',
+              marginBottom: '16px',
+              overflowX: 'auto',
+              scrollSnapType: 'x mandatory',
+              scrollbarWidth: 'none',
+              msOverflowStyle: 'none',
+              WebkitOverflowScrolling: 'touch',
+            }}
+          >
+            {quickMenuItems.map((item) => (
+              <motion.div
+                key={item.id}
+                whileTap={{ scale: 0.92 }}
+                onClick={(e) => { triggerParticle(e, item.particles); item.action(); }}
+                style={{ ...quickMenuFloatStyle, position: 'relative', width: 'calc(22% - 6px)', minWidth: 'calc(22% - 6px)', flexShrink: 0, scrollSnapAlign: 'start' }}
+              >
+                {item.textIcon ? (
+                  <motion.div style={{ ...quickMenuIconWrapStyle, width: '44px', height: '44px', fontSize: 18, fontWeight: 900, color: '#C9A84C', letterSpacing: '-0.8px' }}>{item.textIcon}</motion.div>
+                ) : (
+                  <motion.div style={{ ...quickMenuIconWrapStyle, width: '44px', height: '44px' }}>{item.icon}</motion.div>
+                )}
+                <span style={{ ...quickMenuLabelStyle, fontSize: '11px' }}>{item.label}</span>
+              </motion.div>
+            ))}
+          </motion.div>
           <motion.div style={{
             display: 'flex', overflowX: 'auto', gap: '8px', padding: '0 0 16px',
-            borderBottom: '1px solid #F1F5F9', flexShrink: 0, scrollbarWidth: 'none'
+            borderBottom: '1px solid #F1F5F9', flexShrink: 0, scrollbarWidth: 'none',
+            alignItems: 'center',
           }}>
-            {REGIONS_ORDER.filter((tab) => locations.some((b) => b.region === tab)).map((tab) => {
+            <button
+              type="button"
+              onClick={() => setShowBarRegisterForm(true)}
+              style={{
+                flexShrink: 0,
+                display: 'flex',
+                alignItems: 'center',
+                gap: 5,
+                padding: '8px 14px',
+                borderRadius: 100,
+                border: '1px solid #E2E8F0',
+                background: '#F8FAFC',
+                color: '#334155',
+                fontSize: 12,
+                fontWeight: 800,
+                cursor: 'pointer',
+              }}
+            >
+              <Plus size={14} strokeWidth={2.5} />
+              공간 등록
+            </button>
+            {HOME_REGIONS_ORDER.filter((tab) => locations.some((b) => b.region === tab)).map((tab) => {
               const isSelected = selectedRegionTab === tab;
               const count = locations.filter((b) => b.region === tab).length;
 
@@ -1721,20 +1852,105 @@ const HomePage = ({
                   );
                 }
 
+                const previewBars = getBarPreviewList(filteredBars);
+                const showExpandToggle = filteredBars.length > previewBars.length;
+
                 return (
                   <motion.div
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
                     key={selectedRegionTab}
-                    style={{
-                      display: 'grid',
-                      gridTemplateColumns: 'repeat(5, 1fr)',
-                      gap: '12px 4px',
-                      justifyItems: 'center',
-                      alignItems: 'start'
-                    }}
+                    style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}
                   >
-                    {filteredBars.map(renderBarCard)}
+                    <motion.div
+                      style={{
+                        display: 'flex',
+                        alignItems: 'stretch',
+                        gap: '10px',
+                        minHeight: '72px',
+                      }}
+                    >
+                      <div
+                        style={{
+                          flexShrink: 0,
+                          width: showExpandToggle ? '76px' : '56px',
+                          display: 'flex',
+                          flexDirection: 'column',
+                          justifyContent: 'center',
+                          alignItems: 'flex-start',
+                          gap: '2px',
+                        }}
+                      >
+                        <span style={{ fontSize: '11px', fontWeight: 700, color: '#94A3B8', lineHeight: 1.2 }}>
+                          {selectedRegionTab}
+                        </span>
+                        <span style={{ fontSize: '15px', fontWeight: 900, color: '#1E293B', lineHeight: 1.2 }}>
+                          {filteredBars.length}곳
+                        </span>
+                        {showExpandToggle && (
+                          <button
+                            type="button"
+                            onClick={() => setBarListExpanded((v) => !v)}
+                            style={{
+                              marginTop: '4px',
+                              padding: 0,
+                              border: 'none',
+                              background: 'transparent',
+                              color: barListExpanded ? '#E53935' : '#64748B',
+                              fontSize: '11px',
+                              fontWeight: 800,
+                              cursor: 'pointer',
+                              display: 'flex',
+                              alignItems: 'center',
+                              gap: '2px',
+                              whiteSpace: 'nowrap',
+                            }}
+                          >
+                            {barListExpanded ? '접기' : '전체 보기'}
+                            <ChevronRight
+                              size={14}
+                              style={{
+                                transform: barListExpanded ? 'rotate(-90deg)' : 'rotate(90deg)',
+                                transition: 'transform 0.2s ease',
+                              }}
+                            />
+                          </button>
+                        )}
+                      </div>
+
+                      <div
+                        style={{
+                          flex: 1,
+                          minWidth: 0,
+                          display: 'flex',
+                          gap: '12px',
+                          overflowX: 'auto',
+                          padding: '2px 0 4px',
+                          scrollbarWidth: 'none',
+                          msOverflowStyle: 'none',
+                          WebkitOverflowScrolling: 'touch',
+                        }}
+                      >
+                        {previewBars.map((bar) => renderBarCard(bar, { carousel: true }))}
+                      </div>
+                    </motion.div>
+
+                    {barListExpanded && (
+                      <motion.div
+                        initial={{ opacity: 0, height: 0 }}
+                        animate={{ opacity: 1, height: 'auto' }}
+                        style={{
+                          display: 'grid',
+                          gridTemplateColumns: 'repeat(4, 1fr)',
+                          gap: '14px 8px',
+                          justifyItems: 'center',
+                          alignItems: 'start',
+                          paddingTop: '4px',
+                        }}
+                      >
+                        {sortBarsByRichness(filteredBars).map((bar) => renderBarCard(bar))}
+                      </motion.div>
+                    )}
                   </motion.div>
                 );
               })()
@@ -1762,7 +1978,7 @@ const HomePage = ({
         >
           {[
             { icon: <Calendar size={32} strokeWidth={1.2} color="#D4436E" />, label: '행사달력', particles: '📅', action: () => setShowFullCalendar(true) },
-            { icon: <MapPin size={32} strokeWidth={1.2} color="#D4436E" />, label: '위치·대관', particles: '📍', action: () => setShowRentalModal(true) },
+            // { icon: <MapPin size={32} strokeWidth={1.2} color="#D4436E" />, label: '위치·대관', particles: '📍', action: () => setShowRentalModal(true) },
             { icon: <Users size={32} strokeWidth={1.2} color="#C9A84C" />, label: '파트너', particles: '💑', action: () => { window.history.pushState({}, '', '#partner'); setActiveTab('partner'); } },
             { icon: <Users size={32} strokeWidth={1.2} color="#C9A84C" />, label: '강사찾기', particles: '🕺', action: () => { localStorage.setItem('instructor_target_genre', '전체'); setView('instructors'); window.history.pushState({}, '', '/instructors'); window.dispatchEvent(new PopStateEvent('popstate')); setTimeout(() => { window.dispatchEvent(new CustomEvent('apply-instructor-filter')); }, 300); } },
             { textIcon: '1:1', label: '채팅문의', particles: '💬', action: () => window.open('https://open.kakao.com/o/gP43rNri', '_blank') },
@@ -1960,7 +2176,7 @@ const HomePage = ({
                   ...b,
                   _itemGenre: '부트캠프',
                   date: selectedDate,
-                  broadRegion: b.region?.includes('서울') ? '서울' : (b.region?.includes('경기') || b.region?.includes('인천') ? '경기/인천' : (b.region?.includes('경상') ? '경상도' : (b.region?.includes('전라') ? '전라도' : (b.region?.includes('충청') ? '충청도' : '강원/제주')))),
+                  broadRegion: b.region?.includes('서울') ? '서울' : (b.region?.includes('경기') || b.region?.includes('인천') ? '경인' : (b.region?.includes('경상') ? '경상도' : (b.region?.includes('전라') ? '전라도' : (b.region?.includes('충청') ? '충청도' : '강원/제주')))),
                   locationName: b.venue || b.region,
                   fee: b.fee || b.price_info,
                   time: b.time || '13:00'
@@ -1970,7 +2186,7 @@ const HomePage = ({
                   ...f,
                   _itemGenre: '페스티벌',
                   date: selectedDate,
-                  broadRegion: f.region?.includes('서울') ? '서울' : (f.region?.includes('경기') || f.region?.includes('인천') ? '경기/인천' : (f.region?.includes('경상') ? '경상도' : (f.region?.includes('전라') ? '전라도' : (f.region?.includes('충청') ? '충청도' : '강원/제주')))),
+                  broadRegion: f.region?.includes('서울') ? '서울' : (f.region?.includes('경기') || f.region?.includes('인천') ? '경인' : (f.region?.includes('경상') ? '경상도' : (f.region?.includes('전라') ? '전라도' : (f.region?.includes('충청') ? '충청도' : '강원/제주')))),
                   locationName: f.venue || f.region,
                   fee: f.price_info || f.fee,
                   time: f.time || '12:00'
@@ -2146,13 +2362,13 @@ const HomePage = ({
                     {(() => {
                       const regionKeys = {
                         "서울": "region_seoul",
-                        "경기/인천": "region_gyeonggi_incheon",
+                        "경인": "region_gyeonggi_incheon",
                         "경상도": "region_gyeongsang",
                         "전라도": "region_jeolla",
                         "충청도": "region_chungcheong",
                         "강원/제주": "region_gangwon_jeju"
                       };
-                      const regions = ["경기/인천", "서울", "경상도", "전라도", "충청도", "강원/제주"];
+                      const regions = ["경인", "서울", "경상도", "전라도", "충청도", "강원/제주"];
 
                       return regions.map((regionName, idx) => {
                         const regionParties = unifiedDayEvents
@@ -2169,7 +2385,7 @@ const HomePage = ({
                           regionParties.filter((p) => p.poster_url && String(p.poster_url).trim())
                         );
 
-                        const isFirst = regionName === '경기/인천';
+                        const isFirst = regionName === '경인';
                         const weather = regionName === '서울' && weatherMap['서울'] ? { temperature: weatherMap['서울'].temp, icon: weatherMap['서울'].icon } : null;
 
                         return (
@@ -2550,7 +2766,7 @@ const HomePage = ({
                       if (item.broadRegion) return item.broadRegion;
                       const r = item.region || item.address || item.locationName || item.venue || '';
                       if (r.includes('서울')) return '서울';
-                      if (r.includes('경기') || r.includes('인천')) return '경기/인천';
+                      if (r.includes('경기') || r.includes('인천')) return '경인';
                       if (r.includes('경상') || r.includes('부산') || r.includes('대구') || r.includes('울산')) return '경상도';
                       if (r.includes('전라') || r.includes('광주')) return '전라도';
                       if (r.includes('충청') || r.includes('대전') || r.includes('세종')) return '충청도';
@@ -2560,7 +2776,7 @@ const HomePage = ({
                       const r = getRegionName(item);
                       regionCounts[r] = (regionCounts[r] || 0) + 1;
                     });
-                    const orderRegions = ['경기/인천', '서울', '경상도', '전라도', '충청도', '강원/제주'];
+                    const orderRegions = ['경인', '서울', '경상도', '전라도', '충청도', '강원/제주'];
                     const availableRegions = orderRegions.filter(r => regionCounts[r] > 0);
 
                     // 3. 장르별 카운트 (파티 대상)
@@ -2691,7 +2907,7 @@ const HomePage = ({
                     {(() => {
                       if (gridRegion === 'more') return '더보기';
                       const regionKeys = {
-                        '서울': 'region_seoul', '경기/인천': 'region_gyeonggi_incheon',
+                        '서울': 'region_seoul', '경인': 'region_gyeonggi_incheon',
                         '경상도': 'region_gyeongsang', '전라도': 'region_jeolla',
                         '충청도': 'region_chungcheong', '강원/제주': 'region_gangwon_jeju'
                       };
@@ -2869,6 +3085,26 @@ const HomePage = ({
       `}</style>
 
       {/* afterPartySheet UI removed */}
+
+      <BarRegisterFormModal
+        open={showBarRegisterForm}
+        onClose={() => setShowBarRegisterForm(false)}
+        onSuccess={() => fetchLocations()}
+      />
+
+      {selectedVenue && (
+        <VenueDetailModal
+          venue={selectedVenue}
+          parties={parties}
+          lessons={lessons || []}
+          onClose={() => setSelectedVenue(null)}
+          onVenueUpdated={(updated) => setSelectedVenue(updated)}
+          onOpenPoster={(item) => {
+            const p = posterSharePayload(item);
+            if (p) handleOpenModal(setSelectedPoster, p);
+          }}
+        />
+      )}
     </div>
   )
 }

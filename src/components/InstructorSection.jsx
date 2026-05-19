@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react'
+import { createPortal } from 'react-dom'
 import { motion, AnimatePresence } from 'framer-motion'
 import { supabase } from '../lib/supabase'
 import { ChevronLeft, Share2, Bell, Heart, User, MapPin, Globe, ShieldCheck, Zap, MessageCircle, Star, Info, Plus, Check, Search, Calendar, CreditCard, Users, Music } from 'lucide-react'
@@ -82,7 +83,7 @@ const getSession = () => {
   return s
 }
 
-const InstructorSection = () => {
+const InstructorSection = ({ onOpenVipMaster }) => {
   const [instructors, setInstructors] = useState([])
   const [loading, setLoading] = useState(true)
   const [follows, setFollows] = useState({})
@@ -451,7 +452,14 @@ const InstructorSection = () => {
             강사 등록
           </button>
           <button
-            onClick={() => window.dispatchEvent(new CustomEvent('open-vip-master-login'))}
+            type="button"
+            onClick={() => {
+              if (typeof onOpenVipMaster === 'function') {
+                onOpenVipMaster();
+                return;
+              }
+              window.dispatchEvent(new CustomEvent('open-vip-master-login'));
+            }}
             style={{
               padding: '8px 14px', borderRadius: '12px', background: 'rgba(201,168,76,0.15)',
               border: '1px solid #C9A84C', color: '#C9A84C', fontSize: '13px', fontWeight: 700,
@@ -1051,18 +1059,20 @@ const InstructorSection = () => {
           instructorId={selectedInstructor?.id || ''} 
         />
       )}
-      {showInstructorRegister && (
-        <motion.div
+      {showInstructorRegister && typeof document !== 'undefined' && createPortal(
+        <div
           style={{
             position: 'fixed',
             inset: 0,
-            zIndex: 6000,
+            zIndex: 2200000,
             background: '#fff',
             overflowY: 'auto',
+            WebkitOverflowScrolling: 'touch',
           }}
         >
           <InstructorRegister onBack={() => setShowInstructorRegister(false)} />
-        </motion.div>
+        </div>,
+        document.body
       )}
     </div>
   )

@@ -1,10 +1,10 @@
 import React from 'react';
 import InstructorSection from '../components/InstructorSection';
 
-const Instructors = () => {
+const Instructors = ({ onOpenVipMaster }) => {
   return (
     <div style={{ paddingBottom: '100px' }}>
-      <InstructorSection />
+      <InstructorSection onOpenVipMaster={onOpenVipMaster} />
     </div>
   );
 };
