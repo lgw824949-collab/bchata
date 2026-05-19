@@ -1238,8 +1238,9 @@ const HomePage = ({
       whileTap={{ scale: 0.96 }}
       onClick={() => setShowRentalModal(true)}
       style={{
-        flex: '0 0 auto',
-        width: '88px',
+        width: '100%',
+        maxWidth: '64px',
+        margin: '0 auto',
         display: 'flex',
         flexDirection: 'column',
         alignItems: 'center',
@@ -1247,17 +1248,17 @@ const HomePage = ({
       }}
     >
       <motion.div style={{
-        width: '76px',
-        height: '76px',
+        width: '52px',
+        height: '52px',
         borderRadius: '50%',
         background: '#ffffff',
-        boxShadow: '0 4px 12px rgba(0,0,0,0.06)',
-        border: '2px solid #F1F5F9',
+        boxShadow: '0 2px 8px rgba(0,0,0,0.05)',
+        border: '1.5px solid #F1F5F9',
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
         overflow: 'hidden',
-        marginBottom: '8px',
+        marginBottom: '6px',
         position: 'relative'
       }}>
         {bar.image_url ? (
@@ -1270,16 +1271,17 @@ const HomePage = ({
           <img
             src="/logo.png"
             alt={bar.name}
-            style={{ width: '65%', height: '65%', objectFit: 'contain', opacity: 0.85 }}
+            style={{ width: '60%', height: '60%', objectFit: 'contain', opacity: 0.85 }}
           />
         )}
       </motion.div>
       <span style={{
-        fontSize: '13px',
-        fontWeight: 900,
-        color: '#1E293B',
+        fontSize: '10px',
+        fontWeight: 800,
+        color: '#334155',
         textAlign: 'center',
         width: '100%',
+        lineHeight: 1.25,
         overflow: 'hidden',
         textOverflow: 'ellipsis',
         whiteSpace: 'nowrap'
@@ -1675,7 +1677,7 @@ const HomePage = ({
             })}
           </motion.div>
 
-          <motion.div style={{ padding: '20px 0', flex: 1 }}>
+          <motion.div style={{ padding: '12px 0 4px', flex: 1 }}>
             {isLoading ? (
               <div style={{ padding: '60px 20px', textAlign: 'center', color: '#94A3B8', fontWeight: 700 }}>
                 전국 BAR 정보를 정렬하는 중...
@@ -1699,8 +1701,10 @@ const HomePage = ({
                     key={selectedRegionTab}
                     style={{
                       display: 'grid',
-                      gridTemplateColumns: 'repeat(4, 1fr)',
-                      gap: '20px 8px'
+                      gridTemplateColumns: 'repeat(5, 1fr)',
+                      gap: '12px 4px',
+                      justifyItems: 'center',
+                      alignItems: 'start'
                     }}
                   >
                     {filteredBars.map(renderBarCard)}
