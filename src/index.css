@@ -556,6 +556,21 @@ body {
   isolation: isolate;
 }
 
+/* 메인 홈 게이트(activeTab 없음): 앱 셸·루트까지 다크 (Home 내부만 어두운 문제 방지) */
+body.home-gate-theme {
+  --color-bg: #0d0d0d;
+  --color-text-main: #f8fafc;
+  --color-text-sub: #94a3b8;
+  --color-card: rgba(255, 255, 255, 0.06);
+  --color-border: rgba(255, 255, 255, 0.1);
+}
+
+body.home-gate-theme .bchata-app-shell,
+body.home-gate-theme [data-bchata-app-root] {
+  background-color: #0d0d0d !important;
+  color: #f8fafc;
+}
+
 /* Premium Layout Container */
 .hnnss-container {
   position: fixed;

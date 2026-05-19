@@ -1022,13 +1022,17 @@ function App() {
     } else {
       document.body.classList.remove('bottom-nav-social-light')
     }
+    document.body.classList.toggle('home-gate-theme', isHomeGateNav)
     const themeMeta = document.querySelector('meta[name="theme-color"]')
     if (themeMeta) {
       if (isHomeGateNav) themeMeta.setAttribute('content', '#0D0D0D')
       else if (isSocialLightNav) themeMeta.setAttribute('content', '#ffffff')
       else themeMeta.setAttribute('content', '#FF1744')
     }
-    return () => document.body.classList.remove('bottom-nav-social-light')
+    return () => {
+      document.body.classList.remove('bottom-nav-social-light')
+      document.body.classList.remove('home-gate-theme')
+    }
   }, [isSocialLightNav, isHomeGateNav])
 
   const [showClassRegister, setShowClassRegister] = useState(false);
@@ -1708,12 +1712,13 @@ function App() {
   };
 
   return (
-    <div className="bchata-app-shell">
+    <div className={`bchata-app-shell${isHomeGateNav ? ' bchata-app-shell--gate' : ''}`}>
     <div
       data-bchata-app-root
       style={{ 
       width: '100%',
-      background: 'var(--color-bg)', color: 'var(--color-text-main)',
+      background: isHomeGateNav ? '#0D0D0D' : 'var(--color-bg)',
+      color: isHomeGateNav ? '#F8FAFC' : 'var(--color-text-main)',
       minHeight: '100vh', position: 'relative',
       transition: 'background-color 0.3s, color 0.3s'
     }}>
