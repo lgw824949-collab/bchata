@@ -4,6 +4,8 @@ import { useTranslation } from 'react-i18next';
 import { motion, AnimatePresence } from 'framer-motion';
 import QuickPinchZoom, { make3dTransformValue } from 'react-quick-pinch-zoom';
 import LiveCount from '../components/LiveCount'
+import { getBarStatsKey, buildBarCounterDisplay, shouldShowBarCounter } from '../lib/barCounterDisplay'
+import { fetchBarStatsMap, resolveBarStats, bumpBarClickCount } from '../lib/barStatsQuery'
 import { KMA_REGION_COORDS, fetchWeatherForecast, parseKmaWeather, HOME_REGION_MAP } from '../utils/kmaApi'
 import { supabase } from '../lib/supabase'
 import { BAR_DATABASE } from '../lib/BarLib'
@@ -446,7 +448,7 @@ const LiveExposureStrip = ({ pool, selectedDate, todayStr, onSelect, cleanTitle,
         </button>
       </motion.div>
 
-      <AnimatePresence mode="wait">
+      <AnimatePresence initial={false}>
         <motion.div
           key={`${rotationIndex}-${featured.map((f) => f.id).join('-')}`}
           initial={{ opacity: 0, y: 8 }}
@@ -478,7 +480,7 @@ const LiveExposureStrip = ({ pool, selectedDate, todayStr, onSelect, cleanTitle,
                   flexDirection: 'column',
                 }}
               >
-                <motion.div
+                <div
                   style={{
                     width: '100%',
                     minHeight: 200,
@@ -503,7 +505,7 @@ const LiveExposureStrip = ({ pool, selectedDate, todayStr, onSelect, cleanTitle,
                       display: 'block',
                     }}
                   />
-                </motion.div>
+                </div>
                 <div style={{ padding: '8px 4px 0' }}>
                   <div
                     style={{
@@ -857,10 +859,19 @@ const RollingContainer = ({ items, onSelect }) => {
 
   return (
     <div style={{ position: 'relative', height: '110px', width: '100%', overflow: 'hidden' }}>
-      <AnimatePresence mode="wait">
-        <motion.div key={items[index].id} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }} transition={{ duration: 0.5 }} style={{ position: 'absolute', width: '100%' }}>
-          <PartyCard item={items[index]} onSelect={onSelect} />
-        </motion.div>
+      <AnimatePresence initial={false}>
+        {items.length > 0 && (
+          <motion.div
+            key={items[index]?.id ?? index}
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -20 }}
+            transition={{ duration: 0.5 }}
+            style={{ position: 'absolute', width: '100%' }}
+          >
+            <PartyCard item={items[index]} onSelect={onSelect} />
+          </motion.div>
+        )}
       </AnimatePresence>
     </div>
   );
@@ -1246,12 +1257,11 @@ const HomePage = ({
   const [locations, setLocations] = useState([]);
   const [locationsLoading, setLocationsLoading] = useState(true);
   const [selectedRegionTab, setSelectedRegionTab] = useState('서울');
-  const [barListExpanded, setBarListExpanded] = useState(false);
   const [selectedVenue, setSelectedVenue] = useState(null);
   const [showBarRegisterForm, setShowBarRegisterForm] = useState(false);
   const [quickMenuMoreOpen, setQuickMenuMoreOpen] = useState(false);
+  const [barStatsMap, setBarStatsMap] = useState({});
 
-  const BAR_PREVIEW_COUNT = 6;
 
   // [사용자 요청] 15초 롤링 — shuffleOffset 미사용, 캐러셀 스크롤 중 리렌더 방지
   // useEffect(() => {
@@ -1380,9 +1390,6 @@ const HomePage = ({
   const sortBarsByRichness = (bars) =>
     [...bars].sort((a, b) => scoreBarForPreview(b) - scoreBarForPreview(a));
 
-  const getBarPreviewList = (bars) =>
-    sortBarsByRichness(bars).slice(0, Math.min(BAR_PREVIEW_COUNT, bars.length));
-
   const barRegionCounts = useMemo(() => {
     const counts = Object.fromEntries(HOME_REGIONS_ORDER.map((r) => [r, 0]));
     locations.forEach((bar) => {
@@ -1394,74 +1401,96 @@ const HomePage = ({
     return counts;
   }, [locations]);
 
-  const renderBarCard = (bar, { carousel = false } = {}) => (
-    <motion.div
-      key={bar.id}
-      role="button"
-      tabIndex={0}
-      onClick={() => setSelectedVenue(bar)}
-      onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setSelectedVenue(bar); } }}
-      style={{
-        width: carousel ? '72px' : '100%',
-        maxWidth: carousel ? '72px' : '72px',
-        margin: '0 auto',
-        display: 'flex',
-        flexDirection: 'column',
-        alignItems: 'center',
-        cursor: 'pointer',
-        flexShrink: carousel ? 0 : undefined,
-      }}
-    >
-      <motion.div style={{
-        width: carousel ? '56px' : '52px',
-        height: carousel ? '56px' : '52px',
-        borderRadius: '50%',
-        background: activeTab === null ? 'rgba(255, 255, 255, 0.06)' : '#ffffff',
-        boxShadow: activeTab === null ? '0 2px 8px rgba(0,0,0,0.25)' : '0 2px 8px rgba(0,0,0,0.05)',
-        border: activeTab === null ? '1.5px solid rgba(255, 255, 255, 0.1)' : '1.5px solid #F1F5F9',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        overflow: 'hidden',
-        marginBottom: '6px',
-        position: 'relative'
-      }}>
-        {bar.image_url ? (
-          <img
-            src={bar.image_url}
-            alt={bar.name}
-            style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-          />
-        ) : (
-          <img
-            src="/logo.png"
-            alt=""
-            style={{ width: '62%', height: '62%', objectFit: 'contain', opacity: 0.9 }}
-          />
-        )}
-      </motion.div>
-      <span
-        className="social-bar-name-label"
-        style={{
-          fontSize: '11px',
-          fontWeight: 900,
-          color: isHomeGate ? '#FFFFFF' : HOME_TEXT,
-          textAlign: 'center',
-          width: '100%',
-          lineHeight: 1.3,
-          overflow: 'hidden',
-          textOverflow: 'ellipsis',
-          whiteSpace: 'nowrap',
-          textShadow: isHomeGate ? '0 1px 4px rgba(0, 0, 0, 0.75)' : undefined,
-        }}
+  const barStatsByKey = useMemo(() => {
+    const out = {};
+    locations.forEach((bar) => {
+      out[getBarStatsKey(bar)] = resolveBarStats(bar, barStatsMap);
+    });
+    return out;
+  }, [locations, barStatsMap]);
+
+  const renderBarCard = (bar) => {
+    const stats = barStatsByKey[getBarStatsKey(bar)] || { liveCount: 0, clickCount: 0 };
+    const counter = buildBarCounterDisplay(stats);
+    const showCounter = shouldShowBarCounter(stats);
+    const lineClass = showCounter
+      ? (counter.mode === 'live_hot' ? 'home-bar-chip-line--hot' : 'home-bar-chip-line--muted')
+      : 'home-bar-chip-line';
+    const lineText = showCounter ? counter.line : (bar.name || '이름 없음');
+
+    return (
+      <motion.button
+        key={bar.id}
+        type="button"
+        role="listitem"
+        className="home-bar-chip"
+        onClick={() => setSelectedVenue(bar)}
+        whileTap={{ scale: 0.97 }}
       >
-        {bar.name || '이름 없음'}
-      </span>
-    </motion.div>
-  );
+        <span className="home-bar-thumb" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          {bar.image_url ? (
+            <img src={bar.image_url} alt="" />
+          ) : (
+            <img src="/logo.png" alt="" style={{ width: '40%', height: '40%', objectFit: 'contain', opacity: 0.85 }} />
+          )}
+        </span>
+        <p className={`home-bar-chip-line ${lineClass}`} title={lineText}>
+          {showCounter ? `${bar.name || 'BAR'} · ${counter.line}` : lineText}
+        </p>
+      </motion.button>
+    );
+  };
 
   useEffect(() => {
     fetchLocations();
+  }, []);
+
+  useEffect(() => {
+    if (!supabase) return undefined;
+
+    let cancelled = false;
+    const loadBarStats = async () => {
+      try {
+        const map = await fetchBarStatsMap(supabase);
+        if (!cancelled) setBarStatsMap(map);
+      } catch (err) {
+        console.warn('[Home] bar stats load failed:', err);
+      }
+    };
+
+    loadBarStats();
+
+    const channel = supabase
+      .channel('home-bar-live-stats')
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'bar_checkins' },
+        () => {
+          loadBarStats();
+        },
+      )
+      .on(
+        'postgres_changes',
+        { event: 'UPDATE', schema: 'public', table: 'parties' },
+        () => {
+          loadBarStats();
+        },
+      )
+      .subscribe();
+
+    return () => {
+      cancelled = true;
+      supabase.removeChannel(channel);
+    };
+  }, []);
+
+  useEffect(() => {
+    const onVenueView = (e) => {
+      const venue = e.detail?.venue;
+      if (venue) bumpBarClickCount(setBarStatsMap, venue, 1);
+    };
+    window.addEventListener('bchata-venue-view', onVenueView);
+    return () => window.removeEventListener('bchata-venue-view', onVenueView);
   }, []);
 
   useEffect(() => {
@@ -1471,10 +1500,6 @@ const HomePage = ({
     const firstWithVenues = HOME_REGIONS_ORDER.find((r) => locations.some((b) => b.region === r));
     if (firstWithVenues) setSelectedRegionTab(firstWithVenues);
   }, [locations, locationsLoading, selectedRegionTab]);
-
-  useEffect(() => {
-    setBarListExpanded(false);
-  }, [selectedRegionTab]);
 
   /** 홈 포스터 3칸 순서 고정: 좌→우 소셜 · 부트캠프 · 페스티벌 */
   const homePosterSlots = [
@@ -1542,7 +1567,11 @@ const HomePage = ({
       districts: '#C9A84C',
     },
     divider: 'rgba(255, 255, 255, 0.08)',
+    panelBg: '#121212',
+    panelBorder: 'rgba(255, 255, 255, 0.08)',
+    panelShadow: '0 10px 40px rgba(0, 0, 0, 0.38)',
     quickIcon: '#CBD5E1',
+    quickRegisterIcon: HOME_GOLD,
     posterActive: HOME_GOLD,
     posterIdle: 'rgba(255, 255, 255, 0.12)',
     liveShell: 'linear-gradient(135deg, #1a1510 0%, #0a0a0a 55%, #141018 100%)',
@@ -1564,10 +1593,19 @@ const HomePage = ({
       bg: HOME_SURFACE, border: HOME_BORDER, label: HOME_TEXT_MUTED, count: '#94A3B8', unit: '#94A3B8', districts: '#94A3B8',
     },
     partyActive: {
-      bg: HOME_BRAND_SOFT, border: HOME_BRAND_BORDER, label: '#9F1239', count: HOME_BRAND, unit: HOME_BRAND, districts: '#BE185D',
+      bg: 'rgba(201, 168, 76, 0.12)',
+      border: 'rgba(201, 168, 76, 0.4)',
+      label: '#92400E',
+      count: HOME_GOLD,
+      unit: '#B45309',
+      districts: '#C9A84C',
     },
     divider: HOME_BORDER,
+    panelBg: '#FFFFFF',
+    panelBorder: '#E2E8F0',
+    panelShadow: '0 6px 28px rgba(15, 23, 42, 0.06)',
     quickIcon: '#475569',
+    quickRegisterIcon: HOME_GOLD,
     posterActive: HOME_BRAND,
     posterIdle: '#F0F0F0',
     liveShell: 'linear-gradient(135deg, #D4436E 0%, #C7365F 100%)',
@@ -1578,40 +1616,44 @@ const HomePage = ({
   const homePartyBucketEmpty = homeUi.partyEmpty;
   const homePartyBucketActive = homeUi.partyActive;
   const homePartySectionTitleStyle = {
-    color: homeUi.text, margin: '0 0 12px',
+    color: homeUi.text, margin: '0 0 14px',
   };
   const homePartnerSectionTitleStyle = {
-    color: homeUi.text, margin: '20px 0 12px',
+    color: homeUi.text, margin: '24px 0 14px',
   };
-  const homeSectionSpace = 32;
-  const homeBlockSpace = 22;
+  const homeSectionSpace = 40;
+  const homeBlockSpace = 28;
+  const homeDepthPanelStyle = {
+    background: homeUi.panelBg,
+    border: `1px solid ${homeUi.panelBorder}`,
+    boxShadow: homeUi.panelShadow,
+  };
   const homeSubtitleStyle = { color: homeUi.textMuted };
   const homeSectionDividerStyle = { height: 1, background: homeUi.divider, margin: '0 20px', border: 'none' };
   const homeSectionTitleStyle = { color: homeUi.text };
-  const QUICK_MENU_ICON = 24;
+  const QUICK_MENU_ICON_SIZE = 22;
+  const QUICK_MENU_STROKE = 1.5;
   const quickMenuIconColor = homeUi.quickIcon;
   const QUICK_MENU_PRIMARY_IDS = ['party-register', 'class-register', 'concierge', 'calendar'];
 
-  /** 메인 노출·등록 우선 — 하단탭(홈·부트캠프·파트너·강사·페스티벌) 및 포스터3칸과 중복 제외 */
+  const quickMenuIcon = (Icon) => (
+    <Icon size={QUICK_MENU_ICON_SIZE} strokeWidth={QUICK_MENU_STROKE} color={quickMenuIconColor} aria-hidden />
+  );
+
+  /** 메인 노출·등록 우선 — Lucide 단색·동일 stroke */
   const quickMenuItems = useMemo(() => [
-    { id: 'party-register', registerHighlight: true, icon: <Music size={QUICK_MENU_ICON} strokeWidth={1.5} color={HOME_BRAND} />, label: '파티등록', particles: '🎉', action: () => handleRegister('party') },
-    { id: 'class-register', registerHighlight: true, icon: <User size={QUICK_MENU_ICON} strokeWidth={1.5} color={isHomeGate ? HOME_GOLD : HOME_BRAND} />, label: '클래스등록', particles: '📚', action: () => window.dispatchEvent(new CustomEvent('open-vip-class-register')) },
-    { id: 'concierge', icon: <MessageSquare size={QUICK_MENU_ICON} strokeWidth={1.5} color={quickMenuIconColor} />, label: '컨시어지', particles: '✨', action: () => window.dispatchEvent(new CustomEvent('open-chatbot')) },
-    { id: 'livepick', icon: <Camera size={QUICK_MENU_ICON} strokeWidth={1.5} color={quickMenuIconColor} />, label: '라이브픽', particles: '📸', action: () => navigate('/livepick') },
-    { id: 'wishlist', icon: <Heart size={QUICK_MENU_ICON} strokeWidth={1.5} color={quickMenuIconColor} />, label: '찜하기', particles: '❤️', action: () => setShowWishlist(true) },
-    { id: 'chat', textIcon: '1:1', label: '채팅문의', particles: '💬', action: () => window.open('https://open.kakao.com/o/gP43rNri', '_blank') },
-    { id: 'saju', icon: <Star size={QUICK_MENU_ICON} strokeWidth={1.5} color={quickMenuIconColor} />, label: '운명의좌표', particles: '🌟', action: () => setShowSaju(true) },
-    { id: 'restaurant', icon: <Utensils size={QUICK_MENU_ICON} strokeWidth={1.5} color={quickMenuIconColor} />, label: '맛집뒷풀이', particles: '🍽', action: () => navigate('/restaurant') },
-    { id: 'weather', icon: <CloudSun size={QUICK_MENU_ICON} strokeWidth={1.5} color={quickMenuIconColor} />, label: '오늘날씨', particles: '☀️', action: () => setShowWeather(true) },
-    { id: 'route', icon: <Navigation size={QUICK_MENU_ICON} strokeWidth={1.5} color={quickMenuIconColor} />, label: '지능형경로', particles: '🧭', action: () => openAnalysis(false) },
-    {
-      id: 'calendar',
-      icon: <Calendar size={QUICK_MENU_ICON} strokeWidth={1.5} color={quickMenuIconColor} />,
-      label: '행사달력',
-      particles: '📅',
-      action: openFullCalendarModal,
-    },
-  ], [handleRegister, openFullCalendarModal, setView, setShowWishlist, setShowSaju, setShowWeather, openAnalysis, isHomeGate]);
+    { id: 'party-register', icon: Music, label: '파티등록', particles: '🎉', action: () => handleRegister('party') },
+    { id: 'class-register', icon: User, label: '클래스등록', particles: '📚', action: () => window.dispatchEvent(new CustomEvent('open-vip-class-register')) },
+    { id: 'concierge', icon: MessageSquare, label: '컨시어지', particles: '✨', action: () => window.dispatchEvent(new CustomEvent('open-chatbot')) },
+    { id: 'livepick', icon: Camera, label: '라이브픽', particles: '📸', action: () => navigate('/livepick') },
+    { id: 'wishlist', icon: Heart, label: '찜하기', particles: '❤️', action: () => setShowWishlist(true) },
+    { id: 'chat', icon: MessageSquare, label: '채팅문의', particles: '💬', action: () => window.open('https://open.kakao.com/o/gP43rNri', '_blank') },
+    { id: 'saju', icon: Star, label: '운명의좌표', particles: '🌟', action: () => setShowSaju(true) },
+    { id: 'restaurant', icon: Utensils, label: '맛집뒷풀이', particles: '🍽', action: () => navigate('/restaurant') },
+    { id: 'weather', icon: CloudSun, label: '오늘날씨', particles: '☀️', action: () => setShowWeather(true) },
+    { id: 'route', icon: Navigation, label: '지능형경로', particles: '🧭', action: () => openAnalysis(false) },
+    { id: 'calendar', icon: Calendar, label: '행사달력', particles: '📅', action: openFullCalendarModal },
+  ], [handleRegister, openFullCalendarModal, setView, setShowWishlist, setShowSaju, setShowWeather, openAnalysis]);
 
   const { quickMenuPrimary, quickMenuMore } = useMemo(() => {
     const primary = QUICK_MENU_PRIMARY_IDS
@@ -1622,60 +1664,60 @@ const HomePage = ({
     return { quickMenuPrimary: primary, quickMenuMore: more };
   }, [quickMenuItems]);
 
-  const renderQuickMenuCircle = (item, { compact = false } = {}) => {
-    const isPartyCta = item.id === 'party-register';
-    const isRegisterAccent = Boolean(item.registerHighlight) && !isPartyCta;
-    const circleSize = compact ? 52 : 64;
-    const circleClass = isPartyCta
-      ? 'quick-menu-circle--cta'
-      : isRegisterAccent
-        ? 'quick-menu-circle--accent'
-        : 'quick-menu-circle--neutral';
-    const circleIcon = isPartyCta ? (
-      <Music size={QUICK_MENU_ICON} strokeWidth={1.5} color="#FFFFFF" />
-    ) : item.textIcon ? (
-      <span style={{ fontSize: 13, fontWeight: 800, color: quickMenuIconColor, letterSpacing: '-0.5px' }}>{item.textIcon}</span>
-    ) : (
-      item.icon
-    );
+  const renderQuickMenuItem = (item) => {
+    const Icon = item.icon;
     return (
       <motion.button
         key={item.id}
         type="button"
-        whileTap={{ scale: 0.92 }}
+        whileTap={{ scale: 0.96 }}
         onClick={(e) => { triggerParticle(e, item.particles); item.action(); }}
-        className="quick-menu-circle-btn"
-        style={{ flexShrink: 0, width: compact ? 72 : undefined }}
+        className="home-quick-menu-item"
       >
-        <span
-          className={`quick-menu-circle ${circleClass}`}
-          style={{ width: circleSize, height: circleSize }}
-        >
-          {circleIcon}
-        </span>
-        <span
-          className={[
-            'quick-menu-circle-label',
-            isRegisterAccent || isPartyCta ? `quick-menu-circle-label--accent${isHomeGate ? ' quick-menu-circle-label--gate' : ''}` : '',
-            compact ? 'quick-menu-circle-label--compact' : '',
-          ].filter(Boolean).join(' ')}
-        >
-          {item.label}
-        </span>
+        {quickMenuIcon(Icon)}
+        <span className="home-quick-menu-item-label">{item.label}</span>
       </motion.button>
     );
   };
 
   const renderHomeSectionHeader = (title, subtitle, trailing = null, subtitleStyle = null) => (
-    <header style={{ marginBottom: 12 }}>
+    <header style={{ marginBottom: 14 }}>
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8 }}>
-        <h2 className="home-type-section-title" style={{ ...homeSectionTitleStyle, flex: 1, minWidth: 0 }}>{title}</h2>
+        <h2 className="home-type-section-title home-ds-title" style={{ ...homeSectionTitleStyle, flex: 1, minWidth: 0 }}>{title}</h2>
         {trailing}
       </div>
       {subtitle ? (
-        <p className="home-type-caption" style={subtitleStyle || homeSubtitleStyle}>{subtitle}</p>
+        <p className="home-ds-subtitle" style={subtitleStyle || homeSubtitleStyle}>{subtitle}</p>
       ) : null}
     </header>
+  );
+
+  const renderHeroPosters = () => (
+    <section className="home-hero-posters" aria-label={isEn ? 'Featured events' : '추천 행사'}>
+      {homePosterSlots.map((item) => {
+        const isActive = activePosterSlot === item.id;
+        return (
+          <motion.div
+            key={item.id}
+            className={`home-poster-border-wrap ${isActive ? 'is-active' : 'is-idle'}`}
+            onClick={item.action}
+            whileTap={{ scale: 0.98 }}
+          >
+            <div className="home-poster-border-inner">
+              <img
+                className="home-poster-img"
+                src={item.posters[item.idx] || item.fallback}
+                alt={item.label}
+                onError={(e) => { e.currentTarget.src = item.fallback; }}
+              />
+              <div className="home-poster-overlay" aria-hidden>
+                <span className="home-poster-label">{item.label}</span>
+              </div>
+            </div>
+          </motion.div>
+        );
+      })}
+    </section>
   );
 
   return (
@@ -1694,7 +1736,7 @@ const HomePage = ({
       )}
 
       {/* 📌 [영역 A: 히어로 / 메인 게이트] */}
-      <motion.div style={{ padding: '20px 20px 0', marginBottom: homeSectionSpace }}>
+      <motion.div style={{ padding: '20px 16px 0', marginBottom: homeSectionSpace - 4 }}>
         {activeTab === null && (
         <motion.div style={{ display: 'flex', alignItems: 'center', gap: 14, marginBottom: 20 }}>
           <img
@@ -1730,77 +1772,39 @@ const HomePage = ({
         )}
 
         {activeTab === null && (
-        <>
-        <motion.div style={{ marginTop: 22, marginBottom: 12 }}>
-          <h2 className="home-type-section-title" style={homePartySectionTitleStyle}>
-            {isEn ? "Today's parties" : '오늘의 파티'}
-          </h2>
-        </motion.div>
-        <motion.div style={{ display: 'flex', gap: 12 }}>
-          {[
-            { label: isEn ? 'Seoul' : '서울', count: regionCounts.seoul, districts: regionCounts.seoulDistricts, tab: '서울' },
-            { label: isEn ? 'Metro' : '수도권', count: regionCounts.metro, districts: regionCounts.metroDistricts, tab: '경인' },
-            { label: isEn ? 'Regions' : '지방권', count: regionCounts.national, districts: regionCounts.nationalDistricts, tab: null },
-          ].map((r) => {
-            const theme = !partiesLoading && r.count > 0 ? homePartyBucketActive : homePartyBucketEmpty;
-            const hasCount = !partiesLoading && r.count > 0;
-            return (
-              <button
-                key={r.label}
-                type="button"
-                onClick={() => openTodayPartyBucket(r.tab)}
-                style={{
-                  flex: 1,
-                  minWidth: 0,
-                  padding: '18px 14px',
-                  borderRadius: '16px',
-                  border: `1.5px solid ${theme.border}`,
-                  background: theme.bg,
-                  boxShadow: hasCount
-                    ? (isHomeGate ? '0 2px 12px rgba(201, 168, 76, 0.22)' : '0 2px 8px rgba(212, 67, 110, 0.12)')
-                    : 'none',
-                  cursor: 'pointer',
-                  display: 'flex',
-                  flexDirection: 'column',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  textAlign: 'center',
-                  minHeight: 76,
-                }}
-              >
-                <span className="home-type-party-label" style={{ color: theme.label, marginBottom: 6, width: '100%' }}>{r.label}</span>
-                <div className="home-type-party-count" style={{ fontSize: hasCount ? '22px' : '20px', color: theme.count, width: '100%' }}>
-                  {partiesLoading ? '—' : r.count}
-                  <span className="home-type-party-unit" style={{ color: theme.unit, marginLeft: '2px' }}>
-                    {isEn ? '' : '건'}
-                  </span>
-                </div>
-                {r.districts ? (
-                  <span
-                    className="home-type-caption"
-                    style={{
-                      display: 'block',
-                      marginTop: 6,
-                      color: theme.districts,
-                      lineHeight: 1.35,
-                      width: '100%',
-                      overflow: 'hidden',
-                      textOverflow: 'ellipsis',
-                      whiteSpace: 'nowrap',
-                    }}
-                  >
-                    {r.districts}
-                  </span>
-                ) : null}
-              </button>
-            );
-          })}
-        </motion.div>
-        </>
+          <div className="home-party-status-micro" role="group" aria-label={isEn ? "Today's parties" : '오늘의 파티'}>
+            <span className="home-ds-body" style={{ color: homeUi.textMuted, marginRight: 2 }}>{isEn ? 'Today' : '오늘'}</span>
+            {[
+              { label: isEn ? 'Seoul' : '서울', count: regionCounts.seoul, tab: '서울' },
+              { label: isEn ? 'Metro' : '수도권', count: regionCounts.metro, tab: '경인' },
+              { label: isEn ? 'Regions' : '지방권', count: regionCounts.national, tab: null },
+            ].map((r, idx) => (
+              <React.Fragment key={r.label}>
+                {idx > 0 ? <span className="home-party-status-micro-sep">·</span> : null}
+                <button
+                  type="button"
+                  className="home-party-status-micro-btn"
+                  style={{ color: !partiesLoading && r.count > 0 ? homePartyBucketActive.count : homeUi.textMuted }}
+                  onClick={() => openTodayPartyBucket(r.tab)}
+                >
+                  {r.label} <strong>{partiesLoading ? '—' : r.count}</strong>
+                  {!isEn && '건'}
+                </button>
+              </React.Fragment>
+            ))}
+          </div>
         )}
       </motion.div>
 
-      {activeTab === null && <hr style={homeSectionDividerStyle} aria-hidden />}
+      {activeTab === null && (
+        <motion.div style={{ padding: '0 16px' }}>
+          {renderHomeSectionHeader(
+            isEn ? 'Featured events' : '추천 행사',
+            isEn ? 'Tap a poster to explore' : '포스터를 눌러 바로 이동',
+          )}
+          {renderHeroPosters()}
+        </motion.div>
+      )}
 
       {/* 🔴 [LIVE 바 임팩트 영역 개편] */}
       {(activeTab === null || activeTab === 'social') && (
@@ -1963,8 +1967,6 @@ const HomePage = ({
       </motion.div>
       )}
 
-      {activeTab === null && <hr style={homeSectionDividerStyle} aria-hidden />}
-
       {/* 메인 퀵메뉴: activeTab === null → 3섹션 그리드 / 소셜 탭 → 가로 스크롤 */}
       <style>{`
         @keyframes gentleSparkle {
@@ -1972,71 +1974,11 @@ const HomePage = ({
           50% { box-shadow: 0 0 12px rgba(85, 139, 47, 0.45); filter: drop-shadow(0 0 4px rgba(85, 139, 47, 0.25)); }
           100% { box-shadow: 0 0 2px rgba(85, 139, 47, 0.1); filter: drop-shadow(0 0 1px rgba(85, 139, 47, 0.1)); }
         }
-        .quick-menu-primary-row {
+        .home-quick-menu-grid {
           display: grid;
           grid-template-columns: repeat(4, minmax(0, 1fr));
-          gap: 6px;
-          margin-bottom: 4px;
-        }
-        .quick-menu-circle-btn {
-          display: flex;
-          flex-direction: column;
-          align-items: center;
-          justify-content: flex-start;
-          gap: 8px;
-          background: none;
-          border: none;
-          padding: 0;
-          cursor: pointer;
-          min-width: 0;
-          width: 100%;
-        }
-        .quick-menu-circle {
-          border-radius: 50%;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          flex-shrink: 0;
-        }
-        .quick-menu-circle--accent {
-          background: #FFF5F7;
-          border: 1.5px solid #FBCFE8;
-        }
-        .quick-menu-circle--cta {
-          background: #D4436E;
-          border: none;
-          box-shadow: 0 4px 12px rgba(212, 67, 110, 0.28);
-        }
-        .quick-menu-circle--neutral {
-          background: #FFFFFF;
-          border: 1px solid #E2E8F0;
-        }
-        .quick-menu-circle-label {
-          font-size: 11px;
-          font-weight: 600;
-          color: #1E293B;
-          text-align: center;
-          line-height: 1.25;
-          width: 100%;
-          max-width: 80px;
-          overflow: hidden;
-          text-overflow: ellipsis;
-          white-space: nowrap;
-        }
-        .quick-menu-circle-label--compact {
-          font-size: 10px;
-          max-width: 72px;
-          white-space: normal;
-          display: -webkit-box;
-          -webkit-box-orient: vertical;
-          -webkit-line-clamp: 2;
-          line-clamp: 2;
-          text-overflow: unset;
-          min-height: 2.5em;
-        }
-        .quick-menu-circle-label--accent {
-          color: #D4436E;
-          font-weight: 700;
+          gap: 10px;
+          margin-bottom: 8px;
         }
         .quick-menu-more-link {
           flex-shrink: 0;
@@ -2047,8 +1989,8 @@ const HomePage = ({
           border: none;
           background: none;
           color: #64748B;
-          font-size: 11px;
-          font-weight: 600;
+          font-size: var(--ds-body-size);
+          font-weight: var(--ds-subtitle-weight);
           cursor: pointer;
           line-height: 1.2;
         }
@@ -2062,8 +2004,8 @@ const HomePage = ({
           border: 1px solid #E2E8F0;
           background: #F8FAFC;
           color: #334155;
-          font-size: 11px;
-          font-weight: 700;
+          font-size: var(--ds-body-size);
+          font-weight: var(--ds-subtitle-weight);
           cursor: pointer;
           line-height: 1.2;
         }
@@ -2119,42 +2061,6 @@ const HomePage = ({
         .quick-menu-scroll::-webkit-scrollbar {
           display: none;
         }
-        .home-poster-border-wrap {
-          flex: 1;
-          position: relative;
-          min-width: 0;
-          border-radius: 12px;
-          cursor: pointer;
-        }
-        .home-poster-border-wrap.is-idle {
-          border: 1px solid #F0F0F0;
-          overflow: hidden;
-        }
-        .home-poster-border-wrap.is-active {
-          border: 2px solid #D4436E;
-          overflow: hidden;
-        }
-        .home-gate-active .home-poster-border-wrap.is-idle {
-          border-color: rgba(255, 255, 255, 0.12);
-        }
-        .home-gate-active .home-poster-border-wrap.is-active {
-          border-color: #C9A84C;
-        }
-        .home-gate-active .quick-menu-circle--accent {
-          background: rgba(201, 168, 76, 0.12);
-          border: 1.5px solid rgba(201, 168, 76, 0.45);
-        }
-        .home-gate-active .quick-menu-circle--neutral {
-          background: rgba(255, 255, 255, 0.06);
-          border: 1px solid rgba(255, 255, 255, 0.12);
-        }
-        .home-gate-active .quick-menu-circle-label {
-          color: #E2E8F0;
-        }
-        .home-gate-active .quick-menu-circle-label--accent,
-        .home-gate-active .quick-menu-circle-label--gate {
-          color: #C9A84C;
-        }
         .home-gate-active .quick-menu-more-link {
           color: #94A3B8;
         }
@@ -2173,21 +2079,9 @@ const HomePage = ({
           color: #FFFFFF;
           text-shadow: 0 1px 4px rgba(0, 0, 0, 0.8);
         }
-        .home-poster-border-inner {
-          position: relative;
-          z-index: 1;
-          width: 100%;
-          aspect-ratio: 3 / 4;
-          border-radius: 12px;
-          overflow: hidden;
-          background: #111;
-        }
-        .home-poster-border-inner img {
-          border-radius: 12px;
-        }
       `}</style>
       {activeTab === null && (
-      <div id="quickmenu-section" style={{ padding: '0 20px', marginBottom: homeSectionSpace + 4 }}>
+      <div id="quickmenu-section" style={{ padding: '0 16px', marginBottom: homeSectionSpace + 8 }}>
         {/* 파티 & 이벤트 포스터 3칸 - Supabase 실시간 연동 */}
         {/*
         <p style={homePartySectionTitleStyle}>파티 & 이벤트</p>
@@ -2206,37 +2100,7 @@ const HomePage = ({
           ))}
         </motion.div>
         */}
-        {renderHomeSectionHeader(
-          isEn ? 'Featured events' : '추천 행사',
-          isEn ? 'Social · Bootcamp · Festival posters' : '소셜 · 부트캠프 · 페스티벌 · 탭하면 이동',
-        )}
-        <motion.div style={{ display: 'flex', gap: 14, marginBottom: homeBlockSpace }}>
-          {homePosterSlots.map((item) => {
-            const isActive = activePosterSlot === item.id;
-            return (
-              <div
-                key={item.id}
-                className={`home-poster-border-wrap ${isActive ? 'is-active' : 'is-idle'}`}
-                onClick={item.action}
-              >
-                <div className="home-poster-border-inner">
-                  <img
-                    src={item.posters[item.idx] || item.fallback}
-                    alt={item.label}
-                    onError={(e) => { e.currentTarget.src = item.fallback; }}
-                    style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
-                  />
-                  <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, background: 'linear-gradient(transparent, rgba(0,0,0,0.75))', padding: '16px 8px 8px', textAlign: 'center' }}>
-                    <span style={{ color: '#fff', fontSize: '14px', fontWeight: 800 }}>{item.label}</span>
-                  </div>
-                </div>
-              </div>
-            );
-          })}
-        </motion.div>
-
-        <hr style={{ ...homeSectionDividerStyle, margin: `${homeBlockSpace}px 0` }} aria-hidden />
-
+        <motion.div className="home-quick-menu-block">
         {renderHomeSectionHeader(
           isEn ? 'Quick actions' : '빠른 메뉴',
           isEn ? 'Top 4 shortcuts' : '자주 쓰는 메뉴',
@@ -2260,8 +2124,8 @@ const HomePage = ({
           ) : null,
         )}
         <div style={{ marginBottom: homeBlockSpace }}>
-          <div className="quick-menu-primary-row">
-            {quickMenuPrimary.map((item) => renderQuickMenuCircle(item))}
+          <div className="home-quick-menu-grid">
+            {quickMenuPrimary.map((item) => renderQuickMenuItem(item))}
           </div>
           {quickMenuMore.length > 0 && (
             <>
@@ -2276,8 +2140,8 @@ const HomePage = ({
                     transition={{ duration: 0.22, ease: 'easeOut' }}
                     style={{ overflow: 'hidden' }}
                   >
-                    <motion.div className="quick-menu-more-scroll">
-                      {quickMenuMore.map((item) => renderQuickMenuCircle(item, { compact: true }))}
+                    <motion.div className="home-quick-menu-more-scroll">
+                      {quickMenuMore.map((item) => renderQuickMenuItem(item))}
                     </motion.div>
                   </motion.div>
                 )}
@@ -2285,11 +2149,13 @@ const HomePage = ({
             </>
           )}
         </div>
+        </motion.div>
 
-        <hr style={{ ...homeSectionDividerStyle, margin: `${homeBlockSpace + 18}px 0 ${homeBlockSpace}px` }} aria-hidden />
-
-        {/* BAR 쉘: 지역 pill + 원형 그리드 */}
-        <motion.div ref={barSectionRef} style={{ display: 'flex', flexDirection: 'column', marginTop: 8, background: isHomeGate ? 'transparent' : '#ffffff' }}>
+        <section
+          ref={barSectionRef}
+          className="home-depth-panel"
+          style={{ ...homeDepthPanelStyle, marginTop: homeSectionSpace, display: 'flex', flexDirection: 'column' }}
+        >
           {renderHomeSectionHeader(
             isHomeGate ? (
               <>
@@ -2308,11 +2174,7 @@ const HomePage = ({
             </button>,
             isHomeGate ? { color: homeUi.barSubtitle, fontWeight: 600 } : null,
           )}
-          <motion.div style={{
-            display: 'flex', overflowX: 'auto', gap: 12, padding: '0 0 20px',
-            borderBottom: isHomeGate ? '1px solid rgba(255,255,255,0.08)' : '1px solid #F1F5F9', flexShrink: 0, scrollbarWidth: 'none',
-            alignItems: 'center',
-          }}>
+          <motion.div className="home-region-tabs">
             {HOME_REGIONS_ORDER.filter((tab) => locations.some((b) => b.region === tab)).map((tab) => {
               const isSelected = selectedRegionTab === tab;
 
@@ -2320,33 +2182,11 @@ const HomePage = ({
                 <button
                   key={tab}
                   type="button"
+                  className={`home-region-pill${isSelected ? ' is-selected' : ''}`}
                   onClick={() => setSelectedRegionTab(tab)}
-                  style={{
-                    flexShrink: 0,
-                    padding: '10px 18px',
-                    background: isSelected ? (isHomeGate ? homeUi.goldSoft : homeUi.brandSoft) : homeUi.surface,
-                    color: isSelected ? (isHomeGate ? homeUi.gold : HOME_BRAND) : homeUi.text,
-                    border: isSelected
-                      ? `1px solid ${isHomeGate ? homeUi.goldBorder : homeUi.brandBorder}`
-                      : `1px solid ${homeUi.border}`,
-                    borderRadius: '100px',
-                    fontWeight: isSelected ? 950 : 700,
-                    fontSize: '14px',
-                    cursor: 'pointer',
-                    transition: 'all 0.2s ease',
-                    minHeight: 40,
-                  }}
                 >
                   {tab}
-                  <span
-                    style={{
-                      marginLeft: 6,
-                      fontSize: '12px',
-                      fontWeight: isSelected ? 900 : 700,
-                      color: isSelected ? (isHomeGate ? homeUi.gold : HOME_BRAND) : homeUi.textMuted,
-                    }}
-                    aria-label={`${barRegionCounts[tab] ?? 0}곳`}
-                  >
+                  <span className="home-region-pill-count" aria-label={`${barRegionCounts[tab] ?? 0}곳`}>
                     {barRegionCounts[tab] ?? 0}
                   </span>
                 </button>
@@ -2354,7 +2194,7 @@ const HomePage = ({
             })}
           </motion.div>
 
-          <motion.div style={{ padding: '20px 0 12px', flex: 1 }}>
+          <div className="home-social-bar-scroll-wrap">
             {locationsLoading ? (
               <div style={{ padding: '60px 20px', textAlign: 'center', color: '#94A3B8', fontWeight: 700 }}>
                 전국 BAR 정보를 정렬하는 중...
@@ -2371,115 +2211,23 @@ const HomePage = ({
                   );
                 }
 
-                const previewBars = getBarPreviewList(filteredBars);
-                const showExpandToggle = filteredBars.length > previewBars.length;
-                const remainingBarCount = filteredBars.length - previewBars.length;
 
                 return (
                   <motion.div
+                    className="home-social-bar-scroll scrollbar-hide"
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
                     key={selectedRegionTab}
-                    style={{ display: 'flex', flexDirection: 'column', gap: 14 }}
+                    role="list"
+                    aria-label={isEn ? `Social BAR in ${selectedRegionTab}` : `${selectedRegionTab} Social BAR`}
                   >
-                    <motion.div
-                      style={{
-                        display: 'flex',
-                        gap: '12px',
-                        overflowX: 'auto',
-                        padding: '2px 0 4px',
-                        scrollbarWidth: 'none',
-                        msOverflowStyle: 'none',
-                        WebkitOverflowScrolling: 'touch',
-                      }}
-                    >
-                      {previewBars.map((bar) => renderBarCard(bar, { carousel: true }))}
-                      {showExpandToggle && (
-                        <button
-                          type="button"
-                          onClick={() => setBarListExpanded((v) => !v)}
-                          style={{
-                            width: '72px',
-                            flexShrink: 0,
-                            border: 'none',
-                            background: 'transparent',
-                            padding: 0,
-                            cursor: 'pointer',
-                            display: 'flex',
-                            flexDirection: 'column',
-                            alignItems: 'center',
-                          }}
-                        >
-                          <span
-                            style={{
-                              width: '56px',
-                              height: '56px',
-                              borderRadius: '50%',
-                              background: barListExpanded
-                                ? (isHomeGate ? homeUi.goldSoft : HOME_BRAND_SOFT)
-                                : (isHomeGate ? homeUi.surface : HOME_SURFACE),
-                              border: barListExpanded
-                                ? `1.5px solid ${isHomeGate ? homeUi.goldBorder : HOME_BRAND_BORDER}`
-                                : `1.5px dashed ${isHomeGate ? homeUi.border : '#CBD5E1'}`,
-                              display: 'flex',
-                              alignItems: 'center',
-                              justifyContent: 'center',
-                              marginBottom: '6px',
-                              color: barListExpanded
-                                ? (isHomeGate ? homeUi.gold : HOME_BRAND)
-                                : (isHomeGate ? homeUi.textMuted : HOME_TEXT_MUTED),
-                              fontSize: '13px',
-                              fontWeight: 900,
-                            }}
-                          >
-                            {barListExpanded ? (
-                              <ChevronRight size={18} style={{ transform: 'rotate(-90deg)' }} />
-                            ) : (
-                              `+${remainingBarCount}`
-                            )}
-                          </span>
-                          <span
-                            style={{
-                              fontSize: '11px',
-                              fontWeight: 800,
-                              color: barListExpanded
-                                ? (isHomeGate ? homeUi.gold : HOME_BRAND)
-                                : (isHomeGate ? homeUi.barLabel : HOME_TEXT),
-                              textAlign: 'center',
-                              lineHeight: 1.3,
-                              whiteSpace: 'nowrap',
-                            }}
-                          >
-                            {barListExpanded ? (isEn ? 'Close' : '접기') : (isEn ? 'View all' : '전체 보기')}
-                          </span>
-                        </button>
-                      )}
-                    </motion.div>
-
-                                        {barListExpanded && (
-                      <motion.div
-                        initial={{ opacity: 0, height: 0 }}
-                        animate={{ opacity: 1, height: 'auto' }}
-                        style={{
-                          display: 'grid',
-                          gridTemplateColumns: 'repeat(4, 1fr)',
-                          gap: '14px 8px',
-                          justifyItems: 'center',
-                          alignItems: 'start',
-                          paddingTop: '4px',
-                        }}
-                      >
-                        {sortBarsByRichness(filteredBars).map((bar) => renderBarCard(bar))}
-                      </motion.div>
-                    )}
+                    {sortBarsByRichness(filteredBars).map((bar) => renderBarCard(bar))}
                   </motion.div>
                 );
               })()
             )}
-          </motion.div>
-        </motion.div>
-
-
+          </div>
+        </section>
 
         {/*
         <p style={homePartnerSectionTitleStyle}>파트너 & 강사</p>
@@ -2640,9 +2388,10 @@ const HomePage = ({
         </div>
 
         {/* 선택된 날짜의 장르 필터 바 */}
-        <AnimatePresence>
+        <AnimatePresence initial={false}>
           {isFilterBarVisible && (
             <motion.div
+              key="genre-filter-bar"
               initial={{ height: 0, opacity: 0 }}
               animate={{ height: 'auto', opacity: 1 }}
               exit={{ height: 0, opacity: 0 }}
@@ -3187,9 +2936,15 @@ const HomePage = ({
       </>
       )}
 
-      <AnimatePresence>
+      <AnimatePresence initial={false}>
         {showFullCalendar && (
-          <>
+          <motion.div
+            key="full-calendar-overlay"
+            style={{ position: 'fixed', inset: 0, zIndex: Z.modalBackdrop }}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+          >
             <motion.div className="modernized-calendar-backdrop bchata-overlay-backdrop" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={handleCloseModal} style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.6)', backdropFilter: 'blur(4px)', zIndex: Z.modalBackdrop }} />
             <motion.div className="modernized-calendar-modal bchata-overlay-panel bchata-overlay-sheet" initial={{ y: '100%', opacity: 0 }} animate={{ y: 0, opacity: 1 }} exit={{ y: '100%', opacity: 0 }} transition={{ type: 'spring', damping: 25, stiffness: 200 }} style={{ position: 'fixed', left: '10px', right: '10px', background: 'var(--color-card)', borderRadius: '24px', padding: '20px', boxShadow: '0 10px 40px rgba(0,0,0,0.25)', zIndex: Z.modal, border: '1px solid var(--color-border)', display: 'flex', flexDirection: 'column', maxHeight: '85vh' }}>
               <div style={{ width: '40px', height: '4px', background: 'var(--color-border)', borderRadius: '2px', margin: '0 auto 20px' }} />
@@ -3385,13 +3140,19 @@ const HomePage = ({
                 <button onClick={handleCloseModal} style={{ width: '100%', height: '50px', borderRadius: '16px', background: '#1E293B', color: '#fff', fontSize: '15px', fontWeight: 800, border: 'none', cursor: 'pointer' }}>확인 완료</button>
               </div>
             </motion.div>
-          </>
+          </motion.div>
         )}
       </AnimatePresence>
 
-      <AnimatePresence>
+      <AnimatePresence initial={false}>
         {showGridModal && (
-          <>
+          <motion.div
+            key="grid-modal-overlay"
+            style={{ position: 'fixed', inset: 0, zIndex: Z.modalBackdrop }}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+          >
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
@@ -3540,7 +3301,7 @@ const HomePage = ({
                 <div style={{ height: '100px' }}></div>
               </div>
             </motion.div>
-          </>
+          </motion.div>
         )}
       </AnimatePresence>
       <style>{`

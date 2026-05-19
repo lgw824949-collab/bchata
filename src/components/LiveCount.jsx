@@ -45,6 +45,7 @@ const LiveCount = () => {
   }
 
   const fetchCounts = async () => {
+    if (!supabase) return
     const todayStr = getTodayKST()
     const yesterdayStr = getYesterdayKST()
     try {

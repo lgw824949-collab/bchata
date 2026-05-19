@@ -5,7 +5,9 @@ import { X, ChevronLeft, ChevronRight, Clock, MessageCircle, Globe, Loader2 } fr
 import { findBarByName } from '../lib/BarLib';
 import { getDevTestLessons } from '../data/devTestLessons';
 import { lessonMatchesVenue, partyMatchesVenue } from '../lib/partyVenueMatch';
-import { supabase } from '../lib/supabase';
+import { supabase, logActivity } from '../lib/supabase';
+import PartyLiveHybridBadge from './PartyLiveHybridBadge';
+import { useBarStatsRealtime } from '../hooks/useBarStatsRealtime';
 
 export { partyMatchesVenue } from '../lib/partyVenueMatch';
 
@@ -131,7 +133,14 @@ const RatioBar = ({ item, compact }) => (
 );
 
 /** 홈 소셜 카드와 같은 톤 — 세로 포스터는 좌측 고정폭 + cover (레터박스 없음) */
-const FeaturedPartyCard = ({ party, onOpenPoster, isLesson = false, displayDate }) => {
+const FeaturedPartyCard = ({
+  party,
+  onOpenPoster,
+  isLesson = false,
+  displayDate,
+  liveCount = 0,
+  clickCount = 0,
+}) => {
   const title = cleanTitle(party.title);
   const time = isLesson
     ? [party.day_of_week, party.start_time?.slice(0, 5) || party.time?.split('-')[0]?.trim()]
@@ -268,14 +277,22 @@ const FeaturedPartyCard = ({ party, onOpenPoster, isLesson = false, displayDate 
           )}
         </div>
 
-        <div>
+        <div
+          style={{
+            display: 'flex',
+            alignItems: 'flex-end',
+            justifyContent: 'space-between',
+            gap: 10,
+            marginTop: 8,
+          }}
+        >
+          <div style={{ flex: 1, minWidth: 0 }}>
           <div
             style={{
               display: 'flex',
               alignItems: 'center',
               flexWrap: 'nowrap',
               gap: 8,
-              marginTop: 8,
               fontSize: 14,
               lineHeight: 1.2,
             }}
@@ -290,7 +307,11 @@ const FeaturedPartyCard = ({ party, onOpenPoster, isLesson = false, displayDate 
               <span style={{ color: VD.accent, fontWeight: 900, fontVariantNumeric: 'tabular-nums' }}>{fee}</span>
             </span>
           </div>
-          <RatioBar item={party} compact />
+            <RatioBar item={party} compact />
+          </div>
+          {!isLesson ? (
+            <PartyLiveHybridBadge liveCount={liveCount} clickCount={clickCount} />
+          ) : null}
         </div>
       </div>
     </motion.div>
@@ -468,6 +489,7 @@ export default function VenueDetailModal({
   const [detailTab, setDetailTab] = useState('social');
   const [fetchedLessons, setFetchedLessons] = useState([]);
   const [venueFavorited, setVenueFavorited] = useState(false);
+  const { stats: venueBarStats } = useBarStatsRealtime(venue);
 
   const hasBothVenueLinks = Boolean(
     venue?.kakao_url?.trim() && venue?.instagram_url?.trim()
@@ -484,16 +506,34 @@ export default function VenueDetailModal({
   }, [venue?.id, venue?.kakao_url, venue?.instagram_url, venue?.description]);
 
   useEffect(() => {
+    if (!venue?.name) return;
+    logActivity('venue_detail_view', {
+      target_id: isPersistedVenueId(venue.id) ? venue.id : null,
+      bar_name: venue.name,
+      region: venue.region,
+    });
+    window.dispatchEvent(new CustomEvent('bchata-venue-view', { detail: { venue } }));
+  }, [venue?.id, venue?.name, venue?.region]);
+
+  useEffect(() => {
     if (!supabase) return;
     let cancelled = false;
-    supabase
-      .from('classes_info')
-      .select('*')
-      .eq('status', 'approved')
-      .then(({ data, error }) => {
-        if (cancelled || error) return;
+    (async () => {
+      try {
+        const { data, error } = await supabase
+          .from('classes_info')
+          .select('*')
+          .eq('status', 'approved');
+        if (cancelled) return;
+        if (error) {
+          console.warn('[VenueDetailModal] classes_info:', error.message);
+          return;
+        }
         setFetchedLessons(data || []);
-      });
+      } catch (err) {
+        console.warn('[VenueDetailModal] classes_info fetch failed:', err);
+      }
+    })();
     return () => {
       cancelled = true;
     };
@@ -886,6 +926,8 @@ export default function VenueDetailModal({
               onOpenPoster={onOpenPoster}
               isLesson={!isSocialTab}
               displayDate={selectedDate}
+              liveCount={venueBarStats.liveCount}
+              clickCount={venueBarStats.clickCount}
             />
           ) : (
             <p style={{ margin: '8px 0 12px', fontSize: '14px', color: VD.muted, textAlign: 'center', fontWeight: 600 }}>

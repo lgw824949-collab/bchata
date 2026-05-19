@@ -11,17 +11,10 @@ export const supabase = (supabaseUrl && supabaseAnonKey)
   ? createClient(supabaseUrl, supabaseAnonKey)
   : null
 
-export const logActivity = async (action, metadata = {}) => {
-  if (!supabase) return
-  try {
-    await supabase.from('activity_logs').insert({
-      action,
-      region: metadata.region || '전국',
-      target_id: metadata.target_id || null,
-      metadata,
-      is_anonymous: true
-    })
-  } catch (err) {
-    // Ignore error if table doesn't exist
-  }
+/**
+ * 행동 로그 — DB activity_logs 테이블은 사용하지 않음.
+ * 상세 조회 등은 bchata-venue-view 커스텀 이벤트·barStats 로컬 bump로 처리.
+ */
+export const logActivity = async (_action, _metadata = {}) => {
+  /* no-op: ghost table insert 제거 */
 }

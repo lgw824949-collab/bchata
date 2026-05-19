@@ -1,13 +1,16 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Z } from '../constants/zLayers';
 import { supabase } from '../lib/supabase'
+import { LOCATIONS_SELECT } from '../lib/locationsQuery'
 import {
-  PARTIES_SELECT,
   CHAT_GENRE_BY_NUM,
   logPartiesFetchError,
-  withPartyImageAlias,
   filterPartiesForChat,
   formatPartyResultBlock,
+  enrichPartiesWithVenues,
+  fetchPartiesForChat,
+  buildLocationCoordMap,
+  curatePartiesForChat,
 } from '../lib/partiesQuery'
 import { getKSTCalendarTodayStr } from '../lib/dateNorm';
 import { getUserCoords, isGeoDenied, readCachedCoords } from '../lib/geoCache';
@@ -134,29 +137,27 @@ const ChatBot = () => {
         try {
           const todayStr = getKSTCalendarTodayStr();
 
-          const [partiesRes, instructorsRes, bootcampsRes, festivalsRes] = await Promise.all([
-            supabase
-              .from('parties')
-              .select(PARTIES_SELECT)
-              .eq('status', 'approved')
-              .eq('date', todayStr)
-              .order('time', { ascending: true })
-              .limit(50),
-            supabase.from('instructors').select('*').eq('status', 'active'),
-            supabase.from('bootcamps').select('*').eq('status', 'active').order('start_date', { ascending: true }),
-            supabase.from('festivals').select('*').eq('status', 'active').order('start_date', { ascending: true }),
-          ]);
+          const [partiesRes, locationsRes, instructorsRes, bootcampsRes, festivalsRes] =
+            await Promise.all([
+              fetchPartiesForChat(supabase, { todayStr, limit: 50 }),
+              supabase.from('locations').select(LOCATIONS_SELECT),
+              supabase.from('instructors').select('*').eq('status', 'active'),
+              supabase.from('bootcamps').select('*').eq('status', 'active').order('start_date', { ascending: true }),
+              supabase.from('festivals').select('*').eq('status', 'active').order('start_date', { ascending: true }),
+            ]);
 
           if (partiesRes.error) {
             logPartiesFetchError(partiesRes.error);
             throw partiesRes.error;
           }
 
+          const locationsList = locationsRes.error ? [] : locationsRes.data || [];
+          const partiesWithVenue = enrichPartiesWithVenues(partiesRes.data || [], locationsList);
+
           setDbData({
-            parties: filterPartiesForChat(
-              (partiesRes.data || []).map(withPartyImageAlias),
-              { todayStr },
-            ),
+            parties: filterPartiesForChat(partiesWithVenue, { todayStr }),
+            locations: locationsList,
+            locationCoordMap: buildLocationCoordMap(locationsList),
             instructors: instructorsRes.data || [],
             bootcamps: bootcampsRes.data || [],
             festivals: festivalsRes.data || [],
@@ -301,16 +302,27 @@ const ChatBot = () => {
     return [];
   };
   */
-  const buildPartyResultMessage = (genreName) => {
+  const buildPartyResultMessage = (genreName, coords = userLocation) => {
     const todayStr = getKSTCalendarTodayStr();
-    const matched = filterPartiesForChat(dbData?.parties || [], { todayStr, genreName }).slice(0, 5);
+    const coordMap = dbData?.locationCoordMap || buildLocationCoordMap(dbData?.locations);
+    const hasCoords = coords?.lat != null && coords?.lng != null;
+    const matched = curatePartiesForChat(dbData?.parties || [], {
+      todayStr,
+      genreName,
+      userCoords: coords,
+      coordMap,
+      limit: 5,
+    });
 
     if (matched.length === 0) {
       return `오늘(${todayStr}) 등록된 **${genreName}** 파티가 없어요.\n다른 장르 번호를 골라보시거나 메인 화면 **오늘의 파티**를 확인해 주세요.`;
     }
 
-    const blocks = matched.map((p) => formatPartyResultBlock(p));
-    return `✨ **오늘(${todayStr}) ${genreName}** 추천 ${matched.length}건\n\n${blocks.join('\n\n---\n\n')}`;
+    const blocks = matched.map((p) => formatPartyResultBlock(p, { showDistance: hasCoords }));
+    const headline = hasCoords
+      ? `✨ **오늘(${todayStr}) ${genreName}** 근처 추천 ${matched.length}건`
+      : `✨ **오늘(${todayStr}) ${genreName}** 추천 ${matched.length}건`;
+    return `${headline}\n\n${blocks.join('\n\n---\n\n')}`;
   };
 
   const buildOtherCategoryMessage = (catNum, genreName) => {
@@ -355,7 +367,7 @@ const ChatBot = () => {
     return '현재 등록된 정보가 없어요 😢';
   };
 
-  const handleSend = () => {
+  const handleSend = async () => {
     if (!input.trim()) return;
 
     const userInput = normalizeChoice(input);
@@ -383,9 +395,20 @@ const ChatBot = () => {
       setGenre(userInput);
       setStep(3);
 
+      let coords = userLocation;
+      if (category === '1') {
+        try {
+          const fresh = await getUserCoords({ enableHighAccuracy: true, maxAgeMs: 60_000 });
+          coords = { lat: fresh.lat, lng: fresh.lng };
+          setUserLocation(coords);
+        } catch {
+          /* 캐시·기존 좌표로 정렬 */
+        }
+      }
+
       const resultContent =
         category === '1'
-          ? buildPartyResultMessage(selectedGenre)
+          ? buildPartyResultMessage(selectedGenre, coords)
           : buildOtherCategoryMessage(category, selectedGenre);
 
       setMessages((prev) => [

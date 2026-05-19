@@ -146,31 +146,28 @@ const Restaurant = ({ onBack }) => {
 
       {/* 본문 */}
       <div style={{ flex: 1, overflowY: 'auto', padding: '20px' }}>
-        <AnimatePresence mode="wait">
+        <AnimatePresence mode="wait" initial={false}>
           {loading ? (
-            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+            <motion.div key="loading" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
               style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}
             >
-              <style>{`
-                @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.5; } 100% { opacity: 1; } }
-              `}</style>
               {[1, 2, 3].map(i => <SkeletonCard key={i} />)}
             </motion.div>
           ) : error ? (
-            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} style={{ textAlign: 'center', padding: '40px 20px' }}>
+            <motion.div key="error" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} style={{ textAlign: 'center', padding: '40px 20px' }}>
               <AlertCircle size={48} color="#EF4444" style={{ marginBottom: '16px' }} />
               <p style={{ color: '#1E293B', fontWeight: 700, marginBottom: '8px' }}>오류가 발생했습니다</p>
               <p style={{ color: '#64748B', fontSize: '14px' }}>{error}</p>
               <button onClick={() => window.location.reload()} style={{ marginTop: '20px', padding: '10px 20px', borderRadius: '10px', background: '#F59E0B', color: '#fff', border: 'none', fontWeight: 700 }}>재시도</button>
             </motion.div>
           ) : restaurants.length === 0 ? (
-            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} style={{ textAlign: 'center', padding: '60px 20px' }}>
+            <motion.div key="empty" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} style={{ textAlign: 'center', padding: '60px 20px' }}>
               <div style={{ fontSize: '48px', marginBottom: '16px' }}>🍱</div>
               <p style={{ color: '#1E293B', fontWeight: 700, marginBottom: '8px' }}>근처에 음식점이 없습니다</p>
               <p style={{ color: '#64748B', fontSize: '14px' }}>반경 1km 이내에 등록된 맛집이 없네요.</p>
             </motion.div>
           ) : (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+            <motion.div key="list" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
               {isFallback && (
                 <div style={{ background: '#FFFBEB', border: '1px solid #FEF3C7', borderRadius: '12px', padding: '12px 16px', marginBottom: '8px', display: 'flex', alignItems: 'center', gap: '10px' }}>
                   <span style={{ fontSize: '16px' }}>📍</span>
@@ -216,7 +213,7 @@ const Restaurant = ({ onBack }) => {
                   </button>
                 </motion.div>
               ))}
-            </div>
+            </motion.div>
           )}
         </AnimatePresence>
       </div>

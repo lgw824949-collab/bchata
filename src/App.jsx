@@ -503,7 +503,7 @@ const LiveExposureStrip = ({ pool, selectedDate, todayStr, onSelect, cleanTitle,
         {isEn ? 'Where will you dance tonight?' : '오늘 밤, 어디서 춤 출래요?'}
       </h2>
 
-      <AnimatePresence mode="wait">
+      <AnimatePresence initial={false}>
         <motion.div
           key={`${rotationIndex}-${featured.map((f) => f.id).join('-')}`}
           initial={{ opacity: 0, y: 8 }}
@@ -1546,7 +1546,7 @@ function App() {
       setBootcamps(bootcampsRes.data || []);
       setFestivals(festivalsRes.data || []);
     } catch (err) {
-      console.error('Parties Fetch Error:', err?.message, err?.details);
+      logPartiesFetchError(err);
       console.error('[App.fetchParties] 데이터 로딩 오류:', err);
     } finally {
       setLoading(false);
