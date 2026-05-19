@@ -82,21 +82,29 @@ export default function RentalModal({ onClose }) {
       // 주소(address) 컬럼 기준 지역 분류 로직
       const classified = deduplicatedList.map(loc => {
         const text = `${loc.address || ''}`.toLowerCase();
+        const nameText = `${loc.name || ''}`.toLowerCase();
+        const combined = `${text} ${nameText}`;
         let region = '기타';
 
-        if (text.includes('서울')) region = '서울';
-        else if (text.includes('경기') || text.includes('인천')) region = '경기/인천';
-        else if (text.includes('부산') || text.includes('대구') || text.includes('경북') || text.includes('경남') || text.includes('울산') || text.includes('창원') || text.includes('포항') || text.includes('구미')) region = '경상도';
-        else if (text.includes('광주') || text.includes('전북') || text.includes('전남') || text.includes('여수') || text.includes('순천') || text.includes('목포')) region = '전라도';
-        else if (text.includes('대전') || text.includes('충북') || text.includes('충남') || text.includes('세종') || text.includes('청주') || text.includes('천안')) region = '충청도';
-        else if (text.includes('강원') || text.includes('제주') || text.includes('춘천') || text.includes('원주')) region = '강원/제주';
-        else {
-          // 이름 등에도 지역 단서가 있는지 보조 체크
-          const nameText = `${loc.name || ''}`.toLowerCase();
-          if (nameText.includes('서울')) region = '서울';
-          else if (nameText.includes('경기') || nameText.includes('인천')) region = '경기/인천';
-          else if (nameText.includes('부산') || nameText.includes('대구')) region = '경상도';
-          else region = '서울'; // 지정되지 않은 경우 기본값 서울 편입
+        if (combined.includes('서울')) region = '서울';
+        else if (combined.includes('경기') || combined.includes('인천')) region = '경기/인천';
+        else if (
+          combined.includes('경상') || combined.includes('부산') || combined.includes('대구') ||
+          combined.includes('울산') || combined.includes('창원') || combined.includes('포항') ||
+          combined.includes('구미') || combined.includes('김천') || combined.includes('김해')
+        ) region = '경상도';
+        else if (
+          combined.includes('전라') || combined.includes('광주') || combined.includes('전북') ||
+          combined.includes('전남') || combined.includes('여수') || combined.includes('순천') ||
+          combined.includes('목포')
+        ) region = '전라도';
+        else if (
+          combined.includes('충청') || combined.includes('대전') || combined.includes('충북') ||
+          combined.includes('충남') || combined.includes('세종') || combined.includes('청주') ||
+          combined.includes('천안')
+        ) region = '충청도';
+        else if (combined.includes('강원') || combined.includes('제주') || combined.includes('춘천') || combined.includes('원주')) {
+          region = '강원/제주';
         }
 
         const nameKey = `${loc.name || ''}`.replace(/\s+/g, '').toLowerCase();
