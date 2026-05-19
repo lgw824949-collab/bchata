@@ -6,6 +6,18 @@ import QuickPinchZoom, { make3dTransformValue } from 'react-quick-pinch-zoom';
 import LiveCount from '../components/LiveCount'
 import { KMA_REGION_COORDS, fetchWeatherForecast, parseKmaWeather, HOME_REGION_MAP } from '../utils/kmaApi'
 import { supabase } from '../lib/supabase'
+import gangturnPhoto from '../assets/gangturn_photo.png'
+import ggomaeyaPhoto from '../assets/ggomaeya_photo.jpg'
+import noriterPhoto from '../assets/noriter_photo.png'
+import latinPhoto from '../assets/latin_photo.png'
+import macondoPhoto from '../assets/macondo_photo.png'
+import bonitaPhoto from '../assets/bonita_photo.png'
+import buenaPhoto from '../assets/buena_photo.png'
+import hongturnPhoto from '../assets/hongturn_photo.png'
+import bibigoPhoto from '../assets/bibigo_photo.png'
+
+const RENTAL_REGIONS_ORDER = ['서울', '경기/인천', '경상도', '전라도', '충청도', '강원/제주']
+
 const buildPartyShareCard = (item) => {
   const posterUrl = item?.poster_url && String(item.poster_url).trim();
   if (!posterUrl) return null;
@@ -18,17 +30,90 @@ const buildPartyShareCard = (item) => {
   const lines = [line1, line2].filter(Boolean);
   return { src: posterUrl, title, desc: lines.join('\n'), lines, feedDesc: [item.date, loc, fee].filter(Boolean).join(' · '), partyId: item.id };
 };
-import gangturnPhoto from '../assets/gangturn_photo.png'
-import ggomaeyaPhoto from '../assets/ggomaeya_photo.jpg'
-import noriterPhoto from '../assets/noriter_photo.png'
-import latinPhoto from '../assets/latin_photo.png'
-import macondoPhoto from '../assets/macondo_photo.png'
-import bonitaPhoto from '../assets/bonita_photo.png'
-import buenaPhoto from '../assets/buena_photo.png'
-import hongturnPhoto from '../assets/hongturn_photo.png'
-import bibigoPhoto from '../assets/bibigo_photo.png'
 
-const RENTAL_REGIONS_ORDER = ['서울', '경기/인천', '경상도', '전라도', '충청도', '강원/제주']
+/** RentalModal.jsx fetchLocations 와 동일한 Supabase locations 조회·분류 */
+const fetchHomeRentalLocations = async () => {
+  if (!supabase) return [];
+
+  const { data, error } = await supabase
+    .from('locations')
+    .select('*')
+    .order('name', { ascending: true });
+
+  if (error) throw error;
+
+  const rawList = data || [];
+
+  const uniqueMap = new Map();
+  rawList.forEach((loc) => {
+    let key = (loc.name || '').replace(/\s+/g, '').toLowerCase();
+    if (key.includes('강남턴') || key.includes('강턴')) key = '강턴';
+    if (!key) return;
+
+    if (!uniqueMap.has(key)) {
+      uniqueMap.set(key, loc);
+    } else {
+      const existing = uniqueMap.get(key);
+      const score = (loc.image_url ? 2 : 0) + (loc.kakao_url ? 1 : 0) + (loc.instagram_url ? 1 : 0);
+      const exScore = (existing.image_url ? 2 : 0) + (existing.kakao_url ? 1 : 0) + (existing.instagram_url ? 1 : 0);
+      if (score > exScore || (score === exScore && loc.id > existing.id)) {
+        uniqueMap.set(key, loc);
+      }
+    }
+  });
+  const deduplicatedList = Array.from(uniqueMap.values());
+
+  const classified = deduplicatedList.map((loc) => {
+    const text = `${loc.address || ''}`.toLowerCase();
+    let region = '기타';
+
+    if (text.includes('서울')) region = '서울';
+    else if (text.includes('경기') || text.includes('인천')) region = '경기/인천';
+    else if (text.includes('부산') || text.includes('대구') || text.includes('경북') || text.includes('경남') || text.includes('울산') || text.includes('창원') || text.includes('포항') || text.includes('구미')) region = '경상도';
+    else if (text.includes('광주') || text.includes('전북') || text.includes('전남') || text.includes('여수') || text.includes('순천') || text.includes('목포')) region = '전라도';
+    else if (text.includes('대전') || text.includes('충북') || text.includes('충남') || text.includes('세종') || text.includes('청주') || text.includes('천안')) region = '충청도';
+    else if (text.includes('강원') || text.includes('제주') || text.includes('춘천') || text.includes('원주')) region = '강원/제주';
+    else {
+      const nameText = `${loc.name || ''}`.toLowerCase();
+      if (nameText.includes('서울')) region = '서울';
+      else if (nameText.includes('경기') || nameText.includes('인천')) region = '경기/인천';
+      else if (nameText.includes('부산') || nameText.includes('대구')) region = '경상도';
+      else region = '서울';
+    }
+
+    const nameKey = `${loc.name || ''}`.replace(/\s+/g, '').toLowerCase();
+    const isGangturn = nameKey.includes('강남턴') || nameKey.includes('강턴');
+    const isGgomaeya = nameKey.includes('꼼애야');
+    const isNoriter = nameKey.includes('놀이터');
+    const isLatin = nameKey.includes('라틴') && region !== '경기/인천' && !nameKey.includes('라틴크루');
+    const isMacondo = nameKey.includes('마콘도');
+    const isBonita = nameKey.includes('보니따');
+    const isBuena = nameKey.includes('부에나');
+    const isHongturn = nameKey.includes('홍턴');
+    const isBibigo = nameKey.includes('비비고');
+
+    let finalImg = loc.image_url;
+    if (isGangturn) finalImg = gangturnPhoto;
+    else if (isGgomaeya) finalImg = ggomaeyaPhoto;
+    else if (isNoriter) finalImg = noriterPhoto;
+    else if (isLatin) finalImg = latinPhoto;
+    else if (isMacondo) finalImg = macondoPhoto;
+    else if (isBonita) finalImg = bonitaPhoto;
+    else if (isBuena) finalImg = buenaPhoto;
+    else if (isHongturn) finalImg = hongturnPhoto;
+    else if (isBibigo) finalImg = bibigoPhoto;
+
+    return {
+      ...loc,
+      region,
+      image_url: finalImg,
+      instagram_url: isGangturn ? 'https://www.instagram.com/turn_latinclub_no.1?igsh=MW94ajh3OHZ3NDZ6bg%3D%3D' : loc.instagram_url,
+    };
+  });
+
+  classified.sort((a, b) => (a.name || '').localeCompare(b.name || ''));
+  return classified;
+};
 // import { getAfterPartySpotsForParty, openAfterPartyMap } from '../data/afterPartySpots'
 
 const DAYS_KOR = ['일', '월', '화', '수', '목', '금', '토'];
@@ -869,77 +954,22 @@ const HomePage = ({
   }, []);
 
   useEffect(() => {
-    const fetchRentalLocations = async () => {
+    let cancelled = false;
+    const loadRentalLocations = async () => {
       setRentalLocationsLoading(true);
       try {
-        const { data, error } = await supabase.from('locations').select('*').order('name', { ascending: true });
-        if (error) throw error;
-        const uniqueMap = new Map();
-        (data || []).forEach((loc) => {
-          let key = (loc.name || '').replace(/\s+/g, '').toLowerCase();
-          if (key.includes('강남턴') || key.includes('강턴')) key = '강턴';
-          if (!key) return;
-          if (!uniqueMap.has(key)) {
-            uniqueMap.set(key, loc);
-          } else {
-            const existing = uniqueMap.get(key);
-            const score = (loc.image_url ? 2 : 0) + (loc.kakao_url ? 1 : 0) + (loc.instagram_url ? 1 : 0);
-            const exScore = (existing.image_url ? 2 : 0) + (existing.kakao_url ? 1 : 0) + (existing.instagram_url ? 1 : 0);
-            if (score > exScore || (score === exScore && loc.id > existing.id)) uniqueMap.set(key, loc);
-          }
-        });
-        const classified = Array.from(uniqueMap.values()).map((loc) => {
-          const text = `${loc.address || ''}`.toLowerCase();
-          let region = '기타';
-          if (text.includes('서울')) region = '서울';
-          else if (text.includes('경기') || text.includes('인천')) region = '경기/인천';
-          else if (text.includes('부산') || text.includes('대구') || text.includes('경북') || text.includes('경남') || text.includes('울산') || text.includes('창원') || text.includes('포항') || text.includes('구미')) region = '경상도';
-          else if (text.includes('광주') || text.includes('전북') || text.includes('전남') || text.includes('여수') || text.includes('순천') || text.includes('목포')) region = '전라도';
-          else if (text.includes('대전') || text.includes('충북') || text.includes('충남') || text.includes('세종') || text.includes('청주') || text.includes('천안')) region = '충청도';
-          else if (text.includes('강원') || text.includes('제주') || text.includes('춘천') || text.includes('원주')) region = '강원/제주';
-          else {
-            const nameText = `${loc.name || ''}`.toLowerCase();
-            if (nameText.includes('서울')) region = '서울';
-            else if (nameText.includes('경기') || nameText.includes('인천')) region = '경기/인천';
-            else if (nameText.includes('부산') || nameText.includes('대구')) region = '경상도';
-            else region = '서울';
-          }
-          const nameKey = `${loc.name || ''}`.replace(/\s+/g, '').toLowerCase();
-          const isGangturn = nameKey.includes('강남턴') || nameKey.includes('강턴');
-          const isGgomaeya = nameKey.includes('꼼애야');
-          const isNoriter = nameKey.includes('놀이터');
-          const isLatin = nameKey.includes('라틴') && region !== '경기/인천' && !nameKey.includes('라틴크루');
-          const isMacondo = nameKey.includes('마콘도');
-          const isBonita = nameKey.includes('보니따');
-          const isBuena = nameKey.includes('부에나');
-          const isHongturn = nameKey.includes('홍턴');
-          const isBibigo = nameKey.includes('비비고');
-          let finalImg = loc.image_url;
-          if (isGangturn) finalImg = gangturnPhoto;
-          else if (isGgomaeya) finalImg = ggomaeyaPhoto;
-          else if (isNoriter) finalImg = noriterPhoto;
-          else if (isLatin) finalImg = latinPhoto;
-          else if (isMacondo) finalImg = macondoPhoto;
-          else if (isBonita) finalImg = bonitaPhoto;
-          else if (isBuena) finalImg = buenaPhoto;
-          else if (isHongturn) finalImg = hongturnPhoto;
-          else if (isBibigo) finalImg = bibigoPhoto;
-          return {
-            ...loc,
-            region,
-            image_url: finalImg,
-            instagram_url: isGangturn ? 'https://www.instagram.com/turn_latinclub_no.1?igsh=MW94ajh3OHZ3NDZ6bg%3D%3D' : loc.instagram_url,
-          };
-        });
-        classified.sort((a, b) => (a.name || '').localeCompare(b.name || ''));
-        setRentalLocations(classified);
+        const classified = await fetchHomeRentalLocations();
+        if (!cancelled) setRentalLocations(classified);
       } catch (err) {
         console.error('BAR 목록 로드 실패:', err);
+        if (!cancelled) setRentalLocations([]);
       } finally {
-        setRentalLocationsLoading(false);
+        if (!cancelled) setRentalLocationsLoading(false);
       }
     };
-    fetchRentalLocations();
+
+    loadRentalLocations();
+    return () => { cancelled = true; };
   }, []);
 
   const handleRentalKakaoClick = (url) => {
@@ -972,15 +1002,22 @@ const HomePage = ({
 
   const renderRentalBarCircle = (bar) => (
     <motion.div
-      key={bar.id}
       whileTap={{ scale: 0.96 }}
       onClick={() => setRentalSelectedBar(bar)}
-      style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', cursor: 'pointer' }}
+      style={{
+        flex: '0 0 auto',
+        width: '88px',
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+        cursor: 'pointer',
+      }}
     >
       <motion.div style={{
         width: '76px', height: '76px', borderRadius: '50%', background: '#ffffff',
         boxShadow: '0 4px 12px rgba(0,0,0,0.06)', border: '2px solid #F1F5F9',
         display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden', marginBottom: '8px',
+        position: 'relative',
       }}>
         {bar.image_url ? (
           <img src={bar.image_url} alt={bar.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
@@ -994,9 +1031,11 @@ const HomePage = ({
     </motion.div>
   );
 
-  const rentalFilteredBars = rentalRegionTab === '전체'
-    ? rentalLocations
-    : rentalLocations.filter((bar) => bar.region === rentalRegionTab);
+  const rentalFilteredBars = useMemo(() => (
+    rentalRegionTab === '전체'
+      ? rentalLocations
+      : rentalLocations.filter((bar) => bar.region === rentalRegionTab)
+  ), [rentalLocations, rentalRegionTab]);
 
   // [사용자 요청] 지역 포스터 리스트 자동 스크롤 비활성화 (좌측 고정 및 수동 스크롤만 허용)
   useEffect(() => {
@@ -1607,7 +1646,9 @@ const HomePage = ({
                 animate={{ opacity: 1 }}
                 style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '20px 8px' }}
               >
-                {rentalFilteredBars.map(renderRentalBarCircle)}
+                {rentalFilteredBars.map((bar) => (
+                  <React.Fragment key={bar.id || bar.name}>{renderRentalBarCircle(bar)}</React.Fragment>
+                ))}
               </motion.div>
             )}
           </div>
