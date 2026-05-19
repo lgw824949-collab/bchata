@@ -2,6 +2,7 @@
 import { ChevronLeft, Calendar, MapPin, Zap, X, ChevronDown, Plus, Image as ImageIcon } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { supabase } from '../lib/supabase';
+import { toDateOrNull } from '../lib/dbSanitize';
 
 const Festival = ({ onBack }) => {
   const [festivals, setFestivals] = useState([]);
@@ -101,14 +102,19 @@ const Festival = ({ onBack }) => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    if (!formData.start_date?.trim() || !formData.end_date?.trim()) {
+      alert('시작일과 종료일을 입력해주세요.');
+      setCurrentStep(2);
+      return;
+    }
     setSubmitting(true);
     try {
       const payload = {
         title:       formData.title,
         organizer:   formData.organizer,
         genre:       formData.genre,
-        start_date:  formData.start_date,
-        end_date:    formData.end_date,
+        start_date:  toDateOrNull(formData.start_date),
+        end_date:    toDateOrNull(formData.end_date),
         region:      formData.region,
         location:    formData.location,
         price:       formData.price,

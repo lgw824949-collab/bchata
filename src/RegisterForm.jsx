@@ -312,7 +312,7 @@ const RegisterForm = ({ onBack, onSuccess, isEdit = false, initialData = null })
         location_id: finalLocationId,
         address: formData.address,
         fee: formData.fee,
-        date: formData.date,
+        date: formData.date?.trim() || null,
         time: formData.time,
         day_of_week: formData.day_of_week,
         poster_url: finalPosterUrl || inputUrl || initialData?.poster_url,

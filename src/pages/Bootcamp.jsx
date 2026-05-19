@@ -8,6 +8,7 @@ import {
 import { motion, AnimatePresence } from 'framer-motion';
 import { supabase } from '../lib/supabase';
 import { pushOverlay } from '../lib/appHistory';
+import { toDateOrNull } from '../lib/dbSanitize';
 import { useTranslation } from 'react-i18next';
 
 const GENRES = ['전체', '바차타', '살사', '키좀바', '쥬크'];
@@ -178,12 +179,17 @@ const Bootcamp = ({ onBack, initialView = 'list' }) => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    if (!formData.start_date?.trim() || !formData.end_date?.trim()) {
+      alert('시작일과 종료일을 입력해주세요.');
+      setCurrentStep(2);
+      return;
+    }
     setSubmitting(true);
     try {
       const payload = {
         title: formData.title, instructor: formData.instructor,
         type: formData.type, region: formData.region, country: formData.country,
-        start_date: formData.start_date, end_date: formData.end_date,
+        start_date: toDateOrNull(formData.start_date), end_date: toDateOrNull(formData.end_date),
         venue: formData.venue, fee: formData.fee, description: formData.description,
         poster_url: formData.poster_url || null, genre: formData.genre,
         level: formData.level,         instagram: formData.instagram, youtube: formData.youtube,
