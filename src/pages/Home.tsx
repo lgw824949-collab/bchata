@@ -1098,21 +1098,6 @@ const HomePage = ({
 
   const todayStr = useMemo(() => getKSTTodayStr(), []);
 
-  const todayDisplayLabel = useMemo(() => {
-    const [y, m, d] = todayStr.split('-').map((n) => parseInt(n, 10));
-    if (isEn) {
-      return new Intl.DateTimeFormat('en-US', {
-        month: 'short',
-        day: 'numeric',
-        weekday: 'short',
-        timeZone: 'Asia/Seoul',
-      }).format(new Date(`${todayStr}T12:00:00+09:00`));
-    }
-    const weekdays = ['일', '월', '화', '수', '목', '금', '토'];
-    const wd = weekdays[new Date(y, m - 1, d).getDay()];
-    return `${y}년 ${m}월 ${d}일 (${wd})`;
-  }, [todayStr, isEn]);
-
   useEffect(() => {
     const todayParties = (parties || []).filter((p) => p.date === todayStr && p.status === 'approved');
 
@@ -1378,9 +1363,9 @@ const HomePage = ({
         )}
       </motion.div>
       <span style={{
-        fontSize: '10px',
+        fontSize: '11px',
         fontWeight: 800,
-        color: '#334155',
+        color: '#1E293B',
         textAlign: 'center',
         width: '100%',
         lineHeight: 1.25,
@@ -1458,6 +1443,7 @@ const HomePage = ({
   };
   const homeSectionSpace = 36;
   const homeBlockSpace = 26;
+  const homeSubtitleStyle = { margin: '6px 0 0', fontSize: 13, fontWeight: 600, color: '#475569', lineHeight: 1.5 };
   const homeSectionDividerStyle = { height: 1, background: '#F0F0F0', margin: '0 20px', border: 'none' };
   const quickMenuRegisterHighlightStyle = {
     background: '#FFF8FA',
@@ -1487,7 +1473,7 @@ const HomePage = ({
     scrollSnapAlign: 'start',
   };
   const quickMenuIconWrapStyle = { width: '44px', height: '44px', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 };
-  const quickMenuLabelStyle = { color: '#333333', fontWeight: 600, fontSize: '12px', marginTop: '8px', textAlign: 'center', lineHeight: 1.35, whiteSpace: 'normal', overflow: 'hidden', textOverflow: 'ellipsis', width: '100%' };
+  const quickMenuLabelStyle = { color: '#1A1A1A', fontWeight: 700, fontSize: '13px', marginTop: '8px', textAlign: 'center', lineHeight: 1.4, whiteSpace: 'normal', overflow: 'hidden', textOverflow: 'ellipsis', width: '100%' };
 
   /** 메인 노출·등록 우선 — 하단탭(홈·부트캠프·파트너·강사·페스티벌) 및 포스터3칸과 중복 제외 */
   const quickMenuItems = useMemo(() => [
@@ -1507,13 +1493,13 @@ const HomePage = ({
   const renderHomeSectionHeader = (title, subtitle, badge = null) => (
     <header style={{ marginBottom: 14 }}>
       <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', gap: 8, flexWrap: 'wrap' }}>
-        <h2 style={{ margin: 0, fontSize: 15, fontWeight: 900, color: '#1A1A1A', letterSpacing: '-0.3px' }}>{title}</h2>
+        <h2 style={{ margin: 0, fontSize: 16, fontWeight: 900, color: '#1A1A1A', letterSpacing: '-0.3px' }}>{title}</h2>
         {badge ? (
           <span style={{ fontSize: 13, fontWeight: 700, color: '#D4436E' }}>{badge}</span>
         ) : null}
       </div>
       {subtitle ? (
-        <p style={{ margin: '6px 0 0', fontSize: 11, fontWeight: 500, color: '#94A3B8', lineHeight: 1.45 }}>{subtitle}</p>
+        <p style={homeSubtitleStyle}>{subtitle}</p>
       ) : null}
     </header>
   );
@@ -1559,17 +1545,9 @@ const HomePage = ({
         {activeTab === null && (
         <>
         <motion.div style={{ marginTop: 22, marginBottom: 12 }}>
-          <motion.div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', gap: 8, flexWrap: 'wrap' }}>
-            <h2 style={{ margin: 0, fontSize: 15, fontWeight: 900, color: '#1A1A1A', letterSpacing: '-0.3px' }}>
-              {isEn ? "Today's parties" : '오늘의 파티'}
-            </h2>
-            <span style={{ fontSize: 13, fontWeight: 700, color: '#D4436E' }}>{todayDisplayLabel}</span>
-          </motion.div>
-          <p style={{ margin: '6px 0 0', fontSize: 11, fontWeight: 500, color: '#94A3B8', lineHeight: 1.45 }}>
-            {isEn
-              ? 'Live count · approved posts for today (KST)'
-              : '오늘 날짜 게시 · 승인된 파티 기준 (실시간)'}
-          </p>
+          <h2 style={{ margin: 0, fontSize: 16, fontWeight: 900, color: '#1A1A1A', letterSpacing: '-0.3px' }}>
+            {isEn ? "Today's parties" : '오늘의 파티'}
+          </h2>
         </motion.div>
         <motion.div style={{ display: 'flex', gap: 12 }}>
           {[
@@ -1597,7 +1575,7 @@ const HomePage = ({
                   minHeight: 76,
                 }}
               >
-                <span style={{ fontSize: '12px', fontWeight: 500, color: '#999999', marginBottom: 6, width: '100%', lineHeight: 1.4 }}>{r.label}</span>
+                <span style={{ fontSize: '13px', fontWeight: 600, color: '#64748B', marginBottom: 6, width: '100%', lineHeight: 1.4 }}>{r.label}</span>
                 <div style={{ fontSize: '20px', fontWeight: 900, color: '#1A1A1A', lineHeight: 1.35, width: '100%' }}>
                   {loading ? '—' : r.count}
                   <span style={{ fontSize: '12px', fontWeight: 500, color: '#999999', marginLeft: '2px' }}>
@@ -1608,10 +1586,10 @@ const HomePage = ({
                   <span style={{
                     display: 'block',
                     marginTop: 6,
-                    fontSize: 10,
+                    fontSize: 12,
                     fontWeight: 600,
-                    color: '#94A3B8',
-                    lineHeight: 1.3,
+                    color: '#64748B',
+                    lineHeight: 1.35,
                     width: '100%',
                     overflow: 'hidden',
                     textOverflow: 'ellipsis',
@@ -1815,7 +1793,7 @@ const HomePage = ({
           ].map((item, idx) => (
             <motion.div key={`party-${idx}`} whileTap={{ scale: 0.92 }} onClick={(e) => { triggerParticle(e, item.particles); item.action(); }} style={{ ...quickMenuFloatStyle, position: 'relative', width: 'calc(22% - 6px)', minWidth: 'calc(22% - 6px)', flexShrink: 0, scrollSnapAlign: 'start' }}>
               <motion.div style={{ ...quickMenuIconWrapStyle, width: '44px', height: '44px' }}>{item.icon}</motion.div>
-              <span style={{ ...quickMenuLabelStyle, fontSize: '11px' }}>{item.label}</span>
+              <span style={quickMenuLabelStyle}>{item.label}</span>
             </motion.div>
           ))}
         </motion.div>
@@ -1874,7 +1852,6 @@ const HomePage = ({
                 )}
                 <span style={{
                   ...quickMenuLabelStyle,
-                  fontSize: '11px',
                   ...(item.registerHighlight ? { color: '#D4436E', fontWeight: 800 } : {}),
                 }}>{item.label}</span>
               </motion.div>
@@ -1886,10 +1863,10 @@ const HomePage = ({
 
         {/* BAR 쉘: 지역 pill + 원형 그리드 */}
         <motion.div ref={barSectionRef} style={{ display: 'flex', flexDirection: 'column', background: '#ffffff' }}>
-          <h2 style={{ margin: 0, fontSize: 15, fontWeight: 900, color: '#1A1A1A', letterSpacing: '-0.3px' }}>
+          <h2 style={{ margin: 0, fontSize: 16, fontWeight: 900, color: '#1A1A1A', letterSpacing: '-0.3px' }}>
             Social BAR
           </h2>
-          <p style={{ margin: '6px 0 14px', fontSize: 11, fontWeight: 500, color: '#94A3B8', lineHeight: 1.45 }}>
+          <p style={{ ...homeSubtitleStyle, margin: '6px 0 14px' }}>
             만원의 행복공간
           </p>
           <motion.div style={{
@@ -1931,11 +1908,11 @@ const HomePage = ({
                     flexShrink: 0,
                     padding: '10px 18px',
                     background: isSelected ? '#FFF1F2' : '#F8FAFC',
-                    color: isSelected ? '#E53935' : '#64748B',
+                    color: isSelected ? '#E53935' : '#334155',
                     border: isSelected ? '1px solid #FECDD3' : '1px solid #E2E8F0',
                     borderRadius: '100px',
                     fontWeight: isSelected ? 950 : 700,
-                    fontSize: '13px',
+                    fontSize: '14px',
                     cursor: 'pointer',
                     transition: 'all 0.2s ease',
                     minHeight: 40,
@@ -1947,7 +1924,7 @@ const HomePage = ({
                       marginLeft: 6,
                       fontSize: '12px',
                       fontWeight: isSelected ? 900 : 700,
-                      color: isSelected ? '#E53935' : '#94A3B8',
+                      color: isSelected ? '#E53935' : '#64748B',
                     }}
                     aria-label={`${barRegionCounts[tab] ?? 0}곳`}
                   >
@@ -2038,11 +2015,11 @@ const HomePage = ({
                           </span>
                           <span
                             style={{
-                              fontSize: '10px',
+                              fontSize: '11px',
                               fontWeight: 800,
-                              color: barListExpanded ? '#E53935' : '#64748B',
+                              color: barListExpanded ? '#E53935' : '#334155',
                               textAlign: 'center',
-                              lineHeight: 1.25,
+                              lineHeight: 1.3,
                               whiteSpace: 'nowrap',
                             }}
                           >
@@ -2113,7 +2090,7 @@ const HomePage = ({
               ) : (
                 <motion.div style={{ ...quickMenuIconWrapStyle, width: '44px', height: '44px' }}>{item.icon}</motion.div>
               )}
-              <span style={{ ...quickMenuLabelStyle, fontSize: '11px' }}>{item.label}</span>
+              <span style={quickMenuLabelStyle}>{item.label}</span>
             </motion.div>
           ))}
         </div>

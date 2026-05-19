@@ -401,7 +401,7 @@ const ChatBot = () => {
           }}>
             <div>
               <div style={{ fontWeight: '850', fontSize: '19px', color: '#FF8A80', letterSpacing: '-0.5px' }}>밤빠 컨시어지</div>
-              <div style={{ fontSize: '12px', color: '#999', marginTop: '3px', fontWeight: '600' }}>
+              <div style={{ fontSize: '13px', color: '#64748B', marginTop: '3px', fontWeight: '600' }}>
                 {isDataLoaded ? "실시간 AI 가이드 가동 중" : "정보를 불러오는 중..."}
               </div>
             </div>
@@ -465,7 +465,6 @@ const ChatBot = () => {
                 <div key={idx} style={{
                   alignSelf: msg.role === 'model' ? 'flex-start' : 'flex-end',
                   backgroundColor: msg.role === 'model' ? '#FFFFFF' : '#FF8A80',
-                  color: msg.role === 'model' ? '#333' : '#FFFFFF',
                   padding: '12px 18px',
                   borderRadius: '20px',
                   borderTopLeftRadius: msg.role === 'model' ? '4px' : '20px',
@@ -475,9 +474,10 @@ const ChatBot = () => {
                   wordBreak: 'break-word',
                   whiteSpace: 'pre-wrap',
                   boxShadow: msg.role === 'model' ? '0 2px 5px rgba(0,0,0,0.03)' : '0 4px 10px rgba(255, 138, 128, 0.25)',
-                  fontSize: '15px',
-                  lineHeight: '1.6',
-                  fontWeight: '500'
+                  fontSize: '16px',
+                  lineHeight: '1.65',
+                  fontWeight: '600',
+                  color: msg.role === 'model' ? '#1E293B' : '#FFFFFF',
                 }}>
                   {renderContent(msg.content)}
                 </div>

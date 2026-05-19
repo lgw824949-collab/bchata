@@ -1,7 +1,7 @@
 import React from 'react';
 
-const MAIN_SIZE = 16;
-const SUB_SIZE = 14;
+const MAIN_SIZE = 17;
+const SUB_SIZE = 15;
 
 export default function HomeHeroTagline() {
   return (
@@ -16,7 +16,7 @@ export default function HomeHeroTagline() {
       }}
     >
       <span style={{ fontSize: MAIN_SIZE, fontWeight: 800, color: '#D4436E' }}>만원의 행복공간</span>
-      <span style={{ fontSize: SUB_SIZE, fontWeight: 600, color: '#64748B', letterSpacing: '-0.3px' }}>
+      <span style={{ fontSize: SUB_SIZE, fontWeight: 700, color: '#334155', letterSpacing: '-0.3px' }}>
         켜고 찾고 가면 끝
       </span>
     </p>
