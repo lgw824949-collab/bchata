@@ -8,7 +8,8 @@ import {
 import { motion, AnimatePresence } from 'framer-motion';
 import { supabase } from '../lib/supabase';
 import { pushOverlay } from '../lib/appHistory';
-import { toDateOrNull } from '../lib/dbSanitize';
+import { resolveEventDates, inferOneDayEvent } from '../lib/dbSanitize';
+import EventDateFields from '../components/EventDateFields';
 import { useTranslation } from 'react-i18next';
 
 const GENRES = ['전체', '바차타', '살사', '키좀바', '쥬크'];
@@ -79,6 +80,7 @@ const Bootcamp = ({ onBack, initialView = 'list' }) => {
   });
   const [uploading, setUploading] = useState(false);
   const [submitting, setSubmitting] = useState(false);
+  const [isOneDayEvent, setIsOneDayEvent] = useState(true);
 
   useEffect(() => {
     fetchBootcamps();
@@ -171,6 +173,7 @@ const Bootcamp = ({ onBack, initialView = 'list' }) => {
       youtube:     camp.youtube || '',
       bank_info:   camp.bank_info || '',
     });
+    setIsOneDayEvent(inferOneDayEvent(camp.start_date, camp.end_date));
     setEditingId(camp.id);
     setCurrentStep(1);
     setSelectedBootcamp(null);
@@ -179,8 +182,13 @@ const Bootcamp = ({ onBack, initialView = 'list' }) => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!formData.start_date?.trim() || !formData.end_date?.trim()) {
-      alert('시작일과 종료일을 입력해주세요.');
+    const dates = resolveEventDates({
+      isOneDay: isOneDayEvent,
+      start_date: formData.start_date,
+      end_date: formData.end_date,
+    });
+    if (!dates.ok) {
+      alert(dates.error);
       setCurrentStep(2);
       return;
     }
@@ -189,7 +197,7 @@ const Bootcamp = ({ onBack, initialView = 'list' }) => {
       const payload = {
         title: formData.title, instructor: formData.instructor,
         type: formData.type, region: formData.region, country: formData.country,
-        start_date: toDateOrNull(formData.start_date), end_date: toDateOrNull(formData.end_date),
+        start_date: dates.start_date, end_date: dates.end_date,
         venue: formData.venue, fee: formData.fee, description: formData.description,
         poster_url: formData.poster_url || null, genre: formData.genre,
         level: formData.level,         instagram: formData.instagram, youtube: formData.youtube,
@@ -212,6 +220,7 @@ const Bootcamp = ({ onBack, initialView = 'list' }) => {
         start_date: '', end_date: '', venue: '', fee: '', description: '',
         poster_url: '', genre: '바차타', level: '초급', instagram: '', youtube: '', bank_info: ''
       });
+      setIsOneDayEvent(true);
       fetchBootcamps();
     } catch (err) {
       alert('실패: ' + err.message);
@@ -604,16 +613,15 @@ const Bootcamp = ({ onBack, initialView = 'list' }) => {
               {/* STEP 2 — 일정/장소 */}
               {currentStep === 2 && (
                 <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
-                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
-                    <div>
-                      <label style={{ display: 'block', fontSize: 11, fontWeight: 900, color: '#C9A84C', marginBottom: 10, letterSpacing: '1.5px' }}>6. 시작일</label>
-                      <input type="date" required value={formData.start_date} onChange={e => setFormData(p => ({ ...p, start_date: e.target.value }))} style={{ width: '100%', padding: '18px', borderRadius: 16, border: '1px solid rgba(255,255,255,0.1)', background: '#1A1A1A', fontSize: 15, color: '#fff', outline: 'none', boxSizing: 'border-box' }} />
-                    </div>
-                    <div>
-                      <label style={{ display: 'block', fontSize: 11, fontWeight: 900, color: '#C9A84C', marginBottom: 10, letterSpacing: '1.5px' }}>7. 종료일</label>
-                      <input type="date" required value={formData.end_date} onChange={e => setFormData(p => ({ ...p, end_date: e.target.value }))} style={{ width: '100%', padding: '18px', borderRadius: 16, border: '1px solid rgba(255,255,255,0.1)', background: '#1A1A1A', fontSize: 15, color: '#fff', outline: 'none', boxSizing: 'border-box' }} />
-                    </div>
-                  </div>
+                  <EventDateFields
+                    isOneDay={isOneDayEvent}
+                    onOneDayChange={setIsOneDayEvent}
+                    start_date={formData.start_date}
+                    end_date={formData.end_date}
+                    onDatesChange={({ start_date, end_date }) =>
+                      setFormData(p => ({ ...p, start_date, end_date }))
+                    }
+                  />
                   <div>
                     <label style={{ display: 'block', fontSize: 11, fontWeight: 900, color: '#C9A84C', marginBottom: 10, letterSpacing: '1.5px' }}>8. 지역</label>
                     <select value={formData.region} onChange={e => setFormData(p => ({ ...p, region: e.target.value }))} style={{ width: '100%', padding: '18px', borderRadius: 16, border: '1px solid rgba(255,255,255,0.1)', background: '#1A1A1A', fontSize: 16, color: '#fff', outline: 'none' }}>

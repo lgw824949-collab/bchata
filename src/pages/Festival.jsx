@@ -2,7 +2,8 @@
 import { ChevronLeft, Calendar, MapPin, Zap, X, ChevronDown, Plus, Image as ImageIcon } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { supabase } from '../lib/supabase';
-import { toDateOrNull } from '../lib/dbSanitize';
+import { resolveEventDates, inferOneDayEvent } from '../lib/dbSanitize';
+import EventDateFields from '../components/EventDateFields';
 
 const Festival = ({ onBack }) => {
   const [festivals, setFestivals] = useState([]);
@@ -17,6 +18,7 @@ const Festival = ({ onBack }) => {
   const [currentStep, setCurrentStep] = useState(1);
   const [uploading, setUploading] = useState(false);
   const [submitting, setSubmitting] = useState(false);
+  const [isOneDayEvent, setIsOneDayEvent] = useState(true);
   const [formData, setFormData] = useState({
     title: '', start_date: '', end_date: '', region: '서울',
     location: '', price: '', description: '', poster_url: '',
@@ -94,6 +96,7 @@ const Festival = ({ onBack }) => {
       bank_info:   fest.bank_info || '',
       event_type:  fest.event_type || 'festival',
     });
+    setIsOneDayEvent(inferOneDayEvent(fest.start_date, fest.end_date));
     setEditingId(fest.id);
     setCurrentStep(1);
     setSelectedFestival(null);
@@ -102,8 +105,13 @@ const Festival = ({ onBack }) => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!formData.start_date?.trim() || !formData.end_date?.trim()) {
-      alert('시작일과 종료일을 입력해주세요.');
+    const dates = resolveEventDates({
+      isOneDay: isOneDayEvent,
+      start_date: formData.start_date,
+      end_date: formData.end_date,
+    });
+    if (!dates.ok) {
+      alert(dates.error);
       setCurrentStep(2);
       return;
     }
@@ -113,8 +121,8 @@ const Festival = ({ onBack }) => {
         title:       formData.title,
         organizer:   formData.organizer,
         genre:       formData.genre,
-        start_date:  toDateOrNull(formData.start_date),
-        end_date:    toDateOrNull(formData.end_date),
+        start_date:  dates.start_date,
+        end_date:    dates.end_date,
         region:      formData.region,
         location:    formData.location,
         price:       formData.price,
@@ -135,6 +143,7 @@ const Festival = ({ onBack }) => {
       setIsRegistering(false);
       setEditingId(null);
       setCurrentStep(1);
+      setIsOneDayEvent(true);
       fetchFestivals();
     } catch (err) {
       alert('실패: ' + err.message);
@@ -470,10 +479,18 @@ const Festival = ({ onBack }) => {
 
               {currentStep === 2 && (
                 <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} style={{ display: 'flex', flexDirection: 'column', gap: '28px' }}>
-                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '15px' }}>
-                    <div><label style={{ display: 'block', fontSize: '12px', fontWeight: 900, color: '#C9A84C', marginBottom: '12px', letterSpacing: '1.5px' }}>4. 시작 날짜</label><input type="date" required value={formData.start_date} onChange={e => setFormData(prev => ({ ...prev, start_date: e.target.value }))} style={{ width: '100%', padding: '20px', borderRadius: '18px', border: '1px solid rgba(255,255,255,0.1)', background: '#1A1A1A', fontSize: '16px', color: '#f8fafc', outline: 'none' }} /></div>
-                    <div><label style={{ display: 'block', fontSize: '12px', fontWeight: 900, color: '#C9A84C', marginBottom: '12px', letterSpacing: '1.5px' }}>5. 종료 날짜</label><input type="date" required value={formData.end_date} onChange={e => setFormData(prev => ({ ...prev, end_date: e.target.value }))} style={{ width: '100%', padding: '20px', borderRadius: '18px', border: '1px solid rgba(255,255,255,0.1)', background: '#1A1A1A', fontSize: '16px', color: '#f8fafc', outline: 'none' }} /></div>
-                  </div>
+                  <EventDateFields
+                    compact
+                    isOneDay={isOneDayEvent}
+                    onOneDayChange={setIsOneDayEvent}
+                    start_date={formData.start_date}
+                    end_date={formData.end_date}
+                    startLabel="4. 시작 날짜"
+                    endLabel="5. 종료 날짜"
+                    onDatesChange={({ start_date, end_date }) =>
+                      setFormData(prev => ({ ...prev, start_date, end_date }))
+                    }
+                  />
                   <div>
                     <label style={{ display: 'block', fontSize: '12px', fontWeight: 900, color: '#C9A84C', marginBottom: '12px', letterSpacing: '1.5px' }}>6. 상세 장소/주소</label>
                     <div style={{ display: 'flex', gap: '10px' }}>
