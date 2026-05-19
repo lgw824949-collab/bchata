@@ -934,7 +934,14 @@ nav.bottom-nav,
   box-sizing: border-box !important;
   border-radius: 34px !important;
   z-index: 2100000 !important;
-  transition: transform 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+  will-change: transform, opacity;
+  left: 50% !important;
+  transform: translateX(-50%);
+}
+
+nav.bottom-nav.bottom-nav--hidden,
+.bottom-nav.bottom-nav--hidden {
+  pointer-events: none !important;
 }
 
 /* 부트캠프·페스티벌·메인 게이트: 다크 캡슐 네비 */

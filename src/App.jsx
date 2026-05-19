@@ -1126,6 +1126,7 @@ function App() {
   const weatherTimeoutRef = useRef(null);
   const [navVisible, setNavVisible] = useState(true)
   const lastScrollY = useRef(0)
+  const navScrollRaf = useRef(0)
 
   // 다크 모드 완전 삭제 및 항상 라이트 테마 고정
   useEffect(() => {
@@ -1134,19 +1135,43 @@ function App() {
   }, []);
 
   useEffect(() => {
-    const handleScroll = () => {
-      const currentY = window.scrollY
-      if (currentY < 50) {
+    const SCROLL_TOP_SHOW = 56
+    const SCROLL_DELTA = 18
+
+    const readScrollY = () => {
+      const el = document.scrollingElement || document.documentElement
+      return el?.scrollTop ?? window.scrollY ?? 0
+    }
+
+    const updateNavVisibility = () => {
+      const currentY = readScrollY()
+      if (currentY <= SCROLL_TOP_SHOW) {
         setNavVisible(true)
-      } else if (currentY > lastScrollY.current + 5) {
-        setNavVisible(false)
-      } else if (currentY < lastScrollY.current - 5) {
-        setNavVisible(true)
+        lastScrollY.current = currentY
+        return
       }
+      const delta = currentY - lastScrollY.current
+      if (Math.abs(delta) < SCROLL_DELTA) return
+      setNavVisible(delta < 0)
       lastScrollY.current = currentY
     }
-    window.addEventListener('scroll', handleScroll, { passive: true })
-    return () => window.removeEventListener('scroll', handleScroll)
+
+    const onScroll = () => {
+      if (navScrollRaf.current) return
+      navScrollRaf.current = requestAnimationFrame(() => {
+        updateNavVisibility()
+        navScrollRaf.current = 0
+      })
+    }
+
+    lastScrollY.current = readScrollY()
+    window.addEventListener('scroll', onScroll, { passive: true })
+    document.addEventListener('scroll', onScroll, { passive: true, capture: true })
+    return () => {
+      window.removeEventListener('scroll', onScroll)
+      document.removeEventListener('scroll', onScroll, { capture: true })
+      if (navScrollRaf.current) cancelAnimationFrame(navScrollRaf.current)
+    }
   }, [])
 
   useEffect(() => {
@@ -2516,13 +2541,22 @@ function App() {
     </AnimatePresence>
     {/* [Premium Floating Capsule Navigation - Root Level Persistence] */}
     {!hideBottomNav && (
-    <nav
+    <motion.nav
       className={[
         'bottom-nav',
         isSocialLightNav ? 'bottom-nav--social-light' : 'bottom-nav--dark',
-      ].join(' ')}
-      style={{
-        transform: `translateX(-50%) translateY(${navVisible ? '0' : '100px'})`,
+        navVisible ? '' : 'bottom-nav--hidden',
+      ].filter(Boolean).join(' ')}
+      initial={false}
+      animate={{
+        x: '-50%',
+        y: navVisible ? 0 : 88,
+        opacity: navVisible ? 1 : 0,
+      }}
+      transition={{
+        type: 'tween',
+        duration: 0.45,
+        ease: [0.22, 1, 0.36, 1],
       }}
     >
       <div 
@@ -2616,7 +2650,7 @@ function App() {
           {i18n.language?.startsWith('en') ? 'Festival' : '페스티벌'}
         </span>
       </div>
-    </nav>
+    </motion.nav>
     )}
     <ChatBot />
     </div>
