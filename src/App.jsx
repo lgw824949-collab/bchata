@@ -1019,6 +1019,12 @@ function App() {
     homeActiveTab === null &&
     !showPartner
   const isSocialLightNav = (location.pathname === '/' && view === 'home' && homeActiveTab !== null) || showPartner
+  const isDarkAppSurface =
+    isHomeGateNav ||
+    ['/bootcamp', '/festival', '/instructors', '/livepick', '/community'].some(
+      (p) => location.pathname === p || location.pathname.startsWith(`${p}/`),
+    )
+  const isDarkBottomNav = !isSocialLightNav
 
   useEffect(() => {
     if (isSocialLightNav) {
@@ -1030,7 +1036,7 @@ function App() {
     document.body.classList.toggle('home-gate-theme', isHomeGateNav)
     const themeMeta = document.querySelector('meta[name="theme-color"]')
     if (themeMeta) {
-      if (isHomeGateNav) themeMeta.setAttribute('content', '#0D0D0D')
+      if (isDarkAppSurface) themeMeta.setAttribute('content', '#0D0D0D')
       else if (isSocialLightNav) themeMeta.setAttribute('content', '#ffffff')
       else themeMeta.setAttribute('content', '#FF1744')
     }
@@ -1714,20 +1720,26 @@ function App() {
   // const navActiveColor = isSocialLightNav ? '#E53935' : '#FFFFFF'
   // const navInactiveColor = isSocialLightNav ? '#94A3B8' : 'rgba(255,255,255,0.3)'
   const navActiveColor = '#FFFFFF'
-  const navInactiveColor = '#666666'
+  const navInactiveColor = isDarkBottomNav ? 'rgba(255,255,255,0.42)' : '#666666'
   const socialNavActive = '#FF4444'
   const socialNavInactive = '#666666'
   const isHomeNavActive = location.pathname === '/' && view === 'home' && homeActiveTab === null && !showPartner
   const isBottomSocialNavActive = location.pathname === '/' && view === 'home' && homeActiveTab === 'social' && !showPartner
 
   return (
-    <div className={`bchata-app-shell${isHomeGateNav ? ' bchata-app-shell--gate' : ''}`}>
+    <div
+      className={[
+        'bchata-app-shell',
+        isHomeGateNav ? 'bchata-app-shell--gate' : '',
+        isDarkAppSurface ? 'bchata-app-shell--dark' : '',
+      ].filter(Boolean).join(' ')}
+    >
     <div
       data-bchata-app-root
       style={{ 
       width: '100%',
-      background: isHomeGateNav ? '#0D0D0D' : 'var(--color-bg)',
-      color: isHomeGateNav ? '#F8FAFC' : 'var(--color-text-main)',
+      background: isDarkAppSurface ? '#0D0D0D' : 'var(--color-bg)',
+      color: isDarkAppSurface ? '#F8FAFC' : 'var(--color-text-main)',
       minHeight: '100vh', position: 'relative',
       transition: 'background-color 0.3s, color 0.3s'
     }}>
@@ -1743,7 +1755,7 @@ function App() {
           width: '100%',
           minHeight: '100vh',
           position: 'relative',
-          background: isHomeGateNav ? '#0D0D0D' : 'transparent',
+          background: isDarkAppSurface ? '#0D0D0D' : 'transparent',
         }}
       >
       <AnimatePresence>{isAnalyzing && <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} style={{ position: 'fixed', inset: 0, zIndex: 1000000, background: 'rgba(255,255,255,0.9)', backdropFilter: 'blur(30px)', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}><motion.div animate={{ rotate: 360 }} transition={{ duration: 1, repeat: Infinity, ease: 'linear' }} style={{ width: '60px', height: '60px', border: '4px solid #FFEBEE', borderTop: '4px solid #E53935', borderRadius: '50%', marginBottom: '20px' }} /><h2 style={{ color: '#1E293B', fontSize: '20px', fontWeight: '900' }}>실시간 지능형 분석 중...</h2></motion.div>}</AnimatePresence>
@@ -2504,31 +2516,13 @@ function App() {
     </AnimatePresence>
     {/* [Premium Floating Capsule Navigation - Root Level Persistence] */}
     {!hideBottomNav && (
-    <nav 
-      className={`bottom-nav${isSocialLightNav ? ' bottom-nav--social-light' : ''}`}
-      style={{ 
-        position: 'fixed', 
-        bottom: '15px', 
-        left: '50%',
+    <nav
+      className={[
+        'bottom-nav',
+        isSocialLightNav ? 'bottom-nav--social-light' : 'bottom-nav--dark',
+      ].join(' ')}
+      style={{
         transform: `translateX(-50%) translateY(${navVisible ? '0' : '100px'})`,
-        transition: 'transform 0.35s cubic-bezier(0.4, 0, 0.2, 1)',
-        width: '94%', 
-        maxWidth: '460px', 
-        height: '68px',
-        // background: '#0a0a0a',
-        background: isSocialLightNav ? '#ffffff' : '#0a0a0a',
-        borderRadius: '34px',
-        display: 'flex', 
-        alignItems: 'center', 
-        justifyContent: 'space-between',
-        padding: '0 20px',
-        zIndex: 2100000, // 최상위 모달보다 높게 설정
-        // boxShadow: '0 10px 40px rgba(0,0,0,0.6)',
-        boxShadow: isSocialLightNav ? '0 -4px 16px rgba(0,0,0,0.06)' : '0 10px 40px rgba(0,0,0,0.6)',
-        boxSizing: 'border-box',
-        // border: '1px solid rgba(255,255,255,0.1)',
-        border: isSocialLightNav ? '1px solid #e2e8f0' : '1px solid rgba(255,255,255,0.1)',
-        backdropFilter: isSocialLightNav ? 'none' : 'blur(10px)'
       }}
     >
       <div 
@@ -2579,7 +2573,7 @@ function App() {
         style={{
           flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
           cursor: 'pointer', transition: 'all 0.2s',
-          color: isBottomSocialNavActive ? socialNavActive : socialNavInactive,
+          color: isBottomSocialNavActive ? socialNavActive : (isDarkBottomNav ? navInactiveColor : socialNavInactive),
         }}
       >
         <Music2 size={24} strokeWidth={isBottomSocialNavActive ? 2.5 : 1.5} />

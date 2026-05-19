@@ -920,30 +920,37 @@ nav.bottom-nav,
   bottom: 15px !important;
   left: 50% !important;
   right: auto !important;
-  width: calc(100% - 24px) !important;
+  width: 94% !important;
   max-width: 460px !important;
   margin-left: 0 !important;
   margin-right: 0 !important;
-  /* height: 72px; */
   min-height: 68px !important;
-  height: auto !important;
-  background: rgba(255, 255, 255, 0.75);
-  backdrop-filter: blur(25px);
-  -webkit-backdrop-filter: blur(25px);
-  border: 1px solid rgba(255, 255, 255, 0.4);
+  height: 68px !important;
   display: flex !important;
-  justify-content: space-around;
-  align-items: center;
+  align-items: center !important;
+  justify-content: space-between !important;
   padding: 0 20px !important;
-  padding-bottom: calc(12px + env(safe-area-inset-bottom)) !important;
+  padding-bottom: 0 !important;
   box-sizing: border-box !important;
-  /* border-radius: 30px; Rounded corners for floating */
-  border-radius: 0 !important;
+  border-radius: 34px !important;
   z-index: 2100000 !important;
-  box-shadow: 0 -4px 20px rgba(0,0,0,0.12);
+  transition: transform 0.35s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-/* 소셜·파트너: 흰색 하단 네비 (시스템 바와 톤 통일) */
+/* 부트캠프·페스티벌·메인 게이트: 다크 캡슐 네비 */
+nav.bottom-nav.bottom-nav--dark,
+.bottom-nav.bottom-nav--dark,
+body:not(.bottom-nav-social-light) nav.bottom-nav {
+  background: #0a0a0a !important;
+  border: 1px solid rgba(255, 255, 255, 0.12) !important;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.55) !important;
+  backdrop-filter: blur(10px) !important;
+  -webkit-backdrop-filter: blur(10px) !important;
+}
+
+/* 소셜·파트너 탭: 흰색 하단 네비 */
+nav.bottom-nav.bottom-nav--social-light,
+.bottom-nav.bottom-nav--social-light,
 body.bottom-nav-social-light nav.bottom-nav {
   background: #ffffff !important;
   border: 1px solid #e2e8f0 !important;
@@ -952,11 +959,10 @@ body.bottom-nav-social-light nav.bottom-nav {
   -webkit-backdrop-filter: none !important;
 }
 
-/* 부트캠프·페스티벌 등: 검정 하단 네비 유지 */
-body:not(.bottom-nav-social-light) nav.bottom-nav {
-  background: #0a0a0a !important;
-  border: 1px solid rgba(255, 255, 255, 0.1) !important;
-  box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.25) !important;
+.bchata-app-shell--dark,
+.bchata-app-shell--dark [data-bchata-app-root] {
+  background-color: #0d0d0d !important;
+  color: #f8fafc;
 }
 
 
