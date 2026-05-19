@@ -55,13 +55,11 @@ export const BAR_DATABASE = [
   { name: '이그녹스', address: '경기도 의정부시 평화로 567-1 청관정지하', region: '경기도', lat: 37.7382, lon: 127.0438 },
 
   // [충청 - 대전·천안·청주]
-  { name: '라틴팩토리', address: '대전 유성구 문화원로6번길 B1', region: '충청도', aliases: ['라팩'], lat: 36.3624, lon: 127.3562 },
+  { name: '라틴팩토리', address: '대전 유성구 문화원로6번길 B1', region: '충청도', aliases: ['라팩', 'SNS'], lat: 36.3624, lon: 127.3562 },
   { name: '노체', address: '대전 서구 둔산동 31번길 66 3F', region: '충청도', lat: 36.3512, lon: 127.3868 },
   { name: 'DLC', address: '대전 서구 갈마동 395-13 3F', region: '충청도', lat: 36.3498, lon: 127.3742 },
-  { name: 'SNS', address: '대전 유성구 문화원로6번길 B1', region: '충청도', lat: 36.3622, lon: 127.3558 },
   { name: '미아모르', address: '대전 동남구 신부동 976 B1', region: '충청도', lat: 36.8142, lon: 127.1138 },
-  { name: '살사컨셉', address: '천안시 원두정9길 3 B1', region: '충청도', aliases: ['살컨'], lat: 36.8088, lon: 127.1512 },
-  { name: '천안턴', address: '천안시 원두정9길 3 B1', region: '충청도', aliases: ['천안틴'], lat: 36.8086, lon: 127.1510 },
+  { name: '천안턴', address: '천안시 원두정9길 3 B1', region: '충청도', aliases: ['천안틴', '살컨', '살사컨셉'], lat: 36.8086, lon: 127.1510 },
   { name: '리코빠', address: '청주시 서원구 사창동 531번지 B1', region: '충청도', lat: 36.6348, lon: 127.4892 },
 
   // [경상 - 대구·김천·창원·김해·부산·포항]

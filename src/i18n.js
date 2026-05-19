@@ -1,4 +1,4 @@
-import i18n from 'i18next';
+﻿import i18n from 'i18next';
 import { initReactI18next } from 'react-i18next';
 import LanguageDetector from 'i18next-browser-languagedetector';
 
@@ -31,7 +31,7 @@ const resources = {
       "coming_soon": "준비 중입니다",
       "intelligent_route": "지능형 경로 최적화",
       "region_seoul": "서울",
-      "region_gyeonggi_incheon": "경기/인천",
+      "region_gyeonggi_incheon": "경인",
       "region_gyeongsang": "경상도",
       "region_jeolla": "전라도",
       "region_chungcheong": "충청도",

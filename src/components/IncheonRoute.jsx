@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+﻿import React, { useState } from 'react';
 import { X, Navigation, MapPin, Info } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { useTranslation } from 'react-i18next';
@@ -13,7 +13,7 @@ const IncheonRoute = ({ parties, onClose }) => {
   // 인천 지역 파티 필터링
   const incheonParties = parties.filter(p => 
     p.cityName === '인천' || 
-    p.broadRegion === '경기/인천' || 
+    p.broadRegion === '경인' || p.broadRegion === '경기/인천' || 
     p.address?.includes('인천') ||
     p.locationName?.includes('인천')
   );

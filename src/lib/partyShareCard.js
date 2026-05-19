@@ -36,6 +36,7 @@ const cleanPartyTitle = (title) => {
     .replace(/^\[.*?\]\s*/, '')
     .replace(/ㅣ\s*$/, '')
     .replace(/\[서울\]/g, '')
+    .replace(/\[경인\]/g, '')
     .replace(/\[경기\/인천\]/g, '')
     .replace(/\[경상도\]/g, '')
     .replace(/\[전라도\]/g, '')

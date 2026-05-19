@@ -55,13 +55,11 @@ export const BAR_DATABASE = [
   { name: '이그녹스', name_en: 'Egnox', address: '경기도 의정부시 평화로 567-1 청관정지하', region: '경기도' },
 
   // [충청 - 대전·천안·청주]
-  { name: '라틴팩토리', name_en: 'Latin Factory', address: '대전 유성구 문화원로6번길 B1', region: '충청도', aliases: ['라팩'] },
+  { name: '라틴팩토리', name_en: 'Latin Factory', address: '대전 유성구 문화원로6번길 B1', region: '충청도', aliases: ['라팩', 'SNS'] },
   { name: '노체', name_en: 'Noche', address: '대전 서구 둔산동 31번길 66 3F', region: '충청도' },
   { name: 'DLC', name_en: 'DLC', address: '대전 서구 갈마동 395-13 3F', region: '충청도' },
-  { name: 'SNS', name_en: 'SNS', address: '대전 유성구 문화원로6번길 B1', region: '충청도' },
   { name: '미아모르', name_en: 'Mi Amor', address: '대전 동남구 신부동 976 B1', region: '충청도' },
-  { name: '살사컨셉', name_en: 'Salsa Concept', address: '천안시 원두정9길 3 B1', region: '충청도', aliases: ['살컨'] },
-  { name: '천안턴', name_en: 'Cheonan Turn', address: '천안시 원두정9길 3 B1', region: '충청도', aliases: ['천안틴'] },
+  { name: '천안턴', name_en: 'Cheonan Turn', address: '천안시 원두정9길 3 B1', region: '충청도', aliases: ['천안틴', '살컨', '살사컨셉'] },
   { name: '리코빠', name_en: 'Rico Bar', address: '청주시 서원구 사창동 531번지 B1', region: '충청도' },
 
   // [경상 - 대구·김천·창원·김해·부산·포항]

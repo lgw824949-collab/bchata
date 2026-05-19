@@ -1,4 +1,4 @@
-// v0.1.1 - Force redeploy for UI simplification
+﻿// v0.1.1 - Force redeploy for UI simplification
 import React, { useState, useEffect } from 'react'
 import { supabase } from './lib/supabase'
 import { ChevronLeft, Check, Trash2, ShieldCheck, X, RefreshCw, XCircle, Clock, Tent, Flag, Music2, Camera, Zap, Menu, User, Sparkles } from 'lucide-react'
@@ -621,7 +621,7 @@ export default function AdminDashboard({ onBack }) {
                   if (key.includes('강남턴') || key.includes('강턴')) img = gangturnPhoto;
                   else if (key.includes('꼼애야')) img = ggomaeyaPhoto;
                   else if (key.includes('놀이터')) img = noriterPhoto;
-                  else if (key.includes('라틴') && !key.includes('라틴크루') && !`${item.address || ''}`.includes('인천') && !`${item.address || ''}`.includes('경기')) img = latinPhoto;
+                  else if (key === '라틴') img = latinPhoto;
                   else if (key.includes('마콘도')) img = macondoPhoto;
                   else if (key.includes('보니따')) img = bonitaPhoto;
                   else if (key.includes('부에나') && !key.includes('비스타')) img = buenaPhoto;
@@ -653,7 +653,7 @@ export default function AdminDashboard({ onBack }) {
                         </div>
                         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
                           <select value={editFormData.region || '서울'} onChange={e => setEditFormData({ ...editFormData, region: e.target.value })} style={{ padding: '10px', borderRadius: '10px', border: '1px solid #E2E8F0' }}>
-                            {['서울','경기/인천','강원','제주','부산/경남','전라도','충청도'].map(r => <option key={r}>{r}</option>)}
+                            {['서울','경인','강원','제주','부산/경남','전라도','충청도'].map(r => <option key={r}>{r}</option>)}
                           </select>
                           <input value={editFormData.price || ''} onChange={e => setEditFormData({ ...editFormData, price: e.target.value })} placeholder="가격" style={{ padding: '10px', borderRadius: '10px', border: '1px solid #E2E8F0' }} />
                         </div>
@@ -698,7 +698,7 @@ export default function AdminDashboard({ onBack }) {
                         </div>
                         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
                           <select value={editFormData.region || '서울'} onChange={e => setEditFormData({ ...editFormData, region: e.target.value })} style={{ padding: '10px', borderRadius: '10px', border: '1px solid #E2E8F0' }}>
-                            {['서울','경기/인천','경상도','전라도','충청도','강원/제주','해외'].map(r => <option key={r}>{r}</option>)}
+                            {['서울','경인','경상도','전라도','충청도','강원/제주','해외'].map(r => <option key={r}>{r}</option>)}
                           </select>
                           <input value={editFormData.fee || ''} onChange={e => setEditFormData({ ...editFormData, fee: e.target.value })} placeholder="가격/참가비" style={{ padding: '10px', borderRadius: '10px', border: '1px solid #E2E8F0' }} />
                         </div>
@@ -819,7 +819,7 @@ export default function AdminDashboard({ onBack }) {
                         </div>
                         {(() => {
                           const key = `${item.name || ''}`.replace(/\s+/g, '').toLowerCase();
-                          const isLatinValid = key.includes('라틴') && !key.includes('라틴크루') && !`${item.address || ''}`.includes('인천') && !`${item.address || ''}`.includes('경기');
+                          const isLatinValid = key === '라틴';
                           const isCustom = key.includes('강남턴') || key.includes('강턴') || key.includes('꼼애야') || key.includes('놀이터') || isLatinValid || key.includes('마콘도') || key.includes('보니따') || (key.includes('부에나') && !key.includes('비스타')) || key.includes('홍턴') || key.includes('비비고');
                           return (item.image_url || isCustom) && <div style={{ fontSize: '11px', color: '#94A3B8', marginTop: '2px', wordBreak: 'break-all' }}>이미지: {isCustom ? '✨ 내장 브랜드 고유 에셋 매핑 적용 완료' : item.image_url}</div>;
                         })()}

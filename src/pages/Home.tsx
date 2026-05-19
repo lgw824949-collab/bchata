@@ -14,6 +14,7 @@ import {
 } from '../lib/venueDedupe'
 import VenueDetailModal from '../components/VenueDetailModal'
 import BarRegisterFormModal from '../components/BarRegisterFormModal'
+import HomeHeroTagline from '../components/HomeHeroTagline'
 import gangturnPhoto from '../assets/gangturn_photo.png'
 import ggomaeyaPhoto from '../assets/ggomaeya_photo.jpg'
 import noriterPhoto from '../assets/noriter_photo.png'
@@ -31,6 +32,7 @@ const HOME_REGIONS_ORDER = [
   '경상도',
   '충청도',
   '전라도',
+  '강원/제주',
 ];
 
 const mapBarLibRegionToPill = (regionLabel) => {
@@ -1096,21 +1098,36 @@ const HomePage = ({
 
   const todayStr = useMemo(() => getKSTTodayStr(), []);
 
-  useEffect(() => {
-    if (!parties || parties.length === 0) return;
-    const today = getKSTTodayStr();
-    const todayParties = parties.filter((p) => p.date === today && p.status === 'approved');
+  const todayDisplayLabel = useMemo(() => {
+    const [y, m, d] = todayStr.split('-').map((n) => parseInt(n, 10));
+    if (isEn) {
+      return new Intl.DateTimeFormat('en-US', {
+        month: 'short',
+        day: 'numeric',
+        weekday: 'short',
+        timeZone: 'Asia/Seoul',
+      }).format(new Date(`${todayStr}T12:00:00+09:00`));
+    }
+    const weekdays = ['일', '월', '화', '수', '목', '금', '토'];
+    const wd = weekdays[new Date(y, m - 1, d).getDay()];
+    return `${y}년 ${m}월 ${d}일 (${wd})`;
+  }, [todayStr, isEn]);
 
-    const seoulParties = todayParties.filter((p) => p.broadRegion === '서울' || p.region?.includes('서울'));
-    const metroParties = todayParties.filter(
-      (p) => p.broadRegion === '경인' || p.broadRegion === '경기/인천' || p.region === '경인' || p.region === '경기/인천' || p.region?.includes('경기') || p.region?.includes('인천')
-    );
-    const nationalParties = todayParties.filter((p) =>
-      !p.broadRegion?.includes('서울') &&
-      !p.region?.includes('서울') &&
-      !p.region?.includes('경기') &&
-      !p.region?.includes('인천')
-    );
+  useEffect(() => {
+    const todayParties = (parties || []).filter((p) => p.date === todayStr && p.status === 'approved');
+
+    const isSeoulParty = (p) => p.broadRegion === '서울' || p.region?.includes('서울');
+    const isMetroParty = (p) =>
+      p.broadRegion === '경인' ||
+      p.broadRegion === '경기/인천' ||
+      p.region === '경인' ||
+      p.region === '경기/인천' ||
+      p.region?.includes('경기') ||
+      p.region?.includes('인천');
+
+    const seoulParties = todayParties.filter(isSeoulParty);
+    const metroParties = todayParties.filter((p) => !isSeoulParty(p) && isMetroParty(p));
+    const nationalParties = todayParties.filter((p) => !isSeoulParty(p) && !isMetroParty(p));
 
     const partyDistrictLabel = (p) => {
       const r = (p.region || '').trim();
@@ -1142,7 +1159,14 @@ const HomePage = ({
       national: nationalParties.length,
       nationalDistricts: getTopDistricts(nationalParties),
     });
-  }, [parties]);
+  }, [parties, todayStr]);
+
+  const openTodayPartyBucket = (tab) => {
+    setSelectedDate(todayStr);
+    if (tab === '서울' || tab === '경인') setSelectedRegion(tab);
+    else setSelectedRegion('');
+    setShowFullCalendar(true);
+  };
 
   /** 오늘 이후 등록 파티 (포스터 URL 중복 제거) — 행사달력·날짜바·요약 건수 */
   const calendarParties = useMemo(
@@ -1296,25 +1320,16 @@ const HomePage = ({
   const getBarPreviewList = (bars) =>
     sortBarsByRichness(bars).slice(0, Math.min(BAR_PREVIEW_COUNT, bars.length));
 
-  const barBucketCounts = useMemo(() => ({
-    seoul: locations.filter((b) => b.region === '서울').length,
-    metro: locations.filter((b) => b.region === '경인').length,
-    national: locations.filter((b) => !['서울', '경인'].includes(b.region)).length,
-  }), [locations]);
-
-  const scrollToBarRegion = (tab) => {
-    if (tab) setSelectedRegionTab(tab);
-    else {
-      const first = HOME_REGIONS_ORDER.find(
-        (r) => !['서울', '경인'].includes(r) && locations.some((b) => b.region === r)
-      );
-      if (first) setSelectedRegionTab(first);
-    }
-    window.setTimeout(
-      () => barSectionRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' }),
-      80
-    );
-  };
+  const barRegionCounts = useMemo(() => {
+    const counts = Object.fromEntries(HOME_REGIONS_ORDER.map((r) => [r, 0]));
+    locations.forEach((bar) => {
+      const r = bar.region;
+      if (!r) return;
+      if (counts[r] !== undefined) counts[r] += 1;
+      else counts[r] = (counts[r] || 0) + 1;
+    });
+    return counts;
+  }, [locations]);
 
   const renderBarCard = (bar, { carousel = false } = {}) => (
     <motion.div
@@ -1441,6 +1456,14 @@ const HomePage = ({
     borderLeft: '3px solid #C9A84C',
     lineHeight: 1.4,
   };
+  const homeSectionSpace = 36;
+  const homeBlockSpace = 26;
+  const homeSectionDividerStyle = { height: 1, background: '#F0F0F0', margin: '0 20px', border: 'none' };
+  const quickMenuRegisterHighlightStyle = {
+    background: '#FFF8FA',
+    border: '1.5px solid #FECDD3',
+    boxShadow: '0 2px 10px rgba(212, 67, 110, 0.1)',
+  };
   const quickMenuFloatStyle = {
     display: 'flex',
     flexDirection: 'column',
@@ -1448,20 +1471,29 @@ const HomePage = ({
     justifyContent: 'center',
     background: '#FFFFFF',
     border: '1px solid #F0F0F0',
-    borderRadius: '14px',
-    padding: '8px 6px 6px',
+    borderRadius: '16px',
+    padding: '12px 10px 10px',
     cursor: 'pointer',
     width: '100%',
-    height: '90px',
+    minHeight: '102px',
+    boxSizing: 'border-box',
   };
-  const quickMenuIconWrapStyle = { width: '40px', height: '40px', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 };
-  const quickMenuLabelStyle = { color: '#333333', fontWeight: 600, fontSize: '11px', marginTop: '4px', textAlign: 'center', lineHeight: 1.4, whiteSpace: 'normal', overflow: 'hidden', textOverflow: 'ellipsis', width: '100%' };
+  const quickMenuTileStyle = {
+    ...quickMenuFloatStyle,
+    position: 'relative',
+    width: '80px',
+    minWidth: '80px',
+    flexShrink: 0,
+    scrollSnapAlign: 'start',
+  };
+  const quickMenuIconWrapStyle = { width: '44px', height: '44px', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 };
+  const quickMenuLabelStyle = { color: '#333333', fontWeight: 600, fontSize: '12px', marginTop: '8px', textAlign: 'center', lineHeight: 1.35, whiteSpace: 'normal', overflow: 'hidden', textOverflow: 'ellipsis', width: '100%' };
 
   /** 메인 노출·등록 우선 — 하단탭(홈·부트캠프·파트너·강사·페스티벌) 및 포스터3칸과 중복 제외 */
   const quickMenuItems = useMemo(() => [
-    { id: 'party-register', icon: <Music size={32} strokeWidth={1.2} color="#D4436E" />, label: '파티등록', particles: '🎉', action: () => handleRegister('party') },
-    { id: 'class-register', icon: <User size={32} strokeWidth={1.2} color="#D4436E" />, label: '클래스등록', particles: '📚', action: () => window.dispatchEvent(new CustomEvent('open-vip-class-register')) },
-    { id: 'calendar', icon: <Calendar size={32} strokeWidth={1.2} color="#D4436E" />, label: '행사달력', particles: '📅', action: () => setShowFullCalendar(true) },
+    { id: 'party-register', registerHighlight: true, icon: <Music size={32} strokeWidth={1.2} color="#D4436E" />, label: '파티등록', particles: '🎉', action: () => handleRegister('party') },
+    { id: 'class-register', registerHighlight: true, icon: <User size={32} strokeWidth={1.2} color="#D4436E" />, label: '클래스등록', particles: '📚', action: () => window.dispatchEvent(new CustomEvent('open-vip-class-register')) },
+    { id: 'concierge', icon: <MessageSquare size={32} strokeWidth={1.2} color="#C9A84C" />, label: '컨시어지', particles: '✨', action: () => window.dispatchEvent(new CustomEvent('open-chatbot')) },
     { id: 'livepick', icon: <Camera size={32} strokeWidth={1.2} color="#C9A84C" />, label: '라이브픽', particles: '📸', action: () => { window.history.pushState({}, '', '#community'); setView('community'); } },
     { id: 'wishlist', icon: <Heart size={32} strokeWidth={1.2} color="#C9A84C" />, label: '찜하기', particles: '❤️', action: () => { window.history.pushState({}, '', '#wishlist'); setShowWishlist(true); } },
     { id: 'chat', textIcon: '1:1', label: '채팅문의', particles: '💬', action: () => window.open('https://open.kakao.com/o/gP43rNri', '_blank') },
@@ -1469,10 +1501,25 @@ const HomePage = ({
     { id: 'restaurant', icon: <Utensils size={32} strokeWidth={1.2} color="#C9A84C" />, label: '맛집뒷풀이', particles: '🍽', action: () => { window.history.pushState({}, '', '#restaurant'); setView('restaurant'); } },
     { id: 'weather', icon: <CloudSun size={32} strokeWidth={1.2} color="#C9A84C" />, label: '오늘날씨', particles: '☀️', action: () => { window.history.pushState({}, '', '#weather'); setShowWeather(true); } },
     { id: 'route', icon: <Navigation size={32} strokeWidth={1.2} color="#C9A84C" />, label: '지능형경로', particles: '🧭', action: () => { window.history.pushState({}, '', '#route'); openAnalysis(false); } },
+    { id: 'calendar', icon: <Calendar size={32} strokeWidth={1.2} color="#D4436E" />, label: '행사달력', particles: '📅', action: () => setShowFullCalendar(true) },
   ], [handleRegister, setShowFullCalendar, setView, setShowWishlist, setShowSaju, setShowWeather, openAnalysis]);
 
+  const renderHomeSectionHeader = (title, subtitle, badge = null) => (
+    <header style={{ marginBottom: 14 }}>
+      <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', gap: 8, flexWrap: 'wrap' }}>
+        <h2 style={{ margin: 0, fontSize: 15, fontWeight: 900, color: '#1A1A1A', letterSpacing: '-0.3px' }}>{title}</h2>
+        {badge ? (
+          <span style={{ fontSize: 13, fontWeight: 700, color: '#D4436E' }}>{badge}</span>
+        ) : null}
+      </div>
+      {subtitle ? (
+        <p style={{ margin: '6px 0 0', fontSize: 11, fontWeight: 500, color: '#94A3B8', lineHeight: 1.45 }}>{subtitle}</p>
+      ) : null}
+    </header>
+  );
+
   return (
-    <div className="app-container" style={{ width: '100%', maxWidth: '500px', margin: '0 auto', background: '#FFFFFF', minHeight: '100vh', paddingBottom: '80px' }}>
+    <div className="app-container" style={{ width: '100%', maxWidth: '500px', margin: '0 auto', background: '#FFFFFF', minHeight: '100vh', paddingBottom: '100px' }}>
 
       {activeTab === 'social' && (
         <img
@@ -1484,9 +1531,9 @@ const HomePage = ({
       )}
 
       {/* 📌 [영역 A: 히어로 / 메인 게이트] */}
-      <div style={{ padding: '16px 16px 0', marginBottom: '20px' }}>
+      <motion.div style={{ padding: '20px 20px 0', marginBottom: homeSectionSpace }}>
         {activeTab === null && (
-        <div style={{ marginBottom: '12px' }}>
+        <motion.div style={{ display: 'flex', alignItems: 'flex-start', gap: 12, marginBottom: 20 }}>
           <img
             src="/logo.png"
             alt="오늘밤빠 로고"
@@ -1499,68 +1546,92 @@ const HomePage = ({
               } else { setAdminTapCount(1); }
               setLastAdminTap(now);
             }}
-            style={{ width: '44px', height: '44px', objectFit: 'contain', borderRadius: '12px', cursor: 'pointer', userSelect: 'none', boxShadow: '0 2px 8px rgba(0,0,0,0.06)' }}
+            style={{ width: '40px', height: '40px', flexShrink: 0, objectFit: 'contain', borderRadius: '12px', cursor: 'pointer', userSelect: 'none', boxShadow: '0 2px 8px rgba(0,0,0,0.06)' }}
             onError={(e) => { e.currentTarget.style.display = 'none' }}
           />
-        </div>
+          <motion.div style={{ flex: 1, minWidth: 0 }}>
+            <h1 style={{ fontSize: '24px', fontWeight: 900, color: '#1A1A1A', margin: 0, letterSpacing: '-0.5px', lineHeight: 1.4 }}>오늘 어디서 춤추실까요?</h1>
+            <HomeHeroTagline />
+          </motion.div>
+        </motion.div>
         )}
 
         {activeTab === null && (
         <>
-        <h1 style={{ fontSize: '26px', fontWeight: 900, color: '#1A1A1A', margin: 0, letterSpacing: '-0.5px', lineHeight: 1.4 }}>오늘 어디서 춤추실까요?</h1>
-        <p style={{ fontSize: '15px', fontWeight: 700, color: '#D4436E', margin: '8px 0 0', lineHeight: 1.4 }}>만원의 행복</p>
-        <p style={{ fontSize: '12px', fontWeight: 400, color: '#999999', margin: '4px 0 0', lineHeight: 1.4 }}>켜고 찾고 가면 끝</p>
-        </>
-        )}
-
-        {activeTab === null && (
-        <>
-        <div style={{ display: 'flex', gap: '8px', marginTop: '16px' }}>
+        <motion.div style={{ marginTop: 22, marginBottom: 12 }}>
+          <motion.div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', gap: 8, flexWrap: 'wrap' }}>
+            <h2 style={{ margin: 0, fontSize: 15, fontWeight: 900, color: '#1A1A1A', letterSpacing: '-0.3px' }}>
+              {isEn ? "Today's parties" : '오늘의 파티'}
+            </h2>
+            <span style={{ fontSize: 13, fontWeight: 700, color: '#D4436E' }}>{todayDisplayLabel}</span>
+          </motion.div>
+          <p style={{ margin: '6px 0 0', fontSize: 11, fontWeight: 500, color: '#94A3B8', lineHeight: 1.45 }}>
+            {isEn
+              ? 'Live count · approved posts for today (KST)'
+              : '오늘 날짜 게시 · 승인된 파티 기준 (실시간)'}
+          </p>
+        </motion.div>
+        <motion.div style={{ display: 'flex', gap: 12 }}>
           {[
-            { label: '서울', count: barBucketCounts.seoul, tab: '서울' },
-            { label: '수도권', count: barBucketCounts.metro, tab: '경인' },
-            { label: '지방권', count: barBucketCounts.national, tab: null },
-          ].map((r) => {
-            const isSelected =
-              (r.tab === '서울' && selectedRegionTab === '서울') ||
-              (r.tab === '경인' && selectedRegionTab === '경인') ||
-              (r.tab === null && !['서울', '경인'].includes(selectedRegionTab));
-            return (
+            { label: isEn ? 'Seoul' : '서울', count: regionCounts.seoul, districts: regionCounts.seoulDistricts, tab: '서울' },
+            { label: isEn ? 'Metro' : '수도권', count: regionCounts.metro, districts: regionCounts.metroDistricts, tab: '경인' },
+            { label: isEn ? 'Regions' : '지방권', count: regionCounts.national, districts: regionCounts.nationalDistricts, tab: null },
+          ].map((r) => (
               <button
                 key={r.label}
                 type="button"
-                onClick={() => scrollToBarRegion(r.tab)}
+                onClick={() => openTodayPartyBucket(r.tab)}
                 style={{
                   flex: 1,
                   minWidth: 0,
-                  padding: '12px',
-                  borderRadius: '14px',
-                  border: isSelected ? '1.5px solid #C9A84C' : '1px solid #F0F0F0',
-                  background: isSelected ? '#FFFBF0' : '#FFFFFF',
+                  padding: '14px 10px',
+                  borderRadius: '16px',
+                  border: '1px solid #F0F0F0',
+                  background: '#FFFFFF',
                   cursor: 'pointer',
                   display: 'flex',
                   flexDirection: 'column',
                   alignItems: 'center',
                   justifyContent: 'center',
                   textAlign: 'center',
+                  minHeight: 76,
                 }}
               >
-
-                <div style={{ fontSize: '12px', fontWeight: 400, color: '#999999', marginBottom: '4px', width: '100%', textAlign: 'center', lineHeight: 1.4 }}>{r.label}</div>
-                <div style={{ fontSize: '20px', fontWeight: 900, color: '#1A1A1A', lineHeight: 1.4, width: '100%', textAlign: 'center' }}>
-                  {isLoading ? '—' : r.count}
-                  <span style={{ fontSize: '12px', fontWeight: 400, color: '#999999', marginLeft: '2px' }}>곳</span>
+                <span style={{ fontSize: '12px', fontWeight: 500, color: '#999999', marginBottom: 6, width: '100%', lineHeight: 1.4 }}>{r.label}</span>
+                <div style={{ fontSize: '20px', fontWeight: 900, color: '#1A1A1A', lineHeight: 1.35, width: '100%' }}>
+                  {loading ? '—' : r.count}
+                  <span style={{ fontSize: '12px', fontWeight: 500, color: '#999999', marginLeft: '2px' }}>
+                    {isEn ? '' : '건'}
+                  </span>
                 </div>
+                {r.districts ? (
+                  <span style={{
+                    display: 'block',
+                    marginTop: 6,
+                    fontSize: 10,
+                    fontWeight: 600,
+                    color: '#94A3B8',
+                    lineHeight: 1.3,
+                    width: '100%',
+                    overflow: 'hidden',
+                    textOverflow: 'ellipsis',
+                    whiteSpace: 'nowrap',
+                  }}
+                  >
+                    {r.districts}
+                  </span>
+                ) : null}
               </button>
-            );
-          })}
-        </div>
+            ))}
+        </motion.div>
         </>
         )}
-      </div>
+      </motion.div>
+
+      {activeTab === null && <hr style={homeSectionDividerStyle} aria-hidden />}
 
       {/* 🔴 [LIVE 바 임팩트 영역 개편] */}
-      <div style={{ padding: '0 16px', marginBottom: '20px' }}>
+      <motion.div style={{ padding: '0 20px', marginBottom: homeSectionSpace }}>
         <div className="live-count-premium-wrapper" style={{
           background: 'linear-gradient(135deg, #D4436E, #C9A84C)',
           borderRadius: '14px',
@@ -1657,8 +1728,9 @@ const HomePage = ({
           `}</style>
           <LiveCount />
         </div>
-      </div>
+      </motion.div>
 
+      {activeTab === null && <hr style={homeSectionDividerStyle} aria-hidden />}
 
       {/* 메인 퀵메뉴: activeTab === null → 3섹션 그리드 / 소셜 탭 → 가로 스크롤 */}
       <style>{`
@@ -1666,6 +1738,42 @@ const HomePage = ({
           0% { box-shadow: 0 0 2px rgba(85, 139, 47, 0.1); filter: drop-shadow(0 0 1px rgba(85, 139, 47, 0.1)); }
           50% { box-shadow: 0 0 12px rgba(85, 139, 47, 0.45); filter: drop-shadow(0 0 4px rgba(85, 139, 47, 0.25)); }
           100% { box-shadow: 0 0 2px rgba(85, 139, 47, 0.1); filter: drop-shadow(0 0 1px rgba(85, 139, 47, 0.1)); }
+        }
+        .quick-menu-peek-wrap {
+          position: relative;
+          /* 3칸 + 반칸(40px)만 보이게 → 오른쪽에 다음 메뉴가 반쯤 보임 */
+          width: min(100%, calc(80px * 3 + 14px * 2 + 40px));
+          max-width: 100%;
+          overflow: hidden;
+        }
+        .quick-menu-peek-wrap::after {
+          content: '';
+          position: absolute;
+          top: 0;
+          right: 0;
+          width: 24px;
+          height: 100%;
+          pointer-events: none;
+          background: linear-gradient(to right, rgba(255, 255, 255, 0), #ffffff 85%);
+        }
+        .quick-menu-scroll {
+          display: flex;
+          flex-wrap: nowrap;
+          gap: 14px;
+          overflow-x: auto;
+          overflow-y: hidden;
+          scroll-snap-type: x proximity;
+          -webkit-overflow-scrolling: touch;
+          scrollbar-width: none;
+          msOverflowStyle: none;
+          padding: 0 2px 12px;
+        }
+        .quick-menu-scroll > * {
+          scroll-snap-align: start;
+          flex-shrink: 0;
+        }
+        .quick-menu-scroll::-webkit-scrollbar {
+          display: none;
         }
         .home-poster-border-wrap {
           flex: 1;
@@ -1686,14 +1794,14 @@ const HomePage = ({
           position: relative;
           z-index: 1;
           width: 100%;
-          aspect-ratio: 9 / 16;
+          aspect-ratio: 3 / 4;
           border-radius: 10px;
           overflow: hidden;
           background: #111;
         }
       `}</style>
       {activeTab === null && (
-      <div id="quickmenu-section" style={{ padding: '0 16px', marginBottom: '20px' }}>
+      <div id="quickmenu-section" style={{ padding: '0 20px', marginBottom: homeSectionSpace + 4 }}>
         {/* 파티 & 이벤트 포스터 3칸 - Supabase 실시간 연동 */}
         {/*
         <p style={homePartySectionTitleStyle}>파티 & 이벤트</p>
@@ -1712,7 +1820,11 @@ const HomePage = ({
           ))}
         </motion.div>
         */}
-        <div style={{ display: 'flex', gap: '8px', marginBottom: '20px' }}>
+        {renderHomeSectionHeader(
+          isEn ? 'Featured events' : '추천 행사',
+          isEn ? 'Social · Bootcamp · Festival posters' : '소셜 · 부트캠프 · 페스티벌 · 탭하면 이동',
+        )}
+        <motion.div style={{ display: 'flex', gap: 14, marginBottom: homeBlockSpace }}>
           {homePosterSlots.map((item) => {
             const isActive = activePosterSlot === item.id;
             return (
@@ -1735,42 +1847,53 @@ const HomePage = ({
               </div>
             );
           })}
-        </div>
+        </motion.div>
 
-        {/* BAR 쉘: 지역 pill + 원형 그리드 */}
-        <div ref={barSectionRef} style={{ display: 'flex', flexDirection: 'column', background: '#ffffff' }}>
-          <motion.div
-            className="quick-menu-scroll"
-            style={{
-              display: 'flex',
-              gap: '8px',
-              width: '100%',
-              marginBottom: '16px',
-              overflowX: 'auto',
-              scrollSnapType: 'x mandatory',
-              scrollbarWidth: 'none',
-              msOverflowStyle: 'none',
-              WebkitOverflowScrolling: 'touch',
-            }}
-          >
+        <hr style={{ ...homeSectionDividerStyle, margin: `${homeBlockSpace}px 0` }} aria-hidden />
+
+        {renderHomeSectionHeader(
+          isEn ? 'Quick actions' : '빠른 메뉴',
+          isEn ? 'Register · calendar · support' : '등록 · 달력 · 문의를 한곳에서',
+        )}
+        <div className="quick-menu-peek-wrap" style={{ marginBottom: homeBlockSpace }}>
+          <div className="quick-menu-scroll">
             {quickMenuItems.map((item) => (
               <motion.div
                 key={item.id}
                 whileTap={{ scale: 0.92 }}
                 onClick={(e) => { triggerParticle(e, item.particles); item.action(); }}
-                style={{ ...quickMenuFloatStyle, position: 'relative', width: 'calc(22% - 6px)', minWidth: 'calc(22% - 6px)', flexShrink: 0, scrollSnapAlign: 'start' }}
+                style={{
+                  ...quickMenuTileStyle,
+                  ...(item.registerHighlight ? quickMenuRegisterHighlightStyle : {}),
+                }}
               >
                 {item.textIcon ? (
                   <motion.div style={{ ...quickMenuIconWrapStyle, width: '44px', height: '44px', fontSize: 18, fontWeight: 900, color: '#C9A84C', letterSpacing: '-0.8px' }}>{item.textIcon}</motion.div>
                 ) : (
                   <motion.div style={{ ...quickMenuIconWrapStyle, width: '44px', height: '44px' }}>{item.icon}</motion.div>
                 )}
-                <span style={{ ...quickMenuLabelStyle, fontSize: '11px' }}>{item.label}</span>
+                <span style={{
+                  ...quickMenuLabelStyle,
+                  fontSize: '11px',
+                  ...(item.registerHighlight ? { color: '#D4436E', fontWeight: 800 } : {}),
+                }}>{item.label}</span>
               </motion.div>
             ))}
-          </motion.div>
+          </div>
+        </div>
+
+        <hr style={{ ...homeSectionDividerStyle, margin: `${homeBlockSpace}px 0` }} aria-hidden />
+
+        {/* BAR 쉘: 지역 pill + 원형 그리드 */}
+        <motion.div ref={barSectionRef} style={{ display: 'flex', flexDirection: 'column', background: '#ffffff' }}>
+          <h2 style={{ margin: 0, fontSize: 15, fontWeight: 900, color: '#1A1A1A', letterSpacing: '-0.3px' }}>
+            Social BAR
+          </h2>
+          <p style={{ margin: '6px 0 14px', fontSize: 11, fontWeight: 500, color: '#94A3B8', lineHeight: 1.45 }}>
+            만원의 행복공간
+          </p>
           <motion.div style={{
-            display: 'flex', overflowX: 'auto', gap: '8px', padding: '0 0 16px',
+            display: 'flex', overflowX: 'auto', gap: 12, padding: '0 0 20px',
             borderBottom: '1px solid #F1F5F9', flexShrink: 0, scrollbarWidth: 'none',
             alignItems: 'center',
           }}>
@@ -1782,7 +1905,7 @@ const HomePage = ({
                 display: 'flex',
                 alignItems: 'center',
                 gap: 5,
-                padding: '8px 14px',
+                padding: '10px 16px',
                 borderRadius: 100,
                 border: '1px solid #E2E8F0',
                 background: '#F8FAFC',
@@ -1790,6 +1913,7 @@ const HomePage = ({
                 fontSize: 12,
                 fontWeight: 800,
                 cursor: 'pointer',
+                minHeight: 40,
               }}
             >
               <Plus size={14} strokeWidth={2.5} />
@@ -1797,15 +1921,15 @@ const HomePage = ({
             </button>
             {HOME_REGIONS_ORDER.filter((tab) => locations.some((b) => b.region === tab)).map((tab) => {
               const isSelected = selectedRegionTab === tab;
-              const count = locations.filter((b) => b.region === tab).length;
 
               return (
                 <button
                   key={tab}
+                  type="button"
                   onClick={() => setSelectedRegionTab(tab)}
                   style={{
                     flexShrink: 0,
-                    padding: '8px 16px',
+                    padding: '10px 18px',
                     background: isSelected ? '#FFF1F2' : '#F8FAFC',
                     color: isSelected ? '#E53935' : '#64748B',
                     border: isSelected ? '1px solid #FECDD3' : '1px solid #E2E8F0',
@@ -1813,29 +1937,28 @@ const HomePage = ({
                     fontWeight: isSelected ? 950 : 700,
                     fontSize: '13px',
                     cursor: 'pointer',
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '6px',
-                    transition: 'all 0.2s ease'
+                    transition: 'all 0.2s ease',
+                    minHeight: 40,
                   }}
                 >
-                  <span>{tab}</span>
-                  <span style={{
-                    fontSize: '10px',
-                    background: isSelected ? '#E53935' : '#E2E8F0',
-                    color: isSelected ? '#ffffff' : '#475569',
-                    padding: '1px 6px',
-                    borderRadius: '100px',
-                    fontWeight: 800
-                  }}>
-                    {count}
+                  {tab}
+                  <span
+                    style={{
+                      marginLeft: 6,
+                      fontSize: '12px',
+                      fontWeight: isSelected ? 900 : 700,
+                      color: isSelected ? '#E53935' : '#94A3B8',
+                    }}
+                    aria-label={`${barRegionCounts[tab] ?? 0}곳`}
+                  >
+                    {barRegionCounts[tab] ?? 0}
                   </span>
                 </button>
               );
             })}
           </motion.div>
 
-          <motion.div style={{ padding: '12px 0 4px', flex: 1 }}>
+          <motion.div style={{ padding: '20px 0 12px', flex: 1 }}>
             {isLoading ? (
               <div style={{ padding: '60px 20px', textAlign: 'center', color: '#94A3B8', fontWeight: 700 }}>
                 전국 BAR 정보를 정렬하는 중...
@@ -1847,95 +1970,89 @@ const HomePage = ({
                 if (filteredBars.length === 0) {
                   return (
                     <div style={{ padding: '40px 20px', textAlign: 'center', color: '#94A3B8', fontSize: '13px', fontWeight: 600 }}>
-                      해당 지역에 등록된 제휴 공간이 없습니다.
+                      해당 지역에 등록된 Social BAR가 없습니다.
                     </div>
                   );
                 }
 
                 const previewBars = getBarPreviewList(filteredBars);
                 const showExpandToggle = filteredBars.length > previewBars.length;
+                const remainingBarCount = filteredBars.length - previewBars.length;
 
                 return (
                   <motion.div
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
                     key={selectedRegionTab}
-                    style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}
+                    style={{ display: 'flex', flexDirection: 'column', gap: 14 }}
                   >
                     <motion.div
                       style={{
                         display: 'flex',
-                        alignItems: 'stretch',
-                        gap: '10px',
-                        minHeight: '72px',
+                        gap: '12px',
+                        overflowX: 'auto',
+                        padding: '2px 0 4px',
+                        scrollbarWidth: 'none',
+                        msOverflowStyle: 'none',
+                        WebkitOverflowScrolling: 'touch',
                       }}
                     >
-                      <div
-                        style={{
-                          flexShrink: 0,
-                          width: showExpandToggle ? '76px' : '56px',
-                          display: 'flex',
-                          flexDirection: 'column',
-                          justifyContent: 'center',
-                          alignItems: 'flex-start',
-                          gap: '2px',
-                        }}
-                      >
-                        <span style={{ fontSize: '11px', fontWeight: 700, color: '#94A3B8', lineHeight: 1.2 }}>
-                          {selectedRegionTab}
-                        </span>
-                        <span style={{ fontSize: '15px', fontWeight: 900, color: '#1E293B', lineHeight: 1.2 }}>
-                          {filteredBars.length}곳
-                        </span>
-                        {showExpandToggle && (
-                          <button
-                            type="button"
-                            onClick={() => setBarListExpanded((v) => !v)}
+                      {previewBars.map((bar) => renderBarCard(bar, { carousel: true }))}
+                      {showExpandToggle && (
+                        <button
+                          type="button"
+                          onClick={() => setBarListExpanded((v) => !v)}
+                          style={{
+                            width: '72px',
+                            flexShrink: 0,
+                            border: 'none',
+                            background: 'transparent',
+                            padding: 0,
+                            cursor: 'pointer',
+                            display: 'flex',
+                            flexDirection: 'column',
+                            alignItems: 'center',
+                          }}
+                        >
+                          <span
                             style={{
-                              marginTop: '4px',
-                              padding: 0,
-                              border: 'none',
-                              background: 'transparent',
-                              color: barListExpanded ? '#E53935' : '#64748B',
-                              fontSize: '11px',
-                              fontWeight: 800,
-                              cursor: 'pointer',
+                              width: '56px',
+                              height: '56px',
+                              borderRadius: '50%',
+                              background: barListExpanded ? '#FFF1F2' : '#F8FAFC',
+                              border: barListExpanded ? '1.5px solid #FECDD3' : '1.5px dashed #CBD5E1',
                               display: 'flex',
                               alignItems: 'center',
-                              gap: '2px',
+                              justifyContent: 'center',
+                              marginBottom: '6px',
+                              color: barListExpanded ? '#E53935' : '#64748B',
+                              fontSize: '13px',
+                              fontWeight: 900,
+                            }}
+                          >
+                            {barListExpanded ? (
+                              <ChevronRight size={18} style={{ transform: 'rotate(-90deg)' }} />
+                            ) : (
+                              `+${remainingBarCount}`
+                            )}
+                          </span>
+                          <span
+                            style={{
+                              fontSize: '10px',
+                              fontWeight: 800,
+                              color: barListExpanded ? '#E53935' : '#64748B',
+                              textAlign: 'center',
+                              lineHeight: 1.25,
                               whiteSpace: 'nowrap',
                             }}
                           >
-                            {barListExpanded ? '접기' : '전체 보기'}
-                            <ChevronRight
-                              size={14}
-                              style={{
-                                transform: barListExpanded ? 'rotate(-90deg)' : 'rotate(90deg)',
-                                transition: 'transform 0.2s ease',
-                              }}
-                            />
-                          </button>
-                        )}
-                      </div>
-
-                      <div
-                        style={{
-                          flex: 1,
-                          minWidth: 0,
-                          display: 'flex',
-                          gap: '12px',
-                          overflowX: 'auto',
-                          padding: '2px 0 4px',
-                          scrollbarWidth: 'none',
-                          msOverflowStyle: 'none',
-                          WebkitOverflowScrolling: 'touch',
-                        }}
-                      >
-                        {previewBars.map((bar) => renderBarCard(bar, { carousel: true }))}
-                      </div>
+                            {barListExpanded ? (isEn ? 'Close' : '접기') : (isEn ? 'View all' : '전체 보기')}
+                          </span>
+                        </button>
+                      )}
                     </motion.div>
 
-                    {barListExpanded && (
+                                        {barListExpanded && (
                       <motion.div
                         initial={{ opacity: 0, height: 0 }}
                         animate={{ opacity: 1, height: 'auto' }}
@@ -1956,7 +2073,7 @@ const HomePage = ({
               })()
             )}
           </motion.div>
-        </div>
+        </motion.div>
 
 
 

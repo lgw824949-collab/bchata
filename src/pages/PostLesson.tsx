@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+﻿import React, { useState } from 'react'
 import { ChevronLeft, Camera, Loader2, Check, Clock, Calendar, Plus, DollarSign, X } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { supabase } from '../lib/supabase'
@@ -34,7 +34,7 @@ const PostLesson = ({ onBack, user }) => {
     region: '서울'
   })
 
-  const REGIONS = ['서울', '경기/인천', '경상', '전라', '충청', '강원/제주']
+  const REGIONS = ['서울', '경인', '경상', '전라', '충청', '강원/제주']
 
   const toggleDay = (day) => {
     setFormData(prev => ({

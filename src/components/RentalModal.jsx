@@ -1,8 +1,9 @@
-import React, { useState, useEffect } from 'react';
+﻿import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, MapPin, MessageCircle, Globe, Plus, ChevronLeft, Loader2 } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import { findBarByName } from '../lib/BarLib';
+import { dedupeVenueList } from '../lib/venueDedupe';
 import gangturnPhoto from '../assets/gangturn_photo.png';
 import ggomaeyaPhoto from '../assets/ggomaeya_photo.jpg';
 import noriterPhoto from '../assets/noriter_photo.png';
@@ -15,7 +16,7 @@ import bibigoPhoto from '../assets/bibigo_photo.png';
 
 const REGIONS_ORDER = [
   '서울',
-  '경기/인천',
+  '경인',
   '경상도',
   '전라도',
   '충청도',
@@ -57,27 +58,7 @@ export default function RentalModal({ onClose }) {
 
       if (error) throw error;
 
-      const rawList = data || [];
-
-      // 중복 제거: 이름 기준 정보가 가장 풍부하거나 최신인 레코드 1개만 병합 유지
-      const uniqueMap = new Map();
-      rawList.forEach(loc => {
-        let key = (loc.name || '').replace(/\s+/g, '').toLowerCase();
-        if (key.includes('강남턴') || key.includes('강턴')) key = '강턴';
-        if (!key) return;
-
-        if (!uniqueMap.has(key)) {
-          uniqueMap.set(key, loc);
-        } else {
-          const existing = uniqueMap.get(key);
-          const score = (loc.image_url ? 2 : 0) + (loc.kakao_url ? 1 : 0) + (loc.instagram_url ? 1 : 0);
-          const exScore = (existing.image_url ? 2 : 0) + (existing.kakao_url ? 1 : 0) + (existing.instagram_url ? 1 : 0);
-          if (score > exScore || (score === exScore && loc.id > existing.id)) {
-            uniqueMap.set(key, loc);
-          }
-        }
-      });
-      const deduplicatedList = Array.from(uniqueMap.values());
+      const deduplicatedList = dedupeVenueList(data || []);
 
       // 주소(address) 컬럼 기준 지역 분류 로직
       const classified = deduplicatedList.map(loc => {
@@ -87,7 +68,7 @@ export default function RentalModal({ onClose }) {
         let region = '기타';
 
         if (combined.includes('서울')) region = '서울';
-        else if (combined.includes('경기') || combined.includes('인천')) region = '경기/인천';
+        else if (combined.includes('경기') || combined.includes('인천')) region = '경인';
         else if (
           combined.includes('경상') || combined.includes('부산') || combined.includes('대구') ||
           combined.includes('울산') || combined.includes('창원') || combined.includes('포항') ||
@@ -111,7 +92,7 @@ export default function RentalModal({ onClose }) {
         const isGangturn = nameKey.includes('강남턴') || nameKey.includes('강턴');
         const isGgomaeya = nameKey.includes('꼼애야');
         const isNoriter = nameKey.includes('놀이터');
-        const isLatin = nameKey.includes('라틴') && region !== '경기/인천' && !nameKey.includes('라틴크루');
+        const isLatin = nameKey === '라틴';
         const isMacondo = nameKey.includes('마콘도');
         const isBonita = nameKey.includes('보니따');
         const isBuena = nameKey.includes('부에나') && !nameKey.includes('비스타');

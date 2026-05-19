@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+﻿import React, { useState, useEffect, useRef } from 'react';
 import { 
   ChevronLeft, Search, Plus, X, Calendar, MapPin, 
   Image as ImageIcon, Zap, Search as SearchIcon, 
@@ -10,7 +10,7 @@ import { supabase } from '../lib/supabase';
 import { useTranslation } from 'react-i18next';
 
 const GENRES = ['전체', '바차타', '살사', '키좀바', '쥬크'];
-const REGIONS = ['전국', '서울', '경기/인천', '경상도', '전라도', '충청도', '강원/제주', '해외'];
+const REGIONS = ['전국', '서울', '경인', '경상도', '전라도', '충청도', '강원/제주', '해외'];
 
 const Bootcamp = ({ onBack, initialView = 'list' }) => {
   const { t, i18n } = useTranslation();
@@ -604,7 +604,7 @@ const Bootcamp = ({ onBack, initialView = 'list' }) => {
                   <div>
                     <label style={{ display: 'block', fontSize: 11, fontWeight: 900, color: '#C9A84C', marginBottom: 10, letterSpacing: '1.5px' }}>8. 지역</label>
                     <select value={formData.region} onChange={e => setFormData(p => ({ ...p, region: e.target.value }))} style={{ width: '100%', padding: '18px', borderRadius: 16, border: '1px solid rgba(255,255,255,0.1)', background: '#1A1A1A', fontSize: 16, color: '#fff', outline: 'none' }}>
-                      {['서울','경기/인천','경상도','전라도','충청도','강원/제주','해외'].map(r => <option key={r} value={r}>{r}</option>)}
+                      {['서울','경인','경상도','전라도','충청도','강원/제주','해외'].map(r => <option key={r} value={r}>{r}</option>)}
                     </select>
                   </div>
                   <div>

@@ -409,12 +409,42 @@ input[type=number] {
   -webkit-tap-highlight-color: transparent;
 }
 
+:root {
+  --bchata-app-width: 500px;
+}
+
+html {
+  background: #e8ecf0;
+}
+
 body {
   font-family: var(--font-main);
-  background-color: var(--bg-primary);
+  background-color: #e8ecf0;
   color: var(--text-main);
   overflow-x: hidden;
   line-height: 1.5;
+}
+
+/* PC에서도 휴대폰과 동일한 폭·레이아웃 (고정 UI는 셸 안에만 표시) */
+#root {
+  width: 100%;
+  min-height: 100vh;
+  min-height: 100dvh;
+}
+
+.bchata-app-shell {
+  width: min(100%, var(--bchata-app-width));
+  max-width: var(--bchata-app-width);
+  margin: 0 auto;
+  min-height: 100vh;
+  min-height: 100dvh;
+  position: relative;
+  background: #ffffff;
+  box-shadow: 0 0 48px rgba(15, 23, 42, 0.1);
+  overflow-x: hidden;
+  /* position:fixed 자식을 뷰포트가 아닌 셸 기준으로 */
+  transform: translateX(0);
+  isolation: isolate;
 }
 
 /* Premium Layout Container */
@@ -739,24 +769,31 @@ body.party-register-open .bottom-nav {
   opacity: 0 !important;
 }
 
+/* BAR 상세: 네비를 모달 위에 올리고, 스크롤 다운 시에만 숨김 */
+body.venue-detail-open nav.bottom-nav,
+body.venue-detail-open .bottom-nav {
+  z-index: 2300000 !important;
+}
+
+body.venue-detail-open.venue-detail-nav-hidden nav.bottom-nav,
+body.venue-detail-open.venue-detail-nav-hidden .bottom-nav {
+  opacity: 0 !important;
+  visibility: hidden !important;
+  pointer-events: none !important;
+  transform: translateX(-50%) translateY(120px) !important;
+}
+
 nav.bottom-nav,
 .bottom-nav {
   position: fixed !important;
   top: auto !important;
-  /* bottom: 20px; Floating look */
-  bottom: 0 !important;
-  /* left: 50%; */
-  left: 0 !important;
-  right: 0 !important;
-  margin-left: auto !important;
-  margin-right: auto !important;
-  /* transform: translateX(-50%); */
-  transform: none !important;
-  transition: none !important;
-  /* width: calc(100% - 40px); */
-  width: 100% !important;
-  /* max-width: 460px; */
-  max-width: 500px !important;
+  bottom: 15px !important;
+  left: 50% !important;
+  right: auto !important;
+  width: calc(100% - 24px) !important;
+  max-width: 460px !important;
+  margin-left: 0 !important;
+  margin-right: 0 !important;
   /* height: 72px; */
   min-height: 68px !important;
   height: auto !important;
@@ -1067,16 +1104,8 @@ body:not(.bottom-nav-social-light) nav.bottom-nav {
 }
 
 @media (min-width: 768px) {
-  #root {
-    max-width: 480px;
-    margin: 0 auto;
-    min-height: 100vh;
-    box-shadow: 0 0 40px rgba(0,0,0,0.15);
-    position: relative;
-  }
-  
-  body {
-    background: #E8ECF0;
+  .bchata-app-shell {
+    box-shadow: 0 0 56px rgba(15, 23, 42, 0.14);
   }
 }
 

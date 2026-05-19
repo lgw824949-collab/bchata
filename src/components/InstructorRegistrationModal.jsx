@@ -1,10 +1,10 @@
-import React, { useState, useEffect, useRef } from 'react'
+﻿import React, { useState, useEffect, useRef } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { X, ChevronLeft, ChevronRight, Check, User, Music, MapPin, MessageCircle, Info, Zap, Camera, Globe, Sparkles } from 'lucide-react'
 import { supabase } from '../lib/supabase'
 
 const GENRES = ['바차타', '살사', '키좀바', '쥬크']
-const CITIES = ['서울', '경기/인천', '부산', '대구', '대전', '광주', '강원', '제주']
+const CITIES = ['서울', '경인', '부산', '대구', '대전', '광주', '강원', '제주']
 
 const InstructorRegistrationModal = ({ isOpen, onClose, onSuccess, formData, setFormData }) => {
   const [step, setStep] = useState(1)

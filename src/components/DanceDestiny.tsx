@@ -1,4 +1,4 @@
-// src/components/DanceDestiny.tsx
+﻿// src/components/DanceDestiny.tsx
 // 최종 완성본: 강사 매칭 최적화 / Gemini API 연동 / 404 에러 방지 및 로컬 롤백 포함
 // 추천 클래스 & 강사 라인업 복구 완료
 
@@ -256,7 +256,7 @@ export default function DanceDestiny({ onClose, lessons=[] }: { onClose: () => v
               <div style={{ position: 'relative', marginBottom: 30 }}>
                 <select value={region} onChange={e=>setRegion(e.target.value)} style={{ ...INP, appearance:'none' }}>
                   <option value="">활동 지역 선택</option>
-                  {['서울', '경기/인천', '경상도', '전라도', '충청도', '강원/제주'].map(r => (
+                  {['서울', '경인', '경상도', '전라도', '충청도', '강원/제주'].map(r => (
                     <option key={r} value={r}>{r}</option>
                   ))}
                 </select>

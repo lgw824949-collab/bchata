@@ -1,9 +1,9 @@
-import React, { useState, useEffect } from 'react';
+﻿import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, Search, PlusCircle, MapPin, Star, MessageCircle, Calendar } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 
-const REGIONS = ['서울', '경기/인천', '부산', '대구', '대전', '광주', '기타'];
+const REGIONS = ['서울', '경인', '부산', '대구', '대전', '광주', '기타'];
 const LEVELS = ['처음이에요', '초급', '중급', '고수'];
 
 export default function PartnerModal({ onClose }) {

@@ -1,4 +1,4 @@
-// src/utils/kmaApi.js
+﻿// src/utils/kmaApi.js
 // 기상청 단기예보 API 연동 유틸리티
 
 const SERVICE_KEY = import.meta.env.VITE_KMA_SERVICE_KEY;
@@ -6,7 +6,7 @@ const SERVICE_KEY = import.meta.env.VITE_KMA_SERVICE_KEY;
 // 주요 지역별 기상청 nx, ny 좌표 (공공데이터포털 가이드 기준)
 export const KMA_REGION_COORDS = {
   '서울': { nx: 60, ny: 127 },
-  '경기/인천': { nx: 55, ny: 124 }, // 인천 기준
+  '경인': { nx: 55, ny: 124 }, // 인천 기준
   '충청': { nx: 67, ny: 100 },    // 대전 기준
   '전라': { nx: 58, ny: 74 },     // 광주 기준
   '경상': { nx: 89, ny: 90 },     // 대구 기준
@@ -17,7 +17,7 @@ export const KMA_REGION_COORDS = {
 // Home.tsx에서 사용하는 지역명 매핑용
 export const HOME_REGION_MAP = {
   '서울': '서울',
-  '경기/인천': '경기/인천',
+  '경인': '경인',
   '충청도': '충청',
   '전라도': '전라',
   '경상도': '경상',

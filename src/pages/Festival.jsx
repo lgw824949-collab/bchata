@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+﻿import React, { useState, useEffect } from 'react';
 import { ChevronLeft, Calendar, MapPin, Zap, X, ChevronDown, Plus, Image as ImageIcon } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { supabase } from '../lib/supabase';
@@ -29,7 +29,7 @@ const Festival = ({ onBack }) => {
   }, [selectedRegion, activeTab]);
 
   const REGION_MAP = {
-    '수도권': ['서울', '경기/인천', '수도권'],
+    '수도권': ['서울', '경인', '수도권'],
     '강원':   ['강원', '강원도', '강원/제주'],
     '제주':   ['제주', '제주도', '강원/제주'],
     '부산/경남': ['부산', '경남', '경상도', '부산/경남'],
@@ -475,7 +475,7 @@ const Festival = ({ onBack }) => {
                       <button type="button" onClick={() => setFormData(prev => ({ ...prev, location: '추후 공지' }))} style={{ padding: '0 20px', borderRadius: '18px', background: formData.location === '추후 공지' ? '#C9A84C' : 'rgba(255,255,255,0.05)', color: formData.location === '추후 공지' ? '#000' : '#94a3b8', fontSize: '13px', fontWeight: 900, border: '1px solid rgba(255,255,255,0.1)', whiteSpace: 'nowrap' }}>추후 공지</button>
                     </div>
                   </div>
-                  <div><label style={{ display: 'block', fontSize: '12px', fontWeight: 900, color: '#C9A84C', marginBottom: '12px', letterSpacing: '1.5px' }}>7. 지역</label><select value={formData.region} onChange={e => setFormData(prev => ({ ...prev, region: e.target.value }))} style={{ width: '100%', padding: '20px', borderRadius: '18px', border: '1px solid rgba(255,255,255,0.1)', background: '#1A1A1A', fontSize: '16px', color: '#f8fafc', outline: 'none' }}>{['서울','경기/인천','강원','제주','부산/경남','전라도','충청도'].map(r => <option key={r} value={r}>{r}</option>)}</select></div>
+                  <div><label style={{ display: 'block', fontSize: '12px', fontWeight: 900, color: '#C9A84C', marginBottom: '12px', letterSpacing: '1.5px' }}>7. 지역</label><select value={formData.region} onChange={e => setFormData(prev => ({ ...prev, region: e.target.value }))} style={{ width: '100%', padding: '20px', borderRadius: '18px', border: '1px solid rgba(255,255,255,0.1)', background: '#1A1A1A', fontSize: '16px', color: '#f8fafc', outline: 'none' }}>{['서울','경인','강원','제주','부산/경남','전라도','충청도'].map(r => <option key={r} value={r}>{r}</option>)}</select></div>
                 </motion.div>
               )}
 
