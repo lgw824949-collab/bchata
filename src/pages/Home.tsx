@@ -7,6 +7,9 @@ import LiveCount from '../components/LiveCount'
 import { KMA_REGION_COORDS, fetchWeatherForecast, parseKmaWeather, HOME_REGION_MAP } from '../utils/kmaApi'
 import { supabase } from '../lib/supabase'
 import { BAR_DATABASE } from '../lib/BarLib'
+import { normDate, getKSTCalendarTodayStr, isApprovedParty } from '../lib/dateNorm'
+import { LOCATIONS_SELECT, logSupabaseError } from '../lib/locationsQuery'
+import { logPartiesFetchError } from '../lib/partiesQuery'
 import {
   dedupeVenueList,
   normalizeVenueAddressKey,
@@ -16,6 +19,7 @@ import VenueDetailModal from '../components/VenueDetailModal'
 import BarRegisterFormModal from '../components/BarRegisterFormModal'
 import HomeHeroTagline from '../components/HomeHeroTagline'
 import { navigate } from '../lib/appHistory'
+import { Z } from '../constants/zLayers'
 import gangturnPhoto from '../assets/gangturn_photo.png'
 import ggomaeyaPhoto from '../assets/ggomaeya_photo.jpg'
 import noriterPhoto from '../assets/noriter_photo.png'
@@ -240,15 +244,30 @@ const partyCardZoomDesktopOnly = {
   onMouseLeave: setPartyCardZoomOut,
 };
 
-/** 행사달력: 날짜 문자열 통일 (YYYY-MM-DD) */
-const normDate = (d) => (d ? String(d).slice(0, 10) : '');
-
-/** KST 오늘 (새벽 4시 전 = 전날, App과 동일) */
+/** KST 오늘 (새벽 4시 전 = 전날, App·노출·달력 스크롤과 동일) */
 const getKSTTodayStr = () => {
-  const now = new Date();
-  if (now.getHours() < 4) now.setDate(now.getDate() - 1);
-  const kst = now.toLocaleString('en-US', { timeZone: 'Asia/Seoul', year: 'numeric', month: '2-digit', day: '2-digit' });
-  const [m, d, y] = kst.split('/');
+  const parts = new Intl.DateTimeFormat('en-US', {
+    timeZone: 'Asia/Seoul',
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+    hour: '2-digit',
+    hour12: false,
+  }).formatToParts(new Date());
+  const pick = (type) => parts.find((p) => p.type === type)?.value ?? '';
+  let y = pick('year');
+  let m = pick('month');
+  let d = pick('day');
+  const hour = parseInt(pick('hour'), 10);
+  if (hour < 4) {
+    const rolled = new Date(`${y}-${m}-${d}T12:00:00+09:00`);
+    rolled.setDate(rolled.getDate() - 1);
+    const kst = rolled.toLocaleString('en-US', { timeZone: 'Asia/Seoul', year: 'numeric', month: '2-digit', day: '2-digit' });
+    const [rm, rd, ry] = kst.split('/');
+    y = ry;
+    m = rm;
+    d = rd;
+  }
   return `${y}-${m.padStart(2, '0')}-${d.padStart(2, '0')}`;
 };
 
@@ -893,7 +912,7 @@ const FilterBar = ({ filterRegion, setFilterRegion, filterGenre, setFilterGenre 
 };
 
 const HomePage = ({
-  parties, bootcamps, festivals, lessons, loading, selectedMonth, setSelectedMonth, selectedWeek, setSelectedWeek,
+  parties, bootcamps, festivals, lessons, loading: partiesLoading, selectedMonth, setSelectedMonth, selectedWeek, setSelectedWeek,
   selectedDate, setSelectedDate, selectedRegion, setSelectedRegion, isExpanded, setIsExpanded,
   view, setView, setSelectedPoster, fetchParties, formatItemDate, formatFee, filteredParties, weekData,
   resetToToday, showFullCalendar, setShowFullCalendar, likedIds, toggleLike, logActivity, handleRegister, fourteenDays,
@@ -957,17 +976,54 @@ const HomePage = ({
 
   useEffect(() => {
     const fetchPosters = async () => {
-      const today = new Date().toISOString().split('T')[0];
+      const today = getKSTCalendarTodayStr();
 
-      const [partiesRes, bootcampsRes, festivalsRes] = await Promise.all([
-        supabase.from('parties').select('poster_url').gte('date', today).not('poster_url', 'is', null),
-        supabase.from('bootcamps').select('poster_url').gte('start_date', today).not('poster_url', 'is', null),
-        supabase.from('festivals').select('poster_url').gte('start_date', today).not('poster_url', 'is', null),
-      ]);
+      try {
+        const partiesRes = await supabase
+          .from('parties')
+          .select('poster_url')
+          .eq('status', 'approved')
+          .gte('date', today)
+          .not('poster_url', 'is', null);
+        if (partiesRes.error) {
+          logPartiesFetchError(partiesRes.error);
+        } else {
+          setSocialPosters((partiesRes.data || []).map((p) => p.poster_url).filter(Boolean));
+        }
+      } catch (err) {
+        logPartiesFetchError(err);
+        console.error('[Home.fetchPosters.parties]', err);
+      }
 
-      setSocialPosters((partiesRes.data || []).map((p) => p.poster_url));
-      setBootcampPosters((bootcampsRes.data || []).map((p) => p.poster_url));
-      setFestivalPosters((festivalsRes.data || []).map((p) => p.poster_url));
+      try {
+        const bootcampsRes = await supabase
+          .from('bootcamps')
+          .select('poster_url')
+          .gte('start_date', today)
+          .not('poster_url', 'is', null);
+        if (bootcampsRes.error) {
+          console.error('[Home.fetchPosters.bootcamps]', bootcampsRes.error.message, bootcampsRes.error.details);
+        } else {
+          setBootcampPosters((bootcampsRes.data || []).map((p) => p.poster_url).filter(Boolean));
+        }
+      } catch (err) {
+        console.error('[Home.fetchPosters.bootcamps]', err);
+      }
+
+      try {
+        const festivalsRes = await supabase
+          .from('festivals')
+          .select('poster_url')
+          .gte('start_date', today)
+          .not('poster_url', 'is', null);
+        if (festivalsRes.error) {
+          console.error('[Home.fetchPosters.festivals]', festivalsRes.error.message, festivalsRes.error.details);
+        } else {
+          setFestivalPosters((festivalsRes.data || []).map((p) => p.poster_url).filter(Boolean));
+        }
+      } catch (err) {
+        console.error('[Home.fetchPosters.festivals]', err);
+      }
     };
     fetchPosters();
   }, []);
@@ -1094,11 +1150,15 @@ const HomePage = ({
   }, []);
 
   const todayStr = useMemo(() => getKSTTodayStr(), []);
+  const calendarTodayStr = useMemo(() => getKSTCalendarTodayStr(), []);
 
+  // parties = App displayParties (승인·노출 필터됨). 카운터만 달력 오늘(calendarTodayStr) + normDate로 재매칭.
   useEffect(() => {
-    const todayParties = (parties || []).filter((p) => p.date === todayStr && p.status === 'approved');
+    const todayParties = (parties || []).filter(
+      (p) => isApprovedParty(p) && normDate(p.date) === calendarTodayStr,
+    );
 
-    const isSeoulParty = (p) => p.broadRegion === '서울' || p.region?.includes('서울');
+    const isSeoulParty = (p) => REGION_FILTER['서울'](p);
     const isMetroParty = (p) =>
       p.broadRegion === '경인' ||
       p.broadRegion === '경기/인천' ||
@@ -1141,12 +1201,19 @@ const HomePage = ({
       national: nationalParties.length,
       nationalDistricts: getTopDistricts(nationalParties),
     });
-  }, [parties, todayStr]);
+  }, [parties, calendarTodayStr]);
 
   const openTodayPartyBucket = (tab) => {
-    setSelectedDate(todayStr);
+    setSelectedDate(calendarTodayStr);
+    setIsModalFilterVisible(true);
     if (tab === '서울' || tab === '경인') setSelectedRegion(tab);
     else setSelectedRegion('');
+    setShowFullCalendar(true);
+  };
+
+  const openFullCalendarModal = () => {
+    setSelectedDate(calendarTodayStr);
+    setIsModalFilterVisible(true);
     setShowFullCalendar(true);
   };
 
@@ -1159,8 +1226,15 @@ const HomePage = ({
   const calendarFestivals = useMemo(() => dedupeById(festivals || []), [festivals]);
 
   useEffect(() => {
-    if (showFullCalendar) fetchParties();
-  }, [showFullCalendar, fetchParties]);
+    if (!showFullCalendar) return;
+    fetchParties();
+    setSelectedDate((prev) => {
+      const prevDay = normDate(prev);
+      if (prevDay && prevDay >= calendarTodayStr) return prevDay;
+      return calendarTodayStr;
+    });
+    setIsModalFilterVisible(true);
+  }, [showFullCalendar, fetchParties, calendarTodayStr]);
   const isAfter9AM = useMemo(() => {
     const now = new Date();
     return now.getHours() >= 9;
@@ -1170,7 +1244,7 @@ const HomePage = ({
   const barSectionRef = useRef(null);
   const [shuffleOffset, setShuffleOffset] = useState(0);
   const [locations, setLocations] = useState([]);
-  const [isLoading, setIsLoading] = useState(true);
+  const [locationsLoading, setLocationsLoading] = useState(true);
   const [selectedRegionTab, setSelectedRegionTab] = useState('서울');
   const [barListExpanded, setBarListExpanded] = useState(false);
   const [selectedVenue, setSelectedVenue] = useState(null);
@@ -1235,16 +1309,21 @@ const HomePage = ({
   }, []);
 
   const fetchLocations = async () => {
-    setIsLoading(true);
+    setLocationsLoading(true);
     try {
       let rawList = [];
       if (supabase) {
         const { data, error } = await supabase
           .from('locations')
-          .select('*')
+          .select(LOCATIONS_SELECT)
           .order('name', { ascending: true });
-        if (error) throw error;
+        if (error) {
+          logSupabaseError('Home.fetchLocations', error);
+          throw error;
+        }
         rawList = data || [];
+      } else {
+        console.warn('[Home.fetchLocations] supabase client 없음 — 로컬 BAR 마스터만 사용');
       }
 
       let classified = dedupeVenueList(rawList).map(classifyVenueLocation);
@@ -1282,10 +1361,11 @@ const HomePage = ({
       classified.sort((a, b) => (a.name || '').localeCompare(b.name || ''));
       setLocations(classified);
     } catch (err) {
-      console.error('BAR 목록 로드 실패:', err);
+      console.error('Supabase Error:', err);
+      console.error('[Home.fetchLocations] BAR 목록 로드 실패 — 로컬 마스터 데이터로 대체:', err);
       setLocations(buildVenueListFromDatabase());
     } finally {
-      setIsLoading(false);
+      setLocationsLoading(false);
     }
   };
 
@@ -1360,17 +1440,21 @@ const HomePage = ({
           />
         )}
       </motion.div>
-      <span style={{
-        fontSize: '11px',
-        fontWeight: 800,
-        color: '#1E293B',
-        textAlign: 'center',
-        width: '100%',
-        lineHeight: 1.25,
-        overflow: 'hidden',
-        textOverflow: 'ellipsis',
-        whiteSpace: 'nowrap'
-      }}>
+      <span
+        className="social-bar-name-label"
+        style={{
+          fontSize: '11px',
+          fontWeight: 900,
+          color: isHomeGate ? '#FFFFFF' : HOME_TEXT,
+          textAlign: 'center',
+          width: '100%',
+          lineHeight: 1.3,
+          overflow: 'hidden',
+          textOverflow: 'ellipsis',
+          whiteSpace: 'nowrap',
+          textShadow: isHomeGate ? '0 1px 4px rgba(0, 0, 0, 0.75)' : undefined,
+        }}
+      >
         {bar.name || '이름 없음'}
       </span>
     </motion.div>
@@ -1381,12 +1465,12 @@ const HomePage = ({
   }, []);
 
   useEffect(() => {
-    if (isLoading || locations.length === 0) return;
+    if (locationsLoading || locations.length === 0) return;
     const hasCurrent = locations.some((b) => b.region === selectedRegionTab);
     if (hasCurrent) return;
     const firstWithVenues = HOME_REGIONS_ORDER.find((r) => locations.some((b) => b.region === r));
     if (firstWithVenues) setSelectedRegionTab(firstWithVenues);
-  }, [locations, isLoading, selectedRegionTab]);
+  }, [locations, locationsLoading, selectedRegionTab]);
 
   useEffect(() => {
     setBarListExpanded(false);
@@ -1463,6 +1547,8 @@ const HomePage = ({
     posterIdle: 'rgba(255, 255, 255, 0.12)',
     liveShell: 'linear-gradient(135deg, #1a1510 0%, #0a0a0a 55%, #141018 100%)',
     liveBorder: 'rgba(201, 168, 76, 0.35)',
+    barSubtitle: '#E8D5A3',
+    barLabel: '#FFFFFF',
   } : {
     pageBg: '#FFFFFF',
     text: HOME_TEXT,
@@ -1486,6 +1572,8 @@ const HomePage = ({
     posterIdle: '#F0F0F0',
     liveShell: 'linear-gradient(135deg, #D4436E 0%, #C7365F 100%)',
     liveBorder: 'transparent',
+    barSubtitle: HOME_TEXT_MUTED,
+    barLabel: HOME_TEXT,
   }), [isHomeGate]);
   const homePartyBucketEmpty = homeUi.partyEmpty;
   const homePartyBucketActive = homeUi.partyActive;
@@ -1516,8 +1604,14 @@ const HomePage = ({
     { id: 'restaurant', icon: <Utensils size={QUICK_MENU_ICON} strokeWidth={1.5} color={quickMenuIconColor} />, label: '맛집뒷풀이', particles: '🍽', action: () => navigate('/restaurant') },
     { id: 'weather', icon: <CloudSun size={QUICK_MENU_ICON} strokeWidth={1.5} color={quickMenuIconColor} />, label: '오늘날씨', particles: '☀️', action: () => setShowWeather(true) },
     { id: 'route', icon: <Navigation size={QUICK_MENU_ICON} strokeWidth={1.5} color={quickMenuIconColor} />, label: '지능형경로', particles: '🧭', action: () => openAnalysis(false) },
-    { id: 'calendar', icon: <Calendar size={QUICK_MENU_ICON} strokeWidth={1.5} color={quickMenuIconColor} />, label: '행사달력', particles: '📅', action: () => setShowFullCalendar(true) },
-  ], [handleRegister, setShowFullCalendar, setView, setShowWishlist, setShowSaju, setShowWeather, openAnalysis, isHomeGate]);
+    {
+      id: 'calendar',
+      icon: <Calendar size={QUICK_MENU_ICON} strokeWidth={1.5} color={quickMenuIconColor} />,
+      label: '행사달력',
+      particles: '📅',
+      action: openFullCalendarModal,
+    },
+  ], [handleRegister, openFullCalendarModal, setView, setShowWishlist, setShowSaju, setShowWeather, openAnalysis, isHomeGate]);
 
   const { quickMenuPrimary, quickMenuMore } = useMemo(() => {
     const primary = QUICK_MENU_PRIMARY_IDS
@@ -1572,14 +1666,14 @@ const HomePage = ({
     );
   };
 
-  const renderHomeSectionHeader = (title, subtitle, trailing = null) => (
+  const renderHomeSectionHeader = (title, subtitle, trailing = null, subtitleStyle = null) => (
     <header style={{ marginBottom: 12 }}>
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8 }}>
         <h2 className="home-type-section-title" style={{ ...homeSectionTitleStyle, flex: 1, minWidth: 0 }}>{title}</h2>
         {trailing}
       </div>
       {subtitle ? (
-        <p className="home-type-caption" style={homeSubtitleStyle}>{subtitle}</p>
+        <p className="home-type-caption" style={subtitleStyle || homeSubtitleStyle}>{subtitle}</p>
       ) : null}
     </header>
   );
@@ -1587,7 +1681,7 @@ const HomePage = ({
   return (
     <div
       className={`app-container${isHomeGate ? ' home-gate-active' : ''}`}
-      style={{ width: '100%', maxWidth: '500px', margin: '0 auto', background: homeUi.pageBg, minHeight: '100vh', paddingBottom: '100px', transition: 'background 0.25s ease' }}
+      style={{ width: '100%', maxWidth: '500px', margin: '0 auto', background: homeUi.pageBg, minHeight: '100dvh', paddingBottom: '100px', transition: 'background 0.25s ease' }}
     >
 
       {activeTab === 'social' && (
@@ -1648,8 +1742,8 @@ const HomePage = ({
             { label: isEn ? 'Metro' : '수도권', count: regionCounts.metro, districts: regionCounts.metroDistricts, tab: '경인' },
             { label: isEn ? 'Regions' : '지방권', count: regionCounts.national, districts: regionCounts.nationalDistricts, tab: null },
           ].map((r) => {
-            const theme = !loading && r.count > 0 ? homePartyBucketActive : homePartyBucketEmpty;
-            const hasCount = !loading && r.count > 0;
+            const theme = !partiesLoading && r.count > 0 ? homePartyBucketActive : homePartyBucketEmpty;
+            const hasCount = !partiesLoading && r.count > 0;
             return (
               <button
                 key={r.label}
@@ -1658,7 +1752,7 @@ const HomePage = ({
                 style={{
                   flex: 1,
                   minWidth: 0,
-                  padding: '14px 10px',
+                  padding: '18px 14px',
                   borderRadius: '16px',
                   border: `1.5px solid ${theme.border}`,
                   background: theme.bg,
@@ -1676,7 +1770,7 @@ const HomePage = ({
               >
                 <span className="home-type-party-label" style={{ color: theme.label, marginBottom: 6, width: '100%' }}>{r.label}</span>
                 <div className="home-type-party-count" style={{ fontSize: hasCount ? '22px' : '20px', color: theme.count, width: '100%' }}>
-                  {loading ? '—' : r.count}
+                  {partiesLoading ? '—' : r.count}
                   <span className="home-type-party-unit" style={{ color: theme.unit, marginLeft: '2px' }}>
                     {isEn ? '' : '건'}
                   </span>
@@ -1710,10 +1804,15 @@ const HomePage = ({
 
       {/* 🔴 [LIVE 바 임팩트 영역 개편] */}
       {(activeTab === null || activeTab === 'social') && (
-      <motion.div style={{ padding: '0 20px', marginBottom: homeSectionSpace }}>
+      <motion.div
+        className="home-live-row"
+        style={{ padding: '0 20px', marginBottom: homeSectionSpace, display: 'flex', alignItems: 'stretch', gap: 10 }}
+      >
         <div
           className={`live-count-premium-wrapper${isHomeGate ? ' live-count-premium-wrapper--gate' : ''}`}
           style={{
+            flex: 1,
+            minWidth: 0,
             background: homeUi.liveShell,
             borderRadius: '14px',
             overflow: 'hidden',
@@ -1745,11 +1844,15 @@ const HomePage = ({
 
             /* LIVE 바 내부 요소 강제 레이아웃/스타일 최적화 */
             .live-count-premium-wrapper > div {
-              height: 42px !important;
+              height: 44px !important;
               padding: 0 14px !important;
               background: transparent !important;
               box-sizing: border-box !important;
               width: 100% !important;
+              overflow: hidden !important;
+            }
+            .live-count-premium-wrapper .lc-lang {
+              margin-left: auto !important;
             }
             .live-count-premium-wrapper .lc-tag {
               background: #FFFFFF !important;
@@ -1792,13 +1895,13 @@ const HomePage = ({
               text-overflow: ellipsis !important;
             }
             .live-count-premium-wrapper .lc-lang {
-              margin-left: auto !important;
               display: flex !important;
               align-items: center !important;
               background: rgba(255,255,255,0.2) !important;
               padding: 2px 4px !important;
               border-radius: 6px !important;
               gap: 2px !important;
+              flex-shrink: 0 !important;
             }
             .live-count-premium-wrapper .lc-lang-btn {
               padding: 2px 6px !important;
@@ -1823,9 +1926,40 @@ const HomePage = ({
               background: #C9A84C !important;
               color: #1a1a1a !important;
             }
+            .home-party-register-outside {
+              flex-shrink: 0;
+              display: flex;
+              flex-direction: column;
+              align-items: center;
+              justify-content: center;
+              gap: 2px;
+              min-width: 54px;
+              padding: 0 12px;
+              border-radius: 14px;
+              border: 1px solid rgba(212, 67, 110, 0.35);
+              background: linear-gradient(180deg, #fff5f7 0%, #ffe4ec 100%);
+              color: #D4436E;
+              font-size: 12px;
+              font-weight: 900;
+              line-height: 1.15;
+              cursor: pointer;
+              box-shadow: 0 4px 14px rgba(212, 67, 110, 0.18);
+            }
+            .home-party-register-outside__line { display: block; }
           `}</style>
           <LiveCount />
         </div>
+        {activeTab === 'social' && (
+          <button
+            type="button"
+            className="home-party-register-outside"
+            onClick={() => handleRegister('party')}
+            aria-label={isEn ? 'Register party' : '파티 등록'}
+          >
+            <span className="home-party-register-outside__line">{isEn ? 'Party' : '파티'}</span>
+            <span className="home-party-register-outside__line">{isEn ? 'Register' : '등록'}</span>
+          </button>
+        )}
       </motion.div>
       )}
 
@@ -2032,14 +2166,24 @@ const HomePage = ({
         .home-gate-active .quick-menu-more-wrap::after {
           background: linear-gradient(to right, rgba(13, 13, 13, 0), #0d0d0d 90%);
         }
+        .social-bar-name-label {
+          font-weight: 900;
+        }
+        .home-gate-active .social-bar-name-label {
+          color: #FFFFFF;
+          text-shadow: 0 1px 4px rgba(0, 0, 0, 0.8);
+        }
         .home-poster-border-inner {
           position: relative;
           z-index: 1;
           width: 100%;
           aspect-ratio: 3 / 4;
-          border-radius: 10px;
+          border-radius: 12px;
           overflow: hidden;
           background: #111;
+        }
+        .home-poster-border-inner img {
+          border-radius: 12px;
         }
       `}</style>
       {activeTab === null && (
@@ -2142,12 +2286,17 @@ const HomePage = ({
           )}
         </div>
 
-        <hr style={{ ...homeSectionDividerStyle, margin: `${homeBlockSpace}px 0` }} aria-hidden />
+        <hr style={{ ...homeSectionDividerStyle, margin: `${homeBlockSpace + 18}px 0 ${homeBlockSpace}px` }} aria-hidden />
 
         {/* BAR 쉘: 지역 pill + 원형 그리드 */}
-        <motion.div ref={barSectionRef} style={{ display: 'flex', flexDirection: 'column', background: isHomeGate ? 'transparent' : '#ffffff' }}>
+        <motion.div ref={barSectionRef} style={{ display: 'flex', flexDirection: 'column', marginTop: 8, background: isHomeGate ? 'transparent' : '#ffffff' }}>
           {renderHomeSectionHeader(
-            'Social BAR',
+            isHomeGate ? (
+              <>
+                <span>Social </span>
+                <span style={{ color: homeUi.gold }}>BAR</span>
+              </>
+            ) : 'Social BAR',
             '만원의 행복공간',
             <button
               type="button"
@@ -2157,6 +2306,7 @@ const HomePage = ({
               <Plus size={12} strokeWidth={2.5} />
               공간 등록
             </button>,
+            isHomeGate ? { color: homeUi.barSubtitle, fontWeight: 600 } : null,
           )}
           <motion.div style={{
             display: 'flex', overflowX: 'auto', gap: 12, padding: '0 0 20px',
@@ -2205,7 +2355,7 @@ const HomePage = ({
           </motion.div>
 
           <motion.div style={{ padding: '20px 0 12px', flex: 1 }}>
-            {isLoading ? (
+            {locationsLoading ? (
               <div style={{ padding: '60px 20px', textAlign: 'center', color: '#94A3B8', fontWeight: 700 }}>
                 전국 BAR 정보를 정렬하는 중...
               </div>
@@ -2265,13 +2415,19 @@ const HomePage = ({
                               width: '56px',
                               height: '56px',
                               borderRadius: '50%',
-                              background: barListExpanded ? HOME_BRAND_SOFT : HOME_SURFACE,
-                              border: barListExpanded ? `1.5px solid ${HOME_BRAND_BORDER}` : '1.5px dashed #CBD5E1',
+                              background: barListExpanded
+                                ? (isHomeGate ? homeUi.goldSoft : HOME_BRAND_SOFT)
+                                : (isHomeGate ? homeUi.surface : HOME_SURFACE),
+                              border: barListExpanded
+                                ? `1.5px solid ${isHomeGate ? homeUi.goldBorder : HOME_BRAND_BORDER}`
+                                : `1.5px dashed ${isHomeGate ? homeUi.border : '#CBD5E1'}`,
                               display: 'flex',
                               alignItems: 'center',
                               justifyContent: 'center',
                               marginBottom: '6px',
-                              color: barListExpanded ? HOME_BRAND : HOME_TEXT_MUTED,
+                              color: barListExpanded
+                                ? (isHomeGate ? homeUi.gold : HOME_BRAND)
+                                : (isHomeGate ? homeUi.textMuted : HOME_TEXT_MUTED),
                               fontSize: '13px',
                               fontWeight: 900,
                             }}
@@ -2286,7 +2442,9 @@ const HomePage = ({
                             style={{
                               fontSize: '11px',
                               fontWeight: 800,
-                              color: barListExpanded ? HOME_BRAND : HOME_TEXT,
+                              color: barListExpanded
+                                ? (isHomeGate ? homeUi.gold : HOME_BRAND)
+                                : (isHomeGate ? homeUi.barLabel : HOME_TEXT),
                               textAlign: 'center',
                               lineHeight: 1.3,
                               whiteSpace: 'nowrap',
@@ -2528,7 +2686,7 @@ const HomePage = ({
 
       <div ref={scrollRef} style={{ width: '100%', background: 'var(--color-bg)' }}>
         <div style={{ minHeight: '101%' }}>
-          {loading ? (
+          {partiesLoading ? (
             <div style={{ display: 'flex', flexDirection: 'column', marginTop: '120px' }}>{Array(6).fill(0).map((_, i) => <div key={i} style={{ height: '140px', width: '100%', background: 'var(--color-card)', borderBottom: '1px solid var(--color-border)' }} />)}</div>
           ) : (
             <div style={{ width: '100%', padding: '0 0 20px 0', backgroundColor: 'var(--color-bg)' }}>
@@ -3032,8 +3190,8 @@ const HomePage = ({
       <AnimatePresence>
         {showFullCalendar && (
           <>
-            <motion.div className="modernized-calendar-backdrop" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={handleCloseModal} style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.6)', backdropFilter: 'blur(4px)', zIndex: 170000 }} />
-            <motion.div className="modernized-calendar-modal" initial={{ y: '100%', opacity: 0 }} animate={{ y: 0, opacity: 1 }} exit={{ y: '100%', opacity: 0 }} transition={{ type: 'spring', damping: 25, stiffness: 200 }} style={{ position: 'fixed', bottom: '90px', left: '10px', right: '10px', background: 'var(--color-card)', borderRadius: '24px', padding: '20px', boxShadow: '0 10px 40px rgba(0,0,0,0.25)', zIndex: 170001, border: '1px solid var(--color-border)', display: 'flex', flexDirection: 'column', maxHeight: '85vh' }}>
+            <motion.div className="modernized-calendar-backdrop bchata-overlay-backdrop" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={handleCloseModal} style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.6)', backdropFilter: 'blur(4px)', zIndex: Z.modalBackdrop }} />
+            <motion.div className="modernized-calendar-modal bchata-overlay-panel bchata-overlay-sheet" initial={{ y: '100%', opacity: 0 }} animate={{ y: 0, opacity: 1 }} exit={{ y: '100%', opacity: 0 }} transition={{ type: 'spring', damping: 25, stiffness: 200 }} style={{ position: 'fixed', left: '10px', right: '10px', background: 'var(--color-card)', borderRadius: '24px', padding: '20px', boxShadow: '0 10px 40px rgba(0,0,0,0.25)', zIndex: Z.modal, border: '1px solid var(--color-border)', display: 'flex', flexDirection: 'column', maxHeight: '85vh' }}>
               <div style={{ width: '40px', height: '4px', background: 'var(--color-border)', borderRadius: '2px', margin: '0 auto 20px' }} />
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}><span style={{ fontSize: '24px', fontWeight: 950, color: 'var(--color-text-main)' }}>{selectedMonth}월</span><div style={{ display: 'flex', gap: '8px' }}><button onClick={() => setSelectedMonth(m => m > 1 ? m - 1 : 12)} style={{ background: 'var(--color-bg)', border: '1px solid var(--color-border)', borderRadius: '10px', width: '36px', height: '36px', color: 'var(--color-text-main)' }}><ChevronLeft size={18} /></button><button onClick={() => setSelectedMonth(m => m < 12 ? m + 1 : 1)} style={{ background: 'var(--color-bg)', border: '1px solid var(--color-border)', borderRadius: '10px', width: '36px', height: '36px', color: 'var(--color-text-main)' }}><ChevronRight size={18} /></button></div></div>
@@ -3108,10 +3266,10 @@ const HomePage = ({
                     );
                   })}
                 </motion.div>
+              </div>
 
-                {/* 달력 아래 장르 필터 바 및 요약 정보 */}
-                <AnimatePresence>
-                  {isModalFilterVisible && (() => {
+              {/* 달력 하단: 선택일 파티·부트캠프·페스티벌 통계 */}
+              {selectedDate && (() => {
                     const selParties = partiesOnDate(calendarParties, selectedDate);
                     const selBootcamps = bootcampsOnDate(calendarBootcamps, selectedDate);
                     const selFestivals = festivalsOnDate(calendarFestivals, selectedDate);
@@ -3162,21 +3320,27 @@ const HomePage = ({
                     const orderGenres = ['바차타', '살사', '쥬크', '키좀바'];
                     const availableGenres = orderGenres.filter(g => genreCounts[g] > 0);
 
+                    const dateLabel = selectedDate.slice(5).replace('-', '/');
                     return (
                       <motion.div
-                        initial={{ height: 0, opacity: 0 }}
-                        animate={{ height: 'auto', opacity: 1 }}
-                        exit={{ height: 0, opacity: 0 }}
-                        transition={{ duration: 0.2 }}
-                        style={{ overflow: 'hidden', marginTop: '16px', paddingTop: '12px', borderTop: '1px solid var(--color-border)' }}
+                        key={selectedDate}
+                        initial={{ opacity: 0, y: 6 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        style={{
+                          flexShrink: 0,
+                          marginTop: '12px',
+                          paddingTop: '12px',
+                          borderTop: '1px solid var(--color-border)',
+                        }}
                       >
-                        {/* 요약 정보 카드 */}
-                        <div style={{
-                          backgroundColor: '#F8FAFC',
+                        <p style={{ margin: '0 0 8px', fontSize: '13px', fontWeight: 800, color: 'var(--color-text-sub)' }}>
+                          {dateLabel} {isEn ? 'summary' : '행사 요약'}
+                        </p>
+                        <motion.div style={{
+                          backgroundColor: isHomeGate ? 'rgba(255,255,255,0.06)' : '#F8FAFC',
                           borderRadius: '16px',
                           padding: '12px 16px',
-                          marginBottom: '12px',
-                          border: '1px solid #E2E8F0',
+                          border: isHomeGate ? '1px solid rgba(255,255,255,0.1)' : '1px solid #E2E8F0',
                           display: 'flex',
                           flexDirection: 'column',
                           gap: '6px',
@@ -3212,15 +3376,13 @@ const HomePage = ({
                               ))}
                             </div>
                           )}
-                        </div>
+                        </motion.div>
                       </motion.div>
                     );
-                  })()}
-                </AnimatePresence>
+              })()}
 
-                <div style={{ marginTop: '24px' }}>
-                  <button onClick={handleCloseModal} style={{ width: '100%', height: '50px', borderRadius: '16px', background: '#1E293B', color: '#fff', fontSize: '15px', fontWeight: 800, border: 'none', cursor: 'pointer' }}>확인 완료</button>
-                </div>
+              <div style={{ flexShrink: 0, marginTop: '12px' }}>
+                <button onClick={handleCloseModal} style={{ width: '100%', height: '50px', borderRadius: '16px', background: '#1E293B', color: '#fff', fontSize: '15px', fontWeight: 800, border: 'none', cursor: 'pointer' }}>확인 완료</button>
               </div>
             </motion.div>
           </>
@@ -3235,9 +3397,11 @@ const HomePage = ({
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               onClick={handleCloseModal}
-              style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.85)', backdropFilter: 'blur(10px)', zIndex: 180000 }}
+              className="bchata-overlay-backdrop"
+              style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.85)', backdropFilter: 'blur(10px)', zIndex: Z.modalBackdrop }}
             />
             <motion.div
+              className="bchata-overlay-panel"
               initial={{ y: '100%' }}
               animate={{ y: 0 }}
               exit={{ y: '100%' }}
@@ -3246,12 +3410,12 @@ const HomePage = ({
                 position: 'fixed',
                 inset: 0,
                 background: 'var(--color-bg)',
-                zIndex: 180001,
+                zIndex: Z.modal,
                 display: 'flex',
                 flexDirection: 'column',
                 height: '100dvh',
                 paddingTop: 'env(safe-area-inset-top)',
-                paddingBottom: 'env(safe-area-inset-bottom)'
+                paddingBottom: 'env(safe-area-inset-bottom)',
               }}
             >
               {/* 상단 바 */}
@@ -3436,13 +3600,6 @@ const HomePage = ({
           100% { transform: translateX(-50%); }
         }
 
-        /* 외부 중복 렌더링된 구형 달력 모달 완벽 차단 */
-        div[style*="170001"]:not(.modernized-calendar-modal) {
-          display: none !important;
-        }
-        div[style*="170000"]:not(.modernized-calendar-backdrop) {
-          display: none !important;
-        }
       `}</style>
 
       {/* afterPartySheet UI removed */}

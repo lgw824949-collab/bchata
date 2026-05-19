@@ -4,6 +4,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { supabase } from '../lib/supabase';
 import { resolveEventDates, inferOneDayEvent } from '../lib/dbSanitize';
 import EventDateFields from '../components/EventDateFields';
+import { Z } from '../constants/zLayers';
 
 const Festival = ({ onBack }) => {
   const [festivals, setFestivals] = useState([]);
@@ -208,7 +209,7 @@ const Festival = ({ onBack }) => {
         }
         .hide-scrollbar::-webkit-scrollbar { display: none; }
       `}</style>
-      <div style={{ background: '#0D0D0D', minHeight: '100vh', paddingBottom: '100px', color: '#f8fafc', fontFamily: "'Pretendard', sans-serif", position: 'relative', overscrollBehavior: 'none' }}>
+      <div style={{ background: '#0D0D0D', minHeight: '100dvh', width: '100%', paddingBottom: '100px', color: '#f8fafc', fontFamily: "inherit", position: 'relative', overscrollBehavior: 'none' }}>
         
         {/* Background Glow */}
         <div style={{ position: 'fixed', inset: 0, zIndex: 0, opacity: 0.15, pointerEvents: 'none' }}>
@@ -436,7 +437,7 @@ const Festival = ({ onBack }) => {
               padding: '30px', 
               position: 'fixed', 
               inset: 0, 
-              zIndex: 9999999, 
+              zIndex: Z.modal, 
               overflowY: 'auto',
               display: 'flex',
               flexDirection: 'column'
@@ -533,7 +534,8 @@ const Festival = ({ onBack }) => {
       {/* Detail Modal */}
       <AnimatePresence>
         {selectedFestival && (
-          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} style={{ position: 'fixed', inset: 0, background: '#0D0D0D', zIndex: 9999999, display: 'flex', flexDirection: 'column' }}>
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="bchata-overlay-panel"
+              style={{ position: 'fixed', inset: 0, background: '#0D0D0D', zIndex: Z.modal, display: 'flex', flexDirection: 'column' }}>
             <div style={{ padding: '15px 20px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderBottom: '1px solid rgba(255,255,255,0.1)', background: 'rgba(13, 13, 13, 0.95)', backdropFilter: 'blur(20px)', color: '#f8fafc' }}>
               <X size={32} onClick={() => setSelectedFestival(null)} style={{ cursor: 'pointer' }} />
               <span style={{ fontSize: '16px', fontWeight: 900, letterSpacing: '1px' }}>FESTIVAL DETAIL</span>
@@ -572,7 +574,7 @@ const Festival = ({ onBack }) => {
             </div>
             <AnimatePresence>
               {showBookingGuide && (
-                <motion.div initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.9 }} style={{ position: 'absolute', inset: 0, zIndex: 11000000, background: 'rgba(0, 0, 0, 0.95)', backdropFilter: 'blur(10px)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '30px' }}>
+                <motion.div initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.9 }} style={{ position: 'absolute', inset: 0, zIndex: Z.modalNested, background: 'rgba(0, 0, 0, 0.95)', backdropFilter: 'blur(10px)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '30px' }}>
                   <div style={{ width: '100%', background: '#1A1A1A', borderRadius: '32px', padding: '40px 30px', textAlign: 'center', border: '1px solid rgba(201,168,76,0.3)', boxShadow: '0 20px 50px rgba(0,0,0,0.5)' }}>
                     <div style={{ width: '70px', height: '70px', background: 'rgba(201,168,76,0.1)', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 24px' }}><Zap size={32} color="#C9A84C" fill="#C9A84C" /></div>
                     <h3 style={{ fontSize: '22px', fontWeight: 950, color: '#fff', marginBottom: '15px' }}>잠깐! 확인해 주세요</h3>

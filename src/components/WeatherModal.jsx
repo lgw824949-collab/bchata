@@ -1,3 +1,4 @@
+import { Z } from '../constants/zLayers';
 // src/components/WeatherModal.jsx
 // 전국 날씨 - 기상청 API 직접 연동 버전
 
@@ -17,7 +18,7 @@ const REGIONS = [
 
 const ANIM_STYLE = `
   @import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css');
-  .wx-wrap * { font-family: 'Pretendard', -apple-system, sans-serif !important; }
+  .wx-wrap * { font-family: inherit !important; }
   @keyframes wx-spin  { from{transform:rotate(0deg)} to{transform:rotate(360deg)} }
   @keyframes wx-sway  { 0%,100%{transform:translateX(0)} 50%{transform:translateX(5px)} }
   @keyframes wx-fall  { 0%{transform:translateY(-5px);opacity:0} 50%{opacity:1} 100%{transform:translateY(7px);opacity:0} }
@@ -136,15 +137,15 @@ export default function WeatherModal({ onClose }) {
       <style>{ANIM_STYLE}</style>
 
       {/* 오버레이 */}
-      <div onClick={onClose} style={{ position:'fixed', inset:0, background:'rgba(0,0,0,0.5)', zIndex:10010 }} />
+      <div onClick={onClose} style={{ position:'fixed', inset:0, background:'rgba(0,0,0,0.5)', zIndex: Z.modalBackdrop }} />
 
       {/* 모달 */}
       <div className="wx-wrap" style={{
         position:'fixed', bottom:0, left:0, width:'100%',
-        background:'#F0F4FF', zIndex:10011,
+        background:'#F0F4FF', zIndex: Z.modal,
         borderRadius:'24px 24px 0 0',
         padding:'16px 16px 32px',
-        fontFamily:"'Pretendard', -apple-system, sans-serif",
+        fontFamily:"inherit",
       }}>
 
         {/* 헤더 */}

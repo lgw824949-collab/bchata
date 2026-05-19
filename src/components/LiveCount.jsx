@@ -1,6 +1,12 @@
 import React, { useEffect, useState, useMemo } from 'react'
 import { useTranslation } from 'react-i18next'
 import { supabase } from '../lib/supabase'
+import {
+  LOCATIONS_WITH_REGION_NAME,
+  logSupabaseError,
+  resolveLocationRegionLabel,
+} from '../lib/locationsQuery'
+import { PARTIES_SELECT, logPartiesFetchError } from '../lib/partiesQuery'
 
 const LiveCount = () => {
   const { t, i18n } = useTranslation()
@@ -42,24 +48,49 @@ const LiveCount = () => {
     const todayStr = getTodayKST()
     const yesterdayStr = getYesterdayKST()
     try {
-      const [{ data: parties }, { data: locations }] = await Promise.all([
-        supabase.from('parties').select('*').in('date', [todayStr, yesterdayStr]),
-        supabase.from('locations').select('id, name, region')
+      const [partiesRes, locationsRes] = await Promise.all([
+        supabase.from('parties').select(PARTIES_SELECT).in('date', [todayStr, yesterdayStr]),
+        supabase.from('locations').select(LOCATIONS_WITH_REGION_NAME),
       ])
+
+      if (partiesRes.error) {
+        logPartiesFetchError(partiesRes.error)
+        throw partiesRes.error
+      }
+      if (locationsRes.error) {
+        logSupabaseError('LiveCount.locations', locationsRes.error)
+        throw locationsRes.error
+      }
+
+      const parties = partiesRes.data
+      const locations = locationsRes.data
+
       if (!parties || parties.length === 0) { setCounts({}); return; }
-      const locationMap = (locations || []).reduce((acc, loc) => { acc[loc.id] = { name: loc.name, region: loc.region }; return acc; }, {})
+
+      const locationMap = (locations || []).reduce((acc, loc) => {
+        acc[loc.id] = {
+          name: loc.name,
+          region: resolveLocationRegionLabel(loc),
+        }
+        return acc
+      }, {})
+
       const liveParties = parties.filter(p => isNowInPartyTime(p.date, p.time))
       if (liveParties.length === 0) { setCounts({}); return; }
+
       const grouped = liveParties.reduce((acc, p) => {
         const loc = locationMap[p.location_id]
-        const region = loc?.region || '전국'
-        const key = `${region}|파티`
+        const region = loc?.region || '\uc804\uad6d'
+        const key = `${region}|\ud30c\ud2f0`
         acc[key] = (acc[key] || 0) + 1
         return acc
       }, {})
-      grouped['전국|total'] = liveParties.length
+      grouped['\uc804\uad6d|total'] = liveParties.length
       setCounts(grouped)
-    } catch (err) { console.error(err) }
+    } catch (err) {
+      logPartiesFetchError(err)
+      console.error('[LiveCount] fetchCounts failed:', err)
+    }
   }
 
   useEffect(() => {
@@ -69,23 +100,29 @@ const LiveCount = () => {
   }, [])
 
   const abbreviateRegion = (region) => {
-    const maps = { 
-      '서울특별시': '서울', '인천광역시': '인천', '부산광역시': '부산', 
-      '경기도': '경기', '충청도': '충청', '전라도': '전라', '경상도': '경상' 
+    const maps = {
+      '\uc11c\uc6b8\ud2b9\ubcc4\uc2dc': '\uc11c\uc6b8',
+      '\uc778\ucc9c\uad11\uc5ed\uc2dc': '\uc778\ucc9c',
+      '\ubd80\uc0b0\uad11\uc5ed\uc2dc': '\ubd80\uc0b0',
+      '\uacbd\uae30\ub3c4': '\uacbd\uae30',
+      '\ucda9\uccad\ub3c4': '\ucda9\uccad',
+      '\uc804\ub77c\ub3c4': '\uc804\ub77c',
+      '\uacbd\uc0c1\ub3c4': '\uacbd\uc0c1',
+      '\uac15\uc6d0\ub3c4': '\uac15\uc6d0',
     };
     const short = maps[region] || region;
-    
+
     const translationKeys = {
-      '서울': 'region_seoul',
-      '인천': 'region_incheon',
-      '부산': 'region_busan',
-      '경기': 'region_gyeonggi_incheon',
-      '충청': 'region_chungcheong',
-      '전라': 'region_jeolla',
-      '경상': 'region_gyeongsang',
-      '전국': 'Nationwide'
+      '\uc11c\uc6b8': 'region_seoul',
+      '\uc778\ucc9c': 'region_incheon',
+      '\ubd80\uc0b0': 'region_busan',
+      '\uacbd\uae30': 'region_gyeonggi_incheon',
+      '\ucda9\uccad': 'region_chungcheong',
+      '\uc804\ub77c': 'region_jeolla',
+      '\uacbd\uc0c1': 'region_gyeongsang',
+      '\uc804\uad6d': 'Nationwide',
     };
-    
+
     return t(translationKeys[short] || short);
   };
 
@@ -146,14 +183,14 @@ const LiveCount = () => {
       `}</style>
       <span className="lc-tag">LIVE</span>
       <span className="lc-dot" />
-      {counts['전국|total'] ? (
+      {counts['\uc804\uad6d|total'] ? (
         <div style={{ display:'flex', alignItems:'center', gap:8, flex:1, minWidth:0 }}>
           <span style={{ color:'#ffffff', fontSize:'12px', fontWeight:700, whiteSpace:'nowrap' }}>
-            전국 {counts['전국|total']}개 파티 진행중
+            {'\uc804\uad6d '}{counts['\uc804\uad6d|total']}{'\uac1c \ud30c\ud2f0 \uc9c4\ud589\uc911'}
           </span>
           <span style={{ color:'rgba(255,255,255,0.3)', fontSize:10 }}>|</span>
           {Object.entries(counts)
-            .filter(([k]) => !k.includes('전국'))
+            .filter(([k]) => !k.includes('\uc804\uad6d'))
             .map(([k, v]) => {
               const region = abbreviateRegion(k.split('|')[0])
               return (

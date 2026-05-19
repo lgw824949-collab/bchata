@@ -1,5 +1,6 @@
 ﻿import React, { useState } from 'react';
 import { X, Navigation, MapPin, Info } from 'lucide-react';
+import { Z } from '../constants/zLayers';
 import { motion } from 'framer-motion';
 import { useTranslation } from 'react-i18next';
 import { BAR_DATABASE } from '../lib/BarLib';
@@ -76,7 +77,7 @@ const IncheonRoute = ({ parties, onClose }) => {
       animate={{ opacity: 1 }} 
       exit={{ opacity: 0 }}
       style={{ 
-        position: 'fixed', inset: 0, zIndex: 2147483647, 
+        position: 'fixed', inset: 0, zIndex: Z.modalMax, 
         backgroundColor: 'rgba(0,0,0,0.7)', display: 'flex', alignItems: 'flex-end' 
       }}
       onClick={onClose}

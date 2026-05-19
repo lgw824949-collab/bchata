@@ -1,5 +1,6 @@
 ﻿import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { Z } from '../constants/zLayers';
 import { X, Search, PlusCircle, MapPin, Star, MessageCircle, Calendar } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 
@@ -111,7 +112,7 @@ export default function PartnerModal({ onClose }) {
         exit={{ opacity: 0 }} 
         transition={{ duration: 0.15 }}
         style={{ 
-          position: 'fixed', inset: 0, background: 'var(--color-bg, #ffffff)', zIndex: 190001, 
+          position: 'fixed', inset: 0, background: 'var(--color-bg, #ffffff)', zIndex: Z.modal, 
           display: 'flex', flexDirection: 'column', height: '100dvh',
           paddingTop: 'env(safe-area-inset-top)', paddingBottom: 'env(safe-area-inset-bottom)'
         }}

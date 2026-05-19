@@ -1,3 +1,4 @@
+import { Z } from '../constants/zLayers';
 import React, { useEffect, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { motion, AnimatePresence } from 'framer-motion'
@@ -675,7 +676,7 @@ const InstructorSection = ({ onOpenVipMaster }) => {
             initial={{ y: '100%' }} animate={{ y: 0 }} exit={{ y: '100%' }}
             transition={{ type: 'spring', damping: 25, stiffness: 200 }}
             style={{ 
-              position: 'fixed', inset: 0, zIndex: 5000, background: '#000',
+              position: 'fixed', inset: 0, zIndex: Z.modal, background: '#000',
               display: 'flex', justifyContent: 'center'
             }}
           >
@@ -1064,7 +1065,7 @@ const InstructorSection = ({ onOpenVipMaster }) => {
           style={{
             position: 'fixed',
             inset: 0,
-            zIndex: 2200000,
+            zIndex: Z.modalBackdrop,
             background: '#fff',
             overflowY: 'auto',
             WebkitOverflowScrolling: 'touch',

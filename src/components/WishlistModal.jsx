@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { Z } from '../constants/zLayers';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, Heart, Navigation, Clock, Calendar, User } from 'lucide-react';
 import { supabase } from '../lib/supabase';
@@ -137,7 +138,7 @@ export default function WishlistModal({ onClose, setSelectedPoster }) {
         animate={{ opacity: 1 }} 
         exit={{ opacity: 0 }} 
         onClick={onClose} 
-        style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.85)', backdropFilter: 'blur(10px)', zIndex: 190000 }} 
+        style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.85)', backdropFilter: 'blur(10px)', zIndex: Z.modalBackdrop }} 
       />
       
       {/* 모달 컨테이너 (서랍식 하단에서 올라오는 프리미엄 디자인) */}
@@ -147,7 +148,7 @@ export default function WishlistModal({ onClose, setSelectedPoster }) {
         exit={{ y: '100%' }} 
         transition={{ type: 'spring', damping: 25, stiffness: 200 }}
         style={{ 
-          position: 'fixed', inset: 0, background: 'var(--color-bg, #ffffff)', zIndex: 190001, 
+          position: 'fixed', inset: 0, background: 'var(--color-bg, #ffffff)', zIndex: Z.modal, 
           display: 'flex', flexDirection: 'column', height: '100dvh',
           paddingTop: 'env(safe-area-inset-top)', paddingBottom: 'env(safe-area-inset-bottom)'
         }}

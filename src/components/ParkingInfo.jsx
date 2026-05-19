@@ -2,6 +2,7 @@
 // 공유주차장 정보 표시 모달
 
 import React, { useState, useEffect } from 'react';
+import { Z } from '../constants/zLayers';
 import { X, MapPin, Loader2 } from 'lucide-react';
 
 const ParkingInfo = ({ bar, onClose }) => {
@@ -67,7 +68,7 @@ const ParkingInfo = ({ bar, onClose }) => {
     <div 
       id="parking-modal-overlay"
       style={{
-        position: 'fixed', inset: 0, zIndex: 10020,
+        position: 'fixed', inset: 0, zIndex: Z.modal,
         display: 'flex', alignItems: 'center', justifyContent: 'center',
         padding: '20px', background: 'rgba(15, 23, 42, 0.7)',
         backdropFilter: 'blur(4px)',

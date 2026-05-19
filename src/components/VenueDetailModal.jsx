@@ -1,5 +1,6 @@
 ﻿import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { Z } from '../constants/zLayers';
 import { X, ChevronLeft, ChevronRight, Clock, MessageCircle, Globe, Loader2 } from 'lucide-react';
 import { findBarByName } from '../lib/BarLib';
 import { getDevTestLessons } from '../data/devTestLessons';
@@ -741,7 +742,7 @@ export default function VenueDetailModal({
         style={{
           position: 'fixed',
           inset: 0,
-          zIndex: 2200000,
+          zIndex: Z.modalBackdrop,
           background: VD.bgPage,
           display: 'flex',
           flexDirection: 'column',

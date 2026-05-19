@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { Z } from '../constants/zLayers';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, Loader2 } from 'lucide-react';
 import { supabase } from '../lib/supabase';
@@ -104,7 +105,7 @@ export default function BarRegisterFormModal({ open, onClose, onSuccess }) {
         style={{
           position: 'fixed',
           inset: 0,
-          zIndex: 2300000,
+          zIndex: Z.modal,
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',

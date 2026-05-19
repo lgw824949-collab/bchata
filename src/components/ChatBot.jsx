@@ -1,5 +1,15 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { supabase } from '../lib/supabase';
+import { Z } from '../constants/zLayers';
+import { supabase } from '../lib/supabase'
+import {
+  PARTIES_SELECT,
+  CHAT_GENRE_BY_NUM,
+  logPartiesFetchError,
+  withPartyImageAlias,
+  filterPartiesForChat,
+  formatPartyResultBlock,
+} from '../lib/partiesQuery'
+import { getKSTCalendarTodayStr } from '../lib/dateNorm';
 import { getUserCoords, isGeoDenied, readCachedCoords } from '../lib/geoCache';
 
 // 관리자가 수동으로 동호회/빠 변동 사항을 기록하는 공간
@@ -10,11 +20,50 @@ const ADMIN_KNOWLEDGE = `
 - 동호회 명칭: 특정 동호회 이름 대신 각 빠(Bar)의 '동호회'라고만 지칭하세요. 특정 이름 언급은 피합니다.
 `;
 
-const GENRE_MAP = { '1': '바차타', '2': '살사', '3': '쥬크', '4': '키좀바' };
-const PARTY_GENRE_KEY = { 바차타: 'b_ratio', 살사: 's_ratio', 쥬크: 'j_ratio', 키좀바: 'k_ratio' };
 const MENU_MSG = '오늘 뭘 찾으세요?\n1. 파티\n2. 강습\n3. 부트캠프\n4. 페스티벌';
 const GENRE_MSG = '장르는?\n1. 바차타\n2. 살사\n3. 쥬크\n4. 키좀바';
 const RESTART_MSG = '다시 찾으시겠어요?\n1. 예  2. 아니오';
+
+const normalizeChoice = (raw) =>
+  String(raw || '')
+    .trim()
+    .replace(/[０-９]/g, (ch) => String.fromCharCode(ch.charCodeAt(0) - 0xfee0));
+
+const renderFormattedContent = (content) => {
+  const imgRegex = /!\[poster\]\((.*?)\)/;
+  const match = typeof content === 'string' ? content.match(imgRegex) : null;
+  let text = typeof content === 'string' ? content : '';
+
+  if (match) {
+    text = text.replace(imgRegex, '').trim();
+  }
+
+  const parts = text.split(/(\*\*[^*]+\*\*)/g);
+  const body = parts.map((part, i) => {
+    if (part.startsWith('**') && part.endsWith('**')) {
+      return (
+        <strong key={i} style={{ fontWeight: 800, color: '#0f172a' }}>
+          {part.slice(2, -2)}
+        </strong>
+      );
+    }
+    return <span key={i}>{part}</span>;
+  });
+
+  if (match) {
+    return (
+      <>
+        {body}
+        <img
+          src={match[1]}
+          alt="Party Poster"
+          style={{ width: '100%', borderRadius: '12px', marginTop: '10px', display: 'block' }}
+        />
+      </>
+    );
+  }
+  return body;
+};
 
 const ChatBot = () => {
   const [isOpen, setIsOpen] = useState(false);
@@ -83,22 +132,37 @@ const ChatBot = () => {
     if (isOpen && !isDataLoaded) {
       const fetchData = async () => {
         try {
-          const today = new Date();
-          const todayStr = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
-          
+          const todayStr = getKSTCalendarTodayStr();
+
           const [partiesRes, instructorsRes, bootcampsRes, festivalsRes] = await Promise.all([
-            supabase.from('parties').select('*, imageUrl').eq('status', 'approved').gte('date', todayStr).limit(10),
+            supabase
+              .from('parties')
+              .select(PARTIES_SELECT)
+              .eq('status', 'approved')
+              .eq('date', todayStr)
+              .order('time', { ascending: true })
+              .limit(50),
             supabase.from('instructors').select('*').eq('status', 'active'),
             supabase.from('bootcamps').select('*').eq('status', 'active').order('start_date', { ascending: true }),
-            supabase.from('festivals').select('*').eq('status', 'active').order('start_date', { ascending: true })
+            supabase.from('festivals').select('*').eq('status', 'active').order('start_date', { ascending: true }),
           ]);
+
+          if (partiesRes.error) {
+            logPartiesFetchError(partiesRes.error);
+            throw partiesRes.error;
+          }
+
           setDbData({
-            parties: partiesRes.data || [],
+            parties: filterPartiesForChat(
+              (partiesRes.data || []).map(withPartyImageAlias),
+              { todayStr },
+            ),
             instructors: instructorsRes.data || [],
             bootcamps: bootcampsRes.data || [],
-            festivals: festivalsRes.data || []
+            festivals: festivalsRes.data || [],
           });
         } catch (e) {
+          logPartiesFetchError(e);
           console.error('Failed to fetch DB data for ChatBot', e);
         } finally {
           setIsDataLoaded(true);
@@ -237,42 +301,64 @@ const ChatBot = () => {
     return [];
   };
   */
-  const getResultLines = (catNum, genreName) => {
-    if (!dbData) return [];
+  const buildPartyResultMessage = (genreName) => {
+    const todayStr = getKSTCalendarTodayStr();
+    const matched = filterPartiesForChat(dbData?.parties || [], { todayStr, genreName }).slice(0, 5);
 
-    if (catNum === '1') {
-      const key = PARTY_GENRE_KEY[genreName];
-      return (dbData.parties || [])
-        .filter((p) => (key ? (p[key] || 0) > 0 : (p.genre || '').includes(genreName)))
-        .slice(0, 3)
-        .map((p) => `🎵 ${p.title} | ${p.date} | ${p.fee ?? p.price ?? '문의'}`);
+    if (matched.length === 0) {
+      return `오늘(${todayStr}) 등록된 **${genreName}** 파티가 없어요.\n다른 장르 번호를 골라보시거나 메인 화면 **오늘의 파티**를 확인해 주세요.`;
     }
+
+    const blocks = matched.map((p) => formatPartyResultBlock(p));
+    return `✨ **오늘(${todayStr}) ${genreName}** 추천 ${matched.length}건\n\n${blocks.join('\n\n---\n\n')}`;
+  };
+
+  const buildOtherCategoryMessage = (catNum, genreName) => {
+    if (!dbData) return '현재 등록된 정보가 없어요 😢';
+
     if (catNum === '2') {
-      return (dbData.instructors || [])
+      const list = (dbData.instructors || [])
         .filter((i) => (Array.isArray(i.genre) ? i.genre.join(' ') : String(i.genre || '')).includes(genreName))
-        .slice(0, 3)
-        .map((i) => `🎵 ${i.name} | ${i.region || i.broadRegion || '-'} | ${i.price || i.fee || '문의'}`);
+        .slice(0, 3);
+      if (!list.length) return `**${genreName}** 강사 정보가 없어요.`;
+      return list
+        .map(
+          (i) =>
+            `🎵 **${i.name || '강사'}**\n📍 지역: ${i.region || '-'}\n💰 수강료: ${i.price || i.fee || '문의'}`,
+        )
+        .join('\n\n---\n\n');
     }
     if (catNum === '3') {
-      return (dbData.bootcamps || [])
+      const list = (dbData.bootcamps || [])
         .filter((b) => String(b.genre || '').includes(genreName))
-        .slice(0, 3)
-        .map((b) => `🎵 ${b.instructor || b.title || '-'} | ${b.start_date?.slice(0, 10) || '-'} | ${b.fee || b.price_info || '문의'}`);
+        .slice(0, 3);
+      if (!list.length) return `**${genreName}** 부트캠프가 없어요.`;
+      return list
+        .map(
+          (b) =>
+            `🎵 **${b.instructor || b.title || '부트캠프'}**\n📅 시작: ${String(b.start_date || '').slice(0, 10)}\n💰 비용: ${b.fee || b.price_info || '문의'}`,
+        )
+        .join('\n\n---\n\n');
     }
     if (catNum === '4') {
-      const fest = dbData.festivals || [];
-      return fest
+      const list = (dbData.festivals || [])
         .filter((f) => String(f.genre || '').includes(genreName))
-        .slice(0, 3)
-        .map((f) => `🎵 ${f.title || f.name || '-'} | ${String(f.start_date || f.date || '-').slice(0, 10)} | ${f.fee || '확인 필요'}`);
+        .slice(0, 3);
+      if (!list.length) return `**${genreName}** 페스티벌이 없어요.`;
+      return list
+        .map(
+          (f) =>
+            `🎵 **${f.title || f.name || '페스티벌'}**\n📅 일정: ${String(f.start_date || f.date || '').slice(0, 10)}\n💰 참가비: ${f.fee || '확인 필요'}`,
+        )
+        .join('\n\n---\n\n');
     }
-    return [];
+    return '현재 등록된 정보가 없어요 😢';
   };
 
   const handleSend = () => {
     if (!input.trim()) return;
 
-    const userInput = input.trim();
+    const userInput = normalizeChoice(input);
     setInput('');
     setIsLoading(false);
     const userMsg = { role: 'user', content: userInput };
@@ -293,17 +379,21 @@ const ChatBot = () => {
         setMessages((prev) => [...prev, userMsg, { role: 'model', content: '번호로 선택해주세요 😊' }]);
         return;
       }
-      const selectedGenre = GENRE_MAP[userInput];
+      const selectedGenre = CHAT_GENRE_BY_NUM[userInput];
       setGenre(userInput);
       setStep(3);
 
-      const lines = getResultLines(category, selectedGenre);
-      const resultMsg =
-        lines.length > 0
-          ? { role: 'model', content: lines.join('\n') }
-          : { role: 'model', content: '현재 등록된 정보가 없어요 😢' };
+      const resultContent =
+        category === '1'
+          ? buildPartyResultMessage(selectedGenre)
+          : buildOtherCategoryMessage(category, selectedGenre);
 
-      setMessages((prev) => [...prev, userMsg, resultMsg, { role: 'model', content: RESTART_MSG }]);
+      setMessages((prev) => [
+        ...prev,
+        userMsg,
+        { role: 'model', content: resultContent },
+        { role: 'model', content: RESTART_MSG },
+      ]);
       return;
     }
 
@@ -381,7 +471,7 @@ const ChatBot = () => {
           left: 0,
           width: '100%',
           height: `${viewportHeight}px`,
-          zIndex: 999999,
+          zIndex: Z.modalBackdrop,
           display: 'flex',
           flexDirection: 'column',
           backgroundColor: 'white',
@@ -442,25 +532,6 @@ const ChatBot = () => {
                 );
               }
 
-              const renderContent = (content) => {
-                const imgRegex = /!\[poster\]\((.*?)\)/;
-                const match = content.match(imgRegex);
-                if (match) {
-                  const textPart = content.replace(imgRegex, '').trim();
-                  return (
-                    <>
-                      {textPart && <div style={{ marginBottom: '8px' }}>{textPart}</div>}
-                      <img 
-                        src={match[1]} 
-                        alt="Party Poster" 
-                        style={{ width: '100%', borderRadius: '12px', marginTop: '5px', display: 'block' }} 
-                      />
-                    </>
-                  );
-                }
-                return content;
-              };
-
               return (
                 <div key={idx} style={{
                   alignSelf: msg.role === 'model' ? 'flex-start' : 'flex-end',
@@ -479,7 +550,7 @@ const ChatBot = () => {
                   fontWeight: '600',
                   color: msg.role === 'model' ? '#1E293B' : '#FFFFFF',
                 }}>
-                  {renderContent(msg.content)}
+                  {renderFormattedContent(msg.content)}
                 </div>
               );
             })}

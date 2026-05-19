@@ -1,3 +1,4 @@
+import { Z } from '../constants/zLayers';
 ﻿import React, { useState, useEffect, useRef } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { X, ChevronLeft, ChevronRight, Check, User, Music, MapPin, MessageCircle, Info, Zap, Camera, Globe, Sparkles } from 'lucide-react'
@@ -366,7 +367,7 @@ const InstructorRegistrationModal = ({ isOpen, onClose, onSuccess, formData, set
   if (!isOpen) return null
 
   return (
-    <div style={{ position: 'fixed', inset: 0, zIndex: 10000, display: 'flex', alignItems: 'flex-end', justifyContent: 'center' }}>
+    <div style={{ position: 'fixed', inset: 0, zIndex: Z.modal, display: 'flex', alignItems: 'flex-end', justifyContent: 'center' }}>
       <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} style={{ position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.92)', backdropFilter: 'blur(15px)' }} />
       
       <motion.div 

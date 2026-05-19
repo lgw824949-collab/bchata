@@ -15,6 +15,10 @@ import {
   pushOverlay,
   replaceCurrentState,
 } from './lib/appHistory'
+import { Z } from './constants/zLayers'
+import { normDate } from './lib/dateNorm'
+import { LOCATIONS_SELECT, logSupabaseError } from './lib/locationsQuery'
+import { PARTIES_SELECT, logPartiesFetchError } from './lib/partiesQuery'
 import QuickPinchZoom, { make3dTransformValue } from 'react-quick-pinch-zoom';
 
 // 페이지 지연 로딩 (Lazy Loading)
@@ -192,7 +196,7 @@ const PosterModal = ({ src, onClose, shareTitle, shareDesc, shareLines, shareFee
     <motion.div style={{ 
       position:'fixed', 
       inset:0, 
-      zIndex:2000000, 
+      zIndex: Z.modalBackdrop, 
       backgroundColor:'#000', 
       display:'flex',
       flexDirection:'column',
@@ -211,7 +215,7 @@ const PosterModal = ({ src, onClose, shareTitle, shareDesc, shareLines, shareFee
         alignItems: 'center',
         justifyContent: 'space-between',
         position: 'relative',
-        zIndex: 2000001,
+        zIndex: Z.modal,
       }}>
         <button
           type="button"
@@ -378,7 +382,7 @@ const PosterModal = ({ src, onClose, shareTitle, shareDesc, shareLines, shareFee
         position: 'absolute',
         top: 'calc(40px + env(safe-area-inset-top))',
         right: '20px',
-        zIndex: 2000001,
+        zIndex: Z.modal,
         display: 'flex',
         alignItems: 'center',
         gap: '10px',
@@ -664,7 +668,7 @@ const DynamicAnalysisModal = ({ isOpen, onClose, userCoords, isSajuCall }) => {
       style={{ 
         position: 'fixed', 
         inset: 0, 
-        zIndex: 1000000, 
+        zIndex: Z.modalBackdrop, 
         backgroundColor: '#FFFFFF', 
         display: 'flex', 
         flexDirection: 'column',
@@ -861,7 +865,7 @@ const SplashScreen = () => {
       style={{
         position: 'fixed',
         inset: 0,
-        zIndex: 9999,
+        zIndex: Z.modalBackdrop,
         backgroundColor: '#0a0a0a',
         display: 'flex',
         alignItems: 'center',
@@ -1034,6 +1038,8 @@ function App() {
     }
     document.documentElement.classList.toggle('home-gate-theme', isHomeGateNav)
     document.body.classList.toggle('home-gate-theme', isHomeGateNav)
+    document.documentElement.classList.toggle('app-dark-surface', isDarkAppSurface)
+    document.body.classList.toggle('app-dark-surface', isDarkAppSurface)
     const themeMeta = document.querySelector('meta[name="theme-color"]')
     if (themeMeta) {
       if (isDarkAppSurface) themeMeta.setAttribute('content', '#0D0D0D')
@@ -1044,8 +1050,10 @@ function App() {
       document.body.classList.remove('bottom-nav-social-light')
       document.documentElement.classList.remove('home-gate-theme')
       document.body.classList.remove('home-gate-theme')
+      document.documentElement.classList.remove('app-dark-surface')
+      document.body.classList.remove('app-dark-surface')
     }
-  }, [isSocialLightNav, isHomeGateNav])
+  }, [isSocialLightNav, isHomeGateNav, isDarkAppSurface])
 
   const [showClassRegister, setShowClassRegister] = useState(false);
   // const [showStudentManager, setShowStudentManager] = useState(false);
@@ -1471,14 +1479,25 @@ function App() {
     setLoading(true);
     try {
       const [partiesRes, locationsRes, bootcampsRes, festivalsRes] = await Promise.all([
-        supabase.from('parties').select('*').eq('status', 'approved').order('date', { ascending: true }),
-        supabase.from('locations').select('id, name'),
+        supabase.from('parties').select(PARTIES_SELECT).eq('status', 'approved').order('date', { ascending: true }),
+        supabase.from('locations').select(LOCATIONS_SELECT),
         supabase.from('bootcamps').select('*').eq('status', 'active'),
-        supabase.from('festivals').select('*').eq('status', 'active')
+        supabase.from('festivals').select('*').eq('status', 'active'),
       ]);
 
+      if (partiesRes.error) {
+        logPartiesFetchError(partiesRes.error);
+        throw partiesRes.error;
+      }
+      if (locationsRes.error) {
+        logSupabaseError('App.fetchParties.locations', locationsRes.error);
+        // locations 실패해도 파티 목록은 계속 로드
+      }
+      if (bootcampsRes.error) logSupabaseError('App.fetchParties.bootcamps', bootcampsRes.error);
+      if (festivalsRes.error) logSupabaseError('App.fetchParties.festivals', festivalsRes.error);
+
       const rawParties = partiesRes.data || [];
-      const rawLocations = locationsRes.data || [];
+      const rawLocations = locationsRes.error ? [] : (locationsRes.data || []);
 
       const locationMap = rawLocations.reduce((acc, loc) => {
         acc[loc.id] = loc.name;
@@ -1526,14 +1545,19 @@ function App() {
       setParties(mappedParties);
       setBootcamps(bootcampsRes.data || []);
       setFestivals(festivalsRes.data || []);
-    } catch (err) { console.error('데이터 로딩 오류:', err); } finally { setLoading(false); }
+    } catch (err) {
+      console.error('Parties Fetch Error:', err?.message, err?.details);
+      console.error('[App.fetchParties] 데이터 로딩 오류:', err);
+    } finally {
+      setLoading(false);
+    }
   };
 
   useEffect(() => { fetchParties(); }, []);
 
   useEffect(() => {
     const activeTodayStr = getKSTDate().dateStr;
-    const upcomingParties = parties.filter(p => p.date >= activeTodayStr);
+    const upcomingParties = parties.filter((p) => normDate(p.date) >= activeTodayStr);
     
     const currentLang = i18n.language || 'ko';
     if (currentLang.startsWith('en')) {
@@ -1590,12 +1614,13 @@ function App() {
 
     let cancelled = false;
     (async () => {
-      const { data } = await supabase
+      const { data, error } = await supabase
         .from('parties')
-        .select('*')
+        .select(PARTIES_SELECT)
         .eq('id', partyId)
         .eq('status', 'approved')
         .maybeSingle();
+      if (error) logPartiesFetchError(error);
       if (!cancelled && data) openPartyFromLink(data);
     })();
 
@@ -1662,7 +1687,7 @@ function App() {
       const dayName = i18n.language.startsWith('en') ? DAYS_EN[d.getDay()] : DAYS_KOR[d.getDay()];
       return { fullDate: formatDateToKSTString(d), date: String(d.getDate()), month: String(d.getMonth() + 1), dayName, isToday: i === 0, dayOfWeek: d.getDay() };
     }), weekData: [], allDatesInMonth: [], filteredParties: displayParties.filter(p => p.date === selectedDate),
-    showFullCalendar, setShowFullCalendar: withHistory(showFullCalendar, setShowFullCalendar),
+    showFullCalendar, setShowFullCalendar: withHistory('fullCalendar', showFullCalendar, setShowFullCalendar),
     showFilterPanel, setShowFilterPanel,
     showFilteredResults, setShowFilteredResults,
     likedIds: [], toggleLike: () => {},
@@ -1707,7 +1732,13 @@ function App() {
   const isHomeNavActive = location.pathname === '/' && view === 'home' && homeActiveTab === null && !showPartner
   const isBottomSocialNavActive = location.pathname === '/' && view === 'home' && homeActiveTab === 'social' && !showPartner
 
+  useEffect(() => {
+    document.body.classList.toggle('has-bottom-nav', !hideBottomNav)
+    return () => document.body.classList.remove('has-bottom-nav')
+  }, [hideBottomNav])
+
   return (
+    <>
     <div
       className={[
         'bchata-app-shell',
@@ -1721,7 +1752,7 @@ function App() {
       width: '100%',
       background: isDarkAppSurface ? '#0D0D0D' : 'var(--color-bg)',
       color: isDarkAppSurface ? '#F8FAFC' : 'var(--color-text-main)',
-      minHeight: '100vh', position: 'relative',
+      minHeight: '100dvh', position: 'relative',
       transition: 'background-color 0.3s, color 0.3s'
     }}>
       <AnimatePresence>
@@ -1734,12 +1765,12 @@ function App() {
         transition={{ duration: 0.5, ease: 'easeOut', delay: showSplash ? 0 : 0.1 }}
         style={{
           width: '100%',
-          minHeight: '100vh',
+          minHeight: '100dvh',
           position: 'relative',
           background: isDarkAppSurface ? '#0D0D0D' : 'transparent',
         }}
       >
-      <AnimatePresence>{isAnalyzing && <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} style={{ position: 'fixed', inset: 0, zIndex: 1000000, background: 'rgba(255,255,255,0.9)', backdropFilter: 'blur(30px)', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}><motion.div animate={{ rotate: 360 }} transition={{ duration: 1, repeat: Infinity, ease: 'linear' }} style={{ width: '60px', height: '60px', border: '4px solid #FFEBEE', borderTop: '4px solid #E53935', borderRadius: '50%', marginBottom: '20px' }} /><h2 style={{ color: '#1E293B', fontSize: '20px', fontWeight: '900' }}>실시간 지능형 분석 중...</h2></motion.div>}</AnimatePresence>
+      <AnimatePresence>{isAnalyzing && <motion.div className="bchata-overlay-backdrop" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} style={{ position: 'fixed', inset: 0, zIndex: Z.modalBackdrop, background: 'rgba(255,255,255,0.9)', backdropFilter: 'blur(30px)', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}><motion.div animate={{ rotate: 360 }} transition={{ duration: 1, repeat: Infinity, ease: 'linear' }} style={{ width: '60px', height: '60px', border: '4px solid #FFEBEE', borderTop: '4px solid #E53935', borderRadius: '50%', marginBottom: '20px' }} /><h2 style={{ color: '#1E293B', fontSize: '20px', fontWeight: '900' }}>실시간 지능형 분석 중...</h2></motion.div>}</AnimatePresence>
 
       {/* 햄버거 메뉴 버튼 — 비활성화
       {!isMenuOpen && (
@@ -1761,7 +1792,7 @@ function App() {
             style={{
               position: 'fixed', top: 0, bottom: 0, left: 0,
               width: '75vw', maxWidth: '320px',
-              zIndex: 1000000,
+              zIndex: Z.modalBackdrop,
               background: '#121212', padding: '24px',
               display: 'flex', flexDirection: 'column',
               overflowY: 'auto',
@@ -1917,7 +1948,7 @@ function App() {
 
       {showVipLogin && (
         <div
-          style={{ position: 'fixed', inset: 0, zIndex: 2000002, background: 'rgba(0,0,0,0.55)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20 }}
+          style={{ position: 'fixed', inset: 0, zIndex: Z.modal, background: 'rgba(0,0,0,0.55)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20 }}
           onClick={() => { setShowVipLogin(false); resetVipAuthToLogin(); }}
         >
           <div
@@ -2028,7 +2059,7 @@ function App() {
             style={{
               position: 'fixed', top: 0, bottom: 0, left: 0,
               width: '75vw', maxWidth: '320px',
-              zIndex: 2000001,
+              zIndex: Z.modal,
               background: '#121212', padding: '24px',
               display: 'flex', flexDirection: 'column',
               overflowY: 'auto',
@@ -2119,7 +2150,7 @@ function App() {
             transform: 'translateX(-50%)',
             width: '100%',
             maxWidth: '500px',
-            zIndex: 99999,
+            zIndex: Z.modalBackdrop9,
             padding: '0 16px',
             boxSizing: 'border-box',
             display: 'flex',
@@ -2229,10 +2260,10 @@ function App() {
       </AnimatePresence>
 
       <AnimatePresence>
-        {showFullCalendar && (
+        {showFullCalendar && view !== 'home' && (
           <>
-            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={handleCloseModal} style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.6)', backdropFilter: 'blur(4px)', zIndex: 170000 }} />
-            <motion.div initial={{ y: '100%', opacity: 0 }} animate={{ y: 0, opacity: 1 }} exit={{ y: '100%', opacity: 0 }} transition={{ type: 'spring', damping: 25, stiffness: 200 }} style={{ position: 'fixed', bottom: '90px', left: '10px', right: '10px', background: '#fff', borderRadius: '24px', padding: '20px', boxShadow: '0 10px 40px rgba(0,0,0,0.25)', zIndex: 170001, border: '1px solid #f1f5f9', display: 'flex', flexDirection: 'column', maxHeight: '85vh' }}>
+            <motion.div className="bchata-overlay-backdrop" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={handleCloseModal} style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.6)', backdropFilter: 'blur(4px)', zIndex: Z.modalBackdrop }} />
+            <motion.div className="bchata-overlay-panel bchata-overlay-sheet" initial={{ y: '100%', opacity: 0 }} animate={{ y: 0, opacity: 1 }} exit={{ y: '100%', opacity: 0 }} transition={{ type: 'spring', damping: 25, stiffness: 200 }} style={{ position: 'fixed', left: '10px', right: '10px', background: '#fff', borderRadius: '24px', padding: '20px', boxShadow: '0 10px 40px rgba(0,0,0,0.25)', zIndex: Z.modal, border: '1px solid #f1f5f9', display: 'flex', flexDirection: 'column', maxHeight: '85vh' }}>
               <div style={{ width: '40px', height: '4px', background: '#E2E8F0', borderRadius: '2px', margin: '0 auto 20px' }} />
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}><span style={{ fontSize: '24px', fontWeight: 950, color: '#1E293B' }}>{selectedMonth}월</span><div style={{ display: 'flex', gap: '8px' }}><button onClick={() => setSelectedMonth(m => m > 1 ? m-1 : 12)} style={{ background: '#F8FAFC', border: '1px solid #F1F5F9', borderRadius: '10px', width: '36px', height: '36px' }}><ChevronLeft size={18} /></button><button onClick={() => setSelectedMonth(m => m < 12 ? m+1 : 1)} style={{ background: '#F8FAFC', border: '1px solid #F1F5F9', borderRadius: '10px', width: '36px', height: '36px' }}><ChevronRight size={18} /></button></div></div>
@@ -2348,7 +2379,8 @@ function App() {
         {showNoticeGuide && (
           <motion.div 
             initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-            style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.9)', zIndex: 3000000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px', backdropFilter: 'blur(10px)' }}
+            className="bchata-overlay-backdrop"
+            style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.9)', zIndex: Z.modalHigh, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px', backdropFilter: 'blur(10px)' }}
           >
             <motion.div 
               initial={{ scale: 0.9, y: 20 }} animate={{ scale: 1, y: 0 }} exit={{ scale: 0.9, y: 20 }}
@@ -2435,7 +2467,7 @@ function App() {
         style={{
           position: 'fixed',
           inset: 0,
-          zIndex: 2200000,
+          zIndex: Z.modalBackdrop,
           background: '#fff',
           overflowY: 'auto',
           WebkitOverflowScrolling: 'touch',
@@ -2448,7 +2480,7 @@ function App() {
     )}
     {false && false && (
       <div
-        style={{ position: 'fixed', inset: 0, zIndex: 2000001, background: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+        style={{ position: 'fixed', inset: 0, zIndex: Z.modal, background: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
         onClick={() => setShowStudentManager(false)}
       >
         <motion.div onClick={(e) => e.stopPropagation()} style={{ width: '90%', maxWidth: '400px', minHeight: '200px', background: '#121212', borderRadius: '16px', border: '1px solid rgba(201,168,76,0.3)' }}>
@@ -2458,7 +2490,7 @@ function App() {
     )}
     {false && false && (
       <div
-        style={{ position: 'fixed', inset: 0, zIndex: 2000001, background: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+        style={{ position: 'fixed', inset: 0, zIndex: Z.modal, background: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
         onClick={() => setShowRevenueStats(false)}
       >
         <motion.div onClick={(e) => e.stopPropagation()} style={{ width: '90%', maxWidth: '400px', minHeight: '200px', background: '#121212', borderRadius: '16px', border: '1px solid rgba(201,168,76,0.3)' }}>
@@ -2481,7 +2513,8 @@ function App() {
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
-          style={{ position: 'fixed', inset: 0, zIndex: 2600000 }}
+          className="bchata-overlay-backdrop"
+          style={{ position: 'fixed', inset: 0, zIndex: Z.modalMax }}
         >
           <PosterModal 
             src={selectedPoster.src} 
@@ -2495,7 +2528,9 @@ function App() {
         </motion.div>
       )}
     </AnimatePresence>
-    {/* [Premium Floating Capsule Navigation - Root Level Persistence] */}
+    </div>
+
+    {/* [Premium Floating Capsule Navigation - viewport fixed, outside app shell] */}
     {!hideBottomNav && (
     <nav
       className={[
@@ -2598,7 +2633,7 @@ function App() {
     </nav>
     )}
     <ChatBot />
-    </div>
+    </>
   );
 }
 

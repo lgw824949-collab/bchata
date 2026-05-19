@@ -1,3 +1,4 @@
+import { Z } from '../constants/zLayers';
 // updated
 import React, { useState, useEffect } from 'react'
 import { X, ChevronDown } from 'lucide-react'
@@ -219,7 +220,7 @@ const SajuModal = ({ parties, onClose, lang = 'ko' }) => {
   }
 
   return (
-    <div style={{ position:'fixed', inset:0, background:'rgba(0,0,0,0.6)', zIndex:2000, display:'flex', justifyContent:'center', alignItems:'center', padding:'20px' }}>
+    <div style={{ position:'fixed', inset:0, background:'rgba(0,0,0,0.6)', zIndex: Z.modalBackdrop, display:'flex', justifyContent:'center', alignItems:'center', padding:'20px' }}>
       <div style={{ width:'100%', maxWidth:'450px', maxHeight:'90vh', background:'#fff', borderRadius:'24px', display:'flex', flexDirection:'column', overflow:'hidden', boxShadow:'0 20px 40px rgba(0,0,0,0.2)', position:'relative' }}>
         
         <div style={{ display:'flex', justifyContent:'flex-end', padding:'16px 20px', position:'absolute', top:0, right:0, zIndex:10 }}>
@@ -382,7 +383,7 @@ const SajuModal = ({ parties, onClose, lang = 'ko' }) => {
         </div>
 
         {fullPoster && (
-          <div onClick={()=>setFullPoster(null)} style={{ position:'fixed', inset:0, background:'rgba(0,0,0,0.95)', zIndex:3000, display:'flex', alignItems:'center', justifyContent:'center', cursor:'zoom-out', padding:20 }}>
+          <div onClick={()=>setFullPoster(null)} style={{ position:'fixed', inset:0, background:'rgba(0,0,0,0.95)', zIndex: Z.modalNested, display:'flex', alignItems:'center', justifyContent:'center', cursor:'zoom-out', padding:20 }}>
             <img src={fullPoster} style={{ maxWidth:'100%', maxHeight:'100%', borderRadius:12 }} />
             <div style={{ position:'absolute', top:20, right:20, color:'#fff', fontSize:24 }}>✕</div>
           </div>

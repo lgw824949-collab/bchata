@@ -1,5 +1,6 @@
 ﻿import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { Z } from '../constants/zLayers';
 import { X, MapPin, MessageCircle, Globe, Plus, ChevronLeft, Loader2 } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import { findBarByName } from '../lib/BarLib';
@@ -326,7 +327,7 @@ export default function RentalModal({ onClose }) {
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
         onClick={onClose}
-        style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.85)', backdropFilter: 'blur(10px)', zIndex: 190000 }}
+        style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.85)', backdropFilter: 'blur(10px)', zIndex: Z.modalBackdrop }}
       />
 
       {/* 메인 모달 컨테이너 */}
@@ -336,7 +337,7 @@ export default function RentalModal({ onClose }) {
         exit={{ y: '100%' }}
         transition={{ type: 'spring', damping: 25, stiffness: 220 }}
         style={{
-          position: 'fixed', inset: 0, background: '#ffffff', zIndex: 190001,
+          position: 'fixed', inset: 0, background: '#ffffff', zIndex: Z.modal,
           display: 'flex', flexDirection: 'column', height: '100dvh',
           paddingTop: 'env(safe-area-inset-top)', paddingBottom: 'env(safe-area-inset-bottom)'
         }}
@@ -481,7 +482,7 @@ export default function RentalModal({ onClose }) {
       {/* 팝업 1: BAR 등록 폼 모달 */}
       <AnimatePresence>
         {showRegisterForm && (
-          <div style={{ position: 'fixed', inset: 0, zIndex: 190010, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px' }}>
+          <div style={{ position: 'fixed', inset: 0, zIndex: Z.modalNested, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px' }}>
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
@@ -618,7 +619,7 @@ export default function RentalModal({ onClose }) {
       {/* 팝업 2: BAR 클릭 시 나타나는 미니 팝업 모달 */}
       <AnimatePresence>
         {selectedBar && (
-          <div style={{ position: 'fixed', inset: 0, zIndex: 190005, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px' }}>
+          <div style={{ position: 'fixed', inset: 0, zIndex: Z.modalNested, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px' }}>
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}

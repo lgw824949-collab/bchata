@@ -6,6 +6,7 @@ import {
   Share2, Bell, Heart, User, Globe, Star
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { Z } from '../constants/zLayers';
 import { supabase } from '../lib/supabase';
 import { pushOverlay } from '../lib/appHistory';
 import { resolveEventDates, inferOneDayEvent } from '../lib/dbSanitize';
@@ -422,7 +423,7 @@ const Bootcamp = ({ onBack, initialView = 'list' }) => {
       { Detail Modal }
       <AnimatePresence>
         {selectedBootcamp && (
-          <motion.div initial={{ y: '100%' }} animate={{ y: 0 }} exit={{ y: '100%' }} style={{ position: 'fixed', inset: 0, zIndex: 5000, background: '#0D0D0D', overflowY: 'auto' }}>
+          <motion.div initial={{ y: '100%' }} animate={{ y: 0 }} exit={{ y: '100%' }} style={{ position: 'fixed', inset: 0, zIndex: Z.modal, background: '#0D0D0D', overflowY: 'auto' }}>
             <div style={{ position: 'relative', height: '450px' }}>
               <img src={selectedBootcamp.poster_url} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
               <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to bottom, transparent, #0D0D0D)' }} />
@@ -467,7 +468,7 @@ const Bootcamp = ({ onBack, initialView = 'list' }) => {
       { Booking Guide Modal }
       <AnimatePresence>
         {showBookingGuide && (
-          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} style={{ position: 'fixed', inset: 0, zIndex: 6000, background: 'rgba(0,0,0,0.8)', backdropFilter: 'blur(10px)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '30px' }}>
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} style={{ position: 'fixed', inset: 0, zIndex: Z.modal, background: 'rgba(0,0,0,0.8)', backdropFilter: 'blur(10px)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '30px' }}>
             <div style={{ width: '100%', maxWidth: '400px', background: '#1A1A1A', borderRadius: '32px', padding: '40px 30px', textAlign: 'center', border: '1px solid #C9A84C' }}>
               <Zap size={40} color="#C9A84C" style={{ marginBottom: '20px' }} />
               <h3 style={{ fontSize: '22px', fontWeight: 900, color: '#fff', marginBottom: '15px' }}>예약 안내</h3>
@@ -487,7 +488,7 @@ const Bootcamp = ({ onBack, initialView = 'list' }) => {
   */
 
   return (
-    <div style={{ background: '#0D0D0D', minHeight: '100vh', fontFamily: "'Outfit', sans-serif", color: '#FFFFFF' }}>
+    <div style={{ background: '#0D0D0D', minHeight: '100dvh', width: '100%', fontFamily: "'Outfit', sans-serif", color: '#FFFFFF' }}>
 
       <img
         src="/Photo/부트캠프.png"
@@ -755,14 +756,14 @@ const Bootcamp = ({ onBack, initialView = 'list' }) => {
             <motion.div
               initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
               onClick={() => setShowFilterSheet(false)}
-              style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.6)', zIndex: 300, backdropFilter: 'blur(4px)' }}
+              style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.6)', zIndex: Z.modalBackdrop, backdropFilter: 'blur(4px)' }}
             />
             {/* 시트 */}
             <motion.div
               initial={{ y: '100%' }} animate={{ y: 0 }} exit={{ y: '100%' }}
               transition={{ type: 'spring', damping: 28, stiffness: 260 }}
               style={{
-                position: 'fixed', bottom: 0, left: 0, right: 0, zIndex: 301,
+                position: 'fixed', bottom: 0, left: 0, right: 0, zIndex: Z.modal,
                 background: '#111111', borderRadius: '28px 28px 0 0',
                 padding: '12px 24px 40px', maxHeight: '80vh', overflowY: 'auto'
               }}
@@ -992,7 +993,7 @@ const Bootcamp = ({ onBack, initialView = 'list' }) => {
           <motion.div
             initial={{ y: '100%' }} animate={{ y: 0 }} exit={{ y: '100%' }}
             transition={{ type: 'spring', damping: 25, stiffness: 200 }}
-            style={{ position: 'fixed', inset: 0, zIndex: 5000, background: '#000', display: 'flex', justifyContent: 'center' }}
+            style={{ position: 'fixed', inset: 0, zIndex: Z.modal, background: '#000', display: 'flex', justifyContent: 'center' }}
           >
             <div style={{ width: '100%', maxWidth: '500px', height: '100%', background: '#0D0D0D', color: '#fff', overflowY: 'auto', position: 'relative', boxShadow: '0 0 100px rgba(0,0,0,0.8)' }}>
 
@@ -1100,7 +1101,7 @@ const Bootcamp = ({ onBack, initialView = 'list' }) => {
         {showBookingGuide && (
           <motion.div
             initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-            style={{ position: 'fixed', inset: 0, zIndex: 6000, background: 'rgba(0,0,0,0.8)', backdropFilter: 'blur(10px)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '30px' }}
+            style={{ position: 'fixed', inset: 0, zIndex: Z.modal, background: 'rgba(0,0,0,0.8)', backdropFilter: 'blur(10px)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '30px' }}
           >
             <div style={{ width: '100%', maxWidth: '400px', background: '#1A1A1A', borderRadius: '32px', padding: '40px 30px', textAlign: 'center', border: '1px solid #C9A84C' }}>
               <Zap size={40} color="#C9A84C" style={{ marginBottom: '20px' }} />

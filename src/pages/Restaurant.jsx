@@ -131,7 +131,7 @@ const Restaurant = ({ onBack }) => {
   return (
     <div style={{
       width: '100%', height: '100vh', background: '#F8FAFC',
-      display: 'flex', flexDirection: 'column', fontFamily: "'Pretendard', sans-serif"
+      display: 'flex', flexDirection: 'column', fontFamily: "inherit"
     }}>
       {/* 헤더 */}
       <div style={{

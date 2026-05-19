@@ -1,21 +1,26 @@
+@import url('https://fonts.googleapis.com/css2?family=Roboto+Mono:ital,wght@0,100..700;1,100..700&display=swap');
+
 :root {
-  /* 밀리의 서재형 UI 타이포 — Pretendard + 굵기 계층 */
-  --font-sans: 'Pretendard', -apple-system, BlinkMacSystemFont, system-ui, 'Apple SD Gothic Neo', 'Noto Sans KR', 'Malgun Gothic', sans-serif;
+  /* Roboto Mono(영문) + Pretendard·시스템 고딕(한글) */
+  --font-sans: 'Roboto Mono', 'Pretendard', -apple-system, BlinkMacSystemFont, system-ui, Roboto, sans-serif;
   --font-regular: 400;
   --font-medium: 500;
   --font-semibold: 600;
   --font-bold: 700;
-  --font-extrabold: 800;
-  --type-display-size: 22px;
+  --font-extrabold: 700;
+  --line-height-tight: 1.4;
+  --line-height-body: 1.55;
+  --line-height-relaxed: 1.65;
+  --type-display-size: 24px;
   --type-display-weight: 700;
-  --type-display-tracking: -0.03em;
-  --type-section-size: 15px;
+  --type-display-tracking: 0;
+  --type-section-size: 16px;
   --type-section-weight: 600;
-  --type-section-tracking: -0.02em;
-  --type-body-size: 14px;
-  --type-caption-size: 12px;
+  --type-section-tracking: 0;
+  --type-body-size: 15px;
+  --type-caption-size: 13px;
   --type-caption-weight: 500;
-  --type-label-size: 11px;
+  --type-label-size: 12px;
   --type-label-weight: 600;
   /* 아이폰 노치 및 하단 바 영역 보호 */
   --safe-top: env(safe-area-inset-top);
@@ -29,6 +34,14 @@
   --color-border: #f1f5f9;
   --color-primary: #FF1744;
   --color-nav-bg: rgba(255, 255, 255, 0.95);
+
+  /* Z-index stack: bottom nav = floor; modals always above */
+  --z-bottom-nav: 2100000;
+  --z-modal-backdrop: 2200000;
+  --z-modal: 2200001;
+  --z-modal-nested: 2200010;
+  --z-modal-high: 2300000;
+  --z-modal-max: 2400000;
 }
 
 [data-theme='dark'] {
@@ -49,7 +62,9 @@
 
 body {
   font-family: var(--font-sans);
+  font-size: var(--type-body-size);
   font-weight: var(--font-regular);
+  line-height: var(--line-height-body);
   margin: 0;
   padding: 0;
 }
@@ -74,9 +89,10 @@ html, body {
 }
 
 #root {
-  display: flex;
-  justify-content: center;
+  display: block;
   width: 100%;
+  min-height: 100vh;
+  min-height: 100dvh;
 }
 
 html::-webkit-scrollbar,
@@ -100,8 +116,9 @@ body::-webkit-scrollbar {
 
 
 body {
-  letter-spacing: -0.02em;
+  letter-spacing: 0.01em;
   -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
 input, button, select, textarea {
@@ -116,12 +133,12 @@ input, button, select, textarea {
   font-size: var(--type-display-size);
   font-weight: var(--type-display-weight);
   letter-spacing: var(--type-display-tracking);
-  line-height: 1.32;
+  line-height: var(--line-height-tight);
 }
 
 .home-type-tagline {
   margin: 6px 0 0;
-  line-height: 1.4;
+  line-height: var(--line-height-body);
   display: flex;
   align-items: baseline;
   flex-wrap: wrap;
@@ -130,9 +147,9 @@ input, button, select, textarea {
 }
 
 .home-type-tagline-strong {
-  font-size: 15px;
+  font-size: var(--type-body-size);
   font-weight: var(--font-bold);
-  letter-spacing: -0.02em;
+  letter-spacing: 0;
   color: #d4436e;
 }
 
@@ -141,9 +158,9 @@ input, button, select, textarea {
 }
 
 .home-type-tagline-sub {
-  font-size: 14px;
+  font-size: var(--type-caption-size);
   font-weight: var(--font-medium);
-  letter-spacing: -0.02em;
+  letter-spacing: 0;
   color: #64748b;
 }
 
@@ -157,7 +174,7 @@ input, button, select, textarea {
   font-size: var(--type-section-size);
   font-weight: var(--type-section-weight);
   letter-spacing: var(--type-section-tracking);
-  line-height: 1.4;
+  line-height: var(--line-height-body);
 }
 
 .home-type-caption {
@@ -165,36 +182,38 @@ input, button, select, textarea {
   font-family: var(--font-sans);
   font-size: var(--type-caption-size);
   font-weight: var(--type-caption-weight);
-  line-height: 1.45;
-  letter-spacing: -0.01em;
+  line-height: var(--line-height-relaxed);
+  letter-spacing: 0;
 }
 
 .home-type-party-label {
   font-family: var(--font-sans);
-  font-size: 13px;
+  font-size: var(--type-caption-size);
   font-weight: var(--font-semibold);
-  letter-spacing: -0.02em;
-  line-height: 1.4;
+  letter-spacing: 0;
+  line-height: var(--line-height-body);
 }
 
 .home-type-party-count {
   font-family: var(--font-sans);
   font-weight: var(--font-bold);
-  letter-spacing: -0.03em;
-  line-height: 1.35;
+  letter-spacing: 0;
+  line-height: var(--line-height-tight);
   font-variant-numeric: tabular-nums;
 }
 
 .home-type-party-unit {
   font-family: var(--font-sans);
-  font-size: 12px;
+  font-size: var(--type-label-size);
   font-weight: var(--font-semibold);
+  line-height: var(--line-height-body);
 }
 
 .home-gate-active .quick-menu-circle-label {
   font-family: var(--font-sans);
   font-weight: var(--type-label-weight);
-  letter-spacing: -0.02em;
+  letter-spacing: 0;
+  line-height: var(--line-height-body);
 }
 
 .home-gate-active .home-type-party-count {
@@ -371,17 +390,17 @@ input[type=number] {
 }
 
 .stream-title {
-  font-size: 15px;
+  font-size: var(--type-body-size);
   font-weight: 900;
   color: #0f172a;
-  line-height: 1.4;
+  line-height: var(--line-height-body);
   margin-top: 8px;
   margin-bottom: 8px;
   display: -webkit-box;
   -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
   overflow: hidden;
-  letter-spacing: -0.04em;
+  letter-spacing: 0;
 }
 
 .meta-chip {
@@ -431,7 +450,7 @@ input[type=number] {
   position: fixed;
   inset: 0;
   background-color: #000000;
-  z-index: 100000;
+  z-index: var(--z-modal-max);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -527,18 +546,20 @@ html {
 }
 
 body {
-  font-family: var(--font-main);
+  font-family: var(--font-sans);
+  font-size: var(--type-body-size);
   background-color: #e8ecf0;
   color: var(--text-main);
   overflow-x: hidden;
-  line-height: 1.5;
+  line-height: var(--line-height-body);
 }
 
-/* PC에서도 휴대폰과 동일한 폭·레이아웃 (고정 UI는 셸 안에만 표시) */
-#root {
-  width: 100%;
-  min-height: 100vh;
-  min-height: 100dvh;
+/* PC에서도 휴대폰과 동일한 폭·레이아웃 */
+@media (min-width: 520px) {
+  #root {
+    display: flex;
+    justify-content: center;
+  }
 }
 
 .bchata-app-shell {
@@ -551,9 +572,19 @@ body {
   background: #ffffff;
   box-shadow: 0 0 48px rgba(15, 23, 42, 0.1);
   overflow-x: hidden;
-  /* position:fixed 자식을 뷰포트가 아닌 셸 기준으로 */
-  transform: translateX(0);
-  isolation: isolate;
+}
+
+@media (max-width: 519px) {
+  .bchata-app-shell {
+    width: 100%;
+    max-width: 100%;
+    box-shadow: none;
+  }
+}
+
+html.app-dark-surface,
+body.app-dark-surface {
+  background-color: #0d0d0d !important;
 }
 
 /* 메인 홈 게이트(activeTab 없음): 앱 셸·루트까지 다크 (Home 내부만 어두운 문제 방지) */
@@ -899,12 +930,7 @@ body.party-register-open .bottom-nav {
   opacity: 0 !important;
 }
 
-/* BAR 상세: 네비를 모달 위에 올리고, 스크롤 다운 시에만 숨김 */
-body.venue-detail-open nav.bottom-nav,
-body.venue-detail-open .bottom-nav {
-  z-index: 2300000 !important;
-}
-
+/* BAR 상세: 스크롤 다운 시에만 네비 숨김 (z-index는 항상 모달 아래) */
 body.venue-detail-open.venue-detail-nav-hidden nav.bottom-nav,
 body.venue-detail-open.venue-detail-nav-hidden .bottom-nav {
   opacity: 0 !important;
@@ -932,16 +958,40 @@ nav.bottom-nav,
   padding: 0 14px !important;
   box-sizing: border-box !important;
   border-radius: 27px !important;
-  z-index: 2100000 !important;
+  z-index: var(--z-bottom-nav) !important;
   transform: translateX(-50%) !important;
   opacity: 1 !important;
   visibility: visible !important;
   pointer-events: auto !important;
 }
 
-/* 본문이 하단 네비에 가리지 않도록 */
+/* 본문이 하단 네비에 가리지 않도록 (body가 아닌 앱 루트에만 패딩) */
 body {
+  padding-bottom: 0;
+}
+
+body.has-bottom-nav [data-bchata-app-root] {
   padding-bottom: calc(72px + env(safe-area-inset-bottom, 0px));
+}
+
+/* Global overlay utilities — always above .bottom-nav */
+.bchata-overlay-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: var(--z-modal-backdrop) !important;
+}
+
+.bchata-overlay-panel {
+  z-index: var(--z-modal) !important;
+}
+
+.bchata-overlay-sheet {
+  z-index: var(--z-modal) !important;
+  bottom: calc(72px + env(safe-area-inset-bottom, 0px));
+}
+
+body.party-register-open [data-bchata-app-root] {
+  padding-bottom: 0;
 }
 
 .bottom-nav svg {
@@ -950,7 +1000,8 @@ body {
 }
 
 .bottom-nav span {
-  font-size: 8px !important;
+  font-size: 9px !important;
+  line-height: 1.35 !important;
   margin-top: 2px !important;
 }
 
@@ -1098,7 +1149,7 @@ body.bottom-nav-social-light nav.bottom-nav {
 .latin-overlay {
   position: fixed; inset: 0;
   background: rgba(0,0,0,0);
-  z-index: 10005;
+  z-index: var(--z-modal-backdrop);
   pointer-events: none;
   transition: background 0.3s ease;
 }
@@ -1115,7 +1166,7 @@ body.bottom-nav-social-light nav.bottom-nav {
   height: 100vh;
   background: var(--latin-dk1);
   display: flex; flex-direction: column;
-  z-index: 10006;
+  z-index: var(--z-modal);
   transition: transform 0.4s cubic-bezier(0.4,0,0.2,1);
   box-shadow: 2px 0 15px rgba(0,0,0,0.3);
 }

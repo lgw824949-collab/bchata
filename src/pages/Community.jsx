@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
+import { Z } from '../constants/zLayers';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Heart, Eye, Share2, Plus, X, Camera, MapPin, Search, Home as HomeIcon, Star, Info, CheckCircle2, Trophy, Award, Zap, TrendingUp, Clock, Flame } from 'lucide-react';
 import { supabase } from '../lib/supabase';
@@ -350,7 +351,7 @@ const Community = ({ setSelectedPoster, setView }) => {
       {/* Upload Modal & Post Detail Modal Logic stays same but with refined styling... */}
       <AnimatePresence>
         {selectedPost && (
-          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.9)', zIndex: 5000, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.9)', zIndex: Z.modal, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
             <div style={{ width: '100%', height: '100%', position: 'relative' }}>
               <img src={selectedPost.image_url} style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
               <button onClick={() => setSelectedPost(null)} style={{ position: 'absolute', top: '40px', right: '20px', background: 'rgba(255,255,255,0.2)', border: 'none', borderRadius: '50%', padding: '10px', color: 'white' }}><X size={24} /></button>
@@ -376,7 +377,7 @@ const Community = ({ setSelectedPoster, setView }) => {
 
       <AnimatePresence>
         {showUploadModal && (
-          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.8)', backdropFilter: 'blur(10px)', zIndex: 6000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px' }}>
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.8)', backdropFilter: 'blur(10px)', zIndex: Z.modal, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px' }}>
             <motion.div initial={{ y: 100, opacity: 0 }} animate={{ y: 0, opacity: 1 }} style={{ background: 'var(--color-bg)', width: '100%', maxWidth: '400px', borderRadius: '32px', padding: '30px', border: '1px solid var(--color-border)' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
                 <h2 style={{ fontSize: '20px', fontWeight: 900, color: 'var(--color-text-main)' }}>현장 리포트 등록</h2>

@@ -1,3 +1,4 @@
+import { Z } from './constants/zLayers';
 import { useState, useEffect } from 'react'
 import { createPortal } from 'react-dom'
 import { Plus, ChevronLeft, Check, X, MapPin } from 'lucide-react'
@@ -15,7 +16,7 @@ const TITLE_EXAMPLES = [
   "[대구] 바야 구라짱이랑 놀자! 라틴 성지 ㅣ 오늘밤빠"
 ];
 
-const PARTY_REGISTER_Z = 3000000
+const PARTY_REGISTER_Z = Z.modalHigh
 const PARTY_REGISTER_BODY_CLASS = 'party-register-open'
 
 const RegisterForm = ({ onBack, onSuccess, isEdit = false, initialData = null }) => {

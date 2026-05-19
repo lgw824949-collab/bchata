@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { Z } from '../constants/zLayers';
 import { motion, AnimatePresence } from 'framer-motion';
 import { supabase } from '../lib/supabase';
 import { X, Calendar, Clock, MapPin, DollarSign, Users, Info, User } from 'lucide-react';
@@ -162,7 +163,7 @@ const ClassRegisterModal = ({ isOpen = true, onClose, instructorId = '' }) => {
 
   return (
     <div style={{
-      position: 'fixed', inset: 0, zIndex: 7000, background: 'rgba(0,0,0,0.8)',
+      position: 'fixed', inset: 0, zIndex: Z.modal, background: 'rgba(0,0,0,0.8)',
       backdropFilter: 'blur(10px)', display: 'flex', alignItems: 'center', justifyContent: 'center',
       padding: '20px', fontFamily: "'Outfit', sans-serif"
     }}>

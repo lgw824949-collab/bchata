@@ -1,3 +1,4 @@
+import { Z } from '../constants/zLayers';
 ﻿// src/components/DanceDestiny.tsx
 // 최종 완성본: 강사 매칭 최적화 / Gemini API 연동 / 404 에러 방지 및 로컬 롤백 포함
 // 추천 클래스 & 강사 라인업 복구 완료
@@ -62,7 +63,7 @@ function calcMainOheng(saju: any[]) {
 const INP: React.CSSProperties = {
   padding:'12px 14px', borderRadius:12, border:'1.5px solid #E2E8F0',
   fontSize:14, outline:'none', background:'#FAFBFF', color:'#111', width:'100%',
-  fontFamily:"'Pretendard',sans-serif",
+  fontFamily:"inherit",
 }
 
 export default function DanceDestiny({ onClose, lessons=[] }: { onClose: () => void, lessons?: any[] }) {
@@ -196,7 +197,7 @@ export default function DanceDestiny({ onClose, lessons=[] }: { onClose: () => v
   }
 
   return (
-    <div style={{ position:'fixed', inset:0, zIndex:10000, display:'flex', alignItems:'flex-end', justifyContent:'center' }}>
+    <div style={{ position:'fixed', inset:0, zIndex: Z.modal, display:'flex', alignItems:'flex-end', justifyContent:'center' }}>
       <div onClick={onClose} style={{ position:'absolute', inset:0, background:'rgba(0,0,0,0.65)', backdropFilter:'blur(4px)' }} />
 
       <div style={{
