@@ -1013,7 +1013,11 @@ function App() {
     return () => window.removeEventListener('home-active-tab', onHomeActiveTab);
   }, []);
 
-  const isHomeGateNav = location.pathname === '/' && view === 'home' && homeActiveTab === null
+  const isHomeGateNav =
+    location.pathname === '/' &&
+    view === 'home' &&
+    homeActiveTab === null &&
+    !showPartner
   const isSocialLightNav = (location.pathname === '/' && view === 'home' && homeActiveTab !== null) || showPartner
 
   useEffect(() => {
@@ -1022,6 +1026,7 @@ function App() {
     } else {
       document.body.classList.remove('bottom-nav-social-light')
     }
+    document.documentElement.classList.toggle('home-gate-theme', isHomeGateNav)
     document.body.classList.toggle('home-gate-theme', isHomeGateNav)
     const themeMeta = document.querySelector('meta[name="theme-color"]')
     if (themeMeta) {
@@ -1031,6 +1036,7 @@ function App() {
     }
     return () => {
       document.body.classList.remove('bottom-nav-social-light')
+      document.documentElement.classList.remove('home-gate-theme')
       document.body.classList.remove('home-gate-theme')
     }
   }, [isSocialLightNav, isHomeGateNav])
@@ -1654,6 +1660,11 @@ function App() {
     setter(v);
   };
 
+  const setActiveTab = (tab) => {
+    setHomeActiveTab(tab);
+    window.dispatchEvent(new CustomEvent('home-active-tab', { detail: tab }));
+  };
+
   const sharedProps = {
     parties: displayParties, bootcamps, festivals, loading, selectedMonth, setSelectedMonth, selectedWeek: 1, setSelectedWeek: () => {}, 
     selectedDate, setSelectedDate, selectedRegion: '서울', setSelectedRegion: () => {}, 
@@ -1685,6 +1696,8 @@ function App() {
     logActivity: () => {}, regionalTheme: { welcomeMsg: "전국 댄서들을 위한 실시간 정보", specialBanner: true },
     followedInstructors,
     LiveExposureStrip,
+    homeTab: homeActiveTab,
+    onHomeTabChange: setActiveTab,
   };
 
   // 파티/클래스/부트캠프/페스티벌 등록 중에는 하단 네비 숨김 (등록 폼 버튼 가림 방지)
@@ -1706,10 +1719,6 @@ function App() {
   const socialNavInactive = '#666666'
   const isHomeNavActive = location.pathname === '/' && view === 'home' && homeActiveTab === null && !showPartner
   const isBottomSocialNavActive = location.pathname === '/' && view === 'home' && homeActiveTab === 'social' && !showPartner
-  const setActiveTab = (tab) => {
-    setHomeActiveTab(tab);
-    window.dispatchEvent(new CustomEvent('home-active-tab', { detail: tab }));
-  };
 
   return (
     <div className={`bchata-app-shell${isHomeGateNav ? ' bchata-app-shell--gate' : ''}`}>
@@ -1730,7 +1739,12 @@ function App() {
         initial={{ opacity: 0 }} 
         animate={{ opacity: showSplash ? 0 : 1 }} 
         transition={{ duration: 0.5, ease: 'easeOut', delay: showSplash ? 0 : 0.1 }}
-        style={{ width: '100%', minHeight: '100vh', position: 'relative' }}
+        style={{
+          width: '100%',
+          minHeight: '100vh',
+          position: 'relative',
+          background: isHomeGateNav ? '#0D0D0D' : 'transparent',
+        }}
       >
       <AnimatePresence>{isAnalyzing && <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} style={{ position: 'fixed', inset: 0, zIndex: 1000000, background: 'rgba(255,255,255,0.9)', backdropFilter: 'blur(30px)', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}><motion.div animate={{ rotate: 360 }} transition={{ duration: 1, repeat: Infinity, ease: 'linear' }} style={{ width: '60px', height: '60px', border: '4px solid #FFEBEE', borderTop: '4px solid #E53935', borderRadius: '50%', marginBottom: '20px' }} /><h2 style={{ color: '#1E293B', fontSize: '20px', fontWeight: '900' }}>실시간 지능형 분석 중...</h2></motion.div>}</AnimatePresence>
 

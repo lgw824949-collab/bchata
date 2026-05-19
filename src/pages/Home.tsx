@@ -904,11 +904,13 @@ const HomePage = ({
   handleOpenModal, handleCloseModal,
   isDark, setIsDark, followedInstructors, likedLivePicks, setShowRentalModal, setShowPartner,
   LiveExposureStrip,
+  homeTab = null,
+  onHomeTabChange,
 }) => {
   const { t, i18n } = useTranslation();
   const isEn = i18n.language.startsWith('en');
   const lang = isEn ? 'en' : 'ko';
-  const [activeTab, setActiveTabState] = useState(null);
+  const activeTab = homeTab ?? null;
   const [regionCounts, setRegionCounts] = useState({
     seoul: 0, seoulDistricts: '',
     metro: 0, metroDistricts: '',
@@ -938,8 +940,7 @@ const HomePage = ({
   };
 
   const setActiveTab = (tab) => {
-    setActiveTabState(tab);
-    window.dispatchEvent(new CustomEvent('home-active-tab', { detail: tab }));
+    onHomeTabChange?.(tab);
     if (tab === 'social') {
       setShowPartner(false);
       navigate('/', { homeTab: 'social' });
@@ -953,12 +954,6 @@ const HomePage = ({
       }
     }
   };
-
-  useEffect(() => {
-    const onHomeActiveTab = (e) => setActiveTab(e.detail ?? null);
-    window.addEventListener('home-active-tab', onHomeActiveTab);
-    return () => window.removeEventListener('home-active-tab', onHomeActiveTab);
-  }, []);
 
   useEffect(() => {
     const fetchPosters = async () => {
@@ -1341,9 +1336,9 @@ const HomePage = ({
         width: carousel ? '56px' : '52px',
         height: carousel ? '56px' : '52px',
         borderRadius: '50%',
-        background: '#ffffff',
-        boxShadow: '0 2px 8px rgba(0,0,0,0.05)',
-        border: '1.5px solid #F1F5F9',
+        background: activeTab === null ? 'rgba(255, 255, 255, 0.06)' : '#ffffff',
+        boxShadow: activeTab === null ? '0 2px 8px rgba(0,0,0,0.25)' : '0 2px 8px rgba(0,0,0,0.05)',
+        border: activeTab === null ? '1.5px solid rgba(255, 255, 255, 0.1)' : '1.5px solid #F1F5F9',
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
@@ -1588,12 +1583,6 @@ const HomePage = ({
       ) : null}
     </header>
   );
-
-  useEffect(() => {
-    const onGate = isHomeGate && view === 'home';
-    document.body.classList.toggle('home-gate-theme', onGate);
-    return () => document.body.classList.remove('home-gate-theme');
-  }, [isHomeGate, view]);
 
   return (
     <div
