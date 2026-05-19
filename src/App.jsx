@@ -6,6 +6,15 @@ import { supabase, logActivity } from './lib/supabase'
 import { KAKAO_BRAND, SHARE_BUILD, sharePartyToKakao } from './lib/kakaoShare'
 import { buildPartyShareCard } from './lib/partyShareCard'
 import { getUserCoords, isGeoDenied, readCachedCoords, syncGeoPermissionState } from './lib/geoCache'
+import {
+  buildAppState,
+  goBack,
+  navigate,
+  parseAppState,
+  pathToView,
+  pushOverlay,
+  replaceCurrentState,
+} from './lib/appHistory'
 import QuickPinchZoom, { make3dTransformValue } from 'react-quick-pinch-zoom';
 
 // 페이지 지연 로딩 (Lazy Loading)
@@ -48,12 +57,6 @@ const useLocation = () => {
     return () => window.removeEventListener('popstate', handlePopState);
   }, []);
   return { pathname };
-};
-
-const navigate = (path) => {
-  window.history.pushState({}, '', path);
-  window.dispatchEvent(new PopStateEvent('popstate'));
-  window.scrollTo(0, 0);
 };
 
 import { BAR_DATABASE, findBarByName } from './data/barDatabase';
@@ -984,24 +987,6 @@ function App() {
     return () => document.body.classList.remove('party-register-open')
   }, [location.pathname, view])
 
-  useEffect(() => {
-    const path = location.pathname;
-    if (path === '/') setView('home');
-    else if (path === '/livepick') setView('community');
-    else if (path === '/instructors') setView('instructors');
-    else if (path === '/bootcamp') setView('bootcamp');
-    else if (path === '/bootcamp/register') setView('bootcamp-register');
-    else if (path === '/festival') setView('festival');
-    else if (path === '/festival/register') setView('festival-register');
-    else if (path === '/register-party') setView('register-party');
-    else if (path === '/register-class') setView('register-class');
-    else if (path === '/parking') setView('parking');
-    else if (path === '/restaurant') setView('restaurant');
-    else if (path === '/admin') setView('admin');
-    else if (path === '/admin-portal') setView('admin-portal');
-  }, [location.pathname]);
-
-
   const [registerType, setRegisterType] = useState('party');
 
   const [showIncheonModal, setShowIncheonModal] = useState(false);
@@ -1028,7 +1013,8 @@ function App() {
     return () => window.removeEventListener('home-active-tab', onHomeActiveTab);
   }, []);
 
-  const isSocialLightNav = (location.pathname === '/' && view === 'home') || showPartner
+  const isHomeGateNav = location.pathname === '/' && view === 'home' && homeActiveTab === null
+  const isSocialLightNav = (location.pathname === '/' && view === 'home' && homeActiveTab !== null) || showPartner
 
   useEffect(() => {
     if (isSocialLightNav) {
@@ -1038,10 +1024,12 @@ function App() {
     }
     const themeMeta = document.querySelector('meta[name="theme-color"]')
     if (themeMeta) {
-      themeMeta.setAttribute('content', isSocialLightNav ? '#ffffff' : '#FF1744')
+      if (isHomeGateNav) themeMeta.setAttribute('content', '#0D0D0D')
+      else if (isSocialLightNav) themeMeta.setAttribute('content', '#ffffff')
+      else themeMeta.setAttribute('content', '#FF1744')
     }
     return () => document.body.classList.remove('bottom-nav-social-light')
-  }, [isSocialLightNav])
+  }, [isSocialLightNav, isHomeGateNav])
 
   const [showClassRegister, setShowClassRegister] = useState(false);
   // const [showStudentManager, setShowStudentManager] = useState(false);
@@ -1070,6 +1058,53 @@ function App() {
   const [showPlaceInquiry, setShowPlaceInquiry] = useState(false);
   const [showWishlist, setShowWishlist] = useState(false);
   const [showRentalModal, setShowRentalModal] = useState(false);
+
+  const applyHistoryState = (rawState) => {
+    const path = window.location.pathname;
+    const st = parseAppState(rawState) ?? parseAppState(window.history.state);
+    const nextView = st?.view ?? pathToView(path);
+    setView(nextView);
+
+    if (path === '/') {
+      const tab = st?.homeTab ?? null;
+      setHomeActiveTab(tab);
+      setShowPartner(tab === 'partner');
+      window.dispatchEvent(new CustomEvent('home-active-tab', { detail: tab }));
+    } else {
+      setHomeActiveTab(null);
+      setShowPartner(false);
+    }
+
+    const overlay = st?.overlay;
+    setShowWishlist(overlay === 'wishlist');
+    setShowSaju(overlay === 'saju');
+    setShowWeather(overlay === 'weather');
+    setShowRoute(overlay === 'route');
+    setShowPlaceInquiry(overlay === 'placeInquiry');
+    setShowRentalModal(overlay === 'rental');
+    setShowFullCalendar(overlay === 'fullCalendar');
+    setShowIncheonModal(overlay === 'incheon');
+    if (overlay === 'partner' && path === '/') {
+      setShowPartner(true);
+      setHomeActiveTab('partner');
+    }
+  };
+
+  useEffect(() => {
+    applyHistoryState(window.history.state);
+  }, [location.pathname]);
+
+  useEffect(() => {
+    const path = window.location.pathname;
+    if (!parseAppState(window.history.state)) {
+      window.history.replaceState(
+        buildAppState({ view: pathToView(path), homeTab: null }),
+        '',
+        path,
+      );
+    }
+  }, []);
+
   const [weatherTapCount, setWeatherTapCount] = useState(0);
   const [lastWeatherTap, setLastWeatherTap] = useState(0);
   const weatherTimeoutRef = useRef(null);
@@ -1105,7 +1140,7 @@ function App() {
   }, []);
 
   const handleOpenModal = (setter, value = true) => {
-    window.history.pushState({ modal: true }, '');
+    pushOverlay('modal');
     setter(value);
   };
 
@@ -1262,48 +1297,23 @@ function App() {
   };
 
   useEffect(() => {
-    if (window.location.pathname === '/parking') {
-      setView('parking');
-      window.location.hash = 'parking';
-    } else if (window.location.pathname === '/restaurant') {
-      setView('restaurant');
-      window.location.hash = 'restaurant';
-    }
-  }, []);
-
-  useEffect(() => {
     const handlePopState = (event) => {
       if (selectedPoster) { setSelectedPoster(null); return; }
       if (showGridModal) { setShowGridModal(false); return; }
       if (showFilteredResults) { setShowFilteredResults(false); return; }
-      
       if (filterStep > 1) { setFilterStep(1); return; }
-      
       if (showFilterPanel) { setShowFilterPanel(false); return; }
-      if (showFullCalendar) { setShowFullCalendar(false); return; }
       if (isMenuOpen) { setIsMenuOpen(false); return; }
       if (showNoticeGuide) { setShowNoticeGuide(false); return; }
-      if (showWeather) { setShowWeather(false); return; }
-      if (showSaju) { setShowSaju(false); return; }
       if (showIncheonModal) { setShowIncheonModal(false); return; }
       if (showIncheon) { setShowIncheon(false); return; }
-      if (showWishlist) { setShowWishlist(false); return; }
-      if (showRentalModal) { setShowRentalModal(false); return; }
-      if (showRoute) { setShowRoute(false); return; }
-      if (showPlaceInquiry) { setShowPlaceInquiry(false); return; }
 
-      const newHash = window.location.hash.replace('#', '');
-      if (newHash && newHash !== view) {
-        setView(newHash);
-      } else if (window.location.pathname === '/' && !newHash && view !== 'home') {
-        // Only navigate to home when the URL actually returned to '/'
-        setView('home');
-      }
+      applyHistoryState(event.state);
     };
 
     window.addEventListener('popstate', handlePopState);
     return () => window.removeEventListener('popstate', handlePopState);
-  }, [view, selectedPoster, showFullCalendar, isMenuOpen, showNoticeGuide, showWeather, showSaju, showIncheonModal, showFilterPanel, showFilteredResults, showGridModal, showIncheon, showWishlist, showRentalModal, showRoute, showPlaceInquiry]);
+  }, [selectedPoster, showGridModal, showFilteredResults, filterStep, showFilterPanel, isMenuOpen, showNoticeGuide, showIncheonModal, showIncheon]);
 
 
   useEffect(() => {
@@ -1598,10 +1608,12 @@ function App() {
   }, [loading, parties, location.pathname]);
 
   useEffect(() => {
-    window.history.replaceState({ view, date: selectedDate }, '');
-  }, [selectedDate]);
+    if (location.pathname !== '/' || view !== 'home') return;
+    replaceCurrentState({ view: 'home', homeTab: homeActiveTab, date: selectedDate });
+  }, [selectedDate, homeActiveTab, view, location.pathname]);
 
   const openAnalysis = (saju = false) => {
+    pushOverlay('incheon');
     setIsSajuCall(saju);
     setIsAnalyzing(true);
     setTimeout(() => { setIsAnalyzing(false); setShowIncheonModal(true); }, 1200);
@@ -1631,9 +1643,9 @@ function App() {
     if (!isGeoDenied()) requestLocation();
   }, []);
 
-  const withHistory = (isOpen, setter) => (v) => {
+  const withHistory = (overlayKey, isOpen, setter) => (v) => {
     if (v === true && !isOpen) {
-      window.history.pushState({ modal: true }, '');
+      pushOverlay(overlayKey);
     }
     setter(v);
   };
@@ -1658,14 +1670,14 @@ function App() {
     IncheonBanner: () => <IncheonPremiumBanner t={t} onClick={() => openAnalysis(false)} />, venueCounts: {}, resetToToday: () => { setView('home'); setSelectedDate(todayData.dateStr); }, formatItemDate: (d, t) => `${d} ${t}`, formatFee: (f) => f, 
     handleRegister, 
     fetchParties,
-    setShowSaju: withHistory(showSaju, setShowSaju),
-    setShowWeather: withHistory(showWeather, setShowWeather),
-    setShowWishlist: withHistory(showWishlist, setShowWishlist),
-    setShowRentalModal: withHistory(showRentalModal, setShowRentalModal),
-    setShowPartner: withHistory(showPartner, setShowPartner),
+    setShowSaju: withHistory('saju', showSaju, setShowSaju),
+    setShowWeather: withHistory('weather', showWeather, setShowWeather),
+    setShowWishlist: withHistory('wishlist', showWishlist, setShowWishlist),
+    setShowRentalModal: withHistory('rental', showRentalModal, setShowRentalModal),
+    setShowPartner: withHistory('partner', showPartner, setShowPartner),
     openAnalysis,
-    setShowRoute: withHistory(showRoute, setShowRoute),
-    setShowPlaceInquiry: withHistory(showPlaceInquiry, setShowPlaceInquiry),
+    setShowRoute: withHistory('route', showRoute, setShowRoute),
+    setShowPlaceInquiry: withHistory('placeInquiry', showPlaceInquiry, setShowPlaceInquiry),
     logActivity: () => {}, regionalTheme: { welcomeMsg: "전국 댄서들을 위한 실시간 정보", specialBanner: true },
     followedInstructors,
     LiveExposureStrip,
@@ -2129,12 +2141,12 @@ function App() {
           {view === 'home' ? <HomePage {...sharedProps} /> : 
            view === 'community' ? <Community setSelectedPoster={setSelectedPoster} setView={setView} /> :
            view === 'instructors' ? <Instructors onOpenVipMaster={openVipMasterFlow} /> :
-           view === 'bootcamp' ? <Bootcamp onBack={() => window.history.back()} /> :
+           view === 'bootcamp' ? <Bootcamp onBack={goBack} /> :
            view === 'bootcamp-register' ? <Bootcamp onBack={() => navigate('/bootcamp')} initialView="register" /> :
-           view === 'festival' ? <Festival onBack={() => navigate('/')} /> :
+           view === 'festival' ? <Festival onBack={goBack} /> :
            view === 'festival-register' ? <Festival onBack={() => navigate('/festival')} initialView="register" /> :
-           view === 'parking' ? <Parking onBack={() => navigate('/')} /> :
-           view === 'restaurant' ? <Restaurant onBack={() => navigate('/')} /> :
+           view === 'parking' ? <Parking onBack={goBack} /> :
+           view === 'restaurant' ? <Restaurant onBack={goBack} /> :
            /* register-party: main 밖 최상위에서 렌더 (하단 네비 z-index 충돌 방지) */
            view === 'register-party' ? null :
            view === 'admin' ? <AdminDashboard setView={setView} onBack={() => setView('admin-portal')} refreshData={fetchParties} /> :
@@ -2418,7 +2430,7 @@ function App() {
         }}
       >
         <Suspense fallback={null}>
-          <InstructorRegister onBack={() => { navigate('/instructors'); setView('instructors'); }} />
+          <InstructorRegister onBack={() => navigate('/instructors')} />
         </Suspense>
       </div>
     )}
@@ -2445,7 +2457,7 @@ function App() {
     {(view === 'register-party' || location.pathname === '/register-party') && (
       <Suspense fallback={<LoadingFallback />}>
         <RegisterForm
-          onBack={() => navigate('/')}
+          onBack={goBack}
           onSuccess={() => { fetchParties(); navigate('/'); }}
           initialData={{ date: selectedDate }}
         />
@@ -2503,7 +2515,7 @@ function App() {
       <div 
         onClick={() => {
           const alreadyOnMainHome = location.pathname === '/' && view === 'home' && homeActiveTab === null && !showPartner;
-          navigate('/');
+          navigate('/', { homeTab: null });
           setShowPartner(false);
           setActiveTab(null);
           if (!alreadyOnMainHome) {
@@ -2526,7 +2538,7 @@ function App() {
         </span>
       </div>
       <div
-        onClick={() => { navigate('/bootcamp'); setShowPartner(false); setActiveTab(null); }}
+        onClick={() => { navigate('/bootcamp', { homeTab: null }); setShowPartner(false); setActiveTab(null); }}
         style={{
           flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
           cursor: 'pointer', transition: 'all 0.2s',
@@ -2542,7 +2554,7 @@ function App() {
       <div
         onClick={() => {
           setShowPartner(false);
-          navigate('/');
+          navigate('/', { homeTab: 'social' });
           setActiveTab('social');
         }}
         style={{
@@ -2562,7 +2574,7 @@ function App() {
           setShowPartner(false);
           setActiveTab(null);
           localStorage.setItem('instructor_target_genre', '전체');
-          navigate('/instructors');
+          navigate('/instructors', { homeTab: null });
           setTimeout(() => { window.dispatchEvent(new CustomEvent('apply-instructor-filter')); }, 300);
         }}
         style={{
@@ -2578,7 +2590,7 @@ function App() {
       </div>
 
       <div 
-        onClick={() => { navigate('/festival'); setShowPartner(false); setActiveTab(null); }}
+        onClick={() => { navigate('/festival', { homeTab: null }); setShowPartner(false); setActiveTab(null); }}
         style={{ 
           flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
           cursor: 'pointer', transition: 'all 0.2s',

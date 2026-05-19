@@ -466,6 +466,7 @@ export default function VenueDetailModal({
   const [savingDescription, setSavingDescription] = useState(false);
   const [detailTab, setDetailTab] = useState('social');
   const [fetchedLessons, setFetchedLessons] = useState([]);
+  const [venueFavorited, setVenueFavorited] = useState(false);
 
   const hasBothVenueLinks = Boolean(
     venue?.kakao_url?.trim() && venue?.instagram_url?.trim()

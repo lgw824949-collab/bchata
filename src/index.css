@@ -1,6 +1,22 @@
-@import url("https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css");
-
 :root {
+  /* 밀리의 서재형 UI 타이포 — Pretendard + 굵기 계층 */
+  --font-sans: 'Pretendard', -apple-system, BlinkMacSystemFont, system-ui, 'Apple SD Gothic Neo', 'Noto Sans KR', 'Malgun Gothic', sans-serif;
+  --font-regular: 400;
+  --font-medium: 500;
+  --font-semibold: 600;
+  --font-bold: 700;
+  --font-extrabold: 800;
+  --type-display-size: 22px;
+  --type-display-weight: 700;
+  --type-display-tracking: -0.03em;
+  --type-section-size: 15px;
+  --type-section-weight: 600;
+  --type-section-tracking: -0.02em;
+  --type-body-size: 14px;
+  --type-caption-size: 12px;
+  --type-caption-weight: 500;
+  --type-label-size: 11px;
+  --type-label-weight: 600;
   /* 아이폰 노치 및 하단 바 영역 보호 */
   --safe-top: env(safe-area-inset-top);
   --safe-bottom: env(safe-area-inset-bottom);
@@ -26,14 +42,14 @@
 }
 
 * {
-  font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, system-ui, Roboto, 'Helvetica Neue', 'Segoe UI', 'Apple SD Gothic Neo', 'Noto Sans KR', 'Malgun Gothic', 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', sans-serif !important;
+  font-family: var(--font-sans) !important;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
 
-
 body {
-  font-family: 'Pretendard', sans-serif;
+  font-family: var(--font-sans);
+  font-weight: var(--font-regular);
   margin: 0;
   padding: 0;
 }
@@ -90,6 +106,99 @@ body {
 
 input, button, select, textarea {
   font-family: inherit;
+  font-weight: inherit;
+}
+
+/* 홈·공통 타이포 (밀리식: 굵은 제목 + 중간 굵기 본문) */
+.home-type-display {
+  margin: 0;
+  font-family: var(--font-sans);
+  font-size: var(--type-display-size);
+  font-weight: var(--type-display-weight);
+  letter-spacing: var(--type-display-tracking);
+  line-height: 1.32;
+}
+
+.home-type-tagline {
+  margin: 6px 0 0;
+  line-height: 1.4;
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 0 5px;
+  font-family: var(--font-sans);
+}
+
+.home-type-tagline-strong {
+  font-size: 15px;
+  font-weight: var(--font-bold);
+  letter-spacing: -0.02em;
+  color: #d4436e;
+}
+
+.home-gate-active .home-type-tagline-strong {
+  color: #c9a84c;
+}
+
+.home-type-tagline-sub {
+  font-size: 14px;
+  font-weight: var(--font-medium);
+  letter-spacing: -0.02em;
+  color: #64748b;
+}
+
+.home-gate-active .home-type-tagline-sub {
+  color: #94a3b8;
+}
+
+.home-type-section-title {
+  margin: 0;
+  font-family: var(--font-sans);
+  font-size: var(--type-section-size);
+  font-weight: var(--type-section-weight);
+  letter-spacing: var(--type-section-tracking);
+  line-height: 1.4;
+}
+
+.home-type-caption {
+  margin: 4px 0 0;
+  font-family: var(--font-sans);
+  font-size: var(--type-caption-size);
+  font-weight: var(--type-caption-weight);
+  line-height: 1.45;
+  letter-spacing: -0.01em;
+}
+
+.home-type-party-label {
+  font-family: var(--font-sans);
+  font-size: 13px;
+  font-weight: var(--font-semibold);
+  letter-spacing: -0.02em;
+  line-height: 1.4;
+}
+
+.home-type-party-count {
+  font-family: var(--font-sans);
+  font-weight: var(--font-bold);
+  letter-spacing: -0.03em;
+  line-height: 1.35;
+  font-variant-numeric: tabular-nums;
+}
+
+.home-type-party-unit {
+  font-family: var(--font-sans);
+  font-size: 12px;
+  font-weight: var(--font-semibold);
+}
+
+.home-gate-active .quick-menu-circle-label {
+  font-family: var(--font-sans);
+  font-weight: var(--type-label-weight);
+  letter-spacing: -0.02em;
+}
+
+.home-gate-active .home-type-party-count {
+  font-weight: var(--font-extrabold);
 }
 
 /* Hide Number Input Arrows */

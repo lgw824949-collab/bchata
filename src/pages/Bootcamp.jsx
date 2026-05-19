@@ -7,6 +7,7 @@ import {
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { supabase } from '../lib/supabase';
+import { pushOverlay } from '../lib/appHistory';
 import { useTranslation } from 'react-i18next';
 
 const GENRES = ['전체', '바차타', '살사', '키좀바', '쥬크'];
@@ -88,10 +89,16 @@ const Bootcamp = ({ onBack, initialView = 'list' }) => {
     selectedBootcampRef.current = selectedBootcamp;
   }, [selectedBootcamp]);
 
+  const detailHistoryPushed = useRef(false);
+
   // 모달이 열릴 때 히스토리 스택에 항목 추가
   useEffect(() => {
-    if (selectedBootcamp) {
-      window.history.pushState({ bootcampDetail: true }, '', window.location.pathname);
+    if (selectedBootcamp && !detailHistoryPushed.current) {
+      detailHistoryPushed.current = true;
+      pushOverlay('bootcampDetail', { path: '/bootcamp' });
+    }
+    if (!selectedBootcamp) {
+      detailHistoryPushed.current = false;
     }
   }, [selectedBootcamp]);
 
