@@ -20,7 +20,7 @@ import {
 import VenueDetailModal from '../components/VenueDetailModal'
 import BarRegisterFormModal from '../components/BarRegisterFormModal'
 import HomeHeroTagline from '../components/HomeHeroTagline'
-import { navigate } from '../lib/appHistory'
+import { closeOverlay, navigate, parseAppState, pushOverlay } from '../lib/appHistory'
 import { Z } from '../constants/zLayers'
 import gangturnPhoto from '../assets/gangturn_photo.png'
 import ggomaeyaPhoto from '../assets/ggomaeya_photo.jpg'
@@ -973,10 +973,10 @@ const HomePage = ({
     onHomeTabChange?.(tab);
     if (tab === 'social') {
       setShowPartner(false);
-      navigate('/', { homeTab: 'social' });
+      navigate('/', { homeTab: 'social', replace: window.location.pathname === '/' });
     } else if (tab === 'partner') {
       setShowPartner(true);
-      navigate('/', { homeTab: 'partner' });
+      navigate('/', { homeTab: 'partner', replace: window.location.pathname === '/' });
     } else if (tab === null) {
       setShowPartner(false);
       if (window.location.pathname === '/') {
@@ -1409,6 +1409,42 @@ const HomePage = ({
     return out;
   }, [locations, barStatsMap]);
 
+  const openVenueDetail = (bar) => {
+    setSelectedVenue(bar);
+    pushOverlay('venue', {
+      meta: { venueId: String(bar.id), venueName: bar.name || '' },
+    });
+  };
+
+  const closeVenueDetail = () => {
+    if (!closeOverlay()) setSelectedVenue(null);
+  };
+
+  useEffect(() => {
+    const onHistory = (event) => {
+      const st = event.detail?.state ?? parseAppState(window.history.state);
+      if (st?.overlay === 'venue' && st.overlayMeta?.venueId) {
+        const id = st.overlayMeta.venueId;
+        const bar = locations.find((b) => String(b.id) === String(id));
+        if (bar) {
+          setSelectedVenue(bar);
+          return;
+        }
+        const name = st.overlayMeta.venueName;
+        if (name) {
+          const byName = locations.find((b) => b.name === name);
+          if (byName) setSelectedVenue(byName);
+          return;
+        }
+      }
+      if (st?.overlay !== 'venue') setSelectedVenue(null);
+      if (st?.overlay === 'barRegister') setShowBarRegisterForm(true);
+      else if (st?.overlay !== 'barRegister') setShowBarRegisterForm(false);
+    };
+    window.addEventListener('bamppa-history', onHistory);
+    return () => window.removeEventListener('bamppa-history', onHistory);
+  }, [locations]);
+
   const renderBarCard = (bar) => {
     const stats = barStatsByKey[getBarStatsKey(bar)] || { liveCount: 0, clickCount: 0 };
     const counter = buildBarCounterDisplay(stats);
@@ -1424,7 +1460,7 @@ const HomePage = ({
         type="button"
         role="listitem"
         className="home-bar-chip"
-        onClick={() => setSelectedVenue(bar)}
+        onClick={() => openVenueDetail(bar)}
         whileTap={{ scale: 0.97 }}
       >
         <span className="home-bar-thumb" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
@@ -1692,8 +1728,12 @@ const HomePage = ({
     </header>
   );
 
-  const renderHeroPosters = () => (
-    <section className="home-hero-posters" aria-label={isEn ? 'Featured events' : '추천 행사'}>
+  const renderHeroPosters = (compact = false) => (
+    <section
+      className="home-hero-posters"
+      style={compact ? { marginBottom: 0 } : undefined}
+      aria-label={isEn ? 'Featured events' : '추천 행사'}
+    >
       {homePosterSlots.map((item) => {
         const isActive = activePosterSlot === item.id;
         return (
@@ -1720,111 +1760,33 @@ const HomePage = ({
     </section>
   );
 
-  return (
-    <div
-      className={`app-container${isHomeGate ? ' home-gate-active' : ''}`}
-      style={{ width: '100%', maxWidth: '500px', margin: '0 auto', background: homeUi.pageBg, minHeight: '100dvh', paddingBottom: '100px', transition: 'background 0.25s ease' }}
+  const renderHomeLiveAdRow = (inPanel = false) => (
+    <motion.div
+      className={`home-live-row${inPanel ? ' home-live-row--in-panel' : ''}`}
+      style={{
+        padding: inPanel ? 0 : '0 20px',
+        marginBottom: inPanel ? 0 : homeSectionSpace,
+        paddingTop: inPanel ? 6 : 0,
+        marginTop: inPanel ? 4 : 0,
+        borderTop: inPanel ? `1px solid ${homeUi.divider}` : 'none',
+        display: 'flex',
+        alignItems: 'stretch',
+        gap: 10,
+      }}
     >
-
-      {activeTab === 'social' && (
-        <img
-          src="/Photo/소셜.png"
-          alt="소셜 배너"
-          onError={(e) => { e.target.style.display = 'none'; }}
-          style={{ width: '100%', height: '200px', objectFit: 'cover', display: 'block' }}
-        />
-      )}
-
-      {/* 📌 [영역 A: 히어로 / 메인 게이트] */}
-      <motion.div style={{ padding: '20px 16px 0', marginBottom: homeSectionSpace - 4 }}>
-        {activeTab === null && (
-        <motion.div style={{ display: 'flex', alignItems: 'center', gap: 14, marginBottom: 20 }}>
-          <img
-            src="/logo.png"
-            alt="오늘밤빠 로고"
-            onClick={() => {
-              const now = Date.now();
-              if (now - lastAdminTap < 2000) {
-                const nextCount = adminTapCount + 1;
-                if (nextCount >= 3) { setView('admin-portal'); setAdminTapCount(0); }
-                else { setAdminTapCount(nextCount); }
-              } else { setAdminTapCount(1); }
-              setLastAdminTap(now);
-            }}
-            style={{
-              width: '56px',
-              height: '56px',
-              flexShrink: 0,
-              objectFit: 'contain',
-              borderRadius: '14px',
-              cursor: 'pointer',
-              userSelect: 'none',
-              boxShadow: isHomeGate ? '0 4px 16px rgba(0,0,0,0.45)' : '0 2px 10px rgba(0,0,0,0.08)',
-              border: isHomeGate ? '1px solid rgba(201,168,76,0.25)' : 'none',
-            }}
-            onError={(e) => { e.currentTarget.style.display = 'none' }}
-          />
-          <motion.div style={{ flex: 1, minWidth: 0 }}>
-            <h1 className="home-type-display" style={{ color: homeUi.text }}>오늘 어디서 춤추실까요?</h1>
-            <HomeHeroTagline />
-          </motion.div>
-        </motion.div>
-        )}
-
-        {activeTab === null && (
-          <div className="home-party-status-micro" role="group" aria-label={isEn ? "Today's parties" : '오늘의 파티'}>
-            <span className="home-ds-body" style={{ color: homeUi.textMuted, marginRight: 2 }}>{isEn ? 'Today' : '오늘'}</span>
-            {[
-              { label: isEn ? 'Seoul' : '서울', count: regionCounts.seoul, tab: '서울' },
-              { label: isEn ? 'Metro' : '수도권', count: regionCounts.metro, tab: '경인' },
-              { label: isEn ? 'Regions' : '지방권', count: regionCounts.national, tab: null },
-            ].map((r, idx) => (
-              <React.Fragment key={r.label}>
-                {idx > 0 ? <span className="home-party-status-micro-sep">·</span> : null}
-                <button
-                  type="button"
-                  className="home-party-status-micro-btn"
-                  style={{ color: !partiesLoading && r.count > 0 ? homePartyBucketActive.count : homeUi.textMuted }}
-                  onClick={() => openTodayPartyBucket(r.tab)}
-                >
-                  {r.label} <strong>{partiesLoading ? '—' : r.count}</strong>
-                  {!isEn && '건'}
-                </button>
-              </React.Fragment>
-            ))}
-          </div>
-        )}
-      </motion.div>
-
-      {activeTab === null && (
-        <motion.div style={{ padding: '0 16px' }}>
-          {renderHomeSectionHeader(
-            isEn ? 'Featured events' : '추천 행사',
-            isEn ? 'Tap a poster to explore' : '포스터를 눌러 바로 이동',
-          )}
-          {renderHeroPosters()}
-        </motion.div>
-      )}
-
-      {/* 🔴 [LIVE 바 임팩트 영역 개편] */}
-      {(activeTab === null || activeTab === 'social') && (
       <motion.div
-        className="home-live-row"
-        style={{ padding: '0 20px', marginBottom: homeSectionSpace, display: 'flex', alignItems: 'stretch', gap: 10 }}
+        className={`live-count-premium-wrapper${isHomeGate ? ' live-count-premium-wrapper--gate' : ''}`}
+        style={{
+          flex: 1,
+          minWidth: 0,
+          background: homeUi.liveShell,
+          borderRadius: '14px',
+          overflow: 'hidden',
+          border: isHomeGate ? `1px solid ${homeUi.liveBorder}` : 'none',
+          boxShadow: isHomeGate ? '0 4px 24px rgba(0,0,0,0.35)' : 'none',
+        }}
       >
-        <div
-          className={`live-count-premium-wrapper${isHomeGate ? ' live-count-premium-wrapper--gate' : ''}`}
-          style={{
-            flex: 1,
-            minWidth: 0,
-            background: homeUi.liveShell,
-            borderRadius: '14px',
-            overflow: 'hidden',
-            border: isHomeGate ? `1px solid ${homeUi.liveBorder}` : 'none',
-            boxShadow: isHomeGate ? '0 4px 24px rgba(0,0,0,0.35)' : 'none',
-          }}
-        >
-          <style>{`
+        <style>{`
             /* 햄버거 버튼 */
             button[style*="z-index: 1005"] {
               width: 36px !important;
@@ -1951,21 +1913,123 @@ const HomePage = ({
             }
             .home-party-register-outside__line { display: block; }
           `}</style>
-          <LiveCount />
-        </div>
-        {activeTab === 'social' && (
-          <button
-            type="button"
-            className="home-party-register-outside"
-            onClick={() => handleRegister('party')}
-            aria-label={isEn ? 'Register party' : '파티 등록'}
-          >
-            <span className="home-party-register-outside__line">{isEn ? 'Party' : '파티'}</span>
-            <span className="home-party-register-outside__line">{isEn ? 'Register' : '등록'}</span>
-          </button>
+        <LiveCount />
+      </motion.div>
+      {activeTab === 'social' && (
+        <button
+          type="button"
+          className="home-party-register-outside"
+          onClick={() => handleRegister('party')}
+          aria-label={isEn ? 'Register party' : '파티 등록'}
+        >
+          <span className="home-party-register-outside__line">{isEn ? 'Party' : '파티'}</span>
+          <span className="home-party-register-outside__line">{isEn ? 'Register' : '등록'}</span>
+        </button>
+      )}
+    </motion.div>
+  );
+
+  return (
+    <div
+      className={`app-container${isHomeGate ? ' home-gate-active' : ''}`}
+      style={{ width: '100%', maxWidth: '500px', margin: '0 auto', background: homeUi.pageBg, minHeight: '100dvh', paddingBottom: '100px', transition: 'background 0.25s ease' }}
+    >
+
+      {activeTab === 'social' && (
+        <img
+          src="/Photo/소셜.png"
+          alt="소셜 배너"
+          onError={(e) => { e.target.style.display = 'none'; }}
+          style={{ width: '100%', height: '200px', objectFit: 'cover', display: 'block' }}
+        />
+      )}
+
+      {/* 📌 [영역 A: 히어로 / 메인 게이트] */}
+      <motion.div style={{ padding: '20px 16px 0', marginBottom: homeSectionSpace - 4 }}>
+        {activeTab === null && (
+        <motion.div style={{ display: 'flex', alignItems: 'center', gap: 14, marginBottom: 20 }}>
+          <img
+            src="/logo.png"
+            alt="오늘밤빠 로고"
+            onClick={() => {
+              const now = Date.now();
+              if (now - lastAdminTap < 2000) {
+                const nextCount = adminTapCount + 1;
+                if (nextCount >= 3) { setView('admin-portal'); setAdminTapCount(0); }
+                else { setAdminTapCount(nextCount); }
+              } else { setAdminTapCount(1); }
+              setLastAdminTap(now);
+            }}
+            style={{
+              width: '56px',
+              height: '56px',
+              flexShrink: 0,
+              objectFit: 'contain',
+              borderRadius: '14px',
+              cursor: 'pointer',
+              userSelect: 'none',
+              boxShadow: isHomeGate ? '0 4px 16px rgba(0,0,0,0.45)' : '0 2px 10px rgba(0,0,0,0.08)',
+              border: isHomeGate ? '1px solid rgba(201,168,76,0.25)' : 'none',
+            }}
+            onError={(e) => { e.currentTarget.style.display = 'none' }}
+          />
+          <motion.div style={{ flex: 1, minWidth: 0 }}>
+            <h1 className="home-type-display" style={{ color: homeUi.text }}>오늘 어디서 춤추실까요?</h1>
+            <HomeHeroTagline />
+          </motion.div>
+        </motion.div>
+        )}
+
+        {activeTab === null && (
+          <div className="home-party-status-micro" role="group" aria-label={isEn ? "Today's parties" : '오늘의 파티'}>
+            <span className="home-ds-body" style={{ color: homeUi.textMuted, marginRight: 2 }}>{isEn ? 'Today' : '오늘'}</span>
+            {[
+              { label: isEn ? 'Seoul' : '서울', count: regionCounts.seoul, tab: '서울' },
+              { label: isEn ? 'Metro' : '수도권', count: regionCounts.metro, tab: '경인' },
+              { label: isEn ? 'Regions' : '지방권', count: regionCounts.national, tab: null },
+            ].map((r, idx) => (
+              <React.Fragment key={r.label}>
+                {idx > 0 ? <span className="home-party-status-micro-sep">·</span> : null}
+                <button
+                  type="button"
+                  className="home-party-status-micro-btn"
+                  style={{ color: !partiesLoading && r.count > 0 ? homePartyBucketActive.count : homeUi.textMuted }}
+                  onClick={() => openTodayPartyBucket(r.tab)}
+                >
+                  {r.label} <strong>{partiesLoading ? '—' : r.count}</strong>
+                  {!isEn && '건'}
+                </button>
+              </React.Fragment>
+            ))}
+          </div>
         )}
       </motion.div>
+
+      {activeTab === null && (
+        <motion.div style={{ padding: '0 16px', marginBottom: homeSectionSpace }}>
+          <section
+            className="home-depth-panel home-featured-live-panel"
+            style={{
+              ...homeDepthPanelStyle,
+              display: 'flex',
+              flexDirection: 'column',
+              gap: 0,
+            }}
+            aria-label={isEn ? 'Featured events and live ads' : '추천 행사 및 LIVE 광고'}
+          >
+            <motion.div style={{ paddingBottom: 16 }}>
+              {renderHomeSectionHeader(
+                isEn ? 'Featured events' : '추천 행사',
+                isEn ? 'Tap a poster to explore' : '포스터를 눌러 바로 이동',
+              )}
+              {renderHeroPosters(true)}
+            </motion.div>
+            {renderHomeLiveAdRow(true)}
+          </section>
+        </motion.div>
       )}
+
+      {activeTab === 'social' && renderHomeLiveAdRow(false)}
 
       {/* 메인 퀵메뉴: activeTab === null → 3섹션 그리드 / 소셜 탭 → 가로 스크롤 */}
       <style>{`
@@ -2167,7 +2231,10 @@ const HomePage = ({
             <button
               type="button"
               className="home-section-action"
-              onClick={() => setShowBarRegisterForm(true)}
+              onClick={() => {
+                setShowBarRegisterForm(true);
+                pushOverlay('barRegister');
+              }}
             >
               <Plus size={12} strokeWidth={2.5} />
               공간 등록
@@ -2194,7 +2261,7 @@ const HomePage = ({
             })}
           </motion.div>
 
-          <div className="home-social-bar-scroll-wrap">
+          <motion.div className="home-social-bar-outer">
             {locationsLoading ? (
               <div style={{ padding: '60px 20px', textAlign: 'center', color: '#94A3B8', fontWeight: 700 }}>
                 전국 BAR 정보를 정렬하는 중...
@@ -2214,23 +2281,29 @@ const HomePage = ({
 
                 return (
                   <motion.div
-                    className="home-social-bar-scroll scrollbar-hide"
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
                     key={selectedRegionTab}
-                    role="list"
-                    aria-label={isEn ? `Social BAR in ${selectedRegionTab}` : `${selectedRegionTab} Social BAR`}
+                    className="home-social-bar-fade"
                   >
-                    {sortBarsByRichness(filteredBars).map((bar) => renderBarCard(bar))}
+                    <div
+                      className="home-social-bar-scroll scrollbar-hide"
+                      role="list"
+                      aria-label={isEn ? `Social BAR in ${selectedRegionTab}` : `${selectedRegionTab} Social BAR`}
+                    >
+                      <div className="home-social-bar-track">
+                        {sortBarsByRichness(filteredBars).map((bar) => renderBarCard(bar))}
+                      </div>
+                    </div>
                   </motion.div>
                 );
               })()
             )}
-          </div>
+          </motion.div>
         </section>
 
         {/*
-        <p style={homePartnerSectionTitleStyle}>파트너 & 강사</p>
+        <p style={homePartnerSectionTitleStyle}>파트너 &amp; 강사</p>
         <div
           className="quick-menu-scroll"
           style={{
@@ -3367,7 +3440,9 @@ const HomePage = ({
 
       <BarRegisterFormModal
         open={showBarRegisterForm}
-        onClose={() => setShowBarRegisterForm(false)}
+        onClose={() => {
+          if (!closeOverlay()) setShowBarRegisterForm(false);
+        }}
         onSuccess={() => fetchLocations()}
       />
 
@@ -3376,7 +3451,7 @@ const HomePage = ({
           venue={selectedVenue}
           parties={parties}
           lessons={lessons || []}
-          onClose={() => setSelectedVenue(null)}
+          onClose={closeVenueDetail}
           onVenueUpdated={(updated) => setSelectedVenue(updated)}
           onOpenPoster={(item) => {
             const p = posterSharePayload(item);
