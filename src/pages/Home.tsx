@@ -1,12 +1,34 @@
 import React, { useState, useEffect, useMemo, useRef } from 'react';
-import { Heart, MapPin, Calendar, Clock, User, Users, Music, ChevronRight, ShieldCheck, X, Home as HomeIcon, ChevronLeft, CloudSun, Utensils, Zap, PlusCircle, Languages, Bell, Globe, Navigation, CalendarDays, Star, Camera, MessageSquare, Tent, Map } from 'lucide-react';
+import { Heart, MapPin, Calendar, Clock, User, Users, Music, ChevronRight, ShieldCheck, X, Home as HomeIcon, ChevronLeft, CloudSun, Utensils, Zap, PlusCircle, Languages, Bell, Globe, Navigation, CalendarDays, Star, Camera, MessageSquare, Tent, Map, Loader2 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { motion, AnimatePresence } from 'framer-motion';
 import QuickPinchZoom, { make3dTransformValue } from 'react-quick-pinch-zoom';
 import LiveCount from '../components/LiveCount'
 import { KMA_REGION_COORDS, fetchWeatherForecast, parseKmaWeather, HOME_REGION_MAP } from '../utils/kmaApi'
 import { supabase } from '../lib/supabase'
-import { buildPartyShareCard } from '../lib/partyShareCard'
+const buildPartyShareCard = (item) => {
+  const posterUrl = item?.poster_url && String(item.poster_url).trim();
+  if (!posterUrl) return null;
+  const title = (item.title || '').split(' ㅣ ')[0].replace(/^\[.*?\]\s*/, '').trim() || '라틴·소셜 파티';
+  const loc = item.locationName || item.location_name || item.studio_name || item.venue || '';
+  const fee = item.fee ?? item.price_info ?? '';
+  const timeRaw = item.time?.split('-')[0]?.trim() || '';
+  const line1 = [loc, fee].filter(Boolean).join(' · ');
+  const line2 = timeRaw ? [timeRaw].join(' · ') : '';
+  const lines = [line1, line2].filter(Boolean);
+  return { src: posterUrl, title, desc: lines.join('\n'), lines, feedDesc: [item.date, loc, fee].filter(Boolean).join(' · '), partyId: item.id };
+};
+import gangturnPhoto from '../assets/gangturn_photo.png'
+import ggomaeyaPhoto from '../assets/ggomaeya_photo.jpg'
+import noriterPhoto from '../assets/noriter_photo.png'
+import latinPhoto from '../assets/latin_photo.png'
+import macondoPhoto from '../assets/macondo_photo.png'
+import bonitaPhoto from '../assets/bonita_photo.png'
+import buenaPhoto from '../assets/buena_photo.png'
+import hongturnPhoto from '../assets/hongturn_photo.png'
+import bibigoPhoto from '../assets/bibigo_photo.png'
+
+const RENTAL_REGIONS_ORDER = ['서울', '경기/인천', '경상도', '전라도', '충청도', '강원/제주']
 // import { getAfterPartySpotsForParty, openAfterPartyMap } from '../data/afterPartySpots'
 
 const DAYS_KOR = ['일', '월', '화', '수', '목', '금', '토'];
@@ -781,6 +803,10 @@ const HomePage = ({
   const [bootcampIdx, setBootcampIdx] = useState(0);
   const [festivalIdx, setFestivalIdx] = useState(0);
   const [activePosterSlot, setActivePosterSlot] = useState('social');
+  const [rentalLocations, setRentalLocations] = useState([]);
+  const [rentalLocationsLoading, setRentalLocationsLoading] = useState(true);
+  const [rentalRegionTab, setRentalRegionTab] = useState('전체');
+  const [rentalSelectedBar, setRentalSelectedBar] = useState(null);
 
   const triggerParticle = (e: React.MouseEvent, emoji: string) => {
     const rect = (e.currentTarget as HTMLElement).getBoundingClientRect();
@@ -841,6 +867,136 @@ const HomePage = ({
     }, 5000);
     return () => clearInterval(t);
   }, []);
+
+  useEffect(() => {
+    const fetchRentalLocations = async () => {
+      setRentalLocationsLoading(true);
+      try {
+        const { data, error } = await supabase.from('locations').select('*').order('name', { ascending: true });
+        if (error) throw error;
+        const uniqueMap = new Map();
+        (data || []).forEach((loc) => {
+          let key = (loc.name || '').replace(/\s+/g, '').toLowerCase();
+          if (key.includes('강남턴') || key.includes('강턴')) key = '강턴';
+          if (!key) return;
+          if (!uniqueMap.has(key)) {
+            uniqueMap.set(key, loc);
+          } else {
+            const existing = uniqueMap.get(key);
+            const score = (loc.image_url ? 2 : 0) + (loc.kakao_url ? 1 : 0) + (loc.instagram_url ? 1 : 0);
+            const exScore = (existing.image_url ? 2 : 0) + (existing.kakao_url ? 1 : 0) + (existing.instagram_url ? 1 : 0);
+            if (score > exScore || (score === exScore && loc.id > existing.id)) uniqueMap.set(key, loc);
+          }
+        });
+        const classified = Array.from(uniqueMap.values()).map((loc) => {
+          const text = `${loc.address || ''}`.toLowerCase();
+          let region = '기타';
+          if (text.includes('서울')) region = '서울';
+          else if (text.includes('경기') || text.includes('인천')) region = '경기/인천';
+          else if (text.includes('부산') || text.includes('대구') || text.includes('경북') || text.includes('경남') || text.includes('울산') || text.includes('창원') || text.includes('포항') || text.includes('구미')) region = '경상도';
+          else if (text.includes('광주') || text.includes('전북') || text.includes('전남') || text.includes('여수') || text.includes('순천') || text.includes('목포')) region = '전라도';
+          else if (text.includes('대전') || text.includes('충북') || text.includes('충남') || text.includes('세종') || text.includes('청주') || text.includes('천안')) region = '충청도';
+          else if (text.includes('강원') || text.includes('제주') || text.includes('춘천') || text.includes('원주')) region = '강원/제주';
+          else {
+            const nameText = `${loc.name || ''}`.toLowerCase();
+            if (nameText.includes('서울')) region = '서울';
+            else if (nameText.includes('경기') || nameText.includes('인천')) region = '경기/인천';
+            else if (nameText.includes('부산') || nameText.includes('대구')) region = '경상도';
+            else region = '서울';
+          }
+          const nameKey = `${loc.name || ''}`.replace(/\s+/g, '').toLowerCase();
+          const isGangturn = nameKey.includes('강남턴') || nameKey.includes('강턴');
+          const isGgomaeya = nameKey.includes('꼼애야');
+          const isNoriter = nameKey.includes('놀이터');
+          const isLatin = nameKey.includes('라틴') && region !== '경기/인천' && !nameKey.includes('라틴크루');
+          const isMacondo = nameKey.includes('마콘도');
+          const isBonita = nameKey.includes('보니따');
+          const isBuena = nameKey.includes('부에나');
+          const isHongturn = nameKey.includes('홍턴');
+          const isBibigo = nameKey.includes('비비고');
+          let finalImg = loc.image_url;
+          if (isGangturn) finalImg = gangturnPhoto;
+          else if (isGgomaeya) finalImg = ggomaeyaPhoto;
+          else if (isNoriter) finalImg = noriterPhoto;
+          else if (isLatin) finalImg = latinPhoto;
+          else if (isMacondo) finalImg = macondoPhoto;
+          else if (isBonita) finalImg = bonitaPhoto;
+          else if (isBuena) finalImg = buenaPhoto;
+          else if (isHongturn) finalImg = hongturnPhoto;
+          else if (isBibigo) finalImg = bibigoPhoto;
+          return {
+            ...loc,
+            region,
+            image_url: finalImg,
+            instagram_url: isGangturn ? 'https://www.instagram.com/turn_latinclub_no.1?igsh=MW94ajh3OHZ3NDZ6bg%3D%3D' : loc.instagram_url,
+          };
+        });
+        classified.sort((a, b) => (a.name || '').localeCompare(b.name || ''));
+        setRentalLocations(classified);
+      } catch (err) {
+        console.error('BAR 목록 로드 실패:', err);
+      } finally {
+        setRentalLocationsLoading(false);
+      }
+    };
+    fetchRentalLocations();
+  }, []);
+
+  const handleRentalKakaoClick = (url) => {
+    if (!url || !url.trim()) {
+      alert('해당 대관처의 개별 카카오톡 문의 링크가 아직 등록되지 않았습니다.');
+      return;
+    }
+    window.open(url, '_blank');
+  };
+
+  const handleRentalInstaClick = (url) => {
+    if (!url || !url.trim()) {
+      alert('해당 대관처의 개별 인스타그램 링크가 아직 등록되지 않았습니다.');
+      return;
+    }
+    window.open(url, '_blank');
+  };
+
+  const handleRentalGoogleMapClick = (bar) => {
+    const query = bar.address || bar.name;
+    if (!query) return;
+    window.open(`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(query)}`, '_blank');
+  };
+
+  const handleRentalKakaoMapClick = (bar) => {
+    const query = bar.name || bar.address;
+    if (!query) return;
+    window.open(`https://map.kakao.com/link/search/${encodeURIComponent(query)}`, '_blank');
+  };
+
+  const renderRentalBarCircle = (bar) => (
+    <motion.div
+      key={bar.id}
+      whileTap={{ scale: 0.96 }}
+      onClick={() => setRentalSelectedBar(bar)}
+      style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', cursor: 'pointer' }}
+    >
+      <motion.div style={{
+        width: '76px', height: '76px', borderRadius: '50%', background: '#ffffff',
+        boxShadow: '0 4px 12px rgba(0,0,0,0.06)', border: '2px solid #F1F5F9',
+        display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden', marginBottom: '8px',
+      }}>
+        {bar.image_url ? (
+          <img src={bar.image_url} alt={bar.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+        ) : (
+          <img src="/logo.png" alt={bar.name} style={{ width: '65%', height: '65%', objectFit: 'contain', opacity: 0.85 }} />
+        )}
+      </motion.div>
+      <span style={{ fontSize: '13px', fontWeight: 900, color: '#1E293B', textAlign: 'center', width: '100%', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+        {bar.name || '이름 없음'}
+      </span>
+    </motion.div>
+  );
+
+  const rentalFilteredBars = rentalRegionTab === '전체'
+    ? rentalLocations
+    : rentalLocations.filter((bar) => bar.region === rentalRegionTab);
 
   // [사용자 요청] 지역 포스터 리스트 자동 스크롤 비활성화 (좌측 고정 및 수동 스크롤만 허용)
   useEffect(() => {
@@ -1360,7 +1516,23 @@ const HomePage = ({
       {activeTab === null && (
       <div id="quickmenu-section" style={{ padding: '0 16px', marginBottom: '20px' }}>
         {/* 파티 & 이벤트 포스터 3칸 - Supabase 실시간 연동 */}
+        {/*
         <p style={homePartySectionTitleStyle}>파티 & 이벤트</p>
+        <motion.div
+          className="quick-menu-scroll"
+          style={{ display: 'flex', gap: '8px', width: '100%', marginBottom: '20px', overflowX: 'auto', scrollSnapType: 'x mandatory', scrollbarWidth: 'none', msOverflowStyle: 'none', WebkitOverflowScrolling: 'touch' }}
+        >
+          {[
+            { icon: <Calendar size={32} strokeWidth={1.2} color="#D4436E" />, label: '행사달력', particles: '📅', action: () => setShowFullCalendar(true) },
+            { icon: <MapPin size={32} strokeWidth={1.2} color="#D4436E" />, label: '위치·대관', particles: '📍', action: () => setShowRentalModal(true) },
+          ].map((item, idx) => (
+            <motion.div key={`party-${idx}`} whileTap={{ scale: 0.92 }} onClick={(e) => { triggerParticle(e, item.particles); item.action(); }} style={{ ...quickMenuFloatStyle, position: 'relative', width: 'calc(22% - 6px)', minWidth: 'calc(22% - 6px)', flexShrink: 0, scrollSnapAlign: 'start' }}>
+              <motion.div style={{ ...quickMenuIconWrapStyle, width: '44px', height: '44px' }}>{item.icon}</motion.div>
+              <span style={{ ...quickMenuLabelStyle, fontSize: '11px' }}>{item.label}</span>
+            </motion.div>
+          ))}
+        </motion.div>
+        */}
         <div style={{ display: 'flex', gap: '8px', marginBottom: '20px' }}>
           {homePosterSlots.map((item) => {
             const isActive = activePosterSlot === item.id;
@@ -1386,7 +1558,62 @@ const HomePage = ({
           })}
         </div>
 
-        {/* 파트너 & 강사 */}
+        {/* 전국 BAR · 대관 (RentalModal 인라인) */}
+        <section style={{ marginBottom: '8px' }}>
+          <p style={{ margin: '0 0 12px', fontSize: '13px', color: '#64748B', fontWeight: 600, lineHeight: 1.5, letterSpacing: '-0.2px' }}>
+            {lang === 'ko' ? '사장님과 댄서분들이 함께 소통하는 전국 핫플레이스 위치 및 대관 안내입니다.' : 'Nationwide venue locations and rental guide.'}
+          </p>
+          <div
+            className="quick-menu-scroll"
+            style={{ display: 'flex', overflowX: 'auto', gap: '8px', paddingBottom: '16px', borderBottom: '1px solid #F1F5F9', scrollbarWidth: 'none', msOverflowStyle: 'none', WebkitOverflowScrolling: 'touch' }}
+          >
+            {['전체', ...RENTAL_REGIONS_ORDER].map((tab) => {
+              const isSelected = rentalRegionTab === tab;
+              const count = tab === '전체' ? rentalLocations.length : rentalLocations.filter((b) => b.region === tab).length;
+              return (
+                <button
+                  key={tab}
+                  type="button"
+                  onClick={() => setRentalRegionTab(tab)}
+                  style={{
+                    flexShrink: 0, padding: '8px 16px', background: isSelected ? '#FFF1F2' : '#F8FAFC',
+                    color: isSelected ? '#E53935' : '#64748B', border: isSelected ? '1px solid #FECDD3' : '1px solid #E2E8F0',
+                    borderRadius: '100px', fontWeight: isSelected ? 950 : 700, fontSize: '13px', cursor: 'pointer',
+                    display: 'flex', alignItems: 'center', gap: '6px',
+                  }}
+                >
+                  <span>{tab}</span>
+                  <span style={{ fontSize: '10px', background: isSelected ? '#E53935' : '#E2E8F0', color: isSelected ? '#ffffff' : '#475569', padding: '1px 6px', borderRadius: '100px', fontWeight: 800 }}>
+                    {count}
+                  </span>
+                </button>
+              );
+            })}
+          </div>
+          <div style={{ padding: '20px 0 0' }}>
+            {rentalLocationsLoading ? (
+              <motion.div style={{ padding: '40px 20px', textAlign: 'center', color: '#94A3B8', fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}>
+                <Loader2 size={18} className="animate-spin" />
+                {lang === 'ko' ? '전국 BAR 정보를 정렬하는 중...' : 'Loading venues...'}
+              </motion.div>
+            ) : rentalFilteredBars.length === 0 ? (
+              <motion.div style={{ padding: '40px 20px', textAlign: 'center', color: '#94A3B8', fontSize: '13px', fontWeight: 600 }}>
+                {lang === 'ko' ? '해당 지역에 등록된 제휴 공간이 없습니다.' : 'No venues in this region.'}
+              </motion.div>
+            ) : (
+              <motion.div
+                key={rentalRegionTab}
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '20px 8px' }}
+              >
+                {rentalFilteredBars.map(renderRentalBarCircle)}
+              </motion.div>
+            )}
+          </div>
+        </section>
+
+        {/*
         <p style={homePartnerSectionTitleStyle}>파트너 & 강사</p>
         <div
           className="quick-menu-scroll"
@@ -1426,6 +1653,7 @@ const HomePage = ({
             </motion.div>
           ))}
         </div>
+        */}
       </div>
       )}
       <AnimatePresence>
@@ -1441,6 +1669,69 @@ const HomePage = ({
             {p.emoji}
           </motion.div>
         ))}
+      </AnimatePresence>
+
+      <AnimatePresence>
+        {rentalSelectedBar && (
+          <div style={{ position: 'fixed', inset: 0, zIndex: 190005, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px' }}>
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setRentalSelectedBar(null)}
+              style={{ position: 'absolute', inset: 0, background: 'rgba(15, 23, 42, 0.6)', backdropFilter: 'blur(4px)' }}
+            />
+            <motion.div
+              initial={{ scale: 0.92, opacity: 0, y: 16 }}
+              animate={{ scale: 1, opacity: 1, y: 0 }}
+              exit={{ scale: 0.92, opacity: 0, y: 16 }}
+              transition={{ type: 'spring', damping: 22, stiffness: 320 }}
+              style={{
+                background: '#ffffff', borderRadius: '24px', width: '100%', maxWidth: '340px', overflow: 'hidden',
+                position: 'relative', boxShadow: '0 20px 40px rgba(0,0,0,0.15)', display: 'flex', flexDirection: 'column', border: '1px solid #F1F5F9',
+              }}
+            >
+              <div style={{ height: '180px', background: '#F8FAFC', position: 'relative', overflow: 'hidden' }}>
+                {rentalSelectedBar.image_url ? (
+                  <img src={rentalSelectedBar.image_url} alt={rentalSelectedBar.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                ) : (
+                  <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#F1F5F9' }}>
+                    <img src="/logo.png" alt="logo" style={{ width: '40%', objectFit: 'contain', opacity: 0.3 }} />
+                  </div>
+                )}
+                <button
+                  type="button"
+                  onClick={() => setRentalSelectedBar(null)}
+                  style={{
+                    position: 'absolute', top: '12px', right: '12px', background: '#ffffff', border: 'none', borderRadius: '50%',
+                    width: '30px', height: '30px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#1E293B', cursor: 'pointer', zIndex: 10, boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
+                  }}
+                >
+                  <X size={16} strokeWidth={2.5} />
+                </button>
+              </div>
+              <div style={{ padding: '20px', display: 'flex', flexDirection: 'column', gap: '16px', background: '#ffffff' }}>
+                <div>
+                  <h4 style={{ margin: 0, fontSize: '22px', fontWeight: 950, color: '#1E293B', letterSpacing: '-0.5px', lineHeight: 1.3 }}>{rentalSelectedBar.name}</h4>
+                  <div style={{ display: 'flex', alignItems: 'flex-start', gap: '6px', marginTop: '8px' }}>
+                    <MapPin size={15} color="#E53935" style={{ flexShrink: 0, marginTop: '2px' }} />
+                    <span style={{ fontSize: '13px', color: '#334155', fontWeight: 700, lineHeight: 1.4, letterSpacing: '-0.2px' }}>
+                      {rentalSelectedBar.address || '등록된 상세 주소가 없습니다.'}
+                    </span>
+                  </div>
+                </div>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
+                    <motion.button type="button" whileTap={{ scale: 0.96 }} onClick={() => handleRentalGoogleMapClick(rentalSelectedBar)} style={{ padding: '12px 6px', background: '#F8FAFC', color: '#1E293B', border: '1px solid #E2E8F0', borderRadius: '12px', fontWeight: 800, fontSize: '12.5px', cursor: 'pointer' }}>🗺️ 구글 길찾기</motion.button>
+                    <motion.button type="button" whileTap={{ scale: 0.96 }} onClick={() => handleRentalKakaoMapClick(rentalSelectedBar)} style={{ padding: '12px 6px', background: '#F8FAFC', color: '#1E293B', border: '1px solid #E2E8F0', borderRadius: '12px', fontWeight: 800, fontSize: '12.5px', cursor: 'pointer' }}>📍 카카오 길찾기</motion.button>
+                  </div>
+                  <motion.button type="button" whileTap={{ scale: 0.97 }} onClick={() => handleRentalKakaoClick(rentalSelectedBar.kakao_url)} style={{ width: '100%', padding: '14px', background: '#FEE500', color: '#1E293B', border: 'none', borderRadius: '12px', fontWeight: 900, fontSize: '14px', cursor: 'pointer' }}>💬 카카오톡 대관 문의</motion.button>
+                  <motion.button type="button" whileTap={{ scale: 0.97 }} onClick={() => handleRentalInstaClick(rentalSelectedBar.instagram_url)} style={{ width: '100%', padding: '14px', background: '#1E293B', color: '#ffffff', border: 'none', borderRadius: '12px', fontWeight: 900, fontSize: '14px', cursor: 'pointer' }}>📸 인스타그램 공간 구경</motion.button>
+                </div>
+              </div>
+            </motion.div>
+          </div>
+        )}
       </AnimatePresence>
 
       {/* 기존 메인 가로 스크롤 퀵메뉴 — 3섹션 그리드로 대체
