@@ -624,7 +624,7 @@ export default function AdminDashboard({ onBack }) {
                   else if (key.includes('라틴') && !key.includes('라틴크루') && !`${item.address || ''}`.includes('인천') && !`${item.address || ''}`.includes('경기')) img = latinPhoto;
                   else if (key.includes('마콘도')) img = macondoPhoto;
                   else if (key.includes('보니따')) img = bonitaPhoto;
-                  else if (key.includes('부에나')) img = buenaPhoto;
+                  else if (key.includes('부에나') && !key.includes('비스타')) img = buenaPhoto;
                   else if (key.includes('홍턴')) img = hongturnPhoto;
                   else if (key.includes('비비고')) img = bibigoPhoto;
                 }
@@ -820,7 +820,7 @@ export default function AdminDashboard({ onBack }) {
                         {(() => {
                           const key = `${item.name || ''}`.replace(/\s+/g, '').toLowerCase();
                           const isLatinValid = key.includes('라틴') && !key.includes('라틴크루') && !`${item.address || ''}`.includes('인천') && !`${item.address || ''}`.includes('경기');
-                          const isCustom = key.includes('강남턴') || key.includes('강턴') || key.includes('꼼애야') || key.includes('놀이터') || isLatinValid || key.includes('마콘도') || key.includes('보니따') || key.includes('부에나') || key.includes('홍턴') || key.includes('비비고');
+                          const isCustom = key.includes('강남턴') || key.includes('강턴') || key.includes('꼼애야') || key.includes('놀이터') || isLatinValid || key.includes('마콘도') || key.includes('보니따') || (key.includes('부에나') && !key.includes('비스타')) || key.includes('홍턴') || key.includes('비비고');
                           return (item.image_url || isCustom) && <div style={{ fontSize: '11px', color: '#94A3B8', marginTop: '2px', wordBreak: 'break-all' }}>이미지: {isCustom ? '✨ 내장 브랜드 고유 에셋 매핑 적용 완료' : item.image_url}</div>;
                         })()}
                       </div>
