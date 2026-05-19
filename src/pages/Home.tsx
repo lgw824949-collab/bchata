@@ -6,6 +6,7 @@ import QuickPinchZoom, { make3dTransformValue } from 'react-quick-pinch-zoom';
 import LiveCount from '../components/LiveCount'
 import { KMA_REGION_COORDS, fetchWeatherForecast, parseKmaWeather, HOME_REGION_MAP } from '../utils/kmaApi'
 import { supabase } from '../lib/supabase'
+import { BAR_DATABASE } from '../lib/BarLib'
 import gangturnPhoto from '../assets/gangturn_photo.png'
 import ggomaeyaPhoto from '../assets/ggomaeya_photo.jpg'
 import noriterPhoto from '../assets/noriter_photo.png'
@@ -24,6 +25,91 @@ const REGIONS_ORDER = [
   '충청도',
   '강원/제주'
 ];
+
+const normalizeVenueNameKey = (name) => {
+  let key = (name || '').replace(/\s+/g, '').toLowerCase();
+  if (key.includes('강남턴') || key.includes('강턴')) key = '강턴';
+  return key;
+};
+
+const classifyVenueLocation = (loc) => {
+  const text = `${loc.address || ''}`.toLowerCase();
+  let region = '기타';
+
+  if (text.includes('서울')) region = '서울';
+  else if (text.includes('경기') || text.includes('인천')) region = '경기/인천';
+  else if (text.includes('부산') || text.includes('대구') || text.includes('경북') || text.includes('경남') || text.includes('울산') || text.includes('창원') || text.includes('포항') || text.includes('구미')) region = '경상도';
+  else if (text.includes('광주') || text.includes('전북') || text.includes('전남') || text.includes('여수') || text.includes('순천') || text.includes('목포')) region = '전라도';
+  else if (text.includes('대전') || text.includes('충북') || text.includes('충남') || text.includes('세종') || text.includes('청주') || text.includes('천안')) region = '충청도';
+  else if (text.includes('강원') || text.includes('제주') || text.includes('춘천') || text.includes('원주')) region = '강원/제주';
+  else {
+    const nameText = `${loc.name || ''}`.toLowerCase();
+    if (nameText.includes('서울')) region = '서울';
+    else if (nameText.includes('경기') || nameText.includes('인천')) region = '경기/인천';
+    else if (nameText.includes('부산') || nameText.includes('대구')) region = '경상도';
+    else region = '서울';
+  }
+
+  const nameKey = normalizeVenueNameKey(loc.name);
+  const isGangturn = nameKey.includes('강남턴') || nameKey === '강턴';
+  const isGgomaeya = nameKey.includes('꼼애야');
+  const isNoriter = nameKey.includes('놀이터');
+  const isLatin = nameKey.includes('라틴') && region !== '경기/인천' && !nameKey.includes('라틴크루');
+  const isMacondo = nameKey.includes('마콘도');
+  const isBonita = nameKey.includes('보니따');
+  const isBuena = nameKey.includes('부에나');
+  const isHongturn = nameKey.includes('홍턴');
+  const isBibigo = nameKey.includes('비비고');
+
+  let finalImg = loc.image_url;
+  if (isGangturn) finalImg = gangturnPhoto;
+  else if (isGgomaeya) finalImg = ggomaeyaPhoto;
+  else if (isNoriter) finalImg = noriterPhoto;
+  else if (isLatin) finalImg = latinPhoto;
+  else if (isMacondo) finalImg = macondoPhoto;
+  else if (isBonita) finalImg = bonitaPhoto;
+  else if (isBuena) finalImg = buenaPhoto;
+  else if (isHongturn) finalImg = hongturnPhoto;
+  else if (isBibigo) finalImg = bibigoPhoto;
+
+  return {
+    ...loc,
+    region,
+    image_url: finalImg,
+    instagram_url: isGangturn ? 'https://www.instagram.com/turn_latinclub_no.1?igsh=MW94ajh3OHZ3NDZ6bg%3D%3D' : loc.instagram_url
+  };
+};
+
+const dedupeVenueList = (rawList) => {
+  const uniqueMap = new Map();
+  rawList.forEach((loc) => {
+    const key = normalizeVenueNameKey(loc.name);
+    if (!key) return;
+    if (!uniqueMap.has(key)) {
+      uniqueMap.set(key, loc);
+    } else {
+      const existing = uniqueMap.get(key);
+      const score = (loc.image_url ? 2 : 0) + (loc.kakao_url ? 1 : 0) + (loc.instagram_url ? 1 : 0);
+      const exScore = (existing.image_url ? 2 : 0) + (existing.kakao_url ? 1 : 0) + (existing.instagram_url ? 1 : 0);
+      if (score > exScore || (score === exScore && String(loc.id) > String(existing.id))) {
+        uniqueMap.set(key, loc);
+      }
+    }
+  });
+  return Array.from(uniqueMap.values());
+};
+
+const buildVenueListFromDatabase = () =>
+  BAR_DATABASE.map((bar, index) =>
+    classifyVenueLocation({
+      id: `bar-${index}`,
+      name: bar.name,
+      address: bar.address,
+      image_url: null,
+      kakao_url: null,
+      instagram_url: null,
+    })
+  );
 
 const buildPartyShareCard = (item) => {
   const posterUrl = item?.poster_url && String(item.poster_url).trim();
@@ -811,9 +897,6 @@ const HomePage = ({
   const [bootcampIdx, setBootcampIdx] = useState(0);
   const [festivalIdx, setFestivalIdx] = useState(0);
   const [activePosterSlot, setActivePosterSlot] = useState('social');
-  const [locations, setLocations] = useState([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [selectedRegionTab, setSelectedRegionTab] = useState('전체');
 
   const triggerParticle = (e: React.MouseEvent, emoji: string) => {
     const rect = (e.currentTarget as HTMLElement).getBoundingClientRect();
@@ -873,163 +956,6 @@ const HomePage = ({
       setActivePosterSlot((prev) => order[(order.indexOf(prev) + 1) % order.length]);
     }, 5000);
     return () => clearInterval(t);
-  }, []);
-
-  const fetchLocations = async () => {
-    setIsLoading(true);
-    try {
-      const { data, error } = await supabase
-        .from('locations')
-        .select('*')
-        .order('name', { ascending: true });
-
-      if (error) throw error;
-
-      const rawList = data || [];
-
-      // 중복 제거: 이름 기준 정보가 가장 풍부하거나 최신인 레코드 1개만 병합 유지
-      const uniqueMap = new Map();
-      rawList.forEach(loc => {
-        let key = (loc.name || '').replace(/\s+/g, '').toLowerCase();
-        if (key.includes('강남턴') || key.includes('강턴')) key = '강턴';
-        if (!key) return;
-
-        if (!uniqueMap.has(key)) {
-          uniqueMap.set(key, loc);
-        } else {
-          const existing = uniqueMap.get(key);
-          const score = (loc.image_url ? 2 : 0) + (loc.kakao_url ? 1 : 0) + (loc.instagram_url ? 1 : 0);
-          const exScore = (existing.image_url ? 2 : 0) + (existing.kakao_url ? 1 : 0) + (existing.instagram_url ? 1 : 0);
-          if (score > exScore || (score === exScore && loc.id > existing.id)) {
-            uniqueMap.set(key, loc);
-          }
-        }
-      });
-      const deduplicatedList = Array.from(uniqueMap.values());
-
-      // 주소(address) 컬럼 기준 지역 분류 로직
-      const classified = deduplicatedList.map(loc => {
-        const text = `${loc.address || ''}`.toLowerCase();
-        let region = '기타';
-
-        if (text.includes('서울')) region = '서울';
-        else if (text.includes('경기') || text.includes('인천')) region = '경기/인천';
-        else if (text.includes('부산') || text.includes('대구') || text.includes('경북') || text.includes('경남') || text.includes('울산') || text.includes('창원') || text.includes('포항') || text.includes('구미')) region = '경상도';
-        else if (text.includes('광주') || text.includes('전북') || text.includes('전남') || text.includes('여수') || text.includes('순천') || text.includes('목포')) region = '전라도';
-        else if (text.includes('대전') || text.includes('충북') || text.includes('충남') || text.includes('세종') || text.includes('청주') || text.includes('천안')) region = '충청도';
-        else if (text.includes('강원') || text.includes('제주') || text.includes('춘천') || text.includes('원주')) region = '강원/제주';
-        else {
-          // 이름 등에도 지역 단서가 있는지 보조 체크
-          const nameText = `${loc.name || ''}`.toLowerCase();
-          if (nameText.includes('서울')) region = '서울';
-          else if (nameText.includes('경기') || nameText.includes('인천')) region = '경기/인천';
-          else if (nameText.includes('부산') || nameText.includes('대구')) region = '경상도';
-          else region = '서울'; // 지정되지 않은 경우 기본값 서울 편입
-        }
-
-        const nameKey = `${loc.name || ''}`.replace(/\s+/g, '').toLowerCase();
-        const isGangturn = nameKey.includes('강남턴') || nameKey.includes('강턴');
-        const isGgomaeya = nameKey.includes('꼼애야');
-        const isNoriter = nameKey.includes('놀이터');
-        const isLatin = nameKey.includes('라틴') && region !== '경기/인천' && !nameKey.includes('라틴크루');
-        const isMacondo = nameKey.includes('마콘도');
-        const isBonita = nameKey.includes('보니따');
-        const isBuena = nameKey.includes('부에나');
-        const isHongturn = nameKey.includes('홍턴');
-        const isBibigo = nameKey.includes('비비고');
-
-        let finalImg = loc.image_url;
-        if (isGangturn) finalImg = gangturnPhoto;
-        else if (isGgomaeya) finalImg = ggomaeyaPhoto;
-        else if (isNoriter) finalImg = noriterPhoto;
-        else if (isLatin) finalImg = latinPhoto;
-        else if (isMacondo) finalImg = macondoPhoto;
-        else if (isBonita) finalImg = bonitaPhoto;
-        else if (isBuena) finalImg = buenaPhoto;
-        else if (isHongturn) finalImg = hongturnPhoto;
-        else if (isBibigo) finalImg = bibigoPhoto;
-
-        return {
-          ...loc,
-          region,
-          image_url: finalImg,
-          instagram_url: isGangturn ? 'https://www.instagram.com/turn_latinclub_no.1?igsh=MW94ajh3OHZ3NDZ6bg%3D%3D' : loc.instagram_url
-        };
-      });
-
-      classified.sort((a, b) => (a.name || '').localeCompare(b.name || ''));
-      setLocations(classified);
-    } catch (err) {
-      console.error('BAR 목록 로드 실패:', err);
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const renderBarCard = (bar) => (
-    <motion.div
-      key={bar.id}
-      whileTap={{ scale: 0.96 }}
-      onClick={() => setShowRentalModal(true)}
-      style={{
-        flex: '0 0 auto',
-        width: '88px',
-        display: 'flex',
-        flexDirection: 'column',
-        alignItems: 'center',
-        cursor: 'pointer'
-      }}
-    >
-      <div style={{
-        width: '76px',
-        height: '76px',
-        borderRadius: '50%',
-        background: '#ffffff',
-        boxShadow: '0 4px 12px rgba(0,0,0,0.06)',
-        border: '2px solid #F1F5F9',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        overflow: 'hidden',
-        marginBottom: '8px',
-        position: 'relative'
-      }}>
-        {bar.image_url ? (
-          <img
-            src={bar.image_url}
-            alt={bar.name}
-            style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-          />
-        ) : (
-          <img
-            src="/logo.png"
-            alt={bar.name}
-            style={{ width: '65%', height: '65%', objectFit: 'contain', opacity: 0.85 }}
-          />
-        )}
-      </div>
-      <span style={{
-        fontSize: '13px',
-        fontWeight: 900,
-        color: '#1E293B',
-        textAlign: 'center',
-        width: '100%',
-        overflow: 'hidden',
-        textOverflow: 'ellipsis',
-        whiteSpace: 'nowrap'
-      }}>
-        {bar.name || '이름 없음'}
-      </span>
-    </motion.div>
-  );
-
-  useEffect(() => {
-    fetchLocations();
-  }, []);
-
-  // [사용자 요청] 지역 포스터 리스트 자동 스크롤 비활성화 (좌측 고정 및 수동 스크롤만 허용)
-  useEffect(() => {
-    // 자동 스크롤 로직 제거됨
   }, []);
 
   // [타이틀 정제 로직]
@@ -1203,6 +1129,9 @@ const HomePage = ({
   const scrollRef = useRef(null);
   const regionListRef = useRef(null);
   const [shuffleOffset, setShuffleOffset] = useState(0);
+  const [locations, setLocations] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [selectedRegionTab, setSelectedRegionTab] = useState('전체');
 
   // [사용자 요청] 15초 롤링 — shuffleOffset 미사용, 캐러셀 스크롤 중 리렌더 방지
   // useEffect(() => {
@@ -1257,6 +1186,111 @@ const HomePage = ({
     window.addEventListener('resize', setVh);
     setVh();
     return () => window.removeEventListener('resize', setVh);
+  }, []);
+
+  const fetchLocations = async () => {
+    setIsLoading(true);
+    try {
+      let rawList = [];
+      if (supabase) {
+        const { data, error } = await supabase
+          .from('locations')
+          .select('*')
+          .order('name', { ascending: true });
+        if (error) throw error;
+        rawList = data || [];
+      }
+
+      let classified = dedupeVenueList(rawList).map(classifyVenueLocation);
+
+      if (classified.length === 0) {
+        classified = buildVenueListFromDatabase();
+      } else {
+        const keys = new Set(classified.map((b) => normalizeVenueNameKey(b.name)));
+        BAR_DATABASE.forEach((bar, index) => {
+          const key = normalizeVenueNameKey(bar.name);
+          if (!key || keys.has(key)) return;
+          keys.add(key);
+          classified.push(classifyVenueLocation({
+            id: `bar-${index}`,
+            name: bar.name,
+            address: bar.address,
+            image_url: null,
+            kakao_url: null,
+            instagram_url: null,
+          }));
+        });
+      }
+
+      classified.sort((a, b) => (a.name || '').localeCompare(b.name || ''));
+      setLocations(classified);
+    } catch (err) {
+      console.error('BAR 목록 로드 실패:', err);
+      setLocations(buildVenueListFromDatabase());
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const renderBarCard = (bar) => (
+    <motion.div
+      key={bar.id}
+      whileTap={{ scale: 0.96 }}
+      onClick={() => setShowRentalModal(true)}
+      style={{
+        flex: '0 0 auto',
+        width: '88px',
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+        cursor: 'pointer'
+      }}
+    >
+      <motion.div style={{
+        width: '76px',
+        height: '76px',
+        borderRadius: '50%',
+        background: '#ffffff',
+        boxShadow: '0 4px 12px rgba(0,0,0,0.06)',
+        border: '2px solid #F1F5F9',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        overflow: 'hidden',
+        marginBottom: '8px',
+        position: 'relative'
+      }}>
+        {bar.image_url ? (
+          <img
+            src={bar.image_url}
+            alt={bar.name}
+            style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+          />
+        ) : (
+          <img
+            src="/logo.png"
+            alt={bar.name}
+            style={{ width: '65%', height: '65%', objectFit: 'contain', opacity: 0.85 }}
+          />
+        )}
+      </motion.div>
+      <span style={{
+        fontSize: '13px',
+        fontWeight: 900,
+        color: '#1E293B',
+        textAlign: 'center',
+        width: '100%',
+        overflow: 'hidden',
+        textOverflow: 'ellipsis',
+        whiteSpace: 'nowrap'
+      }}>
+        {bar.name || '이름 없음'}
+      </span>
+    </motion.div>
+  );
+
+  useEffect(() => {
+    fetchLocations();
   }, []);
 
   /** 홈 포스터 3칸 순서 고정: 좌→우 소셜 · 부트캠프 · 페스티벌 */
