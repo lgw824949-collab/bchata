@@ -942,6 +942,7 @@ const HomePage = ({
 
   const setActiveTab = (tab) => {
     setActiveTabState(tab);
+    window.dispatchEvent(new CustomEvent('home-active-tab', { detail: tab }));
     if (tab === 'social') {
       setShowPartner(false);
       navigateAppPath('/');
@@ -1423,32 +1424,33 @@ const HomePage = ({
   ];
 
 
+  const HOME_BRAND = '#D4436E';
+  const HOME_BRAND_SOFT = '#FFF5F7';
+  const HOME_BRAND_BORDER = '#FBCFE8';
+  const HOME_TEXT = '#1E293B';
+  const HOME_TEXT_MUTED = '#64748B';
+  const HOME_SURFACE = '#F8FAFC';
+  const HOME_BORDER = '#E2E8F0';
+  const homePartyBucketEmpty = {
+    bg: HOME_SURFACE, border: HOME_BORDER, label: HOME_TEXT_MUTED, count: '#94A3B8', unit: '#94A3B8', districts: '#94A3B8',
+  };
+  const homePartyBucketActive = {
+    bg: HOME_BRAND_SOFT, border: HOME_BRAND_BORDER, label: '#9F1239', count: HOME_BRAND, unit: HOME_BRAND, districts: '#BE185D',
+  };
   const homePartySectionTitleStyle = {
-    fontSize: '14px',
-    fontWeight: 800,
-    color: '#1A1A1A',
-    margin: '0 0 12px',
-    paddingLeft: '10px',
-    borderLeft: '3px solid #D4436E',
-    lineHeight: 1.4,
+    fontSize: '15px', fontWeight: 800, color: HOME_TEXT, margin: '0 0 12px', lineHeight: 1.4,
   };
   const homePartnerSectionTitleStyle = {
-    fontSize: '14px',
-    fontWeight: 800,
-    color: '#1A1A1A',
-    margin: '20px 0 12px',
-    paddingLeft: '10px',
-    borderLeft: '3px solid #C9A84C',
-    lineHeight: 1.4,
+    fontSize: '15px', fontWeight: 800, color: HOME_TEXT, margin: '20px 0 12px', lineHeight: 1.4,
   };
-  const homeSectionSpace = 36;
-  const homeBlockSpace = 26;
-  const homeSubtitleStyle = { margin: '6px 0 0', fontSize: 13, fontWeight: 600, color: '#475569', lineHeight: 1.5 };
-  const homeSectionDividerStyle = { height: 1, background: '#F0F0F0', margin: '0 20px', border: 'none' };
+  const homeSectionSpace = 32;
+  const homeBlockSpace = 22;
+  const homeSubtitleStyle = { margin: '4px 0 0', fontSize: 12, fontWeight: 500, color: HOME_TEXT_MUTED, lineHeight: 1.45 };
+  const homeSectionDividerStyle = { height: 1, background: HOME_BORDER, margin: '0 20px', border: 'none' };
+  const homeSectionTitleStyle = { margin: 0, fontSize: 15, fontWeight: 800, color: HOME_TEXT, letterSpacing: '-0.3px' };
   const quickMenuRegisterHighlightStyle = {
-    background: '#FFF8FA',
-    border: '1.5px solid #FECDD3',
-    boxShadow: '0 2px 10px rgba(212, 67, 110, 0.1)',
+    background: HOME_BRAND_SOFT,
+    border: `1.5px solid ${HOME_BRAND_BORDER}`,
   };
   const quickMenuFloatStyle = {
     display: 'flex',
@@ -1456,46 +1458,49 @@ const HomePage = ({
     alignItems: 'center',
     justifyContent: 'center',
     background: '#FFFFFF',
-    border: '1px solid #F0F0F0',
-    borderRadius: '16px',
-    padding: '12px 10px 10px',
+    border: `1px solid ${HOME_BORDER}`,
+    borderRadius: '14px',
+    padding: '10px 8px 8px',
     cursor: 'pointer',
     width: '100%',
-    minHeight: '102px',
+    minHeight: '88px',
     boxSizing: 'border-box',
   };
   const quickMenuTileStyle = {
     ...quickMenuFloatStyle,
     position: 'relative',
-    width: '80px',
-    minWidth: '80px',
+    width: '76px',
+    minWidth: '76px',
     flexShrink: 0,
     scrollSnapAlign: 'start',
   };
-  const quickMenuIconWrapStyle = { width: '44px', height: '44px', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 };
-  const quickMenuLabelStyle = { color: '#1A1A1A', fontWeight: 700, fontSize: '13px', marginTop: '8px', textAlign: 'center', lineHeight: 1.4, whiteSpace: 'normal', overflow: 'hidden', textOverflow: 'ellipsis', width: '100%' };
+  const quickMenuIconWrapStyle = { width: '40px', height: '40px', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 };
+  const quickMenuLabelStyle = { color: HOME_TEXT, fontWeight: 600, fontSize: '12px', marginTop: '6px', textAlign: 'center', lineHeight: 1.35, whiteSpace: 'normal', overflow: 'hidden', textOverflow: 'ellipsis', width: '100%' };
+  const quickMenuRegisterLabelStyle = { ...quickMenuLabelStyle, color: HOME_BRAND, fontWeight: 700 };
+  const QUICK_MENU_ICON = 26;
+  const quickMenuIconColor = '#475569';
 
   /** 메인 노출·등록 우선 — 하단탭(홈·부트캠프·파트너·강사·페스티벌) 및 포스터3칸과 중복 제외 */
   const quickMenuItems = useMemo(() => [
-    { id: 'party-register', registerHighlight: true, icon: <Music size={32} strokeWidth={1.2} color="#D4436E" />, label: '파티등록', particles: '🎉', action: () => handleRegister('party') },
-    { id: 'class-register', registerHighlight: true, icon: <User size={32} strokeWidth={1.2} color="#D4436E" />, label: '클래스등록', particles: '📚', action: () => window.dispatchEvent(new CustomEvent('open-vip-class-register')) },
-    { id: 'concierge', icon: <MessageSquare size={32} strokeWidth={1.2} color="#C9A84C" />, label: '컨시어지', particles: '✨', action: () => window.dispatchEvent(new CustomEvent('open-chatbot')) },
-    { id: 'livepick', icon: <Camera size={32} strokeWidth={1.2} color="#C9A84C" />, label: '라이브픽', particles: '📸', action: () => { window.history.pushState({}, '', '#community'); setView('community'); } },
-    { id: 'wishlist', icon: <Heart size={32} strokeWidth={1.2} color="#C9A84C" />, label: '찜하기', particles: '❤️', action: () => { window.history.pushState({}, '', '#wishlist'); setShowWishlist(true); } },
+    { id: 'party-register', registerHighlight: true, icon: <Music size={QUICK_MENU_ICON} strokeWidth={1.5} color={HOME_BRAND} />, label: '파티등록', particles: '🎉', action: () => handleRegister('party') },
+    { id: 'class-register', registerHighlight: true, icon: <User size={QUICK_MENU_ICON} strokeWidth={1.5} color={HOME_BRAND} />, label: '클래스등록', particles: '📚', action: () => window.dispatchEvent(new CustomEvent('open-vip-class-register')) },
+    { id: 'concierge', icon: <MessageSquare size={QUICK_MENU_ICON} strokeWidth={1.5} color={quickMenuIconColor} />, label: '컨시어지', particles: '✨', action: () => window.dispatchEvent(new CustomEvent('open-chatbot')) },
+    { id: 'livepick', icon: <Camera size={QUICK_MENU_ICON} strokeWidth={1.5} color={quickMenuIconColor} />, label: '라이브픽', particles: '📸', action: () => { window.history.pushState({}, '', '#community'); setView('community'); } },
+    { id: 'wishlist', icon: <Heart size={QUICK_MENU_ICON} strokeWidth={1.5} color={quickMenuIconColor} />, label: '찜하기', particles: '❤️', action: () => { window.history.pushState({}, '', '#wishlist'); setShowWishlist(true); } },
     { id: 'chat', textIcon: '1:1', label: '채팅문의', particles: '💬', action: () => window.open('https://open.kakao.com/o/gP43rNri', '_blank') },
-    { id: 'saju', icon: <Star size={32} strokeWidth={1.2} color="#C9A84C" />, label: '운명의좌표', particles: '🌟', action: () => { window.history.pushState({}, '', '#saju'); setShowSaju(true); } },
-    { id: 'restaurant', icon: <Utensils size={32} strokeWidth={1.2} color="#C9A84C" />, label: '맛집뒷풀이', particles: '🍽', action: () => { window.history.pushState({}, '', '#restaurant'); setView('restaurant'); } },
-    { id: 'weather', icon: <CloudSun size={32} strokeWidth={1.2} color="#C9A84C" />, label: '오늘날씨', particles: '☀️', action: () => { window.history.pushState({}, '', '#weather'); setShowWeather(true); } },
-    { id: 'route', icon: <Navigation size={32} strokeWidth={1.2} color="#C9A84C" />, label: '지능형경로', particles: '🧭', action: () => { window.history.pushState({}, '', '#route'); openAnalysis(false); } },
-    { id: 'calendar', icon: <Calendar size={32} strokeWidth={1.2} color="#D4436E" />, label: '행사달력', particles: '📅', action: () => setShowFullCalendar(true) },
+    { id: 'saju', icon: <Star size={QUICK_MENU_ICON} strokeWidth={1.5} color={quickMenuIconColor} />, label: '운명의좌표', particles: '🌟', action: () => { window.history.pushState({}, '', '#saju'); setShowSaju(true); } },
+    { id: 'restaurant', icon: <Utensils size={QUICK_MENU_ICON} strokeWidth={1.5} color={quickMenuIconColor} />, label: '맛집뒷풀이', particles: '🍽', action: () => { window.history.pushState({}, '', '#restaurant'); setView('restaurant'); } },
+    { id: 'weather', icon: <CloudSun size={QUICK_MENU_ICON} strokeWidth={1.5} color={quickMenuIconColor} />, label: '오늘날씨', particles: '☀️', action: () => { window.history.pushState({}, '', '#weather'); setShowWeather(true); } },
+    { id: 'route', icon: <Navigation size={QUICK_MENU_ICON} strokeWidth={1.5} color={quickMenuIconColor} />, label: '지능형경로', particles: '🧭', action: () => { window.history.pushState({}, '', '#route'); openAnalysis(false); } },
+    { id: 'calendar', icon: <Calendar size={QUICK_MENU_ICON} strokeWidth={1.5} color={quickMenuIconColor} />, label: '행사달력', particles: '📅', action: () => setShowFullCalendar(true) },
   ], [handleRegister, setShowFullCalendar, setView, setShowWishlist, setShowSaju, setShowWeather, openAnalysis]);
 
   const renderHomeSectionHeader = (title, subtitle, badge = null) => (
-    <header style={{ marginBottom: 14 }}>
+    <header style={{ marginBottom: 12 }}>
       <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', gap: 8, flexWrap: 'wrap' }}>
-        <h2 style={{ margin: 0, fontSize: 16, fontWeight: 900, color: '#1A1A1A', letterSpacing: '-0.3px' }}>{title}</h2>
+        <h2 style={homeSectionTitleStyle}>{title}</h2>
         {badge ? (
-          <span style={{ fontSize: 13, fontWeight: 700, color: '#D4436E' }}>{badge}</span>
+          <span style={{ fontSize: 13, fontWeight: 700, color: HOME_BRAND }}>{badge}</span>
         ) : null}
       </div>
       {subtitle ? (
@@ -1536,7 +1541,7 @@ const HomePage = ({
             onError={(e) => { e.currentTarget.style.display = 'none' }}
           />
           <motion.div style={{ flex: 1, minWidth: 0 }}>
-            <h1 style={{ fontSize: '24px', fontWeight: 900, color: '#1A1A1A', margin: 0, letterSpacing: '-0.5px', lineHeight: 1.4 }}>오늘 어디서 춤추실까요?</h1>
+            <h1 style={{ fontSize: '23px', fontWeight: 800, color: HOME_TEXT, margin: 0, letterSpacing: '-0.5px', lineHeight: 1.4 }}>오늘 어디서 춤추실까요?</h1>
             <HomeHeroTagline />
           </motion.div>
         </motion.div>
@@ -1545,7 +1550,7 @@ const HomePage = ({
         {activeTab === null && (
         <>
         <motion.div style={{ marginTop: 22, marginBottom: 12 }}>
-          <h2 style={{ margin: 0, fontSize: 16, fontWeight: 900, color: '#1A1A1A', letterSpacing: '-0.3px' }}>
+          <h2 style={homeSectionTitleStyle}>
             {isEn ? "Today's parties" : '오늘의 파티'}
           </h2>
         </motion.div>
@@ -1554,7 +1559,10 @@ const HomePage = ({
             { label: isEn ? 'Seoul' : '서울', count: regionCounts.seoul, districts: regionCounts.seoulDistricts, tab: '서울' },
             { label: isEn ? 'Metro' : '수도권', count: regionCounts.metro, districts: regionCounts.metroDistricts, tab: '경인' },
             { label: isEn ? 'Regions' : '지방권', count: regionCounts.national, districts: regionCounts.nationalDistricts, tab: null },
-          ].map((r) => (
+          ].map((r) => {
+            const theme = !loading && r.count > 0 ? homePartyBucketActive : homePartyBucketEmpty;
+            const hasCount = !loading && r.count > 0;
+            return (
               <button
                 key={r.label}
                 type="button"
@@ -1564,8 +1572,9 @@ const HomePage = ({
                   minWidth: 0,
                   padding: '14px 10px',
                   borderRadius: '16px',
-                  border: '1px solid #F0F0F0',
-                  background: '#FFFFFF',
+                  border: `1.5px solid ${theme.border}`,
+                  background: theme.bg,
+                  boxShadow: hasCount ? '0 2px 8px rgba(212, 67, 110, 0.12)' : 'none',
                   cursor: 'pointer',
                   display: 'flex',
                   flexDirection: 'column',
@@ -1575,10 +1584,10 @@ const HomePage = ({
                   minHeight: 76,
                 }}
               >
-                <span style={{ fontSize: '13px', fontWeight: 600, color: '#64748B', marginBottom: 6, width: '100%', lineHeight: 1.4 }}>{r.label}</span>
-                <div style={{ fontSize: '20px', fontWeight: 900, color: '#1A1A1A', lineHeight: 1.35, width: '100%' }}>
+                <span style={{ fontSize: '13px', fontWeight: 800, color: theme.label, marginBottom: 6, width: '100%', lineHeight: 1.4 }}>{r.label}</span>
+                <div style={{ fontSize: hasCount ? '22px' : '20px', fontWeight: 900, color: theme.count, lineHeight: 1.35, width: '100%' }}>
                   {loading ? '—' : r.count}
-                  <span style={{ fontSize: '12px', fontWeight: 500, color: '#999999', marginLeft: '2px' }}>
+                  <span style={{ fontSize: '12px', fontWeight: 700, color: theme.unit, marginLeft: '2px' }}>
                     {isEn ? '' : '건'}
                   </span>
                 </div>
@@ -1587,8 +1596,8 @@ const HomePage = ({
                     display: 'block',
                     marginTop: 6,
                     fontSize: 12,
-                    fontWeight: 600,
-                    color: '#64748B',
+                    fontWeight: 700,
+                    color: theme.districts,
                     lineHeight: 1.35,
                     width: '100%',
                     overflow: 'hidden',
@@ -1600,7 +1609,8 @@ const HomePage = ({
                   </span>
                 ) : null}
               </button>
-            ))}
+            );
+          })}
         </motion.div>
         </>
         )}
@@ -1611,7 +1621,7 @@ const HomePage = ({
       {/* 🔴 [LIVE 바 임팩트 영역 개편] */}
       <motion.div style={{ padding: '0 20px', marginBottom: homeSectionSpace }}>
         <div className="live-count-premium-wrapper" style={{
-          background: 'linear-gradient(135deg, #D4436E, #C9A84C)',
+          background: 'linear-gradient(135deg, #D4436E 0%, #C7365F 100%)',
           borderRadius: '14px',
           overflow: 'hidden',
         }}>
@@ -1720,7 +1730,7 @@ const HomePage = ({
         .quick-menu-peek-wrap {
           position: relative;
           /* 3칸 + 반칸(40px)만 보이게 → 오른쪽에 다음 메뉴가 반쯤 보임 */
-          width: min(100%, calc(80px * 3 + 14px * 2 + 40px));
+          width: min(100%, calc(76px * 3 + 14px * 2 + 38px));
           max-width: 100%;
           overflow: hidden;
         }
@@ -1765,7 +1775,7 @@ const HomePage = ({
           overflow: hidden;
         }
         .home-poster-border-wrap.is-active {
-          border: 2px solid #C9A84C;
+          border: 2px solid #D4436E;
           overflow: hidden;
         }
         .home-poster-border-inner {
@@ -1835,27 +1845,26 @@ const HomePage = ({
         )}
         <div className="quick-menu-peek-wrap" style={{ marginBottom: homeBlockSpace }}>
           <div className="quick-menu-scroll">
-            {quickMenuItems.map((item) => (
+            {quickMenuItems.map((item) => {
+              const isRegister = Boolean(item.registerHighlight);
+              return (
               <motion.div
                 key={item.id}
-                whileTap={{ scale: 0.92 }}
+                whileTap={{ scale: 0.94 }}
                 onClick={(e) => { triggerParticle(e, item.particles); item.action(); }}
                 style={{
                   ...quickMenuTileStyle,
-                  ...(item.registerHighlight ? quickMenuRegisterHighlightStyle : {}),
+                  ...(isRegister ? quickMenuRegisterHighlightStyle : {}),
                 }}
               >
                 {item.textIcon ? (
-                  <motion.div style={{ ...quickMenuIconWrapStyle, width: '44px', height: '44px', fontSize: 18, fontWeight: 900, color: '#C9A84C', letterSpacing: '-0.8px' }}>{item.textIcon}</motion.div>
+                  <motion.div style={{ ...quickMenuIconWrapStyle, fontSize: 16, fontWeight: 800, color: quickMenuIconColor, letterSpacing: '-0.8px' }}>{item.textIcon}</motion.div>
                 ) : (
-                  <motion.div style={{ ...quickMenuIconWrapStyle, width: '44px', height: '44px' }}>{item.icon}</motion.div>
+                  <motion.div style={quickMenuIconWrapStyle}>{item.icon}</motion.div>
                 )}
-                <span style={{
-                  ...quickMenuLabelStyle,
-                  ...(item.registerHighlight ? { color: '#D4436E', fontWeight: 800 } : {}),
-                }}>{item.label}</span>
+                <span style={isRegister ? quickMenuRegisterLabelStyle : quickMenuLabelStyle}>{item.label}</span>
               </motion.div>
-            ))}
+            );})}
           </div>
         </div>
 
@@ -1863,7 +1872,7 @@ const HomePage = ({
 
         {/* BAR 쉘: 지역 pill + 원형 그리드 */}
         <motion.div ref={barSectionRef} style={{ display: 'flex', flexDirection: 'column', background: '#ffffff' }}>
-          <h2 style={{ margin: 0, fontSize: 16, fontWeight: 900, color: '#1A1A1A', letterSpacing: '-0.3px' }}>
+          <h2 style={homeSectionTitleStyle}>
             Social BAR
           </h2>
           <p style={{ ...homeSubtitleStyle, margin: '6px 0 14px' }}>
@@ -1907,9 +1916,9 @@ const HomePage = ({
                   style={{
                     flexShrink: 0,
                     padding: '10px 18px',
-                    background: isSelected ? '#FFF1F2' : '#F8FAFC',
-                    color: isSelected ? '#E53935' : '#334155',
-                    border: isSelected ? '1px solid #FECDD3' : '1px solid #E2E8F0',
+                    background: isSelected ? HOME_BRAND_SOFT : HOME_SURFACE,
+                    color: isSelected ? HOME_BRAND : HOME_TEXT,
+                    border: isSelected ? `1px solid ${HOME_BRAND_BORDER}` : `1px solid ${HOME_BORDER}`,
                     borderRadius: '100px',
                     fontWeight: isSelected ? 950 : 700,
                     fontSize: '14px',
@@ -1924,7 +1933,7 @@ const HomePage = ({
                       marginLeft: 6,
                       fontSize: '12px',
                       fontWeight: isSelected ? 900 : 700,
-                      color: isSelected ? '#E53935' : '#64748B',
+                      color: isSelected ? HOME_BRAND : HOME_TEXT_MUTED,
                     }}
                     aria-label={`${barRegionCounts[tab] ?? 0}곳`}
                   >
@@ -1996,13 +2005,13 @@ const HomePage = ({
                               width: '56px',
                               height: '56px',
                               borderRadius: '50%',
-                              background: barListExpanded ? '#FFF1F2' : '#F8FAFC',
-                              border: barListExpanded ? '1.5px solid #FECDD3' : '1.5px dashed #CBD5E1',
+                              background: barListExpanded ? HOME_BRAND_SOFT : HOME_SURFACE,
+                              border: barListExpanded ? `1.5px solid ${HOME_BRAND_BORDER}` : '1.5px dashed #CBD5E1',
                               display: 'flex',
                               alignItems: 'center',
                               justifyContent: 'center',
                               marginBottom: '6px',
-                              color: barListExpanded ? '#E53935' : '#64748B',
+                              color: barListExpanded ? HOME_BRAND : HOME_TEXT_MUTED,
                               fontSize: '13px',
                               fontWeight: 900,
                             }}
@@ -2017,7 +2026,7 @@ const HomePage = ({
                             style={{
                               fontSize: '11px',
                               fontWeight: 800,
-                              color: barListExpanded ? '#E53935' : '#334155',
+                              color: barListExpanded ? HOME_BRAND : HOME_TEXT,
                               textAlign: 'center',
                               lineHeight: 1.3,
                               whiteSpace: 'nowrap',

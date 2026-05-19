@@ -1020,6 +1020,13 @@ function App() {
   const [showWeather, setShowWeather] = useState(false);
   const [showSaju, setShowSaju] = useState(false);
   const [showPartner, setShowPartner] = useState(false);
+  const [homeActiveTab, setHomeActiveTab] = useState(null);
+
+  useEffect(() => {
+    const onHomeActiveTab = (e) => setHomeActiveTab(e.detail ?? null);
+    window.addEventListener('home-active-tab', onHomeActiveTab);
+    return () => window.removeEventListener('home-active-tab', onHomeActiveTab);
+  }, []);
 
   const isSocialLightNav = (location.pathname === '/' && view === 'home') || showPartner
 
@@ -1679,10 +1686,12 @@ function App() {
   // const navInactiveColor = isSocialLightNav ? '#94A3B8' : 'rgba(255,255,255,0.3)'
   const navActiveColor = '#FFFFFF'
   const navInactiveColor = '#666666'
-  const socialPartnerNavActive = '#FF4444'
-  const socialPartnerNavInactive = '#666666'
-  const isSocialTabActive = location.pathname === '/' && view === 'home' && !showPartner
+  const socialNavActive = '#FF4444'
+  const socialNavInactive = '#666666'
+  const isHomeNavActive = location.pathname === '/' && view === 'home' && homeActiveTab === null && !showPartner
+  const isBottomSocialNavActive = location.pathname === '/' && view === 'home' && homeActiveTab === 'social' && !showPartner
   const setActiveTab = (tab) => {
+    setHomeActiveTab(tab);
     window.dispatchEvent(new CustomEvent('home-active-tab', { detail: tab }));
   };
 
@@ -2493,7 +2502,7 @@ function App() {
     >
       <div 
         onClick={() => {
-          const alreadyOnMainHome = location.pathname === '/' && view === 'home' && !showPartner;
+          const alreadyOnMainHome = location.pathname === '/' && view === 'home' && homeActiveTab === null && !showPartner;
           navigate('/');
           setShowPartner(false);
           setActiveTab(null);
@@ -2508,16 +2517,16 @@ function App() {
           flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
           cursor: 'pointer', transition: 'all 0.2s',
           // color: (location.pathname === '/' && !showPartner) ? '#FFFFFF' : 'rgba(255,255,255,0.3)'
-          color: isSocialTabActive ? socialPartnerNavActive : socialPartnerNavInactive
+          color: isHomeNavActive ? socialNavActive : socialNavInactive
         }}
       >
-        <HomeIcon size={24} strokeWidth={isSocialTabActive ? 2.5 : 1.5} />
-        <span style={{ fontSize: '9px', fontWeight: isSocialTabActive ? 900 : 500, marginTop: '3px' }}>
+        <HomeIcon size={24} strokeWidth={isHomeNavActive ? 2.5 : 1.5} />
+        <span style={{ fontSize: '9px', fontWeight: isHomeNavActive ? 900 : 500, marginTop: '3px' }}>
           {i18n.language?.startsWith('en') ? 'Home' : '홈'}
         </span>
       </div>
       <div
-        onClick={() => { navigate('/bootcamp'); setShowPartner(false); }}
+        onClick={() => { navigate('/bootcamp'); setShowPartner(false); setActiveTab(null); }}
         style={{
           flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
           cursor: 'pointer', transition: 'all 0.2s',
@@ -2531,22 +2540,27 @@ function App() {
       </div>
 
       <div
-        onClick={() => handleOpenModal(setShowPartner)}
+        onClick={() => {
+          setShowPartner(false);
+          navigate('/');
+          setActiveTab('social');
+        }}
         style={{
           flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
           cursor: 'pointer', transition: 'all 0.2s',
-          color: showPartner ? socialPartnerNavActive : socialPartnerNavInactive,
+          color: isBottomSocialNavActive ? socialNavActive : socialNavInactive,
         }}
       >
-        <Users size={24} strokeWidth={showPartner ? 2.5 : 1.5} />
-        <span style={{ fontSize: '9px', fontWeight: showPartner ? 900 : 500, marginTop: '3px' }}>
-          {i18n.language?.startsWith('en') ? 'Partner' : '파트너'}
+        <Music2 size={24} strokeWidth={isBottomSocialNavActive ? 2.5 : 1.5} />
+        <span style={{ fontSize: '9px', fontWeight: isBottomSocialNavActive ? 900 : 500, marginTop: '3px' }}>
+          {i18n.language?.startsWith('en') ? 'Social' : '소셜'}
         </span>
       </div>
 
       <div
         onClick={() => {
           setShowPartner(false);
+          setActiveTab(null);
           localStorage.setItem('instructor_target_genre', '전체');
           navigate('/instructors');
           setTimeout(() => { window.dispatchEvent(new CustomEvent('apply-instructor-filter')); }, 300);
@@ -2564,7 +2578,7 @@ function App() {
       </div>
 
       <div 
-        onClick={() => { navigate('/festival'); setShowPartner(false); }}
+        onClick={() => { navigate('/festival'); setShowPartner(false); setActiveTab(null); }}
         style={{ 
           flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
           cursor: 'pointer', transition: 'all 0.2s',
