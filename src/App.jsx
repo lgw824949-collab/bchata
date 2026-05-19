@@ -2,19 +2,22 @@
 import { Home as HomeIcon, Users, LogOut, Heart, X, MessageSquare, RefreshCw, CloudSun, Utensils, Zap, Languages, Bell, Star, Navigation, CreditCard, Settings, Map as MapIcon, BarChart, BarChart2, Gift, Coffee, User, Menu, Music2, Tent, Flag, Download, Globe, ShieldCheck, Calendar, CalendarDays, Camera, ChevronLeft, ChevronRight, Loader2, Search, Share2, Copy, TrendingUp, GraduationCap } from 'lucide-react'
 import { useTranslation } from 'react-i18next';
 import { motion, AnimatePresence } from 'framer-motion'
-import { supabase, logActivity } from './lib/supabase'
+import { logActivity, runSupabaseQuery, supabase } from './lib/supabase'
 import { KAKAO_BRAND, SHARE_BUILD, sharePartyToKakao } from './lib/kakaoShare'
 import { buildPartyShareCard } from './lib/partyShareCard'
 import { getUserCoords, isGeoDenied, readCachedCoords, syncGeoPermissionState } from './lib/geoCache'
 import {
   buildAppState,
+  closeOverlay,
   goBack,
   navigate,
   parseAppState,
   pathToView,
   pushOverlay,
+  readNavigationState,
   replaceCurrentState,
 } from './lib/appHistory'
+import { handleMobileExitBack, registerExitToast } from './lib/mobileExitGuard'
 import { Z } from './constants/zLayers'
 import { normDate } from './lib/dateNorm'
 import { LOCATIONS_SELECT, logSupabaseError } from './lib/locationsQuery'
@@ -56,9 +59,13 @@ const LoadingFallback = () => (
 const useLocation = () => {
   const [pathname, setPathname] = useState(window.location.pathname);
   useEffect(() => {
-    const handlePopState = () => setPathname(window.location.pathname);
-    window.addEventListener('popstate', handlePopState);
-    return () => window.removeEventListener('popstate', handlePopState);
+    const syncPath = () => setPathname(window.location.pathname);
+    window.addEventListener('popstate', syncPath);
+    window.addEventListener('bamppa-navigate', syncPath);
+    return () => {
+      window.removeEventListener('popstate', syncPath);
+      window.removeEventListener('bamppa-navigate', syncPath);
+    };
   }, []);
   return { pathname };
 };
@@ -1082,6 +1089,9 @@ function App() {
   const [showPlaceInquiry, setShowPlaceInquiry] = useState(false);
   const [showWishlist, setShowWishlist] = useState(false);
   const [showRentalModal, setShowRentalModal] = useState(false);
+  const [exitToast, setExitToast] = useState(null);
+  const navSnapshotRef = useRef(readNavigationState());
+  const historyReadyRef = useRef(false);
 
   const applyHistoryState = (rawState) => {
     const path = window.location.pathname;
@@ -1108,25 +1118,68 @@ function App() {
     setShowRentalModal(overlay === 'rental');
     setShowFullCalendar(overlay === 'fullCalendar');
     setShowIncheonModal(overlay === 'incheon');
+    setShowFilterPanel(overlay === 'filterPanel');
+    setShowFilteredResults(overlay === 'filteredResults');
+    setShowGridModal(overlay === 'gridModal');
+    setShowClassRegister(overlay === 'classRegister');
+    if (overlay !== 'partyPoster') setSelectedPoster(null);
     if (overlay === 'partner' && path === '/') {
       setShowPartner(true);
       setHomeActiveTab('partner');
     }
+    window.dispatchEvent(new CustomEvent('bamppa-history', { detail: { state: st } }));
+  };
+
+  const closeModalWithHistory = (setter) => () => {
+    if (!closeOverlay()) setter(false);
   };
 
   useEffect(() => {
     applyHistoryState(window.history.state);
+    navSnapshotRef.current = readNavigationState();
   }, [location.pathname]);
+
+  useEffect(() => {
+    registerExitToast((message) => {
+      setExitToast(message);
+      window.setTimeout(() => setExitToast(null), 2200);
+    });
+  }, []);
 
   useEffect(() => {
     const path = window.location.pathname;
     if (!parseAppState(window.history.state)) {
-      window.history.replaceState(
-        buildAppState({ view: pathToView(path), homeTab: null }),
-        '',
-        path,
-      );
+      const initial = buildAppState({ view: pathToView(path), homeTab: null });
+      window.history.replaceState(initial, '', path);
+      navSnapshotRef.current = initial;
     }
+  }, []);
+
+  useEffect(() => {
+    const onNavigate = (event) => {
+      applyHistoryState(event.detail?.state ?? window.history.state);
+      navSnapshotRef.current = readNavigationState();
+    };
+
+    const onPopState = (event) => {
+      const prev = navSnapshotRef.current;
+      if (historyReadyRef.current && handleMobileExitBack(event, prev)) {
+        applyHistoryState(window.history.state);
+        navSnapshotRef.current = readNavigationState();
+        return;
+      }
+      applyHistoryState(event.state);
+      navSnapshotRef.current = readNavigationState();
+    };
+
+    window.addEventListener('bamppa-navigate', onNavigate);
+    window.addEventListener('popstate', onPopState);
+    historyReadyRef.current = true;
+    return () => {
+      window.removeEventListener('bamppa-navigate', onNavigate);
+      window.removeEventListener('popstate', onPopState);
+      historyReadyRef.current = false;
+    };
   }, []);
 
   const [weatherTapCount, setWeatherTapCount] = useState(0);
@@ -1144,8 +1197,8 @@ function App() {
     return () => window.removeEventListener('open-class-register', handleOpenClassReg);
   }, []);
 
-  const handleOpenModal = (setter, value = true) => {
-    pushOverlay('modal');
+  const handleOpenModal = (setter, value = true, overlayKey = 'partyPoster') => {
+    pushOverlay(overlayKey);
     setter(value);
   };
 
@@ -1177,6 +1230,10 @@ function App() {
     setVipLoginLoading(true);
     setVipRecoveredPassword('');
     try {
+      if (!supabase) {
+        alert('서버 연결을 사용할 수 없습니다. 잠시 후 다시 시도해주세요.');
+        return;
+      }
       const { data, error } = await supabase
         .from('instructors')
         .select('login_password')
@@ -1203,6 +1260,10 @@ function App() {
     }
     setVipLoginLoading(true);
     try {
+      if (!supabase) {
+        alert('서버 연결을 사용할 수 없습니다. 잠시 후 다시 시도해주세요.');
+        return;
+      }
       const { error } = await supabase
         .from('instructors')
         .insert({
@@ -1235,6 +1296,10 @@ function App() {
     }
     setVipLoginLoading(true);
     try {
+      if (!supabase) {
+        alert('서버 연결을 사용할 수 없습니다. 잠시 후 다시 시도해주세요.');
+        return;
+      }
       const { data, error } = await supabase
         .from('instructors')
         .select('id, login_id')
@@ -1302,26 +1367,6 @@ function App() {
   };
 
   useEffect(() => {
-    const handlePopState = (event) => {
-      if (selectedPoster) { setSelectedPoster(null); return; }
-      if (showGridModal) { setShowGridModal(false); return; }
-      if (showFilteredResults) { setShowFilteredResults(false); return; }
-      if (filterStep > 1) { setFilterStep(1); return; }
-      if (showFilterPanel) { setShowFilterPanel(false); return; }
-      if (isMenuOpen) { setIsMenuOpen(false); return; }
-      if (showNoticeGuide) { setShowNoticeGuide(false); return; }
-      if (showIncheonModal) { setShowIncheonModal(false); return; }
-      if (showIncheon) { setShowIncheon(false); return; }
-
-      applyHistoryState(event.state);
-    };
-
-    window.addEventListener('popstate', handlePopState);
-    return () => window.removeEventListener('popstate', handlePopState);
-  }, [selectedPoster, showGridModal, showFilteredResults, filterStep, showFilterPanel, isMenuOpen, showNoticeGuide, showIncheonModal, showIncheon]);
-
-
-  useEffect(() => {
     // 공지사항 가이드 자동 팝업 (디바이스당 한 번)
     const guideShown = localStorage.getItem('notice_guide_shown');
     if (!guideShown) {
@@ -1333,26 +1378,35 @@ function App() {
 
   const fetchFollowedInstructors = async () => {
     try {
+      if (!supabase) return;
       const s = localStorage.getItem('user_session') || localStorage.getItem('oneulbam_session');
       if (!s) return;
-      const { data: followData } = await supabase
-        .from('instructor_follows')
-        .select('instructor_id')
-        .eq('user_session', s);
+      const { data: followData, error: followErr } = await runSupabaseQuery('instructor_follows', (db) =>
+        db.from('instructor_follows').select('instructor_id').eq('user_session', s),
+      );
+      if (followErr) {
+        console.warn('[App] instructor_follows:', followErr.message || followErr);
+        setFollowedInstructors([]);
+        return;
+      }
 
       if (followData && followData.length > 0) {
         const ids = followData.map((f) => f.instructor_id);
-        const { data: instData } = await supabase
-          .from('instructors')
-          .select('*')
-          .in('id', ids)
-          .eq('status', 'active');
+        const { data: instData, error: instErr } = await runSupabaseQuery('instructors', (db) =>
+          db.from('instructors').select('*').in('id', ids).eq('status', 'active'),
+        );
+        if (instErr) {
+          console.warn('[App] instructors:', instErr.message || instErr);
+          setFollowedInstructors([]);
+          return;
+        }
         setFollowedInstructors(instData || []);
       } else {
         setFollowedInstructors([]);
       }
     } catch (err) {
       console.error('Failed to fetch followed instructors:', err);
+      setFollowedInstructors([]);
     }
   };
 
@@ -1478,6 +1532,14 @@ function App() {
   const fetchParties = async () => {
     setLoading(true);
     try {
+      if (!supabase) {
+        console.warn('[App.fetchParties] Supabase client unavailable — check .env (VITE_SUPABASE_URL, VITE_SUPABASE_ANON_KEY)');
+        setParties([]);
+        setBootcamps([]);
+        setFestivals([]);
+        return;
+      }
+
       const [partiesRes, locationsRes, bootcampsRes, festivalsRes] = await Promise.all([
         supabase.from('parties').select(PARTIES_SELECT).eq('status', 'approved').order('date', { ascending: true }),
         supabase.from('locations').select(LOCATIONS_SELECT),
@@ -1487,11 +1549,13 @@ function App() {
 
       if (partiesRes.error) {
         logPartiesFetchError(partiesRes.error);
-        throw partiesRes.error;
+        setParties([]);
+        setBootcamps(bootcampsRes.data || []);
+        setFestivals(festivalsRes.data || []);
+        return;
       }
       if (locationsRes.error) {
         logSupabaseError('App.fetchParties.locations', locationsRes.error);
-        // locations 실패해도 파티 목록은 계속 로드
       }
       if (bootcampsRes.error) logSupabaseError('App.fetchParties.bootcamps', bootcampsRes.error);
       if (festivalsRes.error) logSupabaseError('App.fetchParties.festivals', festivalsRes.error);
@@ -1548,12 +1612,17 @@ function App() {
     } catch (err) {
       logPartiesFetchError(err);
       console.error('[App.fetchParties] 데이터 로딩 오류:', err);
+      setParties([]);
+      setBootcamps([]);
+      setFestivals([]);
     } finally {
       setLoading(false);
     }
   };
 
-  useEffect(() => { fetchParties(); }, []);
+  useEffect(() => {
+    fetchParties();
+  }, []);
 
   useEffect(() => {
     const activeTodayStr = getKSTDate().dateStr;
@@ -1595,8 +1664,8 @@ function App() {
       setView('home');
       if (location.pathname !== '/') navigate('/');
       if (party.date) setSelectedDate(party.date);
-      window.history.pushState({ modal: true, partyDeepLink: true }, '');
       setSelectedPoster(card);
+      pushOverlay('partyPoster', { meta: { partyId: String(party.id) } });
       const u = new URL(window.location.href);
       u.searchParams.delete('party');
       u.searchParams.delete('open');
@@ -1614,14 +1683,16 @@ function App() {
 
     let cancelled = false;
     (async () => {
-      const { data, error } = await supabase
-        .from('parties')
-        .select(PARTIES_SELECT)
-        .eq('id', partyId)
-        .eq('status', 'approved')
-        .maybeSingle();
-      if (error) logPartiesFetchError(error);
-      if (!cancelled && data) openPartyFromLink(data);
+      try {
+        if (!supabase) return;
+        const { data, error } = await runSupabaseQuery('partyDeepLink', (db) =>
+          db.from('parties').select(PARTIES_SELECT).eq('id', partyId).eq('status', 'approved').maybeSingle(),
+        );
+        if (error) logPartiesFetchError(error);
+        if (!cancelled && data) openPartyFromLink(data);
+      } catch (err) {
+        logPartiesFetchError(err);
+      }
     })();
 
     return () => {
@@ -1668,6 +1739,9 @@ function App() {
   const withHistory = (overlayKey, isOpen, setter) => (v) => {
     if (v === true && !isOpen) {
       pushOverlay(overlayKey);
+    } else if (v === false && isOpen) {
+      if (!closeOverlay()) setter(false);
+      return;
     }
     setter(v);
   };
@@ -2244,7 +2318,7 @@ function App() {
       </AnimatePresence>
       <AnimatePresence>
         <Suspense fallback={null}>
-          {showSaju && <SajuModal parties={parties} onClose={() => setShowSaju(false)} lang={lang} />}
+          {showSaju && <SajuModal parties={parties} onClose={closeModalWithHistory(() => setShowSaju(false))} lang={lang} />}
         </Suspense>
       </AnimatePresence>
       <AnimatePresence>
@@ -2253,7 +2327,7 @@ function App() {
         </Suspense>
       </AnimatePresence>
       <AnimatePresence>
-        {showWishlist && <WishlistModal onClose={() => setShowWishlist(false)} setSelectedPoster={setSelectedPoster} />}
+        {showWishlist && <WishlistModal onClose={closeModalWithHistory(() => setShowWishlist(false))} setSelectedPoster={setSelectedPoster} />}
       </AnimatePresence>
       <AnimatePresence>
         {showRentalModal && <RentalModal onClose={() => setShowRentalModal(false)} />}
@@ -2344,10 +2418,9 @@ function App() {
                             return p.date === selectedDate && matchesRegion && matchesGenre;
                           }).map(item => (
                             <div key={item.id} onClick={() => {
-                              window.history.pushState({ modal: true }, '');
                               const card = buildPartyShareCard(item);
                               if (!card) return;
-                              setSelectedPoster(card);
+                              handleOpenModal(setSelectedPoster, card, 'partyPoster');
                             }} style={{ background: '#F8FAFC', borderRadius: '16px', padding: '12px', display: 'flex', gap: '15px', border: '1px solid #EDF2F7', cursor: 'pointer' }}>
                               <img src={item.poster_url} style={{ width: '80px', height: '100px', objectFit: 'cover', borderRadius: '10px' }} alt="Poster" />
                               <div style={{ flex: 1 }}>
@@ -2523,7 +2596,7 @@ function App() {
             shareLines={selectedPoster.lines}
             shareFeedDesc={selectedPoster.feedDesc}
             partyId={selectedPoster.partyId}
-            onClose={() => setSelectedPoster(null)} 
+            onClose={closeModalWithHistory(() => setSelectedPoster(null))} 
           />
         </motion.div>
       )}
@@ -2542,7 +2615,7 @@ function App() {
       <div 
         onClick={() => {
           const alreadyOnMainHome = location.pathname === '/' && view === 'home' && homeActiveTab === null && !showPartner;
-          navigate('/', { homeTab: null });
+          navigate('/', { homeTab: null, replace: location.pathname === '/' });
           setShowPartner(false);
           setActiveTab(null);
           if (!alreadyOnMainHome) {
@@ -2581,7 +2654,7 @@ function App() {
       <div
         onClick={() => {
           setShowPartner(false);
-          navigate('/', { homeTab: 'social' });
+          navigate('/', { homeTab: 'social', replace: location.pathname === '/' });
           setActiveTab('social');
         }}
         style={{
@@ -2633,6 +2706,31 @@ function App() {
     </nav>
     )}
     <ChatBot />
+    {exitToast ? (
+      <motion.div
+        initial={{ opacity: 0, y: 12 }}
+        animate={{ opacity: 1, y: 0 }}
+        exit={{ opacity: 0 }}
+        style={{
+          position: 'fixed',
+          left: '50%',
+          bottom: 'calc(88px + env(safe-area-inset-bottom))',
+          transform: 'translateX(-50%)',
+          zIndex: 100010,
+          padding: '10px 18px',
+          borderRadius: '100px',
+          background: 'rgba(15, 23, 42, 0.92)',
+          color: '#F8FAFC',
+          fontSize: '13px',
+          fontWeight: 700,
+          whiteSpace: 'nowrap',
+          boxShadow: '0 8px 24px rgba(0,0,0,0.35)',
+          pointerEvents: 'none',
+        }}
+      >
+        {exitToast}
+      </motion.div>
+    ) : null}
     </>
   );
 }
