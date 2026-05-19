@@ -1131,7 +1131,7 @@ const HomePage = ({
   const [shuffleOffset, setShuffleOffset] = useState(0);
   const [locations, setLocations] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [selectedRegionTab, setSelectedRegionTab] = useState('전체');
+  const [selectedRegionTab, setSelectedRegionTab] = useState('서울');
 
   // [사용자 요청] 15초 롤링 — shuffleOffset 미사용, 캐러셀 스크롤 중 리렌더 방지
   // useEffect(() => {
@@ -1292,6 +1292,14 @@ const HomePage = ({
   useEffect(() => {
     fetchLocations();
   }, []);
+
+  useEffect(() => {
+    if (isLoading || locations.length === 0) return;
+    const hasCurrent = locations.some((b) => b.region === selectedRegionTab);
+    if (hasCurrent) return;
+    const firstWithVenues = REGIONS_ORDER.find((r) => locations.some((b) => b.region === r));
+    if (firstWithVenues) setSelectedRegionTab(firstWithVenues);
+  }, [locations, isLoading, selectedRegionTab]);
 
   /** 홈 포스터 3칸 순서 고정: 좌→우 소셜 · 부트캠프 · 페스티벌 */
   const homePosterSlots = [
@@ -1627,9 +1635,9 @@ const HomePage = ({
             display: 'flex', overflowX: 'auto', gap: '8px', padding: '0 0 16px',
             borderBottom: '1px solid #F1F5F9', flexShrink: 0, scrollbarWidth: 'none'
           }}>
-            {['전체', ...REGIONS_ORDER].map((tab) => {
+            {REGIONS_ORDER.filter((tab) => locations.some((b) => b.region === tab)).map((tab) => {
               const isSelected = selectedRegionTab === tab;
-              const count = tab === '전체' ? locations.length : locations.filter(b => b.region === tab).length;
+              const count = locations.filter((b) => b.region === tab).length;
 
               return (
                 <button
@@ -1674,9 +1682,7 @@ const HomePage = ({
               </div>
             ) : (
               (() => {
-                const filteredBars = selectedRegionTab === '전체'
-                  ? locations
-                  : locations.filter(bar => bar.region === selectedRegionTab);
+                const filteredBars = locations.filter((bar) => bar.region === selectedRegionTab);
 
                 if (filteredBars.length === 0) {
                   return (
