@@ -1866,7 +1866,7 @@ const HomePage = ({
         ...homeDepthPanelStyle,
         display: 'flex',
         flexDirection: 'column',
-        marginBottom: homeSectionSpace,
+        marginBottom: 0,
         borderRadius: 16,
         padding: 16,
         ...(isHomeGate
@@ -2158,7 +2158,7 @@ const HomePage = ({
               ...homeDepthPanelStyle,
               display: 'flex',
               flexDirection: 'column',
-              marginBottom: homeSectionSpace,
+              marginBottom: 0,
             }}
             aria-label={isEn ? 'Featured events' : '추천 행사'}
           >
@@ -2168,6 +2168,10 @@ const HomePage = ({
             )}
             {renderFeaturedStreamList()}
           </section>
+
+          <motion.div className="home-section-break" aria-hidden>
+            <hr className="home-section-break__line" />
+          </motion.div>
 
           {renderHomeQuickLiveHub()}
         </motion.div>
@@ -2289,6 +2293,10 @@ const HomePage = ({
         }
       `}</style>
       {activeTab === null && (
+        <>
+        <motion.div className="home-section-break" style={{ padding: '0 16px' }} aria-hidden>
+          <hr className="home-section-break__line" />
+        </motion.div>
         <motion.div className="home-social-bar-wrap" style={{ padding: '0 16px', marginTop: 0, marginBottom: homeSectionSpace }}>
         <section
           ref={barSectionRef}
@@ -2377,6 +2385,7 @@ const HomePage = ({
           </motion.div>
         </section>
         </motion.div>
+        </>
       )}
 
         {/*
