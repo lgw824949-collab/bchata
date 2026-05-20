@@ -254,6 +254,32 @@ const GENRE_MAP = {
   '키좀바': { key: 'k_ratio', label: 'K', label_en: 'Kizomba', color: '#FF1744' },
 };
 
+/** 파티 카드 음악 비율 칩 (B40 S30 …) — 그리드 포스터 오버레이와 동일 */
+const renderPartyMusicRatioRow = (item) => {
+  const chips = Object.entries(GENRE_MAP).filter(([_, info]) => (item[info.key] ?? 0) > 0);
+  if (chips.length === 0) return null;
+  return (
+    <div style={{ display: 'flex', gap: '4px', flexWrap: 'wrap', marginTop: '2px' }}>
+      {chips.map(([genre, info]) => (
+        <span
+          key={genre}
+          style={{
+            fontSize: '10px',
+            fontWeight: 800,
+            color: '#D81B60',
+            background: '#FFF0F5',
+            padding: '1px 6px',
+            borderRadius: '10px',
+            flexShrink: 0,
+          }}
+        >
+          {info.label}{item[info.key]}
+        </span>
+      ))}
+    </div>
+  );
+};
+
 const SEOUL_HINT = /서울|강남|홍대|잠실|건대|신림|서초|영등포|성수|이태원|왕십리|목동|구로/;
 
 const REGION_FILTER = {
@@ -3321,6 +3347,10 @@ const HomePage = ({
                                             <span style={{ background: '#E53935', color: '#fff', fontSize: '9px', fontWeight: '950', padding: '2px 5px', borderRadius: '4px', animation: 'blink 1.5s infinite' }}>LIVE</span>
                                           )}
                                         </div>
+
+                                        {item._itemGenre !== '부트캠프' && item._itemGenre !== '페스티벌'
+                                          ? renderPartyMusicRatioRow(item)
+                                          : null}
 
                                         {/* 2. 파티명 (굵게, 크게, 아래 여백 6px) */}
                                         <div style={{ fontSize: '18px', fontWeight: 'bold', color: '#1E293B', display: '-webkit-box', WebkitLineClamp: 1, WebkitBoxOrient: 'vertical', overflow: 'hidden', textOverflow: 'ellipsis', letterSpacing: '-0.5px', lineHeight: 1.2, marginTop: '2px', marginBottom: '6px' }}>
