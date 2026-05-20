@@ -1422,6 +1422,15 @@ const HomePage = ({
     return () => window.removeEventListener('bamppa-history', onHistory);
   }, [locations]);
 
+  const formatSocialBarCounterLine = (line, mode) => {
+    if (mode === 'live_hot') return line;
+    return String(line || '')
+      .replace(/👀|👁️/g, 'view')
+      .replace(/확인/g, '')
+      .replace(/\s{2,}/g, ' ')
+      .trim();
+  };
+
   const renderBarCard = (bar) => {
     const stats = barStatsByKey[getBarStatsKey(bar)] || { liveCount: 0, clickCount: 0 };
     const counter = buildBarCounterDisplay(stats);
@@ -1429,7 +1438,10 @@ const HomePage = ({
     const lineClass = showCounter
       ? (counter.mode === 'live_hot' ? 'home-bar-chip-line--hot' : 'home-bar-chip-line--muted')
       : 'home-bar-chip-line';
-    const lineText = showCounter ? counter.line : (bar.name || '이름 없음');
+    const counterLine = showCounter
+      ? formatSocialBarCounterLine(counter.line, counter.mode)
+      : (bar.name || '이름 없음');
+    const lineText = showCounter ? `${bar.name || 'BAR'} · ${counterLine}` : counterLine;
 
     return (
       <motion.button
@@ -1475,7 +1487,7 @@ const HomePage = ({
             textOverflow: 'unset',
           }}
         >
-          {showCounter ? `${bar.name || 'BAR'} · ${counter.line}` : lineText}
+          {lineText}
         </p>
       </motion.button>
     );
