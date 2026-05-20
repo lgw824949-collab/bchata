@@ -4,6 +4,9 @@ import { useTranslation } from 'react-i18next';
 import { sharePartyToKakao } from '../lib/kakaoShare';
 import { buildPartyShareCard } from '../lib/partyShareCard';
 import { supabase } from '../lib/supabase';
+import PartyWishlistHeart from './PartyWishlistHeart';
+import { usePartyWishlist } from '../hooks/usePartyWishlist';
+import { PartyMusicRatioLine } from '../pages/Social';
 
 const GENRE_MAP = {
   '바차타': { key: 'b_ratio', label: 'B', label_en: 'Bachata', color: '#FF1744' },
@@ -62,9 +65,12 @@ const formatPrice = (priceStr) => {
   return `${manValue.toFixed(1).replace('.0', '')}만`;
 };
 
-const PartyCard = ({ item, onSelect }) => {
+const PartyCard = ({ item, onSelect, wishlistParties: wishlistProp, onToggleWishlist: toggleProp }) => {
   const { i18n } = useTranslation();
   const isEn = i18n.language.startsWith('en');
+  const fallbackWishlist = usePartyWishlist();
+  const wishlistParties = wishlistProp ?? fallbackWishlist.wishlistParties;
+  const onToggleWishlist = toggleProp ?? fallbackWishlist.toggleWishlistParty;
 
   const isTimeLive = (() => {
     const now = new Date();
@@ -119,8 +125,13 @@ const PartyCard = ({ item, onSelect }) => {
   return (
     <div
       onClick={handleCardClick}
-      style={{ display: 'flex', flexDirection: 'row', alignItems: 'stretch', backgroundColor: 'var(--color-card)', borderRadius: '16px', overflow: 'hidden', border: '1px solid var(--color-border)', cursor: 'pointer', height: '180px', marginBottom: '12px', transition: 'all 0.3s' }}
+      style={{ display: 'flex', flexDirection: 'row', alignItems: 'stretch', backgroundColor: 'var(--color-card)', borderRadius: '16px', overflow: 'hidden', border: '1px solid var(--color-border)', cursor: 'pointer', height: '180px', marginBottom: '12px', transition: 'all 0.3s', position: 'relative' }}
     >
+      <PartyWishlistHeart
+        party={item}
+        wishlistParties={wishlistParties}
+        onToggle={onToggleWishlist}
+      />
       <div style={{ width: '100px', flexShrink: 0 }}>
         <img src={item.poster_url} style={{ width: '100%', height: '100%', objectFit: 'cover' }} alt="Poster" />
       </div>
@@ -140,6 +151,8 @@ const PartyCard = ({ item, onSelect }) => {
             <span style={{ background: '#E53935', color: '#fff', fontSize: '10px', fontWeight: '950', padding: '2px 6px', borderRadius: '4px', animation: 'blink 1.5s infinite' }}>LIVE</span>
           )}
         </div>
+
+        <PartyMusicRatioLine item={item} />
 
         <div style={{ fontSize: '16px', fontWeight: '900', color: 'var(--color-text-main)', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden', textOverflow: 'ellipsis', letterSpacing: '-0.8px', lineHeight: 1.2, marginTop: '4px' }}>
           {translateDynamicText(cleanTitleStr.replace(/^\[.*?\]\s*/, '').replace(/ㅣ\s*$/, '').trim(), isEn)}

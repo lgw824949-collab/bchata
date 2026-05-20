@@ -31,6 +31,7 @@ import bonitaPhoto from '../assets/bonita_photo.png'
 import buenaPhoto from '../assets/buena_photo.png'
 import hongturnPhoto from '../assets/hongturn_photo.png'
 import bibigoPhoto from '../assets/bibigo_photo.png'
+import { PartyMusicRatioLine } from './Social'
 
 /** 메인 홈 지역 pill 순서 (표시 개수는 DB 분류 결과) */
 const HOME_REGIONS_ORDER = [
@@ -262,31 +263,8 @@ const GENRE_MAP = {
   '키좀바': { key: 'k_ratio', label: 'K', label_en: 'Kizomba', color: '#FF1744' },
 };
 
-/** 파티 카드 음악 비율 칩 (B40 S30 …) — 그리드 포스터 오버레이와 동일 */
-const renderPartyMusicRatioRow = (item) => {
-  const chips = Object.entries(GENRE_MAP).filter(([_, info]) => (item[info.key] ?? 0) > 0);
-  if (chips.length === 0) return null;
-  return (
-    <div style={{ display: 'flex', gap: '4px', flexWrap: 'wrap', marginTop: '2px' }}>
-      {chips.map(([genre, info]) => (
-        <span
-          key={genre}
-          style={{
-            fontSize: '10px',
-            fontWeight: 800,
-            color: '#D81B60',
-            background: '#FFF0F5',
-            padding: '1px 6px',
-            borderRadius: '10px',
-            flexShrink: 0,
-          }}
-        >
-          {info.label}{item[info.key]}
-        </span>
-      ))}
-    </div>
-  );
-};
+/** 소셜 파티 카드 음악 비율 B4:S2 — src/pages/Social.tsx */
+const renderPartyMusicRatioRow = (item) => <PartyMusicRatioLine item={item} />;
 
 const SEOUL_HINT = /서울|강남|홍대|잠실|건대|신림|서초|영등포|성수|이태원|왕십리|목동|구로/;
 
