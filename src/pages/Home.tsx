@@ -1438,10 +1438,30 @@ const HomePage = ({
     const lineClass = showCounter
       ? (counter.mode === 'live_hot' ? 'home-bar-chip-line--hot' : 'home-bar-chip-line--muted')
       : 'home-bar-chip-line';
-    const counterLine = showCounter
-      ? formatSocialBarCounterLine(counter.line, counter.mode)
-      : (bar.name || '이름 없음');
-    const lineText = showCounter ? `${bar.name || 'BAR'} · ${counterLine}` : counterLine;
+    const barName = bar.name || '이름 없음';
+    const metaLine = showCounter ? formatSocialBarCounterLine(counter.line, counter.mode) : null;
+    const barNameStyle = {
+      margin: 0,
+      width: '100%',
+      fontSize: 11,
+      fontWeight: 700,
+      lineHeight: 1.25,
+      textAlign: 'center',
+      whiteSpace: 'normal',
+      wordBreak: 'keep-all',
+    };
+    const metaLineStyle = {
+      margin: '2px 0 0',
+      width: '100%',
+      fontSize: 11,
+      fontWeight: 700,
+      lineHeight: 1.25,
+      textAlign: 'center',
+      whiteSpace: 'normal',
+      wordBreak: 'keep-all',
+      overflow: 'visible',
+      textOverflow: 'unset',
+    };
 
     return (
       <motion.button
@@ -1477,18 +1497,16 @@ const HomePage = ({
             />
           )}
         </span>
-        <p
-          className={`home-bar-chip-line ${lineClass}`}
-          title={lineText}
-          style={{
-            whiteSpace: 'normal',
-            wordBreak: 'keep-all',
-            overflow: 'visible',
-            textOverflow: 'unset',
-          }}
-        >
-          {lineText}
-        </p>
+        <div className="home-bar-chip-text">
+          <p className="home-bar-chip-name social-bar-name-label" style={barNameStyle} title={barName}>
+            {barName}
+          </p>
+          {metaLine ? (
+            <p className={`home-bar-chip-line ${lineClass}`} style={metaLineStyle} title={metaLine}>
+              {metaLine}
+            </p>
+          ) : null}
+        </div>
       </motion.button>
     );
   };
@@ -2355,9 +2373,28 @@ const HomePage = ({
           color: #FFFFFF;
           text-shadow: 0 1px 4px rgba(0, 0, 0, 0.8);
         }
+        .home-social-bar-wrap .home-bar-chip-text {
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          width: 100%;
+          margin-top: 4px;
+          text-align: center;
+        }
+        .home-social-bar-wrap .home-bar-chip-name {
+          font-size: 11px !important;
+          font-weight: 700 !important;
+          line-height: 1.25 !important;
+          text-align: center !important;
+          white-space: normal !important;
+          word-break: keep-all;
+        }
         .home-social-bar-wrap .home-bar-chip-line,
         .home-social-bar-wrap .home-bar-chip-line--muted,
         .home-social-bar-wrap .home-bar-chip-line--hot {
+          font-size: 11px !important;
+          font-weight: 700 !important;
+          text-align: center !important;
           white-space: normal !important;
           word-break: keep-all;
           overflow: visible !important;
