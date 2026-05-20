@@ -18,7 +18,7 @@ import {
 const SPOTLIGHT_ROTATE_MS = 12000
 const LIVE_PROMO_PATH = '#community'
 
-/** 조회·클릭·등록 시각 기반 활동 점수 (updated_at 없음 — DB 검증 컬럼만 사용) */
+/** ???????? ?? ?? ?? ?? (updated_at ?? ? DB ?? ??? ??) */
 function getPartyActivityScore(p) {
   const clicks = Number(p.click_count) || 0
   const views = Number(p.view_count) || 0
@@ -301,14 +301,14 @@ const LiveCount = ({ parties: partiesProp, onPartyClick, onPromoClick, isGate = 
     if (!spotlight) return ''
     const titleRaw = isEn && spotlight.title_en ? spotlight.title_en : spotlight.title
     const title = stripPlatformSuffixFromTitle(titleRaw)
-    const venue = spotlight.locationName || (isEn ? 'Tonight' : '오늘의 파티')
+    const venue = spotlight.locationName || (isEn ? 'Tonight' : '??? ??')
     const engagement = (Number(spotlight.click_count) || 0) + (Number(spotlight.view_count) || 0)
     if (engagement > 0) {
       return isEn
-        ? `🔥 ${title} · ${venue} · ${engagement} views`
-        : `🔥 ${title} · ${venue} · 실시간 ${engagement}회`
+        ? `?? ${title} ? ${venue} ? ${engagement} views`
+        : `?? ${title} ? ${venue} ? ??? ${engagement}?`
     }
-    return isEn ? `⚡ Now · ${title} · ${venue}` : `⚡ 지금 주목 · ${title} · ${venue}`
+    return isEn ? `? Now ? ${title} ? ${venue}` : `? ?? ?? ? ${title} ? ${venue}`
   }, [spotlight, isEn])
 
   const handleBannerClick = () => {
@@ -327,9 +327,6 @@ const LiveCount = ({ parties: partiesProp, onPartyClick, onPromoClick, isGate = 
     window.dispatchEvent(new PopStateEvent('popstate'))
   }
 
-  const lang = isEn ? 'en' : 'ko'
-  const onLangChange = (l) => i18n.changeLanguage(l)
-
   const mainLine = spotlight ? dynamicBannerText : displayText
 
   return (
@@ -344,18 +341,19 @@ const LiveCount = ({ parties: partiesProp, onPartyClick, onPromoClick, isGate = 
           handleBannerClick()
         }
       }}
-      aria-label={isEn ? 'Open live party or promotion' : '실시간 파티 또는 프로모션 보기'}
+      aria-label={isEn ? 'Open live party or promotion' : '??? ?? ?? ???? ??'}
     >
       <div className="live-dynamic-banner__inner">
         <span className="lc-tag">LIVE</span>
         <span className="lc-dot" />
         {counts['\uc804\uad6d|total'] ? (
-          <div className="live-dynamic-banner__content">
+          <div className="live-dynamic-banner__track">
             <span className="lc-default lc-default--hot">
               {'\uc804\uad6d '}{counts['\uc804\uad6d|total']}{'\uac1c \ud30c\ud2f0 \uc9c4\ud589\uc911'}
             </span>
-            <span className="live-dynamic-banner__sep">|</span>
-            {Object.entries(counts)
+            <div className="live-dynamic-banner__regions">
+              <span className="live-dynamic-banner__sep">|</span>
+              {Object.entries(counts)
               .filter(([k]) => !k.includes('\uc804\uad6d'))
               .map(([k, v]) => {
                 const region = abbreviateRegion(k.split('|')[0])
@@ -365,30 +363,25 @@ const LiveCount = ({ parties: partiesProp, onPartyClick, onPromoClick, isGate = 
                   </span>
                 )
               })}
+            </div>
             {spotlight ? (
               <>
-                <span className="live-dynamic-banner__sep">|</span>
-                <span key={spotlight.id} className="live-dynamic-banner__spotlight">
+                <span className="live-dynamic-banner__sep live-dynamic-banner__sep--before-spotlight">|</span>
+                <span key={spotlight.id} className="live-dynamic-banner__spotlight" title={dynamicBannerText}>
                   {dynamicBannerText}
                 </span>
               </>
             ) : null}
           </div>
         ) : (
-          <span key={spotlight?.id || `fallback-${poolIndex}`} className="live-dynamic-banner__spotlight live-dynamic-banner__spotlight--solo">
+          <span
+            key={spotlight?.id || `fallback-${poolIndex}`}
+            className="live-dynamic-banner__spotlight live-dynamic-banner__spotlight--solo"
+            title={mainLine}
+          >
             {mainLine}
           </span>
         )}
-        <div
-          className="lc-lang"
-          onClick={(e) => e.stopPropagation()}
-          onKeyDown={(e) => e.stopPropagation()}
-          role="presentation"
-        >
-          <button type="button" className={`lc-lang-btn${lang === 'ko' ? ' on' : ''}`} onClick={() => onLangChange('ko')}>KO</button>
-          <span className="lc-lang-divider">|</span>
-          <button type="button" className={`lc-lang-btn${lang === 'en' ? ' on' : ''}`} onClick={() => onLangChange('en')}>EN</button>
-        </div>
       </div>
     </div>
   )

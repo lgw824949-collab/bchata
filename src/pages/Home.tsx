@@ -1670,7 +1670,7 @@ const HomePage = ({
   const QUICK_MENU_ICON_SIZE = 22;
   const QUICK_MENU_STROKE = 1.5;
   const quickMenuIconColor = homeUi.quickIcon;
-  const QUICK_MENU_PRIMARY_IDS = ['party-register', 'class-register', 'concierge', 'calendar'];
+  const QUICK_MENU_PRIMARY_IDS = ['party-register', 'class-register', 'concierge', 'calendar', 'language'];
 
   const quickMenuIcon = (Icon) => (
     <Icon size={QUICK_MENU_ICON_SIZE} strokeWidth={QUICK_MENU_STROKE} color={quickMenuIconColor} aria-hidden />
@@ -1689,7 +1689,17 @@ const HomePage = ({
     { id: 'weather', icon: CloudSun, label: '오늘날씨', particles: '☀️', action: () => setShowWeather(true) },
     { id: 'route', icon: Navigation, label: '지능형경로', particles: '🧭', action: () => openAnalysis(false) },
     { id: 'calendar', icon: Calendar, label: '행사달력', particles: '📅', action: openFullCalendarModal },
-  ], [handleRegister, openFullCalendarModal, setView, setShowWishlist, setShowSaju, setShowWeather, openAnalysis]);
+    {
+      id: 'language',
+      icon: Globe,
+      label: isEn ? 'Language' : '다국어',
+      particles: '🌐',
+      action: () => {
+        const next = i18n.language.startsWith('ko') ? 'en' : 'ko';
+        i18n.changeLanguage(next);
+      },
+    },
+  ], [handleRegister, openFullCalendarModal, setView, setShowWishlist, setShowSaju, setShowWeather, openAnalysis, i18n, isEn]);
 
   const { quickMenuPrimary, quickMenuMore } = useMemo(() => {
     const primary = QUICK_MENU_PRIMARY_IDS
@@ -1765,7 +1775,7 @@ const HomePage = ({
       <motion.div className="home-quick-menu-block home-quick-menu-block--after-featured">
         {renderHomeSectionHeader(
           isEn ? 'Quick actions' : '빠른 메뉴',
-          isEn ? 'Top 4 shortcuts' : '자주 쓰는 메뉴',
+          isEn ? 'Shortcuts' : '자주 쓰는 메뉴',
           quickMenuMore.length > 0 ? (
             <button
               type="button"
@@ -1867,14 +1877,18 @@ const HomePage = ({
             }
             .live-count-premium-wrapper .live-dynamic-banner__inner {
               height: 44px !important;
-              padding: 0 14px !important;
+              padding: 0 clamp(10px, 3.2vw, 14px) !important;
               background: transparent !important;
               box-sizing: border-box !important;
               width: 100% !important;
               overflow: hidden !important;
+              flex-wrap: nowrap !important;
             }
-            .live-count-premium-wrapper .lc-lang {
-              margin-left: auto !important;
+            .live-count-premium-wrapper .live-dynamic-banner__track {
+              flex: 1 1 auto !important;
+              min-width: 0 !important;
+              overflow: hidden !important;
+              flex-wrap: nowrap !important;
             }
             .live-count-premium-wrapper .lc-tag {
               background: #FFFFFF !important;
@@ -1930,39 +1944,9 @@ const HomePage = ({
               color: rgba(0,0,0,0.5) !important;
               font-weight: 800 !important;
             }
-            .live-count-premium-wrapper .lc-lang {
-              display: flex !important;
-              align-items: center !important;
-              background: rgba(255,255,255,0.5) !important;
-              padding: 2px 4px !important;
-              border-radius: 6px !important;
-              gap: 2px !important;
-              flex-shrink: 0 !important;
-            }
-            .live-count-premium-wrapper .lc-lang-btn {
-              padding: 2px 6px !important;
-              font-size: 9px !important;
-              font-weight: 800 !important;
-              border-radius: 4px !important;
-              color: #000000 !important;
-              transition: all 0.2s !important;
-            }
-            .live-count-premium-wrapper .lc-lang-btn.on {
-              background: #000000 !important;
-              color: #FFFFFF !important;
-              font-weight: 900 !important;
-            }
-            .live-count-premium-wrapper .lc-lang span {
-              display: none !important; /* 구분선 제거하고 깔끔한 버튼 그룹 형태 */
-            }
             .live-count-premium-wrapper--gate .lc-tag {
               background: #C9A84C !important;
               color: #1a1a1a !important;
-            }
-            .live-count-premium-wrapper--gate .lc-lang-btn.on {
-              background: #000000 !important;
-              color: #FFFFFF !important;
-              font-weight: 900 !important;
             }
             .home-party-register-outside {
               flex-shrink: 0;
@@ -2134,7 +2118,7 @@ const HomePage = ({
         }
         .home-quick-menu-grid {
           display: grid;
-          grid-template-columns: repeat(4, minmax(0, 1fr));
+          grid-template-columns: repeat(5, minmax(0, 1fr));
           gap: 10px;
           margin-bottom: 8px;
         }

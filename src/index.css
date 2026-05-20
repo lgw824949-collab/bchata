@@ -362,8 +362,8 @@ input, button, select, textarea {
 /* 빠른 메뉴 — Lucide 플랫 아이콘 */
 .home-quick-menu-grid {
   display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 2px 6px;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 2px 4px;
 }
 
 .home-quick-menu-item {
@@ -2111,24 +2111,35 @@ body.bottom-nav-social-light nav.bottom-nav {
 .live-dynamic-banner__inner {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: clamp(4px, 1.2vw, 8px);
   min-height: 44px;
-  padding: 0 14px;
+  padding: 0 clamp(10px, 3.2vw, 14px);
   border-radius: 12px;
   background: transparent;
   overflow: hidden;
   box-sizing: border-box;
   color: #000000;
+  flex-wrap: nowrap;
 }
 
-.live-dynamic-banner__content {
+.live-dynamic-banner__track {
   display: flex;
   align-items: center;
   flex: 1;
   min-width: 0;
-  gap: 8px;
+  gap: clamp(4px, 1.2vw, 8px);
   flex-wrap: nowrap;
-  overflow-x: auto;
+  overflow: hidden;
+}
+
+.live-dynamic-banner__regions {
+  display: flex;
+  align-items: center;
+  flex-shrink: 1;
+  min-width: 0;
+  gap: clamp(4px, 1vw, 8px);
+  overflow: hidden;
+  flex-wrap: nowrap;
 }
 
 .live-dynamic-banner__sep {
@@ -2153,22 +2164,27 @@ body.bottom-nav-social-light nav.bottom-nav {
 
 .live-dynamic-banner__spotlight {
   color: #000000;
-  font-size: 12px;
+  font-size: clamp(10px, 2.85vw, 12px);
   font-weight: 900;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  flex: 1;
+  flex: 1 1 auto;
   min-width: 0;
+  max-width: 100%;
   animation: live-banner-text-in 0.45s ease-out;
 }
 
 .live-dynamic-banner__spotlight--solo {
-  flex: 1;
+  flex: 1 1 auto;
   min-width: 0;
+  max-width: 100%;
   color: #000000;
-  font-size: 12px;
+  font-size: clamp(10px, 2.85vw, 12px);
   font-weight: 900;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .live-dynamic-banner .lc-tag {
@@ -2202,48 +2218,13 @@ body.bottom-nav-social-light nav.bottom-nav {
 
 .live-dynamic-banner .lc-default--hot {
   color: #000000;
-  font-size: 12px;
+  font-size: clamp(10px, 2.85vw, 12px);
   font-weight: 900;
   white-space: nowrap;
-  flex-shrink: 0;
-}
-
-.live-dynamic-banner .lc-lang {
-  display: flex;
-  margin-left: auto;
-  flex-shrink: 0;
-  align-items: center;
-  background: rgba(255, 255, 255, 0.5);
-  padding: 2px 4px;
-  border-radius: 6px;
-  gap: 2px;
-}
-
-.live-dynamic-banner .lc-lang-btn {
-  background: transparent;
-  border: none;
-  color: #000000;
-  font-size: 9px;
-  font-weight: 800;
-  padding: 2px 6px;
-  cursor: pointer;
-  border-radius: 4px;
-}
-
-.live-dynamic-banner .lc-lang-btn.on {
-  background: #000000;
-  color: #ffffff;
-  font-weight: 900;
-}
-
-.live-dynamic-banner--gate .lc-lang-btn.on {
-  background: #000000;
-  color: #ffffff;
-  font-weight: 900;
-}
-
-.live-dynamic-banner .lc-lang-divider {
-  display: none;
+  flex-shrink: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .live-count-premium-wrapper .live-dynamic-banner {
@@ -2253,6 +2234,26 @@ body.bottom-nav-social-light nav.bottom-nav {
 .live-count-premium-wrapper .live-dynamic-banner__inner {
   height: 44px;
   background: transparent;
+}
+
+@media (max-width: 480px) {
+  .live-dynamic-banner__regions,
+  .live-dynamic-banner__sep--before-spotlight {
+    display: none;
+  }
+
+  .live-dynamic-banner__track .live-dynamic-banner__sep:first-child {
+    display: none;
+  }
+
+  .live-dynamic-banner .lc-default--hot {
+    flex-shrink: 0;
+    max-width: 38%;
+  }
+
+  .live-dynamic-banner__spotlight {
+    flex: 1 1 auto;
+  }
 }
 
 @keyframes live-banner-gradient {
