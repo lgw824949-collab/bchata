@@ -1892,7 +1892,6 @@ const HomePage = ({
     boxShadow: homeUi.panelShadow,
   };
   const homeLuxurySectionBoxStyle = {
-    background: 'linear-gradient(145deg, #1a1400, #2d2200, #1a1400)',
     border: '1px solid #c9a84c',
     boxShadow: '0 4px 20px rgba(201, 168, 76, 0.25)',
   };
