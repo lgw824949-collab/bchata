@@ -1034,13 +1034,17 @@ const HomePage = ({
       .trim();
   };
 
-  /** 추천 행사 리스트 전용 — 구분자·특수문자·지역 접두 제거 */
+  /** 추천 행사 리스트 전용 — 대괄호·구분자·부수 텍스트 제거 후 본제목만 */
   const cleanFeaturedTitle = (raw: string) => {
     if (!raw) return '';
     const segment = String(raw).split(/\s*ㅣ\s*|\s*\|\s*/)[0].trim();
-    return cleanTitle(segment)
+    return segment
+      .replace(/\[[^\]]*\]/g, '')
+      .replace(/오늘밤빠/g, '')
+      .replace(/[|｜¦]/g, '')
       .replace(/[|｜¦·•／/\\]+$/g, '')
       .replace(/^[-–—·•\s]+|[-–—·•\s]+$/g, '')
+      .replace(/\s+/g, ' ')
       .trim();
   };
 
