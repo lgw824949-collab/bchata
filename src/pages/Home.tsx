@@ -47,15 +47,6 @@ const HOME_FEATURED_POSTER_SCALE = 1.3;
 const HOME_FEATURED_THUMB_SIZE = Math.round(96 * HOME_FEATURED_POSTER_SCALE);
 const HOME_FEATURED_THUMB_SIZE_WIDE = Math.round(108 * HOME_FEATURED_POSTER_SCALE);
 
-/** 하단 네비 순서: 홈 → 소셜 → 부트캠프 → 강사찾기 → 페스티벌 */
-const BOTTOM_NAV_ORDER_MATCHERS = [
-  ['홈', 'Home'],
-  ['소셜', 'Social'],
-  ['부트캠프', 'Bootcamp'],
-  ['강사찾기', '강사', 'Instructor'],
-  ['페스티벌', 'Festival'],
-];
-
 /** Social BAR — 위치 실패 시 전국 노출 */
 const SOCIAL_BAR_REGION_ALL = '전체';
 
@@ -1743,35 +1734,22 @@ const HomePage = ({
     return () => observer.disconnect();
   }, [activeTab]);
 
-  /** 하단 네비 순서·터치 반응 (App.jsx nav DOM — Home에서만 제어) */
+  /** 하단 네비 탭 순서: 홈 → 소셜 → 부트캠프 → 강사찾기 → 페스티벌 (마크업은 App.jsx nav) */
   useEffect(() => {
-    const reorderBottomNav = () => {
-      const nav = document.querySelector('nav.bottom-nav');
-      if (!nav) return;
-      const items = Array.from(nav.children).filter((el) => el.nodeType === 1);
-      if (items.length < 5) return;
-
-      const pick = (needles) =>
-        items.find((el) => {
-          const text = (el.textContent || '').trim();
-          return needles.some((n) => text.includes(n));
-        });
-
-      const ordered = BOTTOM_NAV_ORDER_MATCHERS.map(pick).filter(Boolean);
-      if (ordered.length < 5) return;
-
-      const used = new Set(ordered);
-      ordered.forEach((el) => {
-        el.classList.add('bchata-bottom-nav-item');
-        nav.appendChild(el);
-      });
-      items.filter((el) => !used.has(el)).forEach((el) => nav.appendChild(el));
-    };
-
-    reorderBottomNav();
-    const observer = new MutationObserver(reorderBottomNav);
-    observer.observe(document.body, { childList: true, subtree: true });
-    return () => observer.disconnect();
+    const nav = document.querySelector('nav.bottom-nav');
+    if (!nav) return;
+    const items = Array.from(nav.children).filter((el) => el.nodeType === 1);
+    const pick = (labels) =>
+      items.find((el) => labels.some((l) => (el.textContent || '').includes(l)));
+    const ordered = [
+      pick(['홈', 'Home']),
+      pick(['소셜', 'Social']),
+      pick(['부트캠프', 'Bootcamp']),
+      pick(['강사찾기', '강사', 'Instructor']),
+      pick(['페스티벌', 'Festival']),
+    ].filter(Boolean);
+    if (ordered.length < 5) return;
+    ordered.forEach((el) => nav.appendChild(el));
   }, []);
 
   /** 추천 행사 스트리밍 3행: 소셜 → 부트캠프 → 페스티벌 */
@@ -2447,17 +2425,6 @@ const HomePage = ({
 
       {/* 메인 퀵메뉴: activeTab === null → 3섹션 그리드 / 소셜 탭 → 가로 스크롤 */}
       <style>{`
-        nav.bottom-nav > div,
-        nav.bottom-nav .bchata-bottom-nav-item {
-          transition: all 0.15s cubic-bezier(0.25, 0.46, 0.45, 0.94) !important;
-          -webkit-tap-highlight-color: transparent !important;
-          touch-action: manipulation !important;
-          user-select: none !important;
-          -webkit-user-select: none !important;
-        }
-        nav.bottom-nav > div:active {
-          transform: scale(0.92);
-        }
         .home-featured-panel .home-featured-stream__thumb {
           width: ${HOME_FEATURED_THUMB_SIZE}px;
           height: ${HOME_FEATURED_THUMB_SIZE}px;
