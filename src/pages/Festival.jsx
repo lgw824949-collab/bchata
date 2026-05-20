@@ -5,7 +5,7 @@ import { supabase } from '../lib/supabase';
 import { resolveEventDates, inferOneDayEvent } from '../lib/dbSanitize';
 import EventDateFields from '../components/EventDateFields';
 import { Z } from '../constants/zLayers';
-import { readNavigationState, replaceCurrentState } from '../lib/appHistory';
+import { goBackOrHome, parseAppState, pushOverlay, readNavigationState } from '../lib/appHistory';
 
 const filterFestivalsClient = (all, selectedRegion, activeTab) => {
   const rows = (all || []).filter((f) => f.event_type === (activeTab === 'mt' ? 'mt' : 'festival'));
@@ -53,15 +53,45 @@ const Festival = ({ onBack, initialRegister = false, cachedFestivals = null, onF
   }, [cachedFestivals, selectedRegion, activeTab]);
 
   useEffect(() => {
-    const detailId = readNavigationState()?.overlayMeta?.festivalId;
-    if (!detailId) return;
+    const st = readNavigationState();
+    const detailId = st?.overlayMeta?.festivalId;
+    if (!detailId || st?.overlay !== 'festivalDetail') return;
     const pool = cachedFestivals?.length ? cachedFestivals : festivals;
     const match = pool.find((f) => String(f.id) === String(detailId));
-    if (match) {
-      setSelectedFestival(match);
-      replaceCurrentState({ overlayMeta: null });
-    }
+    if (match) setSelectedFestival(match);
   }, [festivals, cachedFestivals]);
+
+  const detailHistoryPushed = useRef(false);
+
+  useEffect(() => {
+    if (!selectedFestival) {
+      detailHistoryPushed.current = false;
+      return;
+    }
+    const st = readNavigationState();
+    if (st?.overlay === 'festivalDetail') {
+      detailHistoryPushed.current = true;
+      return;
+    }
+    if (!detailHistoryPushed.current) {
+      detailHistoryPushed.current = true;
+      pushOverlay('festivalDetail', {
+        path: '/festival',
+        meta: { festivalId: selectedFestival.id },
+      });
+    }
+  }, [selectedFestival]);
+
+  useEffect(() => {
+    const onHistory = (event) => {
+      const st = event.detail?.state ?? parseAppState(window.history.state);
+      if (st?.overlay !== 'festivalDetail') {
+        setSelectedFestival(null);
+      }
+    };
+    window.addEventListener('bamppa-history', onHistory);
+    return () => window.removeEventListener('bamppa-history', onHistory);
+  }, []);
 
   useEffect(() => {
     if (usedCacheRef.current) {
@@ -572,7 +602,7 @@ const Festival = ({ onBack, initialRegister = false, cachedFestivals = null, onF
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="bchata-overlay-panel"
               style={{ position: 'fixed', inset: 0, background: '#0D0D0D', zIndex: Z.modal, display: 'flex', flexDirection: 'column' }}>
             <div style={{ padding: '15px 20px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderBottom: '1px solid rgba(255,255,255,0.1)', background: 'rgba(13, 13, 13, 0.95)', backdropFilter: 'blur(20px)', color: '#f8fafc' }}>
-              <X size={32} onClick={() => setSelectedFestival(null)} style={{ cursor: 'pointer' }} />
+              <X size={32} onClick={goBackOrHome} style={{ cursor: 'pointer' }} />
               <span style={{ fontSize: '16px', fontWeight: 900, letterSpacing: '1px' }}>FESTIVAL DETAIL</span>
               <button
                 onClick={() => openEdit(selectedFestival)}

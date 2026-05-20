@@ -8,7 +8,7 @@ import {
 import { motion, AnimatePresence } from 'framer-motion';
 import { Z } from '../constants/zLayers';
 import { supabase } from '../lib/supabase';
-import { parseAppState, pushOverlay, readNavigationState, replaceCurrentState } from '../lib/appHistory';
+import { goBackOrHome, parseAppState, pushOverlay, readNavigationState } from '../lib/appHistory';
 import { resolveEventDates, inferOneDayEvent } from '../lib/dbSanitize';
 import EventDateFields from '../components/EventDateFields';
 import { useTranslation } from 'react-i18next';
@@ -112,26 +112,33 @@ const Bootcamp = ({ onBack, initialView = 'list', cachedBootcamps = null, onBoot
   }, [selectedBootcamp]);
 
   useEffect(() => {
-    const detailId = readNavigationState()?.overlayMeta?.bootcampId;
-    if (!detailId) return;
+    const st = readNavigationState();
+    const detailId = st?.overlayMeta?.bootcampId;
+    if (!detailId || st?.overlay !== 'bootcampDetail') return;
     const pool = cachedBootcamps?.length ? cachedBootcamps : bootcamps;
     const match = pool.find((b) => String(b.id) === String(detailId));
-    if (match) {
-      setSelectedBootcamp(match);
-      replaceCurrentState({ overlayMeta: null });
-    }
+    if (match) setSelectedBootcamp(match);
   }, [bootcamps, cachedBootcamps]);
 
   const detailHistoryPushed = useRef(false);
 
   // 모달이 열릴 때 히스토리 스택에 항목 추가
   useEffect(() => {
-    if (selectedBootcamp && !detailHistoryPushed.current) {
-      detailHistoryPushed.current = true;
-      pushOverlay('bootcampDetail', { path: '/bootcamp' });
-    }
     if (!selectedBootcamp) {
       detailHistoryPushed.current = false;
+      return;
+    }
+    const st = readNavigationState();
+    if (st?.overlay === 'bootcampDetail') {
+      detailHistoryPushed.current = true;
+      return;
+    }
+    if (!detailHistoryPushed.current) {
+      detailHistoryPushed.current = true;
+      pushOverlay('bootcampDetail', {
+        path: '/bootcamp',
+        meta: { bootcampId: selectedBootcamp.id },
+      });
     }
   }, [selectedBootcamp]);
 
@@ -1038,7 +1045,7 @@ const Bootcamp = ({ onBack, initialView = 'list', cachedBootcamps = null, onBoot
                 {/* Top Nav */}
                 <div style={{ position: 'absolute', top: '50px', left: '25px', right: '25px', display: 'flex', justifyContent: 'space-between', zIndex: 20 }}>
                   <button
-                    onClick={() => window.history.back()}
+                    onClick={goBackOrHome}
                     style={{ width: 44, height: 44, borderRadius: '50%', background: 'rgba(0,0,0,0.4)', backdropFilter: 'blur(10px)', border: '1px solid rgba(255,255,255,0.1)', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}
                   ><ChevronLeft size={22} /></button>
                   <button

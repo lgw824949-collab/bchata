@@ -19,7 +19,7 @@ import {
 import VenueDetailModal from '../components/VenueDetailModal'
 import BarRegisterFormModal from '../components/BarRegisterFormModal'
 import HomeHeroTagline from '../components/HomeHeroTagline'
-import { closeOverlay, navigate, parseAppState, pushOverlay } from '../lib/appHistory'
+import { closeOverlay, navigate, navigateHomeTab, parseAppState, pushOverlay } from '../lib/appHistory'
 import { Z } from '../constants/zLayers'
 import { DEFAULT_AVATAR_IMAGE, DEFAULT_CARD_IMAGE, imgFallbackHandler } from '../constants/imageAssets'
 import gangturnPhoto from '../assets/gangturn_photo.png'
@@ -970,14 +970,14 @@ const HomePage = ({
     onHomeTabChange?.(tab);
     if (tab === 'social') {
       setShowPartner(false);
-      navigate('/', { homeTab: 'social', replace: window.location.pathname === '/' });
+      navigateHomeTab('social');
     } else if (tab === 'partner') {
       setShowPartner(true);
-      navigate('/', { homeTab: 'partner', replace: window.location.pathname === '/' });
+      navigateHomeTab('partner');
     } else if (tab === null) {
       setShowPartner(false);
       if (window.location.pathname === '/') {
-        navigate('/', { homeTab: null, replace: true });
+        navigateHomeTab(null);
       }
     }
   };
@@ -1533,10 +1533,15 @@ const HomePage = ({
       fallback: '/Photo/부트캠프.png',
       action: (item) => {
         setActivePosterSlot('bootcamp');
-        navigate('/bootcamp', {
-          homeTab: null,
-          overlayMeta: item?.id ? { bootcampId: item.id } : null,
-        });
+        if (item?.id) {
+          navigate('/bootcamp', {
+            homeTab: null,
+            overlay: 'bootcampDetail',
+            overlayMeta: { bootcampId: item.id },
+          });
+          return;
+        }
+        navigate('/bootcamp', { homeTab: null });
       },
     },
     {
@@ -1548,10 +1553,15 @@ const HomePage = ({
       fallback: '/Photo/페스티벌.png',
       action: (item) => {
         setActivePosterSlot('festival');
-        navigate('/festival', {
-          homeTab: null,
-          overlayMeta: item?.id ? { festivalId: item.id } : null,
-        });
+        if (item?.id) {
+          navigate('/festival', {
+            homeTab: null,
+            overlay: 'festivalDetail',
+            overlayMeta: { festivalId: item.id },
+          });
+          return;
+        }
+        navigate('/festival', { homeTab: null });
       },
     },
   ], [

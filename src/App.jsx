@@ -11,6 +11,7 @@ import {
   closeOverlay,
   goBack,
   navigate,
+  navigateHomeTab,
   parseAppState,
   pathToView,
   pushOverlay,
@@ -2771,7 +2772,7 @@ function App() {
       <div 
         onClick={() => {
           const alreadyOnMainHome = location.pathname === '/' && view === 'home' && homeActiveTab === null && !showPartner;
-          navigate('/', { homeTab: null, replace: location.pathname === '/' });
+          navigateHomeTab(null);
           setShowPartner(false);
           setActiveTab(null);
           if (!alreadyOnMainHome) {
@@ -2810,7 +2811,7 @@ function App() {
       <div
         onClick={() => {
           setShowPartner(false);
-          navigate('/', { homeTab: 'social', replace: location.pathname === '/' });
+          navigateHomeTab('social');
           setActiveTab('social');
         }}
         style={{
