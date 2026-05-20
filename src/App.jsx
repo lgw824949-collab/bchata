@@ -1815,10 +1815,14 @@ function App() {
     view === 'register-class' ||
     view === 'bootcamp-register' ||
     view === 'festival-register' ||
+    view === 'admin' ||
+    view === 'admin-portal' ||
     location.pathname === '/register-party' ||
     location.pathname === '/register-class' ||
     location.pathname === '/bootcamp/register' ||
-    location.pathname === '/festival/register';
+    location.pathname === '/festival/register' ||
+    location.pathname === '/admin' ||
+    location.pathname === '/admin-portal';
 
   const bottomNavAccent = isSocialLightNav ? '#E53935' : '#C9A84C'
   const navActiveColor = bottomNavAccent
@@ -2279,6 +2283,7 @@ function App() {
       )}
 
       <main>
+        {view !== 'admin' && view !== 'admin-portal' && (
         <div className="bchata-tab-panels">
           <div className="bchata-tab-panel" data-active={view === 'home'} aria-hidden={view !== 'home'}>
             <HomePage {...sharedProps} />
@@ -2311,6 +2316,7 @@ function App() {
             />
           </div>
         </div>
+        )}
         <Suspense fallback={<LoadingFallback />}>
           {view === 'community' ? <Community setSelectedPoster={setSelectedPoster} setView={setView} /> :
            view === 'parking' ? <Parking onBack={goBack} /> :
@@ -2354,7 +2360,7 @@ function App() {
                     {t('back_to_main')}
                   </button>
                 </div>
-              ) : <AdminDashboard onBack={() => navigate('/')} refreshData={fetchParties} />}
+              ) : null}
         </Suspense>
       </main>
 
