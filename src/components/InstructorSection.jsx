@@ -904,7 +904,7 @@ const InstructorSection = ({ onOpenVipMaster, cachedInstructors = null }) => {
                                   border: '1px solid rgba(255,255,255,0.2)', background: 'transparent',
                                   color: '#E4E4E7', fontSize: '13px', fontWeight: 700, cursor: 'pointer', textAlign: 'center',
                                 }}
-                              >💬 수업·레슨 문의</button>
+                              >💬 수업 문의</button>
                             )}
                             {(getInstaLink(selectedInstructor) || selectedInstructor.instagram) && (
                               <div style={{ display: 'flex', flexDirection: 'row', gap: '8px', flex: 1 }}>

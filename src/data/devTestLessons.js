@@ -1,5 +1,5 @@
 /**
- * 로컬 개발용 테스트 레슨 (import.meta.env.DEV 에서만 병합)
+ * 로컬 개발용 테스트 수업 (import.meta.env.DEV 에서만 병합)
  * 삭제: 이 파일 비우거나 VenueDetailModal 의 DEV 병합 제거
  */
 export function getDevTestLessons(todayStr) {

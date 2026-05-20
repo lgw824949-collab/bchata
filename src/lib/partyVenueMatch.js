@@ -104,7 +104,7 @@ export const partyMatchesVenue = (party, venue) => {
   return false;
 };
 
-/** 레슨(클래스)이 해당 BAR와 같은 장소인지 — studio_name·주소 기준 */
+/** 수업(클래스)이 해당 BAR와 같은 장소인지 — studio_name·주소 기준 */
 export const lessonMatchesVenue = (lesson, venue) => {
   if (!lesson || !venue) return false;
   if (

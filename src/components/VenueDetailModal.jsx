@@ -150,7 +150,7 @@ const FeaturedPartyCard = ({
   const fee = formatPrice(party.fee);
   const feeLabel = isLesson ? '수강' : '입장';
   const tagLabel = isLesson
-    ? [party.level, party.genre || getGenreLabel(party)].filter(Boolean).join(' · ') || '레슨'
+    ? [party.level, party.genre || getGenreLabel(party)].filter(Boolean).join(' · ') || '수업'
     : getGenreLabel(party);
 
   return (
@@ -345,7 +345,7 @@ const parseLessonWeekdays = (dayOfWeek) => {
   return Array.from(days);
 };
 
-/** 오늘(또는 fromDate) 이후 가장 가까운 레슨 날짜 */
+/** 오늘(또는 fromDate) 이후 가장 가까운 수업 날짜 */
 const getNextLessonOccurrence = (lesson, fromDateStr) => {
   const from = normDate(fromDateStr);
   const start = normDate(lesson.start_date);
@@ -436,7 +436,7 @@ const VenueModeTabs = ({ mode, onChange }) => (
   >
     {[
       { id: 'social', label: '소셜' },
-      { id: 'lesson', label: '레슨' },
+      { id: 'lesson', label: '수업' },
     ].map(({ id, label }) => {
       const active = mode === id;
       return (
@@ -487,6 +487,7 @@ export default function VenueDetailModal({
   const [savingLinks, setSavingLinks] = useState(false);
   const [savingDescription, setSavingDescription] = useState(false);
   const [detailTab, setDetailTab] = useState('social');
+  const [latinClassScheduleCleared, setLatinClassScheduleCleared] = useState(false);
   const [fetchedLessons, setFetchedLessons] = useState([]);
   const [venueFavorited, setVenueFavorited] = useState(false);
   const { stats: venueBarStats } = useBarStatsRealtime(venue);
@@ -503,7 +504,20 @@ export default function VenueDetailModal({
     setVenueDescription((venue?.description || '').slice(0, VENUE_DESC_MAX));
     setShowLinkRegister(false);
     setDetailTab('social');
+    setLatinClassScheduleCleared(false);
   }, [venue?.id, venue?.kakao_url, venue?.instagram_url, venue?.description]);
+
+  const isLatinVenue = String(venue?.name || '').trim() === '라틴';
+
+  const handleDetailTabChange = useCallback(
+    (tab) => {
+      if (tab === 'lesson' && isLatinVenue) {
+        setLatinClassScheduleCleared(true);
+      }
+      setDetailTab(tab);
+    },
+    [isLatinVenue],
+  );
 
   useEffect(() => {
     if (!venue?.name) return;
@@ -562,6 +576,12 @@ export default function VenueDetailModal({
 
   const isSocialTab = detailTab === 'social';
 
+  /** 라틴 — 수업 탭 선택 시 달력·일정 수업 표기 비움 */
+  const venueLessonsForDisplay = useMemo(() => {
+    if (isLatinVenue && latinClassScheduleCleared && !isSocialTab) return [];
+    return venueLessons;
+  }, [isLatinVenue, latinClassScheduleCleared, isSocialTab, venueLessons]);
+
   const pickInitialSelectedDate = useCallback(() => {
     if (isSocialTab) {
       const future = venueParties.find((p) => normDate(p.date) >= todayStr);
@@ -569,7 +589,7 @@ export default function VenueDetailModal({
       if (venueParties.length) return normDate(venueParties[venueParties.length - 1].date);
       return todayStr;
     }
-    const dates = [...venueLessons.flatMap((l) => [...collectLessonCalendarDates(l, todayStr, 8)])].sort();
+    const dates = [...venueLessonsForDisplay.flatMap((l) => [...collectLessonCalendarDates(l, todayStr, 8)])].sort();
     const future = dates.find((d) => d >= todayStr);
     if (future) return future;
     if (dates.length) return dates[dates.length - 1];
@@ -586,12 +606,12 @@ export default function VenueDetailModal({
         if (d) set.add(d);
       });
     } else {
-      venueLessons.forEach((lesson) => {
+      venueLessonsForDisplay.forEach((lesson) => {
         collectLessonCalendarDates(lesson, todayStr, 8).forEach((d) => set.add(d));
       });
     }
     return set;
-  }, [activeItems, isSocialTab, venueLessons, todayStr]);
+  }, [activeItems, isSocialTab, venueLessonsForDisplay, todayStr]);
 
   useEffect(() => {
     const d = pickInitialSelectedDate();
@@ -643,14 +663,14 @@ export default function VenueDetailModal({
   const schedulePosters = useMemo(() => {
     if (!isSocialTab) {
       const entries = [];
-      venueLessons.forEach((l) => {
+      venueLessonsForDisplay.forEach((l) => {
         const dates = collectLessonCalendarDates(l, todayStr, 8);
         dates.forEach((date) => {
           if (date >= todayStr) entries.push({ date, party: l });
         });
       });
       if (entries.length === 0) {
-        return venueLessons
+        return venueLessonsForDisplay
           .map((l) => ({ date: normDate(l.nextOccurrenceDate || l.date), party: l }))
           .filter(({ date }) => date)
           .sort((a, b) => a.date.localeCompare(b.date));
@@ -674,7 +694,7 @@ export default function VenueDetailModal({
     return [...byDate.entries()]
       .sort(([a], [b]) => a.localeCompare(b))
       .map(([date, party]) => ({ date, party }));
-  }, [activeItems, isSocialTab, venueLessons, todayStr]);
+  }, [activeItems, isSocialTab, venueLessonsForDisplay, todayStr]);
 
   const master = findBarByName(venue?.name);
   const displayName = venue?.name || master?.name || '제휴 BAR';
@@ -833,7 +853,7 @@ export default function VenueDetailModal({
             <VenueAvatar venue={venue} size={40} />
             <div style={{ minWidth: 0, textAlign: 'left' }}>
               <div style={{ fontSize: 10, fontWeight: 800, color: VD.brand, letterSpacing: 0.3, marginBottom: 2 }}>
-                {isSocialTab ? '오늘의 플로어' : '오늘의 레슨'}
+                {isSocialTab ? '오늘의 플로어' : '오늘의 수업'}
               </div>
               <div style={{ fontSize: '17px', fontWeight: 900, color: VD.title, lineHeight: 1.25 }}>{displayName}</div>
               {displayAddress && (
@@ -918,7 +938,7 @@ export default function VenueDetailModal({
           }}
         >
           <p style={{ margin: '0 0 8px', fontSize: 12, fontWeight: 800, color: VD.brand }}>
-            {formatLessonShortDate(selectedDate)} · {isSocialTab ? '이 날의 행사' : '이 날의 레슨'}
+            {formatLessonShortDate(selectedDate)} · {isSocialTab ? '이 날의 행사' : '이 날의 수업'}
           </p>
           {featuredItem ? (
             <FeaturedPartyCard
@@ -931,7 +951,7 @@ export default function VenueDetailModal({
             />
           ) : (
             <p style={{ margin: '8px 0 12px', fontSize: '14px', color: VD.muted, textAlign: 'center', fontWeight: 600 }}>
-              {formatLessonShortDate(selectedDate)} — 이 날 등록된 {isSocialTab ? '파티' : '레슨'}가 없습니다.
+              {formatLessonShortDate(selectedDate)} — 이 날 등록된 {isSocialTab ? '파티' : '수업'}이 없습니다.
             </p>
           )}
 
@@ -995,7 +1015,7 @@ export default function VenueDetailModal({
           {featuredItem && dayItems.length > 1 && (
             <div style={{ marginTop: 12, marginBottom: 4 }}>
               <p style={{ fontSize: '12px', fontWeight: 800, color: VD.brand, margin: '0 0 8px' }}>
-                {isSocialTab ? '같은 날 다른 행사' : '같은 날 다른 레슨'}
+                {isSocialTab ? '같은 날 다른 행사' : '같은 날 다른 수업'}
               </p>
               {dayItems.slice(1).map((p) => (
                 <button
@@ -1025,11 +1045,11 @@ export default function VenueDetailModal({
           {(isSocialTab ? schedulePosters.length > 0 : true) && (
             <div style={{ marginBottom: 16 }}>
               <p style={{ fontSize: 12, fontWeight: 800, color: VD.brand, margin: '0 0 8px' }}>
-                {isSocialTab ? '행사 일정' : '레슨 일정'}
+                {isSocialTab ? '행사 일정' : '수업 일정'}
               </p>
               {schedulePosters.length === 0 ? (
                 <p style={{ margin: 0, fontSize: 13, color: VD.muted, fontWeight: 600 }}>
-                  등록된 레슨 일정이 없습니다.
+                  등록된 수업 일정이 없습니다.
                 </p>
               ) : (
               <div style={{ display: 'flex', gap: 10, overflowX: 'auto', scrollbarWidth: 'none' }}>
@@ -1059,9 +1079,9 @@ export default function VenueDetailModal({
                 ))}
               </div>
               )}
-              {import.meta.env.DEV && !isSocialTab && venueLessons.some((l) => String(l.id).startsWith('dev-lesson-')) && (
+              {import.meta.env.DEV && !isSocialTab && venueLessonsForDisplay.some((l) => String(l.id).startsWith('dev-lesson-')) && (
                 <p style={{ margin: '8px 0 0', fontSize: 10, color: VD.faint, fontWeight: 600 }}>
-                  로컬 테스트 레슨 (devTestLessons.js)
+                  로컬 테스트 수업 (devTestLessons.js)
                 </p>
               )}
             </div>
