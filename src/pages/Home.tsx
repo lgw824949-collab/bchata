@@ -1657,7 +1657,7 @@ const HomePage = ({
   const homePartnerSectionTitleStyle = {
     color: homeUi.text, margin: '24px 0 14px',
   };
-  const homeSectionSpace = 40;
+  const homeSectionSpace = 36;
   const homeBlockSpace = 28;
   const homeDepthPanelStyle = {
     background: homeUi.panelBg,
@@ -1890,14 +1890,14 @@ const HomePage = ({
               margin-right: 4px !important;
             }
             .live-count-premium-wrapper .lc-name {
-              color: #111111 !important;
+              color: #000000 !important;
               font-size: 13px !important;
               font-weight: 900 !important;
               font-family: inherit !important;
               letter-spacing: -0.3px !important;
             }
             .live-count-premium-wrapper .lc-count {
-              color: #111111 !important;
+              color: #000000 !important;
               font-size: 15px !important;
               font-weight: 950 !important;
               font-family: inherit !important;
@@ -1907,7 +1907,7 @@ const HomePage = ({
               margin-left: 4px !important;
             }
             .live-count-premium-wrapper .lc-default {
-              color: #111111 !important;
+              color: #000000 !important;
               font-size: 12px !important;
               font-weight: 900 !important;
               font-family: inherit !important;
@@ -1919,15 +1919,15 @@ const HomePage = ({
             .live-count-premium-wrapper .live-dynamic-banner__spotlight,
             .live-count-premium-wrapper .live-dynamic-banner__spotlight--solo,
             .live-count-premium-wrapper .live-dynamic-banner__region {
-              color: #111111 !important;
+              color: #000000 !important;
               font-weight: 900 !important;
             }
             .live-count-premium-wrapper .live-dynamic-banner__region strong {
-              color: #b91c1c !important;
+              color: #000000 !important;
               font-weight: 950 !important;
             }
             .live-count-premium-wrapper .live-dynamic-banner__sep {
-              color: rgba(17,17,17,0.45) !important;
+              color: rgba(0,0,0,0.5) !important;
               font-weight: 800 !important;
             }
             .live-count-premium-wrapper .lc-lang {
@@ -1942,14 +1942,15 @@ const HomePage = ({
             .live-count-premium-wrapper .lc-lang-btn {
               padding: 2px 6px !important;
               font-size: 9px !important;
-              font-weight: 900 !important;
+              font-weight: 800 !important;
               border-radius: 4px !important;
-              color: #111111 !important;
+              color: #000000 !important;
               transition: all 0.2s !important;
             }
             .live-count-premium-wrapper .lc-lang-btn.on {
-              background: #111111 !important;
+              background: #000000 !important;
               color: #FFFFFF !important;
+              font-weight: 900 !important;
             }
             .live-count-premium-wrapper .lc-lang span {
               display: none !important; /* 구분선 제거하고 깔끔한 버튼 그룹 형태 */
@@ -1959,8 +1960,9 @@ const HomePage = ({
               color: #1a1a1a !important;
             }
             .live-count-premium-wrapper--gate .lc-lang-btn.on {
-              background: #111111 !important;
+              background: #000000 !important;
               color: #FFFFFF !important;
+              font-weight: 900 !important;
             }
             .home-party-register-outside {
               flex-shrink: 0;
@@ -2053,7 +2055,7 @@ const HomePage = ({
             onError={(e) => { e.currentTarget.style.display = 'none' }}
           />
           <motion.div style={{ flex: 1, minWidth: 0 }}>
-            <h1 className="home-type-display" style={{ color: homeUi.text }}>오늘 어디서 춤추실까요?</h1>
+            <h1 className="home-type-display" style={{ color: homeUi.text, fontWeight: 900 }}>오늘 어디서 춤추실까요?</h1>
             <HomeHeroTagline />
           </motion.div>
         </motion.div>
@@ -2092,7 +2094,7 @@ const HomePage = ({
               ...homeDepthPanelStyle,
               display: 'flex',
               flexDirection: 'column',
-              marginBottom: 0,
+              marginBottom: homeSectionSpace,
             }}
             aria-label={isEn ? 'Featured events' : '추천 행사'}
           >
