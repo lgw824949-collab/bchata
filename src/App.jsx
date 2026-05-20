@@ -21,11 +21,14 @@ import {
 import { handleMobileExitBack, registerExitToast } from './lib/mobileExitGuard'
 import { Z } from './constants/zLayers'
 import { DEFAULT_AVATAR_IMAGE, imgFallbackHandler } from './constants/imageAssets'
-import { normDate } from './lib/dateNorm'
+import { normDate, getKSTCalendarTodayStr } from './lib/dateNorm'
 import { LOCATIONS_SELECT, logSupabaseError } from './lib/locationsQuery'
 import { PARTIES_SELECT, logPartiesFetchError } from './lib/partiesQuery'
 import { readVipInstructorSession, verifyActiveInstructorMember } from './lib/instructorAuth'
+import { purgePastPartyPostersAndRows } from './lib/partyPosterCleanup'
 import QuickPinchZoom, { make3dTransformValue } from 'react-quick-pinch-zoom';
+import PartyWishlistHeart from './components/PartyWishlistHeart';
+import { usePartyWishlist } from './hooks/usePartyWishlist';
 
 // 페이지 지연 로딩 (Lazy Loading)
 const RegisterForm = lazy(() => import('./RegisterForm'));
@@ -477,7 +480,20 @@ const pickExposurePair = (pool, rotationIndex, todayStr) => {
 };
 
 /** 선택한 날짜 · 2칸 파티 미리보기 (오늘 밤, 어디서 춤 출래요?) */
-const LiveExposureStrip = ({ pool, selectedDate, todayStr, onSelect, cleanTitle, translateDynamicText, isEn }) => {
+const LiveExposureStrip = ({
+  pool,
+  selectedDate,
+  todayStr,
+  onSelect,
+  cleanTitle,
+  translateDynamicText,
+  isEn,
+  wishlistParties: wishlistPartiesProp,
+  onToggleWishlist: onToggleWishlistProp,
+}) => {
+  const fallbackWishlist = usePartyWishlist(pool);
+  const wishlistParties = wishlistPartiesProp ?? fallbackWishlist.wishlistParties;
+  const onToggleWishlist = onToggleWishlistProp ?? fallbackWishlist.toggleWishlistParty;
   const [rotationIndex, setRotationIndex] = useState(0);
 
   useEffect(() => {
@@ -568,8 +584,14 @@ const LiveExposureStrip = ({ pool, selectedDate, todayStr, onSelect, cleanTitle,
                     border: '1px solid #E2E8F0',
                     borderRadius: 12,
                     boxSizing: 'border-box',
+                    position: 'relative',
                   }}
                 >
+                  <PartyWishlistHeart
+                    party={item}
+                    wishlistParties={wishlistParties}
+                    onToggle={onToggleWishlist}
+                  />
                   <img
                     src={item.poster_url}
                     alt=""
@@ -1023,6 +1045,9 @@ function App() {
     return c ? { lat: c.lat, lon: c.lng } : null;
   });
   const [selectedPoster, setSelectedPoster] = useState(null);
+  /** 포스터 상세 보기 모드 — true면 홈 달력 UI 비렌더 */
+  const [isDetailView, setIsDetailView] = useState(false);
+  const fullCalendarBeforeDetailRef = useRef(false);
   const [modalScale, setModalScale] = useState(1);
   const [modalPos, setModalPos] = useState({ x: 0, y: 0 });
   const [lastTapTime, setLastTapTime] = useState(0);
@@ -1088,6 +1113,7 @@ function App() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [showVipLogin, setShowVipLogin] = useState(false);
   const [showVipMenu, setShowVipMenu] = useState(false);
+  const [showLuxuryUpsellModal, setShowLuxuryUpsellModal] = useState(false);
   const [vipPendingClassRegister, setVipPendingClassRegister] = useState(false);
   const [vipLoggedIn, setVipLoggedIn] = useState(false);
   const [vipLoginId, setVipLoginId] = useState('');
@@ -1109,6 +1135,7 @@ function App() {
   const [exitToast, setExitToast] = useState(null);
   const navSnapshotRef = useRef(readNavigationState());
   const historyReadyRef = useRef(false);
+  const lastPosterCleanupDayRef = useRef('');
 
   const applyHistoryState = (rawState) => {
     const path = window.location.pathname;
@@ -1133,6 +1160,8 @@ function App() {
       setShowClassRegister(false);
       setShowIncheon(false);
       setSelectedPoster(null);
+      setIsDetailView(false);
+      fullCalendarBeforeDetailRef.current = false;
       setShowVipLogin(false);
       setShowVipMenu(false);
       setIsMenuOpen(false);
@@ -1154,7 +1183,7 @@ function App() {
 
     const overlay = st?.overlay;
     setShowWishlist(overlay === 'wishlist');
-    setShowSaju(overlay === 'saju');
+    setShowSaju(overlay === 'barMatching' || overlay === 'saju');
     setShowWeather(overlay === 'weather');
     setShowRoute(overlay === 'route');
     setShowPlaceInquiry(overlay === 'placeInquiry');
@@ -1165,7 +1194,14 @@ function App() {
     setShowFilteredResults(overlay === 'filteredResults');
     setShowGridModal(overlay === 'gridModal');
     setShowClassRegister(overlay === 'classRegister');
-    if (overlay !== 'partyPoster') setSelectedPoster(null);
+    const posterDetailActive = overlay === 'partyPoster';
+    setIsDetailView(posterDetailActive);
+    if (posterDetailActive) {
+      setShowFullCalendar(false);
+    } else {
+      setSelectedPoster(null);
+      fullCalendarBeforeDetailRef.current = false;
+    }
     if (overlay === 'partner' && path === '/') {
       setShowPartner(true);
       setHomeActiveTab('partner');
@@ -1238,6 +1274,33 @@ function App() {
     pushOverlay(overlayKey);
     setter(value);
   };
+
+  /** 달력 모드 → 포스터 상세 모드 (달력 UI 숨김) */
+  const enterPosterDetailView = useCallback(
+    (card, { pushHistory = true, overlayKey = 'partyPoster' } = {}) => {
+      if (!card) return;
+      fullCalendarBeforeDetailRef.current = showFullCalendar;
+      setShowFullCalendar(false);
+      setIsDetailView(true);
+      if (pushHistory) pushOverlay(overlayKey);
+      setSelectedPoster(card);
+    },
+    [showFullCalendar],
+  );
+
+  /** 상세 모드 → 달력 모드 복귀 */
+  const exitPosterDetailView = useCallback(() => {
+    setIsDetailView(false);
+    if (!closeOverlay()) {
+      setSelectedPoster(null);
+    } else {
+      setSelectedPoster(null);
+    }
+    if (fullCalendarBeforeDetailRef.current) {
+      setShowFullCalendar(true);
+      fullCalendarBeforeDetailRef.current = false;
+    }
+  }, []);
 
   const handleVipLogout = () => {
     setVipLoggedIn(false);
@@ -1365,7 +1428,29 @@ function App() {
     }
   };
 
-  const openVipClassRegisterFlow = async () => {
+  /** Route_Lounge — 이미 로그인된 마스터 메뉴에서 진입: 재인증 없이 바로 클래스 등록 모달 */
+  const openClassRegisterFromLounge = useCallback(() => {
+    const session = readVipInstructorSession();
+    setShowLuxuryUpsellModal(false);
+    setVipPendingClassRegister(false);
+    setShowVipLogin(false);
+    setShowVipMenu(false);
+
+    if (session?.id) {
+      setVipLoggedIn(true);
+      setShowClassRegister(true);
+      return;
+    }
+    if (vipLoggedIn) {
+      setShowClassRegister(true);
+      return;
+    }
+    setVipAuthMode('login');
+    setShowVipLogin(true);
+  }, [vipLoggedIn]);
+
+  /** Route_Home 등 공개 진입 — 검증 후 비마스터면 럭셔리 업셀 */
+  const openClassRegisterFromHome = useCallback(async () => {
     const isInstructor = await verifyActiveInstructorMember();
     if (isInstructor) {
       const session = readVipInstructorSession();
@@ -1384,11 +1469,19 @@ function App() {
     setShowVipLogin(false);
     setShowVipMenu(false);
     setShowClassRegister(false);
-    const msg = i18n.language?.startsWith('en')
-      ? 'Class registration is for instructor members only. Redirecting to instructor sign-up.'
-      : '클래스 등록은 강사 회원만 가능합니다. 강사 가입 페이지로 이동합니다.';
-    alert(msg);
-    navigate('/register-class', { homeTab: null });
+    setShowLuxuryUpsellModal(true);
+  }, []);
+
+  const redirectToMasterLogin = () => {
+    setShowLuxuryUpsellModal(false);
+    setVipAuthMode('login');
+    setShowVipLogin(true);
+  };
+
+  const redirectToMasterSignup = () => {
+    setShowLuxuryUpsellModal(false);
+    setVipAuthMode('signup');
+    setShowVipLogin(true);
   };
 
   const openVipMasterFlow = () => {
@@ -1407,6 +1500,7 @@ function App() {
     setVipRecoverEmail('');
     setVipRecoveredPassword('');
     setShowVipMenu(false);
+    setShowLuxuryUpsellModal(false);
     setVipPendingClassRegister(false);
     setShowFullCalendar(false);
     setShowWeather(false);
@@ -1483,19 +1577,16 @@ function App() {
 
   const openVipMasterFlowRef = useRef(openVipMasterFlow);
   openVipMasterFlowRef.current = openVipMasterFlow;
-  const openVipClassRegisterFlowRef = useRef(openVipClassRegisterFlow);
-  openVipClassRegisterFlowRef.current = openVipClassRegisterFlow;
+  const openClassRegisterFromHomeRef = useRef(openClassRegisterFromHome);
+  openClassRegisterFromHomeRef.current = openClassRegisterFromHome;
 
   useEffect(() => {
     const onOpenVip = () => openVipMasterFlowRef.current();
-    const onOpenVipClass = () => openVipClassRegisterFlowRef.current();
-    const onOpenClassReg = () => openVipClassRegisterFlowRef.current();
+    const onOpenClassReg = () => openClassRegisterFromHomeRef.current();
     window.addEventListener('open-vip-master-login', onOpenVip);
-    window.addEventListener('open-vip-class-register', onOpenVipClass);
     window.addEventListener('open-class-register', onOpenClassReg);
     return () => {
       window.removeEventListener('open-vip-master-login', onOpenVip);
-      window.removeEventListener('open-vip-class-register', onOpenVipClass);
       window.removeEventListener('open-class-register', onOpenClassReg);
     };
   }, []);
@@ -1741,6 +1832,9 @@ function App() {
       setView('home');
       if (location.pathname !== '/') navigate('/');
       if (party.date) setSelectedDate(party.date);
+      fullCalendarBeforeDetailRef.current = showFullCalendar;
+      setShowFullCalendar(false);
+      setIsDetailView(true);
       setSelectedPoster(card);
       pushOverlay('partyPoster', { meta: { partyId: String(party.id) } });
       const u = new URL(window.location.href);
@@ -1777,6 +1871,62 @@ function App() {
     };
   }, [loading, parties, location.pathname]);
 
+  const partyOverlayOpenedRef = useRef(null);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    const openFromOverlay = () => {
+      const st = readNavigationState();
+      const partyId = st?.overlayMeta?.partyId;
+      if (st?.overlay !== 'partyPoster' || !partyId) {
+        if (st?.overlay !== 'partyPoster') partyOverlayOpenedRef.current = null;
+        return;
+      }
+      if (loading) return;
+      if (partyOverlayOpenedRef.current === String(partyId)) return;
+
+      const openParty = (party) => {
+        const card = buildPartyShareCard(party);
+        if (!card) return;
+        partyOverlayOpenedRef.current = String(partyId);
+        if (party.date) setSelectedDate(party.date);
+        fullCalendarBeforeDetailRef.current = showFullCalendar;
+        setShowFullCalendar(false);
+        setIsDetailView(true);
+        setSelectedPoster(card);
+      };
+
+      const found = parties.find((p) => String(p.id) === String(partyId));
+      if (found) {
+        openParty(found);
+        return;
+      }
+
+      if (parties.length === 0) return;
+
+      (async () => {
+        try {
+          if (!supabase) return;
+          const { data, error } = await runSupabaseQuery('partyOverlay', (db) =>
+            db.from('parties').select(PARTIES_SELECT).eq('id', partyId).eq('status', 'approved').maybeSingle(),
+          );
+          if (error) logPartiesFetchError(error);
+          if (!cancelled && data) openParty(data);
+        } catch (err) {
+          logPartiesFetchError(err);
+        }
+      })();
+    };
+
+    openFromOverlay();
+    window.addEventListener('bamppa-navigate', openFromOverlay);
+    return () => {
+      cancelled = true;
+      window.removeEventListener('bamppa-navigate', openFromOverlay);
+    };
+  }, [loading, parties]);
+
   useEffect(() => {
     if (location.pathname !== '/' || view !== 'home') return;
     replaceCurrentState({ view: 'home', homeTab: homeActiveTab, date: selectedDate });
@@ -1793,7 +1943,7 @@ function App() {
     if (type === 'party') {
       navigate('/register-party');
     } else {
-      navigate('/register-class');
+      openClassRegisterFromHome();
     }
   };
 
@@ -1811,6 +1961,19 @@ function App() {
       return;
     }
     if (!isGeoDenied()) requestLocation();
+  }, []);
+
+  useEffect(() => {
+    const runDailyCleanup = async () => {
+      const day = getKSTCalendarTodayStr();
+      if (lastPosterCleanupDayRef.current === day) return;
+      lastPosterCleanupDayRef.current = day;
+      await purgePastPartyPostersAndRows(supabase);
+    };
+
+    runDailyCleanup();
+    const timer = window.setInterval(runDailyCleanup, 60 * 1000);
+    return () => clearInterval(timer);
   }, []);
 
   const withHistory = (overlayKey, isOpen, setter) => (v) => {
@@ -1845,10 +2008,13 @@ function App() {
     filterRegion, setFilterRegion, filterGenre, setFilterGenre,
     showGridModal, setShowGridModal, gridRegion, setGridRegion, filterStep, setFilterStep,
     handleOpenModal, handleCloseModal,
+    isDetailView,
+    enterPosterDetailView,
+    exitPosterDetailView,
     IncheonBanner: () => <IncheonPremiumBanner t={t} onClick={() => openAnalysis(false)} />, venueCounts: {}, resetToToday: () => { setView('home'); setSelectedDate(todayData.dateStr); }, formatItemDate: (d, t) => `${d} ${t}`, formatFee: (f) => f, 
     handleRegister, 
     fetchParties,
-    setShowSaju: withHistory('saju', showSaju, setShowSaju),
+    setShowSaju: withHistory('barMatching', showSaju, setShowSaju),
     setShowWeather: withHistory('weather', showWeather, setShowWeather),
     setShowWishlist: withHistory('wishlist', showWishlist, setShowWishlist),
     setShowRentalModal: withHistory('rental', showRentalModal, setShowRentalModal),
@@ -1977,6 +2143,9 @@ function App() {
                 <span style={{ color: '#C9A84C' }}>🌟</span> 마스터 전용 메뉴
               </h2>
               <p style={{ color: '#C9A84C', fontSize: '13px', marginTop: '4px', fontWeight: 700, letterSpacing: '0.5px' }}>VIP INSTRUCTOR LOUNGE</p>
+              <p style={{ color: '#94A3B8', fontSize: '11px', marginTop: '8px', fontWeight: 600, lineHeight: 1.45 }}>
+                우리 시스템은 '오늘'과 '내일'의 정보만 제공한다. 지난 정보는 삭제되니, 항상 최신 포스터를 등록하여 활동을 증명하라.
+              </p>
             </div>
 
             <div style={{ fontSize: '11px', fontWeight: 900, color: '#94A3B8', marginBottom: '12px', letterSpacing: '1px' }}>
@@ -2107,6 +2276,57 @@ function App() {
           </motion.div>
         )}
       </AnimatePresence>
+
+      {!isAdminShell && showLuxuryUpsellModal && (
+        <div
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="luxury-master-upsell-title"
+          style={{ position: 'fixed', inset: 0, zIndex: Z.modal, background: 'rgba(0,0,0,0.55)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20 }}
+          onClick={() => setShowLuxuryUpsellModal(false)}
+        >
+          <div
+            onClick={(e) => e.stopPropagation()}
+            style={{ position: 'relative', width: '100%', maxWidth: 360, background: '#121212', borderRadius: 16, padding: 24, border: '1px solid rgba(201,168,76,0.35)' }}
+          >
+            <button
+              type="button"
+              onClick={() => setShowLuxuryUpsellModal(false)}
+              aria-label="닫기"
+              style={{ position: 'absolute', top: 14, right: 14, background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(201,168,76,0.3)', borderRadius: 12, padding: 8, color: '#C9A84C', cursor: 'pointer' }}
+            >
+              ✕
+            </button>
+            <p style={{ margin: '0 0 6px', color: '#C9A84C', fontSize: 11, fontWeight: 900, letterSpacing: '0.04em' }}>
+              럭셔리 마스터 전환
+            </p>
+            <h2 id="luxury-master-upsell-title" style={{ margin: '0 0 12px', color: '#F8FAFC', fontSize: 20, fontWeight: 900 }}>
+              오늘밤빠 마스터(강사) 안내
+            </h2>
+            <p style={{ margin: '0 0 18px', color: '#CBD5E1', fontSize: 14, lineHeight: 1.55, fontWeight: 600 }}>
+              본 서비스는 검증된 마스터 회원만 클래스 등록이 가능합니다.
+              <br />
+              마스터 계정으로 로그인하여 클래스를 생성하세요.
+            </p>
+            <div style={{ display: 'flex', gap: 10 }}>
+              <button
+                type="button"
+                onClick={redirectToMasterLogin}
+                style={{ flex: 1, padding: '11px 12px', borderRadius: 10, border: '1px solid rgba(201,168,76,0.45)', background: 'transparent', color: '#C9A84C', fontWeight: 800, cursor: 'pointer' }}
+              >
+                마스터 로그인
+              </button>
+              <button
+                type="button"
+                onClick={redirectToMasterSignup}
+                style={{ flex: 1, padding: '11px 12px', borderRadius: 10, border: 'none', background: '#C9A84C', color: '#121212', fontWeight: 900, cursor: 'pointer' }}
+              >
+                마스터 회원가입
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {!isAdminShell && showVipLogin && (
         <div
@@ -2259,7 +2479,7 @@ function App() {
                 {
                   icon: <GraduationCap size={20} color="#C9A84C" />,
                   text: '클래스등록',
-                  action: () => openVipClassRegisterFlow(),
+                  action: () => openClassRegisterFromLounge(),
                 },
                 { icon: <Users size={20} color="#C9A84C" />, text: '수강생 관리' },
                 { icon: <TrendingUp size={20} color="#C9A84C" />, text: '수입 집계' },
@@ -2496,7 +2716,12 @@ function App() {
         </Suspense>
       </AnimatePresence>
       <AnimatePresence>
-        {showWishlist && <WishlistModal onClose={closeModalWithHistory(() => setShowWishlist(false))} setSelectedPoster={setSelectedPoster} />}
+        {showWishlist && (
+          <WishlistModal
+            onClose={closeModalWithHistory(() => setShowWishlist(false))}
+            setSelectedPoster={enterPosterDetailView}
+          />
+        )}
       </AnimatePresence>
       <AnimatePresence>
         {showRentalModal && <RentalModal onClose={() => setShowRentalModal(false)} />}
@@ -2589,7 +2814,7 @@ function App() {
                             <div key={item.id} onClick={() => {
                               const card = buildPartyShareCard(item);
                               if (!card) return;
-                              handleOpenModal(setSelectedPoster, card, 'partyPoster');
+                              enterPosterDetailView(card);
                             }} style={{ background: '#F8FAFC', borderRadius: '16px', padding: '12px', display: 'flex', gap: '15px', border: '1px solid #EDF2F7', cursor: 'pointer' }}>
                               <img src={item.poster_url} style={{ width: '80px', height: '100px', objectFit: 'cover', borderRadius: '10px' }} alt="Poster" />
                               <div style={{ flex: 1 }}>
@@ -2757,7 +2982,8 @@ function App() {
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
-          className="bchata-overlay-backdrop"
+          className="bchata-overlay-backdrop detail-container"
+          data-detail-container
           style={{ position: 'fixed', inset: 0, zIndex: Z.modalMax }}
         >
           <PosterModal 
@@ -2767,7 +2993,7 @@ function App() {
             shareLines={selectedPoster.lines}
             shareFeedDesc={selectedPoster.feedDesc}
             partyId={selectedPoster.partyId}
-            onClose={closeModalWithHistory(() => setSelectedPoster(null))} 
+            onClose={exitPosterDetailView}
           />
         </motion.div>
       )}
@@ -2809,20 +3035,6 @@ function App() {
         </span>
       </div>
       <div
-        onClick={() => { navigate('/bootcamp', { homeTab: null }); setShowPartner(false); setActiveTab(null); }}
-        style={{
-          flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
-          cursor: 'pointer', transition: 'all 0.2s',
-          color: isBootcampNavActive ? bottomNavAccent : navInactiveColor,
-        }}
-      >
-        <Tent size={22} strokeWidth={isBootcampNavActive ? 2.5 : 1.5} />
-        <span style={{ fontSize: '9px', fontWeight: isBootcampNavActive ? 900 : 600, marginTop: '2px' }}>
-          {i18n.language?.startsWith('en') ? 'Bootcamp' : '부트캠프'}
-        </span>
-      </div>
-
-      <div
         onClick={() => {
           setShowPartner(false);
           navigateHomeTab('social');
@@ -2837,6 +3049,34 @@ function App() {
         <Music2 size={22} strokeWidth={isBottomSocialNavActive ? 2.5 : 1.5} />
         <span style={{ fontSize: '9px', fontWeight: isBottomSocialNavActive ? 900 : 600, marginTop: '2px' }}>
           {i18n.language?.startsWith('en') ? 'Social' : '소셜'}
+        </span>
+      </div>
+
+      <div
+        onClick={() => { navigate('/bootcamp', { homeTab: null }); setShowPartner(false); setActiveTab(null); }}
+        style={{
+          flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
+          cursor: 'pointer', transition: 'all 0.2s',
+          color: isBootcampNavActive ? bottomNavAccent : navInactiveColor,
+        }}
+      >
+        <Tent size={22} strokeWidth={isBootcampNavActive ? 2.5 : 1.5} />
+        <span style={{ fontSize: '9px', fontWeight: isBootcampNavActive ? 900 : 600, marginTop: '2px' }}>
+          {i18n.language?.startsWith('en') ? 'Bootcamp' : '부트캠프'}
+        </span>
+      </div>
+
+      <div 
+        onClick={() => { navigate('/festival', { homeTab: null }); setShowPartner(false); setActiveTab(null); }}
+        style={{ 
+          flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
+          cursor: 'pointer', transition: 'all 0.2s',
+          color: isFestivalNavActive ? bottomNavAccent : navInactiveColor
+        }}
+      >
+        <Flag size={22} strokeWidth={isFestivalNavActive ? 2.5 : 1.5} />
+        <span style={{ fontSize: '9px', fontWeight: isFestivalNavActive ? 900 : 600, marginTop: '2px' }}>
+          {i18n.language?.startsWith('en') ? 'Festival' : '페스티벌'}
         </span>
       </div>
 
@@ -2857,21 +3097,6 @@ function App() {
         <GraduationCap size={22} strokeWidth={isInstructorsNavActive ? 2.5 : 1.5} />
         <span style={{ fontSize: '9px', fontWeight: isInstructorsNavActive ? 900 : 600, marginTop: '2px' }}>
           {i18n.language?.startsWith('en') ? 'Instructors' : '강사찾기'}
-        </span>
-      </div>
-
-      <div 
-        onClick={() => { navigate('/festival', { homeTab: null }); setShowPartner(false); setActiveTab(null); }}
-        style={{ 
-          flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
-          cursor: 'pointer', transition: 'all 0.2s',
-          // color: (location.pathname === '/festival' && !showPartner) ? '#FFFFFF' : 'rgba(255,255,255,0.3)'
-          color: isFestivalNavActive ? bottomNavAccent : navInactiveColor
-        }}
-      >
-        <Flag size={22} strokeWidth={isFestivalNavActive ? 2.5 : 1.5} />
-        <span style={{ fontSize: '9px', fontWeight: isFestivalNavActive ? 900 : 600, marginTop: '2px' }}>
-          {i18n.language?.startsWith('en') ? 'Festival' : '페스티벌'}
         </span>
       </div>
     </nav>

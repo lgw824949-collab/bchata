@@ -18,7 +18,7 @@ export function buildBarCounterDisplay({ liveCount = 0, clickCount = 0 } = {}) {
 
   return {
     mode: 'warming',
-    line: `👀 ${clicks}명 확인`,
+    line: `view ${clicks}명`,
   };
 }
 
@@ -36,7 +36,7 @@ export function buildVenuePartyLiveBadge({ liveCount = 0, clickCount = 0 } = {})
 
   return {
     mode: 'warming',
-    line: `👀 오늘 ${clicks}명 확인함`,
+    line: `view 오늘 ${clicks}명`,
   };
 }
 

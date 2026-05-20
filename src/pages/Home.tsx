@@ -57,7 +57,7 @@ const isPersistedLocationId = (id) => {
   const s = String(id ?? '');
   return s.length > 0 && !/^bar-\d+$/i.test(s);
 };
-const formatBarViewCountLine = (viewCount) => `👁️ view ${Number(viewCount) || 0}명`;
+const formatBarViewCountLine = (viewCount) => `view ${Number(viewCount) || 0}명`;
 
 /** GPS 기준 가장 가까운 지역 pill (경기 → 경인) */
 const SOCIAL_BAR_GEO_REGIONS = ['서울', '경인', '경상도', '충청도', '전라도'];
@@ -1806,7 +1806,7 @@ const HomePage = ({
     return () => observer.disconnect();
   }, [activeTab]);
 
-  /** 하단 네비 탭 순서: 홈 → 소셜 → 부트캠프 → 강사찾기 → 페스티벌 (마크업은 App.jsx nav) */
+  /** 하단 네비 탭 순서: 홈 → 소셜 → 부트캠프 → 페스티벌 → 강사찾기 (마크업은 App.jsx nav) */
   useEffect(() => {
     const nav = document.querySelector('nav.bottom-nav');
     if (!nav) return;
@@ -1817,8 +1817,8 @@ const HomePage = ({
       pick(['홈', 'Home']),
       pick(['소셜', 'Social']),
       pick(['부트캠프', 'Bootcamp']),
-      pick(['강사찾기', '강사', 'Instructor']),
       pick(['페스티벌', 'Festival']),
+      pick(['강사찾기', '강사', 'Instructor']),
     ].filter(Boolean);
     if (ordered.length < 5) return;
     ordered.forEach((el) => nav.appendChild(el));
@@ -2945,48 +2945,11 @@ const HomePage = ({
           })}
         </div>
 
-        {/* 선택된 날짜의 장르 필터 바 */}
-        <AnimatePresence initial={false}>
-          {isFilterBarVisible && (
-            <motion.div
-              key="genre-filter-bar"
-              initial={{ height: 0, opacity: 0 }}
-              animate={{ height: 'auto', opacity: 1 }}
-              exit={{ height: 0, opacity: 0 }}
-              transition={{ duration: 0.2, ease: 'easeInOut' }}
-              style={{ overflow: 'hidden', borderTop: '1px solid var(--color-border)' }}
-            >
-              <div
-                style={{ display: 'flex', overflowX: 'auto', gap: '6px', padding: '8px 10px', msOverflowStyle: 'none', scrollbarWidth: 'none', WebkitOverflowScrolling: 'touch' }}
-              >
-                {['전체', '바차타', '살사', '쥬크', '키좀바', '부트캠프', '페스티벌'].map(g => {
-                  const isActive = activeDateGenre === g;
-                  return (
-                    <button
-                      key={g}
-                      onClick={() => setActiveDateGenre(g)}
-                      style={{
-                        padding: '6px 12px',
-                        borderRadius: '20px',
-                        fontSize: '12px',
-                        fontWeight: isActive ? 900 : 600,
-                        backgroundColor: isActive ? '#E53935' : '#fff',
-                        color: isActive ? '#fff' : '#64748B',
-                        border: `1px solid ${isActive ? '#E53935' : '#E2E8F0'}`,
-                        cursor: 'pointer',
-                        flexShrink: 0,
-                        boxShadow: isActive ? '0 2px 6px rgba(229,57,53,0.25)' : '0 1px 3px rgba(0,0,0,0.05)',
-                        transition: 'all 0.2s'
-                      }}
-                    >
-                      {g}
-                    </button>
-                  );
-                })}
-              </div>
-            </motion.div>
-          )}
-        </AnimatePresence>
+        <SocialDateGenreFilterBar
+          visible={isFilterBarVisible}
+          activeGenre={activeDateGenre}
+          onSelectGenre={(g) => setActiveDateGenre(g)}
+        />
       </div>
 
 
