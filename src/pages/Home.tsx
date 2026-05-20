@@ -1238,7 +1238,7 @@ const HomePage = ({
 
   useEffect(() => {
     if (!showFullCalendar) return;
-    fetchParties();
+    fetchParties({ silent: true });
     setSelectedDate((prev) => {
       const prevDay = normDate(prev);
       if (prevDay && prevDay >= calendarTodayStr) return prevDay;

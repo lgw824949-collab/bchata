@@ -8,7 +8,7 @@ import {
 import { motion, AnimatePresence } from 'framer-motion';
 import { Z } from '../constants/zLayers';
 import { supabase } from '../lib/supabase';
-import { pushOverlay } from '../lib/appHistory';
+import { parseAppState, pushOverlay } from '../lib/appHistory';
 import { resolveEventDates, inferOneDayEvent } from '../lib/dbSanitize';
 import EventDateFields from '../components/EventDateFields';
 import { useTranslation } from 'react-i18next';
@@ -16,10 +16,16 @@ import { useTranslation } from 'react-i18next';
 const GENRES = ['전체', '바차타', '살사', '키좀바', '쥬크'];
 const REGIONS = ['전국', '서울', '경인', '경상도', '전라도', '충청도', '강원/제주', '해외'];
 
-const Bootcamp = ({ onBack, initialView = 'list' }) => {
+const filterBootcampsByTab = (list, tab) => {
+  const type = tab === '국내' ? 'domestic' : 'overseas';
+  return (list || []).filter((b) => b.type === type);
+};
+
+const Bootcamp = ({ onBack, initialView = 'list', cachedBootcamps = null, onBootcampsRefresh }) => {
   const { t, i18n } = useTranslation();
-  const [bootcamps, setBootcamps] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const [bootcamps, setBootcamps] = useState(() => filterBootcampsByTab(cachedBootcamps, '국내'));
+  const [loading, setLoading] = useState(!cachedBootcamps?.length);
+  const usedCacheRef = useRef(Boolean(cachedBootcamps?.length));
   const [view, setView] = useState(initialView);
   const [editingId, setEditingId] = useState(null);
 
@@ -84,6 +90,17 @@ const Bootcamp = ({ onBack, initialView = 'list' }) => {
   const [isOneDayEvent, setIsOneDayEvent] = useState(true);
 
   useEffect(() => {
+    if (cachedBootcamps?.length) {
+      setBootcamps(filterBootcampsByTab(cachedBootcamps, activeTab));
+      setLoading(false);
+    }
+  }, [cachedBootcamps, activeTab]);
+
+  useEffect(() => {
+    if (usedCacheRef.current) {
+      usedCacheRef.current = false;
+      return;
+    }
     fetchBootcamps();
   }, [activeTab]);
 
@@ -106,29 +123,29 @@ const Bootcamp = ({ onBack, initialView = 'list' }) => {
     }
   }, [selectedBootcamp]);
 
-  // 컴포넌트 마운트 시 한 번만 등록 — ref 를 읽으므로 항상 최신 상태 반영
   useEffect(() => {
-    const handlePop = () => {
-      if (selectedBootcampRef.current) {
+    const onHistory = (event) => {
+      const st = event.detail?.state ?? parseAppState(window.history.state);
+      if (st?.overlay !== 'bootcampDetail') {
         setSelectedBootcamp(null);
       }
     };
-    window.addEventListener('popstate', handlePop);
-    return () => window.removeEventListener('popstate', handlePop);
+    window.addEventListener('bamppa-history', onHistory);
+    return () => window.removeEventListener('bamppa-history', onHistory);
   }, []);
 
   const fetchBootcamps = async () => {
     setLoading(true);
     try {
-      const type = activeTab === '국내' ? 'domestic' : 'overseas';
       const { data, error } = await supabase
         .from('bootcamps')
         .select('*')
-        .eq('type', type)
         .eq('status', 'active')
         .order('start_date', { ascending: true });
       if (error) throw error;
-      setBootcamps(data || []);
+      const rows = data || [];
+      if (typeof onBootcampsRefresh === 'function') onBootcampsRefresh(rows);
+      setBootcamps(filterBootcampsByTab(rows, activeTab));
     } catch (err) {
       console.error('Error fetching bootcamps:', err);
     } finally {

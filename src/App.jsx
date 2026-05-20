@@ -1,4 +1,4 @@
-﻿import { useState, useEffect, useMemo, useRef, lazy, Suspense } from 'react'
+﻿import { useState, useEffect, useMemo, useRef, useCallback, lazy, Suspense } from 'react'
 import { Home as HomeIcon, Users, LogOut, Heart, X, MessageSquare, RefreshCw, CloudSun, Utensils, Zap, Languages, Bell, Star, Navigation, CreditCard, Settings, Map as MapIcon, BarChart, BarChart2, Gift, Coffee, User, Menu, Music2, Tent, Flag, Download, Globe, ShieldCheck, Calendar, CalendarDays, Camera, ChevronLeft, ChevronRight, Loader2, Search, Share2, Copy, TrendingUp, GraduationCap } from 'lucide-react'
 import { useTranslation } from 'react-i18next';
 import { motion, AnimatePresence } from 'framer-motion'
@@ -27,13 +27,13 @@ import QuickPinchZoom, { make3dTransformValue } from 'react-quick-pinch-zoom';
 // 페이지 지연 로딩 (Lazy Loading)
 const RegisterForm = lazy(() => import('./RegisterForm'));
 const AdminDashboard = lazy(() => import('./AdminDashboard'));
-const HomePage = lazy(() => import('./pages/Home'));
+import HomePage from './pages/Home';
+import Instructors from './pages/Instructors';
+import Bootcamp from './pages/Bootcamp';
+import Festival from './pages/Festival';
 const Community = lazy(() => import('./pages/Community'));
-const Instructors = lazy(() => import('./pages/Instructors'));
 const InstructorRegister = lazy(() => import('./components/InstructorRegister'));
 const PostClub = lazy(() => import('./pages/PostClub'));
-const Bootcamp = lazy(() => import('./pages/Bootcamp'));
-const Festival = lazy(() => import('./pages/Festival'));
 const Parking = lazy(() => import('./pages/Parking'));
 const Restaurant = lazy(() => import('./pages/Restaurant'));
 const SajuModal = lazy(() => import('./components/SajuModal'));
@@ -981,6 +981,8 @@ function App() {
   const [parties, setParties] = useState([]);
   const [bootcamps, setBootcamps] = useState([]);
   const [festivals, setFestivals] = useState([]);
+  const [instructorsCache, setInstructorsCache] = useState([]);
+  const instructorsPrefetchRef = useRef(false);
   const [followedInstructors, setFollowedInstructors] = useState([]);
   const [displayParties, setDisplayParties] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -1529,8 +1531,22 @@ function App() {
     };
   }, [view, vipLoggedIn]);
 
-  const fetchParties = async () => {
-    setLoading(true);
+  const prefetchInstructorsList = useCallback(async () => {
+    if (!supabase || instructorsPrefetchRef.current) return;
+    instructorsPrefetchRef.current = true;
+    try {
+      const { data, error } = await runSupabaseQuery('instructorsPrefetch', (db) =>
+        db.from('instructors').select('*').eq('status', 'active').order('follower_count', { ascending: false }),
+      );
+      if (!error && data?.length) setInstructorsCache(data);
+    } catch (err) {
+      console.warn('[App] instructors prefetch:', err);
+      instructorsPrefetchRef.current = false;
+    }
+  }, []);
+
+  const fetchParties = useCallback(async ({ silent = false } = {}) => {
+    if (!silent) setLoading(true);
     try {
       if (!supabase) {
         console.warn('[App.fetchParties] Supabase client unavailable — check .env (VITE_SUPABASE_URL, VITE_SUPABASE_ANON_KEY)');
@@ -1622,13 +1638,14 @@ function App() {
       setBootcamps([]);
       setFestivals([]);
     } finally {
-      setLoading(false);
+      if (!silent) setLoading(false);
+      prefetchInstructorsList();
     }
-  };
+  }, [prefetchInstructorsList]);
 
   useEffect(() => {
     fetchParties();
-  }, []);
+  }, [fetchParties]);
 
   useEffect(() => {
     const activeTodayStr = getKSTDate().dateStr;
@@ -1803,14 +1820,16 @@ function App() {
     location.pathname === '/bootcamp/register' ||
     location.pathname === '/festival/register';
 
-  // const navActiveColor = isSocialLightNav ? '#E53935' : '#FFFFFF'
-  // const navInactiveColor = isSocialLightNav ? '#94A3B8' : 'rgba(255,255,255,0.3)'
-  const navActiveColor = '#FFFFFF'
-  const navInactiveColor = isDarkBottomNav ? 'rgba(255,255,255,0.42)' : '#666666'
-  const socialNavActive = '#FF4444'
-  const socialNavInactive = '#666666'
+  const bottomNavAccent = isSocialLightNav ? '#E53935' : '#C9A84C'
+  const navActiveColor = bottomNavAccent
+  const navInactiveColor = isSocialLightNav ? '#94A3B8' : 'rgba(255, 255, 255, 0.42)'
+  const socialNavActive = bottomNavAccent
+  const socialNavInactive = navInactiveColor
   const isHomeNavActive = location.pathname === '/' && view === 'home' && homeActiveTab === null && !showPartner
+  const isBootcampNavActive = (location.pathname === '/bootcamp' || view === 'bootcamp' || view === 'bootcamp-register') && !showPartner
   const isBottomSocialNavActive = location.pathname === '/' && view === 'home' && homeActiveTab === 'social' && !showPartner
+  const isInstructorsNavActive = (location.pathname === '/instructors' || view === 'instructors') && !showPartner
+  const isFestivalNavActive = (location.pathname === '/festival' || view === 'festival' || view === 'festival-register') && !showPartner
 
   useEffect(() => {
     document.body.classList.toggle('has-bottom-nav', !hideBottomNav)
@@ -2260,14 +2279,40 @@ function App() {
       )}
 
       <main>
+        <div className="bchata-tab-panels">
+          <div className="bchata-tab-panel" data-active={view === 'home'} aria-hidden={view !== 'home'}>
+            <HomePage {...sharedProps} />
+          </div>
+          <div
+            className="bchata-tab-panel"
+            data-active={view === 'bootcamp' || view === 'bootcamp-register'}
+            aria-hidden={view !== 'bootcamp' && view !== 'bootcamp-register'}
+          >
+            <Bootcamp
+              onBack={goBack}
+              initialView={view === 'bootcamp-register' ? 'register' : 'list'}
+              cachedBootcamps={bootcamps}
+              onBootcampsRefresh={setBootcamps}
+            />
+          </div>
+          <div className="bchata-tab-panel" data-active={view === 'instructors'} aria-hidden={view !== 'instructors'}>
+            <Instructors onOpenVipMaster={openVipMasterFlow} cachedInstructors={instructorsCache} />
+          </div>
+          <div
+            className="bchata-tab-panel"
+            data-active={view === 'festival' || view === 'festival-register'}
+            aria-hidden={view !== 'festival' && view !== 'festival-register'}
+          >
+            <Festival
+              onBack={goBack}
+              initialRegister={view === 'festival-register'}
+              cachedFestivals={festivals}
+              onFestivalsRefresh={setFestivals}
+            />
+          </div>
+        </div>
         <Suspense fallback={<LoadingFallback />}>
-          {view === 'home' ? <HomePage {...sharedProps} /> : 
-           view === 'community' ? <Community setSelectedPoster={setSelectedPoster} setView={setView} /> :
-           view === 'instructors' ? <Instructors onOpenVipMaster={openVipMasterFlow} /> :
-           view === 'bootcamp' ? <Bootcamp onBack={goBack} /> :
-           view === 'bootcamp-register' ? <Bootcamp onBack={() => navigate('/bootcamp')} initialView="register" /> :
-           view === 'festival' ? <Festival onBack={goBack} /> :
-           view === 'festival-register' ? <Festival onBack={() => navigate('/festival')} initialView="register" /> :
+          {view === 'community' ? <Community setSelectedPoster={setSelectedPoster} setView={setView} /> :
            view === 'parking' ? <Parking onBack={goBack} /> :
            view === 'restaurant' ? <Restaurant onBack={goBack} /> :
            /* register-party: main 밖 최상위에서 렌더 (하단 네비 z-index 충돌 방지) */
@@ -2635,11 +2680,11 @@ function App() {
           flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
           cursor: 'pointer', transition: 'all 0.2s',
           // color: (location.pathname === '/' && !showPartner) ? '#FFFFFF' : 'rgba(255,255,255,0.3)'
-          color: isHomeNavActive ? socialNavActive : socialNavInactive
+          color: isHomeNavActive ? bottomNavAccent : navInactiveColor
         }}
       >
         <HomeIcon size={22} strokeWidth={isHomeNavActive ? 2.5 : 1.5} />
-        <span style={{ fontSize: '8px', fontWeight: isHomeNavActive ? 900 : 500, marginTop: '2px' }}>
+        <span style={{ fontSize: '9px', fontWeight: isHomeNavActive ? 900 : 600, marginTop: '2px' }}>
           {i18n.language?.startsWith('en') ? 'Home' : '홈'}
         </span>
       </div>
@@ -2648,11 +2693,11 @@ function App() {
         style={{
           flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
           cursor: 'pointer', transition: 'all 0.2s',
-          color: (location.pathname === '/bootcamp' && !showPartner) ? navActiveColor : navInactiveColor,
+          color: isBootcampNavActive ? bottomNavAccent : navInactiveColor,
         }}
       >
-        <Tent size={22} strokeWidth={(location.pathname === '/bootcamp' && !showPartner) ? 2.5 : 1.5} />
-        <span style={{ fontSize: '8px', fontWeight: (location.pathname === '/bootcamp' && !showPartner) ? 900 : 500, marginTop: '2px' }}>
+        <Tent size={22} strokeWidth={isBootcampNavActive ? 2.5 : 1.5} />
+        <span style={{ fontSize: '9px', fontWeight: isBootcampNavActive ? 900 : 600, marginTop: '2px' }}>
           {i18n.language?.startsWith('en') ? 'Bootcamp' : '부트캠프'}
         </span>
       </div>
@@ -2666,11 +2711,11 @@ function App() {
         style={{
           flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
           cursor: 'pointer', transition: 'all 0.2s',
-          color: isBottomSocialNavActive ? socialNavActive : (isDarkBottomNav ? navInactiveColor : socialNavInactive),
+          color: isBottomSocialNavActive ? bottomNavAccent : navInactiveColor,
         }}
       >
         <Music2 size={22} strokeWidth={isBottomSocialNavActive ? 2.5 : 1.5} />
-        <span style={{ fontSize: '8px', fontWeight: isBottomSocialNavActive ? 900 : 500, marginTop: '2px' }}>
+        <span style={{ fontSize: '9px', fontWeight: isBottomSocialNavActive ? 900 : 600, marginTop: '2px' }}>
           {i18n.language?.startsWith('en') ? 'Social' : '소셜'}
         </span>
       </div>
@@ -2680,17 +2725,17 @@ function App() {
           setShowPartner(false);
           setActiveTab(null);
           localStorage.setItem('instructor_target_genre', '전체');
-          navigate('/instructors', { homeTab: null });
-          setTimeout(() => { window.dispatchEvent(new CustomEvent('apply-instructor-filter')); }, 300);
+          navigate('/instructors', { homeTab: null, replace: location.pathname === '/instructors' && view === 'instructors' });
+          window.dispatchEvent(new CustomEvent('apply-instructor-filter'));
         }}
         style={{
           flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
           cursor: 'pointer', transition: 'all 0.2s',
-          color: ((location.pathname === '/instructors' || view === 'instructors') && !showPartner) ? navActiveColor : navInactiveColor,
+          color: isInstructorsNavActive ? bottomNavAccent : navInactiveColor,
         }}
       >
-        <GraduationCap size={22} strokeWidth={((location.pathname === '/instructors' || view === 'instructors') && !showPartner) ? 2.5 : 1.5} />
-        <span style={{ fontSize: '8px', fontWeight: ((location.pathname === '/instructors' || view === 'instructors') && !showPartner) ? 900 : 500, marginTop: '2px' }}>
+        <GraduationCap size={22} strokeWidth={isInstructorsNavActive ? 2.5 : 1.5} />
+        <span style={{ fontSize: '9px', fontWeight: isInstructorsNavActive ? 900 : 600, marginTop: '2px' }}>
           {i18n.language?.startsWith('en') ? 'Instructors' : '강사찾기'}
         </span>
       </div>
@@ -2701,11 +2746,11 @@ function App() {
           flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
           cursor: 'pointer', transition: 'all 0.2s',
           // color: (location.pathname === '/festival' && !showPartner) ? '#FFFFFF' : 'rgba(255,255,255,0.3)'
-          color: (location.pathname === '/festival' && !showPartner) ? navActiveColor : navInactiveColor
+          color: isFestivalNavActive ? bottomNavAccent : navInactiveColor
         }}
       >
-        <Flag size={22} strokeWidth={(location.pathname === '/festival' && !showPartner) ? 2.5 : 1.5} />
-        <span style={{ fontSize: '8px', fontWeight: (location.pathname === '/festival' && !showPartner) ? 900 : 500, marginTop: '2px' }}>
+        <Flag size={22} strokeWidth={isFestivalNavActive ? 2.5 : 1.5} />
+        <span style={{ fontSize: '9px', fontWeight: isFestivalNavActive ? 900 : 600, marginTop: '2px' }}>
           {i18n.language?.startsWith('en') ? 'Festival' : '페스티벌'}
         </span>
       </div>

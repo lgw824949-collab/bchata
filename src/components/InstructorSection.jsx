@@ -84,9 +84,10 @@ const getSession = () => {
   return s
 }
 
-const InstructorSection = ({ onOpenVipMaster }) => {
-  const [instructors, setInstructors] = useState([])
-  const [loading, setLoading] = useState(true)
+const InstructorSection = ({ onOpenVipMaster, cachedInstructors = null }) => {
+  const [instructors, setInstructors] = useState(cachedInstructors?.length ? cachedInstructors : [])
+  const [loading, setLoading] = useState(!cachedInstructors?.length)
+  const usedCacheRef = React.useRef(Boolean(cachedInstructors?.length))
   const [follows, setFollows] = useState({})
   const [likes, setLikes] = useState({})
   const [selectedGenre, setSelectedGenre] = useState('전체')
@@ -108,8 +109,44 @@ const InstructorSection = ({ onOpenVipMaster }) => {
   const [submittingClass, setSubmittingClass] = useState(false)
 
   useEffect(() => {
+    if (cachedInstructors?.length) {
+      setInstructors(cachedInstructors)
+      setLoading(false)
+    }
+  }, [cachedInstructors])
+
+  useEffect(() => {
+    if (usedCacheRef.current) {
+      usedCacheRef.current = false
+      fetchInstructorSocialMeta()
+      return
+    }
     fetchInstructors()
   }, [])
+
+  const fetchInstructorSocialMeta = async () => {
+    const session = getSession()
+    const { data: followData } = await supabase
+      .from('instructor_follows')
+      .select('instructor_id')
+      .eq('user_session', session)
+    if (followData) {
+      const map = {}
+      followData.forEach(f => { map[f.instructor_id] = true })
+      setFollows(map)
+      localStorage.setItem('instructor_follows', JSON.stringify(map))
+    }
+
+    const { data: likeData } = await supabase
+      .from('instructor_likes')
+      .select('instructor_id')
+      .eq('user_session', session)
+    if (likeData) {
+      const map = {}
+      likeData.forEach(l => { map[l.instructor_id] = true })
+      setLikes(map)
+    }
+  }
 
   const fetchInstructors = async () => {
     setLoading(true)

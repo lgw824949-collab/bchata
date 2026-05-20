@@ -1,4 +1,4 @@
-﻿import React, { useState, useEffect } from 'react';
+﻿import React, { useState, useEffect, useRef } from 'react';
 import { ChevronLeft, Calendar, MapPin, Zap, X, ChevronDown, Plus, Image as ImageIcon } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { supabase } from '../lib/supabase';
@@ -6,15 +6,31 @@ import { resolveEventDates, inferOneDayEvent } from '../lib/dbSanitize';
 import EventDateFields from '../components/EventDateFields';
 import { Z } from '../constants/zLayers';
 
-const Festival = ({ onBack }) => {
-  const [festivals, setFestivals] = useState([]);
-  const [loading, setLoading] = useState(true);
+const filterFestivalsClient = (all, selectedRegion, activeTab) => {
+  const rows = (all || []).filter((f) => f.event_type === (activeTab === 'mt' ? 'mt' : 'festival'));
+  if (selectedRegion === '전체') return rows;
+  const REGION_MAP = {
+    '수도권': ['서울', '경인', '수도권'],
+    '강원': ['강원', '강원도', '강원/제주'],
+    '제주': ['제주', '제주도', '강원/제주'],
+    '부산/경남': ['부산', '경남', '경상도', '부산/경남'],
+    '전라': ['전라', '전라도', '전북', '전남'],
+    '충청': ['충청', '충청도', '충북', '충남'],
+  };
+  const aliases = REGION_MAP[selectedRegion] || [selectedRegion];
+  return rows.filter((f) => aliases.some((a) => (f.region || '').includes(a)));
+};
+
+const Festival = ({ onBack, initialRegister = false, cachedFestivals = null, onFestivalsRefresh }) => {
+  const [festivals, setFestivals] = useState(() => filterFestivalsClient(cachedFestivals, '전체', 'festival'));
+  const [loading, setLoading] = useState(!cachedFestivals?.length);
+  const usedCacheRef = useRef(Boolean(cachedFestivals?.length));
   const [activeTab, setActiveTab] = useState('festival'); // 'festival' | 'mt'
   const [selectedRegion, setSelectedRegion] = useState('전체');
   const [selectedFestival, setSelectedFestival] = useState(null);
   const [showBookingGuide, setShowBookingGuide] = useState(false);
   const [copied, setCopied] = useState(false);
-  const [isRegistering, setIsRegistering] = useState(false);
+  const [isRegistering, setIsRegistering] = useState(initialRegister);
   const [editingId, setEditingId] = useState(null);
   const [currentStep, setCurrentStep] = useState(1);
   const [uploading, setUploading] = useState(false);
@@ -29,6 +45,17 @@ const Festival = ({ onBack }) => {
   const regions = ['전체', '수도권', '강원', '제주', '부산/경남', '전라', '충청'];
 
   useEffect(() => {
+    if (cachedFestivals?.length) {
+      setFestivals(filterFestivalsClient(cachedFestivals, selectedRegion, activeTab));
+      setLoading(false);
+    }
+  }, [cachedFestivals, selectedRegion, activeTab]);
+
+  useEffect(() => {
+    if (usedCacheRef.current) {
+      usedCacheRef.current = false;
+      return;
+    }
     fetchFestivals();
   }, [selectedRegion, activeTab]);
 
@@ -50,12 +77,8 @@ const Festival = ({ onBack }) => {
         .order('start_date', { ascending: true });
       if (error) throw error;
       const all = data || [];
-      if (selectedRegion === '전체') {
-        setFestivals(all);
-      } else {
-        const aliases = REGION_MAP[selectedRegion] || [selectedRegion];
-        setFestivals(all.filter(f => aliases.some(a => (f.region || '').includes(a))));
-      }
+      if (typeof onFestivalsRefresh === 'function') onFestivalsRefresh(all);
+      setFestivals(filterFestivalsClient(all, selectedRegion, activeTab));
     } catch (err) {
       console.error('Error fetching festivals:', err);
     } finally {
