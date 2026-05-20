@@ -18,7 +18,8 @@
   --ds-subtitle-weight: 500;
   --ds-body-size: 12px;
   --ds-body-weight: 400;
-  --type-display-size: var(--ds-title-size);
+  --type-display-size: 23px; /* 메인 히어로 제목: ds-title(20px) 대비 +15% */
+  --home-status-micro-size: 14px; /* 지역 카운트 띠: body(12px) 대비 가독성 상향 */
   --type-display-weight: var(--ds-title-weight);
   --type-display-tracking: -0.02em;
   --type-section-size: var(--ds-title-size);
@@ -140,16 +141,16 @@ input, button, select, textarea {
 
 /* 홈·공통 타이포 (밀리식: 굵은 제목 + 중간 굵기 본문) */
 .home-type-display {
-  margin: 0;
+  margin: 0 0 2px;
   font-family: var(--font-sans);
   font-size: var(--type-display-size);
   font-weight: var(--type-display-weight);
   letter-spacing: var(--type-display-tracking);
-  line-height: var(--line-height-tight);
+  line-height: 1.35;
 }
 
 .home-type-tagline {
-  margin: 6px 0 0;
+  margin: 8px 0 0;
   line-height: var(--line-height-body);
   display: flex;
   align-items: baseline;
@@ -228,25 +229,30 @@ input, button, select, textarea {
   display: flex;
   align-items: center;
   flex-wrap: wrap;
-  gap: 4px 10px;
+  gap: 6px 12px;
   width: 100%;
-  margin: 0 0 12px;
-  padding: 0;
+  margin: 6px 0 16px;
+  padding: 2px 0 0;
   border: none;
   background: transparent;
+}
+
+.home-party-status-micro .home-ds-body {
+  font-size: var(--home-status-micro-size);
+  line-height: 1.45;
 }
 
 .home-party-status-micro-btn {
   display: inline-flex;
   align-items: center;
-  gap: 4px;
+  gap: 5px;
   padding: 0;
   border: none;
   background: none;
   cursor: pointer;
-  font-size: var(--ds-body-size);
+  font-size: var(--home-status-micro-size);
   font-weight: var(--ds-body-weight);
-  line-height: 1.3;
+  line-height: 1.45;
   white-space: nowrap;
 }
 
@@ -257,7 +263,8 @@ input, button, select, textarea {
 
 .home-party-status-micro-sep {
   color: rgba(148, 163, 184, 0.55);
-  font-size: var(--ds-body-size);
+  font-size: var(--home-status-micro-size);
+  line-height: 1.45;
   user-select: none;
 }
 
