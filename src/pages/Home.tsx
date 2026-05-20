@@ -1,5 +1,5 @@
-﻿import React, { useState, useEffect, useMemo, useRef } from 'react';
-import { Heart, MapPin, Calendar, Clock, User, Users, Music, ChevronRight, ChevronDown, ShieldCheck, X, Home as HomeIcon, ChevronLeft, CloudSun, Utensils, Zap, PlusCircle, Languages, Bell, Globe, Navigation, CalendarDays, Star, Camera, MessageSquare, Tent, Loader2, Plus } from 'lucide-react';
+﻿import React, { useState, useEffect, useMemo, useRef, useCallback } from 'react';
+import { Heart, MapPin, Calendar, Clock, User, Users, Music, ChevronRight, ChevronDown, ShieldCheck, X, Home as HomeIcon, ChevronLeft, CloudSun, Utensils, Zap, PlusCircle, Languages, Bell, Globe, Navigation, CalendarDays, Star, Camera, MessageSquare, Tent, Loader2, Plus, Radio } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { motion, AnimatePresence } from 'framer-motion';
 import QuickPinchZoom, { make3dTransformValue } from 'react-quick-pinch-zoom';
@@ -17,8 +17,11 @@ import {
   normalizeVenueNameKey,
 } from '../lib/venueDedupe'
 import VenueDetailModal from '../components/VenueDetailModal'
+import PartyWishlistHeart from '../components/PartyWishlistHeart'
+import { usePartyWishlist } from '../hooks/usePartyWishlist'
 import BarRegisterFormModal from '../components/BarRegisterFormModal'
 import HomeHeroTagline from '../components/HomeHeroTagline'
+import SocialBarChipMeter from '../components/SocialBarChipMeter'
 import { closeOverlay, navigate, navigateHomeTab, parseAppState, pushOverlay } from '../lib/appHistory'
 import { Z } from '../constants/zLayers'
 import { DEFAULT_AVATAR_IMAGE, DEFAULT_CARD_IMAGE, imgFallbackHandler } from '../constants/imageAssets'
@@ -41,6 +44,20 @@ const HOME_REGIONS_ORDER = [
   '전라도',
   '강원/제주',
 ];
+
+/** Social BAR 좌→우 고정 순서: 라틴 → 보니따 → 홍턴 → 강턴 */
+const SOCIAL_BAR_DISPLAY_ORDER = [
+  (nameKey) => nameKey === '라틴',
+  (nameKey) => nameKey.includes('보니따'),
+  (nameKey) => nameKey.includes('홍턴'),
+  (nameKey) => nameKey.includes('강남턴') || nameKey === '강턴' || nameKey.includes('강턴'),
+];
+
+const getSocialBarDisplayRank = (bar) => {
+  const nameKey = normalizeVenueNameKey(bar?.name);
+  const pinned = SOCIAL_BAR_DISPLAY_ORDER.findIndex((match) => match(nameKey));
+  return pinned >= 0 ? pinned : SOCIAL_BAR_DISPLAY_ORDER.length;
+};
 
 const mapBarLibRegionToPill = (regionLabel) => {
   const r = `${regionLabel || ''}`;
@@ -565,7 +582,7 @@ const PosterImage = ({ src, onClick, alt = "파티 포스터" }) => {
   );
 };
 
-const PartyCard = ({ item, onSelect }) => {
+const PartyCard = ({ item, onSelect, wishlistParties, onToggleWishlist }) => {
   const isTimeLive = (() => {
     const now = new Date();
     const d = new Date();
@@ -622,8 +639,13 @@ const PartyCard = ({ item, onSelect }) => {
       className="party-carousel-card"
       {...partyCardZoomHandlers}
       onClick={() => onSelect(item)}
-      style={{ display: 'flex', flexDirection: 'row', alignItems: 'stretch', backgroundColor: 'var(--color-card)', borderRadius: '16px', overflow: 'hidden', border: '1px solid var(--color-border)', cursor: 'pointer', height: '150px', marginBottom: '12px', ...partyCardZoomBaseStyle }}
+      style={{ display: 'flex', flexDirection: 'row', alignItems: 'stretch', backgroundColor: 'var(--color-card)', borderRadius: '16px', overflow: 'hidden', border: '1px solid var(--color-border)', cursor: 'pointer', height: '150px', marginBottom: '12px', position: 'relative', ...partyCardZoomBaseStyle }}
     >
+      <PartyWishlistHeart
+        party={item}
+        wishlistParties={wishlistParties}
+        onToggle={onToggleWishlist}
+      />
       <div style={{ width: '100px', flexShrink: 0 }}>
         <img src={item.poster_url} style={{ width: '100%', height: '100%', objectFit: 'cover' }} alt="Poster" />
       </div>
@@ -932,6 +954,8 @@ const HomePage = ({
   showLatinModal, setShowLatinModal, setShowSaju, setShowWishlist, latinCat, setLatinCat, selPatternId, setSelPatternId, regionalTheme, recordTraffic, IncheonBanner, venueCounts, openAnalysis,
   showGridModal, setShowGridModal, gridRegion, setGridRegion, filterStep, setFilterStep,
   handleOpenModal, handleCloseModal,
+  isDetailView = false,
+  enterPosterDetailView,
   isDark, setIsDark, followedInstructors, likedLivePicks, setShowRentalModal, setShowPartner,
   LiveExposureStrip,
   homeTab = null,
@@ -951,6 +975,61 @@ const HomePage = ({
   const [bootcampIdx, setBootcampIdx] = useState(0);
   const [festivalIdx, setFestivalIdx] = useState(0);
   const [activePosterSlot, setActivePosterSlot] = useState('social');
+  const [socialBarViewDay, setSocialBarViewDay] = useState(() => getKSTCalendarTodayStr());
+  const [socialBarViewMap, setSocialBarViewMap] = useState<Record<string, number>>(() => {
+    try {
+      const today = getKSTCalendarTodayStr();
+      const raw = localStorage.getItem('social_bar_realtime_views') || '{}';
+      const parsed = JSON.parse(raw);
+      // v2: { date: 'YYYY-MM-DD', views: { [barId]: count } }
+      if (parsed?.date && parsed?.views && typeof parsed.views === 'object') {
+        return parsed.date === today ? parsed.views : {};
+      }
+      // v1 호환: { [barId]: count }
+      if (parsed && typeof parsed === 'object') return parsed;
+      return {};
+    } catch {
+      return {};
+    }
+  });
+
+  const upsertBarViewCount = useCallback((barId: string | number, delta = 1) => {
+    if (barId == null) return;
+    const key = String(barId);
+    const today = getKSTCalendarTodayStr();
+    setSocialBarViewMap((prev) => {
+      const base = socialBarViewDay === today ? prev : {};
+      const next = { ...base, [key]: Math.max(0, Number(base[key] || 0) + delta) };
+      setSocialBarViewDay(today);
+      try {
+        localStorage.setItem(
+          'social_bar_realtime_views',
+          JSON.stringify({ date: today, views: next }),
+        );
+      } catch {}
+      return next;
+    });
+  }, [socialBarViewDay]);
+
+  useEffect(() => {
+    const syncDailyReset = () => {
+      const today = getKSTCalendarTodayStr();
+      if (today === socialBarViewDay) return;
+      setSocialBarViewDay(today);
+      setSocialBarViewMap({});
+      try {
+        localStorage.setItem(
+          'social_bar_realtime_views',
+          JSON.stringify({ date: today, views: {} }),
+        );
+      } catch {}
+    };
+
+    // 자정(00:00) 이후 즉시 반영되도록 주기 체크
+    const id = window.setInterval(syncDailyReset, 15000);
+    syncDailyReset();
+    return () => clearInterval(id);
+  }, [socialBarViewDay]);
 
   const navigateAppPath = (path) => navigate(path);
 
@@ -1066,52 +1145,17 @@ const HomePage = ({
   const openPartyWithAfterParty = (item) => {
     const p = posterSharePayload(item);
     if (!p) return;
-    handleOpenModal(setSelectedPoster, p);
+    if (enterPosterDetailView) {
+      enterPosterDetailView(p);
+    } else {
+      handleOpenModal(setSelectedPoster, p);
+    }
   };
 
   const [isPaused, setIsPaused] = useState(false);
   const [myInstructorsOpen, setMyInstructorsOpen] = useState(false);
 
-  // [사용자 요청] 파티 카드 찜하기 상태 및 토글 핸들러
-  const [wishlistParties, setWishlistParties] = useState(() => {
-    try {
-      const str = localStorage.getItem('wishlist_parties') || localStorage.getItem('liked_ids') || '[]';
-      const parsed = JSON.parse(str);
-      return Array.isArray(parsed) ? parsed : [];
-    } catch (e) {
-      return [];
-    }
-  });
-
-  const toggleWishlistParty = (e: React.MouseEvent, partyObj: any) => {
-    e.stopPropagation(); // 카드 클릭 시 열리는 포스터 상세 모달 이벤트 차단
-    if (!partyObj || !partyObj.id) return;
-
-    setWishlistParties(prev => {
-      const isAlreadyWishlisted = prev.some(item => {
-        if (typeof item === 'object' && item !== null) return item.id === partyObj.id;
-        return item === partyObj.id;
-      });
-
-      let nextList;
-      if (isAlreadyWishlisted) {
-        nextList = prev.filter(item => {
-          if (typeof item === 'object' && item !== null) return item.id !== partyObj.id;
-          return item !== partyObj.id;
-        });
-      } else {
-        nextList = [...prev, partyObj];
-      }
-
-      try {
-        localStorage.setItem('wishlist_parties', JSON.stringify(nextList));
-        if (localStorage.getItem('liked_ids')) localStorage.setItem('liked_ids', JSON.stringify(nextList));
-        if (localStorage.getItem('liked_parties')) localStorage.setItem('liked_parties', JSON.stringify(nextList));
-      } catch (err) {}
-
-      return nextList;
-    });
-  };
+  const { wishlistParties, toggleWishlistParty } = usePartyWishlist(parties || []);
 
   const [classGenre, setClassGenre] = useState('전체');
   const [classLevel, setClassLevel] = useState('전체');
@@ -1367,6 +1411,15 @@ const HomePage = ({
   const sortBarsByRichness = (bars) =>
     [...bars].sort((a, b) => scoreBarForPreview(b) - scoreBarForPreview(a));
 
+  /** Social BAR: 지정 4곳 순서 우선, 나머지는 풍부도 점수 */
+  const sortBarsForSocialBar = (bars) =>
+    [...bars].sort((a, b) => {
+      const rankA = getSocialBarDisplayRank(a);
+      const rankB = getSocialBarDisplayRank(b);
+      if (rankA !== rankB) return rankA - rankB;
+      return scoreBarForPreview(b) - scoreBarForPreview(a);
+    });
+
   const barRegionCounts = useMemo(() => {
     const counts = Object.fromEntries(HOME_REGIONS_ORDER.map((r) => [r, 0]));
     locations.forEach((bar) => {
@@ -1387,6 +1440,8 @@ const HomePage = ({
   }, [locations, barStatsMap]);
 
   const openVenueDetail = (bar) => {
+    // 실제 유저 포스터 클릭 즉시 +1
+    upsertBarViewCount(bar?.id, 1);
     setSelectedVenue(bar);
     pushOverlay('venue', {
       meta: { venueId: String(bar.id), venueName: bar.name || '' },
@@ -1422,6 +1477,15 @@ const HomePage = ({
     return () => window.removeEventListener('bamppa-history', onHistory);
   }, [locations]);
 
+  useEffect(() => {
+    // 상세 체류 중 2분마다 +1 누적
+    if (!selectedVenue?.id) return undefined;
+    const timer = window.setInterval(() => {
+      upsertBarViewCount(selectedVenue.id, 1);
+    }, 2 * 60 * 1000);
+    return () => clearInterval(timer);
+  }, [selectedVenue?.id, upsertBarViewCount]);
+
   const renderBarCard = (bar) => {
     const stats = barStatsByKey[getBarStatsKey(bar)] || { liveCount: 0, clickCount: 0 };
     const counter = buildBarCounterDisplay(stats);
@@ -1429,8 +1493,6 @@ const HomePage = ({
     const lineClass = showCounter
       ? (counter.mode === 'live_hot' ? 'home-bar-chip-line--hot' : 'home-bar-chip-line--muted')
       : 'home-bar-chip-line';
-    const lineText = showCounter ? counter.line : (bar.name || '이름 없음');
-
     return (
       <motion.button
         key={bar.id}
@@ -1440,16 +1502,21 @@ const HomePage = ({
         onClick={() => openVenueDetail(bar)}
         whileTap={{ scale: 0.97 }}
       >
-        <span className="home-bar-thumb" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        <SocialBarChipMeter viewCount={socialBarViewMap[String(bar.id)] || 0}>
           {bar.image_url ? (
             <img src={bar.image_url} alt="" onError={imgFallbackHandler(DEFAULT_CARD_IMAGE)} />
           ) : (
             <img src="/logo.png" alt="" style={{ width: '40%', height: '40%', objectFit: 'contain', opacity: 0.85 }} />
           )}
-        </span>
-        <p className={`home-bar-chip-line ${lineClass}`} title={lineText}>
-          {showCounter ? `${bar.name || 'BAR'} · ${counter.line}` : lineText}
+        </SocialBarChipMeter>
+        <p className="social-bar-name-label home-bar-chip-name" title={bar.name || '이름 없음'}>
+          {bar.name || '이름 없음'}
         </p>
+        {showCounter ? (
+          <p className={`home-bar-chip-line ${lineClass}`} title={counter.line}>
+            {counter.line}
+          </p>
+        ) : null}
       </motion.button>
     );
   };
@@ -1682,7 +1749,8 @@ const HomePage = ({
   const QUICK_MENU_ICON_SIZE = 22;
   const QUICK_MENU_STROKE = 1.5;
   const quickMenuIconColor = homeUi.quickIcon;
-  const QUICK_MENU_PRIMARY_IDS = ['party-register', 'class-register', 'concierge', 'calendar', 'language'];
+  /** Primary 슬롯: 예전 단독 패널 home-live-ad-panel · aria-label «LIVE 광고» 가 퀵+LIVE 허브로 합쳐진 뒤 접근용 항목 복구 */
+  const QUICK_MENU_PRIMARY_IDS = ['party-register', 'class-register', 'concierge', 'calendar', 'live-realtime-ad', 'language'];
 
   const quickMenuIcon = (Icon) => (
     <Icon size={QUICK_MENU_ICON_SIZE} strokeWidth={QUICK_MENU_STROKE} color={quickMenuIconColor} aria-hidden />
@@ -1691,12 +1759,23 @@ const HomePage = ({
   /** 메인 노출·등록 우선 — Lucide 단색·동일 stroke */
   const quickMenuItems = useMemo(() => [
     { id: 'party-register', icon: Music, label: '파티등록', particles: '🎉', action: () => handleRegister('party') },
-    { id: 'class-register', icon: User, label: '클래스등록', particles: '📚', action: () => window.dispatchEvent(new CustomEvent('open-vip-class-register')) },
+    { id: 'class-register', icon: User, label: '클래스등록', particles: '📚', action: () => handleRegister('class') },
     { id: 'concierge', icon: MessageSquare, label: '컨시어지', particles: '✨', action: () => window.dispatchEvent(new CustomEvent('open-chatbot')) },
     { id: 'livepick', icon: Camera, label: '라이브픽', particles: '📸', action: () => navigate('/livepick') },
+    {
+      id: 'live-realtime-ad',
+      icon: Radio,
+      label: isEn ? 'Live ads' : 'LIVE 실시간 광고',
+      particles: '🔴',
+      action: () => {
+        window.requestAnimationFrame(() => {
+          document.getElementById('home-live-ad-anchor')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        });
+      },
+    },
     { id: 'wishlist', icon: Heart, label: '찜하기', particles: '❤️', action: () => setShowWishlist(true) },
     { id: 'chat', icon: MessageSquare, label: '채팅문의', particles: '💬', action: () => window.open('https://open.kakao.com/o/gP43rNri', '_blank') },
-    { id: 'saju', icon: Star, label: '운명의좌표', particles: '🌟', action: () => setShowSaju(true) },
+    { id: 'bar-matching', icon: Star, label: 'BAR매칭', particles: '🌟', action: () => setShowSaju(true) },
     { id: 'restaurant', icon: Utensils, label: '맛집뒷풀이', particles: '🍽', action: () => navigate('/restaurant') },
     { id: 'weather', icon: CloudSun, label: '오늘날씨', particles: '☀️', action: () => setShowWeather(true) },
     { id: 'route', icon: Navigation, label: '지능형경로', particles: '🧭', action: () => openAnalysis(false) },
@@ -1878,7 +1957,7 @@ const HomePage = ({
       <div className="home-quick-live-hub__quick">
         <div className="home-quick-menu-block">{renderHomeQuickMenuInner()}</div>
       </div>
-      <div className="home-quick-live-hub__live">{renderHomeLiveAdRow(true)}</div>
+      <div id="home-live-ad-anchor" className="home-quick-live-hub__live">{renderHomeLiveAdRow(true)}</div>
     </section>
   );
   const renderHomeLiveAdRow = (inPanel = false) => (
@@ -2152,6 +2231,12 @@ const HomePage = ({
 
       {activeTab === null && (
         <motion.div className="home-main-stack" style={{ padding: '0 16px' }}>
+          {renderHomeQuickLiveHub()}
+
+          <motion.div className="home-section-break" aria-hidden>
+            <hr className="home-section-break__line" />
+          </motion.div>
+
           <section
             className="home-depth-panel home-featured-panel"
             style={{
@@ -2173,10 +2258,92 @@ const HomePage = ({
             <hr className="home-section-break__line" />
           </motion.div>
 
-          {renderHomeQuickLiveHub()}
+          <motion.div className="home-social-bar-wrap" style={{ marginTop: 0, marginBottom: 0 }}>
+            <section
+              ref={barSectionRef}
+              className="home-depth-panel"
+              style={{ ...homeDepthPanelStyle, marginTop: 0, display: 'flex', flexDirection: 'column' }}
+            >
+              {renderHomeSectionHeader(
+                isHomeGate ? (
+                  <>
+                    <span>Social </span>
+                    <span style={{ color: homeUi.gold }}>BAR</span>
+                  </>
+                ) : 'Social BAR',
+                '만원의 행복공간',
+                <button
+                  type="button"
+                  className="home-section-action"
+                  onClick={() => {
+                    setShowBarRegisterForm(true);
+                    pushOverlay('barRegister');
+                  }}
+                >
+                  <Plus size={12} strokeWidth={2.5} />
+                  공간 등록
+                </button>,
+                isHomeGate ? { color: homeUi.barSubtitle, fontWeight: 600 } : null,
+              )}
+              <motion.div className="home-region-tabs">
+                {HOME_REGIONS_ORDER.filter((tab) => locations.some((b) => b.region === tab)).map((tab) => {
+                  const isSelected = selectedRegionTab === tab;
 
-          <motion.div className="home-section-break" aria-hidden>
-            <hr className="home-section-break__line" />
+                  return (
+                    <button
+                      key={tab}
+                      type="button"
+                      className={`home-region-pill${isSelected ? ' is-selected' : ''}`}
+                      onClick={() => setSelectedRegionTab(tab)}
+                    >
+                      {tab}
+                      <span className="home-region-pill-count" aria-label={`${barRegionCounts[tab] ?? 0}곳`}>
+                        {barRegionCounts[tab] ?? 0}
+                      </span>
+                    </button>
+                  );
+                })}
+              </motion.div>
+
+              <motion.div className="home-social-bar-outer">
+                {locationsLoading ? (
+                  <motion.div style={{ padding: '60px 20px', textAlign: 'center', color: '#94A3B8', fontWeight: 700 }}>
+                    전국 BAR 정보를 정렬하는 중...
+                  </motion.div>
+                ) : (
+                  (() => {
+                    const filteredBars = locations.filter((bar) => bar.region === selectedRegionTab);
+
+                    if (filteredBars.length === 0) {
+                      return (
+                        <motion.div style={{ padding: '40px 20px', textAlign: 'center', color: '#94A3B8', fontSize: '13px', fontWeight: 600 }}>
+                          해당 지역에 등록된 Social BAR가 없습니다.
+                        </motion.div>
+                      );
+                    }
+
+                    return (
+                      <motion.div
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        key={selectedRegionTab}
+                        className="home-social-bar-fade"
+                      >
+                        <div
+                          className="home-social-bar-scroll scrollbar-hide"
+                          role="list"
+                          aria-label={isEn ? `Social BAR in ${selectedRegionTab}` : `${selectedRegionTab} Social BAR`}
+                        >
+                          <div className="home-social-bar-track">
+                            {sortBarsForSocialBar(filteredBars).map((bar) => renderBarCard(bar))}
+                          </div>
+                        </div>
+                      </motion.div>
+                    );
+                  })()
+                )}
+              </motion.div>
+            </section>
           </motion.div>
         </motion.div>
       )}
@@ -2288,104 +2455,7 @@ const HomePage = ({
         .home-gate-active .quick-menu-more-wrap::after {
           background: linear-gradient(to right, rgba(13, 13, 13, 0), #0d0d0d 90%);
         }
-        .social-bar-name-label {
-          font-weight: 900;
-        }
-        .home-gate-active .social-bar-name-label {
-          color: #FFFFFF;
-          text-shadow: 0 1px 4px rgba(0, 0, 0, 0.8);
-        }
       `}</style>
-      {activeTab === null && (
-        <motion.div className="home-social-bar-wrap" style={{ padding: '0 16px', marginTop: 0, marginBottom: homeSectionSpace }}>
-        <section
-          ref={barSectionRef}
-          className="home-depth-panel"
-          style={{ ...homeDepthPanelStyle, marginTop: 0, display: 'flex', flexDirection: 'column' }}
-        >
-          {renderHomeSectionHeader(
-            isHomeGate ? (
-              <>
-                <span>Social </span>
-                <span style={{ color: homeUi.gold }}>BAR</span>
-              </>
-            ) : 'Social BAR',
-            '만원의 행복공간',
-            <button
-              type="button"
-              className="home-section-action"
-              onClick={() => {
-                setShowBarRegisterForm(true);
-                pushOverlay('barRegister');
-              }}
-            >
-              <Plus size={12} strokeWidth={2.5} />
-              공간 등록
-            </button>,
-            isHomeGate ? { color: homeUi.barSubtitle, fontWeight: 600 } : null,
-          )}
-          <motion.div className="home-region-tabs">
-            {HOME_REGIONS_ORDER.filter((tab) => locations.some((b) => b.region === tab)).map((tab) => {
-              const isSelected = selectedRegionTab === tab;
-
-              return (
-                <button
-                  key={tab}
-                  type="button"
-                  className={`home-region-pill${isSelected ? ' is-selected' : ''}`}
-                  onClick={() => setSelectedRegionTab(tab)}
-                >
-                  {tab}
-                  <span className="home-region-pill-count" aria-label={`${barRegionCounts[tab] ?? 0}곳`}>
-                    {barRegionCounts[tab] ?? 0}
-                  </span>
-                </button>
-              );
-            })}
-          </motion.div>
-
-          <motion.div className="home-social-bar-outer">
-            {locationsLoading ? (
-              <div style={{ padding: '60px 20px', textAlign: 'center', color: '#94A3B8', fontWeight: 700 }}>
-                전국 BAR 정보를 정렬하는 중...
-              </div>
-            ) : (
-              (() => {
-                const filteredBars = locations.filter((bar) => bar.region === selectedRegionTab);
-
-                if (filteredBars.length === 0) {
-                  return (
-                    <div style={{ padding: '40px 20px', textAlign: 'center', color: '#94A3B8', fontSize: '13px', fontWeight: 600 }}>
-                      해당 지역에 등록된 Social BAR가 없습니다.
-                    </div>
-                  );
-                }
-
-
-                return (
-                  <motion.div
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    key={selectedRegionTab}
-                    className="home-social-bar-fade"
-                  >
-                    <div
-                      className="home-social-bar-scroll scrollbar-hide"
-                      role="list"
-                      aria-label={isEn ? `Social BAR in ${selectedRegionTab}` : `${selectedRegionTab} Social BAR`}
-                    >
-                      <div className="home-social-bar-track">
-                        {sortBarsByRichness(filteredBars).map((bar) => renderBarCard(bar))}
-                      </div>
-                    </div>
-                  </motion.div>
-                );
-              })()
-            )}
-          </motion.div>
-        </section>
-        </motion.div>
-      )}
 
         {/*
         <p style={homePartnerSectionTitleStyle}>파트너 &amp; 강사</p>
@@ -2410,7 +2480,7 @@ const HomePage = ({
             { icon: <Users size={32} strokeWidth={1.2} color="#C9A84C" />, label: '강사찾기', particles: '🕺', action: () => { localStorage.setItem('instructor_target_genre', '전체'); setView('instructors'); window.history.pushState({}, '', '/instructors'); window.dispatchEvent(new PopStateEvent('popstate')); setTimeout(() => { window.dispatchEvent(new CustomEvent('apply-instructor-filter')); }, 300); } },
             { textIcon: '1:1', label: '채팅문의', particles: '💬', action: () => window.open('https://open.kakao.com/o/gP43rNri', '_blank') },
             { icon: <MessageSquare size={32} strokeWidth={1.2} color="#C9A84C" />, label: '컨시어지', particles: '✨', action: () => window.dispatchEvent(new CustomEvent('open-chatbot')) },
-            { icon: <Star size={32} strokeWidth={1.2} color="#C9A84C" />, label: '운명의좌표', particles: '🌟', action: () => { window.history.pushState({}, '', '#saju'); setShowSaju(true); } },
+            { icon: <Star size={32} strokeWidth={1.2} color="#C9A84C" />, label: 'BAR매칭', particles: '🌟', action: () => { window.history.pushState({}, '', '#bar-matching'); setShowSaju(true); } },
             { icon: <Heart size={32} strokeWidth={1.2} color="#C9A84C" />, label: '찜하기', particles: '❤️', action: () => { window.history.pushState({}, '', '#wishlist'); setShowWishlist(true); } },
             { icon: <Utensils size={32} strokeWidth={1.2} color="#C9A84C" />, label: '맛집뒷풀이', particles: '🍽', action: () => { window.history.pushState({}, '', '#restaurant'); setView('restaurant'); } },
             { icon: <Camera size={32} strokeWidth={1.2} color="#C9A84C" />, label: '라이브픽', particles: '📸', action: () => { window.history.pushState({}, '', '#community'); setView('community'); } },
@@ -2451,8 +2521,8 @@ const HomePage = ({
       </div>
       */}
 
-      {activeTab === 'social' && (
-      <>
+      {activeTab === 'social' && !isDetailView && (
+      <div data-calendar-component style={{ width: '100%' }}>
       {/* 내 강사 섹션 — 메인 바탕화면 정리로 비활성
       {followedInstructors?.length > 0 && (
         <div style={{ padding: '0 12px 14px' }}>
@@ -2762,6 +2832,11 @@ const HomePage = ({
                                   ...partyCardZoomBaseStyle,
                                 }}
                               >
+                                <PartyWishlistHeart
+                                  party={item}
+                                  wishlistParties={wishlistParties}
+                                  onToggle={toggleWishlistParty}
+                                />
                                 <img src={item.poster_url} style={{ width: '100%', height: '100%', objectFit: 'cover' }} alt="Pick" />
                                 
                                 {/* NEW 뱃지 표시
@@ -2935,37 +3010,11 @@ const HomePage = ({
                                         boxSizing: 'border-box',
                                       }}
                                     >
-                                      {/* 파티 카드 우측 상단 찜하기 하트 버튼 */}
-                                      <button
-                                        type="button"
-                                        onTouchStart={(e) => e.stopPropagation()}
-                                        onClick={(e) => toggleWishlistParty(e, item)}
-                                        style={{
-                                          position: 'absolute',
-                                          top: '10px',
-                                          right: '10px',
-                                          background: 'rgba(255, 255, 255, 0.85)',
-                                          backdropFilter: 'blur(4px)',
-                                          border: 'none',
-                                          borderRadius: '50%',
-                                          width: '28px',
-                                          height: '28px',
-                                          display: 'flex',
-                                          alignItems: 'center',
-                                          justifyContent: 'center',
-                                          cursor: 'pointer',
-                                          zIndex: 10,
-                                          boxShadow: '0 2px 8px rgba(0,0,0,0.1)'
-                                        }}
-                                      >
-                                        {(() => {
-                                          const isWish = wishlistParties.some(w => {
-                                            if (typeof w === 'object' && w !== null) return w.id === item.id;
-                                            return w === item.id;
-                                          });
-                                          return <Heart size={15} color={isWish ? '#FF4081' : '#FFCDD2'} fill={isWish ? '#FF4081' : '#FFCDD2'} />;
-                                        })()}
-                                      </button>
+                                      <PartyWishlistHeart
+                                        party={item}
+                                        wishlistParties={wishlistParties}
+                                        onToggle={toggleWishlistParty}
+                                      />
 
                                       {/* 포스터 이미지: 왼쪽 고정, 크기 110px x 150px */}
                                       <div style={{ width: '110px', height: '150px', flexShrink: 0, background: '#000' }}>
@@ -3079,6 +3128,8 @@ const HomePage = ({
                       cleanTitle={cleanTitle}
                       translateDynamicText={translateDynamicText}
                       isEn={isEn}
+                      wishlistParties={wishlistParties}
+                      onToggleWishlist={toggleWishlistParty}
                     />
                   </>
                 );
@@ -3089,13 +3140,14 @@ const HomePage = ({
           )}
         </div>
       </div>
-      </>
+      </div>
       )}
 
       <AnimatePresence initial={false}>
-        {showFullCalendar && (
+        {showFullCalendar && !isDetailView && (
           <motion.div
             key="full-calendar-overlay"
+            data-calendar-component
             style={{ position: 'fixed', inset: 0, zIndex: Z.modalBackdrop }}
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
@@ -3353,7 +3405,7 @@ const HomePage = ({
                       { icon: <CloudSun size={32} color="#1976D2" />, label: '오늘날씨', action: () => setShowWeather(true) },
                       { icon: <Heart size={32} color="#7B1FA2" />, label: '찜하기', action: () => setShowWishlist(true) },
                       { icon: <Navigation size={32} color="#303F9F" />, label: '지능형경로', /* badge: 'LIVE', */ action: () => openAnalysis(false) },
-                      { icon: <Star size={32} color="#F9A825" />, label: '운명의좌표', action: () => setShowSaju(true) },
+                      { icon: <Star size={32} color="#F9A825" />, label: 'BAR매칭', action: () => setShowSaju(true) },
                       { icon: <MapPin size={32} color="#0097A7" />, label: '주변주차', action: () => setView('parking') },
                     ].map((item, idx) => (
                       <div key={idx} style={{ position: 'relative' }}>
@@ -3409,6 +3461,11 @@ const HomePage = ({
                           onClick={() => openPartyWithAfterParty(item)}
                           style={{ aspectRatio: '1 / 1.4', overflow: 'hidden', background: 'var(--color-card)', position: 'relative', ...partyCardZoomBaseStyle }}
                         >
+                          <PartyWishlistHeart
+                            party={item}
+                            wishlistParties={wishlistParties}
+                            onToggle={toggleWishlistParty}
+                          />
                           <img
                             src={item.poster_url}
                             alt="Poster"
@@ -3524,7 +3581,9 @@ const HomePage = ({
           onVenueUpdated={(updated) => setSelectedVenue(updated)}
           onOpenPoster={(item) => {
             const p = posterSharePayload(item);
-            if (p) handleOpenModal(setSelectedPoster, p);
+            if (!p) return;
+            if (enterPosterDetailView) enterPosterDetailView(p);
+            else handleOpenModal(setSelectedPoster, p);
           }}
         />
       )}
