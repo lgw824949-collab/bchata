@@ -15,31 +15,35 @@ import {
   stripPlatformSuffixFromTitle,
 } from '../lib/partiesQuery'
 
-const SPOTLIGHT_ROTATE_MS = 12000
-const LIVE_PROMO_PATH = '#community'
+const SPOTLIGHT_ROTATE_MS = 5000
+const LIVE_QUEUE_REFRESH_MS = 10 * 60 * 1000
+const LIVE_WINDOW_MS = 24 * 60 * 60 * 1000
 
-/** ???????? ?? ?? ?? ?? (updated_at ?? ? DB ?? ??? ??) */
-function getPartyActivityScore(p) {
+function getRecentActivityTs(p) {
+  const ts = new Date(p.updated_at || p.created_at || 0).getTime()
+  return Number.isFinite(ts) ? ts : 0
+}
+
+function getLiveViewScore(p) {
   const clicks = Number(p.click_count) || 0
   const views = Number(p.view_count) || 0
-  const createdMs = new Date(p.created_at || 0).getTime() || 0
-  return clicks * 100 + views * 40 + createdMs / 1e7
+  return Math.max(clicks, views)
 }
 
 function pickSpotlightPool(list, todayStr, yesterdayStr, isNowInPartyTime) {
-  const rows = (list || []).filter(isApprovedParty)
+  const rows = (list || [])
+    .filter(isApprovedParty)
+    .filter((p) => String(p.poster_url || p.imageUrl || '').trim())
+    .filter((p) => String(p.date || '').slice(0, 10) === todayStr)
+    .filter((p) => getRecentActivityTs(p) >= Date.now() - LIVE_WINDOW_MS)
   if (!rows.length) return []
-
-  const dated = rows.filter((p) => {
-    const d = String(p.date || '').slice(0, 10)
-    return d === todayStr || d === yesterdayStr
-  })
-  const pool = dated.length ? dated : rows
-
-  const liveNow = pool.filter((p) => isNowInPartyTime(p.date, p.time))
-  const ranked = (liveNow.length ? liveNow : pool)
+  const ranked = rows
     .slice()
-    .sort((a, b) => getPartyActivityScore(b) - getPartyActivityScore(a))
+    .sort((a, b) => {
+      const scoreGap = getLiveViewScore(b) - getLiveViewScore(a)
+      if (scoreGap !== 0) return scoreGap
+      return getRecentActivityTs(b) - getRecentActivityTs(a)
+    })
 
   const seen = new Set()
   const unique = []
@@ -63,25 +67,9 @@ const LiveCount = ({ parties: partiesProp, onPartyClick, onPromoClick, isGate = 
 
   const isEn = i18n.language.startsWith('en')
   const spotlight = spotlightPool[poolIndex] || spotlightPool[0] || null
+  const hasLiveQueue = spotlightPool.length > 0
 
-  const liveMessages = useMemo(() => [
-    t('live_msg_1'), t('live_msg_2'), t('live_msg_3'), t('live_msg_4'), t('live_msg_5'),
-    t('live_msg_6'), t('live_msg_7'), t('live_msg_8'), t('live_msg_9'), t('live_msg_10'),
-    t('live_msg_11'), t('live_msg_12'), t('live_msg_13'), t('live_msg_14'), t('live_msg_15'),
-  ], [t])
-
-  const getTodayKST = () => {
-    const kst = new Date(Date.now() + (9 * 60 * 60 * 1000))
-    if (kst.getHours() < 5) kst.setDate(kst.getDate() - 1)
-    return kst.toISOString().split('T')[0]
-  }
-
-  const getYesterdayKST = () => {
-    const kst = new Date(Date.now() + (9 * 60 * 60 * 1000))
-    if (kst.getHours() < 5) kst.setDate(kst.getDate() - 2)
-    else kst.setDate(kst.getDate() - 1)
-    return kst.toISOString().split('T')[0]
-  }
+  const liveMessages = useMemo(() => [], [])
 
   const isNowInPartyTime = useCallback((dateStr, startTime) => {
     if (!dateStr || !startTime) return false
@@ -94,21 +82,41 @@ const LiveCount = ({ parties: partiesProp, onPartyClick, onPromoClick, isGate = 
     return now >= startWithBuffer && now <= end
   }, [])
 
+  const getTodayKST = () => {
+    const kst = new Date(Date.now() + (9 * 60 * 60 * 1000))
+    if (kst.getHours() < 5) kst.setDate(kst.getDate() - 1)
+    return kst.toISOString().split('T')[0]
+  }
+
+  const getLiveBannerData = useCallback((list, todayStr) => {
+    const queue = pickSpotlightPool(list, todayStr, '', isNowInPartyTime)
+    console.log('[LiveBanner] queue check', {
+      todayStr,
+      totalInput: Array.isArray(list) ? list.length : 0,
+      queueCount: queue.length,
+      queueIds: queue.map((p) => p.id),
+    })
+    return queue
+  }, [isNowInPartyTime])
+
   const applySpotlightPool = useCallback((list) => {
     const todayStr = getTodayKST()
-    const yesterdayStr = getYesterdayKST()
-    const pool = pickSpotlightPool(list, todayStr, yesterdayStr, isNowInPartyTime)
+    const pool = getLiveBannerData(list, todayStr)
     setSpotlightPool(pool)
     setPoolIndex(0)
-  }, [isNowInPartyTime])
+  }, [getLiveBannerData])
 
   const fetchCounts = async () => {
     if (!supabase) return
     const todayStr = getTodayKST()
-    const yesterdayStr = getYesterdayKST()
     try {
       const [partiesRes, locationsRes] = await Promise.all([
-        supabase.from('parties').select(PARTIES_SELECT).in('date', [todayStr, yesterdayStr]),
+        supabase
+          .from('parties')
+          .select(PARTIES_SELECT)
+          .eq('status', 'approved')
+          .eq('date', todayStr)
+          .not('poster_url', 'is', null),
         supabase.from('locations').select(LOCATIONS_WITH_REGION_NAME),
       ])
 
@@ -126,7 +134,7 @@ const LiveCount = ({ parties: partiesProp, onPartyClick, onPromoClick, isGate = 
 
       if (!parties || parties.length === 0) {
         setCounts({})
-        applySpotlightPool(partiesProp || [])
+        applySpotlightPool([])
         return
       }
 
@@ -141,7 +149,10 @@ const LiveCount = ({ parties: partiesProp, onPartyClick, onPromoClick, isGate = 
         return acc
       }, {})
 
-      const liveParties = parties.filter((p) => isNowInPartyTime(p.date, p.time))
+      const liveParties = parties.filter((p) => {
+        if (!isNowInPartyTime(p.date, p.time)) return false
+        return getRecentActivityTs(p) >= Date.now() - LIVE_WINDOW_MS
+      })
       if (liveParties.length === 0) {
         setCounts({})
         return
@@ -165,13 +176,13 @@ const LiveCount = ({ parties: partiesProp, onPartyClick, onPromoClick, isGate = 
   const fetchSpotlightFromDb = async () => {
     if (!supabase) return
     const todayStr = getTodayKST()
-    const yesterdayStr = getYesterdayKST()
     try {
       let partiesRes = await supabase
         .from('parties')
         .select(PARTIES_WITH_LOCATION)
         .eq('status', 'approved')
-        .in('date', [todayStr, yesterdayStr])
+        .eq('date', todayStr)
+        .not('poster_url', 'is', null)
         .limit(40)
 
       if (partiesRes.error) {
@@ -180,7 +191,8 @@ const LiveCount = ({ parties: partiesProp, onPartyClick, onPromoClick, isGate = 
           .from('parties')
           .select(PARTIES_SELECT)
           .eq('status', 'approved')
-          .in('date', [todayStr, yesterdayStr])
+          .eq('date', todayStr)
+          .not('poster_url', 'is', null)
           .limit(40)
       }
 
@@ -198,18 +210,23 @@ const LiveCount = ({ parties: partiesProp, onPartyClick, onPromoClick, isGate = 
   useEffect(() => {
     if (!partiesProp?.length) return
     const todayStr = getTodayKST()
-    const yesterdayStr = getYesterdayKST()
-    const pool = pickSpotlightPool(partiesProp, todayStr, yesterdayStr, isNowInPartyTime)
+    const pool = getLiveBannerData(partiesProp, todayStr)
     if (pool.length) {
       setSpotlightPool((prev) => (prev.length ? prev : pool))
     }
-  }, [partiesProp, isNowInPartyTime])
+  }, [partiesProp, getLiveBannerData])
 
   useEffect(() => {
     fetchCounts()
     fetchSpotlightFromDb()
+    const refreshTimer = setInterval(() => {
+      fetchCounts()
+      fetchSpotlightFromDb()
+    }, LIVE_QUEUE_REFRESH_MS)
 
-    if (!supabase) return undefined
+    if (!supabase) {
+      return () => clearInterval(refreshTimer)
+    }
 
     const channel = supabase
       .channel('live-dynamic-banner')
@@ -224,6 +241,7 @@ const LiveCount = ({ parties: partiesProp, onPartyClick, onPromoClick, isGate = 
       .subscribe()
 
     return () => {
+      clearInterval(refreshTimer)
       supabase.removeChannel(channel)
     }
   }, [])
@@ -298,44 +316,33 @@ const LiveCount = ({ parties: partiesProp, onPartyClick, onPromoClick, isGate = 
   }, [displayText, isTyping, currentIndex, regionalReports, spotlight])
 
   const dynamicBannerText = useMemo(() => {
-    if (!spotlight) return ''
+    if (!spotlight) return isEn ? 'No live posters today' : '??? ???? ????'
     const titleRaw = isEn && spotlight.title_en ? spotlight.title_en : spotlight.title
     const title = stripPlatformSuffixFromTitle(titleRaw)
-    const venue = spotlight.locationName || (isEn ? 'Tonight' : '\uc624\ub298\uc758 \ud30c\ud2f0')
-    const engagement = (Number(spotlight.click_count) || 0) + (Number(spotlight.view_count) || 0)
-    if (engagement > 0) {
-      return isEn
-        ? `\ud83d\udd25 ${title} \u00b7 ${venue} \u00b7 ${engagement} views`
-        : `\ud83d\udd25 ${title} \u00b7 ${venue} \u00b7 \uc2e4\uc2dc\uac04 ${engagement}\ud68c`
-    }
-    return isEn
-      ? `\u26a1 Now \u00b7 ${title} \u00b7 ${venue}`
-      : `\u26a1 \uc9c0\uae08 \uc8fc\ubaa9 \u00b7 ${title} \u00b7 ${venue}`
-  }, [spotlight, isEn])
+    const rank = poolIndex + 1
+    return rank === 1 ? `?? ?? 1?! ${title}` : `? ?? ?? ?! ${title}`
+  }, [spotlight, poolIndex, isEn])
 
   const handleBannerClick = () => {
+    if (!hasLiveQueue) return
     const target = spotlightPool[poolIndex] || spotlight
     if (target && typeof onPartyClick === 'function') {
       onPartyClick(target)
       return
     }
-    if (typeof onPromoClick === 'function') {
-      onPromoClick()
-      return
-    }
-    if (window.location.hash !== LIVE_PROMO_PATH) {
-      window.history.pushState({}, '', LIVE_PROMO_PATH)
-    }
-    window.dispatchEvent(new PopStateEvent('popstate'))
   }
 
   const mainLine = spotlight ? dynamicBannerText : displayText
 
+  if (!hasLiveQueue) {
+    return null
+  }
+
   return (
     <div
       className={`live-dynamic-banner${isGate ? ' live-dynamic-banner--gate' : ''}`}
-      role="button"
-      tabIndex={0}
+      role={hasLiveQueue ? 'button' : 'status'}
+      tabIndex={hasLiveQueue ? 0 : -1}
       onClick={handleBannerClick}
       onKeyDown={(e) => {
         if (e.key === 'Enter' || e.key === ' ') {
@@ -343,7 +350,11 @@ const LiveCount = ({ parties: partiesProp, onPartyClick, onPromoClick, isGate = 
           handleBannerClick()
         }
       }}
-      aria-label={isEn ? 'Open live party or promotion' : '\uc2e4\uc2dc\uac04 \ud30c\ud2f0 \ub610\ub294 \ud504\ub85c\ubaa8\uc158 \ubcf4\uae30'}
+      aria-label={
+        hasLiveQueue
+          ? (isEn ? 'Open live party detail' : '??? ??? ?? ??')
+          : (isEn ? 'No live posters today' : '??? ???? ????')
+      }
     >
       <div className="live-dynamic-banner__inner">
         <span className="lc-tag">LIVE</span>
