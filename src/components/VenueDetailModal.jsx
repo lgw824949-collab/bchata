@@ -487,7 +487,6 @@ export default function VenueDetailModal({
   const [savingLinks, setSavingLinks] = useState(false);
   const [savingDescription, setSavingDescription] = useState(false);
   const [detailTab, setDetailTab] = useState('social');
-  const [latinClassScheduleCleared, setLatinClassScheduleCleared] = useState(false);
   const [fetchedLessons, setFetchedLessons] = useState([]);
   const [venueFavorited, setVenueFavorited] = useState(false);
   const { stats: venueBarStats } = useBarStatsRealtime(venue);
@@ -504,20 +503,17 @@ export default function VenueDetailModal({
     setVenueDescription((venue?.description || '').slice(0, VENUE_DESC_MAX));
     setShowLinkRegister(false);
     setDetailTab('social');
-    setLatinClassScheduleCleared(false);
   }, [venue?.id, venue?.kakao_url, venue?.instagram_url, venue?.description]);
 
-  const isLatinVenue = String(venue?.name || '').trim() === '라틴';
+  /** 강남턴·라틴 — 수업 탭 스케줄 비표시 (데이터 삭제·운영 정책) */
+  const isLessonsSuppressedVenue = useMemo(() => {
+    const n = String(venue?.name || '').trim();
+    return n === '라틴' || n.includes('강남턴') || n === '강턴';
+  }, [venue?.name]);
 
-  const handleDetailTabChange = useCallback(
-    (tab) => {
-      if (tab === 'lesson' && isLatinVenue) {
-        setLatinClassScheduleCleared(true);
-      }
-      setDetailTab(tab);
-    },
-    [isLatinVenue],
-  );
+  const handleDetailTabChange = useCallback((tab) => {
+    setDetailTab(tab);
+  }, []);
 
   useEffect(() => {
     if (!venue?.name) return;
@@ -576,11 +572,10 @@ export default function VenueDetailModal({
 
   const isSocialTab = detailTab === 'social';
 
-  /** 라틴 — 수업 탭 선택 시 달력·일정 수업 표기 비움 */
   const venueLessonsForDisplay = useMemo(() => {
-    if (isLatinVenue && latinClassScheduleCleared && !isSocialTab) return [];
+    if (isLessonsSuppressedVenue && !isSocialTab) return [];
     return venueLessons;
-  }, [isLatinVenue, latinClassScheduleCleared, isSocialTab, venueLessons]);
+  }, [isLessonsSuppressedVenue, isSocialTab, venueLessons]);
 
   const pickInitialSelectedDate = useCallback(() => {
     if (isSocialTab) {
@@ -594,9 +589,9 @@ export default function VenueDetailModal({
     if (future) return future;
     if (dates.length) return dates[dates.length - 1];
     return todayStr;
-  }, [isSocialTab, venueParties, venueLessons, todayStr]);
+  }, [isSocialTab, venueParties, venueLessonsForDisplay, todayStr]);
 
-  const activeItems = isSocialTab ? venueParties : venueLessons;
+  const activeItems = isSocialTab ? venueParties : venueLessonsForDisplay;
 
   const datesWithEvents = useMemo(() => {
     const set = new Set();
