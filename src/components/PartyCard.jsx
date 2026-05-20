@@ -152,8 +152,6 @@ const PartyCard = ({ item, onSelect, wishlistParties: wishlistProp, onToggleWish
           )}
         </div>
 
-        <PartyMusicRatioLine item={item} />
-
         <div style={{ fontSize: '16px', fontWeight: '900', color: 'var(--color-text-main)', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden', textOverflow: 'ellipsis', letterSpacing: '-0.8px', lineHeight: 1.2, marginTop: '4px' }}>
           {translateDynamicText(cleanTitleStr.replace(/^\[.*?\]\s*/, '').replace(/ㅣ\s*$/, '').trim(), isEn)}
         </div>
@@ -182,6 +180,7 @@ const PartyCard = ({ item, onSelect, wishlistParties: wishlistProp, onToggleWish
               🗺️
             </button>
           </div>
+          <PartyMusicRatioLine item={item} />
           <span style={{ fontSize: '15px', fontWeight: '900', color: '#E53935' }}>
             {displayFee}
           </span>

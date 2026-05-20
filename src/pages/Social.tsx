@@ -82,7 +82,7 @@ export function SocialDateGenreFilterBar({
   );
 }
 
-/** parties — music_ratio 없음, b/s/j/k_ratio 조합으로 B4:S2 형식 생성 */
+/** parties — music_ratio 없으면 b/s/j/k_ratio → B4:S2 */
 const PARTY_RATIO_SEGMENTS = [
   { key: 'b_ratio', label: 'B' },
   { key: 's_ratio', label: 'S' },
@@ -90,15 +90,55 @@ const PARTY_RATIO_SEGMENTS = [
   { key: 'j_ratio', label: 'J' },
 ] as const;
 
+const ratioSegmentValue = (v: unknown): number | null => {
+  const n = Number(v);
+  if (!Number.isFinite(n) || n <= 0) return null;
+  if (n > 0 && n < 1) return Math.round(n * 100);
+  return Math.round(n);
+};
+
+/** "B 4% · S 2%", "B4 S2", "B4:S2" → B4:S2 */
+const normalizeMusicRatioString = (raw: string): string | null => {
+  const compact = raw.trim().replace(/\s+/g, '');
+  if (/^[BSKJ]\d+(:[BSKJ]\d+)*$/i.test(compact)) {
+    return compact
+      .split(':')
+      .map((p) => p.replace(/^([bskj])/i, (m) => m.toUpperCase()))
+      .join(':');
+  }
+
+  const segments: string[] = [];
+  const re = /([BSKJ])\s*(\d+)\s*%?/gi;
+  let match = re.exec(raw);
+  while (match) {
+    segments.push(`${match[1].toUpperCase()}${match[2]}`);
+    match = re.exec(raw);
+  }
+  if (segments.length > 0) return segments.join(':');
+
+  const colonParts = raw
+    .split(/[·•|/]/)
+    .map((p) => p.trim().replace(/\s*%/g, '').replace(/\s+/g, ''))
+    .filter((p) => /^[BSKJ]\d+$/i.test(p));
+  if (colonParts.length > 0) {
+    return colonParts.map((p) => p.replace(/^([bskj])/i, (m) => m.toUpperCase())).join(':');
+  }
+
+  return null;
+};
+
 export function formatPartyMusicRatio(item: Record<string, unknown> | null | undefined): string | null {
   if (!item) return null;
 
   const raw = item.music_ratio ?? item.musicRatio;
-  if (typeof raw === 'string' && raw.trim()) return raw.trim();
+  if (typeof raw === 'string' && raw.trim()) {
+    const normalized = normalizeMusicRatioString(raw.trim());
+    if (normalized) return normalized;
+  }
 
   const parts = PARTY_RATIO_SEGMENTS.map(({ key, label }) => {
-    const v = Number(item[key]);
-    if (!Number.isFinite(v) || v <= 0) return null;
+    const v = ratioSegmentValue(item[key]);
+    if (v == null) return null;
     return `${label}${v}`;
   }).filter(Boolean) as string[];
 
@@ -111,27 +151,26 @@ type PartyMusicRatioLineProps = {
   className?: string;
 };
 
-/** 소셜 파티 카드 — 음악 비율 한 줄 (B4:S2), 데이터 없으면 null */
+/** 소셜 파티 카드 — 시간·장소 아래 B4:S2 한 줄, 데이터 없으면 null */
 export function PartyMusicRatioLine({ item, style, className }: PartyMusicRatioLineProps) {
   const text = formatPartyMusicRatio(item);
   if (!text) return null;
 
   return (
-    <div style={{ marginTop: '2px', ...style }} className={className}>
-      <span
-        style={{
-          fontSize: '10px',
-          fontWeight: 800,
-          color: '#D81B60',
-          background: '#FFF0F5',
-          padding: '1px 6px',
-          borderRadius: '10px',
-          flexShrink: 0,
-        }}
-      >
-        {text}
-      </span>
-    </div>
+    <p
+      className={className}
+      style={{
+        margin: '2px 0 0',
+        fontSize: '12px',
+        fontWeight: 800,
+        color: '#D81B60',
+        lineHeight: 1.3,
+        letterSpacing: '0.02em',
+        ...style,
+      }}
+    >
+      {text}
+    </p>
   );
 }
 

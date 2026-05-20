@@ -31,7 +31,7 @@ import bonitaPhoto from '../assets/bonita_photo.png'
 import buenaPhoto from '../assets/buena_photo.png'
 import hongturnPhoto from '../assets/hongturn_photo.png'
 import bibigoPhoto from '../assets/bibigo_photo.png'
-import { PartyMusicRatioLine, SocialDateGenreFilterBar } from './Social'
+import { PartyMusicRatioLine, SocialDateGenreFilterBar, formatPartyMusicRatio } from './Social'
 
 /** 메인 홈 지역 pill 순서 (표시 개수는 DB 분류 결과) */
 const HOME_REGIONS_ORDER = [
@@ -3357,10 +3357,6 @@ const HomePage = ({
                                           )}
                                         </div>
 
-                                        {item._itemGenre !== '부트캠프' && item._itemGenre !== '페스티벌'
-                                          ? renderPartyMusicRatioRow(item)
-                                          : null}
-
                                         {/* 2. 파티명 (굵게, 크게, 아래 여백 6px) */}
                                         <div style={{ fontSize: '18px', fontWeight: 'bold', color: '#1E293B', display: '-webkit-box', WebkitLineClamp: 1, WebkitBoxOrient: 'vertical', overflow: 'hidden', textOverflow: 'ellipsis', letterSpacing: '-0.5px', lineHeight: 1.2, marginTop: '2px', marginBottom: '6px' }}>
                                           {cleanTitle(item.title || '').replace(/^\[.*?\]\s*/, '').replace(/ㅣ\s*$/, '').trim()}
@@ -3418,6 +3414,10 @@ const HomePage = ({
                                             </span>
                                           </div>
                                         </div>
+
+                                        {item._itemGenre !== '부트캠프' && item._itemGenre !== '페스티벌'
+                                          ? renderPartyMusicRatioRow(item)
+                                          : null}
                                         </div>
 
                                       </div>
@@ -3786,9 +3786,14 @@ const HomePage = ({
                           {/* 고밀도 정보 오버레이 (음악/시간만!) */}
                           <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, padding: '10px 6px', background: 'linear-gradient(transparent, rgba(0,0,0,0.95))', color: '#fff', display: 'flex', flexDirection: 'column', gap: '3px' }}>
                             <div style={{ display: 'flex', gap: '3px', flexWrap: 'wrap' }}>
-                              <span style={{ background: '#FF1744', color: 'white', padding: '1px 4px', borderRadius: '3px', fontSize: '8px', fontWeight: 950 }}>
-                                {Object.entries(GENRE_MAP).filter(([_, info]) => item[info.key] > 0).map(([_, info]) => `${info.label}${item[info.key]}`).join(' ')}
-                              </span>
+                              {(() => {
+                                const ratioLine = formatPartyMusicRatio(item);
+                                return ratioLine ? (
+                                  <span style={{ background: '#FF1744', color: 'white', padding: '1px 4px', borderRadius: '3px', fontSize: '8px', fontWeight: 950 }}>
+                                    {ratioLine}
+                                  </span>
+                                ) : null;
+                              })()}
                               <span style={{ background: 'rgba(255,255,255,0.2)', padding: '1px 4px', borderRadius: '3px', fontSize: '8px', fontWeight: 950 }}>
                                 {item.time?.split('-')[0].trim() || '21:00'}
                               </span>
