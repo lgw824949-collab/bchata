@@ -2170,7 +2170,7 @@ const HomePage = ({
       {/* 📌 [영역 A: 히어로 / 메인 게이트] */}
       <motion.div style={{ padding: '20px 16px 0', marginBottom: homeSectionSpace - 4 }}>
         {activeTab === null && (
-        <motion.div style={{ display: 'flex', alignItems: 'center', gap: 14, marginBottom: 20 }}>
+        <motion.div className="home-hero-brand" style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 20 }}>
           <img
             src="/logo.png"
             alt="오늘밤빠 로고"
@@ -2196,8 +2196,8 @@ const HomePage = ({
             }}
             onError={(e) => { e.currentTarget.style.display = 'none' }}
           />
-          <motion.div style={{ flex: 1, minWidth: 0 }}>
-            <h1 className="home-type-display" style={{ color: homeUi.text, fontWeight: 900 }}>오늘 어디서 춤추실까요?</h1>
+          <motion.div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', gap: 2 }}>
+            <h1 className="home-type-display" style={{ color: homeUi.text, fontWeight: 900, margin: 0 }}>오늘 어디서 춤추실까요?</h1>
             <HomeHeroTagline />
           </motion.div>
         </motion.div>
@@ -2365,6 +2365,12 @@ const HomePage = ({
         }
         .home-gate-active .quick-menu-more-wrap::after {
           background: linear-gradient(to right, rgba(13, 13, 13, 0), #0d0d0d 90%);
+        }
+        .home-hero-brand .home-type-display {
+          margin: 0 !important;
+        }
+        .home-hero-brand .home-type-tagline {
+          margin: 0 !important;
         }
         .social-bar-name-label {
           font-weight: 900;
