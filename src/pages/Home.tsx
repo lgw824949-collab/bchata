@@ -1861,8 +1861,11 @@ const HomePage = ({
               height: 20px !important;
             }
 
-            /* LIVE 바 내부 요소 강제 레이아웃/스타일 최적화 */
-            .live-count-premium-wrapper > div {
+            /* LIVE 다이내믹 배너 — 내부 레이아웃 */
+            .live-count-premium-wrapper .live-dynamic-banner {
+              width: 100% !important;
+            }
+            .live-count-premium-wrapper .live-dynamic-banner__inner {
               height: 44px !important;
               padding: 0 14px !important;
               background: transparent !important;
@@ -1966,7 +1969,16 @@ const HomePage = ({
             }
             .home-party-register-outside__line { display: block; }
           `}</style>
-        <LiveCount />
+        <LiveCount
+          parties={parties}
+          isGate={isHomeGate}
+          onPartyClick={openPartyWithAfterParty}
+          onPromoClick={() => {
+            window.history.pushState({}, '', '#community');
+            setView('community');
+            window.dispatchEvent(new PopStateEvent('popstate'));
+          }}
+        />
       </motion.div>
       {activeTab === 'social' && (
         <button

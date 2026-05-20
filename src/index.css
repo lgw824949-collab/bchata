@@ -1867,6 +1867,179 @@ body.bottom-nav-social-light nav.bottom-nav {
   50% { opacity: 0.3; }
 }
 
+/* 메인 LIVE 다이내믹 배너 */
+.live-dynamic-banner {
+  position: relative;
+  display: block;
+  width: 100%;
+  padding: 2px;
+  border: none;
+  border-radius: 14px;
+  cursor: pointer;
+  background: linear-gradient(90deg, #e53935, #d4436e, #c9a84c, #e53935);
+  background-size: 300% 100%;
+  animation: live-banner-gradient 5s linear infinite;
+  box-sizing: border-box;
+  text-align: left;
+}
+
+.live-dynamic-banner--gate {
+  background: linear-gradient(90deg, #c9a84c, #fff3c4, #d4436e, #c9a84c);
+  background-size: 300% 100%;
+}
+
+.live-dynamic-banner__inner {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 44px;
+  padding: 0 14px;
+  border-radius: 12px;
+  background: #0f172a;
+  overflow: hidden;
+  box-sizing: border-box;
+}
+
+.live-dynamic-banner__content {
+  display: flex;
+  align-items: center;
+  flex: 1;
+  min-width: 0;
+  gap: 8px;
+  flex-wrap: nowrap;
+  overflow-x: auto;
+}
+
+.live-dynamic-banner__sep {
+  color: rgba(255, 255, 255, 0.28);
+  font-size: 10px;
+  flex-shrink: 0;
+}
+
+.live-dynamic-banner__region {
+  color: rgba(255, 255, 255, 0.72);
+  font-size: 11px;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.live-dynamic-banner__region strong {
+  color: #e53935;
+  font-weight: 900;
+}
+
+.live-dynamic-banner__spotlight {
+  color: rgba(255, 255, 255, 0.92);
+  font-size: 12px;
+  font-weight: 700;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  flex: 1;
+  min-width: 0;
+  animation: live-banner-text-in 0.45s ease-out;
+}
+
+.live-dynamic-banner__spotlight--solo {
+  flex: 1;
+  min-width: 0;
+  color: rgba(255, 255, 255, 0.55);
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.live-dynamic-banner .lc-tag {
+  background: #e53935;
+  color: #fff;
+  font-size: 9px;
+  font-weight: 900;
+  padding: 2px 7px;
+  border-radius: 3px;
+  letter-spacing: 2px;
+  flex-shrink: 0;
+}
+
+.live-dynamic-banner--gate .lc-tag {
+  background: #c9a84c;
+  color: #1a1a1a;
+}
+
+.live-dynamic-banner .lc-dot {
+  width: 5px;
+  height: 5px;
+  background: #e53935;
+  border-radius: 50%;
+  flex-shrink: 0;
+  animation: lc-blink 1s infinite;
+}
+
+.live-dynamic-banner--gate .lc-dot {
+  background: #c9a84c;
+}
+
+.live-dynamic-banner .lc-default--hot {
+  color: #fff;
+  font-size: 12px;
+  font-weight: 700;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.live-dynamic-banner .lc-lang {
+  display: flex;
+  margin-left: auto;
+  flex-shrink: 0;
+  align-items: center;
+  background: rgba(255, 255, 255, 0.2);
+  padding: 2px 4px;
+  border-radius: 6px;
+  gap: 2px;
+}
+
+.live-dynamic-banner .lc-lang-btn {
+  background: transparent;
+  border: none;
+  color: rgba(255, 255, 255, 0.75);
+  font-size: 9px;
+  font-weight: 800;
+  padding: 2px 6px;
+  cursor: pointer;
+  border-radius: 4px;
+}
+
+.live-dynamic-banner .lc-lang-btn.on {
+  background: #fff;
+  color: #d4436e;
+}
+
+.live-dynamic-banner--gate .lc-lang-btn.on {
+  background: #c9a84c;
+  color: #1a1a1a;
+}
+
+.live-dynamic-banner .lc-lang-divider {
+  display: none;
+}
+
+.live-count-premium-wrapper .live-dynamic-banner {
+  border-radius: 14px;
+}
+
+.live-count-premium-wrapper .live-dynamic-banner__inner {
+  height: 44px;
+  background: transparent;
+}
+
+@keyframes live-banner-gradient {
+  0% { background-position: 0% 50%; }
+  100% { background-position: 300% 50%; }
+}
+
+@keyframes live-banner-text-in {
+  from { opacity: 0; transform: translateX(6px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+
 /* LIVE PICK 2.0 Animations */
 @keyframes pulse-red {
   0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(229, 57, 53, 0.7); }

@@ -1,24 +1,73 @@
-import React, { useEffect, useState, useMemo } from 'react'
+import React, { useCallback, useEffect, useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { supabase } from '../lib/supabase'
+import { isApprovedParty } from '../lib/dateNorm'
 import {
   LOCATIONS_WITH_REGION_NAME,
   logSupabaseError,
   resolveLocationRegionLabel,
 } from '../lib/locationsQuery'
-import { PARTIES_SELECT, logPartiesFetchError } from '../lib/partiesQuery'
+import {
+  PARTIES_SELECT,
+  PARTIES_WITH_LOCATION,
+  enrichPartiesWithVenues,
+  logPartiesFetchError,
+  stripPlatformSuffixFromTitle,
+} from '../lib/partiesQuery'
 
-const LiveCount = () => {
+const SPOTLIGHT_ROTATE_MS = 12000
+const LIVE_PROMO_PATH = '#community'
+
+/** 조회·클릭·등록 시각 기반 활동 점수 (updated_at 없음 — DB 검증 컬럼만 사용) */
+function getPartyActivityScore(p) {
+  const clicks = Number(p.click_count) || 0
+  const views = Number(p.view_count) || 0
+  const createdMs = new Date(p.created_at || 0).getTime() || 0
+  return clicks * 100 + views * 40 + createdMs / 1e7
+}
+
+function pickSpotlightPool(list, todayStr, yesterdayStr, isNowInPartyTime) {
+  const rows = (list || []).filter(isApprovedParty)
+  if (!rows.length) return []
+
+  const dated = rows.filter((p) => {
+    const d = String(p.date || '').slice(0, 10)
+    return d === todayStr || d === yesterdayStr
+  })
+  const pool = dated.length ? dated : rows
+
+  const liveNow = pool.filter((p) => isNowInPartyTime(p.date, p.time))
+  const ranked = (liveNow.length ? liveNow : pool)
+    .slice()
+    .sort((a, b) => getPartyActivityScore(b) - getPartyActivityScore(a))
+
+  const seen = new Set()
+  const unique = []
+  for (const p of ranked) {
+    if (p?.id == null || seen.has(p.id)) continue
+    seen.add(p.id)
+    unique.push(p)
+    if (unique.length >= 5) break
+  }
+  return unique
+}
+
+const LiveCount = ({ parties: partiesProp, onPartyClick, onPromoClick, isGate = false }) => {
   const { t, i18n } = useTranslation()
   const [counts, setCounts] = useState({})
-  const [currentIndex, setCurrentIndex] = useState(0)
+  const [spotlightPool, setSpotlightPool] = useState([])
+  const [poolIndex, setPoolIndex] = useState(0)
   const [displayText, setDisplayText] = useState('')
   const [isTyping, setIsTyping] = useState(true)
+  const [currentIndex, setCurrentIndex] = useState(0)
+
+  const isEn = i18n.language.startsWith('en')
+  const spotlight = spotlightPool[poolIndex] || spotlightPool[0] || null
 
   const liveMessages = useMemo(() => [
     t('live_msg_1'), t('live_msg_2'), t('live_msg_3'), t('live_msg_4'), t('live_msg_5'),
     t('live_msg_6'), t('live_msg_7'), t('live_msg_8'), t('live_msg_9'), t('live_msg_10'),
-    t('live_msg_11'), t('live_msg_12'), t('live_msg_13'), t('live_msg_14'), t('live_msg_15')
+    t('live_msg_11'), t('live_msg_12'), t('live_msg_13'), t('live_msg_14'), t('live_msg_15'),
   ], [t])
 
   const getTodayKST = () => {
@@ -34,7 +83,8 @@ const LiveCount = () => {
     return kst.toISOString().split('T')[0]
   }
 
-  const isNowInPartyTime = (dateStr, startTime) => {
+  const isNowInPartyTime = useCallback((dateStr, startTime) => {
+    if (!dateStr || !startTime) return false
     const now = new Date()
     const start = new Date(`${dateStr}T${startTime}:00`)
     const startWithBuffer = new Date(start.getTime() - 30 * 60 * 1000)
@@ -42,7 +92,15 @@ const LiveCount = () => {
     end.setDate(end.getDate() + 1)
     end.setHours(3, 0, 0, 0)
     return now >= startWithBuffer && now <= end
-  }
+  }, [])
+
+  const applySpotlightPool = useCallback((list) => {
+    const todayStr = getTodayKST()
+    const yesterdayStr = getYesterdayKST()
+    const pool = pickSpotlightPool(list, todayStr, yesterdayStr, isNowInPartyTime)
+    setSpotlightPool(pool)
+    setPoolIndex(0)
+  }, [isNowInPartyTime])
 
   const fetchCounts = async () => {
     if (!supabase) return
@@ -66,7 +124,14 @@ const LiveCount = () => {
       const parties = partiesRes.data
       const locations = locationsRes.data
 
-      if (!parties || parties.length === 0) { setCounts({}); return; }
+      if (!parties || parties.length === 0) {
+        setCounts({})
+        applySpotlightPool(partiesProp || [])
+        return
+      }
+
+      const enriched = enrichPartiesWithVenues(parties, locations || [])
+      applySpotlightPool(enriched)
 
       const locationMap = (locations || []).reduce((acc, loc) => {
         acc[loc.id] = {
@@ -76,8 +141,11 @@ const LiveCount = () => {
         return acc
       }, {})
 
-      const liveParties = parties.filter(p => isNowInPartyTime(p.date, p.time))
-      if (liveParties.length === 0) { setCounts({}); return; }
+      const liveParties = parties.filter((p) => isNowInPartyTime(p.date, p.time))
+      if (liveParties.length === 0) {
+        setCounts({})
+        return
+      }
 
       const grouped = liveParties.reduce((acc, p) => {
         const loc = locationMap[p.location_id]
@@ -94,11 +162,79 @@ const LiveCount = () => {
     }
   }
 
+  const fetchSpotlightFromDb = async () => {
+    if (!supabase) return
+    const todayStr = getTodayKST()
+    const yesterdayStr = getYesterdayKST()
+    try {
+      let partiesRes = await supabase
+        .from('parties')
+        .select(PARTIES_WITH_LOCATION)
+        .eq('status', 'approved')
+        .in('date', [todayStr, yesterdayStr])
+        .limit(40)
+
+      if (partiesRes.error) {
+        logPartiesFetchError(partiesRes.error)
+        partiesRes = await supabase
+          .from('parties')
+          .select(PARTIES_SELECT)
+          .eq('status', 'approved')
+          .in('date', [todayStr, yesterdayStr])
+          .limit(40)
+      }
+
+      if (partiesRes.error) throw partiesRes.error
+
+      const locationsRes = await supabase.from('locations').select(LOCATIONS_WITH_REGION_NAME)
+      const locations = locationsRes.error ? [] : (locationsRes.data || [])
+      const enriched = enrichPartiesWithVenues(partiesRes.data || [], locations)
+      applySpotlightPool(enriched)
+    } catch (err) {
+      logPartiesFetchError(err)
+    }
+  }
+
+  useEffect(() => {
+    if (!partiesProp?.length) return
+    const todayStr = getTodayKST()
+    const yesterdayStr = getYesterdayKST()
+    const pool = pickSpotlightPool(partiesProp, todayStr, yesterdayStr, isNowInPartyTime)
+    if (pool.length) {
+      setSpotlightPool((prev) => (prev.length ? prev : pool))
+    }
+  }, [partiesProp, isNowInPartyTime])
+
   useEffect(() => {
     fetchCounts()
-    // const channel = supabase.channel('live_checkins').on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'bar_checkins' }, () => fetchCounts()).subscribe()
-    // return () => { supabase.removeChannel(channel) }
+    fetchSpotlightFromDb()
+
+    if (!supabase) return undefined
+
+    const channel = supabase
+      .channel('live-dynamic-banner')
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'parties' },
+        () => {
+          fetchCounts()
+          fetchSpotlightFromDb()
+        },
+      )
+      .subscribe()
+
+    return () => {
+      supabase.removeChannel(channel)
+    }
   }, [])
+
+  useEffect(() => {
+    if (spotlightPool.length < 2) return undefined
+    const timer = setInterval(() => {
+      setPoolIndex((v) => (v + 1) % spotlightPool.length)
+    }, SPOTLIGHT_ROTATE_MS)
+    return () => clearInterval(timer)
+  }, [spotlightPool.length])
 
   const abbreviateRegion = (region) => {
     const maps = {
@@ -110,9 +246,8 @@ const LiveCount = () => {
       '\uc804\ub77c\ub3c4': '\uc804\ub77c',
       '\uacbd\uc0c1\ub3c4': '\uacbd\uc0c1',
       '\uac15\uc6d0\ub3c4': '\uac15\uc6d0',
-    };
-    const short = maps[region] || region;
-
+    }
+    const short = maps[region] || region
     const translationKeys = {
       '\uc11c\uc6b8': 'region_seoul',
       '\uc778\ucc9c': 'region_incheon',
@@ -122,93 +257,138 @@ const LiveCount = () => {
       '\uc804\ub77c': 'region_jeolla',
       '\uacbd\uc0c1': 'region_gyeongsang',
       '\uc804\uad6d': 'Nationwide',
-    };
-
-    return t(translationKeys[short] || short);
-  };
+    }
+    return t(translationKeys[short] || short)
+  }
 
   const regionalReports = useMemo(() => {
-    if (Object.keys(counts).length === 0) return liveMessages;
+    if (Object.keys(counts).length === 0) return liveMessages
 
-    const byRegion = {};
+    const byRegion = {}
     Object.entries(counts).forEach(([key, count]) => {
-      const [region, name] = key.split('|');
-      const translatedRegion = abbreviateRegion(region);
-      if (!byRegion[translatedRegion]) byRegion[translatedRegion] = [];
-      byRegion[translatedRegion].push(`${name} ${count}`);
-    });
+      const [region, name] = key.split('|')
+      const translatedRegion = abbreviateRegion(region)
+      if (!byRegion[translatedRegion]) byRegion[translatedRegion] = []
+      byRegion[translatedRegion].push(`${name} ${count}`)
+    })
 
-    return Object.entries(byRegion).map(([reg, venues]) => `[${reg}] ${venues.join(', ')}`);
-  }, [counts, liveMessages, t]);
+    return Object.entries(byRegion).map(([reg, venues]) => `[${reg}] ${venues.join(', ')}`)
+  }, [counts, liveMessages, t])
 
   useEffect(() => {
-    let timeout;
-    const currentFullText = regionalReports[currentIndex] || '';
+    if (spotlight) return undefined
+    let timeout
+    const currentFullText = regionalReports[currentIndex] || ''
 
     if (isTyping) {
       if (displayText.length < currentFullText.length) {
         timeout = setTimeout(() => {
-          setDisplayText(currentFullText.slice(0, displayText.length + 1));
-        }, 80);
+          setDisplayText(currentFullText.slice(0, displayText.length + 1))
+        }, 80)
       } else {
-        setIsTyping(false);
+        setIsTyping(false)
         timeout = setTimeout(() => {
-          setCurrentIndex(prev => (prev + 1) % regionalReports.length);
-          setDisplayText('');
-          setIsTyping(true);
-        }, 4000); 
+          setCurrentIndex((prev) => (prev + 1) % regionalReports.length)
+          setDisplayText('')
+          setIsTyping(true)
+        }, 4000)
       }
     }
-    return () => clearTimeout(timeout);
-  }, [displayText, isTyping, currentIndex, regionalReports]);
+    return () => clearTimeout(timeout)
+  }, [displayText, isTyping, currentIndex, regionalReports, spotlight])
 
-  const lang = i18n.language.startsWith('en') ? 'en' : 'ko';
-  const onLangChange = (l) => i18n.changeLanguage(l);
-  
-  const parsed = useMemo(() => {
-    const text = regionalReports[currentIndex] || '';
-    const match = text.match(/\[.*?\]\s*(.*?)\s+(\d+)/) || text.match(/(.*?)\s+(\d+)/);
-    if (match) return { name: match[1], count: match[2] };
-    return null;
-  }, [regionalReports, currentIndex]);
+  const dynamicBannerText = useMemo(() => {
+    if (!spotlight) return ''
+    const titleRaw = isEn && spotlight.title_en ? spotlight.title_en : spotlight.title
+    const title = stripPlatformSuffixFromTitle(titleRaw)
+    const venue = spotlight.locationName || (isEn ? 'Tonight' : '오늘의 파티')
+    const engagement = (Number(spotlight.click_count) || 0) + (Number(spotlight.view_count) || 0)
+    if (engagement > 0) {
+      return isEn
+        ? `🔥 ${title} · ${venue} · ${engagement} views`
+        : `🔥 ${title} · ${venue} · 실시간 ${engagement}회`
+    }
+    return isEn ? `⚡ Now · ${title} · ${venue}` : `⚡ 지금 주목 · ${title} · ${venue}`
+  }, [spotlight, isEn])
+
+  const handleBannerClick = () => {
+    const target = spotlightPool[poolIndex] || spotlight
+    if (target && typeof onPartyClick === 'function') {
+      onPartyClick(target)
+      return
+    }
+    if (typeof onPromoClick === 'function') {
+      onPromoClick()
+      return
+    }
+    if (window.location.hash !== LIVE_PROMO_PATH) {
+      window.history.pushState({}, '', LIVE_PROMO_PATH)
+    }
+    window.dispatchEvent(new PopStateEvent('popstate'))
+  }
+
+  const lang = isEn ? 'en' : 'ko'
+  const onLangChange = (l) => i18n.changeLanguage(l)
+
+  const mainLine = spotlight ? dynamicBannerText : displayText
 
   return (
-    <div style={{ background:'#0f172a', height:'44px', display:'flex', alignItems:'center', padding:'0 16px', gap:8, overflowX:'auto' }}>
-      <style>{`
-        .lc-tag { background:#E53935; color:#fff; font-size:9px; font-weight:900; padding:2px 7px; border-radius:3px; letter-spacing:2px; flex-shrink:0; }
-        .lc-dot { width:5px; height:5px; background:#E53935; border-radius:50%; flex-shrink:0; animation:lc-blink 1s infinite; }
-        @keyframes lc-blink { 0%,100%{opacity:1} 50%{opacity:0.3} }
-        .lc-lang { display:flex; margin-left:auto; flex-shrink:0; }
-        .lc-lang-btn { background:transparent; border:none; color:rgba(255,255,255,0.3); font-size:10px; font-weight:700; padding:4px 8px; cursor:pointer; letter-spacing:1px; }
-        .lc-lang-btn.on { color:#E53935; }
-      `}</style>
-      <span className="lc-tag">LIVE</span>
-      <span className="lc-dot" />
-      {counts['\uc804\uad6d|total'] ? (
-        <div style={{ display:'flex', alignItems:'center', gap:8, flex:1, minWidth:0 }}>
-          <span style={{ color:'#ffffff', fontSize:'12px', fontWeight:700, whiteSpace:'nowrap' }}>
-            {'\uc804\uad6d '}{counts['\uc804\uad6d|total']}{'\uac1c \ud30c\ud2f0 \uc9c4\ud589\uc911'}
-          </span>
-          <span style={{ color:'rgba(255,255,255,0.3)', fontSize:10 }}>|</span>
-          {Object.entries(counts)
-            .filter(([k]) => !k.includes('\uc804\uad6d'))
-            .map(([k, v]) => {
-              const region = abbreviateRegion(k.split('|')[0])
-              return (
-                <span key={k} style={{ color:'rgba(255,255,255,0.7)', fontSize:'11px', whiteSpace:'nowrap' }}>
-                  {region} <span style={{ color:'#E53935', fontWeight:900 }}>{v}</span>
+    <div
+      className={`live-dynamic-banner${isGate ? ' live-dynamic-banner--gate' : ''}`}
+      role="button"
+      tabIndex={0}
+      onClick={handleBannerClick}
+      onKeyDown={(e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault()
+          handleBannerClick()
+        }
+      }}
+      aria-label={isEn ? 'Open live party or promotion' : '실시간 파티 또는 프로모션 보기'}
+    >
+      <div className="live-dynamic-banner__inner">
+        <span className="lc-tag">LIVE</span>
+        <span className="lc-dot" />
+        {counts['\uc804\uad6d|total'] ? (
+          <div className="live-dynamic-banner__content">
+            <span className="lc-default lc-default--hot">
+              {'\uc804\uad6d '}{counts['\uc804\uad6d|total']}{'\uac1c \ud30c\ud2f0 \uc9c4\ud589\uc911'}
+            </span>
+            <span className="live-dynamic-banner__sep">|</span>
+            {Object.entries(counts)
+              .filter(([k]) => !k.includes('\uc804\uad6d'))
+              .map(([k, v]) => {
+                const region = abbreviateRegion(k.split('|')[0])
+                return (
+                  <span key={k} className="live-dynamic-banner__region">
+                    {region} <strong>{v}</strong>
+                  </span>
+                )
+              })}
+            {spotlight ? (
+              <>
+                <span className="live-dynamic-banner__sep">|</span>
+                <span key={spotlight.id} className="live-dynamic-banner__spotlight">
+                  {dynamicBannerText}
                 </span>
-              )
-            })
-          }
+              </>
+            ) : null}
+          </div>
+        ) : (
+          <span key={spotlight?.id || `fallback-${poolIndex}`} className="live-dynamic-banner__spotlight live-dynamic-banner__spotlight--solo">
+            {mainLine}
+          </span>
+        )}
+        <div
+          className="lc-lang"
+          onClick={(e) => e.stopPropagation()}
+          onKeyDown={(e) => e.stopPropagation()}
+          role="presentation"
+        >
+          <button type="button" className={`lc-lang-btn${lang === 'ko' ? ' on' : ''}`} onClick={() => onLangChange('ko')}>KO</button>
+          <span className="lc-lang-divider">|</span>
+          <button type="button" className={`lc-lang-btn${lang === 'en' ? ' on' : ''}`} onClick={() => onLangChange('en')}>EN</button>
         </div>
-      ) : (
-        <span style={{ color:'rgba(255,255,255,0.5)', fontSize:'12px', flex:1 }}>{displayText}</span>
-      )}
-      <div className="lc-lang">
-        <button className={`lc-lang-btn${lang==='ko'?' on':''}`} onClick={() => onLangChange('ko')}>KO</button>
-        <span style={{ color:'rgba(255,255,255,0.2)', fontSize:10, alignSelf:'center' }}>|</span>
-        <button className={`lc-lang-btn${lang==='en'?' on':''}`} onClick={() => onLangChange('en')}>EN</button>
       </div>
     </div>
   )
