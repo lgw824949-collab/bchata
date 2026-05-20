@@ -2052,9 +2052,10 @@ body.bottom-nav-social-light nav.bottom-nav {
   min-height: 44px;
   padding: 0 14px;
   border-radius: 12px;
-  background: #0f172a;
+  background: transparent;
   overflow: hidden;
   box-sizing: border-box;
+  color: #111111;
 }
 
 .live-dynamic-banner__content {
@@ -2068,27 +2069,29 @@ body.bottom-nav-social-light nav.bottom-nav {
 }
 
 .live-dynamic-banner__sep {
-  color: rgba(255, 255, 255, 0.28);
+  color: rgba(17, 17, 17, 0.45);
   font-size: 10px;
+  font-weight: 800;
   flex-shrink: 0;
 }
 
 .live-dynamic-banner__region {
-  color: rgba(255, 255, 255, 0.72);
+  color: #111111;
   font-size: 11px;
+  font-weight: 800;
   white-space: nowrap;
   flex-shrink: 0;
 }
 
 .live-dynamic-banner__region strong {
-  color: #e53935;
-  font-weight: 900;
+  color: #b91c1c;
+  font-weight: 950;
 }
 
 .live-dynamic-banner__spotlight {
-  color: rgba(255, 255, 255, 0.92);
+  color: #111111;
   font-size: 12px;
-  font-weight: 700;
+  font-weight: 900;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -2100,9 +2103,9 @@ body.bottom-nav-social-light nav.bottom-nav {
 .live-dynamic-banner__spotlight--solo {
   flex: 1;
   min-width: 0;
-  color: rgba(255, 255, 255, 0.55);
+  color: #111111;
   font-size: 12px;
-  font-weight: 700;
+  font-weight: 900;
 }
 
 .live-dynamic-banner .lc-tag {
@@ -2135,9 +2138,9 @@ body.bottom-nav-social-light nav.bottom-nav {
 }
 
 .live-dynamic-banner .lc-default--hot {
-  color: #fff;
+  color: #111111;
   font-size: 12px;
-  font-weight: 700;
+  font-weight: 900;
   white-space: nowrap;
   flex-shrink: 0;
 }
@@ -2147,7 +2150,7 @@ body.bottom-nav-social-light nav.bottom-nav {
   margin-left: auto;
   flex-shrink: 0;
   align-items: center;
-  background: rgba(255, 255, 255, 0.2);
+  background: rgba(255, 255, 255, 0.5);
   padding: 2px 4px;
   border-radius: 6px;
   gap: 2px;
@@ -2156,22 +2159,22 @@ body.bottom-nav-social-light nav.bottom-nav {
 .live-dynamic-banner .lc-lang-btn {
   background: transparent;
   border: none;
-  color: rgba(255, 255, 255, 0.75);
+  color: #111111;
   font-size: 9px;
-  font-weight: 800;
+  font-weight: 900;
   padding: 2px 6px;
   cursor: pointer;
   border-radius: 4px;
 }
 
 .live-dynamic-banner .lc-lang-btn.on {
-  background: #fff;
-  color: #d4436e;
+  background: #111111;
+  color: #ffffff;
 }
 
 .live-dynamic-banner--gate .lc-lang-btn.on {
-  background: #c9a84c;
-  color: #1a1a1a;
+  background: #111111;
+  color: #ffffff;
 }
 
 .live-dynamic-banner .lc-lang-divider {

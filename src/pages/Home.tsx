@@ -1890,36 +1890,50 @@ const HomePage = ({
               margin-right: 4px !important;
             }
             .live-count-premium-wrapper .lc-name {
-              color: #FFFFFF !important;
+              color: #111111 !important;
               font-size: 13px !important;
-              font-weight: 800 !important;
+              font-weight: 900 !important;
               font-family: inherit !important;
               letter-spacing: -0.3px !important;
             }
             .live-count-premium-wrapper .lc-count {
-              color: #FFFFFF !important;
+              color: #111111 !important;
               font-size: 15px !important;
-              font-weight: 900 !important;
+              font-weight: 950 !important;
               font-family: inherit !important;
-              background: rgba(255,255,255,0.2) !important;
+              background: rgba(255,255,255,0.55) !important;
               padding: 1px 6px !important;
               border-radius: 6px !important;
               margin-left: 4px !important;
             }
             .live-count-premium-wrapper .lc-default {
-              color: #FFFFFF !important;
+              color: #111111 !important;
               font-size: 12px !important;
-              font-weight: 700 !important;
+              font-weight: 900 !important;
               font-family: inherit !important;
               letter-spacing: -0.3px !important;
               white-space: nowrap !important;
               overflow: hidden !important;
               text-overflow: ellipsis !important;
             }
+            .live-count-premium-wrapper .live-dynamic-banner__spotlight,
+            .live-count-premium-wrapper .live-dynamic-banner__spotlight--solo,
+            .live-count-premium-wrapper .live-dynamic-banner__region {
+              color: #111111 !important;
+              font-weight: 900 !important;
+            }
+            .live-count-premium-wrapper .live-dynamic-banner__region strong {
+              color: #b91c1c !important;
+              font-weight: 950 !important;
+            }
+            .live-count-premium-wrapper .live-dynamic-banner__sep {
+              color: rgba(17,17,17,0.45) !important;
+              font-weight: 800 !important;
+            }
             .live-count-premium-wrapper .lc-lang {
               display: flex !important;
               align-items: center !important;
-              background: rgba(255,255,255,0.2) !important;
+              background: rgba(255,255,255,0.5) !important;
               padding: 2px 4px !important;
               border-radius: 6px !important;
               gap: 2px !important;
@@ -1928,14 +1942,14 @@ const HomePage = ({
             .live-count-premium-wrapper .lc-lang-btn {
               padding: 2px 6px !important;
               font-size: 9px !important;
-              font-weight: 800 !important;
+              font-weight: 900 !important;
               border-radius: 4px !important;
-              color: rgba(255,255,255,0.75) !important;
+              color: #111111 !important;
               transition: all 0.2s !important;
             }
             .live-count-premium-wrapper .lc-lang-btn.on {
-              background: #FFFFFF !important;
-              color: #D4436E !important;
+              background: #111111 !important;
+              color: #FFFFFF !important;
             }
             .live-count-premium-wrapper .lc-lang span {
               display: none !important; /* 구분선 제거하고 깔끔한 버튼 그룹 형태 */
@@ -1945,8 +1959,8 @@ const HomePage = ({
               color: #1a1a1a !important;
             }
             .live-count-premium-wrapper--gate .lc-lang-btn.on {
-              background: #C9A84C !important;
-              color: #1a1a1a !important;
+              background: #111111 !important;
+              color: #FFFFFF !important;
             }
             .home-party-register-outside {
               flex-shrink: 0;
