@@ -22,6 +22,7 @@ import BarRegisterFormModal from '../components/BarRegisterFormModal'
 import HomeHeroTagline from '../components/HomeHeroTagline'
 import { closeOverlay, navigate, parseAppState, pushOverlay } from '../lib/appHistory'
 import { Z } from '../constants/zLayers'
+import { DEFAULT_AVATAR_IMAGE, DEFAULT_CARD_IMAGE, imgFallbackHandler } from '../constants/imageAssets'
 import gangturnPhoto from '../assets/gangturn_photo.png'
 import ggomaeyaPhoto from '../assets/ggomaeya_photo.jpg'
 import noriterPhoto from '../assets/noriter_photo.png'
@@ -1465,7 +1466,7 @@ const HomePage = ({
       >
         <span className="home-bar-thumb" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
           {bar.image_url ? (
-            <img src={bar.image_url} alt="" />
+            <img src={bar.image_url} alt="" onError={imgFallbackHandler(DEFAULT_CARD_IMAGE)} />
           ) : (
             <img src="/logo.png" alt="" style={{ width: '40%', height: '40%', objectFit: 'contain', opacity: 0.85 }} />
           )}
@@ -1829,6 +1830,11 @@ const HomePage = ({
         display: 'flex',
         flexDirection: 'column',
         marginBottom: homeSectionSpace,
+        borderRadius: 16,
+        padding: 16,
+        ...(isHomeGate
+          ? { background: '#18181b', border: '1px solid rgba(255, 255, 255, 0.08)' }
+          : {}),
       }}
       aria-label={isEn ? 'Quick menu and live banner' : '빠른 메뉴 및 LIVE'}
     >
@@ -2434,7 +2440,7 @@ const HomePage = ({
                 style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4, flexShrink: 0, cursor: 'pointer' }}
               >
                 <div style={{ width: 52, height: 52, borderRadius: '50%', border: '2px solid #C9A84C', padding: 2, background: '#fff', boxShadow: '0 2px 8px rgba(0,0,0,0.08)' }}>
-                  <img src={inst.photo_url || 'https://via.placeholder.com/100'} alt={inst.name} style={{ width: '100%', height: '100%', borderRadius: '50%', objectFit: 'cover' }} />
+                  <img src={inst.photo_url || DEFAULT_AVATAR_IMAGE} onError={imgFallbackHandler(DEFAULT_AVATAR_IMAGE)} alt={inst.name} style={{ width: '100%', height: '100%', borderRadius: '50%', objectFit: 'cover' }} />
                 </div>
                 <span style={{ fontSize: 10, fontWeight: 700, color: '#475569', maxWidth: 56, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                   {(inst.name || '').split(' ')[0]}

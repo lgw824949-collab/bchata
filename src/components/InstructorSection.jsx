@@ -1,4 +1,5 @@
 import { Z } from '../constants/zLayers';
+import { DEFAULT_AVATAR_IMAGE, DEFAULT_CARD_IMAGE, imgFallbackHandler } from '../constants/imageAssets';
 import React, { useEffect, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { motion, AnimatePresence } from 'framer-motion'
@@ -610,7 +611,7 @@ const InstructorSection = ({ onOpenVipMaster, cachedInstructors = null }) => {
                 whileTap={{ scale: 0.98 }}
                 style={{ gridColumn: 'span 2', position: 'relative', height: '240px', borderRadius: '28px', overflow: 'hidden', cursor: 'pointer', border: '1px solid rgba(201,168,76,0.2)' }}
               >
-                <img src={instructors[0].photo_url || 'https://via.placeholder.com/500'} style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'top' }} />
+                <img src={instructors[0].photo_url || DEFAULT_CARD_IMAGE} onError={imgFallbackHandler(DEFAULT_CARD_IMAGE)} style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'top' }} alt="" />
                 <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to top, rgba(0,0,0,0.9) 0%, transparent 60%)' }} />
                 <div style={{ position: 'absolute', top: 15, left: 15, background: 'rgba(201,168,76,0.9)', color: '#000', padding: '4px 10px', borderRadius: '10px', fontSize: '10px', fontWeight: 900 }}>TOP RANK #1</div>
                 <div style={{ position: 'absolute', bottom: 20, left: 20, right: 20 }}>
@@ -634,7 +635,7 @@ const InstructorSection = ({ onOpenVipMaster, cachedInstructors = null }) => {
                 whileTap={{ scale: 0.96 }}
                 style={{ position: 'relative', height: '180px', borderRadius: '24px', overflow: 'hidden', cursor: 'pointer', border: '1px solid rgba(255,255,255,0.05)' }}
               >
-                <img src={inst.photo_url || 'https://via.placeholder.com/300'} style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'top' }} />
+                <img src={inst.photo_url || DEFAULT_CARD_IMAGE} onError={imgFallbackHandler(DEFAULT_CARD_IMAGE)} style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'top' }} alt="" />
                 <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to top, rgba(0,0,0,0.8) 0%, transparent 70%)' }} />
                 <div style={{ position: 'absolute', top: 12, right: 12, display: 'flex', gap: 4 }}>
                   <div style={{ background: 'rgba(0,0,0,0.5)', backdropFilter: 'blur(4px)', color: '#FFF', padding: '4px 8px', borderRadius: '8px', fontSize: '9px', fontWeight: 800, border: '1px solid rgba(255,255,255,0.1)' }}>

@@ -19,6 +19,7 @@ import {
 } from './lib/appHistory'
 import { handleMobileExitBack, registerExitToast } from './lib/mobileExitGuard'
 import { Z } from './constants/zLayers'
+import { DEFAULT_AVATAR_IMAGE, imgFallbackHandler } from './constants/imageAssets'
 import { normDate } from './lib/dateNorm'
 import { LOCATIONS_SELECT, logSupabaseError } from './lib/locationsQuery'
 import { PARTIES_SELECT, logPartiesFetchError } from './lib/partiesQuery'
@@ -2073,7 +2074,7 @@ function App() {
                       style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '6px', cursor: 'pointer', flexShrink: 0 }}
                     >
                       <div style={{ width: '58px', height: '58px', borderRadius: '50%', border: '2px solid #C9A84C', padding: '2px', background: '#000', boxShadow: '0 4px 12px rgba(201,168,76,0.2)' }}>
-                        <img src={inst.photo_url || 'https://via.placeholder.com/100'} style={{ width: '100%', height: '100%', borderRadius: '50%', objectFit: 'cover' }} alt={inst.name} />
+                        <img src={inst.photo_url || DEFAULT_AVATAR_IMAGE} onError={imgFallbackHandler(DEFAULT_AVATAR_IMAGE)} style={{ width: '100%', height: '100%', borderRadius: '50%', objectFit: 'cover' }} alt={inst.name} />
                       </div>
                       <span style={{ fontSize: '11px', fontWeight: 800, color: '#E2E8F0', maxWidth: '60px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                         {inst.name.split(' ')[0]}

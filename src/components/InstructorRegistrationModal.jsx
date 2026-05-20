@@ -1,4 +1,5 @@
 import { Z } from '../constants/zLayers';
+import { DEFAULT_AVATAR_IMAGE, imgFallbackHandler } from '../constants/imageAssets';
 ﻿import React, { useState, useEffect, useRef } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { X, ChevronLeft, ChevronRight, Check, User, Music, MapPin, MessageCircle, Info, Zap, Camera, Globe, Sparkles } from 'lucide-react'
@@ -350,7 +351,7 @@ const InstructorRegistrationModal = ({ isOpen, onClose, onSuccess, formData, set
               <div style={{ fontSize: '11px', fontWeight: 900, color: '#C9A84C', marginBottom: '15px', letterSpacing: '1px' }}>최종 확인</div>
               <div style={{ display: 'flex', gap: '18px', alignItems: 'center' }}>
                 <div style={{ width: '60px', height: '60px', borderRadius: '16px', overflow: 'hidden', background: '#222', border: '1px solid rgba(255,255,255,0.1)' }}>
-                  <img src={localData.photo_url || 'https://via.placeholder.com/150'} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                  <img src={localData.photo_url || DEFAULT_AVATAR_IMAGE} onError={imgFallbackHandler(DEFAULT_AVATAR_IMAGE)} style={{ width: '100%', height: '100%', objectFit: 'cover' }} alt="" />
                 </div>
                 <div>
                   <div style={{ fontSize: '18px', fontWeight: 900, color: '#FFF' }}>{localData.name || '강사명'}</div>

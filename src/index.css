@@ -657,7 +657,7 @@ input, button, select, textarea {
 /* 메인 섹션 입체 패널 */
 .home-depth-panel {
   border-radius: 16px;
-  padding: 18px 14px 14px;
+  padding: 16px;
   overflow: visible;
   min-width: 0;
 }
@@ -703,6 +703,12 @@ input, button, select, textarea {
 
 .home-main-stack .home-quick-live-hub {
   margin-bottom: var(--home-section-gap);
+}
+
+.home-gate-active .home-quick-live-hub {
+  background: #18181b;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.38);
 }
 
 .home-quick-live-hub__quick {

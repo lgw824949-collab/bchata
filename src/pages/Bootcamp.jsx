@@ -12,6 +12,7 @@ import { parseAppState, pushOverlay } from '../lib/appHistory';
 import { resolveEventDates, inferOneDayEvent } from '../lib/dbSanitize';
 import EventDateFields from '../components/EventDateFields';
 import { useTranslation } from 'react-i18next';
+import { DEFAULT_CARD_IMAGE, imgFallbackHandler } from '../constants/imageAssets';
 
 const GENRES = ['전체', '바차타', '살사', '키좀바', '쥬크'];
 const REGIONS = ['전국', '서울', '경인', '경상도', '전라도', '충청도', '강원/제주', '해외'];
@@ -408,7 +409,7 @@ const Bootcamp = ({ onBack, initialView = 'list', cachedBootcamps = null, onBoot
                   whileTap={{ scale: 0.98 }}
                   style={{ position: 'relative', height: '220px', borderRadius: '24px', overflow: 'hidden', cursor: 'pointer', border: '1px solid rgba(255,255,255,0.05)' }}
                 >
-                  <img src={item.poster_url || 'https://via.placeholder.com/300'} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                  <img src={item.poster_url || DEFAULT_CARD_IMAGE} onError={imgFallbackHandler(DEFAULT_CARD_IMAGE)} style={{ width: '100%', height: '100%', objectFit: 'cover' }} alt="" />
                   <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to top, rgba(0,0,0,0.8) 0%, transparent 70%)' }} />
                   <div style={{ position: 'absolute', top: 12, left: 12, display: 'flex', gap: 4 }}>
                     <div style={{ background: 'rgba(201,168,76,0.9)', color: '#000', padding: '3px 8px', borderRadius: '6px', fontSize: '9px', fontWeight: 900 }}>{item.genre}</div>
@@ -869,7 +870,7 @@ const Bootcamp = ({ onBack, initialView = 'list', cachedBootcamps = null, onBoot
                 style={{ gridColumn: 'span 2', height: '244px', cursor: 'pointer' }}
               >
                 <div className="spinning-border-inner" style={{ position: 'relative', height: '240px' }}>
-                  <img src={bootcamps[0].poster_url || 'https://via.placeholder.com/500'} style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'center top' }} alt={bootcamps[0].instructor} />
+                  <img src={bootcamps[0].poster_url || DEFAULT_CARD_IMAGE} onError={imgFallbackHandler(DEFAULT_CARD_IMAGE)} style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'center top' }} alt={bootcamps[0].instructor} />
                   <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to top, rgba(0,0,0,0.9) 0%, transparent 60%)' }} />
                   <div style={{ position: 'absolute', top: 15, left: 15, background: 'rgba(201,168,76,0.9)', color: '#000', padding: '4px 10px', borderRadius: '10px', fontSize: '10px', fontWeight: 900 }}>NEXT BOOTCAMP</div>
                   <div style={{ position: 'absolute', bottom: 20, left: 20, right: 20 }}>
@@ -892,7 +893,7 @@ const Bootcamp = ({ onBack, initialView = 'list', cachedBootcamps = null, onBoot
                 whileTap={{ scale: 0.96 }}
                 style={{ position: 'relative', height: '180px', borderRadius: '24px', overflow: 'hidden', cursor: 'pointer', border: '1px solid rgba(255,255,255,0.05)' }}
               >
-                <img src={item.poster_url || 'https://via.placeholder.com/300'} style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'center top' }} alt={item.instructor} />
+                <img src={item.poster_url || DEFAULT_CARD_IMAGE} onError={imgFallbackHandler(DEFAULT_CARD_IMAGE)} style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'center top' }} alt={item.instructor} />
                 <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to top, rgba(0,0,0,0.8) 0%, transparent 70%)' }} />
                 <div style={{ position: 'absolute', top: 12, right: 12 }}>
                   <div style={{ background: 'rgba(0,0,0,0.5)', backdropFilter: 'blur(4px)', color: '#FFF', padding: '4px 8px', borderRadius: '8px', fontSize: '9px', fontWeight: 800, border: '1px solid rgba(255,255,255,0.1)' }}>
