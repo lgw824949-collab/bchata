@@ -42,6 +42,8 @@ const InstructorRegister = lazy(() => import('./components/InstructorRegister'))
 const PostClub = lazy(() => import('./pages/PostClub'));
 const Parking = lazy(() => import('./pages/Parking'));
 const Restaurant = lazy(() => import('./pages/Restaurant'));
+const Terms = lazy(() => import('./pages/Terms'));
+const Privacy = lazy(() => import('./pages/Privacy'));
 const SajuModal = lazy(() => import('./components/SajuModal'));
 const IncheonRoute = lazy(() => import('./components/IncheonRoute'));
 const WeatherModal = lazy(() => import('./components/WeatherModal'));
@@ -62,6 +64,16 @@ const LoadingFallback = () => (
 );
 
 const ADMIN_SHELL_VIEWS = new Set(['admin', 'admin-portal']);
+
+/** App.jsx 전용 — appHistory PATH_TO_VIEW 미등록 경로 */
+const LEGAL_PATH_VIEWS = {
+  '/terms': 'terms',
+  '/privacy': 'privacy',
+};
+
+function viewForPath(path, st) {
+  return LEGAL_PATH_VIEWS[path] ?? st?.view ?? pathToView(path);
+}
 
 function isAdminShellActive(view, pathname) {
   return (
@@ -1140,7 +1152,7 @@ function App() {
   const applyHistoryState = (rawState) => {
     const path = window.location.pathname;
     const st = parseAppState(rawState) ?? parseAppState(window.history.state);
-    const nextView = st?.view ?? pathToView(path);
+    const nextView = viewForPath(path, st);
 
     if (isAdminShellActive(nextView, path)) {
       setView(nextView);
@@ -1228,7 +1240,7 @@ function App() {
   useEffect(() => {
     const path = window.location.pathname;
     if (!parseAppState(window.history.state)) {
-      const initial = buildAppState({ view: pathToView(path), homeTab: null });
+      const initial = buildAppState({ view: viewForPath(path, null), homeTab: null });
       window.history.replaceState(initial, '', path);
       navSnapshotRef.current = initial;
     }
@@ -2042,7 +2054,11 @@ function App() {
     location.pathname === '/bootcamp/register' ||
     location.pathname === '/festival/register' ||
     location.pathname === '/admin' ||
-    location.pathname === '/admin-portal';
+    location.pathname === '/admin-portal' ||
+    location.pathname === '/terms' ||
+    location.pathname === '/privacy';
+
+  const isLegalPage = location.pathname === '/terms' || location.pathname === '/privacy';
 
   const bottomNavAccent = isSocialLightNav ? '#E53935' : '#C9A84C'
   const navActiveColor = bottomNavAccent
@@ -2621,6 +2637,12 @@ function App() {
         </main>
       ) : (
         <main className="bchata-user-shell" data-bchata-shell="user">
+          {isLegalPage ? (
+          <Suspense fallback={<LoadingFallback />}>
+            {location.pathname === '/terms' ? <Terms onBack={goBack} /> : <Privacy onBack={goBack} />}
+          </Suspense>
+          ) : (
+          <>
           <div className="bchata-tab-panels">
 
           <div className="bchata-tab-panel" data-active={view === 'home'} aria-hidden={view !== 'home'}>
@@ -2691,6 +2713,8 @@ function App() {
              view === 'register-party' ? null :
              null}
           </Suspense>
+          </>
+          )}
         </main>
       )}
 
