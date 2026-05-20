@@ -1541,10 +1541,16 @@ function App() {
       }
 
       const [partiesRes, locationsRes, bootcampsRes, festivalsRes] = await Promise.all([
-        supabase.from('parties').select(PARTIES_SELECT).eq('status', 'approved').order('date', { ascending: true }),
-        supabase.from('locations').select(LOCATIONS_SELECT),
-        supabase.from('bootcamps').select('*').eq('status', 'active'),
-        supabase.from('festivals').select('*').eq('status', 'active'),
+        runSupabaseQuery('parties', (db) =>
+          db.from('parties').select(PARTIES_SELECT).eq('status', 'approved').order('date', { ascending: true }),
+        ),
+        runSupabaseQuery('locations', (db) => db.from('locations').select(LOCATIONS_SELECT)),
+        runSupabaseQuery('bootcamps', (db) =>
+          db.from('bootcamps').select('*').eq('status', 'active'),
+        ),
+        runSupabaseQuery('festivals', (db) =>
+          db.from('festivals').select('*').eq('status', 'active'),
+        ),
       ]);
 
       if (partiesRes.error) {
