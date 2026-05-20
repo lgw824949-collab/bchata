@@ -1440,11 +1440,29 @@ const HomePage = ({
         onClick={() => openVenueDetail(bar)}
         whileTap={{ scale: 0.97 }}
       >
-        <span className="home-bar-thumb" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        <span
+          className="home-bar-thumb"
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            borderRadius: 12,
+            overflow: 'hidden',
+          }}
+        >
           {bar.image_url ? (
-            <img src={bar.image_url} alt="" onError={imgFallbackHandler(DEFAULT_CARD_IMAGE)} />
+            <img
+              src={bar.image_url}
+              alt=""
+              onError={imgFallbackHandler(DEFAULT_CARD_IMAGE)}
+              style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: 12 }}
+            />
           ) : (
-            <img src="/logo.png" alt="" style={{ width: '40%', height: '40%', objectFit: 'contain', opacity: 0.85 }} />
+            <img
+              src="/logo.png"
+              alt=""
+              style={{ width: '40%', height: '40%', objectFit: 'contain', opacity: 0.85, borderRadius: 12 }}
+            />
           )}
         </span>
         <p className={`home-bar-chip-line ${lineClass}`} title={lineText}>
