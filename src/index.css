@@ -691,7 +691,7 @@ input, button, select, textarea {
 
 .home-quick-menu-section {
   margin-top: 0;
-  margin-bottom: var(--home-section-gap);
+  margin-bottom: 0;
   padding: 0;
 }
 
@@ -701,9 +701,27 @@ input, button, select, textarea {
   margin-bottom: 0;
 }
 
-.home-main-stack .home-live-ad-panel {
-  margin-top: 0;
+.home-main-stack .home-quick-live-hub {
   margin-bottom: var(--home-section-gap);
+}
+
+.home-quick-live-hub__quick {
+  margin: 0;
+  padding: 0;
+}
+
+.home-quick-live-hub__quick .home-quick-menu-block {
+  margin: 0;
+}
+
+.home-quick-live-hub__live {
+  margin-top: 16px;
+  min-width: 0;
+}
+
+.home-quick-live-hub__live .home-live-row--in-panel {
+  margin: 0;
+  padding: 0;
 }
 
 .home-main-stack + .home-social-bar-wrap,

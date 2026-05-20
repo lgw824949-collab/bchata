@@ -301,14 +301,16 @@ const LiveCount = ({ parties: partiesProp, onPartyClick, onPromoClick, isGate = 
     if (!spotlight) return ''
     const titleRaw = isEn && spotlight.title_en ? spotlight.title_en : spotlight.title
     const title = stripPlatformSuffixFromTitle(titleRaw)
-    const venue = spotlight.locationName || (isEn ? 'Tonight' : '??? ??')
+    const venue = spotlight.locationName || (isEn ? 'Tonight' : '\uc624\ub298\uc758 \ud30c\ud2f0')
     const engagement = (Number(spotlight.click_count) || 0) + (Number(spotlight.view_count) || 0)
     if (engagement > 0) {
       return isEn
-        ? `?? ${title} ? ${venue} ? ${engagement} views`
-        : `?? ${title} ? ${venue} ? ??? ${engagement}?`
+        ? `\ud83d\udd25 ${title} \u00b7 ${venue} \u00b7 ${engagement} views`
+        : `\ud83d\udd25 ${title} \u00b7 ${venue} \u00b7 \uc2e4\uc2dc\uac04 ${engagement}\ud68c`
     }
-    return isEn ? `? Now ? ${title} ? ${venue}` : `? ?? ?? ? ${title} ? ${venue}`
+    return isEn
+      ? `\u26a1 Now \u00b7 ${title} \u00b7 ${venue}`
+      : `\u26a1 \uc9c0\uae08 \uc8fc\ubaa9 \u00b7 ${title} \u00b7 ${venue}`
   }, [spotlight, isEn])
 
   const handleBannerClick = () => {
@@ -341,7 +343,7 @@ const LiveCount = ({ parties: partiesProp, onPartyClick, onPromoClick, isGate = 
           handleBannerClick()
         }
       }}
-      aria-label={isEn ? 'Open live party or promotion' : '??? ?? ?? ???? ??'}
+      aria-label={isEn ? 'Open live party or promotion' : '\uc2e4\uc2dc\uac04 \ud30c\ud2f0 \ub610\ub294 \ud504\ub85c\ubaa8\uc158 \ubcf4\uae30'}
     >
       <div className="live-dynamic-banner__inner">
         <span className="lc-tag">LIVE</span>

@@ -1770,9 +1770,8 @@ const HomePage = ({
     </section>
   );
 
-  const renderHomeQuickMenuSection = () => (
-    <div id="quickmenu-section" className="home-quick-menu-section">
-      <motion.div className="home-quick-menu-block home-quick-menu-block--after-featured">
+  const renderHomeQuickMenuInner = () => (
+    <>
         {renderHomeSectionHeader(
           isEn ? 'Quick actions' : '빠른 메뉴',
           isEn ? 'Shortcuts' : '자주 쓰는 메뉴',
@@ -1819,10 +1818,26 @@ const HomePage = ({
             </AnimatePresence>
           )}
         </div>
-      </motion.div>
-    </div>
+    </>
   );
 
+  const renderHomeQuickLiveHub = () => (
+    <section
+      className="home-depth-panel home-quick-live-hub"
+      style={{
+        ...homeDepthPanelStyle,
+        display: 'flex',
+        flexDirection: 'column',
+        marginBottom: homeSectionSpace,
+      }}
+      aria-label={isEn ? 'Quick menu and live banner' : '빠른 메뉴 및 LIVE'}
+    >
+      <div className="home-quick-live-hub__quick">
+        <div className="home-quick-menu-block">{renderHomeQuickMenuInner()}</div>
+      </div>
+      <div className="home-quick-live-hub__live">{renderHomeLiveAdRow(true)}</div>
+    </section>
+  );
   const renderHomeLiveAdRow = (inPanel = false) => (
     <motion.div
       className={`home-live-row${inPanel ? ' home-live-row--in-panel' : ''}`}
@@ -2111,21 +2126,7 @@ const HomePage = ({
             {renderHeroPosters(true)}
           </section>
 
-          {renderHomeQuickMenuSection()}
-
-          <section
-            className="home-depth-panel home-live-ad-panel"
-            style={{
-              ...homeDepthPanelStyle,
-              display: 'flex',
-              flexDirection: 'column',
-              marginTop: 0,
-              marginBottom: homeSectionSpace,
-            }}
-            aria-label={isEn ? 'Live ads' : 'LIVE 광고'}
-          >
-            {renderHomeLiveAdRow(true)}
-          </section>
+          {renderHomeQuickLiveHub()}
         </motion.div>
       )}
 
