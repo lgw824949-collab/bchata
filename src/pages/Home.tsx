@@ -11,7 +11,6 @@ import { supabase } from '../lib/supabase'
 import { BAR_DATABASE } from '../lib/BarLib'
 import { normDate, getKSTCalendarTodayStr, isApprovedParty } from '../lib/dateNorm'
 import { LOCATIONS_SELECT, logSupabaseError } from '../lib/locationsQuery'
-import { logPartiesFetchError } from '../lib/partiesQuery'
 import {
   dedupeVenueList,
   normalizeVenueAddressKey,
@@ -948,9 +947,6 @@ const HomePage = ({
     national: 0, nationalDistricts: ''
   });
   const [particles, setParticles] = useState<{id: number, x: number, y: number, emoji: string}[]>([]);
-  const [socialPosters, setSocialPosters] = useState([]);
-  const [bootcampPosters, setBootcampPosters] = useState([]);
-  const [festivalPosters, setFestivalPosters] = useState([]);
   const [socialIdx, setSocialIdx] = useState(0);
   const [bootcampIdx, setBootcampIdx] = useState(0);
   const [festivalIdx, setFestivalIdx] = useState(0);
@@ -986,66 +982,32 @@ const HomePage = ({
     }
   };
 
-  useEffect(() => {
-    const fetchPosters = async () => {
-      const today = getKSTCalendarTodayStr();
+  const featuredTodayStr = useMemo(() => getKSTCalendarTodayStr(), []);
 
-      try {
-        const partiesRes = await supabase
-          .from('parties')
-          .select('poster_url')
-          .eq('status', 'approved')
-          .gte('date', today)
-          .not('poster_url', 'is', null);
-        if (partiesRes.error) {
-          logPartiesFetchError(partiesRes.error);
-        } else {
-          setSocialPosters((partiesRes.data || []).map((p) => p.poster_url).filter(Boolean));
-        }
-      } catch (err) {
-        logPartiesFetchError(err);
-        console.error('[Home.fetchPosters.parties]', err);
-      }
+  const socialFeaturedPool = useMemo(() => (
+    (parties || [])
+      .filter((p) => isApprovedParty(p) && normDate(p.date) >= featuredTodayStr && p.poster_url && partyRowMatchesSlot(p, '소셜'))
+      .sort((a, b) => normDate(a.date).localeCompare(normDate(b.date)))
+  ), [parties, featuredTodayStr]);
 
-      try {
-        const bootcampsRes = await supabase
-          .from('bootcamps')
-          .select('poster_url')
-          .gte('start_date', today)
-          .not('poster_url', 'is', null);
-        if (bootcampsRes.error) {
-          console.error('[Home.fetchPosters.bootcamps]', bootcampsRes.error.message, bootcampsRes.error.details);
-        } else {
-          setBootcampPosters((bootcampsRes.data || []).map((p) => p.poster_url).filter(Boolean));
-        }
-      } catch (err) {
-        console.error('[Home.fetchPosters.bootcamps]', err);
-      }
+  const bootcampFeaturedPool = useMemo(() => (
+    (bootcamps || [])
+      .filter((b) => b.poster_url && normDate(b.start_date) >= featuredTodayStr)
+      .sort((a, b) => normDate(a.start_date).localeCompare(normDate(b.start_date)))
+  ), [bootcamps, featuredTodayStr]);
 
-      try {
-        const festivalsRes = await supabase
-          .from('festivals')
-          .select('poster_url')
-          .gte('start_date', today)
-          .not('poster_url', 'is', null);
-        if (festivalsRes.error) {
-          console.error('[Home.fetchPosters.festivals]', festivalsRes.error.message, festivalsRes.error.details);
-        } else {
-          setFestivalPosters((festivalsRes.data || []).map((p) => p.poster_url).filter(Boolean));
-        }
-      } catch (err) {
-        console.error('[Home.fetchPosters.festivals]', err);
-      }
-    };
-    fetchPosters();
-  }, []);
+  const festivalFeaturedPool = useMemo(() => (
+    (festivals || [])
+      .filter((f) => f.poster_url && normDate(f.start_date) >= featuredTodayStr)
+      .sort((a, b) => normDate(a.start_date).localeCompare(normDate(b.start_date)))
+  ), [festivals, featuredTodayStr]);
 
   useEffect(() => {
-    const t1 = setInterval(() => setSocialIdx(i => (i + 1) % (socialPosters.length || 1)), 5000);
-    const t2 = setInterval(() => setBootcampIdx(i => (i + 1) % (bootcampPosters.length || 1)), 5000);
-    const t3 = setInterval(() => setFestivalIdx(i => (i + 1) % (festivalPosters.length || 1)), 5000);
+    const t1 = setInterval(() => setSocialIdx((i) => (socialFeaturedPool.length ? (i + 1) % socialFeaturedPool.length : 0)), 5000);
+    const t2 = setInterval(() => setBootcampIdx((i) => (bootcampFeaturedPool.length ? (i + 1) % bootcampFeaturedPool.length : 0)), 5000);
+    const t3 = setInterval(() => setFestivalIdx((i) => (festivalFeaturedPool.length ? (i + 1) % festivalFeaturedPool.length : 0)), 5000);
     return () => { clearInterval(t1); clearInterval(t2); clearInterval(t3); };
-  }, [socialPosters, bootcampPosters, festivalPosters]);
+  }, [socialFeaturedPool, bootcampFeaturedPool, festivalFeaturedPool]);
 
   useEffect(() => {
     const order = ['social', 'bootcamp', 'festival'];
@@ -1538,33 +1500,56 @@ const HomePage = ({
     if (firstWithVenues) setSelectedRegionTab(firstWithVenues);
   }, [locations, locationsLoading, selectedRegionTab]);
 
-  /** 홈 포스터 3칸 순서 고정: 좌→우 소셜 · 부트캠프 · 페스티벌 */
-  const homePosterSlots = [
+  /** 추천 행사 스트리밍 3행: 소셜 → 부트캠프 → 페스티벌 */
+  const homeFeaturedRows = useMemo(() => [
     {
       id: 'social',
-      posters: socialPosters,
-      idx: socialIdx,
       label: '소셜',
+      labelEn: 'Social',
+      pool: socialFeaturedPool,
+      idx: socialIdx,
       fallback: '/Photo/소셜.png',
-      action: () => { setActivePosterSlot('social'); setActiveTab('social'); },
+      action: (item) => {
+        if (item) {
+          openPartyWithAfterParty(item);
+          return;
+        }
+        setActivePosterSlot('social');
+        setActiveTab('social');
+      },
     },
     {
       id: 'bootcamp',
-      posters: bootcampPosters,
-      idx: bootcampIdx,
       label: '부트캠프',
+      labelEn: 'Bootcamp',
+      pool: bootcampFeaturedPool,
+      idx: bootcampIdx,
       fallback: '/Photo/부트캠프.png',
-      action: () => { setActivePosterSlot('bootcamp'); navigateAppPath('/bootcamp'); },
+      action: () => {
+        setActivePosterSlot('bootcamp');
+        navigateAppPath('/bootcamp');
+      },
     },
     {
       id: 'festival',
-      posters: festivalPosters,
-      idx: festivalIdx,
       label: '페스티벌',
+      labelEn: 'Festival',
+      pool: festivalFeaturedPool,
+      idx: festivalIdx,
       fallback: '/Photo/페스티벌.png',
-      action: () => { setActivePosterSlot('festival'); navigateAppPath('/festival'); },
+      action: () => {
+        setActivePosterSlot('festival');
+        navigateAppPath('/festival');
+      },
     },
-  ];
+  ], [
+    socialFeaturedPool,
+    bootcampFeaturedPool,
+    festivalFeaturedPool,
+    socialIdx,
+    bootcampIdx,
+    festivalIdx,
+  ]);
 
 
   const isHomeGate = activeTab === null;
@@ -1739,36 +1724,75 @@ const HomePage = ({
     </header>
   );
 
-  const renderHeroPosters = (compact = false) => (
-    <section
-      className="home-hero-posters"
-      style={compact ? { marginBottom: 0 } : undefined}
-      aria-label={isEn ? 'Featured events' : '추천 행사'}
-    >
-      {homePosterSlots.map((item) => {
-        const isActive = activePosterSlot === item.id;
+  const featuredRowTitle = (row, item) => {
+    if (!item) {
+      return isEn ? `Explore ${row.labelEn}` : `${row.label} 행사 둘러보기`;
+    }
+    const raw = item.title || item.instructor || '';
+    return translateDynamicText(cleanTitle(raw), isEn);
+  };
+
+  const featuredRowMeta = (row, item) => {
+    if (!item) {
+      return isEn ? 'Tap to browse' : '탭하여 둘러보기';
+    }
+    if (row.id === 'social') {
+      const datePart = formatItemDate(item.date, item.time);
+      const loc = translateDynamicText(item.locationName || item.address || '', isEn);
+      return [datePart, loc].filter(Boolean).join(' · ');
+    }
+    if (row.id === 'bootcamp') {
+      const d = (item.start_date || '').slice(0, 10);
+      const loc = translateDynamicText(item.location || item.region || '', isEn);
+      return [d, loc].filter(Boolean).join(' · ');
+    }
+    const start = (item.start_date || '').slice(0, 10);
+    const end = (item.end_date || '').slice(0, 10);
+    const datePart = end && end !== start ? `${start} – ${end}` : start;
+    const loc = translateDynamicText(item.location || item.region || '', isEn);
+    return [datePart, loc].filter(Boolean).join(' · ');
+  };
+
+  const renderFeaturedStreamList = () => (
+    <ul className="home-featured-stream" role="list" aria-label={isEn ? 'Featured events list' : '추천 행사 목록'}>
+      {homeFeaturedRows.map((row) => {
+        const pool = row.pool;
+        const item = pool.length ? pool[row.idx % pool.length] : null;
+        const isActive = activePosterSlot === row.id;
+        const thumbSrc = item?.poster_url || row.fallback;
+        const rowLabel = isEn ? row.labelEn : row.label;
         return (
-          <motion.div
-            key={item.id}
-            className={`home-poster-border-wrap ${isActive ? 'is-active' : 'is-idle'}`}
-            onClick={item.action}
-            whileTap={{ scale: 0.98 }}
-          >
-            <div className="home-poster-border-inner">
-              <img
-                className="home-poster-img"
-                src={item.posters[item.idx] || item.fallback}
-                alt={item.label}
-                onError={(e) => { e.currentTarget.src = item.fallback; }}
-              />
-              <div className="home-poster-overlay" aria-hidden>
-                <span className="home-poster-label">{item.label}</span>
-              </div>
-            </div>
-          </motion.div>
+          <li key={row.id} className="home-featured-stream__item" role="listitem">
+            <motion.button
+              type="button"
+              className={`home-featured-stream__row${isActive ? ' is-active' : ''}`}
+              onClick={() => row.action(item)}
+              whileTap={{ scale: 0.99 }}
+            >
+              <motion.div
+                className="home-featured-stream__thumb"
+                key={`${row.id}-${item?.id || 'fallback'}`}
+                initial={{ opacity: 0.85 }}
+                animate={{ opacity: 1 }}
+                transition={{ duration: 0.35 }}
+              >
+                <img
+                  src={thumbSrc}
+                  alt=""
+                  loading="lazy"
+                  onError={imgFallbackHandler(row.fallback)}
+                />
+              </motion.div>
+              <motion.div className="home-featured-stream__body">
+                <span className="home-featured-stream__category">{rowLabel}</span>
+                <span className="home-featured-stream__title">{featuredRowTitle(row, item)}</span>
+                <span className="home-featured-stream__meta">{featuredRowMeta(row, item)}</span>
+              </motion.div>
+            </motion.button>
+          </li>
         );
       })}
-    </section>
+    </ul>
   );
 
   const renderHomeQuickMenuInner = () => (
@@ -2127,9 +2151,9 @@ const HomePage = ({
           >
             {renderHomeSectionHeader(
               isEn ? 'Featured events' : '추천 행사',
-              isEn ? 'Tap a poster to explore' : '포스터를 눌러 바로 이동',
+              isEn ? 'Social · Bootcamp · Festival' : '소셜 · 부트캠프 · 페스티벌',
             )}
-            {renderHeroPosters(true)}
+            {renderFeaturedStreamList()}
           </section>
 
           {renderHomeQuickLiveHub()}

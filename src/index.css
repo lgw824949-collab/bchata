@@ -269,7 +269,134 @@ input, button, select, textarea {
   user-select: none;
 }
 
-/* 추천 행사 히어로 포스터 — 넷플릭스형 꽉 찬 썸네일 */
+/* 추천 행사 — 네이버 뉴스형 세로 스트리밍 리스트 */
+.home-featured-stream {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  width: 100%;
+}
+
+.home-featured-stream__item {
+  margin: 0;
+  padding: 0;
+}
+
+.home-featured-stream__row {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  width: 100%;
+  min-height: 96px;
+  padding: 14px 0;
+  margin: 0;
+  border: none;
+  border-bottom: 1px solid #e2e8f0;
+  background: transparent;
+  text-align: left;
+  cursor: pointer;
+  box-sizing: border-box;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.home-featured-stream__item:last-child .home-featured-stream__row {
+  border-bottom: none;
+  padding-bottom: 4px;
+}
+
+.home-featured-stream__row.is-active .home-featured-stream__category {
+  color: #d4436e;
+}
+
+.home-gate-active .home-featured-stream__row {
+  border-bottom-color: rgba(255, 255, 255, 0.1);
+}
+
+.home-gate-active .home-featured-stream__row.is-active .home-featured-stream__category {
+  color: #c9a84c;
+}
+
+.home-featured-stream__thumb {
+  flex-shrink: 0;
+  width: 96px;
+  height: 96px;
+  border-radius: 10px;
+  overflow: hidden;
+  background: #111;
+}
+
+.home-featured-stream__thumb img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center top;
+}
+
+.home-featured-stream__body {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 0;
+}
+
+.home-featured-stream__category {
+  display: block;
+  margin: 0 0 6px;
+  font-size: 12px;
+  font-weight: 800;
+  line-height: 1.2;
+  letter-spacing: -0.02em;
+  color: #d4436e;
+}
+
+.home-featured-stream__title {
+  display: -webkit-box;
+  margin: 0;
+  font-size: 16px;
+  font-weight: 800;
+  line-height: 1.38;
+  letter-spacing: -0.03em;
+  color: #1e293b;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.home-gate-active .home-featured-stream__title {
+  color: #f8fafc;
+}
+
+.home-featured-stream__meta {
+  display: block;
+  margin: 7px 0 0;
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 1.4;
+  color: #64748b;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.home-gate-active .home-featured-stream__meta {
+  color: #94a3b8;
+}
+
+@media (min-width: 480px) {
+  .home-featured-stream__thumb {
+    width: 108px;
+    height: 108px;
+  }
+
+  .home-featured-stream__title {
+    font-size: 17px;
+  }
+}
+
+/* [legacy] 히어로 포스터 3분할 — 미사용 */
 .home-hero-posters {
   display: flex;
   gap: 10px;
@@ -685,7 +812,7 @@ input, button, select, textarea {
   margin-bottom: var(--home-section-gap);
 }
 
-.home-featured-panel .home-hero-posters {
+.home-featured-panel .home-featured-stream {
   margin-bottom: 0;
 }
 
