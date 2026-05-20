@@ -1029,8 +1029,18 @@ const HomePage = ({
       .replace(/\[충청도\]/g, '')
       .replace(/\[강원\/제주\]/g, '')
       .replace(/오늘밤빠/g, '')
-      .replace(/\|/g, '')
+      .replace(/[|｜¦]/g, '')
       .replace(/\s+/g, ' ')
+      .trim();
+  };
+
+  /** 추천 행사 리스트 전용 — 구분자·특수문자·지역 접두 제거 */
+  const cleanFeaturedTitle = (raw: string) => {
+    if (!raw) return '';
+    const segment = String(raw).split(/\s*ㅣ\s*|\s*\|\s*/)[0].trim();
+    return cleanTitle(segment)
+      .replace(/[|｜¦·•／/\\]+$/g, '')
+      .replace(/^[-–—·•\s]+|[-–—·•\s]+$/g, '')
       .trim();
   };
 
@@ -1509,11 +1519,7 @@ const HomePage = ({
       pool: socialFeaturedPool,
       idx: socialIdx,
       fallback: '/Photo/소셜.png',
-      action: (item) => {
-        if (item) {
-          openPartyWithAfterParty(item);
-          return;
-        }
+      action: () => {
         setActivePosterSlot('social');
         setActiveTab('social');
       },
@@ -1525,9 +1531,12 @@ const HomePage = ({
       pool: bootcampFeaturedPool,
       idx: bootcampIdx,
       fallback: '/Photo/부트캠프.png',
-      action: () => {
+      action: (item) => {
         setActivePosterSlot('bootcamp');
-        navigateAppPath('/bootcamp');
+        navigate('/bootcamp', {
+          homeTab: null,
+          overlayMeta: item?.id ? { bootcampId: item.id } : null,
+        });
       },
     },
     {
@@ -1537,9 +1546,12 @@ const HomePage = ({
       pool: festivalFeaturedPool,
       idx: festivalIdx,
       fallback: '/Photo/페스티벌.png',
-      action: () => {
+      action: (item) => {
         setActivePosterSlot('festival');
-        navigateAppPath('/festival');
+        navigate('/festival', {
+          homeTab: null,
+          overlayMeta: item?.id ? { festivalId: item.id } : null,
+        });
       },
     },
   ], [
@@ -1729,28 +1741,13 @@ const HomePage = ({
       return isEn ? `Explore ${row.labelEn}` : `${row.label} 행사 둘러보기`;
     }
     const raw = item.title || item.instructor || '';
-    return translateDynamicText(cleanTitle(raw), isEn);
+    return translateDynamicText(cleanFeaturedTitle(raw), isEn);
   };
 
-  const featuredRowMeta = (row, item) => {
-    if (!item) {
-      return isEn ? 'Tap to browse' : '탭하여 둘러보기';
-    }
-    if (row.id === 'social') {
-      const datePart = formatItemDate(item.date, item.time);
-      const loc = translateDynamicText(item.locationName || item.address || '', isEn);
-      return [datePart, loc].filter(Boolean).join(' · ');
-    }
-    if (row.id === 'bootcamp') {
-      const d = (item.start_date || '').slice(0, 10);
-      const loc = translateDynamicText(item.location || item.region || '', isEn);
-      return [d, loc].filter(Boolean).join(' · ');
-    }
-    const start = (item.start_date || '').slice(0, 10);
-    const end = (item.end_date || '').slice(0, 10);
-    const datePart = end && end !== start ? `${start} – ${end}` : start;
-    const loc = translateDynamicText(item.location || item.region || '', isEn);
-    return [datePart, loc].filter(Boolean).join(' · ');
+  const featuredRowDate = (row, item) => {
+    if (!item) return '';
+    if (row.id === 'social') return normDate(item.date) || '';
+    return normDate(item.start_date) || (item.start_date || '').slice(0, 10);
   };
 
   const renderFeaturedStreamList = () => (
@@ -1786,7 +1783,9 @@ const HomePage = ({
               <motion.div className="home-featured-stream__body">
                 <span className="home-featured-stream__category">{rowLabel}</span>
                 <span className="home-featured-stream__title">{featuredRowTitle(row, item)}</span>
-                <span className="home-featured-stream__meta">{featuredRowMeta(row, item)}</span>
+                {featuredRowDate(row, item) ? (
+                  <span className="home-featured-stream__meta">{featuredRowDate(row, item)}</span>
+                ) : null}
               </motion.div>
             </motion.button>
           </li>

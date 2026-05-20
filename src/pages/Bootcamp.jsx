@@ -8,7 +8,7 @@ import {
 import { motion, AnimatePresence } from 'framer-motion';
 import { Z } from '../constants/zLayers';
 import { supabase } from '../lib/supabase';
-import { parseAppState, pushOverlay } from '../lib/appHistory';
+import { parseAppState, pushOverlay, readNavigationState, replaceCurrentState } from '../lib/appHistory';
 import { resolveEventDates, inferOneDayEvent } from '../lib/dbSanitize';
 import EventDateFields from '../components/EventDateFields';
 import { useTranslation } from 'react-i18next';
@@ -110,6 +110,17 @@ const Bootcamp = ({ onBack, initialView = 'list', cachedBootcamps = null, onBoot
   useEffect(() => {
     selectedBootcampRef.current = selectedBootcamp;
   }, [selectedBootcamp]);
+
+  useEffect(() => {
+    const detailId = readNavigationState()?.overlayMeta?.bootcampId;
+    if (!detailId) return;
+    const pool = cachedBootcamps?.length ? cachedBootcamps : bootcamps;
+    const match = pool.find((b) => String(b.id) === String(detailId));
+    if (match) {
+      setSelectedBootcamp(match);
+      replaceCurrentState({ overlayMeta: null });
+    }
+  }, [bootcamps, cachedBootcamps]);
 
   const detailHistoryPushed = useRef(false);
 

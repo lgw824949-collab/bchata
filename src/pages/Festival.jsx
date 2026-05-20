@@ -5,6 +5,7 @@ import { supabase } from '../lib/supabase';
 import { resolveEventDates, inferOneDayEvent } from '../lib/dbSanitize';
 import EventDateFields from '../components/EventDateFields';
 import { Z } from '../constants/zLayers';
+import { readNavigationState, replaceCurrentState } from '../lib/appHistory';
 
 const filterFestivalsClient = (all, selectedRegion, activeTab) => {
   const rows = (all || []).filter((f) => f.event_type === (activeTab === 'mt' ? 'mt' : 'festival'));
@@ -50,6 +51,17 @@ const Festival = ({ onBack, initialRegister = false, cachedFestivals = null, onF
       setLoading(false);
     }
   }, [cachedFestivals, selectedRegion, activeTab]);
+
+  useEffect(() => {
+    const detailId = readNavigationState()?.overlayMeta?.festivalId;
+    if (!detailId) return;
+    const pool = cachedFestivals?.length ? cachedFestivals : festivals;
+    const match = pool.find((f) => String(f.id) === String(detailId));
+    if (match) {
+      setSelectedFestival(match);
+      replaceCurrentState({ overlayMeta: null });
+    }
+  }, [festivals, cachedFestivals]);
 
   useEffect(() => {
     if (usedCacheRef.current) {
