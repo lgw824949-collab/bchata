@@ -1,11 +1,20 @@
 import { Z } from '../constants/zLayers';
 // updated
-import React, { useState, useEffect } from 'react'
-import { X, ChevronDown } from 'lucide-react'
+import React, { useState, useEffect, useRef, useCallback } from 'react'
+import { X } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
+import { closeOverlay, readNavigationState, replaceCurrentState } from '../lib/appHistory'
 import { supabase } from '../lib/supabase'
 import { selectResult } from '../data/sajuResults'
 import { selectResultEn } from '../data/sajuResultsEn'
+import { getKSTCalendarTodayStr } from '../lib/dateNorm'
+import {
+  fetchUpcomingPartiesForSaju,
+  normalizePartyForSajuDisplay,
+  logPartiesFetchError,
+  partyMatchesGenre,
+} from '../lib/partiesQuery'
+import { DEFAULT_CARD_IMAGE, imgFallbackHandler } from '../constants/imageAssets'
 
 // ─── 입문자용 데이터 (일관성 있는 문구 규칙 적용) ───
 const BEGINNER_MESSAGES_EN = [
@@ -26,7 +35,16 @@ const BEGINNER_MESSAGES_EN = [
   { cat: "Challenge", text: "If you have the courage to come this far today,\nyou just need to open one more party door.\nLet's go together." }
 ];
 
-function getBeginnerContent() {
+function getBeginnerContent(isEn = false) {
+  if (isEn) {
+    const shuffled = [...BEGINNER_MESSAGES_EN].sort(() => Math.random() - 0.5);
+    return {
+      mainMessage: shuffled[0],
+      subMessages: shuffled.slice(1, 4),
+      challenge: BEGINNER_MESSAGES_EN.find((m) => m.cat === 'Challenge') || shuffled[0],
+    };
+  }
+
   const BEGINNER_MESSAGES = [
     { cat: "첫날 공감", text: "첫 파티에서 벽에 붙어 서있던 사람이\n지금 전국 무대에서 가르치고 있어요.\n그 사람도 당신이었어요." },
     { cat: "첫날 공감", text: "10년 차 강사도 첫날엔\n박자 하나도 못 맞췄대요.\n진짜예요." },
@@ -81,7 +99,9 @@ const OHENG_DANCE = {
   '水': { genre:'바차타', emoji:'🌊', color:'#1565C0', bg:'#E3F2FD', border:'#BBDEFB' }
 }
 
-const OHENG_HANJA_MAP = { '목': '木', '화': '火', '토': '土', '금': '金', '물': '수' }
+const OHENG_HANJA_MAP = { '목': '木', '화': '火', '토': '土', '금': '金', '물': '水' }
+
+const SAJU_OVERLAY_KEYS = new Set(['barMatching', 'saju'])
 
 function getYearGanJi(y) {
   const g = ((y-4)%10+10)%10, j = ((y-4)%12+12)%12
@@ -98,10 +118,9 @@ function getDayGanJi(y, m, d) {
   return { gan:CHUN_GAN[g], ji:JI_JI[j], ganOheng:CHUN_GAN_OHENG[g], jiOheng:JI_JI_OHENG[j], emoji:CHUN_GAN_EMOJI[g] }
 }
 
-const SajuModal = ({ parties, onClose, lang = 'ko' }) => {
+const SajuModal = ({ parties = [], onClose, lang = 'ko' }) => {
   const { t, i18n } = useTranslation()
   const isEn = i18n.language === 'en'
-
   const [step, setStep]       = useState(1)
   const [gender, setGender]   = useState('')
   const [year, setYear]       = useState('')
@@ -114,6 +133,37 @@ const SajuModal = ({ parties, onClose, lang = 'ko' }) => {
   const [recommendedBars, setRecommendedBars] = useState([])
   const [fullPoster, setFullPoster] = useState(null)
   const [isDataLoaded, setIsDataLoaded] = useState(false)
+
+  const handleClose = useCallback(() => {
+    const current = readNavigationState()
+    const hadSajuOverlay = SAJU_OVERLAY_KEYS.has(current?.overlay)
+
+    if (hadSajuOverlay && closeOverlay()) {
+      requestAnimationFrame(() => {
+        if (readNavigationState()?.overlay === 'fullCalendar') {
+          closeOverlay()
+        }
+        onClose?.()
+      })
+      return
+    }
+
+    onClose?.()
+  }, [onClose])
+
+  useEffect(() => {
+    const path = window.location.pathname || '/'
+    if (window.location.hash === '#saju') {
+      const cur = readNavigationState()
+      replaceCurrentState({
+        view: cur?.view ?? 'home',
+        homeTab: cur?.homeTab ?? null,
+        overlay: 'barMatching',
+        overlayMeta: null,
+      })
+      window.history.replaceState(window.history.state, '', path)
+    }
+  }, [])
 
   // 데이터 불러오기 및 자동 분석 시도
   useEffect(() => {
@@ -132,88 +182,161 @@ const SajuModal = ({ parties, onClose, lang = 'ko' }) => {
     }
   }, [])
 
-  const isValid = gender && year && month && day && timeIdx !== ''
-  const todayStr = new Date().toISOString().split('T')[0]
+  const isValid = Boolean(gender && year && month && day)
+  const todayStr = getKSTCalendarTodayStr()
+
+  const calcDistKm = (lat1, lon1, lat2, lon2) => {
+    const la1 = parseFloat(lat1);
+    const lo1 = parseFloat(lon1);
+    const la2 = parseFloat(lat2);
+    const lo2 = parseFloat(lon2);
+    if (!Number.isFinite(la1) || !Number.isFinite(lo1) || !Number.isFinite(la2) || !Number.isFinite(lo2)) {
+      return 9999;
+    }
+    const R = 6371;
+    const dLat = ((la2 - la1) * Math.PI) / 180;
+    const dLon = ((lo2 - lo1) * Math.PI) / 180;
+    const a =
+      Math.sin(dLat / 2) ** 2 +
+      Math.cos((la1 * Math.PI) / 180) * Math.cos((la2 * Math.PI) / 180) * Math.sin(dLon / 2) ** 2;
+    return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+  };
+
+  const sortPartiesForSaju = (rows, userLat, userLon) =>
+    rows
+      .map((b) => {
+        const loc = b.locations || {};
+        const hasCoords =
+          userLat != null && userLon != null && loc.latitude != null && loc.longitude != null;
+        return {
+          ...b,
+          distance: hasCoords ? calcDistKm(userLat, userLon, loc.latitude, loc.longitude) : 9999,
+        };
+      })
+      .sort((a, b) => {
+        if (a.date !== b.date) return String(a.date).localeCompare(String(b.date));
+        if (a.distance !== b.distance) return a.distance - b.distance;
+        return String(a.time || '').localeCompare(String(b.time || ''));
+      });
+
+  const pickRecommendations = (sorted, genreName) => {
+    const todayRows = sorted.filter((p) => p.date === todayStr);
+    const schedulePool = todayRows.length ? todayRows : sorted;
+    const genreMatched = genreName
+      ? schedulePool.filter((p) => partyMatchesGenre(p, genreName))
+      : schedulePool;
+    const pool = genreMatched.length ? genreMatched : schedulePool;
+    return pool.slice(0, 3);
+  };
+
+  const loadUpcomingParties = async () => {
+    const fromProp = (parties || [])
+      .map(normalizePartyForSajuDisplay)
+      .filter(Boolean)
+      .filter((p) => p.date && p.date >= todayStr);
+
+    if (!supabase) return fromProp;
+
+    const { data, error } = await fetchUpcomingPartiesForSaju(supabase, { todayStr, limit: 100 });
+    if (error) logPartiesFetchError(error);
+
+    const fromDb = (data || []).map(normalizePartyForSajuDisplay).filter(Boolean);
+    if (fromDb.length) return fromDb;
+    return fromProp;
+  };
 
   const analyze = async () => {
-    if (!isValid) return
-    setLoading(true)
+    if (!isValid) return;
+    setLoading(true);
 
-    // 1. GPS 위치 획득 및 거리순 파티 조회 (공통 로직)
-    let userLat = null, userLon = null
     try {
-      const { getUserCoords, readCachedCoords } = await import('../lib/geoCache');
-      const c = readCachedCoords() || (await getUserCoords({ maxAgeMs: 60 * 60 * 1000 }));
-      userLat = c.lat;
-      userLon = c.lng;
-    } catch (e) { console.log('GPS Skip') }
+      let userLat = null;
+      let userLon = null;
+      try {
+        const { getUserCoords, readCachedCoords } = await import('../lib/geoCache');
+        const c = readCachedCoords() || (await getUserCoords({ maxAgeMs: 60 * 60 * 1000 }));
+        userLat = c?.lat;
+        userLon = c?.lng;
+      } catch {
+        /* GPS optional */
+      }
 
-    const { data: bars } = await supabase
-      .from('parties')
-      .select('title, fee, date, b_ratio, s_ratio, k_ratio, j_ratio, poster_url, locations(name, address, latitude, longitude)')
-      .eq('status', 'approved').gte('date', todayStr).limit(100)
+      const partyRows = await loadUpcomingParties();
+      const sortedByDist = sortPartiesForSaju(partyRows, userLat, userLon);
 
-    const calcDist = (lat1, lon1, lat2, lon2) => {
-      const R = 6371; const dLat = (lat2-lat1)*Math.PI/180; const dLon = (lon2-lon1)*Math.PI/180
-      const a = Math.sin(dLat/2)**2 + Math.cos(lat1*Math.PI/180)*Math.cos(lat2*Math.PI/180)*Math.sin(dLon/2)**2
-      return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a))
+      if (experience === 'beginner') {
+        const top3 = pickRecommendations(sortedByDist, null);
+        localStorage.setItem(
+          'saju_user_data',
+          JSON.stringify({ gender, year, month, day, timeIdx, experience }),
+        );
+        setResult({
+          isBeginner: true,
+          ...getBeginnerContent(isEn),
+          recommendedBars: top3,
+        });
+        setRecommendedBars(top3);
+        setStep(2);
+        return;
+      }
+
+      const y = parseInt(year, 10);
+      const m = parseInt(month, 10);
+      const d = parseInt(day, 10);
+      const t =
+        timeIdx !== '' && timeIdx != null && !Number.isNaN(parseInt(timeIdx, 10))
+          ? parseInt(timeIdx, 10)
+          : 6;
+
+      const yGJ = getYearGanJi(y);
+      const mGJ = getMonthJi(m);
+      const dGJ = getDayGanJi(y, m, d);
+      const tGJ = { gan: '', ji: JI_JI[t], ganOheng: '', jiOheng: JI_JI_OHENG[t], emoji: '🕐' };
+
+      const count = { 木: 0, 火: 0, 土: 0, 金: 0, 水: 0 };
+      [yGJ, mGJ, dGJ, tGJ].forEach((item) => {
+        const gO = OHENG_HANJA_MAP[item.ganOheng] || item.ganOheng;
+        const jO = OHENG_HANJA_MAP[item.jiOheng] || item.jiOheng;
+        if (gO && count[gO] != null) count[gO] += 1;
+        if (jO && count[jO] != null) count[jO] += 1;
+      });
+
+      const main = Object.entries(count).sort((a, b) => b[1] - a[1])[0]?.[0] || '木';
+      const dance = OHENG_DANCE[main] || OHENG_DANCE['木'];
+      const finalBars = pickRecommendations(sortedByDist, dance.genre);
+      setRecommendedBars(finalBars);
+
+      const detailed = isEn
+        ? selectResultEn(dance.genre, gender, month, day, count, experience)
+        : selectResult(dance.genre, gender, month, day, count, experience);
+
+      const resultData = {
+        ...detailed,
+        dance,
+        recommendedBars: finalBars,
+        gender,
+        today: todayStr,
+        mainOheng: main,
+      };
+
+      localStorage.setItem(
+        'saju_user_data',
+        JSON.stringify({ gender, year, month, day, timeIdx, experience }),
+      );
+
+      setResult(resultData);
+      setStep(2);
+    } catch (err) {
+      console.error('[SajuModal] analyze failed:', err);
+      alert(
+        isEn
+          ? 'Could not load dance recommendations. Please try again.'
+          : '추천 데이터를 불러오지 못했습니다. 잠시 후 다시 시도해 주세요.',
+      );
+    } finally {
+      setLoading(false);
     }
-
-    const sortedByDist = (bars || []).map(b => ({
-      ...b,
-      distance: (userLat && userLon && b.locations) ? calcDist(userLat, userLon, b.locations.latitude, b.locations.longitude) : 9999
-    })).sort((a,b)=>a.distance - b.distance)
-
-    // 입문자 분기
-    if (experience === 'beginner') {
-      const top3 = sortedByDist.slice(0, 3)
-      setResult({
-        isBeginner: true,
-        ...getBeginnerContent(isEn),
-        recommendedBars: top3
-      })
-      setRecommendedBars(top3)
-      setLoading(false)
-      setStep(2)
-      return
-    }
-
-    // 기존 오행 로직 (경력자용)
-    const y=parseInt(year), m=parseInt(month), d=parseInt(day), t=parseInt(timeIdx)
-    const yGJ = getYearGanJi(y), mGJ = getMonthJi(m), dGJ = getDayGanJi(y,m,d)
-    const tGJ = { gan:'', ji:JI_JI[t], ganOheng:'', jiOheng:JI_JI_OHENG[t], emoji:'🕐' }
-
-    const count = { '木': 0, '火': 0, '土': 0, '金': 0, '水': 0 }
-    const list = [yGJ, mGJ, dGJ, tGJ]
-    list.forEach(item => {
-      const gO = OHENG_HANJA_MAP[item.ganOheng] || item.ganOheng
-      const jO = OHENG_HANJA_MAP[item.jiOheng] || item.jiOheng
-      if (gO) count[gO]++
-      if (jO) count[jO]++
-    })
-    const main = Object.entries(count).sort((a,b)=>b[1]-a[1])[0][0]
-    const dance = OHENG_DANCE[main]
-
-    const ratioKey = { '바차타':'b_ratio', '살사':'s_ratio', '키좀바':'k_ratio', '쥬크':'j_ratio' }[dance.genre] || 'b_ratio'
-    const filtered = sortedByDist.filter(b => b[ratioKey] > 0)
-    const finalBars = filtered.slice(0, 3)
-    setRecommendedBars(finalBars)
-
-    const detailed = isEn 
-      ? selectResultEn(dance.genre, gender, month, day, count, experience)
-      : selectResult(dance.genre, gender, month, day, count, experience)
-      
-    const resultData = { ...detailed, dance, recommendedBars: finalBars, gender, today: todayStr, mainOheng: main }
-    
-    // 데이터 저장
-    localStorage.setItem('saju_user_data', JSON.stringify({
-      gender, year, month, day, timeIdx, experience
-    }))
-
-    setResult(resultData)
-    setLoading(false)
-    setStep(2)
-  }
+  };
 
   const reset = () => {
     setStep(1); setResult(null); setYear(''); setMonth(''); setDay(''); setTimeIdx(''); setGender(''); setExperience('beginner')
@@ -224,7 +347,7 @@ const SajuModal = ({ parties, onClose, lang = 'ko' }) => {
       <div style={{ width:'100%', maxWidth:'450px', maxHeight:'90vh', background:'#fff', borderRadius:'24px', display:'flex', flexDirection:'column', overflow:'hidden', boxShadow:'0 20px 40px rgba(0,0,0,0.2)', position:'relative' }}>
         
         <div style={{ display:'flex', justifyContent:'flex-end', padding:'16px 20px', position:'absolute', top:0, right:0, zIndex:10 }}>
-          <button onClick={onClose} style={{ background:'rgba(0,0,0,0.05)', border:'none', width:'32px', height:'32px', borderRadius:'50%', cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center' }}>
+          <button type="button" onClick={handleClose} aria-label={lang === 'ko' ? '닫기' : 'Close'} style={{ background:'rgba(0,0,0,0.05)', border:'none', width:'32px', height:'32px', borderRadius:'50%', cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center' }}>
             <X size={20} />
           </button>
         </div>
@@ -360,7 +483,7 @@ const SajuModal = ({ parties, onClose, lang = 'ko' }) => {
                 {recommendedBars.map((bar, i) => (
                   <div key={i} onClick={()=>bar.poster_url && setFullPoster(bar.poster_url)} style={{ background:i===0?'linear-gradient(to right, #fff, #F5F3FF)':'#fff', borderRadius:20, border:i===0?'2px solid #C4B5FD':'1px solid #F3F4F6', padding:18, marginBottom:12, display:'flex', gap:16, alignItems:'center', cursor:bar.poster_url?'pointer':'default' }}>
                     <div style={{ width:64, height:86, borderRadius:12, overflow:'hidden', background:'#F3F4F6', flexShrink:0 }}>
-                      {bar.poster_url ? <img src={bar.poster_url} style={{ width:'100%', height:'100%', objectFit:'cover' }} /> : <div style={{ height:'100%', display:'flex', alignItems:'center', justifyContent:'center', fontSize:10, color:'#999' }}>NO IMG</div>}
+                      {bar.poster_url ? <img src={bar.poster_url} alt="" style={{ width:'100%', height:'100%', objectFit:'cover' }} onError={imgFallbackHandler(DEFAULT_CARD_IMAGE)} /> : <div style={{ height:'100%', display:'flex', alignItems:'center', justifyContent:'center', fontSize:10, color:'#999' }}>NO IMG</div>}
                     </div>
                     <div style={{ flex:1 }}>
                       <div style={{ display:'flex', justifyContent:'space-between' }}>
