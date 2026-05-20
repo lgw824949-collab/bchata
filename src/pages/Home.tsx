@@ -31,7 +31,7 @@ import bonitaPhoto from '../assets/bonita_photo.png'
 import buenaPhoto from '../assets/buena_photo.png'
 import hongturnPhoto from '../assets/hongturn_photo.png'
 import bibigoPhoto from '../assets/bibigo_photo.png'
-import { PartyMusicRatioLine } from './Social'
+import { PartyMusicRatioLine, SocialDateGenreFilterBar } from './Social'
 
 /** 메인 홈 지역 pill 순서 (표시 개수는 DB 분류 결과) */
 const HOME_REGIONS_ORDER = [

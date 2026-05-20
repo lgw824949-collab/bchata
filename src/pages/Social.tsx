@@ -1,4 +1,86 @@
 import React from 'react';
+import { AnimatePresence, motion } from 'framer-motion';
+
+/** 소셜 메인 장르 필터 — 부트캠프·페스티벌 제외 */
+export const SOCIAL_GENRE_FILTER_TABS = ['전체', '바차타', '살사', '쥬크', '키좀바'] as const;
+
+export type SocialGenreFilterTab = (typeof SOCIAL_GENRE_FILTER_TABS)[number];
+
+export function isSocialGenreFilterTab(value: string): value is SocialGenreFilterTab {
+  return (SOCIAL_GENRE_FILTER_TABS as readonly string[]).includes(value);
+}
+
+export function normalizeSocialDateGenre(genre: string): SocialGenreFilterTab {
+  return isSocialGenreFilterTab(genre) ? genre : '전체';
+}
+
+type SocialDateGenreFilterBarProps = {
+  visible: boolean;
+  activeGenre: string;
+  onSelectGenre: (genre: SocialGenreFilterTab) => void;
+};
+
+/** 소셜 메인 — 날짜 선택 하단 장르 필터 탭 */
+export function SocialDateGenreFilterBar({
+  visible,
+  activeGenre,
+  onSelectGenre,
+}: SocialDateGenreFilterBarProps) {
+  const safeActive = normalizeSocialDateGenre(activeGenre);
+
+  return (
+    <AnimatePresence initial={false}>
+      {visible && (
+        <motion.div
+          key="genre-filter-bar"
+          initial={{ height: 0, opacity: 0 }}
+          animate={{ height: 'auto', opacity: 1 }}
+          exit={{ height: 0, opacity: 0 }}
+          transition={{ duration: 0.2, ease: 'easeInOut' }}
+          style={{ overflow: 'hidden', borderTop: '1px solid var(--color-border)' }}
+        >
+          <div
+            style={{
+              display: 'flex',
+              overflowX: 'auto',
+              gap: '6px',
+              padding: '8px 10px',
+              msOverflowStyle: 'none',
+              scrollbarWidth: 'none',
+              WebkitOverflowScrolling: 'touch',
+            }}
+          >
+            {SOCIAL_GENRE_FILTER_TABS.map((g) => {
+              const isActive = safeActive === g;
+              return (
+                <button
+                  key={g}
+                  type="button"
+                  onClick={() => onSelectGenre(g)}
+                  style={{
+                    padding: '6px 12px',
+                    borderRadius: '20px',
+                    fontSize: '12px',
+                    fontWeight: isActive ? 900 : 600,
+                    backgroundColor: isActive ? '#E53935' : '#fff',
+                    color: isActive ? '#fff' : '#64748B',
+                    border: `1px solid ${isActive ? '#E53935' : '#E2E8F0'}`,
+                    cursor: 'pointer',
+                    flexShrink: 0,
+                    boxShadow: isActive ? '0 2px 6px rgba(229,57,53,0.25)' : '0 1px 3px rgba(0,0,0,0.05)',
+                    transition: 'all 0.2s',
+                  }}
+                >
+                  {g}
+                </button>
+              );
+            })}
+          </div>
+        </motion.div>
+      )}
+    </AnimatePresence>
+  );
+}
 
 /** parties — music_ratio 없음, b/s/j/k_ratio 조합으로 B4:S2 형식 생성 */
 const PARTY_RATIO_SEGMENTS = [
