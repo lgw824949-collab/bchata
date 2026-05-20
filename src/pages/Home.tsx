@@ -4,8 +4,7 @@ import { useTranslation } from 'react-i18next';
 import { motion, AnimatePresence } from 'framer-motion';
 import QuickPinchZoom, { make3dTransformValue } from 'react-quick-pinch-zoom';
 import LiveCount from '../components/LiveCount'
-import { getBarStatsKey, buildBarCounterDisplay, shouldShowBarCounter } from '../lib/barCounterDisplay'
-import { fetchBarStatsMap, resolveBarStats, bumpBarClickCount } from '../lib/barStatsQuery'
+import { fetchBarStatsMap, bumpBarClickCount } from '../lib/barStatsQuery'
 import { KMA_REGION_COORDS, fetchWeatherForecast, parseKmaWeather, HOME_REGION_MAP } from '../utils/kmaApi'
 import { supabase } from '../lib/supabase'
 import { BAR_DATABASE } from '../lib/BarLib'
@@ -1508,14 +1507,6 @@ const HomePage = ({
     return [SOCIAL_BAR_REGION_ALL, ...withVenues];
   }, [locations]);
 
-  const barStatsByKey = useMemo(() => {
-    const out = {};
-    locations.forEach((bar) => {
-      out[getBarStatsKey(bar)] = resolveBarStats(bar, barStatsMap);
-    });
-    return out;
-  }, [locations, barStatsMap]);
-
   const openVenueDetail = (bar) => {
     setSelectedVenue(bar);
     pushOverlay('venue', {
@@ -1607,25 +1598,9 @@ const HomePage = ({
     return () => window.removeEventListener('bamppa-history', onHistory);
   }, [locations]);
 
-  const formatSocialBarCounterLine = (line, mode) => {
-    if (mode === 'live_hot') return line;
-    return String(line || '')
-      .replace(/👀|👁️/g, 'view')
-      .replace(/확인/g, '')
-      .replace(/\s{2,}/g, ' ')
-      .trim();
-  };
-
   const renderBarCard = (bar) => {
-    const stats = barStatsByKey[getBarStatsKey(bar)] || { liveCount: 0, clickCount: 0 };
-    const counter = buildBarCounterDisplay(stats);
-    const showCounter = shouldShowBarCounter(stats);
-    const lineClass = showCounter
-      ? (counter.mode === 'live_hot' ? 'home-bar-chip-line--hot' : 'home-bar-chip-line--muted')
-      : 'home-bar-chip-line';
     const barName = bar.name || '이름 없음';
     const viewLine = formatBarViewCountLine(bar.view_count);
-    const metaLine = showCounter ? formatSocialBarCounterLine(counter.line, counter.mode) : null;
     const barNameStyle = {
       margin: 0,
       width: '100%',
@@ -1690,11 +1665,6 @@ const HomePage = ({
           <p className="home-bar-chip-line home-bar-chip-line--muted" style={metaLineStyle} title={viewLine}>
             {viewLine}
           </p>
-          {metaLine ? (
-            <p className={`home-bar-chip-line ${lineClass}`} style={metaLineStyle} title={metaLine}>
-              {metaLine}
-            </p>
-          ) : null}
         </div>
       </motion.button>
     );
