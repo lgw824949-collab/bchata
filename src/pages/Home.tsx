@@ -2034,7 +2034,7 @@ const HomePage = ({
               const now = Date.now();
               if (now - lastAdminTap < 2000) {
                 const nextCount = adminTapCount + 1;
-                if (nextCount >= 3) { setView('admin-portal'); setAdminTapCount(0); }
+                if (nextCount >= 3) { navigate('/admin-portal'); setAdminTapCount(0); }
                 else { setAdminTapCount(nextCount); }
               } else { setAdminTapCount(1); }
               setLastAdminTap(now);
@@ -2767,7 +2767,7 @@ const HomePage = ({
                                         if (now - lastAdminTap < 2000) {
                                           const nextCount = adminTapCount + 1;
                                           if (nextCount >= 3) {
-                                            setView('admin-portal');
+                                            navigate('/admin-portal');
                                             setAdminTapCount(0);
                                           } else {
                                             setAdminTapCount(nextCount);

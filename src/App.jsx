@@ -55,6 +55,16 @@ const LoadingFallback = () => (
   </div>
 );
 
+const ADMIN_SHELL_VIEWS = new Set(['admin', 'admin-portal']);
+
+function isAdminShellActive(view, pathname) {
+  return (
+    ADMIN_SHELL_VIEWS.has(view) ||
+    pathname === '/admin' ||
+    pathname === '/admin-portal'
+  );
+}
+
 // --- [CUSTOM ROUTING ENGINE] ---
 const useLocation = () => {
   const [pathname, setPathname] = useState(window.location.pathname);
@@ -1032,7 +1042,9 @@ function App() {
     homeActiveTab === null &&
     !showPartner
   const isSocialLightNav = (location.pathname === '/' && view === 'home' && homeActiveTab !== null) || showPartner
+  const isAdminShell = isAdminShellActive(view, location.pathname)
   const isDarkAppSurface =
+    isAdminShell ||
     isHomeGateNav ||
     ['/bootcamp', '/festival', '/instructors', '/livepick', '/community'].some(
       (p) => location.pathname === p || location.pathname.startsWith(`${p}/`),
@@ -1099,6 +1111,32 @@ function App() {
     const path = window.location.pathname;
     const st = parseAppState(rawState) ?? parseAppState(window.history.state);
     const nextView = st?.view ?? pathToView(path);
+
+    if (isAdminShellActive(nextView, path)) {
+      setView(nextView);
+      setHomeActiveTab(null);
+      setShowPartner(false);
+      setShowWishlist(false);
+      setShowSaju(false);
+      setShowWeather(false);
+      setShowRoute(false);
+      setShowPlaceInquiry(false);
+      setShowRentalModal(false);
+      setShowFullCalendar(false);
+      setShowIncheonModal(false);
+      setShowFilterPanel(false);
+      setShowFilteredResults(false);
+      setShowGridModal(false);
+      setShowClassRegister(false);
+      setShowIncheon(false);
+      setSelectedPoster(null);
+      setShowVipLogin(false);
+      setShowVipMenu(false);
+      setIsMenuOpen(false);
+      window.dispatchEvent(new CustomEvent('bamppa-history', { detail: { state: st } }));
+      return;
+    }
+
     setView(nextView);
 
     if (path === '/') {
@@ -1840,6 +1878,11 @@ function App() {
     return () => document.body.classList.remove('has-bottom-nav')
   }, [hideBottomNav])
 
+  useEffect(() => {
+    document.body.classList.toggle('bchata-admin-shell-active', isAdminShell)
+    return () => document.body.classList.remove('bchata-admin-shell-active')
+  }, [isAdminShell])
+
   return (
     <>
     <div
@@ -2049,7 +2092,7 @@ function App() {
         )}
       </AnimatePresence>
 
-      {showVipLogin && (
+      {!isAdminShell && showVipLogin && (
         <div
           style={{ position: 'fixed', inset: 0, zIndex: Z.modal, background: 'rgba(0,0,0,0.55)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20 }}
           onClick={() => { setShowVipLogin(false); resetVipAuthToLogin(); }}
@@ -2153,7 +2196,7 @@ function App() {
       )}
 
       <AnimatePresence>
-        {showVipMenu && vipLoggedIn && (
+        {!isAdminShell && showVipMenu && vipLoggedIn && (
           <motion.div
             initial={{ x: '-100%' }}
             animate={{ x: 0 }}
@@ -2282,89 +2325,142 @@ function App() {
         </div>
       )}
 
-      <main>
-        {view !== 'admin' && view !== 'admin-portal' && (
-        <div className="bchata-tab-panels">
-          <div className="bchata-tab-panel" data-active={view === 'home'} aria-hidden={view !== 'home'}>
-            <HomePage {...sharedProps} />
-          </div>
-          <div
-            className="bchata-tab-panel"
-            data-active={view === 'bootcamp' || view === 'bootcamp-register'}
-            aria-hidden={view !== 'bootcamp' && view !== 'bootcamp-register'}
-          >
-            <Bootcamp
-              onBack={goBack}
-              initialView={view === 'bootcamp-register' ? 'register' : 'list'}
-              cachedBootcamps={bootcamps}
-              onBootcampsRefresh={setBootcamps}
-            />
-          </div>
-          <div className="bchata-tab-panel" data-active={view === 'instructors'} aria-hidden={view !== 'instructors'}>
-            <Instructors onOpenVipMaster={openVipMasterFlow} cachedInstructors={instructorsCache} />
-          </div>
-          <div
-            className="bchata-tab-panel"
-            data-active={view === 'festival' || view === 'festival-register'}
-            aria-hidden={view !== 'festival' && view !== 'festival-register'}
-          >
-            <Festival
-              onBack={goBack}
-              initialRegister={view === 'festival-register'}
-              cachedFestivals={festivals}
-              onFestivalsRefresh={setFestivals}
-            />
-          </div>
-        </div>
-        )}
-        <Suspense fallback={<LoadingFallback />}>
-          {view === 'community' ? <Community setSelectedPoster={setSelectedPoster} setView={setView} /> :
-           view === 'parking' ? <Parking onBack={goBack} /> :
-           view === 'restaurant' ? <Restaurant onBack={goBack} /> :
-           /* register-party: main 밖 최상위에서 렌더 (하단 네비 z-index 충돌 방지) */
-           view === 'register-party' ? null :
-           view === 'admin' ? <AdminDashboard setView={setView} onBack={() => setView('admin-portal')} refreshData={fetchParties} /> :
-           view === 'admin-portal' ? (
-                <div style={{ 
-                  height: '100vh', 
-                  background: '#0F172A', 
-                  display: 'flex', 
-                  flexDirection: 'column', 
-                  alignItems: 'center', 
-                  justifyContent: 'center', 
+      {isAdminShell ? (
+        <main className="bchata-admin-shell" data-bchata-shell="admin">
+          <Suspense fallback={<LoadingFallback />}>
+            {view === 'admin-portal' ? (
+              <div
+                className="bchata-admin-portal"
+                style={{
+                  minHeight: '100dvh',
+                  background: '#0F172A',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  alignItems: 'center',
+                  justifyContent: 'center',
                   padding: '20px',
-                  gap: '20px'
-                }}>
-                  <div style={{ textAlign: 'center', marginBottom: '30px' }}>
-                    <ShieldCheck size={64} color="#FF1744" style={{ margin: '0 auto 16px' }} />
-                    <h2 style={{ color: 'white', fontSize: '24px', fontWeight: 900 }}>{t('admin_portal')}</h2>
-                    <p style={{ color: '#94A3B8', fontSize: '14px' }}>{t('admin_portal_desc')}</p>
-                  </div>
-                  
-                  <button 
-                    onClick={() => setView('admin')}
-                    style={{ 
-                      width: '100%', maxWidth: '320px', padding: '24px', 
-                      borderRadius: '20px', background: '#1E293B', color: 'white', 
-                      border: '1px solid #334155', fontSize: '18px', fontWeight: 800,
-                      cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '15px'
-                    }}
-                  >
-                    <Music2 size={24} color="#FF1744" /> {t('admin_manage_party')}
-                  </button>
-                  
-                  <button 
-                    onClick={() => navigate('/')}
-                    style={{ marginTop: '40px', background: 'none', border: 'none', color: '#64748B', fontWeight: 700, cursor: 'pointer' }}
-                  >
-                    {t('back_to_main')}
-                  </button>
+                  gap: '20px',
+                }}
+              >
+                <div style={{ textAlign: 'center', marginBottom: '30px' }}>
+                  <ShieldCheck size={64} color="#FF1744" style={{ margin: '0 auto 16px' }} />
+                  <h2 style={{ color: 'white', fontSize: '24px', fontWeight: 900 }}>{t('admin_portal')}</h2>
+                  <p style={{ color: '#94A3B8', fontSize: '14px' }}>{t('admin_portal_desc')}</p>
                 </div>
-              ) : null}
-        </Suspense>
-      </main>
+
+                <button
+                  type="button"
+                  onClick={() => navigate('/admin')}
+                  style={{
+                    width: '100%',
+                    maxWidth: '320px',
+                    padding: '24px',
+                    borderRadius: '20px',
+                    background: '#1E293B',
+                    color: 'white',
+                    border: '1px solid #334155',
+                    fontSize: '18px',
+                    fontWeight: 800,
+                    cursor: 'pointer',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '15px',
+                  }}
+                >
+                  <Music2 size={24} color="#FF1744" /> {t('admin_manage_party')}
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => navigate('/')}
+                  style={{ marginTop: '40px', background: 'none', border: 'none', color: '#64748B', fontWeight: 700, cursor: 'pointer' }}
+                >
+                  {t('back_to_main')}
+                </button>
+              </div>
+            ) : (
+              <AdminDashboard setView={setView} onBack={() => navigate('/admin-portal')} refreshData={fetchParties} />
+            )}
+          </Suspense>
+        </main>
+      ) : (
+        <main className="bchata-user-shell" data-bchata-shell="user">
+          <div className="bchata-tab-panels">
+
+          <div className="bchata-tab-panel" data-active={view === 'home'} aria-hidden={view !== 'home'}>
+
+            <HomePage {...sharedProps} />
+
+          </div>
+
+          <div
+
+            className="bchata-tab-panel"
+
+            data-active={view === 'bootcamp' || view === 'bootcamp-register'}
+
+            aria-hidden={view !== 'bootcamp' && view !== 'bootcamp-register'}
+
+          >
+
+            <Bootcamp
+
+              onBack={goBack}
+
+              initialView={view === 'bootcamp-register' ? 'register' : 'list'}
+
+              cachedBootcamps={bootcamps}
+
+              onBootcampsRefresh={setBootcamps}
+
+            />
+
+          </div>
+
+          <div className="bchata-tab-panel" data-active={view === 'instructors'} aria-hidden={view !== 'instructors'}>
+
+            <Instructors onOpenVipMaster={openVipMasterFlow} cachedInstructors={instructorsCache} />
+
+          </div>
+
+          <div
+
+            className="bchata-tab-panel"
+
+            data-active={view === 'festival' || view === 'festival-register'}
+
+            aria-hidden={view !== 'festival' && view !== 'festival-register'}
+
+          >
+
+            <Festival
+
+              onBack={goBack}
+
+              initialRegister={view === 'festival-register'}
+
+              cachedFestivals={festivals}
+
+              onFestivalsRefresh={setFestivals}
+
+            />
+
+          </div>
+
+        </div>
+          <Suspense fallback={<LoadingFallback />}>
+            {view === 'community' ? <Community setSelectedPoster={setSelectedPoster} setView={setView} /> :
+             view === 'parking' ? <Parking onBack={goBack} /> :
+             view === 'restaurant' ? <Restaurant onBack={goBack} /> :
+             view === 'register-party' ? null :
+             null}
+          </Suspense>
+        </main>
+      )}
 
 
+      {!isAdminShell && (
+        <>
 
 
       <DynamicAnalysisModal isOpen={showIncheonModal} onClose={() => setShowIncheonModal(false)} userCoords={userCoords} isSajuCall={isSajuCall} />
@@ -2572,13 +2668,15 @@ function App() {
           </motion.div>
         )}
       </AnimatePresence>
+        </>
+      )}
 
       </motion.div>
 
     </div>
     
     {/* [B] [포스터 확대 모달 - 컨테이너 외부 최상위 배치] */}
-    {showPartner && <PartnerModal onClose={() => setShowPartner(false)} />}
+    {!isAdminShell && showPartner && <PartnerModal onClose={() => setShowPartner(false)} />}
     {showClassRegister && (
       <ClassRegisterModal
         onClose={() => setShowClassRegister(false)}
@@ -2762,7 +2860,7 @@ function App() {
       </div>
     </nav>
     )}
-    <ChatBot />
+    {!isAdminShell && <ChatBot />}
     {exitToast ? (
       <motion.div
         initial={{ opacity: 0, y: 12 }}

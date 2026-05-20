@@ -1642,6 +1642,17 @@ body.venue-detail-open.venue-detail-nav-hidden .bottom-nav {
   display: block;
 }
 
+/* Admin shell — user UI와 DOM·스타일 완전 분리 */
+.bchata-admin-shell {
+  isolation: isolate;
+  min-height: 100dvh;
+  background: #0f172a;
+}
+
+.bchata-user-shell {
+  isolation: isolate;
+}
+
 .bottom-nav__item {
   flex: 1;
   display: flex;
