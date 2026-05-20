@@ -2162,29 +2162,36 @@ body.bottom-nav-social-light nav.bottom-nav {
   font-weight: 950;
 }
 
-.live-dynamic-banner__spotlight {
-  color: #000000;
-  font-size: clamp(10px, 2.85vw, 12px);
-  font-weight: 900;
+.live-banner-text-clip,
+.live-dynamic-banner__spotlight,
+.live-dynamic-banner__spotlight--solo,
+.live-dynamic-banner .lc-default--hot {
+  display: block;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  flex: 1 1 auto;
+}
+
+.live-dynamic-banner__spotlight {
+  color: #000000;
+  font-size: clamp(9px, 2.6vw, 12px);
+  font-weight: 900;
+  flex: 1 1 0%;
   min-width: 0;
   max-width: 100%;
   animation: live-banner-text-in 0.45s ease-out;
 }
 
-.live-dynamic-banner__spotlight--solo {
-  flex: 1 1 auto;
+.live-dynamic-banner__inner > .live-dynamic-banner__spotlight--solo {
+  flex: 1 1 0%;
   min-width: 0;
   max-width: 100%;
+}
+
+.live-dynamic-banner__spotlight--solo {
   color: #000000;
-  font-size: clamp(10px, 2.85vw, 12px);
+  font-size: clamp(9px, 2.6vw, 12px);
   font-weight: 900;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
 }
 
 .live-dynamic-banner .lc-tag {
@@ -2218,13 +2225,10 @@ body.bottom-nav-social-light nav.bottom-nav {
 
 .live-dynamic-banner .lc-default--hot {
   color: #000000;
-  font-size: clamp(10px, 2.85vw, 12px);
+  font-size: clamp(9px, 2.6vw, 12px);
   font-weight: 900;
-  white-space: nowrap;
   flex-shrink: 1;
   min-width: 0;
-  overflow: hidden;
-  text-overflow: ellipsis;
 }
 
 .live-count-premium-wrapper .live-dynamic-banner {
@@ -2236,23 +2240,32 @@ body.bottom-nav-social-light nav.bottom-nav {
   background: transparent;
 }
 
-@media (max-width: 480px) {
-  .live-dynamic-banner__regions,
-  .live-dynamic-banner__sep--before-spotlight {
-    display: none;
+@media (max-width: 390px) {
+  .live-dynamic-banner__inner {
+    gap: 4px;
+    padding: 0 10px;
   }
 
+  .live-dynamic-banner__regions,
+  .live-dynamic-banner__sep--before-spotlight,
   .live-dynamic-banner__track .live-dynamic-banner__sep:first-child {
     display: none;
   }
 
-  .live-dynamic-banner .lc-default--hot {
-    flex-shrink: 0;
-    max-width: 38%;
+  .live-dynamic-banner__track:has(.live-dynamic-banner__spotlight) .lc-default--hot {
+    display: none;
   }
 
-  .live-dynamic-banner__spotlight {
-    flex: 1 1 auto;
+  .live-dynamic-banner .lc-tag {
+    padding: 2px 5px;
+    font-size: 8px;
+    letter-spacing: 1px;
+  }
+
+  .live-dynamic-banner__spotlight,
+  .live-dynamic-banner__spotlight--solo {
+    font-size: clamp(9px, 2.45vw, 11px);
+    flex: 1 1 0%;
   }
 }
 

@@ -367,7 +367,7 @@ const LiveCount = ({ parties: partiesProp, onPartyClick, onPromoClick, isGate = 
             {spotlight ? (
               <>
                 <span className="live-dynamic-banner__sep live-dynamic-banner__sep--before-spotlight">|</span>
-                <span key={spotlight.id} className="live-dynamic-banner__spotlight" title={dynamicBannerText}>
+                <span key={spotlight.id} className="live-dynamic-banner__spotlight live-banner-text-clip" title={dynamicBannerText}>
                   {dynamicBannerText}
                 </span>
               </>
@@ -376,7 +376,7 @@ const LiveCount = ({ parties: partiesProp, onPartyClick, onPromoClick, isGate = 
         ) : (
           <span
             key={spotlight?.id || `fallback-${poolIndex}`}
-            className="live-dynamic-banner__spotlight live-dynamic-banner__spotlight--solo"
+            className="live-dynamic-banner__spotlight live-dynamic-banner__spotlight--solo live-banner-text-clip"
             title={mainLine}
           >
             {mainLine}

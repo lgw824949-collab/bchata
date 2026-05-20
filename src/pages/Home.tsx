@@ -1922,19 +1922,41 @@ const HomePage = ({
             }
             .live-count-premium-wrapper .lc-default {
               color: #000000 !important;
-              font-size: 12px !important;
+              font-size: clamp(9px, 2.6vw, 12px) !important;
               font-weight: 900 !important;
               font-family: inherit !important;
               letter-spacing: -0.3px !important;
               white-space: nowrap !important;
               overflow: hidden !important;
               text-overflow: ellipsis !important;
+              flex-shrink: 1 !important;
+              min-width: 0 !important;
             }
             .live-count-premium-wrapper .live-dynamic-banner__spotlight,
-            .live-count-premium-wrapper .live-dynamic-banner__spotlight--solo,
+            .live-count-premium-wrapper .live-dynamic-banner__spotlight--solo {
+              color: #000000 !important;
+              font-weight: 900 !important;
+              font-size: clamp(9px, 2.6vw, 12px) !important;
+              white-space: nowrap !important;
+              overflow: hidden !important;
+              text-overflow: ellipsis !important;
+              flex: 1 1 0% !important;
+              min-width: 0 !important;
+              max-width: 100% !important;
+              display: block !important;
+            }
+            .live-count-premium-wrapper .live-dynamic-banner__inner > .live-dynamic-banner__spotlight--solo {
+              flex: 1 1 0% !important;
+              min-width: 0 !important;
+            }
             .live-count-premium-wrapper .live-dynamic-banner__region {
               color: #000000 !important;
               font-weight: 900 !important;
+            }
+            @media (max-width: 390px) {
+              .live-count-premium-wrapper .live-dynamic-banner__track:has(.live-dynamic-banner__spotlight) .lc-default--hot {
+                display: none !important;
+              }
             }
             .live-count-premium-wrapper .live-dynamic-banner__region strong {
               color: #000000 !important;
