@@ -76,6 +76,31 @@ const socialBarHaversineKm = (lat1, lon1, lat2, lon2) => {
   return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
 };
 
+/** Social BAR 서울 탭 — 우선 노출 순서 (name 기준) */
+const SEOUL_SOCIAL_BAR_ORDER = [
+  { match: (key) => key === '라틴' },
+  { match: (key) => key.includes('보니타') || key.includes('보니따') },
+  { match: (key) => key.includes('홍턴') },
+  { match: (key) => key.includes('강남턴') || key === '강턴' },
+  { match: (key) => key.includes('마콘도') },
+];
+
+const getSeoulSocialBarSortRank = (bar) => {
+  const key = normalizeVenueNameKey(bar?.name || '');
+  const priorityIdx = SEOUL_SOCIAL_BAR_ORDER.findIndex((rule) => rule.match(key));
+  if (priorityIdx >= 0) return priorityIdx;
+  const sortOrder = Number(bar?.sort_order);
+  if (Number.isFinite(sortOrder)) return 100 + sortOrder;
+  return 1000;
+};
+
+const sortSeoulSocialBars = (bars) =>
+  [...bars].sort((a, b) => {
+    const diff = getSeoulSocialBarSortRank(a) - getSeoulSocialBarSortRank(b);
+    if (diff !== 0) return diff;
+    return (a.name || '').localeCompare(b.name || '', 'ko');
+  });
+
 const pickNearestSocialBarRegion = (lat, lng) => {
   const la = Number(lat);
   const ln = Number(lng);
@@ -1359,10 +1384,18 @@ const HomePage = ({
     try {
       let rawList = [];
       if (supabase) {
-        const { data, error } = await supabase
+        const selectWithSort = `${LOCATIONS_SELECT}, sort_order`;
+        let { data, error } = await supabase
           .from('locations')
-          .select(LOCATIONS_SELECT)
+          .select(selectWithSort)
+          .order('sort_order', { ascending: true, nullsFirst: false })
           .order('name', { ascending: true });
+        if (error && /sort_order/i.test(error.message || '')) {
+          ({ data, error } = await supabase
+            .from('locations')
+            .select(LOCATIONS_SELECT)
+            .order('name', { ascending: true }));
+        }
         if (error) {
           logSupabaseError('Home.fetchLocations', error);
           throw error;
@@ -1404,7 +1437,13 @@ const HomePage = ({
         classified = dedupeVenueList([...classified, ...extras]);
       }
 
-      classified.sort((a, b) => (a.name || '').localeCompare(b.name || ''));
+      classified.sort((a, b) => (a.name || '').localeCompare(b.name || '', 'ko'));
+      const seoulBars = classified.filter((b) => b.region === '서울');
+      if (seoulBars.length > 0) {
+        const sortedSeoul = sortSeoulSocialBars(seoulBars);
+        const nonSeoul = classified.filter((b) => b.region !== '서울');
+        classified = [...nonSeoul, ...sortedSeoul];
+      }
       setLocations(classified);
     } catch (err) {
       console.error('Supabase Error:', err);
@@ -1425,6 +1464,11 @@ const HomePage = ({
 
   const sortBarsByRichness = (bars) =>
     [...bars].sort((a, b) => scoreBarForPreview(b) - scoreBarForPreview(a));
+
+  const sortBarsForSocialBarTab = (bars, regionTab) => {
+    if (regionTab === '서울') return sortSeoulSocialBars(bars);
+    return sortBarsByRichness(bars);
+  };
 
   const barRegionCounts = useMemo(() => {
     const counts = Object.fromEntries(HOME_REGIONS_ORDER.map((r) => [r, 0]));
@@ -2613,7 +2657,7 @@ const HomePage = ({
                       aria-label={isEn ? `Social BAR in ${selectedRegionTab}` : `${selectedRegionTab} Social BAR`}
                     >
                       <div className="home-social-bar-track">
-                        {sortBarsByRichness(filteredBars).map((bar) => renderBarCard(bar))}
+                        {sortBarsForSocialBarTab(filteredBars, selectedRegionTab).map((bar) => renderBarCard(bar))}
                       </div>
                     </div>
                   </motion.div>
