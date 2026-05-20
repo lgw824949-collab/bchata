@@ -36,6 +36,7 @@ function pickSpotlightPool(list, todayStr, yesterdayStr, isNowInPartyTime) {
     .filter(isApprovedParty)
     .filter((p) => String(p.poster_url || p.imageUrl || '').trim())
     .filter((p) => String(p.date || '').slice(0, 10) === todayStr)
+    .filter((p) => getLiveViewScore(p) > 0)
     .filter((p) => getRecentActivityTs(p) >= Date.now() - LIVE_WINDOW_MS)
   if (!rows.length) return []
   const ranked = rows
@@ -62,33 +63,10 @@ const LiveCount = ({ parties: partiesProp, onPartyClick, onPromoClick, isGate = 
   const [counts, setCounts] = useState({})
   const [spotlightPool, setSpotlightPool] = useState([])
   const [poolIndex, setPoolIndex] = useState(0)
-  const [displayText, setDisplayText] = useState('')
-  const [isTyping, setIsTyping] = useState(true)
-  const [currentIndex, setCurrentIndex] = useState(0)
+  const [livePosts, setLivePosts] = useState([])
 
   const isEn = i18n.language.startsWith('en')
   const spotlight = spotlightPool[poolIndex] || spotlightPool[0] || null
-
-  const liveMessages = useMemo(
-    () => [
-      t('live_msg_1'),
-      t('live_msg_2'),
-      t('live_msg_3'),
-      t('live_msg_4'),
-      t('live_msg_5'),
-      t('live_msg_6'),
-      t('live_msg_7'),
-      t('live_msg_8'),
-      t('live_msg_9'),
-      t('live_msg_10'),
-      t('live_msg_11'),
-      t('live_msg_12'),
-      t('live_msg_13'),
-      t('live_msg_14'),
-      t('live_msg_15'),
-    ],
-    [t],
-  )
 
   const isNowInPartyTime = useCallback((dateStr, startTime) => {
     if (!dateStr || !startTime) return false
@@ -117,6 +95,31 @@ const LiveCount = ({ parties: partiesProp, onPartyClick, onPromoClick, isGate = 
     setSpotlightPool(pool)
     setPoolIndex(0)
   }, [getLiveBannerData])
+
+  const fetchLivePostsToday = async () => {
+    if (!supabase) {
+      setLivePosts([])
+      return
+    }
+    const today = getTodayKST()
+    try {
+      const { data, error } = await supabase
+        .from('posts')
+        .select('title')
+        .gte('created_at', `${today}T00:00:00`)
+        .order('created_at', { ascending: false })
+
+      if (error) {
+        logSupabaseError('LiveCount.posts', error)
+        setLivePosts([])
+        return
+      }
+      setLivePosts((data || []).filter((row) => String(row?.title || '').trim()))
+    } catch (err) {
+      logSupabaseError('LiveCount.posts', err)
+      setLivePosts([])
+    }
+  }
 
   const fetchCounts = async () => {
     if (!supabase) return
@@ -228,13 +231,15 @@ const LiveCount = ({ parties: partiesProp, onPartyClick, onPromoClick, isGate = 
     }
   }, [partiesProp, getLiveBannerData])
 
-  useEffect(() => {
+  const refreshLiveBanner = useCallback(() => {
+    fetchLivePostsToday()
     fetchCounts()
     fetchSpotlightFromDb()
-    const refreshTimer = setInterval(() => {
-      fetchCounts()
-      fetchSpotlightFromDb()
-    }, LIVE_QUEUE_REFRESH_MS)
+  }, [])
+
+  useEffect(() => {
+    refreshLiveBanner()
+    const refreshTimer = setInterval(refreshLiveBanner, LIVE_QUEUE_REFRESH_MS)
 
     if (!supabase) {
       return () => clearInterval(refreshTimer)
@@ -242,21 +247,15 @@ const LiveCount = ({ parties: partiesProp, onPartyClick, onPromoClick, isGate = 
 
     const channel = supabase
       .channel('live-dynamic-banner')
-      .on(
-        'postgres_changes',
-        { event: '*', schema: 'public', table: 'parties' },
-        () => {
-          fetchCounts()
-          fetchSpotlightFromDb()
-        },
-      )
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'parties' }, refreshLiveBanner)
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'posts' }, refreshLiveBanner)
       .subscribe()
 
     return () => {
       clearInterval(refreshTimer)
       supabase.removeChannel(channel)
     }
-  }, [])
+  }, [refreshLiveBanner])
 
   useEffect(() => {
     if (spotlightPool.length < 2) return undefined
@@ -291,43 +290,10 @@ const LiveCount = ({ parties: partiesProp, onPartyClick, onPromoClick, isGate = 
     return t(translationKeys[short] || short)
   }
 
-  const regionalReports = useMemo(() => {
-    if (Object.keys(counts).length === 0) return liveMessages
-
-    const byRegion = {}
-    Object.entries(counts).forEach(([key, count]) => {
-      if (key.includes('\uc804\uad6d') && key.includes('total')) return
-      const [region, name] = key.split('|')
-      const translatedRegion = abbreviateRegion(region)
-      if (!byRegion[translatedRegion]) byRegion[translatedRegion] = []
-      byRegion[translatedRegion].push(`${name} ${count}`)
-    })
-
-    const lines = Object.entries(byRegion).map(([reg, venues]) => `[${reg}] ${venues.join(', ')}`)
-    return lines.length ? lines : liveMessages
-  }, [counts, liveMessages, t])
-
-  useEffect(() => {
-    if (spotlight) return undefined
-    let timeout
-    const currentFullText = regionalReports[currentIndex] || ''
-
-    if (isTyping) {
-      if (displayText.length < currentFullText.length) {
-        timeout = setTimeout(() => {
-          setDisplayText(currentFullText.slice(0, displayText.length + 1))
-        }, 80)
-      } else {
-        setIsTyping(false)
-        timeout = setTimeout(() => {
-          setCurrentIndex((prev) => (prev + 1) % regionalReports.length)
-          setDisplayText('')
-          setIsTyping(true)
-        }, 4000)
-      }
-    }
-    return () => clearTimeout(timeout)
-  }, [displayText, isTyping, currentIndex, regionalReports, spotlight])
+  const displayTitle = useMemo(() => {
+    if (!livePosts?.length) return ''
+    return String(livePosts[0].title || '').trim()
+  }, [livePosts])
 
   const dynamicBannerText = useMemo(() => {
     if (!spotlight) return ''
@@ -338,6 +304,9 @@ const LiveCount = ({ parties: partiesProp, onPartyClick, onPromoClick, isGate = 
       ? (isEn ? `?? #1 tonight! ${title}` : `?? ?? 1?! ${title}`)
       : (isEn ? `? Trending now! ${title}` : `? ?? ?? ?! ${title}`)
   }, [spotlight, poolIndex, isEn])
+
+  const hasNationwideCounts = Boolean(counts['\uc804\uad6d|total'])
+  const hasBannerContent = Boolean(displayTitle || hasNationwideCounts || spotlight)
 
   const handleBannerClick = () => {
     const target = spotlightPool[poolIndex] || spotlight
@@ -355,7 +324,11 @@ const LiveCount = ({ parties: partiesProp, onPartyClick, onPromoClick, isGate = 
     window.dispatchEvent(new PopStateEvent('popstate'))
   }
 
-  const mainLine = spotlight ? dynamicBannerText : displayText
+  if (!hasBannerContent) {
+    return null
+  }
+
+  const mainLine = displayTitle || dynamicBannerText
 
   return (
     <div
@@ -369,14 +342,12 @@ const LiveCount = ({ parties: partiesProp, onPartyClick, onPromoClick, isGate = 
           handleBannerClick()
         }
       }}
-      aria-label={
-        isEn ? 'Live banner: nationwide parties or promotions' : '??? ??: ?? ?? ?? ? ??'
-      }
+      aria-label={mainLine || (isEn ? 'Live banner' : '??? ??')}
     >
       <div className="live-dynamic-banner__inner">
         <span className="lc-tag">LIVE</span>
         <span className="lc-dot" />
-        {counts['\uc804\uad6d|total'] ? (
+        {hasNationwideCounts ? (
           <div className="live-dynamic-banner__track">
             <span className="lc-default lc-default--hot">
               {'\uc804\uad6d '}{counts['\uc804\uad6d|total']}{'\uac1c \ud30c\ud2f0 \uc9c4\ud589\uc911'}
@@ -394,23 +365,29 @@ const LiveCount = ({ parties: partiesProp, onPartyClick, onPromoClick, isGate = 
                 )
               })}
             </div>
-            {spotlight ? (
+            {mainLine ? (
               <>
                 <span className="live-dynamic-banner__sep live-dynamic-banner__sep--before-spotlight">|</span>
-                <span key={spotlight.id} className="live-dynamic-banner__spotlight live-banner-text-clip" title={dynamicBannerText}>
-                  {dynamicBannerText}
+                <span
+                  key={displayTitle || spotlight?.id}
+                  className="live-dynamic-banner__spotlight live-banner-text-clip"
+                  title={mainLine}
+                >
+                  {mainLine}
                 </span>
               </>
             ) : null}
           </div>
         ) : (
-          <span
-            key={spotlight?.id || `fallback-${poolIndex}`}
-            className="live-dynamic-banner__spotlight live-dynamic-banner__spotlight--solo live-banner-text-clip"
-            title={mainLine}
-          >
-            {mainLine}
-          </span>
+          mainLine ? (
+            <span
+              key={displayTitle || spotlight?.id || 'live-line'}
+              className="live-dynamic-banner__spotlight live-dynamic-banner__spotlight--solo live-banner-text-clip"
+              title={mainLine}
+            >
+              {mainLine}
+            </span>
+          ) : null
         )}
       </div>
     </div>
