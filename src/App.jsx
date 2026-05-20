@@ -24,6 +24,7 @@ import { DEFAULT_AVATAR_IMAGE, imgFallbackHandler } from './constants/imageAsset
 import { normDate } from './lib/dateNorm'
 import { LOCATIONS_SELECT, logSupabaseError } from './lib/locationsQuery'
 import { PARTIES_SELECT, logPartiesFetchError } from './lib/partiesQuery'
+import { readVipInstructorSession, verifyActiveInstructorMember } from './lib/instructorAuth'
 import QuickPinchZoom, { make3dTransformValue } from 'react-quick-pinch-zoom';
 
 // 페이지 지연 로딩 (Lazy Loading)
@@ -1233,12 +1234,6 @@ function App() {
     localStorage.removeItem('theme');
   }, []);
 
-  useEffect(() => {
-    const handleOpenClassReg = () => setShowClassRegister(true);
-    window.addEventListener('open-class-register', handleOpenClassReg);
-    return () => window.removeEventListener('open-class-register', handleOpenClassReg);
-  }, []);
-
   const handleOpenModal = (setter, value = true, overlayKey = 'partyPoster') => {
     pushOverlay(overlayKey);
     setter(value);
@@ -1370,14 +1365,30 @@ function App() {
     }
   };
 
-  const openVipClassRegisterFlow = () => {
-    if (vipLoggedIn) {
+  const openVipClassRegisterFlow = async () => {
+    const isInstructor = await verifyActiveInstructorMember();
+    if (isInstructor) {
+      const session = readVipInstructorSession();
+      if (session) {
+        setVipLoggedIn(true);
+        localStorage.setItem('vip_instructor_session', JSON.stringify(session));
+      }
+      setVipPendingClassRegister(false);
+      setShowVipLogin(false);
       setShowVipMenu(false);
       setShowClassRegister(true);
       return;
     }
-    setVipPendingClassRegister(true);
-    setShowVipLogin(true);
+
+    setVipPendingClassRegister(false);
+    setShowVipLogin(false);
+    setShowVipMenu(false);
+    setShowClassRegister(false);
+    const msg = i18n.language?.startsWith('en')
+      ? 'Class registration is for instructor members only. Redirecting to instructor sign-up.'
+      : '클래스 등록은 강사 회원만 가능합니다. 강사 가입 페이지로 이동합니다.';
+    alert(msg);
+    navigate('/register-class', { homeTab: null });
   };
 
   const openVipMasterFlow = () => {
@@ -1478,11 +1489,14 @@ function App() {
   useEffect(() => {
     const onOpenVip = () => openVipMasterFlowRef.current();
     const onOpenVipClass = () => openVipClassRegisterFlowRef.current();
+    const onOpenClassReg = () => openVipClassRegisterFlowRef.current();
     window.addEventListener('open-vip-master-login', onOpenVip);
     window.addEventListener('open-vip-class-register', onOpenVipClass);
+    window.addEventListener('open-class-register', onOpenClassReg);
     return () => {
       window.removeEventListener('open-vip-master-login', onOpenVip);
       window.removeEventListener('open-vip-class-register', onOpenVipClass);
+      window.removeEventListener('open-class-register', onOpenClassReg);
     };
   }, []);
 
