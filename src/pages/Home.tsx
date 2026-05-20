@@ -1760,15 +1760,68 @@ const HomePage = ({
     </section>
   );
 
+  const renderHomeQuickMenuSection = () => (
+    <div id="quickmenu-section" className="home-quick-menu-section">
+      <motion.div className="home-quick-menu-block home-quick-menu-block--after-featured">
+        {renderHomeSectionHeader(
+          isEn ? 'Quick actions' : '빠른 메뉴',
+          isEn ? 'Top 4 shortcuts' : '자주 쓰는 메뉴',
+          quickMenuMore.length > 0 ? (
+            <button
+              type="button"
+              className="quick-menu-more-link"
+              onClick={() => setQuickMenuMoreOpen((open) => !open)}
+              aria-expanded={quickMenuMoreOpen}
+            >
+              {quickMenuMoreOpen ? (isEn ? 'Close' : '접기') : (isEn ? 'More' : '더보기')}
+              <ChevronDown
+                size={12}
+                strokeWidth={2}
+                style={{
+                  transform: quickMenuMoreOpen ? 'rotate(180deg)' : 'rotate(0deg)',
+                  transition: 'transform 0.2s ease',
+                }}
+              />
+            </button>
+          ) : null,
+        )}
+        <div className="home-quick-menu-grid-wrap">
+          <div className="home-quick-menu-grid">
+            {quickMenuPrimary.map((item) => renderQuickMenuItem(item))}
+          </div>
+          {quickMenuMore.length > 0 && (
+            <AnimatePresence initial={false}>
+              {quickMenuMoreOpen && (
+                <motion.div
+                  key="quick-menu-more-panel"
+                  className="quick-menu-more-wrap"
+                  initial={{ height: 0, opacity: 0 }}
+                  animate={{ height: 'auto', opacity: 1 }}
+                  exit={{ height: 0, opacity: 0 }}
+                  transition={{ duration: 0.22, ease: 'easeOut' }}
+                  style={{ overflow: 'hidden' }}
+                >
+                  <motion.div className="home-quick-menu-more-scroll">
+                    {quickMenuMore.map((item) => renderQuickMenuItem(item))}
+                  </motion.div>
+                </motion.div>
+              )}
+            </AnimatePresence>
+          )}
+        </div>
+      </motion.div>
+    </div>
+  );
+
   const renderHomeLiveAdRow = (inPanel = false) => (
     <motion.div
       className={`home-live-row${inPanel ? ' home-live-row--in-panel' : ''}`}
       style={{
         padding: inPanel ? 0 : '0 20px',
         marginBottom: inPanel ? 0 : homeSectionSpace,
-        paddingTop: inPanel ? 6 : 0,
-        marginTop: inPanel ? 4 : 0,
-        borderTop: inPanel ? `1px solid ${homeUi.divider}` : 'none',
+        paddingTop: 0,
+        marginTop: 0,
+        borderTop: 'none',
         display: 'flex',
         alignItems: 'stretch',
         gap: 10,
@@ -2006,80 +2059,40 @@ const HomePage = ({
       </motion.div>
 
       {activeTab === null && (
-        <motion.div style={{ padding: '0 16px', marginBottom: homeSectionSpace }}>
+        <motion.div className="home-main-stack" style={{ padding: '0 16px' }}>
           <section
-            className="home-depth-panel home-featured-live-panel"
+            className="home-depth-panel home-featured-panel"
             style={{
               ...homeDepthPanelStyle,
               display: 'flex',
               flexDirection: 'column',
-              gap: 0,
+              marginBottom: 0,
             }}
-            aria-label={isEn ? 'Featured events and live ads' : '추천 행사 및 LIVE 광고'}
+            aria-label={isEn ? 'Featured events' : '추천 행사'}
           >
-            <motion.div style={{ paddingBottom: 16 }}>
-              {renderHomeSectionHeader(
-                isEn ? 'Featured events' : '추천 행사',
-                isEn ? 'Tap a poster to explore' : '포스터를 눌러 바로 이동',
-              )}
-              {renderHeroPosters(true)}
-            </motion.div>
+            {renderHomeSectionHeader(
+              isEn ? 'Featured events' : '추천 행사',
+              isEn ? 'Tap a poster to explore' : '포스터를 눌러 바로 이동',
+            )}
+            {renderHeroPosters(true)}
+          </section>
+
+          {renderHomeQuickMenuSection()}
+
+          <section
+            className="home-depth-panel home-live-ad-panel"
+            style={{
+              ...homeDepthPanelStyle,
+              display: 'flex',
+              flexDirection: 'column',
+              marginTop: 0,
+              marginBottom: homeSectionSpace,
+            }}
+            aria-label={isEn ? 'Live ads' : 'LIVE 광고'}
+          >
             {renderHomeLiveAdRow(true)}
           </section>
         </motion.div>
-      )}
-
-      {activeTab === null && (
-        <div id="quickmenu-section" style={{ padding: '0 16px', marginBottom: homeSectionSpace }}>
-          <motion.div className="home-quick-menu-block" style={{ marginTop: 0, marginBottom: 0 }}>
-            {renderHomeSectionHeader(
-              isEn ? 'Quick actions' : '빠른 메뉴',
-              isEn ? 'Top 4 shortcuts' : '자주 쓰는 메뉴',
-              quickMenuMore.length > 0 ? (
-                <button
-                  type="button"
-                  className="quick-menu-more-link"
-                  onClick={() => setQuickMenuMoreOpen((open) => !open)}
-                  aria-expanded={quickMenuMoreOpen}
-                >
-                  {quickMenuMoreOpen ? (isEn ? 'Close' : '접기') : (isEn ? 'More' : '더보기')}
-                  <ChevronDown
-                    size={12}
-                    strokeWidth={2}
-                    style={{
-                      transform: quickMenuMoreOpen ? 'rotate(180deg)' : 'rotate(0deg)',
-                      transition: 'transform 0.2s ease',
-                    }}
-                  />
-                </button>
-              ) : null,
-            )}
-            <motion.div style={{ marginBottom: homeBlockSpace }}>
-              <motion.div className="home-quick-menu-grid">
-                {quickMenuPrimary.map((item) => renderQuickMenuItem(item))}
-              </motion.div>
-              {quickMenuMore.length > 0 && (
-                <AnimatePresence initial={false}>
-                  {quickMenuMoreOpen && (
-                    <motion.div
-                      key="quick-menu-more-panel"
-                      className="quick-menu-more-wrap"
-                      initial={{ height: 0, opacity: 0 }}
-                      animate={{ height: 'auto', opacity: 1 }}
-                      exit={{ height: 0, opacity: 0 }}
-                      transition={{ duration: 0.22, ease: 'easeOut' }}
-                      style={{ overflow: 'hidden' }}
-                    >
-                      <motion.div className="home-quick-menu-more-scroll">
-                        {quickMenuMore.map((item) => renderQuickMenuItem(item))}
-                      </motion.div>
-                    </motion.div>
-                  )}
-                </AnimatePresence>
-              )}
-            </motion.div>
-          </motion.div>
-        </div>
       )}
 
       {activeTab === 'social' && renderHomeLiveAdRow(false)}
@@ -2198,7 +2211,7 @@ const HomePage = ({
         }
       `}</style>
       {activeTab === null && (
-        <motion.div style={{ padding: '0 16px', marginBottom: homeSectionSpace }}>
+        <motion.div className="home-social-bar-wrap" style={{ padding: '0 16px', marginTop: 0, marginBottom: homeSectionSpace }}>
         <section
           ref={barSectionRef}
           className="home-depth-panel"

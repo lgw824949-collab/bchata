@@ -117,6 +117,11 @@ body::-webkit-scrollbar {
   touch-action: pan-y pinch-zoom; 
 }
 
+/* Social BAR 가로 스와이프 — pan-y(앱 기본)보다 우선 */
+.app-container .home-social-bar-scroll {
+  touch-action: pan-x pinch-zoom;
+}
+
 
 /* 터치 시 촌스러운 회색 음영 제거 */
 * { -webkit-tap-highlight-color: transparent; }
@@ -400,19 +405,21 @@ input, button, select, textarea {
   width: 72px;
 }
 
-/* Social BAR — 가로 스크롤 · 잘림 힌트 · 스냅 (Tailwind: flex-row overflow-x-auto snap-x) */
-.home-social-bar-scroll-wrap {
+/* Social BAR — 2단: 스크롤포트(overflow-x) + 트랙(max-content) */
+.home-social-bar-outer,
+.home-social-bar-fade {
   width: 100%;
   min-width: 0;
-  padding: 8px 0 6px;
 }
 
+.home-social-bar-outer {
+  padding: 8px 0 6px;
+  overflow: visible;
+}
+
+/* overflow-x-auto scrollbar-hide — 스크롤포트(블록) */
 .home-social-bar-scroll {
-  display: flex;
-  flex-direction: row;
-  flex-wrap: nowrap;
-  align-items: flex-start;
-  gap: 10px;
+  display: block;
   width: calc(100% + 28px);
   max-width: none;
   margin-left: -14px;
@@ -421,24 +428,40 @@ input, button, select, textarea {
   overflow-x: auto;
   overflow-y: hidden;
   -webkit-overflow-scrolling: touch;
-  touch-action: pan-x;
+  touch-action: pan-x pinch-zoom;
   overscroll-behavior-x: contain;
   scroll-snap-type: x mandatory;
   scroll-padding-inline: 14px;
 }
 
+/* flex flex-row flex-nowrap — 트랙이 스크롤포트보다 넓어짐 */
+.home-social-bar-track {
+  display: inline-flex;
+  flex-direction: row;
+  flex-wrap: nowrap;
+  align-items: flex-start;
+  gap: 10px;
+  width: max-content;
+  min-width: 100%;
+  padding-right: 6px;
+  vertical-align: top;
+}
+
+/* flex-none · w-[72px] — 5개 온전 + 6번째 반쯤 잘림 (72+10 gap ≈ 82px/칸) */
 .home-bar-chip {
-  flex: none;
+  flex: 0 0 72px;
   flex-shrink: 0;
-  width: 22%;
+  width: 72px;
   min-width: 72px;
-  max-width: 92px;
+  max-width: 72px;
   border: none;
   background: none;
   padding: 0;
+  margin: 0;
   cursor: pointer;
   text-align: left;
   scroll-snap-align: center;
+  box-sizing: border-box;
 }
 
 .home-bar-thumb {
@@ -627,6 +650,8 @@ input, button, select, textarea {
 .home-depth-panel {
   border-radius: 16px;
   padding: 18px 14px 14px;
+  overflow: visible;
+  min-width: 0;
 }
 
 .home-gate-active .home-depth-panel {
@@ -639,6 +664,42 @@ input, button, select, textarea {
 .home-quick-menu-block {
   margin-top: 36px;
   margin-bottom: 4px;
+}
+
+/* 메인 홈: 추천 행사 → 빠른 메뉴 → LIVE → Social BAR */
+.home-main-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+.home-main-stack .home-featured-panel {
+  margin-bottom: 0;
+}
+
+.home-featured-panel .home-hero-posters {
+  margin-bottom: 0;
+}
+
+.home-quick-menu-section {
+  margin-top: 14px;
+  margin-bottom: 28px;
+  padding: 0;
+}
+
+.home-quick-menu-block--after-featured,
+.home-quick-menu-section .home-quick-menu-block {
+  margin-top: 0;
+  margin-bottom: 0;
+}
+
+.home-main-stack .home-live-ad-panel {
+  margin-top: 0;
+}
+
+.home-main-stack + .home-social-bar-wrap,
+.home-social-bar-wrap {
+  margin-top: 0;
 }
 
 .home-type-caption {
