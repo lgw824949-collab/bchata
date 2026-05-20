@@ -3031,7 +3031,7 @@ const HomePage = ({
             <motion.div className="modernized-calendar-modal bchata-overlay-panel bchata-overlay-sheet" initial={{ y: '100%', opacity: 0 }} animate={{ y: 0, opacity: 1 }} exit={{ y: '100%', opacity: 0 }} transition={{ type: 'spring', damping: 25, stiffness: 200 }} style={{ position: 'fixed', left: '10px', right: '10px', background: 'var(--color-card)', borderRadius: '24px', padding: '20px', boxShadow: '0 10px 40px rgba(0,0,0,0.25)', zIndex: Z.modal, border: '1px solid var(--color-border)', display: 'flex', flexDirection: 'column', maxHeight: '85vh' }}>
               <div style={{ width: '40px', height: '4px', background: 'var(--color-border)', borderRadius: '2px', margin: '0 auto 20px' }} />
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}><span style={{ fontSize: '24px', fontWeight: 950, color: 'var(--color-text-main)' }}>{selectedMonth}월</span><div style={{ display: 'flex', gap: '8px' }}><button onClick={() => setSelectedMonth(m => m > 1 ? m - 1 : 12)} style={{ background: 'var(--color-bg)', border: '1px solid var(--color-border)', borderRadius: '10px', width: '36px', height: '36px', color: 'var(--color-text-main)' }}><ChevronLeft size={18} /></button><button onClick={() => setSelectedMonth(m => m < 12 ? m + 1 : 1)} style={{ background: 'var(--color-bg)', border: '1px solid var(--color-border)', borderRadius: '10px', width: '36px', height: '36px', color: 'var(--color-text-main)' }}><ChevronRight size={18} /></button></div></div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}><span className="cal-modal-month">{selectedMonth}월</span><div style={{ display: 'flex', gap: '8px' }}><button onClick={() => setSelectedMonth(m => m > 1 ? m - 1 : 12)} style={{ background: 'var(--color-bg)', border: '1px solid var(--color-border)', borderRadius: '10px', width: '36px', height: '36px', color: 'var(--color-text-main)' }}><ChevronLeft size={18} /></button><button onClick={() => setSelectedMonth(m => m < 12 ? m + 1 : 1)} style={{ background: 'var(--color-bg)', border: '1px solid var(--color-border)', borderRadius: '10px', width: '36px', height: '36px', color: 'var(--color-text-main)' }}><ChevronRight size={18} /></button></div></div>
                 <button onClick={handleCloseModal} style={{ background: 'var(--color-border)', border: 'none', borderRadius: '50%', width: '44px', height: '44px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--color-text-main)' }}>
                   <ChevronLeft size={28} />
                 </button>
@@ -3039,7 +3039,7 @@ const HomePage = ({
 
               <div style={{ flex: 1, overflowY: 'auto', minHeight: '350px' }}>
                 {/* 달력 상단 범례 */}
-                <div style={{ display: 'flex', justifyContent: 'center', gap: '16px', marginBottom: '16px', fontSize: '16px', fontWeight: 700, color: 'var(--color-text-sub)' }}>
+                <div className="cal-modal-legend" style={{ display: 'flex', justifyContent: 'center', gap: '16px', marginBottom: '16px' }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
                     <span style={{ width: '6px', height: '6px', borderRadius: '50%', backgroundColor: '#E53935' }} /> 파티
                   </div>
@@ -3051,7 +3051,7 @@ const HomePage = ({
                   </div>
                 </div>
                 <motion.div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: '5px', textAlign: 'center' }}>
-                  {['일', '월', '화', '수', '목', '금', '토'].map(d => <div key={d} style={{ fontSize: '12px', fontWeight: 700, color: d === '일' ? '#FF1744' : d === '토' ? '#FF1744' : '#999', padding: '5px 0' }}>{d}</div>)}
+                  {['일', '월', '화', '수', '목', '금', '토'].map(d => <div key={d} className="cal-weekday-label" style={{ color: d === '일' || d === '토' ? '#FF6B7A' : 'var(--color-text-sub)' }}>{d}</div>)}
                   {allDatesInMonth.map((day) => {
                     if (!day.date) return <div key={Math.random()} />;
                     const isWeekend = day.dayName === '금' || day.dayName === '토';
@@ -3065,11 +3065,15 @@ const HomePage = ({
                     const hasFestival = dayFestList.length > 0;
                     const dayTotalCount = dayPartyList.length + dayBootList.length + dayFestList.length;
 
+                    const isPast = day.fullDate < todayStr;
+                    const isSunday = day.dayName === '일';
+                    const isSaturday = day.dayName === '토';
                     return (
                       <div
                         key={day.fullDate}
+                        className={`cal-day-cell${isSelected ? ' is-selected' : ''}${isPast ? ' is-past' : ''}${isSunday ? ' is-sunday' : ''}${isSaturday ? ' is-saturday' : ''}`}
                         onClick={() => {
-                          if (day.fullDate < todayStr) return;
+                          if (isPast) return;
                           if (selectedDate === day.fullDate) {
                             setIsModalFilterVisible(v => !v);
                           } else {
@@ -3079,7 +3083,6 @@ const HomePage = ({
                             setIsFilterBarVisible(true);
                           }
                         }}
-                        style={{ height: '46px', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', position: 'relative', fontSize: '15px', fontWeight: isSelected ? 800 : 600, color: isSelected ? '#fff' : (day.dayName === '일' ? '#FF1744' : (isWeekend ? '#FF1744' : 'var(--color-text-main)')), backgroundColor: isSelected ? '#FF1744' : 'transparent', borderRadius: '14px', cursor: day.fullDate < todayStr ? 'default' : 'pointer', opacity: day.fullDate < todayStr ? 0.3 : 1 }}
                       >
                         <span style={{ lineHeight: 1 }}>{day.date}</span>
                         <div style={{ display: 'flex', gap: '2px', position: 'absolute', bottom: '4px', height: '4px', alignItems: 'center', justifyContent: 'center' }}>
@@ -3088,14 +3091,7 @@ const HomePage = ({
                           {hasFestival && <span style={{ width: '4px', height: '4px', borderRadius: '50%', backgroundColor: '#9333EA', boxShadow: isSelected ? '0 0 0 0.5px #fff' : 'none' }} />}
                         </div>
                         {dayTotalCount > 0 && (
-                          <span style={{
-                            position: 'absolute',
-                            top: '2px',
-                            right: '4px',
-                            fontSize: '9px',
-                            fontWeight: 900,
-                            color: isSelected ? '#fff' : '#E53935',
-                          }}>
+                          <span className="cal-day-event-badge" aria-label={isEn ? `${dayTotalCount} events` : `행사 ${dayTotalCount}건`}>
                             {dayTotalCount}
                           </span>
                         )}
@@ -3170,33 +3166,23 @@ const HomePage = ({
                           borderTop: '1px solid var(--color-border)',
                         }}
                       >
-                        <p style={{ margin: '0 0 8px', fontSize: '13px', fontWeight: 800, color: 'var(--color-text-sub)' }}>
+                        <p className="cal-summary-heading">
                           {dateLabel} {isEn ? 'summary' : '행사 요약'}
                         </p>
-                        <motion.div style={{
-                          backgroundColor: isHomeGate ? 'rgba(255,255,255,0.06)' : '#F8FAFC',
-                          borderRadius: '16px',
-                          padding: '12px 16px',
-                          border: isHomeGate ? '1px solid rgba(255,255,255,0.1)' : '1px solid #E2E8F0',
-                          display: 'flex',
-                          flexDirection: 'column',
-                          gap: '6px',
-                          fontSize: '12px',
-                          color: '#334155'
-                        }}>
+                        <motion.div className="cal-event-summary-box">
                           {/* 1. 이벤트 수 */}
-                          <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontWeight: 800 }}>
-                            <span style={{ color: '#E53935' }}>📅</span>
+                          <div className="cal-event-summary-row cal-event-summary-counts">
+                            <span style={{ color: '#FF6B7A' }}>📅</span>
                             <span>파티 {partyCount}건 / 부트캠프 {bootcampCount}건 / 페스티벌 {festivalCount}건</span>
                           </div>
 
                           {/* 2. 지역별 */}
                           {availableRegions.length > 0 && (
-                            <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap', fontWeight: 600, marginTop: '2px' }}>
+                            <div className="cal-event-summary-row">
                               {availableRegions.map((r, idx) => (
                                 <React.Fragment key={r}>
-                                  <span style={{ color: '#1E293B' }}>{r} <span style={{ color: '#E53935', fontWeight: 800 }}>{regionCounts[r]}</span>건</span>
-                                  {idx < availableRegions.length - 1 && <span style={{ color: '#CBD5E1' }}>·</span>}
+                                  <span className="cal-event-summary-label">{r} <span className="cal-event-summary-num">{regionCounts[r]}</span>건</span>
+                                  {idx < availableRegions.length - 1 && <span className="cal-event-summary-sep">·</span>}
                                 </React.Fragment>
                               ))}
                             </div>
@@ -3204,11 +3190,11 @@ const HomePage = ({
 
                           {/* 3. 장르별 */}
                           {availableGenres.length > 0 && (
-                            <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap', fontWeight: 600, marginTop: '2px' }}>
+                            <div className="cal-event-summary-row">
                               {availableGenres.map((g, idx) => (
                                 <React.Fragment key={g}>
-                                  <span style={{ color: '#1E293B' }}>{g} <span style={{ color: '#E53935', fontWeight: 800 }}>{genreCounts[g]}</span>건</span>
-                                  {idx < availableGenres.length - 1 && <span style={{ color: '#CBD5E1' }}>·</span>}
+                                  <span className="cal-event-summary-label">{g} <span className="cal-event-summary-num">{genreCounts[g]}</span>건</span>
+                                  {idx < availableGenres.length - 1 && <span className="cal-event-summary-sep">·</span>}
                                 </React.Fragment>
                               ))}
                             </div>

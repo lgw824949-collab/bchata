@@ -1171,6 +1171,163 @@ body.home-gate-theme [data-bchata-app-root] {
   background: white;
 }
 
+/* 달력 모달 — 다크/게이트 테마 가독성 */
+.modernized-calendar-modal {
+  color: var(--color-text-main);
+}
+
+html.home-gate-theme .modernized-calendar-modal,
+.home-gate-active .modernized-calendar-modal {
+  background: #1a2234 !important;
+  border-color: rgba(255, 255, 255, 0.14) !important;
+  box-shadow: 0 16px 48px rgba(0, 0, 0, 0.55) !important;
+}
+
+.modernized-calendar-modal .cal-modal-month {
+  font-size: 24px;
+  font-weight: 950;
+  color: var(--color-text-main);
+}
+
+.modernized-calendar-modal .cal-modal-legend {
+  font-size: 16px;
+  font-weight: 800;
+  color: var(--color-text-sub);
+}
+
+.modernized-calendar-modal .cal-weekday-label {
+  font-size: 12px;
+  font-weight: 800;
+  padding: 5px 0;
+}
+
+.modernized-calendar-modal .cal-day-cell {
+  height: 46px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--color-text-main);
+  border-radius: 14px;
+  cursor: pointer;
+}
+
+.modernized-calendar-modal .cal-day-cell.is-selected {
+  font-weight: 900;
+  color: #fff;
+  background-color: #ff1744;
+}
+
+.modernized-calendar-modal .cal-day-cell.is-past {
+  opacity: 0.35;
+  cursor: default;
+}
+
+.modernized-calendar-modal .cal-day-cell.is-sunday:not(.is-selected),
+.modernized-calendar-modal .cal-day-cell.is-saturday:not(.is-selected) {
+  color: #ff6b7a;
+  font-weight: 800;
+}
+
+.modernized-calendar-modal .cal-day-event-badge {
+  position: absolute;
+  top: 2px;
+  right: 2px;
+  min-width: 17px;
+  height: 17px;
+  padding: 0 4px;
+  border-radius: 9px;
+  font-size: 10px;
+  font-weight: 950;
+  line-height: 17px;
+  text-align: center;
+  letter-spacing: -0.02em;
+  background: #ffe566;
+  color: #0f172a;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.45), 0 0 0 1px rgba(0, 0, 0, 0.25);
+}
+
+.modernized-calendar-modal .cal-day-cell.is-selected .cal-day-event-badge {
+  background: #39ff14;
+  color: #0a0a0a;
+  box-shadow: 0 1px 6px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(255, 255, 255, 0.35);
+}
+
+.modernized-calendar-modal .cal-summary-heading {
+  margin: 0 0 8px;
+  font-size: 14px;
+  font-weight: 900;
+  color: var(--color-text-main);
+}
+
+.modernized-calendar-modal .cal-event-summary-box {
+  border-radius: 16px;
+  padding: 12px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  font-size: 13px;
+  font-weight: 700;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  color: #1e293b;
+}
+
+html.home-gate-theme .modernized-calendar-modal .cal-event-summary-box,
+.home-gate-active .modernized-calendar-modal .cal-event-summary-box {
+  background: rgba(15, 23, 42, 0.92);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  color: #f8fafc;
+}
+
+.modernized-calendar-modal .cal-event-summary-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+  font-weight: 800;
+  color: #f8fafc;
+}
+
+html:not(.home-gate-theme) .modernized-calendar-modal .cal-event-summary-row {
+  color: #1e293b;
+}
+
+.modernized-calendar-modal .cal-event-summary-label {
+  font-weight: 800;
+  color: #ffffff;
+}
+
+html:not(.home-gate-theme) .modernized-calendar-modal .cal-event-summary-label {
+  color: #1e293b;
+}
+
+.modernized-calendar-modal .cal-event-summary-num {
+  font-weight: 950;
+  color: #ffe566;
+}
+
+.modernized-calendar-modal .cal-event-summary-sep {
+  color: rgba(255, 255, 255, 0.35);
+  font-weight: 700;
+}
+
+html:not(.home-gate-theme) .modernized-calendar-modal .cal-event-summary-sep {
+  color: #cbd5e1;
+}
+
+.modernized-calendar-modal .cal-event-summary-counts {
+  font-weight: 900;
+  color: #f8fafc;
+}
+
+html:not(.home-gate-theme) .modernized-calendar-modal .cal-event-summary-counts {
+  color: #0f172a;
+}
+
 /* Calendar Navigation Polish */
 .week-selector {
   display: flex;
