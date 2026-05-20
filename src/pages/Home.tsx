@@ -1847,6 +1847,11 @@ const HomePage = ({
     border: `1px solid ${homeUi.panelBorder}`,
     boxShadow: homeUi.panelShadow,
   };
+  const homeLuxurySectionBoxStyle = {
+    background: 'linear-gradient(145deg, #1a1400, #2d2200, #1a1400)',
+    border: '1px solid #c9a84c',
+    boxShadow: '0 4px 20px rgba(201, 168, 76, 0.25)',
+  };
   const homeSubtitleStyle = { color: homeUi.textMuted };
   const homeSectionDividerStyle = { height: 1, background: homeUi.divider, margin: '0 20px', border: 'none' };
   const homeSectionTitleStyle = { color: homeUi.text };
@@ -2053,17 +2058,15 @@ const HomePage = ({
 
   const renderHomeQuickLiveHub = () => (
     <section
-      className="home-depth-panel home-quick-live-hub"
+      className="home-depth-panel home-quick-live-hub home-luxury-section-box"
       style={{
         ...homeDepthPanelStyle,
+        ...homeLuxurySectionBoxStyle,
         display: 'flex',
         flexDirection: 'column',
         marginBottom: 0,
         borderRadius: 16,
         padding: 16,
-        ...(isHomeGate
-          ? { background: '#18181b', border: '1px solid rgba(255, 255, 255, 0.08)' }
-          : {}),
       }}
       aria-label={isEn ? 'Quick menu and live banner' : '빠른 메뉴 및 LIVE'}
     >
@@ -2345,9 +2348,10 @@ const HomePage = ({
       {activeTab === null && (
         <motion.div className="home-main-stack" style={{ padding: '0 16px' }}>
           <section
-            className="home-depth-panel home-featured-panel"
+            className="home-depth-panel home-featured-panel home-luxury-section-box"
             style={{
               ...homeDepthPanelStyle,
+              ...homeLuxurySectionBoxStyle,
               display: 'flex',
               flexDirection: 'column',
               marginBottom: 0,
@@ -2525,8 +2529,14 @@ const HomePage = ({
         <motion.div className="home-social-bar-wrap" style={{ padding: '0 16px', marginTop: 0, marginBottom: homeSectionSpace }}>
         <section
           ref={barSectionRef}
-          className="home-depth-panel"
-          style={{ ...homeDepthPanelStyle, marginTop: 0, display: 'flex', flexDirection: 'column' }}
+          className="home-depth-panel home-luxury-section-box"
+          style={{
+            ...homeDepthPanelStyle,
+            ...homeLuxurySectionBoxStyle,
+            marginTop: 0,
+            display: 'flex',
+            flexDirection: 'column',
+          }}
         >
           {renderHomeSectionHeader(
             isHomeGate ? (
