@@ -2174,6 +2174,10 @@ const HomePage = ({
           </motion.div>
 
           {renderHomeQuickLiveHub()}
+
+          <motion.div className="home-section-break" aria-hidden>
+            <hr className="home-section-break__line" />
+          </motion.div>
         </motion.div>
       )}
 
@@ -2293,10 +2297,6 @@ const HomePage = ({
         }
       `}</style>
       {activeTab === null && (
-        <>
-        <motion.div className="home-section-break" style={{ padding: '0 16px' }} aria-hidden>
-          <hr className="home-section-break__line" />
-        </motion.div>
         <motion.div className="home-social-bar-wrap" style={{ padding: '0 16px', marginTop: 0, marginBottom: homeSectionSpace }}>
         <section
           ref={barSectionRef}
@@ -2385,7 +2385,6 @@ const HomePage = ({
           </motion.div>
         </section>
         </motion.div>
-        </>
       )}
 
         {/*

@@ -21,7 +21,7 @@
   --type-display-size: calc(23px * 1.15); /* 메인 히어로 제목 +15% */
   --home-status-micro-size: 14px; /* 지역 카운트 띠: body(12px) 대비 가독성 상향 */
   --type-display-weight: 900;
-  --home-section-gap: 56px; /* 추천 행사 · 빠른 메뉴 · Social BAR — 프리미엄 섹션 리듬 */
+  --home-section-gap: 80px; /* 추천 행사 · 빠른 메뉴 · Social BAR — my-8+ 프리미엄 리듬 */
   --type-display-tracking: -0.02em;
   --type-section-size: var(--ds-title-size);
   --type-section-weight: var(--ds-title-weight);
@@ -142,7 +142,7 @@ input, button, select, textarea {
 
 /* 홈·공통 타이포 (밀리식: 굵은 제목 + 중간 굵기 본문) */
 .home-type-display {
-  margin: 0 0 12px;
+  margin: 0 0 18px;
   font-family: var(--font-sans);
   font-size: var(--type-display-size);
   font-weight: var(--type-display-weight);
@@ -151,7 +151,7 @@ input, button, select, textarea {
 }
 
 .home-type-tagline {
-  margin: 14px 0 0;
+  margin: 20px 0 0;
   line-height: var(--line-height-body);
   display: flex;
   align-items: baseline;
@@ -828,7 +828,7 @@ input, button, select, textarea {
 }
 
 .home-gate-active .home-section-break__line {
-  border-top-color: #3f3f46;
+  border-top-color: #27272a;
 }
 
 .home-featured-panel .home-featured-stream {
