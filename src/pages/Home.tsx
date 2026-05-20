@@ -42,6 +42,11 @@ const HOME_REGIONS_ORDER = [
   '강원/제주',
 ];
 
+/** 추천 행사 포스터 썸네일 — index.css 96/108px 기준 1.3배 */
+const HOME_FEATURED_POSTER_SCALE = 1.3;
+const HOME_FEATURED_THUMB_SIZE = Math.round(96 * HOME_FEATURED_POSTER_SCALE);
+const HOME_FEATURED_THUMB_SIZE_WIDE = Math.round(108 * HOME_FEATURED_POSTER_SCALE);
+
 /** Social BAR — 위치 실패 시 전국 노출 */
 const SOCIAL_BAR_REGION_ALL = '전체';
 
@@ -2424,6 +2429,28 @@ const HomePage = ({
 
       {/* 메인 퀵메뉴: activeTab === null → 3섹션 그리드 / 소셜 탭 → 가로 스크롤 */}
       <style>{`
+        .home-featured-panel .home-featured-stream__thumb {
+          width: ${HOME_FEATURED_THUMB_SIZE}px;
+          height: ${HOME_FEATURED_THUMB_SIZE}px;
+        }
+        .home-featured-panel .home-featured-stream__thumb img {
+          width: 100%;
+          height: 100%;
+          object-fit: cover;
+          object-position: center top;
+        }
+        .home-featured-panel .home-featured-stream__row {
+          min-height: ${HOME_FEATURED_THUMB_SIZE}px;
+        }
+        @media (min-width: 480px) {
+          .home-featured-panel .home-featured-stream__thumb {
+            width: ${HOME_FEATURED_THUMB_SIZE_WIDE}px;
+            height: ${HOME_FEATURED_THUMB_SIZE_WIDE}px;
+          }
+          .home-featured-panel .home-featured-stream__row {
+            min-height: ${HOME_FEATURED_THUMB_SIZE_WIDE}px;
+          }
+        }
         @keyframes gentleSparkle {
           0% { box-shadow: 0 0 2px rgba(85, 139, 47, 0.1); filter: drop-shadow(0 0 1px rgba(85, 139, 47, 0.1)); }
           50% { box-shadow: 0 0 12px rgba(85, 139, 47, 0.45); filter: drop-shadow(0 0 4px rgba(85, 139, 47, 0.25)); }
