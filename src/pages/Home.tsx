@@ -50,6 +50,14 @@ const HOME_FEATURED_THUMB_SIZE_WIDE = Math.round(108 * HOME_FEATURED_POSTER_SCAL
 /** Social BAR — 위치 실패 시 전국 노출 */
 const SOCIAL_BAR_REGION_ALL = '전체';
 
+const BAR_VIEW_COUNT_DELAY_MS = 7000;
+const viewedBarStorageKey = (barId) => `viewed_bar_${barId}`;
+const isPersistedLocationId = (id) => {
+  const s = String(id ?? '');
+  return s.length > 0 && !/^bar-\d+$/i.test(s);
+};
+const formatBarViewCountLine = (viewCount) => `👁️ view ${Number(viewCount) || 0}명`;
+
 /** GPS 기준 가장 가까운 지역 pill (경기 → 경인) */
 const SOCIAL_BAR_GEO_REGIONS = ['서울', '경인', '경상도', '충청도', '전라도'];
 
@@ -1349,6 +1357,7 @@ const HomePage = ({
   const [locationsLoading, setLocationsLoading] = useState(true);
   const [selectedRegionTab, setSelectedRegionTab] = useState(SOCIAL_BAR_REGION_ALL);
   const socialBarGeoDoneRef = useRef(false);
+  const barViewTimerRef = useRef(null);
   const [selectedVenue, setSelectedVenue] = useState(null);
   const [showBarRegisterForm, setShowBarRegisterForm] = useState(false);
   const [quickMenuMoreOpen, setQuickMenuMoreOpen] = useState(false);
@@ -1415,7 +1424,7 @@ const HomePage = ({
     try {
       let rawList = [];
       if (supabase) {
-        const selectWithSort = `${LOCATIONS_SELECT}, sort_order`;
+        const selectWithSort = `${LOCATIONS_SELECT}, sort_order, view_count`;
         let { data, error } = await supabase
           .from('locations')
           .select(selectWithSort)
@@ -1424,7 +1433,7 @@ const HomePage = ({
         if (error && /sort_order/i.test(error.message || '')) {
           ({ data, error } = await supabase
             .from('locations')
-            .select(LOCATIONS_SELECT)
+            .select(`${LOCATIONS_SELECT}, view_count`)
             .order('name', { ascending: true }));
         }
         if (error) {
@@ -1540,6 +1549,61 @@ const HomePage = ({
     if (!closeOverlay()) setSelectedVenue(null);
   };
 
+  /** BAR 카드(상세) 진입 7초 후 view_count +1 — 기기당 1회 */
+  useEffect(() => {
+    if (barViewTimerRef.current != null) {
+      clearTimeout(barViewTimerRef.current);
+      barViewTimerRef.current = null;
+    }
+    const bar = selectedVenue;
+    if (!bar || !supabase || !isPersistedLocationId(bar.id)) return undefined;
+
+    const barId = String(bar.id);
+    const storageKey = viewedBarStorageKey(barId);
+    try {
+      if (localStorage.getItem(storageKey)) return undefined;
+    } catch {
+      return undefined;
+    }
+
+    barViewTimerRef.current = window.setTimeout(async () => {
+      try {
+        if (localStorage.getItem(storageKey)) return;
+      } catch {
+        return;
+      }
+
+      const current = Number(bar.view_count) || 0;
+      const next = current + 1;
+      const { error } = await supabase
+        .from('locations')
+        .update({ view_count: next })
+        .eq('id', bar.id);
+
+      if (error) {
+        console.warn('[Home] locations.view_count update failed:', error);
+        return;
+      }
+
+      try {
+        localStorage.setItem(storageKey, '1');
+      } catch {
+        /* ignore quota / private mode */
+      }
+
+      const bumpVenue = (v) => (v && String(v.id) === barId ? { ...v, view_count: next } : v);
+      setLocations((prev) => prev.map(bumpVenue));
+      setSelectedVenue((prev) => bumpVenue(prev));
+    }, BAR_VIEW_COUNT_DELAY_MS);
+
+    return () => {
+      if (barViewTimerRef.current != null) {
+        clearTimeout(barViewTimerRef.current);
+        barViewTimerRef.current = null;
+      }
+    };
+  }, [selectedVenue?.id]);
+
   useEffect(() => {
     const onHistory = (event) => {
       const st = event.detail?.state ?? parseAppState(window.history.state);
@@ -1582,6 +1646,7 @@ const HomePage = ({
       ? (counter.mode === 'live_hot' ? 'home-bar-chip-line--hot' : 'home-bar-chip-line--muted')
       : 'home-bar-chip-line';
     const barName = bar.name || '이름 없음';
+    const viewLine = formatBarViewCountLine(bar.view_count);
     const metaLine = showCounter ? formatSocialBarCounterLine(counter.line, counter.mode) : null;
     const barNameStyle = {
       margin: 0,
@@ -1643,6 +1708,9 @@ const HomePage = ({
         <div className="home-bar-chip-text">
           <p className="home-bar-chip-name social-bar-name-label" style={barNameStyle} title={barName}>
             {barName}
+          </p>
+          <p className="home-bar-chip-line home-bar-chip-line--muted" style={metaLineStyle} title={viewLine}>
+            {viewLine}
           </p>
           {metaLine ? (
             <p className={`home-bar-chip-line ${lineClass}`} style={metaLineStyle} title={metaLine}>
