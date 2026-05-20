@@ -1684,15 +1684,35 @@ const HomePage = ({
   const quickMenuIconColor = homeUi.quickIcon;
   const QUICK_MENU_PRIMARY_IDS = ['party-register', 'class-register', 'concierge', 'calendar', 'language'];
 
-  const quickMenuIcon = (Icon) => (
-    <Icon size={QUICK_MENU_ICON_SIZE} strokeWidth={QUICK_MENU_STROKE} color={quickMenuIconColor} aria-hidden />
-  );
-
-  /** 메인 노출·등록 우선 — Lucide 단색·동일 stroke */
+  /** 메인 노출·등록 우선 — 파티·클래스·컨시어지는 포인트 컬러·라이브 펄스(home-quick-menu-item--accent-live) */
   const quickMenuItems = useMemo(() => [
-    { id: 'party-register', icon: Music, label: '파티등록', particles: '🎉', action: () => handleRegister('party') },
-    { id: 'class-register', icon: User, label: '클래스등록', particles: '📚', action: () => window.dispatchEvent(new CustomEvent('open-vip-class-register')) },
-    { id: 'concierge', icon: MessageSquare, label: '컨시어지', particles: '✨', action: () => window.dispatchEvent(new CustomEvent('open-chatbot')) },
+    {
+      id: 'party-register',
+      icon: Music,
+      iconAccent: '#D4436E',
+      accentLive: true,
+      label: '파티등록',
+      particles: '🎉',
+      action: () => handleRegister('party'),
+    },
+    {
+      id: 'class-register',
+      icon: User,
+      iconAccent: '#C9A84C',
+      accentLive: true,
+      label: '클래스등록',
+      particles: '📚',
+      action: () => window.dispatchEvent(new CustomEvent('open-vip-class-register')),
+    },
+    {
+      id: 'concierge',
+      icon: MessageSquare,
+      iconAccent: '#059669',
+      accentLive: true,
+      label: '컨시어지',
+      particles: '✨',
+      action: () => window.dispatchEvent(new CustomEvent('open-chatbot')),
+    },
     { id: 'livepick', icon: Camera, label: '라이브픽', particles: '📸', action: () => navigate('/livepick') },
     { id: 'wishlist', icon: Heart, label: '찜하기', particles: '❤️', action: () => setShowWishlist(true) },
     { id: 'chat', icon: MessageSquare, label: '채팅문의', particles: '💬', action: () => window.open('https://open.kakao.com/o/gP43rNri', '_blank') },
@@ -1724,15 +1744,16 @@ const HomePage = ({
 
   const renderQuickMenuItem = (item) => {
     const Icon = item.icon;
+    const strokeColor = item.iconAccent ?? quickMenuIconColor;
     return (
       <motion.button
         key={item.id}
         type="button"
         whileTap={{ scale: 0.96 }}
         onClick={(e) => { triggerParticle(e, item.particles); item.action(); }}
-        className="home-quick-menu-item"
+        className={`home-quick-menu-item${item.accentLive ? ' home-quick-menu-item--accent-live' : ''}`}
       >
-        {quickMenuIcon(Icon)}
+        <Icon size={QUICK_MENU_ICON_SIZE} strokeWidth={QUICK_MENU_STROKE} color={strokeColor} aria-hidden />
         <span className="home-quick-menu-item-label">{item.label}</span>
       </motion.button>
     );

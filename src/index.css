@@ -142,7 +142,7 @@ input, button, select, textarea {
 
 /* 홈·공통 타이포 (밀리식: 굵은 제목 + 중간 굵기 본문) */
 .home-type-display {
-  margin: 0 0 18px;
+  margin: 0 0 34px;
   font-family: var(--font-sans);
   font-size: var(--type-display-size);
   font-weight: var(--type-display-weight);
@@ -151,7 +151,7 @@ input, button, select, textarea {
 }
 
 .home-type-tagline {
-  margin: 20px 0 0;
+  margin: 18px 0 0;
   line-height: var(--line-height-body);
   display: flex;
   align-items: baseline;
@@ -518,6 +518,21 @@ input, button, select, textarea {
   white-space: nowrap;
 }
 
+@keyframes home-quick-accent-pulse {
+  0%, 100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.88;
+    transform: scale(1.06);
+  }
+}
+
+.home-quick-menu-item--accent-live svg {
+  animation: home-quick-accent-pulse 2.4s ease-in-out infinite;
+}
+
 .home-gate-active .home-quick-menu-item {
   color: rgba(255, 255, 255, 0.72);
 }
@@ -555,18 +570,18 @@ input, button, select, textarea {
 /* overflow-x-auto scrollbar-hide — 스크롤포트(블록) */
 .home-social-bar-scroll {
   display: block;
-  width: calc(100% + 28px);
-  max-width: none;
-  margin-left: -14px;
-  margin-right: -14px;
-  padding: 2px 0 10px 14px;
+  width: 100%;
+  max-width: 100%;
+  margin-left: 0;
+  margin-right: 0;
+  padding: 2px 12px 10px;
   overflow-x: auto;
   overflow-y: hidden;
   -webkit-overflow-scrolling: touch;
   touch-action: pan-x pinch-zoom;
   overscroll-behavior-x: contain;
-  scroll-snap-type: x mandatory;
-  scroll-padding-inline: 14px;
+  scroll-snap-type: x proximity;
+  scroll-padding-inline: 12px;
 }
 
 /* flex flex-row flex-nowrap — 트랙이 스크롤포트보다 넓어짐 */
@@ -575,27 +590,31 @@ input, button, select, textarea {
   flex-direction: row;
   flex-wrap: nowrap;
   align-items: flex-start;
-  gap: 10px;
+  justify-content: flex-start;
+  gap: 12px;
   width: max-content;
   min-width: 100%;
-  padding-right: 6px;
+  padding: 0 4px 2px;
   vertical-align: top;
 }
 
-/* flex-none · w-[72px] — 5개 온전 + 6번째 반쯤 잘림 (72+10 gap ≈ 82px/칸) */
+/* flex-none · w-[72px] — 썸네일·공간명 세로축 정렬 */
 .home-bar-chip {
-  flex: 0 0 72px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  flex: 0 0 76px;
   flex-shrink: 0;
-  width: 72px;
-  min-width: 72px;
-  max-width: 72px;
+  width: 76px;
+  min-width: 76px;
+  max-width: 76px;
   border: none;
   background: none;
   padding: 0;
   margin: 0;
   cursor: pointer;
-  text-align: left;
-  scroll-snap-align: center;
+  text-align: center;
+  scroll-snap-align: start;
   box-sizing: border-box;
 }
 
@@ -615,12 +634,54 @@ input, button, select, textarea {
   display: block;
 }
 
-.home-bar-chip-line {
+.social-bar-name-label,
+.home-bar-chip-name {
   margin: 6px 0 0;
+  width: 100%;
   font-size: var(--ds-body-size);
+  font-weight: 900;
+  line-height: 1.25;
+  color: #0f172a;
+  text-align: center;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.home-gate-active .social-bar-name-label,
+.home-gate-active .home-bar-chip-name {
+  color: #fff;
+  text-shadow: 0 1px 4px rgba(0, 0, 0, 0.8);
+}
+
+.home-bar-view-line {
+  margin: 5px 0 0;
+  width: 100%;
+  padding: 0 1px;
+  font-size: 9px;
+  font-weight: 850;
+  line-height: 1.15;
+  letter-spacing: 0.04em;
+  color: #475569;
+  text-align: center;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.home-gate-active .home-bar-view-line {
+  color: rgba(201, 168, 76, 0.96);
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.55);
+}
+
+.home-bar-chip-line {
+  margin: 4px 0 0;
+  width: 100%;
+  font-size: 11px;
   font-weight: var(--ds-body-weight);
   line-height: 1.25;
   color: #334155;
+  text-align: center;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -824,11 +885,13 @@ input, button, select, textarea {
   margin: 0;
   padding: 0;
   border: none;
-  border-top: 1px solid #e2e8f0;
+  border-top: 1px solid #27272a;
+  opacity: 0.28;
 }
 
 .home-gate-active .home-section-break__line {
   border-top-color: #27272a;
+  opacity: 0.72;
 }
 
 .home-featured-panel .home-featured-stream {
@@ -872,9 +935,10 @@ input, button, select, textarea {
   padding: 0;
 }
 
-.home-social-bar-wrap {
+.home-main-stack .home-social-bar-wrap {
   margin-top: 0;
   margin-bottom: var(--home-section-gap);
+  width: 100%;
 }
 
 .home-type-caption {

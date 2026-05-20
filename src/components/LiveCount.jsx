@@ -18,6 +18,7 @@ import {
 const SPOTLIGHT_ROTATE_MS = 5000
 const LIVE_QUEUE_REFRESH_MS = 10 * 60 * 1000
 const LIVE_WINDOW_MS = 24 * 60 * 60 * 1000
+const LIVE_PROMO_PATH = '#community'
 
 function getRecentActivityTs(p) {
   const ts = new Date(p.updated_at || p.created_at || 0).getTime()
@@ -67,9 +68,27 @@ const LiveCount = ({ parties: partiesProp, onPartyClick, onPromoClick, isGate = 
 
   const isEn = i18n.language.startsWith('en')
   const spotlight = spotlightPool[poolIndex] || spotlightPool[0] || null
-  const hasLiveQueue = spotlightPool.length > 0
 
-  const liveMessages = useMemo(() => [], [])
+  const liveMessages = useMemo(
+    () => [
+      t('live_msg_1'),
+      t('live_msg_2'),
+      t('live_msg_3'),
+      t('live_msg_4'),
+      t('live_msg_5'),
+      t('live_msg_6'),
+      t('live_msg_7'),
+      t('live_msg_8'),
+      t('live_msg_9'),
+      t('live_msg_10'),
+      t('live_msg_11'),
+      t('live_msg_12'),
+      t('live_msg_13'),
+      t('live_msg_14'),
+      t('live_msg_15'),
+    ],
+    [t],
+  )
 
   const isNowInPartyTime = useCallback((dateStr, startTime) => {
     if (!dateStr || !startTime) return false
@@ -89,14 +108,7 @@ const LiveCount = ({ parties: partiesProp, onPartyClick, onPromoClick, isGate = 
   }
 
   const getLiveBannerData = useCallback((list, todayStr) => {
-    const queue = pickSpotlightPool(list, todayStr, '', isNowInPartyTime)
-    console.log('[LiveBanner] queue check', {
-      todayStr,
-      totalInput: Array.isArray(list) ? list.length : 0,
-      queueCount: queue.length,
-      queueIds: queue.map((p) => p.id),
-    })
-    return queue
+    return pickSpotlightPool(list, todayStr, '', isNowInPartyTime)
   }, [isNowInPartyTime])
 
   const applySpotlightPool = useCallback((list) => {
@@ -284,13 +296,15 @@ const LiveCount = ({ parties: partiesProp, onPartyClick, onPromoClick, isGate = 
 
     const byRegion = {}
     Object.entries(counts).forEach(([key, count]) => {
+      if (key.includes('\uc804\uad6d') && key.includes('total')) return
       const [region, name] = key.split('|')
       const translatedRegion = abbreviateRegion(region)
       if (!byRegion[translatedRegion]) byRegion[translatedRegion] = []
       byRegion[translatedRegion].push(`${name} ${count}`)
     })
 
-    return Object.entries(byRegion).map(([reg, venues]) => `[${reg}] ${venues.join(', ')}`)
+    const lines = Object.entries(byRegion).map(([reg, venues]) => `[${reg}] ${venues.join(', ')}`)
+    return lines.length ? lines : liveMessages
   }, [counts, liveMessages, t])
 
   useEffect(() => {
@@ -316,33 +330,38 @@ const LiveCount = ({ parties: partiesProp, onPartyClick, onPromoClick, isGate = 
   }, [displayText, isTyping, currentIndex, regionalReports, spotlight])
 
   const dynamicBannerText = useMemo(() => {
-    if (!spotlight) return isEn ? 'No live posters today' : '??? ???? ????'
+    if (!spotlight) return ''
     const titleRaw = isEn && spotlight.title_en ? spotlight.title_en : spotlight.title
     const title = stripPlatformSuffixFromTitle(titleRaw)
     const rank = poolIndex + 1
-    return rank === 1 ? `?? ?? 1?! ${title}` : `? ?? ?? ?! ${title}`
+    return rank === 1
+      ? (isEn ? `?? #1 tonight! ${title}` : `?? ?? 1?! ${title}`)
+      : (isEn ? `? Trending now! ${title}` : `? ?? ?? ?! ${title}`)
   }, [spotlight, poolIndex, isEn])
 
   const handleBannerClick = () => {
-    if (!hasLiveQueue) return
     const target = spotlightPool[poolIndex] || spotlight
     if (target && typeof onPartyClick === 'function') {
       onPartyClick(target)
       return
     }
+    if (typeof onPromoClick === 'function') {
+      onPromoClick()
+      return
+    }
+    if (window.location.hash !== LIVE_PROMO_PATH) {
+      window.history.pushState({}, '', LIVE_PROMO_PATH)
+    }
+    window.dispatchEvent(new PopStateEvent('popstate'))
   }
 
   const mainLine = spotlight ? dynamicBannerText : displayText
 
-  if (!hasLiveQueue) {
-    return null
-  }
-
   return (
     <div
       className={`live-dynamic-banner${isGate ? ' live-dynamic-banner--gate' : ''}`}
-      role={hasLiveQueue ? 'button' : 'status'}
-      tabIndex={hasLiveQueue ? 0 : -1}
+      role="button"
+      tabIndex={0}
       onClick={handleBannerClick}
       onKeyDown={(e) => {
         if (e.key === 'Enter' || e.key === ' ') {
@@ -351,9 +370,7 @@ const LiveCount = ({ parties: partiesProp, onPartyClick, onPromoClick, isGate = 
         }
       }}
       aria-label={
-        hasLiveQueue
-          ? (isEn ? 'Open live party detail' : '??? ??? ?? ??')
-          : (isEn ? 'No live posters today' : '??? ???? ????')
+        isEn ? 'Live banner: nationwide parties or promotions' : '??? ??: ?? ?? ?? ? ??'
       }
     >
       <div className="live-dynamic-banner__inner">
