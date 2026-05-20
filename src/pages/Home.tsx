@@ -1465,7 +1465,16 @@ const HomePage = ({
             />
           )}
         </span>
-        <p className={`home-bar-chip-line ${lineClass}`} title={lineText}>
+        <p
+          className={`home-bar-chip-line ${lineClass}`}
+          title={lineText}
+          style={{
+            whiteSpace: 'normal',
+            wordBreak: 'keep-all',
+            overflow: 'visible',
+            textOverflow: 'unset',
+          }}
+        >
           {showCounter ? `${bar.name || 'BAR'} · ${counter.line}` : lineText}
         </p>
       </motion.button>
@@ -2333,6 +2342,14 @@ const HomePage = ({
         .home-gate-active .social-bar-name-label {
           color: #FFFFFF;
           text-shadow: 0 1px 4px rgba(0, 0, 0, 0.8);
+        }
+        .home-social-bar-wrap .home-bar-chip-line,
+        .home-social-bar-wrap .home-bar-chip-line--muted,
+        .home-social-bar-wrap .home-bar-chip-line--hot {
+          white-space: normal !important;
+          word-break: keep-all;
+          overflow: visible !important;
+          text-overflow: unset !important;
         }
       `}</style>
       {activeTab === null && (
