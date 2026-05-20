@@ -2395,28 +2395,6 @@ const HomePage = ({
 
       {activeTab === null && (
         <motion.div className="home-main-stack" style={{ padding: '0 16px' }}>
-          <section
-            className="home-depth-panel home-featured-panel home-luxury-section-box"
-            style={{
-              ...homeDepthPanelStyle,
-              ...homeLuxurySectionBoxStyle,
-              display: 'flex',
-              flexDirection: 'column',
-              marginBottom: 0,
-            }}
-            aria-label={isEn ? 'Featured events' : '추천 행사'}
-          >
-            {renderHomeSectionHeader(
-              isEn ? 'Featured events' : '추천 행사',
-              isEn ? 'Social · Bootcamp · Festival' : '소셜 · 부트캠프 · 페스티벌',
-            )}
-            {renderFeaturedStreamList()}
-          </section>
-
-          <motion.div className="home-section-break" aria-hidden>
-            <hr className="home-section-break__line" />
-          </motion.div>
-
           {renderHomeQuickLiveHub()}
 
           <motion.div className="home-section-break" aria-hidden>
@@ -2596,7 +2574,7 @@ const HomePage = ({
         }
       `}</style>
       {activeTab === null && (
-        <motion.div className="home-social-bar-wrap" style={{ padding: '0 16px', marginTop: 0, marginBottom: homeSectionSpace }}>
+        <motion.div className="home-social-bar-wrap" style={{ padding: '0 16px', marginTop: 0, marginBottom: 0 }}>
         <section
           ref={barSectionRef}
           className="home-depth-panel home-luxury-section-box"
@@ -2692,6 +2670,32 @@ const HomePage = ({
             )}
           </motion.div>
         </section>
+        </motion.div>
+      )}
+
+      {activeTab === null && (
+        <motion.div className="home-main-stack" style={{ padding: '0 16px', marginBottom: homeSectionSpace }}>
+          <motion.div className="home-section-break" aria-hidden>
+            <hr className="home-section-break__line" />
+          </motion.div>
+
+          <section
+            className="home-depth-panel home-featured-panel home-luxury-section-box"
+            style={{
+              ...homeDepthPanelStyle,
+              ...homeLuxurySectionBoxStyle,
+              display: 'flex',
+              flexDirection: 'column',
+              marginBottom: 0,
+            }}
+            aria-label={isEn ? 'Featured events' : '추천 행사'}
+          >
+            {renderHomeSectionHeader(
+              isEn ? 'Featured events' : '추천 행사',
+              isEn ? 'Social · Bootcamp · Festival' : '소셜 · 부트캠프 · 페스티벌',
+            )}
+            {renderFeaturedStreamList()}
+          </section>
         </motion.div>
       )}
 
