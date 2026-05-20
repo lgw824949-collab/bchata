@@ -1759,7 +1759,7 @@ const HomePage = ({
       accentLive: true,
       label: '클래스등록',
       particles: '📚',
-      action: () => window.dispatchEvent(new CustomEvent('open-vip-class-register')),
+      action: () => handleRegister('class'),
     },
     {
       id: 'concierge',
