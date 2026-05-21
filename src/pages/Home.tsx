@@ -130,7 +130,7 @@ const SOCIAL_BAR_REGION_ALL = '전체';
 /** 메인 홈 — 오늘 지역 대표 포스터 슬라이드 (빠른 메뉴 위) */
 const HOME_POSTER_BANNER_MS = 4000;
 
-/** LIVE 배너 2차 슬라이드 — 포스터 등록 BAR */
+/** LIVE 배너 2차 슬라이드 — 오늘 포스터 등록 BAR만, bar_checkins 실시간 인원 */
 const LIVE_BANNER_SLIDE_MS = 5000;
 const LIVE_BANNER_BAR_RULES = [
   { label: '라틴', match: (k) => k === '라틴' },
@@ -2512,11 +2512,10 @@ const HomePage = ({
       ? `Today ${total} parties · Seoul ${seoulCount} · Metro ${metroCount} · Regions ${localCount}`
       : `오늘 파티 ${total}건 · 서울 ${seoulCount} · 수도권 ${metroCount} · 지방 ${localCount}`;
 
-    const viewByBarKey = {};
+    const posterBarKeysToday = new Set();
     withPoster.forEach((p) => {
       const barKey = normalizeLiveBarNameKey(getPartyBarName(p));
-      if (!barKey) return;
-      viewByBarKey[barKey] = (viewByBarKey[barKey] || 0) + (Number(p.view_count) || 0);
+      if (barKey) posterBarKeysToday.add(barKey);
     });
 
     const checkinByBarKey = {};
@@ -2526,13 +2525,14 @@ const HomePage = ({
       checkinByBarKey[barKey] = Number(val?.liveCount) || 0;
     });
 
-    const barCountLines = LIVE_BANNER_BAR_RULES.map((rule) => {
+    const activeBarRules = LIVE_BANNER_BAR_RULES.filter((rule) =>
+      [...posterBarKeysToday].some((barKey) => rule.match(barKey)),
+    );
+
+    const barCountLines = activeBarRules.map((rule) => {
       let count = 0;
-      Object.entries(viewByBarKey).forEach(([barKey, views]) => {
-        if (rule.match(barKey)) count += views;
-      });
       Object.entries(checkinByBarKey).forEach(([barKey, live]) => {
-        if (rule.match(barKey)) count = Math.max(count, live);
+        if (rule.match(barKey)) count += live;
       });
       return { label: rule.label, count };
     });
@@ -2541,7 +2541,9 @@ const HomePage = ({
       ? (isEn
         ? barCountLines.map((r) => `${r.label} ${r.count}`).join(' · ')
         : barCountLines.map((r) => `${r.label} ${r.count}명`).join(' · '))
-      : (isEn ? 'No BAR headcount yet today' : '오늘 BAR 인원 집계 대기');
+      : (isEn
+        ? 'No BAR posters registered today'
+        : '오늘 포스터 등록 BAR 없음 · 체크인 0명');
 
     return {
       pick,
