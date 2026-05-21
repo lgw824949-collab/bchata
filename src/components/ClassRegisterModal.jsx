@@ -266,6 +266,10 @@ const ClassRegisterModal = ({ isOpen = true, onClose, instructorId = '' }) => {
       alert('장소를 입력해주세요.');
       return;
     }
+    if (!posterFile) {
+      alert('포스터 이미지를 등록해주세요. (필수)');
+      return;
+    }
 
     setLoading(true);
     try {
@@ -884,7 +888,7 @@ const ClassRegisterModal = ({ isOpen = true, onClose, instructorId = '' }) => {
 
                 <div>
                   <label style={{ display: 'block', fontSize: '13px', fontWeight: 700, color: '#A1A1AA', marginBottom: '8px' }}>
-                    포스터 이미지 (선택)
+                    포스터 이미지 (필수)
                   </label>
                   <input type="file" accept="image/*" onChange={handlePosterChange} style={{ ...inputStyle, padding: '12px', fontSize: '13px' }} />
                   {posterPreview ? (
