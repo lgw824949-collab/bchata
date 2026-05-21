@@ -2396,7 +2396,7 @@ function App() {
               오늘밤빠 마스터(강사) 안내
             </h2>
             <p style={{ margin: '0 0 18px', color: '#CBD5E1', fontSize: 14, lineHeight: 1.55, fontWeight: 600 }}>
-              본 서비스는 검증된 마스터 회원만 클래스 등록이 가능합니다.
+              본 서비스는 검증된 마스터 회원만 수업등록이 가능합니다.
               <br />
               마스터 계정으로 로그인하여 클래스를 생성하세요.
             </p>
@@ -2570,7 +2570,7 @@ function App() {
               {[
                 {
                   icon: <GraduationCap size={20} color="#C9A84C" />,
-                  text: '클래스등록',
+                  text: '수업등록',
                   action: () => openClassRegisterFromLounge(),
                 },
                 { icon: <Users size={20} color="#C9A84C" />, text: '수강생 관리' },

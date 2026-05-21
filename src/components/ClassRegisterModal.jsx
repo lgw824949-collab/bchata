@@ -373,7 +373,7 @@ const ClassRegisterModal = ({ isOpen = true, onClose, instructorId = '' }) => {
           }}
         >
           <div>
-            <div style={{ fontSize: '18px', fontWeight: 900 }}>클래스 등록 모달 👑</div>
+            <div style={{ fontSize: '18px', fontWeight: 900 }}>수업등록 👑</div>
             <div
               style={{
                 fontSize: '13px',
@@ -966,7 +966,7 @@ const ClassRegisterModal = ({ isOpen = true, onClose, instructorId = '' }) => {
                   opacity: loading ? 0.7 : 1,
                 }}
               >
-                {loading ? '등록 중...' : '클래스 최종 등록 🚀'}
+                {loading ? '등록 중...' : '수업 최종 등록 🚀'}
               </button>
             )}
           </div>

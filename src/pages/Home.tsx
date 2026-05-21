@@ -2091,7 +2091,7 @@ const HomePage = ({
       id: 'class-register',
       menuSvg: QUICK_MENU_SVG.classRegister,
       registerKind: 'class',
-      label: isEn ? 'Class' : '클래스 등록',
+      label: isEn ? 'Lesson' : '수업등록',
       particles: '📚',
       action: () => handleRegister('class'),
     },
@@ -2236,7 +2236,7 @@ const HomePage = ({
     <>
         {renderHomeSectionHeader(
           isEn ? 'Quick actions' : '빠른 메뉴',
-          isEn ? 'Tap an icon to open' : '아이콘을 눌러 이용하세요 · 파티·클래스 등록은 색으로 구분',
+          isEn ? 'Tap an icon to open' : '아이콘을 눌러 이용하세요 · 파티·수업등록은 색으로 구분',
           quickMenuMore.length > 0 ? (
             <button
               type="button"
