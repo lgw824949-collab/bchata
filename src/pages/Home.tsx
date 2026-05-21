@@ -22,6 +22,10 @@ import HomeHeroTagline from '../components/HomeHeroTagline'
 import { navigate as historyNavigate, parseAppState, pushOverlay, readNavigationState } from '../lib/appHistory'
 import { formatPartyFeeDisplay, PARTY_FEE_CARD_FONT_SIZE } from '../lib/partyFeeDisplay'
 import { formatPartyTitleDisplay } from '../lib/partyTitleDisplay'
+import {
+  buildHomeLiveBannerSlides,
+  LIVE_BANNER_ROTATE_SLOTS,
+} from '../lib/homeLiveBannerSlides'
 import PartyCard from '../components/PartyCard'
 
 function navigate(path, options = {}) {
@@ -1525,6 +1529,8 @@ const HomePage = ({
   const [liveBannerPartyRows, setLiveBannerPartyRows] = useState([]);
   const [homePosterBannerSlides, setHomePosterBannerSlides] = useState([]);
   const [homePosterBannerIdx, setHomePosterBannerIdx] = useState(0);
+  const [liveBarRotateOffset, setLiveBarRotateOffset] = useState(0);
+  const liveBannerSlideIdxRef = useRef(0);
 
 
   // [사용자 요청] 15초 롤링 — shuffleOffset 미사용, 캐러셀 스크롤 중 리렌더 방지
@@ -1920,10 +1926,11 @@ const HomePage = ({
     try {
       const { data, error } = await supabase
         .from('parties')
-        .select('id, date, view_count, click_count, poster_url, location_id, locations!location_id(name)')
+        .select(
+          'id, title, date, created_at, address, region, view_count, click_count, poster_url, location_id, locations!location_id(name)',
+        )
         .eq('status', 'approved')
-        .eq('date', calendarTodayStr)
-        .not('poster_url', 'is', null);
+        .eq('date', calendarTodayStr);
       if (error) {
         console.warn('[Home] live banner parties:', error.message);
         return;
@@ -2502,21 +2509,6 @@ const HomePage = ({
       (p) => isApprovedParty(p) && normDate(p.date) === calendarTodayStr,
     );
     const withPoster = todayRows.filter((p) => String(p.poster_url || p.imageUrl || '').trim());
-    const pick = withPoster[0] || todayRows[0] || null;
-    const total = todayRows.length;
-    const seoulCount = regionCounts.seoul || 0;
-    const metroCount = regionCounts.metro || 0;
-    const localCount = regionCounts.national || 0;
-
-    const slide1Text = isEn
-      ? `Today ${total} parties · Seoul ${seoulCount} · Metro ${metroCount} · Regions ${localCount}`
-      : `오늘 파티 ${total}건 · 서울 ${seoulCount} · 수도권 ${metroCount} · 지방 ${localCount}`;
-
-    const posterBarKeysToday = new Set();
-    withPoster.forEach((p) => {
-      const barKey = normalizeLiveBarNameKey(getPartyBarName(p));
-      if (barKey) posterBarKeysToday.add(barKey);
-    });
 
     const checkinByBarKey = {};
     Object.entries(barStatsMap || {}).forEach(([key, val]) => {
@@ -2525,34 +2517,58 @@ const HomePage = ({
       checkinByBarKey[barKey] = Number(val?.liveCount) || 0;
     });
 
-    const activeBarRules = LIVE_BANNER_BAR_RULES.filter((rule) =>
-      [...posterBarKeysToday].some((barKey) => rule.match(barKey)),
-    );
-
-    const barCountLines = activeBarRules.map((rule) => {
+    const formatBarLine = (party) => {
+      const barKey = normalizeLiveBarNameKey(getPartyBarName(party));
+      const rule = LIVE_BANNER_BAR_RULES.find((r) => r.match(barKey));
+      const label =
+        rule?.label ||
+        getPartyBarName(party) ||
+        formatPartyTitleDisplay(party?.title) ||
+        (isEn ? 'BAR' : 'BAR');
       let count = 0;
-      Object.entries(checkinByBarKey).forEach(([barKey, live]) => {
-        if (rule.match(barKey)) count += live;
+      Object.entries(checkinByBarKey).forEach(([k, live]) => {
+        if (rule ? rule.match(k) : k === barKey) count += live;
       });
-      return { label: rule.label, count };
-    });
-
-    const slide2Text = barCountLines.length
-      ? (isEn
-        ? barCountLines.map((r) => `${r.label} ${r.count}`).join(' · ')
-        : barCountLines.map((r) => `${r.label} ${r.count}명`).join(' · '))
-      : (isEn
-        ? 'No BAR posters registered today'
-        : '오늘 포스터 등록 BAR 없음 · 체크인 0명');
-
-    return {
-      pick,
-      slides: [
-        { id: 'summary', text: slide1Text },
-        { id: 'bars', text: slide2Text },
-      ],
+      return isEn ? `${label} ${count}` : `${label} ${count}명`;
     };
-  }, [parties, liveBannerPartyRows, calendarTodayStr, isEn, regionCounts, barStatsMap]);
+
+    return buildHomeLiveBannerSlides({
+      regionCounts,
+      withPosterParties: withPoster,
+      formatBarLine,
+      rotateOffset: liveBarRotateOffset,
+      isEn,
+    });
+  }, [parties, liveBannerPartyRows, calendarTodayStr, isEn, barStatsMap, regionCounts, liveBarRotateOffset]);
+
+  useEffect(() => {
+    setLiveBarRotateOffset(0);
+    liveBannerSlideIdxRef.current = 0;
+    setLiveBannerSlideIdx(0);
+  }, [calendarTodayStr, regionCounts.seoul, regionCounts.metro, regionCounts.national]);
+
+  useEffect(() => {
+    const slides = homeLiveBannerSlides.slides;
+    if (!slides.length) return undefined;
+
+    const prevIdx = liveBannerSlideIdxRef.current;
+    const curIdx = liveBannerSlideIdx;
+    liveBannerSlideIdxRef.current = curIdx;
+
+    const prevSlide = slides[prevIdx];
+    const curSlide = slides[curIdx];
+    const hasRotate = slides.some((s) => s.tier === 'rotate');
+    const advancedFromRotate =
+      hasRotate &&
+      prevSlide?.tier === 'rotate' &&
+      (curSlide?.tier === 'summary' || curSlide?.tier === 'fixed' || (prevIdx === slides.length - 1 && curIdx === 0));
+
+    if (advancedFromRotate) {
+      setLiveBarRotateOffset((o) => o + LIVE_BANNER_ROTATE_SLOTS);
+    }
+
+    return undefined;
+  }, [liveBannerSlideIdx, homeLiveBannerSlides.slides]);
 
   useEffect(() => {
     if (homeLiveBannerSlides.slides.length < 2) return undefined;
