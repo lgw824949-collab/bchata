@@ -5,7 +5,8 @@ import { Plus, ChevronLeft, Check, X, MapPin } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { supabase } from './lib/supabase'
 import { getKakaoApiKey } from './lib/kakaoEnv'
-// import { findBarByName, BAR_DATABASE } from './lib/BarLib'
+import { findBarByName } from './lib/BarLib'
+import { normalizeVenueAddressKey } from './lib/venueDedupe'
 
 const METRO_REGIONS = ['서울', '인천', '경기', '부산', '대구', '광주', '대전', '울산', '세종', '강원', '충북', '충남', '전북', '전남', '경북', '경남', '제주']
 
@@ -19,12 +20,28 @@ const TITLE_EXAMPLES = [
 const PARTY_REGISTER_Z = Z.modalHigh
 const PARTY_REGISTER_BODY_CLASS = 'party-register-open'
 
+const GENRE_RATIO_FIELDS = [
+  { key: 'bRatio', tags: ['바차타', 'bachata'] },
+  { key: 'sRatio', tags: ['살사', 'salsa'] },
+  { key: 'jRatio', tags: ['쥬크', 'zouk'] },
+  { key: 'kRatio', tags: ['키좀바', 'kizomba'] },
+]
+
+const getDominantGenreEntry = (data) => {
+  const scored = GENRE_RATIO_FIELDS.map((g) => ({ ...g, val: Number(data[g.key]) || 0 }))
+  const max = Math.max(...scored.map((s) => s.val), 0)
+  if (max <= 0) return null
+  const tops = scored.filter((s) => s.val === max)
+  return tops.length === 1 ? tops[0] : null
+}
+
 const RegisterForm = ({ onBack, onSuccess, isEdit = false, initialData = null }) => {
   const [file, setFile] = useState(null)
   const [inputUrl, setInputUrl] = useState('')
   const [formData, setFormData] = useState({
     title: initialData?.title?.replace(/^\[.*?\]\s*/, '').replace(/ ㅣ 오늘밤빠$/, '') || '',
     location_name: initialData?.location_name || initialData?.locations?.name || '',
+    location_id: initialData?.location_id ?? initialData?.locations?.id ?? null,
     address: initialData?.address || initialData?.locations?.address || '',
     date: initialData?.date || new Date(new Date().getTime() + 9 * 60 * 60 * 1000).toISOString().split('T')[0],
     time: initialData?.time || '21:00',
@@ -110,6 +127,7 @@ const RegisterForm = ({ onBack, onSuccess, isEdit = false, initialData = null })
       if (seen.has(key)) continue
       seen.add(key)
       unique.push({
+        id: row.id ?? null,
         name: venueName,
         address: venueAddress,
         latitude: row.latitude,
@@ -120,17 +138,99 @@ const RegisterForm = ({ onBack, onSuccess, isEdit = false, initialData = null })
     return unique
   }
 
+  const pickLocationIdFromRows = (rows, name, address) => {
+    const list = rows || []
+    if (!list.length) return null
+    if (list.length === 1) return list[0].id ?? null
+    const trimmedName = (name || '').trim()
+    const exactName = list.filter((r) => (r.name || '').trim() === trimmedName)
+    if (exactName.length === 1) return exactName[0].id ?? null
+    const addrKey = normalizeVenueAddressKey(address)
+    if (addrKey) {
+      const byAddr = list.find((r) => normalizeVenueAddressKey(r.address) === addrKey)
+      if (byAddr?.id) return byAddr.id
+    }
+    return exactName[0]?.id ?? list[0]?.id ?? null
+  }
+
+  const resolveLocationIdForParty = async (data) => {
+    if (data.location_id) return data.location_id
+
+    const name = (data.location_name || '').trim()
+    if (!name) return null
+
+    const { data: exactRows } = await supabase
+      .from('locations')
+      .select('id, name, address, latitude')
+      .eq('name', name)
+      .limit(10)
+    const exactId = pickLocationIdFromRows(exactRows, name, data.address)
+    if (exactId) return exactId
+
+    const { data: fuzzyRows } = await supabase
+      .from('locations')
+      .select('id, name, address, latitude')
+      .ilike('name', `%${name}%`)
+      .limit(15)
+    const fuzzyId = pickLocationIdFromRows(fuzzyRows, name, data.address)
+    if (fuzzyId) return fuzzyId
+
+    const bar = findBarByName(name)
+    if (bar?.name) {
+      const { data: barRows } = await supabase
+        .from('locations')
+        .select('id, name, address')
+        .eq('name', bar.name)
+        .limit(5)
+      const barId = pickLocationIdFromRows(barRows, bar.name, data.address || bar.address)
+      if (barId) return barId
+
+      const { data: barFuzzy } = await supabase
+        .from('locations')
+        .select('id, name, address')
+        .ilike('name', `%${bar.name}%`)
+        .limit(5)
+      const barFuzzyId = pickLocationIdFromRows(barFuzzy, bar.name, data.address || bar.address)
+      if (barFuzzyId) return barFuzzyId
+    }
+
+    const dominant = getDominantGenreEntry(data)
+    if (dominant && fuzzyRows?.length) {
+      const genreHit = fuzzyRows.find((row) =>
+        dominant.tags.some((tag) => (row.name || '').toLowerCase().includes(tag.toLowerCase()))
+      )
+      if (genreHit?.id) return genreHit.id
+      if (fuzzyRows.length === 1) return fuzzyRows[0].id ?? null
+    }
+
+    return null
+  }
+
   const handleLocationNameChange = async (name) => {
-    setFormData(prev => ({ ...prev, location_name: name }))
+    setFormData(prev => ({ ...prev, location_name: name, location_id: null }))
 
     if (name.length >= 1) {
       const { data: dbLocs } = await supabase
         .from('locations')
-        .select('name, address, latitude, longitude')
+        .select('id, name, address, latitude, longitude')
         .or(`name.ilike.%${name}%,address.ilike.%${name}%`)
         .limit(50)
 
-      setSuggestions(dedupeLocationSuggestions(dbLocs).slice(0, 5))
+      const deduped = dedupeLocationSuggestions(dbLocs).slice(0, 5)
+      setSuggestions(deduped)
+
+      const resolvedId = pickLocationIdFromRows(dbLocs, name, formData.address)
+      const bar = findBarByName(name)
+      if (bar) {
+        setFormData(prev => ({
+          ...prev,
+          address: prev.address || bar.address || prev.address,
+          region: prev.region || bar.region || classifyRegion(bar.address),
+          location_id: resolvedId ?? prev.location_id,
+        }))
+      } else if (resolvedId) {
+        setFormData(prev => ({ ...prev, location_id: resolvedId }))
+      }
 
       // // 1. 로컬 BAR_DATABASE에서 먼저 검색
       // const filtered = BAR_DATABASE.filter(bar =>
@@ -171,10 +271,23 @@ const RegisterForm = ({ onBack, onSuccess, isEdit = false, initialData = null })
     }
   }
 
-  const selectSuggestion = (bar) => {
+  const selectSuggestion = async (bar) => {
+    let locationId = bar.id ?? null
+    if (!locationId && bar.name) {
+      locationId = await resolveLocationIdForParty({
+        location_name: bar.name,
+        address: bar.address,
+        location_id: null,
+        bRatio: formData.bRatio,
+        sRatio: formData.sRatio,
+        jRatio: formData.jRatio,
+        kRatio: formData.kRatio,
+      })
+    }
     setFormData(prev => ({
       ...prev,
       location_name: bar.name,
+      location_id: locationId ?? prev.location_id,
       address: bar.address,
       region: bar.region || classifyRegion(bar.address),
       latitude: bar.latitude ?? prev.latitude,
@@ -225,12 +338,15 @@ const RegisterForm = ({ onBack, onSuccess, isEdit = false, initialData = null })
             .maybeSingle()
 
           if (!existing) {
-            await supabase.from('locations').insert({
+            const { data: inserted } = await supabase.from('locations').insert({
               name: formData.location_name,
               address: fullAddress,
               latitude: lat,
               longitude: lng
-            })
+            }).select('id').maybeSingle()
+            if (inserted?.id) {
+              setFormData(prev => ({ ...prev, location_id: inserted.id }))
+            }
           } else if (!existing.latitude && lat) {
             // 기존 장소인데 위도/경도 없으면 업데이트
             await supabase.from('locations')
@@ -240,6 +356,9 @@ const RegisterForm = ({ onBack, onSuccess, isEdit = false, initialData = null })
                 longitude: lng 
               })
               .eq('name', formData.location_name)
+          }
+          if (existing?.id) {
+            setFormData(prev => ({ ...prev, location_id: existing.id }))
           }
         }
       }
@@ -291,36 +410,48 @@ const RegisterForm = ({ onBack, onSuccess, isEdit = false, initialData = null })
         finalPosterUrl = data.publicUrl
       }
 
-      // 1. 장소 확인 및 자동 저장 (ID 연동 준비)
-      let finalLocationId = null;
-      const { data: existingLoc } = await supabase
-        .from('locations')
-        .select('id, latitude')
-        .eq('name', formData.location_name)
-        .maybeSingle()
-  
-      if (!existingLoc) {
+      let finalLocationId = await resolveLocationIdForParty(formData)
+
+      if (!finalLocationId) {
         const targetRegion = formData.region || classifyRegion(formData.address) || '서울'
         const { data: reg } = await supabase.from('regions').select('id').ilike('name', `%${targetRegion}%`).limit(1).maybeSingle()
+        const barMaster = findBarByName(formData.location_name)
+        const insertName = barMaster?.name || formData.location_name
+        const insertAddress = formData.address || barMaster?.address || ''
         const { data: newLocs, error: locError } = await supabase.from('locations').insert([{
-          name: formData.location_name,
-          address: formData.address,
+          name: insertName,
+          address: insertAddress,
           region_id: reg?.id || 1,
           latitude: formData.latitude,
           longitude: formData.longitude
-        }]).select()
-        if (newLocs && newLocs.length > 0) finalLocationId = newLocs[0].id;
-      } else {
-        finalLocationId = existingLoc.id;
-        if (existingLoc.latitude === null && formData.latitude) {
-          await supabase.from('locations')
-            .update({ 
-              address: formData.address, 
-              latitude: formData.latitude, 
-              longitude: formData.longitude 
-            })
-            .eq('id', existingLoc.id)
+        }]).select('id, latitude')
+        if (locError) {
+          alert('장소 저장 실패: ' + locError.message)
+          setLoading(false)
+          return
         }
+        if (newLocs?.length > 0) finalLocationId = newLocs[0].id
+      } else {
+        const { data: existingLoc } = await supabase
+          .from('locations')
+          .select('id, latitude')
+          .eq('id', finalLocationId)
+          .maybeSingle()
+        if (existingLoc?.latitude == null && formData.latitude) {
+          await supabase.from('locations')
+            .update({
+              address: formData.address,
+              latitude: formData.latitude,
+              longitude: formData.longitude
+            })
+            .eq('id', finalLocationId)
+        }
+      }
+
+      if (!finalLocationId) {
+        alert('장소(location_id) 연결에 실패했습니다. 장소 이름을 자동완성에서 선택하거나 주소 검색 후 다시 시도해주세요.')
+        setLoading(false)
+        return
       }
 
       let finalProcessedTitle = formData.title.trim();
