@@ -1,6 +1,7 @@
 /**
  * public.locations — verified against Supabase (not bars/venues).
- * Columns: id, name, address, region_id, created_at, latitude, longitude
+ * Columns: id, name, address, region_id, created_at, latitude, longitude, view_count
+ * Optional (migration 20260520130000): description, kakao_url, instagram_url, image_url
  * Region label: locations.region_id → regions.name (no locations.region column).
  */
 export const LOCATIONS_SELECT =

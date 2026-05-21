@@ -11,6 +11,13 @@ import { useBarStatsRealtime } from '../hooks/useBarStatsRealtime';
 import { formatPartyMusicRatio } from '../pages/Social';
 import PartyFeeChips from './PartyFeeChips';
 import { formatPartyTitleDisplay, PARTY_TITLE_CARD_FONT_SIZE } from '../lib/partyTitleDisplay';
+import {
+  isMissingLocationsColumnError,
+  mergeVenueWithLocalExtras,
+  omitOptionalLocationFields,
+  pickOptionalLocationFields,
+  writeVenueLocalExtras,
+} from '../lib/venueLocalExtras';
 
 export { partyMatchesVenue } from '../lib/partyVenueMatch';
 
@@ -571,14 +578,15 @@ export default function VenueDetailModal({
   );
 
   useEffect(() => {
+    const merged = mergeVenueWithLocalExtras(venue);
     setLinkForm({
-      kakao_url: venue?.kakao_url || '',
-      instagram_url: venue?.instagram_url || '',
+      kakao_url: merged?.kakao_url || '',
+      instagram_url: merged?.instagram_url || '',
     });
-    setVenueDescription((venue?.description || '').slice(0, VENUE_DESC_MAX));
+    setVenueDescription((merged?.description || '').slice(0, VENUE_DESC_MAX));
     setShowLinkRegister(false);
     setDetailTab('social');
-  }, [venue?.id, venue?.kakao_url, venue?.instagram_url, venue?.description]);
+  }, [venue?.id, venue?.name, venue?.kakao_url, venue?.instagram_url, venue?.description]);
 
   /** 강남턴·라틴 — 수업 탭 스케줄 비표시 (데이터 삭제·운영 정책) */
   const isLessonsSuppressedVenue = useMemo(() => {
@@ -830,13 +838,16 @@ export default function VenueDetailModal({
   };
 
   const persistVenuePatch = async (patch) => {
-    if (isPersistedVenueId(venue?.id) && supabase) {
-      const { data, error } = await supabase.from('locations').update(patch).eq('id', venue.id).select().single();
-      if (error) throw error;
-      onVenueUpdated?.({ ...venue, ...data });
-      return;
-    }
-    if (supabase) {
+    const optional = pickOptionalLocationFields(patch);
+    const corePatch = omitOptionalLocationFields(patch);
+
+    const tryDbUpdate = async (payload) => {
+      if (!supabase || !Object.keys(payload).length) return null;
+      if (isPersistedVenueId(venue?.id)) {
+        const { data, error } = await supabase.from('locations').update(payload).eq('id', venue.id).select().single();
+        if (error) throw error;
+        return data;
+      }
       const masterBar = findBarByName(venue?.name);
       const { data, error } = await supabase
         .from('locations')
@@ -844,13 +855,25 @@ export default function VenueDetailModal({
           {
             name: venue?.name || masterBar?.name,
             address: venue?.address || masterBar?.address || '',
-            ...patch,
+            ...payload,
           },
         ])
         .select()
         .single();
       if (error) throw error;
-      onVenueUpdated?.({ ...venue, ...data });
+      return data;
+    };
+
+    try {
+      const data = await tryDbUpdate({ ...corePatch, ...optional });
+      if (data) onVenueUpdated?.(mergeVenueWithLocalExtras({ ...venue, ...data }));
+      return;
+    } catch (err) {
+      if (!isMissingLocationsColumnError(err) || !Object.keys(optional).length) throw err;
+      writeVenueLocalExtras(venue, optional);
+      const data = await tryDbUpdate(corePatch);
+      const merged = mergeVenueWithLocalExtras({ ...venue, ...(data || {}), ...optional });
+      onVenueUpdated?.(merged);
     }
   };
 
