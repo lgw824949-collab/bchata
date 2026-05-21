@@ -312,7 +312,7 @@ const InstructorSection = ({ onOpenVipMaster, cachedInstructors = null }) => {
       }
     } catch (err) {
       console.error('Class insert error:', err);
-      alert('수업등록에 실패했습니다: ' + (err.message || err));
+      alert('클래스 등록에 실패했습니다: ' + (err.message || err));
     } finally {
       setSubmittingClass(false);
     }
@@ -963,7 +963,7 @@ const InstructorSection = ({ onOpenVipMaster, cachedInstructors = null }) => {
                                 boxShadow:'0 4px 12px rgba(201,168,76,0.3)'
                               }}
                             >
-                              수업등록하기 →
+                              클래스 등록하기 →
                             </button>
                           </div>
                         ) : (

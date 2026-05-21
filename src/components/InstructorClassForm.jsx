@@ -51,7 +51,7 @@ const InstructorClassForm = ({ onBack }) => {
   if (done) return (
     <div style={{ padding:40, textAlign:'center' }}>
       <div style={{ fontSize:60, marginBottom:16 }}>🎉</div>
-      <div style={{ fontSize:20, fontWeight:900, color:'#111', marginBottom:8 }}>수업등록 완료!</div>
+      <div style={{ fontSize:20, fontWeight:900, color:'#111', marginBottom:8 }}>클래스 등록 완료!</div>
       <div style={{ fontSize:14, color:'#999', lineHeight:1.6, marginBottom:32 }}>강사 페이지 CLASSES 탭에서 확인하세요</div>
       <button onClick={onBack}
         style={{ padding:'14px 32px', borderRadius:16, background:'#E53935', color:'#fff', border:'none', fontSize:15, fontWeight:700, cursor:'pointer' }}>확인</button>
@@ -64,7 +64,7 @@ const InstructorClassForm = ({ onBack }) => {
         <button onClick={onBack}
           style={{ background:'#F1F5F9', border:'none', borderRadius:'50%', width:40, height:40, display:'flex', alignItems:'center', justifyContent:'center', cursor:'pointer', fontSize:18 }}>←</button>
         <div>
-          <div style={{ fontSize:18, fontWeight:900, color:'#111' }}>수업등록 📚</div>
+          <div style={{ fontSize:18, fontWeight:900, color:'#111' }}>클래스 등록 📚</div>
           <div style={{ fontSize:12, color:'#999' }}>강사 전용 수업 등록</div>
         </div>
       </div>
@@ -132,7 +132,7 @@ const InstructorClassForm = ({ onBack }) => {
 
             <button onClick={submit} disabled={loading}
               style={{ width:'100%', padding:'16px', borderRadius:16, background:'#E53935', color:'#fff', border:'none', fontSize:16, fontWeight:900, cursor:'pointer' }}>
-              {loading ? '등록 중...' : '수업등록하기 📚'}
+              {loading ? '등록 중...' : '클래스 등록하기 📚'}
             </button>
           </>
         )}
