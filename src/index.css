@@ -168,7 +168,7 @@ input, button, select, textarea {
 }
 
 .home-gate-active .home-type-tagline-strong {
-  color: #9a9078;
+  color: #c9a84c;
 }
 
 .home-type-tagline-sub {
@@ -313,7 +313,7 @@ input, button, select, textarea {
 }
 
 .home-gate-active .home-featured-stream__row.is-active .home-featured-stream__category {
-  color: #9a9078;
+  color: #c9a84c;
 }
 
 .home-featured-stream__thumb {
@@ -428,7 +428,7 @@ input, button, select, textarea {
 }
 
 .home-gate-active .home-hero-posters .home-poster-border-wrap.is-active {
-  border-color: rgba(154, 144, 120, 0.45);
+  border-color: rgba(201, 168, 76, 0.5);
 }
 
 .home-hero-posters .home-poster-border-inner {
@@ -785,13 +785,13 @@ input, button, select, textarea {
 
 /* GPS 내 지역 — 탭·BAR 칩 강조 (선택 전에도 골드 링) */
 .home-region-pill.is-my-region {
-  border-color: rgba(201, 168, 76, 0.55);
-  box-shadow: 0 0 0 1px rgba(201, 168, 76, 0.28);
+  border-color: rgba(201, 168, 76, 0.4);
+  box-shadow: none;
 }
 
 .home-gate-active .home-region-pill.is-my-region {
   background: rgba(201, 168, 76, 0.1);
-  border-color: rgba(201, 168, 76, 0.55);
+  border-color: rgba(201, 168, 76, 0.42);
   color: #e8d5a3;
 }
 
@@ -800,16 +800,16 @@ input, button, select, textarea {
 }
 
 .home-bar-thumb--my-region {
-  box-shadow: 0 0 0 2px #c9a84c, 0 0 12px rgba(201, 168, 76, 0.45);
+  box-shadow: 0 0 0 1px rgba(201, 168, 76, 0.35);
 }
 
 .home-gate-active .home-bar-thumb--my-region {
-  box-shadow: 0 0 0 2px #c9a84c, 0 0 14px rgba(201, 168, 76, 0.5);
+  box-shadow: 0 0 0 1px rgba(201, 168, 76, 0.4);
 }
 
 .home-bar-chip--my-region .home-bar-chip-name,
 .home-gate-active .home-bar-chip--my-region .home-bar-chip-name {
-  color: #c9a84c;
+  color: #e8d5a3;
 }
 
 /* legacy party strip (fallback) */

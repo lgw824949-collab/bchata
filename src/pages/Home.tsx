@@ -1968,8 +1968,10 @@ const HomePage = ({
   const isHomeGate = activeTab === null;
   const HOME_BRAND = '#D4436E';
   const HOME_GOLD = '#C9A84C';
+  const HOME_GOLD_SOFT = '#C4A86A';
   const HOME_GOLD_MUTED = '#9A9078';
-  const HOME_GOLD_BORDER = 'rgba(154, 144, 120, 0.28)';
+  const HOME_GOLD_BORDER = 'rgba(201, 168, 76, 0.38)';
+  const HOME_GOLD_BORDER_SOFT = 'rgba(201, 168, 76, 0.22)';
   const HOME_BRAND_SOFT = '#FFF5F7';
   const HOME_BRAND_BORDER = '#FBCFE8';
   const HOME_TEXT = '#1E293B';
@@ -1982,8 +1984,8 @@ const HomePage = ({
     textMuted: '#94A3B8',
     surface: 'rgba(255, 255, 255, 0.06)',
     border: 'rgba(255, 255, 255, 0.1)',
-    gold: HOME_GOLD_MUTED,
-    goldSoft: 'rgba(154, 144, 120, 0.1)',
+    gold: HOME_GOLD,
+    goldSoft: 'rgba(201, 168, 76, 0.14)',
     goldBorder: HOME_GOLD_BORDER,
     brandSoft: 'rgba(212, 67, 110, 0.18)',
     brandBorder: 'rgba(212, 67, 110, 0.45)',
@@ -1996,12 +1998,12 @@ const HomePage = ({
       districts: '#78716C',
     },
     partyActive: {
-      bg: 'rgba(154, 144, 120, 0.1)',
+      bg: 'rgba(201, 168, 76, 0.12)',
       border: HOME_GOLD_BORDER,
-      label: '#D6D0C4',
-      count: HOME_GOLD_MUTED,
-      unit: '#B8B0A0',
-      districts: HOME_GOLD_MUTED,
+      label: '#F5E6C8',
+      count: HOME_GOLD,
+      unit: '#E8D5A3',
+      districts: HOME_GOLD_SOFT,
     },
     divider: 'rgba(255, 255, 255, 0.08)',
     panelBg: '#121212',
@@ -2009,11 +2011,11 @@ const HomePage = ({
     panelShadow: '0 10px 40px rgba(0, 0, 0, 0.38)',
     quickIcon: '#CBD5E1',
     quickRegisterIcon: HOME_BRAND,
-    posterActive: HOME_GOLD_MUTED,
+    posterActive: HOME_GOLD,
     posterIdle: 'rgba(255, 255, 255, 0.12)',
     liveShell: 'linear-gradient(135deg, #1a1510 0%, #0a0a0a 55%, #141018 100%)',
     liveBorder: HOME_GOLD_BORDER,
-    barSubtitle: '#B8B0A0',
+    barSubtitle: '#E8D5A3',
     barLabel: '#FFFFFF',
   } : {
     pageBg: '#FFFFFF',
@@ -2021,21 +2023,21 @@ const HomePage = ({
     textMuted: HOME_TEXT_MUTED,
     surface: HOME_SURFACE,
     border: HOME_BORDER,
-    gold: HOME_GOLD_MUTED,
-    goldSoft: 'rgba(154, 144, 120, 0.08)',
-    goldBorder: HOME_GOLD_BORDER,
+    gold: HOME_GOLD,
+    goldSoft: 'rgba(201, 168, 76, 0.1)',
+    goldBorder: HOME_GOLD_BORDER_SOFT,
     brandSoft: HOME_BRAND_SOFT,
     brandBorder: HOME_BRAND_BORDER,
     partyEmpty: {
       bg: HOME_SURFACE, border: HOME_BORDER, label: HOME_TEXT_MUTED, count: '#94A3B8', unit: '#94A3B8', districts: '#94A3B8',
     },
     partyActive: {
-      bg: 'rgba(154, 144, 120, 0.08)',
-      border: HOME_GOLD_BORDER,
-      label: '#78716C',
-      count: HOME_GOLD_MUTED,
-      unit: '#A8A29E',
-      districts: HOME_GOLD_MUTED,
+      bg: 'rgba(201, 168, 76, 0.1)',
+      border: HOME_GOLD_BORDER_SOFT,
+      label: '#92400E',
+      count: HOME_GOLD,
+      unit: '#B45309',
+      districts: HOME_GOLD_SOFT,
     },
     divider: HOME_BORDER,
     panelBg: '#FFFFFF',
@@ -2065,9 +2067,12 @@ const HomePage = ({
     border: `1px solid ${homeUi.panelBorder}`,
     boxShadow: homeUi.panelShadow,
   };
-  const homeLuxurySectionBoxStyle = {
+  const homeLuxurySectionBoxStyle = isHomeGate ? {
     border: `1px solid ${HOME_GOLD_BORDER}`,
-    boxShadow: '0 4px 16px rgba(0, 0, 0, 0.08)',
+    boxShadow: '0 4px 22px rgba(201, 168, 76, 0.14)',
+  } : {
+    border: `1px solid ${HOME_GOLD_BORDER_SOFT}`,
+    boxShadow: '0 4px 16px rgba(15, 23, 42, 0.06)',
   };
   const homeSubtitleStyle = { color: homeUi.textMuted };
   const homeSectionDividerStyle = { height: 1, background: homeUi.divider, margin: '0 20px', border: 'none' };
@@ -2715,8 +2720,8 @@ const HomePage = ({
           height: 48px;
           border-radius: 50%;
           background: rgba(255, 255, 255, 0.05);
-          border: 1px solid rgba(255, 255, 255, 0.14);
-          color: #94A3B8;
+          border: 1px solid rgba(201, 168, 76, 0.22);
+          color: #C9A84C;
           display: flex;
           align-items: center;
           justify-content: center;
@@ -2868,9 +2873,24 @@ const HomePage = ({
           color: #94A3B8;
         }
         .home-gate-active .home-section-action {
-          border-color: rgba(201, 168, 76, 0.35);
-          background: rgba(201, 168, 76, 0.1);
+          border-color: rgba(201, 168, 76, 0.4);
+          background: rgba(201, 168, 76, 0.12);
           color: #F5E6C8;
+        }
+        .home-gate-active .home-social-bar-wrap .home-bar-thumb {
+          box-shadow: none;
+          border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        .home-gate-active .home-social-bar-wrap .home-bar-thumb--my-region {
+          box-shadow: 0 0 0 1px rgba(201, 168, 76, 0.38);
+          border-color: rgba(201, 168, 76, 0.4);
+        }
+        .home-gate-active .home-social-bar-wrap .home-bar-chip--my-region .home-bar-chip-name,
+        .home-gate-active .home-social-bar-wrap .home-bar-chip--my-region .social-bar-name-label {
+          color: #E8D5A3;
+        }
+        .home-gate-active .home-social-bar-wrap .home-bar-view-line {
+          color: rgba(201, 168, 76, 0.75);
         }
         .home-gate-active .quick-menu-more-wrap::after {
           background: linear-gradient(to right, rgba(13, 13, 13, 0), #0d0d0d 90%);
