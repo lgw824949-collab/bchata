@@ -824,8 +824,8 @@ const HomeRollingPartyCard = ({ item, onSelect }) => {
       onClick={() => onSelect(item)}
       style={{ display: 'flex', flexDirection: 'row', alignItems: 'stretch', backgroundColor: 'var(--color-card)', borderRadius: '16px', overflow: 'hidden', border: '1px solid var(--color-border)', cursor: 'pointer', height: '150px', marginBottom: '12px', ...partyCardZoomBaseStyle }}
     >
-      <div style={{ width: '100px', flexShrink: 0 }}>
-        <img src={item.poster_url} style={{ width: '100%', height: '100%', objectFit: 'cover' }} alt="Poster" />
+      <div className="bchata-poster-frame" style={{ width: '100px', flexShrink: 0, alignSelf: 'stretch' }}>
+        <img src={item.poster_url} className="bchata-poster-fit" alt="Poster" />
       </div>
 
       <div style={{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'space-between', minWidth: 0, padding: '16px 20px' }}>
@@ -919,9 +919,9 @@ const ClassCard = ({ item, onSelect }) => {
       }}
     >
       {/* 포스터 영역 (160x200) */}
-      <div style={{ width: '160px', height: '200px', background: '#1a1a2e', position: 'relative', overflow: 'hidden', flexShrink: 0 }}>
+      <div className="bchata-poster-frame" style={{ width: '160px', height: '200px', position: 'relative', flexShrink: 0 }}>
         {item.poster_url ? (
-          <img src={item.poster_url} style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} alt="Poster" />
+          <img src={item.poster_url} className="bchata-poster-fit" alt="Poster" />
         ) : (
           <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--color-text-sub)', fontSize: '12px', fontWeight: 800 }}>
             No Poster
@@ -997,8 +997,8 @@ const BootcampCard = ({ item, onSelect }) => {
         ...partyCardZoomBaseStyle,
       }}
     >
-      <div style={{ width: '80px', height: '100%', flexShrink: 0 }}>
-        <img src={item.poster_url} style={{ width: '100%', height: '100%', objectFit: 'cover' }} alt="Bootcamp" />
+      <div className="bchata-poster-frame" style={{ width: '80px', height: '100%', flexShrink: 0 }}>
+        <img src={item.poster_url} className="bchata-poster-fit" alt="Bootcamp" />
       </div>
       <div style={{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'center', padding: '0 15px', minWidth: 0 }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '2px' }}>
@@ -1033,8 +1033,8 @@ const FestivalCard = ({ item, onSelect }) => {
         ...partyCardZoomBaseStyle,
       }}
     >
-      <div style={{ width: '80px', height: '100%', flexShrink: 0 }}>
-        <img src={item.poster_url} style={{ width: '100%', height: '100%', objectFit: 'cover' }} alt="Festival" />
+      <div className="bchata-poster-frame" style={{ width: '80px', height: '100%', flexShrink: 0 }}>
+        <img src={item.poster_url} className="bchata-poster-fit" alt="Festival" />
       </div>
       <div style={{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'center', padding: '0 15px', minWidth: 0 }}>
         <div style={{ fontSize: '11px', fontWeight: '800', color: '#F97316', marginBottom: '2px' }}>FESTIVAL · {item.genre}</div>
@@ -2693,24 +2693,25 @@ const HomePage = ({
       <style>{`
         .home-featured-panel .home-featured-stream__thumb {
           width: ${HOME_FEATURED_THUMB_SIZE}px;
-          height: ${HOME_FEATURED_THUMB_SIZE}px;
+          height: auto;
+          aspect-ratio: 2 / 3;
         }
         .home-featured-panel .home-featured-stream__thumb img {
           width: 100%;
           height: 100%;
-          object-fit: cover;
-          object-position: center top;
+          object-fit: contain;
+          object-position: center center;
         }
         .home-featured-panel .home-featured-stream__row {
-          min-height: ${HOME_FEATURED_THUMB_SIZE}px;
+          min-height: ${Math.round(HOME_FEATURED_THUMB_SIZE * 1.5)}px;
         }
         @media (min-width: 480px) {
           .home-featured-panel .home-featured-stream__thumb {
             width: ${HOME_FEATURED_THUMB_SIZE_WIDE}px;
-            height: ${HOME_FEATURED_THUMB_SIZE_WIDE}px;
+            height: auto;
           }
           .home-featured-panel .home-featured-stream__row {
-            min-height: ${HOME_FEATURED_THUMB_SIZE_WIDE}px;
+            min-height: ${Math.round(HOME_FEATURED_THUMB_SIZE_WIDE * 1.5)}px;
           }
         }
         @keyframes gentleSparkle {
@@ -3395,6 +3396,7 @@ const HomePage = ({
                                     } catch (err) {}
                                   }
                                 }} 
+                                className="bchata-poster-frame party-carousel-card"
                                 style={{ 
                                   width: '140px', 
                                   height: '210px', 
@@ -3403,12 +3405,11 @@ const HomePage = ({
                                   overflow: 'hidden', 
                                   boxShadow: '0 8px 24px rgba(0,0,0,0.15)', 
                                   position: 'relative', 
-                                  background: '#000', 
                                   cursor: 'pointer',
                                   ...partyCardZoomBaseStyle,
                                 }}
                               >
-                                <img src={item.poster_url} style={{ width: '100%', height: '100%', objectFit: 'cover' }} alt="Pick" />
+                                <img src={item.poster_url} className="bchata-poster-fit" alt="Pick" />
                                 
                                 {/* NEW 뱃지 표시
                                 <div style={{ position: 'absolute', top: '8px', left: '8px', zIndex: 10, background: '#E53935', color: '#fff', fontSize: '10px', fontWeight: 900, padding: '3px 8px', borderRadius: '8px', boxShadow: '0 2px 4px rgba(0,0,0,0.2)' }}>
@@ -3932,12 +3933,14 @@ const HomePage = ({
                                 {...partyCardZoomHandlers}
                                 key={item.id}
                                 onClick={() => openPartyWithAfterParty(item)}
-                                style={{ aspectRatio: '1 / 1.4', overflow: 'hidden', background: 'var(--color-card)', position: 'relative', ...partyCardZoomBaseStyle }}
+                                className="bchata-poster-frame"
+                                style={{ aspectRatio: '2 / 3', overflow: 'hidden', background: '#111', position: 'relative', ...partyCardZoomBaseStyle }}
                               >
                                 <img
                                   src={item.poster_url}
                                   alt="Poster"
-                                  style={{ width: '100%', height: '100%', objectFit: 'cover', imageRendering: '-webkit-optimize-contrast' }}
+                                  className="bchata-poster-fit"
+                                  style={{ imageRendering: '-webkit-optimize-contrast' }}
                                 />
                                 <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, padding: '10px 6px', background: 'linear-gradient(transparent, rgba(0,0,0,0.95))', color: '#fff', display: 'flex', flexDirection: 'column', gap: '3px' }}>
                                   <div style={{ display: 'flex', gap: '3px', flexWrap: 'wrap' }}>

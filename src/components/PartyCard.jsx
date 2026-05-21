@@ -131,8 +131,11 @@ const PartyCard = ({ item, onSelect, wishlistParties: wishlistProp, onToggleWish
         onToggle={onToggleWishlist}
       />
 
-      <div style={{ width: '120px', height: '120px', borderRadius: '12px', overflow: 'hidden', flexShrink: 0 }}>
-        <img src={item.poster_url} style={{ width: '100%', height: '100%', objectFit: 'cover' }} alt="Poster" />
+      <div
+        className="bchata-poster-frame"
+        style={{ width: '108px', aspectRatio: '2 / 3', borderRadius: '12px', flexShrink: 0 }}
+      >
+        <img src={item.poster_url} className="bchata-poster-fit" alt="Poster" />
       </div>
 
       <div style={{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'center', gap: '8px', minWidth: 0 }}>

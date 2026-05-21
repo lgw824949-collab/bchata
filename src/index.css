@@ -316,21 +316,43 @@ input, button, select, textarea {
   color: #c9a84c;
 }
 
+/* 메인 포스터 — 잘림 방지 (letterbox, 전체 노출) */
+.bchata-poster-frame {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  background: #111;
+}
+
+.bchata-poster-frame > img,
+img.bchata-poster-fit {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  object-position: center center;
+}
+
 .home-featured-stream__thumb {
   flex-shrink: 0;
-  width: 96px;
-  height: 96px;
+  width: 72px;
+  aspect-ratio: 2 / 3;
+  height: auto;
   border-radius: 10px;
   overflow: hidden;
   background: #111;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .home-featured-stream__thumb img {
   display: block;
   width: 100%;
   height: 100%;
-  object-fit: cover;
-  object-position: center top;
+  object-fit: contain;
+  object-position: center center;
 }
 
 .home-featured-stream__body {
@@ -387,8 +409,8 @@ input, button, select, textarea {
 
 @media (min-width: 480px) {
   .home-featured-stream__thumb {
-    width: 108px;
-    height: 108px;
+    width: 80px;
+    height: auto;
   }
 
   .home-featured-stream__title {
@@ -1118,14 +1140,18 @@ input[type=number] {
   overflow: hidden;
   position: relative;
   box-shadow: 0 10px 25px rgba(0,0,0,0.08);
-  background: #f1f5f9;
+  background: #111;
   border: 1px solid rgba(0,0,0,0.03);
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .stream-poster {
   width: 100%;
   height: 100%;
-  object-fit: cover;
+  object-fit: contain;
+  object-position: center center;
 }
 
 

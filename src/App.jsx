@@ -2895,7 +2895,9 @@ function App() {
                               if (!card) return;
                               enterPosterDetailView(card);
                             }} style={{ background: '#F8FAFC', borderRadius: '16px', padding: '12px', display: 'flex', gap: '15px', border: '1px solid #EDF2F7', cursor: 'pointer' }}>
-                              <img src={item.poster_url} style={{ width: '80px', height: '100px', objectFit: 'cover', borderRadius: '10px' }} alt="Poster" />
+                              <div className="bchata-poster-frame" style={{ width: '80px', height: '100px', borderRadius: '10px', flexShrink: 0 }}>
+                                <img src={item.poster_url} className="bchata-poster-fit" alt="Poster" />
+                              </div>
                               <div style={{ flex: 1 }}>
                                 <div style={{ fontSize: '11px', color: '#FF1744', fontWeight: 800 }}>{item.displayBroadRegion}</div>
                                 <div style={{ fontSize: '13px', fontWeight: 900, color: '#1E293B', marginTop: '2px' }}>{formatPartyTitleDisplay(item.title)}</div>
