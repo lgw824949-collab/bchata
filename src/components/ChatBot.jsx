@@ -101,30 +101,34 @@ const inferRegionFromText = (text) => {
   return '전국';
 };
 
-const GENRE_MSG_NATIONWIDE =
-  '부트캠프·페스티벌은 **전국**에서 모이는 행사예요. 지역과 관계없이 포스터를 안내해 드릴게요.\n장르는?\n1. 바차타\n2. 살사\n3. 쥬크\n4. 키좀바';
+const GENRE_MSG_BOOTCAMP =
+  '부트캠프는 **전국** 행사예요. 지역과 관계없이 **부트캠프** 포스터만 최대 3개 안내합니다.\n장르는?\n1. 바차타\n2. 살사\n3. 쥬크\n4. 키좀바';
+
+const GENRE_MSG_FESTIVAL =
+  '페스티벌은 **전국** 행사예요. 지역과 관계없이 **페스티벌** 포스터만 최대 3개 안내합니다.\n장르는?\n1. 바차타\n2. 살사\n3. 쥬크\n4. 키좀바';
+
+const CONCIERGE_NATIONWIDE_LIMIT = 3;
 
 const formatNationwideVenueLine = (row) => {
   const place = row?.venue || row?.region || row?.address || row?.location;
   return place ? `📍 ${place}` : '📍 장소·일정은 포스터에서 확인';
 };
 
-/** 부트캠프·페스티벌 — 지역 필터 없이 장르 우선, 없으면 전국 프로그램 */
-const pickNationwideGenreEvents = (rows, genreName, { todayStr, limit = 5 } = {}) => {
+/** 부트캠프·페스티벌 — 지역 무관, 선택 장르만, 시작일 빠른 순 최대 3건 */
+const pickNationwideGenreEvents = (rows, genreName, { todayStr, limit = CONCIERGE_NATIONWIDE_LIMIT } = {}) => {
   const upcoming = (rows || []).filter((r) => {
     const d = String(r.start_date || r.date || '').slice(0, 10);
     return !todayStr || !d || d >= todayStr;
   });
   const genreHits = upcoming.filter((r) => String(r.genre || '').includes(genreName));
-  const pool = genreHits.length ? genreHits : upcoming;
-  const withPoster = pool.filter((r) => String(r.poster_url || '').trim());
-  const sorted = [...(withPoster.length ? withPoster : pool)].sort((a, b) =>
-    String(a.start_date || a.date || '').localeCompare(String(b.start_date || b.date || '')),
-  );
-  return {
-    list: sorted.slice(0, limit),
-    usedGenreFallback: genreHits.length === 0 && sorted.length > 0,
-  };
+  const withPoster = genreHits.filter((r) => String(r.poster_url || '').trim());
+  const pool = withPoster.length ? withPoster : genreHits;
+  const sorted = [...pool].sort((a, b) => {
+    const byStart = String(a.start_date || a.date || '').localeCompare(String(b.start_date || b.date || ''));
+    if (byStart !== 0) return byStart;
+    return String(a.created_at || '').localeCompare(String(b.created_at || ''));
+  });
+  return { list: sorted.slice(0, limit) };
 };
 
 const mapBootcampConciergeItem = (b) => ({
@@ -596,47 +600,35 @@ const ChatBot = () => {
 
     if (catNum === '3') {
       const todayStr = getKSTCalendarTodayStr();
-      const bootPick = pickNationwideGenreEvents(dbData.bootcamps, genreName, { todayStr, limit: 3 });
-      const festPick = pickNationwideGenreEvents(dbData.festivals, genreName, { todayStr, limit: 2 });
-      const items = [
-        ...bootPick.list.map(mapBootcampConciergeItem),
-        ...festPick.list.map(mapFestivalConciergeItem),
-      ];
-      if (!items.length) {
+      const { list } = pickNationwideGenreEvents(dbData.bootcamps, genreName, { todayStr });
+      if (!list.length) {
         return {
-          empty:
-            '**전국**에 등록된 부트캠프·페스티벌이 아직 없어요.\n홈 화면 **부트캠프**·**페스티벌** 탭에서 곧 확인해 주세요.',
+          empty: `**전국**에 **${genreName}** 부트캠프가 없어요.\n홈 화면 **부트캠프** 탭에서 확인해 주세요.`,
           headline: null,
           items: [],
         };
       }
-      const genreNote =
-        bootPick.usedGenreFallback || festPick.usedGenreFallback
-          ? ' · 요청 장르 외 전국 프로그램 포함'
-          : '';
       return {
         empty: null,
-        headline: `✨ 전국 ${genreName} · 부트캠프 & 페스티벌 ${items.length}건${genreNote}`,
-        items,
+        headline: `✨ 전국 ${genreName} 부트캠프 ${list.length}건`,
+        items: list.map(mapBootcampConciergeItem),
       };
     }
 
     if (catNum === '4') {
       const todayStr = getKSTCalendarTodayStr();
-      const festPick = pickNationwideGenreEvents(dbData.festivals, genreName, { todayStr, limit: 5 });
-      if (!festPick.list.length) {
+      const { list } = pickNationwideGenreEvents(dbData.festivals, genreName, { todayStr });
+      if (!list.length) {
         return {
-          empty:
-            '**전국**에 등록된 페스티벌이 아직 없어요.\n홈 화면 **페스티벌** 탭에서 포스터를 확인해 주세요.',
+          empty: `**전국**에 **${genreName}** 페스티벌이 없어요.\n홈 화면 **페스티벌** 탭에서 확인해 주세요.`,
           headline: null,
           items: [],
         };
       }
-      const genreNote = festPick.usedGenreFallback ? ' · 요청 장르 외 전국 행사 포함' : '';
       return {
         empty: null,
-        headline: `✨ 전국 ${genreName} 페스티벌 ${festPick.list.length}건${genreNote}`,
-        items: festPick.list.map(mapFestivalConciergeItem),
+        headline: `✨ 전국 ${genreName} 페스티벌 ${list.length}건`,
+        items: list.map(mapFestivalConciergeItem),
       };
     }
 
@@ -663,7 +655,8 @@ const ChatBot = () => {
       }
       setCategory(userInput);
       setStep(2);
-      const genrePrompt = userInput === '3' || userInput === '4' ? GENRE_MSG_NATIONWIDE : GENRE_MSG;
+      const genrePrompt =
+        userInput === '3' ? GENRE_MSG_BOOTCAMP : userInput === '4' ? GENRE_MSG_FESTIVAL : GENRE_MSG;
       setMessages((prev) => [...prev, userMsg, { role: 'model', content: genrePrompt }]);
       return;
     }
