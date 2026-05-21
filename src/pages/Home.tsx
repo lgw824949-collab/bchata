@@ -20,6 +20,7 @@ import BarRegisterFormModal from '../components/BarRegisterFormModal'
 import HomeHeroTagline from '../components/HomeHeroTagline'
 import { navigate as historyNavigate, parseAppState, pushOverlay } from '../lib/appHistory'
 import { formatPartyFeeDisplay } from '../lib/partyFeeDisplay'
+import { formatPartyTitleDisplay } from '../lib/partyTitleDisplay'
 import PartyCard from '../components/PartyCard'
 
 function navigate(path, options = {}) {
@@ -321,7 +322,7 @@ const buildVenueListFromDatabase = () =>
 const buildPartyShareCard = (item) => {
   const posterUrl = item?.poster_url && String(item.poster_url).trim();
   if (!posterUrl) return null;
-  const title = (item.title || '').split(' ㅣ ')[0].replace(/^\[.*?\]\s*/, '').trim() || '라틴·소셜 파티';
+  const title = formatPartyTitleDisplay(item.title) || '라틴·소셜 파티';
   const loc = item.locationName || item.location_name || item.studio_name || item.venue || '';
   const fee = item.fee ?? item.price_info ?? '';
   const timeRaw = item.time?.split('-')[0]?.trim() || '';
@@ -637,10 +638,7 @@ const LiveExposureStrip = ({ pool, selectedDate, todayStr, onSelect, cleanTitle,
           style={{ display: 'grid', gridTemplateColumns: featured.length > 1 ? '1fr 1fr' : '1fr', gap: 12 }}
         >
           {featured.map((item) => {
-            const title = cleanTitle(item.title || '')
-              .replace(/^\[.*?\]\s*/, '')
-              .replace(/ㅣ\s*$/, '')
-              .trim();
+            const title = formatPartyTitleDisplay(item.title || '');
             return (
               <button
                 key={item.id}
@@ -701,12 +699,12 @@ const LiveExposureStrip = ({ pool, selectedDate, todayStr, onSelect, cleanTitle,
                   </div>
                   <div
                     style={{
-                      fontSize: 13,
+                      fontSize: 12,
                       fontWeight: 900,
                       color: '#fff',
                       lineHeight: 1.25,
                       display: '-webkit-box',
-                      WebkitLineClamp: 2,
+                      WebkitLineClamp: 1,
                       WebkitBoxOrient: 'vertical',
                       overflow: 'hidden',
                     }}
@@ -824,8 +822,8 @@ const HomeRollingPartyCard = ({ item, onSelect }) => {
           )}
         </div>
 
-        <div style={{ fontSize: '17px', fontWeight: '900', color: 'var(--color-text-main)', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden', textOverflow: 'ellipsis', letterSpacing: '-0.6px', lineHeight: 1.3, height: '44px', marginTop: '4px' }}>
-          {translateDynamicText(cleanTitle(item.title).replace(/^\[.*?\]\s*/, '').replace(/ㅣ\s*$/, '').trim(), isEn)}
+        <div style={{ fontSize: '15px', fontWeight: '900', color: 'var(--color-text-main)', display: '-webkit-box', WebkitLineClamp: 1, WebkitBoxOrient: 'vertical', overflow: 'hidden', textOverflow: 'ellipsis', letterSpacing: '-0.6px', lineHeight: 1.3, marginTop: '4px' }}>
+          {translateDynamicText(formatPartyTitleDisplay(item.title), isEn)}
         </div>
 
         <div style={{ display: 'flex', flexDirection: 'column', gap: '3px' }}>
@@ -1214,18 +1212,7 @@ const HomePage = ({
   };
 
   /** 추천 행사 리스트 전용 — 대괄호·구분자·부수 텍스트 제거 후 본제목만 */
-  const cleanFeaturedTitle = (raw: string) => {
-    if (!raw) return '';
-    const segment = String(raw).split(/\s*ㅣ\s*|\s*\|\s*/)[0].trim();
-    return segment
-      .replace(/\[[^\]]*\]/g, '')
-      .replace(/오늘밤빠/g, '')
-      .replace(/[|｜¦]/g, '')
-      .replace(/[|｜¦·•／/\\]+$/g, '')
-      .replace(/^[-–—·•\s]+|[-–—·•\s]+$/g, '')
-      .replace(/\s+/g, ' ')
-      .trim();
-  };
+  const cleanFeaturedTitle = (raw: string) => formatPartyTitleDisplay(raw);
 
   const posterSharePayload = (item: any) => buildPartyShareCard(item);
 
@@ -3333,7 +3320,7 @@ const HomePage = ({
                                 {/* 하단 그라데이션 오버레이 (검정) */}
                                 <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, padding: '18px 10px 12px', background: 'linear-gradient(transparent, rgba(0,0,0,0.95))', color: 'white' }}>
                                   <div style={{ fontSize: '11px', color: '#FFEB3B', fontWeight: 950, marginBottom: '2px', textShadow: '0 1px 2px rgba(0,0,0,0.8)' }}>{translateDynamicText(item.locationName, isEn)}</div>
-                                  <div style={{ fontSize: '13px', fontWeight: 900, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', textShadow: '0 1px 2px rgba(0,0,0,0.8)' }}>{translateDynamicText(item.title, isEn)}</div>
+                                  <div style={{ fontSize: '12px', fontWeight: 900, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', textShadow: '0 1px 2px rgba(0,0,0,0.8)' }}>{translateDynamicText(formatPartyTitleDisplay(item.title), isEn)}</div>
                                 </div>
                               </div>
                             ))}

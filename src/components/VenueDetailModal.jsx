@@ -10,6 +10,7 @@ import PartyLiveHybridBadge from './PartyLiveHybridBadge';
 import { useBarStatsRealtime } from '../hooks/useBarStatsRealtime';
 import { formatPartyMusicRatio } from '../pages/Social';
 import { formatPartyFeeDisplay } from '../lib/partyFeeDisplay';
+import { formatPartyTitleDisplay, PARTY_TITLE_CARD_FONT_SIZE } from '../lib/partyTitleDisplay';
 
 export { partyMatchesVenue } from '../lib/partyVenueMatch';
 
@@ -127,7 +128,7 @@ const FeaturedPartyCard = ({
   liveCount = 0,
   clickCount = 0,
 }) => {
-  const title = cleanTitle(party.title);
+  const title = formatPartyTitleDisplay(party.title);
   const time = isLesson
     ? [party.day_of_week, party.start_time?.slice(0, 5) || party.time?.split('-')[0]?.trim()]
         .filter(Boolean)
@@ -242,13 +243,13 @@ const FeaturedPartyCard = ({
           <div
             style={{
               marginTop: 10,
-              fontSize: 18,
+              fontSize: PARTY_TITLE_CARD_FONT_SIZE,
               fontWeight: 900,
               color: VD.title,
               lineHeight: 1.3,
               letterSpacing: '-0.4px',
               display: '-webkit-box',
-              WebkitLineClamp: 2,
+              WebkitLineClamp: 1,
               WebkitBoxOrient: 'vertical',
               overflow: 'hidden',
             }}
@@ -1017,7 +1018,7 @@ export default function VenueDetailModal({
                     color: VD.body,
                   }}
                 >
-                  {cleanTitle(p.title)} · {p.time?.split('-')[0]?.trim()}
+                  {formatPartyTitleDisplay(p.title)} · {p.time?.split('-')[0]?.trim()}
                 </button>
               ))}
             </div>

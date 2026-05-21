@@ -5,6 +5,7 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { logActivity, runSupabaseQuery, supabase } from './lib/supabase'
 import { KAKAO_BRAND, SHARE_BUILD, sharePartyToKakao } from './lib/kakaoShare'
 import { buildPartyShareCard } from './lib/partyShareCard'
+import { formatPartyTitleDisplay } from './lib/partyTitleDisplay'
 import { getUserCoords, isGeoDenied, readCachedCoords, syncGeoPermissionState } from './lib/geoCache'
 import {
   BAMPPA_HISTORY,
@@ -599,10 +600,7 @@ const LiveExposureStrip = ({
           style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}
         >
           {featured.map((item) => {
-            const title = cleanTitle(item.title || '')
-              .replace(/^\[.*?\]\s*/, '')
-              .replace(/ㅣ\s*$/, '')
-              .trim();
+            const title = formatPartyTitleDisplay(item.title || '');
             return (
               <button
                 key={item.id}
@@ -670,12 +668,12 @@ const LiveExposureStrip = ({
                   </motion.div>
                   <div
                     style={{
-                      fontSize: 13,
+                      fontSize: 12,
                       fontWeight: 800,
                       color: '#1E293B',
                       lineHeight: 1.25,
                       display: '-webkit-box',
-                      WebkitLineClamp: 2,
+                      WebkitLineClamp: 1,
                       WebkitBoxOrient: 'vertical',
                       overflow: 'hidden',
                     }}
@@ -2921,7 +2919,7 @@ function App() {
                               <img src={item.poster_url} style={{ width: '80px', height: '100px', objectFit: 'cover', borderRadius: '10px' }} alt="Poster" />
                               <div style={{ flex: 1 }}>
                                 <div style={{ fontSize: '11px', color: '#FF1744', fontWeight: 800 }}>{item.displayBroadRegion}</div>
-                                <div style={{ fontSize: '14px', fontWeight: 900, color: '#1E293B', marginTop: '2px' }}>{item.title}</div>
+                                <div style={{ fontSize: '13px', fontWeight: 900, color: '#1E293B', marginTop: '2px' }}>{formatPartyTitleDisplay(item.title)}</div>
                                 <div style={{ fontSize: '12px', color: '#64748B', marginTop: '4px' }}>{item.displayLocationName}</div>
                                 <div style={{ fontSize: '11px', color: '#94A3B8', marginTop: '6px' }}>{item.time}</div>
                               </div>

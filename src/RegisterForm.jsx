@@ -7,6 +7,7 @@ import { supabase } from './lib/supabase'
 import { getKakaoApiKey } from './lib/kakaoEnv'
 import { findBarByName } from './lib/BarLib'
 import { normalizeVenueAddressKey } from './lib/venueDedupe'
+import { PARTY_TITLE_MAX_LENGTH } from './lib/partyTitleDisplay'
 
 const METRO_REGIONS = ['서울', '인천', '경기', '부산', '대구', '광주', '대전', '울산', '세종', '강원', '충북', '충남', '전북', '전남', '경북', '경남', '제주']
 
@@ -189,7 +190,7 @@ const RegisterForm = ({ onBack, onSuccess, isEdit = false, isAdminMode = false, 
 
   const handleTitleChange = (e) => {
     const value = e.target.value;
-    if (value.length <= 32) {
+    if (value.length <= PARTY_TITLE_MAX_LENGTH) {
       setFormData(prev => ({ ...prev, title: value }));
     }
   };
@@ -681,10 +682,10 @@ const RegisterForm = ({ onBack, onSuccess, isEdit = false, isAdminMode = false, 
               value={formData.title} 
               onChange={handleTitleChange} 
               placeholder="예: 라틴 바차타 맛집" 
-              maxLength={32}
-              style={{ width: '100%', height: '120px', padding: '20px', border: '2px solid #F1F5F9', borderRadius: '20px', fontSize: '18px', fontWeight: 700, background: '#F8FAFC', outline: 'none', resize: 'none' }} 
+              maxLength={PARTY_TITLE_MAX_LENGTH}
+              style={{ width: '100%', height: '120px', padding: '20px', border: '2px solid #F1F5F9', borderRadius: '20px', fontSize: '16px', fontWeight: 700, background: '#F8FAFC', outline: 'none', resize: 'none' }} 
             />
-            <p style={{ marginTop: '12px', fontSize: '13px', color: '#94A3B8' }}>* 지역과 제목을 알기 쉽게 적어주세요 (최대 32자)</p>
+            <p style={{ marginTop: '12px', fontSize: '13px', color: '#94A3B8' }}>* 지역과 제목을 알기 쉽게 적어주세요 (최대 {PARTY_TITLE_MAX_LENGTH}자)</p>
           </motion.div>
         );
       case 3:

@@ -9,6 +9,8 @@
  *    - Bottom: start_time + address (12px, #888)
  */
 
+import { formatPartyTitleDisplay } from './lib/partyTitleDisplay';
+
 export const HnnssListItem = ({ party }) => {
   return (
     <div className="hnnss-card">
@@ -22,7 +24,7 @@ export const HnnssListItem = ({ party }) => {
       />
       <div className="hnnss-content">
         <h2 className="hnnss-location">{party.locationName}</h2>
-        <p className="hnnss-title">{party.title}</p>
+        <p className="hnnss-title">{formatPartyTitleDisplay(party.title)}</p>
         <p className="hnnss-footer">
           {party.start_time}  {party.address}
         </p>

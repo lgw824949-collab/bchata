@@ -5,6 +5,7 @@ import PartyWishlistHeart from './PartyWishlistHeart';
 import { usePartyWishlist } from '../hooks/usePartyWishlist';
 import { formatPartyMusicRatio } from '../pages/Social';
 import { formatPartyFeeDisplay } from '../lib/partyFeeDisplay';
+import { formatPartyTitleDisplay, PARTY_TITLE_CARD_FONT_SIZE } from '../lib/partyTitleDisplay';
 
 const GENRE_MAP = {
   '바차타': { key: 'b_ratio', label: 'B', label_en: 'Bachata', color: '#FF1744' },
@@ -80,7 +81,6 @@ const PartyCard = ({ item, onSelect, wishlistParties: wishlistProp, onToggleWish
     return now >= startWithBuffer && now <= endDate;
   })();
 
-  const cleanTitleStr = item.title?.split(' ㅣ ')[0] || '';
   const displayTime = item.time?.split('-')[0].trim() || '21:00';
   const todayStr = (() => {
     const d = new Date();
@@ -90,10 +90,7 @@ const PartyCard = ({ item, onSelect, wishlistParties: wishlistProp, onToggleWish
   const displayFee = formatPartyFeeDisplay(item.fee, { fallback: '문의' });
   const locationLabel = translateDynamicText(item.locationName || item.studio_name || '장소 미지정', isEn);
   const ratioLabel = formatPartyMusicRatio(item);
-  const title = translateDynamicText(
-    cleanTitleStr.replace(/^\[.*?\]\s*/, '').replace(/ㅣ\s*$/, '').trim(),
-    isEn,
-  );
+  const title = translateDynamicText(formatPartyTitleDisplay(item.title), isEn);
 
   const handleCardClick = async () => {
     if (item?.id) {
@@ -151,12 +148,12 @@ const PartyCard = ({ item, onSelect, wishlistParties: wishlistProp, onToggleWish
         <h3
           style={{
             margin: 0,
-            fontSize: '18px',
+            fontSize: PARTY_TITLE_CARD_FONT_SIZE,
             fontWeight: 800,
             color: '#111',
-            lineHeight: 1.4,
+            lineHeight: 1.35,
             display: '-webkit-box',
-            WebkitLineClamp: 2,
+            WebkitLineClamp: 1,
             WebkitBoxOrient: 'vertical',
             overflow: 'hidden',
             textOverflow: 'ellipsis',

@@ -4,6 +4,11 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { X, Heart, Navigation, Clock, Calendar, User } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import { buildPartyShareCard } from '../lib/partyShareCard';
+import { formatPartyTitleDisplay } from '../lib/partyTitleDisplay';
+import {
+  removePartyFromSupabaseWishlist,
+  saveWishlistPartiesToStorage,
+} from '../lib/partyWishlistStore';
 
 export default function WishlistModal({ onClose, setSelectedPoster }) {
   const [activeTab, setActiveTab] = useState('parties'); // 'parties' | 'bootcamps' | 'festivals'
@@ -111,12 +116,11 @@ export default function WishlistModal({ onClose, setSelectedPoster }) {
           if (typeof item === 'object' && item !== null) return item.id !== id;
           return item !== id;
         });
-        localStorage.setItem(targetKey, JSON.stringify(updated));
-
-        // 파티 탭의 경우 이전 호환성 키도 함께 동기화
         if (tabType === 'parties') {
-          if (localStorage.getItem('liked_ids')) localStorage.setItem('liked_ids', JSON.stringify(updated));
-          if (localStorage.getItem('liked_parties')) localStorage.setItem('liked_parties', JSON.stringify(updated));
+          saveWishlistPartiesToStorage(updated);
+          void removePartyFromSupabaseWishlist(id, supabase);
+        } else {
+          localStorage.setItem(targetKey, JSON.stringify(updated));
         }
       }
     } catch (e) {}
@@ -252,17 +256,9 @@ export default function WishlistModal({ onClose, setSelectedPoster }) {
                       <img 
                         src={item.poster_url} 
                         onClick={() => {
-                          window.history.pushState({ modal: true }, '');
                           const card = buildPartyShareCard(item);
                           if (!card) return;
-                          setSelectedPoster({
-                            src: card.src,
-                            title: card.title,
-                            desc: card.desc,
-                            lines: card.lines,
-                            feedDesc: card.feedDesc,
-                            partyId: card.partyId ?? item.id,
-                          });
+                          setSelectedPoster(card);
                         }}
                         style={{ width: '75px', height: '100px', objectFit: 'cover', borderRadius: '10px', flexShrink: 0, background: '#F1F5F9', cursor: 'pointer' }} 
                         alt={item.title || '포스터'} 
@@ -287,8 +283,8 @@ export default function WishlistModal({ onClose, setSelectedPoster }) {
                         ) : null}
                       </div>
 
-                      <div style={{ fontSize: '15px', fontWeight: 900, color: '#1E293B', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', marginBottom: '6px' }}>
-                        {item.title || '제목 없음'}
+                      <div style={{ fontSize: '14px', fontWeight: 900, color: '#1E293B', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', marginBottom: '6px' }}>
+                        {activeTab === 'parties' ? formatPartyTitleDisplay(item.title) : (item.title || '제목 없음')}
                       </div>
 
                       <div style={{ display: 'flex', flexDirection: 'column', gap: '3px' }}>

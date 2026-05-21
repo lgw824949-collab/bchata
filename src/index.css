@@ -355,12 +355,12 @@ input, button, select, textarea {
 .home-featured-stream__title {
   display: -webkit-box;
   margin: 0;
-  font-size: 16px;
+  font-size: 14px;
   font-weight: 800;
-  line-height: 1.38;
+  line-height: 1.35;
   letter-spacing: -0.03em;
   color: #1e293b;
-  -webkit-line-clamp: 2;
+  -webkit-line-clamp: 1;
   -webkit-box-orient: vertical;
   overflow: hidden;
 }
@@ -392,7 +392,7 @@ input, button, select, textarea {
   }
 
   .home-featured-stream__title {
-    font-size: 17px;
+    font-size: 15px;
   }
 }
 
@@ -1840,7 +1840,7 @@ html:not(.home-gate-theme) .modernized-calendar-modal .cal-event-summary-counts 
 }
 
 .party-title {
-  font-size: 14px;
+  font-size: 13px;
   font-weight: 800;
   color: var(--bg-dark);
   margin-bottom: 8px;

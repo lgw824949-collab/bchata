@@ -5,6 +5,7 @@ import { motion } from 'framer-motion';
 import { useTranslation } from 'react-i18next';
 import { BAR_DATABASE } from '../lib/BarLib';
 import { getUserCoords, isGeoDenied, readCachedCoords } from '../lib/geoCache';
+import { formatPartyTitleDisplay } from '../lib/partyTitleDisplay';
 
 const IncheonRoute = ({ parties, onClose }) => {
   const { t, i18n } = useTranslation();
@@ -134,8 +135,8 @@ const IncheonRoute = ({ parties, onClose }) => {
                       />
                     </div>
                     <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
-                      <h3 style={{ fontSize: '17px', fontWeight: '900', color: '#1E293B', marginBottom: '4px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                        {party.title}
+                      <h3 style={{ fontSize: '15px', fontWeight: '900', color: '#1E293B', marginBottom: '4px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                        {formatPartyTitleDisplay(party.title)}
                       </h3>
                       <div style={{ display: 'flex', alignItems: 'center', gap: '4px', color: '#64748B', fontSize: '12px', marginBottom: '12px' }}>
                         <MapPin size={14} />

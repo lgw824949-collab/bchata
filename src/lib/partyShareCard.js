@@ -1,3 +1,5 @@
+import { formatPartyTitleDisplay } from './partyTitleDisplay';
+
 const GENRE_MAP = {
   바차타: { key: 'b_ratio' },
   살사: { key: 's_ratio' },
@@ -29,31 +31,12 @@ export const getPartyGenreLabel = (item) => {
   return sorted[0][0];
 };
 
-const cleanPartyTitle = (title) => {
-  if (!title) return '';
-  return String(title)
-    .split(' ㅣ ')[0]
-    .replace(/^\[.*?\]\s*/, '')
-    .replace(/ㅣ\s*$/, '')
-    .replace(/\[서울\]/g, '')
-    .replace(/\[경인\]/g, '')
-    .replace(/\[경기\/인천\]/g, '')
-    .replace(/\[경상도\]/g, '')
-    .replace(/\[전라도\]/g, '')
-    .replace(/\[충청도\]/g, '')
-    .replace(/\[강원\/제주\]/g, '')
-    .replace(/오늘밤빠/g, '')
-    .replace(/\|/g, '')
-    .replace(/\s+/g, ' ')
-    .trim();
-};
-
 /** @returns {{ src: string, title: string, desc: string, lines: string[] } | null} */
 export const buildPartyShareCard = (item) => {
   const posterUrl = item?.poster_url && String(item.poster_url).trim();
   if (!posterUrl) return null;
 
-  const title = cleanPartyTitle(item.title) || '라틴·소셜 파티';
+  const title = formatPartyTitleDisplay(item.title) || '라틴·소셜 파티';
   const loc =
     item.locationName ||
     item.location_name ||
