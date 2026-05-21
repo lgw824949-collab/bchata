@@ -3,7 +3,6 @@ import { Heart, MapPin, Calendar, Clock, User, Users, Music, ChevronRight, Chevr
 import { useTranslation } from 'react-i18next';
 import { motion, AnimatePresence } from 'framer-motion';
 import QuickPinchZoom, { make3dTransformValue } from 'react-quick-pinch-zoom';
-import LiveCount from '../components/LiveCount'
 import { fetchBarStatsMap, bumpBarClickCount } from '../lib/barStatsQuery'
 import { KMA_REGION_COORDS, fetchWeatherForecast, parseKmaWeather, HOME_REGION_MAP } from '../utils/kmaApi'
 import { supabase } from '../lib/supabase'
@@ -2337,22 +2336,25 @@ const HomePage = ({
     const pick = withPoster[0] || todayRows[0] || null;
     const total = todayRows.length;
     const seoulCount = regionCounts.seoul || 0;
-    return { pick, total, seoulCount };
+    const metroCount = regionCounts.metro || 0;
+    const localCount = regionCounts.national || 0;
+    const bannerLine = isEn
+      ? `Today ${total} parties · Seoul ${seoulCount} · Metro ${metroCount} · Regions ${localCount}`
+      : `오늘 파티 ${total}건 · 서울 ${seoulCount} · 수도권 ${metroCount} · 지방 ${localCount}`;
+    const ariaLabel = isEn
+      ? `LIVE · ${bannerLine}`
+      : `LIVE · ${bannerLine}`;
+    return { pick, total, seoulCount, metroCount, localCount, bannerLine, ariaLabel };
   }, [parties, calendarTodayStr, isEn, regionCounts]);
 
   const renderHomeLiveBannerFallback = () => {
-    const { pick, total, seoulCount } = homeLiveBannerFallback;
-    const seoulLabel = isEn ? 'Seoul' : '서울';
-    const nationwideLine = isEn
-      ? `Nationwide ${total} parties live`
-      : `전국 ${total}개 파티 진행중`;
-    const ariaLabel = `${nationwideLine} | ${seoulLabel} ${seoulCount}`;
+    const { pick, bannerLine, ariaLabel } = homeLiveBannerFallback;
     const handleClick = () => {
       if (pick) {
         openPartyWithAfterParty(pick);
         return;
       }
-      navigate('/livepick');
+      openFullCalendarModal();
     };
     return (
       <div className="home-live-banner-fallback">
@@ -2370,18 +2372,15 @@ const HomePage = ({
           aria-label={ariaLabel}
         >
           <div className="live-dynamic-banner__inner">
-            <span className="lc-dot" />
             <span className="lc-tag">LIVE</span>
+            <span className="lc-dot" />
             <span className="live-dynamic-banner__sep live-dynamic-banner__sep--dot">·</span>
-            <div className="live-dynamic-banner__track">
-              <span className="lc-default lc-default--hot">{nationwideLine}</span>
-              <div className="live-dynamic-banner__regions">
-                <span className="live-dynamic-banner__sep">|</span>
-                <span className="live-dynamic-banner__region">
-                  {seoulLabel} <strong>{seoulCount}</strong>
-                </span>
-              </div>
-            </div>
+            <span
+              className="live-dynamic-banner__spotlight live-dynamic-banner__spotlight--solo live-banner-text-clip"
+              title={bannerLine}
+            >
+              {bannerLine}
+            </span>
           </div>
         </div>
       </div>
@@ -2427,7 +2426,7 @@ const HomePage = ({
         style={{
           flex: 1,
           minWidth: 0,
-          minHeight: 44,
+          minHeight: 48,
           background: 'transparent',
           borderRadius: '14px',
           overflow: 'hidden',
@@ -2439,10 +2438,7 @@ const HomePage = ({
             .home-live-banner-slot {
               position: relative;
               width: 100%;
-              min-height: 44px;
-            }
-            .home-live-banner-slot:has(.live-dynamic-banner) .home-live-banner-fallback {
-              display: none !important;
+              min-height: 48px;
             }
             .home-live-banner-fallback {
               width: 100%;
@@ -2486,8 +2482,9 @@ const HomePage = ({
               border-radius: 14px !important;
             }
             .live-count-premium-wrapper .live-dynamic-banner__inner {
-              height: 44px !important;
-              padding: 0 clamp(10px, 3.2vw, 14px) !important;
+              min-height: 48px !important;
+              height: 48px !important;
+              padding: 0 clamp(12px, 3.5vw, 16px) !important;
               background: transparent !important;
               box-sizing: border-box !important;
               width: 100% !important;
@@ -2560,7 +2557,8 @@ const HomePage = ({
             .live-count-premium-wrapper .live-dynamic-banner__spotlight--solo {
               color: #ffffff !important;
               font-weight: 900 !important;
-              font-size: clamp(9px, 2.6vw, 12px) !important;
+              font-size: clamp(12px, 3.6vw, 15px) !important;
+              text-shadow: 0 1px 2px rgba(0, 0, 0, 0.25) !important;
               white-space: nowrap !important;
               overflow: hidden !important;
               text-overflow: ellipsis !important;
@@ -2616,12 +2614,6 @@ const HomePage = ({
             .home-party-register-outside__line { display: block; }
           `}</style>
         <div className="home-live-banner-slot">
-          <LiveCount
-            parties={parties}
-            isGate={isHomeGate}
-            onPartyClick={openPartyWithAfterParty}
-            onPromoClick={() => navigate('/livepick')}
-          />
           {renderHomeLiveBannerFallback()}
         </div>
       </motion.div>
