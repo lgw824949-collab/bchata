@@ -335,7 +335,7 @@ const GENRE_MAP = {
   '키좀바': { key: 'k_ratio', label: 'K', label_en: 'Kizomba', color: '#FF1744' },
 };
 
-/** 소셜 파티 카드 음악 비율 B4:S2 — src/pages/Social.tsx */
+/** 소셜 파티 카드 음악 비율(music_ratio) — src/pages/Social.tsx */
 const renderPartyMusicRatioRow = (item) => <PartyMusicRatioLine item={item} />;
 
 const SEOUL_HINT = /서울|강남|홍대|잠실|건대|신림|서초|영등포|성수|이태원|왕십리|목동|구로/;

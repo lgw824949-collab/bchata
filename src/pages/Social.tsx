@@ -82,67 +82,15 @@ export function SocialDateGenreFilterBar({
   );
 }
 
-/** parties — music_ratio 없으면 b/s/j/k_ratio → B4:S2 */
-const PARTY_RATIO_SEGMENTS = [
-  { key: 'b_ratio', label: 'B' },
-  { key: 's_ratio', label: 'S' },
-  { key: 'k_ratio', label: 'K' },
-  { key: 'j_ratio', label: 'J' },
-] as const;
-
-const ratioSegmentValue = (v: unknown): number | null => {
-  const n = Number(v);
-  if (!Number.isFinite(n) || n <= 0) return null;
-  if (n > 0 && n < 1) return Math.round(n * 100);
-  return Math.round(n);
-};
-
-/** "B 4% · S 2%", "B4 S2", "B4:S2" → B4:S2 */
-const normalizeMusicRatioString = (raw: string): string | null => {
-  const compact = raw.trim().replace(/\s+/g, '');
-  if (/^[BSKJ]\d+(:[BSKJ]\d+)*$/i.test(compact)) {
-    return compact
-      .split(':')
-      .map((p) => p.replace(/^([bskj])/i, (m) => m.toUpperCase()))
-      .join(':');
-  }
-
-  const segments: string[] = [];
-  const re = /([BSKJ])\s*(\d+)\s*%?/gi;
-  let match = re.exec(raw);
-  while (match) {
-    segments.push(`${match[1].toUpperCase()}${match[2]}`);
-    match = re.exec(raw);
-  }
-  if (segments.length > 0) return segments.join(':');
-
-  const colonParts = raw
-    .split(/[·•|/]/)
-    .map((p) => p.trim().replace(/\s*%/g, '').replace(/\s+/g, ''))
-    .filter((p) => /^[BSKJ]\d+$/i.test(p));
-  if (colonParts.length > 0) {
-    return colonParts.map((p) => p.replace(/^([bskj])/i, (m) => m.toUpperCase())).join(':');
-  }
-
-  return null;
-};
-
+/** parties.music_ratio — DB 저장값 그대로 (예: B4:S2) */
 export function formatPartyMusicRatio(item: Record<string, unknown> | null | undefined): string | null {
   if (!item) return null;
 
   const raw = item.music_ratio ?? item.musicRatio;
-  if (typeof raw === 'string' && raw.trim()) {
-    const normalized = normalizeMusicRatioString(raw.trim());
-    if (normalized) return normalized;
-  }
+  if (raw == null) return null;
 
-  const parts = PARTY_RATIO_SEGMENTS.map(({ key, label }) => {
-    const v = ratioSegmentValue(item[key]);
-    if (v == null) return null;
-    return `${label}${v}`;
-  }).filter(Boolean) as string[];
-
-  return parts.length > 0 ? parts.join(':') : null;
+  const text = String(raw).trim();
+  return text || null;
 }
 
 type PartyMusicRatioLineProps = {
