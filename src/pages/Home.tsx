@@ -2254,18 +2254,24 @@ const HomePage = ({
     );
     const withPoster = todayRows.filter((p) => String(p.poster_url || p.imageUrl || '').trim());
     const pick = withPoster[0] || todayRows[0] || null;
-    const cleanTitle = (raw) => String(raw || '').replace(/^\[[^\]]*\]\s*/, '').trim();
-    const title = pick
-      ? cleanTitle(isEn && pick.title_en ? pick.title_en : pick.title)
-      : '';
-    const mainLine = title
-      ? (isEn ? `🔥 #1 tonight! ${title}` : `🔥 오늘 1위! ${title}`)
-      : (isEn ? 'Discover parties tonight' : '오늘 밤 파티를 찾아보세요');
-    return { pick, total: todayRows.length, mainLine };
-  }, [parties, calendarTodayStr, isEn]);
+    const total = todayRows.length;
+    const regionEntries = [
+      { label: isEn ? 'Seoul' : '서울', count: regionCounts.seoul || 0 },
+      ...(regionCounts.metro > 0
+        ? [{ label: isEn ? 'Metro' : '수도권', count: regionCounts.metro }]
+        : []),
+    ];
+    return { pick, total, regionEntries };
+  }, [parties, calendarTodayStr, isEn, regionCounts]);
 
   const renderHomeLiveBannerFallback = () => {
-    const { pick, total, mainLine } = homeLiveBannerFallback;
+    const { pick, total, regionEntries } = homeLiveBannerFallback;
+    const nationwideLine = isEn
+      ? `Nationwide ${total} parties live`
+      : `전국 ${total}개 파티 진행중`;
+    const ariaLabel = regionEntries.length
+      ? `${nationwideLine} | ${regionEntries.map((r) => `${r.label} ${r.count}`).join(' ')}`
+      : nationwideLine;
     const handleClick = () => {
       if (pick) {
         openPartyWithAfterParty(pick);
@@ -2286,32 +2292,24 @@ const HomePage = ({
               handleClick();
             }
           }}
-          aria-label={mainLine}
+          aria-label={ariaLabel}
         >
           <div className="live-dynamic-banner__inner">
             <span className="lc-tag">LIVE</span>
             <span className="lc-dot" />
-            {total > 0 ? (
-              <div className="live-dynamic-banner__track">
-                <span className="lc-default lc-default--hot">
-                  {isEn ? `Nationwide ${total} parties today` : `전국 ${total}개 파티`}
-                </span>
-                <span className="live-dynamic-banner__sep live-dynamic-banner__sep--before-spotlight">|</span>
-                <span
-                  className="live-dynamic-banner__spotlight live-banner-text-clip"
-                  title={mainLine}
-                >
-                  {mainLine}
-                </span>
-              </div>
-            ) : (
-              <span
-                className="live-dynamic-banner__spotlight live-dynamic-banner__spotlight--solo live-banner-text-clip"
-                title={mainLine}
-              >
-                {mainLine}
-              </span>
-            )}
+            <div className="live-dynamic-banner__track">
+              <span className="lc-default lc-default--hot">{nationwideLine}</span>
+              {regionEntries.length > 0 ? (
+                <div className="live-dynamic-banner__regions">
+                  <span className="live-dynamic-banner__sep">|</span>
+                  {regionEntries.map((r) => (
+                    <span key={r.label} className="live-dynamic-banner__region">
+                      {r.label} <strong>{r.count}</strong>
+                    </span>
+                  ))}
+                </div>
+              ) : null}
+            </div>
           </div>
         </div>
       </div>
@@ -2496,6 +2494,30 @@ const HomePage = ({
             .live-count-premium-wrapper--gate .lc-tag {
               background: #C9A84C !important;
               color: #1a1a1a !important;
+            }
+            .live-count-premium-wrapper--gate .live-dynamic-banner__inner,
+            .live-count-premium-wrapper--gate .lc-default,
+            .live-count-premium-wrapper--gate .lc-default--hot,
+            .live-count-premium-wrapper--gate .live-dynamic-banner__spotlight,
+            .live-count-premium-wrapper--gate .live-dynamic-banner__spotlight--solo,
+            .live-count-premium-wrapper--gate .live-dynamic-banner__region,
+            .live-count-premium-wrapper--gate .live-dynamic-banner__region strong {
+              color: #FFFFFF !important;
+            }
+            .live-count-premium-wrapper--gate .live-dynamic-banner__sep {
+              color: rgba(255, 255, 255, 0.55) !important;
+            }
+            .live-count-premium-wrapper:not(.live-count-premium-wrapper--gate) .live-dynamic-banner__inner,
+            .live-count-premium-wrapper:not(.live-count-premium-wrapper--gate) .lc-default,
+            .live-count-premium-wrapper:not(.live-count-premium-wrapper--gate) .lc-default--hot,
+            .live-count-premium-wrapper:not(.live-count-premium-wrapper--gate) .live-dynamic-banner__spotlight,
+            .live-count-premium-wrapper:not(.live-count-premium-wrapper--gate) .live-dynamic-banner__spotlight--solo,
+            .live-count-premium-wrapper:not(.live-count-premium-wrapper--gate) .live-dynamic-banner__region,
+            .live-count-premium-wrapper:not(.live-count-premium-wrapper--gate) .live-dynamic-banner__region strong {
+              color: #000000 !important;
+            }
+            .live-count-premium-wrapper:not(.live-count-premium-wrapper--gate) .live-dynamic-banner__sep {
+              color: rgba(0, 0, 0, 0.5) !important;
             }
             .home-party-register-outside {
               flex-shrink: 0;
