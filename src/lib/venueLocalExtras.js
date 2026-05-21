@@ -71,14 +71,24 @@ export function omitOptionalLocationFields(patch) {
   return out;
 }
 
+function coalesceVenueField(dbVal, localVal) {
+  const fromDb = String(dbVal ?? '').trim();
+  if (fromDb) return fromDb;
+  return String(localVal ?? '').trim();
+}
+
 export function mergeVenueWithLocalExtras(venue) {
   if (!venue) return venue;
   const local = readVenueLocalExtras(venue);
   return {
     ...venue,
-    description: venue.description ?? local.description ?? '',
-    kakao_url: venue.kakao_url ?? local.kakao_url ?? '',
-    instagram_url: venue.instagram_url ?? local.instagram_url ?? '',
-    image_url: venue.image_url ?? local.image_url ?? null,
+    description: coalesceVenueField(venue.description, local.description),
+    kakao_url: coalesceVenueField(venue.kakao_url, local.kakao_url),
+    instagram_url: coalesceVenueField(venue.instagram_url, local.instagram_url),
+    image_url: venue.image_url || local.image_url || null,
   };
+}
+
+export function applyLocalExtrasToVenueList(venues) {
+  return (venues || []).map((v) => mergeVenueWithLocalExtras(v));
 }

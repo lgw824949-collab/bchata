@@ -575,8 +575,10 @@ export default function VenueDetailModal({
   const [venueFavorited, setVenueFavorited] = useState(false);
   const { stats: venueBarStats } = useBarStatsRealtime(venue);
 
+  const displayVenue = useMemo(() => mergeVenueWithLocalExtras(venue), [venue]);
+
   const hasBothVenueLinks = Boolean(
-    venue?.kakao_url?.trim() && venue?.instagram_url?.trim()
+    displayVenue?.kakao_url?.trim() && displayVenue?.instagram_url?.trim()
   );
 
   useEffect(() => {
@@ -828,19 +830,19 @@ export default function VenueDetailModal({
   }, [calendarMonth, todayYear, todayMonth, todayDay]);
 
   const openKakao = () => {
-    if (!venue?.kakao_url?.trim()) {
+    if (!displayVenue?.kakao_url?.trim()) {
       alert('카카오톡 문의 링크가 아직 등록되지 않았습니다.');
       return;
     }
-    window.open(venue.kakao_url, '_blank');
+    window.open(displayVenue.kakao_url, '_blank');
   };
 
   const openInsta = () => {
-    if (!venue?.instagram_url?.trim()) {
+    if (!displayVenue?.instagram_url?.trim()) {
       alert('인스타그램 링크가 아직 등록되지 않았습니다.');
       return;
     }
-    window.open(venue.instagram_url, '_blank');
+    window.open(displayVenue.instagram_url, '_blank');
   };
 
   const persistVenuePatch = async (patch) => {

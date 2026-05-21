@@ -10,6 +10,7 @@ import { supabase } from '../lib/supabase'
 import { BAR_DATABASE } from '../lib/BarLib'
 import { normDate, getKSTCalendarTodayStr, isApprovedParty } from '../lib/dateNorm'
 import { logSupabaseError } from '../lib/locationsQuery'
+import { applyLocalExtrasToVenueList, hasOptionalLocationColumns, mergeVenueWithLocalExtras } from '../lib/venueLocalExtras'
 import {
   dedupeVenueList,
   normalizeVenueAddressKey,
@@ -1482,14 +1483,19 @@ const HomePage = ({
     try {
       let rawList = [];
       if (supabase) {
+        const baseCols = 'id, name, address, region_id, created_at, latitude, longitude, view_count';
+        const withOptional = await hasOptionalLocationColumns(supabase);
+        const selectCols = withOptional
+          ? `${baseCols}, description, kakao_url, instagram_url, image_url`
+          : baseCols;
         let { data, error } = await supabase
           .from('locations')
-          .select('id, name, address, region_id, created_at, latitude, longitude, view_count')
+          .select(selectCols)
           .order('name', { ascending: true });
         if (error) {
           ({ data, error } = await supabase
             .from('locations')
-            .select('id, name, address, region_id, created_at, latitude, longitude, view_count'));
+            .select(baseCols));
         }
         if (error) {
           logSupabaseError('Home.fetchLocations', error);
@@ -1539,11 +1545,11 @@ const HomePage = ({
         const nonSeoul = classified.filter((b) => b.region !== '서울');
         classified = [...nonSeoul, ...sortedSeoul];
       }
-      setLocations(classified);
+      setLocations(applyLocalExtrasToVenueList(classified));
     } catch (err) {
       console.error('Supabase Error:', err);
       console.error('[Home.fetchLocations] BAR 목록 로드 실패 — 로컬 마스터 데이터로 대체:', err);
-      setLocations(buildVenueListFromDatabase());
+      setLocations(applyLocalExtrasToVenueList(buildVenueListFromDatabase()));
     } finally {
       setLocationsLoading(false);
     }
@@ -1603,10 +1609,25 @@ const HomePage = ({
     return [geoRegionTab, ...rest, SOCIAL_BAR_REGION_ALL];
   }, [locations, geoRegionTab, geoRegionStatus]);
 
+  const syncVenueAcrossHome = (updated) => {
+    if (!updated) return;
+    setSelectedVenue(updated);
+    setLocations((prev) =>
+      prev.map((b) => {
+        const sameId = String(b.id) === String(updated.id);
+        const sameName =
+          normalizeVenueNameKey(b.name) &&
+          normalizeVenueNameKey(b.name) === normalizeVenueNameKey(updated.name);
+        return sameId || sameName ? mergeVenueWithLocalExtras({ ...b, ...updated }) : b;
+      }),
+    );
+  };
+
   const openVenueDetail = (bar) => {
-    setSelectedVenue(bar);
+    const merged = mergeVenueWithLocalExtras(bar);
+    setSelectedVenue(merged);
     pushOverlay('venue', {
-      meta: { venueId: String(bar.id), venueName: bar.name || '' },
+      meta: { venueId: String(merged.id), venueName: merged.name || '' },
     });
   };
 
@@ -4056,7 +4077,7 @@ const HomePage = ({
           parties={parties}
           lessons={lessons || []}
           onClose={closeVenueDetail}
-          onVenueUpdated={(updated) => setSelectedVenue(updated)}
+          onVenueUpdated={syncVenueAcrossHome}
           onOpenPoster={(item) => {
             const p = posterSharePayload(item);
             if (p) handleOpenModal(setSelectedPoster, p);
