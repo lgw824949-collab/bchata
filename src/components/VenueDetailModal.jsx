@@ -8,6 +8,7 @@ import { lessonMatchesVenue, partyMatchesVenue } from '../lib/partyVenueMatch';
 import { supabase, logActivity } from '../lib/supabase';
 import PartyLiveHybridBadge from './PartyLiveHybridBadge';
 import { useBarStatsRealtime } from '../hooks/useBarStatsRealtime';
+import { formatPartyMusicRatio } from '../pages/Social';
 
 export { partyMatchesVenue } from '../lib/partyVenueMatch';
 
@@ -107,30 +108,25 @@ const VenueAvatar = ({ venue, size = 40 }) => (
 const VENUE_DETAIL_BODY_CLASS = 'venue-detail-open';
 const VENUE_DETAIL_NAV_HIDDEN_CLASS = 'venue-detail-nav-hidden';
 
-const RatioBar = ({ item, compact }) => (
-  <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap', marginTop: compact ? 4 : 8 }}>
-    {Object.entries(GENRE_MAP).map(([genre, info]) => {
-      const val = item[info.key] ?? 0;
-      if (val <= 0) return null;
-      return (
-        <span
-          key={genre}
-          style={{
-            fontSize: '10px',
-            fontWeight: 800,
-            color: VD.brand,
-            background: '#FFF0F5',
-            padding: '2px 8px',
-            borderRadius: '20px',
-            border: `1px solid ${VD.borderAccent}`,
-          }}
-        >
-          {info.label} {val}%
-        </span>
-      );
-    })}
-  </div>
-);
+/** b_ratio 등 가중치(0~10) → B4:S2. %는 표시하지 않음 */
+const RatioBar = ({ item, compact }) => {
+  const text = formatPartyMusicRatio(item);
+  if (!text) return null;
+  return (
+    <p
+      style={{
+        margin: compact ? '4px 0 0' : '8px 0 0',
+        fontSize: '12px',
+        fontWeight: 800,
+        color: VD.brand,
+        lineHeight: 1.3,
+        letterSpacing: '0.02em',
+      }}
+    >
+      {text}
+    </p>
+  );
+};
 
 /** 홈 소셜 카드와 같은 톤 — 세로 포스터는 좌측 고정폭 + cover (레터박스 없음) */
 const FeaturedPartyCard = ({
