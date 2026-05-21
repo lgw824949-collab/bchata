@@ -4,11 +4,7 @@ import { supabase } from '../lib/supabase';
 import PartyWishlistHeart from './PartyWishlistHeart';
 import { usePartyWishlist } from '../hooks/usePartyWishlist';
 import { formatPartyMusicRatio } from '../pages/Social';
-import {
-  formatPartyFeeDisplay,
-  PARTY_FEE_CARD_FONT_SIZE,
-  PARTY_FEE_RATIO_FONT_SIZE,
-} from '../lib/partyFeeDisplay';
+import { formatPartyFeeDisplay, PARTY_FEE_CARD_FONT_SIZE } from '../lib/partyFeeDisplay';
 import { formatPartyTitleDisplay, PARTY_TITLE_CARD_FONT_SIZE } from '../lib/partyTitleDisplay';
 
 const GENRE_MAP = {
@@ -140,12 +136,17 @@ const PartyCard = ({ item, onSelect, wishlistParties: wishlistProp, onToggleWish
       </div>
 
       <div style={{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'center', gap: '8px', minWidth: 0 }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-          <span style={{ fontSize: '11px', fontWeight: 800, color: '#666', letterSpacing: '0.5px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'nowrap', minWidth: 0 }}>
+          <span style={{ fontSize: '11px', fontWeight: 800, color: '#666', letterSpacing: '0.5px', flexShrink: 0 }}>
             {genreLabel}
           </span>
+          {ratioLabel ? (
+            <span style={{ fontSize: '11px', fontWeight: 700, color: '#E53935', flexShrink: 0 }}>
+              | {ratioLabel}
+            </span>
+          ) : null}
           {isTimeLive ? (
-            <span style={{ fontSize: '10px', fontWeight: 800, color: '#E53935', letterSpacing: '0.3px' }}>LIVE</span>
+            <span style={{ fontSize: '10px', fontWeight: 800, color: '#E53935', letterSpacing: '0.3px', flexShrink: 0 }}>LIVE</span>
           ) : null}
         </div>
 
@@ -190,7 +191,7 @@ const PartyCard = ({ item, onSelect, wishlistParties: wishlistProp, onToggleWish
           </span>
         </div>
 
-        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginTop: '4px', flexWrap: 'nowrap', minWidth: 0 }}>
+        <div style={{ display: 'flex', alignItems: 'center', marginTop: '4px', flexWrap: 'nowrap', minWidth: 0 }}>
           <span
             style={{
               fontSize: PARTY_FEE_CARD_FONT_SIZE,
@@ -204,11 +205,6 @@ const PartyCard = ({ item, onSelect, wishlistParties: wishlistProp, onToggleWish
           >
             {displayFee}
           </span>
-          {ratioLabel ? (
-            <span style={{ color: '#E53935', fontWeight: 700, fontSize: PARTY_FEE_RATIO_FONT_SIZE, flexShrink: 0 }}>
-              | {ratioLabel}
-            </span>
-          ) : null}
         </div>
       </div>
     </div>
