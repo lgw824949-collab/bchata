@@ -7,18 +7,56 @@ import { KAKAO_BRAND, SHARE_BUILD, sharePartyToKakao } from './lib/kakaoShare'
 import { buildPartyShareCard } from './lib/partyShareCard'
 import { getUserCoords, isGeoDenied, readCachedCoords, syncGeoPermissionState } from './lib/geoCache'
 import {
+  BAMPPA_HISTORY,
   buildAppState,
-  closeOverlay,
-  goBack,
-  navigate,
-  navigateHomeTab,
+  navigate as historyNavigate,
   parseAppState,
   pathToView,
   pushOverlay,
   readNavigationState,
-  replaceCurrentState,
 } from './lib/appHistory'
-import { handleMobileExitBack, registerExitToast } from './lib/mobileExitGuard'
+import { registerExitToast } from './lib/mobileExitGuard'
+
+const NAV_SESSION_PATH_KEY = 'bchata:session-path'
+const NAV_SESSION_STATE_KEY = 'bchata:session-state'
+
+function persistNavSession() {
+  try {
+    const path = window.location.pathname + window.location.search + window.location.hash
+    sessionStorage.setItem(NAV_SESSION_PATH_KEY, path)
+    const st = parseAppState(window.history.state)
+    if (st) sessionStorage.setItem(NAV_SESSION_STATE_KEY, JSON.stringify(st))
+  } catch {
+    /* quota / private mode */
+  }
+}
+
+/** replace 옵션 무시 — 항상 push 스택 */
+function navigate(path, options = {}) {
+  const { replace: _replace, ...rest } = options
+  historyNavigate(path, rest)
+}
+
+function navigateHomeTab(homeTab) {
+  const path = window.location.pathname
+  if (path !== '/') {
+    navigate('/', { homeTab: homeTab ?? null })
+    return
+  }
+  navigate('/', { homeTab: homeTab ?? null, force: true })
+}
+
+function goBack() {
+  window.history.back()
+}
+
+function closeOverlay() {
+  if (parseAppState(window.history.state)?.overlay) {
+    goBack()
+    return true
+  }
+  return false
+}
 import { Z } from './constants/zLayers'
 import { DEFAULT_AVATAR_IMAGE, imgFallbackHandler } from './constants/imageAssets'
 import { normDate, getKSTCalendarTodayStr } from './lib/dateNorm'
@@ -1145,6 +1183,7 @@ function App() {
   const [showWishlist, setShowWishlist] = useState(false);
   const [showRentalModal, setShowRentalModal] = useState(false);
   const [exitToast, setExitToast] = useState(null);
+  const [chatbotOverlay, setChatbotOverlay] = useState(false);
   const navSnapshotRef = useRef(readNavigationState());
   const historyReadyRef = useRef(false);
   const lastPosterCleanupDayRef = useRef('');
@@ -1218,7 +1257,9 @@ function App() {
       setShowPartner(true);
       setHomeActiveTab('partner');
     }
+    setChatbotOverlay(overlay === 'chatbot');
     window.dispatchEvent(new CustomEvent('bamppa-history', { detail: { state: st } }));
+    persistNavSession();
   };
 
   const closeModalWithHistory = (setter) => () => {
@@ -1238,29 +1279,68 @@ function App() {
   }, []);
 
   useEffect(() => {
-    const path = window.location.pathname;
-    if (!parseAppState(window.history.state)) {
-      const initial = buildAppState({ view: viewForPath(path, null), homeTab: null });
-      window.history.replaceState(initial, '', path);
-      navSnapshotRef.current = initial;
+    if (!chatbotOverlay) return undefined;
+    window.dispatchEvent(new CustomEvent('open-chatbot'));
+    return undefined;
+  }, [chatbotOverlay]);
+
+  useEffect(() => {
+    const onOpenChatbot = () => {
+      const st = readNavigationState();
+      if (st?.overlay !== 'chatbot') {
+        pushOverlay('chatbot');
+      }
+    };
+    const onCloseChatbot = () => {
+      if (readNavigationState()?.overlay === 'chatbot') {
+        goBack();
+      }
+    };
+    window.addEventListener('open-chatbot', onOpenChatbot);
+    window.addEventListener('close-chatbot', onCloseChatbot);
+    return () => {
+      window.removeEventListener('open-chatbot', onOpenChatbot);
+      window.removeEventListener('close-chatbot', onCloseChatbot);
+    };
+  }, []);
+
+  useEffect(() => {
+    const fullPath = window.location.pathname + window.location.search + window.location.hash;
+    let state = parseAppState(window.history.state);
+    if (!state) {
+      try {
+        const savedPath = sessionStorage.getItem(NAV_SESSION_PATH_KEY);
+        const savedRaw = sessionStorage.getItem(NAV_SESSION_STATE_KEY);
+        if (savedRaw && savedPath === fullPath) {
+          const parsed = JSON.parse(savedRaw);
+          if (parsed?.[BAMPPA_HISTORY]) state = parsed;
+        }
+      } catch {
+        /* ignore */
+      }
     }
+    if (!state) {
+      state = buildAppState({ view: viewForPath(window.location.pathname, null), homeTab: null });
+    }
+    if (!parseAppState(window.history.state)) {
+      window.history.replaceState(state, '', fullPath);
+    }
+    applyHistoryState(state);
+    navSnapshotRef.current = state;
+    persistNavSession();
   }, []);
 
   useEffect(() => {
     const onNavigate = (event) => {
       applyHistoryState(event.detail?.state ?? window.history.state);
       navSnapshotRef.current = readNavigationState();
+      persistNavSession();
     };
 
     const onPopState = (event) => {
-      const prev = navSnapshotRef.current;
-      if (historyReadyRef.current && handleMobileExitBack(event, prev)) {
-        applyHistoryState(window.history.state);
-        navSnapshotRef.current = readNavigationState();
-        return;
-      }
       applyHistoryState(event.state);
       navSnapshotRef.current = readNavigationState();
+      persistNavSession();
     };
 
     window.addEventListener('bamppa-navigate', onNavigate);
@@ -1853,7 +1933,10 @@ function App() {
       u.searchParams.delete('party');
       u.searchParams.delete('open');
       const qs = u.searchParams.toString();
-      window.history.replaceState({}, '', u.pathname + (qs ? `?${qs}` : ''));
+      const cleanUrl = u.pathname + (qs ? `?${qs}` : '');
+      const st = readNavigationState() || buildAppState({ view: 'home', homeTab: homeActiveTab });
+      window.history.pushState(st, '', cleanUrl);
+      window.dispatchEvent(new CustomEvent('bamppa-navigate', { detail: { state: st } }));
     };
 
     const found = parties.find((p) => String(p.id) === String(partyId));
@@ -1939,11 +2022,6 @@ function App() {
     };
   }, [loading, parties]);
 
-  useEffect(() => {
-    if (location.pathname !== '/' || view !== 'home') return;
-    replaceCurrentState({ view: 'home', homeTab: homeActiveTab, date: selectedDate });
-  }, [selectedDate, homeActiveTab, view, location.pathname]);
-
   const openAnalysis = (saju = false) => {
     pushOverlay('incheon');
     setIsSajuCall(saju);
@@ -1954,9 +2032,9 @@ function App() {
   const handleRegister = (type = 'party') => {
     if (type === 'party') {
       navigate('/register-party');
-    } else {
-      openClassRegisterFromHome();
+      return;
     }
+    openClassRegisterFromHome();
   };
 
   const requestLocation = (force = false) => {
@@ -2631,7 +2709,7 @@ function App() {
                 </button>
               </div>
             ) : (
-              <AdminDashboard setView={setView} onBack={() => navigate('/admin-portal')} refreshData={fetchParties} />
+              <AdminDashboard setView={setView} onBack={goBack} refreshData={fetchParties} />
             )}
           </Suspense>
         </main>
@@ -2941,10 +3019,12 @@ function App() {
     </div>
     
     {/* [B] [포스터 확대 모달 - 컨테이너 외부 최상위 배치] */}
-    {!isAdminShell && showPartner && <PartnerModal onClose={() => setShowPartner(false)} />}
+    {!isAdminShell && showPartner && (
+      <PartnerModal onClose={() => { if (!closeOverlay()) setShowPartner(false); }} />
+    )}
     {showClassRegister && (
       <ClassRegisterModal
-        onClose={() => setShowClassRegister(false)}
+        onClose={() => { if (!closeOverlay()) setShowClassRegister(false); }}
         instructorId={(() => {
           try {
             const raw = localStorage.getItem('vip_instructor_session');
@@ -2967,7 +3047,7 @@ function App() {
         }}
       >
         <Suspense fallback={null}>
-          <InstructorRegister onBack={() => navigate('/instructors')} />
+          <InstructorRegister onBack={goBack} />
         </Suspense>
       </div>
     )}
@@ -2995,7 +3075,7 @@ function App() {
       <Suspense fallback={<LoadingFallback />}>
         <RegisterForm
           onBack={goBack}
-          onSuccess={() => { fetchParties(); navigate('/'); }}
+          onSuccess={() => { fetchParties(); goBack(); }}
           initialData={{ date: selectedDate }}
         />
       </Suspense>
@@ -3109,7 +3189,7 @@ function App() {
           setShowPartner(false);
           setActiveTab(null);
           localStorage.setItem('instructor_target_genre', '전체');
-          navigate('/instructors', { homeTab: null, replace: location.pathname === '/instructors' && view === 'instructors' });
+          navigate('/instructors', { homeTab: null });
           window.dispatchEvent(new CustomEvent('apply-instructor-filter'));
         }}
         style={{
@@ -3125,7 +3205,9 @@ function App() {
       </div>
     </nav>
     )}
-    {!isAdminShell && <ChatBot />}
+    {!isAdminShell && chatbotOverlay && (
+      <ChatBot key="chatbot-overlay-active" />
+    )}
     {exitToast ? (
       <motion.div
         initial={{ opacity: 0, y: 12 }}

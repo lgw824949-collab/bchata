@@ -18,7 +18,29 @@ import {
 import VenueDetailModal from '../components/VenueDetailModal'
 import BarRegisterFormModal from '../components/BarRegisterFormModal'
 import HomeHeroTagline from '../components/HomeHeroTagline'
-import { closeOverlay, navigate, navigateHomeTab, parseAppState, pushOverlay } from '../lib/appHistory'
+import { navigate as historyNavigate, parseAppState, pushOverlay } from '../lib/appHistory'
+
+function navigate(path, options = {}) {
+  const { replace: _replace, ...rest } = options;
+  historyNavigate(path, rest);
+}
+
+function navigateHomeTab(homeTab) {
+  const path = window.location.pathname;
+  if (path !== '/') {
+    navigate('/', { homeTab: homeTab ?? null });
+    return;
+  }
+  navigate('/', { homeTab: homeTab ?? null, force: true });
+}
+
+function closeOverlayNav() {
+  if (parseAppState(window.history.state)?.overlay) {
+    window.history.back();
+    return true;
+  }
+  return false;
+}
 import { Z } from '../constants/zLayers'
 import { DEFAULT_AVATAR_IMAGE, DEFAULT_CARD_IMAGE, imgFallbackHandler } from '../constants/imageAssets'
 import gangturnPhoto from '../assets/gangturn_photo.png'
@@ -1515,7 +1537,7 @@ const HomePage = ({
   };
 
   const closeVenueDetail = () => {
-    if (!closeOverlay()) setSelectedVenue(null);
+    if (!closeOverlayNav()) setSelectedVenue(null);
   };
 
   /** BAR 카드(상세) 진입 7초 후 view_count +1 — 기기당 1회 */
@@ -1995,15 +2017,18 @@ const HomePage = ({
       accentLive: true,
       label: '컨시어지',
       particles: '✨',
-      action: () => window.dispatchEvent(new CustomEvent('open-chatbot')),
+      action: () => {
+        pushOverlay('chatbot');
+        window.dispatchEvent(new CustomEvent('open-chatbot'));
+      },
     },
     { id: 'livepick', icon: Camera, label: '라이브픽', particles: '📸', action: () => navigate('/livepick') },
-    { id: 'wishlist', icon: Heart, label: '찜하기', particles: '❤️', action: () => setShowWishlist(true) },
+    { id: 'wishlist', icon: Heart, label: '찜하기', particles: '❤️', action: () => { pushOverlay('wishlist'); setShowWishlist(true); } },
     { id: 'chat', icon: MessageSquare, label: '채팅문의', particles: '💬', action: () => window.open('https://open.kakao.com/o/gP43rNri', '_blank') },
-    { id: 'saju', icon: Star, label: '운명의좌표', particles: '🌟', action: () => setShowSaju(true) },
+    { id: 'saju', icon: Star, label: '운명의좌표', particles: '🌟', action: () => { pushOverlay('barMatching'); setShowSaju(true); } },
     { id: 'restaurant', icon: Utensils, label: '맛집뒷풀이', particles: '🍽', action: () => navigate('/restaurant') },
-    { id: 'weather', icon: CloudSun, label: '오늘날씨', particles: '☀️', action: () => setShowWeather(true) },
-    { id: 'route', icon: Navigation, label: '지능형경로', particles: '🧭', action: () => openAnalysis(false) },
+    { id: 'weather', icon: CloudSun, label: '오늘날씨', particles: '☀️', action: () => { pushOverlay('weather'); setShowWeather(true); } },
+    { id: 'route', icon: Navigation, label: '지능형경로', particles: '🧭', action: () => { pushOverlay('route'); openAnalysis(false); } },
     { id: 'calendar', icon: Calendar, label: '행사달력', particles: '📅', action: openFullCalendarModal },
     {
       id: 'language',
@@ -2356,11 +2381,7 @@ const HomePage = ({
           parties={parties}
           isGate={isHomeGate}
           onPartyClick={openPartyWithAfterParty}
-          onPromoClick={() => {
-            window.history.pushState({}, '', '#community');
-            setView('community');
-            window.dispatchEvent(new PopStateEvent('popstate'));
-          }}
+          onPromoClick={() => navigate('/livepick')}
         />
       </motion.div>
       {activeTab === 'social' && (
@@ -3854,7 +3875,7 @@ const HomePage = ({
       <BarRegisterFormModal
         open={showBarRegisterForm}
         onClose={() => {
-          if (!closeOverlay()) setShowBarRegisterForm(false);
+          if (!closeOverlayNav()) setShowBarRegisterForm(false);
         }}
         onSuccess={() => fetchLocations()}
       />
