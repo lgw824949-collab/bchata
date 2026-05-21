@@ -20,7 +20,6 @@ import BarRegisterFormModal from '../components/BarRegisterFormModal'
 import HomeHeroTagline from '../components/HomeHeroTagline'
 import { navigate as historyNavigate, parseAppState, pushOverlay } from '../lib/appHistory'
 import { formatPartyFeeDisplay } from '../lib/partyFeeDisplay'
-import PartyFeeChips from '../components/PartyFeeChips'
 
 function navigate(path, options = {}) {
   const { replace: _replace, ...rest } = options;
@@ -343,12 +342,7 @@ const GENRE_MAP = {
 };
 
 /** 소셜 파티 카드 음악 비율(b_ratio 등 → B4:S2) — src/pages/Social.tsx */
-const renderPartyMusicRatioRow = (item) => (
-  <PartyMusicRatioLine
-    item={item}
-    style={{ margin: 0, fontSize: '11px', fontWeight: 700, color: '#94A3B8' }}
-  />
-);
+const renderPartyMusicRatioRow = (item) => <PartyMusicRatioLine item={item} />;
 
 const SEOUL_HINT = /서울|강남|홍대|잠실|건대|신림|서초|영등포|성수|이태원|왕십리|목동|구로/;
 
@@ -3383,8 +3377,8 @@ const HomePage = ({
                               ref={isFirst ? regionListRef : null}
                               style={{ marginBottom: '24px', background: 'var(--color-card)' }}
                             >
-                              <div style={{ padding: '12px 16px 8px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', color: 'var(--color-text-main)' }}>
-                                <div style={{ display: 'flex', alignItems: 'baseline', gap: '4px', minWidth: 0 }}>
+                              <div style={{ padding: '15px 20px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', color: 'var(--color-text-main)' }}>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                                   <span
                                     onClick={() => {
                                       if (regionName === '서울') {
@@ -3403,17 +3397,17 @@ const HomePage = ({
                                         setLastAdminTap(now);
                                       }
                                     }}
-                                    style={{ fontSize: '15px', fontWeight: '900', cursor: regionName === '서울' ? 'pointer' : 'default', userSelect: 'none' }}
+                                    style={{ fontSize: '15px', fontWeight: '800', cursor: regionName === '서울' ? 'pointer' : 'default', userSelect: 'none', padding: '2px 4px' }}
                                   >
                                     {t(regionKeys[regionName] || regionName)}
                                   </span>
                                   {weather && regionName === '서울' && (
-                                    <span style={{ fontSize: '11px', color: '#C9A84C', fontWeight: '700' }}>
+                                    <span style={{ fontSize: '12px', color: '#C9A84C', fontWeight: '600', marginLeft: '4px' }}>
                                       {weather.temperature}° {weather.icon}
                                     </span>
                                   )}
-                                  <span style={{ fontSize: '13px', color: '#94A3B8', fontWeight: '600' }}>
-                                    · {(() => {
+                                  <span style={{ fontSize: '12px', color: 'var(--color-text-secondary)', fontWeight: '600', marginLeft: '4px' }}>
+                                    {(() => {
                                       const d = new Date(selectedDate);
                                       return `${d.getMonth() + 1}/${d.getDate()} (${isEn ? DAYS_EN[d.getDay()] : DAYS_KOR[d.getDay()]})`;
                                     })()}
@@ -3425,9 +3419,9 @@ const HomePage = ({
                                     setGridRegion(regionName);
                                     handleOpenModal(setShowGridModal, true);
                                   }}
-                                  style={{ fontSize: '12px', fontWeight: '700', color: '#64748B', background: 'none', border: 'none', padding: 0, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '2px', flexShrink: 0 }}
+                                  style={{ fontSize: '12px', fontWeight: '700', color: '#E53935', background: 'none', border: 'none', padding: 0, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '2px' }}
                                 >
-                                  {t('view_all')} <ChevronRight size={13} />
+                                  {t('view_all')} <ChevronRight size={14} />
                                 </button>
                               </div>
 
@@ -3492,10 +3486,10 @@ const HomePage = ({
                                         flexDirection: 'row',
                                         alignItems: 'stretch',
                                         background: 'var(--color-card)',
-                                        border: '1px solid #F1F5F9',
-                                        boxShadow: '0 2px 10px rgba(15, 23, 42, 0.06)',
+                                        border: '1px solid #FFE4E4',
+                                        boxShadow: '0 4px 16px rgba(229, 57, 53, 0.08)',
                                         cursor: 'pointer',
-                                        height: '156px',
+                                        height: '150px',
                                         position: 'relative',
                                         boxSizing: 'border-box',
                                       }}
@@ -3533,7 +3527,7 @@ const HomePage = ({
                                       </button>
 
                                       {/* 포스터 이미지: 왼쪽 고정, 크기 110px x 150px */}
-                                      <div style={{ width: '110px', height: '156px', flexShrink: 0, background: '#000' }}>
+                                      <div style={{ width: '110px', height: '150px', flexShrink: 0, background: '#000' }}>
                                         <img src={item.poster_url} style={{ width: '100%', height: '100%', objectFit: 'cover' }} alt="Poster" />
                                       </div>
 
@@ -3558,28 +3552,59 @@ const HomePage = ({
                                         </div>
 
                                         {/* 2. 파티명 */}
-                                        <div style={{ fontSize: '16px', fontWeight: 800, color: '#1E293B', display: '-webkit-box', WebkitLineClamp: 1, WebkitBoxOrient: 'vertical', overflow: 'hidden', textOverflow: 'ellipsis', letterSpacing: '-0.4px', lineHeight: 1.25, marginTop: '4px', marginBottom: '6px' }}>
-                                          {cleanTitle(item.title || '').replace(/^\[.*?\]\s*/, '').replace(/ㅣ\s*$/, '').trim()}
+                                        <div style={{ fontSize: '18px', fontWeight: 'bold', color: '#1E293B', display: '-webkit-box', WebkitLineClamp: 1, WebkitBoxOrient: 'vertical', overflow: 'hidden', textOverflow: 'ellipsis', letterSpacing: '-0.5px', lineHeight: 1.2, marginTop: '2px', marginBottom: '6px' }}>
+                                          {cleanFeaturedTitle(item.title || '')}
                                         </div>
 
-                                        <div style={{ display: 'flex', flexDirection: 'column', gap: '5px', minWidth: 0 }}>
-                                        <div style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: '13px', color: '#64748B', fontWeight: 600 }}>
-                                          <Clock size={12} color="#94A3B8" style={{ flexShrink: 0 }} />
+                                        <div style={{ display: 'flex', flexDirection: 'column', gap: '3px' }}>
+                                        <div style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: '15px', color: '#1E293B', fontWeight: '500' }}>
+                                          <Clock size={14} color="#1E293B" style={{ flexShrink: 0 }} />
                                           <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                                             {item.time?.split('-')[0].trim() || '21:00'}
                                           </span>
                                           {isItemLive && (
-                                            <span style={{ fontSize: '10px', fontWeight: 800, color: '#FFB300', background: 'rgba(255,179,0,0.12)', padding: '1px 6px', borderRadius: '6px', marginLeft: 'auto' }}>
+                                            <span style={{ fontSize: '11px', fontWeight: '800', color: '#FFB300', background: 'rgba(255,179,0,0.1)', padding: '1px 6px', borderRadius: '8px', marginLeft: 'auto' }}>
                                               {item.view_count || 0}
                                             </span>
                                           )}
                                         </div>
 
-                                        <div style={{ fontSize: '13px', color: '#64748B', fontWeight: 600, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                                          {translateDynamicText(item.locationName, isEn)}
-                                        </div>
+                                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '4px' }}>
+                                          <div style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: '13px', color: '#E53935', fontWeight: 'bold', overflow: 'hidden', whiteSpace: 'nowrap', textOverflow: 'ellipsis', minWidth: 0, flex: 1 }}>
+                                            <MapPin size={13} color="#E53935" style={{ flexShrink: 0 }} />
+                                            <span style={{ overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                                              {translateDynamicText(item.locationName, isEn)}
+                                            </span>
+                                            <span style={{ opacity: 0.4, margin: '0 2px' }}>·</span>
+                                            <span style={{ color: '#E53935', fontWeight: '900', flexShrink: 0 }}>
+                                              {formatPartyFeeDisplay(item.fee)}
+                                            </span>
+                                          </div>
 
-                                        <PartyFeeChips fee={item.fee} />
+                                          <div style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: '10px', fontWeight: '700', flexShrink: 0 }}>
+                                            <span
+                                              onClick={(e) => {
+                                                e.stopPropagation();
+                                                const locQuery = encodeURIComponent(item.locationName || item.venue || '');
+                                                window.open(`https://map.kakao.com/link/search/${locQuery}`);
+                                              }}
+                                              style={{ color: '#94A3B8', cursor: 'pointer', padding: '2px 0' }}
+                                            >
+                                              카카오맵
+                                            </span>
+                                            <span style={{ color: '#E2E8F0', fontSize: '9px' }}>·</span>
+                                            <span
+                                              onClick={(e) => {
+                                                e.stopPropagation();
+                                                const locQuery = encodeURIComponent(item.locationName || item.venue || '');
+                                                window.open(`https://www.google.com/maps/search/${locQuery}`);
+                                              }}
+                                              style={{ color: '#94A3B8', cursor: 'pointer', padding: '2px 0' }}
+                                            >
+                                              구글맵
+                                            </span>
+                                          </div>
+                                        </div>
 
                                         {item._itemGenre !== '부트캠프' && item._itemGenre !== '페스티벌'
                                           ? renderPartyMusicRatioRow(item)
