@@ -631,11 +631,21 @@ export default function VenueDetailModal({
     return [...base, ...devRows.filter((r) => !ids.has(r.id))];
   }, [lessons, fetchedLessons, todayStr]);
 
+  const [todayYear, todayMonth, todayDay] = useMemo(() => {
+    const [y, m, d] = todayStr.split('-').map(Number);
+    return [y, m, d];
+  }, [todayStr]);
+
+  /** 지난 행사·4월 등 — 캘린더·일정에서 제외 (오늘 이후만) */
   const venueParties = useMemo(() => {
     return (parties || [])
       .filter((p) => partyMatchesVenue(p, venue))
+      .filter((p) => {
+        const d = normDate(p.date);
+        return d && d >= todayStr;
+      })
       .sort((a, b) => normDate(a.date).localeCompare(normDate(b.date)));
-  }, [parties, venue]);
+  }, [parties, venue, todayStr]);
 
   const venueLessons = useMemo(() => {
     return (allLessons || [])
@@ -655,13 +665,13 @@ export default function VenueDetailModal({
     if (isSocialTab) {
       const future = venueParties.find((p) => normDate(p.date) >= todayStr);
       if (future) return normDate(future.date);
-      if (venueParties.length) return normDate(venueParties[venueParties.length - 1].date);
       return todayStr;
     }
-    const dates = [...venueLessonsForDisplay.flatMap((l) => [...collectLessonCalendarDates(l, todayStr, 8)])].sort();
-    const future = dates.find((d) => d >= todayStr);
+    const dates = [...venueLessonsForDisplay.flatMap((l) => [...collectLessonCalendarDates(l, todayStr, 8)])]
+      .filter((d) => d >= todayStr)
+      .sort();
+    const future = dates[0];
     if (future) return future;
-    if (dates.length) return dates[dates.length - 1];
     return todayStr;
   }, [isSocialTab, venueParties, venueLessonsForDisplay, todayStr]);
 
@@ -672,15 +682,33 @@ export default function VenueDetailModal({
     if (isSocialTab) {
       activeItems.forEach((p) => {
         const d = normDate(p.date);
-        if (d) set.add(d);
+        if (d && d >= todayStr) set.add(d);
       });
     } else {
       venueLessonsForDisplay.forEach((lesson) => {
-        collectLessonCalendarDates(lesson, todayStr, 8).forEach((d) => set.add(d));
+        collectLessonCalendarDates(lesson, todayStr, 8).forEach((d) => {
+          if (d >= todayStr) set.add(d);
+        });
       });
     }
     return set;
   }, [activeItems, isSocialTab, venueLessonsForDisplay, todayStr]);
+
+  const canGoPrevCalendarMonth = useMemo(() => {
+    const { year, month } = calendarMonth;
+    return year > todayYear || (year === todayYear && month > todayMonth);
+  }, [calendarMonth, todayYear, todayMonth]);
+
+  useEffect(() => {
+    const { year, month } = calendarMonth;
+    if (year < todayYear || (year === todayYear && month < todayMonth)) {
+      setCalendarMonth({ year: todayYear, month: todayMonth });
+    }
+  }, [calendarMonth, todayYear, todayMonth]);
+
+  useEffect(() => {
+    if (selectedDate < todayStr) setSelectedDate(pickInitialSelectedDate());
+  }, [selectedDate, todayStr, pickInitialSelectedDate]);
 
   useEffect(() => {
     const d = pickInitialSelectedDate();
@@ -741,7 +769,7 @@ export default function VenueDetailModal({
       if (entries.length === 0) {
         return venueLessonsForDisplay
           .map((l) => ({ date: normDate(l.nextOccurrenceDate || l.date), party: l }))
-          .filter(({ date }) => date)
+          .filter(({ date }) => date && date >= todayStr)
           .sort((a, b) => a.date.localeCompare(b.date));
       }
       const byDate = new Map();
@@ -756,7 +784,7 @@ export default function VenueDetailModal({
     const byDate = new Map();
     activeItems.forEach((p) => {
       const d = normDate(p.date);
-      if (!d) return;
+      if (!d || d < todayStr) return;
       const prev = byDate.get(d);
       if (!prev || (p.poster_url && !prev.poster_url)) byDate.set(d, p);
     });
@@ -771,16 +799,18 @@ export default function VenueDetailModal({
 
   const calendarDays = useMemo(() => {
     const { year, month } = calendarMonth;
-    const firstDay = new Date(year, month - 1, 1).getDay();
+    const isCurrentMonth = year === todayYear && month === todayMonth;
+    const startDayNum = isCurrentMonth ? todayDay : 1;
     const lastDate = new Date(year, month, 0).getDate();
+    const firstWeekday = new Date(year, month - 1, startDayNum).getDay();
     const days = [];
-    for (let i = 0; i < firstDay; i++) days.push({ empty: true, key: `e-${i}` });
-    for (let d = 1; d <= lastDate; d++) {
+    for (let i = 0; i < firstWeekday; i++) days.push({ empty: true, key: `e-${i}` });
+    for (let d = startDayNum; d <= lastDate; d++) {
       const fullDate = `${year}-${String(month).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
       days.push({ empty: false, date: d, fullDate, key: fullDate });
     }
     return days;
-  }, [calendarMonth]);
+  }, [calendarMonth, todayYear, todayMonth, todayDay]);
 
   const openKakao = () => {
     if (!venue?.kakao_url?.trim()) {
@@ -953,7 +983,29 @@ export default function VenueDetailModal({
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '10px' }}>
             <span className="vd-cal-month">{calendarMonth.month}월</span>
             <div style={{ display: 'flex', gap: '6px' }}>
-              <button type="button" onClick={() => setCalendarMonth((m) => { const nm = m.month > 1 ? m.month - 1 : 12; const ny = m.month > 1 ? m.year : m.year - 1; return { year: ny, month: nm }; })} style={{ width: 32, height: 32, borderRadius: 8, border: '1px solid #E2E8F0', background: '#fff' }}><ChevronLeft size={16} /></button>
+              <button
+                type="button"
+                disabled={!canGoPrevCalendarMonth}
+                onClick={() => {
+                  if (!canGoPrevCalendarMonth) return;
+                  setCalendarMonth((m) => {
+                    const nm = m.month > 1 ? m.month - 1 : 12;
+                    const ny = m.month > 1 ? m.year : m.year - 1;
+                    return { year: ny, month: nm };
+                  });
+                }}
+                style={{
+                  width: 32,
+                  height: 32,
+                  borderRadius: 8,
+                  border: '1px solid #E2E8F0',
+                  background: '#fff',
+                  opacity: canGoPrevCalendarMonth ? 1 : 0.35,
+                  cursor: canGoPrevCalendarMonth ? 'pointer' : 'not-allowed',
+                }}
+              >
+                <ChevronLeft size={16} />
+              </button>
               <button type="button" onClick={() => setCalendarMonth((m) => { const nm = m.month < 12 ? m.month + 1 : 1; const ny = m.month < 12 ? m.year : m.year + 1; return { year: ny, month: nm }; })} style={{ width: 32, height: 32, borderRadius: 8, border: '1px solid #E2E8F0', background: '#fff' }}><ChevronRight size={16} /></button>
             </div>
           </div>
@@ -965,9 +1017,8 @@ export default function VenueDetailModal({
               if (day.empty) return <div key={day.key} />;
               const isSelected = selectedDate === day.fullDate;
               const hasEvent = datesWithEvents.has(day.fullDate);
-              const isPast = day.fullDate < todayStr;
               return (
-                <button key={day.key} type="button" onClick={() => setSelectedDate(day.fullDate)} style={{ border: 'none', background: isSelected ? VD.brand : hasEvent ? 'rgba(212, 67, 110, 0.08)' : 'transparent', borderRadius: 10, padding: '6px 0', cursor: 'pointer', opacity: isPast && !hasEvent ? 0.35 : 1 }}>
+                <button key={day.key} type="button" onClick={() => setSelectedDate(day.fullDate)} style={{ border: 'none', background: isSelected ? VD.brand : hasEvent ? 'rgba(212, 67, 110, 0.08)' : 'transparent', borderRadius: 10, padding: '6px 0', cursor: 'pointer' }}>
                   <div style={{ fontSize: '13px', fontWeight: 800, color: isSelected ? '#fff' : hasEvent ? VD.brand : VD.title }}>{day.date}</div>
                   <div style={{ height: 4, display: 'flex', justifyContent: 'center', alignItems: 'center' }}>{hasEvent && <span className="vd-cal-dot" data-selected={isSelected ? 'true' : undefined} />}</div>
                 </button>
