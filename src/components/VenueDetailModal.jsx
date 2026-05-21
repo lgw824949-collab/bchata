@@ -12,10 +12,12 @@ import { formatPartyMusicRatio } from '../pages/Social';
 import PartyFeeChips from './PartyFeeChips';
 import { formatPartyTitleDisplay, PARTY_TITLE_CARD_FONT_SIZE } from '../lib/partyTitleDisplay';
 import {
+  hasOptionalLocationColumns,
   isMissingLocationsColumnError,
   mergeVenueWithLocalExtras,
   omitOptionalLocationFields,
   pickOptionalLocationFields,
+  resetOptionalColumnsCache,
   writeVenueLocalExtras,
 } from '../lib/venueLocalExtras';
 
@@ -578,6 +580,10 @@ export default function VenueDetailModal({
   );
 
   useEffect(() => {
+    resetOptionalColumnsCache();
+  }, [venue?.id]);
+
+  useEffect(() => {
     const merged = mergeVenueWithLocalExtras(venue);
     setLinkForm({
       kakao_url: merged?.kakao_url || '',
@@ -841,6 +847,10 @@ export default function VenueDetailModal({
     const optional = pickOptionalLocationFields(patch);
     const corePatch = omitOptionalLocationFields(patch);
 
+    if (Object.keys(optional).length) {
+      writeVenueLocalExtras(venue, optional);
+    }
+
     const tryDbUpdate = async (payload) => {
       if (!supabase || !Object.keys(payload).length) return null;
       if (isPersistedVenueId(venue?.id)) {
@@ -864,16 +874,24 @@ export default function VenueDetailModal({
       return data;
     };
 
-    try {
-      const data = await tryDbUpdate({ ...corePatch, ...optional });
-      if (data) onVenueUpdated?.(mergeVenueWithLocalExtras({ ...venue, ...data }));
+    const finish = (data) => {
+      onVenueUpdated?.(mergeVenueWithLocalExtras({ ...venue, ...(data || {}), ...optional }));
+    };
+
+    const useDbOptional = await hasOptionalLocationColumns(supabase);
+    const dbPayload = { ...corePatch, ...(useDbOptional ? optional : {}) };
+
+    if (!Object.keys(dbPayload).length) {
+      finish(null);
       return;
+    }
+
+    try {
+      finish(await tryDbUpdate(dbPayload));
     } catch (err) {
-      if (!isMissingLocationsColumnError(err) || !Object.keys(optional).length) throw err;
-      writeVenueLocalExtras(venue, optional);
-      const data = await tryDbUpdate(corePatch);
-      const merged = mergeVenueWithLocalExtras({ ...venue, ...(data || {}), ...optional });
-      onVenueUpdated?.(merged);
+      if (!isMissingLocationsColumnError(err)) throw err;
+      resetOptionalColumnsCache();
+      finish(await tryDbUpdate(corePatch));
     }
   };
 

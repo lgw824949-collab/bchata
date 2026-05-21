@@ -4,7 +4,27 @@ const OPTIONAL_LOCATION_COLS = ['description', 'kakao_url', 'instagram_url', 'im
 
 export function isMissingLocationsColumnError(err) {
   const msg = String(err?.message || '');
-  return err?.code === 'PGRST204' || (/schema cache/i.test(msg) && OPTIONAL_LOCATION_COLS.some((c) => msg.includes(c)));
+  return (
+    err?.code === 'PGRST204'
+    || err?.code === '42703'
+    || /Could not find the .* column of 'locations'/i.test(msg)
+    || (/schema cache/i.test(msg) && OPTIONAL_LOCATION_COLS.some((c) => msg.includes(c)))
+  );
+}
+
+let optionalColumnsInDb = null;
+
+/** Supabase locations에 description·연락처 컬럼 존재 여부 (1회 캐시) */
+export async function hasOptionalLocationColumns(supabase) {
+  if (!supabase) return false;
+  if (optionalColumnsInDb !== null) return optionalColumnsInDb;
+  const { error } = await supabase.from('locations').select('description, kakao_url, instagram_url').limit(1);
+  optionalColumnsInDb = !error;
+  return optionalColumnsInDb;
+}
+
+export function resetOptionalColumnsCache() {
+  optionalColumnsInDb = null;
 }
 
 function storeKey(venue) {
