@@ -156,6 +156,12 @@ export default function AdminDashboard({ onBack }) {
     else alert('비번 오류');
   }
 
+  const getAdminKSTTodayStr = () => {
+    const kst = new Date(Date.now() + 9 * 60 * 60 * 1000);
+    if (kst.getHours() < 5) kst.setDate(kst.getDate() - 1);
+    return kst.toISOString().split('T')[0];
+  };
+
   // 데이터 불러오기
   const fetchData = async () => {
     setLoading(true)
@@ -166,7 +172,7 @@ export default function AdminDashboard({ onBack }) {
         if (activeTab === 'active') query = supabase.from('parties').select('*, locations!location_id(name)');
         else query = supabase.from('pending_parties').select('*').eq('status', activeTab);
       } else if (category === 'live-mgmt') {
-        const todayStr = new Date(Date.now() + (9 * 60 * 60 * 1000)).toISOString().split('T')[0];
+        const todayStr = getAdminKSTTodayStr();
         query = supabase.from('parties').select('*, locations!location_id(name)').eq('date', todayStr);
       } else if (category === 'live') {
         query = supabase.from('community_posts').select('*');
@@ -425,6 +431,32 @@ export default function AdminDashboard({ onBack }) {
       fetchData();
     } catch (err) { alert('삭제 실패') } finally { setLoading(false) }
   }
+
+  /** parties.view_count — 오늘 날짜 파티만 누적 (+20/+30/+50/+100) */
+  const bumpPartyViewCount = async (party, delta) => {
+    if (!party?.id) return;
+    const todayStr = getAdminKSTTodayStr();
+    const partyDate = String(party.date || '').slice(0, 10);
+    if (partyDate !== todayStr) {
+      alert('오늘 날짜 파티만 인원 조절할 수 있습니다.');
+      return;
+    }
+    const current = Number(party.view_count) || 0;
+    const next = current + delta;
+    try {
+      const { error } = await supabase
+        .from('parties')
+        .update({ view_count: next })
+        .eq('id', party.id)
+        .eq('date', todayStr);
+      if (error) throw error;
+      alert(`인원 ${current}명 → ${next}명 (+${delta}명)`);
+      fetchData();
+    } catch (err) {
+      console.error('[Admin] bumpPartyViewCount failed:', err);
+      alert(`인원 업데이트 실패: ${err.message || err}`);
+    }
+  };
 
   // 수동 체크인 추가 (LIVE 관리용)
   const addManualCheckin = async (party) => {
@@ -967,10 +999,10 @@ export default function AdminDashboard({ onBack }) {
               <div style={{ marginTop: '16px', paddingTop: '16px', borderTop: '1px dashed #E2E8F0', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                 <div style={{ fontSize: '13px', fontWeight: 800, color: '#F59E0B' }}>수동 인원 조절</div>
                 <div style={{ display: 'flex', gap: '8px' }}>
-                  <button onClick={() => supabase.from('parties').update({ view_count: (item.view_count || 0) + 20 }).eq('id', item.id)} style={{ padding: '8px 16px', background: '#F59E0B', color: '#FFF', border: 'none', borderRadius: '8px', fontSize: '12px', fontWeight: 900 }}>+20명</button>
-                  <button onClick={() => supabase.from('parties').update({ view_count: (item.view_count || 0) + 30 }).eq('id', item.id)} style={{ padding: '8px 16px', background: '#F59E0B', color: '#FFF', border: 'none', borderRadius: '8px', fontSize: '12px', fontWeight: 900 }}>+30명</button>
-                  <button onClick={() => supabase.from('parties').update({ view_count: (item.view_count || 0) + 50 }).eq('id', item.id)} style={{ padding: '8px 16px', background: '#F59E0B', color: '#FFF', border: 'none', borderRadius: '8px', fontSize: '12px', fontWeight: 900 }}>+50명</button>
-                  <button onClick={() => supabase.from('parties').update({ view_count: (item.view_count || 0) + 100 }).eq('id', item.id)} style={{ padding: '8px 16px', background: '#F59E0B', color: '#FFF', border: 'none', borderRadius: '8px', fontSize: '12px', fontWeight: 900 }}>+100명</button>
+                  <button type="button" onClick={() => bumpPartyViewCount(item, 20)} style={{ padding: '8px 16px', background: '#F59E0B', color: '#FFF', border: 'none', borderRadius: '8px', fontSize: '12px', fontWeight: 900, cursor: 'pointer' }}>+20명</button>
+                  <button type="button" onClick={() => bumpPartyViewCount(item, 30)} style={{ padding: '8px 16px', background: '#F59E0B', color: '#FFF', border: 'none', borderRadius: '8px', fontSize: '12px', fontWeight: 900, cursor: 'pointer' }}>+30명</button>
+                  <button type="button" onClick={() => bumpPartyViewCount(item, 50)} style={{ padding: '8px 16px', background: '#F59E0B', color: '#FFF', border: 'none', borderRadius: '8px', fontSize: '12px', fontWeight: 900, cursor: 'pointer' }}>+50명</button>
+                  <button type="button" onClick={() => bumpPartyViewCount(item, 100)} style={{ padding: '8px 16px', background: '#F59E0B', color: '#FFF', border: 'none', borderRadius: '8px', fontSize: '12px', fontWeight: 900, cursor: 'pointer' }}>+100명</button>
                 </div>
               </div>
             )}

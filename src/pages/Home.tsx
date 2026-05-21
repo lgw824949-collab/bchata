@@ -1,4 +1,4 @@
-﻿import React, { useState, useEffect, useMemo, useRef } from 'react';
+﻿import React, { useState, useEffect, useMemo, useRef, useCallback } from 'react';
 import { Heart, MapPin, Calendar, Clock, User, Users, Music, ChevronRight, ChevronDown, ShieldCheck, X, Home as HomeIcon, ChevronLeft, CloudSun, Utensils, Zap, PlusCircle, Languages, Bell, Globe, Navigation, CalendarDays, Star, Camera, MessageSquare, Tent, Loader2, Plus } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -126,6 +126,21 @@ const HOME_FEATURED_THUMB_SIZE_WIDE = Math.round(108 * HOME_FEATURED_POSTER_SCAL
 
 /** Social BAR — 위치 실패 시 전국 노출 */
 const SOCIAL_BAR_REGION_ALL = '전체';
+
+/** LIVE 배너 2차 슬라이드 — 포스터 등록 BAR */
+const LIVE_BANNER_SLIDE_MS = 5000;
+const LIVE_BANNER_BAR_RULES = [
+  { label: '라틴', match: (k) => k === '라틴' },
+  { label: '카디즈', match: (k) => k.includes('카디즈') || k.includes('cadiz') },
+  { label: '보니따', match: (k) => k.includes('보니타') || k.includes('보니따') },
+  { label: '강남턴', match: (k) => k.includes('강남턴') || k === '강턴' },
+];
+
+const normalizeLiveBarNameKey = (name) =>
+  String(name || '').trim().toLowerCase().replace(/\s+/g, '');
+
+const getPartyBarName = (party) =>
+  String(party?.locations?.name || party?.location_name || party?.locationName || '').trim();
 
 const BAR_VIEW_COUNT_DELAY_MS = 7000;
 const viewedBarStorageKey = (barId) => `viewed_bar_${barId}`;
@@ -1421,6 +1436,8 @@ const HomePage = ({
   const [showBarRegisterForm, setShowBarRegisterForm] = useState(false);
   const [quickMenuMoreOpen, setQuickMenuMoreOpen] = useState(false);
   const [barStatsMap, setBarStatsMap] = useState({});
+  const [liveBannerSlideIdx, setLiveBannerSlideIdx] = useState(0);
+  const [liveBannerPartyRows, setLiveBannerPartyRows] = useState([]);
 
 
   // [사용자 요청] 15초 롤링 — shuffleOffset 미사용, 캐러셀 스크롤 중 리렌더 방지
@@ -1811,6 +1828,29 @@ const HomePage = ({
     fetchLocations();
   }, []);
 
+  const loadLiveBannerPartyRows = useCallback(async () => {
+    if (!supabase) return;
+    try {
+      const { data, error } = await supabase
+        .from('parties')
+        .select('id, date, view_count, click_count, poster_url, location_id, locations!location_id(name)')
+        .eq('status', 'approved')
+        .eq('date', calendarTodayStr)
+        .not('poster_url', 'is', null);
+      if (error) {
+        console.warn('[Home] live banner parties:', error.message);
+        return;
+      }
+      setLiveBannerPartyRows(data || []);
+    } catch (err) {
+      console.warn('[Home] live banner parties failed:', err);
+    }
+  }, [calendarTodayStr]);
+
+  useEffect(() => {
+    loadLiveBannerPartyRows();
+  }, [loadLiveBannerPartyRows, parties]);
+
   useEffect(() => {
     if (!supabase) return undefined;
 
@@ -1824,23 +1864,24 @@ const HomePage = ({
       }
     };
 
-    loadBarStats();
+    const refreshLiveBannerData = () => {
+      loadBarStats();
+      loadLiveBannerPartyRows();
+    };
+
+    refreshLiveBannerData();
 
     const channel = supabase
       .channel('home-bar-live-stats')
       .on(
         'postgres_changes',
         { event: '*', schema: 'public', table: 'bar_checkins' },
-        () => {
-          loadBarStats();
-        },
+        refreshLiveBannerData,
       )
       .on(
         'postgres_changes',
-        { event: 'UPDATE', schema: 'public', table: 'parties' },
-        () => {
-          loadBarStats();
-        },
+        { event: '*', schema: 'public', table: 'parties' },
+        refreshLiveBannerData,
       )
       .subscribe();
 
@@ -1848,7 +1889,7 @@ const HomePage = ({
       cancelled = true;
       supabase.removeChannel(channel);
     };
-  }, []);
+  }, [loadLiveBannerPartyRows]);
 
   useEffect(() => {
     const onVenueView = (e) => {
@@ -2328,8 +2369,9 @@ const HomePage = ({
     </>
   );
 
-  const homeLiveBannerFallback = useMemo(() => {
-    const todayRows = (parties || []).filter(
+  const homeLiveBannerSlides = useMemo(() => {
+    const sourceRows = (liveBannerPartyRows?.length ? liveBannerPartyRows : parties) || [];
+    const todayRows = sourceRows.filter(
       (p) => isApprovedParty(p) && normDate(p.date) === calendarTodayStr,
     );
     const withPoster = todayRows.filter((p) => String(p.poster_url || p.imageUrl || '').trim());
@@ -2338,17 +2380,64 @@ const HomePage = ({
     const seoulCount = regionCounts.seoul || 0;
     const metroCount = regionCounts.metro || 0;
     const localCount = regionCounts.national || 0;
-    const bannerLine = isEn
+
+    const slide1Text = isEn
       ? `Today ${total} parties · Seoul ${seoulCount} · Metro ${metroCount} · Regions ${localCount}`
       : `오늘 파티 ${total}건 · 서울 ${seoulCount} · 수도권 ${metroCount} · 지방 ${localCount}`;
-    const ariaLabel = isEn
-      ? `LIVE · ${bannerLine}`
-      : `LIVE · ${bannerLine}`;
-    return { pick, total, seoulCount, metroCount, localCount, bannerLine, ariaLabel };
-  }, [parties, calendarTodayStr, isEn, regionCounts]);
+
+    const viewByBarKey = {};
+    withPoster.forEach((p) => {
+      const barKey = normalizeLiveBarNameKey(getPartyBarName(p));
+      if (!barKey) return;
+      viewByBarKey[barKey] = (viewByBarKey[barKey] || 0) + (Number(p.view_count) || 0);
+    });
+
+    const checkinByBarKey = {};
+    Object.entries(barStatsMap || {}).forEach(([key, val]) => {
+      if (!key.startsWith('name:')) return;
+      const barKey = key.slice(5);
+      checkinByBarKey[barKey] = Number(val?.liveCount) || 0;
+    });
+
+    const barCountLines = LIVE_BANNER_BAR_RULES.map((rule) => {
+      let count = 0;
+      Object.entries(viewByBarKey).forEach(([barKey, views]) => {
+        if (rule.match(barKey)) count += views;
+      });
+      Object.entries(checkinByBarKey).forEach(([barKey, live]) => {
+        if (rule.match(barKey)) count = Math.max(count, live);
+      });
+      return { label: rule.label, count };
+    });
+
+    const slide2Text = barCountLines.length
+      ? (isEn
+        ? barCountLines.map((r) => `${r.label} ${r.count}`).join(' · ')
+        : barCountLines.map((r) => `${r.label} ${r.count}명`).join(' · '))
+      : (isEn ? 'No BAR headcount yet today' : '오늘 BAR 인원 집계 대기');
+
+    return {
+      pick,
+      slides: [
+        { id: 'summary', text: slide1Text },
+        { id: 'bars', text: slide2Text },
+      ],
+    };
+  }, [parties, liveBannerPartyRows, calendarTodayStr, isEn, regionCounts, barStatsMap]);
+
+  useEffect(() => {
+    if (homeLiveBannerSlides.slides.length < 2) return undefined;
+    const timer = setInterval(() => {
+      setLiveBannerSlideIdx((idx) => (idx + 1) % homeLiveBannerSlides.slides.length);
+    }, LIVE_BANNER_SLIDE_MS);
+    return () => clearInterval(timer);
+  }, [homeLiveBannerSlides.slides.length]);
 
   const renderHomeLiveBannerFallback = () => {
-    const { pick, bannerLine, ariaLabel } = homeLiveBannerFallback;
+    const { pick, slides } = homeLiveBannerSlides;
+    const slide = slides[liveBannerSlideIdx] || slides[0];
+    const bannerLine = slide?.text || '';
+    const ariaLabel = `LIVE · ${slides.map((s) => s.text).join(' | ')}`;
     const handleClick = () => {
       if (pick) {
         openPartyWithAfterParty(pick);
@@ -2376,7 +2465,8 @@ const HomePage = ({
             <span className="lc-dot" />
             <span className="live-dynamic-banner__sep live-dynamic-banner__sep--dot">·</span>
             <span
-              className="live-dynamic-banner__spotlight live-dynamic-banner__spotlight--solo live-banner-text-clip"
+              key={`${slide?.id}-${liveBannerSlideIdx}`}
+              className="live-dynamic-banner__spotlight live-dynamic-banner__spotlight--solo live-banner-text-clip home-live-banner-slide-text"
               title={bannerLine}
             >
               {bannerLine}
@@ -2442,6 +2532,13 @@ const HomePage = ({
             }
             .home-live-banner-fallback {
               width: 100%;
+            }
+            .home-live-banner-slide-text {
+              animation: home-live-banner-slide-in 0.45s ease-out;
+            }
+            @keyframes home-live-banner-slide-in {
+              from { opacity: 0; transform: translateX(8px); }
+              to { opacity: 1; transform: translateX(0); }
             }
             /* 햄버거 버튼 */
             button[style*="z-index: 1005"] {
