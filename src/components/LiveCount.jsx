@@ -20,6 +20,13 @@ const LIVE_QUEUE_REFRESH_MS = 10 * 60 * 1000
 const LIVE_WINDOW_MS = 24 * 60 * 60 * 1000
 const LIVE_PROMO_PATH = '#community'
 
+/** community_posts — content 또는 bar_name을 배너 한 줄로 */
+function getCommunityPostLine(row) {
+  const content = String(row?.content || '').trim()
+  const bar = String(row?.bar_name || '').trim()
+  return content || bar || ''
+}
+
 function getRecentActivityTs(p) {
   const ts = new Date(p.updated_at || p.created_at || 0).getTime()
   return Number.isFinite(ts) ? ts : 0
@@ -104,19 +111,20 @@ const LiveCount = ({ parties: partiesProp, onPartyClick, onPromoClick, isGate = 
     const today = getTodayKST()
     try {
       const { data, error } = await supabase
-        .from('posts')
-        .select('title')
+        .from('community_posts')
+        .select('content, bar_name')
         .gte('created_at', `${today}T00:00:00`)
         .order('created_at', { ascending: false })
+        .limit(10)
 
       if (error) {
-        logSupabaseError('LiveCount.posts', error)
+        logSupabaseError('LiveCount.community_posts', error)
         setLivePosts([])
         return
       }
-      setLivePosts((data || []).filter((row) => String(row?.title || '').trim()))
+      setLivePosts((data || []).filter((row) => getCommunityPostLine(row)))
     } catch (err) {
-      logSupabaseError('LiveCount.posts', err)
+      logSupabaseError('LiveCount.community_posts', err)
       setLivePosts([])
     }
   }
@@ -248,7 +256,7 @@ const LiveCount = ({ parties: partiesProp, onPartyClick, onPromoClick, isGate = 
     const channel = supabase
       .channel('live-dynamic-banner')
       .on('postgres_changes', { event: '*', schema: 'public', table: 'parties' }, refreshLiveBanner)
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'posts' }, refreshLiveBanner)
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'community_posts' }, refreshLiveBanner)
       .subscribe()
 
     return () => {
@@ -292,7 +300,7 @@ const LiveCount = ({ parties: partiesProp, onPartyClick, onPromoClick, isGate = 
 
   const displayTitle = useMemo(() => {
     if (!livePosts?.length) return ''
-    return String(livePosts[0].title || '').trim()
+    return getCommunityPostLine(livePosts[0])
   }, [livePosts])
 
   const dynamicBannerText = useMemo(() => {
