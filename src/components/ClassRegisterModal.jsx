@@ -2,7 +2,7 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { Z } from '../constants/zLayers';
 import { motion, AnimatePresence } from 'framer-motion';
 import { supabase } from '../lib/supabase';
-import { X, Calendar, Clock, MapPin, DollarSign, Users, Info, User, Sparkles, Plus } from 'lucide-react';
+import { X, Calendar, Clock, MapPin, DollarSign, Users, Info, User, Sparkles, Plus, MessageCircle } from 'lucide-react';
 
 const GENRE_LIST = ['바차타', '살사', '쥬크', '키좀바'];
 const LATIN_MIX = ['바차타', '살사'];
@@ -16,6 +16,8 @@ const emptyForm = (instructorName = '') => ({
   awards: '',
   classType: '',
   city: '',
+  instagram: '',
+  kakaoLink: '',
   title: '',
   titleTouched: false,
   genres: [],
@@ -47,6 +49,8 @@ const profileFieldsFromInstructor = (inst) => ({
   awards: inst?.awards != null && inst.awards !== '' ? String(inst.awards) : '',
   classType: inst?.class_type || '',
   city: inst?.city || '',
+  instagram: inst?.instagram || '',
+  kakaoLink: inst?.kakao_link || '',
 });
 
 const suggestTitle = (genres, level) => {
@@ -120,7 +124,7 @@ const ClassRegisterModal = ({ isOpen = true, onClose, instructorId = '' }) => {
       try {
         const { data } = await supabase
           .from('instructors')
-          .select('id, name, city, bio, career, awards, class_type, genre')
+          .select('id, name, city, bio, career, awards, class_type, genre, instagram, kakao_link')
           .eq('status', 'active')
           .order('follower_count', { ascending: false });
         if (data?.length) {
@@ -294,6 +298,8 @@ const ClassRegisterModal = ({ isOpen = true, onClose, instructorId = '' }) => {
       awards: form.awards,
       classType: form.classType,
       city: form.city,
+      instagram: form.instagram,
+      kakaoLink: form.kakaoLink,
       location: form.location,
       fee: form.fee,
       capacity: form.capacity,
@@ -332,6 +338,8 @@ const ClassRegisterModal = ({ isOpen = true, onClose, instructorId = '' }) => {
         awards: form.awards.trim() || null,
         class_type: form.classType || null,
         city: form.city.trim() || null,
+        instagram: form.instagram.trim() || null,
+        kakao_link: form.kakaoLink.trim() || null,
       };
       const { error: profileError } = await supabase
         .from('instructors')
@@ -588,7 +596,7 @@ const ClassRegisterModal = ({ isOpen = true, onClose, instructorId = '' }) => {
                       강사 BIO (프로필에 표시) *
                     </div>
                     <p style={{ margin: 0, fontSize: '11px', color: '#8E8E93', lineHeight: 1.45 }}>
-                      Dance Masters 프로필 · BIO 탭에 노출됩니다. 수업 설명과 별도입니다.
+                      Dance Masters 프로필 · BIO 탭(소개·인스타·카톡 문의)에 노출됩니다.
                     </p>
                   </div>
                   <div>
@@ -660,6 +668,33 @@ const ClassRegisterModal = ({ isOpen = true, onClose, instructorId = '' }) => {
                         </button>
                       ))}
                     </div>
+                  </div>
+                  <div>
+                    <label style={{ display: 'block', fontSize: '12px', fontWeight: 700, color: '#A1A1AA', marginBottom: '6px' }}>
+                      인스타그램
+                    </label>
+                    <input
+                      type="text"
+                      value={form.instagram}
+                      onChange={(e) => setForm({ ...form, instagram: e.target.value })}
+                      placeholder="@아이디 또는 프로필 URL"
+                      style={inputStyle}
+                    />
+                  </div>
+                  <div>
+                    <label style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '12px', fontWeight: 700, color: '#A1A1AA', marginBottom: '6px' }}>
+                      <MessageCircle size={13} /> 카카오톡 (오픈채팅)
+                    </label>
+                    <input
+                      type="url"
+                      value={form.kakaoLink}
+                      onChange={(e) => setForm({ ...form, kakaoLink: e.target.value })}
+                      placeholder="https://open.kakao.com/..."
+                      style={inputStyle}
+                    />
+                    <p style={{ margin: '6px 0 0', fontSize: '10px', color: '#8E8E93', lineHeight: 1.4 }}>
+                      프로필 BIO 탭 · 수업 문의 버튼에 연결됩니다.
+                    </p>
                   </div>
                 </div>
 
