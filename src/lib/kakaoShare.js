@@ -5,6 +5,7 @@ export const KAKAO_BRAND = '오늘밤빠';
 export const SHARE_BUILD = '20260517c';
 
 const SHARE_LINK = 'https://bchata.vercel.app';
+const SHARE_MESSAGE_FOOTER = '👆 링크 클릭 후 확인하세요!';
 
 const toAbsoluteImageUrl = (url) => {
   if (!url) return '';
@@ -36,6 +37,7 @@ export const sharePartyToKakao = async ({ title, description, posterUrl, imageUr
   const image = toAbsoluteImageUrl(posterUrl || imageUrl);
   const url = linkUrl || SHARE_LINK;
   const desc = (description || '').replace(/\n/g, ' · ').replace(/\s*\|\s*/g, ' · ').trim();
+  const descWithFooter = desc ? `${desc}\n\n${SHARE_MESSAGE_FOOTER}` : SHARE_MESSAGE_FOOTER;
 
   if (!image) {
     window.alert('포스터 이미지가 없어 카카오 공유를 할 수 없습니다.');
@@ -46,7 +48,7 @@ export const sharePartyToKakao = async ({ title, description, posterUrl, imageUr
     objectType: 'feed',
     content: {
       title: title || KAKAO_BRAND,
-      description: desc,
+      description: descWithFooter,
       imageUrl: image,
       imageWidth: 800,
       imageHeight: 1200,
