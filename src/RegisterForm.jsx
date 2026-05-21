@@ -35,6 +35,34 @@ const getDominantGenreEntry = (data) => {
   return tops.length === 1 ? tops[0] : null
 }
 
+/** 입장료 — 예매·현장·메너음료 각각 가격 선택 후 합쳐 저장 */
+const FEE_CHANNELS = [
+  { key: 'booking', label: '예매' },
+  { key: 'onsite', label: '현장' },
+  { key: 'mannerDrink', label: '메너음료' },
+]
+
+const FEE_QUICK_PRICES = [
+  { label: '1만', display: '1만' },
+  { label: '1.2만', display: '1.2만' },
+  { label: '1.5만', display: '1.5만' },
+  { label: '1.8만', display: '1.8만' },
+  { label: '2만', display: '2만' },
+  { label: '2.5만', display: '2.5만' },
+  { label: '3만', display: '3만' },
+]
+
+const emptyFeeParts = () => ({ booking: '', onsite: '', mannerDrink: '' })
+
+const composePartyFee = (feeParts, feeCustom) => {
+  const segments = FEE_CHANNELS.filter((ch) => (feeParts[ch.key] || '').trim()).map(
+    (ch) => `${ch.label} ${feeParts[ch.key].trim()}`,
+  )
+  const custom = (feeCustom || '').trim()
+  if (custom) segments.push(custom)
+  return segments.join(' · ')
+}
+
 const RegisterForm = ({ onBack, onSuccess, isEdit = false, initialData = null }) => {
   const [file, setFile] = useState(null)
   const [inputUrl, setInputUrl] = useState('')
@@ -46,7 +74,9 @@ const RegisterForm = ({ onBack, onSuccess, isEdit = false, initialData = null })
     date: initialData?.date || new Date(new Date().getTime() + 9 * 60 * 60 * 1000).toISOString().split('T')[0],
     time: initialData?.time || '21:00',
     end_time: initialData?.end_time || '02:00',
-    fee: initialData?.fee || '20,000원',
+    fee: initialData?.fee || '',
+    feeParts: emptyFeeParts(),
+    feeCustom: initialData?.fee && !initialData?.feeParts ? initialData.fee : '',
     region: initialData?.region || '',
     day_of_week: initialData?.day_of_week || '',
     sRatio: initialData?.s_ratio ?? 5,
@@ -464,7 +494,7 @@ const RegisterForm = ({ onBack, onSuccess, isEdit = false, initialData = null })
         title: `[${formData.region}] ${finalProcessedTitle}`,
         location_id: finalLocationId,
         address: formData.address,
-        fee: formData.fee,
+        fee: composePartyFee(formData.feeParts, formData.feeCustom) || formData.fee || '문의',
         date: formData.date?.trim() || null,
         time: formData.time,
         day_of_week: formData.day_of_week,
@@ -632,42 +662,109 @@ const RegisterForm = ({ onBack, onSuccess, isEdit = false, initialData = null })
                 </div>
               ))}
             </div>
-            <p style={{ fontSize: '14px', fontWeight: 800, color: '#64748B', marginBottom: '12px' }}>입장료 선택</p>
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '8px', marginBottom: '16px' }}>
-              {[
-                { label: '1만', value: '10,000원' },
-                { label: '1.2만', value: '12,000원' },
-                { label: '1.5만', value: '15,000원' },
-                { label: '1.8만', value: '18,000원' },
-                { label: '2만', value: '20,000원' },
-                { label: '2.5만', value: '25,000원' },
-                { label: '3만', value: '30,000원' }
-              ].map(opt => (
-                <button 
-                  key={opt.value} 
-                  type="button" 
-                  onClick={() => setFormData({...formData, fee: opt.value})} 
-                  style={{ 
-                    padding: '12px 0', 
-                    border: 'none', 
-                    borderRadius: '12px', 
-                    fontSize: '12px', 
-                    fontWeight: 800, 
-                    background: formData.fee === opt.value ? '#FF1744' : '#F1F5F9', 
-                    color: formData.fee === opt.value ? '#fff' : '#64748B',
-                    transition: 'all 0.2s'
-                  }}
-                >
-                  {opt.label}
-                </button>
-              ))}
+            <p style={{ fontSize: '14px', fontWeight: 800, color: '#64748B', marginBottom: '12px' }}>입장료 (복수 선택 가능)</p>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', marginBottom: '16px' }}>
+              {FEE_CHANNELS.map((ch) => {
+                const selected = (formData.feeParts[ch.key] || '').trim()
+                return (
+                  <div
+                    key={ch.key}
+                    style={{
+                      padding: '12px',
+                      borderRadius: '14px',
+                      border: selected ? '2px solid #FF1744' : '1px solid #E2E8F0',
+                      background: selected ? '#FFF5F7' : '#F8FAFC',
+                    }}
+                  >
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px' }}>
+                      <span style={{ fontSize: '14px', fontWeight: 900, color: '#1E293B' }}>{ch.label}</span>
+                      {selected ? (
+                        <span style={{ fontSize: '13px', fontWeight: 800, color: '#FF1744' }}>
+                          {ch.label} {selected}
+                        </span>
+                      ) : (
+                        <span style={{ fontSize: '12px', color: '#94A3B8', fontWeight: 600 }}>가격 선택</span>
+                      )}
+                    </div>
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '6px' }}>
+                      {FEE_QUICK_PRICES.map((opt) => (
+                        <button
+                          key={`${ch.key}-${opt.label}`}
+                          type="button"
+                          onClick={() =>
+                            setFormData((prev) => ({
+                              ...prev,
+                              feeParts: { ...prev.feeParts, [ch.key]: opt.display },
+                            }))
+                          }
+                          style={{
+                            padding: '10px 0',
+                            border: 'none',
+                            borderRadius: '10px',
+                            fontSize: '11px',
+                            fontWeight: 800,
+                            background: selected === opt.display ? '#FF1744' : '#fff',
+                            color: selected === opt.display ? '#fff' : '#64748B',
+                          }}
+                        >
+                          {opt.label}
+                        </button>
+                      ))}
+                    </div>
+                    {selected ? (
+                      <button
+                        type="button"
+                        onClick={() =>
+                          setFormData((prev) => ({
+                            ...prev,
+                            feeParts: { ...prev.feeParts, [ch.key]: '' },
+                          }))
+                        }
+                        style={{
+                          marginTop: '8px',
+                          padding: 0,
+                          border: 'none',
+                          background: 'none',
+                          fontSize: '11px',
+                          fontWeight: 700,
+                          color: '#94A3B8',
+                          cursor: 'pointer',
+                        }}
+                      >
+                        선택 해제
+                      </button>
+                    ) : null}
+                  </div>
+                )
+              })}
             </div>
-            <input 
-              type="text" 
-              value={formData.fee} 
-              onChange={e => setFormData({...formData, fee: e.target.value})} 
-              placeholder="또는 직접 입력 (예: 2만원)" 
-              style={{ width: '100%', padding: '18px', border: '2px solid #F1F5F9', borderRadius: '16px', fontSize: '16px', background: '#F8FAFC', fontWeight: 700 }} 
+            {composePartyFee(formData.feeParts, formData.feeCustom) ? (
+              <p
+                style={{
+                  fontSize: '13px',
+                  fontWeight: 800,
+                  color: '#D81B60',
+                  marginBottom: '12px',
+                  lineHeight: 1.5,
+                }}
+              >
+                저장 표기: {composePartyFee(formData.feeParts, formData.feeCustom)}
+              </p>
+            ) : null}
+            <input
+              type="text"
+              value={formData.feeCustom}
+              onChange={(e) => setFormData({ ...formData, feeCustom: e.target.value })}
+              placeholder="직접 입력 (예: 현장 1.5만)"
+              style={{
+                width: '100%',
+                padding: '18px',
+                border: '2px solid #F1F5F9',
+                borderRadius: '16px',
+                fontSize: '16px',
+                background: '#F8FAFC',
+                fontWeight: 700,
+              }}
             />
           </motion.div>
         );
