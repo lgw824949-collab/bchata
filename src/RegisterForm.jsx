@@ -54,6 +54,37 @@ const FEE_QUICK_PRICES = [
 
 const emptyFeeParts = () => ({ booking: '', onsite: '', mannerDrink: '' })
 
+const parseTitleRegion = (title) => {
+  const m = (title || '').match(/^\[(.*?)\]/)
+  return m?.[1]?.trim() || ''
+}
+
+/** DB fee 문자열 → 예매/현장/메너음료 UI 상태 */
+const parsePartyFeeToParts = (feeStr) => {
+  const feeParts = emptyFeeParts()
+  if (!feeStr || !String(feeStr).trim()) return { feeParts, feeCustom: '' }
+
+  const unmatched = []
+  for (const seg of String(feeStr).split('·').map((s) => s.trim()).filter(Boolean)) {
+    if (/^메너음료$/i.test(seg)) {
+      feeParts.mannerDrink = 'on'
+      continue
+    }
+    let matched = false
+    for (const ch of FEE_CHANNELS) {
+      if (ch.key === 'mannerDrink') continue
+      const prefix = `${ch.label} `
+      if (seg.startsWith(prefix)) {
+        feeParts[ch.key] = seg.slice(prefix.length).trim()
+        matched = true
+        break
+      }
+    }
+    if (!matched) unmatched.push(seg)
+  }
+  return { feeParts, feeCustom: unmatched.join(' · ') }
+}
+
 const isMannerDrinkSelected = (feeParts) => feeParts.mannerDrink === 'on'
 
 const composePartyFee = (feeParts, feeCustom) => {
@@ -72,9 +103,13 @@ const composePartyFee = (feeParts, feeCustom) => {
   return segments.join(' · ')
 }
 
-const RegisterForm = ({ onBack, onSuccess, isEdit = false, initialData = null }) => {
+const RegisterForm = ({ onBack, onSuccess, isEdit = false, isAdminMode = false, initialData = null }) => {
+  const parsedFee = initialData?.feeParts
+    ? { feeParts: initialData.feeParts, feeCustom: initialData.feeCustom || '' }
+    : parsePartyFeeToParts(initialData?.fee)
+
   const [file, setFile] = useState(null)
-  const [inputUrl, setInputUrl] = useState('')
+  const [inputUrl, setInputUrl] = useState(initialData?.poster_url || '')
   const [formData, setFormData] = useState({
     title: initialData?.title?.replace(/^\[.*?\]\s*/, '').replace(/ ㅣ 오늘밤빠$/, '') || '',
     location_name: initialData?.location_name || initialData?.locations?.name || '',
@@ -84,9 +119,9 @@ const RegisterForm = ({ onBack, onSuccess, isEdit = false, initialData = null })
     time: initialData?.time || '21:00',
     end_time: initialData?.end_time || '02:00',
     fee: initialData?.fee || '',
-    feeParts: emptyFeeParts(),
-    feeCustom: initialData?.fee && !initialData?.feeParts ? initialData.fee : '',
-    region: initialData?.region || '',
+    feeParts: parsedFee.feeParts,
+    feeCustom: parsedFee.feeCustom,
+    region: initialData?.region || parseTitleRegion(initialData?.title) || '',
     day_of_week: initialData?.day_of_week || '',
     sRatio: initialData?.s_ratio ?? 5,
     bRatio: initialData?.b_ratio ?? 5,
@@ -112,6 +147,20 @@ const RegisterForm = ({ onBack, onSuccess, isEdit = false, initialData = null })
       document.body.style.overflow = prevOverflow
     }
   }, [])
+
+  useEffect(() => {
+    if (!initialData) return
+    if (initialData.poster_url) setInputUrl(initialData.poster_url)
+    if (initialData.fee && !initialData.feeParts) {
+      const parsed = parsePartyFeeToParts(initialData.fee)
+      setFormData((prev) => ({
+        ...prev,
+        feeParts: parsed.feeParts,
+        feeCustom: parsed.feeCustom,
+        fee: initialData.fee,
+      }))
+    }
+  }, [initialData?.id, initialData?.fee, initialData?.poster_url])
 
   useEffect(() => {
     if (formData.date) {
@@ -429,8 +478,12 @@ const RegisterForm = ({ onBack, onSuccess, isEdit = false, initialData = null })
         return ''
       }
 
-      const contributorId = resolveContributorId()
-      if (!contributorId) {
+      const contributorId = isAdminMode
+        ? (isEdit && initialData?.contributor_id
+          ? String(initialData.contributor_id).trim()
+          : 'bchata-admin')
+        : resolveContributorId()
+      if (!isAdminMode && !contributorId) {
         alert('로그인 후 파티 등록이 가능합니다.')
         setLoading(false)
         return
@@ -507,7 +560,7 @@ const RegisterForm = ({ onBack, onSuccess, isEdit = false, initialData = null })
         date: formData.date?.trim() || null,
         time: formData.time,
         day_of_week: formData.day_of_week,
-        poster_url: finalPosterUrl || inputUrl || initialData?.poster_url,
+        poster_url: finalPosterUrl || inputUrl?.trim() || initialData?.poster_url || null,
         s_ratio: formData.sRatio,
         b_ratio: formData.bRatio,
         j_ratio: formData.jRatio,
@@ -522,7 +575,8 @@ const RegisterForm = ({ onBack, onSuccess, isEdit = false, initialData = null })
         const { error: updateError } = await supabase.from(targetTable).update(partyData).eq('id', initialData.id);
         error = updateError;
       } else {
-        const { error: insertError } = await supabase.from('parties').insert([partyData]);
+        const insertTable = isAdminMode ? (initialData?._table || 'parties') : 'parties';
+        const { error: insertError } = await supabase.from(insertTable).insert([partyData]);
         error = insertError;
       }
 
@@ -549,8 +603,10 @@ const RegisterForm = ({ onBack, onSuccess, isEdit = false, initialData = null })
           <div style={{ backgroundColor: '#FF1744', width: '80px', height: '80px', borderRadius: '40px', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 24px' }}>
             <Check size={40} color="white" />
           </div>
-          <h2 style={{ fontSize: '24px', fontWeight: 900, color: '#1E293B', marginBottom: '12px' }}>파티 등록 완료!</h2>
-          <p style={{ fontSize: '16px', color: '#64748B', lineHeight: '1.6', marginBottom: '32px' }}>지금 즉시 메인 화면에 게시되었습니다.</p>
+          <h2 style={{ fontSize: '24px', fontWeight: 900, color: '#1E293B', marginBottom: '12px' }}>{isEdit ? '파티 수정 완료!' : '파티 등록 완료!'}</h2>
+          <p style={{ fontSize: '16px', color: '#64748B', lineHeight: '1.6', marginBottom: '32px' }}>
+            {isAdminMode ? 'Supabase에 저장되었습니다.' : '지금 즉시 메인 화면에 게시되었습니다.'}
+          </p>
           <button onClick={onSuccess || onBack} style={{ width: '100%', padding: '20px', background: '#FF1744', color: 'white', borderRadius: '16px', fontWeight: 900, fontSize: '18px', border: 'none' }}>확인</button>
         </motion.div>
       </div>,
@@ -565,8 +621,8 @@ const RegisterForm = ({ onBack, onSuccess, isEdit = false, initialData = null })
           <motion.div key="step1" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} style={{ padding: '24px' }}>
             <label style={{ display: 'block', fontSize: '20px', fontWeight: 900, color: '#1E293B', marginBottom: '24px' }}>📸 {isEdit ? '포스터 변경 (선택)' : '파티 포스터 선택'}</label>
             <div onClick={() => document.getElementById('poster-upload').click()} style={{ height: '350px', border: '2px dashed #E2E8F0', borderRadius: '24px', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', background: '#F8FAFC', overflow: 'hidden', cursor: 'pointer' }}>
-              {(file || inputUrl || initialData?.poster_url) ? (
-                <img src={file ? URL.createObjectURL(file) : (inputUrl || initialData.poster_url)} style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
+              {(file || inputUrl) ? (
+                <img src={file ? URL.createObjectURL(file) : inputUrl} style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
               ) : (
                 <>
                   <Plus size={40} color="#FF1744" style={{ marginBottom: '16px' }} />

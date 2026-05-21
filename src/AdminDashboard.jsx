@@ -1,7 +1,7 @@
 ﻿// v0.1.1 - Force redeploy for UI simplification
 import React, { useState, useEffect } from 'react'
 import { supabase } from './lib/supabase'
-import { ChevronLeft, Check, Trash2, ShieldCheck, X, RefreshCw, XCircle, Clock, Tent, Flag, Music2, Camera, Zap, Menu, User, Sparkles } from 'lucide-react'
+import { ChevronLeft, Check, Trash2, ShieldCheck, X, RefreshCw, XCircle, Clock, Tent, Flag, Music2, Camera, Zap, Menu, User, Sparkles, Plus } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
 import RegisterForm from './RegisterForm'
 import gangturnPhoto from './assets/gangturn_photo.png'
@@ -122,6 +122,24 @@ export default function AdminDashboard({ onBack }) {
   const [editingItem, setEditingItem] = useState(null)
   const [showEditModal, setShowEditModal] = useState(false)
   const [currentItem, setCurrentItem] = useState(null)
+
+  const normalizePartyItemForForm = (item, table) => ({
+    ...item,
+    _table: table,
+    location_name: item.location_name || item.locations?.name || '',
+    location_id: item.location_id ?? item.locations?.id ?? null,
+    address: item.address || item.locations?.address || '',
+    poster_url: item.poster_url || '',
+    latitude: item.latitude ?? item.locations?.latitude ?? null,
+    longitude: item.longitude ?? item.locations?.longitude ?? null,
+  })
+
+  const openPartyRegisterForm = (item = null) => {
+    const table = activeTab === 'active' ? 'parties' : 'pending_parties'
+    const todayStr = new Date(Date.now() + 9 * 60 * 60 * 1000).toISOString().split('T')[0]
+    setCurrentItem(item ? normalizePartyItemForForm(item, table) : { _table: 'parties', date: todayStr })
+    setShowEditModal(true)
+  }
   const [editFormData, setEditFormData] = useState({})
   const [loading, setLoading] = useState(false)
 
@@ -221,9 +239,7 @@ export default function AdminDashboard({ onBack }) {
   // 수정 시작
   const startEdit = (item) => {
     if (category === 'social') {
-      const targetTable = activeTab === 'active' ? 'parties' : 'pending_parties'
-      setCurrentItem({ ...item, _table: targetTable })
-      setShowEditModal(true)
+      openPartyRegisterForm(item)
     } else {
       setEditingItem(item.id)
       setEditFormData({ ...item })
@@ -468,7 +484,29 @@ export default function AdminDashboard({ onBack }) {
           <button onClick={onBack} style={{ padding: '8px', background: 'none', border: 'none' }}><ChevronLeft size={28} /></button>
           <h2 style={{ fontSize: '18px', fontWeight: 900, marginLeft: '8px' }}>통합 관리자 센터</h2>
         </div>
-        <div style={{ display: 'flex', gap: '12px' }}>
+        <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
+          {category === 'social' && (
+            <button
+              type="button"
+              onClick={() => openPartyRegisterForm()}
+              disabled={loading}
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '6px',
+                background: '#FF1744',
+                border: 'none',
+                padding: '8px 12px',
+                borderRadius: '12px',
+                color: '#FFF',
+                fontSize: '12px',
+                fontWeight: 800,
+                cursor: 'pointer',
+              }}
+            >
+              <Plus size={14} /> 파티 등록
+            </button>
+          )}
           <button 
             onClick={cleanupPastData} 
             disabled={loading} 
@@ -943,11 +981,16 @@ export default function AdminDashboard({ onBack }) {
       <AnimatePresence>
         {showEditModal && (
           <RegisterForm 
-            isEdit={true}
+            isEdit={Boolean(currentItem?.id)}
+            isAdminMode={true}
             initialData={currentItem}
-            onBack={() => setShowEditModal(false)}
+            onBack={() => {
+              setShowEditModal(false);
+              setCurrentItem(null);
+            }}
             onSuccess={() => {
               setShowEditModal(false);
+              setCurrentItem(null);
               fetchData();
             }}
           />
