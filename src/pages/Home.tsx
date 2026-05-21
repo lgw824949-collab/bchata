@@ -19,7 +19,7 @@ import VenueDetailModal from '../components/VenueDetailModal'
 import BarRegisterFormModal from '../components/BarRegisterFormModal'
 import HomeHeroTagline from '../components/HomeHeroTagline'
 import { navigate as historyNavigate, parseAppState, pushOverlay } from '../lib/appHistory'
-import { formatPartyFeeDisplay } from '../lib/partyFeeDisplay'
+import { formatPartyFeeDisplay, PARTY_FEE_CARD_FONT_SIZE } from '../lib/partyFeeDisplay'
 import { formatPartyTitleDisplay } from '../lib/partyTitleDisplay'
 import PartyCard from '../components/PartyCard'
 
@@ -847,7 +847,7 @@ const HomeRollingPartyCard = ({ item, onSelect }) => {
               {translateDynamicText(item.locationName || item.studio_name || '장소 미지정', isEn)}
             </span>
             <span style={{ color: 'var(--color-text-sub)', opacity: 0.3 }}>•</span>
-            <span style={{ fontSize: '14px', fontWeight: '900', color: '#E53935' }}>
+            <span style={{ fontSize: PARTY_FEE_CARD_FONT_SIZE, fontWeight: '900', color: '#E53935', whiteSpace: 'nowrap' }}>
               {displayFee}
             </span>
           </div>

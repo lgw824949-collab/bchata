@@ -1,6 +1,10 @@
 /** 합성 입장료(예매/현장/메너음료) — 숫자만 추출해 만원 변환하면 0.1만 등으로 깨짐 */
 const COMPOSED_FEE_RE = /예매|현장|메너음료|문의|무료| · /
 
+/** 파티 카드 입장료 줄 글자 크기 */
+export const PARTY_FEE_CARD_FONT_SIZE = '13px';
+export const PARTY_FEE_RATIO_FONT_SIZE = '12px';
+
 /**
  * 파티 fee 컬럼 → 카드/상세 표시 문자열
  * @param {string|null|undefined} priceStr

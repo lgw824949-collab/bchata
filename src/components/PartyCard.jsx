@@ -4,7 +4,11 @@ import { supabase } from '../lib/supabase';
 import PartyWishlistHeart from './PartyWishlistHeart';
 import { usePartyWishlist } from '../hooks/usePartyWishlist';
 import { formatPartyMusicRatio } from '../pages/Social';
-import { formatPartyFeeDisplay } from '../lib/partyFeeDisplay';
+import {
+  formatPartyFeeDisplay,
+  PARTY_FEE_CARD_FONT_SIZE,
+  PARTY_FEE_RATIO_FONT_SIZE,
+} from '../lib/partyFeeDisplay';
 import { formatPartyTitleDisplay, PARTY_TITLE_CARD_FONT_SIZE } from '../lib/partyTitleDisplay';
 
 const GENRE_MAP = {
@@ -186,10 +190,24 @@ const PartyCard = ({ item, onSelect, wishlistParties: wishlistProp, onToggleWish
           </span>
         </div>
 
-        <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginTop: '4px', flexWrap: 'wrap' }}>
-          <span style={{ fontSize: '16px', fontWeight: 900, color: '#E53935' }}>{displayFee}</span>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginTop: '4px', flexWrap: 'nowrap', minWidth: 0 }}>
+          <span
+            style={{
+              fontSize: PARTY_FEE_CARD_FONT_SIZE,
+              fontWeight: 900,
+              color: '#E53935',
+              whiteSpace: 'nowrap',
+              overflow: 'hidden',
+              textOverflow: 'ellipsis',
+              minWidth: 0,
+            }}
+          >
+            {displayFee}
+          </span>
           {ratioLabel ? (
-            <span style={{ color: '#E53935', fontWeight: 700, fontSize: '14px' }}>| {ratioLabel}</span>
+            <span style={{ color: '#E53935', fontWeight: 700, fontSize: PARTY_FEE_RATIO_FONT_SIZE, flexShrink: 0 }}>
+              | {ratioLabel}
+            </span>
           ) : null}
         </div>
       </div>
