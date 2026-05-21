@@ -2102,7 +2102,7 @@ function App() {
     IncheonBanner: () => <IncheonPremiumBanner t={t} onClick={() => openAnalysis(false)} />, venueCounts: {}, resetToToday: () => { setView('home'); setSelectedDate(todayData.dateStr); }, formatItemDate: (d, t) => `${d} ${t}`, formatFee: (f) => f, 
     handleRegister, 
     fetchParties,
-    setShowSaju: withHistory('barMatching', showSaju, setShowSaju),
+    setShowSaju: withHistory('saju', showSaju, setShowSaju),
     setShowWeather: withHistory('weather', showWeather, setShowWeather),
     setShowWishlist: withHistory('wishlist', showWishlist, setShowWishlist),
     setShowRentalModal: withHistory('rental', showRentalModal, setShowRentalModal),

@@ -8,6 +8,7 @@ import { supabase } from '../lib/supabase'
 import { selectResult } from '../data/sajuResults'
 import { selectResultEn } from '../data/sajuResultsEn'
 import { getKSTCalendarTodayStr } from '../lib/dateNorm'
+import { getUserCoords, readCachedCoords } from '../lib/geoCache'
 import {
   fetchUpcomingPartiesForSaju,
   normalizePartyForSajuDisplay,
@@ -66,7 +67,10 @@ function getBeginnerContent(isEn = false) {
   return {
     mainMessage: shuffled[0],
     subMessages: shuffled.slice(1, 4),
-    challenge: BEGINNER_MESSAGES.find(m => m.cat === '도전 유도')
+    challenge:
+      BEGINNER_MESSAGES.find((m) => m.cat === '도전 유도') ||
+      shuffled.find((m) => m.cat === '도전 유도') ||
+      shuffled[0],
   }
 }
 
@@ -102,6 +106,14 @@ const OHENG_DANCE = {
 const OHENG_HANJA_MAP = { '목': '木', '화': '火', '토': '土', '금': '金', '물': '水' }
 
 const SAJU_OVERLAY_KEYS = new Set(['barMatching', 'saju'])
+
+function hasCompleteSajuProfile(data) {
+  if (!data || typeof data !== 'object') return false
+  const y = String(data.year ?? '').trim()
+  const m = String(data.month ?? '').trim()
+  const d = String(data.day ?? '').trim()
+  return Boolean(data.gender && y && m && d)
+}
 
 function getYearGanJi(y) {
   const g = ((y-4)%10+10)%10, j = ((y-4)%12+12)%12
@@ -158,27 +170,28 @@ const SajuModal = ({ parties = [], onClose, lang = 'ko' }) => {
       replaceCurrentState({
         view: cur?.view ?? 'home',
         homeTab: cur?.homeTab ?? null,
-        overlay: 'barMatching',
+        overlay: 'saju',
         overlayMeta: null,
       })
       window.history.replaceState(window.history.state, '', path)
     }
   }, [])
 
-  // 데이터 불러오기 및 자동 분석 시도
   useEffect(() => {
     const saved = localStorage.getItem('saju_user_data')
-    if (saved) {
-      try {
-        const data = JSON.parse(saved)
-        setGender(data.gender || '')
-        setYear(data.year || '')
-        setMonth(data.month || '')
-        setDay(data.day || '')
-        setTimeIdx(data.timeIdx !== undefined ? data.timeIdx : '')
-        setExperience(data.experience || 'beginner')
-        setIsDataLoaded(true)
-      } catch (e) { console.error('Failed to parse saju data', e) }
+    if (!saved) return
+    try {
+      const data = JSON.parse(saved)
+      setGender(data.gender || '')
+      setYear(data.year != null ? String(data.year) : '')
+      setMonth(data.month != null ? String(data.month) : '')
+      setDay(data.day != null ? String(data.day) : '')
+      setTimeIdx(data.timeIdx !== undefined && data.timeIdx !== null ? String(data.timeIdx) : '')
+      setExperience(data.experience === 'experienced' ? 'experienced' : 'beginner')
+      setIsDataLoaded(hasCompleteSajuProfile(data))
+    } catch (e) {
+      console.error('Failed to parse saju data', e)
+      localStorage.removeItem('saju_user_data')
     }
   }, [])
 
@@ -253,7 +266,6 @@ const SajuModal = ({ parties = [], onClose, lang = 'ko' }) => {
       let userLat = null;
       let userLon = null;
       try {
-        const { getUserCoords, readCachedCoords } = await import('../lib/geoCache');
         const c = readCachedCoords() || (await getUserCoords({ maxAgeMs: 60 * 60 * 1000 }));
         userLat = c?.lat;
         userLon = c?.lng;
@@ -339,7 +351,17 @@ const SajuModal = ({ parties = [], onClose, lang = 'ko' }) => {
   };
 
   const reset = () => {
-    setStep(1); setResult(null); setYear(''); setMonth(''); setDay(''); setTimeIdx(''); setGender(''); setExperience('beginner')
+    localStorage.removeItem('saju_user_data')
+    setStep(1)
+    setResult(null)
+    setRecommendedBars([])
+    setYear('')
+    setMonth('')
+    setDay('')
+    setTimeIdx('')
+    setGender('')
+    setExperience('beginner')
+    setIsDataLoaded(false)
   }
 
   return (
@@ -373,9 +395,29 @@ const SajuModal = ({ parties = [], onClose, lang = 'ko' }) => {
                       <span>{experience === 'beginner' ? t('saju_beginner') : t('saju_experienced')}</span>
                     </div>
                   </div>
-                  <button onClick={analyze} disabled={loading} style={{ width:'100%', padding:'18px', borderRadius:16, background:'#7C3AED', color:'#fff', border:'none', fontSize:17, fontWeight:900, cursor:'pointer', boxShadow: '0 8px 20px rgba(124, 58, 237, 0.3)' }}>
+                  <button
+                    onClick={analyze}
+                    disabled={loading || !isValid}
+                    style={{
+                      width: '100%',
+                      padding: '18px',
+                      borderRadius: 16,
+                      background: isValid ? '#7C3AED' : '#CBD5E1',
+                      color: '#fff',
+                      border: 'none',
+                      fontSize: 17,
+                      fontWeight: 900,
+                      cursor: isValid && !loading ? 'pointer' : 'not-allowed',
+                      boxShadow: isValid ? '0 8px 20px rgba(124, 58, 237, 0.3)' : 'none',
+                    }}
+                  >
                     {loading ? t('saju_analyzing') : t('saju_view_today')}
                   </button>
+                  {!isValid ? (
+                    <p style={{ marginTop: 12, fontSize: 12, color: '#94A3B8', textAlign: 'center', fontWeight: 600 }}>
+                      {lang === 'ko' ? '저장된 정보가 불완전합니다. 아래에서 다시 입력해 주세요.' : 'Saved profile is incomplete. Please fill in the form below.'}
+                    </p>
+                  ) : null}
                   <button onClick={() => setIsDataLoaded(false)} style={{ width: '100%', marginTop: '16px', background: 'none', border: 'none', color: '#94A3B8', fontSize: '13px', fontWeight: 700, cursor: 'pointer' }}>{t('saju_edit_info')}</button>
                 </div>
               ) : (
@@ -480,8 +522,13 @@ const SajuModal = ({ parties = [], onClose, lang = 'ko' }) => {
               {/* 하단 추천 BAR (공통 거리순 적용) */}
               <div style={{ padding:'0 24px 40px' }}>
                 <div style={{ fontSize:16, fontWeight:900, color:'#1E1B4B', marginBottom:16 }}>{t('saju_recommend_bar')}</div>
+                {recommendedBars.length === 0 ? (
+                  <div style={{ padding: '20px 16px', borderRadius: 16, background: '#F8FAFC', color: '#64748B', fontSize: 13, fontWeight: 600, textAlign: 'center', marginBottom: 12 }}>
+                    {lang === 'ko' ? '오늘 이후 등록된 파티가 없습니다. 곧 새 일정이 올라올 예정이에요.' : 'No upcoming parties yet. Check back soon.'}
+                  </div>
+                ) : null}
                 {recommendedBars.map((bar, i) => (
-                  <div key={i} onClick={()=>bar.poster_url && setFullPoster(bar.poster_url)} style={{ background:i===0?'linear-gradient(to right, #fff, #F5F3FF)':'#fff', borderRadius:20, border:i===0?'2px solid #C4B5FD':'1px solid #F3F4F6', padding:18, marginBottom:12, display:'flex', gap:16, alignItems:'center', cursor:bar.poster_url?'pointer':'default' }}>
+                  <div key={bar.id || bar.poster_url || bar.title || i} onClick={()=>bar.poster_url && setFullPoster(bar.poster_url)} style={{ background:i===0?'linear-gradient(to right, #fff, #F5F3FF)':'#fff', borderRadius:20, border:i===0?'2px solid #C4B5FD':'1px solid #F3F4F6', padding:18, marginBottom:12, display:'flex', gap:16, alignItems:'center', cursor:bar.poster_url?'pointer':'default' }}>
                     <div style={{ width:64, height:86, borderRadius:12, overflow:'hidden', background:'#F3F4F6', flexShrink:0 }}>
                       {bar.poster_url ? <img src={bar.poster_url} alt="" style={{ width:'100%', height:'100%', objectFit:'cover' }} onError={imgFallbackHandler(DEFAULT_CARD_IMAGE)} /> : <div style={{ height:'100%', display:'flex', alignItems:'center', justifyContent:'center', fontSize:10, color:'#999' }}>NO IMG</div>}
                     </div>
@@ -490,7 +537,11 @@ const SajuModal = ({ parties = [], onClose, lang = 'ko' }) => {
                         <div style={{ fontSize:16, fontWeight:800, color:'#1E1B4B' }}>{bar.locations?.name || bar.title}</div>
                         {bar.distance < 9999 && <div style={{ fontSize:11, color:'#7C3AED', fontWeight:800 }}>📍 {bar.distance < 1 ? `${Math.round(bar.distance*1000)}m` : `${bar.distance.toFixed(1)}km`}</div>}
                       </div>
-                      <div style={{ fontSize:12, color:'#6B7280', marginBottom:4 }}>{bar.locations?.address?.substring(0, 18)}...</div>
+                      <div style={{ fontSize:12, color:'#6B7280', marginBottom:4 }}>
+                        {bar.locations?.address
+                          ? `${String(bar.locations.address).substring(0, 18)}${String(bar.locations.address).length > 18 ? '…' : ''}`
+                          : '—'}
+                      </div>
                       <div style={{ display:'flex', justifyContent:'space-between' }}>
                         <div style={{ fontSize:14, color:'#7C3AED', fontWeight:700 }}>{bar.fee || '무료'}</div>
                         <div style={{ fontSize:11, color:'#9CA3AF' }}>{bar.date}</div>
