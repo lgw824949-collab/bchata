@@ -2783,14 +2783,15 @@ const HomePage = ({
 
   const renderHomeMainQuickMenuSection = () => (
     <section
-      className="home-depth-panel home-quick-menu-standalone"
+      className="home-quick-menu-standalone"
       style={{
-        ...homeDepthPanelStyle,
         display: 'flex',
         flexDirection: 'column',
         marginBottom: 0,
-        borderRadius: 16,
-        padding: '12px 12px 14px',
+        padding: '0 0 10px',
+        background: 'transparent',
+        border: 'none',
+        boxShadow: 'none',
       }}
       aria-label={isEn ? 'Quick menu' : '빠른 메뉴'}
     >
@@ -3342,30 +3343,32 @@ const HomePage = ({
           background: none;
         }
         .home-gate-active .home-quick-menu-standalone {
-          border: 1px solid rgba(255, 255, 255, 0.08) !important;
-          box-shadow: 0 10px 40px rgba(0, 0, 0, 0.38) !important;
+          background: transparent !important;
+          border: none !important;
+          box-shadow: none !important;
         }
         .home-gate-active .home-quick-menu-scroll--gate-all .home-quick-menu-icon-circle {
-          width: 48px;
-          height: 48px;
-          border-radius: 50%;
-          border: 1px solid rgba(255, 255, 255, 0.12) !important;
-          background: rgba(255, 255, 255, 0.06) !important;
+          width: auto;
+          height: auto;
+          min-width: 0;
+          min-height: 0;
+          padding: 0;
+          border: none !important;
+          background: transparent !important;
           box-shadow: none !important;
+          border-radius: 0;
           color: #ffffff !important;
         }
         .home-gate-active .home-quick-menu-scroll--gate-all .home-quick-menu-icon-circle svg {
-          width: 26px;
-          height: 26px;
+          width: 28px;
+          height: 28px;
         }
-        .home-gate-active .home-quick-menu-scroll--gate-all .home-quick-menu-item--register-party .home-quick-menu-icon-circle {
-          background: rgba(212, 67, 110, 0.14) !important;
-          border-color: rgba(212, 67, 110, 0.35) !important;
-          color: #ffffff !important;
-        }
+        .home-gate-active .home-quick-menu-scroll--gate-all .home-quick-menu-item--register-party .home-quick-menu-icon-circle,
         .home-gate-active .home-quick-menu-scroll--gate-all .home-quick-menu-item--register-class .home-quick-menu-icon-circle {
-          background: rgba(37, 99, 235, 0.14) !important;
-          border-color: rgba(37, 99, 235, 0.35) !important;
+          width: auto;
+          height: auto;
+          background: transparent !important;
+          border: none !important;
           color: #ffffff !important;
         }
         .home-gate-active .home-quick-menu-scroll--gate-all .home-quick-menu-item-label {
