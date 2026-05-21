@@ -91,7 +91,8 @@ const PartyCard = ({ item, onSelect, wishlistParties: wishlistProp, onToggleWish
   })();
   const timeLabel = item.date === todayStr ? `오늘 ${displayTime}` : displayTime;
   const displayFee = formatPartyFeeDisplay(item.fee, { fallback: '문의' });
-  const mapQuery = encodeURIComponent(item.address || item.locationName || '');
+  const locationLabel = translateDynamicText(item.locationName || item.studio_name || '장소 미지정', isEn);
+
   const handleKakaoShare = async (e) => {
     e.stopPropagation();
     const card = buildPartyShareCard(item);
@@ -110,77 +111,188 @@ const PartyCard = ({ item, onSelect, wishlistParties: wishlistProp, onToggleWish
     onSelect(item);
   };
 
+  const genreLabel = (() => {
+    const entries = Object.entries(GENRE_MAP).filter(([_, info]) => item[info.key] > 0);
+    if (entries.length === 0) return '소셜';
+    const sorted = [...entries].sort((a, b) => item[b[1].key] - item[a[1].key]);
+    if (sorted.length >= 2 && item[sorted[0][1].key] === item[sorted[1][1].key]) {
+      return `${sorted[0][0]} · ${sorted[1][0]}`;
+    }
+    return sorted[0][0];
+  })();
+
   return (
     <div
       onClick={handleCardClick}
-      style={{ display: 'flex', flexDirection: 'row', alignItems: 'stretch', backgroundColor: 'var(--color-card)', borderRadius: '16px', overflow: 'hidden', border: '1px solid var(--color-border)', cursor: 'pointer', height: '180px', marginBottom: '12px', transition: 'all 0.3s', position: 'relative' }}
+      style={{
+        display: 'flex',
+        flexDirection: 'row',
+        alignItems: 'stretch',
+        backgroundColor: 'var(--color-card)',
+        borderRadius: '16px',
+        overflow: 'hidden',
+        border: '1px solid var(--color-border)',
+        cursor: 'pointer',
+        height: '180px',
+        marginBottom: '12px',
+        transition: 'all 0.3s',
+        position: 'relative',
+      }}
     >
       <PartyWishlistHeart
         party={item}
         wishlistParties={wishlistParties}
         onToggle={onToggleWishlist}
       />
-      <div style={{ width: '100px', flexShrink: 0 }}>
+
+      <div style={{ width: '110px', flexShrink: 0, background: '#000' }}>
         <img src={item.poster_url} style={{ width: '100%', height: '100%', objectFit: 'cover' }} alt="Poster" />
       </div>
 
-      <div style={{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'space-between', minWidth: 0, padding: '14px 16px' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-          <span style={{ fontSize: '11px', fontWeight: '700', color: '#E53935', background: '#111', padding: '2px 8px', borderRadius: '4px', flexShrink: 0 }}>
-            {(() => {
-              const entries = Object.entries(GENRE_MAP).filter(([_, info]) => item[info.key] > 0)
-              if (entries.length === 0) return '소셜'
-              const sorted = [...entries].sort((a, b) => item[b[1].key] - item[a[1].key])
-              if (sorted.length >= 2 && item[sorted[0][1].key] === item[sorted[1][1].key]) return `${sorted[0][0]} · ${sorted[1][0]}`
-              return sorted[0][0]
-            })()}
+      <div
+        style={{
+          flex: 1,
+          display: 'flex',
+          flexDirection: 'column',
+          minWidth: 0,
+          padding: '12px 14px',
+        }}
+      >
+        <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexShrink: 0 }}>
+          <span
+            style={{
+              fontSize: '11px',
+              fontWeight: 700,
+              color: '#ffffff',
+              background: '#E53935',
+              padding: '2px 8px',
+              borderRadius: '4px',
+              flexShrink: 0,
+            }}
+          >
+            {genreLabel}
           </span>
-          {isTimeLive && (
-            <span style={{ background: '#E53935', color: '#fff', fontSize: '10px', fontWeight: '950', padding: '2px 6px', borderRadius: '4px', animation: 'blink 1.5s infinite' }}>LIVE</span>
-          )}
+          {isTimeLive ? (
+            <span
+              style={{
+                fontSize: '10px',
+                fontWeight: 700,
+                background: '#E53935',
+                color: '#ffffff',
+                padding: '2px 6px',
+                borderRadius: '4px',
+                animation: 'blink 1.5s infinite',
+              }}
+            >
+              LIVE
+            </span>
+          ) : null}
         </div>
 
-        <div style={{ fontSize: '16px', fontWeight: '900', color: 'var(--color-text-main)', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden', textOverflow: 'ellipsis', letterSpacing: '-0.8px', lineHeight: 1.2, marginTop: '4px' }}>
+        <div
+          style={{
+            fontSize: '15px',
+            fontWeight: 800,
+            color: 'var(--color-text-main)',
+            display: '-webkit-box',
+            WebkitLineClamp: 2,
+            WebkitBoxOrient: 'vertical',
+            overflow: 'hidden',
+            textOverflow: 'ellipsis',
+            letterSpacing: '-0.5px',
+            lineHeight: 1.25,
+            marginTop: '6px',
+          }}
+        >
           {translateDynamicText(cleanTitleStr.replace(/^\[.*?\]\s*/, '').replace(/ㅣ\s*$/, '').trim(), isEn)}
         </div>
 
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '3px', flexWrap: 'wrap' }}>
-            <span style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: '13px', color: 'var(--color-text-sub)', fontWeight: 700 }}>
-              <Clock size={13} />
-              {timeLabel}
-            </span>
-            <span style={{ fontSize: '13px', color: 'var(--color-text-sub)', fontWeight: 700 }}>
-              {translateDynamicText(item.locationName || item.studio_name || '장소 미지정', isEn)}
-            </span>
-          </div>
-          <PartyMusicRatioLine item={item} />
-          <span style={{ fontSize: '15px', fontWeight: '900', color: '#E53935' }}>
+        <div
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: '4px',
+            marginTop: '6px',
+            minWidth: 0,
+            fontSize: '12px',
+            color: 'var(--color-text-sub)',
+            fontWeight: 600,
+          }}
+        >
+          <Clock size={12} style={{ flexShrink: 0 }} />
+          <span style={{ flexShrink: 0 }}>{timeLabel}</span>
+          <span style={{ opacity: 0.45, flexShrink: 0 }}>·</span>
+          <span
+            style={{
+              overflow: 'hidden',
+              textOverflow: 'ellipsis',
+              whiteSpace: 'nowrap',
+              minWidth: 0,
+            }}
+          >
+            {locationLabel}
+          </span>
+        </div>
+
+        <div
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            gap: '8px',
+            marginTop: '6px',
+            minWidth: 0,
+          }}
+        >
+          <PartyMusicRatioLine
+            item={item}
+            style={{
+              margin: 0,
+              fontSize: '11px',
+              fontWeight: 500,
+              color: '#888888',
+              flex: 1,
+              minWidth: 0,
+              overflow: 'hidden',
+              textOverflow: 'ellipsis',
+              whiteSpace: 'nowrap',
+            }}
+          />
+          <span
+            style={{
+              fontSize: '13px',
+              color: '#E53935',
+              fontWeight: 800,
+              flexShrink: 0,
+              marginLeft: 'auto',
+            }}
+          >
             {displayFee}
           </span>
         </div>
 
+        <div style={{ flex: 1, minHeight: 0 }} />
+
         <button
+          type="button"
           onClick={handleKakaoShare}
           style={{
-            backgroundColor: '#FEE500',
+            alignSelf: 'flex-end',
+            background: '#FEE500',
             color: '#3E2723',
             border: 'none',
-            borderRadius: '10px',
-            padding: '8px 12px',
-            fontSize: '13px',
-            fontWeight: '900',
-            marginTop: '8px',
+            borderRadius: '8px',
+            padding: '6px 10px',
+            fontSize: '12px',
+            fontWeight: 700,
             cursor: 'pointer',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
-            width: 'auto',
-            alignSelf: 'flex-end',
-            boxShadow: '0 2px 4px rgba(0,0,0,0.05)'
+            flexShrink: 0,
           }}
         >
-          <span style={{ fontSize: '16px' }}>💬</span>
+          💬 카카오공유
         </button>
       </div>
     </div>
