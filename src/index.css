@@ -2566,3 +2566,212 @@ body.bottom-nav-social-light nav.bottom-nav {
   -ms-overflow-style: none;
   scrollbar-width: none;
 }
+
+/* BAR 상세(사장님 공간) — Pretendard 기반 타이포·색 계층 */
+.venue-detail-modal {
+  font-family: Pretendard, -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+.venue-detail-modal .vd-header-eyebrow {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  color: #64748b;
+  margin: 0 0 2px;
+}
+
+.venue-detail-modal .vd-header-name {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 700;
+  letter-spacing: -0.03em;
+  color: #0f172a;
+  line-height: 1.25;
+}
+
+.venue-detail-modal .vd-header-address {
+  margin: 3px 0 0;
+  font-size: 12px;
+  font-weight: 500;
+  color: #64748b;
+  line-height: 1.4;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.venue-detail-modal .vd-cal-month {
+  font-size: 15px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  color: #d4436e;
+}
+
+.venue-detail-modal .vd-cal-dow {
+  font-size: 10px;
+  font-weight: 600;
+  color: #94a3b8;
+  padding: 2px 0;
+}
+
+.venue-detail-modal .vd-cal-dow[data-sunday='true'] {
+  color: #e53935;
+}
+
+.venue-detail-modal .vd-cal-dot {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: #d4436e;
+  opacity: 0.85;
+}
+
+.venue-detail-modal .vd-cal-dot[data-selected='true'] {
+  background: #fff;
+  opacity: 1;
+}
+
+.venue-detail-modal .vd-section-label {
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  color: #334155;
+}
+
+.venue-detail-modal .vd-section-label__date {
+  color: #d4436e;
+}
+
+.venue-detail-modal .vd-section-label__sep {
+  color: #cbd5e1;
+  font-weight: 500;
+}
+
+.venue-detail-modal .vd-section-label__text {
+  color: #334155;
+}
+
+.venue-detail-modal .vd-block-title {
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  color: #334155;
+}
+
+.venue-detail-modal .vd-card-title-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  margin-top: 10px;
+  min-width: 0;
+}
+
+.venue-detail-modal .vd-card-title {
+  margin: 0;
+  flex: 1;
+  min-width: 0;
+  font-size: 15px;
+  font-weight: 800;
+  color: #111;
+  line-height: 1.35;
+  letter-spacing: -0.03em;
+  display: -webkit-box;
+  -webkit-line-clamp: 1;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.venue-detail-modal .vd-date-badge {
+  flex-shrink: 0;
+  padding: 3px 8px;
+  border-radius: 999px;
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  line-height: 1.2;
+}
+
+.venue-detail-modal .vd-date-badge[data-tone='today'] {
+  color: #fff;
+  background: linear-gradient(135deg, #d4436e 0%, #e53935 100%);
+}
+
+.venue-detail-modal .vd-date-badge[data-tone='soon'] {
+  color: #be185d;
+  background: #fff0f5;
+  border: 1px solid rgba(216, 27, 96, 0.2);
+}
+
+.venue-detail-modal .vd-date-badge[data-tone='past'] {
+  color: #64748b;
+  background: #f1f5f9;
+}
+
+.venue-detail-modal .vd-card-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+  margin-top: 8px;
+}
+
+.venue-detail-modal .vd-card-tag {
+  font-size: 10px;
+  font-weight: 700;
+  color: #475569;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  padding: 3px 8px;
+  border-radius: 8px;
+  line-height: 1.25;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.venue-detail-modal .vd-card-tag[data-kind='dj'],
+.venue-detail-modal .vd-card-tag[data-kind='guest'] {
+  color: #7c3aed;
+  background: #f5f3ff;
+  border-color: #ddd6fe;
+}
+
+.venue-detail-modal .vd-card-subtitle {
+  margin: 6px 0 0;
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 1.45;
+  color: #64748b;
+  letter-spacing: -0.01em;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.venue-detail-modal .vd-card-footer-meta {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 6px;
+  width: 100%;
+}
+
+.venue-detail-modal .vd-card-time {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 13px;
+  font-weight: 500;
+  color: #757575;
+}
+
+.venue-detail-modal .vd-venue-desc-hint {
+  margin: 0 0 8px;
+  font-size: 11px;
+  font-weight: 500;
+  color: #94a3b8;
+  line-height: 1.4;
+}

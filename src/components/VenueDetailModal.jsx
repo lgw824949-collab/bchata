@@ -9,30 +9,52 @@ import { supabase, logActivity } from '../lib/supabase';
 import PartyLiveHybridBadge from './PartyLiveHybridBadge';
 import { useBarStatsRealtime } from '../hooks/useBarStatsRealtime';
 import { formatPartyMusicRatio } from '../pages/Social';
-import { formatPartyFeeDisplay } from '../lib/partyFeeDisplay';
+import PartyFeeChips from './PartyFeeChips';
 import { formatPartyTitleDisplay, PARTY_TITLE_CARD_FONT_SIZE } from '../lib/partyTitleDisplay';
 
 export { partyMatchesVenue } from '../lib/partyVenueMatch';
 
 const DAYS_KOR = ['일', '월', '화', '수', '목', '금', '토'];
 
-/** BAR 상세 — 홈 브랜드(핑크·골드) 톤 */
+/** BAR 상세 — 사장님 공간: 홈 카드와 동일한 글꼴·색 계층 */
 const VD = {
   brand: '#D4436E',
+  brandSoft: '#C2185B',
   accent: '#E53935',
-  gold: '#C9A84C',
-  title: '#1A1A1A',
+  ink: '#0F172A',
+  title: '#111111',
   body: '#334155',
   muted: '#64748B',
+  meta: '#757575',
   faint: '#94A3B8',
   border: '#F1F5F9',
-  borderAccent: '#FECDD3',
+  borderAccent: 'rgba(216, 27, 96, 0.14)',
   bgPage: '#FFFBFA',
   bgHeader: 'linear-gradient(180deg, #FFF8FA 0%, #FFFFFF 100%)',
-  bgCard: 'linear-gradient(135deg, #FFFFFF 0%, #FFF5F8 100%)',
+  bgCard: '#FFFFFF',
   bgCalendar: '#FFFBF8',
-  shadowCard: '0 8px 24px rgba(212, 67, 110, 0.12)',
+  shadowCard: '0 4px 20px rgba(0, 0, 0, 0.06)',
+  font: "Pretendard, -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif",
 };
+
+const VD_GENRE_PILL = {
+  display: 'inline-flex',
+  alignItems: 'center',
+  gap: 6,
+  padding: '4px 11px',
+  borderRadius: 999,
+  background: 'linear-gradient(180deg, #FFFBFC 0%, #FFF0F5 100%)',
+  border: `1px solid ${VD.borderAccent}`,
+  boxShadow: '0 1px 4px rgba(216, 27, 96, 0.08)',
+};
+
+const vdSectionLabel = (dateLabel, suffix) => (
+  <p className="vd-section-label" style={{ margin: '0 0 10px' }}>
+    <span className="vd-section-label__date">{dateLabel}</span>
+    <span className="vd-section-label__sep"> · </span>
+    <span className="vd-section-label__text">{suffix}</span>
+  </p>
+);
 
 /** 상세 설명: 약 3줄 분량 */
 const VENUE_DESC_MAX = 120;
@@ -99,24 +121,115 @@ const VenueAvatar = ({ venue, size = 40 }) => (
 const VENUE_DETAIL_BODY_CLASS = 'venue-detail-open';
 const VENUE_DETAIL_NAV_HIDDEN_CLASS = 'venue-detail-nav-hidden';
 
-/** b_ratio 등 가중치(0~10) → B4:S2. %는 표시하지 않음 */
-const RatioBar = ({ item, compact }) => {
-  const text = formatPartyMusicRatio(item);
-  if (!text) return null;
+const GenreRatioPill = ({ tagLabel, item }) => {
+  const ratio = formatPartyMusicRatio(item);
   return (
-    <p
-      style={{
-        margin: compact ? '4px 0 0' : '8px 0 0',
-        fontSize: '12px',
-        fontWeight: 800,
-        color: VD.brand,
-        lineHeight: 1.3,
-        letterSpacing: '0.02em',
-      }}
-    >
-      {text}
-    </p>
+    <span style={VD_GENRE_PILL}>
+      <span style={{ fontSize: 11, fontWeight: 800, color: VD.brandSoft, letterSpacing: '0.2px' }}>{tagLabel}</span>
+      {ratio ? (
+        <>
+          <span
+            aria-hidden
+            style={{ width: 1, height: 10, background: 'rgba(216, 27, 96, 0.22)', borderRadius: 1, flexShrink: 0 }}
+          />
+          <span style={{ fontSize: 11, fontWeight: 800, color: VD.accent, letterSpacing: '0.02em' }}>{ratio}</span>
+        </>
+      ) : null}
+    </span>
   );
+};
+
+const daysFromToday = (dateStr, todayStr) => {
+  const a = normDate(dateStr);
+  const b = normDate(todayStr);
+  if (!a || !b) return 0;
+  const [ay, am, ad] = a.split('-').map(Number);
+  const [by, bm, bd] = b.split('-').map(Number);
+  return Math.round((Date.UTC(ay, am - 1, ad) - Date.UTC(by, bm - 1, bd)) / 86400000);
+};
+
+/** D-day 칩: 오늘 · 내일 · D-n */
+const getDateBadge = (selectedDate, todayStr) => {
+  const diff = daysFromToday(selectedDate, todayStr);
+  if (diff === 0) return { label: '오늘', tone: 'today' };
+  if (diff === 1) return { label: '내일', tone: 'soon' };
+  if (diff > 1 && diff <= 14) return { label: `D-${diff}`, tone: 'soon' };
+  if (diff < 0) return { label: '지난 일정', tone: 'past' };
+  return null;
+};
+
+/** description/title에서 파트너·레벨·DJ·게스트 태그 추출 (최대 3개) */
+const extractPartyMetaTags = (party, isLesson) => {
+  const hay = `${party.title || ''} ${party.description || ''}`;
+  const tags = [];
+  const push = (key, label) => {
+    if (!label || tags.some((t) => t.key === key)) return;
+    tags.push({ key, label: String(label).trim().slice(0, 28) });
+  };
+
+  const partner = hay.match(/파트너\s*(필수|선택|불필요|있음|없음)/i);
+  if (partner) push('partner', `파트너 ${partner[1]}`);
+
+  if (isLesson && party.level) push('level', party.level);
+  else {
+    const level = hay.match(/(입문|초급|중급|중상|고급|센슈얼|인터미디엇)/);
+    if (level) push('level', level[1]);
+  }
+
+  const dress = hay.match(/드레스\s*코드\s*[:：]?\s*([^\n·|,]{2,20})/i);
+  if (dress) push('dress', `드레스 ${dress[1].trim()}`);
+  else if (/캐주얼|스마트\s*캐주얼|포멀/i.test(hay)) {
+    const m = hay.match(/(캐주얼|스마트\s*캐주얼|포멀)/i);
+    if (m) push('dress', m[1]);
+  }
+
+  const dj = hay.match(/(?:DJ|디제이)\s*[:：]?\s*([^\n·|,]{2,24})/i);
+  if (dj) push('dj', `DJ ${dj[1].trim()}`);
+
+  const guest = hay.match(/\bWith\s+([^\n·|,]{2,28})/i);
+  if (guest) push('guest', guest[1].trim());
+
+  return tags.slice(0, 3);
+};
+
+/** 행사 전용 부제 — 매장 공통 설명(venue)과 중복 제거 */
+const getFeaturedCardSubtitle = (party, isLesson, venueDesc) => {
+  const venueNorm = String(venueDesc || '').replace(/\s+/g, ' ').trim();
+  let desc = String(party.description || '').replace(/\s+/g, ' ').trim();
+
+  if (desc && venueNorm) {
+    if (desc === venueNorm) desc = '';
+    else if (desc.includes(venueNorm)) desc = desc.replace(venueNorm, '').replace(/\s*·\s*/g, ' · ').trim();
+  }
+
+  const tagLabels = new Set(extractPartyMetaTags(party, isLesson).map((t) => t.label.toLowerCase()));
+  if (desc) {
+    const stripped = desc
+      .split('·')
+      .map((s) => s.trim())
+      .filter((seg) => seg && ![...tagLabels].some((tl) => seg.toLowerCase().includes(tl) || tl.includes(seg.toLowerCase())))
+      .join(' · ');
+    if (stripped) {
+      const max = 52;
+      return stripped.length > max ? `${stripped.slice(0, max)}…` : stripped;
+    }
+  }
+
+  if (isLesson) {
+    const line = [party.instructor_name || party.instructor, party.day_of_week]
+      .map((s) => String(s || '').trim())
+      .filter(Boolean)
+      .join(' · ');
+    if (line) return line;
+  }
+
+  const raw = String(party.time || '').trim();
+  if (raw.includes('-')) {
+    const [start, end] = raw.split('-').map((t) => t.trim());
+    if (start && end) return `${start} – ${end}`;
+  }
+
+  return null;
 };
 
 /** 홈 소셜 카드와 같은 톤 — 세로 포스터는 좌측 고정폭 + cover (레터박스 없음) */
@@ -124,18 +237,21 @@ const FeaturedPartyCard = ({
   party,
   onOpenPoster,
   isLesson = false,
-  displayDate,
+  selectedDate,
+  todayStr,
+  venueDescription = '',
   liveCount = 0,
   clickCount = 0,
 }) => {
   const title = formatPartyTitleDisplay(party.title);
+  const dateBadge = selectedDate && todayStr ? getDateBadge(selectedDate, todayStr) : null;
+  const metaTags = extractPartyMetaTags(party, isLesson);
+  const subtitle = getFeaturedCardSubtitle(party, isLesson, venueDescription);
   const time = isLesson
     ? [party.day_of_week, party.start_time?.slice(0, 5) || party.time?.split('-')[0]?.trim()]
         .filter(Boolean)
         .join(' · ') || '—'
     : party.time?.split('-')[0]?.trim() || '—';
-  const fee = formatPartyFeeDisplay(party.fee, { fallback: '—' });
-  const feeLabel = isLesson ? '수강' : '입장';
   const tagLabel = isLesson
     ? [party.level, party.genre || getGenreLabel(party)].filter(Boolean).join(' · ') || '수업'
     : getGenreLabel(party);
@@ -227,41 +343,25 @@ const FeaturedPartyCard = ({
         }}
       >
         <div>
-          <span
-            style={{
-              fontSize: 11,
-              fontWeight: 800,
-              color: '#fff',
-              background: `linear-gradient(135deg, ${VD.brand} 0%, ${VD.accent} 100%)`,
-              padding: '4px 10px',
-              borderRadius: 8,
-              letterSpacing: 0.2,
-            }}
-          >
-            {tagLabel}
-          </span>
-          <div
-            style={{
-              marginTop: 10,
-              fontSize: PARTY_TITLE_CARD_FONT_SIZE,
-              fontWeight: 900,
-              color: VD.title,
-              lineHeight: 1.3,
-              letterSpacing: '-0.4px',
-              display: '-webkit-box',
-              WebkitLineClamp: 1,
-              WebkitBoxOrient: 'vertical',
-              overflow: 'hidden',
-            }}
-          >
-            {title}
+          <GenreRatioPill tagLabel={tagLabel} item={party} />
+          <div className="vd-card-title-row">
+            <h3 className="vd-card-title">{title}</h3>
+            {dateBadge ? (
+              <span className="vd-date-badge" data-tone={dateBadge.tone}>
+                {dateBadge.label}
+              </span>
+            ) : null}
           </div>
-          {displayDate && (
-            <div style={{ marginTop: 6, fontSize: 11, fontWeight: 800, color: VD.brand }}>
-              {formatLessonShortDate(displayDate)}
-              {isLesson ? ' 수업' : ' 행사'}
+          {metaTags.length > 0 ? (
+            <div className="vd-card-tags" role="list">
+              {metaTags.map((t) => (
+                <span key={t.key} className="vd-card-tag" data-kind={t.key} role="listitem">
+                  {t.label}
+                </span>
+              ))}
             </div>
-          )}
+          ) : null}
+          {subtitle ? <p className="vd-card-subtitle">{subtitle}</p> : null}
         </div>
 
         <div
@@ -274,27 +374,13 @@ const FeaturedPartyCard = ({
           }}
         >
           <div style={{ flex: 1, minWidth: 0 }}>
-          <div
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              flexWrap: 'nowrap',
-              gap: 8,
-              fontSize: 14,
-              lineHeight: 1.2,
-            }}
-          >
-            <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4, color: VD.muted, fontWeight: 700, flexShrink: 0 }}>
-              <Clock size={14} color={VD.muted} style={{ flexShrink: 0 }} />
-              <span style={{ fontVariantNumeric: 'tabular-nums' }}>{time}</span>
-            </span>
-            <span style={{ color: VD.faint, fontWeight: 700, flexShrink: 0 }}>·</span>
-            <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4, flexShrink: 0 }}>
-              <span style={{ color: VD.faint, fontWeight: 700 }}>{feeLabel}</span>
-              <span style={{ color: VD.accent, fontWeight: 900, fontVariantNumeric: 'tabular-nums' }}>{fee}</span>
-            </span>
-          </div>
-            <RatioBar item={party} compact />
+            <div className="vd-card-footer-meta">
+              <span className="vd-card-time">
+                <Clock size={14} color={VD.meta} style={{ flexShrink: 0 }} />
+                <span style={{ fontVariantNumeric: 'tabular-nums' }}>{time}</span>
+              </span>
+              <PartyFeeChips fee={party.fee} style={{ flex: 1, minWidth: 0 }} />
+            </div>
           </div>
           {!isLesson ? (
             <PartyLiveHybridBadge liveCount={liveCount} clickCount={clickCount} />
@@ -436,12 +522,13 @@ const VenueModeTabs = ({ mode, onChange }) => (
             padding: '6px 10px',
             borderRadius: 8,
             border: 'none',
-            fontSize: 12,
-            fontWeight: 800,
+            fontSize: 13,
+            fontWeight: active ? 700 : 600,
+            letterSpacing: '-0.02em',
             cursor: 'pointer',
             background: active ? '#fff' : 'transparent',
-            color: active ? VD.brand : VD.muted,
-            boxShadow: active ? '0 1px 4px rgba(212, 67, 110, 0.2)' : 'none',
+            color: active ? VD.brandSoft : VD.muted,
+            boxShadow: active ? '0 1px 4px rgba(212, 67, 110, 0.15)' : 'none',
           }}
         >
           {label}
@@ -778,6 +865,7 @@ export default function VenueDetailModal({
   return (
     <AnimatePresence>
       <motion.div
+        className="venue-detail-modal"
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
@@ -788,6 +876,7 @@ export default function VenueDetailModal({
           background: VD.bgPage,
           display: 'flex',
           flexDirection: 'column',
+          fontFamily: VD.font,
           paddingTop: 'env(safe-area-inset-top)',
           paddingBottom: 'env(safe-area-inset-bottom)',
         }}
@@ -834,25 +923,9 @@ export default function VenueDetailModal({
           >
             <VenueAvatar venue={venue} size={40} />
             <div style={{ minWidth: 0, textAlign: 'left' }}>
-              <div style={{ fontSize: 10, fontWeight: 800, color: VD.brand, letterSpacing: 0.3, marginBottom: 2 }}>
-                {isSocialTab ? '오늘의 플로어' : '오늘의 수업'}
-              </div>
-              <div style={{ fontSize: '17px', fontWeight: 900, color: VD.title, lineHeight: 1.25 }}>{displayName}</div>
-              {displayAddress && (
-                <div
-                  style={{
-                    fontSize: '11px',
-                    color: VD.muted,
-                    fontWeight: 600,
-                    overflow: 'hidden',
-                    textOverflow: 'ellipsis',
-                    whiteSpace: 'nowrap',
-                    marginTop: 2,
-                  }}
-                >
-                  {displayAddress}
-                </div>
-              )}
+              <div className="vd-header-eyebrow">{isSocialTab ? '오늘의 플로어' : '오늘의 수업'}</div>
+              <h1 className="vd-header-name">{displayName}</h1>
+              {displayAddress && <p className="vd-header-address">{displayAddress}</p>}
               <VenueModeTabs mode={detailTab} onChange={setDetailTab} />
             </div>
           </div>
@@ -878,7 +951,7 @@ export default function VenueDetailModal({
         {/* 상단: 달력 */}
         <div style={{ flexShrink: 0, padding: '12px 16px 10px', borderBottom: `1px solid ${VD.border}`, background: VD.bgCalendar }}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '10px' }}>
-            <span style={{ fontSize: '16px', fontWeight: 900, color: VD.brand }}>{calendarMonth.month}월</span>
+            <span className="vd-cal-month">{calendarMonth.month}월</span>
             <div style={{ display: 'flex', gap: '6px' }}>
               <button type="button" onClick={() => setCalendarMonth((m) => { const nm = m.month > 1 ? m.month - 1 : 12; const ny = m.month > 1 ? m.year : m.year - 1; return { year: ny, month: nm }; })} style={{ width: 32, height: 32, borderRadius: 8, border: '1px solid #E2E8F0', background: '#fff' }}><ChevronLeft size={16} /></button>
               <button type="button" onClick={() => setCalendarMonth((m) => { const nm = m.month < 12 ? m.month + 1 : 1; const ny = m.month < 12 ? m.year : m.year + 1; return { year: ny, month: nm }; })} style={{ width: 32, height: 32, borderRadius: 8, border: '1px solid #E2E8F0', background: '#fff' }}><ChevronRight size={16} /></button>
@@ -886,7 +959,7 @@ export default function VenueDetailModal({
           </div>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: '4px', textAlign: 'center' }}>
             {DAYS_KOR.map((d) => (
-              <div key={d} style={{ fontSize: '10px', fontWeight: 700, color: d === '일' ? VD.accent : VD.faint, padding: '2px 0' }}>{d}</div>
+              <div key={d} className="vd-cal-dow" data-sunday={d === '일' ? 'true' : undefined}>{d}</div>
             ))}
             {calendarDays.map((day) => {
               if (day.empty) return <div key={day.key} />;
@@ -896,7 +969,7 @@ export default function VenueDetailModal({
               return (
                 <button key={day.key} type="button" onClick={() => setSelectedDate(day.fullDate)} style={{ border: 'none', background: isSelected ? VD.brand : hasEvent ? 'rgba(212, 67, 110, 0.08)' : 'transparent', borderRadius: 10, padding: '6px 0', cursor: 'pointer', opacity: isPast && !hasEvent ? 0.35 : 1 }}>
                   <div style={{ fontSize: '13px', fontWeight: 800, color: isSelected ? '#fff' : hasEvent ? VD.brand : VD.title }}>{day.date}</div>
-                  <div style={{ height: 4, display: 'flex', justifyContent: 'center', alignItems: 'center' }}>{hasEvent && <span style={{ width: 5, height: 5, borderRadius: '50%', background: isSelected ? '#fff' : VD.gold }} />}</div>
+                  <div style={{ height: 4, display: 'flex', justifyContent: 'center', alignItems: 'center' }}>{hasEvent && <span className="vd-cal-dot" data-selected={isSelected ? 'true' : undefined} />}</div>
                 </button>
               );
             })}
@@ -919,15 +992,15 @@ export default function VenueDetailModal({
             background: VD.bgPage,
           }}
         >
-          <p style={{ margin: '0 0 8px', fontSize: 12, fontWeight: 800, color: VD.brand }}>
-            {formatLessonShortDate(selectedDate)} · {isSocialTab ? '이 날의 행사' : '이 날의 수업'}
-          </p>
+          {vdSectionLabel(formatLessonShortDate(selectedDate), isSocialTab ? '이 날의 행사' : '이 날의 수업')}
           {featuredItem ? (
             <FeaturedPartyCard
               party={featuredItem}
               onOpenPoster={onOpenPoster}
               isLesson={!isSocialTab}
-              displayDate={selectedDate}
+              selectedDate={selectedDate}
+              todayStr={todayStr}
+              venueDescription={venueDescription}
               liveCount={venueBarStats.liveCount}
               clickCount={venueBarStats.clickCount}
             />
@@ -948,17 +1021,18 @@ export default function VenueDetailModal({
             }}
           >
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
-              <span style={{ fontSize: 12, fontWeight: 800, color: VD.brand }}>상세 설명</span>
+              <span className="vd-block-title">매장 공통 안내</span>
               <span style={{ fontSize: 10, fontWeight: 600, color: VD.faint }}>
-                BAR 공통 · {venueDescription.length}/{VENUE_DESC_MAX}
+                위 카드는 그날 행사만 · {venueDescription.length}/{VENUE_DESC_MAX}
               </span>
             </div>
+            <p className="vd-venue-desc-hint">주차, 영업시간, 드레스코드 등 매장 전체에 공통되는 내용만 적어 주세요.</p>
             <textarea
               value={venueDescription}
               onChange={(e) => setVenueDescription(e.target.value.slice(0, VENUE_DESC_MAX))}
               rows={3}
               maxLength={VENUE_DESC_MAX}
-              placeholder="운영 시간, 주차, 드레스코드 등"
+              placeholder="예: B2 주차 2시간 무료 · 영업 19:00–03:00"
               style={{
                 width: '100%',
                 padding: 12,
@@ -996,7 +1070,7 @@ export default function VenueDetailModal({
 
           {featuredItem && dayItems.length > 1 && (
             <div style={{ marginTop: 12, marginBottom: 4 }}>
-              <p style={{ fontSize: '12px', fontWeight: 800, color: VD.brand, margin: '0 0 8px' }}>
+              <p className="vd-block-title" style={{ margin: '0 0 8px' }}>
                 {isSocialTab ? '같은 날 다른 행사' : '같은 날 다른 수업'}
               </p>
               {dayItems.slice(1).map((p) => (
@@ -1026,7 +1100,7 @@ export default function VenueDetailModal({
 
           {(isSocialTab ? schedulePosters.length > 0 : true) && (
             <div style={{ marginBottom: 16 }}>
-              <p style={{ fontSize: 12, fontWeight: 800, color: VD.brand, margin: '0 0 8px' }}>
+              <p className="vd-block-title" style={{ margin: '0 0 8px' }}>
                 {isSocialTab ? '행사 일정' : '수업 일정'}
               </p>
               {schedulePosters.length === 0 ? (
