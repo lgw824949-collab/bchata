@@ -1,12 +1,9 @@
 import React from 'react';
-import { Clock } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
-import { sharePartyToKakao } from '../lib/kakaoShare';
-import { buildPartyShareCard } from '../lib/partyShareCard';
 import { supabase } from '../lib/supabase';
 import PartyWishlistHeart from './PartyWishlistHeart';
 import { usePartyWishlist } from '../hooks/usePartyWishlist';
-import { PartyMusicRatioLine } from '../pages/Social';
+import { formatPartyMusicRatio } from '../pages/Social';
 import { formatPartyFeeDisplay } from '../lib/partyFeeDisplay';
 
 const GENRE_MAP = {
@@ -92,17 +89,11 @@ const PartyCard = ({ item, onSelect, wishlistParties: wishlistProp, onToggleWish
   const timeLabel = item.date === todayStr ? `오늘 ${displayTime}` : displayTime;
   const displayFee = formatPartyFeeDisplay(item.fee, { fallback: '문의' });
   const locationLabel = translateDynamicText(item.locationName || item.studio_name || '장소 미지정', isEn);
-
-  const handleKakaoShare = async (e) => {
-    e.stopPropagation();
-    const card = buildPartyShareCard(item);
-    await sharePartyToKakao({
-      title: card?.title || item.title,
-      description: card?.feedDesc || `${item.date} · ${item.locationName || item.studio_name || ''} · ${item.fee || ''}`.replace(/ · $/, '').replace(/^ · /, ''),
-      posterUrl: item.poster_url,
-      linkUrl: `https://bchata.vercel.app/?party=${item.id}&open=true`,
-    });
-  };
+  const ratioLabel = formatPartyMusicRatio(item);
+  const title = translateDynamicText(
+    cleanTitleStr.replace(/^\[.*?\]\s*/, '').replace(/ㅣ\s*$/, '').trim(),
+    isEn,
+  );
 
   const handleCardClick = async () => {
     if (item?.id) {
@@ -126,17 +117,15 @@ const PartyCard = ({ item, onSelect, wishlistParties: wishlistProp, onToggleWish
       onClick={handleCardClick}
       style={{
         display: 'flex',
-        flexDirection: 'row',
-        alignItems: 'stretch',
-        backgroundColor: 'var(--color-card)',
+        padding: '20px',
+        background: '#FFFFFF',
         borderRadius: '16px',
-        overflow: 'hidden',
-        border: '1px solid var(--color-border)',
+        boxShadow: '0 4px 20px rgba(0,0,0,0.06)',
+        gap: '20px',
         cursor: 'pointer',
-        height: '180px',
         marginBottom: '12px',
-        transition: 'all 0.3s',
         position: 'relative',
+        alignItems: 'center',
       }}
     >
       <PartyWishlistHeart
@@ -145,83 +134,49 @@ const PartyCard = ({ item, onSelect, wishlistParties: wishlistProp, onToggleWish
         onToggle={onToggleWishlist}
       />
 
-      <div style={{ width: '110px', flexShrink: 0, background: '#000' }}>
+      <div style={{ width: '120px', height: '120px', borderRadius: '12px', overflow: 'hidden', flexShrink: 0 }}>
         <img src={item.poster_url} style={{ width: '100%', height: '100%', objectFit: 'cover' }} alt="Poster" />
       </div>
 
-      <div
-        style={{
-          flex: 1,
-          display: 'flex',
-          flexDirection: 'column',
-          minWidth: 0,
-          padding: '12px 14px',
-        }}
-      >
-        <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexShrink: 0 }}>
-          <span
-            style={{
-              fontSize: '11px',
-              fontWeight: 700,
-              color: '#ffffff',
-              background: '#E53935',
-              padding: '2px 8px',
-              borderRadius: '4px',
-              flexShrink: 0,
-            }}
-          >
+      <div style={{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'center', gap: '8px', minWidth: 0 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <span style={{ fontSize: '11px', fontWeight: 800, color: '#666', letterSpacing: '0.5px' }}>
             {genreLabel}
           </span>
           {isTimeLive ? (
-            <span
-              style={{
-                fontSize: '10px',
-                fontWeight: 700,
-                background: '#E53935',
-                color: '#ffffff',
-                padding: '2px 6px',
-                borderRadius: '4px',
-                animation: 'blink 1.5s infinite',
-              }}
-            >
-              LIVE
-            </span>
+            <span style={{ fontSize: '10px', fontWeight: 800, color: '#E53935', letterSpacing: '0.3px' }}>LIVE</span>
           ) : null}
         </div>
 
-        <div
+        <h3
           style={{
-            fontSize: '15px',
+            margin: 0,
+            fontSize: '18px',
             fontWeight: 800,
-            color: 'var(--color-text-main)',
+            color: '#111',
+            lineHeight: 1.4,
             display: '-webkit-box',
             WebkitLineClamp: 2,
             WebkitBoxOrient: 'vertical',
             overflow: 'hidden',
             textOverflow: 'ellipsis',
-            letterSpacing: '-0.5px',
-            lineHeight: 1.25,
-            marginTop: '6px',
           }}
         >
-          {translateDynamicText(cleanTitleStr.replace(/^\[.*?\]\s*/, '').replace(/ㅣ\s*$/, '').trim(), isEn)}
-        </div>
+          {title}
+        </h3>
 
         <div
           style={{
             display: 'flex',
             alignItems: 'center',
-            gap: '4px',
-            marginTop: '6px',
+            gap: '12px',
+            fontSize: '13px',
+            color: '#757575',
+            fontWeight: 500,
             minWidth: 0,
-            fontSize: '12px',
-            color: 'var(--color-text-sub)',
-            fontWeight: 600,
           }}
         >
-          <Clock size={12} style={{ flexShrink: 0 }} />
-          <span style={{ flexShrink: 0 }}>{timeLabel}</span>
-          <span style={{ opacity: 0.45, flexShrink: 0 }}>·</span>
+          <span style={{ flexShrink: 0 }}>🕒 {timeLabel}</span>
           <span
             style={{
               overflow: 'hidden',
@@ -230,70 +185,16 @@ const PartyCard = ({ item, onSelect, wishlistParties: wishlistProp, onToggleWish
               minWidth: 0,
             }}
           >
-            {locationLabel}
+            📍 {locationLabel}
           </span>
         </div>
 
-        <div
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-            gap: '8px',
-            marginTop: '6px',
-            minWidth: 0,
-          }}
-        >
-          <PartyMusicRatioLine
-            item={item}
-            style={{
-              margin: 0,
-              fontSize: '11px',
-              fontWeight: 500,
-              color: '#888888',
-              flex: 1,
-              minWidth: 0,
-              overflow: 'hidden',
-              textOverflow: 'ellipsis',
-              whiteSpace: 'nowrap',
-            }}
-          />
-          <span
-            style={{
-              fontSize: '13px',
-              color: '#E53935',
-              fontWeight: 800,
-              flexShrink: 0,
-              marginLeft: 'auto',
-            }}
-          >
-            {displayFee}
-          </span>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginTop: '4px', flexWrap: 'wrap' }}>
+          <span style={{ fontSize: '16px', fontWeight: 900, color: '#E53935' }}>{displayFee}</span>
+          {ratioLabel ? (
+            <span style={{ color: '#E53935', fontWeight: 700, fontSize: '14px' }}>| {ratioLabel}</span>
+          ) : null}
         </div>
-
-        <div style={{ flex: 1, minHeight: 0 }} />
-
-        <button
-          type="button"
-          onClick={handleKakaoShare}
-          style={{
-            alignSelf: 'flex-end',
-            background: '#FEE500',
-            color: '#3E2723',
-            border: 'none',
-            borderRadius: '8px',
-            padding: '6px 10px',
-            fontSize: '12px',
-            fontWeight: 700,
-            cursor: 'pointer',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            flexShrink: 0,
-          }}
-        >
-          💬 카카오공유
-        </button>
       </div>
     </div>
   );
