@@ -18,7 +18,7 @@ import {
 import VenueDetailModal from '../components/VenueDetailModal'
 import BarRegisterFormModal from '../components/BarRegisterFormModal'
 import HomeHeroTagline from '../components/HomeHeroTagline'
-import { navigate as historyNavigate, parseAppState, pushOverlay } from '../lib/appHistory'
+import { navigate as historyNavigate, parseAppState, pushOverlay, readNavigationState } from '../lib/appHistory'
 import { formatPartyFeeDisplay, PARTY_FEE_CARD_FONT_SIZE } from '../lib/partyFeeDisplay'
 import { formatPartyTitleDisplay } from '../lib/partyTitleDisplay'
 import PartyCard from '../components/PartyCard'
@@ -1669,27 +1669,30 @@ const HomePage = ({
     };
   }, [selectedVenue?.id]);
 
-  useEffect(() => {
-    const onHistory = (event) => {
-      const st = event.detail?.state ?? parseAppState(window.history.state);
-      if (st?.overlay === 'venue' && st.overlayMeta?.venueId) {
-        const id = st.overlayMeta.venueId;
-        const bar = locations.find((b) => String(b.id) === String(id));
-        if (bar) {
-          setSelectedVenue(bar);
-          return;
-        }
-        const name = st.overlayMeta.venueName;
-        if (name) {
-          const byName = locations.find((b) => b.name === name);
-          if (byName) setSelectedVenue(byName);
-          return;
-        }
+  const syncOverlaysFromHistory = (rawState) => {
+    const st = parseAppState(rawState) ?? readNavigationState(rawState);
+    if (st?.overlay === 'venue' && st.overlayMeta?.venueId) {
+      const id = st.overlayMeta.venueId;
+      const bar = locations.find((b) => String(b.id) === String(id));
+      if (bar) {
+        setSelectedVenue(bar);
+        return;
       }
-      if (st?.overlay !== 'venue') setSelectedVenue(null);
-      if (st?.overlay === 'barRegister') setShowBarRegisterForm(true);
-      else if (st?.overlay !== 'barRegister') setShowBarRegisterForm(false);
-    };
+      const name = st.overlayMeta.venueName;
+      if (name) {
+        const byName = locations.find((b) => b.name === name);
+        if (byName) setSelectedVenue(byName);
+        return;
+      }
+    }
+    if (st?.overlay !== 'venue') setSelectedVenue(null);
+    if (st?.overlay === 'barRegister') setShowBarRegisterForm(true);
+    else if (st?.overlay !== 'barRegister') setShowBarRegisterForm(false);
+  };
+
+  useEffect(() => {
+    syncOverlaysFromHistory(window.history.state);
+    const onHistory = (event) => syncOverlaysFromHistory(event.detail?.state ?? window.history.state);
     window.addEventListener('bamppa-history', onHistory);
     return () => window.removeEventListener('bamppa-history', onHistory);
   }, [locations]);
@@ -2111,11 +2114,11 @@ const HomePage = ({
       },
     },
     { id: 'livepick', icon: Camera, label: '라이브픽', particles: '📸', action: () => navigate('/livepick') },
-    { id: 'wishlist', icon: Heart, label: '찜하기', particles: '❤️', action: () => setShowWishlist(true) },
+    { id: 'wishlist', icon: Heart, label: '찜하기', particles: '❤️', action: () => pushOverlay('wishlist') },
     { id: 'chat', icon: MessageSquare, label: '채팅문의', particles: '💬', action: () => window.open('https://open.kakao.com/o/gP43rNri', '_blank') },
     { id: 'saju', icon: Star, label: '운명의좌표', particles: '🌟', action: () => { pushOverlay('barMatching'); setShowSaju(true); } },
     { id: 'restaurant', icon: Utensils, label: '맛집뒷풀이', particles: '🍽', action: () => navigate('/restaurant') },
-    { id: 'weather', icon: CloudSun, label: '오늘날씨', particles: '☀️', action: () => setShowWeather(true) },
+    { id: 'weather', icon: CloudSun, label: '오늘날씨', particles: '☀️', action: () => pushOverlay('weather') },
     { id: 'route', icon: Navigation, label: '지능형경로', particles: '🧭', action: () => openAnalysis(false) },
     { id: 'calendar', menuSvg: QUICK_MENU_SVG.calendar, label: '행사달력', particles: '📅', action: openFullCalendarModal },
     {
@@ -3086,16 +3089,16 @@ const HomePage = ({
           {[
             { icon: <Calendar size={32} strokeWidth={1.2} color="#D4436E" />, label: '행사달력', particles: '📅', action: () => setShowFullCalendar(true) },
             // { icon: <MapPin size={32} strokeWidth={1.2} color="#D4436E" />, label: '위치·대관', particles: '📍', action: () => setShowRentalModal(true) },
-            { icon: <Users size={32} strokeWidth={1.2} color="#C9A84C" />, label: '파트너', particles: '💑', action: () => { window.history.pushState({}, '', '#partner'); setActiveTab('partner'); } },
-            { icon: <Users size={32} strokeWidth={1.2} color="#C9A84C" />, label: '강사찾기', particles: '🕺', action: () => { localStorage.setItem('instructor_target_genre', '전체'); setView('instructors'); window.history.pushState({}, '', '/instructors'); window.dispatchEvent(new PopStateEvent('popstate')); setTimeout(() => { window.dispatchEvent(new CustomEvent('apply-instructor-filter')); }, 300); } },
+            { icon: <Users size={32} strokeWidth={1.2} color="#C9A84C" />, label: '파트너', particles: '💑', action: () => setActiveTab('partner') },
+            { icon: <Users size={32} strokeWidth={1.2} color="#C9A84C" />, label: '강사찾기', particles: '🕺', action: () => { localStorage.setItem('instructor_target_genre', '전체'); navigate('/instructors'); setTimeout(() => { window.dispatchEvent(new CustomEvent('apply-instructor-filter')); }, 300); } },
             { textIcon: '1:1', label: '채팅문의', particles: '💬', action: () => window.open('https://open.kakao.com/o/gP43rNri', '_blank') },
             { icon: <MessageSquare size={32} strokeWidth={1.2} color="#C9A84C" />, label: '컨시어지', particles: '✨', action: () => window.dispatchEvent(new CustomEvent('open-chatbot')) },
             { icon: <Star size={32} strokeWidth={1.2} color="#C9A84C" />, label: '운명의좌표', particles: '🌟', action: () => setShowSaju(true) },
-            { icon: <Heart size={32} strokeWidth={1.2} color="#C9A84C" />, label: '찜하기', particles: '❤️', action: () => { window.history.pushState({}, '', '#wishlist'); setShowWishlist(true); } },
-            { icon: <Utensils size={32} strokeWidth={1.2} color="#C9A84C" />, label: '맛집뒷풀이', particles: '🍽', action: () => { window.history.pushState({}, '', '#restaurant'); setView('restaurant'); } },
-            { icon: <Camera size={32} strokeWidth={1.2} color="#C9A84C" />, label: '라이브픽', particles: '📸', action: () => { window.history.pushState({}, '', '#community'); setView('community'); } },
-            { icon: <CloudSun size={32} strokeWidth={1.2} color="#C9A84C" />, label: '오늘날씨', particles: '☀️', action: () => { window.history.pushState({}, '', '#weather'); setShowWeather(true); } },
-            { icon: <Navigation size={32} strokeWidth={1.2} color="#C9A84C" />, label: '지능형경로', particles: '🧭', action: () => { window.history.pushState({}, '', '#route'); openAnalysis(false); } },
+            { icon: <Heart size={32} strokeWidth={1.2} color="#C9A84C" />, label: '찜하기', particles: '❤️', action: () => pushOverlay('wishlist') },
+            { icon: <Utensils size={32} strokeWidth={1.2} color="#C9A84C" />, label: '맛집뒷풀이', particles: '🍽', action: () => navigate('/restaurant') },
+            { icon: <Camera size={32} strokeWidth={1.2} color="#C9A84C" />, label: '라이브픽', particles: '📸', action: () => navigate('/livepick') },
+            { icon: <CloudSun size={32} strokeWidth={1.2} color="#C9A84C" />, label: '오늘날씨', particles: '☀️', action: () => pushOverlay('weather') },
+            { icon: <Navigation size={32} strokeWidth={1.2} color="#C9A84C" />, label: '지능형경로', particles: '🧭', action: () => pushOverlay('route') },
           ].map((item, idx) => (
             <motion.div key={`partner-${idx}`} whileTap={{ scale: 0.92 }} onClick={(e) => { triggerParticle(e, item.particles); item.action(); }} style={{ ...quickMenuFloatStyle, position: 'relative', width: 'calc(22% - 6px)', minWidth: 'calc(22% - 6px)', flexShrink: 0, scrollSnapAlign: 'start' }}>
               {item.textIcon ? (
@@ -3848,11 +3851,11 @@ const HomePage = ({
                 {gridRegion === 'more' ? (
                   <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '10px', padding: '20px' }}>
                     {[
-                      { icon: <CloudSun size={32} color="#1976D2" />, label: '오늘날씨', action: () => setShowWeather(true) },
-                      { icon: <Heart size={32} color="#7B1FA2" />, label: '찜하기', action: () => setShowWishlist(true) },
+                      { icon: <CloudSun size={32} color="#1976D2" />, label: '오늘날씨', action: () => pushOverlay('weather') },
+                      { icon: <Heart size={32} color="#7B1FA2" />, label: '찜하기', action: () => pushOverlay('wishlist') },
                       { icon: <Navigation size={32} color="#303F9F" />, label: '지능형경로', /* badge: 'LIVE', */ action: () => openAnalysis(false) },
-                      { icon: <Star size={32} color="#F9A825" />, label: '운명의좌표', action: () => setShowSaju(true) },
-                      { icon: <MapPin size={32} color="#0097A7" />, label: '주변주차', action: () => setView('parking') },
+                      { icon: <Star size={32} color="#F9A825" />, label: '운명의좌표', action: () => pushOverlay('barMatching') },
+                      { icon: <MapPin size={32} color="#0097A7" />, label: '주변주차', action: () => navigate('/parking') },
                     ].map((item, idx) => (
                       <div key={idx} style={{ position: 'relative' }}>
                         <div style={{

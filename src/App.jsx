@@ -13,24 +13,12 @@ import {
   navigate as historyNavigate,
   parseAppState,
   pathToView,
+  persistNavSession,
   pushOverlay,
   readNavigationState,
+  restoreNavigationOnLoad,
 } from './lib/appHistory'
 import { registerExitToast } from './lib/mobileExitGuard'
-
-const NAV_SESSION_PATH_KEY = 'bchata:session-path'
-const NAV_SESSION_STATE_KEY = 'bchata:session-state'
-
-function persistNavSession() {
-  try {
-    const path = window.location.pathname + window.location.search + window.location.hash
-    sessionStorage.setItem(NAV_SESSION_PATH_KEY, path)
-    const st = parseAppState(window.history.state)
-    if (st) sessionStorage.setItem(NAV_SESSION_STATE_KEY, JSON.stringify(st))
-  } catch {
-    /* quota / private mode */
-  }
-}
 
 /** replace 옵션 무시 — 항상 push 스택 */
 function navigate(path, options = {}) {
@@ -1071,7 +1059,11 @@ function App() {
   const [loading, setLoading] = useState(true);
   const [selectedDate, setSelectedDate] = useState(todayData.dateStr);
   const location = useLocation();
-  const [view, setView] = useState('home');
+  const [view, setView] = useState(() => {
+    const { state } = restoreNavigationOnLoad();
+    const path = window.location.pathname;
+    return viewForPath(path, state);
+  });
 
   useEffect(() => {
     const onRegisterParty = location.pathname === '/register-party' || view === 'register-party'
@@ -1104,7 +1096,10 @@ function App() {
   const [showWeather, setShowWeather] = useState(false);
   const [showSaju, setShowSaju] = useState(false);
   const [showPartner, setShowPartner] = useState(false);
-  const [homeActiveTab, setHomeActiveTab] = useState(null);
+  const [homeActiveTab, setHomeActiveTab] = useState(() => {
+    const { state } = restoreNavigationOnLoad();
+    return window.location.pathname === '/' ? (state?.homeTab ?? null) : null;
+  });
 
   useEffect(() => {
     const onHomeActiveTab = (e) => setHomeActiveTab(e.detail ?? null);
@@ -1303,25 +1298,9 @@ function App() {
   }, []);
 
   useEffect(() => {
-    const fullPath = window.location.pathname + window.location.search + window.location.hash;
-    let state = parseAppState(window.history.state);
-    if (!state) {
-      try {
-        const savedPath = sessionStorage.getItem(NAV_SESSION_PATH_KEY);
-        const savedRaw = sessionStorage.getItem(NAV_SESSION_STATE_KEY);
-        if (savedRaw && savedPath === fullPath) {
-          const parsed = JSON.parse(savedRaw);
-          if (parsed?.[BAMPPA_HISTORY]) state = parsed;
-        }
-      } catch {
-        /* ignore */
-      }
-    }
-    if (!state) {
-      state = buildAppState({ view: viewForPath(window.location.pathname, null), homeTab: null });
-    }
+    const { state, url } = restoreNavigationOnLoad();
     if (!parseAppState(window.history.state)) {
-      window.history.replaceState(state, '', fullPath);
+      window.history.replaceState(state, '', url);
     }
     applyHistoryState(state);
     navSnapshotRef.current = state;

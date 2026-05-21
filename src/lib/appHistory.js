@@ -1,6 +1,96 @@
 /** Unified in-app history (pathname + state). Phone/browser back uses this stack. */
 export const BAMPPA_HISTORY = '__bamppa';
 
+export const NAV_SESSION_PATH_KEY = 'bchata:session-path';
+export const NAV_SESSION_STATE_KEY = 'bchata:session-state';
+
+/** 예전 #hash 라우트 → bamppa state (새로고침 복원) */
+const HASH_NAV_PATCH = {
+  social: { homeTab: 'social' },
+  partner: { homeTab: 'partner' },
+  wishlist: { overlay: 'wishlist' },
+  weather: { overlay: 'weather' },
+  route: { overlay: 'incheon' },
+  incheon: { overlay: 'incheon' },
+  saju: { overlay: 'barMatching' },
+  restaurant: { view: 'restaurant' },
+  community: { view: 'community' },
+  parking: { view: 'parking' },
+  instructors: { view: 'instructors' },
+};
+
+export function normalizeNavPathname(path) {
+  const raw = String(path || '/');
+  const noHash = raw.split('#')[0];
+  const q = noHash.indexOf('?');
+  return (q >= 0 ? noHash.slice(0, q) : noHash) || '/';
+}
+
+export function patchFromLocationHash(hash) {
+  const key = String(hash || '').replace(/^#/, '').trim().toLowerCase();
+  return key ? HASH_NAV_PATCH[key] : null;
+}
+
+/**
+ * 새로고침 직후: history.state가 비어도 sessionStorage·hash에서 복원
+ * @returns {{ state: object, url: string }}
+ */
+export function restoreNavigationOnLoad() {
+  const pathname = window.location.pathname;
+  const search = window.location.search || '';
+  const hash = window.location.hash || '';
+  const url = pathname + search + hash;
+
+  const existing = parseAppState(window.history.state);
+  if (existing) {
+    return { state: existing, url };
+  }
+
+  const hashPatch = patchFromLocationHash(hash);
+
+  try {
+    const savedPath = sessionStorage.getItem(NAV_SESSION_PATH_KEY);
+    const savedRaw = sessionStorage.getItem(NAV_SESSION_STATE_KEY);
+    if (savedRaw) {
+      const parsed = JSON.parse(savedRaw);
+      if (parsed?.[BAMPPA_HISTORY]) {
+        const savedBase = normalizeNavPathname(savedPath);
+        if (savedBase === pathname) {
+          const state = buildAppState({
+            view: hashPatch?.view ?? parsed.view ?? pathToView(pathname),
+            homeTab: hashPatch?.homeTab ?? parsed.homeTab ?? null,
+            overlay: hashPatch?.overlay ?? parsed.overlay ?? null,
+            overlayMeta: hashPatch?.overlayMeta ?? parsed.overlayMeta ?? null,
+            date: parsed.date ?? null,
+          });
+          return { state, url };
+        }
+      }
+    }
+  } catch {
+    /* quota / private mode */
+  }
+
+  const state = buildAppState({
+    view: hashPatch?.view ?? pathToView(pathname),
+    homeTab: hashPatch?.homeTab ?? null,
+    overlay: hashPatch?.overlay ?? null,
+    overlayMeta: hashPatch?.overlayMeta ?? null,
+  });
+  return { state, url };
+}
+
+export function persistNavSession() {
+  try {
+    const path = window.location.pathname + window.location.search + window.location.hash;
+    sessionStorage.setItem(NAV_SESSION_PATH_KEY, path);
+    const st = parseAppState(window.history.state);
+    if (st) sessionStorage.setItem(NAV_SESSION_STATE_KEY, JSON.stringify(st));
+  } catch {
+    /* quota / private mode */
+  }
+}
+
 export const PATH_TO_VIEW = {
   '/': 'home',
   '/livepick': 'community',
@@ -110,6 +200,7 @@ export function navigate(path, options = {}) {
   }
   window.scrollTo(0, 0);
   syncHistoryToApp(state);
+  persistNavSession();
 }
 
 export function pushOverlay(overlay, options = {}) {
@@ -138,6 +229,7 @@ export function replaceCurrentState(patch) {
   });
   window.history.replaceState(state, '', path);
   syncHistoryToApp(state);
+  persistNavSession();
 }
 
 export function closeOverlay() {
