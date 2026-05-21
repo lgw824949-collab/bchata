@@ -2331,7 +2331,7 @@ const HomePage = ({
     return { quickMenuPrimary: primary, quickMenuMore: more };
   }, [quickMenuItems]);
 
-  const renderQuickMenuItem = (item, iconOnly = false) => {
+  const renderQuickMenuItem = (item, gateSwipe = false) => {
     const Icon = item.icon;
     const registerMod = item.registerKind === 'party'
       ? ' home-quick-menu-item--register-party'
@@ -2344,7 +2344,7 @@ const HomePage = ({
         type="button"
         whileTap={{ scale: 0.96 }}
         onClick={(e) => { triggerParticle(e, item.particles); item.action(); }}
-        className={`home-quick-menu-item${registerMod}${iconOnly ? ' home-quick-menu-item--icon-only' : ''}`}
+        className={`home-quick-menu-item${registerMod}${gateSwipe ? ' home-quick-menu-item--gate-swipe' : ''}`}
         aria-label={item.label}
       >
         {item.menuSvg ? (
@@ -2354,7 +2354,7 @@ const HomePage = ({
             {Icon ? <Icon size={QUICK_MENU_ICON_SIZE} strokeWidth={QUICK_MENU_STROKE} color="currentColor" aria-hidden /> : null}
           </QuickMenuIconCircle>
         )}
-        {!iconOnly ? <span className="home-quick-menu-item-label">{item.label}</span> : null}
+        <span className="home-quick-menu-item-label">{item.label}</span>
       </motion.button>
     );
   };
@@ -2783,10 +2783,9 @@ const HomePage = ({
 
   const renderHomeMainQuickMenuSection = () => (
     <section
-      className="home-depth-panel home-quick-menu-standalone home-luxury-section-box"
+      className="home-depth-panel home-quick-menu-standalone"
       style={{
         ...homeDepthPanelStyle,
-        ...homeLuxurySectionBoxStyle,
         display: 'flex',
         flexDirection: 'column',
         marginBottom: 0,
@@ -3328,19 +3327,55 @@ const HomePage = ({
         }
         .home-quick-menu-scroll--gate-all > .home-quick-menu-item {
           flex-shrink: 0;
-          width: 64px;
+          width: 72px;
           scroll-snap-align: start;
         }
         .home-quick-menu-scroll--gate-all::-webkit-scrollbar {
           display: none;
         }
-        .home-quick-menu-item--icon-only {
+        .home-quick-menu-item--gate-swipe {
           flex-direction: column;
           align-items: center;
-          gap: 0;
-          padding: 0;
+          gap: 6px;
+          padding: 2px 0 0;
           border: none;
           background: none;
+        }
+        .home-gate-active .home-quick-menu-standalone {
+          border: 1px solid rgba(255, 255, 255, 0.08) !important;
+          box-shadow: 0 10px 40px rgba(0, 0, 0, 0.38) !important;
+        }
+        .home-gate-active .home-quick-menu-scroll--gate-all .home-quick-menu-icon-circle {
+          width: 48px;
+          height: 48px;
+          border-radius: 50%;
+          border: 1px solid rgba(255, 255, 255, 0.12) !important;
+          background: rgba(255, 255, 255, 0.06) !important;
+          box-shadow: none !important;
+          color: #ffffff !important;
+        }
+        .home-gate-active .home-quick-menu-scroll--gate-all .home-quick-menu-icon-circle svg {
+          width: 26px;
+          height: 26px;
+        }
+        .home-gate-active .home-quick-menu-scroll--gate-all .home-quick-menu-item--register-party .home-quick-menu-icon-circle {
+          background: rgba(212, 67, 110, 0.14) !important;
+          border-color: rgba(212, 67, 110, 0.35) !important;
+          color: #ffffff !important;
+        }
+        .home-gate-active .home-quick-menu-scroll--gate-all .home-quick-menu-item--register-class .home-quick-menu-icon-circle {
+          background: rgba(37, 99, 235, 0.14) !important;
+          border-color: rgba(37, 99, 235, 0.35) !important;
+          color: #ffffff !important;
+        }
+        .home-gate-active .home-quick-menu-scroll--gate-all .home-quick-menu-item-label {
+          color: #ffffff !important;
+          font-size: 11px;
+          font-weight: 700;
+          line-height: 1.25;
+          letter-spacing: -0.02em;
+          max-width: 72px;
+          white-space: nowrap;
         }
         .home-gate-active .quick-menu-more-link {
           color: #ffffff;
