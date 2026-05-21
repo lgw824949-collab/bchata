@@ -82,15 +82,23 @@ export function SocialDateGenreFilterBar({
   );
 }
 
-/** parties.music_ratio — DB 저장값 그대로 (예: B4:S2) */
+/** parties b_ratio · s_ratio · j_ratio · k_ratio → B4:S2 (0 제외, 콜론 연결) */
 export function formatPartyMusicRatio(item: Record<string, unknown> | null | undefined): string | null {
   if (!item) return null;
 
-  const raw = item.music_ratio ?? item.musicRatio;
-  if (raw == null) return null;
+  const b_ratio = item.b_ratio ?? item.bRatio;
+  const s_ratio = item.s_ratio ?? item.sRatio;
+  const j_ratio = item.j_ratio ?? item.jRatio;
+  const k_ratio = item.k_ratio ?? item.kRatio;
 
-  const text = String(raw).trim();
-  return text || null;
+  const parts: string[] = [];
+  if (b_ratio) parts.push(`B${b_ratio}`);
+  if (s_ratio) parts.push(`S${s_ratio}`);
+  if (j_ratio) parts.push(`J${j_ratio}`);
+  if (k_ratio) parts.push(`K${k_ratio}`);
+
+  const result = parts.join(':');
+  return result || null;
 }
 
 type PartyMusicRatioLineProps = {

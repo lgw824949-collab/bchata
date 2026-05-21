@@ -6,7 +6,7 @@ import { buildPartyShareCard } from '../lib/partyShareCard';
 import { supabase } from '../lib/supabase';
 import PartyWishlistHeart from './PartyWishlistHeart';
 import { usePartyWishlist } from '../hooks/usePartyWishlist';
-import { formatPartyMusicRatio } from '../pages/Social';
+import { PartyMusicRatioLine } from '../pages/Social';
 
 const GENRE_MAP = {
   '바차타': { key: 'b_ratio', label: 'B', label_en: 'Bachata', color: '#FF1744' },
@@ -103,8 +103,6 @@ const PartyCard = ({ item, onSelect, wishlistParties: wishlistProp, onToggleWish
   })();
   const timeLabel = item.date === todayStr ? `오늘 ${displayTime}` : displayTime;
   const mapQuery = encodeURIComponent(item.address || item.locationName || '');
-  const musicRatioLine = formatPartyMusicRatio(item);
-
   const handleKakaoShare = async (e) => {
     e.stopPropagation();
     const card = buildPartyShareCard(item);
@@ -181,20 +179,7 @@ const PartyCard = ({ item, onSelect, wishlistParties: wishlistProp, onToggleWish
               🗺️
             </button>
           </div>
-          {musicRatioLine ? (
-            <p
-              style={{
-                margin: '2px 0 0',
-                fontSize: '12px',
-                fontWeight: 800,
-                color: '#D81B60',
-                lineHeight: 1.3,
-                letterSpacing: '0.02em',
-              }}
-            >
-              {musicRatioLine}
-            </p>
-          ) : null}
+          <PartyMusicRatioLine item={item} />
           <span style={{ fontSize: '15px', fontWeight: '900', color: '#E53935' }}>
             {displayFee}
           </span>
