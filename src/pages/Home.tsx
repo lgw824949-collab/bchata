@@ -336,6 +336,29 @@ const buildPartyShareCard = (item) => {
 const DAYS_KOR = ['일', '월', '화', '수', '목', '금', '토'];
 const DAYS_EN = ['SUN', 'MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT'];
 
+/** 전체보기 포스터 그리드 — 날짜별 섹션 */
+const groupPosterPartiesByDate = (list) => {
+  const map = new Map();
+  for (const p of list) {
+    const key = normDate(p?.date) || '__unknown__';
+    if (!map.has(key)) map.set(key, []);
+    map.get(key).push(p);
+  }
+  return Array.from(map.entries()).sort(([a], [b]) => {
+    if (a === '__unknown__') return 1;
+    if (b === '__unknown__') return -1;
+    return a.localeCompare(b);
+  });
+};
+
+const formatGridDateSectionLabel = (dateKey, isEn, todayStr) => {
+  if (dateKey === '__unknown__') return isEn ? 'Date TBD' : '날짜 미정';
+  const d = new Date(`${dateKey}T12:00:00`);
+  const base = `${d.getMonth() + 1}/${d.getDate()} (${isEn ? DAYS_EN[d.getDay()] : DAYS_KOR[d.getDay()]})`;
+  if (dateKey === todayStr) return isEn ? `Today · ${base}` : `오늘 · ${base}`;
+  return base;
+};
+
 const GENRE_MAP = {
   '바차타': { key: 'b_ratio', label: 'B', label_en: 'Bachata', color: '#FF1744' },
   '살사': { key: 's_ratio', label: 'S', label_en: 'Salsa', color: '#FF1744' },
@@ -3788,54 +3811,80 @@ const HomePage = ({
                     ))}
                   </div>
                 ) : (
-                  <div style={{
-                    display: 'grid',
-                    gridTemplateColumns: 'repeat(3, 1fr)',
-                    gap: '2px'
-                  }}>
+                  <div style={{ paddingBottom: '8px' }}>
                     {(() => {
-                      // 해당 지역의 모든 포스터 파티 (날짜 상관없이)
                       const regionalPosterParties = (parties || [])
-                        .filter(p => p.poster_url && p.poster_url.trim() !== '')
-                        .filter(p => {
+                        .filter((p) => p.poster_url && String(p.poster_url).trim() !== '')
+                        .filter((p) => {
                           const filterFn = REGION_FILTER[gridRegion];
                           return filterFn ? filterFn(p) : true;
                         })
-                        .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime()); // 가까운 날짜순
+                        .sort((a, b) => new Date(normDate(a.date)).getTime() - new Date(normDate(b.date)).getTime());
 
-                      return regionalPosterParties.map(item => (
-                        <div
-                          className="party-carousel-card"
-                          {...partyCardZoomHandlers}
-                          key={item.id}
-                          onClick={() => openPartyWithAfterParty(item)}
-                          style={{ aspectRatio: '1 / 1.4', overflow: 'hidden', background: 'var(--color-card)', position: 'relative', ...partyCardZoomBaseStyle }}
-                        >
-                          <img
-                            src={item.poster_url}
-                            alt="Poster"
-                            style={{ width: '100%', height: '100%', objectFit: 'cover', imageRendering: '-webkit-optimize-contrast' }}
-                          />
-                          {/* 고밀도 정보 오버레이 (음악/시간만!) */}
-                          <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, padding: '10px 6px', background: 'linear-gradient(transparent, rgba(0,0,0,0.95))', color: '#fff', display: 'flex', flexDirection: 'column', gap: '3px' }}>
-                            <div style={{ display: 'flex', gap: '3px', flexWrap: 'wrap' }}>
-                              {(() => {
-                                const ratioLine = formatPartyMusicRatio(item);
-                                return ratioLine ? (
-                                  <span style={{ background: '#FF1744', color: 'white', padding: '1px 4px', borderRadius: '3px', fontSize: '8px', fontWeight: 950 }}>
-                                    {ratioLine}
-                                  </span>
-                                ) : null;
-                              })()}
-                              <span style={{ background: 'rgba(255,255,255,0.2)', padding: '1px 4px', borderRadius: '3px', fontSize: '8px', fontWeight: 950 }}>
-                                {item.time?.split('-')[0].trim() || '21:00'}
+                      const byDate = groupPosterPartiesByDate(regionalPosterParties);
+
+                      return byDate.map(([dateKey, dayParties]) => (
+                        <section key={dateKey} style={{ marginBottom: '20px' }}>
+                          <div
+                            style={{
+                              position: 'sticky',
+                              top: 0,
+                              zIndex: 2,
+                              display: 'flex',
+                              alignItems: 'center',
+                              justifyContent: 'space-between',
+                              padding: '14px 16px 10px',
+                              background: 'var(--color-bg)',
+                              borderBottom: '1px solid var(--color-border)',
+                              boxShadow: '0 4px 12px rgba(0,0,0,0.04)',
+                            }}
+                          >
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                              <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: dateKey === todayStr ? '#E53935' : '#94A3B8', flexShrink: 0 }} />
+                              <span style={{ fontSize: '16px', fontWeight: 900, color: 'var(--color-text-main)', letterSpacing: '-0.02em' }}>
+                                {formatGridDateSectionLabel(dateKey, isEn, todayStr)}
                               </span>
                             </div>
-                            <div style={{ fontSize: '10px', fontWeight: '900', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', color: '#FFEB3B' }}>
-                              {translateDynamicText(item.locationName, isEn)}
-                            </div>
+                            <span style={{ fontSize: '12px', fontWeight: 700, color: '#E53935' }}>
+                              {dayParties.length}{isEn ? '' : '건'}
+                            </span>
                           </div>
-                        </div>
+                          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '2px' }}>
+                            {dayParties.map((item) => (
+                              <div
+                                className="party-carousel-card"
+                                {...partyCardZoomHandlers}
+                                key={item.id}
+                                onClick={() => openPartyWithAfterParty(item)}
+                                style={{ aspectRatio: '1 / 1.4', overflow: 'hidden', background: 'var(--color-card)', position: 'relative', ...partyCardZoomBaseStyle }}
+                              >
+                                <img
+                                  src={item.poster_url}
+                                  alt="Poster"
+                                  style={{ width: '100%', height: '100%', objectFit: 'cover', imageRendering: '-webkit-optimize-contrast' }}
+                                />
+                                <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, padding: '10px 6px', background: 'linear-gradient(transparent, rgba(0,0,0,0.95))', color: '#fff', display: 'flex', flexDirection: 'column', gap: '3px' }}>
+                                  <div style={{ display: 'flex', gap: '3px', flexWrap: 'wrap' }}>
+                                    {(() => {
+                                      const ratioLine = formatPartyMusicRatio(item);
+                                      return ratioLine ? (
+                                        <span style={{ background: '#FF1744', color: 'white', padding: '1px 4px', borderRadius: '3px', fontSize: '8px', fontWeight: 950 }}>
+                                          {ratioLine}
+                                        </span>
+                                      ) : null;
+                                    })()}
+                                    <span style={{ background: 'rgba(255,255,255,0.2)', padding: '1px 4px', borderRadius: '3px', fontSize: '8px', fontWeight: 950 }}>
+                                      {item.time?.split('-')[0].trim() || '21:00'}
+                                    </span>
+                                  </div>
+                                  <div style={{ fontSize: '10px', fontWeight: '900', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', color: '#FFEB3B' }}>
+                                    {translateDynamicText(item.locationName, isEn)}
+                                  </div>
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        </section>
                       ));
                     })()}
                   </div>
