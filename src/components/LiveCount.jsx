@@ -19,6 +19,8 @@ const SPOTLIGHT_ROTATE_MS = 5000
 const LIVE_QUEUE_REFRESH_MS = 10 * 60 * 1000
 const LIVE_WINDOW_MS = 24 * 60 * 60 * 1000
 const LIVE_PROMO_PATH = '#community'
+const LIVE_FALLBACK_LINE_KO = '전국 파티 진행중'
+const LIVE_FALLBACK_LINE_EN = 'Nationwide parties live'
 
 /** community_posts — content 또는 bar_name을 배너 한 줄로 */
 function getCommunityPostLine(row) {
@@ -71,8 +73,10 @@ const LiveCount = ({ parties: partiesProp, onPartyClick, onPromoClick, isGate = 
   const [spotlightPool, setSpotlightPool] = useState([])
   const [poolIndex, setPoolIndex] = useState(0)
   const [livePosts, setLivePosts] = useState([])
+  const [queryFailed, setQueryFailed] = useState(() => !supabase)
 
   const isEn = i18n.language.startsWith('en')
+  const nationwideFallbackLine = isEn ? LIVE_FALLBACK_LINE_EN : LIVE_FALLBACK_LINE_KO
   const spotlight = spotlightPool[poolIndex] || spotlightPool[0] || null
 
   const isNowInPartyTime = useCallback((dateStr, startTime) => {
@@ -130,7 +134,10 @@ const LiveCount = ({ parties: partiesProp, onPartyClick, onPromoClick, isGate = 
   }
 
   const fetchCounts = async () => {
-    if (!supabase) return
+    if (!supabase) {
+      setQueryFailed(true)
+      return
+    }
     const todayStr = getTodayKST()
     try {
       const [partiesRes, locationsRes] = await Promise.all([
@@ -158,6 +165,7 @@ const LiveCount = ({ parties: partiesProp, onPartyClick, onPromoClick, isGate = 
       if (!parties || parties.length === 0) {
         setCounts({})
         applySpotlightPool([])
+        setQueryFailed(false)
         return
       }
 
@@ -178,6 +186,7 @@ const LiveCount = ({ parties: partiesProp, onPartyClick, onPromoClick, isGate = 
       })
       if (liveParties.length === 0) {
         setCounts({})
+        setQueryFailed(false)
         return
       }
 
@@ -190,14 +199,20 @@ const LiveCount = ({ parties: partiesProp, onPartyClick, onPromoClick, isGate = 
       }, {})
       grouped['\uc804\uad6d|total'] = liveParties.length
       setCounts(grouped)
+      setQueryFailed(false)
     } catch (err) {
       logPartiesFetchError(err)
       console.error('[LiveCount] fetchCounts failed:', err)
+      setQueryFailed(true)
+      setCounts({})
     }
   }
 
   const fetchSpotlightFromDb = async () => {
-    if (!supabase) return
+    if (!supabase) {
+      setQueryFailed(true)
+      return
+    }
     const todayStr = getTodayKST()
     try {
       let partiesRes = await supabase
@@ -222,11 +237,17 @@ const LiveCount = ({ parties: partiesProp, onPartyClick, onPromoClick, isGate = 
       if (partiesRes.error) throw partiesRes.error
 
       const locationsRes = await supabase.from('locations').select(LOCATIONS_WITH_REGION_NAME)
+      if (locationsRes.error) {
+        logSupabaseError('LiveCount.locations', locationsRes.error)
+      }
       const locations = locationsRes.error ? [] : (locationsRes.data || [])
       const enriched = enrichPartiesWithVenues(partiesRes.data || [], locations)
       applySpotlightPool(enriched)
+      setQueryFailed(false)
     } catch (err) {
       logPartiesFetchError(err)
+      console.error('[LiveCount] fetchSpotlightFromDb failed:', err)
+      setQueryFailed(true)
     }
   }
 
@@ -314,7 +335,7 @@ const LiveCount = ({ parties: partiesProp, onPartyClick, onPromoClick, isGate = 
   }, [spotlight, poolIndex, isEn])
 
   const hasNationwideCounts = Boolean(counts['\uc804\uad6d|total'])
-  const hasBannerContent = Boolean(displayTitle || hasNationwideCounts || spotlight)
+  const hasBannerContent = Boolean(displayTitle || hasNationwideCounts || spotlight || queryFailed)
 
   const handleBannerClick = () => {
     const target = spotlightPool[poolIndex] || spotlight
@@ -337,6 +358,7 @@ const LiveCount = ({ parties: partiesProp, onPartyClick, onPromoClick, isGate = 
   }
 
   const mainLine = displayTitle || dynamicBannerText
+    || (queryFailed && !hasNationwideCounts && !spotlight ? nationwideFallbackLine : '')
 
   return (
     <div
@@ -389,13 +411,15 @@ const LiveCount = ({ parties: partiesProp, onPartyClick, onPromoClick, isGate = 
         ) : (
           mainLine ? (
             <span
-              key={displayTitle || spotlight?.id || 'live-line'}
+              key={displayTitle || spotlight?.id || 'live-fallback'}
               className="live-dynamic-banner__spotlight live-dynamic-banner__spotlight--solo live-banner-text-clip"
               title={mainLine}
             >
               {mainLine}
             </span>
-          ) : null
+          ) : (
+            <span className="lc-default lc-default--hot">{nationwideFallbackLine}</span>
+          )
         )}
       </div>
     </div>
