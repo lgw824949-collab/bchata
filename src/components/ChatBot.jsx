@@ -5,15 +5,22 @@ import { LOCATIONS_SELECT } from '../lib/locationsQuery'
 import {
   CHAT_GENRE_BY_NUM,
   logPartiesFetchError,
-  filterPartiesForChat,
-  formatPartyResultBlock,
   enrichPartiesWithVenues,
   fetchPartiesForChat,
+  filterPartiesForChat,
   buildLocationCoordMap,
   curatePartiesForChat,
+  inferUserRegionFromCoords,
+  partyMatchesUserRegion,
+  resolvePartyVenueName,
+  stripPlatformSuffixFromTitle,
+  formatPartyDateWithWeekday,
+  formatPartyFeeLabel,
 } from '../lib/partiesQuery'
 import { getKSTCalendarTodayStr } from '../lib/dateNorm';
 import { getUserCoords, isGeoDenied, readCachedCoords } from '../lib/geoCache';
+import { formatDistanceLabel } from '../lib/geoDistance';
+import { DEFAULT_CARD_IMAGE, imgFallbackHandler } from '../constants/imageAssets';
 
 // 관리자가 수동으로 동호회/빠 변동 사항을 기록하는 공간
 const ADMIN_KNOWLEDGE = `
@@ -26,6 +33,16 @@ const ADMIN_KNOWLEDGE = `
 const MENU_MSG = '오늘 뭘 찾으세요?\n1. 파티\n2. 강습\n3. 부트캠프\n4. 페스티벌';
 const GENRE_MSG = '장르는?\n1. 바차타\n2. 살사\n3. 쥬크\n4. 키좀바';
 const RESTART_MSG = '다시 찾으시겠어요?\n1. 예  2. 아니오';
+
+const buildLocationIntroMessage = (region) => {
+  if (!region || region === '전국') {
+    return '📍 현재 위치를 확인하지 못했어요.\n전국 기준으로 안내해 드릴게요.';
+  }
+  return `📍 **현재 위치는 ${region}지역**입니다.\n**${region}지역** 행사를 우선으로 안내해 드릴게요!`;
+};
+
+const CONCIERGE_HOME_GUIDE =
+  '💡 이 행사의 상세 정보와 예매는 [홈 화면] ➡️ 하단 [소셜/부트캠프/페스티벌] 탭 이동 ➡️ 해당 포스터를 클릭하시면 확인하실 수 있습니다!';
 
 const normalizeChoice = (raw) =>
   String(raw || '')
@@ -68,6 +85,49 @@ const renderFormattedContent = (content) => {
   return body;
 };
 
+const resolvePosterSrc = (url) => {
+  const src = url && String(url).trim();
+  return src || DEFAULT_CARD_IMAGE;
+};
+
+const inferRegionFromText = (text) => {
+  const t = String(text || '');
+  if (/서울|강남|홍대|잠실|건대|성수/.test(t)) return '서울';
+  if (/인천|경기|수원|부천|분당|일산|경인/.test(t)) return '경인';
+  if (/부산|대구|울산|경상|창원|포항/.test(t)) return '경상도';
+  if (/광주|전라|전주|목포|여수/.test(t)) return '전라도';
+  if (/대전|충청|천안|청주|세종/.test(t)) return '충청도';
+  if (/강원|제주|춘천|원주/.test(t)) return '강원/제주';
+  return '전국';
+};
+
+const ConciergeResultCard = ({ item }) => {
+  const posterSrc = resolvePosterSrc(item.posterUrl);
+
+  return (
+    <div className="concierge-result-card">
+      <div className="concierge-result-card__body">
+        {item.headline ? (
+          <div className="concierge-result-card__headline">{item.headline}</div>
+        ) : null}
+        {(item.lines || []).map((line, li) => (
+          <div key={li} className="concierge-result-card__line">{line}</div>
+        ))}
+      </div>
+      <div className="concierge-result-card__poster-wrap">
+        <img
+          src={posterSrc}
+          alt=""
+          loading="lazy"
+          className="concierge-result-card__poster"
+          onError={imgFallbackHandler(DEFAULT_CARD_IMAGE)}
+        />
+      </div>
+      <p className="concierge-result-card__guide">{CONCIERGE_HOME_GUIDE}</p>
+    </div>
+  );
+};
+
 const ChatBot = () => {
   const [isOpen, setIsOpen] = useState(false);
 
@@ -78,7 +138,6 @@ const ChatBot = () => {
   }, []);
   const [messages, setMessages] = useState([
     { role: 'model', content: "안녕하세요! 밤빠 컨시어지예요.\n오늘 밤, 당신의 완벽한 댄스 파티를 함께 찾아드릴게요!" },
-    { role: 'model', content: MENU_MSG }
   ]);
   const [input, setInput] = useState('');
   const [isRecording, setIsRecording] = useState(false);
@@ -88,10 +147,13 @@ const ChatBot = () => {
   const [dbData, setDbData] = useState(null);
   const [isDataLoaded, setIsDataLoaded] = useState(false);
   const [userLocation, setUserLocation] = useState(null);
+  const [geoRegion, setGeoRegion] = useState(null);
+  const [geoRegionReady, setGeoRegionReady] = useState(false);
+  const locationIntroShownRef = useRef(false);
   const [viewportHeight, setViewportHeight] = useState(window.innerHeight);
 
-  // step 0 텍스트는 초기 messages의 MENU_MSG / useState step: 1=카테고리, 2=장르, 3=재검색 여부
-  const [step, setStep] = useState(1);
+  /** step 0=위치 확인, 1=카테고리, 2=장르, 3=재검색 */
+  const [step, setStep] = useState(0);
   const [category, setCategory] = useState(null);
   const [genre, setGenre] = useState(null);
 
@@ -116,19 +178,63 @@ const ChatBot = () => {
     };
   }, [isOpen]);
 
-  // 위치: 캐시 우선 (한 번 허용 후 재팝업 없음)
+  // 위치: 캐시 우선 → GPS (컨시어지 열릴 때 현재 지역 확정)
   useEffect(() => {
     if (!isOpen) return;
-    const cached = readCachedCoords();
-    if (cached) {
-      setUserLocation({ lat: cached.lat, lng: cached.lng });
-      return;
-    }
-    if (isGeoDenied()) return;
-    getUserCoords({ enableHighAccuracy: false })
-      .then((c) => setUserLocation({ lat: c.lat, lng: c.lng }))
-      .catch(() => {});
+
+    let cancelled = false;
+    const applyCoords = (coords) => {
+      if (cancelled) return;
+      const region = coords ? inferUserRegionFromCoords(coords) : '전국';
+      setUserLocation(coords ? { lat: coords.lat, lng: coords.lng } : null);
+      setGeoRegion(region);
+      setGeoRegionReady(true);
+    };
+
+    const resolveGeo = async () => {
+      const cached = readCachedCoords();
+      if (cached) {
+        applyCoords(cached);
+        return;
+      }
+      if (isGeoDenied()) {
+        applyCoords(null);
+        return;
+      }
+      try {
+        const fresh = await getUserCoords({ enableHighAccuracy: true, maxAgeMs: 60_000 });
+        applyCoords(fresh);
+      } catch {
+        applyCoords(null);
+      }
+    };
+
+    setGeoRegionReady(false);
+    setGeoRegion(null);
+    locationIntroShownRef.current = false;
+    setStep(0);
+    setCategory(null);
+    setGenre(null);
+    setMessages([
+      { role: 'model', content: "안녕하세요! 밤빠 컨시어지예요.\n오늘 밤, 당신의 완벽한 댄스 파티를 함께 찾아드릴게요!" },
+    ]);
+    resolveGeo();
+
+    return () => {
+      cancelled = true;
+    };
   }, [isOpen]);
+
+  useEffect(() => {
+    if (!isOpen || !geoRegionReady || locationIntroShownRef.current) return;
+    locationIntroShownRef.current = true;
+    setMessages((prev) => [
+      ...prev,
+      { role: 'model', content: buildLocationIntroMessage(geoRegion) },
+      { role: 'model', content: MENU_MSG },
+    ]);
+    setStep(1);
+  }, [isOpen, geoRegionReady, geoRegion]);
 
   // 챗봇 오픈 시 플랫폼 실시간 데이터 로드
   useEffect(() => {
@@ -302,69 +408,219 @@ const ChatBot = () => {
     return [];
   };
   */
-  const buildPartyResultMessage = (genreName, coords = userLocation) => {
+  const buildPartyResultItems = (genreName, coords = userLocation, region = geoRegion) => {
     const todayStr = getKSTCalendarTodayStr();
     const coordMap = dbData?.locationCoordMap || buildLocationCoordMap(dbData?.locations);
     const hasCoords = coords?.lat != null && coords?.lng != null;
+    const regionLabel = region && region !== '전국' ? region : null;
     const matched = curatePartiesForChat(dbData?.parties || [], {
       todayStr,
       genreName,
       userCoords: coords,
       coordMap,
+      userRegion: regionLabel,
       limit: 5,
     });
 
     if (matched.length === 0) {
-      return `오늘(${todayStr}) 등록된 **${genreName}** 파티가 없어요.\n다른 장르 번호를 골라보시거나 메인 화면 **오늘의 파티**를 확인해 주세요.`;
+      const regionHint = regionLabel
+        ? `**${regionLabel}지역**에 오늘(${todayStr}) 등록된 **${genreName}** 파티가 없어요.`
+        : `오늘(${todayStr}) 등록된 **${genreName}** 파티가 없어요.`;
+      return {
+        empty: `${regionHint}\n다른 장르 번호를 골라보시거나 메인 화면 **오늘의 파티**를 확인해 주세요.`,
+        headline: null,
+        items: [],
+      };
     }
 
-    const blocks = matched.map((p) => formatPartyResultBlock(p, { showDistance: hasCoords }));
-    const headline = hasCoords
-      ? `✨ **오늘(${todayStr}) ${genreName}** 근처 추천 ${matched.length}건`
-      : `✨ **오늘(${todayStr}) ${genreName}** 추천 ${matched.length}건`;
-    return `${headline}\n\n${blocks.join('\n\n---\n\n')}`;
+    const headline = regionLabel
+      ? `✨ 오늘(${todayStr}) [${regionLabel}] ${genreName} 추천 ${matched.length}건`
+      : hasCoords
+        ? `✨ 오늘(${todayStr}) ${genreName} 근처 추천 ${matched.length}건`
+        : `✨ 오늘(${todayStr}) ${genreName} 추천 ${matched.length}건`;
+
+    const items = matched.map((p) => {
+      const venue = resolvePartyVenueName(p, coordMap);
+      const title = stripPlatformSuffixFromTitle(p.title);
+      const lines = [
+        `📅 ${formatPartyDateWithWeekday(p.date)}`,
+        `💰 ${formatPartyFeeLabel(p.fee)}`,
+      ];
+      if (hasCoords && p._distanceKm != null) {
+        lines.push(`📍 ${formatDistanceLabel(p._distanceKm)}`);
+      }
+      return {
+        headline: `🎵 ${venue} · ${title}`,
+        lines,
+        posterUrl: p.imageUrl || p.poster_url || null,
+      };
+    });
+
+    return { empty: null, headline, items };
   };
 
-  const buildOtherCategoryMessage = (catNum, genreName) => {
-    if (!dbData) return '현재 등록된 정보가 없어요 😢';
+  const buildOtherCategoryItems = (catNum, genreName, region = geoRegion) => {
+    if (!dbData) {
+      return { empty: '현재 등록된 정보가 없어요 😢', headline: null, items: [] };
+    }
+
+    const targetRegion = region && region !== '전국' ? region : inferUserRegionFromCoords(userLocation);
 
     if (catNum === '2') {
-      const list = (dbData.instructors || [])
-        .filter((i) => (Array.isArray(i.genre) ? i.genre.join(' ') : String(i.genre || '')).includes(genreName))
-        .slice(0, 3);
-      if (!list.length) return `**${genreName}** 강사 정보가 없어요.`;
-      return list
-        .map(
-          (i) =>
-            `🎵 **${i.name || '강사'}**\n📍 지역: ${i.region || '-'}\n💰 수강료: ${i.price || i.fee || '문의'}`,
-        )
-        .join('\n\n---\n\n');
+      const instructors = dbData.instructors || [];
+      const since = Date.now() - 30 * 24 * 60 * 60 * 1000;
+      const sourceRows = [...(dbData.parties || []), ...(dbData.bootcamps || []), ...(dbData.festivals || [])];
+      const isGenreMatched = (value) => String(value || '').includes(genreName);
+      const genreFiltered = instructors.filter((i) =>
+        isGenreMatched(Array.isArray(i.genre) ? i.genre.join(' ') : i.genre || i.genres),
+      );
+      const scored = genreFiltered.map((inst) => {
+        const normalizedName = String(inst.name || '').replace(/\s+/g, '').toLowerCase();
+        const rows = sourceRows.filter((row) => {
+          const poster = String(row.poster_url || row.imageUrl || '').trim();
+          if (!poster) return false;
+          const ts = new Date(row.created_at || row.start_date || row.date || 0).getTime();
+          if (!Number.isFinite(ts) || ts < since) return false;
+          const rid = String(row.instructor_id || row.contributor_id || '').trim();
+          const byId = rid && String(inst.id) && rid === String(inst.id);
+          const rName = String(row.instructor || row.teacher || row.name || '').replace(/\s+/g, '').toLowerCase();
+          const byName = normalizedName && rName && normalizedName === rName;
+          if (!byId && !byName) return false;
+          return isGenreMatched(row.genre || row.title || row.description);
+        });
+
+        const latestTs = rows.reduce((max, row) => {
+          const ts = new Date(row.created_at || row.start_date || row.date || 0).getTime();
+          return Number.isFinite(ts) && ts > max ? ts : max;
+        }, 0);
+        const regionMatched =
+          targetRegion &&
+          targetRegion !== '전국' &&
+          rows.some((row) =>
+            partyMatchesUserRegion(
+              {
+                title: row.title,
+                address: row.address,
+                locationName: row.locationName || row.venue || row.region,
+              },
+              targetRegion,
+            ),
+          );
+        const bestPoster =
+          rows.find((r) => String(r.poster_url || r.imageUrl || '').trim())?.poster_url ||
+          inst.photo_url ||
+          inst.poster_url ||
+          null;
+        return {
+          inst,
+          rows,
+          regionMatched,
+          activityScore: rows.length,
+          latestTs,
+          bestPoster,
+        };
+      });
+
+      const list = scored
+        .filter((s) => s.activityScore > 0)
+        .sort((a, b) => {
+          if (a.regionMatched !== b.regionMatched) return a.regionMatched ? -1 : 1;
+          if (a.activityScore !== b.activityScore) return b.activityScore - a.activityScore;
+          return b.latestTs - a.latestTs;
+        })
+        .slice(0, 2);
+
+      if (!list.length) return { empty: `**${genreName}** 강사 정보가 없어요.`, headline: null, items: [], isTop2Instructors: true };
+      return {
+        empty: null,
+        headline: `현재 [${targetRegion}] 지역에서 [${genreName}]를 가장 활발하게 리드하고 계신 마스터 2분을 추천해 드립니다!`,
+        isTop2Instructors: true,
+        items: list.map(({ inst, activityScore, regionMatched, latestTs, bestPoster }) => ({
+          headline: `🎵 ${inst.name || '강사'}`,
+          lines: [
+            `📍 지역 일치: ${regionMatched ? '예' : '아니오'}`,
+            `📊 최근 30일 포스터: ${activityScore}건`,
+            `🕒 최근 등록: ${latestTs ? new Date(latestTs).toISOString().slice(0, 10) : '-'}`,
+            `💬 연락: ${inst.instagram_id || inst.sns_id || inst.phone || '문의'}`,
+          ],
+          posterUrl: bestPoster,
+        })),
+      };
     }
+
     if (catNum === '3') {
       const list = (dbData.bootcamps || [])
         .filter((b) => String(b.genre || '').includes(genreName))
+        .filter((b) => {
+          if (!targetRegion || targetRegion === '전국') return true;
+          return partyMatchesUserRegion(
+            { title: b.title, address: b.address, locationName: b.venue || b.region },
+            targetRegion,
+          );
+        })
         .slice(0, 3);
-      if (!list.length) return `**${genreName}** 부트캠프가 없어요.`;
-      return list
-        .map(
-          (b) =>
-            `🎵 **${b.instructor || b.title || '부트캠프'}**\n📅 시작: ${String(b.start_date || '').slice(0, 10)}\n💰 비용: ${b.fee || b.price_info || '문의'}`,
-        )
-        .join('\n\n---\n\n');
+      if (!list.length) {
+        return {
+          empty: targetRegion && targetRegion !== '전국'
+            ? `**${targetRegion}지역**에 **${genreName}** 부트캠프가 없어요.`
+            : `**${genreName}** 부트캠프가 없어요.`,
+          headline: null,
+          items: [],
+        };
+      }
+      return {
+        empty: null,
+        headline: targetRegion && targetRegion !== '전국'
+          ? `✨ [${targetRegion}] ${genreName} 부트캠프 추천 ${list.length}건`
+          : `✨ ${genreName} 부트캠프 추천 ${list.length}건`,
+        items: list.map((b) => ({
+          headline: `🎵 ${b.instructor || b.title || '부트캠프'}`,
+          lines: [
+            `📅 시작: ${String(b.start_date || '').slice(0, 10)}`,
+            `💰 비용: ${b.fee || b.price_info || '문의'}`,
+          ],
+          posterUrl: b.poster_url || null,
+        })),
+      };
     }
+
     if (catNum === '4') {
       const list = (dbData.festivals || [])
         .filter((f) => String(f.genre || '').includes(genreName))
+        .filter((f) => {
+          if (!targetRegion || targetRegion === '전국') return true;
+          return partyMatchesUserRegion(
+            { title: f.title, address: f.address, locationName: f.venue || f.region },
+            targetRegion,
+          );
+        })
         .slice(0, 3);
-      if (!list.length) return `**${genreName}** 페스티벌이 없어요.`;
-      return list
-        .map(
-          (f) =>
-            `🎵 **${f.title || f.name || '페스티벌'}**\n📅 일정: ${String(f.start_date || f.date || '').slice(0, 10)}\n💰 참가비: ${f.fee || '확인 필요'}`,
-        )
-        .join('\n\n---\n\n');
+      if (!list.length) {
+        return {
+          empty: targetRegion && targetRegion !== '전국'
+            ? `**${targetRegion}지역**에 **${genreName}** 페스티벌이 없어요.`
+            : `**${genreName}** 페스티벌이 없어요.`,
+          headline: null,
+          items: [],
+        };
+      }
+      return {
+        empty: null,
+        headline: targetRegion && targetRegion !== '전국'
+          ? `✨ [${targetRegion}] ${genreName} 페스티벌 추천 ${list.length}건`
+          : `✨ ${genreName} 페스티벌 추천 ${list.length}건`,
+        items: list.map((f) => ({
+          headline: `🎵 ${f.title || f.name || '페스티벌'}`,
+          lines: [
+            `📅 일정: ${String(f.start_date || f.date || '').slice(0, 10)}`,
+            `💰 참가비: ${f.fee || f.price || '확인 필요'}`,
+          ],
+          posterUrl: f.poster_url || null,
+        })),
+      };
     }
-    return '현재 등록된 정보가 없어요 😢';
+
+    return { empty: '현재 등록된 정보가 없어요 😢', headline: null, items: [] };
   };
 
   const handleSend = async () => {
@@ -374,6 +630,11 @@ const ChatBot = () => {
     setInput('');
     setIsLoading(false);
     const userMsg = { role: 'user', content: userInput };
+
+    if (step === 0) {
+      setMessages((prev) => [...prev, userMsg, { role: 'model', content: '잠시만요, 현재 위치를 확인하고 있어요…' }]);
+      return;
+    }
 
     if (step === 1) {
       if (!['1', '2', '3', '4'].includes(userInput)) {
@@ -406,17 +667,32 @@ const ChatBot = () => {
         }
       }
 
-      const resultContent =
+      const resultBundle =
         category === '1'
-          ? buildPartyResultMessage(selectedGenre, coords)
-          : buildOtherCategoryMessage(category, selectedGenre);
+          ? buildPartyResultItems(selectedGenre, coords)
+          : buildOtherCategoryItems(category, selectedGenre);
 
-      setMessages((prev) => [
-        ...prev,
-        userMsg,
-        { role: 'model', content: resultContent },
-        { role: 'model', content: RESTART_MSG },
-      ]);
+      if (resultBundle.empty) {
+        setMessages((prev) => [
+          ...prev,
+          userMsg,
+          { role: 'model', content: resultBundle.empty },
+          ...(resultBundle.isTop2Instructors
+            ? [{ role: 'model', content: '📣 우리 지역 장르별 TOP 2에 들려면, 가장 최근에, 자주 포스터를 등록하십시오.' }]
+            : []),
+          { role: 'model', content: RESTART_MSG },
+        ]);
+      } else {
+        setMessages((prev) => [
+          ...prev,
+          userMsg,
+          { role: 'model', type: 'results', headline: resultBundle.headline, items: resultBundle.items },
+          ...(resultBundle.isTop2Instructors
+            ? [{ role: 'model', content: '📣 우리 지역 장르별 TOP 2에 들려면, 가장 최근에, 자주 포스터를 등록하십시오.' }]
+            : []),
+          { role: 'model', content: RESTART_MSG },
+        ]);
+      }
       return;
     }
 
@@ -486,6 +762,53 @@ const ChatBot = () => {
             from { transform: translateY(100%); }
             to { transform: translateY(0); }
           }
+          .concierge-result-card {
+            background: #fff;
+            border: 1px solid #eaeaea;
+            border-radius: 16px;
+            padding: 14px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+          }
+          .concierge-result-card__headline {
+            font-size: 15px;
+            font-weight: 800;
+            color: #0f172a;
+            line-height: 1.45;
+            margin-bottom: 6px;
+          }
+          .concierge-result-card__line {
+            font-size: 13px;
+            font-weight: 600;
+            color: #475569;
+            line-height: 1.5;
+          }
+          .concierge-result-card__poster-wrap {
+            display: block;
+            width: 100%;
+            margin-top: 12px;
+            border-radius: 12px;
+            overflow: hidden;
+          }
+          .concierge-result-card__poster {
+            display: block;
+            width: 100%;
+            max-height: 320px;
+            object-fit: cover;
+            object-position: center top;
+            border-radius: 12px;
+            background: #111;
+          }
+          .concierge-result-card__guide {
+            margin: 12px 0 0;
+            padding: 10px 12px;
+            font-size: 12px;
+            font-weight: 600;
+            line-height: 1.55;
+            color: #475569;
+            background: #f8fafc;
+            border-radius: 10px;
+            border: 1px solid #e2e8f0;
+          }
         `}</style>
         {/* 챗봇: visualViewport 높이에 맞게 조정 → 키보드 올라와도 딱 맞음 */}
         <div style={{
@@ -515,7 +838,13 @@ const ChatBot = () => {
             <div>
               <div style={{ fontWeight: '850', fontSize: '19px', color: '#FF8A80', letterSpacing: '-0.5px' }}>밤빠 컨시어지</div>
               <div style={{ fontSize: '13px', color: '#64748B', marginTop: '3px', fontWeight: '600' }}>
-                {isDataLoaded ? "실시간 AI 가이드 가동 중" : "정보를 불러오는 중..."}
+                {!geoRegionReady
+                  ? '현재 위치 확인 중...'
+                  : isDataLoaded
+                    ? geoRegion && geoRegion !== '전국'
+                      ? `${geoRegion}지역 우선 안내`
+                      : '실시간 AI 가이드 가동 중'
+                    : '정보를 불러오는 중...'}
               </div>
             </div>
             <button 
@@ -539,17 +868,14 @@ const ChatBot = () => {
               // Results type: list of items with optional [포스터 보기] button
               if (msg.type === 'results') {
                 return (
-                  <div key={idx} style={{ alignSelf: 'flex-start', display: 'flex', flexDirection: 'column', gap: '8px', maxWidth: '92%' }}>
-                    {msg.items.map((item, i) => (
-                      <div key={i} style={{ backgroundColor: '#FFFFFF', border: '1px solid #EAEAEA', borderRadius: '16px', borderTopLeftRadius: i === 0 ? '4px' : '16px', padding: '12px 16px', boxShadow: '0 2px 5px rgba(0,0,0,0.03)' }}>
-                        <div style={{ fontSize: '14px', fontWeight: 600, color: '#333', whiteSpace: 'pre-wrap', lineHeight: 1.5 }}>{item.label}</div>
-                        {item.posterUrl && (
-                          <button
-                            onClick={() => setMessages(prev => [...prev, { role: 'model', content: `![poster](${item.posterUrl})` }])}
-                            style={{ marginTop: '8px', padding: '5px 14px', borderRadius: '12px', background: '#FF8A80', color: '#fff', border: 'none', fontSize: '12px', fontWeight: 800, cursor: 'pointer' }}
-                          >📷 포스터 보기</button>
-                        )}
+                  <div key={idx} style={{ alignSelf: 'flex-start', display: 'flex', flexDirection: 'column', gap: '12px', maxWidth: 'min(100%, 420px)', width: '100%' }}>
+                    {msg.headline ? (
+                      <div style={{ fontSize: '15px', fontWeight: 800, color: '#0f172a', lineHeight: 1.45, padding: '0 2px' }}>
+                        {renderFormattedContent(msg.headline)}
                       </div>
+                    ) : null}
+                    {msg.items.map((item, i) => (
+                      <ConciergeResultCard key={`result-${i}-${item.headline || ''}`} item={item} />
                     ))}
                   </div>
                 );
@@ -619,8 +945,10 @@ const ChatBot = () => {
               value={input}
               onChange={(e) => setInput(e.target.value)}
               onKeyDown={(e) => e.key === 'Enter' && handleSend()}
-              placeholder={isDataLoaded ? "메시지를 입력하세요..." : "로딩 중..."}
-              disabled={!isDataLoaded}
+              placeholder={
+                !geoRegionReady || !isDataLoaded ? '위치·데이터 확인 중...' : '메시지를 입력하세요...'
+              }
+              disabled={!isDataLoaded || !geoRegionReady || step < 1}
               style={{
                 flex: 1,
                 padding: '12px 16px',
@@ -633,18 +961,18 @@ const ChatBot = () => {
             />
             <button
               onClick={handleSend}
-              disabled={isLoading || !input.trim() || !isDataLoaded}
+              disabled={isLoading || !input.trim() || !isDataLoaded || !geoRegionReady || step < 1}
               style={{
-                background: (isLoading || !input.trim() || !isDataLoaded) ? '#EEE' : '#FF8A80',
+                background: (isLoading || !input.trim() || !isDataLoaded || !geoRegionReady || step < 1) ? '#EEE' : '#FF8A80',
                 color: 'white',
                 border: 'none',
                 padding: '10px 20px',
                 borderRadius: '24px',
-                cursor: (isLoading || !input.trim() || !isDataLoaded) ? 'not-allowed' : 'pointer',
+                cursor: (isLoading || !input.trim() || !isDataLoaded || !geoRegionReady || step < 1) ? 'not-allowed' : 'pointer',
                 fontSize: '14px',
                 fontWeight: '800',
                 transition: 'all 0.2s',
-                boxShadow: (isLoading || !input.trim() || !isDataLoaded) ? 'none' : '0 4px 12px rgba(255, 138, 128, 0.3)',
+                boxShadow: (isLoading || !input.trim() || !isDataLoaded || !geoRegionReady || step < 1) ? 'none' : '0 4px 12px rgba(255, 138, 128, 0.3)',
                 flexShrink: 0
               }}
             >

@@ -210,6 +210,67 @@ export function inferPartyRegionLabel(p) {
   return '전국';
 }
 
+/** GPS 좌표 → Social BAR·컨시어지 공통 지역 pill */
+const USER_REGION_BOXES = [
+  { name: '서울', minLat: 37.41, maxLat: 37.70, minLng: 126.76, maxLng: 127.18 },
+  { name: '경인', minLat: 37.02, maxLat: 37.78, minLng: 126.28, maxLng: 127.58 },
+  { name: '경상도', minLat: 34.65, maxLat: 36.55, minLng: 127.55, maxLng: 129.65 },
+  { name: '전라도', minLat: 34.10, maxLat: 36.25, minLng: 125.75, maxLng: 127.55 },
+  { name: '충청도', minLat: 35.60, maxLat: 37.45, minLng: 126.50, maxLng: 128.30 },
+  { name: '강원/제주', minLat: 33.05, maxLat: 38.45, minLng: 125.95, maxLng: 129.50 },
+];
+
+const USER_REGION_CENTROIDS = {
+  서울: { lat: 37.5665, lng: 126.978 },
+  경인: { lat: 37.32, lng: 126.95 },
+  경상도: { lat: 35.18, lng: 129.08 },
+  충청도: { lat: 36.35, lng: 127.77 },
+  전라도: { lat: 35.82, lng: 127.15 },
+  '강원/제주': { lat: 37.75, lng: 128.9 },
+};
+
+export function inferUserRegionFromCoords(coords) {
+  const la = Number(coords?.lat);
+  const ln = Number(coords?.lng ?? coords?.lon);
+  if (!Number.isFinite(la) || !Number.isFinite(ln)) return '전국';
+
+  for (const box of USER_REGION_BOXES) {
+    if (la >= box.minLat && la <= box.maxLat && ln >= box.minLng && ln <= box.maxLng) {
+      return box.name;
+    }
+  }
+
+  let best = '전국';
+  let minDist = Infinity;
+  Object.entries(USER_REGION_CENTROIDS).forEach(([name, c]) => {
+    const d = haversineKm(la, ln, c.lat, c.lng);
+    if (d < minDist) {
+      minDist = d;
+      best = name;
+    }
+  });
+  return best;
+}
+
+const USER_REGION_PARTY_ALIASES = {
+  서울: ['서울'],
+  경인: ['경인', '수도권', '경기', '인천'],
+  경상도: ['경상', '경상도', '부산', '대구', '울산', '경남', '경북'],
+  전라도: ['전라', '전라도', '광주', '전남', '전북'],
+  충청도: ['충청', '충청도', '대전', '세종'],
+  '강원/제주': ['강원', '제주', '강원/제주'],
+};
+
+/** 컨시어지·BAR: 사용자 GPS 지역과 파티 장소 지역 일치 */
+export function partyMatchesUserRegion(party, userRegion) {
+  if (!userRegion || userRegion === '전국') return true;
+  const partyRegion = inferPartyRegionLabel(party);
+  const aliases = USER_REGION_PARTY_ALIASES[userRegion] || [userRegion];
+  return aliases.some(
+    (a) => partyRegion === a || partyRegion.includes(a) || a.includes(partyRegion),
+  );
+}
+
 export function formatPartyFeeLabel(fee) {
   if (fee == null || fee === '') return '문의';
   const raw = String(fee).trim();
@@ -231,10 +292,16 @@ export function formatPartyResultBlock(p, { showDistance = false } = {}) {
   return `🎵 **${venue}** ${title}\n📅 시작: ${dateLine}\n💰 비용: ${fee}${distLine}`;
 }
 
-/** 필터 → 근거리 정렬 → 상위 N건 (콘시어지 큐레이션) */
-export function curatePartiesForChat(parties, { todayStr, genreName, userCoords, coordMap, limit = 5 } = {}) {
+/** 필터 → 동일 지역 우선(원격 지역 제외) → 근거리 정렬 → 상위 N건 */
+export function curatePartiesForChat(
+  parties,
+  { todayStr, genreName, userCoords, coordMap, userRegion, limit = 5 } = {},
+) {
   let list = filterPartiesForChat(parties, { todayStr, genreName });
-  if (userCoords?.lat && userCoords?.lng) {
+  if (userRegion && userRegion !== '전국') {
+    list = list.filter((p) => partyMatchesUserRegion(p, userRegion));
+  }
+  if (userCoords?.lat != null && userCoords?.lng != null) {
     list = sortPartiesByProximity(list, userCoords, coordMap);
     list = attachPartyDistances(list, userCoords, coordMap);
   }
@@ -273,4 +340,46 @@ export async function fetchPartiesForChat(supabase, { todayStr, limit = 50 } = {
 
   logPartiesFetchError(joined.error);
   return baseQuery();
+}
+
+/** 운명좌표(사주) — 오늘 이후 승인 파티 (join 실패 시 단독 select) */
+export async function fetchUpcomingPartiesForSaju(supabaseClient, { todayStr, limit = 100 } = {}) {
+  if (!supabaseClient) {
+    return { data: [], error: new Error('Supabase client not configured') };
+  }
+
+  const upcomingQuery = (selectCols) =>
+    supabaseClient
+      .from('parties')
+      .select(selectCols)
+      .eq('status', 'approved')
+      .gte('date', todayStr)
+      .order('date', { ascending: true })
+      .order('time', { ascending: true })
+      .limit(limit);
+
+  const joined = await upcomingQuery(PARTIES_WITH_LOCATION);
+  if (!joined.error) return joined;
+
+  logPartiesFetchError(joined.error);
+  return upcomingQuery(PARTIES_SELECT);
+}
+
+/** 사주 추천 카드용 — locations join·App parties 필드 통합 */
+export function normalizePartyForSajuDisplay(p) {
+  if (!p) return null;
+  const joined = p.locations;
+  const lat = joined?.latitude ?? p.venueLat ?? null;
+  const lng = joined?.longitude ?? p.venueLng ?? null;
+  return {
+    ...p,
+    date: normDate(p.date),
+    poster_url: p.poster_url ?? p.imageUrl ?? null,
+    locations: {
+      name: joined?.name ?? p.locationName ?? p.location_name ?? p.studio_name ?? null,
+      address: joined?.address ?? p.address ?? '',
+      latitude: lat,
+      longitude: lng,
+    },
+  };
 }
