@@ -101,6 +101,52 @@ const inferRegionFromText = (text) => {
   return '전국';
 };
 
+const GENRE_MSG_NATIONWIDE =
+  '부트캠프·페스티벌은 **전국**에서 모이는 행사예요. 지역과 관계없이 포스터를 안내해 드릴게요.\n장르는?\n1. 바차타\n2. 살사\n3. 쥬크\n4. 키좀바';
+
+const formatNationwideVenueLine = (row) => {
+  const place = row?.venue || row?.region || row?.address || row?.location;
+  return place ? `📍 ${place}` : '📍 장소·일정은 포스터에서 확인';
+};
+
+/** 부트캠프·페스티벌 — 지역 필터 없이 장르 우선, 없으면 전국 프로그램 */
+const pickNationwideGenreEvents = (rows, genreName, { todayStr, limit = 5 } = {}) => {
+  const upcoming = (rows || []).filter((r) => {
+    const d = String(r.start_date || r.date || '').slice(0, 10);
+    return !todayStr || !d || d >= todayStr;
+  });
+  const genreHits = upcoming.filter((r) => String(r.genre || '').includes(genreName));
+  const pool = genreHits.length ? genreHits : upcoming;
+  const withPoster = pool.filter((r) => String(r.poster_url || '').trim());
+  const sorted = [...(withPoster.length ? withPoster : pool)].sort((a, b) =>
+    String(a.start_date || a.date || '').localeCompare(String(b.start_date || b.date || '')),
+  );
+  return {
+    list: sorted.slice(0, limit),
+    usedGenreFallback: genreHits.length === 0 && sorted.length > 0,
+  };
+};
+
+const mapBootcampConciergeItem = (b) => ({
+  headline: `🎓 부트캠프 · ${b.instructor || b.title || '부트캠프'}`,
+  lines: [
+    `📅 시작: ${String(b.start_date || '').slice(0, 10)}`,
+    formatNationwideVenueLine(b),
+    `💰 비용: ${b.fee || b.price_info || '문의'}`,
+  ],
+  posterUrl: b.poster_url || null,
+});
+
+const mapFestivalConciergeItem = (f) => ({
+  headline: `🎉 페스티벌 · ${f.title || f.name || '페스티벌'}`,
+  lines: [
+    `📅 일정: ${String(f.start_date || f.date || '').slice(0, 10)}`,
+    formatNationwideVenueLine(f),
+    `💰 참가비: ${f.fee || f.price || '확인 필요'}`,
+  ],
+  posterUrl: f.poster_url || null,
+});
+
 const ConciergeResultCard = ({ item }) => {
   const posterSrc = resolvePosterSrc(item.posterUrl);
 
@@ -549,74 +595,48 @@ const ChatBot = () => {
     }
 
     if (catNum === '3') {
-      const list = (dbData.bootcamps || [])
-        .filter((b) => String(b.genre || '').includes(genreName))
-        .filter((b) => {
-          if (!targetRegion || targetRegion === '전국') return true;
-          return partyMatchesUserRegion(
-            { title: b.title, address: b.address, locationName: b.venue || b.region },
-            targetRegion,
-          );
-        })
-        .slice(0, 3);
-      if (!list.length) {
+      const todayStr = getKSTCalendarTodayStr();
+      const bootPick = pickNationwideGenreEvents(dbData.bootcamps, genreName, { todayStr, limit: 3 });
+      const festPick = pickNationwideGenreEvents(dbData.festivals, genreName, { todayStr, limit: 2 });
+      const items = [
+        ...bootPick.list.map(mapBootcampConciergeItem),
+        ...festPick.list.map(mapFestivalConciergeItem),
+      ];
+      if (!items.length) {
         return {
-          empty: targetRegion && targetRegion !== '전국'
-            ? `**${targetRegion}지역**에 **${genreName}** 부트캠프가 없어요.`
-            : `**${genreName}** 부트캠프가 없어요.`,
+          empty:
+            '**전국**에 등록된 부트캠프·페스티벌이 아직 없어요.\n홈 화면 **부트캠프**·**페스티벌** 탭에서 곧 확인해 주세요.',
           headline: null,
           items: [],
         };
       }
+      const genreNote =
+        bootPick.usedGenreFallback || festPick.usedGenreFallback
+          ? ' · 요청 장르 외 전국 프로그램 포함'
+          : '';
       return {
         empty: null,
-        headline: targetRegion && targetRegion !== '전국'
-          ? `✨ [${targetRegion}] ${genreName} 부트캠프 추천 ${list.length}건`
-          : `✨ ${genreName} 부트캠프 추천 ${list.length}건`,
-        items: list.map((b) => ({
-          headline: `🎵 ${b.instructor || b.title || '부트캠프'}`,
-          lines: [
-            `📅 시작: ${String(b.start_date || '').slice(0, 10)}`,
-            `💰 비용: ${b.fee || b.price_info || '문의'}`,
-          ],
-          posterUrl: b.poster_url || null,
-        })),
+        headline: `✨ 전국 ${genreName} · 부트캠프 & 페스티벌 ${items.length}건${genreNote}`,
+        items,
       };
     }
 
     if (catNum === '4') {
-      const list = (dbData.festivals || [])
-        .filter((f) => String(f.genre || '').includes(genreName))
-        .filter((f) => {
-          if (!targetRegion || targetRegion === '전국') return true;
-          return partyMatchesUserRegion(
-            { title: f.title, address: f.address, locationName: f.venue || f.region },
-            targetRegion,
-          );
-        })
-        .slice(0, 3);
-      if (!list.length) {
+      const todayStr = getKSTCalendarTodayStr();
+      const festPick = pickNationwideGenreEvents(dbData.festivals, genreName, { todayStr, limit: 5 });
+      if (!festPick.list.length) {
         return {
-          empty: targetRegion && targetRegion !== '전국'
-            ? `**${targetRegion}지역**에 **${genreName}** 페스티벌이 없어요.`
-            : `**${genreName}** 페스티벌이 없어요.`,
+          empty:
+            '**전국**에 등록된 페스티벌이 아직 없어요.\n홈 화면 **페스티벌** 탭에서 포스터를 확인해 주세요.',
           headline: null,
           items: [],
         };
       }
+      const genreNote = festPick.usedGenreFallback ? ' · 요청 장르 외 전국 행사 포함' : '';
       return {
         empty: null,
-        headline: targetRegion && targetRegion !== '전국'
-          ? `✨ [${targetRegion}] ${genreName} 페스티벌 추천 ${list.length}건`
-          : `✨ ${genreName} 페스티벌 추천 ${list.length}건`,
-        items: list.map((f) => ({
-          headline: `🎵 ${f.title || f.name || '페스티벌'}`,
-          lines: [
-            `📅 일정: ${String(f.start_date || f.date || '').slice(0, 10)}`,
-            `💰 참가비: ${f.fee || f.price || '확인 필요'}`,
-          ],
-          posterUrl: f.poster_url || null,
-        })),
+        headline: `✨ 전국 ${genreName} 페스티벌 ${festPick.list.length}건${genreNote}`,
+        items: festPick.list.map(mapFestivalConciergeItem),
       };
     }
 
@@ -643,7 +663,8 @@ const ChatBot = () => {
       }
       setCategory(userInput);
       setStep(2);
-      setMessages((prev) => [...prev, userMsg, { role: 'model', content: GENRE_MSG }]);
+      const genrePrompt = userInput === '3' || userInput === '4' ? GENRE_MSG_NATIONWIDE : GENRE_MSG;
+      setMessages((prev) => [...prev, userMsg, { role: 'model', content: genrePrompt }]);
       return;
     }
 
