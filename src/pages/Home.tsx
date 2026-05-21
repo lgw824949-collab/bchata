@@ -9,7 +9,11 @@ import { KMA_REGION_COORDS, fetchWeatherForecast, parseKmaWeather, HOME_REGION_M
 import { supabase } from '../lib/supabase'
 import { BAR_DATABASE } from '../lib/BarLib'
 import { normDate, getKSTCalendarTodayStr, isApprovedParty } from '../lib/dateNorm'
-import { LOCATIONS_SELECT, logSupabaseError } from '../lib/locationsQuery'
+import { logSupabaseError } from '../lib/locationsQuery'
+
+/** public.locations — Supabase 실제 컬럼만 */
+const HOME_LOCATIONS_SELECT =
+  'id, name, address, region_id, created_at, latitude, longitude, view_count';
 import {
   dedupeVenueList,
   normalizeVenueAddressKey,
@@ -1474,18 +1478,10 @@ const HomePage = ({
     try {
       let rawList = [];
       if (supabase) {
-        const selectWithSort = `${LOCATIONS_SELECT}, sort_order, view_count`;
-        let { data, error } = await supabase
+        const { data, error } = await supabase
           .from('locations')
-          .select(selectWithSort)
-          .order('sort_order', { ascending: true, nullsFirst: false })
+          .select(HOME_LOCATIONS_SELECT)
           .order('name', { ascending: true });
-        if (error && /sort_order/i.test(error.message || '')) {
-          ({ data, error } = await supabase
-            .from('locations')
-            .select(`${LOCATIONS_SELECT}, view_count`)
-            .order('name', { ascending: true }));
-        }
         if (error) {
           logSupabaseError('Home.fetchLocations', error);
           throw error;
