@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next';
 import { motion, AnimatePresence } from 'framer-motion'
 import { logActivity, runSupabaseQuery, supabase } from './lib/supabase'
 import { KAKAO_BRAND, SHARE_BUILD, sharePartyToKakao } from './lib/kakaoShare'
+import { buildPartyShareUrl } from './lib/shareLinks'
 import { buildPartyShareCard } from './lib/partyShareCard'
 import { formatPartyTitleDisplay } from './lib/partyTitleDisplay'
 import { getUserCoords, isGeoDenied, readCachedCoords, syncGeoPermissionState } from './lib/geoCache'
@@ -148,8 +149,6 @@ const CITY_MAP_EN = {
   '의정부': 'Uijeongbu', '안산': 'Ansan', '고양': 'Goyang', '용인': 'Yongin', '부천': 'Bucheon'
 };
 
-const SHARE_HOME_URL = () => `${window.location.origin}/`;
-
 // [포스터 줌 전용 컴포넌트 - 전역 분리]
 const PosterModal = ({ src, onClose, shareTitle, shareDesc, shareLines, shareFeedDesc, partyId }) => {
   const imgRef = useRef();
@@ -161,9 +160,7 @@ const PosterModal = ({ src, onClose, shareTitle, shareDesc, shareLines, shareFee
   const resolvedDesc = cardLines.length > 0
     ? cardLines.join('\n')
     : (shareDesc?.trim() || '전국 플로어 정보는 앱에서 한눈에!');
-  const linkUrl = partyId
-    ? `${window.location.origin}/?party=${encodeURIComponent(partyId)}&open=true`
-    : SHARE_HOME_URL();
+  const linkUrl = buildPartyShareUrl(partyId);
 
   const onUpdate = ({ x, y, scale }) => {
     if (imgRef.current) {
@@ -237,6 +234,7 @@ const PosterModal = ({ src, onClose, shareTitle, shareDesc, shareLines, shareFee
       description: shareFeedDesc || cardLines.join(' · ') || resolvedDesc,
       posterUrl: absoluteImageUrl,
       linkUrl,
+      partyId,
     });
   };
 

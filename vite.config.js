@@ -40,6 +40,7 @@ function mergeViteEnv(modeEnv, baseEnv, dotEnv) {
     VITE_SUPABASE_URL: pick('VITE_SUPABASE_URL'),
     VITE_SUPABASE_ANON_KEY: pick('VITE_SUPABASE_ANON_KEY'),
     VITE_KAKAO_API_KEY: pick('VITE_KAKAO_API_KEY'),
+    VITE_PUBLIC_APP_URL: pick('VITE_PUBLIC_APP_URL') || 'https://bchata.vercel.app',
   }
 }
 
@@ -56,6 +57,7 @@ export default defineConfig(({ mode }) => {
       'import.meta.env.VITE_SUPABASE_URL': JSON.stringify(env.VITE_SUPABASE_URL),
       'import.meta.env.VITE_SUPABASE_ANON_KEY': JSON.stringify(env.VITE_SUPABASE_ANON_KEY),
       'import.meta.env.VITE_KAKAO_API_KEY': JSON.stringify(env.VITE_KAKAO_API_KEY),
+      'import.meta.env.VITE_PUBLIC_APP_URL': JSON.stringify(env.VITE_PUBLIC_APP_URL),
     },
     server: {
       port: 1234,
