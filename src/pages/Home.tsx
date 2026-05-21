@@ -20,6 +20,7 @@ import BarRegisterFormModal from '../components/BarRegisterFormModal'
 import HomeHeroTagline from '../components/HomeHeroTagline'
 import { navigate as historyNavigate, parseAppState, pushOverlay } from '../lib/appHistory'
 import { formatPartyFeeDisplay } from '../lib/partyFeeDisplay'
+import PartyCard from '../components/PartyCard'
 
 function navigate(path, options = {}) {
   const { replace: _replace, ...rest } = options;
@@ -743,7 +744,7 @@ const PosterImage = ({ src, onClick, alt = "파티 포스터" }) => {
   );
 };
 
-const PartyCard = ({ item, onSelect }) => {
+const HomeRollingPartyCard = ({ item, onSelect }) => {
   const isTimeLive = (() => {
     const now = new Date();
     const d = new Date();
@@ -1047,7 +1048,7 @@ const RollingContainer = ({ items, onSelect }) => {
             transition={{ duration: 0.5 }}
             style={{ position: 'absolute', width: '100%' }}
           >
-            <PartyCard item={items[index]} onSelect={onSelect} />
+            <HomeRollingPartyCard item={items[index]} onSelect={onSelect} />
           </motion.div>
         )}
       </AnimatePresence>
@@ -3449,172 +3450,26 @@ const HomePage = ({
                               >
                                 {rollingParties.length === 0 ? (
                                   <div style={{ flexShrink: 0, width: '100%', padding: '50px', background: 'var(--color-bg)', borderRadius: '24px', textAlign: 'center', color: 'var(--color-text-sub)', fontSize: '13px', fontWeight: '900', border: '1px dashed #E2E8F0' }}>{t('no_parties')}</div>
-                                ) : rollingParties.map(item => {
-                                  const now = new Date();
-                                  let isItemLive = false;
-                                  if (normDate(item.date) === todayStr) {
-                                    const startStr = (item.time?.split('-')[0] || '20:00').trim();
-                                    const [sH, sM] = startStr.split(':').length === 2 ? startStr.split(':').map(Number) : [20, 0];
-                                    const startDate = new Date();
-                                    startDate.setHours(sH, sM, 0, 0);
-                                    const endStr = item.time?.includes('-') ? item.time.split('-')[1].trim() : null;
-                                    let endDate = new Date(startDate);
-                                    if (endStr && endStr.includes(':')) {
-                                      const [eH, eM] = endStr.split(':').map(Number);
-                                      endDate.setHours(eH, eM + 30, 0, 0);
-                                      if (endDate < startDate) endDate.setDate(endDate.getDate() + 1);
-                                    } else {
-                                      endDate.setHours(startDate.getHours() + 4, startDate.getMinutes() + 30, 0, 0);
-                                    }
-                                    const startWithBuffer = new Date(startDate.getTime() - 30 * 60 * 1000);
-                                    isItemLive = now >= startWithBuffer && now <= endDate;
-                                  }
-                                  return (
-                                    <div
-                                      className="party-carousel-card region-carousel-card"
-                                      {...partyCardZoomDesktopOnly}
-                                      key={item.id}
-                                      onClick={() => openPartyWithAfterParty(item)}
-                                      style={{
-                                        width: 'min(340px, calc(100vw - 56px))',
-                                        flexShrink: 0,
-                                        scrollSnapAlign: 'start',
-                                        scrollSnapStop: 'always',
-                                        borderRadius: '20px',
-                                        overflow: 'hidden',
-                                        display: 'flex',
-                                        flexDirection: 'row',
-                                        alignItems: 'stretch',
-                                        background: 'var(--color-card)',
-                                        border: '1px solid #FFE4E4',
-                                        boxShadow: '0 4px 16px rgba(229, 57, 53, 0.08)',
-                                        cursor: 'pointer',
-                                        height: '150px',
-                                        position: 'relative',
-                                        boxSizing: 'border-box',
-                                      }}
-                                    >
-                                      {/* 파티 카드 우측 상단 찜하기 하트 버튼 */}
-                                      <button
-                                        type="button"
-                                        onTouchStart={(e) => e.stopPropagation()}
-                                        onClick={(e) => toggleWishlistParty(e, item)}
-                                        style={{
-                                          position: 'absolute',
-                                          top: '10px',
-                                          right: '10px',
-                                          background: 'rgba(255, 255, 255, 0.85)',
-                                          backdropFilter: 'blur(4px)',
-                                          border: 'none',
-                                          borderRadius: '50%',
-                                          width: '28px',
-                                          height: '28px',
-                                          display: 'flex',
-                                          alignItems: 'center',
-                                          justifyContent: 'center',
-                                          cursor: 'pointer',
-                                          zIndex: 10,
-                                          boxShadow: '0 2px 8px rgba(0,0,0,0.1)'
-                                        }}
-                                      >
-                                        {(() => {
-                                          const isWish = wishlistParties.some(w => {
-                                            if (typeof w === 'object' && w !== null) return w.id === item.id;
-                                            return w === item.id;
-                                          });
-                                          return <Heart size={15} color={isWish ? '#FF4081' : '#FFCDD2'} fill={isWish ? '#FF4081' : '#FFCDD2'} />;
-                                        })()}
-                                      </button>
-
-                                      {/* 포스터 이미지: 왼쪽 고정, 크기 110px x 150px */}
-                                      <div style={{ width: '110px', height: '150px', flexShrink: 0, background: '#000' }}>
-                                        <img src={item.poster_url} style={{ width: '100%', height: '100%', objectFit: 'cover' }} alt="Poster" />
-                                      </div>
-
-                                      {/* 오른쪽 정보 영역: 여성 감각으로 세련되게 정렬 */}
-                                      <div style={{ flex: 1, padding: '12px', display: 'flex', flexDirection: 'column', justifyContent: 'space-between', minWidth: 0, boxSizing: 'border-box' }}>
-                                        
-                                        {/* 1. 장르 뱃지 (파스텔 핑크 + 딥 로즈) */}
-                                        <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                                          <span style={{ fontSize: '11px', fontWeight: '800', color: '#D81B60', background: '#FFF0F5', padding: '2px 8px', borderRadius: '20px', flexShrink: 0 }}>
-                                            {(() => {
-                                              if (item._itemGenre && item._itemGenre !== '소셜') return item._itemGenre;
-                                              const entries = Object.entries(GENRE_MAP).filter(([_, info]) => item[info.key] > 0)
-                                              if (entries.length === 0) return '소셜'
-                                              const sorted = [...entries].sort((a, b) => item[b[1].key] - item[a[1].key])
-                                              if (sorted.length >= 2 && item[sorted[0][1].key] === item[sorted[1][1].key]) return `${sorted[0][0]} · ${sorted[1][0]}`
-                                              return sorted[0][0]
-                                            })()}
-                                          </span>
-                                          {isItemLive && (
-                                            <span style={{ background: '#E53935', color: '#fff', fontSize: '9px', fontWeight: '950', padding: '2px 5px', borderRadius: '4px', animation: 'blink 1.5s infinite' }}>LIVE</span>
-                                          )}
-                                        </div>
-
-                                        {/* 2. 파티명 */}
-                                        <div style={{ fontSize: '18px', fontWeight: 'bold', color: '#1E293B', display: '-webkit-box', WebkitLineClamp: 1, WebkitBoxOrient: 'vertical', overflow: 'hidden', textOverflow: 'ellipsis', letterSpacing: '-0.5px', lineHeight: 1.2, marginTop: '2px', marginBottom: '6px' }}>
-                                          {cleanFeaturedTitle(item.title || '')}
-                                        </div>
-
-                                        <div style={{ display: 'flex', flexDirection: 'column', gap: '3px' }}>
-                                        <div style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: '15px', color: '#1E293B', fontWeight: '500' }}>
-                                          <Clock size={14} color="#1E293B" style={{ flexShrink: 0 }} />
-                                          <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                                            {item.time?.split('-')[0].trim() || '21:00'}
-                                          </span>
-                                          {isItemLive && (
-                                            <span style={{ fontSize: '11px', fontWeight: '800', color: '#FFB300', background: 'rgba(255,179,0,0.1)', padding: '1px 6px', borderRadius: '8px', marginLeft: 'auto' }}>
-                                              {item.view_count || 0}
-                                            </span>
-                                          )}
-                                        </div>
-
-                                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '4px' }}>
-                                          <div style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: '13px', color: '#E53935', fontWeight: 'bold', overflow: 'hidden', whiteSpace: 'nowrap', textOverflow: 'ellipsis', minWidth: 0, flex: 1 }}>
-                                            <MapPin size={13} color="#E53935" style={{ flexShrink: 0 }} />
-                                            <span style={{ overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                                              {translateDynamicText(item.locationName, isEn)}
-                                            </span>
-                                            <span style={{ opacity: 0.4, margin: '0 2px' }}>·</span>
-                                            <span style={{ color: '#E53935', fontWeight: '900', flexShrink: 0 }}>
-                                              {formatPartyFeeDisplay(item.fee)}
-                                            </span>
-                                          </div>
-
-                                          <div style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: '10px', fontWeight: '700', flexShrink: 0 }}>
-                                            <span
-                                              onClick={(e) => {
-                                                e.stopPropagation();
-                                                const locQuery = encodeURIComponent(item.locationName || item.venue || '');
-                                                window.open(`https://map.kakao.com/link/search/${locQuery}`);
-                                              }}
-                                              style={{ color: '#94A3B8', cursor: 'pointer', padding: '2px 0' }}
-                                            >
-                                              카카오맵
-                                            </span>
-                                            <span style={{ color: '#E2E8F0', fontSize: '9px' }}>·</span>
-                                            <span
-                                              onClick={(e) => {
-                                                e.stopPropagation();
-                                                const locQuery = encodeURIComponent(item.locationName || item.venue || '');
-                                                window.open(`https://www.google.com/maps/search/${locQuery}`);
-                                              }}
-                                              style={{ color: '#94A3B8', cursor: 'pointer', padding: '2px 0' }}
-                                            >
-                                              구글맵
-                                            </span>
-                                          </div>
-                                        </div>
-
-                                        {item._itemGenre !== '부트캠프' && item._itemGenre !== '페스티벌'
-                                          ? renderPartyMusicRatioRow(item)
-                                          : null}
-                                        </div>
-
-                                      </div>
-                                    </div>
-                                  )
-                                })}
+                                ) : rollingParties.map((item) => (
+                                  <div
+                                    key={item.id}
+                                    className="party-carousel-card region-carousel-card"
+                                    {...partyCardZoomDesktopOnly}
+                                    style={{
+                                      width: 'min(340px, calc(100vw - 56px))',
+                                      flexShrink: 0,
+                                      scrollSnapAlign: 'start',
+                                      scrollSnapStop: 'always',
+                                    }}
+                                  >
+                                    <PartyCard
+                                      item={item}
+                                      onSelect={openPartyWithAfterParty}
+                                      wishlistParties={wishlistParties}
+                                      onToggleWishlist={toggleWishlistParty}
+                                    />
+                                  </div>
+                                ))}
                               </div>
 
 
