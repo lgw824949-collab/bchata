@@ -2624,16 +2624,21 @@ const HomePage = ({
     return (
       <motion.section
         className="home-region-poster-banner-standalone"
-        style={{ width: '100%', marginBottom: 12 }}
+        style={{ width: '92%', maxWidth: '100%', margin: '0 auto 12px', boxSizing: 'border-box' }}
         aria-label={isEn ? "Today's regional party posters" : '오늘 지역 대표 포스터'}
       >
         <style>{`
           .home-region-poster-banner-standalone {
-            width: 100%;
+            width: 92%;
+            max-width: 100%;
+            margin-left: auto;
+            margin-right: auto;
+            box-sizing: border-box;
           }
           .home-region-poster-banner__frame {
             position: relative;
             width: 100%;
+            margin: 0 auto;
             border-radius: 14px;
             overflow: hidden;
             aspect-ratio: 3 / 4;
