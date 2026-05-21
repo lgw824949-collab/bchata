@@ -132,7 +132,7 @@ const isPersistedLocationId = (id) => {
 const formatBarViewCountLine = (viewCount) => `view ${Number(viewCount) || 0}명`;
 
 /** GPS 기준 가장 가까운 지역 pill (경기 → 경인) */
-const SOCIAL_BAR_GEO_REGIONS = ['서울', '경인', '경상도', '충청도', '전라도'];
+const SOCIAL_BAR_GEO_REGIONS = [...HOME_REGIONS_ORDER];
 
 const SOCIAL_BAR_REGION_BY_COORD = [
   { name: '서울', minLat: 37.41, maxLat: 37.72, minLng: 126.76, maxLng: 127.20 },
@@ -148,6 +148,7 @@ const SOCIAL_BAR_REGION_CENTROIDS = {
   경상도: { lat: 35.85, lng: 128.6 },
   충청도: { lat: 36.35, lng: 127.77 },
   전라도: { lat: 35.82, lng: 127.15 },
+  '강원/제주': { lat: 37.88, lng: 127.73 },
 };
 
 const socialBarHaversineKm = (lat1, lon1, lat2, lon2) => {
@@ -192,20 +193,15 @@ const pickNearestSocialBarRegion = (lat, lng) => {
   const ln = Number(lng);
   if (!Number.isFinite(la) || !Number.isFinite(ln)) return null;
 
-  const inBoxes = SOCIAL_BAR_REGION_BY_COORD.filter(
-    (r) => la >= r.minLat && la <= r.maxLat && ln >= r.minLng && ln <= r.maxLng,
-  );
-  const candidates = inBoxes.length > 0 ? inBoxes : SOCIAL_BAR_REGION_BY_COORD;
-
-  let best = SOCIAL_BAR_GEO_REGIONS[0];
+  let best = null;
   let minDist = Infinity;
-  candidates.forEach((r) => {
-    const c = SOCIAL_BAR_REGION_CENTROIDS[r.name];
+  SOCIAL_BAR_GEO_REGIONS.forEach((name) => {
+    const c = SOCIAL_BAR_REGION_CENTROIDS[name];
     if (!c) return;
     const d = socialBarHaversineKm(la, ln, c.lat, c.lng);
     if (d < minDist) {
       minDist = d;
-      best = r.name;
+      best = name;
     }
   });
   return best;
@@ -1406,6 +1402,8 @@ const HomePage = ({
   const [locations, setLocations] = useState([]);
   const [locationsLoading, setLocationsLoading] = useState(true);
   const [selectedRegionTab, setSelectedRegionTab] = useState(SOCIAL_BAR_REGION_ALL);
+  /** 휴대폰 GPS로 잡은 내 지역 — Social BAR 탭·정렬 1순위 */
+  const [geoRegionTab, setGeoRegionTab] = useState(null);
   const socialBarGeoDoneRef = useRef(false);
   const barViewTimerRef = useRef(null);
   const [selectedVenue, setSelectedVenue] = useState(null);
@@ -1552,9 +1550,23 @@ const HomePage = ({
   const sortBarsByRichness = (bars) =>
     [...bars].sort((a, b) => scoreBarForPreview(b) - scoreBarForPreview(a));
 
-  const sortBarsForSocialBarTab = (bars, regionTab) => {
-    if (regionTab === '서울') return sortSeoulSocialBars(bars);
-    return sortBarsByRichness(bars);
+  const sortBarsForSocialBarTab = (bars, regionTab, nearRegion = geoRegionTab) => {
+    const list = [...bars];
+    if (regionTab === SOCIAL_BAR_REGION_ALL && nearRegion) {
+      list.sort((a, b) => {
+        const aNear = a.region === nearRegion ? 0 : 1;
+        const bNear = b.region === nearRegion ? 0 : 1;
+        if (aNear !== bNear) return aNear - bNear;
+        if (a.region === nearRegion && b.region === nearRegion) {
+          if (nearRegion === '서울') return getSeoulSocialBarSortRank(a) - getSeoulSocialBarSortRank(b);
+          return scoreBarForPreview(b) - scoreBarForPreview(a);
+        }
+        return (a.name || '').localeCompare(b.name || '', 'ko');
+      });
+      return list;
+    }
+    if (regionTab === '서울') return sortSeoulSocialBars(list);
+    return sortBarsByRichness(list);
   };
 
   const barRegionCounts = useMemo(() => {
@@ -1574,8 +1586,12 @@ const HomePage = ({
     const withVenues = HOME_REGIONS_ORDER.filter((tab) =>
       locations.some((b) => b.region === tab),
     );
-    return [SOCIAL_BAR_REGION_ALL, ...withVenues];
-  }, [locations]);
+    if (!geoRegionTab || !withVenues.includes(geoRegionTab)) {
+      return [SOCIAL_BAR_REGION_ALL, ...withVenues];
+    }
+    const rest = withVenues.filter((tab) => tab !== geoRegionTab);
+    return [geoRegionTab, ...rest, SOCIAL_BAR_REGION_ALL];
+  }, [locations, geoRegionTab]);
 
   const openVenueDetail = (bar) => {
     setSelectedVenue(bar);
@@ -1671,6 +1687,7 @@ const HomePage = ({
   const renderBarCard = (bar) => {
     const barName = bar.name || '이름 없음';
     const viewLine = formatBarViewCountLine(bar.view_count);
+    const isMyGeoRegion = geoRegionTab && bar.region === geoRegionTab;
     const barNameStyle = {
       margin: 0,
       width: '100%',
@@ -1699,12 +1716,12 @@ const HomePage = ({
         key={bar.id}
         type="button"
         role="listitem"
-        className="home-bar-chip"
+        className={`home-bar-chip${isMyGeoRegion ? ' home-bar-chip--my-region' : ''}`}
         onClick={() => openVenueDetail(bar)}
         whileTap={{ scale: 0.97 }}
       >
         <span
-          className="home-bar-thumb"
+          className={`home-bar-thumb${isMyGeoRegion ? ' home-bar-thumb--my-region' : ''}`}
           style={{
             display: 'flex',
             alignItems: 'center',
@@ -1794,22 +1811,30 @@ const HomePage = ({
 
   useEffect(() => {
     if (locationsLoading || locations.length === 0) return;
-    if (selectedRegionTab === SOCIAL_BAR_REGION_ALL) return;
     const hasCurrent = locations.some((b) => b.region === selectedRegionTab);
     if (hasCurrent) return;
+    if (geoRegionTab && locations.some((b) => b.region === geoRegionTab)) {
+      setSelectedRegionTab(geoRegionTab);
+      return;
+    }
     const firstWithVenues = HOME_REGIONS_ORDER.find((r) => locations.some((b) => b.region === r));
     if (firstWithVenues) setSelectedRegionTab(firstWithVenues);
-  }, [locations, locationsLoading, selectedRegionTab]);
+  }, [locations, locationsLoading, selectedRegionTab, geoRegionTab]);
 
-  /** Social BAR 섹션 진입 시 GPS → 가장 가까운 지역 pill (실패·거부 시 전체) */
+  /** 앱(홈) 진입 시 GPS → 내 지역 탭 1순위·자동 선택 (권한 이미 허용 가정) */
   useEffect(() => {
     if (activeTab !== null) return;
-    const el = barSectionRef.current;
-    if (!el || socialBarGeoDoneRef.current) return;
+    if (socialBarGeoDoneRef.current) return;
 
     const finishGeoTab = (tab) => {
       socialBarGeoDoneRef.current = true;
-      setSelectedRegionTab(tab);
+      if (tab && tab !== SOCIAL_BAR_REGION_ALL && HOME_REGIONS_ORDER.includes(tab)) {
+        setGeoRegionTab(tab);
+        setSelectedRegionTab(tab);
+      } else {
+        setGeoRegionTab(null);
+        setSelectedRegionTab(SOCIAL_BAR_REGION_ALL);
+      }
     };
 
     const runSocialBarGeolocation = () => {
@@ -1830,20 +1855,11 @@ const HomePage = ({
           }
         },
         () => finishGeoTab(SOCIAL_BAR_REGION_ALL),
-        { enableHighAccuracy: false, timeout: 10000, maximumAge: 30 * 60 * 1000 },
+        { enableHighAccuracy: true, timeout: 12000, maximumAge: 5 * 60 * 1000 },
       );
     };
 
-    const observer = new IntersectionObserver(
-      (entries) => {
-        if (!entries.some((e) => e.isIntersecting)) return;
-        observer.disconnect();
-        runSocialBarGeolocation();
-      },
-      { threshold: 0.12, rootMargin: '0px 0px -8% 0px' },
-    );
-    observer.observe(el);
-    return () => observer.disconnect();
+    runSocialBarGeolocation();
   }, [activeTab]);
 
   /** 하단 네비 탭 순서: 홈 → 파티(소셜) → 부트캠프 → 페스티벌 → 강사찾기 (마크업은 App.jsx nav) */
@@ -2871,12 +2887,13 @@ const HomePage = ({
           <motion.div className="home-region-tabs">
             {socialBarRegionTabs.map((tab) => {
               const isSelected = selectedRegionTab === tab;
+              const isMyGeoRegion = geoRegionTab && tab === geoRegionTab;
 
               return (
                 <button
                   key={tab}
                   type="button"
-                  className={`home-region-pill${isSelected ? ' is-selected' : ''}`}
+                  className={`home-region-pill${isSelected ? ' is-selected' : ''}${isMyGeoRegion ? ' is-my-region' : ''}`}
                   onClick={() => setSelectedRegionTab(tab)}
                 >
                   {tab}

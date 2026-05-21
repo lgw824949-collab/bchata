@@ -783,6 +783,35 @@ input, button, select, textarea {
   color: #c9a84c;
 }
 
+/* GPS 내 지역 — 탭·BAR 칩 강조 (선택 전에도 골드 링) */
+.home-region-pill.is-my-region {
+  border-color: rgba(201, 168, 76, 0.55);
+  box-shadow: 0 0 0 1px rgba(201, 168, 76, 0.28);
+}
+
+.home-gate-active .home-region-pill.is-my-region {
+  background: rgba(201, 168, 76, 0.1);
+  border-color: rgba(201, 168, 76, 0.55);
+  color: #e8d5a3;
+}
+
+.home-gate-active .home-region-pill.is-my-region .home-region-pill-count {
+  color: #c9a84c;
+}
+
+.home-bar-thumb--my-region {
+  box-shadow: 0 0 0 2px #c9a84c, 0 0 12px rgba(201, 168, 76, 0.45);
+}
+
+.home-gate-active .home-bar-thumb--my-region {
+  box-shadow: 0 0 0 2px #c9a84c, 0 0 14px rgba(201, 168, 76, 0.5);
+}
+
+.home-bar-chip--my-region .home-bar-chip-name,
+.home-gate-active .home-bar-chip--my-region .home-bar-chip-name {
+  color: #c9a84c;
+}
+
 /* legacy party strip (fallback) */
 .home-party-status-strip {
   display: flex;
