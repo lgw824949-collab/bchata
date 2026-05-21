@@ -54,10 +54,19 @@ const FEE_QUICK_PRICES = [
 
 const emptyFeeParts = () => ({ booking: '', onsite: '', mannerDrink: '' })
 
+const isMannerDrinkSelected = (feeParts) => feeParts.mannerDrink === 'on'
+
 const composePartyFee = (feeParts, feeCustom) => {
-  const segments = FEE_CHANNELS.filter((ch) => (feeParts[ch.key] || '').trim()).map(
-    (ch) => `${ch.label} ${feeParts[ch.key].trim()}`,
-  )
+  const segments = []
+  FEE_CHANNELS.forEach((ch) => {
+    const val = (feeParts[ch.key] || '').trim()
+    if (!val) return
+    if (ch.key === 'mannerDrink') {
+      segments.push(ch.label)
+      return
+    }
+    segments.push(`${ch.label} ${val}`)
+  })
   const custom = (feeCustom || '').trim()
   if (custom) segments.push(custom)
   return segments.join(' · ')
@@ -665,7 +674,10 @@ const RegisterForm = ({ onBack, onSuccess, isEdit = false, initialData = null })
             <p style={{ fontSize: '14px', fontWeight: 800, color: '#64748B', marginBottom: '12px' }}>입장료 (복수 선택 가능)</p>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', marginBottom: '16px' }}>
               {FEE_CHANNELS.map((ch) => {
-                const selected = (formData.feeParts[ch.key] || '').trim()
+                const isManner = ch.key === 'mannerDrink'
+                const selected = isManner
+                  ? isMannerDrinkSelected(formData.feeParts)
+                  : Boolean((formData.feeParts[ch.key] || '').trim())
                 return (
                   <div
                     key={ch.key}
@@ -676,64 +688,96 @@ const RegisterForm = ({ onBack, onSuccess, isEdit = false, initialData = null })
                       background: selected ? '#FFF5F7' : '#F8FAFC',
                     }}
                   >
-                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: isManner ? 0 : '8px' }}>
                       <span style={{ fontSize: '14px', fontWeight: 900, color: '#1E293B' }}>{ch.label}</span>
                       {selected ? (
                         <span style={{ fontSize: '13px', fontWeight: 800, color: '#FF1744' }}>
-                          {ch.label} {selected}
+                          {isManner ? ch.label : `${ch.label} ${formData.feeParts[ch.key].trim()}`}
                         </span>
                       ) : (
-                        <span style={{ fontSize: '12px', color: '#94A3B8', fontWeight: 600 }}>가격 선택</span>
+                        <span style={{ fontSize: '12px', color: '#94A3B8', fontWeight: 600 }}>
+                          {isManner ? '탭하여 선택' : '가격 선택'}
+                        </span>
                       )}
                     </div>
-                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '6px' }}>
-                      {FEE_QUICK_PRICES.map((opt) => (
-                        <button
-                          key={`${ch.key}-${opt.label}`}
-                          type="button"
-                          onClick={() =>
-                            setFormData((prev) => ({
-                              ...prev,
-                              feeParts: { ...prev.feeParts, [ch.key]: opt.display },
-                            }))
-                          }
-                          style={{
-                            padding: '10px 0',
-                            border: 'none',
-                            borderRadius: '10px',
-                            fontSize: '11px',
-                            fontWeight: 800,
-                            background: selected === opt.display ? '#FF1744' : '#fff',
-                            color: selected === opt.display ? '#fff' : '#64748B',
-                          }}
-                        >
-                          {opt.label}
-                        </button>
-                      ))}
-                    </div>
-                    {selected ? (
+                    {isManner ? (
                       <button
                         type="button"
                         onClick={() =>
                           setFormData((prev) => ({
                             ...prev,
-                            feeParts: { ...prev.feeParts, [ch.key]: '' },
+                            feeParts: {
+                              ...prev.feeParts,
+                              mannerDrink: isMannerDrinkSelected(prev.feeParts) ? '' : 'on',
+                            },
                           }))
                         }
                         style={{
-                          marginTop: '8px',
-                          padding: 0,
+                          width: '100%',
+                          marginTop: '10px',
+                          padding: '12px 0',
                           border: 'none',
-                          background: 'none',
-                          fontSize: '11px',
-                          fontWeight: 700,
-                          color: '#94A3B8',
-                          cursor: 'pointer',
+                          borderRadius: '10px',
+                          fontSize: '13px',
+                          fontWeight: 800,
+                          background: selected ? '#FF1744' : '#fff',
+                          color: selected ? '#fff' : '#64748B',
                         }}
                       >
-                        선택 해제
+                        {selected ? '메너음료 포함 (선택됨)' : '메너음료 포함'}
                       </button>
-                    ) : null}
+                    ) : (
+                      <>
+                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '6px' }}>
+                          {FEE_QUICK_PRICES.map((opt) => (
+                            <button
+                              key={`${ch.key}-${opt.label}`}
+                              type="button"
+                              onClick={() =>
+                                setFormData((prev) => ({
+                                  ...prev,
+                                  feeParts: { ...prev.feeParts, [ch.key]: opt.display },
+                                }))
+                              }
+                              style={{
+                                padding: '10px 0',
+                                border: 'none',
+                                borderRadius: '10px',
+                                fontSize: '11px',
+                                fontWeight: 800,
+                                background: formData.feeParts[ch.key] === opt.display ? '#FF1744' : '#fff',
+                                color: formData.feeParts[ch.key] === opt.display ? '#fff' : '#64748B',
+                              }}
+                            >
+                              {opt.label}
+                            </button>
+                          ))}
+                        </div>
+                        {selected ? (
+                          <button
+                            type="button"
+                            onClick={() =>
+                              setFormData((prev) => ({
+                                ...prev,
+                                feeParts: { ...prev.feeParts, [ch.key]: '' },
+                              }))
+                            }
+                            style={{
+                              marginTop: '8px',
+                              padding: 0,
+                              border: 'none',
+                              background: 'none',
+                              fontSize: '11px',
+                              fontWeight: 700,
+                              color: '#94A3B8',
+                              cursor: 'pointer',
+                            }}
+                          >
+                            선택 해제
+                          </button>
+                        ) : null}
+                      </>
+                    )}
                   </div>
                 )
               })}
