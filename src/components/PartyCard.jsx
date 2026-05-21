@@ -7,7 +7,7 @@ import { supabase } from '../lib/supabase';
 import PartyWishlistHeart from './PartyWishlistHeart';
 import { usePartyWishlist } from '../hooks/usePartyWishlist';
 import { PartyMusicRatioLine } from '../pages/Social';
-import { formatPartyFeeDisplay } from '../lib/partyFeeDisplay';
+import PartyFeeChips from './PartyFeeChips';
 
 const GENRE_MAP = {
   '바차타': { key: 'b_ratio', label: 'B', label_en: 'Bachata', color: '#FF1744' },
@@ -85,13 +85,11 @@ const PartyCard = ({ item, onSelect, wishlistParties: wishlistProp, onToggleWish
 
   const cleanTitleStr = item.title?.split(' ㅣ ')[0] || '';
   const displayTime = item.time?.split('-')[0].trim() || '21:00';
-  const displayFee = formatPartyFeeDisplay(item.fee, { fallback: '문의' });
   const todayStr = (() => {
     const d = new Date();
     return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
   })();
   const timeLabel = item.date === todayStr ? `오늘 ${displayTime}` : displayTime;
-  const mapQuery = encodeURIComponent(item.address || item.locationName || '');
   const handleKakaoShare = async (e) => {
     e.stopPropagation();
     const card = buildPartyShareCard(item);
@@ -144,34 +142,19 @@ const PartyCard = ({ item, onSelect, wishlistParties: wishlistProp, onToggleWish
           {translateDynamicText(cleanTitleStr.replace(/^\[.*?\]\s*/, '').replace(/ㅣ\s*$/, '').trim(), isEn)}
         </div>
 
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '3px', flexWrap: 'wrap' }}>
-            <span style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: '13px', color: 'var(--color-text-sub)', fontWeight: 700 }}>
-              <Clock size={13} />
-              {timeLabel}
-            </span>
-            <span style={{ fontSize: '13px', color: 'var(--color-text-sub)', fontWeight: 700 }}>
-              {translateDynamicText(item.locationName || item.studio_name || '장소 미지정', isEn)}
-            </span>
-            <button
-              type="button"
-              onClick={(e) => { e.stopPropagation(); window.open(`https://map.kakao.com/link/search/${mapQuery}`, '_blank'); }}
-              style={{ padding: '4px 8px', borderRadius: '8px', border: '1px solid var(--color-border)', background: 'var(--color-card)', cursor: 'pointer', fontSize: '14px', lineHeight: 1 }}
-            >
-              🗺️
-            </button>
-            <button
-              type="button"
-              onClick={(e) => { e.stopPropagation(); window.open(`https://www.google.com/maps/search/?api=1&query=${mapQuery}`, '_blank'); }}
-              style={{ padding: '4px 8px', borderRadius: '8px', border: '1px solid var(--color-border)', background: 'var(--color-card)', cursor: 'pointer', fontSize: '14px', lineHeight: 1 }}
-            >
-              🗺️
-            </button>
-          </div>
-          <PartyMusicRatioLine item={item} />
-          <span style={{ fontSize: '15px', fontWeight: '900', color: '#E53935' }}>
-            {displayFee}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '5px', minWidth: 0 }}>
+          <span style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: '13px', color: 'var(--color-text-sub)', fontWeight: 600 }}>
+            <Clock size={12} />
+            {timeLabel}
           </span>
+          <span style={{ fontSize: '13px', color: 'var(--color-text-sub)', fontWeight: 600, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+            {translateDynamicText(item.locationName || item.studio_name || '장소 미지정', isEn)}
+          </span>
+          <PartyFeeChips fee={item.fee} />
+          <PartyMusicRatioLine
+            item={item}
+            style={{ margin: 0, fontSize: '11px', fontWeight: 700, color: '#94A3B8' }}
+          />
         </div>
 
         <button

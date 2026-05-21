@@ -22,3 +22,28 @@ export function formatPartyFeeDisplay(priceStr, { fallback = '문의' } = {}) {
   if (num % 10000 === 0) return `${manValue}만`
   return `${manValue.toFixed(1).replace('.0', '')}만`
 }
+
+/** 카드용 입장료 칩 — 예매/현장/메너음료 분리 */
+export function parsePartyFeeChips(feeStr) {
+  const raw = String(feeStr ?? '').trim()
+  if (!raw) return [{ key: 'default', text: '문의' }]
+  if (raw.includes('무료') || raw === '0') return [{ key: 'free', text: '무료' }]
+
+  if (!COMPOSED_FEE_RE.test(raw) && !raw.includes(' · ')) {
+    return [{ key: 'default', text: formatPartyFeeDisplay(raw) }]
+  }
+
+  const chips = []
+  for (const seg of raw.split('·').map((s) => s.trim()).filter(Boolean)) {
+    if (/^메너음료$/i.test(seg)) {
+      chips.push({ key: 'manner', text: '메너음료' })
+    } else if (seg.startsWith('예매 ')) {
+      chips.push({ key: 'booking', text: `예매 ${seg.slice(3).trim()}` })
+    } else if (seg.startsWith('현장 ')) {
+      chips.push({ key: 'onsite', text: `현장 ${seg.slice(3).trim()}` })
+    } else {
+      chips.push({ key: seg, text: seg })
+    }
+  }
+  return chips.length ? chips : [{ key: 'default', text: formatPartyFeeDisplay(raw) }]
+}
