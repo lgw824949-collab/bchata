@@ -2,7 +2,8 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { Z } from '../constants/zLayers';
 import { motion, AnimatePresence } from 'framer-motion';
 import { supabase } from '../lib/supabase';
-import { X, Calendar, Clock, MapPin, DollarSign, Users, Info, User, Sparkles, Plus, MessageCircle } from 'lucide-react';
+import { X, Calendar, Clock, MapPin, DollarSign, Users, Info, User, Sparkles, Plus, MessageCircle, Camera } from 'lucide-react';
+import { DEFAULT_CARD_IMAGE, imgFallbackHandler } from '../constants/imageAssets';
 
 const GENRE_LIST = ['바차타', '살사', '쥬크', '키좀바'];
 const LATIN_MIX = ['바차타', '살사'];
@@ -18,6 +19,7 @@ const emptyForm = (instructorName = '') => ({
   city: '',
   instagram: '',
   kakaoLink: '',
+  photoUrl: '',
   title: '',
   titleTouched: false,
   genres: [],
@@ -51,6 +53,7 @@ const profileFieldsFromInstructor = (inst) => ({
   city: inst?.city || '',
   instagram: inst?.instagram || '',
   kakaoLink: inst?.kakao_link || '',
+  photoUrl: inst?.photo_url || '',
 });
 
 const suggestTitle = (genres, level) => {
@@ -102,6 +105,8 @@ const ClassRegisterModal = ({ isOpen = true, onClose, instructorId = '' }) => {
   const [instructors, setInstructors] = useState([]);
   const [posterFile, setPosterFile] = useState(null);
   const [posterPreview, setPosterPreview] = useState(null);
+  const [profilePhotoFile, setProfilePhotoFile] = useState(null);
+  const [profilePhotoPreview, setProfilePhotoPreview] = useState(null);
   const [doneSummary, setDoneSummary] = useState(null);
   const [form, setForm] = useState(emptyForm());
 
@@ -118,13 +123,15 @@ const ClassRegisterModal = ({ isOpen = true, onClose, instructorId = '' }) => {
       setDoneSummary(null);
       setPosterFile(null);
       setPosterPreview(null);
+      setProfilePhotoFile(null);
+      setProfilePhotoPreview(null);
       return;
     }
     const fetchInstructors = async () => {
       try {
         const { data } = await supabase
           .from('instructors')
-          .select('id, name, city, bio, career, awards, class_type, genre, instagram, kakao_link')
+          .select('id, name, city, bio, career, awards, class_type, genre, instagram, kakao_link, photo_url')
           .eq('status', 'active')
           .order('follower_count', { ascending: false });
         if (data?.length) {
@@ -252,6 +259,10 @@ const ClassRegisterModal = ({ isOpen = true, onClose, instructorId = '' }) => {
         alert('활동 지역을 선택해주세요.');
         return;
       }
+      if (!profilePhotoFile && !form.photoUrl?.trim()) {
+        alert('강사 프로필 사진을 등록해주세요. (필수)');
+        return;
+      }
       setStep(2);
       return;
     }
@@ -290,6 +301,15 @@ const ClassRegisterModal = ({ isOpen = true, onClose, instructorId = '' }) => {
     setPosterPreview(URL.createObjectURL(file));
   };
 
+  const handleProfilePhotoChange = (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setProfilePhotoFile(file);
+    setProfilePhotoPreview(URL.createObjectURL(file));
+  };
+
+  const profilePhotoDisplaySrc = profilePhotoPreview || form.photoUrl || '';
+
   const registerAnotherClass = () => {
     const keep = {
       instructorName: form.instructorName,
@@ -300,6 +320,7 @@ const ClassRegisterModal = ({ isOpen = true, onClose, instructorId = '' }) => {
       city: form.city,
       instagram: form.instagram,
       kakaoLink: form.kakaoLink,
+      photoUrl: form.photoUrl,
       location: form.location,
       fee: form.fee,
       capacity: form.capacity,
@@ -309,6 +330,15 @@ const ClassRegisterModal = ({ isOpen = true, onClose, instructorId = '' }) => {
     setPosterPreview(null);
     setDoneSummary(null);
     setStep(1);
+  };
+
+  const uploadInstructorProfilePhoto = async (file) => {
+    const ext = file.name.split('.').pop() || 'jpg';
+    const fileName = `instructors/${Date.now()}.${ext}`;
+    const { error: uploadError } = await supabase.storage.from('posters').upload(fileName, file);
+    if (uploadError) throw uploadError;
+    const { data: urlData } = supabase.storage.from('posters').getPublicUrl(fileName);
+    return urlData.publicUrl;
   };
 
   const handleSubmit = async () => {
@@ -332,6 +362,16 @@ const ClassRegisterModal = ({ isOpen = true, onClose, instructorId = '' }) => {
         return;
       }
 
+      let photoUrl = form.photoUrl?.trim() || null;
+      if (profilePhotoFile) {
+        photoUrl = await uploadInstructorProfilePhoto(profilePhotoFile);
+      }
+      if (!photoUrl) {
+        alert('강사 프로필 사진을 등록해주세요. (필수)');
+        setLoading(false);
+        return;
+      }
+
       const profilePatch = {
         bio: form.bio.trim(),
         career: form.career.trim() || null,
@@ -340,12 +380,14 @@ const ClassRegisterModal = ({ isOpen = true, onClose, instructorId = '' }) => {
         city: form.city.trim() || null,
         instagram: form.instagram.trim() || null,
         kakao_link: form.kakaoLink.trim() || null,
+        photo_url: photoUrl,
       };
       const { error: profileError } = await supabase
         .from('instructors')
         .update(profilePatch)
         .eq('id', targetInstId);
       if (profileError) throw profileError;
+      setForm((prev) => ({ ...prev, photoUrl }));
 
       let posterUrl = null;
       if (posterFile) {
@@ -569,10 +611,12 @@ const ClassRegisterModal = ({ isOpen = true, onClose, instructorId = '' }) => {
                     onChange={(e) => {
                       const instructorName = e.target.value;
                       const matched = findInstructorByName(instructors, instructorName);
+                      setProfilePhotoFile(null);
+                      setProfilePhotoPreview(null);
                       setForm((prev) => ({
                         ...prev,
                         instructorName,
-                        ...(matched ? profileFieldsFromInstructor(matched) : {}),
+                        ...(matched ? profileFieldsFromInstructor(matched) : { photoUrl: '' }),
                       }));
                     }}
                     placeholder="예: 남궁건 & 클레어"
@@ -596,8 +640,51 @@ const ClassRegisterModal = ({ isOpen = true, onClose, instructorId = '' }) => {
                       강사 BIO (프로필에 표시) *
                     </div>
                     <p style={{ margin: 0, fontSize: '11px', color: '#8E8E93', lineHeight: 1.45 }}>
-                      Dance Masters 프로필 · BIO 탭(소개·인스타·카톡 문의)에 노출됩니다.
+                      TOP 5 · 프로필 상단 · BIO 탭에 노출됩니다.
                     </p>
+                  </div>
+                  <div>
+                    <label style={{ display: 'block', fontSize: '12px', fontWeight: 700, color: '#A1A1AA', marginBottom: '8px' }}>
+                      프로필 사진 (필수)
+                    </label>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
+                      <label style={{ cursor: 'pointer', flexShrink: 0 }}>
+                        <input
+                          type="file"
+                          accept="image/*"
+                          onChange={handleProfilePhotoChange}
+                          style={{ display: 'none' }}
+                        />
+                        <div
+                          style={{
+                            width: '88px',
+                            height: '88px',
+                            borderRadius: '50%',
+                            overflow: 'hidden',
+                            border: '2px dashed rgba(201,168,76,0.45)',
+                            background: 'rgba(255,255,255,0.04)',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                          }}
+                        >
+                          {profilePhotoDisplaySrc ? (
+                            <img
+                              src={profilePhotoDisplaySrc}
+                              alt="프로필 미리보기"
+                              onError={imgFallbackHandler(DEFAULT_CARD_IMAGE)}
+                              style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                            />
+                          ) : (
+                            <Camera size={28} color="#C9A84C" />
+                          )}
+                        </div>
+                      </label>
+                      <div style={{ fontSize: '11px', color: '#8E8E93', lineHeight: 1.5 }}>
+                        <div style={{ fontWeight: 700, color: '#E5E5EA', marginBottom: '4px' }}>탭하여 사진 선택</div>
+                        정면·상반신 권장 · JPG/PNG
+                      </div>
+                    </div>
                   </div>
                   <div>
                     <label style={{ display: 'block', fontSize: '12px', fontWeight: 700, color: '#A1A1AA', marginBottom: '6px' }}>
