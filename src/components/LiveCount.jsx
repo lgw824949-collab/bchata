@@ -1,7 +1,9 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { supabase } from '../lib/supabase'
+import { fetchBarStatsMap } from '../lib/barStatsQuery'
 import { isApprovedParty } from '../lib/dateNorm'
+import { buildLiveBarSpotlights } from '../lib/liveBannerBars'
 import {
   LOCATIONS_WITH_REGION_NAME,
   logSupabaseError,
@@ -22,7 +24,6 @@ const LIVE_PROMO_PATH = '#community'
 const LIVE_FALLBACK_LINE_KO = '전국 파티 진행중'
 const LIVE_FALLBACK_LINE_EN = 'Nationwide parties live'
 
-/** community_posts — content 또는 bar_name을 배너 한 줄로 */
 function getCommunityPostLine(row) {
   const content = String(row?.content || '').trim()
   const bar = String(row?.bar_name || '').trim()
@@ -34,50 +35,81 @@ function getRecentActivityTs(p) {
   return Number.isFinite(ts) ? ts : 0
 }
 
-function getLiveViewScore(p) {
-  const clicks = Number(p.click_count) || 0
-  const views = Number(p.view_count) || 0
-  return Math.max(clicks, views)
-}
-
-function pickSpotlightPool(list, todayStr, yesterdayStr, isNowInPartyTime) {
+/** 오늘(KST) 날짜에 등록·승인된 파티 — 포스터 있으면 LIVE 바에 모두 순환 */
+function pickTodayPartyPool(list, todayStr) {
   const rows = (list || [])
     .filter(isApprovedParty)
     .filter((p) => String(p.poster_url || p.imageUrl || '').trim())
     .filter((p) => String(p.date || '').slice(0, 10) === todayStr)
-    .filter((p) => getLiveViewScore(p) > 0)
-    .filter((p) => getRecentActivityTs(p) >= Date.now() - LIVE_WINDOW_MS)
-  if (!rows.length) return []
-  const ranked = rows
-    .slice()
-    .sort((a, b) => {
-      const scoreGap = getLiveViewScore(b) - getLiveViewScore(a)
-      if (scoreGap !== 0) return scoreGap
-      return getRecentActivityTs(b) - getRecentActivityTs(a)
-    })
 
   const seen = new Set()
   const unique = []
-  for (const p of ranked) {
+  for (const p of rows.sort((a, b) => getRecentActivityTs(b) - getRecentActivityTs(a))) {
     if (p?.id == null || seen.has(p.id)) continue
     seen.add(p.id)
     unique.push(p)
-    if (unique.length >= 5) break
   }
   return unique
 }
 
-const LiveCount = ({ parties: partiesProp, onPartyClick, onPromoClick, isGate = false }) => {
+function getKSTWeekdayShort(isEn) {
+  const kst = new Date(Date.now() + 9 * 60 * 60 * 1000)
+  const ko = ['일', '월', '화', '수', '목', '금', '토']
+  const en = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
+  return isEn ? en[kst.getDay()] : ko[kst.getDay()]
+}
+
+function formatTodayPartyBannerLine(party, isEn) {
+  const wd = getKSTWeekdayShort(isEn)
+  const titleRaw = isEn && party.title_en ? party.title_en : party.title
+  const title = stripPlatformSuffixFromTitle(titleRaw)
+  const venue = party.locationName || party.location_name || ''
+  if (isEn) {
+    return `Today (${wd}) · ${title}${venue ? ` · ${venue}` : ''}`
+  }
+  return `오늘(${wd}) · ${title}${venue ? ` · ${venue}` : ''}`
+}
+
+function buildSocialBarLine(barSpotlights, isEn) {
+  const latin = barSpotlights.find((r) => r.label === '라틴')
+  const cadiz = barSpotlights.find((r) => r.label === '카디즈')
+  if (!latin || !cadiz) return ''
+  if (isEn) {
+    return `Latin ${latin.liveCount} / Cadiz ${cadiz.liveCount} · Social live`
+  }
+  return `라틴 ${latin.liveCount}명 / 카디즈 ${cadiz.liveCount}명 · 소셜 즐기는중`
+}
+
+const LiveCount = ({
+  parties: partiesProp,
+  locations: locationsProp,
+  barStatsMap: barStatsMapProp,
+  onPartyClick,
+  onBarClick,
+  onPromoClick,
+  isGate = false,
+}) => {
   const { t, i18n } = useTranslation()
   const [counts, setCounts] = useState({})
-  const [spotlightPool, setSpotlightPool] = useState([])
-  const [poolIndex, setPoolIndex] = useState(0)
+  const [todayPartyPool, setTodayPartyPool] = useState([])
+  const [lineIndex, setLineIndex] = useState(0)
   const [livePosts, setLivePosts] = useState([])
+  const [internalBarStats, setInternalBarStats] = useState({})
   const [queryFailed, setQueryFailed] = useState(() => !supabase)
 
   const isEn = i18n.language.startsWith('en')
   const nationwideFallbackLine = isEn ? LIVE_FALLBACK_LINE_EN : LIVE_FALLBACK_LINE_KO
-  const spotlight = spotlightPool[poolIndex] || spotlightPool[0] || null
+  const statsMap = barStatsMapProp ?? internalBarStats
+
+  const barSpotlights = useMemo(
+    () => buildLiveBarSpotlights(locationsProp, statsMap),
+    [locationsProp, statsMap],
+  )
+
+  const socialBarLine = useMemo(
+    () => buildSocialBarLine(barSpotlights, isEn),
+    [barSpotlights, isEn],
+  )
 
   const isNowInPartyTime = useCallback((dateStr, startTime) => {
     if (!dateStr || !startTime) return false
@@ -96,16 +128,20 @@ const LiveCount = ({ parties: partiesProp, onPartyClick, onPromoClick, isGate = 
     return kst.toISOString().split('T')[0]
   }
 
-  const getLiveBannerData = useCallback((list, todayStr) => {
-    return pickSpotlightPool(list, todayStr, '', isNowInPartyTime)
-  }, [isNowInPartyTime])
-
-  const applySpotlightPool = useCallback((list) => {
+  const applyTodayPartyPool = useCallback((list) => {
     const todayStr = getTodayKST()
-    const pool = getLiveBannerData(list, todayStr)
-    setSpotlightPool(pool)
-    setPoolIndex(0)
-  }, [getLiveBannerData])
+    setTodayPartyPool(pickTodayPartyPool(list, todayStr))
+    setLineIndex(0)
+  }, [])
+
+  const loadBarStats = useCallback(async () => {
+    if (!supabase || barStatsMapProp) return
+    try {
+      setInternalBarStats(await fetchBarStatsMap(supabase))
+    } catch (err) {
+      console.warn('[LiveCount] bar stats failed:', err)
+    }
+  }, [barStatsMapProp])
 
   const fetchLivePostsToday = async () => {
     if (!supabase) {
@@ -164,13 +200,13 @@ const LiveCount = ({ parties: partiesProp, onPartyClick, onPromoClick, isGate = 
 
       if (!parties || parties.length === 0) {
         setCounts({})
-        applySpotlightPool([])
+        applyTodayPartyPool([])
         setQueryFailed(false)
         return
       }
 
       const enriched = enrichPartiesWithVenues(parties, locations || [])
-      applySpotlightPool(enriched)
+      applyTodayPartyPool(enriched)
 
       const locationMap = (locations || []).reduce((acc, loc) => {
         acc[loc.id] = {
@@ -192,12 +228,12 @@ const LiveCount = ({ parties: partiesProp, onPartyClick, onPromoClick, isGate = 
 
       const grouped = liveParties.reduce((acc, p) => {
         const loc = locationMap[p.location_id]
-        const region = loc?.region || '\uc804\uad6d'
-        const key = `${region}|\ud30c\ud2f0`
+        const region = loc?.region || '전국'
+        const key = `${region}|파티`
         acc[key] = (acc[key] || 0) + 1
         return acc
       }, {})
-      grouped['\uc804\uad6d|total'] = liveParties.length
+      grouped['전국|total'] = liveParties.length
       setCounts(grouped)
       setQueryFailed(false)
     } catch (err) {
@@ -208,7 +244,7 @@ const LiveCount = ({ parties: partiesProp, onPartyClick, onPromoClick, isGate = 
     }
   }
 
-  const fetchSpotlightFromDb = async () => {
+  const fetchTodayPartiesFromDb = async () => {
     if (!supabase) {
       setQueryFailed(true)
       return
@@ -221,7 +257,6 @@ const LiveCount = ({ parties: partiesProp, onPartyClick, onPromoClick, isGate = 
         .eq('status', 'approved')
         .eq('date', todayStr)
         .not('poster_url', 'is', null)
-        .limit(40)
 
       if (partiesRes.error) {
         logPartiesFetchError(partiesRes.error)
@@ -231,7 +266,6 @@ const LiveCount = ({ parties: partiesProp, onPartyClick, onPromoClick, isGate = 
           .eq('status', 'approved')
           .eq('date', todayStr)
           .not('poster_url', 'is', null)
-          .limit(40)
       }
 
       if (partiesRes.error) throw partiesRes.error
@@ -242,29 +276,46 @@ const LiveCount = ({ parties: partiesProp, onPartyClick, onPromoClick, isGate = 
       }
       const locations = locationsRes.error ? [] : (locationsRes.data || [])
       const enriched = enrichPartiesWithVenues(partiesRes.data || [], locations)
-      applySpotlightPool(enriched)
+      applyTodayPartyPool(enriched)
       setQueryFailed(false)
     } catch (err) {
       logPartiesFetchError(err)
-      console.error('[LiveCount] fetchSpotlightFromDb failed:', err)
+      console.error('[LiveCount] fetchTodayPartiesFromDb failed:', err)
       setQueryFailed(true)
     }
   }
 
   useEffect(() => {
     if (!partiesProp?.length) return
-    const todayStr = getTodayKST()
-    const pool = getLiveBannerData(partiesProp, todayStr)
+    const pool = pickTodayPartyPool(partiesProp, getTodayKST())
     if (pool.length) {
-      setSpotlightPool((prev) => (prev.length ? prev : pool))
+      setTodayPartyPool((prev) => (prev.length ? prev : pool))
     }
-  }, [partiesProp, getLiveBannerData])
+  }, [partiesProp])
 
   const refreshLiveBanner = useCallback(() => {
     fetchLivePostsToday()
     fetchCounts()
-    fetchSpotlightFromDb()
-  }, [])
+    fetchTodayPartiesFromDb()
+    loadBarStats()
+  }, [loadBarStats])
+
+  const bannerRotateLines = useMemo(() => {
+    const items = []
+    if (socialBarLine) {
+      items.push({ type: 'social', text: socialBarLine, party: null })
+    }
+    todayPartyPool.forEach((p) => {
+      items.push({
+        type: 'party',
+        text: formatTodayPartyBannerLine(p, isEn),
+        party: p,
+      })
+    })
+    return items
+  }, [socialBarLine, todayPartyPool, isEn])
+
+  const currentBanner = bannerRotateLines[lineIndex] || bannerRotateLines[0] || null
 
   useEffect(() => {
     refreshLiveBanner()
@@ -278,6 +329,7 @@ const LiveCount = ({ parties: partiesProp, onPartyClick, onPromoClick, isGate = 
       .channel('live-dynamic-banner')
       .on('postgres_changes', { event: '*', schema: 'public', table: 'parties' }, refreshLiveBanner)
       .on('postgres_changes', { event: '*', schema: 'public', table: 'community_posts' }, refreshLiveBanner)
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'bar_checkins' }, refreshLiveBanner)
       .subscribe()
 
     return () => {
@@ -287,34 +339,34 @@ const LiveCount = ({ parties: partiesProp, onPartyClick, onPromoClick, isGate = 
   }, [refreshLiveBanner])
 
   useEffect(() => {
-    if (spotlightPool.length < 2) return undefined
+    if (bannerRotateLines.length < 2) return undefined
     const timer = setInterval(() => {
-      setPoolIndex((v) => (v + 1) % spotlightPool.length)
+      setLineIndex((v) => (v + 1) % bannerRotateLines.length)
     }, SPOTLIGHT_ROTATE_MS)
     return () => clearInterval(timer)
-  }, [spotlightPool.length])
+  }, [bannerRotateLines.length])
 
   const abbreviateRegion = (region) => {
     const maps = {
-      '\uc11c\uc6b8\ud2b9\ubcc4\uc2dc': '\uc11c\uc6b8',
-      '\uc778\ucc9c\uad11\uc5ed\uc2dc': '\uc778\ucc9c',
-      '\ubd80\uc0b0\uad11\uc5ed\uc2dc': '\ubd80\uc0b0',
-      '\uacbd\uae30\ub3c4': '\uacbd\uae30',
-      '\ucda9\uccad\ub3c4': '\ucda9\uccad',
-      '\uc804\ub77c\ub3c4': '\uc804\ub77c',
-      '\uacbd\uc0c1\ub3c4': '\uacbd\uc0c1',
-      '\uac15\uc6d0\ub3c4': '\uac15\uc6d0',
+      서울특별시: '서울',
+      인천광역시: '인천',
+      부산광역시: '부산',
+      경기도: '경기',
+      충청도: '충청',
+      전라도: '전라',
+      경상도: '경상',
+      강원도: '강원',
     }
     const short = maps[region] || region
     const translationKeys = {
-      '\uc11c\uc6b8': 'region_seoul',
-      '\uc778\ucc9c': 'region_incheon',
-      '\ubd80\uc0b0': 'region_busan',
-      '\uacbd\uae30': 'region_gyeonggi_incheon',
-      '\ucda9\uccad': 'region_chungcheong',
-      '\uc804\ub77c': 'region_jeolla',
-      '\uacbd\uc0c1': 'region_gyeongsang',
-      '\uc804\uad6d': 'Nationwide',
+      서울: 'region_seoul',
+      인천: 'region_incheon',
+      부산: 'region_busan',
+      경기: 'region_gyeonggi_incheon',
+      충청: 'region_chungcheong',
+      전라: 'region_jeolla',
+      경상: 'region_gyeongsang',
+      전국: 'Nationwide',
     }
     return t(translationKeys[short] || short)
   }
@@ -324,24 +376,27 @@ const LiveCount = ({ parties: partiesProp, onPartyClick, onPromoClick, isGate = 
     return getCommunityPostLine(livePosts[0])
   }, [livePosts])
 
-  const dynamicBannerText = useMemo(() => {
-    if (!spotlight) return ''
-    const titleRaw = isEn && spotlight.title_en ? spotlight.title_en : spotlight.title
-    const title = stripPlatformSuffixFromTitle(titleRaw)
-    const rank = poolIndex + 1
-    return rank === 1
-      ? (isEn ? `?? #1 tonight! ${title}` : `?? ?? 1?! ${title}`)
-      : (isEn ? `? Trending now! ${title}` : `? ?? ?? ?! ${title}`)
-  }, [spotlight, poolIndex, isEn])
-
-  const hasNationwideCounts = Boolean(counts['\uc804\uad6d|total'])
-  const hasBannerContent = Boolean(displayTitle || hasNationwideCounts || spotlight || queryFailed)
+  const hasNationwideCounts = Boolean(counts['전국|total'])
+  const hasBannerContent = Boolean(
+    bannerRotateLines.length || displayTitle || hasNationwideCounts || queryFailed,
+  )
 
   const handleBannerClick = () => {
-    const target = spotlightPool[poolIndex] || spotlight
-    if (target && typeof onPartyClick === 'function') {
-      onPartyClick(target)
+    if (currentBanner?.type === 'party' && currentBanner.party && typeof onPartyClick === 'function') {
+      onPartyClick(currentBanner.party)
       return
+    }
+    if (currentBanner?.type === 'social') {
+      const hotBar = barSpotlights.find((r) => r.liveCount > 0 && r.venue)
+      if (hotBar?.venue && typeof onBarClick === 'function') {
+        onBarClick(hotBar.venue)
+        return
+      }
+      const firstParty = todayPartyPool[0]
+      if (firstParty && typeof onPartyClick === 'function') {
+        onPartyClick(firstParty)
+        return
+      }
     }
     if (typeof onPromoClick === 'function') {
       onPromoClick()
@@ -357,8 +412,16 @@ const LiveCount = ({ parties: partiesProp, onPartyClick, onPromoClick, isGate = 
     return null
   }
 
-  const mainLine = displayTitle || dynamicBannerText
-    || (queryFailed && !hasNationwideCounts && !spotlight ? nationwideFallbackLine : '')
+  const mainLine =
+    currentBanner?.text
+    || displayTitle
+    || (queryFailed && !hasNationwideCounts && !todayPartyPool.length
+      ? nationwideFallbackLine
+      : '')
+
+  const bannerLineKey = currentBanner
+    ? `${currentBanner.type}-${currentBanner.party?.id || lineIndex}`
+    : 'fallback'
 
   return (
     <div
@@ -372,34 +435,34 @@ const LiveCount = ({ parties: partiesProp, onPartyClick, onPromoClick, isGate = 
           handleBannerClick()
         }
       }}
-      aria-label={mainLine || (isEn ? 'Live banner' : '??? ??')}
+      aria-label={mainLine || (isEn ? 'Live banner' : '실시간 파티 배너')}
     >
       <div className="live-dynamic-banner__inner">
         <span className="lc-tag">LIVE</span>
         <span className="lc-dot" />
-        {hasNationwideCounts ? (
+        {hasNationwideCounts && !socialBarLine ? (
           <div className="live-dynamic-banner__track">
             <span className="lc-default lc-default--hot">
-              {'\uc804\uad6d '}{counts['\uc804\uad6d|total']}{'\uac1c \ud30c\ud2f0 \uc9c4\ud589\uc911'}
+              {'전국 '}{counts['전국|total']}{'개 파티 진행중'}
             </span>
             <div className="live-dynamic-banner__regions">
               <span className="live-dynamic-banner__sep">|</span>
               {Object.entries(counts)
-              .filter(([k]) => !k.includes('\uc804\uad6d'))
-              .map(([k, v]) => {
-                const region = abbreviateRegion(k.split('|')[0])
-                return (
-                  <span key={k} className="live-dynamic-banner__region">
-                    {region} <strong>{v}</strong>
-                  </span>
-                )
-              })}
+                .filter(([k]) => !k.includes('전국'))
+                .map(([k, v]) => {
+                  const region = abbreviateRegion(k.split('|')[0])
+                  return (
+                    <span key={k} className="live-dynamic-banner__region">
+                      {region} <strong>{v}</strong>
+                    </span>
+                  )
+                })}
             </div>
             {mainLine ? (
               <>
                 <span className="live-dynamic-banner__sep live-dynamic-banner__sep--before-spotlight">|</span>
                 <span
-                  key={displayTitle || spotlight?.id}
+                  key={bannerLineKey}
                   className="live-dynamic-banner__spotlight live-banner-text-clip"
                   title={mainLine}
                 >
@@ -408,18 +471,16 @@ const LiveCount = ({ parties: partiesProp, onPartyClick, onPromoClick, isGate = 
               </>
             ) : null}
           </div>
+        ) : mainLine ? (
+          <span
+            key={bannerLineKey}
+            className="live-dynamic-banner__spotlight live-dynamic-banner__spotlight--solo live-banner-text-clip"
+            title={mainLine}
+          >
+            {mainLine}
+          </span>
         ) : (
-          mainLine ? (
-            <span
-              key={displayTitle || spotlight?.id || 'live-fallback'}
-              className="live-dynamic-banner__spotlight live-dynamic-banner__spotlight--solo live-banner-text-clip"
-              title={mainLine}
-            >
-              {mainLine}
-            </span>
-          ) : (
-            <span className="lc-default lc-default--hot">{nationwideFallbackLine}</span>
-          )
+          <span className="lc-default lc-default--hot">{nationwideFallbackLine}</span>
         )}
       </div>
     </div>

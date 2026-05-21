@@ -2371,38 +2371,38 @@ body.bottom-nav-social-light nav.bottom-nav {
   50% { opacity: 0.3; }
 }
 
-/* 메인 LIVE 다이내믹 배너 */
+/* 메인 LIVE 다이내믹 배너 — 무지개 그라데이션 (홈 빠른메뉴 하단) */
 .live-dynamic-banner {
   position: relative;
   display: block;
   width: 100%;
-  padding: 2px;
+  padding: 0;
   border: none;
   border-radius: 14px;
   cursor: pointer;
-  background: linear-gradient(90deg, #e53935, #d4436e, #c9a84c, #e53935);
-  background-size: 300% 100%;
-  animation: live-banner-gradient 5s linear infinite;
+  background: linear-gradient(270deg, #ff6b6b, #ffd93d, #6bcb77, #4d96ff, #c77dff);
+  background-size: 400% 400%;
+  animation: live-gradient-shift 4s ease infinite;
   box-sizing: border-box;
   text-align: left;
 }
 
 .live-dynamic-banner--gate {
-  background: linear-gradient(90deg, #c9a84c, #fff3c4, #d4436e, #c9a84c);
-  background-size: 300% 100%;
+  background: linear-gradient(270deg, #c9a84c, #fff3c4, #d4436e, #8b6914, #c9a84c);
+  background-size: 400% 400%;
 }
 
 .live-dynamic-banner__inner {
   display: flex;
   align-items: center;
-  gap: clamp(4px, 1.2vw, 8px);
-  min-height: 44px;
-  padding: 0 clamp(10px, 3.2vw, 14px);
-  border-radius: 12px;
+  gap: clamp(6px, 1.4vw, 10px);
+  min-height: 48px;
+  padding: 0 clamp(12px, 3.5vw, 16px);
+  border-radius: 14px;
   background: transparent;
   overflow: hidden;
   box-sizing: border-box;
-  color: #000000;
+  color: #ffffff;
   flex-wrap: nowrap;
 }
 
@@ -2427,22 +2427,22 @@ body.bottom-nav-social-light nav.bottom-nav {
 }
 
 .live-dynamic-banner__sep {
-  color: rgba(0, 0, 0, 0.5);
-  font-size: 10px;
+  color: rgba(255, 255, 255, 0.55);
+  font-size: 11px;
   font-weight: 800;
   flex-shrink: 0;
 }
 
 .live-dynamic-banner__region {
-  color: #000000;
-  font-size: 11px;
+  color: rgba(255, 255, 255, 0.92);
+  font-size: 12px;
   font-weight: 800;
   white-space: nowrap;
   flex-shrink: 0;
 }
 
 .live-dynamic-banner__region strong {
-  color: #000000;
+  color: #ffffff;
   font-weight: 950;
 }
 
@@ -2457,13 +2457,14 @@ body.bottom-nav-social-light nav.bottom-nav {
 }
 
 .live-dynamic-banner__spotlight {
-  color: #000000;
-  font-size: clamp(9px, 2.6vw, 12px);
+  color: #ffffff;
+  font-size: clamp(12px, 3.6vw, 15px);
   font-weight: 900;
   flex: 1 1 0%;
   min-width: 0;
   max-width: 100%;
   animation: live-banner-text-in 0.45s ease-out;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.25);
 }
 
 .live-dynamic-banner__inner > .live-dynamic-banner__spotlight--solo {
@@ -2473,19 +2474,20 @@ body.bottom-nav-social-light nav.bottom-nav {
 }
 
 .live-dynamic-banner__spotlight--solo {
-  color: #000000;
-  font-size: clamp(9px, 2.6vw, 12px);
+  color: #ffffff;
+  font-size: clamp(12px, 3.6vw, 15px);
   font-weight: 900;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.25);
 }
 
 .live-dynamic-banner .lc-tag {
-  background: #e53935;
-  color: #fff;
-  font-size: 9px;
-  font-weight: 900;
-  padding: 2px 7px;
-  border-radius: 3px;
-  letter-spacing: 2px;
+  background: transparent;
+  color: #ffffff;
+  font-size: 11px;
+  font-weight: 950;
+  padding: 0;
+  border-radius: 0;
+  letter-spacing: 0.5px;
   flex-shrink: 0;
 }
 
@@ -2495,9 +2497,9 @@ body.bottom-nav-social-light nav.bottom-nav {
 }
 
 .live-dynamic-banner .lc-dot {
-  width: 5px;
-  height: 5px;
-  background: #e53935;
+  width: 6px;
+  height: 6px;
+  background: #ff6b6b;
   border-radius: 50%;
   flex-shrink: 0;
   animation: lc-blink 1s infinite;
@@ -2508,8 +2510,8 @@ body.bottom-nav-social-light nav.bottom-nav {
 }
 
 .live-dynamic-banner .lc-default--hot {
-  color: #000000;
-  font-size: clamp(9px, 2.6vw, 12px);
+  color: #ffffff;
+  font-size: clamp(12px, 3.4vw, 14px);
   font-weight: 900;
   flex-shrink: 1;
   min-width: 0;
@@ -2520,7 +2522,8 @@ body.bottom-nav-social-light nav.bottom-nav {
 }
 
 .live-count-premium-wrapper .live-dynamic-banner__inner {
-  height: 44px;
+  min-height: 48px;
+  height: 48px;
   background: transparent;
 }
 
@@ -2548,9 +2551,15 @@ body.bottom-nav-social-light nav.bottom-nav {
 
   .live-dynamic-banner__spotlight,
   .live-dynamic-banner__spotlight--solo {
-    font-size: clamp(9px, 2.45vw, 11px);
+    font-size: clamp(11px, 3.2vw, 14px);
     flex: 1 1 0%;
   }
+}
+
+@keyframes live-gradient-shift {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
 }
 
 @keyframes live-banner-gradient {

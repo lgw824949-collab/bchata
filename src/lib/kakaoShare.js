@@ -1,5 +1,5 @@
 import { getKakaoApiKey } from './kakaoEnv';
-import { resolvePublicShareUrl, toPublicAbsoluteUrl } from './shareLinks';
+import { resolveKakaoShareUrl, toPublicAbsoluteUrl } from './shareLinks';
 
 /** 카톡 공유 — Kakao SDK 피드 + 포스터 이미지 */
 export const KAKAO_BRAND = '오늘밤빠';
@@ -32,7 +32,10 @@ export const sharePartyToKakao = async ({ title, description, posterUrl, imageUr
     window.Kakao.init(kakaoAppKey);
   }
 
-  const url = resolvePublicShareUrl(linkUrl, partyId);
+  const url = resolveKakaoShareUrl(linkUrl, partyId);
+  if (import.meta.env.DEV) {
+    console.info('[Kakao Share] link URL (제품 링크 웹 도메인과 일치해야 함):', url);
+  }
   const image = toPublicAbsoluteUrl(posterUrl || imageUrl);
   const desc = (description || '').replace(/\n/g, ' · ').replace(/\s*\|\s*/g, ' · ').trim();
   const descWithFooter = desc ? `${desc} · ${SHARE_MESSAGE_FOOTER}` : SHARE_MESSAGE_FOOTER;
@@ -57,7 +60,6 @@ export const sharePartyToKakao = async ({ title, description, posterUrl, imageUr
       imageHeight: 1200,
       link: kakaoLink(url),
     },
-    buttonTitle: '오늘밤빠에서 확인하기',
     buttons: [
       {
         title: '오늘밤빠에서 확인하기',

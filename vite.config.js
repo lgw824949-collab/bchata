@@ -52,6 +52,9 @@ export default defineConfig(({ mode }) => {
 
   return {
     plugins: [react()],
+    resolve: {
+      dedupe: ['react', 'react-dom', 'react-i18next'],
+    },
     envPrefix: 'VITE_',
     define: {
       'import.meta.env.VITE_SUPABASE_URL': JSON.stringify(env.VITE_SUPABASE_URL),
@@ -61,6 +64,7 @@ export default defineConfig(({ mode }) => {
     },
     server: {
       port: 1234,
+      strictPort: true,
       proxy: {
         '/kma-api': {
           target: 'http://apis.data.go.kr',

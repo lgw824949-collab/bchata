@@ -1,4 +1,4 @@
-﻿import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Z } from '../constants/zLayers';
 import { X, ChevronLeft, ChevronRight, ChevronDown, Clock, MessageCircle, Globe, Loader2 } from 'lucide-react';
@@ -22,6 +22,7 @@ import {
   writeVenueLocalExtras,
 } from '../lib/venueLocalExtras';
 import { persistVenueOptionalFields } from '../lib/locationExtrasQuery';
+import { normalizeKakaoContactInput, openKakaoContact } from '../lib/kakaoContact';
 
 export { partyMatchesVenue } from '../lib/partyVenueMatch';
 
@@ -833,10 +834,10 @@ export default function VenueDetailModal({
 
   const openKakao = () => {
     if (!displayVenue?.kakao_url?.trim()) {
-      alert('카카오톡 문의 링크가 아직 등록되지 않았습니다.');
+      alert('카카오톡 문의 링크 또는 ID가 아직 등록되지 않았습니다.');
       return;
     }
-    window.open(displayVenue.kakao_url, '_blank');
+    openKakaoContact(displayVenue.kakao_url);
   };
 
   const openInsta = () => {
@@ -924,7 +925,7 @@ export default function VenueDetailModal({
 
   const saveVenueLinks = async (e) => {
     e.preventDefault();
-    const kakao = linkForm.kakao_url.trim();
+    const kakao = normalizeKakaoContactInput(linkForm.kakao_url);
     const insta = linkForm.instagram_url.trim();
     if (!kakao && !insta) {
       alert('카카오톡 또는 인스타그램 링크를 입력해 주세요.');
@@ -1334,7 +1335,6 @@ export default function VenueDetailModal({
             </button>
           </div>
 
-          {!hasBothVenueLinks && (
           <div style={{ marginTop: 20, paddingTop: 16, borderTop: '1px solid #F1F5F9' }}>
             <button
               type="button"
@@ -1351,20 +1351,24 @@ export default function VenueDetailModal({
                 cursor: 'pointer',
               }}
             >
-              {showLinkRegister ? '연락처 등록 닫기' : '카카오 · 인스타 등록하기'}
+              {showLinkRegister
+                ? '연락처 수정 닫기'
+                : hasBothVenueLinks
+                  ? '카카오 · 인스타 수정하기'
+                  : '카카오 · 인스타 등록하기'}
             </button>
 
             {showLinkRegister && (
               <form onSubmit={saveVenueLinks} style={{ marginTop: 12, display: 'flex', flexDirection: 'column', gap: 10 }}>
                 <div>
                   <label style={{ display: 'block', fontSize: 11, fontWeight: 800, color: '#64748B', marginBottom: 4 }}>
-                    카카오톡 링크
+                    카카오톡 링크 또는 ID
                   </label>
                   <input
-                    type="url"
+                    type="text"
                     value={linkForm.kakao_url}
                     onChange={(e) => setLinkForm((f) => ({ ...f, kakao_url: e.target.value }))}
-                    placeholder="https://open.kakao.com/o/..."
+                    placeholder="https://open.kakao.com/o/... 또는 카톡 ID"
                     style={{
                       width: '100%',
                       padding: 12,
@@ -1419,7 +1423,6 @@ export default function VenueDetailModal({
               </form>
             )}
           </div>
-          )}
         </motion.div>
 
       </motion.div>

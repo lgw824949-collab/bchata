@@ -5,6 +5,15 @@ export const PUBLIC_APP_ORIGIN = String(
   .trim()
   .replace(/\/$/, '');
 
+/** 카카오 제품 링크 > 웹 도메인에 등록한 호스트와 반드시 일치 */
+export const KAKAO_SHARE_HOST = (() => {
+  try {
+    return new URL(PUBLIC_APP_ORIGIN).hostname;
+  } catch {
+    return 'bchata.vercel.app';
+  }
+})();
+
 export function buildPartyShareUrl(partyId) {
   if (partyId == null || partyId === '') return `${PUBLIC_APP_ORIGIN}/`;
   return `${PUBLIC_APP_ORIGIN}/?party=${encodeURIComponent(String(partyId))}&open=true`;
@@ -30,6 +39,20 @@ export function resolvePublicShareUrl(linkUrl, partyId) {
   } catch {
     return fallback;
   }
+}
+
+/** 카카오톡 공유용 — 등록된 호스트만 사용 (미등록 도메인이면 링크·버튼 비활성) */
+export function resolveKakaoShareUrl(linkUrl, partyId) {
+  const url = resolvePublicShareUrl(linkUrl, partyId);
+  try {
+    const u = new URL(url);
+    if (u.protocol === 'https:' && u.hostname === KAKAO_SHARE_HOST) {
+      return u.toString();
+    }
+  } catch {
+    /* fall through */
+  }
+  return buildPartyShareUrl(partyId);
 }
 
 export function toPublicAbsoluteUrl(url) {

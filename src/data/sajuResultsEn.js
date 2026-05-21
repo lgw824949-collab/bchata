@@ -5,7 +5,7 @@
  * Generates dance types and AI analysis reasons by combining Five Elements, gender, and monthly energy.
  */
 
-export const selectResultEn = (genre, gender, month, day, ohengCount) => {
+export const selectResultEn = (genre, gender, month, day, ohengCount, experience = 'experienced') => {
   // 1. Find the strongest energy among the Five Elements
   const entries = Object.entries(ohengCount);
   const mainOheng = entries.length > 0 ? entries.sort((a, b) => b[1] - a[1])[0][0] : '木';
@@ -249,7 +249,9 @@ export const selectResultEn = (genre, gender, month, day, ohengCount) => {
   }
 
   // 6. Generate combination key and look up vibe text
-  const levelLabel = ohengCount[mainOheng] >= 4 ? '상급' : ohengCount[mainOheng] >= 3 ? '중급' : ohengCount[mainOheng] >= 2 ? '초급' : '입문'
+  const levelFromOheng =
+    ohengCount[mainOheng] >= 4 ? '상급' : ohengCount[mainOheng] >= 3 ? '중급' : ohengCount[mainOheng] >= 2 ? '초급' : '입문';
+  const levelLabel = experience === 'beginner' ? '입문' : levelFromOheng;
   
   // Normalize gender
   const normalizedGender = (gender === '남' || gender === 'male' || gender === '♂ 남성') ? '남' : '여';

@@ -5,7 +5,7 @@
  * 오행 기운, 성별, 월별 에너지를 조합하여 댄스 타입과 AI 분석 이유를 생성합니다.
  */
 
-export const selectResult = (genre, gender, month, day, ohengCount) => {
+export const selectResult = (genre, gender, month, day, ohengCount, experience = 'experienced') => {
   // 1. 오행 중 가장 강한 기운 찾기
   const entries = Object.entries(ohengCount);
   const mainOheng = entries.length > 0 ? entries.sort((a, b) => b[1] - a[1])[0][0] : '木';
@@ -242,7 +242,9 @@ export const selectResult = (genre, gender, month, day, ohengCount) => {
   }
 
   // 6. 조합 키 생성 및 감성 텍스트 조회
-  const levelLabel = ohengCount[mainOheng] >= 4 ? '상급' : ohengCount[mainOheng] >= 3 ? '중급' : ohengCount[mainOheng] >= 2 ? '초급' : '입문'
+  const levelFromOheng =
+    ohengCount[mainOheng] >= 4 ? '상급' : ohengCount[mainOheng] >= 3 ? '중급' : ohengCount[mainOheng] >= 2 ? '초급' : '입문';
+  const levelLabel = experience === 'beginner' ? '입문' : levelFromOheng;
   
   // 성별 정규화 (남/여 형식으로 통일)
   const normalizedGender = (gender === '남' || gender === 'male') ? '남' : '여';

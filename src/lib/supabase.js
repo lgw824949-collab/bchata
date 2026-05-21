@@ -1,20 +1,54 @@
 import { createClient } from '@supabase/supabase-js'
 
-const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || ''
-const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY || ''
+const supabaseUrl = (import.meta.env.VITE_SUPABASE_URL || '').trim()
+const supabaseAnonKey = (import.meta.env.VITE_SUPABASE_ANON_KEY || '').trim()
 
-if (!supabaseUrl || !supabaseAnonKey) {
-  console.warn('Supabase credentials missing in .env. Connectivity will be disabled.')
+export const isSupabaseConfigured = Boolean(supabaseUrl && supabaseAnonKey)
+
+let client = null
+
+if (isSupabaseConfigured) {
+  try {
+    client = createClient(supabaseUrl, supabaseAnonKey, {
+      auth: {
+        persistSession: true,
+        autoRefreshToken: true,
+      },
+    })
+  } catch (err) {
+    console.error('[supabase] createClient failed:', err)
+    client = null
+  }
+} else {
+  console.warn(
+    '[supabase] VITE_SUPABASE_URL / VITE_SUPABASE_ANON_KEY missing — DB calls are disabled.',
+  )
 }
 
-export const supabase = (supabaseUrl && supabaseAnonKey) 
-  ? createClient(supabaseUrl, supabaseAnonKey)
-  : null
+/** @type {import('@supabase/supabase-js').SupabaseClient | null} */
+export const supabase = client
+
+/**
+ * @param {string} label
+ * @param {(client: import('@supabase/supabase-js').SupabaseClient) => Promise<{ data?: unknown, error?: unknown }>} queryFn
+ */
+export async function runSupabaseQuery(label, queryFn) {
+  if (!supabase) {
+    const error = new Error('Supabase client not configured')
+    console.warn(`[supabase] ${label}:`, error.message)
+    return { data: null, error }
+  }
+  try {
+    return await queryFn(supabase)
+  } catch (err) {
+    console.warn(`[supabase] ${label}:`, err?.message || err)
+    return { data: null, error: err }
+  }
+}
 
 /**
  * 행동 로그 — DB activity_logs 테이블은 사용하지 않음.
- * 상세 조회 등은 bchata-venue-view 커스텀 이벤트·barStats 로컬 bump로 처리.
  */
 export const logActivity = async (_action, _metadata = {}) => {
-  /* no-op: ghost table insert 제거 */
+  /* no-op */
 }

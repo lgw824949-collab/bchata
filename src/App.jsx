@@ -1,4 +1,4 @@
-﻿import { useState, useEffect, useMemo, useRef, useCallback, lazy, Suspense } from 'react'
+import { useState, useEffect, useMemo, useRef, useCallback, lazy, Suspense } from 'react'
 import { Home as HomeIcon, Users, LogOut, Heart, X, MessageSquare, RefreshCw, CloudSun, Utensils, Zap, Languages, Bell, Star, Navigation, CreditCard, Settings, Map as MapIcon, BarChart, BarChart2, Gift, Coffee, User, Menu, Music2, Tent, Flag, Download, Globe, ShieldCheck, Calendar, CalendarDays, Camera, ChevronLeft, ChevronRight, Loader2, Search, Share2, Copy, TrendingUp, GraduationCap } from 'lucide-react'
 import { useTranslation } from 'react-i18next';
 import { motion, AnimatePresence } from 'framer-motion'
@@ -20,6 +20,40 @@ import {
   restoreNavigationOnLoad,
 } from './lib/appHistory'
 import { registerExitToast } from './lib/mobileExitGuard'
+import { Z } from './constants/zLayers'
+import { DEFAULT_AVATAR_IMAGE, imgFallbackHandler } from './constants/imageAssets'
+import { normDate, getKSTCalendarTodayStr } from './lib/dateNorm'
+import { LOCATIONS_SELECT, logSupabaseError } from './lib/locationsQuery'
+import { PARTIES_SELECT, logPartiesFetchError } from './lib/partiesQuery'
+import { readVipInstructorSession, verifyActiveInstructorMember } from './lib/instructorAuth'
+import { purgePastPartyPostersAndRows } from './lib/partyPosterCleanup'
+import QuickPinchZoom, { make3dTransformValue } from 'react-quick-pinch-zoom'
+import PartyWishlistHeart from './components/PartyWishlistHeart'
+import { usePartyWishlist } from './hooks/usePartyWishlist'
+import { BAR_DATABASE, findBarByName } from './data/barDatabase'
+import i18nCore from './i18n'
+import HomePage from './pages/Home'
+import Instructors from './pages/Instructors'
+import Bootcamp from './pages/Bootcamp'
+import Festival from './pages/Festival'
+import PartnerModal from './components/PartnerModal'
+import WishlistModal from './components/WishlistModal'
+import RentalModal from './components/RentalModal'
+import ClassRegisterModal from './components/ClassRegisterModal'
+import ChatBot from './components/ChatBot'
+
+const RegisterForm = lazy(() => import('./RegisterForm'))
+const AdminDashboard = lazy(() => import('./AdminDashboard'))
+const Community = lazy(() => import('./pages/Community'))
+const InstructorRegister = lazy(() => import('./components/InstructorRegister'))
+const PostClub = lazy(() => import('./pages/PostClub'))
+const Parking = lazy(() => import('./pages/Parking'))
+const Restaurant = lazy(() => import('./pages/Restaurant'))
+const Terms = lazy(() => import('./pages/Terms'))
+const Privacy = lazy(() => import('./pages/Privacy'))
+const SajuModal = lazy(() => import('./components/SajuModal'))
+const IncheonRoute = lazy(() => import('./components/IncheonRoute'))
+const WeatherModal = lazy(() => import('./components/WeatherModal'))
 
 /** replace 옵션 무시 — 항상 push 스택 */
 function navigate(path, options = {}) {
@@ -47,39 +81,6 @@ function closeOverlay() {
   }
   return false
 }
-import { Z } from './constants/zLayers'
-import { DEFAULT_AVATAR_IMAGE, imgFallbackHandler } from './constants/imageAssets'
-import { normDate, getKSTCalendarTodayStr } from './lib/dateNorm'
-import { LOCATIONS_SELECT, logSupabaseError } from './lib/locationsQuery'
-import { PARTIES_SELECT, logPartiesFetchError } from './lib/partiesQuery'
-import { readVipInstructorSession, verifyActiveInstructorMember } from './lib/instructorAuth'
-import { purgePastPartyPostersAndRows } from './lib/partyPosterCleanup'
-import QuickPinchZoom, { make3dTransformValue } from 'react-quick-pinch-zoom';
-import PartyWishlistHeart from './components/PartyWishlistHeart';
-import { usePartyWishlist } from './hooks/usePartyWishlist';
-
-// 페이지 지연 로딩 (Lazy Loading)
-const RegisterForm = lazy(() => import('./RegisterForm'));
-const AdminDashboard = lazy(() => import('./AdminDashboard'));
-import HomePage from './pages/Home';
-import Instructors from './pages/Instructors';
-import Bootcamp from './pages/Bootcamp';
-import Festival from './pages/Festival';
-const Community = lazy(() => import('./pages/Community'));
-const InstructorRegister = lazy(() => import('./components/InstructorRegister'));
-const PostClub = lazy(() => import('./pages/PostClub'));
-const Parking = lazy(() => import('./pages/Parking'));
-const Restaurant = lazy(() => import('./pages/Restaurant'));
-const Terms = lazy(() => import('./pages/Terms'));
-const Privacy = lazy(() => import('./pages/Privacy'));
-const SajuModal = lazy(() => import('./components/SajuModal'));
-const IncheonRoute = lazy(() => import('./components/IncheonRoute'));
-const WeatherModal = lazy(() => import('./components/WeatherModal'));
-import PartnerModal from './components/PartnerModal';
-import WishlistModal from './components/WishlistModal';
-import RentalModal from './components/RentalModal';
-import ClassRegisterModal from './components/ClassRegisterModal';
-import ChatBot from './components/ChatBot';
 
 // 로딩 스피너 컴포넌트
 const LoadingFallback = () => (
@@ -125,8 +126,6 @@ const useLocation = () => {
   }, []);
   return { pathname };
 };
-
-import { BAR_DATABASE, findBarByName } from './data/barDatabase';
 
 const GENRE_MAP = {
   '바차타': { key: 'b_ratio', label: 'B', color: '#059669' },
@@ -1012,7 +1011,7 @@ const SplashScreen = () => {
 };
 
 function App() {
-  const { t, i18n } = useTranslation();
+  const { t, i18n } = useTranslation('translation', { i18n: i18nCore });
   const lang = i18n.language.startsWith('en') ? 'en' : 'ko';
   const toggleLanguage = () => {
     const newLang = i18n.language.startsWith('ko') ? 'en' : 'ko';
