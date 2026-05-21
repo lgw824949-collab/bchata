@@ -17,7 +17,8 @@ const ClassRegisterModal = ({ isOpen = true, onClose, instructorId = '' }) => {
     title: '',
     genre: '',
     level: '',
-    date: '',
+    startDate: '',
+    endDate: '',
     startTime: '20:00', // 강사들이 가장 많이 쓰는 저녁 8시 기본 세팅
     endTime: '22:00',   // 2시간 코스 기본 세팅
     location: '',
@@ -79,8 +80,12 @@ const ClassRegisterModal = ({ isOpen = true, onClose, instructorId = '' }) => {
       }
       setStep(2);
     } else if (step === 2) {
-      if (!form.date) {
-        alert('날짜를 선택해주세요.');
+      if (!form.startDate || !form.endDate) {
+        alert('시작일과 마치는 날을 선택해주세요.');
+        return;
+      }
+      if (form.endDate < form.startDate) {
+        alert('마치는 날은 시작일과 같거나 이후여야 합니다.');
         return;
       }
       if (!form.startTime || !form.endTime) {
@@ -131,13 +136,18 @@ const ClassRegisterModal = ({ isOpen = true, onClose, instructorId = '' }) => {
         posterUrl = urlData.publicUrl;
       }
 
+      const scheduleText =
+        form.startDate === form.endDate
+          ? `${form.startDate} ${form.startTime}~${form.endTime}`
+          : `${form.startDate} ~ ${form.endDate} ${form.startTime}~${form.endTime}`;
+
       const { error } = await supabase.from('instructor_classes').insert({
         instructor_id: targetInstId,
         instructor_name: form.instructorName.trim(), // 직접 입력한 텍스트 원본 별도 보존
         title: form.title,
         genre: form.genre,
         level: form.level,
-        schedule: `${form.date} ${form.startTime} ~ ${form.endTime}`,
+        schedule: scheduleText,
         location: form.location,
         fee: form.fee,
         capacity: form.capacity,
@@ -316,16 +326,43 @@ const ClassRegisterModal = ({ isOpen = true, onClose, instructorId = '' }) => {
                   <label style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '13px', fontWeight: 700, color: '#A1A1AA', marginBottom: '8px' }}>
                     <Calendar size={14} /> 날짜 선택 *
                   </label>
-                  <input
-                    type="date"
-                    value={form.date}
-                    onChange={e => setForm({ ...form, date: e.target.value })}
-                    style={{
-                      width: '100%', padding: '14px', borderRadius: '12px', background: 'rgba(255,255,255,0.05)',
-                      border: '1px solid rgba(255,255,255,0.1)', color: '#fff', fontSize: '14px', outline: 'none',
-                      boxSizing: 'border-box', colorScheme: 'dark'
-                    }}
-                  />
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <div style={{ fontSize: '11px', color: '#8E8E93', fontWeight: 700, marginBottom: '6px' }}>시작날</div>
+                      <input
+                        type="date"
+                        value={form.startDate}
+                        onChange={(e) => {
+                          const startDate = e.target.value;
+                          setForm((prev) => ({
+                            ...prev,
+                            startDate,
+                            endDate: !prev.endDate || prev.endDate < startDate ? startDate : prev.endDate,
+                          }));
+                        }}
+                        style={{
+                          width: '100%', padding: '12px', borderRadius: '10px', background: 'rgba(255,255,255,0.05)',
+                          border: '1px solid rgba(255,255,255,0.1)', color: '#fff', fontSize: '14px', outline: 'none',
+                          boxSizing: 'border-box', colorScheme: 'dark'
+                        }}
+                      />
+                    </div>
+                    <span style={{ color: '#8E8E93', fontWeight: 900, marginTop: '18px' }}>~</span>
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <div style={{ fontSize: '11px', color: '#8E8E93', fontWeight: 700, marginBottom: '6px' }}>마치는날</div>
+                      <input
+                        type="date"
+                        value={form.endDate}
+                        min={form.startDate || undefined}
+                        onChange={(e) => setForm({ ...form, endDate: e.target.value })}
+                        style={{
+                          width: '100%', padding: '12px', borderRadius: '10px', background: 'rgba(255,255,255,0.05)',
+                          border: '1px solid rgba(255,255,255,0.1)', color: '#fff', fontSize: '14px', outline: 'none',
+                          boxSizing: 'border-box', colorScheme: 'dark'
+                        }}
+                      />
+                    </div>
+                  </div>
                 </div>
 
                 <div>

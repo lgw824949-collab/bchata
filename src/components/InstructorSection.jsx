@@ -70,10 +70,17 @@ const formatClassType = (classType) => {
     .join(' · ');
 };
 
-const formatDate = (dateStr) => {
-  if (!dateStr) return ''
-  const [, month, day] = dateStr.split('-')
-  return `${parseInt(month)}월 ${parseInt(day)}일`
+const formatScheduleLabel = (scheduleStr) => {
+  if (!scheduleStr) return ''
+  const text = String(scheduleStr)
+  const rangeMatch = text.match(/(\d{4}-\d{2}-\d{2})\s*~\s*(\d{4}-\d{2}-\d{2})/)
+  const fmtIso = (iso) => {
+    const [, month, day] = iso.split('-')
+    return `${parseInt(month, 10)}월 ${parseInt(day, 10)}일`
+  }
+  if (rangeMatch) return `${fmtIso(rangeMatch[1])} ~ ${fmtIso(rangeMatch[2])}`
+  const single = text.match(/\d{4}-\d{2}-\d{2}/)?.[0]
+  return single ? fmtIso(single) : text
 }
 
 const SESSION_KEY = 'oneulbam_session'
@@ -972,7 +979,7 @@ const InstructorSection = ({ onOpenVipMaster, cachedInstructors = null }) => {
                                 {c.schedule && (
                                   <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px', fontSize: '15px', fontWeight: 700, color: '#ffffff' }}>
                                     <Calendar size={14} color="#C9A84C" />
-                                    <span>{formatDate(c.schedule)}</span>
+                                    <span>{formatScheduleLabel(c.schedule)}</span>
                                   </div>
                                 )}
                                 {c.location && (
