@@ -10,10 +10,6 @@ import { supabase } from '../lib/supabase'
 import { BAR_DATABASE } from '../lib/BarLib'
 import { normDate, getKSTCalendarTodayStr, isApprovedParty } from '../lib/dateNorm'
 import { logSupabaseError } from '../lib/locationsQuery'
-
-/** public.locations — Supabase 실제 컬럼만 */
-const HOME_LOCATIONS_SELECT =
-  'id, name, address, region_id, created_at, latitude, longitude, view_count';
 import {
   dedupeVenueList,
   normalizeVenueAddressKey,
@@ -1478,10 +1474,15 @@ const HomePage = ({
     try {
       let rawList = [];
       if (supabase) {
-        const { data, error } = await supabase
+        let { data, error } = await supabase
           .from('locations')
-          .select(HOME_LOCATIONS_SELECT)
+          .select('id, name, address, region_id, created_at, latitude, longitude, view_count')
           .order('name', { ascending: true });
+        if (error) {
+          ({ data, error } = await supabase
+            .from('locations')
+            .select('id, name, address, region_id, created_at, latitude, longitude, view_count'));
+        }
         if (error) {
           logSupabaseError('Home.fetchLocations', error);
           throw error;
