@@ -2236,7 +2236,7 @@ const HomePage = ({
     <>
         {renderHomeSectionHeader(
           isEn ? 'Quick actions' : '빠른 메뉴',
-          isEn ? 'Tap an icon to open' : '아이콘을 눌러 이용하세요 · 파티·수업등록은 색으로 구분',
+          isEn ? 'Shortcuts' : '자주 쓰는 메뉴',
           quickMenuMore.length > 0 ? (
             <button
               type="button"
