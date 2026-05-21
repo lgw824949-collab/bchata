@@ -2172,8 +2172,8 @@ const HomePage = ({
   const HOME_BORDER = '#E2E8F0';
   const homeUi = useMemo(() => (isHomeGate ? {
     pageBg: '#0D0D0D',
-    text: '#F8FAFC',
-    textMuted: '#94A3B8',
+    text: '#FFFFFF',
+    textMuted: '#FFFFFF',
     surface: 'rgba(255, 255, 255, 0.06)',
     border: 'rgba(255, 255, 255, 0.1)',
     gold: HOME_GOLD,
@@ -2184,30 +2184,30 @@ const HomePage = ({
     partyEmpty: {
       bg: 'rgba(255, 255, 255, 0.04)',
       border: 'rgba(255, 255, 255, 0.1)',
-      label: '#94A3B8',
-      count: '#A8A29E',
-      unit: '#78716C',
-      districts: '#78716C',
+      label: '#FFFFFF',
+      count: '#FFFFFF',
+      unit: '#FFFFFF',
+      districts: '#FFFFFF',
     },
     partyActive: {
       bg: 'rgba(201, 168, 76, 0.12)',
       border: HOME_GOLD_BORDER,
-      label: '#F5E6C8',
-      count: HOME_GOLD,
-      unit: '#E8D5A3',
-      districts: HOME_GOLD_SOFT,
+      label: '#FFFFFF',
+      count: '#FFFFFF',
+      unit: '#FFFFFF',
+      districts: '#FFFFFF',
     },
     divider: 'rgba(255, 255, 255, 0.08)',
     panelBg: '#121212',
     panelBorder: 'rgba(255, 255, 255, 0.08)',
     panelShadow: '0 10px 40px rgba(0, 0, 0, 0.38)',
-    quickIcon: '#CBD5E1',
-    quickRegisterIcon: HOME_BRAND,
-    posterActive: HOME_GOLD,
+    quickIcon: '#FFFFFF',
+    quickRegisterIcon: '#FFFFFF',
+    posterActive: '#FFFFFF',
     posterIdle: 'rgba(255, 255, 255, 0.12)',
     liveShell: 'linear-gradient(135deg, #1a1510 0%, #0a0a0a 55%, #141018 100%)',
     liveBorder: HOME_GOLD_BORDER,
-    barSubtitle: '#E8D5A3',
+    barSubtitle: '#FFFFFF',
     barLabel: '#FFFFFF',
   } : {
     pageBg: '#FFFFFF',
@@ -3164,8 +3164,19 @@ const HomePage = ({
           color: #93C5FD;
           font-weight: 800;
         }
+        .home-gate-active .home-quick-menu-icon-circle {
+          color: #ffffff;
+        }
+        .home-gate-active .home-quick-menu-item--register-party .home-quick-menu-icon-circle,
+        .home-gate-active .home-quick-menu-item--register-class .home-quick-menu-icon-circle {
+          color: #ffffff;
+        }
         .home-gate-active .home-quick-menu-item--register-party .home-quick-menu-icon-circle {
           background: rgba(212, 67, 110, 0.18);
+        }
+        .home-gate-active .home-quick-menu-item--register-party .home-quick-menu-item-label,
+        .home-gate-active .home-quick-menu-item--register-class .home-quick-menu-item-label {
+          color: #ffffff;
         }
         .home-gate-active .home-quick-menu-item--register-class .home-quick-menu-icon-circle {
           background: rgba(37, 99, 235, 0.18);
@@ -3279,12 +3290,12 @@ const HomePage = ({
           display: none;
         }
         .home-gate-active .quick-menu-more-link {
-          color: #94A3B8;
+          color: #ffffff;
         }
         .home-gate-active .home-section-action {
           border-color: rgba(201, 168, 76, 0.4);
           background: rgba(201, 168, 76, 0.12);
-          color: #F5E6C8;
+          color: #ffffff;
         }
         .home-gate-active .home-social-bar-wrap .home-bar-thumb {
           box-shadow: none;
@@ -3296,10 +3307,10 @@ const HomePage = ({
         }
         .home-gate-active .home-social-bar-wrap .home-bar-chip--my-region .home-bar-chip-name,
         .home-gate-active .home-social-bar-wrap .home-bar-chip--my-region .social-bar-name-label {
-          color: #E8D5A3;
+          color: #ffffff;
         }
         .home-gate-active .home-social-bar-wrap .home-bar-view-line {
-          color: rgba(201, 168, 76, 0.75);
+          color: #ffffff;
         }
         .home-gate-active .quick-menu-more-wrap::after {
           background: linear-gradient(to right, rgba(13, 13, 13, 0), #0d0d0d 90%);

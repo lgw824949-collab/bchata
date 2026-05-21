@@ -168,7 +168,7 @@ input, button, select, textarea {
 }
 
 .home-gate-active .home-type-tagline-strong {
-  color: #c9a84c;
+  color: #ffffff;
 }
 
 .home-type-tagline-sub {
@@ -179,7 +179,7 @@ input, button, select, textarea {
 }
 
 .home-gate-active .home-type-tagline-sub {
-  color: #94a3b8;
+  color: #ffffff;
 }
 
 .home-type-section-title {
@@ -208,7 +208,7 @@ input, button, select, textarea {
 }
 
 .home-gate-active .home-ds-subtitle {
-  color: #94a3b8;
+  color: #ffffff;
 }
 
 .home-ds-body {
@@ -313,7 +313,7 @@ input, button, select, textarea {
 }
 
 .home-gate-active .home-featured-stream__row.is-active .home-featured-stream__category {
-  color: #c9a84c;
+  color: #ffffff;
 }
 
 /* 메인 포스터 — 잘림 방지 (letterbox, 전체 노출) */
@@ -388,7 +388,7 @@ img.bchata-poster-fit {
 }
 
 .home-gate-active .home-featured-stream__title {
-  color: #f8fafc;
+  color: #ffffff;
 }
 
 .home-featured-stream__meta {
@@ -404,7 +404,7 @@ img.bchata-poster-fit {
 }
 
 .home-gate-active .home-featured-stream__meta {
-  color: #94a3b8;
+  color: #ffffff;
 }
 
 @media (min-width: 480px) {
@@ -556,7 +556,7 @@ img.bchata-poster-fit {
 }
 
 .home-gate-active .home-quick-menu-item {
-  color: rgba(255, 255, 255, 0.72);
+  color: #ffffff;
 }
 
 .home-gate-active .home-quick-menu-item:active {
@@ -692,7 +692,7 @@ img.bchata-poster-fit {
 }
 
 .home-gate-active .home-bar-view-line {
-  color: rgba(201, 168, 76, 0.96);
+  color: #ffffff;
   text-shadow: 0 1px 3px rgba(0, 0, 0, 0.55);
 }
 
@@ -719,15 +719,15 @@ img.bchata-poster-fit {
 }
 
 .home-gate-active .home-bar-chip-line {
-  color: rgba(255, 255, 255, 0.88);
+  color: #ffffff;
 }
 
 .home-gate-active .home-bar-chip-line--muted {
-  color: rgba(148, 163, 184, 0.9);
+  color: #ffffff;
 }
 
 .home-gate-active .home-bar-chip-line--hot {
-  color: #7cfc00;
+  color: #ffffff;
 }
 
 .home-gate-active .home-bar-thumb {
@@ -788,21 +788,21 @@ img.bchata-poster-fit {
 .home-gate-active .home-region-pill {
   background: rgba(255, 255, 255, 0.06);
   border-color: rgba(255, 255, 255, 0.1);
-  color: #e2e8f0;
+  color: #ffffff;
 }
 
 .home-gate-active .home-region-pill-count {
-  color: #94a3b8;
+  color: #ffffff;
 }
 
 .home-gate-active .home-region-pill.is-selected {
   background: rgba(201, 168, 76, 0.14);
   border-color: rgba(201, 168, 76, 0.4);
-  color: #c9a84c;
+  color: #ffffff;
 }
 
 .home-gate-active .home-region-pill.is-selected .home-region-pill-count {
-  color: #c9a84c;
+  color: #ffffff;
 }
 
 /* GPS 내 지역 — 탭·BAR 칩 강조 (선택 전에도 골드 링) */
@@ -814,11 +814,11 @@ img.bchata-poster-fit {
 .home-gate-active .home-region-pill.is-my-region {
   background: rgba(201, 168, 76, 0.1);
   border-color: rgba(201, 168, 76, 0.42);
-  color: #e8d5a3;
+  color: #ffffff;
 }
 
 .home-gate-active .home-region-pill.is-my-region .home-region-pill-count {
-  color: #c9a84c;
+  color: #ffffff;
 }
 
 .home-bar-thumb--my-region {
@@ -831,7 +831,7 @@ img.bchata-poster-fit {
 
 .home-bar-chip--my-region .home-bar-chip-name,
 .home-gate-active .home-bar-chip--my-region .home-bar-chip-name {
-  color: #e8d5a3;
+  color: #ffffff;
 }
 
 /* legacy party strip (fallback) */
@@ -1033,6 +1033,23 @@ img.bchata-poster-fit {
 
 .home-gate-active .home-type-party-count {
   font-weight: var(--font-extrabold);
+}
+
+/* 메인 홈 — 본문·라벨 텍스트 흰색 통일 */
+.home-gate-active .home-type-display,
+.home-gate-active .home-type-tagline,
+.home-gate-active .home-type-section-title,
+.home-gate-active .home-ds-title,
+.home-gate-active .home-party-status-micro,
+.home-gate-active .home-party-status-micro-btn,
+.home-gate-active .home-party-status-micro-btn strong,
+.home-gate-active .home-party-status-micro-sep,
+.home-gate-active .home-featured-stream__category,
+.home-gate-active .home-quick-menu-item-label,
+.home-gate-active .home-type-party-label,
+.home-gate-active .home-type-party-unit,
+.home-gate-active .quick-menu-circle-label {
+  color: #ffffff !important;
 }
 
 /* Hide Number Input Arrows */
