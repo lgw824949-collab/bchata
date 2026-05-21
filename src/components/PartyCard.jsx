@@ -137,16 +137,55 @@ const PartyCard = ({ item, onSelect, wishlistParties: wishlistProp, onToggleWish
 
       <div style={{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'center', gap: '8px', minWidth: 0 }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'nowrap', minWidth: 0 }}>
-          <span style={{ fontSize: '11px', fontWeight: 800, color: '#666', letterSpacing: '0.5px', flexShrink: 0 }}>
-            {genreLabel}
-          </span>
-          {ratioLabel ? (
-            <span style={{ fontSize: '11px', fontWeight: 700, color: '#E53935', flexShrink: 0 }}>
-              | {ratioLabel}
+          <span
+            style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '6px',
+              padding: '4px 11px',
+              borderRadius: '999px',
+              background: 'linear-gradient(180deg, #FFFBFC 0%, #FFF0F5 100%)',
+              border: '1px solid rgba(216, 27, 96, 0.14)',
+              boxShadow: '0 1px 4px rgba(216, 27, 96, 0.08)',
+              flexShrink: 0,
+            }}
+          >
+            <span style={{ fontSize: '11px', fontWeight: 800, color: '#C2185B', letterSpacing: '0.2px' }}>
+              {genreLabel}
             </span>
-          ) : null}
+            {ratioLabel ? (
+              <>
+                <span
+                  aria-hidden
+                  style={{
+                    width: '1px',
+                    height: '10px',
+                    background: 'rgba(216, 27, 96, 0.22)',
+                    borderRadius: '1px',
+                    flexShrink: 0,
+                  }}
+                />
+                <span style={{ fontSize: '11px', fontWeight: 800, color: '#E53935', letterSpacing: '0.02em' }}>
+                  {ratioLabel}
+                </span>
+              </>
+            ) : null}
+          </span>
           {isTimeLive ? (
-            <span style={{ fontSize: '10px', fontWeight: 800, color: '#E53935', letterSpacing: '0.3px', flexShrink: 0 }}>LIVE</span>
+            <span
+              style={{
+                fontSize: '10px',
+                fontWeight: 800,
+                color: '#fff',
+                background: '#E53935',
+                letterSpacing: '0.3px',
+                flexShrink: 0,
+                padding: '3px 7px',
+                borderRadius: '999px',
+              }}
+            >
+              LIVE
+            </span>
           ) : null}
         </div>
 
