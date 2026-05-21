@@ -2408,6 +2408,7 @@ const HomePage = ({
               width: 100% !important;
               overflow: hidden !important;
               flex-wrap: nowrap !important;
+              color: #ffffff !important;
             }
             .live-count-premium-wrapper .live-dynamic-banner__track {
               flex: 1 1 auto !important;
@@ -2429,24 +2430,25 @@ const HomePage = ({
               margin-right: 4px !important;
             }
             .live-count-premium-wrapper .lc-name {
-              color: #000000 !important;
+              color: #ffffff !important;
               font-size: 13px !important;
               font-weight: 900 !important;
               font-family: inherit !important;
               letter-spacing: -0.3px !important;
             }
             .live-count-premium-wrapper .lc-count {
-              color: #000000 !important;
+              color: #ffffff !important;
               font-size: 15px !important;
               font-weight: 950 !important;
               font-family: inherit !important;
-              background: rgba(255,255,255,0.55) !important;
+              background: rgba(255,255,255,0.15) !important;
               padding: 1px 6px !important;
               border-radius: 6px !important;
               margin-left: 4px !important;
             }
-            .live-count-premium-wrapper .lc-default {
-              color: #000000 !important;
+            .live-count-premium-wrapper .lc-default,
+            .live-count-premium-wrapper .lc-default--hot {
+              color: #ffffff !important;
               font-size: clamp(9px, 2.6vw, 12px) !important;
               font-weight: 900 !important;
               font-family: inherit !important;
@@ -2459,7 +2461,7 @@ const HomePage = ({
             }
             .live-count-premium-wrapper .live-dynamic-banner__spotlight,
             .live-count-premium-wrapper .live-dynamic-banner__spotlight--solo {
-              color: #000000 !important;
+              color: #ffffff !important;
               font-weight: 900 !important;
               font-size: clamp(9px, 2.6vw, 12px) !important;
               white-space: nowrap !important;
@@ -2475,7 +2477,7 @@ const HomePage = ({
               min-width: 0 !important;
             }
             .live-count-premium-wrapper .live-dynamic-banner__region {
-              color: #000000 !important;
+              color: #ffffff !important;
               font-weight: 900 !important;
             }
             @media (max-width: 390px) {
@@ -2484,40 +2486,16 @@ const HomePage = ({
               }
             }
             .live-count-premium-wrapper .live-dynamic-banner__region strong {
-              color: #000000 !important;
+              color: #ffffff !important;
               font-weight: 950 !important;
             }
             .live-count-premium-wrapper .live-dynamic-banner__sep {
-              color: rgba(0,0,0,0.5) !important;
+              color: rgba(255, 255, 255, 0.55) !important;
               font-weight: 800 !important;
             }
             .live-count-premium-wrapper--gate .lc-tag {
               background: #C9A84C !important;
               color: #1a1a1a !important;
-            }
-            .live-count-premium-wrapper--gate .live-dynamic-banner__inner,
-            .live-count-premium-wrapper--gate .lc-default,
-            .live-count-premium-wrapper--gate .lc-default--hot,
-            .live-count-premium-wrapper--gate .live-dynamic-banner__spotlight,
-            .live-count-premium-wrapper--gate .live-dynamic-banner__spotlight--solo,
-            .live-count-premium-wrapper--gate .live-dynamic-banner__region,
-            .live-count-premium-wrapper--gate .live-dynamic-banner__region strong {
-              color: #FFFFFF !important;
-            }
-            .live-count-premium-wrapper--gate .live-dynamic-banner__sep {
-              color: rgba(255, 255, 255, 0.55) !important;
-            }
-            .live-count-premium-wrapper:not(.live-count-premium-wrapper--gate) .live-dynamic-banner__inner,
-            .live-count-premium-wrapper:not(.live-count-premium-wrapper--gate) .lc-default,
-            .live-count-premium-wrapper:not(.live-count-premium-wrapper--gate) .lc-default--hot,
-            .live-count-premium-wrapper:not(.live-count-premium-wrapper--gate) .live-dynamic-banner__spotlight,
-            .live-count-premium-wrapper:not(.live-count-premium-wrapper--gate) .live-dynamic-banner__spotlight--solo,
-            .live-count-premium-wrapper:not(.live-count-premium-wrapper--gate) .live-dynamic-banner__region,
-            .live-count-premium-wrapper:not(.live-count-premium-wrapper--gate) .live-dynamic-banner__region strong {
-              color: #000000 !important;
-            }
-            .live-count-premium-wrapper:not(.live-count-premium-wrapper--gate) .live-dynamic-banner__sep {
-              color: rgba(0, 0, 0, 0.5) !important;
             }
             .home-party-register-outside {
               flex-shrink: 0;
