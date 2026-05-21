@@ -15,11 +15,13 @@ import {
   hasOptionalLocationColumns,
   isMissingLocationsColumnError,
   mergeVenueWithLocalExtras,
+  mergeVenueWithStoredExtras,
   omitOptionalLocationFields,
   pickOptionalLocationFields,
   resetOptionalColumnsCache,
   writeVenueLocalExtras,
 } from '../lib/venueLocalExtras';
+import { persistVenueOptionalFields } from '../lib/locationExtrasQuery';
 
 export { partyMatchesVenue } from '../lib/partyVenueMatch';
 
@@ -853,6 +855,14 @@ export default function VenueDetailModal({
       writeVenueLocalExtras(venue, optional);
     }
 
+    let extrasRow = null;
+    try {
+      const saved = await persistVenueOptionalFields(supabase, venue, patch);
+      extrasRow = saved?.extrasRow ?? null;
+    } catch (err) {
+      console.warn('[VenueDetailModal] location_extras save:', err);
+    }
+
     const tryDbUpdate = async (payload) => {
       if (!supabase || !Object.keys(payload).length) return null;
       if (isPersistedVenueId(venue?.id)) {
@@ -877,7 +887,8 @@ export default function VenueDetailModal({
     };
 
     const finish = (data) => {
-      onVenueUpdated?.(mergeVenueWithLocalExtras({ ...venue, ...(data || {}), ...optional }));
+      const base = mergeVenueWithStoredExtras({ ...venue, ...(data || {}), ...optional }, extrasRow);
+      onVenueUpdated?.(mergeVenueWithLocalExtras(base));
     };
 
     const useDbOptional = await hasOptionalLocationColumns(supabase);

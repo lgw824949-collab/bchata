@@ -10,7 +10,8 @@ import { supabase } from '../lib/supabase'
 import { BAR_DATABASE } from '../lib/BarLib'
 import { normDate, getKSTCalendarTodayStr, isApprovedParty } from '../lib/dateNorm'
 import { logSupabaseError } from '../lib/locationsQuery'
-import { applyLocalExtrasToVenueList, hasOptionalLocationColumns, mergeVenueWithLocalExtras } from '../lib/venueLocalExtras'
+import { hasOptionalLocationColumns, mergeVenueWithLocalExtras } from '../lib/venueLocalExtras'
+import { applyStoredExtrasToVenueList, fetchLocationExtrasMap } from '../lib/locationExtrasQuery'
 import {
   dedupeVenueList,
   normalizeVenueAddressKey,
@@ -1545,11 +1546,27 @@ const HomePage = ({
         const nonSeoul = classified.filter((b) => b.region !== '서울');
         classified = [...nonSeoul, ...sortedSeoul];
       }
-      setLocations(applyLocalExtrasToVenueList(classified));
+      let extrasMap = { byId: {}, byName: {} };
+      if (supabase) {
+        try {
+          extrasMap = await fetchLocationExtrasMap(supabase);
+        } catch (err) {
+          console.warn('[Home.fetchLocations] location_extras:', err);
+        }
+      }
+      setLocations(applyStoredExtrasToVenueList(classified, extrasMap));
     } catch (err) {
       console.error('Supabase Error:', err);
       console.error('[Home.fetchLocations] BAR 목록 로드 실패 — 로컬 마스터 데이터로 대체:', err);
-      setLocations(applyLocalExtrasToVenueList(buildVenueListFromDatabase()));
+      let extrasMap = { byId: {}, byName: {} };
+      if (supabase) {
+        try {
+          extrasMap = await fetchLocationExtrasMap(supabase);
+        } catch {
+          /* ignore */
+        }
+      }
+      setLocations(applyStoredExtrasToVenueList(buildVenueListFromDatabase(), extrasMap));
     } finally {
       setLocationsLoading(false);
     }

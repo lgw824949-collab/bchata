@@ -1,6 +1,6 @@
 const STORAGE_KEY = 'bchata:venue-local-extras';
 
-const OPTIONAL_LOCATION_COLS = ['description', 'kakao_url', 'instagram_url', 'image_url'];
+export const OPTIONAL_LOCATION_COLS = ['description', 'kakao_url', 'instagram_url', 'image_url'];
 
 export function isMissingLocationsColumnError(err) {
   const msg = String(err?.message || '');
@@ -92,3 +92,24 @@ export function mergeVenueWithLocalExtras(venue) {
 export function applyLocalExtrasToVenueList(venues) {
   return (venues || []).map((v) => mergeVenueWithLocalExtras(v));
 }
+
+/** locations 컬럼 + location_extras 행 + localStorage 병합 */
+export function mergeVenueWithStoredExtras(venue, extrasRow) {
+  if (!venue) return venue;
+  if (!extrasRow) return mergeVenueWithLocalExtras(venue);
+  const fromTable = {
+    description: extrasRow.description,
+    kakao_url: extrasRow.kakao_url,
+    instagram_url: extrasRow.instagram_url,
+    image_url: extrasRow.image_url,
+  };
+  const withTable = {
+    ...venue,
+    description: coalesceVenueField(venue.description, fromTable.description),
+    kakao_url: coalesceVenueField(venue.kakao_url, fromTable.kakao_url),
+    instagram_url: coalesceVenueField(venue.instagram_url, fromTable.instagram_url),
+    image_url: venue.image_url || fromTable.image_url || null,
+  };
+  return mergeVenueWithLocalExtras(withTable);
+}
+
