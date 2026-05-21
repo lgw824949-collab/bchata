@@ -60,46 +60,46 @@ import { PartyMusicRatioLine, SocialDateGenreFilterBar, formatPartyMusicRatio } 
 const QUICK_MENU_SVG = {
   partyRegister: (
     <svg viewBox="0 0 36 36" aria-hidden>
-      <circle cx="13" cy="27" r="5" stroke="#c9a84c" strokeWidth="1.5" fill="none" />
-      <line x1="18" y1="27" x2="18" y2="6" stroke="#c9a84c" strokeWidth="1.5" strokeLinecap="round" />
-      <path d="M18 6 Q28 8 26 16 Q22 13 18 13" stroke="#c9a84c" strokeWidth="1.5" fill="none" strokeLinecap="round" strokeLinejoin="round" />
+      <circle cx="13" cy="27" r="5" stroke="currentColor" strokeWidth="1.5" fill="none" />
+      <line x1="18" y1="27" x2="18" y2="6" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+      <path d="M18 6 Q28 8 26 16 Q22 13 18 13" stroke="currentColor" strokeWidth="1.5" fill="none" strokeLinecap="round" strokeLinejoin="round" />
     </svg>
   ),
   classRegister: (
     <svg viewBox="0 0 36 36" aria-hidden>
-      <circle cx="16" cy="12" r="6" stroke="#c9a84c" strokeWidth="1.5" fill="none" />
-      <path d="M4 30 Q4 22 16 22 Q28 22 28 30" stroke="#c9a84c" strokeWidth="1.5" fill="none" strokeLinecap="round" />
-      <line x1="26" y1="10" x2="32" y2="10" stroke="#c9a84c" strokeWidth="1.5" strokeLinecap="round" />
-      <line x1="29" y1="7" x2="29" y2="13" stroke="#c9a84c" strokeWidth="1.5" strokeLinecap="round" />
+      <circle cx="16" cy="12" r="6" stroke="currentColor" strokeWidth="1.5" fill="none" />
+      <path d="M4 30 Q4 22 16 22 Q28 22 28 30" stroke="currentColor" strokeWidth="1.5" fill="none" strokeLinecap="round" />
+      <line x1="26" y1="10" x2="32" y2="10" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+      <line x1="29" y1="7" x2="29" y2="13" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
     </svg>
   ),
   concierge: (
     <svg viewBox="0 0 36 36" aria-hidden>
-      <rect x="4" y="6" width="28" height="18" rx="4" stroke="#c9a84c" strokeWidth="1.5" fill="none" />
-      <path d="M12 24 L10 30 L18 24" stroke="#c9a84c" strokeWidth="1.5" fill="none" strokeLinejoin="round" />
-      <line x1="10" y1="13" x2="26" y2="13" stroke="#c9a84c" strokeWidth="1.5" strokeLinecap="round" />
-      <line x1="10" y1="18" x2="20" y2="18" stroke="#c9a84c" strokeWidth="1.5" strokeLinecap="round" />
+      <rect x="4" y="6" width="28" height="18" rx="4" stroke="currentColor" strokeWidth="1.5" fill="none" />
+      <path d="M12 24 L10 30 L18 24" stroke="currentColor" strokeWidth="1.5" fill="none" strokeLinejoin="round" />
+      <line x1="10" y1="13" x2="26" y2="13" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+      <line x1="10" y1="18" x2="20" y2="18" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
     </svg>
   ),
   calendar: (
     <svg viewBox="0 0 36 36" aria-hidden>
-      <rect x="4" y="6" width="28" height="26" rx="3" stroke="#c9a84c" strokeWidth="1.5" fill="none" />
-      <line x1="4" y1="14" x2="32" y2="14" stroke="#c9a84c" strokeWidth="1.5" />
-      <line x1="12" y1="3" x2="12" y2="9" stroke="#c9a84c" strokeWidth="1.5" strokeLinecap="round" />
-      <line x1="24" y1="3" x2="24" y2="9" stroke="#c9a84c" strokeWidth="1.5" strokeLinecap="round" />
-      <line x1="10" y1="20" x2="13" y2="20" stroke="#c9a84c" strokeWidth="1.5" strokeLinecap="round" />
-      <line x1="10" y1="26" x2="13" y2="26" stroke="#c9a84c" strokeWidth="1.5" strokeLinecap="round" />
-      <line x1="17" y1="20" x2="26" y2="20" stroke="#c9a84c" strokeWidth="1.5" strokeLinecap="round" />
-      <line x1="17" y1="26" x2="26" y2="26" stroke="#c9a84c" strokeWidth="1.5" strokeLinecap="round" />
+      <rect x="4" y="6" width="28" height="26" rx="3" stroke="currentColor" strokeWidth="1.5" fill="none" />
+      <line x1="4" y1="14" x2="32" y2="14" stroke="currentColor" strokeWidth="1.5" />
+      <line x1="12" y1="3" x2="12" y2="9" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+      <line x1="24" y1="3" x2="24" y2="9" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+      <line x1="10" y1="20" x2="13" y2="20" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+      <line x1="10" y1="26" x2="13" y2="26" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+      <line x1="17" y1="20" x2="26" y2="20" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+      <line x1="17" y1="26" x2="26" y2="26" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
     </svg>
   ),
   language: (
     <svg viewBox="0 0 36 36" aria-hidden>
-      <circle cx="18" cy="18" r="13" stroke="#c9a84c" strokeWidth="1.5" fill="none" />
-      <ellipse cx="18" cy="18" rx="6" ry="13" stroke="#c9a84c" strokeWidth="1.5" fill="none" />
-      <line x1="5" y1="18" x2="31" y2="18" stroke="#c9a84c" strokeWidth="1.5" />
-      <line x1="7" y1="11" x2="29" y2="11" stroke="#c9a84c" strokeWidth="1" />
-      <line x1="7" y1="25" x2="29" y2="25" stroke="#c9a84c" strokeWidth="1" />
+      <circle cx="18" cy="18" r="13" stroke="currentColor" strokeWidth="1.5" fill="none" />
+      <ellipse cx="18" cy="18" rx="6" ry="13" stroke="currentColor" strokeWidth="1.5" fill="none" />
+      <line x1="5" y1="18" x2="31" y2="18" stroke="currentColor" strokeWidth="1.5" />
+      <line x1="7" y1="11" x2="29" y2="11" stroke="currentColor" strokeWidth="1" />
+      <line x1="7" y1="25" x2="29" y2="25" stroke="currentColor" strokeWidth="1" />
     </svg>
   ),
 };
@@ -1968,6 +1968,8 @@ const HomePage = ({
   const isHomeGate = activeTab === null;
   const HOME_BRAND = '#D4436E';
   const HOME_GOLD = '#C9A84C';
+  const HOME_GOLD_MUTED = '#9A9078';
+  const HOME_GOLD_BORDER = 'rgba(154, 144, 120, 0.28)';
   const HOME_BRAND_SOFT = '#FFF5F7';
   const HOME_BRAND_BORDER = '#FBCFE8';
   const HOME_TEXT = '#1E293B';
@@ -1980,9 +1982,9 @@ const HomePage = ({
     textMuted: '#94A3B8',
     surface: 'rgba(255, 255, 255, 0.06)',
     border: 'rgba(255, 255, 255, 0.1)',
-    gold: HOME_GOLD,
-    goldSoft: 'rgba(201, 168, 76, 0.14)',
-    goldBorder: 'rgba(201, 168, 76, 0.4)',
+    gold: HOME_GOLD_MUTED,
+    goldSoft: 'rgba(154, 144, 120, 0.1)',
+    goldBorder: HOME_GOLD_BORDER,
     brandSoft: 'rgba(212, 67, 110, 0.18)',
     brandBorder: 'rgba(212, 67, 110, 0.45)',
     partyEmpty: {
@@ -1994,24 +1996,24 @@ const HomePage = ({
       districts: '#78716C',
     },
     partyActive: {
-      bg: 'rgba(201, 168, 76, 0.12)',
-      border: 'rgba(201, 168, 76, 0.45)',
-      label: '#F5E6C8',
-      count: HOME_GOLD,
-      unit: '#E8D5A3',
-      districts: '#C9A84C',
+      bg: 'rgba(154, 144, 120, 0.1)',
+      border: HOME_GOLD_BORDER,
+      label: '#D6D0C4',
+      count: HOME_GOLD_MUTED,
+      unit: '#B8B0A0',
+      districts: HOME_GOLD_MUTED,
     },
     divider: 'rgba(255, 255, 255, 0.08)',
     panelBg: '#121212',
     panelBorder: 'rgba(255, 255, 255, 0.08)',
     panelShadow: '0 10px 40px rgba(0, 0, 0, 0.38)',
     quickIcon: '#CBD5E1',
-    quickRegisterIcon: HOME_GOLD,
-    posterActive: HOME_GOLD,
+    quickRegisterIcon: HOME_BRAND,
+    posterActive: HOME_GOLD_MUTED,
     posterIdle: 'rgba(255, 255, 255, 0.12)',
     liveShell: 'linear-gradient(135deg, #1a1510 0%, #0a0a0a 55%, #141018 100%)',
-    liveBorder: 'rgba(201, 168, 76, 0.35)',
-    barSubtitle: '#E8D5A3',
+    liveBorder: HOME_GOLD_BORDER,
+    barSubtitle: '#B8B0A0',
     barLabel: '#FFFFFF',
   } : {
     pageBg: '#FFFFFF',
@@ -2019,28 +2021,28 @@ const HomePage = ({
     textMuted: HOME_TEXT_MUTED,
     surface: HOME_SURFACE,
     border: HOME_BORDER,
-    gold: HOME_GOLD,
-    goldSoft: 'rgba(201, 168, 76, 0.12)',
-    goldBorder: 'rgba(201, 168, 76, 0.3)',
+    gold: HOME_GOLD_MUTED,
+    goldSoft: 'rgba(154, 144, 120, 0.08)',
+    goldBorder: HOME_GOLD_BORDER,
     brandSoft: HOME_BRAND_SOFT,
     brandBorder: HOME_BRAND_BORDER,
     partyEmpty: {
       bg: HOME_SURFACE, border: HOME_BORDER, label: HOME_TEXT_MUTED, count: '#94A3B8', unit: '#94A3B8', districts: '#94A3B8',
     },
     partyActive: {
-      bg: 'rgba(201, 168, 76, 0.12)',
-      border: 'rgba(201, 168, 76, 0.4)',
-      label: '#92400E',
-      count: HOME_GOLD,
-      unit: '#B45309',
-      districts: '#C9A84C',
+      bg: 'rgba(154, 144, 120, 0.08)',
+      border: HOME_GOLD_BORDER,
+      label: '#78716C',
+      count: HOME_GOLD_MUTED,
+      unit: '#A8A29E',
+      districts: HOME_GOLD_MUTED,
     },
     divider: HOME_BORDER,
     panelBg: '#FFFFFF',
     panelBorder: '#E2E8F0',
     panelShadow: '0 6px 28px rgba(15, 23, 42, 0.06)',
     quickIcon: '#475569',
-    quickRegisterIcon: HOME_GOLD,
+    quickRegisterIcon: HOME_BRAND,
     posterActive: HOME_BRAND,
     posterIdle: '#F0F0F0',
     liveShell: 'linear-gradient(135deg, #D4436E 0%, #C7365F 100%)',
@@ -2064,8 +2066,8 @@ const HomePage = ({
     boxShadow: homeUi.panelShadow,
   };
   const homeLuxurySectionBoxStyle = {
-    border: '1px solid #c9a84c',
-    boxShadow: '0 4px 20px rgba(201, 168, 76, 0.25)',
+    border: `1px solid ${HOME_GOLD_BORDER}`,
+    boxShadow: '0 4px 16px rgba(0, 0, 0, 0.08)',
   };
   const homeSubtitleStyle = { color: homeUi.textMuted };
   const homeSectionDividerStyle = { height: 1, background: homeUi.divider, margin: '0 20px', border: 'none' };
@@ -2080,23 +2082,22 @@ const HomePage = ({
     {
       id: 'party-register',
       menuSvg: QUICK_MENU_SVG.partyRegister,
-      accentLive: true,
-      label: '파티등록',
+      registerKind: 'party',
+      label: isEn ? 'Party' : '파티 등록',
       particles: '🎉',
       action: () => handleRegister('party'),
     },
     {
       id: 'class-register',
       menuSvg: QUICK_MENU_SVG.classRegister,
-      accentLive: true,
-      label: '클래스등록',
+      registerKind: 'class',
+      label: isEn ? 'Class' : '클래스 등록',
       particles: '📚',
       action: () => handleRegister('class'),
     },
     {
       id: 'concierge',
       menuSvg: QUICK_MENU_SVG.concierge,
-      accentLive: true,
       label: '컨시어지',
       particles: '✨',
       action: () => {
@@ -2135,20 +2136,25 @@ const HomePage = ({
 
   const renderQuickMenuItem = (item) => {
     const Icon = item.icon;
-    const strokeColor = item.iconAccent ?? quickMenuIconColor;
+    const registerMod = item.registerKind === 'party'
+      ? ' home-quick-menu-item--register-party'
+      : item.registerKind === 'class'
+        ? ' home-quick-menu-item--register-class'
+        : '';
     return (
       <motion.button
         key={item.id}
         type="button"
         whileTap={{ scale: 0.96 }}
         onClick={(e) => { triggerParticle(e, item.particles); item.action(); }}
-        className={`home-quick-menu-item${item.accentLive ? ' home-quick-menu-item--accent-live' : ''}`}
+        className={`home-quick-menu-item${registerMod}`}
+        aria-label={item.label}
       >
         {item.menuSvg ? (
           <QuickMenuIconCircle>{item.menuSvg}</QuickMenuIconCircle>
         ) : (
           <QuickMenuIconCircle>
-            {Icon ? <Icon size={QUICK_MENU_ICON_SIZE} strokeWidth={QUICK_MENU_STROKE} color="#c9a84c" aria-hidden /> : null}
+            {Icon ? <Icon size={QUICK_MENU_ICON_SIZE} strokeWidth={QUICK_MENU_STROKE} color="currentColor" aria-hidden /> : null}
           </QuickMenuIconCircle>
         )}
         <span className="home-quick-menu-item-label">{item.label}</span>
@@ -2230,7 +2236,7 @@ const HomePage = ({
     <>
         {renderHomeSectionHeader(
           isEn ? 'Quick actions' : '빠른 메뉴',
-          isEn ? 'Shortcuts' : '자주 쓰는 메뉴',
+          isEn ? 'Tap an icon to open' : '아이콘을 눌러 이용하세요 · 파티·클래스 등록은 색으로 구분',
           quickMenuMore.length > 0 ? (
             <button
               type="button"
@@ -2705,11 +2711,12 @@ const HomePage = ({
           100% { box-shadow: 0 0 2px rgba(85, 139, 47, 0.1); filter: drop-shadow(0 0 1px rgba(85, 139, 47, 0.1)); }
         }
         .home-quick-menu-icon-circle {
-          width: 64px;
-          height: 64px;
+          width: 48px;
+          height: 48px;
           border-radius: 50%;
-          background: #2a2a2a;
-          border: 1px solid #c9a84c;
+          background: rgba(255, 255, 255, 0.05);
+          border: 1px solid rgba(255, 255, 255, 0.14);
+          color: #94A3B8;
           display: flex;
           align-items: center;
           justify-content: center;
@@ -2717,17 +2724,63 @@ const HomePage = ({
           box-sizing: border-box;
         }
         .home-quick-menu-icon-circle svg {
-          width: 36px;
-          height: 36px;
+          width: 26px;
+          height: 26px;
           display: block;
         }
-        .home-quick-menu-item--accent-live .home-quick-menu-icon-circle svg {
-          animation: home-quick-accent-pulse 2.4s ease-in-out infinite;
+        .home-quick-menu-item--register-party .home-quick-menu-icon-circle {
+          width: 52px;
+          height: 52px;
+          background: rgba(212, 67, 110, 0.14);
+          border: 1.5px solid rgba(212, 67, 110, 0.45);
+          color: #F472B6;
+        }
+        .home-quick-menu-item--register-party .home-quick-menu-item-label {
+          color: #F9A8D4;
+          font-weight: 800;
+        }
+        .home-quick-menu-item--register-class .home-quick-menu-icon-circle {
+          width: 52px;
+          height: 52px;
+          background: rgba(37, 99, 235, 0.14);
+          border: 1.5px solid rgba(37, 99, 235, 0.45);
+          color: #60A5FA;
+        }
+        .home-quick-menu-item--register-class .home-quick-menu-item-label {
+          color: #93C5FD;
+          font-weight: 800;
+        }
+        .home-gate-active .home-quick-menu-item--register-party .home-quick-menu-icon-circle {
+          background: rgba(212, 67, 110, 0.18);
+        }
+        .home-gate-active .home-quick-menu-item--register-class .home-quick-menu-icon-circle {
+          background: rgba(37, 99, 235, 0.18);
+        }
+        .app-container:not(.home-gate-active) .home-quick-menu-icon-circle {
+          background: #F8FAFC;
+          border-color: #E2E8F0;
+          color: #64748B;
+        }
+        .app-container:not(.home-gate-active) .home-quick-menu-item--register-party .home-quick-menu-icon-circle {
+          background: rgba(212, 67, 110, 0.1);
+          border-color: rgba(212, 67, 110, 0.35);
+          color: #D4436E;
+        }
+        .app-container:not(.home-gate-active) .home-quick-menu-item--register-party .home-quick-menu-item-label {
+          color: #BE185D;
+        }
+        .app-container:not(.home-gate-active) .home-quick-menu-item--register-class .home-quick-menu-icon-circle {
+          background: rgba(37, 99, 235, 0.08);
+          border-color: rgba(37, 99, 235, 0.35);
+          color: #2563EB;
+        }
+        .app-container:not(.home-gate-active) .home-quick-menu-item--register-class .home-quick-menu-item-label {
+          color: #1D4ED8;
         }
         .home-quick-menu-grid {
           display: grid;
           grid-template-columns: repeat(5, minmax(0, 1fr));
-          gap: 10px;
+          gap: 6px 4px;
           margin-bottom: 8px;
         }
         .quick-menu-more-link {

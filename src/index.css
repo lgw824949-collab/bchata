@@ -168,7 +168,7 @@ input, button, select, textarea {
 }
 
 .home-gate-active .home-type-tagline-strong {
-  color: #c9a84c;
+  color: #9a9078;
 }
 
 .home-type-tagline-sub {
@@ -313,7 +313,7 @@ input, button, select, textarea {
 }
 
 .home-gate-active .home-featured-stream__row.is-active .home-featured-stream__category {
-  color: #c9a84c;
+  color: #9a9078;
 }
 
 .home-featured-stream__thumb {
@@ -428,7 +428,7 @@ input, button, select, textarea {
 }
 
 .home-gate-active .home-hero-posters .home-poster-border-wrap.is-active {
-  border-color: #c9a84c;
+  border-color: rgba(154, 144, 120, 0.45);
 }
 
 .home-hero-posters .home-poster-border-inner {
@@ -498,8 +498,8 @@ input, button, select, textarea {
   flex-direction: column;
   align-items: center;
   justify-content: flex-start;
-  gap: 6px;
-  padding: 10px 4px;
+  gap: 4px;
+  padding: 6px 2px;
   border: none;
   background: none;
   cursor: pointer;
@@ -552,7 +552,7 @@ input, button, select, textarea {
 
 .home-quick-menu-more-scroll .home-quick-menu-item {
   flex-shrink: 0;
-  width: 72px;
+  width: 58px;
 }
 
 /* Social BAR — 2단: 스크롤포트(overflow-x) + 트랙(max-content) */
