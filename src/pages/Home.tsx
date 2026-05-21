@@ -2255,23 +2255,17 @@ const HomePage = ({
     const withPoster = todayRows.filter((p) => String(p.poster_url || p.imageUrl || '').trim());
     const pick = withPoster[0] || todayRows[0] || null;
     const total = todayRows.length;
-    const regionEntries = [
-      { label: isEn ? 'Seoul' : '서울', count: regionCounts.seoul || 0 },
-      ...(regionCounts.metro > 0
-        ? [{ label: isEn ? 'Metro' : '수도권', count: regionCounts.metro }]
-        : []),
-    ];
-    return { pick, total, regionEntries };
+    const seoulCount = regionCounts.seoul || 0;
+    return { pick, total, seoulCount };
   }, [parties, calendarTodayStr, isEn, regionCounts]);
 
   const renderHomeLiveBannerFallback = () => {
-    const { pick, total, regionEntries } = homeLiveBannerFallback;
+    const { pick, total, seoulCount } = homeLiveBannerFallback;
+    const seoulLabel = isEn ? 'Seoul' : '서울';
     const nationwideLine = isEn
       ? `Nationwide ${total} parties live`
       : `전국 ${total}개 파티 진행중`;
-    const ariaLabel = regionEntries.length
-      ? `${nationwideLine} | ${regionEntries.map((r) => `${r.label} ${r.count}`).join(' ')}`
-      : nationwideLine;
+    const ariaLabel = `${nationwideLine} | ${seoulLabel} ${seoulCount}`;
     const handleClick = () => {
       if (pick) {
         openPartyWithAfterParty(pick);
@@ -2295,20 +2289,17 @@ const HomePage = ({
           aria-label={ariaLabel}
         >
           <div className="live-dynamic-banner__inner">
-            <span className="lc-tag">LIVE</span>
             <span className="lc-dot" />
+            <span className="lc-tag">LIVE</span>
+            <span className="live-dynamic-banner__sep live-dynamic-banner__sep--dot">·</span>
             <div className="live-dynamic-banner__track">
               <span className="lc-default lc-default--hot">{nationwideLine}</span>
-              {regionEntries.length > 0 ? (
-                <div className="live-dynamic-banner__regions">
-                  <span className="live-dynamic-banner__sep">|</span>
-                  {regionEntries.map((r) => (
-                    <span key={r.label} className="live-dynamic-banner__region">
-                      {r.label} <strong>{r.count}</strong>
-                    </span>
-                  ))}
-                </div>
-              ) : null}
+              <div className="live-dynamic-banner__regions">
+                <span className="live-dynamic-banner__sep">|</span>
+                <span className="live-dynamic-banner__region">
+                  {seoulLabel} <strong>{seoulCount}</strong>
+                </span>
+              </div>
             </div>
           </div>
         </div>
@@ -2356,7 +2347,7 @@ const HomePage = ({
           flex: 1,
           minWidth: 0,
           minHeight: 44,
-          background: homeUi.liveShell,
+          background: 'transparent',
           borderRadius: '14px',
           overflow: 'hidden',
           border: isHomeGate ? `1px solid ${homeUi.liveBorder}` : 'none',
@@ -2396,9 +2387,22 @@ const HomePage = ({
               height: 20px !important;
             }
 
-            /* LIVE 다이내믹 배너 — 내부 레이아웃 */
-            .live-count-premium-wrapper .live-dynamic-banner {
+            @keyframes liveGradient {
+              0% { background-position: 0% 50%; }
+              50% { background-position: 100% 50%; }
+              100% { background-position: 0% 50%; }
+            }
+
+            /* LIVE 다이내믹 배너 — 그라데이션 + 레이아웃 */
+            .live-count-premium-wrapper .live-dynamic-banner,
+            .live-count-premium-wrapper .live-dynamic-banner--gate {
               width: 100% !important;
+              background: linear-gradient(270deg, #ff6b6b, #ffd93d, #6bcb77, #4d96ff, #c77dff) !important;
+              background-size: 400% 400% !important;
+              animation: liveGradient 4s ease infinite !important;
+              padding: 0 !important;
+              border: none !important;
+              border-radius: 14px !important;
             }
             .live-count-premium-wrapper .live-dynamic-banner__inner {
               height: 44px !important;
@@ -2417,17 +2421,29 @@ const HomePage = ({
               flex-wrap: nowrap !important;
             }
             .live-count-premium-wrapper .lc-tag {
-              background: #FFFFFF !important;
-              color: #D4436E !important;
+              background: transparent !important;
+              color: #ffffff !important;
               font-size: 10px !important;
               font-weight: 950 !important;
-              padding: 2px 6px !important;
-              border-radius: 4px !important;
+              padding: 0 !important;
+              border-radius: 0 !important;
               letter-spacing: 0.5px !important;
             }
             .live-count-premium-wrapper .lc-dot {
-              margin-left: -2px !important;
-              margin-right: 4px !important;
+              width: 6px !important;
+              height: 6px !important;
+              background: #ff6b6b !important;
+              border-radius: 50% !important;
+              flex-shrink: 0 !important;
+              margin-right: 2px !important;
+              animation: lc-blink 1s infinite;
+            }
+            .live-count-premium-wrapper .live-dynamic-banner__sep--dot {
+              color: #ffffff !important;
+              font-size: 12px !important;
+              font-weight: 800 !important;
+              flex-shrink: 0 !important;
+              margin: 0 2px !important;
             }
             .live-count-premium-wrapper .lc-name {
               color: #ffffff !important;
@@ -2494,8 +2510,8 @@ const HomePage = ({
               font-weight: 800 !important;
             }
             .live-count-premium-wrapper--gate .lc-tag {
-              background: #C9A84C !important;
-              color: #1a1a1a !important;
+              background: transparent !important;
+              color: #ffffff !important;
             }
             .home-party-register-outside {
               flex-shrink: 0;
