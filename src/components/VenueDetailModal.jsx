@@ -1295,7 +1295,7 @@ export default function VenueDetailModal({
               }}
             >
               <MessageCircle size={18} />
-              카카오톡
+              대관문의
             </button>
             <button
               type="button"
@@ -1317,7 +1317,7 @@ export default function VenueDetailModal({
               }}
             >
               <Globe size={18} color={VD.brand} />
-              인스타그램
+              BAR 구경하기
             </button>
           </div>
 
