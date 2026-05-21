@@ -54,6 +54,57 @@ import hongturnPhoto from '../assets/hongturn_photo.png'
 import bibigoPhoto from '../assets/bibigo_photo.png'
 import { PartyMusicRatioLine, SocialDateGenreFilterBar, formatPartyMusicRatio } from './Social'
 
+const QUICK_MENU_SVG = {
+  partyRegister: (
+    <svg viewBox="0 0 36 36" aria-hidden>
+      <circle cx="13" cy="27" r="5" stroke="#c9a84c" strokeWidth="1.5" fill="none" />
+      <line x1="18" y1="27" x2="18" y2="6" stroke="#c9a84c" strokeWidth="1.5" strokeLinecap="round" />
+      <path d="M18 6 Q28 8 26 16 Q22 13 18 13" stroke="#c9a84c" strokeWidth="1.5" fill="none" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  ),
+  classRegister: (
+    <svg viewBox="0 0 36 36" aria-hidden>
+      <circle cx="16" cy="12" r="6" stroke="#c9a84c" strokeWidth="1.5" fill="none" />
+      <path d="M4 30 Q4 22 16 22 Q28 22 28 30" stroke="#c9a84c" strokeWidth="1.5" fill="none" strokeLinecap="round" />
+      <line x1="26" y1="10" x2="32" y2="10" stroke="#c9a84c" strokeWidth="1.5" strokeLinecap="round" />
+      <line x1="29" y1="7" x2="29" y2="13" stroke="#c9a84c" strokeWidth="1.5" strokeLinecap="round" />
+    </svg>
+  ),
+  concierge: (
+    <svg viewBox="0 0 36 36" aria-hidden>
+      <rect x="4" y="6" width="28" height="18" rx="4" stroke="#c9a84c" strokeWidth="1.5" fill="none" />
+      <path d="M12 24 L10 30 L18 24" stroke="#c9a84c" strokeWidth="1.5" fill="none" strokeLinejoin="round" />
+      <line x1="10" y1="13" x2="26" y2="13" stroke="#c9a84c" strokeWidth="1.5" strokeLinecap="round" />
+      <line x1="10" y1="18" x2="20" y2="18" stroke="#c9a84c" strokeWidth="1.5" strokeLinecap="round" />
+    </svg>
+  ),
+  calendar: (
+    <svg viewBox="0 0 36 36" aria-hidden>
+      <rect x="4" y="6" width="28" height="26" rx="3" stroke="#c9a84c" strokeWidth="1.5" fill="none" />
+      <line x1="4" y1="14" x2="32" y2="14" stroke="#c9a84c" strokeWidth="1.5" />
+      <line x1="12" y1="3" x2="12" y2="9" stroke="#c9a84c" strokeWidth="1.5" strokeLinecap="round" />
+      <line x1="24" y1="3" x2="24" y2="9" stroke="#c9a84c" strokeWidth="1.5" strokeLinecap="round" />
+      <line x1="10" y1="20" x2="13" y2="20" stroke="#c9a84c" strokeWidth="1.5" strokeLinecap="round" />
+      <line x1="10" y1="26" x2="13" y2="26" stroke="#c9a84c" strokeWidth="1.5" strokeLinecap="round" />
+      <line x1="17" y1="20" x2="26" y2="20" stroke="#c9a84c" strokeWidth="1.5" strokeLinecap="round" />
+      <line x1="17" y1="26" x2="26" y2="26" stroke="#c9a84c" strokeWidth="1.5" strokeLinecap="round" />
+    </svg>
+  ),
+  language: (
+    <svg viewBox="0 0 36 36" aria-hidden>
+      <circle cx="18" cy="18" r="13" stroke="#c9a84c" strokeWidth="1.5" fill="none" />
+      <ellipse cx="18" cy="18" rx="6" ry="13" stroke="#c9a84c" strokeWidth="1.5" fill="none" />
+      <line x1="5" y1="18" x2="31" y2="18" stroke="#c9a84c" strokeWidth="1.5" />
+      <line x1="7" y1="11" x2="29" y2="11" stroke="#c9a84c" strokeWidth="1" />
+      <line x1="7" y1="25" x2="29" y2="25" stroke="#c9a84c" strokeWidth="1" />
+    </svg>
+  ),
+};
+
+function QuickMenuIconCircle({ children }) {
+  return <span className="home-quick-menu-icon-circle">{children}</span>;
+}
+
 /** 메인 홈 지역 pill 순서 (표시 개수는 DB 분류 결과) */
 const HOME_REGIONS_ORDER = [
   '서울',
@@ -1798,23 +1849,31 @@ const HomePage = ({
     return () => observer.disconnect();
   }, [activeTab]);
 
-  /** 하단 네비 탭 순서: 홈 → 소셜 → 부트캠프 → 페스티벌 → 강사찾기 (마크업은 App.jsx nav) */
+  /** 하단 네비 탭 순서: 홈 → 파티(소셜) → 부트캠프 → 페스티벌 → 강사찾기 (마크업은 App.jsx nav) */
   useEffect(() => {
     const nav = document.querySelector('nav.bottom-nav');
     if (!nav) return;
     const items = Array.from(nav.children).filter((el) => el.nodeType === 1);
     const pick = (labels) =>
       items.find((el) => labels.some((l) => (el.textContent || '').includes(l)));
+    const partyTab = pick(['소셜', 'Social', '파티', 'Party']);
+    if (partyTab) {
+      const labelSpan = partyTab.querySelector('span');
+      if (labelSpan) {
+        const en = (labelSpan.textContent || '').includes('Social') || (labelSpan.textContent || '').includes('Party');
+        labelSpan.textContent = en ? 'Party' : '파티';
+      }
+    }
     const ordered = [
       pick(['홈', 'Home']),
-      pick(['소셜', 'Social']),
+      partyTab || pick(['소셜', 'Social']),
       pick(['부트캠프', 'Bootcamp']),
       pick(['페스티벌', 'Festival']),
       pick(['강사찾기', '강사', 'Instructor']),
     ].filter(Boolean);
     if (ordered.length < 5) return;
     ordered.forEach((el) => nav.appendChild(el));
-  }, []);
+  }, [isEn]);
 
   /** 추천 행사 스트리밍 3행: 소셜 → 부트캠프 → 페스티벌 */
   const homeFeaturedRows = useMemo(() => [
@@ -1990,12 +2049,11 @@ const HomePage = ({
   const quickMenuIconColor = homeUi.quickIcon;
   const QUICK_MENU_PRIMARY_IDS = ['party-register', 'class-register', 'concierge', 'calendar', 'language'];
 
-  /** 메인 노출·등록 우선 — 파티·클래스·컨시어지는 포인트 컬러·라이브 펄스(home-quick-menu-item--accent-live) */
+  /** 메인 노출 5종 — 커스텀 SVG 원형 아이콘 */
   const quickMenuItems = useMemo(() => [
     {
       id: 'party-register',
-      icon: Music,
-      iconAccent: '#D4436E',
+      menuSvg: QUICK_MENU_SVG.partyRegister,
       accentLive: true,
       label: '파티등록',
       particles: '🎉',
@@ -2003,8 +2061,7 @@ const HomePage = ({
     },
     {
       id: 'class-register',
-      icon: User,
-      iconAccent: '#C9A84C',
+      menuSvg: QUICK_MENU_SVG.classRegister,
       accentLive: true,
       label: '클래스등록',
       particles: '📚',
@@ -2012,8 +2069,7 @@ const HomePage = ({
     },
     {
       id: 'concierge',
-      icon: MessageSquare,
-      iconAccent: '#059669',
+      menuSvg: QUICK_MENU_SVG.concierge,
       accentLive: true,
       label: '컨시어지',
       particles: '✨',
@@ -2029,10 +2085,10 @@ const HomePage = ({
     { id: 'restaurant', icon: Utensils, label: '맛집뒷풀이', particles: '🍽', action: () => navigate('/restaurant') },
     { id: 'weather', icon: CloudSun, label: '오늘날씨', particles: '☀️', action: () => { pushOverlay('weather'); setShowWeather(true); } },
     { id: 'route', icon: Navigation, label: '지능형경로', particles: '🧭', action: () => { pushOverlay('route'); openAnalysis(false); } },
-    { id: 'calendar', icon: Calendar, label: '행사달력', particles: '📅', action: openFullCalendarModal },
+    { id: 'calendar', menuSvg: QUICK_MENU_SVG.calendar, label: '행사달력', particles: '📅', action: openFullCalendarModal },
     {
       id: 'language',
-      icon: Globe,
+      menuSvg: QUICK_MENU_SVG.language,
       label: isEn ? 'Language' : '다국어',
       particles: '🌐',
       action: () => {
@@ -2062,7 +2118,13 @@ const HomePage = ({
         onClick={(e) => { triggerParticle(e, item.particles); item.action(); }}
         className={`home-quick-menu-item${item.accentLive ? ' home-quick-menu-item--accent-live' : ''}`}
       >
-        <Icon size={QUICK_MENU_ICON_SIZE} strokeWidth={QUICK_MENU_STROKE} color={strokeColor} aria-hidden />
+        {item.menuSvg ? (
+          <QuickMenuIconCircle>{item.menuSvg}</QuickMenuIconCircle>
+        ) : (
+          <QuickMenuIconCircle>
+            {Icon ? <Icon size={QUICK_MENU_ICON_SIZE} strokeWidth={QUICK_MENU_STROKE} color="#c9a84c" aria-hidden /> : null}
+          </QuickMenuIconCircle>
+        )}
         <span className="home-quick-menu-item-label">{item.label}</span>
       </motion.button>
     );
@@ -2514,6 +2576,26 @@ const HomePage = ({
           0% { box-shadow: 0 0 2px rgba(85, 139, 47, 0.1); filter: drop-shadow(0 0 1px rgba(85, 139, 47, 0.1)); }
           50% { box-shadow: 0 0 12px rgba(85, 139, 47, 0.45); filter: drop-shadow(0 0 4px rgba(85, 139, 47, 0.25)); }
           100% { box-shadow: 0 0 2px rgba(85, 139, 47, 0.1); filter: drop-shadow(0 0 1px rgba(85, 139, 47, 0.1)); }
+        }
+        .home-quick-menu-icon-circle {
+          width: 64px;
+          height: 64px;
+          border-radius: 50%;
+          background: #2a2a2a;
+          border: 1px solid #c9a84c;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          flex-shrink: 0;
+          box-sizing: border-box;
+        }
+        .home-quick-menu-icon-circle svg {
+          width: 36px;
+          height: 36px;
+          display: block;
+        }
+        .home-quick-menu-item--accent-live .home-quick-menu-icon-circle svg {
+          animation: home-quick-accent-pulse 2.4s ease-in-out infinite;
         }
         .home-quick-menu-grid {
           display: grid;
