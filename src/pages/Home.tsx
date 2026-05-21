@@ -2573,7 +2573,7 @@ const HomePage = ({
       openFullCalendarModal();
     };
     return (
-      <div className="home-live-banner-fallback">
+      <div className={`home-live-banner-fallback${isHomeGate ? ' home-live-banner-fallback--gate' : ''}`}>
         <div
           className={`live-dynamic-banner${isHomeGate ? ' live-dynamic-banner--gate' : ''}`}
           role="button"
@@ -2776,7 +2776,7 @@ const HomePage = ({
   };
 
   const renderHomeMainLiveSlot = () => (
-    <div className="home-main-live-slot" style={{ marginBottom: 12 }}>
+    <div className="home-main-live-slot home-main-live-slot--gate" style={{ marginBottom: 10 }}>
       {renderHomeLiveAdRow(true)}
     </div>
   );
@@ -2817,12 +2817,12 @@ const HomePage = ({
         style={{
           flex: 1,
           minWidth: 0,
-          minHeight: 48,
+          minHeight: isHomeGate ? 42 : 48,
           background: 'transparent',
           borderRadius: '14px',
           overflow: 'hidden',
-          border: isHomeGate ? `1px solid ${homeUi.liveBorder}` : 'none',
-          boxShadow: isHomeGate ? '0 4px 24px rgba(0,0,0,0.35)' : 'none',
+          border: isHomeGate ? '1px solid rgba(201, 168, 76, 0.2)' : 'none',
+          boxShadow: isHomeGate ? '0 6px 24px rgba(0, 0, 0, 0.38)' : 'none',
         }}
       >
         <style>{`
@@ -2868,9 +2868,70 @@ const HomePage = ({
               100% { background-position: 0% 50%; }
             }
 
-            /* LIVE 다이내믹 배너 — 그라데이션 + 레이아웃 */
-            .live-count-premium-wrapper .live-dynamic-banner,
-            .live-count-premium-wrapper .live-dynamic-banner--gate {
+            /* 메인 홈 LIVE — 다크·골드 (포스터·퀵메뉴와 톤 통일) */
+            .home-gate-active .home-main-live-slot--gate {
+              width: 100%;
+            }
+            .home-gate-active .home-live-banner-fallback--gate {
+              width: 100%;
+            }
+            .home-gate-active .live-count-premium-wrapper--gate .live-dynamic-banner,
+            .home-gate-active .live-count-premium-wrapper--gate .live-dynamic-banner--gate {
+              width: 100% !important;
+              background: linear-gradient(135deg, #121212 0%, #1a1610 48%, #0f0f0f 100%) !important;
+              background-size: 100% 100% !important;
+              animation: none !important;
+              padding: 0 !important;
+              border: 1px solid rgba(201, 168, 76, 0.22) !important;
+              border-radius: 12px !important;
+              box-shadow:
+                inset 0 1px 0 rgba(201, 168, 76, 0.1),
+                0 6px 22px rgba(0, 0, 0, 0.4) !important;
+            }
+            .home-gate-active .live-count-premium-wrapper--gate .live-dynamic-banner__inner {
+              min-height: 42px !important;
+              height: 42px !important;
+              padding: 0 14px !important;
+              gap: 8px !important;
+              background: transparent !important;
+              box-sizing: border-box !important;
+              width: 100% !important;
+              overflow: hidden !important;
+              flex-wrap: nowrap !important;
+              color: rgba(255, 255, 255, 0.92) !important;
+            }
+            .home-gate-active .live-count-premium-wrapper--gate .lc-tag {
+              background: rgba(201, 168, 76, 0.12) !important;
+              color: #e8d5a3 !important;
+              border: 1px solid rgba(201, 168, 76, 0.32) !important;
+              border-radius: 6px !important;
+              padding: 2px 8px !important;
+              font-size: 10px !important;
+              font-weight: 800 !important;
+              letter-spacing: 0.06em !important;
+            }
+            .home-gate-active .live-count-premium-wrapper--gate .lc-dot {
+              width: 5px !important;
+              height: 5px !important;
+              background: #d4436e !important;
+              box-shadow: 0 0 8px rgba(212, 67, 110, 0.45) !important;
+            }
+            .home-gate-active .live-count-premium-wrapper--gate .live-dynamic-banner__sep--dot {
+              color: rgba(201, 168, 76, 0.42) !important;
+              font-size: 11px !important;
+              font-weight: 700 !important;
+            }
+            .home-gate-active .live-count-premium-wrapper--gate .live-dynamic-banner__spotlight,
+            .home-gate-active .live-count-premium-wrapper--gate .live-dynamic-banner__spotlight--solo {
+              color: #f8fafc !important;
+              font-weight: 700 !important;
+              font-size: clamp(11px, 3.1vw, 13px) !important;
+              letter-spacing: -0.02em !important;
+              text-shadow: none !important;
+            }
+
+            /* 소셜 탭 등 — 기존 무지개 LIVE */
+            .app-container:not(.home-gate-active) .live-count-premium-wrapper .live-dynamic-banner {
               width: 100% !important;
               background: linear-gradient(270deg, #ff6b6b, #ffd93d, #6bcb77, #4d96ff, #c77dff) !important;
               background-size: 400% 400% !important;
@@ -2951,8 +3012,8 @@ const HomePage = ({
               flex-shrink: 1 !important;
               min-width: 0 !important;
             }
-            .live-count-premium-wrapper .live-dynamic-banner__spotlight,
-            .live-count-premium-wrapper .live-dynamic-banner__spotlight--solo {
+            .app-container:not(.home-gate-active) .live-count-premium-wrapper .live-dynamic-banner__spotlight,
+            .app-container:not(.home-gate-active) .live-count-premium-wrapper .live-dynamic-banner__spotlight--solo {
               color: #ffffff !important;
               font-weight: 900 !important;
               font-size: clamp(12px, 3.6vw, 15px) !important;
@@ -2977,6 +3038,12 @@ const HomePage = ({
               .live-count-premium-wrapper .live-dynamic-banner__track:has(.live-dynamic-banner__spotlight) .lc-default--hot {
                 display: none !important;
               }
+              .home-gate-active .live-count-premium-wrapper--gate .live-dynamic-banner__inner {
+                padding: 0 12px !important;
+              }
+              .home-gate-active .live-count-premium-wrapper--gate .live-dynamic-banner__spotlight--solo {
+                font-size: 11px !important;
+              }
             }
             .live-count-premium-wrapper .live-dynamic-banner__region strong {
               color: #ffffff !important;
@@ -2985,10 +3052,6 @@ const HomePage = ({
             .live-count-premium-wrapper .live-dynamic-banner__sep {
               color: rgba(255, 255, 255, 0.55) !important;
               font-weight: 800 !important;
-            }
-            .live-count-premium-wrapper--gate .lc-tag {
-              background: transparent !important;
-              color: #ffffff !important;
             }
             .home-party-register-outside {
               flex-shrink: 0;
