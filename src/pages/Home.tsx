@@ -19,6 +19,7 @@ import VenueDetailModal from '../components/VenueDetailModal'
 import BarRegisterFormModal from '../components/BarRegisterFormModal'
 import HomeHeroTagline from '../components/HomeHeroTagline'
 import { navigate as historyNavigate, parseAppState, pushOverlay } from '../lib/appHistory'
+import { formatPartyFeeDisplay } from '../lib/partyFeeDisplay'
 
 function navigate(path, options = {}) {
   const { replace: _replace, ...rest } = options;
@@ -778,7 +779,7 @@ const PartyCard = ({ item, onSelect }) => {
 
   const cleanTitle = item.title?.split(' ㅣ ')[0] || '';
   const displayTime = item.time?.split('-')[0].trim() || '21:00';
-  const displayFee = formatPrice(item.fee);
+  const displayFee = formatPartyFeeDisplay(item.fee, { fallback: '문의' });
 
   const { i18n } = useTranslation();
   const isEn = i18n.language.startsWith('en');
@@ -1223,19 +1224,6 @@ const HomePage = ({
       .replace(/^[-–—·•\s]+|[-–—·•\s]+$/g, '')
       .replace(/\s+/g, ' ')
       .trim();
-  };
-
-  // [가격 정제 로직]
-  const formatPrice = (priceStr: string) => {
-    if (!priceStr) return '2만';
-    if (priceStr.includes('무료') || priceStr === '0') return '무료';
-    const num = parseInt(String(priceStr).replace(/[^0-9]/g, ''));
-    if (isNaN(num)) return String(priceStr).replace('원', '');
-    if (num === 0) return '무료';
-    if (num < 1000) return `${num}`; // 1000원 미만은 숫자만 (거의 없음)
-    const manValue = num / 10000;
-    if (num % 10000 === 0) return `${manValue}만`;
-    return `${manValue.toFixed(1).replace('.0', '')}만`;
   };
 
   const posterSharePayload = (item: any) => buildPartyShareCard(item);
@@ -3591,7 +3579,7 @@ const HomePage = ({
                                             </span>
                                             <span style={{ opacity: 0.4, margin: '0 2px' }}>·</span>
                                             <span style={{ color: '#E53935', fontWeight: '900', flexShrink: 0 }}>
-                                              {formatPrice(item.fee)}
+                                              {formatPartyFeeDisplay(item.fee)}
                                             </span>
                                           </div>
 

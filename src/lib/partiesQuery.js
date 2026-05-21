@@ -1,4 +1,5 @@
 import { normDate, isApprovedParty } from './dateNorm';
+import { formatPartyFeeDisplay } from './partyFeeDisplay';
 import {
   DISTANCE_SORT_FALLBACK,
   formatDistanceLabel,
@@ -272,11 +273,7 @@ export function partyMatchesUserRegion(party, userRegion) {
 }
 
 export function formatPartyFeeLabel(fee) {
-  if (fee == null || fee === '') return '문의';
-  const raw = String(fee).trim();
-  const digits = raw.replace(/[^\d]/g, '');
-  if (digits) return `${Number(digits).toLocaleString('ko-KR')}원`;
-  return raw.includes('원') ? raw : `${raw}원`;
+  return formatPartyFeeDisplay(fee, { fallback: '문의' });
 }
 
 /** 컨시어지 말풍선용 (마크다운 **볼드** — ChatBot에서 파싱) */

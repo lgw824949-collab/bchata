@@ -7,6 +7,7 @@ import { supabase } from '../lib/supabase';
 import PartyWishlistHeart from './PartyWishlistHeart';
 import { usePartyWishlist } from '../hooks/usePartyWishlist';
 import { PartyMusicRatioLine } from '../pages/Social';
+import { formatPartyFeeDisplay } from '../lib/partyFeeDisplay';
 
 const GENRE_MAP = {
   '바차타': { key: 'b_ratio', label: 'B', label_en: 'Bachata', color: '#FF1744' },
@@ -53,18 +54,6 @@ const translateDynamicText = (text, isEn) => {
   return translated;
 };
 
-const formatPrice = (priceStr) => {
-  if (!priceStr) return '2만';
-  if (priceStr.includes('무료') || priceStr === '0') return '무료';
-  const num = parseInt(String(priceStr).replace(/[^0-9]/g, ''));
-  if (isNaN(num)) return String(priceStr).replace('원', '');
-  if (num === 0) return '무료';
-  if (num < 1000) return `${num}`;
-  const manValue = num / 10000;
-  if (num % 10000 === 0) return `${manValue}만`;
-  return `${manValue.toFixed(1).replace('.0', '')}만`;
-};
-
 const PartyCard = ({ item, onSelect, wishlistParties: wishlistProp, onToggleWishlist: toggleProp }) => {
   const { i18n } = useTranslation();
   const isEn = i18n.language.startsWith('en');
@@ -96,7 +85,7 @@ const PartyCard = ({ item, onSelect, wishlistParties: wishlistProp, onToggleWish
 
   const cleanTitleStr = item.title?.split(' ㅣ ')[0] || '';
   const displayTime = item.time?.split('-')[0].trim() || '21:00';
-  const displayFee = formatPrice(item.fee);
+  const displayFee = formatPartyFeeDisplay(item.fee, { fallback: '문의' });
   const todayStr = (() => {
     const d = new Date();
     return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;

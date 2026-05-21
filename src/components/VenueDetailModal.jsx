@@ -9,6 +9,7 @@ import { supabase, logActivity } from '../lib/supabase';
 import PartyLiveHybridBadge from './PartyLiveHybridBadge';
 import { useBarStatsRealtime } from '../hooks/useBarStatsRealtime';
 import { formatPartyMusicRatio } from '../pages/Social';
+import { formatPartyFeeDisplay } from '../lib/partyFeeDisplay';
 
 export { partyMatchesVenue } from '../lib/partyVenueMatch';
 
@@ -50,17 +51,6 @@ const getKSTTodayStr = () => {
   const kst = now.toLocaleString('en-US', { timeZone: 'Asia/Seoul', year: 'numeric', month: '2-digit', day: '2-digit' });
   const [m, d, y] = kst.split('/');
   return `${y}-${m.padStart(2, '0')}-${d.padStart(2, '0')}`;
-};
-
-const formatPrice = (priceStr) => {
-  if (!priceStr) return '—';
-  if (String(priceStr).includes('무료') || priceStr === '0') return '무료';
-  const num = parseInt(String(priceStr).replace(/[^0-9]/g, ''), 10);
-  if (Number.isNaN(num)) return String(priceStr).replace('원', '');
-  if (num === 0) return '무료';
-  const manValue = num / 10000;
-  if (num % 10000 === 0) return `${manValue}만`;
-  return `${manValue.toFixed(1).replace('.0', '')}만`;
 };
 
 const cleanTitle = (title) =>
@@ -143,7 +133,7 @@ const FeaturedPartyCard = ({
         .filter(Boolean)
         .join(' · ') || '—'
     : party.time?.split('-')[0]?.trim() || '—';
-  const fee = formatPrice(party.fee);
+  const fee = formatPartyFeeDisplay(party.fee, { fallback: '—' });
   const feeLabel = isLesson ? '수강' : '입장';
   const tagLabel = isLesson
     ? [party.level, party.genre || getGenreLabel(party)].filter(Boolean).join(' · ') || '수업'
