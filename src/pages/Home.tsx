@@ -2248,6 +2248,76 @@ const HomePage = ({
     </>
   );
 
+  const homeLiveBannerFallback = useMemo(() => {
+    const todayRows = (parties || []).filter(
+      (p) => isApprovedParty(p) && normDate(p.date) === calendarTodayStr,
+    );
+    const withPoster = todayRows.filter((p) => String(p.poster_url || p.imageUrl || '').trim());
+    const pick = withPoster[0] || todayRows[0] || null;
+    const cleanTitle = (raw) => String(raw || '').replace(/^\[[^\]]*\]\s*/, '').trim();
+    const title = pick
+      ? cleanTitle(isEn && pick.title_en ? pick.title_en : pick.title)
+      : '';
+    const mainLine = title
+      ? (isEn ? `🔥 #1 tonight! ${title}` : `🔥 오늘 1위! ${title}`)
+      : (isEn ? 'Discover parties tonight' : '오늘 밤 파티를 찾아보세요');
+    return { pick, total: todayRows.length, mainLine };
+  }, [parties, calendarTodayStr, isEn]);
+
+  const renderHomeLiveBannerFallback = () => {
+    const { pick, total, mainLine } = homeLiveBannerFallback;
+    const handleClick = () => {
+      if (pick) {
+        openPartyWithAfterParty(pick);
+        return;
+      }
+      navigate('/livepick');
+    };
+    return (
+      <div className="home-live-banner-fallback">
+        <div
+          className={`live-dynamic-banner${isHomeGate ? ' live-dynamic-banner--gate' : ''}`}
+          role="button"
+          tabIndex={0}
+          onClick={handleClick}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter' || e.key === ' ') {
+              e.preventDefault();
+              handleClick();
+            }
+          }}
+          aria-label={mainLine}
+        >
+          <div className="live-dynamic-banner__inner">
+            <span className="lc-tag">LIVE</span>
+            <span className="lc-dot" />
+            {total > 0 ? (
+              <div className="live-dynamic-banner__track">
+                <span className="lc-default lc-default--hot">
+                  {isEn ? `Nationwide ${total} parties today` : `전국 ${total}개 파티`}
+                </span>
+                <span className="live-dynamic-banner__sep live-dynamic-banner__sep--before-spotlight">|</span>
+                <span
+                  className="live-dynamic-banner__spotlight live-banner-text-clip"
+                  title={mainLine}
+                >
+                  {mainLine}
+                </span>
+              </div>
+            ) : (
+              <span
+                className="live-dynamic-banner__spotlight live-dynamic-banner__spotlight--solo live-banner-text-clip"
+                title={mainLine}
+              >
+                {mainLine}
+              </span>
+            )}
+          </div>
+        </div>
+      </div>
+    );
+  };
+
   const renderHomeQuickLiveHub = () => (
     <section
       className="home-depth-panel home-quick-live-hub home-luxury-section-box"
@@ -2287,6 +2357,7 @@ const HomePage = ({
         style={{
           flex: 1,
           minWidth: 0,
+          minHeight: 44,
           background: homeUi.liveShell,
           borderRadius: '14px',
           overflow: 'hidden',
@@ -2295,6 +2366,17 @@ const HomePage = ({
         }}
       >
         <style>{`
+            .home-live-banner-slot {
+              position: relative;
+              width: 100%;
+              min-height: 44px;
+            }
+            .home-live-banner-slot:has(.live-dynamic-banner) .home-live-banner-fallback {
+              display: none !important;
+            }
+            .home-live-banner-fallback {
+              width: 100%;
+            }
             /* 햄버거 버튼 */
             button[style*="z-index: 1005"] {
               width: 36px !important;
@@ -2436,12 +2518,15 @@ const HomePage = ({
             }
             .home-party-register-outside__line { display: block; }
           `}</style>
-        <LiveCount
-          parties={parties}
-          isGate={isHomeGate}
-          onPartyClick={openPartyWithAfterParty}
-          onPromoClick={() => navigate('/livepick')}
-        />
+        <div className="home-live-banner-slot">
+          <LiveCount
+            parties={parties}
+            isGate={isHomeGate}
+            onPartyClick={openPartyWithAfterParty}
+            onPromoClick={() => navigate('/livepick')}
+          />
+          {renderHomeLiveBannerFallback()}
+        </div>
       </motion.div>
       {activeTab === 'social' && (
         <button
