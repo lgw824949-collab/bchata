@@ -1113,19 +1113,16 @@ export default function VenueDetailModal({
               background: '#fff',
             }}
           >
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
-              <span className="vd-block-title">매장 공통 안내</span>
-              <span style={{ fontSize: 10, fontWeight: 600, color: VD.faint }}>
-                위 카드는 그날 행사만 · {venueDescription.length}/{VENUE_DESC_MAX}
-              </span>
-            </div>
-            <p className="vd-venue-desc-hint">주차, 영업시간, 드레스코드 등 매장 전체에 공통되는 내용만 적어 주세요.</p>
+            <span className="vd-block-title" style={{ display: 'block', marginBottom: 8 }}>
+              상세 설명
+            </span>
             <textarea
               value={venueDescription}
               onChange={(e) => setVenueDescription(e.target.value.slice(0, VENUE_DESC_MAX))}
               rows={3}
               maxLength={VENUE_DESC_MAX}
-              placeholder="예: B2 주차 2시간 무료 · 영업 19:00–03:00"
+              placeholder=""
+              aria-label="상세 설명"
               style={{
                 width: '100%',
                 padding: 12,
