@@ -2602,6 +2602,78 @@ body.bottom-nav-social-light nav.bottom-nav {
   white-space: nowrap;
 }
 
+.venue-detail-modal .vd-cal-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.venue-detail-modal .vd-cal-toolbar__left {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+}
+
+.venue-detail-modal .vd-cal-toolbar__actions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 0;
+}
+
+.venue-detail-modal .vd-cal-nav-btn {
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  border: 1px solid #e2e8f0;
+  background: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+}
+
+.venue-detail-modal .vd-cal-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 6px 10px;
+  border-radius: 8px;
+  border: 1px solid rgba(216, 27, 96, 0.2);
+  background: #fff;
+  color: #be185d;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.venue-detail-modal .vd-cal-toggle__icon {
+  transition: transform 0.2s ease;
+}
+
+.venue-detail-modal .vd-cal-toggle__icon[data-expanded='true'] {
+  transform: rotate(180deg);
+}
+
+.venue-detail-modal .vd-cal-collapsed-date {
+  font-size: 13px;
+  font-weight: 700;
+  color: #334155;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.venue-detail-modal .vd-cal-collapsed-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #d4436e;
+  flex-shrink: 0;
+}
+
 .venue-detail-modal .vd-cal-month {
   font-size: 15px;
   font-weight: 700;

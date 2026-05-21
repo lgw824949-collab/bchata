@@ -1,7 +1,7 @@
 ﻿import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Z } from '../constants/zLayers';
-import { X, ChevronLeft, ChevronRight, Clock, MessageCircle, Globe, Loader2 } from 'lucide-react';
+import { X, ChevronLeft, ChevronRight, ChevronDown, Clock, MessageCircle, Globe, Loader2 } from 'lucide-react';
 import { findBarByName } from '../lib/BarLib';
 import { getDevTestLessons } from '../data/devTestLessons';
 import { lessonMatchesVenue, partyMatchesVenue } from '../lib/partyVenueMatch';
@@ -552,6 +552,7 @@ export default function VenueDetailModal({
     return { year: y, month: m };
   });
   const [selectedDate, setSelectedDate] = useState(todayStr);
+  const [calendarExpanded, setCalendarExpanded] = useState(true);
   const [navHidden, setNavHidden] = useState(false);
   const scrollRef = useRef(null);
   const lastScrollTopRef = useRef(0);
@@ -978,53 +979,94 @@ export default function VenueDetailModal({
           </button>
         </div>
 
-        {/* 상단: 달력 */}
-        <div style={{ flexShrink: 0, padding: '12px 16px 10px', borderBottom: `1px solid ${VD.border}`, background: VD.bgCalendar }}>
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '10px' }}>
-            <span className="vd-cal-month">{calendarMonth.month}월</span>
-            <div style={{ display: 'flex', gap: '6px' }}>
+        {/* 상단: 달력 (펼치기/접기) */}
+        <div className="vd-cal-wrap" style={{ flexShrink: 0, padding: '12px 16px 10px', borderBottom: `1px solid ${VD.border}`, background: VD.bgCalendar }}>
+          <div className="vd-cal-toolbar">
+            <div className="vd-cal-toolbar__left">
+              <span className="vd-cal-month">{calendarMonth.month}월</span>
+              {!calendarExpanded ? (
+                <span className="vd-cal-collapsed-date">
+                  {formatLessonShortDate(selectedDate)}
+                  {datesWithEvents.has(selectedDate) ? <span className="vd-cal-collapsed-dot" aria-hidden /> : null}
+                </span>
+              ) : null}
+            </div>
+            <div className="vd-cal-toolbar__actions">
+              {calendarExpanded ? (
+                <>
+                  <button
+                    type="button"
+                    disabled={!canGoPrevCalendarMonth}
+                    onClick={() => {
+                      if (!canGoPrevCalendarMonth) return;
+                      setCalendarMonth((m) => {
+                        const nm = m.month > 1 ? m.month - 1 : 12;
+                        const ny = m.month > 1 ? m.year : m.year - 1;
+                        return { year: ny, month: nm };
+                      });
+                    }}
+                    className="vd-cal-nav-btn"
+                    style={{ opacity: canGoPrevCalendarMonth ? 1 : 0.35, cursor: canGoPrevCalendarMonth ? 'pointer' : 'not-allowed' }}
+                    aria-label="이전 달"
+                  >
+                    <ChevronLeft size={16} />
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setCalendarMonth((m) => {
+                      const nm = m.month < 12 ? m.month + 1 : 1;
+                      const ny = m.month < 12 ? m.year : m.year + 1;
+                      return { year: ny, month: nm };
+                    })}
+                    className="vd-cal-nav-btn"
+                    aria-label="다음 달"
+                  >
+                    <ChevronRight size={16} />
+                  </button>
+                </>
+              ) : null}
               <button
                 type="button"
-                disabled={!canGoPrevCalendarMonth}
-                onClick={() => {
-                  if (!canGoPrevCalendarMonth) return;
-                  setCalendarMonth((m) => {
-                    const nm = m.month > 1 ? m.month - 1 : 12;
-                    const ny = m.month > 1 ? m.year : m.year - 1;
-                    return { year: ny, month: nm };
-                  });
-                }}
-                style={{
-                  width: 32,
-                  height: 32,
-                  borderRadius: 8,
-                  border: '1px solid #E2E8F0',
-                  background: '#fff',
-                  opacity: canGoPrevCalendarMonth ? 1 : 0.35,
-                  cursor: canGoPrevCalendarMonth ? 'pointer' : 'not-allowed',
-                }}
+                className="vd-cal-toggle"
+                onClick={() => setCalendarExpanded((v) => !v)}
+                aria-expanded={calendarExpanded}
+                aria-label={calendarExpanded ? '달력 접기' : '달력 펼치기'}
               >
-                <ChevronLeft size={16} />
+                <span>{calendarExpanded ? '접기' : '펼치기'}</span>
+                <ChevronDown size={16} className="vd-cal-toggle__icon" data-expanded={calendarExpanded ? 'true' : undefined} />
               </button>
-              <button type="button" onClick={() => setCalendarMonth((m) => { const nm = m.month < 12 ? m.month + 1 : 1; const ny = m.month < 12 ? m.year : m.year + 1; return { year: ny, month: nm }; })} style={{ width: 32, height: 32, borderRadius: 8, border: '1px solid #E2E8F0', background: '#fff' }}><ChevronRight size={16} /></button>
             </div>
           </div>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: '4px', textAlign: 'center' }}>
-            {DAYS_KOR.map((d) => (
-              <div key={d} className="vd-cal-dow" data-sunday={d === '일' ? 'true' : undefined}>{d}</div>
-            ))}
-            {calendarDays.map((day) => {
-              if (day.empty) return <div key={day.key} />;
-              const isSelected = selectedDate === day.fullDate;
-              const hasEvent = datesWithEvents.has(day.fullDate);
-              return (
-                <button key={day.key} type="button" onClick={() => setSelectedDate(day.fullDate)} style={{ border: 'none', background: isSelected ? VD.brand : hasEvent ? 'rgba(212, 67, 110, 0.08)' : 'transparent', borderRadius: 10, padding: '6px 0', cursor: 'pointer' }}>
-                  <div style={{ fontSize: '13px', fontWeight: 800, color: isSelected ? '#fff' : hasEvent ? VD.brand : VD.title }}>{day.date}</div>
-                  <div style={{ height: 4, display: 'flex', justifyContent: 'center', alignItems: 'center' }}>{hasEvent && <span className="vd-cal-dot" data-selected={isSelected ? 'true' : undefined} />}</div>
-                </button>
-              );
-            })}
-          </div>
+          <AnimatePresence initial={false}>
+            {calendarExpanded ? (
+              <motion.div
+                key="vd-cal-grid"
+                className="vd-cal-grid-wrap"
+                initial={{ height: 0, opacity: 0 }}
+                animate={{ height: 'auto', opacity: 1 }}
+                exit={{ height: 0, opacity: 0 }}
+                transition={{ duration: 0.22, ease: 'easeOut' }}
+                style={{ overflow: 'hidden' }}
+              >
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: '4px', textAlign: 'center', paddingTop: 10 }}>
+                  {DAYS_KOR.map((d) => (
+                    <div key={d} className="vd-cal-dow" data-sunday={d === '일' ? 'true' : undefined}>{d}</div>
+                  ))}
+                  {calendarDays.map((day) => {
+                    if (day.empty) return <div key={day.key} />;
+                    const isSelected = selectedDate === day.fullDate;
+                    const hasEvent = datesWithEvents.has(day.fullDate);
+                    return (
+                      <button key={day.key} type="button" onClick={() => setSelectedDate(day.fullDate)} style={{ border: 'none', background: isSelected ? VD.brand : hasEvent ? 'rgba(212, 67, 110, 0.08)' : 'transparent', borderRadius: 10, padding: '6px 0', cursor: 'pointer' }}>
+                        <div style={{ fontSize: '13px', fontWeight: 800, color: isSelected ? '#fff' : hasEvent ? VD.brand : VD.title }}>{day.date}</div>
+                        <div style={{ height: 4, display: 'flex', justifyContent: 'center', alignItems: 'center' }}>{hasEvent && <span className="vd-cal-dot" data-selected={isSelected ? 'true' : undefined} />}</div>
+                      </button>
+                    );
+                  })}
+                </div>
+              </motion.div>
+            ) : null}
+          </AnimatePresence>
         </div>
 
         {/* 본문: 카드 → 다른 행사 → SNS (한 스크롤) */}
@@ -1043,7 +1085,7 @@ export default function VenueDetailModal({
             background: VD.bgPage,
           }}
         >
-          {vdSectionLabel(formatLessonShortDate(selectedDate), isSocialTab ? '이 날의 행사' : '이 날의 수업')}
+          {vdSectionLabel(formatLessonShortDate(selectedDate), isSocialTab ? '이 날의 파티' : '이 날의 수업')}
           {featuredItem ? (
             <FeaturedPartyCard
               party={featuredItem}
