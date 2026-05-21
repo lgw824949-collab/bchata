@@ -2331,7 +2331,7 @@ const HomePage = ({
     return { quickMenuPrimary: primary, quickMenuMore: more };
   }, [quickMenuItems]);
 
-  const renderQuickMenuItem = (item) => {
+  const renderQuickMenuItem = (item, iconOnly = false) => {
     const Icon = item.icon;
     const registerMod = item.registerKind === 'party'
       ? ' home-quick-menu-item--register-party'
@@ -2344,7 +2344,7 @@ const HomePage = ({
         type="button"
         whileTap={{ scale: 0.96 }}
         onClick={(e) => { triggerParticle(e, item.particles); item.action(); }}
-        className={`home-quick-menu-item${registerMod}`}
+        className={`home-quick-menu-item${registerMod}${iconOnly ? ' home-quick-menu-item--icon-only' : ''}`}
         aria-label={item.label}
       >
         {item.menuSvg ? (
@@ -2354,7 +2354,7 @@ const HomePage = ({
             {Icon ? <Icon size={QUICK_MENU_ICON_SIZE} strokeWidth={QUICK_MENU_STROKE} color="currentColor" aria-hidden /> : null}
           </QuickMenuIconCircle>
         )}
-        <span className="home-quick-menu-item-label">{item.label}</span>
+        {!iconOnly ? <span className="home-quick-menu-item-label">{item.label}</span> : null}
       </motion.button>
     );
   };
@@ -2429,8 +2429,23 @@ const HomePage = ({
     </ul>
   );
 
-  const renderHomeQuickMenuInner = () => (
-    <>
+  const renderHomeQuickMenuInner = () => {
+    if (isHomeGate) {
+      return (
+        <div className="home-quick-menu-grid-wrap home-quick-menu-grid-wrap--swipe">
+          <div
+            className="home-quick-menu-scroll home-quick-menu-scroll--gate-all"
+            role="list"
+            aria-label={isEn ? 'Quick actions' : '빠른 메뉴'}
+          >
+            {quickMenuItems.map((item) => renderQuickMenuItem(item, true))}
+          </div>
+        </div>
+      );
+    }
+
+    return (
+      <>
         {renderHomeSectionHeader(
           isEn ? 'Quick actions' : '빠른 메뉴',
           isEn ? 'Shortcuts' : '자주 쓰는 메뉴',
@@ -2477,8 +2492,9 @@ const HomePage = ({
             </AnimatePresence>
           )}
         </div>
-    </>
-  );
+      </>
+    );
+  };
 
   const homeLiveBannerSlides = useMemo(() => {
     const sourceRows = (liveBannerPartyRows?.length ? liveBannerPartyRows : parties) || [];
@@ -2759,9 +2775,15 @@ const HomePage = ({
     );
   };
 
-  const renderHomeQuickLiveHub = () => (
+  const renderHomeMainLiveSlot = () => (
+    <div className="home-main-live-slot" style={{ marginBottom: 12 }}>
+      {renderHomeLiveAdRow(true)}
+    </div>
+  );
+
+  const renderHomeMainQuickMenuSection = () => (
     <section
-      className="home-depth-panel home-quick-live-hub home-luxury-section-box"
+      className="home-depth-panel home-quick-menu-standalone home-luxury-section-box"
       style={{
         ...homeDepthPanelStyle,
         ...homeLuxurySectionBoxStyle,
@@ -2769,14 +2791,11 @@ const HomePage = ({
         flexDirection: 'column',
         marginBottom: 0,
         borderRadius: 16,
-        padding: 16,
+        padding: '12px 12px 14px',
       }}
-      aria-label={isEn ? 'Quick menu and live banner' : '빠른 메뉴 및 LIVE'}
+      aria-label={isEn ? 'Quick menu' : '빠른 메뉴'}
     >
-      <div className="home-quick-live-hub__quick">
-        <div className="home-quick-menu-block">{renderHomeQuickMenuInner()}</div>
-      </div>
-      <div className="home-quick-live-hub__live">{renderHomeLiveAdRow(true)}</div>
+      <div className="home-quick-menu-block">{renderHomeQuickMenuInner()}</div>
     </section>
   );
   const renderHomeLiveAdRow = (inPanel = false) => (
@@ -3088,8 +3107,9 @@ const HomePage = ({
 
       {activeTab === null && (
         <motion.div className="home-main-stack" style={{ padding: '0 16px' }}>
+          {renderHomeMainLiveSlot()}
           {renderHomeRegionPosterBanner()}
-          {renderHomeQuickLiveHub()}
+          {renderHomeMainQuickMenuSection()}
 
           <motion.div className="home-section-break" aria-hidden>
             <hr className="home-section-break__line" />
@@ -3293,6 +3313,34 @@ const HomePage = ({
         }
         .quick-menu-scroll::-webkit-scrollbar {
           display: none;
+        }
+        .home-quick-menu-scroll--gate-all {
+          display: flex;
+          flex-wrap: nowrap;
+          gap: 12px;
+          overflow-x: auto;
+          overflow-y: hidden;
+          scroll-snap-type: x proximity;
+          -webkit-overflow-scrolling: touch;
+          scrollbar-width: none;
+          msOverflowStyle: none;
+          padding: 2px 4px 4px;
+        }
+        .home-quick-menu-scroll--gate-all > .home-quick-menu-item {
+          flex-shrink: 0;
+          width: 64px;
+          scroll-snap-align: start;
+        }
+        .home-quick-menu-scroll--gate-all::-webkit-scrollbar {
+          display: none;
+        }
+        .home-quick-menu-item--icon-only {
+          flex-direction: column;
+          align-items: center;
+          gap: 0;
+          padding: 0;
+          border: none;
+          background: none;
         }
         .home-gate-active .quick-menu-more-link {
           color: #ffffff;
