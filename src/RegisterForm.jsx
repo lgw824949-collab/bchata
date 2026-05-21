@@ -37,8 +37,7 @@ const RegisterForm = ({ onBack, onSuccess, isEdit = false, initialData = null })
     jRatio: initialData?.j_ratio ?? 0,
     kRatio: initialData?.k_ratio ?? 0,
     latitude: initialData?.latitude || null,
-    longitude: initialData?.longitude || null,
-    contributorId: ''
+    longitude: initialData?.longitude || null
   })
   const [loading, setLoading] = useState(false)
   const [submitted, setSubmitted] = useState(false)
@@ -68,7 +67,7 @@ const RegisterForm = ({ onBack, onSuccess, isEdit = false, initialData = null })
 
   const handleTitleChange = (e) => {
     const value = e.target.value;
-    if (value.length <= 16) {
+    if (value.length <= 32) {
       setFormData(prev => ({ ...prev, title: value }));
     }
   };
@@ -257,6 +256,28 @@ const RegisterForm = ({ onBack, onSuccess, isEdit = false, initialData = null })
 
     setLoading(true)
     try {
+      const resolveContributorId = () => {
+        const oneulbam = localStorage.getItem('oneulbam_session')
+        if (oneulbam && oneulbam.trim()) return oneulbam.trim()
+        const generic = localStorage.getItem('user_session')
+        if (generic && generic.trim()) return generic.trim()
+        try {
+          const vipRaw = localStorage.getItem('vip_instructor_session')
+          if (vipRaw) {
+            const vip = JSON.parse(vipRaw)
+            if (vip?.id) return String(vip.id).trim()
+          }
+        } catch {}
+        return ''
+      }
+
+      const contributorId = resolveContributorId()
+      if (!contributorId) {
+        alert('로그인 후 파티 등록이 가능합니다.')
+        setLoading(false)
+        return
+      }
+
       let finalPosterUrl = ''
       if (file) {
         const fileName = `${Math.random()}.jpg`
@@ -321,7 +342,7 @@ const RegisterForm = ({ onBack, onSuccess, isEdit = false, initialData = null })
         b_ratio: formData.bRatio,
         j_ratio: formData.jRatio,
         k_ratio: formData.kRatio,
-        contributor_id: formData.contributorId || null,
+        contributor_id: contributorId,
         status: 'approved'
       };
 
@@ -403,11 +424,11 @@ const RegisterForm = ({ onBack, onSuccess, isEdit = false, initialData = null })
             <textarea 
               value={formData.title} 
               onChange={handleTitleChange} 
-              placeholder="예: 강남 턴 바차타 정모 맛집!" 
-              maxLength={16}
+              placeholder="예: 라틴 바차타 맛집" 
+              maxLength={32}
               style={{ width: '100%', height: '120px', padding: '20px', border: '2px solid #F1F5F9', borderRadius: '20px', fontSize: '18px', fontWeight: 700, background: '#F8FAFC', outline: 'none', resize: 'none' }} 
             />
-            <p style={{ marginTop: '12px', fontSize: '13px', color: '#94A3B8' }}>* 지역과 제목을 알기 쉽게 적어주세요 (최대 16자)</p>
+            <p style={{ marginTop: '12px', fontSize: '13px', color: '#94A3B8' }}>* 지역과 제목을 알기 쉽게 적어주세요 (최대 32자)</p>
           </motion.div>
         );
       case 3:
@@ -523,21 +544,6 @@ const RegisterForm = ({ onBack, onSuccess, isEdit = false, initialData = null })
         return (
           <motion.div key="step5" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} style={{ padding: '24px' }}>
             <label style={{ display: 'block', fontSize: '20px', fontWeight: 900, color: '#1E293B', marginBottom: '24px' }}>📅 파티 일정 확인</label>
-            <div style={{ marginBottom: 16 }}>
-              <label style={{ fontSize: 13, fontWeight: 700, color: '#333', marginBottom: 6, display: 'block' }}>
-                나만의 등록자 ID
-              </label>
-              <input
-                type="text"
-                placeholder="영문+숫자로 나만의 ID 만들기 (예: kim_bachata)"
-                value={formData.contributorId}
-                onChange={e => setFormData(prev => ({ ...prev, contributorId: e.target.value.toLowerCase().replace(/[^a-z0-9_]/g, '') }))}
-                style={{ width: '100%', padding: '12px 14px', borderRadius: 12, border: '1px solid #E5E7EB', fontSize: 14, boxSizing: 'border-box', fontFamily: 'monospace' }}
-              />
-              <div style={{ fontSize: 11, color: '#999', marginTop: 4 }}>
-                이 ID로 나중에 내가 올린 파티를 확인할 수 있어요
-              </div>
-            </div>
             <div style={{ marginBottom: '24px' }}>
               <p style={{ fontSize: '14px', fontWeight: 800, color: '#64748B', marginBottom: '8px' }}>파티 날짜</p>
               <input type="date" value={formData.date} onChange={e => setFormData({...formData, date: e.target.value})} style={{ width: '100%', padding: '20px', border: '2px solid #F1F5F9', borderRadius: '16px', fontSize: '18px', fontWeight: 900, background: '#F8FAFC' }} />
