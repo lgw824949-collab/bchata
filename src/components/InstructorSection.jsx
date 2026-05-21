@@ -1,12 +1,10 @@
 import { Z } from '../constants/zLayers';
 import { DEFAULT_AVATAR_IMAGE, DEFAULT_CARD_IMAGE, imgFallbackHandler } from '../constants/imageAssets';
 import React, { useEffect, useState } from 'react'
-import { createPortal } from 'react-dom'
 import { motion, AnimatePresence } from 'framer-motion'
 import { supabase } from '../lib/supabase'
 import { ChevronLeft, Share2, Bell, Heart, User, MapPin, Globe, ShieldCheck, Zap, MessageCircle, Star, Info, Plus, Check, Search, Calendar, CreditCard, Users, Music } from 'lucide-react'
 import ClassRegisterModal from './ClassRegisterModal'
-import InstructorRegister from './InstructorRegister'
 
 const REGIONS = ['전국', '서울', '경기인천', '경상도', '전라도', '충청도', '강원제주']
 const GENRE_TABS = ['전체', '바차타', '살사', '쥬크', '키좀바']
@@ -103,7 +101,6 @@ const InstructorSection = ({ onOpenVipMaster, cachedInstructors = null }) => {
   const [classes, setClasses] = useState([])
   const [visibleCount, setVisibleCount] = useState(20)
   const [showMasterMenu, setShowMasterMenu] = useState(false)
-  const [showInstructorRegister, setShowInstructorRegister] = useState(false)
   const [classForm, setClassForm] = useState({
     instructor_id: '', title: '', schedule: '', location: '', fee: '', level: '', capacity: '', description: ''
   })
@@ -473,23 +470,6 @@ const InstructorSection = ({ onOpenVipMaster, cachedInstructors = null }) => {
           DANCE <span style={{ color: '#C9A84C' }}>MASTERS</span>
         </h2>
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-          <button
-            type="button"
-            onClick={() => setShowInstructorRegister((prev) => !prev)}
-            style={{
-              border: '1px solid #C9A84C',
-              color: '#C9A84C',
-              background: 'rgba(201,168,76,0.1)',
-              borderRadius: '12px',
-              padding: '8px 14px',
-              fontSize: '13px',
-              fontWeight: 700,
-              whiteSpace: 'nowrap',
-              cursor: 'pointer',
-            }}
-          >
-            강사 등록
-          </button>
           <button
             type="button"
             onClick={() => {
@@ -1097,21 +1077,6 @@ const InstructorSection = ({ onOpenVipMaster, cachedInstructors = null }) => {
           onClose={() => setShowMasterMenu(false)} 
           instructorId={selectedInstructor?.id || ''} 
         />
-      )}
-      {showInstructorRegister && typeof document !== 'undefined' && createPortal(
-        <div
-          style={{
-            position: 'fixed',
-            inset: 0,
-            zIndex: Z.modalBackdrop,
-            background: '#fff',
-            overflowY: 'auto',
-            WebkitOverflowScrolling: 'touch',
-          }}
-        >
-          <InstructorRegister onBack={() => setShowInstructorRegister(false)} />
-        </div>,
-        document.body
       )}
     </div>
   )
