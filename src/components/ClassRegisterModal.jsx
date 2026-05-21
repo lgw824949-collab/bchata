@@ -6,9 +6,16 @@ import { X, Calendar, Clock, MapPin, DollarSign, Users, Info, User, Sparkles, Pl
 
 const GENRE_LIST = ['바차타', '살사', '쥬크', '키좀바'];
 const LATIN_MIX = ['바차타', '살사'];
+const CLASS_TYPES = ['1:1', '그룹', '온라인'];
+const CITY_OPTIONS = ['서울', '경기', '인천', '부산', '대구', '광주', '대전', '울산', '제주', '기타'];
 
 const emptyForm = (instructorName = '') => ({
   instructorName,
+  bio: '',
+  career: '',
+  awards: '',
+  classType: '',
+  city: '',
   title: '',
   titleTouched: false,
   genres: [],
@@ -22,6 +29,24 @@ const emptyForm = (instructorName = '') => ({
   fee: '',
   capacity: '',
   description: '',
+});
+
+const findInstructorByName = (list, name) => {
+  const clean = String(name || '').trim().toLowerCase().replace(/\s+/g, '');
+  if (!clean) return null;
+  return (
+    list.find((i) => i.name.toLowerCase().replace(/\s+/g, '') === clean) ||
+    list.find((i) => clean.includes(i.name.toLowerCase().replace(/\s+/g, ''))) ||
+    null
+  );
+};
+
+const profileFieldsFromInstructor = (inst) => ({
+  bio: inst?.bio || '',
+  career: inst?.career || '',
+  awards: inst?.awards != null && inst.awards !== '' ? String(inst.awards) : '',
+  classType: inst?.class_type || '',
+  city: inst?.city || '',
 });
 
 const suggestTitle = (genres, level) => {
@@ -95,14 +120,20 @@ const ClassRegisterModal = ({ isOpen = true, onClose, instructorId = '' }) => {
       try {
         const { data } = await supabase
           .from('instructors')
-          .select('id, name, city')
+          .select('id, name, city, bio, career, awards, class_type, genre')
           .eq('status', 'active')
           .order('follower_count', { ascending: false });
         if (data?.length) {
           setInstructors(data);
           if (instructorId) {
             const target = data.find((i) => i.id === instructorId);
-            if (target) setForm((prev) => ({ ...prev, instructorName: target.name }));
+            if (target) {
+              setForm((prev) => ({
+                ...prev,
+                instructorName: target.name,
+                ...profileFieldsFromInstructor(target),
+              }));
+            }
           } else {
             setForm((prev) =>
               prev.instructorName ? prev : { ...prev, instructorName: data[0].name },
@@ -209,6 +240,14 @@ const ClassRegisterModal = ({ isOpen = true, onClose, instructorId = '' }) => {
         alert('레벨을 선택해주세요.');
         return;
       }
+      if (!form.bio.trim()) {
+        alert('강사 BIO(소개)를 입력해주세요. 강사 프로필에 표시됩니다.');
+        return;
+      }
+      if (!form.city.trim()) {
+        alert('활동 지역을 선택해주세요.');
+        return;
+      }
       setStep(2);
       return;
     }
@@ -250,6 +289,11 @@ const ClassRegisterModal = ({ isOpen = true, onClose, instructorId = '' }) => {
   const registerAnotherClass = () => {
     const keep = {
       instructorName: form.instructorName,
+      bio: form.bio,
+      career: form.career,
+      awards: form.awards,
+      classType: form.classType,
+      city: form.city,
       location: form.location,
       fee: form.fee,
       capacity: form.capacity,
@@ -273,11 +317,27 @@ const ClassRegisterModal = ({ isOpen = true, onClose, instructorId = '' }) => {
 
     setLoading(true);
     try {
-      const cleanTypedName = form.instructorName.trim().toLowerCase().replace(/\s+/g, '');
-      const matchedInst =
-        instructors.find((i) => i.name.toLowerCase().replace(/\s+/g, '') === cleanTypedName) ||
-        instructors.find((i) => cleanTypedName.includes(i.name.toLowerCase().replace(/\s+/g, '')));
+      const matchedInst = findInstructorByName(instructors, form.instructorName);
       const targetInstId = matchedInst?.id || instructorId || null;
+
+      if (!targetInstId) {
+        alert('등록된 강사명과 일치하는 프로필이 없습니다. 강사명을 확인해주세요.');
+        setLoading(false);
+        return;
+      }
+
+      const profilePatch = {
+        bio: form.bio.trim(),
+        career: form.career.trim() || null,
+        awards: form.awards.trim() || null,
+        class_type: form.classType || null,
+        city: form.city.trim() || null,
+      };
+      const { error: profileError } = await supabase
+        .from('instructors')
+        .update(profilePatch)
+        .eq('id', targetInstId);
+      if (profileError) throw profileError;
 
       let posterUrl = null;
       if (posterFile) {
@@ -498,10 +558,109 @@ const ClassRegisterModal = ({ isOpen = true, onClose, instructorId = '' }) => {
                   <input
                     type="text"
                     value={form.instructorName}
-                    onChange={(e) => setForm({ ...form, instructorName: e.target.value })}
+                    onChange={(e) => {
+                      const instructorName = e.target.value;
+                      const matched = findInstructorByName(instructors, instructorName);
+                      setForm((prev) => ({
+                        ...prev,
+                        instructorName,
+                        ...(matched ? profileFieldsFromInstructor(matched) : {}),
+                      }));
+                    }}
                     placeholder="예: 남궁건 & 클레어"
                     style={inputStyle}
                   />
+                </div>
+
+                <div
+                  style={{
+                    padding: '14px',
+                    borderRadius: '14px',
+                    background: 'rgba(201,168,76,0.06)',
+                    border: '1px solid rgba(201,168,76,0.22)',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    gap: '12px',
+                  }}
+                >
+                  <div>
+                    <div style={{ fontSize: '13px', fontWeight: 900, color: '#C9A84C', marginBottom: '4px' }}>
+                      강사 BIO (프로필에 표시) *
+                    </div>
+                    <p style={{ margin: 0, fontSize: '11px', color: '#8E8E93', lineHeight: 1.45 }}>
+                      Dance Masters 프로필 · BIO 탭에 노출됩니다. 수업 설명과 별도입니다.
+                    </p>
+                  </div>
+                  <div>
+                    <label style={{ display: 'block', fontSize: '12px', fontWeight: 700, color: '#A1A1AA', marginBottom: '6px' }}>
+                      활동 지역 *
+                    </label>
+                    <select
+                      value={form.city}
+                      onChange={(e) => setForm({ ...form, city: e.target.value })}
+                      style={{ ...inputStyle, padding: '12px' }}
+                    >
+                      <option value="">지역 선택</option>
+                      {CITY_OPTIONS.map((c) => (
+                        <option key={c} value={c}>{c}</option>
+                      ))}
+                    </select>
+                  </div>
+                  <div>
+                    <label style={{ display: 'block', fontSize: '12px', fontWeight: 700, color: '#A1A1AA', marginBottom: '6px' }}>
+                      한 줄 소개 (BIO) *
+                    </label>
+                    <textarea
+                      value={form.bio}
+                      onChange={(e) => setForm({ ...form, bio: e.target.value })}
+                      placeholder="예: 바차타·살사 전문, 국내외 대회 수상, 초급부터 센슈얼까지"
+                      rows={3}
+                      style={{ ...inputStyle, resize: 'none', minHeight: '72px' }}
+                    />
+                  </div>
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
+                    <div>
+                      <label style={{ display: 'block', fontSize: '12px', fontWeight: 700, color: '#A1A1AA', marginBottom: '6px' }}>
+                        경력
+                      </label>
+                      <input
+                        type="text"
+                        value={form.career}
+                        onChange={(e) => setForm({ ...form, career: e.target.value })}
+                        placeholder="예: 10년"
+                        style={inputStyle}
+                      />
+                    </div>
+                    <div>
+                      <label style={{ display: 'block', fontSize: '12px', fontWeight: 700, color: '#A1A1AA', marginBottom: '6px' }}>
+                        수상
+                      </label>
+                      <input
+                        type="text"
+                        value={form.awards}
+                        onChange={(e) => setForm({ ...form, awards: e.target.value })}
+                        placeholder="예: 3회"
+                        style={inputStyle}
+                      />
+                    </div>
+                  </div>
+                  <div>
+                    <label style={{ display: 'block', fontSize: '12px', fontWeight: 700, color: '#A1A1AA', marginBottom: '6px' }}>
+                      수업방식
+                    </label>
+                    <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
+                      {CLASS_TYPES.map((t) => (
+                        <button
+                          key={t}
+                          type="button"
+                          onClick={() => setForm({ ...form, classType: form.classType === t ? '' : t })}
+                          style={chipStyle(form.classType === t)}
+                        >
+                          {t}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
                 </div>
 
                 <div>

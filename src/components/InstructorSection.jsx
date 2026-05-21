@@ -848,7 +848,10 @@ const InstructorSection = ({ onOpenVipMaster, cachedInstructors = null }) => {
                         </div>
 
                         <p style={{ fontSize: '14px', lineHeight: '1.8', color: 'var(--color-text-sub)', whiteSpace: 'pre-wrap', margin: '0 0 16px 0' }}>
-                          {selectedInstructor.bio || `Passionate professional professional with years of experience. Focused on technique, expression, and artistry. Based in ${selectedInstructor.city}.`}
+                          {selectedInstructor.bio?.trim()
+                            || (selectedInstructor.city
+                              ? `${selectedInstructor.name} 강사 · ${selectedInstructor.city} 활동. 수업 등록 시 BIO를 입력하면 이곳에 표시됩니다.`
+                              : '강사 소개(BIO)가 아직 등록되지 않았습니다. 수업 등록 ①단계에서 BIO를 입력해 주세요.')}
                         </p>
 
                         {/* BIO legacy: Specialties / 활동지역 / 경력 / 수업방식 / 수상경력 sections */}
