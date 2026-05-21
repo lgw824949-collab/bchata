@@ -128,7 +128,7 @@ const HOME_FEATURED_THUMB_SIZE_WIDE = Math.round(108 * HOME_FEATURED_POSTER_SCAL
 const SOCIAL_BAR_REGION_ALL = '전체';
 
 /** 메인 홈 — 오늘 지역 대표 포스터 슬라이드 (빠른 메뉴 위) */
-const HOME_POSTER_BANNER_MS = 2000;
+const HOME_POSTER_BANNER_MS = 4000;
 
 /** LIVE 배너 2차 슬라이드 — 포스터 등록 BAR */
 const LIVE_BANNER_SLIDE_MS = 5000;
@@ -2622,20 +2622,25 @@ const HomePage = ({
     const title = formatPartyTitleDisplay(party?.title) || regionLabel;
 
     return (
-      <div className="home-region-poster-banner" style={{ marginBottom: 14 }}>
+      <motion.section
+        className="home-region-poster-banner-standalone"
+        style={{ width: '100%', marginBottom: 12 }}
+        aria-label={isEn ? "Today's regional party posters" : '오늘 지역 대표 포스터'}
+      >
         <style>{`
-          .home-region-poster-banner {
+          .home-region-poster-banner-standalone {
             width: 100%;
           }
           .home-region-poster-banner__frame {
             position: relative;
             width: 100%;
-            border-radius: 12px;
+            border-radius: 14px;
             overflow: hidden;
-            aspect-ratio: 2 / 1;
-            max-height: 220px;
+            aspect-ratio: 3 / 4;
+            max-height: min(72vw, 360px);
             background: #111;
             border: 1px solid ${isHomeGate ? 'rgba(255,255,255,0.12)' : 'rgba(0,0,0,0.08)'};
+            box-shadow: ${isHomeGate ? '0 8px 28px rgba(0,0,0,0.35)' : '0 6px 20px rgba(0,0,0,0.08)'};
             cursor: pointer;
           }
           .home-region-poster-banner__img {
@@ -2745,7 +2750,7 @@ const HomePage = ({
             ))}
           </div>
         )}
-      </div>
+      </motion.section>
     );
   };
 
@@ -2763,7 +2768,6 @@ const HomePage = ({
       }}
       aria-label={isEn ? 'Quick menu and live banner' : '빠른 메뉴 및 LIVE'}
     >
-      {renderHomeRegionPosterBanner()}
       <div className="home-quick-live-hub__quick">
         <div className="home-quick-menu-block">{renderHomeQuickMenuInner()}</div>
       </div>
@@ -3079,6 +3083,7 @@ const HomePage = ({
 
       {activeTab === null && (
         <motion.div className="home-main-stack" style={{ padding: '0 16px' }}>
+          {renderHomeRegionPosterBanner()}
           {renderHomeQuickLiveHub()}
 
           <motion.div className="home-section-break" aria-hidden>
