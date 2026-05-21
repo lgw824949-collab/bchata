@@ -160,7 +160,10 @@ const InstructorSection = ({ onOpenVipMaster, cachedInstructors = null }) => {
       .select('*')
       .eq('status', 'active')
       .order('follower_count', { ascending: false })
-    if (data) setInstructors(data)
+    if (data) {
+      setInstructors(data)
+      setSelectedInstructor((prev) => (prev ? data.find((i) => i.id === prev.id) || prev : null))
+    }
     setLoading(false)
 
     const session = getSession()
@@ -213,6 +216,7 @@ const InstructorSection = ({ onOpenVipMaster, cachedInstructors = null }) => {
         setSelectedGenre(targetGenre);
         localStorage.removeItem('instructor_target_genre');
       }
+      fetchInstructors();
     };
 
     const handleFocusSearch = () => {
