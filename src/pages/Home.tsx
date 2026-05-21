@@ -134,21 +134,24 @@ const formatBarViewCountLine = (viewCount) => `view ${Number(viewCount) || 0}명
 /** GPS 기준 가장 가까운 지역 pill (경기 → 경인) */
 const SOCIAL_BAR_GEO_REGIONS = [...HOME_REGIONS_ORDER];
 
-const SOCIAL_BAR_REGION_BY_COORD = [
-  { name: '서울', minLat: 37.41, maxLat: 37.72, minLng: 126.76, maxLng: 127.20 },
-  { name: '경인', minLat: 37.20, maxLat: 37.75, minLng: 126.38, maxLng: 127.45 },
-  { name: '경상도', minLat: 34.70, maxLat: 36.35, minLng: 127.70, maxLng: 129.55 },
-  { name: '전라도', minLat: 34.15, maxLat: 36.10, minLng: 125.90, maxLng: 127.45 },
-  { name: '충청도', minLat: 35.70, maxLat: 37.35, minLng: 126.70, maxLng: 128.20 },
+/** GPS 좌표 → 지역 (좁은 서울 먼저, 넓은 경인=수도권·경기, 이후 거리) */
+const SOCIAL_BAR_REGION_BOXES = [
+  { name: '서울', minLat: 37.41, maxLat: 37.70, minLng: 126.76, maxLng: 127.18 },
+  { name: '경인', minLat: 37.02, maxLat: 37.78, minLng: 126.28, maxLng: 127.58 },
+  { name: '경상도', minLat: 34.65, maxLat: 36.55, minLng: 127.55, maxLng: 129.65 },
+  { name: '전라도', minLat: 34.10, maxLat: 36.25, minLng: 125.75, maxLng: 127.55 },
+  { name: '충청도', minLat: 35.60, maxLat: 37.45, minLng: 126.50, maxLng: 128.30 },
+  { name: '강원/제주', minLat: 33.05, maxLat: 38.45, minLng: 125.95, maxLng: 129.50 },
 ];
 
 const SOCIAL_BAR_REGION_CENTROIDS = {
   서울: { lat: 37.5665, lng: 126.978 },
-  경인: { lat: 37.29, lng: 127.0 },
-  경상도: { lat: 35.85, lng: 128.6 },
+  경인: { lat: 37.32, lng: 126.95 },
+  경상도: { lat: 35.18, lng: 129.08 },
   충청도: { lat: 36.35, lng: 127.77 },
   전라도: { lat: 35.82, lng: 127.15 },
-  '강원/제주': { lat: 37.88, lng: 127.73 },
+  '강원/제주': { lat: 37.75, lng: 128.9 },
+  제주: { lat: 33.49, lng: 126.53 },
 };
 
 const socialBarHaversineKm = (lat1, lon1, lat2, lon2) => {
@@ -192,6 +195,12 @@ const pickNearestSocialBarRegion = (lat, lng) => {
   const la = Number(lat);
   const ln = Number(lng);
   if (!Number.isFinite(la) || !Number.isFinite(ln)) return null;
+
+  for (const box of SOCIAL_BAR_REGION_BOXES) {
+    if (la >= box.minLat && la <= box.maxLat && ln >= box.minLng && ln <= box.maxLng) {
+      return box.name;
+    }
+  }
 
   let best = null;
   let minDist = Infinity;
@@ -1401,9 +1410,11 @@ const HomePage = ({
   const [shuffleOffset, setShuffleOffset] = useState(0);
   const [locations, setLocations] = useState([]);
   const [locationsLoading, setLocationsLoading] = useState(true);
-  const [selectedRegionTab, setSelectedRegionTab] = useState(SOCIAL_BAR_REGION_ALL);
+  const [selectedRegionTab, setSelectedRegionTab] = useState(null);
   /** 휴대폰 GPS로 잡은 내 지역 — Social BAR 탭·정렬 1순위 */
   const [geoRegionTab, setGeoRegionTab] = useState(null);
+  /** pending: GPS 대기 | ready: 지역 확정 | denied: 실패 → 전체 */
+  const [geoRegionStatus, setGeoRegionStatus] = useState('pending');
   const socialBarGeoDoneRef = useRef(false);
   const barViewTimerRef = useRef(null);
   const [selectedVenue, setSelectedVenue] = useState(null);
@@ -1586,12 +1597,12 @@ const HomePage = ({
     const withVenues = HOME_REGIONS_ORDER.filter((tab) =>
       locations.some((b) => b.region === tab),
     );
-    if (!geoRegionTab || !withVenues.includes(geoRegionTab)) {
-      return [SOCIAL_BAR_REGION_ALL, ...withVenues];
+    if (geoRegionStatus !== 'ready' || !geoRegionTab || !withVenues.includes(geoRegionTab)) {
+      return withVenues;
     }
     const rest = withVenues.filter((tab) => tab !== geoRegionTab);
     return [geoRegionTab, ...rest, SOCIAL_BAR_REGION_ALL];
-  }, [locations, geoRegionTab]);
+  }, [locations, geoRegionTab, geoRegionStatus]);
 
   const openVenueDetail = (bar) => {
     setSelectedVenue(bar);
@@ -1811,15 +1822,16 @@ const HomePage = ({
 
   useEffect(() => {
     if (locationsLoading || locations.length === 0) return;
-    const hasCurrent = locations.some((b) => b.region === selectedRegionTab);
-    if (hasCurrent) return;
+    if (geoRegionStatus === 'pending') return;
+    if (selectedRegionTab && locations.some((b) => b.region === selectedRegionTab || selectedRegionTab === SOCIAL_BAR_REGION_ALL)) {
+      return;
+    }
     if (geoRegionTab && locations.some((b) => b.region === geoRegionTab)) {
       setSelectedRegionTab(geoRegionTab);
       return;
     }
-    const firstWithVenues = HOME_REGIONS_ORDER.find((r) => locations.some((b) => b.region === r));
-    if (firstWithVenues) setSelectedRegionTab(firstWithVenues);
-  }, [locations, locationsLoading, selectedRegionTab, geoRegionTab]);
+    if (geoRegionStatus === 'denied') setSelectedRegionTab(SOCIAL_BAR_REGION_ALL);
+  }, [locations, locationsLoading, selectedRegionTab, geoRegionTab, geoRegionStatus]);
 
   /** 앱(홈) 진입 시 GPS → 내 지역 탭 1순위·자동 선택 (권한 이미 허용 가정) */
   useEffect(() => {
@@ -1829,9 +1841,11 @@ const HomePage = ({
     const finishGeoTab = (tab) => {
       socialBarGeoDoneRef.current = true;
       if (tab && tab !== SOCIAL_BAR_REGION_ALL && HOME_REGIONS_ORDER.includes(tab)) {
+        setGeoRegionStatus('ready');
         setGeoRegionTab(tab);
         setSelectedRegionTab(tab);
       } else {
+        setGeoRegionStatus('denied');
         setGeoRegionTab(null);
         setSelectedRegionTab(SOCIAL_BAR_REGION_ALL);
       }
@@ -1839,7 +1853,7 @@ const HomePage = ({
 
     const runSocialBarGeolocation = () => {
       if (!navigator.geolocation) {
-        finishGeoTab(SOCIAL_BAR_REGION_ALL);
+        finishGeoTab(null);
         return;
       }
       navigator.geolocation.getCurrentPosition(
@@ -1851,11 +1865,11 @@ const HomePage = ({
           if (region && SOCIAL_BAR_GEO_REGIONS.includes(region)) {
             finishGeoTab(region);
           } else {
-            finishGeoTab(SOCIAL_BAR_REGION_ALL);
+            finishGeoTab(null);
           }
         },
-        () => finishGeoTab(SOCIAL_BAR_REGION_ALL),
-        { enableHighAccuracy: true, timeout: 12000, maximumAge: 5 * 60 * 1000 },
+        () => finishGeoTab(null),
+        { enableHighAccuracy: true, timeout: 12000, maximumAge: 60 * 1000 },
       );
     };
 
@@ -2906,9 +2920,13 @@ const HomePage = ({
           </motion.div>
 
           <motion.div className="home-social-bar-outer">
-            {locationsLoading ? (
+            {locationsLoading || geoRegionStatus === 'pending' ? (
               <div style={{ padding: '60px 20px', textAlign: 'center', color: '#94A3B8', fontWeight: 700 }}>
-                전국 BAR 정보를 정렬하는 중...
+                {geoRegionStatus === 'pending' ? '현재 위치 기준 지역을 확인하는 중...' : '전국 BAR 정보를 정렬하는 중...'}
+              </div>
+            ) : !selectedRegionTab ? (
+              <div style={{ padding: '40px 20px', textAlign: 'center', color: '#94A3B8', fontSize: '13px', fontWeight: 600 }}>
+                지역을 선택해 주세요.
               </div>
             ) : (
               (() => {
