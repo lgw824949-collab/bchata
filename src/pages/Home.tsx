@@ -127,6 +127,9 @@ const HOME_FEATURED_THUMB_SIZE_WIDE = Math.round(108 * HOME_FEATURED_POSTER_SCAL
 /** Social BAR — 위치 실패 시 전국 노출 */
 const SOCIAL_BAR_REGION_ALL = '전체';
 
+/** 메인 홈 — 오늘 지역 대표 포스터 슬라이드 (빠른 메뉴 위) */
+const HOME_POSTER_BANNER_MS = 2000;
+
 /** LIVE 배너 2차 슬라이드 — 포스터 등록 BAR */
 const LIVE_BANNER_SLIDE_MS = 5000;
 const LIVE_BANNER_BAR_RULES = [
@@ -404,6 +407,88 @@ const REGION_FILTER = {
   '광주': (p) => p.broadRegion === '전라도',
   '기타': (p) => true
 };
+
+const inferPartyBroadRegionFromRow = (row) => {
+  if (row?.broadRegion) return row.broadRegion;
+  const title = String(row?.title || '');
+  const address = String(row?.address || '');
+  const locName = String(row?.locations?.name || row?.location_name || '');
+  const combined = `${title} ${address} ${locName}`;
+  if (title.includes('[서울]') || SEOUL_HINT.test(combined)) return '서울';
+  if (
+    title.includes('[경인]') ||
+    title.includes('[경기/인천]') ||
+    /경기|인천/.test(combined)
+  ) {
+    return '경인';
+  }
+  if (title.includes('[경상') || /부산|대구|울산|경상|경남|경북/.test(combined)) return '경상도';
+  if (title.includes('[전라') || /광주|전라|전남|전북/.test(combined)) return '전라도';
+  if (title.includes('[충청') || /대전|충청|충남|충북|세종/.test(combined)) return '충청도';
+  if (title.includes('[강원') || /강원|제주/.test(combined)) return '강원/제주';
+  return '';
+};
+
+const enrichPosterBannerPartyRow = (row) => ({
+  ...row,
+  broadRegion: inferPartyBroadRegionFromRow(row),
+  location_name: row?.locations?.name || row?.location_name || '',
+});
+
+const isHomePosterBannerSeoul = (p) => REGION_FILTER['서울'](p);
+
+const isHomePosterBannerMetro = (p) =>
+  !isHomePosterBannerSeoul(p) &&
+  (REGION_FILTER['경인'](p) ||
+    p.broadRegion === '경기/인천' ||
+    p.region === '경인' ||
+    p.region === '경기/인천' ||
+    (p.region && (String(p.region).includes('경기') || String(p.region).includes('인천'))));
+
+const isHomePosterBannerLocal = (p) => !isHomePosterBannerSeoul(p) && !isHomePosterBannerMetro(p);
+
+/** 서울·경인·지방권 각 최신 포스터 1장 (created_at 내림차순) */
+const pickHomePosterBannerSlides = (rows) => {
+  const enriched = (rows || [])
+    .filter((p) => isApprovedParty(p) && String(p.poster_url || '').trim())
+    .map(enrichPosterBannerPartyRow)
+    .sort(
+      (a, b) => new Date(b.created_at || 0).getTime() - new Date(a.created_at || 0).getTime(),
+    );
+
+  const pickFor = (predicate) => enriched.find(predicate) || null;
+  const seoul = pickFor(isHomePosterBannerSeoul);
+  const gyeongin = pickFor(isHomePosterBannerMetro);
+  const local = pickFor(isHomePosterBannerLocal);
+
+  const slides = [];
+  if (seoul) {
+    slides.push({
+      id: 'seoul',
+      regionLabelKo: '서울',
+      regionLabelEn: 'Seoul',
+      party: seoul,
+    });
+  }
+  if (gyeongin) {
+    slides.push({
+      id: 'gyeongin',
+      regionLabelKo: '경인',
+      regionLabelEn: 'Gyeonggi/Incheon',
+      party: gyeongin,
+    });
+  }
+  if (local) {
+    slides.push({
+      id: 'local',
+      regionLabelKo: '지방권',
+      regionLabelEn: 'Regions',
+      party: local,
+    });
+  }
+  return slides;
+};
+
 const MAIN_REGIONS = ['경인', '서울', '경상', '전라', '충청', '강원/제주'];
 const REGION_MAP_EN = {
   '서울': 'Seoul', '경인': 'Gyeonggi/Incheon', '경상도': 'Gyeongsang',
@@ -1438,6 +1523,8 @@ const HomePage = ({
   const [barStatsMap, setBarStatsMap] = useState({});
   const [liveBannerSlideIdx, setLiveBannerSlideIdx] = useState(0);
   const [liveBannerPartyRows, setLiveBannerPartyRows] = useState([]);
+  const [homePosterBannerSlides, setHomePosterBannerSlides] = useState([]);
+  const [homePosterBannerIdx, setHomePosterBannerIdx] = useState(0);
 
 
   // [사용자 요청] 15초 롤링 — shuffleOffset 미사용, 캐러셀 스크롤 중 리렌더 방지
@@ -1847,9 +1934,32 @@ const HomePage = ({
     }
   }, [calendarTodayStr]);
 
+  const loadHomePosterBannerSlides = useCallback(async () => {
+    if (!supabase) return;
+    try {
+      const { data, error } = await supabase
+        .from('parties')
+        .select(
+          'id, title, date, created_at, poster_url, address, location_id, locations!location_id(name)',
+        )
+        .eq('status', 'approved')
+        .eq('date', calendarTodayStr)
+        .not('poster_url', 'is', null)
+        .order('created_at', { ascending: false });
+      if (error) {
+        console.warn('[Home] poster banner parties:', error.message);
+        return;
+      }
+      setHomePosterBannerSlides(pickHomePosterBannerSlides(data || []));
+    } catch (err) {
+      console.warn('[Home] poster banner parties failed:', err);
+    }
+  }, [calendarTodayStr]);
+
   useEffect(() => {
     loadLiveBannerPartyRows();
-  }, [loadLiveBannerPartyRows, parties]);
+    loadHomePosterBannerSlides();
+  }, [loadLiveBannerPartyRows, loadHomePosterBannerSlides, parties]);
 
   useEffect(() => {
     if (!supabase) return undefined;
@@ -1867,6 +1977,7 @@ const HomePage = ({
     const refreshLiveBannerData = () => {
       loadBarStats();
       loadLiveBannerPartyRows();
+      loadHomePosterBannerSlides();
     };
 
     refreshLiveBannerData();
@@ -1889,7 +2000,7 @@ const HomePage = ({
       cancelled = true;
       supabase.removeChannel(channel);
     };
-  }, [loadLiveBannerPartyRows]);
+  }, [loadLiveBannerPartyRows, loadHomePosterBannerSlides]);
 
   useEffect(() => {
     const onVenueView = (e) => {
@@ -2477,6 +2588,167 @@ const HomePage = ({
     );
   };
 
+  const homePosterBannerSlidesEffective = useMemo(() => {
+    if (homePosterBannerSlides.length > 0) return homePosterBannerSlides;
+    const todayRows = (parties || []).filter(
+      (p) => isApprovedParty(p) && normDate(p.date) === calendarTodayStr,
+    );
+    return pickHomePosterBannerSlides(todayRows);
+  }, [homePosterBannerSlides, parties, calendarTodayStr]);
+
+  useEffect(() => {
+    setHomePosterBannerIdx(0);
+  }, [homePosterBannerSlidesEffective]);
+
+  useEffect(() => {
+    if (homePosterBannerSlidesEffective.length < 2) return undefined;
+    const timer = setInterval(() => {
+      setHomePosterBannerIdx(
+        (idx) => (idx + 1) % homePosterBannerSlidesEffective.length,
+      );
+    }, HOME_POSTER_BANNER_MS);
+    return () => clearInterval(timer);
+  }, [homePosterBannerSlidesEffective.length]);
+
+  const renderHomeRegionPosterBanner = () => {
+    if (!homePosterBannerSlidesEffective.length) return null;
+    const slide =
+      homePosterBannerSlidesEffective[homePosterBannerIdx] ||
+      homePosterBannerSlidesEffective[0];
+    const party = slide?.party;
+    const posterUrl = String(party?.poster_url || '').trim();
+    if (!posterUrl) return null;
+    const regionLabel = isEn ? slide.regionLabelEn : slide.regionLabelKo;
+    const title = formatPartyTitleDisplay(party?.title) || regionLabel;
+
+    return (
+      <div className="home-region-poster-banner" style={{ marginBottom: 14 }}>
+        <style>{`
+          .home-region-poster-banner {
+            width: 100%;
+          }
+          .home-region-poster-banner__frame {
+            position: relative;
+            width: 100%;
+            border-radius: 12px;
+            overflow: hidden;
+            aspect-ratio: 2 / 1;
+            max-height: 220px;
+            background: #111;
+            border: 1px solid ${isHomeGate ? 'rgba(255,255,255,0.12)' : 'rgba(0,0,0,0.08)'};
+            cursor: pointer;
+          }
+          .home-region-poster-banner__img {
+            position: absolute;
+            inset: 0;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            object-position: center top;
+          }
+          .home-region-poster-banner__overlay {
+            position: absolute;
+            inset: 0;
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-end;
+            padding: 12px 14px;
+            background: linear-gradient(
+              to top,
+              rgba(0, 0, 0, 0.82) 0%,
+              rgba(0, 0, 0, 0.35) 45%,
+              transparent 72%
+            );
+            pointer-events: none;
+          }
+          .home-region-poster-banner__region {
+            display: inline-flex;
+            align-self: flex-start;
+            margin-bottom: 6px;
+            padding: 3px 10px;
+            border-radius: 999px;
+            font-size: 11px;
+            font-weight: 800;
+            letter-spacing: -0.02em;
+            color: #fff;
+            background: rgba(212, 67, 110, 0.92);
+          }
+          .home-region-poster-banner__title {
+            margin: 0;
+            color: #fff;
+            font-size: 14px;
+            font-weight: 800;
+            line-height: 1.3;
+            letter-spacing: -0.02em;
+            text-shadow: 0 1px 6px rgba(0, 0, 0, 0.45);
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+          }
+          .home-region-poster-banner__dots {
+            display: flex;
+            justify-content: center;
+            gap: 6px;
+            margin-top: 8px;
+          }
+          .home-region-poster-banner__dot {
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            border: none;
+            padding: 0;
+            background: ${isHomeGate ? 'rgba(255,255,255,0.25)' : 'rgba(0,0,0,0.15)'};
+          }
+          .home-region-poster-banner__dot.is-active {
+            background: ${HOME_BRAND};
+            transform: scale(1.15);
+          }
+        `}</style>
+        <button
+          type="button"
+          className="home-region-poster-banner__frame"
+          onClick={() => openPartyWithAfterParty(party)}
+          aria-label={
+            isEn
+              ? `Today's ${regionLabel} party poster: ${title}`
+              : `오늘 ${regionLabel} 대표 포스터: ${title}`
+          }
+        >
+          <AnimatePresence mode="wait">
+            <motion.img
+              key={`${slide.id}-${posterUrl}`}
+              src={posterUrl}
+              alt={title}
+              className="home-region-poster-banner__img"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.35 }}
+            />
+          </AnimatePresence>
+          <div className="home-region-poster-banner__overlay">
+            <span className="home-region-poster-banner__region">{regionLabel}</span>
+            <p className="home-region-poster-banner__title">{title}</p>
+          </div>
+        </button>
+        {homePosterBannerSlidesEffective.length > 1 && (
+          <div className="home-region-poster-banner__dots" role="tablist" aria-label={isEn ? 'Poster regions' : '지역 포스터'}>
+            {homePosterBannerSlidesEffective.map((s, idx) => (
+              <button
+                key={s.id}
+                type="button"
+                role="tab"
+                aria-selected={idx === homePosterBannerIdx}
+                className={`home-region-poster-banner__dot${idx === homePosterBannerIdx ? ' is-active' : ''}`}
+                onClick={() => setHomePosterBannerIdx(idx)}
+              />
+            ))}
+          </div>
+        )}
+      </div>
+    );
+  };
+
   const renderHomeQuickLiveHub = () => (
     <section
       className="home-depth-panel home-quick-live-hub home-luxury-section-box"
@@ -2491,6 +2763,7 @@ const HomePage = ({
       }}
       aria-label={isEn ? 'Quick menu and live banner' : '빠른 메뉴 및 LIVE'}
     >
+      {renderHomeRegionPosterBanner()}
       <div className="home-quick-live-hub__quick">
         <div className="home-quick-menu-block">{renderHomeQuickMenuInner()}</div>
       </div>
