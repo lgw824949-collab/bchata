@@ -810,9 +810,9 @@ const InstructorSection = ({ onOpenVipMaster, cachedInstructors = null }) => {
                         key={tab} 
                         onClick={() => setActiveTab(tab)}
                         style={{ 
-                          background: 'none', border: 'none', color: activeTab === tab ? '#FFF' : '#64748B', 
-                          fontSize: '14px', fontWeight: 900, cursor: 'pointer', padding: '15px 0',
-                          position: 'relative', transition: 'all 0.3s'
+                          background: 'none', border: 'none', color: activeTab === tab ? '#FAFAF9' : '#9CA3AF', 
+                          fontSize: '15px', fontWeight: 800, cursor: 'pointer', padding: '15px 0',
+                          position: 'relative', transition: 'all 0.3s', letterSpacing: '0.02em',
                         }}
                       >
                         {tab}
@@ -832,35 +832,70 @@ const InstructorSection = ({ onOpenVipMaster, cachedInstructors = null }) => {
                         key="bio" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }}
                         style={{ padding: '0 20px' }}
                       >
-                        {/* BIO legacy: About header + old bio paragraph */}
-                        <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', marginBottom: '16px' }}>
-                          {/* {selectedInstructor.career?.trim() && (
-                            <span style={{ background: 'rgba(201,168,76,0.15)', border: '1px solid #C9A84C', color: '#C9A84C', borderRadius: '20px', padding: '4px 12px', fontSize: '12px', fontWeight: 700 }}>
-                              ⭐ {selectedInstructor.career.trim()}
-                            </span>
-                          )} */}
+                        {/* BIO: tags + intro */}
+                        <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap', marginBottom: '18px' }}>
                           {selectedInstructor.city && (
-                            <span style={{ background: 'rgba(201,168,76,0.15)', border: '1px solid #C9A84C', color: '#C9A84C', borderRadius: '20px', padding: '4px 12px', fontSize: '12px', fontWeight: 700 }}>
+                            <span
+                              style={{
+                                background: 'rgba(201,168,76,0.1)',
+                                border: '1px solid rgba(201,168,76,0.28)',
+                                color: '#E8D9B0',
+                                borderRadius: '999px',
+                                padding: '7px 14px',
+                                fontSize: '13px',
+                                fontWeight: 600,
+                                letterSpacing: '0.02em',
+                              }}
+                            >
                               {selectedInstructor.city}
                             </span>
                           )}
                           {getGenre(selectedInstructor.genre) && (
-                            <span style={{ background: 'rgba(201,168,76,0.15)', border: '1px solid #C9A84C', color: '#C9A84C', borderRadius: '20px', padding: '4px 12px', fontSize: '12px', fontWeight: 700 }}>
+                            <span
+                              style={{
+                                background: 'rgba(201,168,76,0.1)',
+                                border: '1px solid rgba(201,168,76,0.28)',
+                                color: '#E8D9B0',
+                                borderRadius: '999px',
+                                padding: '7px 14px',
+                                fontSize: '13px',
+                                fontWeight: 600,
+                                letterSpacing: '0.02em',
+                              }}
+                            >
                               {getGenre(selectedInstructor.genre)}
                             </span>
                           )}
                         </div>
 
-                        <p style={{ fontSize: '14px', lineHeight: '1.8', color: 'var(--color-text-sub)', whiteSpace: 'pre-wrap', margin: '0 0 16px 0' }}>
-                          {selectedInstructor.bio?.trim()
-                            || (selectedInstructor.city
-                              ? `${selectedInstructor.name} 강사 · ${selectedInstructor.city} 활동. 수업 등록 시 BIO를 입력하면 이곳에 표시됩니다.`
-                              : '강사 소개(BIO)가 아직 등록되지 않았습니다. 수업 등록 ①단계에서 BIO를 입력해 주세요.')}
-                        </p>
+                        <div
+                          style={{
+                            background: 'rgba(255,255,255,0.04)',
+                            border: '1px solid rgba(255,255,255,0.08)',
+                            borderRadius: '16px',
+                            padding: '18px 16px',
+                            marginBottom: '20px',
+                          }}
+                        >
+                          <p
+                            style={{
+                              fontSize: '16px',
+                              lineHeight: 1.85,
+                              color: '#F0EDE8',
+                              letterSpacing: '0.01em',
+                              whiteSpace: 'pre-wrap',
+                              margin: 0,
+                              fontWeight: 500,
+                            }}
+                          >
+                            {selectedInstructor.bio?.trim()
+                              || (selectedInstructor.city
+                                ? `${selectedInstructor.name} 강사 · ${selectedInstructor.city} 활동. 수업 등록 시 BIO를 입력하면 이곳에 표시됩니다.`
+                                : '강사 소개(BIO)가 아직 등록되지 않았습니다. 수업 등록 ①단계에서 BIO를 입력해 주세요.')}
+                          </p>
+                        </div>
 
-                        {/* BIO legacy: Specialties / 활동지역 / 경력 / 수업방식 / 수상경력 sections */}
-
-                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '8px', marginBottom: '16px' }}>
+                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '10px', marginBottom: '20px' }}>
                           {[
                             { icon: '⭐', label: '경력', value: selectedInstructor.career?.trim() },
                             { icon: '🏆', label: '수상', value: selectedInstructor.awards?.trim() },
@@ -869,14 +904,33 @@ const InstructorSection = ({ onOpenVipMaster, cachedInstructors = null }) => {
                             <div
                               key={card.label}
                               style={{
-                                background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(201,168,76,0.3)',
-                                borderRadius: '12px', padding: '12px 8px', textAlign: 'center',
+                                background: 'rgba(255,255,255,0.05)',
+                                border: '1px solid rgba(201,168,76,0.22)',
+                                borderRadius: '14px',
+                                padding: '14px 10px',
+                                textAlign: 'center',
                               }}
                             >
-                              <div style={{ fontSize: '11px', color: '#C9A84C', fontWeight: 700, marginBottom: '6px' }}>
+                              <div
+                                style={{
+                                  fontSize: '13px',
+                                  color: '#D9C48A',
+                                  fontWeight: 600,
+                                  marginBottom: '8px',
+                                  lineHeight: 1.35,
+                                }}
+                              >
                                 {card.icon} {card.label}
                               </div>
-                              <div style={{ fontSize: '12px', color: '#E4E4E7', fontWeight: 600, lineHeight: 1.4, wordBreak: 'break-word' }}>
+                              <div
+                                style={{
+                                  fontSize: '15px',
+                                  color: '#FAFAF9',
+                                  fontWeight: 700,
+                                  lineHeight: 1.5,
+                                  wordBreak: 'break-word',
+                                }}
+                              >
                                 {card.value || '-'}
                               </div>
                             </div>
@@ -889,14 +943,21 @@ const InstructorSection = ({ onOpenVipMaster, cachedInstructors = null }) => {
 
                         {/* <span>✨ DIRECT INQUIRY & BOOKING</span> */}
                         {(selectedInstructor.kakao_link || getInstaLink(selectedInstructor) || selectedInstructor.instagram) && (
-                          <div style={{ marginTop: '16px', display: 'flex', gap: '10px' }}>
+                          <div style={{ marginTop: '8px', display: 'flex', gap: '10px' }}>
                             {selectedInstructor.kakao_link && (
                               <button
                                 onClick={() => window.open(selectedInstructor.kakao_link, '_blank')}
                                 style={{
-                                  flex: 1, padding: '12px 8px', borderRadius: '12px',
-                                  border: '1px solid rgba(255,255,255,0.2)', background: 'transparent',
-                                  color: '#E4E4E7', fontSize: '13px', fontWeight: 700, cursor: 'pointer', textAlign: 'center',
+                                  flex: 1,
+                                  padding: '14px 12px',
+                                  borderRadius: '14px',
+                                  border: '1px solid rgba(201,168,76,0.35)',
+                                  background: 'rgba(201,168,76,0.08)',
+                                  color: '#F5F0E6',
+                                  fontSize: '15px',
+                                  fontWeight: 700,
+                                  cursor: 'pointer',
+                                  textAlign: 'center',
                                 }}
                               >💬 수업 문의</button>
                             )}
@@ -906,9 +967,16 @@ const InstructorSection = ({ onOpenVipMaster, cachedInstructors = null }) => {
                                   <button
                                     onClick={() => window.open(getInstaLink(selectedInstructor), '_blank')}
                                     style={{
-                                      flex: 1, padding: '12px 8px', borderRadius: '12px',
-                                      border: '1px solid rgba(255,255,255,0.2)', background: 'transparent',
-                                      color: '#E4E4E7', fontSize: '13px', fontWeight: 700, cursor: 'pointer', textAlign: 'center',
+                                      flex: 1,
+                                      padding: '14px 12px',
+                                      borderRadius: '14px',
+                                      border: '1px solid rgba(201,168,76,0.35)',
+                                      background: 'rgba(201,168,76,0.08)',
+                                      color: '#F5F0E6',
+                                      fontSize: '15px',
+                                      fontWeight: 700,
+                                      cursor: 'pointer',
+                                      textAlign: 'center',
                                     }}
                                   >📅 문의하기</button>
                                 )}
@@ -917,9 +985,17 @@ const InstructorSection = ({ onOpenVipMaster, cachedInstructors = null }) => {
                                     type="button"
                                     onClick={() => window.open(getInstaLink(selectedInstructor) || `https://www.instagram.com/${String(selectedInstructor.instagram).replace(/^@/, '')}`, '_blank')}
                                     style={{
-                                      width: '48px', height: '48px', borderRadius: '14px', border: '1px solid rgba(255,255,255,0.1)',
-                                      background: 'rgba(255,255,255,0.05)', color: '#E1306C', cursor: 'pointer',
-                                      display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                      width: '52px',
+                                      height: '52px',
+                                      borderRadius: '14px',
+                                      border: '1px solid rgba(255,255,255,0.12)',
+                                      background: 'rgba(255,255,255,0.06)',
+                                      color: '#E1306C',
+                                      cursor: 'pointer',
+                                      display: 'flex',
+                                      alignItems: 'center',
+                                      justifyContent: 'center',
+                                      flexShrink: 0,
                                     }}
                                     aria-label="인스타그램"
                                   >
