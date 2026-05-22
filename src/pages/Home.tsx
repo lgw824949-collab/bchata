@@ -1927,7 +1927,7 @@ const HomePage = ({
       const { data, error } = await supabase
         .from('parties')
         .select(
-          'id, title, date, created_at, address, region, view_count, click_count, poster_url, location_id, locations!location_id(name)',
+          'id, title, date, created_at, address, view_count, click_count, poster_url, location_id, locations!location_id(name)',
         )
         .eq('status', 'approved')
         .eq('date', calendarTodayStr);
