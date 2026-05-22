@@ -4,6 +4,7 @@ import { supabase } from './lib/supabase'
 import { ChevronLeft, Check, Trash2, ShieldCheck, X, RefreshCw, XCircle, Clock, Tent, Flag, Music2, Camera, Zap, Menu, User, Sparkles, Plus } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
 import RegisterForm from './RegisterForm'
+import ClassRegisterModal from './components/ClassRegisterModal'
 import gangturnPhoto from './assets/gangturn_photo.png'
 import ggomaeyaPhoto from './assets/ggomaeya_photo.jpg'
 import noriterPhoto from './assets/noriter_photo.png'
@@ -122,6 +123,8 @@ export default function AdminDashboard({ onBack }) {
   const [editingItem, setEditingItem] = useState(null)
   const [showEditModal, setShowEditModal] = useState(false)
   const [currentItem, setCurrentItem] = useState(null)
+  const [showClassEditModal, setShowClassEditModal] = useState(false)
+  const [classEditItem, setClassEditItem] = useState(null)
 
   const normalizePartyItemForForm = (item, table) => ({
     ...item,
@@ -246,6 +249,9 @@ export default function AdminDashboard({ onBack }) {
   const startEdit = (item) => {
     if (category === 'social') {
       openPartyRegisterForm(item)
+    } else if (category === 'instructor-classes') {
+      setClassEditItem(item)
+      setShowClassEditModal(true)
     } else {
       setEditingItem(item.id)
       setEditFormData({ ...item })
@@ -703,7 +709,7 @@ export default function AdminDashboard({ onBack }) {
               <div style={{ flex: 1 }}>
                 <div style={{ fontSize: '11px', color: '#94A3B8', marginBottom: '4px' }}>ID: {item.id} | {item.created_at?.split('T')[0]} {item.created_at?.split('T')[1]?.slice(0, 5)}</div>
                 
-                {editingItem === item.id ? (
+                {editingItem === item.id && category !== 'instructor-classes' ? (
                   /* 수정 모드 */
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
                     <input value={editFormData.title || editFormData.name || ''} onChange={e => setEditFormData({ ...editFormData, title: e.target.value, name: e.target.value })} placeholder="제목/이름" style={{ width: '100%', padding: '10px', borderRadius: '10px', border: '1px solid #E2E8F0', fontWeight: 700 }} />
@@ -837,33 +843,6 @@ export default function AdminDashboard({ onBack }) {
                         <input value={editFormData.class_type || ''} onChange={e => setEditFormData({ ...editFormData, class_type: e.target.value })} placeholder="수업 방식" style={{ width: '100%', padding: '10px', borderRadius: '10px', border: '1px solid #E2E8F0' }} />
                         <input type="number" value={editFormData.awards || ''} onChange={e => setEditFormData({ ...editFormData, awards: e.target.value })} placeholder="수상 횟수 (예: 3)" aria-label="수상 횟수" style={{ width: '100%', padding: '10px', borderRadius: '10px', border: '1px solid #E2E8F0' }} />
                       </>
-                    )}
-                    {category === 'instructor-classes' && (
-                      <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                        <input value={editFormData.title || ''} onChange={e => setEditFormData({ ...editFormData, title: e.target.value })} placeholder="클래스 제목" style={{ width: '100%', padding: '10px', borderRadius: '10px', border: '1px solid #E2E8F0', fontWeight: 700 }} />
-                        <motion.div style={{ display: 'flex', gap: '8px' }}>
-                          <input value={editFormData.instructor_name || ''} onChange={e => setEditFormData({ ...editFormData, instructor_name: e.target.value })} placeholder="강사명" style={{ flex: 1, padding: '10px', borderRadius: '10px', border: '1px solid #E2E8F0' }} />
-                          <select value={editFormData.genre || '바차타'} onChange={e => setEditFormData({ ...editFormData, genre: e.target.value })} style={{ flex: 1, padding: '10px', borderRadius: '10px', border: '1px solid #E2E8F0' }}>
-                            {['바차타', '살사', '키좀바', '쥬크'].map(g => <option key={g}>{g}</option>)}
-                          </select>
-                        </motion.div>
-                        <motion.div style={{ display: 'flex', gap: '8px' }}>
-                          <select value={editFormData.level || '초급'} onChange={e => setEditFormData({ ...editFormData, level: e.target.value })} style={{ flex: 1, padding: '10px', borderRadius: '10px', border: '1px solid #E2E8F0' }}>
-                            {['초급', '중급', '상급'].map(l => <option key={l}>{l}</option>)}
-                          </select>
-                          <input value={editFormData.capacity || ''} onChange={e => setEditFormData({ ...editFormData, capacity: e.target.value })} placeholder="정원" style={{ flex: 1, padding: '10px', borderRadius: '10px', border: '1px solid #E2E8F0' }} />
-                        </motion.div>
-                        <textarea value={editFormData.description || ''} onChange={e => setEditFormData({ ...editFormData, description: e.target.value })} placeholder="클래스 설명" style={{ width: '100%', padding: '10px', borderRadius: '10px', border: '1px solid #E2E8F0', minHeight: '80px' }} />
-                        <div style={{ display: 'flex', gap: '8px' }}>
-                          <input value={editFormData.schedule || ''} onChange={e => setEditFormData({ ...editFormData, schedule: e.target.value })} placeholder="일정 (예: 매주 토 2시)" style={{ flex: 1, padding: '10px', borderRadius: '10px', border: '1px solid #E2E8F0' }} />
-                          <input value={editFormData.location || ''} onChange={e => setEditFormData({ ...editFormData, location: e.target.value })} placeholder="장소" style={{ flex: 1, padding: '10px', borderRadius: '10px', border: '1px solid #E2E8F0' }} />
-                        </div>
-                        <div style={{ display: 'flex', gap: '8px' }}>
-                          <input value={editFormData.fee || ''} onChange={e => setEditFormData({ ...editFormData, fee: e.target.value })} placeholder="비용" style={{ flex: 1, padding: '10px', borderRadius: '10px', border: '1px solid #E2E8F0' }} />
-                          <input value={editFormData.poster_url || ''} onChange={e => setEditFormData({ ...editFormData, poster_url: e.target.value })} placeholder="포스터 URL" style={{ flex: 1, padding: '10px', borderRadius: '10px', border: '1px solid #E2E8F0' }} />
-                        </div>
-                        <input value={editFormData.instructor_id || ''} onChange={e => setEditFormData({ ...editFormData, instructor_id: e.target.value })} placeholder="강사 UUID (직접 수정시 주의)" style={{ width: '100%', padding: '10px', borderRadius: '10px', border: '1px solid #E2E8F0', fontSize: '11px' }} />
-                      </div>
                     )}
                     {(category === 'social' || category === 'live-mgmt') && (
                       <>
@@ -1028,6 +1007,20 @@ export default function AdminDashboard({ onBack }) {
           />
         )}
       </AnimatePresence>
+      {showClassEditModal && (
+        <ClassRegisterModal
+          isOpen={showClassEditModal}
+          editClassItem={classEditItem}
+          instructorId={classEditItem?.instructor_id || ''}
+          onClose={() => {
+            setShowClassEditModal(false);
+            setClassEditItem(null);
+          }}
+          onSaved={() => {
+            fetchData();
+          }}
+        />
+      )}
     </div>
   )
 }

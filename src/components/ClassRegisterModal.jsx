@@ -62,6 +62,89 @@ const suggestTitle = (genres, level) => {
   return genres.length >= 2 ? `${g} 혼합 ${level}반` : `${g} ${level}반`;
 };
 
+const padTimeInput = (raw) => {
+  const m = String(raw || '').trim().match(/(\d{1,2}):(\d{2})/);
+  if (!m) return '';
+  return `${String(Number(m[1])).padStart(2, '0')}:${m[2]}`;
+};
+
+const parseGenresFromStored = (genreStr) => {
+  const parts = String(genreStr || '')
+    .split(/[·,]/)
+    .map((s) => s.trim())
+    .filter(Boolean);
+  const fromList = parts.filter((g) => GENRE_LIST.includes(g));
+  return fromList.length ? fromList : parts.filter((g) => GENRE_LIST.includes(g));
+};
+
+const parseDescriptionFields = (description) => {
+  let body = String(description || '').trim();
+  const genreMinutes = {};
+  const compLine = body.match(/^\[장르 구성\]\s*(.+?)(?:\n|$)/m);
+  if (compLine) {
+    compLine[1].split('·').forEach((part) => {
+      const m = part.trim().match(/^(.+?)\s*(\d+)\s*분/);
+      if (m && GENRE_LIST.includes(m[1].trim())) genreMinutes[m[1].trim()] = Number(m[2]);
+    });
+    body = body.replace(/^\[장르 구성\][^\n]*\n?/, '').trim();
+  }
+  return { description: body, genreMinutes };
+};
+
+const parseScheduleFields = (scheduleStr) => {
+  const sched = String(scheduleStr || '');
+  const rangeM = sched.match(
+    /(\d{4}-\d{2}-\d{2})\s*~\s*(\d{4}-\d{2}-\d{2})\s+(\d{1,2}:\d{2})~(\d{1,2}:\d{2})/,
+  );
+  if (rangeM) {
+    return {
+      startDate: rangeM[1],
+      endDate: rangeM[2],
+      startTime: padTimeInput(rangeM[3]) || '20:00',
+      endTime: padTimeInput(rangeM[4]) || '22:00',
+    };
+  }
+  const singleM = sched.match(/(\d{4}-\d{2}-\d{2})\s+(\d{1,2}:\d{2})~(\d{1,2}:\d{2})/);
+  if (singleM) {
+    return {
+      startDate: singleM[1],
+      endDate: singleM[1],
+      startTime: padTimeInput(singleM[2]) || '20:00',
+      endTime: padTimeInput(singleM[3]) || '22:00',
+    };
+  }
+  const dateOnly = sched.match(/(\d{4}-\d{2}-\d{2})/)?.[1];
+  return {
+    startDate: dateOnly || '',
+    endDate: dateOnly || '',
+    startTime: '20:00',
+    endTime: '22:00',
+  };
+};
+
+const classRowToForm = (row, instructor) => {
+  const genres = parseGenresFromStored(row?.genre);
+  const { description, genreMinutes } = parseDescriptionFields(row?.description);
+  const schedule = parseScheduleFields(row?.schedule);
+  const instructorName = row?.instructor_name || instructor?.name || '';
+  return {
+    ...emptyForm(instructorName),
+    ...(instructor ? profileFieldsFromInstructor(instructor) : {}),
+    instructorName,
+    title: row?.title || '',
+    titleTouched: true,
+    genres,
+    level: row?.level || '',
+    ...schedule,
+    genreMinutes,
+    location: row?.location || '',
+    fee: row?.fee != null ? String(row.fee) : '',
+    capacity: row?.capacity != null ? String(row.capacity) : '',
+    description,
+    photoUrl: instructor?.photo_url || '',
+  };
+};
+
 const parseTimeToMinutes = (hhmm) => {
   if (!hhmm || !hhmm.includes(':')) return null;
   const [h, m] = hhmm.split(':').map(Number);
@@ -99,7 +182,14 @@ const chipStyle = (active) => ({
   transition: 'all 0.2s',
 });
 
-const ClassRegisterModal = ({ isOpen = true, onClose, instructorId = '' }) => {
+const ClassRegisterModal = ({
+  isOpen = true,
+  onClose,
+  instructorId = '',
+  editClassItem = null,
+  onSaved = null,
+}) => {
+  const isEditMode = Boolean(editClassItem?.id);
   const [step, setStep] = useState(1);
   const [loading, setLoading] = useState(false);
   const [instructors, setInstructors] = useState([]);
@@ -125,6 +215,7 @@ const ClassRegisterModal = ({ isOpen = true, onClose, instructorId = '' }) => {
       setPosterPreview(null);
       setProfilePhotoFile(null);
       setProfilePhotoPreview(null);
+      setForm(emptyForm());
       return;
     }
     const fetchInstructors = async () => {
@@ -134,10 +225,38 @@ const ClassRegisterModal = ({ isOpen = true, onClose, instructorId = '' }) => {
           .select('id, name, city, bio, career, awards, class_type, genre, instagram, kakao_link, photo_url')
           .eq('status', 'active')
           .order('follower_count', { ascending: false });
-        if (data?.length) {
-          setInstructors(data);
+        let list = data || [];
+
+        if (isEditMode && editClassItem?.instructor_id) {
+          let linked = list.find((i) => i.id === editClassItem.instructor_id);
+          if (!linked) {
+            const { data: extra } = await supabase
+              .from('instructors')
+              .select('id, name, city, bio, career, awards, class_type, genre, instagram, kakao_link, photo_url')
+              .eq('id', editClassItem.instructor_id)
+              .maybeSingle();
+            if (extra) {
+              linked = extra;
+              list = [extra, ...list.filter((i) => i.id !== extra.id)];
+            }
+          }
+          const fallbackInst = linked || (editClassItem.instructors?.name
+            ? { id: editClassItem.instructor_id, name: editClassItem.instructors.name }
+            : null);
+          setInstructors(list);
+          setForm(classRowToForm(editClassItem, fallbackInst));
+          setPosterPreview(editClassItem.poster_url || null);
+          setPosterFile(null);
+          setProfilePhotoFile(null);
+          setProfilePhotoPreview(null);
+          setStep(1);
+          return;
+        }
+
+        if (list.length) {
+          setInstructors(list);
           if (instructorId) {
-            const target = data.find((i) => i.id === instructorId);
+            const target = list.find((i) => i.id === instructorId);
             if (target) {
               setForm((prev) => ({
                 ...prev,
@@ -147,7 +266,7 @@ const ClassRegisterModal = ({ isOpen = true, onClose, instructorId = '' }) => {
             }
           } else {
             setForm((prev) =>
-              prev.instructorName ? prev : { ...prev, instructorName: data[0].name },
+              prev.instructorName ? prev : { ...prev, instructorName: list[0].name },
             );
           }
         }
@@ -156,7 +275,7 @@ const ClassRegisterModal = ({ isOpen = true, onClose, instructorId = '' }) => {
       }
     };
     fetchInstructors();
-  }, [isOpen, instructorId]);
+  }, [isOpen, instructorId, isEditMode, editClassItem]);
 
   if (!isOpen) return null;
 
@@ -259,7 +378,7 @@ const ClassRegisterModal = ({ isOpen = true, onClose, instructorId = '' }) => {
         alert('활동 지역을 선택해주세요.');
         return;
       }
-      if (!profilePhotoFile && !form.photoUrl?.trim()) {
+      if (!isEditMode && !profilePhotoFile && !form.photoUrl?.trim()) {
         alert('강사 프로필 사진을 등록해주세요. (필수)');
         return;
       }
@@ -346,15 +465,20 @@ const ClassRegisterModal = ({ isOpen = true, onClose, instructorId = '' }) => {
       alert('장소를 입력해주세요.');
       return;
     }
-    if (!posterFile) {
+    if (!isEditMode && !posterFile) {
       alert('포스터 이미지를 등록해주세요. (필수)');
+      return;
+    }
+    if (isEditMode && !posterFile && !editClassItem?.poster_url) {
+      alert('포스터 이미지를 등록해주세요.');
       return;
     }
 
     setLoading(true);
     try {
       const matchedInst = findInstructorByName(instructors, form.instructorName);
-      const targetInstId = matchedInst?.id || instructorId || null;
+      const targetInstId =
+        matchedInst?.id || editClassItem?.instructor_id || instructorId || null;
 
       if (!targetInstId) {
         alert('등록된 강사명과 일치하는 프로필이 없습니다. 강사명을 확인해주세요.');
@@ -366,7 +490,7 @@ const ClassRegisterModal = ({ isOpen = true, onClose, instructorId = '' }) => {
       if (profilePhotoFile) {
         photoUrl = await uploadInstructorProfilePhoto(profilePhotoFile);
       }
-      if (!photoUrl) {
+      if (!photoUrl && !isEditMode) {
         alert('강사 프로필 사진을 등록해주세요. (필수)');
         setLoading(false);
         return;
@@ -380,16 +504,16 @@ const ClassRegisterModal = ({ isOpen = true, onClose, instructorId = '' }) => {
         city: form.city.trim() || null,
         instagram: form.instagram.trim() || null,
         kakao_link: form.kakaoLink.trim() || null,
-        photo_url: photoUrl,
       };
+      if (photoUrl) profilePatch.photo_url = photoUrl;
       const { error: profileError } = await supabase
         .from('instructors')
         .update(profilePatch)
         .eq('id', targetInstId);
       if (profileError) throw profileError;
-      setForm((prev) => ({ ...prev, photoUrl }));
+      if (photoUrl) setForm((prev) => ({ ...prev, photoUrl }));
 
-      let posterUrl = null;
+      let posterUrl = editClassItem?.poster_url || null;
       if (posterFile) {
         const ext = posterFile.name.split('.').pop();
         const fileName = `classes/${Date.now()}.${ext}`;
@@ -399,7 +523,7 @@ const ClassRegisterModal = ({ isOpen = true, onClose, instructorId = '' }) => {
         posterUrl = urlData.publicUrl;
       }
 
-      const { error } = await supabase.from('instructor_classes').insert({
+      const classPayload = {
         instructor_id: targetInstId,
         instructor_name: form.instructorName.trim(),
         title: form.title.trim(),
@@ -411,8 +535,11 @@ const ClassRegisterModal = ({ isOpen = true, onClose, instructorId = '' }) => {
         capacity: form.capacity,
         description: buildDescription(),
         poster_url: posterUrl,
-        status: 'active',
-      });
+      };
+
+      const { error } = isEditMode
+        ? await supabase.from('instructor_classes').update(classPayload).eq('id', editClassItem.id)
+        : await supabase.from('instructor_classes').insert({ ...classPayload, status: 'active' });
 
       if (error) throw error;
 
@@ -423,7 +550,8 @@ const ClassRegisterModal = ({ isOpen = true, onClose, instructorId = '' }) => {
         location: form.location.trim(),
       });
       setStep('done');
-      window.dispatchEvent(new CustomEvent('apply-instructor-filter'));
+      if (isEditMode) onSaved?.();
+      else window.dispatchEvent(new CustomEvent('apply-instructor-filter'));
     } catch (err) {
       console.error('Class insert error:', err);
       alert(`등록 중 오류가 발생했습니다: ${err.message}`);
@@ -487,7 +615,9 @@ const ClassRegisterModal = ({ isOpen = true, onClose, instructorId = '' }) => {
           }}
         >
           <div>
-            <div style={{ fontSize: '18px', fontWeight: 900 }}>클래스 등록 모달 👑</div>
+            <div style={{ fontSize: '18px', fontWeight: 900 }}>
+              {isEditMode ? '클래스 수정 모달 ✏️' : '클래스 등록 모달 👑'}
+            </div>
             <div
               style={{
                 fontSize: '13px',
@@ -530,9 +660,11 @@ const ClassRegisterModal = ({ isOpen = true, onClose, instructorId = '' }) => {
                 style={{ textAlign: 'center', padding: '12px 0 8px' }}
               >
                 <div style={{ fontSize: '48px', marginBottom: '12px' }}>🎉</div>
-                <div style={{ fontSize: '20px', fontWeight: 900, marginBottom: '8px' }}>등록 완료!</div>
+                <div style={{ fontSize: '20px', fontWeight: 900, marginBottom: '8px' }}>
+                  {isEditMode ? '수정 완료!' : '등록 완료!'}
+                </div>
                 <div style={{ fontSize: '13px', color: '#A1A1AA', lineHeight: 1.6, marginBottom: '20px' }}>
-                  마스터 리스트에 바로 노출됩니다.
+                  {isEditMode ? '강사 프로필 CLASSES 탭에 반영됩니다.' : '마스터 리스트에 바로 노출됩니다.'}
                 </div>
                 <div
                   style={{
@@ -551,28 +683,30 @@ const ClassRegisterModal = ({ isOpen = true, onClose, instructorId = '' }) => {
                   <div style={{ color: '#94A3B8' }}>{doneSummary.schedule}</div>
                   <div style={{ color: '#94A3B8' }}>{doneSummary.location}</div>
                 </div>
-                <button
-                  type="button"
-                  onClick={registerAnotherClass}
-                  style={{
-                    width: '100%',
-                    padding: '14px',
-                    borderRadius: '12px',
-                    background: '#C9A84C',
-                    color: '#000',
-                    border: 'none',
-                    fontSize: '14px',
-                    fontWeight: 900,
-                    cursor: 'pointer',
-                    marginBottom: '10px',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    gap: '6px',
-                  }}
-                >
-                  <Plus size={16} /> 다른 장르 클래스도 등록
-                </button>
+                {!isEditMode ? (
+                  <button
+                    type="button"
+                    onClick={registerAnotherClass}
+                    style={{
+                      width: '100%',
+                      padding: '14px',
+                      borderRadius: '12px',
+                      background: '#C9A84C',
+                      color: '#000',
+                      border: 'none',
+                      fontSize: '14px',
+                      fontWeight: 900,
+                      cursor: 'pointer',
+                      marginBottom: '10px',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      gap: '6px',
+                    }}
+                  >
+                    <Plus size={16} /> 다른 장르 클래스도 등록
+                  </button>
+                ) : null}
                 <button
                   type="button"
                   onClick={onClose}
@@ -1169,7 +1303,7 @@ const ClassRegisterModal = ({ isOpen = true, onClose, instructorId = '' }) => {
 
                 <div>
                   <label style={{ display: 'block', fontSize: '13px', fontWeight: 700, color: '#A1A1AA', marginBottom: '8px' }}>
-                    포스터 이미지 (필수)
+                    포스터 이미지 {isEditMode ? '(교체 시 선택)' : '(필수)'}
                   </label>
                   <input type="file" accept="image/*" onChange={handlePosterChange} style={{ ...inputStyle, padding: '12px', fontSize: '13px' }} />
                   {posterPreview ? (
@@ -1251,7 +1385,13 @@ const ClassRegisterModal = ({ isOpen = true, onClose, instructorId = '' }) => {
                   opacity: loading ? 0.7 : 1,
                 }}
               >
-                {loading ? '등록 중...' : '클래스 최종 등록 🚀'}
+                {loading
+                  ? isEditMode
+                    ? '저장 중...'
+                    : '등록 중...'
+                  : isEditMode
+                    ? '수정 저장 ✓'
+                    : '클래스 최종 등록 🚀'}
               </button>
             )}
           </div>
