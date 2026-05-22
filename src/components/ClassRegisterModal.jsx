@@ -1,8 +1,8 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { Z } from '../constants/zLayers';
 import { motion, AnimatePresence } from 'framer-motion';
 import { supabase } from '../lib/supabase';
-import { X, Calendar, Clock, MapPin, DollarSign, Users, Info, User, Sparkles, Plus, MessageCircle, Camera } from 'lucide-react';
+import { X, Calendar, Clock, MapPin, DollarSign, Users, Info, User, Sparkles, Plus, MessageCircle, Camera, Trash2 } from 'lucide-react';
 import { DEFAULT_CARD_IMAGE, imgFallbackHandler } from '../constants/imageAssets';
 
 const GENRE_LIST = ['바차타', '살사', '쥬크', '키좀바'];
@@ -195,6 +195,8 @@ const ClassRegisterModal = ({
   const [instructors, setInstructors] = useState([]);
   const [posterFile, setPosterFile] = useState(null);
   const [posterPreview, setPosterPreview] = useState(null);
+  const [posterRemoved, setPosterRemoved] = useState(false);
+  const posterInputRef = useRef(null);
   const [profilePhotoFile, setProfilePhotoFile] = useState(null);
   const [profilePhotoPreview, setProfilePhotoPreview] = useState(null);
   const [doneSummary, setDoneSummary] = useState(null);
@@ -213,6 +215,7 @@ const ClassRegisterModal = ({
       setDoneSummary(null);
       setPosterFile(null);
       setPosterPreview(null);
+      setPosterRemoved(false);
       setProfilePhotoFile(null);
       setProfilePhotoPreview(null);
       setForm(emptyForm());
@@ -246,6 +249,7 @@ const ClassRegisterModal = ({
           setInstructors(list);
           setForm(classRowToForm(editClassItem, fallbackInst));
           setPosterPreview(editClassItem.poster_url || null);
+          setPosterRemoved(false);
           setPosterFile(null);
           setProfilePhotoFile(null);
           setProfilePhotoPreview(null);
@@ -416,8 +420,19 @@ const ClassRegisterModal = ({
   const handlePosterChange = (e) => {
     const file = e.target.files?.[0];
     if (!file) return;
+    setPosterRemoved(false);
     setPosterFile(file);
     setPosterPreview(URL.createObjectURL(file));
+  };
+
+  const handlePosterRemove = () => {
+    if (posterPreview && String(posterPreview).startsWith('blob:')) {
+      URL.revokeObjectURL(posterPreview);
+    }
+    setPosterFile(null);
+    setPosterPreview(null);
+    setPosterRemoved(true);
+    if (posterInputRef.current) posterInputRef.current.value = '';
   };
 
   const handleProfilePhotoChange = (e) => {
@@ -469,7 +484,7 @@ const ClassRegisterModal = ({
       alert('포스터 이미지를 등록해주세요. (필수)');
       return;
     }
-    if (isEditMode && !posterFile && !editClassItem?.poster_url) {
+    if (isEditMode && !posterFile && !posterRemoved && !editClassItem?.poster_url) {
       alert('포스터 이미지를 등록해주세요.');
       return;
     }
@@ -513,14 +528,18 @@ const ClassRegisterModal = ({
       if (profileError) throw profileError;
       if (photoUrl) setForm((prev) => ({ ...prev, photoUrl }));
 
-      let posterUrl = editClassItem?.poster_url || null;
-      if (posterFile) {
+      let posterUrl = null;
+      if (posterRemoved) {
+        posterUrl = null;
+      } else if (posterFile) {
         const ext = posterFile.name.split('.').pop();
         const fileName = `classes/${Date.now()}.${ext}`;
         const { error: uploadError } = await supabase.storage.from('posters').upload(fileName, posterFile);
         if (uploadError) throw uploadError;
         const { data: urlData } = supabase.storage.from('posters').getPublicUrl(fileName);
         posterUrl = urlData.publicUrl;
+      } else if (isEditMode) {
+        posterUrl = editClassItem?.poster_url || null;
       }
 
       const classPayload = {
@@ -1305,13 +1324,48 @@ const ClassRegisterModal = ({
                   <label style={{ display: 'block', fontSize: '13px', fontWeight: 700, color: '#A1A1AA', marginBottom: '8px' }}>
                     포스터 이미지 {isEditMode ? '(교체 시 선택)' : '(필수)'}
                   </label>
-                  <input type="file" accept="image/*" onChange={handlePosterChange} style={{ ...inputStyle, padding: '12px', fontSize: '13px' }} />
+                  <input
+                    ref={posterInputRef}
+                    type="file"
+                    accept="image/*"
+                    onChange={handlePosterChange}
+                    style={{ ...inputStyle, padding: '12px', fontSize: '13px' }}
+                  />
                   {posterPreview ? (
-                    <img
-                      src={posterPreview}
-                      alt="포스터 미리보기"
-                      style={{ width: '100%', marginTop: '10px', borderRadius: '12px', maxHeight: '200px', objectFit: 'cover' }}
-                    />
+                    <div style={{ position: 'relative', marginTop: '10px' }}>
+                      <img
+                        src={posterPreview}
+                        alt="포스터 미리보기"
+                        style={{ width: '100%', borderRadius: '12px', maxHeight: '200px', objectFit: 'cover', display: 'block' }}
+                      />
+                      <button
+                        type="button"
+                        onClick={handlePosterRemove}
+                        aria-label="포스터 삭제"
+                        style={{
+                          position: 'absolute',
+                          top: '8px',
+                          right: '8px',
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: '4px',
+                          padding: '6px 10px',
+                          borderRadius: '8px',
+                          border: 'none',
+                          background: 'rgba(0,0,0,0.72)',
+                          color: '#fff',
+                          fontSize: '12px',
+                          fontWeight: 800,
+                          cursor: 'pointer',
+                        }}
+                      >
+                        <Trash2 size={14} /> 삭제
+                      </button>
+                    </div>
+                  ) : posterRemoved && isEditMode ? (
+                    <p style={{ margin: '10px 0 0', fontSize: '12px', color: '#8E8E93' }}>
+                      포스터가 삭제됩니다. 저장하면 이미지가 제거됩니다.
+                    </p>
                   ) : null}
                 </div>
               </motion.div>
