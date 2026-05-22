@@ -103,8 +103,8 @@ function QuickMenuIconCircle({ children }) {
 /** 홈 퀵메뉴 — 클릭 유도형 카피 (ko / en) */
 const HOME_GATE_MENU_COPY = {
   todayParty: { ko: '오늘밤빠', en: 'Tonight' },
-  manwonSpace: { ko: '만원의 공간', en: 'Manwon space' },
-  myNightPlan: { ko: '내 밤 플랜', en: 'My night plan' },
+  manwonSpace: { ko: 'BAR', en: 'BAR' },
+  myNightPlan: { ko: '플랜', en: 'Plan' },
   bootcampDive: { ko: '부트캠프', en: 'Bootcamp' },
   festivalLive: { ko: '페스티벌', en: 'Festival' },
   partyPost: { ko: '파티 등록', en: 'Party' },
@@ -2729,9 +2729,9 @@ const HomePage = ({
     return buildHomeLiveBannerSlides({
       regionCounts,
       withPosterParties: withPoster,
-      isEn,
+      isEn: isHomeGate ? false : isEn,
     });
-  }, [parties, liveBannerPartyRows, calendarTodayStr, isEn, regionCounts]);
+  }, [parties, liveBannerPartyRows, calendarTodayStr, isEn, isHomeGate, regionCounts]);
 
   useEffect(() => {
     liveBannerSlideIdxRef.current = 0;
@@ -3441,9 +3441,9 @@ const HomePage = ({
           flex-direction: column;
           align-items: center;
           justify-content: flex-start;
-          gap: 10px;
+          gap: 8px;
           min-height: 0;
-          padding: 12px 8px 14px;
+          padding: 8px 4px 10px;
           border: none;
           border-radius: 0;
           background: none;
@@ -3467,44 +3467,39 @@ const HomePage = ({
           align-items: center;
           justify-content: center;
           overflow: visible;
+          min-height: 32px;
         }
         .home-gate-main-menu-item__icon {
-          width: 56px;
-          height: 56px;
-          border-radius: 50%;
+          width: auto;
+          height: auto;
+          border-radius: 0;
           display: flex;
           align-items: center;
           justify-content: center;
           flex-shrink: 0;
-          box-sizing: border-box;
+          background: none !important;
+          box-shadow: none !important;
         }
         .home-gate-main-menu-item__svg {
           display: flex;
           align-items: center;
           justify-content: center;
-          width: 28px;
-          height: 28px;
+          width: 30px;
+          height: 30px;
           color: currentColor;
         }
         .home-gate-main-menu-item__svg svg {
-          width: 28px;
-          height: 28px;
+          width: 30px;
+          height: 30px;
           display: block;
         }
-        .home-gate-main-menu-item--tonight .home-gate-main-menu-item__icon {
-          background: rgba(212, 67, 110, 0.2);
-          color: #fff;
-          box-shadow: none;
+        .home-gate-main-menu-item--tonight .home-gate-main-menu-item__icon,
+        .home-gate-main-menu-item--tonight .home-gate-main-menu-item__label {
+          color: #d4436e;
         }
-        .home-gate-main-menu-item--space .home-gate-main-menu-item__icon {
-          background: rgba(201, 168, 76, 0.16);
-          color: #fff;
-          box-shadow: none;
-        }
+        .home-gate-main-menu-item--space .home-gate-main-menu-item__icon,
         .home-gate-main-menu-item--plan .home-gate-main-menu-item__icon {
-          background: rgba(255, 255, 255, 0.08);
-          color: #fff;
-          box-shadow: none;
+          color: #ffffff;
         }
         .home-gate-main-menu-item__label {
           color: #fff;
@@ -3515,12 +3510,12 @@ const HomePage = ({
           text-align: center;
           word-break: keep-all;
           max-width: 100%;
-          text-shadow: 0 1px 2px rgba(0, 0, 0, 0.35);
+          text-shadow: none;
         }
         .home-gate-main-menu-item__badge {
           position: absolute;
-          top: -5px;
-          right: -10px;
+          top: -6px;
+          right: -12px;
           z-index: 3;
           display: inline-flex;
           align-items: center;

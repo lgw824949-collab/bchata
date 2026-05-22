@@ -88,7 +88,9 @@ export function buildHomeLiveBannerSlides({
   if (regionTotal > 0) {
     slides.push({
       id: 'today-region-counts',
-      text: `Today · Seoul ${seoulCount} · Metro ${metroCount} · Regions ${nationalCount}`,
+      text: isEn
+        ? `Today · Seoul ${seoulCount} · Metro ${metroCount} · Regions ${nationalCount}`
+        : `오늘 · 서울 ${seoulCount} · 수도권 ${metroCount} · 지방권 ${nationalCount}`,
       tier: 'summary',
     });
   }
