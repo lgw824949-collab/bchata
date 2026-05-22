@@ -8,6 +8,42 @@ export const NAV_PENDING_INSTRUCTOR_KEY = 'bchata:pending-instructor-id';
 const HOME_TABS = new Set(['social', 'partner']);
 const INSTRUCTOR_TABS = new Set(['BIO', 'CLASSES']);
 
+/** 새로고침(F5)·탭 복귀 시 session/history에 남기지 않을 모달 오버레이 */
+const NON_PERSISTED_OVERLAYS = new Set([
+  'fullCalendar',
+  'wishlist',
+  'weather',
+  'barMatching',
+  'saju',
+  'route',
+  'incheon',
+  'placeInquiry',
+  'rental',
+  'filterPanel',
+  'filteredResults',
+  'gridModal',
+  'classRegister',
+  'chatbot',
+  'barRegister',
+  'partyPoster',
+]);
+
+/** F5·모바일 새로고침 복원용 — 모달은 닫힌 화면만 복원 */
+export function stripEphemeralOverlayFromNavState(state) {
+  if (!state?.overlay || !NON_PERSISTED_OVERLAYS.has(state.overlay)) {
+    return state;
+  }
+  return buildAppState({
+    view: state.view ?? pathToView(window.location.pathname),
+    homeTab: state.homeTab ?? null,
+    overlay: null,
+    overlayMeta: null,
+    date: state.date ?? null,
+    instructorId: state.instructorId ?? null,
+    instructorTab: state.instructorTab ?? null,
+  });
+}
+
 /** 예전 #hash 라우트 → bamppa state (새로고침 복원) */
 const HASH_NAV_PATCH = {
   social: { homeTab: 'social' },
@@ -216,8 +252,9 @@ export function restoreNavigationOnLoad() {
   const hashPatch = patchFromLocationHash(hash);
 
   const toRestoreUrl = (state, basePath = pathname) => {
-    const canonicalPath = resolveNavPath(basePath, state);
-    return { state, url: buildNavUrl(canonicalPath, state) + hash };
+    const cleaned = stripEphemeralOverlayFromNavState(state);
+    const canonicalPath = resolveNavPath(basePath, cleaned);
+    return { state: cleaned, url: buildNavUrl(canonicalPath, cleaned) + hash };
   };
 
   const existing = parseAppState(window.history.state);
@@ -278,8 +315,9 @@ export function restoreNavigationOnLoad() {
     });
   }
 
-  const canonicalPath = resolveNavPath(pathname, state);
-  return { state, url: buildNavUrl(canonicalPath, state) + hash };
+  const cleaned = stripEphemeralOverlayFromNavState(state);
+  const canonicalPath = resolveNavPath(pathname, cleaned);
+  return { state: cleaned, url: buildNavUrl(canonicalPath, cleaned) + hash };
 }
 
 export function persistNavSession() {
@@ -287,7 +325,12 @@ export function persistNavSession() {
     const path = window.location.pathname + window.location.search + window.location.hash;
     sessionStorage.setItem(NAV_SESSION_PATH_KEY, path);
     const st = readNavigationState();
-    if (st) sessionStorage.setItem(NAV_SESSION_STATE_KEY, JSON.stringify(st));
+    if (st) {
+      sessionStorage.setItem(
+        NAV_SESSION_STATE_KEY,
+        JSON.stringify(stripEphemeralOverlayFromNavState(st)),
+      );
+    }
   } catch {
     /* quota / private mode */
   }

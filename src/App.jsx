@@ -1576,6 +1576,9 @@ function App() {
     setShowVipMenu(false);
     setShowLuxuryUpsellModal(false);
     setVipPendingClassRegister(false);
+    if (parseAppState(window.history.state)?.overlay) {
+      if (closeOverlay()) return;
+    }
     setShowFullCalendar(false);
     setShowWeather(false);
     setShowWishlist(false);
@@ -1585,6 +1588,10 @@ function App() {
     setShowRoute(false);
     setShowPlaceInquiry(false);
     setShowGridModal(false);
+    setShowFilterPanel(false);
+    setShowFilteredResults(false);
+    setShowIncheonModal(false);
+    setChatbotOverlay(false);
   };
 
   useEffect(() => {
