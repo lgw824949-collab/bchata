@@ -101,12 +101,70 @@ export default function AdminDashboard({ onBack }) {
   const [password, setPassword] = useState('')
   const [imageFile, setImageFile] = useState(null)
   const [preview, setPreview] = useState(null)
+  const [instructorClassEditId, setInstructorClassEditId] = useState(null)
+  const [initialClassPosterUrl, setInitialClassPosterUrl] = useState(null)
+  const [posterFile, setPosterFile] = useState(null)
+  const [posterPreview, setPosterPreview] = useState(null)
+  const [posterRemoved, setPosterRemoved] = useState(false)
+
+  const resetInstructorPosterEdit = () => {
+    setInstructorClassEditId(null)
+    setInitialClassPosterUrl(null)
+    setPosterFile(null)
+    if (posterPreview && String(posterPreview).startsWith('blob:')) URL.revokeObjectURL(posterPreview)
+    setPosterPreview(null)
+    setPosterRemoved(false)
+  }
+
+  const loadInstructorClassForEdit = async (instructorId) => {
+    resetInstructorPosterEdit()
+    try {
+      const { data, error } = await supabase
+        .from('instructor_classes')
+        .select('id, poster_url, title')
+        .eq('instructor_id', instructorId)
+        .order('created_at', { ascending: false })
+        .limit(1)
+        .maybeSingle()
+      if (error) throw error
+      if (data) {
+        setInstructorClassEditId(data.id)
+        setInitialClassPosterUrl(data.poster_url || null)
+        setPosterPreview(data.poster_url || null)
+        setEditFormData((prev) => ({
+          ...prev,
+          class_poster_url: data.poster_url || '',
+          class_title: data.title || '',
+        }))
+      }
+    } catch (err) {
+      console.error('Instructor class fetch error:', err)
+    }
+  }
 
   const handleAdminImageChange = (e) => {
     const file = e.target.files[0]
     if (!file) return
     setImageFile(file)
     setPreview(URL.createObjectURL(file))
+  }
+
+  const handleAdminPosterChange = (e) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+    setPosterFile(file)
+    setPosterRemoved(false)
+    if (posterPreview && String(posterPreview).startsWith('blob:')) URL.revokeObjectURL(posterPreview)
+    setPosterPreview(URL.createObjectURL(file))
+  }
+
+  const handleAdminPosterRemove = (e) => {
+    e?.stopPropagation?.()
+    setPosterFile(null)
+    setPosterRemoved(true)
+    if (posterPreview && String(posterPreview).startsWith('blob:')) URL.revokeObjectURL(posterPreview)
+    setPosterPreview(null)
+    setEditFormData((prev) => ({ ...prev, class_poster_url: '' }))
   }
 
   const handleNewRentalImageChange = (e) => {
@@ -301,9 +359,11 @@ export default function AdminDashboard({ onBack }) {
       setShowClassEditModal(true)
     } else {
       setEditingItem(item.id)
-      setEditFormData({ ...item, name: item.name || item.title || '' })
+      setEditFormData({ ...item, name: item.name || item.title || '', class_poster_url: '', class_title: '' })
       setImageFile(null)
       setPreview(null)
+      resetInstructorPosterEdit()
+      if (category === 'instructor') loadInstructorClassForEdit(item.id)
     }
   }
 
@@ -334,6 +394,7 @@ export default function AdminDashboard({ onBack }) {
     setEditFormData({})
     setImageFile(null)
     setPreview(null)
+    resetInstructorPosterEdit()
     clearAdminMessage()
   }
 
@@ -417,6 +478,27 @@ export default function AdminDashboard({ onBack }) {
           return
         }
         setItems((prev) => prev.map((i) => (i.id === editingItem ? { ...i, ...updated } : i)))
+        const posterTouched =
+          posterRemoved ||
+          posterFile ||
+          String(editFormData.class_poster_url || '').trim() !== String(initialClassPosterUrl || '').trim()
+        if (instructorClassEditId && posterTouched) {
+          let classPosterUrl = String(editFormData.class_poster_url || '').trim() || null
+          if (posterRemoved) classPosterUrl = null
+          else if (posterFile) {
+            const ext = posterFile.name.split('.').pop()
+            const fileName = `classes/${Date.now()}_${Math.random().toString(36).substring(7)}.${ext}`
+            const { error: uploadError } = await supabase.storage.from('posters').upload(fileName, posterFile)
+            if (uploadError) throw uploadError
+            const { data: urlData } = supabase.storage.from('posters').getPublicUrl(fileName)
+            classPosterUrl = urlData.publicUrl
+          }
+          const { error: classPosterError } = await supabase
+            .from('instructor_classes')
+            .update({ poster_url: classPosterUrl })
+            .eq('id', instructorClassEditId)
+          if (classPosterError) throw classPosterError
+        }
       } else {
         const { locations, created_at, id, locationName, location_name, photo_url: _photo, instructors, ...updateData } = editFormData;
         const finalUpdate = { ...updateData };
@@ -433,6 +515,7 @@ export default function AdminDashboard({ onBack }) {
       setEditingItem(null)
       setImageFile(null)
       setPreview(null)
+      resetInstructorPosterEdit()
       await fetchData()
     } catch (err) {
       showAdminError(`수정 실패: ${err.message || err}`)
@@ -644,6 +727,50 @@ export default function AdminDashboard({ onBack }) {
       <input value={editFormData.career || ''} onChange={e => setEditFormData({ ...editFormData, career: e.target.value })} placeholder="경력" style={{ width: '100%', padding: '10px', borderRadius: '10px', border: '1px solid #E2E8F0' }} />
       <input value={editFormData.class_type || ''} onChange={e => setEditFormData({ ...editFormData, class_type: e.target.value })} placeholder="수업 방식" style={{ width: '100%', padding: '10px', borderRadius: '10px', border: '1px solid #E2E8F0' }} />
       <input type="number" value={editFormData.awards ?? ''} onChange={e => setEditFormData({ ...editFormData, awards: e.target.value })} placeholder="수상 횟수 (예: 3)" aria-label="수상 횟수" style={{ width: '100%', padding: '10px', borderRadius: '10px', border: '1px solid #E2E8F0' }} />
+      <div style={{ padding: '10px', backgroundColor: '#F8FAFC', borderRadius: '10px', border: '1px solid #E2E8F0' }}>
+        <div style={{ fontSize: '11px', fontWeight: 800, color: '#475569', marginBottom: '8px' }}>
+          클래스 포스터{editFormData.class_title ? ` · ${editFormData.class_title}` : ''}
+        </div>
+        {!instructorClassEditId ? (
+          <p style={{ margin: 0, fontSize: '12px', color: '#64748B', lineHeight: 1.5 }}>
+            연결된 클래스가 없습니다. 「강사 클래스」 탭에서 등록·수정해 주세요.
+          </p>
+        ) : (
+          <>
+            <input type="file" accept="image/*" onChange={handleAdminPosterChange} style={{ width: '100%', fontSize: '12px', marginBottom: '8px' }} />
+            {posterPreview && !posterRemoved ? (
+              <div style={{ position: 'relative', marginBottom: '8px' }}>
+                <img src={posterPreview} alt="클래스 포스터" style={{ width: '100%', maxHeight: '160px', objectFit: 'cover', borderRadius: '10px', display: 'block' }} />
+                <button
+                  type="button"
+                  onClick={(e) => { e.stopPropagation(); handleAdminPosterRemove(e) }}
+                  style={{
+                    position: 'absolute', top: '8px', right: '8px', display: 'flex', alignItems: 'center', gap: '4px',
+                    padding: '6px 10px', borderRadius: '8px', border: 'none', background: 'rgba(0,0,0,0.72)',
+                    color: '#fff', fontSize: '12px', fontWeight: 800, cursor: 'pointer',
+                  }}
+                >
+                  <Trash2 size={14} /> 삭제
+                </button>
+              </div>
+            ) : posterRemoved ? (
+              <p style={{ margin: '0 0 8px', fontSize: '12px', color: '#94A3B8' }}>저장 시 포스터가 제거됩니다.</p>
+            ) : null}
+            <input
+              value={editFormData.class_poster_url || ''}
+              onChange={(e) => {
+                const url = e.target.value
+                setEditFormData({ ...editFormData, class_poster_url: url })
+                setPosterRemoved(false)
+                setPosterFile(null)
+                setPosterPreview(url || null)
+              }}
+              placeholder="포스터 URL 직접 입력"
+              style={{ width: '100%', padding: '8px', borderRadius: '8px', border: '1px solid #E2E8F0', fontSize: '12px' }}
+            />
+          </>
+        )}
+      </div>
       <div style={{ display: 'flex', gap: '8px' }}>
         <button type="button" onClick={(e) => { e.stopPropagation(); saveEdit() }} disabled={loading} style={{ flex: 1, padding: '10px', background: '#10B981', color: '#FFF', border: 'none', borderRadius: '10px', fontWeight: 800 }}>SAVE</button>
         <button type="button" onClick={(e) => { e.stopPropagation(); cancelEdit() }} style={{ flex: 1, padding: '10px', background: '#EEE', color: '#666', border: 'none', borderRadius: '10px', fontWeight: 800 }}>CANCEL</button>
