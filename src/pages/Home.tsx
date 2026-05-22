@@ -22,10 +22,7 @@ import HomeHeroTagline from '../components/HomeHeroTagline'
 import { navigate as historyNavigate, parseAppState, pushOverlay, readNavigationState } from '../lib/appHistory'
 import { formatPartyFeeDisplay, PARTY_FEE_CARD_FONT_SIZE } from '../lib/partyFeeDisplay'
 import { formatPartyTitleDisplay } from '../lib/partyTitleDisplay'
-import {
-  buildHomeLiveBannerSlides,
-  LIVE_BANNER_ROTATE_SLOTS,
-} from '../lib/homeLiveBannerSlides'
+import { buildHomeLiveBannerSlides } from '../lib/homeLiveBannerSlides'
 import PartyCard from '../components/PartyCard'
 
 function navigate(path, options = {}) {
@@ -134,20 +131,8 @@ const SOCIAL_BAR_REGION_ALL = '전체';
 /** 메인 홈 — 오늘 지역 대표 포스터 슬라이드 (빠른 메뉴 위) */
 const HOME_POSTER_BANNER_MS = 4000;
 
-/** LIVE 배너 2차 슬라이드 — 오늘 포스터 등록 BAR만, bar_checkins 실시간 인원 */
+/** LIVE 배너 — 지역 우선(서울→수도권→지방) 파티 제목·인원 순환 */
 const LIVE_BANNER_SLIDE_MS = 5000;
-const LIVE_BANNER_BAR_RULES = [
-  { label: '라틴', match: (k) => k === '라틴' },
-  { label: '카디즈', match: (k) => k.includes('카디즈') || k.includes('cadiz') },
-  { label: '보니따', match: (k) => k.includes('보니타') || k.includes('보니따') },
-  { label: '강남턴', match: (k) => k.includes('강남턴') || k === '강턴' },
-];
-
-const normalizeLiveBarNameKey = (name) =>
-  String(name || '').trim().toLowerCase().replace(/\s+/g, '');
-
-const getPartyBarName = (party) =>
-  String(party?.locations?.name || party?.location_name || party?.locationName || '').trim();
 
 const BAR_VIEW_COUNT_DELAY_MS = 7000;
 const viewedBarStorageKey = (barId) => `viewed_bar_${barId}`;
@@ -1529,7 +1514,6 @@ const HomePage = ({
   const [liveBannerPartyRows, setLiveBannerPartyRows] = useState([]);
   const [homePosterBannerSlides, setHomePosterBannerSlides] = useState([]);
   const [homePosterBannerIdx, setHomePosterBannerIdx] = useState(0);
-  const [liveBarRotateOffset, setLiveBarRotateOffset] = useState(0);
   const liveBannerSlideIdxRef = useRef(0);
 
 
@@ -1927,7 +1911,7 @@ const HomePage = ({
       const { data, error } = await supabase
         .from('parties')
         .select(
-          'id, title, date, created_at, address, view_count, click_count, poster_url, location_id, locations!location_id(name)',
+          'id, title, date, time, created_at, address, view_count, click_count, poster_url, location_id, locations!location_id(name)',
         )
         .eq('status', 'approved')
         .eq('date', calendarTodayStr);
@@ -2510,65 +2494,17 @@ const HomePage = ({
     );
     const withPoster = todayRows.filter((p) => String(p.poster_url || p.imageUrl || '').trim());
 
-    const checkinByBarKey = {};
-    Object.entries(barStatsMap || {}).forEach(([key, val]) => {
-      if (!key.startsWith('name:')) return;
-      const barKey = key.slice(5);
-      checkinByBarKey[barKey] = Number(val?.liveCount) || 0;
-    });
-
-    const formatBarLine = (party) => {
-      const barKey = normalizeLiveBarNameKey(getPartyBarName(party));
-      const rule = LIVE_BANNER_BAR_RULES.find((r) => r.match(barKey));
-      const label =
-        rule?.label ||
-        getPartyBarName(party) ||
-        formatPartyTitleDisplay(party?.title) ||
-        (isEn ? 'BAR' : 'BAR');
-      let count = 0;
-      Object.entries(checkinByBarKey).forEach(([k, live]) => {
-        if (rule ? rule.match(k) : k === barKey) count += live;
-      });
-      return isEn ? `${label} ${count}` : `${label} ${count}명`;
-    };
-
     return buildHomeLiveBannerSlides({
       regionCounts,
       withPosterParties: withPoster,
-      formatBarLine,
-      rotateOffset: liveBarRotateOffset,
       isEn,
     });
-  }, [parties, liveBannerPartyRows, calendarTodayStr, isEn, barStatsMap, regionCounts, liveBarRotateOffset]);
+  }, [parties, liveBannerPartyRows, calendarTodayStr, isEn, regionCounts]);
 
   useEffect(() => {
-    setLiveBarRotateOffset(0);
     liveBannerSlideIdxRef.current = 0;
     setLiveBannerSlideIdx(0);
   }, [calendarTodayStr, regionCounts.seoul, regionCounts.metro, regionCounts.national]);
-
-  useEffect(() => {
-    const slides = homeLiveBannerSlides.slides;
-    if (!slides.length) return undefined;
-
-    const prevIdx = liveBannerSlideIdxRef.current;
-    const curIdx = liveBannerSlideIdx;
-    liveBannerSlideIdxRef.current = curIdx;
-
-    const prevSlide = slides[prevIdx];
-    const curSlide = slides[curIdx];
-    const hasRotate = slides.some((s) => s.tier === 'rotate');
-    const advancedFromRotate =
-      hasRotate &&
-      prevSlide?.tier === 'rotate' &&
-      (curSlide?.tier === 'summary' || curSlide?.tier === 'fixed' || (prevIdx === slides.length - 1 && curIdx === 0));
-
-    if (advancedFromRotate) {
-      setLiveBarRotateOffset((o) => o + LIVE_BANNER_ROTATE_SLOTS);
-    }
-
-    return undefined;
-  }, [liveBannerSlideIdx, homeLiveBannerSlides.slides]);
 
   useEffect(() => {
     if (homeLiveBannerSlides.slides.length < 2) return undefined;
@@ -2584,8 +2520,9 @@ const HomePage = ({
     const bannerLine = slide?.text || '';
     const ariaLabel = `LIVE · ${slides.map((s) => s.text).join(' | ')}`;
     const handleClick = () => {
-      if (pick) {
-        openPartyWithAfterParty(pick);
+      const slideParty = slide?.party || pick;
+      if (slideParty) {
+        openPartyWithAfterParty(slideParty);
         return;
       }
       openFullCalendarModal();
