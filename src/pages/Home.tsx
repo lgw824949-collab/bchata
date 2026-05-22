@@ -2329,6 +2329,37 @@ const HomePage = ({
     setSocialBarPreviewExpanded(false);
   }, [selectedRegionTab]);
 
+  /** 메인 홈 — 가로 캐러셀 위에서도 세로 휠·트랙패드가 페이지 스크롤 되도록 */
+  useEffect(() => {
+    if (activeTab !== null) return undefined;
+
+    const horizontalBandSelector = [
+      '.home-hot-instructors-scroll',
+      '.home-social-bar-scroll--expanded',
+      '.home-quick-menu-scroll--gate-all',
+      '.home-region-tabs',
+      '.home-quick-menu-more-scroll',
+    ].join(',');
+
+    const onWheel = (e) => {
+      const band = e.target instanceof Element ? e.target.closest(horizontalBandSelector) : null;
+      if (!band) return;
+      if (Math.abs(e.deltaY) < Math.abs(e.deltaX)) return;
+
+      const maxScrollLeft = band.scrollWidth - band.clientWidth;
+      if (maxScrollLeft <= 1) return;
+
+      const root = document.scrollingElement || document.documentElement;
+      if (!root) return;
+
+      root.scrollTop += e.deltaY;
+      e.preventDefault();
+    };
+
+    document.addEventListener('wheel', onWheel, { passive: false, capture: true });
+    return () => document.removeEventListener('wheel', onWheel, { capture: true });
+  }, [activeTab]);
+
   /** 앱(홈) 진입 시 GPS → 내 지역 탭 1순위·자동 선택 (권한 이미 허용 가정) */
   useEffect(() => {
     if (activeTab !== null) return;
@@ -4058,11 +4089,13 @@ const HomePage = ({
           gap: 10px;
           overflow-x: auto;
           overflow-y: hidden;
-          scroll-snap-type: x mandatory;
+          scroll-snap-type: none;
           -webkit-overflow-scrolling: touch;
           scrollbar-width: none;
           msOverflowStyle: none;
           padding: 2px 20px 4px 2px;
+          touch-action: pan-y pan-x;
+          overscroll-behavior: contain;
         }
         .home-quick-menu-scroll--gate-all > .home-quick-menu-item {
           flex: 0 0 calc((100% - 36px) / 4);
@@ -4303,11 +4336,11 @@ const HomePage = ({
           min-width: 0;
           overflow-x: auto;
           overflow-y: hidden;
-          scroll-snap-type: x mandatory;
+          scroll-snap-type: x proximity;
           scroll-padding-inline: 20px 52px;
           -webkit-overflow-scrolling: touch;
-          touch-action: pan-x pinch-zoom;
-          overscroll-behavior-x: contain;
+          touch-action: pan-y pan-x;
+          overscroll-behavior: contain;
           scrollbar-width: none;
           -ms-overflow-style: none;
           padding: 0;
