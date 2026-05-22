@@ -13,3 +13,5 @@ CREATE POLICY "Anyone can insert follows" ON instructor_follows
 DROP POLICY IF EXISTS "Anyone can delete follows" ON instructor_follows;
 CREATE POLICY "Anyone can delete follows" ON instructor_follows
   FOR DELETE USING (true);
+
+-- 강사 / 클래스 관리자 수정 (전체 SQL은 migrations/20260522120000_instructor_classes_instructors_rls.sql)

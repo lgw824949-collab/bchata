@@ -1,6 +1,7 @@
 ﻿// v0.1.1 - Force redeploy for UI simplification
 import React, { useState, useEffect } from 'react'
 import { supabase } from './lib/supabase'
+import { adminDbMutate } from './lib/adminApi'
 import { ChevronLeft, Check, Trash2, ShieldCheck, X, RefreshCw, XCircle, Clock, Tent, Flag, Music2, Camera, Zap, Menu, User, Sparkles, Plus } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
 import RegisterForm from './RegisterForm'
@@ -99,6 +100,7 @@ export default function AdminDashboard({ onBack }) {
   const [loginStep, setLoginStep] = useState(1)
   const [adminId, setAdminId] = useState('')
   const [password, setPassword] = useState('')
+  const [adminApiSecret, setAdminApiSecret] = useState('')
   const [imageFile, setImageFile] = useState(null)
   const [preview, setPreview] = useState(null)
   const [instructorClassEditId, setInstructorClassEditId] = useState(null)
@@ -256,8 +258,12 @@ export default function AdminDashboard({ onBack }) {
     e.preventDefault()
     const validId = 'lgw1004'; const validPw = '^^dlwlsdn1052181818';
     if (loginStep === 1) { if (adminId === validId) setLoginStep(2); else alert('아이디 오류'); return; }
-    if (password === validPw) { setIsAdmin(true); localStorage.setItem('admin_login_time', Date.now().toString()); fetchData(); } 
-    else alert('비번 오류');
+    if (password === validPw) {
+      setIsAdmin(true)
+      setAdminApiSecret(validPw)
+      localStorage.setItem('admin_login_time', Date.now().toString())
+      fetchData()
+    } else alert('비번 오류');
   }
 
   const getAdminKSTTodayStr = () => {
@@ -466,12 +472,13 @@ export default function AdminDashboard({ onBack }) {
           showAdminError('강사 이름을 입력해 주세요.')
           return
         }
-        const { data: updated, error } = await supabase
-          .from('instructors')
-          .update(payload)
-          .eq('id', editingItem)
-          .select()
-          .maybeSingle()
+        const { data: updated, error } = await adminDbMutate({
+          adminSecret: adminApiSecret,
+          table: 'instructors',
+          action: 'update',
+          id: editingItem,
+          payload,
+        })
         if (error) throw error
         if (!updated) {
           showAdminError('DB에 반영되지 않았습니다. ID·권한(RLS)을 확인해 주세요.')
@@ -493,10 +500,13 @@ export default function AdminDashboard({ onBack }) {
             const { data: urlData } = supabase.storage.from('posters').getPublicUrl(fileName)
             classPosterUrl = urlData.publicUrl
           }
-          const { error: classPosterError } = await supabase
-            .from('instructor_classes')
-            .update({ poster_url: classPosterUrl })
-            .eq('id', instructorClassEditId)
+          const { error: classPosterError } = await adminDbMutate({
+            adminSecret: adminApiSecret,
+            table: 'instructor_classes',
+            action: 'update',
+            id: instructorClassEditId,
+            payload: { poster_url: classPosterUrl },
+          })
           if (classPosterError) throw classPosterError
         }
       } else {
@@ -571,11 +581,14 @@ export default function AdminDashboard({ onBack }) {
         
         const statusVal = newStatus === 'approved' ? 'active' : newStatus;
         if (category !== 'live') {
-          const { data, error } = await supabase.from(table).update({ status: statusVal }).eq('id', item.id).select('id');
+          const { error } = await adminDbMutate({
+            adminSecret: adminApiSecret,
+            table,
+            action: 'update',
+            id: item.id,
+            payload: { status: statusVal },
+          });
           if (error) throw error;
-          if (!data?.length) {
-            throw new Error('상태 변경이 DB에 반영되지 않았습니다. RLS·권한을 확인해 주세요.');
-          }
         }
       }
       await fetchData();
@@ -598,11 +611,13 @@ export default function AdminDashboard({ onBack }) {
       else if (category === 'instructor-classes') table = 'instructor_classes';
       else if (category === 'rental') table = 'locations';
       else table = category === 'bootcamp' ? 'bootcamps' : 'festivals';
-      const { data, error } = await supabase.from(table).delete().eq('id', id).select('id');
+      const { error } = await adminDbMutate({
+        adminSecret: adminApiSecret,
+        table,
+        action: 'delete',
+        id,
+      });
       if (error) throw error;
-      if (!data?.length) {
-        throw new Error('삭제되지 않았습니다. RLS·권한을 확인해 주세요.');
-      }
       if (editingItem === id) cancelEdit();
       showAdminSuccess('삭제되었습니다.');
       await fetchData();
@@ -1374,6 +1389,8 @@ export default function AdminDashboard({ onBack }) {
           isOpen={showClassEditModal}
           editClassItem={classEditItem}
           instructorId={classEditItem?.instructor_id || ''}
+          isAdminMode
+          adminApiSecret={adminApiSecret}
           onClose={() => {
             setShowClassEditModal(false);
             setClassEditItem(null);

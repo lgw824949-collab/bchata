@@ -2,6 +2,7 @@ import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { Z } from '../constants/zLayers';
 import { motion, AnimatePresence } from 'framer-motion';
 import { supabase } from '../lib/supabase';
+import { adminDbMutate } from '../lib/adminApi';
 import { X, Calendar, Clock, MapPin, DollarSign, Users, Info, User, Sparkles, Plus, MessageCircle, Camera, Trash2 } from 'lucide-react';
 import { DEFAULT_CARD_IMAGE, imgFallbackHandler } from '../constants/imageAssets';
 
@@ -188,6 +189,8 @@ const ClassRegisterModal = ({
   instructorId = '',
   editClassItem = null,
   onSaved = null,
+  isAdminMode = false,
+  adminApiSecret = '',
 }) => {
   const isEditMode = Boolean(editClassItem?.id);
   const [step, setStep] = useState(1);
@@ -521,16 +524,33 @@ const ClassRegisterModal = ({
         kakao_link: form.kakaoLink.trim() || null,
       };
       if (photoUrl) profilePatch.photo_url = photoUrl;
-      const { data: updatedProfile, error: profileError } = await supabase
-        .from('instructors')
-        .update(profilePatch)
-        .eq('id', targetInstId)
-        .select('id')
-        .maybeSingle();
-      if (profileError) throw profileError;
-      if (!updatedProfile) {
-        throw new Error('강사 프로필이 DB에 반영되지 않았습니다. RLS·권한을 확인해 주세요.');
-      }
+
+      const mutateProfile = async () => {
+        if (isAdminMode && adminApiSecret) {
+          const { data, error } = await adminDbMutate({
+            adminSecret: adminApiSecret,
+            table: 'instructors',
+            action: 'update',
+            id: targetInstId,
+            payload: profilePatch,
+          });
+          if (error) throw error;
+          return data;
+        }
+        const { data: updatedProfile, error: profileError } = await supabase
+          .from('instructors')
+          .update(profilePatch)
+          .eq('id', targetInstId)
+          .select('id')
+          .maybeSingle();
+        if (profileError) throw profileError;
+        if (!updatedProfile) {
+          throw new Error('강사 프로필이 DB에 반영되지 않았습니다. RLS·권한을 확인해 주세요.');
+        }
+        return updatedProfile;
+      };
+
+      await mutateProfile();
       if (photoUrl) setForm((prev) => ({ ...prev, photoUrl }));
 
       let posterUrl = null;
@@ -562,15 +582,29 @@ const ClassRegisterModal = ({
       };
 
       if (isEditMode) {
-        const { data: updatedClass, error } = await supabase
-          .from('instructor_classes')
-          .update(classPayload)
-          .eq('id', editClassItem.id)
-          .select()
-          .maybeSingle();
-        if (error) throw error;
-        if (!updatedClass) {
-          throw new Error('클래스 수정이 DB에 반영되지 않았습니다. ID·RLS 권한을 확인해 주세요.');
+        if (isAdminMode && adminApiSecret) {
+          const { data, error } = await adminDbMutate({
+            adminSecret: adminApiSecret,
+            table: 'instructor_classes',
+            action: 'update',
+            id: editClassItem.id,
+            payload: classPayload,
+          });
+          if (error) throw error;
+          if (!data) {
+            throw new Error('클래스 수정이 DB에 반영되지 않았습니다.');
+          }
+        } else {
+          const { data: updatedClass, error } = await supabase
+            .from('instructor_classes')
+            .update(classPayload)
+            .eq('id', editClassItem.id)
+            .select()
+            .maybeSingle();
+          if (error) throw error;
+          if (!updatedClass) {
+            throw new Error('클래스 수정이 DB에 반영되지 않았습니다. ID·RLS 권한을 확인해 주세요.');
+          }
         }
       } else {
         const { data: insertedClass, error } = await supabase
