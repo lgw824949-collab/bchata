@@ -653,8 +653,8 @@ export default function AdminDashboard({ onBack }) {
       <input value={editFormData.class_type || ''} onChange={e => setEditFormData({ ...editFormData, class_type: e.target.value })} placeholder="수업 방식" style={{ width: '100%', padding: '10px', borderRadius: '10px', border: '1px solid #E2E8F0' }} />
       <input type="number" value={editFormData.awards ?? ''} onChange={e => setEditFormData({ ...editFormData, awards: e.target.value })} placeholder="수상 횟수 (예: 3)" aria-label="수상 횟수" style={{ width: '100%', padding: '10px', borderRadius: '10px', border: '1px solid #E2E8F0' }} />
       <div style={{ display: 'flex', gap: '8px' }}>
-        <button type="button" onClick={saveEdit} disabled={loading} style={{ flex: 1, padding: '10px', background: '#10B981', color: '#FFF', border: 'none', borderRadius: '10px', fontWeight: 800 }}>SAVE</button>
-        <button type="button" onClick={cancelEdit} style={{ flex: 1, padding: '10px', background: '#EEE', color: '#666', border: 'none', borderRadius: '10px', fontWeight: 800 }}>CANCEL</button>
+        <button type="button" onClick={(e) => { e.stopPropagation(); saveEdit() }} disabled={loading} style={{ flex: 1, padding: '10px', background: '#10B981', color: '#FFF', border: 'none', borderRadius: '10px', fontWeight: 800 }}>SAVE</button>
+        <button type="button" onClick={(e) => { e.stopPropagation(); cancelEdit() }} style={{ flex: 1, padding: '10px', background: '#EEE', color: '#666', border: 'none', borderRadius: '10px', fontWeight: 800 }}>CANCEL</button>
       </div>
     </div>
   )
@@ -904,15 +904,15 @@ export default function AdminDashboard({ onBack }) {
                         </td>
                         <td style={{ padding: '10px' }}>
                           <div style={{ display: 'flex', gap: '4px', flexWrap: 'nowrap' }} onClick={(e) => e.stopPropagation()}>
-                            <button type="button" title="승인" onClick={() => updateStatus(item, 'active')} style={{ ...iconActionBtn, background: '#E8F5E9', color: '#2E7D32' }}>✓</button>
-                            <button type="button" title="반려" onClick={() => updateStatus(item, 'rejected')} style={{ ...iconActionBtn, background: '#FFEBEE', color: '#C62828' }}>✗</button>
-                            <button type="button" title="대기" onClick={() => updateStatus(item, 'pending')} style={{ ...iconActionBtn, background: '#FFF8E1', color: '#F59E0B' }}>🔄</button>
-                            <button type="button" title="삭제" onClick={() => deleteItem(item.id)} style={{ ...iconActionBtn, background: '#F5F5F5', color: '#666' }}>🗑</button>
+                            <button type="button" title="승인" onClick={(e) => { e.stopPropagation(); updateStatus(item, 'active') }} style={{ ...iconActionBtn, background: '#E8F5E9', color: '#2E7D32' }}>✓</button>
+                            <button type="button" title="반려" onClick={(e) => { e.stopPropagation(); updateStatus(item, 'rejected') }} style={{ ...iconActionBtn, background: '#FFEBEE', color: '#C62828' }}>✗</button>
+                            <button type="button" title="대기" onClick={(e) => { e.stopPropagation(); updateStatus(item, 'pending') }} style={{ ...iconActionBtn, background: '#FFF8E1', color: '#F59E0B' }}>🔄</button>
+                            <button type="button" title="삭제" onClick={(e) => { e.stopPropagation(); deleteItem(item.id) }} style={{ ...iconActionBtn, background: '#F5F5F5', color: '#666' }}>🗑</button>
                           </div>
                         </td>
                       </tr>
                       {isEditing && (
-                        <tr>
+                        <tr onClick={(e) => e.stopPropagation()}>
                           <td colSpan={8} style={{ padding: '16px', background: '#F8FAFC', borderBottom: '1px solid #E2E8F0' }}>
                             {renderInstructorEditPanel()}
                           </td>
