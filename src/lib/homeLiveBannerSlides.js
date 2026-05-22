@@ -67,12 +67,13 @@ export function buildHomeLiveBannerSlides({
   withPosterParties,
   rotateOffset: _rotateOffset = 0,
   isEn = false,
+  skipLiveWindow = false,
 }) {
   const now = Date.now();
   const pool = (withPosterParties || [])
     .map(enrichPartyBroadRegion)
     .filter((p) => String(p.poster_url || p.imageUrl || '').trim())
-    .filter((p) => isPartyInLiveBannerWindow(p, now));
+    .filter((p) => skipLiveWindow || isPartyInLiveBannerWindow(p, now));
 
   const seoul = sortPartiesByStartTime(pool.filter(isPartySeoul));
   const metro = sortPartiesByStartTime(pool.filter(isPartyMetro));
