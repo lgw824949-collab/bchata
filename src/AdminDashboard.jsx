@@ -145,6 +145,49 @@ export default function AdminDashboard({ onBack }) {
   }
   const [editFormData, setEditFormData] = useState({})
   const [loading, setLoading] = useState(false)
+  const [adminMessage, setAdminMessage] = useState(null)
+
+  const showAdminError = (text) => setAdminMessage({ type: 'error', text: String(text || '요청 처리에 실패했습니다.') })
+  const showAdminSuccess = (text) => setAdminMessage({ type: 'success', text: String(text || '처리되었습니다.') })
+  const clearAdminMessage = () => setAdminMessage(null)
+
+  const formatInstructorGenre = (genre) => {
+    if (Array.isArray(genre)) return genre.filter(Boolean).join(', ') || '-'
+    return genre?.trim() ? genre : '-'
+  }
+
+  const instructorStatusMeta = (status) => {
+    if (status === 'active') return { label: '승인완료', color: '#10B981', bg: '#ECFDF5' }
+    if (status === 'rejected') return { label: '반려됨', color: '#EF4444', bg: '#FEF2F2' }
+    return { label: '승인대기', color: '#F59E0B', bg: '#FFFBEB' }
+  }
+
+  const buildInstructorUpdatePayload = (form, photoUrl) => {
+    const genreRaw = form.genre
+    const genre = Array.isArray(genreRaw)
+      ? genreRaw.map((g) => String(g).trim()).filter(Boolean)
+      : String(genreRaw || '')
+          .split(',')
+          .map((s) => s.trim())
+          .filter(Boolean)
+    const awardsVal = form.awards
+    return {
+      name: String(form.name || form.title || '').trim(),
+      custom_id: String(form.custom_id || '').trim() || null,
+      city: String(form.city || '').trim() || null,
+      genre: genre.length ? genre : null,
+      instagram: String(form.instagram || '').trim() || null,
+      kakao_link: String(form.kakao_link || '').trim() || null,
+      bio: String(form.bio || '').trim() || null,
+      career: String(form.career || '').trim() || null,
+      class_type: String(form.class_type || '').trim() || null,
+      awards:
+        awardsVal === '' || awardsVal == null
+          ? null
+          : String(awardsVal).trim(),
+      photo_url: photoUrl || String(form.photo_url || '').trim() || null,
+    }
+  }
 
   const [newRental, setNewRental] = useState({ name: '', address: '', kakao_url: '', instagram_url: '', image_url: '' })
   const [newRentalFile, setNewRentalFile] = useState(null)
@@ -195,7 +238,10 @@ export default function AdminDashboard({ onBack }) {
       const { data, error } = await (category === 'rental' ? query.order('name', { ascending: true }) : query.order('created_at', { ascending: false }))
       if (error) throw error
       setItems(data || [])
-    } catch (err) { console.error(err) } finally { setLoading(false) }
+      clearAdminMessage()
+    } catch (err) {
+      if (category === 'instructor') showAdminError(`목록 불러오기 실패: ${err.message || err}`)
+    } finally { setLoading(false) }
   }
 
   useEffect(() => { if (isAdmin) fetchData() }, [category, activeTab, isAdmin])
@@ -247,6 +293,7 @@ export default function AdminDashboard({ onBack }) {
 
   // 수정 시작
   const startEdit = (item) => {
+    clearAdminMessage()
     if (category === 'social') {
       openPartyRegisterForm(item)
     } else if (category === 'instructor-classes') {
@@ -254,8 +301,18 @@ export default function AdminDashboard({ onBack }) {
       setShowClassEditModal(true)
     } else {
       setEditingItem(item.id)
-      setEditFormData({ ...item })
+      setEditFormData({ ...item, name: item.name || item.title || '' })
+      setImageFile(null)
+      setPreview(null)
     }
+  }
+
+  const toggleInstructorRowEdit = (item) => {
+    if (editingItem === item.id) {
+      cancelEdit()
+      return
+    }
+    startEdit(item)
   }
 
   // 과거 데이터 삭제 (클린업)
@@ -285,11 +342,13 @@ export default function AdminDashboard({ onBack }) {
     setEditFormData({})
     setImageFile(null)
     setPreview(null)
+    clearAdminMessage()
   }
 
   // 수정 저장
   const saveEdit = async () => {
     setLoading(true)
+    clearAdminMessage()
     try {
       let table;
       if (category === 'social') table = activeTab === 'active' ? 'parties' : 'pending_parties';
@@ -336,14 +395,18 @@ export default function AdminDashboard({ onBack }) {
         } else if (error) {
           throw error;
         }
-      } else {
-        const { locations, created_at, id, locationName, location_name, photo_url: _photo, ...updateData } = editFormData;
-        const finalUpdate = { ...updateData };
-        if (category === 'instructor') {
-          finalUpdate.photo_url = finalPhotoUrl;
-        } else {
-          finalUpdate.poster_url = updateData.poster_url || _photo || '';
+      } else if (category === 'instructor') {
+        const payload = buildInstructorUpdatePayload(editFormData, finalPhotoUrl)
+        if (!payload.name) {
+          showAdminError('강사 이름을 입력해 주세요.')
+          return
         }
+        const { error } = await supabase.from('instructors').update(payload).eq('id', editingItem)
+        if (error) throw error
+      } else {
+        const { locations, created_at, id, locationName, location_name, photo_url: _photo, instructors, ...updateData } = editFormData;
+        const finalUpdate = { ...updateData };
+        finalUpdate.poster_url = updateData.poster_url || _photo || '';
         // 빈 문자열 날짜 → null 변환 (DB date 타입 오류 방지)
         ['start_date', 'end_date', 'date'].forEach(k => {
           if (finalUpdate[k] === '') finalUpdate[k] = null;
@@ -352,12 +415,14 @@ export default function AdminDashboard({ onBack }) {
         if (error) throw error;
       }
 
-      alert('수정되었습니다.');
-      setEditingItem(null);
-      setImageFile(null);
-      setPreview(null);
-      fetchData();
-    } catch (err) { alert('수정 실패: ' + err.message) } finally { setLoading(false) }
+      showAdminSuccess('수정되었습니다.')
+      setEditingItem(null)
+      setImageFile(null)
+      setPreview(null)
+      await fetchData()
+    } catch (err) {
+      showAdminError(`수정 실패: ${err.message || err}`)
+    } finally { setLoading(false) }
   }
 
   // 상태 업데이트 (승인/보류/반려 - 확인창 제거하여 속도 개선)
@@ -413,11 +478,10 @@ export default function AdminDashboard({ onBack }) {
           if (error) throw error;
         }
       }
-      fetchData();
-      alert('상태가 업데이트되었습니다!');
+      await fetchData();
+      showAdminSuccess('상태가 업데이트되었습니다.');
     } catch (err) { 
-      console.error(err);
-      alert('처리 실패: ' + err.message); 
+      showAdminError(`처리 실패: ${err.message || err}`);
     } finally { setLoading(false) }
   }
 
@@ -425,6 +489,7 @@ export default function AdminDashboard({ onBack }) {
   const deleteItem = async (id) => {
     if (!window.confirm('DB에서 영구 삭제하시겠습니까?')) return
     setLoading(true)
+    clearAdminMessage()
     try {
       let table;
       if (category === 'social') table = activeTab === 'active' ? 'parties' : 'pending_parties';
@@ -433,9 +498,14 @@ export default function AdminDashboard({ onBack }) {
       else if (category === 'instructor-classes') table = 'instructor_classes';
       else if (category === 'rental') table = 'locations';
       else table = category === 'bootcamp' ? 'bootcamps' : 'festivals';
-      await supabase.from(table).delete().eq('id', id);
-      fetchData();
-    } catch (err) { alert('삭제 실패') } finally { setLoading(false) }
+      const { error } = await supabase.from(table).delete().eq('id', id);
+      if (error) throw error;
+      if (editingItem === id) cancelEdit();
+      showAdminSuccess('삭제되었습니다.');
+      await fetchData();
+    } catch (err) {
+      showAdminError(`삭제 실패: ${err.message || err}`);
+    } finally { setLoading(false) }
   }
 
   /** parties.view_count — 오늘 날짜 파티만 누적 (+20/+30/+50/+100) */
@@ -514,6 +584,58 @@ export default function AdminDashboard({ onBack }) {
     { id: 'instructor-classes', label: '강사 클래스 📚', icon: <Sparkles size={16} /> },
     { id: 'event', label: '🥃 이벤트', icon: <Sparkles size={16} color="#F59E0B" /> }
   ]
+
+  const iconActionBtn = {
+    padding: '8px 10px',
+    borderRadius: '8px',
+    border: 'none',
+    fontSize: '16px',
+    lineHeight: 1,
+    cursor: 'pointer',
+    flexShrink: 0,
+  }
+
+  const renderInstructorEditPanel = () => (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }} onClick={(e) => e.stopPropagation()}>
+      <input
+        value={editFormData.name || editFormData.title || ''}
+        onChange={(e) => setEditFormData({ ...editFormData, name: e.target.value, title: e.target.value })}
+        placeholder="강사 이름"
+        style={{ width: '100%', padding: '10px', borderRadius: '10px', border: '1px solid #E2E8F0', fontWeight: 700 }}
+      />
+      <div style={{ display: 'flex', gap: '8px' }}>
+        <input value={editFormData.custom_id || ''} onChange={e => setEditFormData({ ...editFormData, custom_id: e.target.value })} placeholder="고유 ID (Handle)" style={{ flex: 1, padding: '10px', borderRadius: '10px', border: '1px solid #E2E8F0' }} />
+        <input value={editFormData.city || ''} onChange={e => setEditFormData({ ...editFormData, city: e.target.value })} placeholder="활동 지역" style={{ flex: 1, padding: '10px', borderRadius: '10px', border: '1px solid #E2E8F0' }} />
+      </div>
+      <input value={Array.isArray(editFormData.genre) ? editFormData.genre.join(', ') : editFormData.genre || ''} onChange={e => setEditFormData({ ...editFormData, genre: e.target.value.split(',').map(s => s.trim()) })} placeholder="장르 (쉼표로 구분)" style={{ width: '100%', padding: '10px', borderRadius: '10px', border: '1px solid #E2E8F0' }} />
+      <div style={{ display: 'flex', gap: '8px' }}>
+        <input value={editFormData.instagram || ''} onChange={e => setEditFormData({ ...editFormData, instagram: e.target.value })} placeholder="인스타그램 ID" style={{ flex: 1, padding: '10px', borderRadius: '10px', border: '1px solid #E2E8F0' }} />
+        <input value={editFormData.kakao_link || ''} onChange={e => setEditFormData({ ...editFormData, kakao_link: e.target.value })} placeholder="카카오 오픈챗 링크" style={{ flex: 1, padding: '10px', borderRadius: '10px', border: '1px solid #E2E8F0' }} />
+      </div>
+      <div style={{ display: 'flex', gap: '12px', alignItems: 'center', padding: '10px', backgroundColor: '#F1F5F9', borderRadius: '10px' }}>
+        <label style={{ cursor: 'pointer', flexShrink: 0 }}>
+          <input type="file" accept="image/*" onChange={handleAdminImageChange} style={{ display: 'none' }} />
+          <div style={{ width: '60px', height: '60px', borderRadius: '12px', background: '#FFF', border: '1px dashed #94A3B8', overflow: 'hidden', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            {(preview || editFormData.photo_url) ? (
+              <img src={preview || editFormData.photo_url} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+            ) : <Camera size={24} color="#94A3B8" />}
+          </div>
+        </label>
+        <div style={{ flex: 1 }}>
+          <div style={{ fontSize: '11px', fontWeight: 800, color: '#475569' }}>프로필 사진 교체</div>
+          <input value={editFormData.photo_url || ''} onChange={e => setEditFormData({ ...editFormData, photo_url: e.target.value })} placeholder="또는 URL 직접 입력" style={{ width: '100%', padding: '5px 0', border: 'none', borderBottom: '1px solid #CBD5E1', backgroundColor: 'transparent', fontSize: '12px' }} />
+        </div>
+      </div>
+      <textarea value={editFormData.bio || ''} onChange={e => setEditFormData({ ...editFormData, bio: e.target.value })} placeholder="자기소개" style={{ width: '100%', padding: '10px', borderRadius: '10px', border: '1px solid #E2E8F0', minHeight: '80px' }} />
+      <input value={editFormData.career || ''} onChange={e => setEditFormData({ ...editFormData, career: e.target.value })} placeholder="경력" style={{ width: '100%', padding: '10px', borderRadius: '10px', border: '1px solid #E2E8F0' }} />
+      <input value={editFormData.class_type || ''} onChange={e => setEditFormData({ ...editFormData, class_type: e.target.value })} placeholder="수업 방식" style={{ width: '100%', padding: '10px', borderRadius: '10px', border: '1px solid #E2E8F0' }} />
+      <input type="number" value={editFormData.awards ?? ''} onChange={e => setEditFormData({ ...editFormData, awards: e.target.value })} placeholder="수상 횟수 (예: 3)" aria-label="수상 횟수" style={{ width: '100%', padding: '10px', borderRadius: '10px', border: '1px solid #E2E8F0' }} />
+      <div style={{ display: 'flex', gap: '8px' }}>
+        <button type="button" onClick={saveEdit} disabled={loading} style={{ flex: 1, padding: '10px', background: '#10B981', color: '#FFF', border: 'none', borderRadius: '10px', fontWeight: 800 }}>SAVE</button>
+        <button type="button" onClick={cancelEdit} style={{ flex: 1, padding: '10px', background: '#EEE', color: '#666', border: 'none', borderRadius: '10px', fontWeight: 800 }}>CANCEL</button>
+      </div>
+    </div>
+  )
 
   return (
     <div style={{ backgroundColor: '#F8FAFC', minHeight: '100vh', color: '#1E293B' }}>
@@ -687,7 +809,100 @@ export default function AdminDashboard({ onBack }) {
             </form>
           </div>
         )}
-        {category === 'event' ? <EventRanking /> : items.length === 0 ? <div style={{ textAlign: 'center', padding: '100px 0', color: '#94A3B8' }}>데이터가 없습니다.</div> : items.map(item => (
+        {adminMessage && category === 'instructor' && (
+          <div
+            style={{
+              marginBottom: '12px',
+              padding: '12px 14px',
+              borderRadius: '12px',
+              fontSize: '13px',
+              fontWeight: 700,
+              background: adminMessage.type === 'error' ? '#FEF2F2' : '#ECFDF5',
+              color: adminMessage.type === 'error' ? '#B91C1C' : '#047857',
+              border: `1px solid ${adminMessage.type === 'error' ? '#FECACA' : '#A7F3D0'}`,
+            }}
+          >
+            {adminMessage.text}
+          </div>
+        )}
+        {category === 'event' ? <EventRanking /> : items.length === 0 ? (
+          <div style={{ textAlign: 'center', padding: '100px 0', color: '#94A3B8' }}>데이터가 없습니다.</div>
+        ) : category === 'instructor' ? (
+          <div
+            style={{
+              overflowX: 'auto',
+              WebkitOverflowScrolling: 'touch',
+              backgroundColor: '#FFF',
+              borderRadius: '16px',
+              border: '1px solid #E2E8F0',
+              boxShadow: '0 2px 8px rgba(0,0,0,0.04)',
+            }}
+          >
+            <table style={{ width: '100%', minWidth: '920px', borderCollapse: 'collapse', fontSize: '13px' }}>
+              <thead>
+                <tr style={{ background: '#F8FAFC', borderBottom: '1px solid #E2E8F0', textAlign: 'left' }}>
+                  {['프로필', '이름', 'Handle', '지역', '장르', '카카오', '상태', '액션'].map((h) => (
+                    <th key={h} style={{ padding: '12px 10px', fontWeight: 800, color: '#475569', whiteSpace: 'nowrap' }}>{h}</th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody>
+                {items.map((item) => {
+                  const st = instructorStatusMeta(item.status)
+                  const isEditing = editingItem === item.id
+                  const photo = item.photo_url
+                  return (
+                    <React.Fragment key={item.id}>
+                      <tr
+                        onClick={() => toggleInstructorRowEdit(item)}
+                        style={{
+                          cursor: 'pointer',
+                          background: isEditing ? '#F5F3FF' : '#FFF',
+                          borderBottom: '1px solid #E2E8F0',
+                        }}
+                      >
+                        <td style={{ padding: '10px', width: '56px' }}>
+                          {photo ? (
+                            <img src={photo} alt="" style={{ width: '40px', height: '40px', borderRadius: '10px', objectFit: 'cover', display: 'block' }} />
+                          ) : (
+                            <div style={{ width: '40px', height: '40px', borderRadius: '10px', background: '#E2E8F0', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#94A3B8', fontSize: '18px' }}>👤</div>
+                          )}
+                        </td>
+                        <td style={{ padding: '10px', fontWeight: 800, color: '#1E293B', minWidth: '100px' }}>{item.name || '-'}</td>
+                        <td style={{ padding: '10px', color: '#64748B', minWidth: '88px' }}>@{item.custom_id || '-'}</td>
+                        <td style={{ padding: '10px', color: '#475569', whiteSpace: 'nowrap' }}>{item.city || '-'}</td>
+                        <td style={{ padding: '10px', color: '#7C3AED', fontWeight: 600, maxWidth: '140px' }}>{formatInstructorGenre(item.genre)}</td>
+                        <td style={{ padding: '10px', color: item.kakao_link ? '#059669' : '#94A3B8', fontWeight: 700, whiteSpace: 'nowrap' }}>
+                          {item.kakao_link ? '연결' : '없음'}
+                        </td>
+                        <td style={{ padding: '10px', whiteSpace: 'nowrap' }}>
+                          <span style={{ padding: '4px 10px', borderRadius: '999px', fontSize: '11px', fontWeight: 800, color: st.color, background: st.bg }}>
+                            {st.label}
+                          </span>
+                        </td>
+                        <td style={{ padding: '10px' }}>
+                          <div style={{ display: 'flex', gap: '4px', flexWrap: 'nowrap' }} onClick={(e) => e.stopPropagation()}>
+                            <button type="button" title="승인" onClick={() => updateStatus(item, 'active')} style={{ ...iconActionBtn, background: '#E8F5E9', color: '#2E7D32' }}>✓</button>
+                            <button type="button" title="반려" onClick={() => updateStatus(item, 'rejected')} style={{ ...iconActionBtn, background: '#FFEBEE', color: '#C62828' }}>✗</button>
+                            <button type="button" title="대기" onClick={() => updateStatus(item, 'pending')} style={{ ...iconActionBtn, background: '#FFF8E1', color: '#F59E0B' }}>🔄</button>
+                            <button type="button" title="삭제" onClick={() => deleteItem(item.id)} style={{ ...iconActionBtn, background: '#F5F5F5', color: '#666' }}>🗑</button>
+                          </div>
+                        </td>
+                      </tr>
+                      {isEditing && (
+                        <tr>
+                          <td colSpan={8} style={{ padding: '16px', background: '#F8FAFC', borderBottom: '1px solid #E2E8F0' }}>
+                            {renderInstructorEditPanel()}
+                          </td>
+                        </tr>
+                      )}
+                    </React.Fragment>
+                  )
+                })}
+              </tbody>
+            </table>
+          </div>
+        ) : items.map(item => (
           <div key={item.id} style={{ backgroundColor: '#FFF', borderRadius: '20px', padding: '20px', marginBottom: '16px', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.1)', border: '1px solid #E2E8F0' }}>
             <div style={{ display: 'flex', gap: '16px' }}>
               {(() => {
