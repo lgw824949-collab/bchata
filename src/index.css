@@ -375,6 +375,60 @@ input, button, select, textarea {
   box-shadow: 0 0 0 2px rgba(201, 168, 76, 0.65);
 }
 
+.home-hero-subcopy {
+  margin: 6px 0 0;
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 1.35;
+  letter-spacing: -0.01em;
+  color: rgba(255, 255, 255, 0.52);
+}
+
+.home-gate-active .home-featured-panel.home-depth-panel,
+.home-gate-active .home-social-bar-wrap .home-depth-panel {
+  background: rgba(255, 255, 255, 0.03);
+  border-radius: 16px;
+  padding: 18px 14px;
+}
+
+.home-featured-card--span-full {
+  grid-column: 1 / -1;
+  flex-direction: row;
+  align-items: stretch;
+  gap: 14px;
+}
+
+.home-featured-card--span-full .home-featured-card__poster {
+  flex: 0 0 108px;
+  width: 108px;
+  max-width: 108px;
+  aspect-ratio: 2 / 3;
+}
+
+.home-featured-card--span-full .home-featured-card__body {
+  flex: 1;
+  min-width: 0;
+  justify-content: center;
+}
+
+.home-social-bar-more {
+  display: block;
+  width: 100%;
+  margin-top: 14px;
+  padding: 12px 0;
+  border: none;
+  background: transparent;
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  text-align: center;
+  cursor: pointer;
+}
+
+.home-gate-active .home-social-bar-more {
+  color: rgba(201, 168, 76, 0.9);
+}
+
 .home-gate-active .home-social-bar-track--preview {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));

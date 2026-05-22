@@ -176,9 +176,12 @@ const HOME_GATE_DS = {
   quickMenuIconPx: 62,
   quickMenuIconSvgPx: 34,
   quickMenuLabelPx: 9,
-  sectionGapPx: 104,
-  sectionGapAfterInstructorsPx: 48,
-  sectionGapAfterQuickPx: 112,
+  sectionGapPx: 80,
+  sectionGapAfterInstructorsPx: 40,
+  sectionGapAfterQuickPx: 88,
+  heroSubcopySizePx: 13,
+  gateLiveBannerHeightPx: 58,
+  sectionSurfaceBg: 'rgba(255, 255, 255, 0.03)',
   imageToneFilter: 'brightness(0.72) contrast(1.08) saturate(0.82)',
 };
 
@@ -1738,6 +1741,7 @@ const HomePage = ({
   const [selectedVenue, setSelectedVenue] = useState(null);
   const [showBarRegisterForm, setShowBarRegisterForm] = useState(false);
   const [quickMenuMoreOpen, setQuickMenuMoreOpen] = useState(false);
+  const [socialBarPreviewExpanded, setSocialBarPreviewExpanded] = useState(false);
   const [livePickUploadAt, setLivePickUploadAt] = useState(() => readLivePickUploadAt());
   const [barStatsMap, setBarStatsMap] = useState({});
   const [liveBannerSlideIdx, setLiveBannerSlideIdx] = useState(0);
@@ -2321,6 +2325,10 @@ const HomePage = ({
     if (geoRegionStatus === 'denied') setSelectedRegionTab(SOCIAL_BAR_REGION_ALL);
   }, [locations, locationsLoading, selectedRegionTab, geoRegionTab, geoRegionStatus]);
 
+  useEffect(() => {
+    setSocialBarPreviewExpanded(false);
+  }, [selectedRegionTab]);
+
   /** 앱(홈) 진입 시 GPS → 내 지역 탭 1순위·자동 선택 (권한 이미 허용 가정) */
   useEffect(() => {
     if (activeTab !== null) return;
@@ -2797,19 +2805,24 @@ const HomePage = ({
     },
   ], [openFullCalendarModal, isEn, setActiveTab]);
 
-  const renderFeaturedCardGrid = () => (
+  const renderFeaturedCardGrid = () => {
+    const rowCount = homeFeaturedRows.length;
+    const lastRowSpanFull = rowCount % 2 === 1;
+
+    return (
     <div className="home-featured-grid" role="list" aria-label={isEn ? 'Featured events' : '추천 행사'}>
-      {homeFeaturedRows.map((row) => {
+      {homeFeaturedRows.map((row, rowIndex) => {
         const pool = row.pool;
         const item = pool.length ? pool[row.idx % pool.length] : null;
         const isActive = activePosterSlot === row.id;
         const thumbSrc = item?.poster_url || row.fallback;
+        const spanFull = lastRowSpanFull && rowIndex === rowCount - 1;
         return (
           <motion.button
             key={row.id}
             type="button"
             role="listitem"
-            className={`home-featured-card${isActive ? ' is-active' : ''}`}
+            className={`home-featured-card${isActive ? ' is-active' : ''}${spanFull ? ' home-featured-card--span-full' : ''}`}
             onClick={() => row.action(item)}
             whileTap={{ scale: 0.985 }}
             transition={{ type: 'spring', stiffness: 520, damping: 32 }}
@@ -2837,7 +2850,8 @@ const HomePage = ({
         );
       })}
     </div>
-  );
+    );
+  };
 
   const renderHomeQuickMenuInner = () => {
     if (isHomeGate) {
@@ -3059,7 +3073,7 @@ const HomePage = ({
             border-radius: 14px;
             overflow: hidden;
             aspect-ratio: 3 / 4;
-            max-height: min(72vw, 360px);
+            max-height: min(78vw, 420px);
             background: #111;
             border: 1px solid ${isHomeGate ? 'rgba(255,255,255,0.12)' : 'rgba(0,0,0,0.08)'};
             box-shadow: ${isHomeGate ? '0 8px 28px rgba(0,0,0,0.35)' : '0 6px 20px rgba(0,0,0,0.08)'};
@@ -3351,8 +3365,8 @@ const HomePage = ({
               box-shadow: 0 8px 28px rgba(0, 0, 0, 0.45) !important;
             }
             .home-gate-active .live-count-premium-wrapper--gate .live-dynamic-banner__inner {
-              min-height: 42px !important;
-              height: 42px !important;
+              min-height: ${HOME_GATE_DS.gateLiveBannerHeightPx}px !important;
+              height: ${HOME_GATE_DS.gateLiveBannerHeightPx}px !important;
               padding: 0 14px !important;
               gap: 8px !important;
               background: transparent !important;
@@ -3611,6 +3625,9 @@ const HomePage = ({
           />
           <motion.div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', gap: 2 }}>
             <h1 className="home-type-display" style={{ color: homeUi.text, fontWeight: 900, margin: 0 }}>오늘 어디서 춤추실까요?</h1>
+            <p className="home-hero-subcopy">
+              {isEn ? 'Where the night feels alive' : '지금 가장 뜨거운 공간'}
+            </p>
           </motion.div>
         </motion.div>
         )}
@@ -3772,11 +3789,80 @@ const HomePage = ({
           font-size: 20px !important;
           letter-spacing: -0.03em;
         }
-        .home-gate-active .home-depth-panel.home-luxury-section-box,
+        .home-hero-subcopy {
+          margin: 6px 0 0;
+          font-size: ${HOME_GATE_DS.heroSubcopySizePx}px;
+          font-weight: 600;
+          line-height: 1.35;
+          letter-spacing: -0.01em;
+          color: rgba(255, 255, 255, 0.52);
+        }
+        .home-gate-active .home-featured-panel.home-depth-panel,
         .home-gate-active .home-social-bar-wrap .home-depth-panel {
           border: none !important;
           box-shadow: none !important;
-          background: transparent !important;
+          background: ${HOME_GATE_DS.sectionSurfaceBg} !important;
+          border-radius: ${HOME_GATE_DS.cardRadiusPx}px !important;
+          padding: 18px 14px !important;
+        }
+        .home-featured-panel .home-featured-card--span-full {
+          grid-column: 1 / -1;
+          flex-direction: row;
+          align-items: stretch;
+          gap: 14px;
+        }
+        .home-featured-panel .home-featured-card--span-full .home-featured-card__poster {
+          flex: 0 0 108px;
+          width: 108px;
+          max-width: 108px;
+          height: auto;
+          aspect-ratio: 2 / 3;
+        }
+        .home-featured-panel .home-featured-card--span-full .home-featured-card__body {
+          flex: 1;
+          min-width: 0;
+          justify-content: center;
+        }
+        .home-social-bar-more {
+          display: block;
+          width: 100%;
+          margin-top: 14px;
+          padding: 12px 0;
+          border: none;
+          background: transparent;
+          color: rgba(255, 255, 255, 0.62);
+          font-size: 13px;
+          font-weight: 700;
+          letter-spacing: -0.02em;
+          text-align: center;
+          cursor: pointer;
+          -webkit-tap-highlight-color: transparent;
+        }
+        .home-gate-active .home-social-bar-more {
+          color: rgba(201, 168, 76, 0.9);
+        }
+        .home-gate-active .home-social-bar-scroll--expanded {
+          overflow-x: auto;
+          overflow-y: hidden;
+          -webkit-overflow-scrolling: touch;
+        }
+        .home-gate-active .home-social-bar-track--expanded {
+          display: inline-flex;
+          flex-direction: row;
+          flex-wrap: nowrap;
+          gap: 14px;
+          width: max-content;
+          min-width: 100%;
+          padding: 0 2px 4px;
+        }
+        .home-gate-active .home-social-bar-track--expanded .home-bar-chip {
+          flex: 0 0 140px !important;
+          width: 140px !important;
+          min-width: 140px !important;
+          max-width: 140px !important;
+        }
+        .home-gate-active .home-social-bar-track--expanded .home-bar-card__media {
+          height: ${HOME_GATE_DS.socialBarMediaHeightPx}px;
         }
         @keyframes gentleSparkle {
           0% { box-shadow: 0 0 2px rgba(85, 139, 47, 0.1); filter: drop-shadow(0 0 1px rgba(85, 139, 47, 0.1)); }
@@ -4417,6 +4503,12 @@ const HomePage = ({
                 }
 
 
+                const sortedBars = sortBarsForSocialBarTab(filteredBars, selectedRegionTab);
+                const previewBars = socialBarPreviewExpanded
+                  ? sortedBars
+                  : sortedBars.slice(0, HOME_SOCIAL_BAR_PREVIEW_MAX);
+                const moreBarCount = Math.max(0, sortedBars.length - HOME_SOCIAL_BAR_PREVIEW_MAX);
+
                 return (
                   <motion.div
                     initial={{ opacity: 0 }}
@@ -4425,16 +4517,27 @@ const HomePage = ({
                     className="home-social-bar-fade"
                   >
                     <div
-                      className="home-social-bar-scroll scrollbar-hide"
+                      className={`home-social-bar-scroll scrollbar-hide${socialBarPreviewExpanded ? ' home-social-bar-scroll--expanded' : ''}`}
                       role="list"
                       aria-label={isEn ? `Social BAR in ${selectedRegionTab}` : `${selectedRegionTab} Social BAR`}
                     >
-                      <div className="home-social-bar-track home-social-bar-track--preview">
-                        {sortBarsForSocialBarTab(filteredBars, selectedRegionTab)
-                          .slice(0, HOME_SOCIAL_BAR_PREVIEW_MAX)
-                          .map((bar) => renderBarCard(bar))}
+                      <div
+                        className={`home-social-bar-track${socialBarPreviewExpanded ? ' home-social-bar-track--expanded' : ' home-social-bar-track--preview'}`}
+                      >
+                        {previewBars.map((bar) => renderBarCard(bar))}
                       </div>
                     </div>
+                    {!socialBarPreviewExpanded && moreBarCount > 0 ? (
+                      <button
+                        type="button"
+                        className="home-social-bar-more"
+                        onClick={() => setSocialBarPreviewExpanded(true)}
+                      >
+                        {isEn
+                          ? `${moreBarCount} more in ${selectedRegionTab}`
+                          : `${selectedRegionTab} 외 ${moreBarCount}곳 더보기`}
+                      </button>
+                    ) : null}
                   </motion.div>
                 );
               })()
