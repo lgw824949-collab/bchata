@@ -307,14 +307,6 @@ export default function AdminDashboard({ onBack }) {
     }
   }
 
-  const toggleInstructorRowEdit = (item) => {
-    if (editingItem === item.id) {
-      cancelEdit()
-      return
-    }
-    startEdit(item)
-  }
-
   // 과거 데이터 삭제 (클린업)
   const cleanupPastData = async () => {
     if (!window.confirm('오늘 이전의 모든 파티/부트캠프/페스티벌 데이터를 삭제하시겠습니까?')) return
@@ -876,9 +868,9 @@ export default function AdminDashboard({ onBack }) {
                   return (
                     <React.Fragment key={item.id}>
                       <tr
-                        onClick={() => toggleInstructorRowEdit(item)}
+                        onClick={() => { if (!isEditing) startEdit(item) }}
                         style={{
-                          cursor: 'pointer',
+                          cursor: isEditing ? 'default' : 'pointer',
                           background: isEditing ? '#F5F3FF' : '#FFF',
                           borderBottom: '1px solid #E2E8F0',
                         }}
