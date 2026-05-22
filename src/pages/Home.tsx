@@ -105,20 +105,37 @@ const HOME_GATE_MENU_COPY = {
   todayParty: { ko: '오늘밤빠', en: 'Tonight' },
   manwonSpace: { ko: '만원의 공간', en: 'Manwon space' },
   myNightPlan: { ko: '내 밤 플랜', en: 'My night plan' },
-  bootcampDive: { ko: '부트캠프 몰입', en: 'Bootcamp dive' },
-  festivalLive: { ko: '페스티벌 현장', en: 'Festival live' },
-  partyPost: { ko: '파티 올리기', en: 'Post a party' },
-  classOpen: { ko: '수업 열기', en: 'Open a class' },
-  conciergePick: { ko: '맞춤 추천', en: 'Curated picks' },
-  livepickShow: { ko: '라이브픽 뽐내기', en: 'Show live pick' },
-  wishlistView: { ko: '찜 모아보기', en: 'Saved spots' },
-  kakaoChat: { ko: '카톡 문의', en: 'Kakao chat' },
-  destinyMatch: { ko: '운명의 상대', en: 'Destiny match' },
-  afterpartyFood: { ko: '뒷풀이 맛집', en: 'After-party eats' },
-  weatherGo: { ko: '나갈 만한 날씨', en: 'Worth going out?' },
-  smartRoute: { ko: '똑똑한 길찾기', en: 'Smart routes' },
-  languageSwitch: { ko: '언어 바꾸기', en: 'Switch language' },
+  bootcampDive: { ko: '부트캠프', en: 'Bootcamp' },
+  festivalLive: { ko: '페스티벌', en: 'Festival' },
+  partyPost: { ko: '파티 등록', en: 'Party' },
+  classOpen: { ko: '수업 등록', en: 'Class' },
+  conciergePick: { ko: '추천', en: 'Picks' },
+  livepickShow: { ko: '라이브픽', en: 'Live pick' },
+  wishlistView: { ko: '찜하기', en: 'Saved' },
+  kakaoChat: { ko: '채팅 문의', en: 'Chat' },
+  destinyMatch: { ko: '파트너 찾기', en: 'Partner' },
+  afterpartyFood: { ko: '맛집', en: 'Food' },
+  weatherGo: { ko: '오늘 날씨', en: 'Weather' },
+  smartRoute: { ko: '길찾기', en: 'Route' },
+  languageSwitch: { ko: '언어', en: 'Language' },
 };
+
+/** 더보기 메뉴 노출 순서 — 등록 2종 맨 앞 */
+const HOME_GATE_KING_MENU_ORDER = [
+  'party-register',
+  'class-register',
+  'bootcamp',
+  'festival',
+  'concierge',
+  'livepick',
+  'wishlist',
+  'chat',
+  'saju',
+  'restaurant',
+  'weather',
+  'route',
+  'language',
+];
 
 const homeGateMenuLabel = (key, isEn) => (isEn ? HOME_GATE_MENU_COPY[key].en : HOME_GATE_MENU_COPY[key].ko);
 
@@ -134,6 +151,9 @@ const HOME_REGIONS_ORDER = [
 
 /** Social BAR — 위치 실패 시 전국 노출 */
 const SOCIAL_BAR_REGION_ALL = '전체';
+
+/** 홈 Social BAR — 2장 + 3번째 peek 이후 스크롤로 더 보기 */
+const SOCIAL_BAR_PEEK_VISIBLE = 3;
 
 /** 메인 홈 — 오늘 지역 대표 포스터 슬라이드 (빠른 메뉴 위) */
 const HOME_POSTER_BANNER_MS = 4000;
@@ -1927,9 +1947,11 @@ const HomePage = ({
           <p className="home-bar-chip-name social-bar-name-label" style={barNameStyle} title={barName}>
             {barName}
           </p>
-          <p className="home-bar-chip-line home-bar-chip-line--muted" style={metaLineStyle} title={viewLine}>
-            {viewLine}
-          </p>
+          {!isHomeGate ? (
+            <p className="home-bar-chip-line home-bar-chip-line--muted" style={metaLineStyle} title={viewLine}>
+              {viewLine}
+            </p>
+          ) : null}
         </div>
       </motion.button>
     );
@@ -2310,8 +2332,9 @@ const HomePage = ({
   const homePartnerSectionTitleStyle = {
     color: homeUi.text, margin: '24px 0 14px',
   };
-  const homeSectionSpace = 36;
-  const homeBlockSpace = 28;
+  const homeSectionSpace = isHomeGate ? 32 : 36;
+  const homeBlockSpace = isHomeGate ? 22 : 28;
+  const homeGateStackGap = 20;
   const homeDepthPanelStyle = {
     background: homeUi.panelBg,
     border: `1px solid ${homeUi.panelBorder}`,
@@ -2426,13 +2449,16 @@ const HomePage = ({
     },
   ], [handleRegister, openFullCalendarModal, setView, setShowWishlist, setShowSaju, setShowWeather, openAnalysis, i18n, isEn]);
 
-  const homeGateKingMenuItems = useMemo(
-    () => [
-      ...homeGateKingNavItems,
+  const homeGateKingMenuItems = useMemo(() => {
+    const pool = [
       ...quickMenuItems.filter((item) => !HOME_GATE_KING_EXCLUDE_IDS.includes(item.id)),
-    ],
-    [homeGateKingNavItems, quickMenuItems],
-  );
+      ...homeGateKingNavItems,
+    ];
+    const byId = new Map(pool.map((item) => [item.id, item]));
+    return HOME_GATE_KING_MENU_ORDER
+      .map((id) => byId.get(id))
+      .filter(Boolean);
+  }, [homeGateKingNavItems, quickMenuItems]);
 
   const { quickMenuPrimary, quickMenuMore } = useMemo(() => {
     const primary = QUICK_MENU_PRIMARY_IDS
@@ -2762,7 +2788,7 @@ const HomePage = ({
     return (
       <motion.section
         className="home-region-poster-banner-standalone"
-        style={{ width: '92%', maxWidth: '100%', margin: '0 auto 12px', boxSizing: 'border-box' }}
+        style={{ width: '92%', maxWidth: '100%', margin: '0 auto', boxSizing: 'border-box' }}
         aria-label={isEn ? "Today's regional party posters" : '오늘 지역 대표 포스터'}
       >
         <style>{`
@@ -2898,19 +2924,19 @@ const HomePage = ({
   };
 
   const renderHomeMainLiveSlot = () => (
-    <div className="home-main-live-slot home-main-live-slot--gate" style={{ marginBottom: 10 }}>
+    <div className="home-main-live-slot home-main-live-slot--gate">
       {renderHomeLiveAdRow(true)}
     </div>
   );
 
   const renderHomeMainQuickMenuSection = () => (
     <section
-      className="home-quick-menu-standalone"
+      className="home-quick-menu-standalone home-quick-menu-standalone--gate"
       style={{
         display: 'flex',
         flexDirection: 'column',
         marginBottom: 0,
-        padding: '0 0 10px',
+        padding: 0,
         background: 'transparent',
         border: 'none',
         boxShadow: 'none',
@@ -3287,9 +3313,17 @@ const HomePage = ({
       )}
 
       {/* 📌 [영역 A: 히어로 / 메인 게이트] */}
-      <motion.div style={{ padding: '20px 16px 0', marginBottom: homeSectionSpace - 4 }}>
+      <motion.div
+        style={{
+          padding: isHomeGate ? '20px 16px 0' : '20px 16px 0',
+          marginBottom: isHomeGate ? 20 : homeSectionSpace - 4,
+        }}
+      >
         {activeTab === null && (
-        <motion.div className="home-hero-brand" style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 20 }}>
+        <motion.div
+          className="home-hero-brand"
+          style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: isHomeGate ? 18 : 20 }}
+        >
           <img
             src="/logo.png"
             alt="오늘밤빠 로고"
@@ -3315,7 +3349,7 @@ const HomePage = ({
             }}
             onError={(e) => { e.currentTarget.style.display = 'none' }}
           />
-          <motion.div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', gap: 2 }}>
+          <motion.div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', gap: isHomeGate ? 6 : 2 }}>
             <h1 className="home-type-display" style={{ color: homeUi.text, fontWeight: 900, margin: 0 }}>오늘 어디서 춤추실까요?</h1>
             <HomeHeroTagline />
           </motion.div>
@@ -3324,7 +3358,13 @@ const HomePage = ({
       </motion.div>
 
       {activeTab === null && (
-        <motion.div className="home-main-stack" style={{ padding: '0 16px' }}>
+        <motion.div
+          className="home-main-stack"
+          style={{
+            padding: '0 16px',
+            gap: isHomeGate ? homeGateStackGap : undefined,
+          }}
+        >
           {renderHomeMainLiveSlot()}
           {renderHomeRegionPosterBanner()}
           {renderHomeMainQuickMenuSection()}
@@ -3339,12 +3379,23 @@ const HomePage = ({
 
       {/* 메인 퀵메뉴: activeTab === null → 3섹션 그리드 / 소셜 탭 → 가로 스크롤 */}
       <style>{`
+        .home-gate-active .home-main-stack {
+          display: flex;
+          flex-direction: column;
+          gap: 20px;
+        }
+        .home-gate-active .home-section-break {
+          padding: 28px 0 32px;
+        }
+        .home-gate-menu {
+          padding: 6px 0 10px;
+        }
         .home-gate-main-menu-grid {
           display: grid;
           grid-template-columns: repeat(3, minmax(0, 1fr));
-          gap: 8px;
-          margin: 4px 0 0;
-          padding: 0 2px;
+          gap: 14px 12px;
+          margin: 0;
+          padding: 0 4px;
         }
         .home-gate-main-menu-item {
           display: flex;
@@ -3352,29 +3403,24 @@ const HomePage = ({
           align-items: center;
           justify-content: flex-start;
           gap: 10px;
-          min-height: 112px;
-          padding: 14px 6px 12px;
+          min-height: 0;
+          padding: 12px 8px 14px;
           border: none;
-          border-radius: 18px;
-          background: rgba(255, 255, 255, 0.05);
+          border-radius: 0;
+          background: none;
+          box-shadow: none;
           cursor: pointer;
           -webkit-tap-highlight-color: transparent;
-          transition: background 0.18s ease, transform 0.18s ease;
+          transition: opacity 0.15s ease;
         }
         .home-gate-main-menu-item:active {
-          background: rgba(255, 255, 255, 0.1);
+          opacity: 0.72;
         }
-        .home-gate-main-menu-item--tonight {
-          background: linear-gradient(180deg, rgba(212, 67, 110, 0.22) 0%, rgba(255, 255, 255, 0.04) 100%);
-          box-shadow: inset 0 0 0 1px rgba(212, 67, 110, 0.35);
-        }
-        .home-gate-main-menu-item--space {
-          background: linear-gradient(180deg, rgba(201, 168, 76, 0.18) 0%, rgba(255, 255, 255, 0.04) 100%);
-          box-shadow: inset 0 0 0 1px rgba(201, 168, 76, 0.28);
-        }
+        .home-gate-main-menu-item--tonight,
+        .home-gate-main-menu-item--space,
         .home-gate-main-menu-item--plan {
-          background: linear-gradient(180deg, rgba(148, 163, 184, 0.16) 0%, rgba(255, 255, 255, 0.04) 100%);
-          box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.12);
+          background: none;
+          box-shadow: none;
         }
         .home-gate-main-menu-item__icon-wrap {
           position: relative;
@@ -3407,19 +3453,19 @@ const HomePage = ({
           display: block;
         }
         .home-gate-main-menu-item--tonight .home-gate-main-menu-item__icon {
-          background: rgba(212, 67, 110, 0.28);
+          background: rgba(212, 67, 110, 0.2);
           color: #fff;
-          box-shadow: 0 6px 18px rgba(212, 67, 110, 0.28);
+          box-shadow: none;
         }
         .home-gate-main-menu-item--space .home-gate-main-menu-item__icon {
-          background: rgba(201, 168, 76, 0.22);
+          background: rgba(201, 168, 76, 0.16);
           color: #fff;
-          box-shadow: 0 6px 16px rgba(201, 168, 76, 0.2);
+          box-shadow: none;
         }
         .home-gate-main-menu-item--plan .home-gate-main-menu-item__icon {
-          background: rgba(255, 255, 255, 0.1);
+          background: rgba(255, 255, 255, 0.08);
           color: #fff;
-          box-shadow: 0 6px 14px rgba(0, 0, 0, 0.25);
+          box-shadow: none;
         }
         .home-gate-main-menu-item__label {
           color: #fff;
@@ -3456,7 +3502,7 @@ const HomePage = ({
         }
         .home-gate-menu__divider {
           height: 1px;
-          margin: 14px 4px 10px;
+          margin: 24px 8px 20px;
           background: linear-gradient(
             90deg,
             transparent 0%,
@@ -3466,14 +3512,18 @@ const HomePage = ({
           );
         }
         .home-gate-king-menu__grid .home-quick-menu-item {
-          padding: 8px 2px;
+          padding: 8px 4px 14px;
+          min-height: 76px;
         }
         .home-gate-king-menu__grid .home-quick-menu-item-label {
-          white-space: normal;
+          white-space: nowrap;
           line-height: 1.25;
           font-size: 10px;
           font-weight: 700;
-          color: rgba(255, 255, 255, 0.88);
+          color: rgba(255, 255, 255, 0.9);
+          max-width: 100%;
+          overflow: hidden;
+          text-overflow: ellipsis;
         }
         .home-gate-king-menu__grid .home-quick-menu-icon-circle {
           width: 44px;
@@ -3485,7 +3535,7 @@ const HomePage = ({
         .home-gate-king-menu__toolbar {
           display: flex;
           justify-content: center;
-          margin: 0 0 8px;
+          margin: 4px 0 16px;
         }
         .home-gate-king-menu__toggle {
           display: inline-flex;
@@ -3507,9 +3557,10 @@ const HomePage = ({
         }
         .home-gate-king-menu__grid {
           grid-template-columns: repeat(5, minmax(0, 1fr));
-          gap: 4px 2px;
+          gap: 14px 10px;
           margin-top: 0;
-          margin-bottom: 6px;
+          margin-bottom: 12px;
+          padding: 0 4px 8px;
         }
         @keyframes gentleSparkle {
           0% { box-shadow: 0 0 2px rgba(85, 139, 47, 0.1); filter: drop-shadow(0 0 1px rgba(85, 139, 47, 0.1)); }
@@ -3902,6 +3953,66 @@ const HomePage = ({
           0%, 100% { opacity: 0.4; }
           50% { opacity: 0.75; }
         }
+        .home-gate-active .home-social-bar-panel--gate {
+          border: 1px solid rgba(255, 255, 255, 0.08) !important;
+          box-shadow: none !important;
+          padding: 16px 12px 18px !important;
+          border-radius: 16px !important;
+        }
+        .home-gate-active .home-social-bar-panel--gate .home-type-section-title {
+          font-size: 15px !important;
+        }
+        .home-gate-active .home-region-tabs {
+          margin-bottom: 4px;
+        }
+        .home-gate-active .home-social-bar-scroll--peek {
+          overflow-x: auto;
+          padding: 2px 12px 10px;
+          scroll-snap-type: x proximity;
+          scroll-padding-inline: 12px;
+          -webkit-overflow-scrolling: touch;
+          touch-action: pan-x pinch-zoom;
+        }
+        .home-gate-active .home-social-bar-scroll--peek-more {
+          position: relative;
+        }
+        .home-gate-active .home-social-bar-scroll--peek-more::after {
+          content: '';
+          position: absolute;
+          top: 0;
+          right: 0;
+          width: 28px;
+          height: calc(100% - 10px);
+          pointer-events: none;
+          background: linear-gradient(90deg, transparent, rgba(13, 13, 13, 0.92));
+        }
+        .home-gate-active .home-social-bar-track--peek {
+          display: inline-flex;
+          flex-wrap: nowrap;
+          gap: 10px;
+          width: max-content;
+          min-width: 100%;
+          padding: 0 2px 2px;
+        }
+        .home-gate-active .home-social-bar-track--peek .home-bar-chip {
+          flex: 0 0 auto;
+          width: calc((min(100vw, 500px) - 56px) / 2.35);
+          min-width: calc((min(100vw, 500px) - 56px) / 2.35);
+          max-width: 168px;
+          scroll-snap-align: start;
+        }
+        .home-gate-active .home-social-bar-track--peek .home-bar-thumb {
+          border-radius: 12px;
+        }
+        .home-gate-active .home-social-bar-track--peek .home-bar-chip-name {
+          font-size: 11px !important;
+          font-weight: 800 !important;
+          margin-top: 8px !important;
+        }
+        .home-gate-active .home-hot-instructors-wrap {
+          padding: 12px 16px 22px;
+          margin-top: 12px;
+        }
         .home-hot-instructors-wrap {
           background: #0d0d0d;
           padding: 16px 16px 12px;
@@ -4008,21 +4119,24 @@ const HomePage = ({
       `}</style>
       {activeTab === null && renderHomeHotInstructorsSection()}
       {activeTab === null && (
-        <motion.div className="home-social-bar-wrap" style={{ padding: '0 16px', marginTop: 0, marginBottom: 0 }}>
+        <motion.div
+          className="home-social-bar-wrap"
+          style={{ padding: '0 16px', marginTop: isHomeGate ? 16 : 0, marginBottom: isHomeGate ? 20 : 0 }}
+        >
         <section
           ref={barSectionRef}
-          className="home-depth-panel home-luxury-section-box"
+          className={`home-depth-panel home-luxury-section-box home-social-bar-panel${isHomeGate ? ' home-social-bar-panel--gate' : ''}`}
           style={{
             ...homeDepthPanelStyle,
-            ...homeLuxurySectionBoxStyle,
+            ...(isHomeGate ? {} : homeLuxurySectionBoxStyle),
             marginTop: 0,
             display: 'flex',
             flexDirection: 'column',
           }}
         >
           {renderHomeSectionHeader(
-            homeGateMenuLabel('manwonSpace', isEn),
-            isEn ? 'Dance bars worth tonight' : '오늘 갈만한 댄스바',
+            isEn ? 'Social BAR' : 'Social BAR',
+            null,
             <button
               type="button"
               className="home-section-action"
@@ -4032,7 +4146,7 @@ const HomePage = ({
               }}
             >
               <Plus size={12} strokeWidth={2.5} />
-              공간 등록
+              {isEn ? 'Add' : '등록'}
             </button>,
             isHomeGate ? { color: homeUi.barSubtitle, fontWeight: 600 } : null,
           )}
@@ -4076,11 +4190,16 @@ const HomePage = ({
                 if (filteredBars.length === 0) {
                   return (
                     <div style={{ padding: '40px 20px', textAlign: 'center', color: '#94A3B8', fontSize: '13px', fontWeight: 600 }}>
-                      {isEn ? 'No spots in this area yet.' : '이 지역 만원의 공간이 아직 없어요.'}
+                      {isEn ? 'No spots in this area yet.' : '이 지역 장소가 아직 없어요.'}
                     </div>
                   );
                 }
 
+                const regionBars = sortBarsForSocialBarTab(filteredBars, selectedRegionTab);
+                const hasMoreBars = regionBars.length > SOCIAL_BAR_PEEK_VISIBLE;
+                const barListLabel = isEn
+                  ? `${selectedRegionTab} · ${regionBars.length} spot${regionBars.length === 1 ? '' : 's'}`
+                  : `${selectedRegionTab} · ${regionBars.length}곳`;
 
                 return (
                   <motion.div
@@ -4089,13 +4208,23 @@ const HomePage = ({
                     key={selectedRegionTab}
                     className="home-social-bar-fade"
                   >
+                    <p
+                      className="home-social-bar-region-hint"
+                      style={{ margin: '0 0 12px', padding: '0 2px', color: homeUi.barSubtitle, fontSize: 12, fontWeight: 700 }}
+                    >
+                      {barListLabel}
+                    </p>
                     <div
-                      className="home-social-bar-scroll scrollbar-hide"
+                      className={`home-social-bar-scroll scrollbar-hide${
+                        isHomeGate
+                          ? ` home-social-bar-scroll--peek${hasMoreBars ? ' home-social-bar-scroll--peek-more' : ''}`
+                          : ''
+                      }`}
                       role="list"
                       aria-label={isEn ? `Social BAR in ${selectedRegionTab}` : `${selectedRegionTab} Social BAR`}
                     >
-                      <div className="home-social-bar-track">
-                        {sortBarsForSocialBarTab(filteredBars, selectedRegionTab).map((bar) => renderBarCard(bar))}
+                      <div className={`home-social-bar-track${isHomeGate ? ' home-social-bar-track--peek' : ''}`}>
+                        {regionBars.map((bar) => renderBarCard(bar))}
                       </div>
                     </div>
                   </motion.div>

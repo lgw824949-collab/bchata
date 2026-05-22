@@ -1125,6 +1125,14 @@ img.bchata-poster-fit {
   gap: 0;
 }
 
+.home-gate-active .home-main-stack {
+  gap: 20px;
+}
+
+.home-gate-active .home-section-break {
+  padding: 28px 0 32px;
+}
+
 .home-section-break {
   flex-shrink: 0;
   display: flex;
