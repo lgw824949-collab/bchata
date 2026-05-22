@@ -396,13 +396,35 @@ export default function AdminDashboard({ onBack }) {
           throw error;
         }
       } else if (category === 'instructor') {
-        const payload = buildInstructorUpdatePayload(editFormData, finalPhotoUrl)
+        if (!supabase) {
+          showAdminError('Supabase 연결이 없습니다. .env 설정을 확인해 주세요.')
+          return
+        }
+        const row = items.find((i) => i.id === editingItem)
+        const payload = buildInstructorUpdatePayload(
+          {
+            ...row,
+            ...editFormData,
+            name: editFormData.name || editFormData.title || row?.name || '',
+          },
+          finalPhotoUrl,
+        )
         if (!payload.name) {
           showAdminError('강사 이름을 입력해 주세요.')
           return
         }
-        const { error } = await supabase.from('instructors').update(payload).eq('id', editingItem)
+        const { data: updated, error } = await supabase
+          .from('instructors')
+          .update(payload)
+          .eq('id', editingItem)
+          .select()
+          .maybeSingle()
         if (error) throw error
+        if (!updated) {
+          showAdminError('DB에 반영되지 않았습니다. ID·권한(RLS)을 확인해 주세요.')
+          return
+        }
+        setItems((prev) => prev.map((i) => (i.id === editingItem ? { ...i, ...updated } : i)))
       } else {
         const { locations, created_at, id, locationName, location_name, photo_url: _photo, instructors, ...updateData } = editFormData;
         const finalUpdate = { ...updateData };

@@ -124,7 +124,6 @@ const InstructorSection = ({ onOpenVipMaster, cachedInstructors = null }) => {
     if (usedCacheRef.current) {
       usedCacheRef.current = false
       fetchInstructorSocialMeta()
-      return
     }
     fetchInstructors()
   }, [])
