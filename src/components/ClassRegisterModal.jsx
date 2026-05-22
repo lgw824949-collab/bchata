@@ -521,11 +521,16 @@ const ClassRegisterModal = ({
         kakao_link: form.kakaoLink.trim() || null,
       };
       if (photoUrl) profilePatch.photo_url = photoUrl;
-      const { error: profileError } = await supabase
+      const { data: updatedProfile, error: profileError } = await supabase
         .from('instructors')
         .update(profilePatch)
-        .eq('id', targetInstId);
+        .eq('id', targetInstId)
+        .select('id')
+        .maybeSingle();
       if (profileError) throw profileError;
+      if (!updatedProfile) {
+        throw new Error('강사 프로필이 DB에 반영되지 않았습니다. RLS·권한을 확인해 주세요.');
+      }
       if (photoUrl) setForm((prev) => ({ ...prev, photoUrl }));
 
       let posterUrl = null;
@@ -556,11 +561,28 @@ const ClassRegisterModal = ({
         poster_url: posterUrl,
       };
 
-      const { error } = isEditMode
-        ? await supabase.from('instructor_classes').update(classPayload).eq('id', editClassItem.id)
-        : await supabase.from('instructor_classes').insert({ ...classPayload, status: 'active' });
-
-      if (error) throw error;
+      if (isEditMode) {
+        const { data: updatedClass, error } = await supabase
+          .from('instructor_classes')
+          .update(classPayload)
+          .eq('id', editClassItem.id)
+          .select()
+          .maybeSingle();
+        if (error) throw error;
+        if (!updatedClass) {
+          throw new Error('클래스 수정이 DB에 반영되지 않았습니다. ID·RLS 권한을 확인해 주세요.');
+        }
+      } else {
+        const { data: insertedClass, error } = await supabase
+          .from('instructor_classes')
+          .insert({ ...classPayload, status: 'active' })
+          .select('id')
+          .maybeSingle();
+        if (error) throw error;
+        if (!insertedClass) {
+          throw new Error('클래스 등록이 DB에 반영되지 않았습니다.');
+        }
+      }
 
       setDoneSummary({
         title: form.title.trim(),

@@ -571,8 +571,11 @@ export default function AdminDashboard({ onBack }) {
         
         const statusVal = newStatus === 'approved' ? 'active' : newStatus;
         if (category !== 'live') {
-          const { error } = await supabase.from(table).update({ status: statusVal }).eq('id', item.id);
+          const { data, error } = await supabase.from(table).update({ status: statusVal }).eq('id', item.id).select('id');
           if (error) throw error;
+          if (!data?.length) {
+            throw new Error('상태 변경이 DB에 반영되지 않았습니다. RLS·권한을 확인해 주세요.');
+          }
         }
       }
       await fetchData();
@@ -595,8 +598,11 @@ export default function AdminDashboard({ onBack }) {
       else if (category === 'instructor-classes') table = 'instructor_classes';
       else if (category === 'rental') table = 'locations';
       else table = category === 'bootcamp' ? 'bootcamps' : 'festivals';
-      const { error } = await supabase.from(table).delete().eq('id', id);
+      const { data, error } = await supabase.from(table).delete().eq('id', id).select('id');
       if (error) throw error;
+      if (!data?.length) {
+        throw new Error('삭제되지 않았습니다. RLS·권한을 확인해 주세요.');
+      }
       if (editingItem === id) cancelEdit();
       showAdminSuccess('삭제되었습니다.');
       await fetchData();
@@ -950,7 +956,7 @@ export default function AdminDashboard({ onBack }) {
             </form>
           </div>
         )}
-        {adminMessage && category === 'instructor' && (
+        {adminMessage && (category === 'instructor' || category === 'instructor-classes') && (
           <div
             style={{
               marginBottom: '12px',
@@ -1373,7 +1379,10 @@ export default function AdminDashboard({ onBack }) {
             setClassEditItem(null);
           }}
           onSaved={() => {
+            setShowClassEditModal(false);
+            setClassEditItem(null);
             fetchData();
+            showAdminSuccess('클래스가 수정되었습니다.');
           }}
         />
       )}
