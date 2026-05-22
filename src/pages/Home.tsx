@@ -2238,6 +2238,45 @@ const HomePage = ({
   }, [isEn]);
 
   const isHomeGate = activeTab === null;
+
+  /** 메인 홈 — 가로 캐러셀 위에서도 세로 휠·트랙패드가 페이지 스크롤 되도록 */
+  useEffect(() => {
+    if (!isHomeGate) return undefined;
+
+    const horizontalBandSelector = [
+      '.home-hot-instructors-scroll',
+      '.home-social-bar-scroll',
+      '.home-social-bar-scroll--peek',
+      '.home-quick-menu-scroll--gate-all',
+      '.home-quick-menu-scroll',
+      '.home-quick-menu-more-scroll',
+      '.home-region-tabs',
+    ].join(',');
+
+    const onWheel = (e) => {
+      const band = e.target instanceof Element ? e.target.closest(horizontalBandSelector) : null;
+      if (!band) return;
+      if (Math.abs(e.deltaY) < Math.abs(e.deltaX)) return;
+
+      const maxScrollLeft = band.scrollWidth - band.clientWidth;
+      if (maxScrollLeft <= 1) {
+        const root = document.scrollingElement || document.documentElement;
+        if (root) root.scrollTop += e.deltaY;
+        e.preventDefault();
+        return;
+      }
+
+      const root = document.scrollingElement || document.documentElement;
+      if (!root) return;
+
+      root.scrollTop += e.deltaY;
+      e.preventDefault();
+    };
+
+    document.addEventListener('wheel', onWheel, { passive: false, capture: true });
+    return () => document.removeEventListener('wheel', onWheel, { capture: true });
+  }, [isHomeGate]);
+
   const HOME_BRAND = '#D4436E';
   const HOME_GOLD = '#C9A84C';
   const HOME_GOLD_SOFT = '#C4A86A';
@@ -3702,14 +3741,14 @@ const HomePage = ({
           gap: 10px;
           overflow-x: auto;
           overflow-y: hidden;
-          scroll-snap-type: x proximity;
+          scroll-snap-type: none;
+          touch-action: pan-y pan-x;
+          overscroll-behavior-y: auto;
+          overscroll-behavior-x: contain;
           -webkit-overflow-scrolling: touch;
           scrollbar-width: none;
           msOverflowStyle: none;
           padding: 2px 4px 6px;
-        }
-        .quick-menu-more-scroll > * {
-          scroll-snap-align: start;
         }
         .quick-menu-more-scroll::-webkit-scrollbar {
           display: none;
@@ -3720,14 +3759,16 @@ const HomePage = ({
           gap: 14px;
           overflow-x: auto;
           overflow-y: hidden;
-          scroll-snap-type: x proximity;
+          scroll-snap-type: none;
+          touch-action: pan-y pan-x;
+          overscroll-behavior-y: auto;
+          overscroll-behavior-x: contain;
           -webkit-overflow-scrolling: touch;
           scrollbar-width: none;
           msOverflowStyle: none;
           padding: 0 2px 12px;
         }
         .quick-menu-scroll > * {
-          scroll-snap-align: start;
           flex-shrink: 0;
         }
         .quick-menu-scroll::-webkit-scrollbar {
@@ -3752,7 +3793,10 @@ const HomePage = ({
           gap: 10px;
           overflow-x: auto;
           overflow-y: hidden;
-          scroll-snap-type: x mandatory;
+          scroll-snap-type: none;
+          touch-action: pan-y pan-x;
+          overscroll-behavior-y: auto;
+          overscroll-behavior-x: contain;
           -webkit-overflow-scrolling: touch;
           scrollbar-width: none;
           msOverflowStyle: none;
@@ -3763,7 +3807,6 @@ const HomePage = ({
           width: calc((100% - 30px) / 4.22);
           min-width: 68px;
           max-width: 88px;
-          scroll-snap-align: start;
         }
         .home-quick-menu-icon-wrap {
           position: relative;
@@ -3968,10 +4011,12 @@ const HomePage = ({
         .home-gate-active .home-social-bar-scroll--peek {
           overflow-x: auto;
           padding: 2px 12px 10px;
-          scroll-snap-type: x proximity;
+          scroll-snap-type: none;
           scroll-padding-inline: 12px;
           -webkit-overflow-scrolling: touch;
-          touch-action: pan-x pinch-zoom;
+          touch-action: pan-y pan-x;
+          overscroll-behavior-y: auto;
+          overscroll-behavior-x: contain;
         }
         .home-gate-active .home-social-bar-scroll--peek-more {
           position: relative;
@@ -3999,7 +4044,6 @@ const HomePage = ({
           width: calc((min(100vw, 500px) - 56px) / 2.35);
           min-width: calc((min(100vw, 500px) - 56px) / 2.35);
           max-width: 168px;
-          scroll-snap-align: start;
         }
         .home-gate-active .home-social-bar-track--peek .home-bar-thumb {
           border-radius: 12px;
@@ -4035,10 +4079,11 @@ const HomePage = ({
           min-width: 0;
           overflow-x: auto;
           overflow-y: hidden;
-          scroll-snap-type: x proximity;
+          scroll-snap-type: none;
           scroll-padding-inline: 16px;
           -webkit-overflow-scrolling: touch;
-          touch-action: pan-x pinch-zoom;
+          touch-action: pan-y pan-x;
+          overscroll-behavior-y: auto;
           overscroll-behavior-x: contain;
           scrollbar-width: none;
           -ms-overflow-style: none;
@@ -4064,7 +4109,6 @@ const HomePage = ({
           min-width: calc((min(100vw, 500px) - 56px) / 2.35);
           max-width: 200px;
           aspect-ratio: 2 / 3;
-          scroll-snap-align: start;
           display: flex;
           flex-direction: column;
           border: 1px solid rgba(201, 168, 76, 0.3);
