@@ -54,16 +54,6 @@ const formatPartySlideLine = (party, isEn) => {
   return venue ? `${time} · ${title} · ${venue} · ${people}` : `${time} · ${title} · ${people}`;
 };
 
-const buildRegionSummaryParts = (seoul, metro, national, isEn) => {
-  const parts = [];
-  if (isEn) parts.push('Today');
-  else parts.push('오늘');
-  if (seoul.length) parts.push(isEn ? `Seoul ${seoul.length}` : `서울 ${seoul.length}건`);
-  if (metro.length) parts.push(isEn ? `Metro ${metro.length}` : `수도권 ${metro.length}건`);
-  if (national.length) parts.push(isEn ? `Regions ${national.length}` : `지방권 ${national.length}건`);
-  return parts.join(' · ');
-};
-
 /**
  * LIVE 바 슬라이드 — 지역 우선(서울 → 수도권 → 지방), BAR 연맹명 대신 파티 제목·인원
  * @param {object} params
@@ -90,9 +80,16 @@ export function buildHomeLiveBannerSlides({
 
   const slides = [];
 
-  const summaryText = buildRegionSummaryParts(seoul, metro, national, isEn);
-  if (summaryText) {
-    slides.push({ id: 'summary', text: summaryText, tier: 'summary' });
+  const seoulCount = Number(regionCounts?.seoul) || 0;
+  const metroCount = Number(regionCounts?.metro) || 0;
+  const nationalCount = Number(regionCounts?.national) || 0;
+  const regionTotal = seoulCount + metroCount + nationalCount;
+  if (regionTotal > 0) {
+    slides.push({
+      id: 'today-region-counts',
+      text: `Today · Seoul ${seoulCount} · Metro ${metroCount} · Regions ${nationalCount}`,
+      tier: 'summary',
+    });
   }
 
   if (seoul.length) {
@@ -140,19 +137,6 @@ export function buildHomeLiveBannerSlides({
         tier: 'fixed',
         party,
       });
-    });
-  }
-
-  if (!slides.length) {
-    const seoulCount = Number(regionCounts?.seoul) || 0;
-    const metroCount = Number(regionCounts?.metro) || 0;
-    const localCount = Number(regionCounts?.national) || 0;
-    slides.push({
-      id: 'empty',
-      text: isEn
-        ? `Today · Seoul ${seoulCount} · Metro ${metroCount} · Regions ${localCount}`
-        : `오늘 서울 ${seoulCount}건 · 수도권 ${metroCount}건 · 지방권 ${localCount}건`,
-      tier: 'summary',
     });
   }
 

@@ -140,6 +140,42 @@ const isPersistedLocationId = (id) => {
   const s = String(id ?? '');
   return s.length > 0 && !/^bar-\d+$/i.test(s);
 };
+const BAR_AUTO_CHECKIN_DONE_KEY = 'bchata_bar_auto_checkin_done';
+const BAR_VISITOR_ID_KEY = 'bchata_visitor_id';
+const BAR_CHECKIN_RADIUS_M = 150;
+
+const getOrCreateVisitorId = () => {
+  try {
+    const existing = sessionStorage.getItem(BAR_VISITOR_ID_KEY);
+    if (existing) return existing;
+    const id =
+      typeof crypto !== 'undefined' && crypto.randomUUID
+        ? crypto.randomUUID()
+        : `anon_${Math.random().toString(36).slice(2, 14)}`;
+    sessionStorage.setItem(BAR_VISITOR_ID_KEY, id);
+    return id;
+  } catch {
+    return null;
+  }
+};
+
+const findBarWithinRadiusM = (bars, userLat, userLon, radiusM) => {
+  let nearest = null;
+  let minDist = Infinity;
+  for (const bar of bars) {
+    if (!isPersistedLocationId(bar.id)) continue;
+    const lat = Number(bar.latitude);
+    const lon = Number(bar.longitude);
+    if (!Number.isFinite(lat) || !Number.isFinite(lon)) continue;
+    const distM = socialBarHaversineKm(userLat, userLon, lat, lon) * 1000;
+    if (distM <= radiusM && distM < minDist) {
+      minDist = distM;
+      nearest = bar;
+    }
+  }
+  return nearest;
+};
+
 const formatBarViewCountLine = (viewCount) => `view ${Number(viewCount) || 0}명`;
 
 /** GPS 기준 가장 가까운 지역 pill (경기 → 경인) */
@@ -1499,12 +1535,15 @@ const HomePage = ({
   const [shuffleOffset, setShuffleOffset] = useState(0);
   const [locations, setLocations] = useState([]);
   const [locationsLoading, setLocationsLoading] = useState(true);
+  const [hotInstructors, setHotInstructors] = useState([]);
+  const [hotInstructorsLoading, setHotInstructorsLoading] = useState(true);
   const [selectedRegionTab, setSelectedRegionTab] = useState(null);
   /** 휴대폰 GPS로 잡은 내 지역 — Social BAR 탭·정렬 1순위 */
   const [geoRegionTab, setGeoRegionTab] = useState(null);
   /** pending: GPS 대기 | ready: 지역 확정 | denied: 실패 → 전체 */
   const [geoRegionStatus, setGeoRegionStatus] = useState('pending');
   const socialBarGeoDoneRef = useRef(false);
+  const barAutoCheckinAttemptedRef = useRef(false);
   const barViewTimerRef = useRef(null);
   const [selectedVenue, setSelectedVenue] = useState(null);
   const [showBarRegisterForm, setShowBarRegisterForm] = useState(false);
@@ -1904,6 +1943,103 @@ const HomePage = ({
   useEffect(() => {
     fetchLocations();
   }, []);
+
+  useEffect(() => {
+    if (activeTab !== null || !supabase) {
+      setHotInstructorsLoading(false);
+      return undefined;
+    }
+
+    let cancelled = false;
+    (async () => {
+      setHotInstructorsLoading(true);
+      try {
+        const baseQuery = () =>
+          supabase
+            .from('instructors')
+            .select('id, name, genre, photo_url, follower_count')
+            .eq('status', 'active')
+            .limit(10);
+
+        let rows = null;
+        const byView = await baseQuery().order('view_count', { ascending: false });
+        if (!byView.error) {
+          rows = byView.data;
+        } else {
+          const byFollowers = await baseQuery().order('follower_count', { ascending: false });
+          rows = byFollowers.error ? [] : byFollowers.data;
+        }
+        if (!cancelled) setHotInstructors(rows || []);
+      } catch {
+        if (!cancelled) setHotInstructors([]);
+      } finally {
+        if (!cancelled) setHotInstructorsLoading(false);
+      }
+    })();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [activeTab]);
+
+  /** 앱 첫 진입 시 GPS 기준 150m 이내 locations BAR 자동 체크인 (세션 1회) */
+  useEffect(() => {
+    if (locationsLoading || !supabase) return;
+    if (barAutoCheckinAttemptedRef.current) return;
+
+    try {
+      if (sessionStorage.getItem(BAR_AUTO_CHECKIN_DONE_KEY)) return;
+    } catch {
+      return;
+    }
+
+    barAutoCheckinAttemptedRef.current = true;
+
+    if (!navigator.geolocation) return;
+
+    navigator.geolocation.getCurrentPosition(
+      async (pos) => {
+        try {
+          if (sessionStorage.getItem(BAR_AUTO_CHECKIN_DONE_KEY)) return;
+        } catch {
+          return;
+        }
+
+        const userLat = pos.coords.latitude;
+        const userLon = pos.coords.longitude;
+        const nearest = findBarWithinRadiusM(locations, userLat, userLon, BAR_CHECKIN_RADIUS_M);
+        if (!nearest) return;
+
+        const visitorId = getOrCreateVisitorId();
+        if (!visitorId) return;
+
+        const barLat = Number(nearest.latitude);
+        const barLon = Number(nearest.longitude);
+        if (!Number.isFinite(barLat) || !Number.isFinite(barLon)) return;
+
+        const { error } = await supabase.from('bar_checkins').insert([
+          {
+            bar_name: nearest.name || '',
+            region: nearest.region || '',
+            visitor_id: visitorId,
+            checked_in_at: new Date().toISOString(),
+            lat: barLat,
+            lon: barLon,
+          },
+        ]);
+
+        if (!error) {
+          try {
+            sessionStorage.setItem(BAR_AUTO_CHECKIN_DONE_KEY, '1');
+          } catch {
+            /* ignore */
+          }
+        }
+      },
+      () => {},
+      { enableHighAccuracy: true, timeout: 12000, maximumAge: 60 * 1000 },
+    );
+  }, [locationsLoading, locations]);
 
   const loadLiveBannerPartyRows = useCallback(async () => {
     if (!supabase) return;
@@ -2753,6 +2889,63 @@ const HomePage = ({
       <div className="home-quick-menu-block">{renderHomeQuickMenuInner()}</div>
     </section>
   );
+
+  const formatHotInstructorGenre = (genre) => {
+    if (Array.isArray(genre)) return genre.filter(Boolean).join(' · ');
+    return String(genre || '').trim();
+  };
+
+  const renderHomeHotInstructorsSection = () => {
+    if (activeTab !== null) return null;
+    if (!hotInstructorsLoading && hotInstructors.length === 0) return null;
+
+    const skeletonItems = [0, 1, 2];
+
+    return (
+      <section className="home-hot-instructors-wrap" aria-label="지금 핫한 강사">
+        <h2 className="home-hot-instructors-title">🔥 지금 핫한 강사</h2>
+        <div className="home-hot-instructors-scroll scrollbar-hide">
+          <div className="home-hot-instructors-track">
+            {hotInstructorsLoading
+              ? skeletonItems.map((i) => (
+                  <div
+                    key={`hot-instructor-skeleton-${i}`}
+                    className="home-hot-instructor-card home-hot-instructor-card--skeleton"
+                    aria-hidden
+                  />
+                ))
+              : hotInstructors.map((inst) => {
+                  const genreLabel = formatHotInstructorGenre(inst.genre);
+                  return (
+                    <motion.button
+                      key={inst.id}
+                      type="button"
+                      className="home-hot-instructor-card"
+                      whileTap={{ scale: 0.97 }}
+                      onClick={() => navigate('/instructors')}
+                    >
+                      <div className="home-hot-instructor-card__media">
+                        <img
+                          src={inst.photo_url || DEFAULT_AVATAR_IMAGE}
+                          alt={inst.name || ''}
+                          onError={imgFallbackHandler(DEFAULT_AVATAR_IMAGE)}
+                        />
+                      </div>
+                      <div className="home-hot-instructor-card__meta">
+                        <span className="home-hot-instructor-card__name">{inst.name}</span>
+                        {genreLabel ? (
+                          <span className="home-hot-instructor-card__genre">{genreLabel}</span>
+                        ) : null}
+                      </div>
+                    </motion.button>
+                  );
+                })}
+          </div>
+        </div>
+      </section>
+    );
+  };
+
   const renderHomeLiveAdRow = (inPanel = false) => (
     <motion.div
       className={`home-live-row${inPanel ? ' home-live-row--in-panel' : ''}`}
@@ -3097,30 +3290,6 @@ const HomePage = ({
           </motion.div>
         </motion.div>
         )}
-
-        {activeTab === null && (
-          <div className="home-party-status-micro" role="group" aria-label={isEn ? "Today's parties" : '오늘의 파티'}>
-            <span className="home-ds-body" style={{ color: homeUi.textMuted, marginRight: 2 }}>{isEn ? 'Today' : '오늘'}</span>
-            {[
-              { label: isEn ? 'Seoul' : '서울', count: regionCounts.seoul, tab: '서울' },
-              { label: isEn ? 'Metro' : '수도권', count: regionCounts.metro, tab: '경인' },
-              { label: isEn ? 'Regions' : '지방권', count: regionCounts.national, tab: null },
-            ].map((r, idx) => (
-              <React.Fragment key={r.label}>
-                {idx > 0 ? <span className="home-party-status-micro-sep">·</span> : null}
-                <button
-                  type="button"
-                  className="home-party-status-micro-btn"
-                  style={{ color: !partiesLoading && r.count > 0 ? homePartyBucketActive.count : homeUi.textMuted }}
-                  onClick={() => openTodayPartyBucket(r.tab)}
-                >
-                  {r.label} <strong>{partiesLoading ? '—' : r.count}</strong>
-                  {!isEn && '건'}
-                </button>
-              </React.Fragment>
-            ))}
-          </div>
-        )}
       </motion.div>
 
       {activeTab === null && (
@@ -3464,7 +3633,112 @@ const HomePage = ({
           overflow: visible !important;
           text-overflow: unset !important;
         }
+        @keyframes home-hot-instructor-skeleton-pulse {
+          0%, 100% { opacity: 0.4; }
+          50% { opacity: 0.75; }
+        }
+        .home-hot-instructors-wrap {
+          background: #0d0d0d;
+          padding: 16px 16px 12px;
+          margin: 0;
+        }
+        .home-hot-instructors-title {
+          margin: 0 0 12px;
+          color: #c9a84c;
+          font-size: 15px;
+          font-weight: 800;
+          letter-spacing: -0.02em;
+        }
+        .home-hot-instructors-scroll {
+          display: block;
+          width: 100%;
+          max-width: 100%;
+          min-width: 0;
+          overflow-x: auto;
+          overflow-y: hidden;
+          scroll-snap-type: x proximity;
+          scroll-padding-inline: 16px;
+          -webkit-overflow-scrolling: touch;
+          touch-action: pan-x pinch-zoom;
+          overscroll-behavior-x: contain;
+          scrollbar-width: none;
+          -ms-overflow-style: none;
+          padding: 0 0 4px;
+        }
+        .home-hot-instructors-scroll::-webkit-scrollbar {
+          display: none;
+        }
+        .home-hot-instructors-track {
+          display: inline-flex;
+          flex-direction: row;
+          flex-wrap: nowrap;
+          align-items: stretch;
+          gap: 12px;
+          width: max-content;
+          min-width: 100%;
+          padding: 0 2px 2px;
+          vertical-align: top;
+        }
+        .home-hot-instructor-card {
+          flex: 0 0 auto;
+          width: calc((min(100vw, 500px) - 56px) / 2.35);
+          min-width: calc((min(100vw, 500px) - 56px) / 2.35);
+          max-width: 200px;
+          aspect-ratio: 2 / 3;
+          scroll-snap-align: start;
+          display: flex;
+          flex-direction: column;
+          border: 1px solid rgba(201, 168, 76, 0.3);
+          border-radius: 14px;
+          background: #1a1a1a;
+          overflow: hidden;
+          padding: 0;
+          cursor: pointer;
+          text-align: left;
+        }
+        .home-hot-instructor-card--skeleton {
+          animation: home-hot-instructor-skeleton-pulse 1.2s ease-in-out infinite;
+          pointer-events: none;
+        }
+        .home-hot-instructor-card__media {
+          flex: 1;
+          min-height: 0;
+          width: 100%;
+          background: #111;
+        }
+        .home-hot-instructor-card__media img {
+          width: 100%;
+          height: 100%;
+          object-fit: cover;
+          display: block;
+        }
+        .home-hot-instructor-card__meta {
+          flex-shrink: 0;
+          padding: 10px 12px 12px;
+          display: flex;
+          flex-direction: column;
+          gap: 3px;
+        }
+        .home-hot-instructor-card__name {
+          color: #fff;
+          font-size: 13px;
+          font-weight: 800;
+          line-height: 1.25;
+          white-space: nowrap;
+          overflow: hidden;
+          text-overflow: ellipsis;
+        }
+        .home-hot-instructor-card__genre {
+          color: #c9a84c;
+          font-size: 11px;
+          font-weight: 700;
+          line-height: 1.2;
+          white-space: nowrap;
+          overflow: hidden;
+          text-overflow: ellipsis;
+        }
       `}</style>
+      {activeTab === null && renderHomeHotInstructorsSection()}
       {activeTab === null && (
         <motion.div className="home-social-bar-wrap" style={{ padding: '0 16px', marginTop: 0, marginBottom: 0 }}>
         <section

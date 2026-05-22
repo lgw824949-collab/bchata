@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
+import { createPortal } from 'react-dom';
 import { Z } from '../constants/zLayers';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Heart, Eye, Share2, Plus, X, Camera, MapPin, Search, Home as HomeIcon, Star, Info, CheckCircle2, Trophy, Award, Zap, TrendingUp, Clock, Flame } from 'lucide-react';
@@ -97,6 +98,20 @@ const Community = ({ setSelectedPoster, setView }) => {
     window.addEventListener('open-community-upload', handleOpenUpload);
     return () => window.removeEventListener('open-community-upload', handleOpenUpload);
   }, []);
+
+  useEffect(() => {
+    if (!selectedPost) return undefined;
+    const prevOverflow = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    const onKeyDown = (e) => {
+      if (e.key === 'Escape') setSelectedPost(null);
+    };
+    window.addEventListener('keydown', onKeyDown);
+    return () => {
+      document.body.style.overflow = prevOverflow;
+      window.removeEventListener('keydown', onKeyDown);
+    };
+  }, [selectedPost]);
 
 
   const handleShare = async (post, e) => {
@@ -348,32 +363,153 @@ const Community = ({ setSelectedPoster, setView }) => {
         <Camera size={28} strokeWidth={2.5} />
       </motion.button>
 
-      {/* Upload Modal & Post Detail Modal Logic stays same but with refined styling... */}
-      <AnimatePresence>
-        {selectedPost && (
-          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.9)', zIndex: Z.modal, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-            <div style={{ width: '100%', height: '100%', position: 'relative' }}>
-              <img src={selectedPost.image_url} style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
-              <button onClick={() => setSelectedPost(null)} style={{ position: 'absolute', top: '40px', right: '20px', background: 'rgba(255,255,255,0.2)', border: 'none', borderRadius: '50%', padding: '10px', color: 'white' }}><X size={24} /></button>
-              
-              <div style={{ position: 'absolute', bottom: '40px', left: '20px', right: '20px', background: 'rgba(0,0,0,0.5)', backdropFilter: 'blur(20px)', borderRadius: '30px', padding: '30px', border: '1px solid rgba(255,255,255,0.1)' }}>
-                <div style={{ marginBottom: '20px' }}>
-                  <h2 style={{ color: 'white', fontSize: '24px', fontWeight: 1000, marginBottom: '8px' }}>{selectedPost.bar_name || '현장 리포트'}</h2>
-                  <p style={{ color: 'rgba(255,255,255,0.7)', fontSize: '14px', lineHeight: 1.6 }}>{selectedPost.content}</p>
+      {createPortal(
+        <AnimatePresence>
+          {selectedPost && (
+            <motion.div
+              key={selectedPost.id}
+              role="dialog"
+              aria-modal="true"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setSelectedPost(null)}
+              style={{
+                position: 'fixed',
+                inset: 0,
+                zIndex: Z.modalBackdrop,
+                background: 'rgba(0,0,0,0.92)',
+                display: 'flex',
+                flexDirection: 'column',
+                overflow: 'hidden',
+                overscrollBehavior: 'contain',
+              }}
+            >
+              <button
+                type="button"
+                aria-label="닫기"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setSelectedPost(null);
+                }}
+                style={{
+                  position: 'absolute',
+                  top: 'max(16px, env(safe-area-inset-top, 0px))',
+                  right: '16px',
+                  zIndex: 2,
+                  background: 'rgba(255,255,255,0.2)',
+                  border: 'none',
+                  borderRadius: '50%',
+                  padding: '10px',
+                  color: 'white',
+                  cursor: 'pointer',
+                }}
+              >
+                <X size={24} />
+              </button>
+
+              <div
+                onClick={(e) => e.stopPropagation()}
+                style={{
+                  flex: 1,
+                  minHeight: 0,
+                  display: 'flex',
+                  flexDirection: 'column',
+                  overflowY: 'auto',
+                  WebkitOverflowScrolling: 'touch',
+                  paddingTop: 'max(48px, env(safe-area-inset-top, 0px))',
+                  paddingBottom: 'max(16px, env(safe-area-inset-bottom, 0px))',
+                }}
+              >
+                <div
+                  style={{
+                    flex: '1 1 auto',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    minHeight: 'min(52vh, 420px)',
+                    padding: '8px 12px 16px',
+                  }}
+                >
+                  <img
+                    src={selectedPost.image_url}
+                    alt={selectedPost.bar_name || '현장 리포트'}
+                    style={{
+                      width: '100%',
+                      maxWidth: '500px',
+                      maxHeight: 'min(58vh, 520px)',
+                      objectFit: 'contain',
+                    }}
+                  />
                 </div>
-                <div style={{ display: 'flex', gap: '20px' }}>
-                  <button onClick={(e) => handleLike(selectedPost.id, e)} style={{ flex: 1, padding: '16px', borderRadius: '18px', background: '#E53935', border: 'none', color: 'white', fontWeight: 900, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px' }}>
-                    <Heart size={20} fill="white" /> {selectedPost.likes_count || 0}
-                  </button>
-                  <button onClick={() => {}} style={{ width: '60px', height: '60px', borderRadius: '18px', background: 'rgba(255,255,255,0.1)', border: 'none', color: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                    <Share2 size={24} />
-                  </button>
+
+                <div
+                  style={{
+                    flexShrink: 0,
+                    margin: '0 16px',
+                    background: 'rgba(0,0,0,0.55)',
+                    backdropFilter: 'blur(20px)',
+                    borderRadius: '24px',
+                    padding: '24px',
+                    border: '1px solid rgba(255,255,255,0.1)',
+                  }}
+                >
+                  <div style={{ marginBottom: '20px' }}>
+                    <h2 style={{ color: 'white', fontSize: '24px', fontWeight: 1000, marginBottom: '8px' }}>
+                      {selectedPost.bar_name || '현장 리포트'}
+                    </h2>
+                    <p style={{ color: 'rgba(255,255,255,0.7)', fontSize: '14px', lineHeight: 1.6 }}>
+                      {selectedPost.content}
+                    </p>
+                  </div>
+                  <div style={{ display: 'flex', gap: '12px' }}>
+                    <button
+                      type="button"
+                      onClick={(e) => handleLike(selectedPost.id, e)}
+                      style={{
+                        flex: 1,
+                        padding: '16px',
+                        borderRadius: '18px',
+                        background: '#E53935',
+                        border: 'none',
+                        color: 'white',
+                        fontWeight: 900,
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        gap: '10px',
+                        cursor: 'pointer',
+                      }}
+                    >
+                      <Heart size={20} fill="white" /> {selectedPost.likes_count || 0}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={(e) => handleShare(selectedPost, e)}
+                      style={{
+                        width: '56px',
+                        height: '56px',
+                        flexShrink: 0,
+                        borderRadius: '18px',
+                        background: 'rgba(255,255,255,0.1)',
+                        border: 'none',
+                        color: 'white',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        cursor: 'pointer',
+                      }}
+                    >
+                      <Share2 size={24} />
+                    </button>
+                  </div>
                 </div>
               </div>
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
+            </motion.div>
+          )}
+        </AnimatePresence>,
+        document.body,
+      )}
 
       <AnimatePresence>
         {showUploadModal && (
