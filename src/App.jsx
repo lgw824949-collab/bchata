@@ -2127,7 +2127,7 @@ function App() {
 
   const isLegalPage = location.pathname === '/terms' || location.pathname === '/privacy';
 
-  const bottomNavAccent = isSocialLightNav ? '#E53935' : '#C9A84C'
+  const bottomNavAccent = isSocialLightNav ? '#E53935' : '#FFFFFF'
   const navActiveColor = bottomNavAccent
   const navInactiveColor = isSocialLightNav ? '#94A3B8' : 'rgba(255, 255, 255, 0.42)'
   const socialNavActive = bottomNavAccent

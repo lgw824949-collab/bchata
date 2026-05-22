@@ -2201,7 +2201,7 @@ body.bottom-nav-social-light .bottom-nav__item {
 }
 
 .bottom-nav__item--active {
-  color: var(--bottom-nav-accent, #c9a84c);
+  color: var(--bottom-nav-accent, #ffffff);
 }
 
 .bottom-nav__item span {
