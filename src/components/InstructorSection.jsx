@@ -5,6 +5,12 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { supabase } from '../lib/supabase'
 import { ChevronLeft, Share2, Bell, Heart, User, MapPin, Globe, ShieldCheck, Zap, MessageCircle, Star, Info, Plus, Check, Search, Calendar, CreditCard, Users, Music } from 'lucide-react'
 import ClassRegisterModal from './ClassRegisterModal'
+import {
+  readInstructorIdFromLocation,
+  readNavigationState,
+  readUrlNavPatch,
+  syncInstructorNav,
+} from '../lib/appHistory'
 
 const REGIONS = ['전국', '서울', '경기인천', '경상도', '전라도', '충청도', '강원제주']
 const GENRE_TABS = ['전체', '바차타', '살사', '쥬크', '키좀바']
@@ -106,12 +112,66 @@ const InstructorSection = ({ onOpenVipMaster, cachedInstructors = null }) => {
   const [showMoreGenres, setShowMoreGenres] = useState(false)
   const [processing, setProcessing] = useState({})
   const [classes, setClasses] = useState([])
+  const [instructorClassCount, setInstructorClassCount] = useState(null)
   const [visibleCount, setVisibleCount] = useState(20)
   const [showMasterMenu, setShowMasterMenu] = useState(false)
   const [classForm, setClassForm] = useState({
     instructor_id: '', title: '', schedule: '', location: '', fee: '', level: '', capacity: '', description: ''
   })
   const [submittingClass, setSubmittingClass] = useState(false)
+  const profileRestoreAttemptedRef = React.useRef(false)
+
+  const fetchInstructorProfileById = React.useCallback(async (instructorId) => {
+    if (!instructorId) return null
+    const id = String(instructorId)
+
+    const cached = instructors.find((i) => String(i.id) === id)
+    if (cached) return cached
+
+    const { data, error } = await supabase
+      .from('instructors')
+      .select('*')
+      .eq('id', id)
+      .maybeSingle()
+
+    if (error || !data) return null
+    return data
+  }, [instructors])
+
+  const restoreInstructorProfileFromUrl = React.useCallback(async () => {
+    const instructorId = readInstructorIdFromLocation()
+    if (!instructorId) {
+      setSelectedInstructor(null)
+      return
+    }
+
+    const target = await fetchInstructorProfileById(instructorId)
+    if (!target) return
+
+    setSelectedInstructor(target)
+    const urlPatch = readUrlNavPatch()
+    const nav = readNavigationState()
+    const tab = urlPatch.instructorTab || nav?.instructorTab
+    if (tab === 'BIO' || tab === 'CLASSES') setActiveTab(tab)
+
+    try {
+      sessionStorage.removeItem('selected_instructor_id')
+    } catch {
+      /* ignore */
+    }
+  }, [fetchInstructorProfileById])
+
+  useEffect(() => {
+    if (profileRestoreAttemptedRef.current) return
+    profileRestoreAttemptedRef.current = true
+    restoreInstructorProfileFromUrl()
+  }, [restoreInstructorProfileFromUrl])
+
+  useEffect(() => {
+    const urlInstructorId = readInstructorIdFromLocation()
+    if (!urlInstructorId || selectedInstructor) return
+    restoreInstructorProfileFromUrl()
+  }, [instructors, selectedInstructor, restoreInstructorProfileFromUrl])
 
   useEffect(() => {
     if (cachedInstructors?.length) {
@@ -161,7 +221,15 @@ const InstructorSection = ({ onOpenVipMaster, cachedInstructors = null }) => {
       .order('follower_count', { ascending: false })
     if (data) {
       setInstructors(data)
-      setSelectedInstructor((prev) => (prev ? data.find((i) => i.id === prev.id) || prev : null))
+      setSelectedInstructor((prev) => {
+        if (!prev) return prev
+        return data.find((i) => String(i.id) === String(prev.id)) || prev
+      })
+      const urlInstructorId = readInstructorIdFromLocation()
+      if (urlInstructorId) {
+        const matched = data.find((i) => String(i.id) === String(urlInstructorId))
+        if (matched) setSelectedInstructor(matched)
+      }
     }
     setLoading(false)
 
@@ -189,17 +257,17 @@ const InstructorSection = ({ onOpenVipMaster, cachedInstructors = null }) => {
   }
 
   useEffect(() => {
-    if (instructors.length > 0) {
-      const targetId = localStorage.getItem('selected_instructor_id');
-      if (targetId) {
-        const target = instructors.find(i => i.id === targetId);
-        if (target) {
-          setSelectedInstructor(target);
-          localStorage.removeItem('selected_instructor_id');
-        }
-      }
+    const onNav = () => { restoreInstructorProfileFromUrl() };
+    window.addEventListener('bamppa-navigate', onNav);
+    window.addEventListener('bamppa-history', onNav);
+    return () => {
+      window.removeEventListener('bamppa-navigate', onNav);
+      window.removeEventListener('bamppa-history', onNav);
+    };
+  }, [restoreInstructorProfileFromUrl]);
 
-      // 햄버거 메뉴를 통한 장르 필터 초기 적용 확인
+  useEffect(() => {
+    if (instructors.length > 0) {
       const targetGenre = localStorage.getItem('instructor_target_genre');
       if (targetGenre) {
         setSelectedGenre(targetGenre);
@@ -207,6 +275,17 @@ const InstructorSection = ({ onOpenVipMaster, cachedInstructors = null }) => {
       }
     }
   }, [instructors]);
+
+  const openInstructorProfile = (instructor, tab = 'BIO') => {
+    setSelectedInstructor(instructor);
+    setActiveTab(tab);
+    syncInstructorNav(instructor.id, tab);
+  };
+
+  const closeInstructorProfile = () => {
+    setSelectedInstructor(null);
+    syncInstructorNav(null, null);
+  };
 
   useEffect(() => {
     const handleApplyFilter = () => {
@@ -249,6 +328,22 @@ const InstructorSection = ({ onOpenVipMaster, cachedInstructors = null }) => {
   }, [selectedInstructor])
 
   useEffect(() => {
+    if (!selectedInstructor) {
+      setInstructorClassCount(null)
+      return
+    }
+    const fetchClassCount = async () => {
+      const { count, error } = await supabase
+        .from('instructor_classes')
+        .select('id', { count: 'exact', head: true })
+        .eq('instructor_id', selectedInstructor.id)
+        .eq('status', 'active')
+      if (!error) setInstructorClassCount(count ?? 0)
+    }
+    fetchClassCount()
+  }, [selectedInstructor])
+
+  useEffect(() => {
     if (activeTab !== 'CLASSES' || !selectedInstructor) return
     const fetchClasses = async () => {
       const { data } = await supabase
@@ -257,7 +352,10 @@ const InstructorSection = ({ onOpenVipMaster, cachedInstructors = null }) => {
         .eq('instructor_id', selectedInstructor.id)
         .eq('status', 'active')
         .order('created_at', { ascending: false })
-      if (data) setClasses(data)
+      if (data) {
+        setClasses(data)
+        setInstructorClassCount(data.length)
+      }
     }
     fetchClasses()
   }, [activeTab, selectedInstructor])
@@ -449,7 +547,7 @@ const InstructorSection = ({ onOpenVipMaster, cachedInstructors = null }) => {
   const getDynamicStat = (instructor, type) => {
     if (type === 'followers') return formatStat(instructor.follower_count || 0)
     if (type === 'likes') return formatStat(instructor.likes_count || 0)
-    if (type === 'classes') return '0'
+    if (type === 'classes') return formatStat(instructorClassCount ?? classes.length ?? 0)
     if (type === 'bookings') return '0'
     return '0'
   }
@@ -473,6 +571,101 @@ const InstructorSection = ({ onOpenVipMaster, cachedInstructors = null }) => {
 
   return (
     <div style={{ background: '#0D0D0D', minHeight: '100vh', fontFamily: "'Outfit', sans-serif", color: '#fff' }}>
+      <style>{`
+        .instructor-detail-shell {
+          padding-left: 16px;
+          padding-right: 16px;
+        }
+        .instructor-bio-panel {
+          padding-left: 0;
+          padding-right: 0;
+        }
+        .instructor-bio-stat-grid {
+          display: grid;
+          grid-template-columns: 1fr;
+          gap: 10px;
+          margin-bottom: 20px;
+        }
+        .instructor-bio-stat-card {
+          background: rgba(255, 255, 255, 0.05);
+          border: 1px solid rgba(255, 255, 255, 0.12);
+          border-radius: 14px;
+          padding: 14px 16px;
+          text-align: left;
+        }
+        .instructor-bio-stat-card__label {
+          font-size: 13px;
+          color: #ffffff;
+          font-weight: 700;
+          margin-bottom: 8px;
+          line-height: 1.35;
+        }
+        .instructor-bio-stat-card__value {
+          font-size: 15px;
+          color: #f5f5f5;
+          font-weight: 600;
+          line-height: 1.55;
+          word-break: keep-all;
+          overflow-wrap: break-word;
+        }
+        .instructor-bio-actions {
+          display: flex;
+          flex-direction: column;
+          gap: 10px;
+          margin-top: 8px;
+        }
+        .instructor-bio-actions__row {
+          display: flex;
+          flex-direction: column;
+          gap: 10px;
+          width: 100%;
+        }
+        .instructor-bio-actions__btn {
+          width: 100%;
+          padding: 14px 12px;
+          border-radius: 14px;
+          border: 1px solid rgba(255, 255, 255, 0.18);
+          background: rgba(255, 255, 255, 0.06);
+          color: #ffffff;
+          font-size: 15px;
+          font-weight: 700;
+          cursor: pointer;
+          text-align: center;
+          box-sizing: border-box;
+        }
+        .instructor-bio-actions__insta {
+          width: 100%;
+          height: 52px;
+          border-radius: 14px;
+          border: 1px solid rgba(255, 255, 255, 0.12);
+          background: rgba(255, 255, 255, 0.06);
+          color: #e1306c;
+          cursor: pointer;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+        }
+        @media (min-width: 400px) {
+          .instructor-bio-stat-grid {
+            grid-template-columns: 1fr 1fr;
+          }
+          .instructor-bio-stat-card--career {
+            grid-column: 1 / -1;
+          }
+          .instructor-bio-actions__row {
+            flex-direction: row;
+            align-items: stretch;
+          }
+          .instructor-bio-actions__btn {
+            flex: 1;
+            width: auto;
+          }
+          .instructor-bio-actions__insta {
+            width: 52px;
+            flex-shrink: 0;
+          }
+        }
+      `}</style>
       
       {/* List Header */}
       <div style={{ padding: '30px 25px 10px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
@@ -597,7 +790,7 @@ const InstructorSection = ({ onOpenVipMaster, cachedInstructors = null }) => {
             {/* Rank 1 - Hero Card */}
             {instructors[0] && (
               <motion.div 
-                onClick={() => setSelectedInstructor(instructors[0])}
+                onClick={() => openInstructorProfile(instructors[0])}
                 whileTap={{ scale: 0.98 }}
                 style={{ gridColumn: 'span 2', position: 'relative', height: '240px', borderRadius: '28px', overflow: 'hidden', cursor: 'pointer', border: '1px solid rgba(201,168,76,0.2)' }}
               >
@@ -621,7 +814,7 @@ const InstructorSection = ({ onOpenVipMaster, cachedInstructors = null }) => {
             {instructors.slice(1, 5).map((inst, idx) => (
               <motion.div 
                 key={inst.id}
-                onClick={() => setSelectedInstructor(inst)}
+                onClick={() => openInstructorProfile(inst)}
                 whileTap={{ scale: 0.96 }}
                 style={{ position: 'relative', height: '180px', borderRadius: '24px', overflow: 'hidden', cursor: 'pointer', border: '1px solid rgba(255,255,255,0.05)' }}
               >
@@ -657,7 +850,7 @@ const InstructorSection = ({ onOpenVipMaster, cachedInstructors = null }) => {
             key={instructor.id}
             initial={{ opacity: 0, y: 15 }}
             animate={{ opacity: 1, y: 0 }}
-            onClick={() => setSelectedInstructor(instructor)}
+            onClick={() => openInstructorProfile(instructor)}
             style={{
               display: 'flex', alignItems: 'center', gap: 18,
               padding: '16px 20px', borderRadius: '22px', 
@@ -724,7 +917,7 @@ const InstructorSection = ({ onOpenVipMaster, cachedInstructors = null }) => {
                 
                 {/* Top Navigation */}
                 <div style={{ position: 'absolute', top: '50px', left: '25px', right: '25px', display: 'flex', justifyContent: 'space-between', zIndex: 20 }}>
-                  <button onClick={() => setSelectedInstructor(null)} style={{ width: 44, height: 44, borderRadius: '50%', background: 'rgba(0,0,0,0.4)', backdropFilter: 'blur(10px)', border: '1px solid rgba(255,255,255,0.1)', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}><ChevronLeft size={22} /></button>
+                  <button onClick={closeInstructorProfile} style={{ width: 44, height: 44, borderRadius: '50%', background: 'rgba(0,0,0,0.4)', backdropFilter: 'blur(10px)', border: '1px solid rgba(255,255,255,0.1)', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}><ChevronLeft size={22} /></button>
                   <button style={{ width: 44, height: 44, borderRadius: '50%', background: 'rgba(0,0,0,0.4)', backdropFilter: 'blur(10px)', border: '1px solid rgba(255,255,255,0.1)', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}><Share2 size={20} /></button>
                 </div>
 
@@ -777,7 +970,7 @@ const InstructorSection = ({ onOpenVipMaster, cachedInstructors = null }) => {
               </div>
 
               {/* 2. Identity Section */}
-              <div style={{ padding: '0 25px', marginTop: '-120px', position: 'relative', zIndex: 40 }}>
+              <div className="instructor-detail-shell" style={{ marginTop: '-120px', position: 'relative', zIndex: 40 }}>
                 <h1 style={{ fontSize: '38px', fontWeight: 950, color: '#FFF', margin: '0 0 4px 0', letterSpacing: '-1.5px', textTransform: 'uppercase' }}>{selectedInstructor.name}</h1>
                 <div style={{ fontSize: '14px', color: '#8E8E93', fontWeight: 600, letterSpacing: '0.2px' }}>
                   Professional Dancer | Choreographer | Instructor
@@ -807,7 +1000,10 @@ const InstructorSection = ({ onOpenVipMaster, cachedInstructors = null }) => {
                     {['BIO', 'CLASSES' /* , 'GALLERY' */].map(tab => (
                       <button 
                         key={tab} 
-                        onClick={() => setActiveTab(tab)}
+                        onClick={() => {
+                          setActiveTab(tab);
+                          if (selectedInstructor) syncInstructorNav(selectedInstructor.id, tab);
+                        }}
                         style={{ 
                           background: 'none', border: 'none', color: activeTab === tab ? '#FAFAF9' : '#9CA3AF', 
                           fontSize: '15px', fontWeight: 800, cursor: 'pointer', padding: '15px 0',
@@ -824,12 +1020,12 @@ const InstructorSection = ({ onOpenVipMaster, cachedInstructors = null }) => {
                 </div>
 
                 {/* 5. Content */}
-                <div style={{ padding: '30px 5px 150px' }}>
+                <div style={{ padding: '30px 0 150px' }}>
                   <AnimatePresence mode="wait">
                     {activeTab === 'BIO' && (
                       <motion.div 
                         key="bio" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }}
-                        style={{ padding: '0 20px' }}
+                        className="instructor-bio-panel"
                       >
                         {/* BIO: tags + intro */}
                         <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap', marginBottom: '18px' }}>
@@ -838,7 +1034,7 @@ const InstructorSection = ({ onOpenVipMaster, cachedInstructors = null }) => {
                               style={{
                                 background: 'rgba(201,168,76,0.1)',
                                 border: '1px solid rgba(201,168,76,0.28)',
-                                color: '#E8D9B0',
+                                color: '#ffffff',
                                 borderRadius: '999px',
                                 padding: '7px 14px',
                                 fontSize: '13px',
@@ -854,7 +1050,7 @@ const InstructorSection = ({ onOpenVipMaster, cachedInstructors = null }) => {
                               style={{
                                 background: 'rgba(201,168,76,0.1)',
                                 border: '1px solid rgba(201,168,76,0.28)',
-                                color: '#E8D9B0',
+                                color: '#ffffff',
                                 borderRadius: '999px',
                                 padding: '7px 14px',
                                 fontSize: '13px',
@@ -894,42 +1090,20 @@ const InstructorSection = ({ onOpenVipMaster, cachedInstructors = null }) => {
                           </p>
                         </div>
 
-                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '10px', marginBottom: '20px' }}>
+                        <div className="instructor-bio-stat-grid">
                           {[
-                            { icon: '⭐', label: '경력', value: selectedInstructor.career?.trim() },
-                            { icon: '🏆', label: '수상', value: selectedInstructor.awards?.trim() },
-                            { icon: '🎓', label: '수업방식', value: formatClassType(selectedInstructor.class_type) },
+                            { key: 'career', icon: '⭐', label: '경력', value: getInstructorCareer(selectedInstructor), wide: true },
+                            { key: 'awards', icon: '🏆', label: '수상', value: selectedInstructor.awards?.trim() },
+                            { key: 'class', icon: '🎓', label: '수업방식', value: formatClassType(selectedInstructor.class_type) },
                           ].map((card) => (
                             <div
-                              key={card.label}
-                              style={{
-                                background: 'rgba(255,255,255,0.05)',
-                                border: '1px solid rgba(201,168,76,0.22)',
-                                borderRadius: '14px',
-                                padding: '14px 10px',
-                                textAlign: 'center',
-                              }}
+                              key={card.key}
+                              className={`instructor-bio-stat-card${card.wide ? ' instructor-bio-stat-card--career' : ''}`}
                             >
-                              <div
-                                style={{
-                                  fontSize: '13px',
-                                  color: '#D9C48A',
-                                  fontWeight: 600,
-                                  marginBottom: '8px',
-                                  lineHeight: 1.35,
-                                }}
-                              >
+                              <div className="instructor-bio-stat-card__label">
                                 {card.icon} {card.label}
                               </div>
-                              <div
-                                style={{
-                                  fontSize: '15px',
-                                  color: '#FAFAF9',
-                                  fontWeight: 700,
-                                  lineHeight: 1.5,
-                                  wordBreak: 'break-word',
-                                }}
-                              >
+                              <div className="instructor-bio-stat-card__value">
                                 {card.value || '-'}
                               </div>
                             </div>
@@ -942,60 +1116,28 @@ const InstructorSection = ({ onOpenVipMaster, cachedInstructors = null }) => {
 
                         {/* <span>✨ DIRECT INQUIRY & BOOKING</span> */}
                         {(selectedInstructor.kakao_link || getInstaLink(selectedInstructor) || selectedInstructor.instagram) && (
-                          <div style={{ marginTop: '8px', display: 'flex', gap: '10px' }}>
+                          <div className="instructor-bio-actions">
                             {selectedInstructor.kakao_link && (
                               <button
+                                type="button"
+                                className="instructor-bio-actions__btn"
                                 onClick={() => window.open(selectedInstructor.kakao_link, '_blank')}
-                                style={{
-                                  flex: 1,
-                                  padding: '14px 12px',
-                                  borderRadius: '14px',
-                                  border: '1px solid rgba(201,168,76,0.35)',
-                                  background: 'rgba(201,168,76,0.08)',
-                                  color: '#F5F0E6',
-                                  fontSize: '15px',
-                                  fontWeight: 700,
-                                  cursor: 'pointer',
-                                  textAlign: 'center',
-                                }}
                               >💬 수업 문의</button>
                             )}
                             {(getInstaLink(selectedInstructor) || selectedInstructor.instagram) && (
-                              <div style={{ display: 'flex', flexDirection: 'row', gap: '8px', flex: 1 }}>
+                              <div className="instructor-bio-actions__row">
                                 {getInstaLink(selectedInstructor) && (
                                   <button
+                                    type="button"
+                                    className="instructor-bio-actions__btn"
                                     onClick={() => window.open(getInstaLink(selectedInstructor), '_blank')}
-                                    style={{
-                                      flex: 1,
-                                      padding: '14px 12px',
-                                      borderRadius: '14px',
-                                      border: '1px solid rgba(201,168,76,0.35)',
-                                      background: 'rgba(201,168,76,0.08)',
-                                      color: '#F5F0E6',
-                                      fontSize: '15px',
-                                      fontWeight: 700,
-                                      cursor: 'pointer',
-                                      textAlign: 'center',
-                                    }}
                                   >📅 문의하기</button>
                                 )}
                                 {selectedInstructor.instagram && (
                                   <button
                                     type="button"
+                                    className="instructor-bio-actions__insta"
                                     onClick={() => window.open(getInstaLink(selectedInstructor) || `https://www.instagram.com/${String(selectedInstructor.instagram).replace(/^@/, '')}`, '_blank')}
-                                    style={{
-                                      width: '52px',
-                                      height: '52px',
-                                      borderRadius: '14px',
-                                      border: '1px solid rgba(255,255,255,0.12)',
-                                      background: 'rgba(255,255,255,0.06)',
-                                      color: '#E1306C',
-                                      cursor: 'pointer',
-                                      display: 'flex',
-                                      alignItems: 'center',
-                                      justifyContent: 'center',
-                                      flexShrink: 0,
-                                    }}
                                     aria-label="인스타그램"
                                   >
                                     <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><rect x="2" y="2" width="20" height="20" rx="5" ry="5"/><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"/></svg>

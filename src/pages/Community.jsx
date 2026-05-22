@@ -4,6 +4,7 @@ import { Z } from '../constants/zLayers';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Heart, Eye, Share2, Plus, X, Camera, MapPin, Search, Home as HomeIcon, Star, Info, CheckCircle2, Trophy, Award, Zap, TrendingUp, Clock, Flame } from 'lucide-react';
 import { supabase } from '../lib/supabase';
+import { navigate } from '../lib/appHistory';
 import { useTranslation } from 'react-i18next';
 
 const Community = ({ setSelectedPoster, setView }) => {
@@ -156,6 +157,11 @@ const Community = ({ setSelectedPoster, setView }) => {
         view_count: 0
       }]);
       if (dbError) throw dbError;
+
+      try {
+        localStorage.setItem('bchata_livepick_uploaded_at', new Date().toISOString());
+        window.dispatchEvent(new Event('bchata-livepick-uploaded'));
+      } catch (_) { /* ignore */ }
       
       // Reward Point Grant
       setUserPoints(prev => prev + 10);
@@ -221,7 +227,7 @@ const Community = ({ setSelectedPoster, setView }) => {
           </div>
           <motion.button 
             whileTap={{ scale: 0.9 }}
-            onClick={() => setView('home')} 
+            onClick={() => navigate('/')} 
             style={{ width: '44px', height: '44px', borderRadius: '14px', background: 'var(--color-card)', border: '1px solid var(--color-border)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
           >
             <HomeIcon size={20} color="var(--color-text-main)" />

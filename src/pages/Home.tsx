@@ -19,24 +19,14 @@ import {
 import VenueDetailModal from '../components/VenueDetailModal'
 import BarRegisterFormModal from '../components/BarRegisterFormModal'
 import HomeHeroTagline from '../components/HomeHeroTagline'
-import { navigate as historyNavigate, parseAppState, pushOverlay, readNavigationState } from '../lib/appHistory'
+import { navigate as historyNavigate, navigateHomeTab, parseAppState, pushOverlay, readNavigationState } from '../lib/appHistory'
 import { formatPartyFeeDisplay, PARTY_FEE_CARD_FONT_SIZE } from '../lib/partyFeeDisplay'
 import { formatPartyTitleDisplay } from '../lib/partyTitleDisplay'
 import { buildHomeLiveBannerSlides } from '../lib/homeLiveBannerSlides'
 import PartyCard from '../components/PartyCard'
 
 function navigate(path, options = {}) {
-  const { replace: _replace, ...rest } = options;
-  historyNavigate(path, rest);
-}
-
-function navigateHomeTab(homeTab) {
-  const path = window.location.pathname;
-  if (path !== '/') {
-    navigate('/', { homeTab: homeTab ?? null });
-    return;
-  }
-  navigate('/', { homeTab: homeTab ?? null, force: true });
+  historyNavigate(path, options);
 }
 
 function closeOverlayNav() {
@@ -120,8 +110,8 @@ const HOME_REGIONS_ORDER = [
   '강원/제주',
 ];
 
-/** 추천 행사 포스터 썸네일 — index.css 96/108px 기준 1.3배 */
-const HOME_FEATURED_POSTER_SCALE = 1.3;
+/** 추천 행사 포스터 썸네일 — 가로 여유 반영 (기본 96px × 1.75) */
+const HOME_FEATURED_POSTER_SCALE = 1.75;
 const HOME_FEATURED_THUMB_SIZE = Math.round(96 * HOME_FEATURED_POSTER_SCALE);
 const HOME_FEATURED_THUMB_SIZE_WIDE = Math.round(108 * HOME_FEATURED_POSTER_SCALE);
 
@@ -143,6 +133,22 @@ const isPersistedLocationId = (id) => {
 const BAR_AUTO_CHECKIN_DONE_KEY = 'bchata_bar_auto_checkin_done';
 const BAR_VISITOR_ID_KEY = 'bchata_visitor_id';
 const BAR_CHECKIN_RADIUS_M = 150;
+const LIVEPICK_UPLOAD_AT_KEY = 'bchata_livepick_uploaded_at';
+
+const readLivePickUploadAt = () => {
+  try {
+    return localStorage.getItem(LIVEPICK_UPLOAD_AT_KEY) || '';
+  } catch {
+    return '';
+  }
+};
+
+const isLivePickUploadedToday = (uploadedAtIso) => {
+  if (!uploadedAtIso) return false;
+  const uploaded = new Date(uploadedAtIso);
+  if (Number.isNaN(uploaded.getTime())) return false;
+  return normDate(uploaded.toISOString()) === getKSTCalendarTodayStr();
+};
 
 const getOrCreateVisitorId = () => {
   try {
@@ -1548,6 +1554,7 @@ const HomePage = ({
   const [selectedVenue, setSelectedVenue] = useState(null);
   const [showBarRegisterForm, setShowBarRegisterForm] = useState(false);
   const [quickMenuMoreOpen, setQuickMenuMoreOpen] = useState(false);
+  const [livePickUploadAt, setLivePickUploadAt] = useState(() => readLivePickUploadAt());
   const [barStatsMap, setBarStatsMap] = useState({});
   const [liveBannerSlideIdx, setLiveBannerSlideIdx] = useState(0);
   const [liveBannerPartyRows, setLiveBannerPartyRows] = useState([]);
@@ -1555,6 +1562,20 @@ const HomePage = ({
   const [homePosterBannerIdx, setHomePosterBannerIdx] = useState(0);
   const liveBannerSlideIdxRef = useRef(0);
 
+  useEffect(() => {
+    const syncLivePickUpload = () => setLivePickUploadAt(readLivePickUploadAt());
+    window.addEventListener('storage', syncLivePickUpload);
+    window.addEventListener('bchata-livepick-uploaded', syncLivePickUpload);
+    return () => {
+      window.removeEventListener('storage', syncLivePickUpload);
+      window.removeEventListener('bchata-livepick-uploaded', syncLivePickUpload);
+    };
+  }, []);
+
+  const hasLivePickUploadToday = useMemo(
+    () => isLivePickUploadedToday(livePickUploadAt),
+    [livePickUploadAt],
+  );
 
   // [사용자 요청] 15초 롤링 — shuffleOffset 미사용, 캐러셀 스크롤 중 리렌더 방지
   // useEffect(() => {
@@ -2407,7 +2428,7 @@ const HomePage = ({
       id: 'party-register',
       menuSvg: QUICK_MENU_SVG.partyRegister,
       registerKind: 'party',
-      label: isEn ? 'Party' : '파티 등록',
+      label: isEn ? 'Party' : '파티등록',
       particles: '🎉',
       action: () => handleRegister('party'),
     },
@@ -2465,22 +2486,30 @@ const HomePage = ({
       : item.registerKind === 'class'
         ? ' home-quick-menu-item--register-class'
         : '';
+    const liveUploadMod = item.id === 'livepick' && hasLivePickUploadToday
+      ? ' home-quick-menu-item--live-uploaded'
+      : '';
     return (
       <motion.button
         key={item.id}
         type="button"
         whileTap={{ scale: 0.96 }}
         onClick={(e) => { triggerParticle(e, item.particles); item.action(); }}
-        className={`home-quick-menu-item${registerMod}${gateSwipe ? ' home-quick-menu-item--gate-swipe' : ''}`}
-        aria-label={item.label}
+        className={`home-quick-menu-item${registerMod}${liveUploadMod}${gateSwipe ? ' home-quick-menu-item--gate-swipe' : ''}`}
+        aria-label={item.id === 'livepick' && hasLivePickUploadToday ? `${item.label} · 오늘 업로드함` : item.label}
       >
-        {item.menuSvg ? (
-          <QuickMenuIconCircle>{item.menuSvg}</QuickMenuIconCircle>
-        ) : (
-          <QuickMenuIconCircle>
-            {Icon ? <Icon size={QUICK_MENU_ICON_SIZE} strokeWidth={QUICK_MENU_STROKE} color="currentColor" aria-hidden /> : null}
-          </QuickMenuIconCircle>
-        )}
+        <span className="home-quick-menu-icon-wrap">
+          {item.menuSvg ? (
+            <QuickMenuIconCircle>{item.menuSvg}</QuickMenuIconCircle>
+          ) : (
+            <QuickMenuIconCircle>
+              {Icon ? <Icon size={QUICK_MENU_ICON_SIZE} strokeWidth={QUICK_MENU_STROKE} color="currentColor" aria-hidden /> : null}
+            </QuickMenuIconCircle>
+          )}
+          {item.id === 'livepick' && hasLivePickUploadToday ? (
+            <span className="home-quick-menu-live-badge" aria-hidden>ON</span>
+          ) : null}
+        </span>
         <span className="home-quick-menu-item-label">{item.label}</span>
       </motion.button>
     );
@@ -3231,7 +3260,7 @@ const HomePage = ({
           type="button"
           className="home-party-register-outside"
           onClick={() => handleRegister('party')}
-          aria-label={isEn ? 'Register party' : '파티 등록'}
+          aria-label={isEn ? 'Register party' : '파티등록'}
         >
           <span className="home-party-register-outside__line">{isEn ? 'Party' : '파티'}</span>
           <span className="home-party-register-outside__line">{isEn ? 'Register' : '등록'}</span>
@@ -3387,8 +3416,9 @@ const HomePage = ({
           background: rgba(212, 67, 110, 0.18);
         }
         .home-gate-active .home-quick-menu-item--register-party .home-quick-menu-item-label,
-        .home-gate-active .home-quick-menu-item--register-class .home-quick-menu-item-label {
-          color: #ffffff;
+        .home-gate-active .home-quick-menu-item--register-class .home-quick-menu-item-label,
+        .home-gate-active .home-quick-menu-item-label {
+          color: #ffffff !important;
         }
         .home-gate-active .home-quick-menu-item--register-class .home-quick-menu-icon-circle {
           background: rgba(37, 99, 235, 0.18);
@@ -3501,22 +3531,64 @@ const HomePage = ({
         .quick-menu-scroll::-webkit-scrollbar {
           display: none;
         }
+        .home-quick-menu-grid-wrap--swipe {
+          position: relative;
+        }
+        .home-quick-menu-grid-wrap--swipe::after {
+          content: '';
+          position: absolute;
+          top: 0;
+          right: 0;
+          width: 28px;
+          height: 100%;
+          pointer-events: none;
+          background: linear-gradient(to right, rgba(13, 13, 13, 0), #0d0d0d 88%);
+        }
         .home-quick-menu-scroll--gate-all {
           display: flex;
           flex-wrap: nowrap;
-          gap: 12px;
+          gap: 10px;
           overflow-x: auto;
           overflow-y: hidden;
-          scroll-snap-type: x proximity;
+          scroll-snap-type: x mandatory;
           -webkit-overflow-scrolling: touch;
           scrollbar-width: none;
           msOverflowStyle: none;
-          padding: 2px 4px 4px;
+          padding: 2px 20px 4px 2px;
         }
         .home-quick-menu-scroll--gate-all > .home-quick-menu-item {
-          flex-shrink: 0;
-          width: 72px;
+          flex: 0 0 calc((100% - 30px) / 4.22);
+          width: calc((100% - 30px) / 4.22);
+          min-width: 68px;
+          max-width: 88px;
           scroll-snap-align: start;
+        }
+        .home-quick-menu-icon-wrap {
+          position: relative;
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+        }
+        .home-quick-menu-live-badge {
+          position: absolute;
+          top: -2px;
+          right: -8px;
+          min-width: 18px;
+          height: 18px;
+          padding: 0 4px;
+          border-radius: 999px;
+          background: linear-gradient(135deg, #E53935, #FF7043);
+          border: 1.5px solid #0d0d0d;
+          color: #fff;
+          font-size: 9px;
+          font-weight: 900;
+          line-height: 16px;
+          text-align: center;
+          letter-spacing: -0.02em;
+          box-shadow: 0 0 10px rgba(229, 57, 53, 0.55);
+        }
+        .home-quick-menu-item--live-uploaded .home-quick-menu-icon-circle svg {
+          animation: home-quick-accent-pulse 2.4s ease-in-out infinite;
         }
         .home-quick-menu-scroll--gate-all::-webkit-scrollbar {
           display: none;
@@ -3535,28 +3607,41 @@ const HomePage = ({
           box-shadow: none !important;
         }
         .home-gate-active .home-quick-menu-scroll--gate-all .home-quick-menu-icon-circle {
-          width: auto;
-          height: auto;
-          min-width: 0;
-          min-height: 0;
+          width: 46px;
+          height: 46px;
+          min-width: 46px;
+          min-height: 46px;
           padding: 0;
-          border: none !important;
-          background: transparent !important;
-          box-shadow: none !important;
-          border-radius: 0;
-          color: #ffffff !important;
+          border-radius: 50%;
+          box-sizing: border-box;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          background: #ffffff !important;
+          border: 1.5px solid rgba(255, 255, 255, 0.92) !important;
+          box-shadow: 0 2px 10px rgba(0, 0, 0, 0.28);
+          color: #1e293b !important;
         }
         .home-gate-active .home-quick-menu-scroll--gate-all .home-quick-menu-icon-circle svg {
-          width: 28px;
-          height: 28px;
+          width: 26px;
+          height: 26px;
+          color: #1e293b !important;
         }
-        .home-gate-active .home-quick-menu-scroll--gate-all .home-quick-menu-item--register-party .home-quick-menu-icon-circle,
+        .home-gate-active .home-quick-menu-scroll--gate-all .home-quick-menu-item--register-party .home-quick-menu-icon-circle {
+          background: rgba(212, 67, 110, 0.2) !important;
+          border: 1.5px solid rgba(244, 114, 182, 0.55) !important;
+          color: #F9A8D4 !important;
+        }
+        .home-gate-active .home-quick-menu-scroll--gate-all .home-quick-menu-item--register-party .home-quick-menu-icon-circle svg {
+          color: #F9A8D4 !important;
+        }
         .home-gate-active .home-quick-menu-scroll--gate-all .home-quick-menu-item--register-class .home-quick-menu-icon-circle {
-          width: auto;
-          height: auto;
-          background: transparent !important;
-          border: none !important;
-          color: #ffffff !important;
+          background: rgba(37, 99, 235, 0.2) !important;
+          border: 1.5px solid rgba(96, 165, 250, 0.55) !important;
+          color: #93C5FD !important;
+        }
+        .home-gate-active .home-quick-menu-scroll--gate-all .home-quick-menu-item--register-class .home-quick-menu-icon-circle svg {
+          color: #93C5FD !important;
         }
         .home-gate-active .home-quick-menu-scroll--gate-all .home-quick-menu-item-label {
           color: #ffffff !important;
@@ -3564,8 +3649,13 @@ const HomePage = ({
           font-weight: 700;
           line-height: 1.25;
           letter-spacing: -0.02em;
-          max-width: 72px;
+          max-width: 100%;
           white-space: nowrap;
+        }
+        .home-gate-active .home-quick-menu-scroll--gate-all .home-quick-menu-item--register-party .home-quick-menu-item-label,
+        .home-gate-active .home-quick-menu-scroll--gate-all .home-quick-menu-item--register-class .home-quick-menu-item-label {
+          color: #ffffff !important;
+          font-weight: 800;
         }
         .home-gate-active .quick-menu-more-link {
           color: #ffffff;
@@ -3641,6 +3731,9 @@ const HomePage = ({
           background: #0d0d0d;
           padding: 16px 16px 12px;
           margin: 0;
+        }
+        .home-gate-active .home-hot-instructors-title {
+          color: #ffffff !important;
         }
         .home-hot-instructors-title {
           margin: 0 0 12px;
@@ -3753,12 +3846,7 @@ const HomePage = ({
           }}
         >
           {renderHomeSectionHeader(
-            isHomeGate ? (
-              <>
-                <span>Social </span>
-                <span style={{ color: homeUi.gold }}>BAR</span>
-              </>
-            ) : 'Social BAR',
+            'Social BAR',
             '만원의 행복공간',
             <button
               type="button"

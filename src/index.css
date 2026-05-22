@@ -285,9 +285,9 @@ input, button, select, textarea {
 .home-featured-stream__row {
   display: flex;
   align-items: center;
-  gap: 14px;
+  gap: 12px;
   width: 100%;
-  min-height: 96px;
+  min-height: 108px;
   padding: 14px 0;
   margin: 0;
   border: none;
@@ -336,7 +336,7 @@ img.bchata-poster-fit {
 
 .home-featured-stream__thumb {
   flex-shrink: 0;
-  width: 72px;
+  width: 112px;
   aspect-ratio: 2 / 3;
   height: auto;
   border-radius: 10px;
@@ -409,7 +409,7 @@ img.bchata-poster-fit {
 
 @media (min-width: 480px) {
   .home-featured-stream__thumb {
-    width: 80px;
+    width: 132px;
     height: auto;
   }
 
@@ -1038,17 +1038,25 @@ img.bchata-poster-fit {
 /* 메인 홈 — 본문·라벨 텍스트 흰색 통일 */
 .home-gate-active .home-type-display,
 .home-gate-active .home-type-tagline,
+.home-gate-active .home-type-tagline-strong,
+.home-gate-active .home-type-tagline-sub,
 .home-gate-active .home-type-section-title,
 .home-gate-active .home-ds-title,
+.home-gate-active .home-ds-subtitle,
 .home-gate-active .home-party-status-micro,
 .home-gate-active .home-party-status-micro-btn,
 .home-gate-active .home-party-status-micro-btn strong,
 .home-gate-active .home-party-status-micro-sep,
 .home-gate-active .home-featured-stream__category,
+.home-gate-active .home-featured-stream__title,
+.home-gate-active .home-featured-stream__meta,
 .home-gate-active .home-quick-menu-item-label,
+.home-gate-active .home-hot-instructors-title,
 .home-gate-active .home-type-party-label,
 .home-gate-active .home-type-party-unit,
-.home-gate-active .quick-menu-circle-label {
+.home-gate-active .home-type-party-count,
+.home-gate-active .quick-menu-circle-label,
+.home-gate-active .quick-menu-more-link {
   color: #ffffff !important;
 }
 

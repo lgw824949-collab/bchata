@@ -3,6 +3,10 @@ export const BAMPPA_HISTORY = '__bamppa';
 
 export const NAV_SESSION_PATH_KEY = 'bchata:session-path';
 export const NAV_SESSION_STATE_KEY = 'bchata:session-state';
+export const NAV_PENDING_INSTRUCTOR_KEY = 'bchata:pending-instructor-id';
+
+const HOME_TABS = new Set(['social', 'partner']);
+const INSTRUCTOR_TABS = new Set(['BIO', 'CLASSES']);
 
 /** 예전 #hash 라우트 → bamppa state (새로고침 복원) */
 const HASH_NAV_PATCH = {
@@ -31,69 +35,60 @@ export function patchFromLocationHash(hash) {
   return key ? HASH_NAV_PATCH[key] : null;
 }
 
-/**
- * 새로고침 직후: history.state가 비어도 sessionStorage·hash에서 복원
- * @returns {{ state: object, url: string }}
- */
-export function restoreNavigationOnLoad() {
-  const pathname = window.location.pathname;
-  const search = window.location.search || '';
-  const hash = window.location.hash || '';
-  const url = pathname + search + hash;
-
-  const existing = parseAppState(window.history.state);
-  if (existing) {
-    return { state: existing, url };
-  }
-
-  const hashPatch = patchFromLocationHash(hash);
-
+export function parseInstructorIdFromPath(pathname = window.location.pathname) {
+  const match = String(pathname || '').match(/^\/instructors\/([^/]+)\/?$/);
+  if (!match) return null;
   try {
-    const savedPath = sessionStorage.getItem(NAV_SESSION_PATH_KEY);
-    const savedRaw = sessionStorage.getItem(NAV_SESSION_STATE_KEY);
-    if (savedRaw) {
-      const parsed = JSON.parse(savedRaw);
-      if (parsed?.[BAMPPA_HISTORY]) {
-        const savedBase = normalizeNavPathname(savedPath);
-        if (savedBase === pathname) {
-          const state = buildAppState({
-            view: hashPatch?.view ?? parsed.view ?? pathToView(pathname),
-            homeTab: hashPatch?.homeTab ?? parsed.homeTab ?? null,
-            overlay: hashPatch?.overlay ?? parsed.overlay ?? null,
-            overlayMeta: hashPatch?.overlayMeta ?? parsed.overlayMeta ?? null,
-            date: parsed.date ?? null,
-          });
-          return { state, url };
-        }
-      }
-    }
+    return decodeURIComponent(match[1]);
   } catch {
-    /* quota / private mode */
+    return match[1];
   }
-
-  const state = buildAppState({
-    view: hashPatch?.view ?? pathToView(pathname),
-    homeTab: hashPatch?.homeTab ?? null,
-    overlay: hashPatch?.overlay ?? null,
-    overlayMeta: hashPatch?.overlayMeta ?? null,
-  });
-  return { state, url };
 }
 
-export function persistNavSession() {
+export function instructorProfilePath(instructorId) {
+  if (!instructorId) return '/instructors';
+  return `/instructors/${encodeURIComponent(String(instructorId))}`;
+}
+
+/** URL·state·session에서 강사 프로필 ID 읽기 (새로고침 복원용) */
+export function readInstructorIdFromLocation() {
+  const fromPath = parseInstructorIdFromPath();
+  if (fromPath) return fromPath;
+  const fromQuery = readUrlNavPatch().instructorId;
+  if (fromQuery) return fromQuery;
+  const fromState = readNavigationState()?.instructorId;
+  if (fromState) return String(fromState);
   try {
-    const path = window.location.pathname + window.location.search + window.location.hash;
-    sessionStorage.setItem(NAV_SESSION_PATH_KEY, path);
-    const st = parseAppState(window.history.state);
-    if (st) sessionStorage.setItem(NAV_SESSION_STATE_KEY, JSON.stringify(st));
+    const pending = sessionStorage.getItem(NAV_PENDING_INSTRUCTOR_KEY);
+    if (pending) return pending;
   } catch {
-    /* quota / private mode */
+    /* ignore */
   }
+  return null;
+}
+
+export function readUrlNavPatch(pathname = window.location.pathname, search = window.location.search) {
+  const params = new URLSearchParams(search || '');
+  const patch = {};
+  const tab = params.get('tab');
+  if (tab && HOME_TABS.has(tab)) patch.homeTab = tab;
+
+  const pathInstructorId = parseInstructorIdFromPath(pathname);
+  const queryInstructorId = params.get('instructor');
+  if (pathInstructorId || queryInstructorId) {
+    patch.instructorId = pathInstructorId || queryInstructorId;
+    patch.view = 'instructors';
+  }
+
+  const itab = params.get('itab');
+  if (itab && INSTRUCTOR_TABS.has(itab)) patch.instructorTab = itab;
+  return patch;
 }
 
 export const PATH_TO_VIEW = {
   '/': 'home',
   '/livepick': 'community',
+  '/community': 'community',
   '/instructors': 'instructors',
   '/bootcamp': 'bootcamp',
   '/bootcamp/register': 'bootcamp-register',
@@ -108,7 +103,9 @@ export const PATH_TO_VIEW = {
 };
 
 export function pathToView(path) {
-  return PATH_TO_VIEW[path] ?? 'home';
+  if (PATH_TO_VIEW[path]) return PATH_TO_VIEW[path];
+  if (parseInstructorIdFromPath(path)) return 'instructors';
+  return 'home';
 }
 
 export function buildAppState({
@@ -117,6 +114,8 @@ export function buildAppState({
   overlay = null,
   overlayMeta = null,
   date = null,
+  instructorId = null,
+  instructorTab = null,
 }) {
   return {
     [BAMPPA_HISTORY]: true,
@@ -125,7 +124,51 @@ export function buildAppState({
     overlay: overlay ?? null,
     overlayMeta: overlayMeta ?? null,
     date: date ?? null,
+    instructorId: instructorId ?? null,
+    instructorTab: instructorTab ?? null,
   };
+}
+
+function mergeNavState({ pathname, hashPatch, parsed, urlPatch }) {
+  const pathView = pathToView(pathname);
+  return buildAppState({
+    view: hashPatch?.view ?? urlPatch?.view ?? parsed?.view ?? pathView,
+    homeTab: hashPatch?.homeTab ?? urlPatch?.homeTab ?? parsed?.homeTab ?? null,
+    overlay: hashPatch?.overlay ?? parsed?.overlay ?? null,
+    overlayMeta: hashPatch?.overlayMeta ?? parsed?.overlayMeta ?? null,
+    date: parsed?.date ?? null,
+    instructorId: urlPatch?.instructorId ?? parsed?.instructorId ?? null,
+    instructorTab: urlPatch?.instructorTab ?? parsed?.instructorTab ?? null,
+  });
+}
+
+export function buildNavUrl(pathname, state) {
+  const params = new URLSearchParams();
+  let path = pathname || '/';
+
+  if (path === '/') {
+    if (state?.homeTab && HOME_TABS.has(state.homeTab)) {
+      params.set('tab', state.homeTab);
+    }
+  }
+
+  if (state?.instructorId) {
+    path = instructorProfilePath(state.instructorId);
+    if (state.instructorTab && INSTRUCTOR_TABS.has(state.instructorTab)) {
+      params.set('itab', state.instructorTab);
+    }
+  } else if (path.startsWith('/instructors/')) {
+    path = '/instructors';
+  }
+
+  const qs = params.toString();
+  return path + (qs ? `?${qs}` : '');
+}
+
+export function resolveNavPath(path, state) {
+  if (state?.instructorId) return instructorProfilePath(state.instructorId);
+  if (path?.startsWith('/instructors/')) return '/instructors';
+  return path || '/';
 }
 
 export function parseAppState(state) {
@@ -133,8 +176,19 @@ export function parseAppState(state) {
   return null;
 }
 
+export function readPersistedNavState() {
+  try {
+    const savedRaw = sessionStorage.getItem(NAV_SESSION_STATE_KEY);
+    if (!savedRaw) return null;
+    const parsed = JSON.parse(savedRaw);
+    return parsed?.[BAMPPA_HISTORY] ? parsed : null;
+  } catch {
+    return null;
+  }
+}
+
 export function readNavigationState(rawState) {
-  return parseAppState(rawState) ?? parseAppState(window.history.state);
+  return parseAppState(rawState) ?? parseAppState(window.history.state) ?? readPersistedNavState();
 }
 
 export function isBamppaState(state) {
@@ -151,6 +205,107 @@ export function isHomeRoot(state, path = window.location.pathname) {
   );
 }
 
+/**
+ * 새로고침 직후: history.state · sessionStorage · URL 쿼리에서 복원
+ * @returns {{ state: object, url: string }}
+ */
+export function restoreNavigationOnLoad() {
+  const pathname = window.location.pathname;
+  const hash = window.location.hash || '';
+  const urlPatch = readUrlNavPatch(pathname);
+  const hashPatch = patchFromLocationHash(hash);
+
+  const toRestoreUrl = (state, basePath = pathname) => {
+    const canonicalPath = resolveNavPath(basePath, state);
+    return { state, url: buildNavUrl(canonicalPath, state) + hash };
+  };
+
+  const existing = parseAppState(window.history.state);
+  if (existing) {
+    const state = mergeNavState({
+      pathname,
+      hashPatch,
+      parsed: existing,
+      urlPatch,
+    });
+    return toRestoreUrl(state);
+  }
+
+  let parsed = readPersistedNavState();
+  const savedPath = sessionStorage.getItem(NAV_SESSION_PATH_KEY) || '';
+  const savedBase = normalizeNavPathname(savedPath);
+  const currentBase = normalizeNavPathname(pathname);
+  const savedSearch = savedPath.includes('?') ? savedPath.slice(savedPath.indexOf('?')) : '';
+  const savedUrlPatch = readUrlNavPatch(savedBase, savedSearch);
+
+  if (parsed && savedBase && savedBase !== currentBase) {
+    const savedHasDeep = savedBase !== '/' || savedUrlPatch.instructorId || parsed.instructorId;
+    const currentIsBareHome =
+      currentBase === '/'
+      && !urlPatch.homeTab
+      && !urlPatch.instructorId
+      && !hashPatch?.homeTab
+      && !window.location.search;
+    if (savedHasDeep && currentIsBareHome) {
+      const state = mergeNavState({
+        pathname: savedBase,
+        hashPatch,
+        parsed,
+        urlPatch: { ...savedUrlPatch, ...urlPatch },
+      });
+      return toRestoreUrl(state, savedBase);
+    }
+  }
+
+  if (parsed && savedBase === currentBase) {
+    const state = mergeNavState({
+      pathname,
+      hashPatch,
+      parsed,
+      urlPatch: { ...savedUrlPatch, ...urlPatch },
+    });
+    return toRestoreUrl(state);
+  }
+
+  let state = mergeNavState({ pathname, hashPatch, parsed: null, urlPatch });
+
+  if (state.instructorId && !parseInstructorIdFromPath(pathname)) {
+    state = mergeNavState({
+      pathname: instructorProfilePath(state.instructorId),
+      hashPatch,
+      parsed: state,
+      urlPatch,
+    });
+  }
+
+  const canonicalPath = resolveNavPath(pathname, state);
+  return { state, url: buildNavUrl(canonicalPath, state) + hash };
+}
+
+export function persistNavSession() {
+  try {
+    const path = window.location.pathname + window.location.search + window.location.hash;
+    sessionStorage.setItem(NAV_SESSION_PATH_KEY, path);
+    const st = readNavigationState();
+    if (st) sessionStorage.setItem(NAV_SESSION_STATE_KEY, JSON.stringify(st));
+  } catch {
+    /* quota / private mode */
+  }
+}
+
+let navPersistenceInstalled = false;
+
+export function installNavSessionPersistence() {
+  if (navPersistenceInstalled || typeof window === 'undefined') return;
+  navPersistenceInstalled = true;
+  const flush = () => persistNavSession();
+  window.addEventListener('pagehide', flush);
+  window.addEventListener('beforeunload', flush);
+  document.addEventListener('visibilitychange', () => {
+    if (document.visibilityState === 'hidden') flush();
+  });
+}
+
 function syncHistoryToApp(state) {
   window.dispatchEvent(new CustomEvent('bamppa-navigate', { detail: { state } }));
   window.dispatchEvent(new CustomEvent('bamppa-history', { detail: { state } }));
@@ -165,38 +320,63 @@ export function navigate(path, options = {}) {
     view = pathToView(path),
     date = null,
     force = false,
+    instructorId,
+    instructorTab,
   } = options;
 
   const currentPath = window.location.pathname;
-  const current = parseAppState(window.history.state);
+  const current = readNavigationState();
 
   const resolvedHomeTab =
     homeTab !== undefined ? homeTab : path === '/' ? (current?.homeTab ?? null) : null;
 
-  if (
-    !force
-    && !replace
-    && currentPath === path
-    && (current?.view ?? pathToView(path)) === view
-    && (overlay ?? null) === (current?.overlay ?? null)
-    && JSON.stringify(overlayMeta ?? null) === JSON.stringify(current?.overlayMeta ?? null)
-    && (path !== '/' || (current?.homeTab ?? null) === resolvedHomeTab)
-  ) {
-    return;
-  }
+  const isInstructorsRoute = String(path).startsWith('/instructors');
+
+  const resolvedInstructorId =
+    instructorId !== undefined
+      ? instructorId
+      : parseInstructorIdFromPath(path) ?? (isInstructorsRoute ? current?.instructorId : null) ?? null;
+
+  const resolvedInstructorTab =
+    instructorTab !== undefined
+      ? instructorTab
+      : isInstructorsRoute
+        ? (current?.instructorTab ?? null)
+        : null;
+
+  const resolvedView = isInstructorsRoute ? 'instructors' : view;
 
   const state = buildAppState({
-    view,
+    view: resolvedView,
     homeTab: path === '/' ? resolvedHomeTab : null,
     overlay,
     overlayMeta,
     date: date ?? current?.date ?? null,
+    instructorId: isInstructorsRoute ? resolvedInstructorId : null,
+    instructorTab: isInstructorsRoute ? resolvedInstructorTab : null,
   });
 
+  const finalPath = resolveNavPath(path, state);
+  const url = buildNavUrl(finalPath, state);
+
+  if (
+    !force
+    && !replace
+    && currentPath === finalPath
+    && (current?.view ?? pathToView(path)) === resolvedView
+    && (overlay ?? null) === (current?.overlay ?? null)
+    && JSON.stringify(overlayMeta ?? null) === JSON.stringify(current?.overlayMeta ?? null)
+    && (path !== '/' || (current?.homeTab ?? null) === resolvedHomeTab)
+    && (!isInstructorsRoute || String(current?.instructorId ?? '') === String(resolvedInstructorId ?? ''))
+    && (!isInstructorsRoute || (current?.instructorTab ?? null) === resolvedInstructorTab)
+  ) {
+    return;
+  }
+
   if (replace) {
-    window.history.replaceState(state, '', path);
+    window.history.replaceState(state, '', url);
   } else {
-    window.history.pushState(state, '', path);
+    window.history.pushState(state, '', url);
   }
   window.scrollTo(0, 0);
   syncHistoryToApp(state);
@@ -205,7 +385,7 @@ export function navigate(path, options = {}) {
 
 export function pushOverlay(overlay, options = {}) {
   const path = options.path ?? window.location.pathname;
-  const current = parseAppState(window.history.state) || {};
+  const current = readNavigationState() || {};
   navigate(path, {
     replace: false,
     view: current.view ?? pathToView(path),
@@ -213,12 +393,16 @@ export function pushOverlay(overlay, options = {}) {
     overlay,
     overlayMeta: options.meta ?? null,
     date: current.date ?? null,
+    instructorId: String(path).startsWith('/instructors')
+      ? (parseInstructorIdFromPath(path) ?? current.instructorId ?? null)
+      : undefined,
+    instructorTab: String(path).startsWith('/instructors') ? (current.instructorTab ?? null) : undefined,
     force: true,
   });
 }
 
 export function replaceCurrentState(patch) {
-  const current = parseAppState(window.history.state) || {};
+  const current = readNavigationState() || {};
   const path = window.location.pathname;
   const state = buildAppState({
     view: patch.view ?? current.view ?? pathToView(path),
@@ -226,10 +410,39 @@ export function replaceCurrentState(patch) {
     overlay: patch.overlay !== undefined ? patch.overlay : current.overlay ?? null,
     overlayMeta: patch.overlayMeta !== undefined ? patch.overlayMeta : current.overlayMeta ?? null,
     date: patch.date !== undefined ? patch.date : current.date ?? null,
+    instructorId: patch.instructorId !== undefined ? patch.instructorId : current.instructorId ?? null,
+    instructorTab: patch.instructorTab !== undefined ? patch.instructorTab : current.instructorTab ?? null,
   });
-  window.history.replaceState(state, '', path);
+  const url = buildNavUrl(resolveNavPath(path, state), state);
+  window.history.replaceState(state, '', url);
   syncHistoryToApp(state);
   persistNavSession();
+}
+
+export function syncInstructorNav(instructorId, instructorTab = 'BIO') {
+  try {
+    if (instructorId) {
+      sessionStorage.setItem(NAV_PENDING_INSTRUCTOR_KEY, String(instructorId));
+    } else {
+      sessionStorage.removeItem(NAV_PENDING_INSTRUCTOR_KEY);
+    }
+  } catch {
+    /* ignore */
+  }
+
+  const current = readNavigationState() || {};
+  const path = instructorId ? instructorProfilePath(instructorId) : '/instructors';
+  navigate(path, {
+    replace: true,
+    view: 'instructors',
+    homeTab: null,
+    overlay: current.overlay ?? null,
+    overlayMeta: current.overlayMeta ?? null,
+    date: current.date ?? null,
+    instructorId: instructorId || null,
+    instructorTab: instructorId ? (instructorTab || 'BIO') : null,
+    force: true,
+  });
 }
 
 export function closeOverlay() {

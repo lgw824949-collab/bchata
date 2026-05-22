@@ -12,12 +12,17 @@ import {
   BAMPPA_HISTORY,
   buildAppState,
   navigate as historyNavigate,
+  navigateHomeTab,
   parseAppState,
   pathToView,
   persistNavSession,
   pushOverlay,
   readNavigationState,
+  readPersistedNavState,
+  readUrlNavPatch,
+  instructorProfilePath,
   restoreNavigationOnLoad,
+  installNavSessionPersistence,
 } from './lib/appHistory'
 import { registerExitToast } from './lib/mobileExitGuard'
 import { Z } from './constants/zLayers'
@@ -55,19 +60,8 @@ const SajuModal = lazy(() => import('./components/SajuModal'))
 const IncheonRoute = lazy(() => import('./components/IncheonRoute'))
 const WeatherModal = lazy(() => import('./components/WeatherModal'))
 
-/** replace 옵션 무시 — 항상 push 스택 */
 function navigate(path, options = {}) {
-  const { replace: _replace, ...rest } = options
-  historyNavigate(path, rest)
-}
-
-function navigateHomeTab(homeTab) {
-  const path = window.location.pathname
-  if (path !== '/') {
-    navigate('/', { homeTab: homeTab ?? null })
-    return
-  }
-  navigate('/', { homeTab: homeTab ?? null, force: true })
+  historyNavigate(path, options)
 }
 
 function goBack() {
@@ -1176,11 +1170,22 @@ function App() {
   const [chatbotOverlay, setChatbotOverlay] = useState(false);
   const navSnapshotRef = useRef(readNavigationState());
   const historyReadyRef = useRef(false);
+  const navBootstrappedRef = useRef(false);
   const lastPosterCleanupDayRef = useRef('');
 
   const applyHistoryState = (rawState) => {
     const path = window.location.pathname;
-    const st = parseAppState(rawState) ?? parseAppState(window.history.state);
+    const urlPatch = readUrlNavPatch(path);
+    const persisted = readPersistedNavState();
+    const parsed = parseAppState(rawState) ?? parseAppState(window.history.state) ?? persisted;
+    const st = parsed
+      ? {
+          ...parsed,
+          homeTab: parsed.homeTab ?? urlPatch.homeTab ?? null,
+          instructorId: parsed.instructorId ?? urlPatch.instructorId ?? null,
+          instructorTab: parsed.instructorTab ?? urlPatch.instructorTab ?? null,
+        }
+      : null;
     const nextView = viewForPath(path, st);
 
     if (isAdminShellActive(nextView, path)) {
@@ -1257,6 +1262,7 @@ function App() {
   };
 
   useEffect(() => {
+    if (!navBootstrappedRef.current) return;
     applyHistoryState(window.history.state);
     navSnapshotRef.current = readNavigationState();
   }, [location.pathname]);
@@ -1295,13 +1301,17 @@ function App() {
   }, []);
 
   useEffect(() => {
+    installNavSessionPersistence();
     const { state, url } = restoreNavigationOnLoad();
-    if (!parseAppState(window.history.state)) {
+    const currentUrl = window.location.pathname + window.location.search + (window.location.hash || '');
+    if (!parseAppState(window.history.state) || url !== currentUrl) {
       window.history.replaceState(state, '', url);
     }
     applyHistoryState(state);
     navSnapshotRef.current = state;
     persistNavSession();
+    navBootstrappedRef.current = true;
+    historyReadyRef.current = true;
   }, []);
 
   useEffect(() => {
@@ -1319,11 +1329,9 @@ function App() {
 
     window.addEventListener('bamppa-navigate', onNavigate);
     window.addEventListener('popstate', onPopState);
-    historyReadyRef.current = true;
     return () => {
       window.removeEventListener('bamppa-navigate', onNavigate);
       window.removeEventListener('popstate', onPopState);
-      historyReadyRef.current = false;
     };
   }, []);
 
@@ -2120,7 +2128,11 @@ function App() {
   const isHomeNavActive = location.pathname === '/' && view === 'home' && homeActiveTab === null && !showPartner
   const isBootcampNavActive = (location.pathname === '/bootcamp' || view === 'bootcamp' || view === 'bootcamp-register') && !showPartner
   const isBottomSocialNavActive = location.pathname === '/' && view === 'home' && homeActiveTab === 'social' && !showPartner
-  const isInstructorsNavActive = (location.pathname === '/instructors' || view === 'instructors') && !showPartner
+  const isInstructorsNavActive = (
+    location.pathname === '/instructors'
+    || location.pathname.startsWith('/instructors/')
+    || view === 'instructors'
+  ) && !showPartner
   const isFestivalNavActive = (location.pathname === '/festival' || view === 'festival' || view === 'festival-register') && !showPartner
 
   useEffect(() => {
@@ -2318,10 +2330,13 @@ function App() {
                       whileHover={{ scale: 1.05 }}
                       whileTap={{ scale: 0.95 }}
                       onClick={() => {
-                        localStorage.setItem('selected_instructor_id', inst.id);
-                        navigate('/instructors');
-                        setView('instructors');
                         setIsMenuOpen(false);
+                        navigate(instructorProfilePath(inst.id), {
+                          view: 'instructors',
+                          instructorId: inst.id,
+                          instructorTab: 'BIO',
+                          force: true,
+                        });
                       }}
                       style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '6px', cursor: 'pointer', flexShrink: 0 }}
                     >
@@ -3165,7 +3180,12 @@ function App() {
           setShowPartner(false);
           setActiveTab(null);
           localStorage.setItem('instructor_target_genre', '전체');
-          navigate('/instructors', { homeTab: null });
+          navigate('/instructors', {
+            homeTab: null,
+            instructorId: null,
+            instructorTab: null,
+            force: true,
+          });
           window.dispatchEvent(new CustomEvent('apply-instructor-filter'));
         }}
         style={{
