@@ -1,0 +1,2510 @@
+﻿import { useState, useEffect, useMemo, useRef, lazy, Suspense } from 'react'
+import { Home as HomeIcon, Users, LogOut, Heart, X, MessageSquare, RefreshCw, CloudSun, Utensils, Zap, Languages, Bell, Star, Navigation, CreditCard, Settings, Map as MapIcon, BarChart, BarChart2, Gift, Coffee, User, Menu, Music2, Tent, Flag, Download, Globe, ShieldCheck, Calendar, CalendarDays, Camera, ChevronLeft, ChevronRight, Loader2, Search, Share2, Copy, TrendingUp, GraduationCap } from 'lucide-react'
+import { useTranslation } from 'react-i18next';
+import { motion, AnimatePresence } from 'framer-motion'
+import { supabase, logActivity } from './lib/supabase'
+import { KAKAO_BRAND, SHARE_BUILD, sharePartyToKakao } from './lib/kakaoShare'
+import { buildPartyShareCard } from './lib/partyShareCard'
+import { getUserCoords, isGeoDenied, readCachedCoords, syncGeoPermissionState } from './lib/geoCache'
+import QuickPinchZoom, { make3dTransformValue } from 'react-quick-pinch-zoom';
+
+// ?섏씠吏 吏??濡쒕뵫 (Lazy Loading)
+const RegisterForm = lazy(() => import('./RegisterForm'));
+const AdminDashboard = lazy(() => import('./AdminDashboard'));
+const HomePage = lazy(() => import('./pages/Home'));
+const Community = lazy(() => import('./pages/Community'));
+const Instructors = lazy(() => import('./pages/Instructors'));
+const InstructorRegister = lazy(() => import('./components/InstructorRegister'));
+const PostClub = lazy(() => import('./pages/PostClub'));
+const Bootcamp = lazy(() => import('./pages/Bootcamp'));
+const Festival = lazy(() => import('./pages/Festival'));
+const Parking = lazy(() => import('./pages/Parking'));
+const Restaurant = lazy(() => import('./pages/Restaurant'));
+const SajuModal = lazy(() => import('./components/SajuModal'));
+const IncheonRoute = lazy(() => import('./components/IncheonRoute'));
+const WeatherModal = lazy(() => import('./components/WeatherModal'));
+import PartnerModal from './components/PartnerModal';
+import WishlistModal from './components/WishlistModal';
+import RentalModal from './components/RentalModal';
+import ClassRegisterModal from './components/ClassRegisterModal';
+import ChatBot from './components/ChatBot';
+
+// 濡쒕뵫 ?ㅽ뵾??而댄룷?뚰듃
+const LoadingFallback = () => (
+  <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '80vh', gap: '16px' }}>
+    <motion.div animate={{ rotate: 360 }} transition={{ duration: 1, repeat: Infinity, ease: 'linear' }}>
+      <Loader2 size={40} color="#FF1744" />
+    </motion.div>
+    <p style={{ color: '#94A3B8', fontSize: '14px', fontWeight: 600 }}>?좎떆留?湲곕떎?ㅼ＜?몄슂...</p>
+  </div>
+);
+
+// --- [CUSTOM ROUTING ENGINE] ---
+const useLocation = () => {
+  const [pathname, setPathname] = useState(window.location.pathname);
+  useEffect(() => {
+    const handlePopState = () => setPathname(window.location.pathname);
+    window.addEventListener('popstate', handlePopState);
+    return () => window.removeEventListener('popstate', handlePopState);
+  }, []);
+  return { pathname };
+};
+
+const navigate = (path) => {
+  window.history.pushState({}, '', path);
+  window.dispatchEvent(new PopStateEvent('popstate'));
+  window.scrollTo(0, 0);
+};
+
+import { BAR_DATABASE, findBarByName } from './data/barDatabase';
+
+const GENRE_MAP = {
+  '諛붿감?': { key: 'b_ratio', label: 'B', color: '#059669' },
+  '?댁궗':   { key: 's_ratio', label: 'S', color: '#DC2626' },
+  '伊ы겕':   { key: 'j_ratio', label: 'J', color: '#F59E0B' },
+  '?ㅼ?諛?: { key: 'k_ratio', label: 'K', color: '#7C3AED' },
+};
+
+
+// [踰덉뿭 鍮꾩슜 理쒖쟻?붾? ?꾪븳 ?뺤쟻 留듯븨]
+const REGION_MAP_EN = {
+  '?꾧뎅': 'Nationwide',
+  '?쒖슱': 'Seoul', '寃쎄린/?몄쿇': 'Gyeonggi/Incheon', '寃쎌긽??: 'Gyeongsang', 
+  '?꾨씪??: 'Jeolla', '異⑹껌??: 'Chungcheong', '媛뺤썝/?쒖＜': 'Gangwon/Jeju'
+};
+
+const CITY_MAP_EN = {
+  '?쒖슱': 'Seoul', '?몄쿇': 'Incheon', '?援?: 'Daegu', '遺??: 'Busan', '愿묒＜': 'Gwangju', 
+  '???: 'Daejeon', '?몄궛': 'Ulsan', '?몄쥌': 'Sejong', '?섏썝': 'Suwon', '?깅궓': 'Seongnam',
+  '?섏젙遺': 'Uijeongbu', '?덉궛': 'Ansan', '怨좎뼇': 'Goyang', '?⑹씤': 'Yongin', '遺泥?: 'Bucheon'
+};
+
+const SHARE_HOME_URL = () => `${window.location.origin}/`;
+
+// [?ъ뒪??以??꾩슜 而댄룷?뚰듃 - ?꾩뿭 遺꾨━]
+const PosterModal = ({ src, onClose, shareTitle, shareDesc, shareLines, shareFeedDesc, partyId }) => {
+  const imgRef = useRef();
+
+  const resolvedTitle = shareTitle?.trim() || '?ㅻ뒛諛ㅻ튌 ???꾧뎅 ?쇳떞쨌?뚯뀥 ?뚰떚';
+  const cardLines = Array.isArray(shareLines) && shareLines.length > 0
+    ? shareLines
+    : (shareDesc?.trim() ? shareDesc.split('\n').filter(Boolean) : []);
+  const resolvedDesc = cardLines.length > 0
+    ? cardLines.join('\n')
+    : (shareDesc?.trim() || '?꾧뎅 ?뚮줈???뺣낫???깆뿉???쒕늿??');
+  const linkUrl = partyId
+    ? `${window.location.origin}/?party=${encodeURIComponent(partyId)}&open=true`
+    : SHARE_HOME_URL();
+
+  const onUpdate = ({ x, y, scale }) => {
+    if (imgRef.current) {
+      imgRef.current.style.transform = make3dTransformValue({ x, y, scale });
+    }
+  };
+
+  const handleSave = async () => {
+    try {
+      const response = await fetch(src);
+      const blob = await response.blob();
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'poster.jpg';
+      a.click();
+      URL.revokeObjectURL(url);
+    } catch (err) {
+      console.error('Save failed:', err);
+      window.open(src, '_blank');
+    }
+  };
+
+  const absoluteImageUrl = (() => {
+    if (!src) return '';
+    if (/^https?:\/\//i.test(src)) return src;
+    return `${window.location.origin}${src.startsWith('/') ? '' : '/'}${src}`;
+  })();
+
+  const handleCopyLink = async () => {
+    try {
+      await navigator.clipboard.writeText(linkUrl);
+    } catch (e) {
+      window.prompt('留곹겕瑜?蹂듭궗?섏꽭??', linkUrl);
+    }
+  };
+
+  const handleNativeShare = async () => {
+    const sharePayload = {
+      title: resolvedTitle,
+      text: `${resolvedDesc}\n${linkUrl}`,
+      url: linkUrl,
+    };
+    try {
+      if (navigator.share) {
+        if (navigator.canShare && absoluteImageUrl) {
+          try {
+            const res = await fetch(src);
+            const blob = await res.blob();
+            const ext = blob.type?.includes('png') ? 'png' : 'jpg';
+            const file = new File([blob], `poster.${ext}`, { type: blob.type || 'image/jpeg' });
+            const withFile = { ...sharePayload, files: [file] };
+            if (navigator.canShare(withFile)) {
+              await navigator.share(withFile);
+              return;
+            }
+          } catch (_) { /* fall through */ }
+        }
+        await navigator.share(sharePayload);
+      } else {
+        await handleCopyLink();
+      }
+    } catch (err) {
+      if (err?.name !== 'AbortError') console.error(err);
+    }
+  };
+
+  const handleKakaoShare = async () => {
+    await sharePartyToKakao({
+      title: resolvedTitle,
+      description: shareFeedDesc || cardLines.join(' 쨌 ') || resolvedDesc,
+      posterUrl: absoluteImageUrl,
+      linkUrl,
+    });
+  };
+
+  const btnRound = {
+    background: 'rgba(0,0,0,0.5)',
+    color: 'white',
+    width: '36px',
+    height: '36px',
+    borderRadius: '50%',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    border: 'none',
+    cursor: 'pointer',
+    flexShrink: 0,
+  };
+
+  return (
+    <motion.div style={{ 
+      position:'fixed', 
+      inset:0, 
+      zIndex:2000000, 
+      backgroundColor:'#000', 
+      display:'flex',
+      flexDirection:'column',
+      height: '100dvh',
+      paddingBottom: 'env(safe-area-inset-bottom)',
+    }}>
+      <header style={{
+        flexShrink: 0,
+        height: 'calc(50px + env(safe-area-inset-top))',
+        boxSizing: 'border-box',
+        paddingTop: 'env(safe-area-inset-top)',
+        paddingLeft: '12px',
+        paddingRight: '12px',
+        background: '#000000',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        position: 'relative',
+        zIndex: 2000001,
+      }}>
+        <button
+          type="button"
+          onClick={onClose}
+          aria-label="?ㅻ줈媛湲?
+          style={{
+            background: 'rgba(0,0,0,0.5)',
+            border: 'none',
+            borderRadius: '50%',
+            width: '36px',
+            height: '36px',
+            color: '#fff',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            cursor: 'pointer',
+            flexShrink: 0,
+          }}
+        >
+          <ChevronLeft size={24} />
+        </button>
+        {/* ?ㅻ뜑 以묒븰: ?ㅻ뒛諛ㅻ튌 쨌 ?곗륫 怨듭쑀/蹂듭궗 ??移댁뭅??踰꾪듉?쇰줈 援먯껜, 援??덉씠?꾩썐 二쇱꽍 蹂닿?
+        <span style={{ position: 'absolute', left: '50%', transform: 'translateX(-50%)', color: '#C9A84C', fontSize: '16px', fontWeight: 900, pointerEvents: 'none' }}>?ㅻ뒛諛ㅻ튌</span>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexShrink: 0 }}>
+          <button type="button" onClick={handleNativeShare} title="怨듭쑀" style={btnRound}><Share2 size={18} /></button>
+          <button type="button" onClick={handleCopyLink} title="??留곹겕 蹂듭궗" style={btnRound}><Copy size={18} /></button>
+        </div>
+        */}
+        <button
+          type="button"
+          onClick={handleKakaoShare}
+          title="移댁뭅?ㅻ줈 怨듭쑀?섍린"
+          style={{
+            position: 'absolute',
+            left: '50%',
+            transform: 'translateX(-50%)',
+            background: '#FEE500',
+            color: '#3E2723',
+            border: 'none',
+            borderRadius: '20px',
+            padding: '8px 14px',
+            fontSize: '13px',
+            fontWeight: 800,
+            cursor: 'pointer',
+            whiteSpace: 'nowrap',
+            maxWidth: 'calc(100% - 100px)',
+            overflow: 'hidden',
+            textOverflow: 'ellipsis',
+          }}
+        >
+          ?뮠 移댁뭅?ㅻ줈 怨듭쑀?섍린
+        </button>
+      </header>
+
+      {/* ?リ린 踰꾪듉 ???ㅻ뜑濡??대룞, 援??덉씠?꾩썐 二쇱꽍 蹂닿?
+      <button onClick={onClose} style={{ position:'absolute', top:'calc(40px + env(safe-area-inset-top))', left:'20px', ... }}><ChevronLeft size={32} /></button>
+      */}
+
+      {/* 以?而⑦뀒?대꼫 (?ㅻ뜑 ?꾨옒 ?꾩껜 ?곸뿭) */}
+      <div style={{ 
+        flex: 1,
+        position: 'relative',
+        overflow: 'hidden',
+        minHeight: 0,
+      }}>
+        <QuickPinchZoom 
+          onUpdate={onUpdate} 
+          wheelScaleFactor={500} 
+          tapZoomFactor={2}
+          containerProps={{
+            style: {
+              width: '100%',
+              height: '100%',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+            }
+          }}
+        >
+          <img 
+            ref={imgRef}
+            src={src} 
+            alt="poster" 
+            style={{ 
+              width: '100%',
+              height: '100%',
+              objectFit: 'contain',
+              objectPosition: 'center center',
+              display: 'block',
+              willChange: 'transform',
+              userSelect: 'none',
+              pointerEvents: 'none'
+            }} 
+          />
+        </QuickPinchZoom>
+      </div>
+
+      {cardLines.length > 0 && (
+        <div
+          style={{
+            flexShrink: 0,
+            padding: '12px 16px calc(12px + env(safe-area-inset-bottom))',
+            background: '#0a0a0a',
+            borderTop: '1px solid rgba(255,255,255,0.12)',
+          }}
+        >
+          <div style={{ fontSize: '15px', fontWeight: 900, color: '#fff', marginBottom: '8px', letterSpacing: '-0.3px' }}>
+            {resolvedTitle}
+          </div>
+          {cardLines.map((line) => (
+            <div key={line} style={{ fontSize: '14px', fontWeight: 700, color: '#CBD5E1', lineHeight: 1.45, marginTop: '2px' }}>
+              {line}
+            </div>
+          ))}
+        </div>
+      )}
+      
+      {/* ?섎떒: 怨듭쑀 쨌 移댁뭅??쨌 留곹겕蹂듭궗 쨌 ???(A?? ???곷떒 ?곗륫?쇰줈 ?대룞, 援??덉씠?꾩썐 二쇱꽍 蹂닿?
+      <div style={{
+        position: 'absolute',
+        bottom: 'calc(28px + env(safe-area-inset-bottom))',
+        left: '50%',
+        transform: 'translateX(-50%)',
+        zIndex: 100002,
+        display: 'flex',
+        alignItems: 'center',
+        gap: '10px',
+        maxWidth: '96vw',
+        flexWrap: 'wrap',
+        justifyContent: 'center',
+      }}>
+        <button type="button" onClick={handleNativeShare} title="怨듭쑀" style={btnRound}>
+          <Share2 size={20} />
+        </button>
+        <button
+          type="button"
+          onClick={handleKakaoShare}
+          title="移댄넚?쇰줈 怨듭쑀 (?ㅻ뒛諛ㅻ튌)"
+          style={{
+            ...btnRound,
+            background: '#FEE500',
+            color: '#3C1E1E',
+            border: '1px solid rgba(60,30,30,0.25)',
+            fontSize: '11px',
+            fontWeight: 900,
+            width: 'auto',
+            minWidth: '48px',
+            padding: '0 12px',
+            borderRadius: '24px',
+          }}
+        >
+          {KAKAO_BRAND}
+        </button>
+        <button type="button" onClick={handleCopyLink} title="??留곹겕 蹂듭궗" style={btnRound}>
+          <Copy size={20} />
+        </button>
+        <button type="button" onClick={handleSave} title="?대?吏 ??? style={btnRound}>
+          <Download size={22} />
+        </button>
+      </div>
+      */}
+      {/* ?곷떒 ?곗륫: 怨듭쑀 쨌 移댁뭅??쨌 蹂듭궗 쨌 ??????ㅻ뜑濡??대룞, 援??덉씠?꾩썐 二쇱꽍 蹂닿?
+      <motion.div style={{
+        position: 'absolute',
+        top: 'calc(40px + env(safe-area-inset-top))',
+        right: '20px',
+        zIndex: 2000001,
+        display: 'flex',
+        alignItems: 'center',
+        gap: '10px',
+        maxWidth: 'calc(100vw - 100px)',
+        flexWrap: 'wrap',
+        justifyContent: 'flex-end',
+      }}>
+        <button type="button" onClick={handleNativeShare} title="怨듭쑀" style={btnRound}>
+          <Share2 size={20} />
+        </button>
+        <button
+          type="button"
+          onClick={handleKakaoShare}
+          title="移댄넚?쇰줈 怨듭쑀 (?ㅻ뒛諛ㅻ튌)"
+          style={{
+            ...btnRound,
+            fontSize: '11px',
+            fontWeight: 900,
+            width: 'auto',
+            minWidth: '48px',
+            padding: '0 12px',
+            borderRadius: '24px',
+          }}
+        >
+          {KAKAO_BRAND}
+        </button>
+        <button type="button" onClick={handleCopyLink} title="??留곹겕 蹂듭궗" style={btnRound}>
+          <Copy size={20} />
+        </button>
+        <button type="button" onClick={handleSave} title="?대?吏 ??? style={btnRound}>
+          <Download size={22} />
+        </button>
+      </motion.div>
+      */}
+      <span style={{ position: 'absolute', bottom: 'calc(8px + env(safe-area-inset-bottom))', left: '50%', transform: 'translateX(-50%)', fontSize: 9, color: 'rgba(255,255,255,0.35)', zIndex: 100002 }}>{SHARE_BUILD}</span>
+    </motion.div>
+  );
+};
+
+const EXPOSURE_ROTATE_MS = 4 * 60 * 1000;
+const normDateExposure = (d) => (d ? String(d).slice(0, 10) : '');
+const locationKeyExposure = (item) =>
+  String(item?.location_name || item?.locationName || item?.studio_name || item?.venue || item?.id || '')
+    .trim()
+    .toLowerCase();
+const exposureScore = (item, todayStr) => {
+  let score = (item?.click_count || 0) * 3;
+  if (normDateExposure(item?.date) === todayStr) score += 400;
+  const t = item?.time?.split('-')[0]?.trim() || '21:00';
+  const [h] = t.split(':').map(Number);
+  if (!Number.isNaN(h) && h >= 18) score += 80;
+  score += new Date(item?.created_at || 0).getTime() / 1e12;
+  return score;
+};
+const pickExposurePair = (pool, rotationIndex, todayStr) => {
+  if (!pool?.length) return [];
+  const sorted = [...pool].sort((a, b) => exposureScore(b, todayStr) - exposureScore(a, todayStr));
+  const n = sorted.length;
+  if (n === 1) return [sorted[0]];
+  const start = (rotationIndex * 2) % n;
+  const picked = [];
+  const usedLoc = new Set();
+  for (let i = 0; i < n * 2 && picked.length < 2; i++) {
+    const item = sorted[(start + i) % n];
+    const loc = locationKeyExposure(item);
+    if (picked.some((p) => p.id === item.id)) continue;
+    if (picked.length === 1 && loc && usedLoc.has(loc)) continue;
+    picked.push(item);
+    if (loc) usedLoc.add(loc);
+  }
+  return picked;
+};
+
+/** ?좏깮???좎쭨 쨌 2移??뚰떚 誘몃━蹂닿린 (?ㅻ뒛 諛? ?대뵒??異?異쒕옒??) */
+const LiveExposureStrip = ({ pool, selectedDate, todayStr, onSelect, cleanTitle, translateDynamicText, isEn }) => {
+  const [rotationIndex, setRotationIndex] = useState(0);
+
+  useEffect(() => {
+    setRotationIndex(0);
+  }, [selectedDate, pool.length]);
+
+  useEffect(() => {
+    if (pool.length < 2) return undefined;
+    const timer = setInterval(() => setRotationIndex((v) => v + 1), EXPOSURE_ROTATE_MS);
+    return () => clearInterval(timer);
+  }, [pool.length, selectedDate]);
+
+  const featured = useMemo(() => {
+    const picked = pickExposurePair(pool, rotationIndex, todayStr);
+    if (picked.length) return picked;
+    return pool.length ? [pool[0]] : [];
+  }, [pool, rotationIndex, todayStr]);
+
+  if (!pool.length) return null;
+
+  return (
+    <section
+      style={{
+        margin: '8px 16px 88px',
+        padding: '16px 16px 18px',
+        borderRadius: '20px',
+        background: '#FFFFFF',
+        border: '1px solid #E2E8F0',
+        boxShadow: '0 4px 20px rgba(15, 23, 42, 0.06)',
+      }}
+    >
+      {/* [OLD] ?몄텧 ?꾨젅?? Star, LIVE 2, 4遺?援먯껜 ?덈궡, ?몄텧 臾몄쓽 踰꾪듉 */}
+      <h2
+        style={{
+          margin: '0 0 14px',
+          fontSize: 17,
+          fontWeight: 800,
+          color: '#1E293B',
+          letterSpacing: '-0.4px',
+          lineHeight: 1.35,
+        }}
+      >
+        {isEn ? 'Where will you dance tonight?' : '?ㅻ뒛 諛? ?대뵒??異?異쒕옒??'}
+      </h2>
+
+      <AnimatePresence mode="wait">
+        <motion.div
+          key={`${rotationIndex}-${featured.map((f) => f.id).join('-')}`}
+          initial={{ opacity: 0, y: 8 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0, y: -6 }}
+          transition={{ duration: 0.55, ease: 'easeOut' }}
+          style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}
+        >
+          {featured.map((item) => {
+            const title = cleanTitle(item.title || '')
+              .replace(/^\[.*?\]\s*/, '')
+              .replace(/??s*$/, '')
+              .trim();
+            return (
+              <button
+                key={item.id}
+                type="button"
+                onClick={() => onSelect(item)}
+                style={{
+                  padding: 0,
+                  border: 'none',
+                  borderRadius: 0,
+                  overflow: 'visible',
+                  cursor: 'pointer',
+                  background: 'transparent',
+                  boxShadow: 'none',
+                  textAlign: 'left',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  alignItems: 'stretch',
+                  width: '100%',
+                  minWidth: 0,
+                }}
+              >
+                <motion.div
+                  style={{
+                    width: '100%',
+                    height: 200,
+                    flexShrink: 0,
+                    overflow: 'hidden',
+                    background: '#F1F5F9',
+                    border: '1px solid #E2E8F0',
+                    borderRadius: 12,
+                    boxSizing: 'border-box',
+                  }}
+                >
+                  <img
+                    src={item.poster_url}
+                    alt=""
+                    style={{
+                      width: '100%',
+                      height: '100%',
+                      objectFit: 'cover',
+                      objectPosition: 'center center',
+                      display: 'block',
+                    }}
+                  />
+                </motion.div>
+                <div style={{ width: '100%', padding: '8px 0 0', boxSizing: 'border-box' }}>
+                  <motion.div
+                    style={{
+                      fontSize: 10,
+                      fontWeight: 700,
+                      color: '#64748B',
+                      marginBottom: 4,
+                      overflow: 'hidden',
+                      textOverflow: 'ellipsis',
+                      whiteSpace: 'nowrap',
+                    }}
+                  >
+                    {translateDynamicText(item.locationName || item.location_name, isEn)}
+                  </motion.div>
+                  <div
+                    style={{
+                      fontSize: 13,
+                      fontWeight: 800,
+                      color: '#1E293B',
+                      lineHeight: 1.25,
+                      display: '-webkit-box',
+                      WebkitLineClamp: 2,
+                      WebkitBoxOrient: 'vertical',
+                      overflow: 'hidden',
+                    }}
+                  >
+                    {translateDynamicText(title, isEn)}
+                  </div>
+                </div>
+              </button>
+            );
+          })}
+        </motion.div>
+      </AnimatePresence>
+
+      {pool.length > 2 ? (
+        <p style={{ margin: '14px 0 0', textAlign: 'center', fontSize: 11, color: '#94A3B8', fontWeight: 500 }}>
+          {isEn ? `${pool.length} parties today` : `?ㅻ뒛 ${pool.length}怨?}
+        </p>
+      ) : null}
+    </section>
+  );
+};
+
+// --- [BAMPPA PREMIUM ENGINE: GPS & NATIONWIDE INTELLIGENCE] ---
+const calculateDistance = (lat1, lon1, lat2, lon2) => {
+  const R = 6371; 
+  const dLat = (lat2 - lat1) * Math.PI / 180;
+  const dLon = (lon2 - lon1) * Math.PI / 180;
+  const a = Math.sin(dLat/2) * Math.sin(dLat/2) +
+            Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * 
+            Math.sin(dLon/2) * Math.sin(dLon/2);
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+  return R * c; 
+};
+
+
+
+const naturalIncheonDB = [
+  { t: "???곷쪠?묒쟾", q: "?ㅻ뒛 ?곷쪠?멸???", a: "踰뚯뜥 ?먮졊?덉뒿?덈떎!" },
+  { t: "?뭴 ?숈븫??, q: "?숈븫 湲됲뻾 ??⑤굹??", a: "?뱀떊猿?湲됲뻾 ?뺤갑?낅땲??" }
+];
+
+const DynamicAnalysisModal = ({ isOpen, onClose, userCoords, isSajuCall }) => {
+  const [targetDest, setTargetDest] = useState(null);
+  const [tracker, setTracker] = useState({ distance: '0.0', duration: '0' });
+  const [nearbyVenues, setNearbyVenues] = useState([]);
+  const [amguho, setAmguho] = useState(null);
+
+  useEffect(() => {
+    if (!isOpen) return;
+    const findTarget = (lat, lon) => {
+      const venues = BAR_DATABASE
+        .filter(b => b.lat && b.lon)
+        .map(b => ({
+          name: b.name,
+          address: b.address,
+          lat: b.lat,
+          lon: b.lon,
+          region: b.region,
+          dist: calculateDistance(lat, lon, b.lat, b.lon)
+        }))
+        .sort((a, b) => a.dist - b.dist)
+        .slice(0, 5);
+
+      setTargetDest(venues[0]);
+      setNearbyVenues(venues);
+      const d = venues[0].dist;
+      setTracker({ distance: d.toFixed(1), duration: Math.ceil(d * 10) + 5 });
+    };
+    const coords = userCoords || { lat: 37.4979, lng: 127.0276 };
+    findTarget(coords.lat, coords.lon || coords.lng);
+  }, [isOpen, userCoords]);
+
+  if (!isOpen) return null;
+  const currentTargetDest = targetDest || { region: '?쒖슱', name: '媛뺣궓???깆?' };
+  const isIncheon = currentTargetDest.region === '?몄쿇' && isSajuCall;
+
+  return (
+    <motion.div 
+      initial={{ opacity: 0 }} 
+      animate={{ opacity: 1 }} 
+      exit={{ opacity: 0 }} 
+      style={{ 
+        position: 'fixed', 
+        inset: 0, 
+        zIndex: 1000000, 
+        backgroundColor: '#FFFFFF', 
+        display: 'flex', 
+        flexDirection: 'column',
+        overflowY: 'auto'
+      }}
+    >
+      <motion.div 
+        initial={{ y: 20, opacity: 0 }} 
+        animate={{ y: 0, opacity: 1 }} 
+        style={{ 
+          width: '100%', 
+          maxWidth: '500px',
+          margin: '0 auto',
+          minHeight: '100vh',
+          background: '#FFFFFF', 
+          padding: 'calc(20px + env(safe-area-inset-top)) 24px calc(40px + env(safe-area-inset-bottom))', 
+          color: '#1E293B',
+          display: 'flex',
+          flexDirection: 'column'
+        }}
+      >
+        {!amguho ? (
+          <>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '35px' }}>
+              <div style={{ background: '#FF1744', color: '#fff', padding: '8px 16px', borderRadius: '50px', fontSize: '11px', fontWeight: '900', letterSpacing: '0.5px' }}>REALTIME GPS</div>
+              <button 
+                onClick={onClose}
+                style={{ background: '#F1F5F9', border: 'none', borderRadius: '50%', width: '44px', height: '44px', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}
+              >
+                <X size={24} color="#64748B" />
+              </button>
+            </div>
+            
+            <h2 style={{ fontSize: '28px', fontWeight: '1000', marginBottom: '30px', color: '#1E293B', lineHeight: '1.3' }}>
+              {isIncheon ? '?깆? ?곷쪠 遺꾩꽍' : '理쒕떒 寃쎈줈 理쒖쟻??} ?쎇截?br/>
+              <span style={{ color: '#FF1744' }}>{currentTargetDest.name}</span>
+            </h2>
+
+            <div style={{ padding: '30px', background: '#F8FAFC', borderRadius: '30px', display: 'flex', gap: '20px', marginBottom: '40px', border: '1px solid #E2E8F0' }}>
+              <div style={{ flex: 1 }}>
+                <p style={{ color: '#64748B', fontSize: '12px', fontWeight: '700', marginBottom: '4px' }}>?ㅼ젣 嫄곕━</p>
+                <p style={{ fontSize: '28px', fontWeight: '1000', color: '#FF1744' }}>{tracker.distance}km</p>
+              </div>
+              <div style={{ flex: 1 }}>
+                <p style={{ color: '#64748B', fontSize: '12px', fontWeight: '700', marginBottom: '4px' }}>?덉긽 ?뚯슂</p>
+                <p style={{ fontSize: '28px', fontWeight: '1000', color: '#1E293B' }}>{tracker.duration}遺?/p>
+              </div>
+            </div>
+
+            <div style={{ marginBottom: '40px', flex: 1 }}>
+              <p style={{ fontSize: '15px', fontWeight: '800', color: '#64748B', marginBottom: '16px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <Star size={16} fill="#64748B" /> 二쇰? ?깆? 異붿쿇
+              </p>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                {nearbyVenues.map((venue, idx) => (
+                  <motion.div 
+                    key={idx} 
+                    whileTap={{ scale: 0.98 }}
+                    onClick={() => {
+                      const query = encodeURIComponent(venue.name + ' ' + (venue.address || ''));
+                      window.open(`https://map.kakao.com/link/search/${query}`, '_blank');
+                    }}
+                    style={{ 
+                      display: 'flex', 
+                      justifyContent: 'space-between', 
+                      alignItems: 'center', 
+                      padding: '16px 20px', 
+                      background: idx === 0 ? '#FEF2F2' : '#F8FAFC', 
+                      borderRadius: '20px', 
+                      border: idx === 0 ? '1px solid #FF1744' : '1px solid #E2E8F0',
+                      cursor: 'pointer'
+                    }}
+                  >
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
+                      <span style={{ fontSize: '15px', fontWeight: '800', color: idx === 0 ? '#FF1744' : '#1E293B' }}>{venue.name}</span>
+                      <span style={{ fontSize: '12px', color: '#94A3B8', fontWeight: '500' }}>{venue.address}</span>
+                    </div>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                      <span style={{ fontSize: '14px', fontWeight: '700', color: idx === 0 ? '#FF1744' : '#94A3B8' }}>{venue.dist.toFixed(1)}km</span>
+                      <ChevronRight size={18} color={idx === 0 ? '#FF1744' : '#CBD5E1'} />
+                    </div>
+                  </motion.div>
+                ))}
+              </div>
+            </div>
+
+            <button 
+              onClick={() => isIncheon ? setAmguho(naturalIncheonDB[0]) : onClose()} 
+              style={{ 
+                width: '100%', 
+                padding: '24px', 
+                borderRadius: '24px', 
+                background: '#FF1744', 
+                color: '#fff', 
+                border: 'none', 
+                fontSize: '18px', 
+                fontWeight: '1000', 
+                boxShadow: '0 12px 24px rgba(255, 23, 68, 0.2)',
+                cursor: 'pointer'
+              }}
+            >
+              {isIncheon ? '?붽뎄???섏떊?섍린' : '?뺤씤 ?꾨즺'}
+            </button>
+          </>
+        ) : (
+          <div style={{ textAlign: 'center', flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
+            <h3 style={{ fontSize: '24px', fontWeight: '1000', marginBottom: '40px', color: '#1E293B' }}>?깆? ?붽뎄??/h3>
+            <div style={{ background: '#FEF2F2', padding: '40px 30px', borderRadius: '35px', border: '2px solid #FF1744', marginBottom: '40px' }}>
+              <p style={{ color: '#FF1744', fontWeight: '800', fontSize: '16px', marginBottom: '12px' }}>Q: {amguho.q}</p>
+              <p style={{ fontSize: '24px', fontWeight: '1000', color: '#1E293B' }}>A: {amguho.a}</p>
+            </div>
+            <button 
+              onClick={onClose} 
+              style={{ 
+                width: '100%', 
+                padding: '22px', 
+                borderRadius: '24px', 
+                background: '#1E293B', 
+                color: '#FFFFFF', 
+                fontWeight: '1000', 
+                border: 'none',
+                fontSize: '18px',
+                cursor: 'pointer'
+              }}
+            >
+              ?묒쟾 ?쒖옉
+            </button>
+          </div>
+        )}
+      </motion.div>
+    </motion.div>
+  );
+};
+
+const IncheonPremiumBanner = ({ onClick, t }) => (
+  <div style={{ padding: '0 15px', margin: '8px 0' }}>
+    <div 
+      onClick={(e) => { e.stopPropagation(); onClick(); }} 
+      style={{ 
+        background: 'linear-gradient(90deg, #FFFFFF, #FEF2F2)', 
+        borderRadius: '16px', 
+        padding: '10px 16px', 
+        border: '1px solid #dcfce7', 
+        boxShadow: '0 4px 12px rgba(5, 150, 105, 0.03)', 
+        cursor: 'pointer',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        gap: '12px'
+      }}
+    >
+      <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flex: 1, minWidth: 0 }}>
+        <div style={{ background: '#FEF2F2', padding: '6px', borderRadius: '10px', color: '#FF1744', flexShrink: 0 }}>
+          <Navigation size={15} strokeWidth={3} />
+        </div>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', overflow: 'hidden' }}>
+          <span style={{ color: '#1E293B', fontSize: '14px', fontWeight: '900', whiteSpace: 'nowrap' }}>{t('intelligent_route')}</span>
+          <span style={{ color: '#94A3B8', fontSize: '11px', fontWeight: '500', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{t('shortest_distance')}</span>
+        </div>
+      </div>
+      <div style={{ background: '#FF1744', color: '#fff', fontSize: '8px', fontWeight: '950', padding: '2px 8px', borderRadius: '6px', flexShrink: 0 }}>LIVE</div>
+    </div>
+  </div>
+);
+
+const BROAD_REGIONS = { '?쒖슱': '?쒖슱', '?몄쿇': '寃쎄린/?몄쿇', '寃쎄린': '寃쎄린/?몄쿇', '遺??: '寃쎌긽??, '?援?: '寃쎌긽??, '愿묒＜': '?꾨씪??, '???: '異⑹껌??, '異⑸궓': '異⑹껌??, '異⑸턿': '異⑹껌??, '?꾨궓': '?꾨씪??, '?꾨턿': '?꾨씪??, '寃쎈궓': '寃쎌긽??, '寃쎈턿': '寃쎌긽??, '媛뺤썝': '媛뺤썝/?쒖＜', '?쒖＜': '媛뺤썝/?쒖＜' };
+const SHORT_CITY_NAMES = { '?몄쿇': '?몄쿇', '?쒖슱': '?쒖슱', '寃쎄린': '寃쎄린', '遺??: '遺??, '?援?: '?援?, '愿묒＜': '愿묒＜', '???: '??? };
+const DAYS_KOR = ['??, '??, '??, '??, '紐?, '湲?, '??];
+
+const formatDateToKSTString = (date) => {
+  const y = date.getFullYear(); const m = String(date.getMonth() + 1).padStart(2, '0'); const d = String(date.getDate()).padStart(2, '0');
+  return `${y}-${m}-${d}`;
+};
+
+const SplashScreen = () => {
+  const [phase, setPhase] = useState('rotate');
+
+  useEffect(() => {
+    const holdTimer = setTimeout(() => setPhase('hold'), 800);
+    const exitTimer = setTimeout(() => setPhase('exit'), 1300);
+    return () => {
+      clearTimeout(holdTimer);
+      clearTimeout(exitTimer);
+    };
+  }, []);
+
+  const exitDuration = 1.7;
+
+  return (
+    <motion.div
+      initial={{ opacity: 1 }}
+      animate={{ opacity: phase === 'exit' ? 0 : 1 }}
+      transition={{ duration: phase === 'exit' ? exitDuration : 0, ease: 'easeInOut' }}
+      style={{
+        position: 'fixed',
+        inset: 0,
+        zIndex: 9999,
+        backgroundColor: '#0a0a0a',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        overflow: 'hidden',
+      }}
+    >
+      <motion.img
+        src="/logo.png"
+        alt="BAMPPA"
+        initial={{ rotate: 0, scale: 1, opacity: 1 }}
+        animate={
+          phase === 'rotate'
+            ? { rotate: 360, scale: 1, opacity: 1 }
+            : phase === 'hold'
+              ? { rotate: 360, scale: 1, opacity: 1 }
+              : { rotate: 360, scale: 1.8, opacity: 0 }
+        }
+        transition={
+          phase === 'rotate'
+            ? { duration: 0.8, ease: 'easeInOut' }
+            : phase === 'exit'
+              ? { duration: exitDuration, ease: 'easeIn' }
+              : { duration: 0 }
+        }
+        style={{ width: '200px', objectFit: 'contain' }}
+      />
+      {/* ?댁쟾 stage 1/2 ??蹂닿?
+        {false && stage === 1 ? (
+          <motion.img
+            key="stage1"
+            src="/logo.png"
+            alt="BAMPPA"
+            initial={{ opacity: 1 }}
+            exit={{ opacity: 0, transition: { duration: 0.2 } }}
+            style={{ width: '200px', objectFit: 'contain' }}
+          />
+        ) : (
+          <motion.div
+            key="stage2"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}
+          >
+            <motion.img
+              src="/logo.png"
+              alt="BAMPPA"
+              initial={{ scale: 0.8, opacity: 0 }}
+              animate={{ scale: [0.8, 1.2, 1.0], opacity: 1 }}
+              transition={{ duration: 0.8, times: [0, 0.6, 1], ease: "easeOut" }}
+              style={{ width: '200px', objectFit: 'contain' }}
+            />
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 0.4, duration: 0.5 }}
+              style={{ marginTop: '24px', textAlign: 'center' }}
+            >
+              <div style={{ fontSize: '9px', color: '#FF1744', fontWeight: 700, letterSpacing: '1px' }}>
+                BACHATA 쨌 SALSA 쨌 KIZOMBA 쨌 ZOUK
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      */}
+    </motion.div>
+  );
+};
+
+function App() {
+  const { t, i18n } = useTranslation();
+  const lang = i18n.language.startsWith('en') ? 'en' : 'ko';
+  const toggleLanguage = () => {
+    const newLang = i18n.language.startsWith('ko') ? 'en' : 'ko';
+    i18n.changeLanguage(newLang);
+  };
+
+  // ?섍꼍??愿怨꾩뾾???뺥솗??KST(?쒓뎅 ?쒖??? ?좎쭨瑜?媛?몄삤??濡쒖쭅
+  const getKSTDate = () => {
+    const now = new Date();
+    // ?좑툘 [踰ㅽ?由??뱀닔 濡쒖쭅] ?덈꼍 4???댁쟾源뚯???'?꾨궇'濡?媛꾩＜?섏뿬 ?ъ뒪???좎?
+    if (now.getHours() < 4) {
+      now.setDate(now.getDate() - 1);
+    }
+    const kstString = now.toLocaleString('en-US', { timeZone: 'Asia/Seoul', year: 'numeric', month: '2-digit', day: '2-digit' });
+    const [m, d, y] = kstString.split('/');
+    // 0 ?⑤뵫 蹂댁옣 (MM, DD)
+    const mm = m.padStart(2, '0');
+    const dd = d.padStart(2, '0');
+    return { year: parseInt(y), month: parseInt(mm), date: parseInt(dd), dateStr: `${y}-${mm}-${dd}` };
+  };
+
+  const todayData = getKSTDate();
+
+  const [showSplash, setShowSplash] = useState(!localStorage.getItem('splash_shown'));
+
+  useEffect(() => {
+    if (!showSplash) return;
+    const timer = setTimeout(() => {
+      localStorage.setItem('splash_shown', 'true');
+      setShowSplash(false);
+    }, 3000);
+    return () => clearTimeout(timer);
+  }, [showSplash]);
+
+  const [parties, setParties] = useState([]);
+  const [bootcamps, setBootcamps] = useState([]);
+  const [festivals, setFestivals] = useState([]);
+  const [followedInstructors, setFollowedInstructors] = useState([]);
+  const [displayParties, setDisplayParties] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [selectedDate, setSelectedDate] = useState(todayData.dateStr);
+  const location = useLocation();
+  const [view, setView] = useState('home');
+
+  useEffect(() => {
+    const onRegisterParty = location.pathname === '/register-party' || view === 'register-party'
+    if (onRegisterParty) {
+      document.body.classList.add('party-register-open')
+    } else {
+      document.body.classList.remove('party-register-open')
+    }
+    return () => document.body.classList.remove('party-register-open')
+  }, [location.pathname, view])
+
+  useEffect(() => {
+    const path = location.pathname;
+    if (path === '/') setView('home');
+    else if (path === '/livepick') setView('community');
+    else if (path === '/instructors') setView('instructors');
+    else if (path === '/bootcamp') setView('bootcamp');
+    else if (path === '/bootcamp/register') setView('bootcamp-register');
+    else if (path === '/festival') setView('festival');
+    else if (path === '/festival/register') setView('festival-register');
+    else if (path === '/register-party') setView('register-party');
+    else if (path === '/register-class') setView('register-class');
+    else if (path === '/parking') setView('parking');
+    else if (path === '/restaurant') setView('restaurant');
+    else if (path === '/admin') setView('admin');
+    else if (path === '/admin-portal') setView('admin-portal');
+  }, [location.pathname]);
+
+
+  const [registerType, setRegisterType] = useState('party');
+
+  const [showIncheonModal, setShowIncheonModal] = useState(false);
+  const [isSajuCall, setIsSajuCall] = useState(false);
+  const [isAnalyzing, setIsAnalyzing] = useState(false);
+  const [userCoords, setUserCoords] = useState(() => {
+    const c = readCachedCoords(24 * 60 * 60 * 1000);
+    return c ? { lat: c.lat, lon: c.lng } : null;
+  });
+  const [selectedPoster, setSelectedPoster] = useState(null);
+  const [modalScale, setModalScale] = useState(1);
+  const [modalPos, setModalPos] = useState({ x: 0, y: 0 });
+  const [lastTapTime, setLastTapTime] = useState(0);
+  const [showIncheon, setShowIncheon] = useState(false);
+  const [showNoticeGuide, setShowNoticeGuide] = useState(false);
+  const [showWeather, setShowWeather] = useState(false);
+  const [showSaju, setShowSaju] = useState(false);
+  const [showPartner, setShowPartner] = useState(false);
+
+  const isSocialLightNav = (location.pathname === '/' && view === 'home') || showPartner
+
+  useEffect(() => {
+    if (isSocialLightNav) {
+      document.body.classList.add('bottom-nav-social-light')
+    } else {
+      document.body.classList.remove('bottom-nav-social-light')
+    }
+    const themeMeta = document.querySelector('meta[name="theme-color"]')
+    if (themeMeta) {
+      themeMeta.setAttribute('content', isSocialLightNav ? '#ffffff' : '#FF1744')
+    }
+    return () => document.body.classList.remove('bottom-nav-social-light')
+  }, [isSocialLightNav])
+
+  const [showClassRegister, setShowClassRegister] = useState(false);
+  // const [showStudentManager, setShowStudentManager] = useState(false);
+  // const [showRevenueStats, setShowRevenueStats] = useState(false);
+  const [showFullCalendar, setShowFullCalendar] = useState(false);
+  const [showFilterPanel, setShowFilterPanel] = useState(false);
+  const [showFilteredResults, setShowFilteredResults] = useState(false);
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [showVipLogin, setShowVipLogin] = useState(false);
+  const [showVipMenu, setShowVipMenu] = useState(false);
+  const [vipLoggedIn, setVipLoggedIn] = useState(false);
+  const [vipLoginId, setVipLoginId] = useState('');
+  const [vipLoginPw, setVipLoginPw] = useState('');
+  const [vipLoginLoading, setVipLoginLoading] = useState(false);
+  const [vipAuthMode, setVipAuthMode] = useState('login');
+  const [vipRecoverEmail, setVipRecoverEmail] = useState('');
+  const [vipRecoveredPassword, setVipRecoveredPassword] = useState('');
+  const [filterRegion, setFilterRegion] = useState('');
+  const [filterGenre, setFilterGenre] = useState('');
+  const [selectedMonth, setSelectedMonth] = useState(todayData.month);
+  const [showGridModal, setShowGridModal] = useState(false);
+  const [gridRegion, setGridRegion] = useState('');
+  const [filterStep, setFilterStep] = useState(1);
+  const [showRoute, setShowRoute] = useState(false);
+  const [showPlaceInquiry, setShowPlaceInquiry] = useState(false);
+  const [showWishlist, setShowWishlist] = useState(false);
+  const [showRentalModal, setShowRentalModal] = useState(false);
+  const [weatherTapCount, setWeatherTapCount] = useState(0);
+  const [lastWeatherTap, setLastWeatherTap] = useState(0);
+  const weatherTimeoutRef = useRef(null);
+  const [navVisible, setNavVisible] = useState(true)
+  const lastScrollY = useRef(0)
+
+  // ?ㅽ겕 紐⑤뱶 ?꾩쟾 ??젣 諛???긽 ?쇱씠???뚮쭏 怨좎젙
+  useEffect(() => {
+    document.documentElement.removeAttribute('data-theme');
+    localStorage.removeItem('theme');
+  }, []);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      const currentY = window.scrollY
+      if (currentY < 50) {
+        setNavVisible(true)
+      } else if (currentY > lastScrollY.current + 5) {
+        setNavVisible(false)
+      } else if (currentY < lastScrollY.current - 5) {
+        setNavVisible(true)
+      }
+      lastScrollY.current = currentY
+    }
+    window.addEventListener('scroll', handleScroll, { passive: true })
+    return () => window.removeEventListener('scroll', handleScroll)
+  }, [])
+
+  useEffect(() => {
+    const handleOpenClassReg = () => setShowClassRegister(true);
+    window.addEventListener('open-class-register', handleOpenClassReg);
+    return () => window.removeEventListener('open-class-register', handleOpenClassReg);
+  }, []);
+
+  const handleOpenModal = (setter, value = true) => {
+    window.history.pushState({ modal: true }, '');
+    setter(value);
+  };
+
+  const handleVipLogout = () => {
+    setVipLoggedIn(false);
+    setShowVipMenu(false);
+    setShowVipLogin(false);
+    setVipLoginId('');
+    setVipLoginPw('');
+    setVipAuthMode('login');
+    setVipRecoverEmail('');
+    setVipRecoveredPassword('');
+    localStorage.removeItem('vip_instructor_session');
+  };
+
+  const resetVipAuthToLogin = () => {
+    setVipAuthMode('login');
+    setVipRecoverEmail('');
+    setVipRecoveredPassword('');
+  };
+
+  const handleVipPasswordRecover = async () => {
+    const email = vipRecoverEmail.trim();
+    if (!email) {
+      alert('?대찓?쇱쓣 ?낅젰?댁＜?몄슂');
+      return;
+    }
+    setVipLoginLoading(true);
+    setVipRecoveredPassword('');
+    try {
+      const { data, error } = await supabase
+        .from('instructors')
+        .select('login_password')
+        .eq('email', email)
+        .maybeSingle();
+      if (error || !data) {
+        alert('?깅줉???대찓?쇱씠 ?놁뒿?덈떎');
+        return;
+      }
+      setVipRecoveredPassword(data.login_password || '');
+    } catch {
+      alert('?깅줉???대찓?쇱씠 ?놁뒿?덈떎');
+    } finally {
+      setVipLoginLoading(false);
+    }
+  };
+
+  const handleVipSignupSubmit = async () => {
+    const id = vipLoginId.trim();
+    const pw = vipLoginPw;
+    if (!id || !pw) {
+      alert('?꾩씠?붿? 鍮꾨?踰덊샇瑜??낅젰?댁＜?몄슂');
+      return;
+    }
+    setVipLoginLoading(true);
+    try {
+      const { error } = await supabase
+        .from('instructors')
+        .insert({
+          login_id: id,
+          login_password: pw,
+          name: id,
+          custom_id: id,
+          status: 'active',
+        });
+      if (error) {
+        alert('媛?낆뿉 ?ㅽ뙣?덉뒿?덈떎. ?ㅼ떆 ?쒕룄?댁＜?몄슂.');
+        return;
+      }
+      alert('媛???꾨즺! 濡쒓렇?명빐二쇱꽭??);
+      setVipAuthMode('login');
+      setVipLoginPw('');
+    } catch {
+      alert('媛?낆뿉 ?ㅽ뙣?덉뒿?덈떎. ?ㅼ떆 ?쒕룄?댁＜?몄슂.');
+    } finally {
+      setVipLoginLoading(false);
+    }
+  };
+
+  const handleVipLoginSubmit = async () => {
+    const id = vipLoginId.trim();
+    const pw = vipLoginPw;
+    if (!id || !pw) {
+      alert('?꾩씠?붿? 鍮꾨?踰덊샇瑜??낅젰?댁＜?몄슂');
+      return;
+    }
+    setVipLoginLoading(true);
+    try {
+      const { data, error } = await supabase
+        .from('instructors')
+        .select('id, login_id')
+        .eq('login_id', id)
+        .eq('login_password', pw)
+        .eq('status', 'active')
+        .maybeSingle();
+      if (error || !data) {
+        alert('?꾩씠???먮뒗 鍮꾨?踰덊샇媛 ??몄뒿?덈떎');
+        return;
+      }
+      setVipLoggedIn(true);
+      localStorage.setItem('vip_instructor_session', JSON.stringify({ id: data.id, login_id: data.login_id }));
+      setShowVipLogin(false);
+      setShowVipMenu(true);
+      setVipLoginPw('');
+    } catch {
+      alert('?꾩씠???먮뒗 鍮꾨?踰덊샇媛 ??몄뒿?덈떎');
+    } finally {
+      setVipLoginLoading(false);
+    }
+  };
+
+  const openVipMasterFlow = () => {
+    if (vipLoggedIn) {
+      setShowVipMenu(true);
+    } else {
+      setShowVipLogin(true);
+    }
+  };
+
+  const handleCloseModal = () => {
+    setIsMenuOpen(false);
+    setShowVipLogin(false);
+    setVipAuthMode('login');
+    setVipRecoverEmail('');
+    setVipRecoveredPassword('');
+    setShowVipMenu(false);
+    setShowFullCalendar(false);
+    setShowWeather(false);
+    setShowWishlist(false);
+    setShowSaju(false);
+    setShowRentalModal(false);
+    setShowPartner(false);
+    setShowRoute(false);
+    setShowPlaceInquiry(false);
+    setShowGridModal(false);
+  };
+
+  useEffect(() => {
+    if (window.location.pathname === '/parking') {
+      setView('parking');
+      window.location.hash = 'parking';
+    } else if (window.location.pathname === '/restaurant') {
+      setView('restaurant');
+      window.location.hash = 'restaurant';
+    }
+  }, []);
+
+  useEffect(() => {
+    const handlePopState = (event) => {
+      if (selectedPoster) { setSelectedPoster(null); return; }
+      if (showGridModal) { setShowGridModal(false); return; }
+      if (showFilteredResults) { setShowFilteredResults(false); return; }
+      
+      if (filterStep > 1) { setFilterStep(1); return; }
+      
+      if (showFilterPanel) { setShowFilterPanel(false); return; }
+      if (showFullCalendar) { setShowFullCalendar(false); return; }
+      if (isMenuOpen) { setIsMenuOpen(false); return; }
+      if (showNoticeGuide) { setShowNoticeGuide(false); return; }
+      if (showWeather) { setShowWeather(false); return; }
+      if (showSaju) { setShowSaju(false); return; }
+      if (showIncheonModal) { setShowIncheonModal(false); return; }
+      if (showIncheon) { setShowIncheon(false); return; }
+      if (showWishlist) { setShowWishlist(false); return; }
+      if (showRentalModal) { setShowRentalModal(false); return; }
+      if (showRoute) { setShowRoute(false); return; }
+      if (showPlaceInquiry) { setShowPlaceInquiry(false); return; }
+
+      const newHash = window.location.hash.replace('#', '');
+      if (newHash && newHash !== view) {
+        setView(newHash);
+      } else if (window.location.pathname === '/' && !newHash && view !== 'home') {
+        // Only navigate to home when the URL actually returned to '/'
+        setView('home');
+      }
+    };
+
+    window.addEventListener('popstate', handlePopState);
+    return () => window.removeEventListener('popstate', handlePopState);
+  }, [view, selectedPoster, showFullCalendar, isMenuOpen, showNoticeGuide, showWeather, showSaju, showIncheonModal, showFilterPanel, showFilteredResults, showGridModal, showIncheon, showWishlist, showRentalModal, showRoute, showPlaceInquiry]);
+
+
+  useEffect(() => {
+    // 怨듭??ы빆 媛?대뱶 ?먮룞 ?앹뾽 (?붾컮?댁뒪????踰?
+    const guideShown = localStorage.getItem('notice_guide_shown');
+    if (!guideShown) {
+      setTimeout(() => {
+        setShowNoticeGuide(true);
+      }, 1000); // 1珥??ㅼ뿉 ?먯뿰?ㅻ읇寃??앹뾽
+    }
+  }, []);
+
+  const fetchFollowedInstructors = async () => {
+    try {
+      const s = localStorage.getItem('user_session') || localStorage.getItem('oneulbam_session');
+      if (!s) return;
+      const { data: followData } = await supabase
+        .from('instructor_follows')
+        .select('instructor_id')
+        .eq('user_session', s);
+
+      if (followData && followData.length > 0) {
+        const ids = followData.map((f) => f.instructor_id);
+        const { data: instData } = await supabase
+          .from('instructors')
+          .select('*')
+          .in('id', ids)
+          .eq('status', 'active');
+        setFollowedInstructors(instData || []);
+      } else {
+        setFollowedInstructors([]);
+      }
+    } catch (err) {
+      console.error('Failed to fetch followed instructors:', err);
+    }
+  };
+
+  useEffect(() => {
+    if (view !== 'instructors' && view !== 'home' && !isMenuOpen) return;
+    fetchFollowedInstructors();
+  }, [isMenuOpen, view]);
+
+  useEffect(() => {
+    const onRefresh = () => fetchFollowedInstructors();
+    window.addEventListener('refresh-sidebar', onRefresh);
+    return () => window.removeEventListener('refresh-sidebar', onRefresh);
+  }, []);
+
+  useEffect(() => {
+    try {
+      const raw = localStorage.getItem('vip_instructor_session');
+      if (raw) setVipLoggedIn(true);
+    } catch (_) { /* ignore */ }
+  }, []);
+
+  useEffect(() => {
+    const onOpenVip = () => openVipMasterFlow();
+    window.addEventListener('open-vip-master-login', onOpenVip);
+    return () => window.removeEventListener('open-vip-master-login', onOpenVip);
+  }, [vipLoggedIn]);
+
+  /* 吏??罹먮윭? ?곕룞 ?ㅽ겕濡????낅┰ ?ㅽ겕濡ㅻ줈 ?꾪솚, 援?濡쒖쭅 二쇱꽍 蹂닿?
+  useEffect(() => {
+    if (view !== 'home') return undefined;
+
+    let syncing = false;
+    const cleanups = [];
+
+    const bindRegionCarouselSync = () => {
+      while (cleanups.length) cleanups.pop()();
+      const containers = document.querySelectorAll('.region-scroll-container');
+      if (containers.length < 2) return;
+
+      containers.forEach((source) => {
+        const onScroll = () => {
+          if (syncing) return;
+          syncing = true;
+          const left = source.scrollLeft;
+          containers.forEach((el) => {
+            if (el !== source) el.scrollLeft = left;
+          });
+          requestAnimationFrame(() => {
+            syncing = false;
+          });
+        };
+        source.addEventListener('scroll', onScroll, { passive: true });
+        cleanups.push(() => source.removeEventListener('scroll', onScroll));
+      });
+    };
+
+    bindRegionCarouselSync();
+    const t1 = window.setTimeout(bindRegionCarouselSync, 400);
+    const t2 = window.setTimeout(bindRegionCarouselSync, 1200);
+
+    const root = document.querySelector('[data-bchata-app-root]');
+    const mo = root
+      ? new MutationObserver(() => bindRegionCarouselSync())
+      : null;
+    if (root && mo) mo.observe(root, { childList: true, subtree: true });
+
+    return () => {
+      clearTimeout(t1);
+      clearTimeout(t2);
+      mo?.disconnect();
+      while (cleanups.length) cleanups.pop()();
+    };
+  }, [view, selectedDate, loading, displayParties.length]);
+  */
+
+  useEffect(() => {
+    if (view !== 'instructors') return undefined;
+    const bindMasterBtn = () => {
+      const btn = Array.from(document.querySelectorAll('button')).find(
+        (b) => b.textContent?.includes('留덉뒪???꾩슜') && !b.dataset.vipBound
+      );
+      if (!btn) return undefined;
+      btn.dataset.vipBound = '1';
+      const handler = (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        e.stopImmediatePropagation();
+        openVipMasterFlow();
+      };
+      btn.addEventListener('click', handler, true);
+      return () => {
+        delete btn.dataset.vipBound;
+        btn.removeEventListener('click', handler, true);
+      };
+    };
+    let cleanup = bindMasterBtn();
+    const t = setTimeout(() => {
+      if (cleanup) cleanup();
+      cleanup = bindMasterBtn() || cleanup;
+    }, 400);
+    const obs = new MutationObserver(() => {
+      if (cleanup) cleanup();
+      cleanup = bindMasterBtn() || cleanup;
+    });
+    obs.observe(document.body, { childList: true, subtree: true });
+    return () => {
+      clearTimeout(t);
+      obs.disconnect();
+      if (cleanup) cleanup();
+    };
+  }, [view, vipLoggedIn]);
+
+  const fetchParties = async () => {
+    setLoading(true);
+    try {
+      const [partiesRes, locationsRes, bootcampsRes, festivalsRes] = await Promise.all([
+        supabase.from('parties').select('*').eq('status', 'approved').order('date', { ascending: true }),
+        supabase.from('locations').select('id, name'),
+        supabase.from('bootcamps').select('*').eq('status', 'active'),
+        supabase.from('festivals').select('*').eq('status', 'active')
+      ]);
+
+      const rawParties = partiesRes.data || [];
+      const rawLocations = locationsRes.data || [];
+
+      const locationMap = rawLocations.reduce((acc, loc) => {
+        acc[loc.id] = loc.name;
+        return acc;
+      }, {});
+
+      const mappedParties = rawParties.map(p => {
+        const locName = locationMap[p.location_id] || p.locationName || p.location_name || '?μ냼 誘몄???;
+        
+        let broadRegion = '?꾧뎅';
+        const regionStr = String(p.region || '');
+        const tStr = p.title || '';
+        if (regionStr.includes('?쒖슱')) broadRegion = '?쒖슱';
+        else if (tStr.includes('[?쒖슱]')) broadRegion = '?쒖슱';
+        else if (tStr.includes('[寃쎄린/?몄쿇]') || tStr.includes('[?몄쿇愿묒뿭??') || tStr.includes('[?몄쿇]')) broadRegion = '寃쎄린/?몄쿇';
+        else if (tStr.includes('[寃쎌긽??')) broadRegion = '寃쎌긽??;
+        else if (tStr.includes('[?꾨씪??')) broadRegion = '?꾨씪??;
+        else if (tStr.includes('[異⑹껌??')) broadRegion = '異⑹껌??;
+        else if (tStr.includes('[媛뺤썝/?쒖＜]')) broadRegion = '媛뺤썝/?쒖＜';
+        else {
+          const fullSearchText = `${p.address || ''} ${locName} ${p.cityName || ''}`;
+          if (fullSearchText.includes('遺??) || fullSearchText.includes('?援?) || fullSearchText.includes('?몄궛') || fullSearchText.includes('寃쎌긽') || fullSearchText.includes('寃쎈궓') || fullSearchText.includes('寃쎈턿') || fullSearchText.includes('李쎌썝') || fullSearchText.includes('?ы빆') || fullSearchText.includes('源??)) broadRegion = '寃쎌긽??;
+          else if (fullSearchText.includes('?쒖슱') || fullSearchText.includes('媛뺣궓') || fullSearchText.includes('?띾?') || fullSearchText.includes('?좎떎') || fullSearchText.includes('?깆닔') || fullSearchText.includes('?쒖큹') || fullSearchText.includes('?곷벑??) || fullSearchText.includes('?좊┝') || fullSearchText.includes('嫄대?')) broadRegion = '?쒖슱';
+          else if (fullSearchText.includes('寃쎄린') || fullSearchText.includes('?몄쿇') || fullSearchText.includes('遺泥?) || fullSearchText.includes('?섏썝') || fullSearchText.includes('?덉뼇') || fullSearchText.includes('?섏젙遺') || fullSearchText.includes('遺꾨떦') || fullSearchText.includes('?쇱궛')) broadRegion = '寃쎄린/?몄쿇';
+          else if (fullSearchText.includes('愿묒＜') || fullSearchText.includes('?꾨씪') || fullSearchText.includes('?꾨궓') || fullSearchText.includes('?꾨턿') || fullSearchText.includes('?꾩＜') || fullSearchText.includes('紐⑺룷') || fullSearchText.includes('?ъ닔') || fullSearchText.includes('?쒖쿇')) broadRegion = '?꾨씪??;
+          else if (fullSearchText.includes('???) || fullSearchText.includes('異⑸궓') || fullSearchText.includes('異⑸턿') || fullSearchText.includes('異⑹껌') || fullSearchText.includes('?몄쥌') || fullSearchText.includes('泥쒖븞') || fullSearchText.includes('泥?＜')) broadRegion = '異⑹껌??;
+          else if (fullSearchText.includes('媛뺤썝') || fullSearchText.includes('?쒖＜') || fullSearchText.includes('異섏쿇') || fullSearchText.includes('?먯＜') || fullSearchText.includes('?쒓???)) broadRegion = '媛뺤썝/?쒖＜';
+        } 
+        
+        const barInfo = findBarByName(locName);
+        const locationNameEn = barInfo?.name_en || locName;
+        const broadRegionEn = REGION_MAP_EN[broadRegion] || broadRegion;
+        const cityNameEn = CITY_MAP_EN[p.cityName] || p.cityName || 'Nationwide';
+
+        return { 
+          ...p, 
+          broadRegion, 
+          broadRegionEn,
+          cityName: p.cityName || '?꾧뎅', 
+          cityNameEn,
+          locationName: locName,
+          locationNameEn
+        };
+      });
+      setParties(mappedParties);
+      setBootcamps(bootcampsRes.data || []);
+      setFestivals(festivalsRes.data || []);
+    } catch (err) { console.error('?곗씠??濡쒕뵫 ?ㅻ쪟:', err); } finally { setLoading(false); }
+  };
+
+  useEffect(() => { fetchParties(); }, []);
+
+  useEffect(() => {
+    const activeTodayStr = getKSTDate().dateStr;
+    const upcomingParties = parties.filter(p => p.date >= activeTodayStr);
+    
+    const currentLang = i18n.language || 'ko';
+    if (currentLang.startsWith('en')) {
+      const translated = upcomingParties.map(p => ({
+        ...p,
+        title: p.title_en || p.title,
+        displayLocationName: p.locationNameEn || p.locationName,
+        displayBroadRegion: p.broadRegionEn || p.broadRegion,
+        displayCityName: p.cityNameEn || p.cityName
+      }));
+      setDisplayParties(translated);
+    } else {
+      const origin = upcomingParties.map(p => ({
+        ...p,
+        displayLocationName: p.locationName,
+        displayBroadRegion: p.broadRegion,
+        displayCityName: p.cityName
+      }));
+      setDisplayParties(origin);
+    }
+  }, [i18n.language, parties]);
+
+  const partyDeepLinkHandled = useRef(null);
+
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const partyId = params.get('party');
+    if (!partyId || loading) return;
+    if (partyDeepLinkHandled.current === partyId) return;
+
+    const openPartyFromLink = (party) => {
+      const card = buildPartyShareCard(party);
+      if (!card) return;
+      partyDeepLinkHandled.current = partyId;
+      setView('home');
+      if (location.pathname !== '/') navigate('/');
+      if (party.date) setSelectedDate(party.date);
+      window.history.pushState({ modal: true, partyDeepLink: true }, '');
+      setSelectedPoster(card);
+      const u = new URL(window.location.href);
+      u.searchParams.delete('party');
+      u.searchParams.delete('open');
+      const qs = u.searchParams.toString();
+      window.history.replaceState({}, '', u.pathname + (qs ? `?${qs}` : ''));
+    };
+
+    const found = parties.find((p) => String(p.id) === String(partyId));
+    if (found) {
+      openPartyFromLink(found);
+      return;
+    }
+
+    if (parties.length === 0) return;
+
+    let cancelled = false;
+    (async () => {
+      const { data } = await supabase
+        .from('parties')
+        .select('*')
+        .eq('id', partyId)
+        .eq('status', 'approved')
+        .maybeSingle();
+      if (!cancelled && data) openPartyFromLink(data);
+    })();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [loading, parties, location.pathname]);
+
+  useEffect(() => {
+    window.history.replaceState({ view, date: selectedDate }, '');
+  }, [selectedDate]);
+
+  const openAnalysis = (saju = false) => {
+    setIsSajuCall(saju);
+    setIsAnalyzing(true);
+    setTimeout(() => { setIsAnalyzing(false); setShowIncheonModal(true); }, 1200);
+  };
+
+  const handleRegister = (type = 'party') => {
+    if (type === 'party') {
+      navigate('/register-party');
+    } else {
+      navigate('/register-class');
+    }
+  };
+
+  const requestLocation = (force = false) => {
+    getUserCoords({ force, enableHighAccuracy: false })
+      .then((c) => setUserCoords({ lat: c.lat, lon: c.lng }))
+      .catch(() => {});
+  };
+
+  useEffect(() => {
+    syncGeoPermissionState();
+    const cached = readCachedCoords();
+    if (cached) {
+      setUserCoords({ lat: cached.lat, lon: cached.lng });
+      return;
+    }
+    if (!isGeoDenied()) requestLocation();
+  }, []);
+
+  const withHistory = (isOpen, setter) => (v) => {
+    if (v === true && !isOpen) {
+      window.history.pushState({ modal: true }, '');
+    }
+    setter(v);
+  };
+
+  const sharedProps = {
+    parties: displayParties, bootcamps, festivals, loading, selectedMonth, setSelectedMonth, selectedWeek: 1, setSelectedWeek: () => {}, 
+    selectedDate, setSelectedDate, selectedRegion: '?쒖슱', setSelectedRegion: () => {}, 
+    view, setView, setSelectedPoster, 
+    fourteenDays: Array.from({ length: 14 }).map((_, i) => {
+      const d = new Date(); d.setDate(d.getDate() + i);
+      const DAYS_EN = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+      const dayName = i18n.language.startsWith('en') ? DAYS_EN[d.getDay()] : DAYS_KOR[d.getDay()];
+      return { fullDate: formatDateToKSTString(d), date: String(d.getDate()), month: String(d.getMonth() + 1), dayName, isToday: i === 0, dayOfWeek: d.getDay() };
+    }), weekData: [], allDatesInMonth: [], filteredParties: displayParties.filter(p => p.date === selectedDate),
+    showFullCalendar, setShowFullCalendar: withHistory(showFullCalendar, setShowFullCalendar),
+    showFilterPanel, setShowFilterPanel,
+    showFilteredResults, setShowFilteredResults,
+    likedIds: [], toggleLike: () => {},
+    filterRegion, setFilterRegion, filterGenre, setFilterGenre,
+    showGridModal, setShowGridModal, gridRegion, setGridRegion, filterStep, setFilterStep,
+    handleOpenModal, handleCloseModal,
+    IncheonBanner: () => <IncheonPremiumBanner t={t} onClick={() => openAnalysis(false)} />, venueCounts: {}, resetToToday: () => { setView('home'); setSelectedDate(todayData.dateStr); }, formatItemDate: (d, t) => `${d} ${t}`, formatFee: (f) => f, 
+    handleRegister, 
+    fetchParties,
+    setShowSaju: withHistory(showSaju, setShowSaju),
+    setShowWeather: withHistory(showWeather, setShowWeather),
+    setShowWishlist: withHistory(showWishlist, setShowWishlist),
+    setShowRentalModal: withHistory(showRentalModal, setShowRentalModal),
+    setShowPartner: withHistory(showPartner, setShowPartner),
+    openAnalysis,
+    setShowRoute: withHistory(showRoute, setShowRoute),
+    setShowPlaceInquiry: withHistory(showPlaceInquiry, setShowPlaceInquiry),
+    logActivity: () => {}, regionalTheme: { welcomeMsg: "?꾧뎅 ?꾩꽌?ㅼ쓣 ?꾪븳 ?ㅼ떆媛??뺣낫", specialBanner: true },
+    followedInstructors,
+    LiveExposureStrip,
+  };
+
+  // ?뚰떚/?대옒??遺?몄틺???섏뒪?곕쾶 ?깅줉 以묒뿉???섎떒 ?ㅻ퉬 ?④? (?깅줉 ??踰꾪듉 媛由?諛⑹?)
+  const hideBottomNav =
+    view === 'register-party' ||
+    view === 'register-class' ||
+    view === 'bootcamp-register' ||
+    view === 'festival-register' ||
+    location.pathname === '/register-party' ||
+    location.pathname === '/register-class' ||
+    location.pathname === '/bootcamp/register' ||
+    location.pathname === '/festival/register';
+
+  // const navActiveColor = isSocialLightNav ? '#E53935' : '#FFFFFF'
+  // const navInactiveColor = isSocialLightNav ? '#94A3B8' : 'rgba(255,255,255,0.3)'
+  const navActiveColor = '#FFFFFF'
+  const navInactiveColor = '#666666'
+  const socialPartnerNavActive = '#FF4444'
+  const socialPartnerNavInactive = '#666666'
+  const isSocialTabActive = location.pathname === '/' && view === 'home' && !showPartner
+  const setActiveTab = (tab) => {
+    window.dispatchEvent(new CustomEvent('home-active-tab', { detail: tab }));
+  };
+
+  return (
+    <>
+    <div
+      data-bchata-app-root
+      style={{ 
+      width: '100%', maxWidth: '500px', margin: '0 auto', 
+      background: 'var(--color-bg)', color: 'var(--color-text-main)',
+      minHeight: '100vh', position: 'relative',
+      transition: 'background-color 0.3s, color 0.3s'
+    }}>
+      <AnimatePresence>
+        {showSplash && <SplashScreen key="splash" />}
+      </AnimatePresence>
+
+      <motion.div 
+        initial={{ opacity: 0 }} 
+        animate={{ opacity: showSplash ? 0 : 1 }} 
+        transition={{ duration: 0.5, ease: 'easeOut', delay: showSplash ? 0 : 0.1 }}
+        style={{ width: '100%', minHeight: '100vh', position: 'relative' }}
+      >
+      <AnimatePresence>{isAnalyzing && <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} style={{ position: 'fixed', inset: 0, zIndex: 1000000, background: 'rgba(255,255,255,0.9)', backdropFilter: 'blur(30px)', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}><motion.div animate={{ rotate: 360 }} transition={{ duration: 1, repeat: Infinity, ease: 'linear' }} style={{ width: '60px', height: '60px', border: '4px solid #FFEBEE', borderTop: '4px solid #E53935', borderRadius: '50%', marginBottom: '20px' }} /><h2 style={{ color: '#1E293B', fontSize: '20px', fontWeight: '900' }}>?ㅼ떆媛?吏?ν삎 遺꾩꽍 以?..</h2></motion.div>}</AnimatePresence>
+
+      {/* ?꾨쾭嫄?硫붾돱 踰꾪듉 ??鍮꾪솢?깊솕
+      {!isMenuOpen && (
+        <motion.button 
+          drag
+          ...
+        </motion.button>
+      )}
+      */}
+
+      {/* ?꾨쾭嫄??쒕줈????鍮꾪솢?깊솕 */}
+      <AnimatePresence>
+        {false && isMenuOpen && (
+          <motion.div
+            initial={{ x: '-100%' }}
+            animate={{ x: 0 }}
+            exit={{ x: '-100%' }}
+            transition={{ type: 'spring', damping: 25, stiffness: 200 }}
+            style={{
+              position: 'fixed', top: 0, bottom: 0, left: 0,
+              width: '75vw', maxWidth: '320px',
+              zIndex: 1000000,
+              background: '#121212', padding: '24px',
+              display: 'flex', flexDirection: 'column',
+              overflowY: 'auto',
+              borderRight: '1px solid rgba(201,168,76,0.3)',
+              color: '#fff'
+            }}
+          >
+            <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: '24px' }}>
+              <motion.button 
+                whileTap={{ scale: 0.9 }}
+                onClick={handleCloseModal}
+                style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(201,168,76,0.3)', borderRadius: '12px', padding: '10px', color: '#C9A84C', cursor: 'pointer' }}
+              >
+                <ChevronLeft size={24} />
+              </motion.button>
+            </div>
+
+            <div style={{ marginBottom: '32px' }}>
+              <h2 style={{ color: '#F8FAFC', fontSize: '22px', fontWeight: 900, margin: 0, display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <span style={{ color: '#C9A84C' }}>?뙚</span> 留덉뒪???꾩슜 硫붾돱
+              </h2>
+              <p style={{ color: '#C9A84C', fontSize: '13px', marginTop: '4px', fontWeight: 700, letterSpacing: '0.5px' }}>VIP INSTRUCTOR LOUNGE</p>
+            </div>
+
+            <div style={{ fontSize: '11px', fontWeight: 900, color: '#94A3B8', marginBottom: '12px', letterSpacing: '1px' }}>
+              VIP NAVIGATION
+            </div>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+              {/*
+              ?꾩껜 媛뺤궗 / 媛뺤궗 ?대옒??/ 援?VIP 硫붾돱 ??二쇱꽍 蹂닿?
+              */}
+              {[
+                {
+                  icon: <span style={{ fontSize: '20px', lineHeight: 1 }}>?뱥</span>,
+                  text: '?섍컯??愿由?,
+                  action: () => { setIsMenuOpen(false); alert('以鍮?以묒엯?덈떎 ?뵩'); },
+                },
+                {
+                  icon: <span style={{ fontSize: '20px', lineHeight: 1 }}>?뮥</span>,
+                  text: '?섏엯 吏묎퀎',
+                  action: () => { setIsMenuOpen(false); alert('以鍮?以묒엯?덈떎 ?뵩'); },
+                },
+                {
+                  icon: <span style={{ fontSize: '20px', lineHeight: 1 }}>?뱟</span>,
+                  text: '???대옒???쇱젙',
+                  action: () => { setIsMenuOpen(false); alert('以鍮?以묒엯?덈떎 ?뵩'); },
+                },
+                {
+                  icon: <span style={{ fontSize: '20px', lineHeight: 1 }}>?뱤</span>,
+                  text: '???꾨줈???듦퀎',
+                  action: () => { setIsMenuOpen(false); alert('以鍮?以묒엯?덈떎 ?뵩'); },
+                },
+                {
+                  icon: <span style={{ fontSize: '20px', lineHeight: 1 }}>?뱼</span>,
+                  text: '怨듭? 蹂대궡湲?,
+                  action: () => { setIsMenuOpen(false); alert('以鍮?以묒엯?덈떎 ?뵩'); },
+                },
+              ].map((item, idx) => (
+                <motion.div
+                  key={idx}
+                  whileHover={{ scale: 1.02, backgroundColor: 'rgba(255,255,255,0.08)' }}
+                  whileTap={{ scale: 0.98 }}
+                  onClick={item.action}
+                  style={{
+                    background: 'rgba(255,255,255,0.03)',
+                    border: '1px solid rgba(201,168,76,0.2)',
+                    borderRadius: '14px',
+                    padding: '16px 20px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '16px',
+                    cursor: 'pointer',
+                    transition: 'all 0.2s',
+                    boxShadow: '0 4px 15px rgba(0,0,0,0.2)'
+                  }}
+                >
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                    {item.icon}
+                  </div>
+                  <span style={{ color: '#F8FAFC', fontSize: '15px', fontWeight: 800 }}>{item.text}</span>
+                </motion.div>
+              ))}
+            </div>
+
+            {false && (<>
+            {/* 湲곗〈 留덉뒪???꾩슜 硫붾돱 ?꾨옒??援щ텇????異붽? */}
+            <div style={{ height: '1px', background: 'rgba(201,168,76,0.2)', margin: '32px 0 24px' }} />
+
+            {/* MY MASTERS ?뱀뀡 */}
+            <div style={{ marginBottom: '24px' }}>
+              <div style={{ fontSize: '13px', fontWeight: 950, color: '#F8FAFC', marginBottom: '16px', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                ?뙚 ??媛뺤궗
+              </div>
+              
+              {followedInstructors.length === 0 ? (
+                <div style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.05)', borderRadius: '16px', padding: '20px', textAlign: 'center' }}>
+                  <div style={{ fontSize: '13px', color: '#94A3B8', marginBottom: '14px', fontWeight: 600 }}>?꾩쭅 ?붾줈?고븳 媛뺤궗媛 ?놁뼱???뮟</div>
+                  <motion.button
+                    whileHover={{ scale: 1.02 }}
+                    whileTap={{ scale: 0.98 }}
+                    onClick={() => {
+                      localStorage.setItem('instructor_target_genre', '?꾩껜');
+                      navigate('/instructors');
+                      setView('instructors');
+                      setIsMenuOpen(false);
+                      setTimeout(() => {
+                        window.dispatchEvent(new CustomEvent('apply-instructor-filter'));
+                      }, 300);
+                    }}
+                    style={{
+                      padding: '10px 20px', borderRadius: '12px', border: '1px solid rgba(201,168,76,0.3)',
+                      background: 'rgba(201,168,76,0.1)', color: '#C9A84C', fontSize: '12px', fontWeight: 800,
+                      cursor: 'pointer'
+                    }}
+                  >
+                    媛뺤궗 李얘린 ??                  </motion.button>
+                </div>
+              ) : (
+                <div style={{ display: 'flex', overflowX: 'auto', gap: '14px', paddingBottom: '10px', scrollbarWidth: 'none' }}>
+                  {followedInstructors.map(inst => (
+                    <motion.div
+                      key={inst.id}
+                      whileHover={{ scale: 1.05 }}
+                      whileTap={{ scale: 0.95 }}
+                      onClick={() => {
+                        localStorage.setItem('selected_instructor_id', inst.id);
+                        navigate('/instructors');
+                        setView('instructors');
+                        setIsMenuOpen(false);
+                      }}
+                      style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '6px', cursor: 'pointer', flexShrink: 0 }}
+                    >
+                      <div style={{ width: '58px', height: '58px', borderRadius: '50%', border: '2px solid #C9A84C', padding: '2px', background: '#000', boxShadow: '0 4px 12px rgba(201,168,76,0.2)' }}>
+                        <img src={inst.photo_url || 'https://via.placeholder.com/100'} style={{ width: '100%', height: '100%', borderRadius: '50%', objectFit: 'cover' }} alt={inst.name} />
+                      </div>
+                      <span style={{ fontSize: '11px', fontWeight: 800, color: '#E2E8F0', maxWidth: '60px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                        {inst.name.split(' ')[0]}
+                      </span>
+                    </motion.div>
+                  ))}
+                </div>
+              )}
+            </div>
+            </>)}
+
+            <div style={{ marginTop: 'auto', paddingTop: '40px', textAlign: 'center' }}>
+              <p style={{ color: '#64748B', fontSize: '11px', fontWeight: 700 }}>짤 2026 BAMPPA VIP Lounge</p>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {showVipLogin && (
+        <div
+          style={{ position: 'fixed', inset: 0, zIndex: 2000002, background: 'rgba(0,0,0,0.55)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20 }}
+          onClick={() => { setShowVipLogin(false); resetVipAuthToLogin(); }}
+        >
+          <div
+            onClick={(e) => e.stopPropagation()}
+            style={{ position: 'relative', width: '100%', maxWidth: 340, background: '#121212', borderRadius: 16, padding: 24, border: '1px solid rgba(201,168,76,0.35)' }}
+          >
+            <button
+              type="button"
+              onClick={() => { setShowVipLogin(false); resetVipAuthToLogin(); }}
+              aria-label="?リ린"
+              style={{ position: 'absolute', top: 16, right: 16, background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(201,168,76,0.3)', borderRadius: 12, padding: 8, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}
+            >
+              <X size={20} color="#C9A84C" />
+            </button>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 20, paddingRight: 40 }}>
+              <motion.div>
+                <h3 style={{ margin: '0 0 8px', color: '#F8FAFC', fontSize: 18, fontWeight: 900 }}>{vipAuthMode === 'login' ? '留덉뒪??濡쒓렇?? : vipAuthMode === 'signup' ? '?뚯썝媛?? : '鍮꾨?踰덊샇 李얘린'}</h3>
+                <p style={{ margin: 0, color: '#94A3B8', fontSize: 12, fontWeight: 600 }}>VIP INSTRUCTOR LOUNGE</p>
+              </motion.div>
+              {vipAuthMode !== 'recover' && (
+                <button
+                  type="button"
+                  onClick={() => setVipAuthMode(vipAuthMode === 'login' ? 'signup' : 'login')}
+                  style={{ flexShrink: 0, marginTop: 2, padding: 0, border: 'none', background: 'transparent', color: '#C9A84C', fontSize: 13, fontWeight: 800, cursor: 'pointer', textDecoration: 'underline' }}
+                >
+                  {vipAuthMode === 'login' ? '?뚯썝媛?? : '濡쒓렇??}
+                </button>
+              )}
+            </div>
+            {vipAuthMode === 'recover' ? (
+              <>
+                <input
+                  type="email"
+                  placeholder="?대찓??
+                  value={vipRecoverEmail}
+                  onChange={(e) => setVipRecoverEmail(e.target.value)}
+                  onKeyDown={(e) => e.key === 'Enter' && handleVipPasswordRecover()}
+                  style={{ width: '100%', boxSizing: 'border-box', marginBottom: 10, padding: '12px 14px', borderRadius: 10, border: '1px solid rgba(201,168,76,0.25)', background: 'rgba(255,255,255,0.05)', color: '#fff', fontSize: 14 }}
+                />
+                {vipRecoveredPassword !== '' && (
+                  <p style={{ margin: '0 0 12px', padding: '12px 14px', borderRadius: 10, background: 'rgba(201,168,76,0.12)', border: '1px solid rgba(201,168,76,0.35)', color: '#F8FAFC', fontSize: 14, fontWeight: 700, wordBreak: 'break-all' }}>
+                    鍮꾨?踰덊샇: {vipRecoveredPassword}
+                  </p>
+                )}
+                <button
+                  type="button"
+                  disabled={vipLoginLoading}
+                  onClick={handleVipPasswordRecover}
+                  style={{ width: '100%', padding: 14, borderRadius: 12, border: 'none', background: '#C9A84C', color: '#121212', fontSize: 15, fontWeight: 900, cursor: vipLoginLoading ? 'wait' : 'pointer', opacity: vipLoginLoading ? 0.7 : 1, marginBottom: 12 }}
+                >
+                  {vipLoginLoading ? '?뺤씤 以?..' : '?뺤씤'}
+                </button>
+                <button
+                  type="button"
+                  onClick={resetVipAuthToLogin}
+                  style={{ width: '100%', padding: 0, border: 'none', background: 'transparent', color: '#94A3B8', fontSize: 13, fontWeight: 700, cursor: 'pointer', textDecoration: 'underline' }}
+                >
+                  ?ㅼ떆 濡쒓렇?몄쑝濡??뚯븘媛湲?                </button>
+              </>
+            ) : (
+              <>
+            <input
+              type="text"
+              placeholder="?꾩씠??
+              value={vipLoginId}
+              onChange={(e) => setVipLoginId(e.target.value)}
+              style={{ width: '100%', boxSizing: 'border-box', marginBottom: 10, padding: '12px 14px', borderRadius: 10, border: '1px solid rgba(201,168,76,0.25)', background: 'rgba(255,255,255,0.05)', color: '#fff', fontSize: 14 }}
+            />
+            <input
+              type="password"
+              placeholder="鍮꾨?踰덊샇"
+              value={vipLoginPw}
+              onChange={(e) => setVipLoginPw(e.target.value)}
+              onKeyDown={(e) => e.key === 'Enter' && (vipAuthMode === 'login' ? handleVipLoginSubmit() : handleVipSignupSubmit())}
+              style={{ width: '100%', boxSizing: 'border-box', marginBottom: 16, padding: '12px 14px', borderRadius: 10, border: '1px solid rgba(201,168,76,0.25)', background: 'rgba(255,255,255,0.05)', color: '#fff', fontSize: 14 }}
+            />
+            <button
+              type="button"
+              disabled={vipLoginLoading}
+              onClick={vipAuthMode === 'login' ? handleVipLoginSubmit : handleVipSignupSubmit}
+              style={{ width: '100%', padding: 14, borderRadius: 12, border: 'none', background: '#C9A84C', color: '#121212', fontSize: 15, fontWeight: 900, cursor: vipLoginLoading ? 'wait' : 'pointer', opacity: vipLoginLoading ? 0.7 : 1 }}
+            >
+              {vipLoginLoading ? (vipAuthMode === 'login' ? '?뺤씤 以?..' : '媛??以?..') : (vipAuthMode === 'login' ? '濡쒓렇?? : '媛??)}
+            </button>
+                {vipAuthMode === 'login' && (
+                  <button
+                    type="button"
+                    onClick={() => { setVipAuthMode('recover'); setVipRecoveredPassword(''); }}
+                    style={{ width: '100%', marginTop: 14, padding: 0, border: 'none', background: 'transparent', color: '#94A3B8', fontSize: 13, fontWeight: 700, cursor: 'pointer', textDecoration: 'underline' }}
+                  >
+                    鍮꾨?踰덊샇 李얘린
+                  </button>
+                )}
+              </>
+            )}
+          </div>
+        </div>
+      )}
+
+      <AnimatePresence>
+        {showVipMenu && vipLoggedIn && (
+          <motion.div
+            initial={{ x: '-100%' }}
+            animate={{ x: 0 }}
+            exit={{ x: '-100%' }}
+            transition={{ type: 'spring', damping: 25, stiffness: 200 }}
+            style={{
+              position: 'fixed', top: 0, bottom: 0, left: 0,
+              width: '75vw', maxWidth: '320px',
+              zIndex: 2000001,
+              background: '#121212', padding: '24px',
+              display: 'flex', flexDirection: 'column',
+              overflowY: 'auto',
+              borderRight: '1px solid rgba(201,168,76,0.3)',
+              color: '#fff',
+            }}
+          >
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24 }}>
+              <motion.button
+                type="button"
+                whileTap={{ scale: 0.9 }}
+                onClick={handleVipLogout}
+                style={{ padding: '8px 14px', borderRadius: 10, border: '1px solid rgba(201,168,76,0.35)', background: 'rgba(201,168,76,0.12)', color: '#C9A84C', fontSize: 12, fontWeight: 800, cursor: 'pointer' }}
+              >
+                濡쒓렇?꾩썐
+              </motion.button>
+              <motion.button
+                type="button"
+                whileTap={{ scale: 0.9 }}
+                onClick={() => setShowVipMenu(false)}
+                style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(201,168,76,0.3)', borderRadius: 12, padding: 10, color: '#C9A84C', cursor: 'pointer' }}
+              >
+                <ChevronLeft size={24} />
+              </motion.button>
+            </div>
+            <motion.div style={{ marginBottom: 32 }}>
+              <h2 style={{ color: '#F8FAFC', fontSize: 22, fontWeight: 900, margin: 0, display: 'flex', alignItems: 'center', gap: 8 }}>
+                <span style={{ color: '#C9A84C' }}>?뙚</span> 留덉뒪???꾩슜 硫붾돱
+              </h2>
+              <p style={{ color: '#C9A84C', fontSize: 13, marginTop: 4, fontWeight: 700, letterSpacing: '0.5px' }}>VIP INSTRUCTOR LOUNGE</p>
+            </motion.div>
+            <motion.div style={{ fontSize: 11, fontWeight: 900, color: '#94A3B8', marginBottom: 12, letterSpacing: '1px' }}>VIP NAVIGATION</motion.div>
+            <motion.div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+              {[
+                { icon: <Users size={20} color="#C9A84C" />, text: '?섍컯??愿由? },
+                { icon: <TrendingUp size={20} color="#C9A84C" />, text: '?섏엯 吏묎퀎' },
+                { icon: <CalendarDays size={20} color="#C9A84C" />, text: '???대옒???쇱젙' },
+                { icon: <BarChart2 size={20} color="#C9A84C" />, text: '???꾨줈???듦퀎' },
+                { icon: <Bell size={20} color="#C9A84C" />, text: '怨듭? 蹂대궡湲? },
+              ].map((item, idx) => (
+                <motion.div
+                  key={idx}
+                  whileHover={{ scale: 1.02, backgroundColor: 'rgba(255,255,255,0.08)' }}
+                  whileTap={{ scale: 0.98 }}
+                  onClick={() => { setShowVipMenu(false); alert('以鍮?以묒엯?덈떎 ?뵩'); }}
+                  style={{
+                    background: 'rgba(255,255,255,0.03)',
+                    border: '1px solid rgba(201,168,76,0.2)',
+                    borderRadius: 14,
+                    padding: '16px 20px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 16,
+                    cursor: 'pointer',
+                    boxShadow: '0 4px 15px rgba(0,0,0,0.2)',
+                  }}
+                >
+                  <motion.div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>{item.icon}</motion.div>
+                  <span style={{ color: '#F8FAFC', fontSize: 15, fontWeight: 800 }}>{item.text}</span>
+                </motion.div>
+              ))}
+            </motion.div>
+            <motion.div style={{ marginTop: 'auto', paddingTop: 40, textAlign: 'center' }}>
+              <p style={{ color: '#64748B', fontSize: 11, fontWeight: 700 }}>짤 2026 BAMPPA VIP Lounge</p>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {false && location.pathname === '/' && view === 'home' && !showPartner && !showSplash && (
+        <div
+          style={{
+            position: 'fixed',
+            top: 'max(10px, env(safe-area-inset-top, 0px))',
+            left: '50%',
+            transform: 'translateX(-50%)',
+            width: '100%',
+            maxWidth: '500px',
+            zIndex: 99999,
+            padding: '0 16px',
+            boxSizing: 'border-box',
+            display: 'flex',
+            justifyContent: 'flex-end',
+            pointerEvents: 'none',
+          }}
+        >
+          <button
+            type="button"
+            onClick={() => navigate('/register-class')}
+            style={{
+              pointerEvents: 'auto',
+              padding: '8px 14px',
+              borderRadius: '12px',
+              border: 'none',
+              background: '#FF1744',
+              color: '#fff',
+              fontSize: '12px',
+              fontWeight: 800,
+              cursor: 'pointer',
+              boxShadow: '0 4px 12px rgba(255, 23, 68, 0.25)',
+            }}
+          >
+            媛뺤궗?깅줉
+          </button>
+        </div>
+      )}
+
+      <main>
+        <Suspense fallback={<LoadingFallback />}>
+          {view === 'home' ? <HomePage {...sharedProps} /> : 
+           view === 'community' ? <Community setSelectedPoster={setSelectedPoster} setView={setView} /> :
+           view === 'instructors' || view === 'register-class' ? <Instructors followedInstructors={followedInstructors} setView={setView} /> :
+           view === 'bootcamp' ? <Bootcamp onBack={() => window.history.back()} /> :
+           view === 'bootcamp-register' ? <Bootcamp onBack={() => navigate('/bootcamp')} initialView="register" /> :
+           view === 'festival' ? <Festival onBack={() => navigate('/')} /> :
+           view === 'festival-register' ? <Festival onBack={() => navigate('/festival')} initialView="register" /> :
+           view === 'parking' ? <Parking onBack={() => navigate('/')} /> :
+           view === 'restaurant' ? <Restaurant onBack={() => navigate('/')} /> :
+           /* register-party: main 諛?理쒖긽?꾩뿉???뚮뜑 (?섎떒 ?ㅻ퉬 z-index 異⑸룎 諛⑹?) */
+           view === 'register-party' ? null :
+           view === 'admin' ? <AdminDashboard setView={setView} onBack={() => setView('admin-portal')} refreshData={fetchParties} /> :
+           view === 'admin-portal' ? (
+                <div style={{ 
+                  height: '100vh', 
+                  background: '#0F172A', 
+                  display: 'flex', 
+                  flexDirection: 'column', 
+                  alignItems: 'center', 
+                  justifyContent: 'center', 
+                  padding: '20px',
+                  gap: '20px'
+                }}>
+                  <div style={{ textAlign: 'center', marginBottom: '30px' }}>
+                    <ShieldCheck size={64} color="#FF1744" style={{ margin: '0 auto 16px' }} />
+                    <h2 style={{ color: 'white', fontSize: '24px', fontWeight: 900 }}>{t('admin_portal')}</h2>
+                    <p style={{ color: '#94A3B8', fontSize: '14px' }}>{t('admin_portal_desc')}</p>
+                  </div>
+                  
+                  <button 
+                    onClick={() => setView('admin')}
+                    style={{ 
+                      width: '100%', maxWidth: '320px', padding: '24px', 
+                      borderRadius: '20px', background: '#1E293B', color: 'white', 
+                      border: '1px solid #334155', fontSize: '18px', fontWeight: 800,
+                      cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '15px'
+                    }}
+                  >
+                    <Music2 size={24} color="#FF1744" /> {t('admin_manage_party')}
+                  </button>
+                  
+                  <button 
+                    onClick={() => navigate('/')}
+                    style={{ marginTop: '40px', background: 'none', border: 'none', color: '#64748B', fontWeight: 700, cursor: 'pointer' }}
+                  >
+                    {t('back_to_main')}
+                  </button>
+                </div>
+              ) : <AdminDashboard onBack={() => navigate('/')} refreshData={fetchParties} />}
+        </Suspense>
+      </main>
+
+
+
+
+      <DynamicAnalysisModal isOpen={showIncheonModal} onClose={() => setShowIncheonModal(false)} userCoords={userCoords} isSajuCall={isSajuCall} />
+      <AnimatePresence>
+        <Suspense fallback={null}>
+          {showIncheon && <IncheonRoute parties={parties} onClose={() => setShowIncheon(false)} />}
+        </Suspense>
+      </AnimatePresence>
+      <AnimatePresence>
+        <Suspense fallback={null}>
+          {showSaju && <SajuModal parties={parties} onClose={() => setShowSaju(false)} lang={lang} />}
+        </Suspense>
+      </AnimatePresence>
+      <AnimatePresence>
+        <Suspense fallback={null}>
+          {showWeather && <WeatherModal onClose={() => setShowWeather(false)} />}
+        </Suspense>
+      </AnimatePresence>
+      <AnimatePresence>
+        {showWishlist && <WishlistModal onClose={() => setShowWishlist(false)} setSelectedPoster={setSelectedPoster} />}
+      </AnimatePresence>
+      <AnimatePresence>
+        {showRentalModal && <RentalModal onClose={() => setShowRentalModal(false)} />}
+      </AnimatePresence>
+
+      <AnimatePresence>
+        {showFullCalendar && (
+          <>
+            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={handleCloseModal} style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.6)', backdropFilter: 'blur(4px)', zIndex: 170000 }} />
+            <motion.div initial={{ y: '100%', opacity: 0 }} animate={{ y: 0, opacity: 1 }} exit={{ y: '100%', opacity: 0 }} transition={{ type: 'spring', damping: 25, stiffness: 200 }} style={{ position: 'fixed', bottom: '90px', left: '10px', right: '10px', background: '#fff', borderRadius: '24px', padding: '20px', boxShadow: '0 10px 40px rgba(0,0,0,0.25)', zIndex: 170001, border: '1px solid #f1f5f9', display: 'flex', flexDirection: 'column', maxHeight: '85vh' }}>
+              <div style={{ width: '40px', height: '4px', background: '#E2E8F0', borderRadius: '2px', margin: '0 auto 20px' }} />
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}><span style={{ fontSize: '24px', fontWeight: 950, color: '#1E293B' }}>{selectedMonth}??/span><div style={{ display: 'flex', gap: '8px' }}><button onClick={() => setSelectedMonth(m => m > 1 ? m-1 : 12)} style={{ background: '#F8FAFC', border: '1px solid #F1F5F9', borderRadius: '10px', width: '36px', height: '36px' }}><ChevronLeft size={18} /></button><button onClick={() => setSelectedMonth(m => m < 12 ? m+1 : 1)} style={{ background: '#F8FAFC', border: '1px solid #F1F5F9', borderRadius: '10px', width: '36px', height: '36px' }}><ChevronRight size={18} /></button></div></div>
+                <button onClick={handleCloseModal} style={{ background: '#F1F5F9', border: 'none', borderRadius: '50%', width: '44px', height: '44px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#1E293B' }}>
+                  <ChevronLeft size={28} />
+                </button>
+              </div>
+              
+              <div style={{ flex: 1, overflowY: 'auto', minHeight: '350px' }}>
+                {!showFilterPanel && !showFilteredResults ? (
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: '5px', textAlign: 'center' }}>
+                    {['??,'??,'??,'??,'紐?,'湲?,'??].map(d => <div key={d} style={{ fontSize: '12px', fontWeight: 700, color: d === '?? ? '#FF1744' : d === '?? ? '#FF1744' : '#999', padding: '5px 0' }}>{d}</div>)}
+                    {(() => {
+                      const firstDay = new Date(todayData.year, selectedMonth - 1, 1).getDay();
+                      const lastDate = new Date(todayData.year, selectedMonth, 0).getDate();
+                      const days = [];
+                      for (let i = 0; i < firstDay; i++) days.push({ date: null });
+                      for (let i = 1; i <= lastDate; i++) {
+                        const fullDate = `${todayData.year}-${String(selectedMonth).padStart(2, '0')}-${String(i).padStart(2, '0')}`;
+                        const d = new Date(todayData.year, selectedMonth - 1, i);
+                        days.push({ date: i, fullDate, dayName: DAYS_KOR[d.getDay()] });
+                      }
+                      return days.map((day, idx) => {
+                        if (!day.date) return <div key={idx} />;
+                        const isSelected = selectedDate === day.fullDate;
+                        const themeColor = '#FF1744';
+                        const todayStr = getKSTDate().dateStr;
+                        return (
+                          <div 
+                            key={day.fullDate} 
+                            onClick={() => { 
+                              if (day.fullDate >= todayStr) { setSelectedDate(day.fullDate); }
+                            }}
+                            style={{ padding: '10px 0', borderRadius: '10px', background: isSelected ? themeColor : '#F8FAFC', color: isSelected ? '#fff' : '#1E293B', fontWeight: 800, cursor: 'pointer' }}
+                          >
+                            {day.date}
+                          </div>
+                        );
+                      });
+                    })()}
+                  </div>
+                ) : (
+                  <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} style={{ padding: '10px' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '20px' }}>
+                      <button onClick={() => { setShowFilterPanel(false); setShowFilteredResults(false); setFilterStep(1); }} style={{ background: '#F8FAFC', border: 'none', borderRadius: '10px', padding: '8px 12px', fontSize: '13px', fontWeight: 700, color: '#FF1744', display: 'flex', alignItems: 'center', gap: '4px' }}><X size={16} /> ?リ린</button>
+                    </div>
+                    
+                    <div style={{ fontSize: '18px', fontWeight: 950, color: '#1E293B', marginBottom: '15px' }}>
+                      {filterStep === 1 ? '?대뵒濡?媛?쒕굹??' : '?대뼡 ?λⅤ媛 苑귦엳?몄슂?'}
+                    </div>
+
+                    {filterStep === 1 ? (
+                      <div style={{ display: 'flex', overflowX: 'auto', gap: '10px', paddingBottom: '15px' }}>
+                        {['?쒖슱', '寃쎄린/?몄쿇', '遺??, '?援?, '???, '愿묒＜', '湲고?'].map(r => (
+                          <button key={r} onClick={() => { setFilterRegion(r); setFilterStep(2); }} style={{ flexShrink: 0, padding: '14px 24px', borderRadius: '14px', background: filterRegion === r ? '#FF1744' : '#F8FAFC', color: filterRegion === r ? '#fff' : '#64748B', fontWeight: 700, border: 'none' }}>{r}</button>
+                        ))}
+                      </div>
+                    ) : (
+                      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+                        {['諛붿감?', '?댁궗', '伊ы겕', '?ㅼ?諛?].map(g => (
+                          <button key={g} onClick={() => { setFilterGenre(g); setShowFilteredResults(true); }} style={{ padding: '24px 15px', borderRadius: '18px', background: filterGenre === g ? '#1E293B' : '#F8FAFC', color: filterGenre === g ? '#fff' : '#64748B', fontWeight: 800, fontSize: '16px', border: 'none' }}>{g}</button>
+                        ))}
+                      </div>
+                    )}
+
+                    {showFilteredResults && (
+                      <div style={{ marginTop: '20px', display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                        {displayParties.filter(p => {
+                          const matchesRegion = filterRegion ? (p.broadRegion === filterRegion || p.address?.includes(filterRegion)) : true;
+                          const matchesGenre = filterGenre ? p[GENRE_MAP[filterGenre]?.key] > 0 : true;
+                          return p.date === selectedDate && matchesRegion && matchesGenre;
+                        }).length === 0 ? (
+                          <div style={{ padding: '60px 0', textAlign: 'center', color: '#94A3B8', fontWeight: 700 }}>?대떦 議곌굔???뚰떚媛 ?놁뒿?덈떎 ?쁾</div>
+                        ) : (
+                          displayParties.filter(p => {
+                            const matchesRegion = filterRegion ? (p.broadRegion === filterRegion || p.address?.includes(filterRegion)) : true;
+                            const matchesGenre = filterGenre ? p[GENRE_MAP[filterGenre]?.key] > 0 : true;
+                            return p.date === selectedDate && matchesRegion && matchesGenre;
+                          }).map(item => (
+                            <div key={item.id} onClick={() => {
+                              window.history.pushState({ modal: true }, '');
+                              const card = buildPartyShareCard(item);
+                              if (!card) return;
+                              setSelectedPoster(card);
+                            }} style={{ background: '#F8FAFC', borderRadius: '16px', padding: '12px', display: 'flex', gap: '15px', border: '1px solid #EDF2F7', cursor: 'pointer' }}>
+                              <img src={item.poster_url} style={{ width: '80px', height: '100px', objectFit: 'cover', borderRadius: '10px' }} alt="Poster" />
+                              <div style={{ flex: 1 }}>
+                                <div style={{ fontSize: '11px', color: '#FF1744', fontWeight: 800 }}>{item.displayBroadRegion}</div>
+                                <div style={{ fontSize: '14px', fontWeight: 900, color: '#1E293B', marginTop: '2px' }}>{item.title}</div>
+                                <div style={{ fontSize: '12px', color: '#64748B', marginTop: '4px' }}>{item.displayLocationName}</div>
+                                <div style={{ fontSize: '11px', color: '#94A3B8', marginTop: '6px' }}>{item.time}</div>
+                              </div>
+                            </div>
+                          ))
+                        )}
+                      </div>
+                    )}
+                    <button onClick={handleCloseModal} style={{ width: '100%', height: '54px', borderRadius: '16px', background: '#1E293B', color: '#fff', fontSize: '16px', fontWeight: 800, border: 'none' }}>{t('confirm_complete')}</button>
+                  </motion.div>
+                )}
+              </div>
+
+            </motion.div>
+          </>
+        )}
+      </AnimatePresence>
+      
+
+
+
+
+      <AnimatePresence>
+        {showNoticeGuide && (
+          <motion.div 
+            initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+            style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.9)', zIndex: 3000000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px', backdropFilter: 'blur(10px)' }}
+          >
+            <motion.div 
+              initial={{ scale: 0.9, y: 20 }} animate={{ scale: 1, y: 0 }} exit={{ scale: 0.9, y: 20 }}
+              style={{ background: '#111827', width: '100%', maxWidth: '340px', borderRadius: '32px', padding: '32px', border: '1px solid rgba(201,168,76,0.3)', position: 'relative', overflow: 'hidden' }}
+            >
+              <div style={{ position: 'absolute', top: '-50px', right: '-50px', width: '150px', height: '150px', background: 'radial-gradient(circle, rgba(201,168,76,0.1) 0%, transparent 70%)', pointerEvents: 'none' }} />
+              
+              <div style={{ textAlign: 'center', marginBottom: '24px' }}>
+                <div style={{ width: '64px', height: '64px', background: 'rgba(201,168,76,0.1)', borderRadius: '20px', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 20px', border: '1px solid rgba(201,168,76,0.2)' }}>
+                  <Navigation size={32} color="#FFD700" />
+                </div>
+                <h3 style={{ color: '#F8FAFC', fontSize: '20px', fontWeight: 900, margin: 0, letterSpacing: '-0.5px' }}>?꾩튂 ?쒕퉬???덈궡 ?뱻</h3>
+                <p style={{ color: '#94A3B8', fontSize: '13px', marginTop: '8px', lineHeight: '1.5' }}>???섏? 諛ㅻ튌 ?댁슜???꾪빐<br/>?꾩튂 沅뚰븳?????꾩슂?쒖? ?덈궡???쒕┰?덈떎.</p>
+              </div>
+
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '20px', marginBottom: '32px' }}>
+                <div style={{ display: 'flex', gap: '16px' }}>
+                  <div style={{ flexShrink: 0, width: '40px', height: '40px', background: 'rgba(59,130,246,0.1)', borderRadius: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                    <MapIcon size={20} color="#3B82F6" />
+                  </div>
+                  <div>
+                    <div style={{ color: '#F1F5F9', fontSize: '15px', fontWeight: 800 }}>??二쇰? ?μ냼 李얘린</div>
+                    <p style={{ color: '#64748B', fontSize: '12px', marginTop: '4px', lineHeight: '1.4' }}>?꾩옱 ?꾩튂?먯꽌 媛??媛源뚯슫 ?뚰떚 ?μ냼瑜?利됱떆 ?뺤씤?섍퀬 理쒖쟻??寃쎈줈瑜??덈궡諛쏆쑝?몄슂.</p>
+                  </div>
+                </div>
+
+                <div style={{ display: 'flex', gap: '16px' }}>
+                  <div style={{ flexShrink: 0, width: '40px', height: '40px', background: 'rgba(249,115,22,0.1)', borderRadius: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                    <BarChart size={20} color="#F97316" />
+                  </div>
+                  <div>
+                    <div style={{ color: '#F1F5F9', fontSize: '15px', fontWeight: 800 }}>?ㅼ떆媛??꾪솴 湲곗뿬</div>
+                    <p style={{ color: '#64748B', fontSize: '12px', marginTop: '4px', lineHeight: '1.4' }}>?щ윭遺꾩쓽 李몄뿬媛 ?ㅼ떆媛?以묎퀎 ?レ옄瑜??꾩꽦?⑸땲?? ?꾩옣???닿린瑜??꾧뎅??怨듭쑀??蹂댁꽭??</p>
+                  </div>
+                </div>
+
+                <div style={{ display: 'flex', gap: '16px' }}>
+                  <div style={{ flexShrink: 0, width: '40px', height: '40px', background: 'rgba(16,185,129,0.1)', borderRadius: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                    <ShieldCheck size={20} color="#10B981" />
+                  </div>
+                  <div>
+                    <div style={{ color: '#F1F5F9', fontSize: '15px', fontWeight: 800 }}>泥좎???蹂댁븞 愿由?/div>
+                    <p style={{ color: '#64748B', fontSize: '12px', marginTop: '4px', lineHeight: '1.4' }}>?꾩튂 ?뺣낫??吏묎퀎?⑹쑝濡쒕쭔 ?쇱떆 ?ъ슜?섎ŉ, 媛쒖씤???앸퀎?????덈뒗 ?뺣낫???덈? ??λ릺吏 ?딆뒿?덈떎.</p>
+                  </div>
+                </div>
+              </div>
+
+              <button 
+                onClick={() => {
+                  setShowNoticeGuide(false);
+                  localStorage.setItem('notice_guide_shown', 'true');
+                  requestLocation();
+                }}
+                style={{ width: '100%', padding: '16px', borderRadius: '16px', background: 'linear-gradient(135deg, #C9A84C, #FFD700)', color: '#000', fontSize: '16px', fontWeight: 900, border: 'none', cursor: 'pointer', boxShadow: '0 10px 20px rgba(201,168,76,0.3)' }}
+              >
+                ?뺤씤?덉뒿?덈떎
+              </button>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      </motion.div>
+
+    </div>
+    
+    {/* [B] [?ъ뒪???뺣? 紐⑤떖 - 而⑦뀒?대꼫 ?몃? 理쒖긽??諛곗튂] */}
+    {showPartner && <PartnerModal onClose={() => setShowPartner(false)} />}
+    {showClassRegister && <ClassRegisterModal onClose={() => setShowClassRegister(false)} />}
+    {(view === 'register-class' || location.pathname === '/register-class') && (
+      <Suspense fallback={null}>
+        <InstructorRegister onBack={() => navigate('/instructors')} />
+      </Suspense>
+    )}
+    {false && false && (
+      <div
+        style={{ position: 'fixed', inset: 0, zIndex: 2000001, background: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+        onClick={() => setShowStudentManager(false)}
+      >
+        <motion.div onClick={(e) => e.stopPropagation()} style={{ width: '90%', maxWidth: '400px', minHeight: '200px', background: '#121212', borderRadius: '16px', border: '1px solid rgba(201,168,76,0.3)' }}>
+          <div />
+        </motion.div>
+      </div>
+    )}
+    {false && false && (
+      <div
+        style={{ position: 'fixed', inset: 0, zIndex: 2000001, background: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+        onClick={() => setShowRevenueStats(false)}
+      >
+        <motion.div onClick={(e) => e.stopPropagation()} style={{ width: '90%', maxWidth: '400px', minHeight: '200px', background: '#121212', borderRadius: '16px', border: '1px solid rgba(201,168,76,0.3)' }}>
+          <div />
+        </motion.div>
+      </div>
+    )}
+    {(view === 'register-party' || location.pathname === '/register-party') && (
+      <Suspense fallback={<LoadingFallback />}>
+        <RegisterForm
+          onBack={() => navigate('/')}
+          onSuccess={() => { fetchParties(); navigate('/'); }}
+          initialData={{ date: selectedDate }}
+        />
+      </Suspense>
+    )}
+    <AnimatePresence>
+      {selectedPoster && (
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          style={{ position: 'fixed', inset: 0, zIndex: 2000000 }}
+        >
+          <PosterModal 
+            src={selectedPoster.src} 
+            shareTitle={selectedPoster.title}
+            shareDesc={selectedPoster.desc}
+            shareLines={selectedPoster.lines}
+            shareFeedDesc={selectedPoster.feedDesc}
+            partyId={selectedPoster.partyId}
+            onClose={() => setSelectedPoster(null)} 
+          />
+        </motion.div>
+      )}
+    </AnimatePresence>
+    {/* [Premium Floating Capsule Navigation - Root Level Persistence] */}
+    {!hideBottomNav && (
+    <nav 
+      className={`bottom-nav${isSocialLightNav ? ' bottom-nav--social-light' : ''}`}
+      style={{ 
+        position: 'fixed', 
+        bottom: '15px', 
+        left: '50%',
+        transform: `translateX(-50%) translateY(${navVisible ? '0' : '100px'})`,
+        transition: 'transform 0.35s cubic-bezier(0.4, 0, 0.2, 1)',
+        width: '94%', 
+        maxWidth: '460px', 
+        height: '68px',
+        // background: '#0a0a0a',
+        background: isSocialLightNav ? '#ffffff' : '#0a0a0a',
+        borderRadius: '34px',
+        display: 'flex', 
+        alignItems: 'center', 
+        justifyContent: 'space-between',
+        padding: '0 20px',
+        zIndex: 2100000, // 理쒖긽??紐⑤떖蹂대떎 ?믨쾶 ?ㅼ젙
+        // boxShadow: '0 10px 40px rgba(0,0,0,0.6)',
+        boxShadow: isSocialLightNav ? '0 -4px 16px rgba(0,0,0,0.06)' : '0 10px 40px rgba(0,0,0,0.6)',
+        boxSizing: 'border-box',
+        // border: '1px solid rgba(255,255,255,0.1)',
+        border: isSocialLightNav ? '1px solid #e2e8f0' : '1px solid rgba(255,255,255,0.1)',
+        backdropFilter: isSocialLightNav ? 'none' : 'blur(10px)'
+      }}
+    >
+      <div 
+        onClick={() => { navigate('/'); setShowPartner(false); setActiveTab(null); setTimeout(() => { const el = document.getElementById('quickmenu-section'); if (el) el.scrollIntoView({ behavior: 'smooth' }); }, 100); }}
+        style={{ 
+          flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
+          cursor: 'pointer', transition: 'all 0.2s',
+          // color: (location.pathname === '/' && !showPartner) ? '#FFFFFF' : 'rgba(255,255,255,0.3)'
+          color: isSocialTabActive ? socialPartnerNavActive : socialPartnerNavInactive
+        }}
+      >
+        <HomeIcon size={24} strokeWidth={isSocialTabActive ? 2.5 : 1.5} />
+        <span style={{ fontSize: '9px', fontWeight: isSocialTabActive ? 900 : 500, marginTop: '3px' }}>
+          {i18n.language?.startsWith('en') ? 'Home' : '??}
+        </span>
+      </div>
+      <div
+        onClick={() => { navigate('/bootcamp'); setShowPartner(false); }}
+        style={{
+          flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
+          cursor: 'pointer', transition: 'all 0.2s',
+          color: (location.pathname === '/bootcamp' && !showPartner) ? navActiveColor : navInactiveColor,
+        }}
+      >
+        <Tent size={24} strokeWidth={(location.pathname === '/bootcamp' && !showPartner) ? 2.5 : 1.5} />
+        <span style={{ fontSize: '9px', fontWeight: (location.pathname === '/bootcamp' && !showPartner) ? 900 : 500, marginTop: '3px' }}>
+          {i18n.language?.startsWith('en') ? 'Bootcamp' : '遺?몄틺??}
+        </span>
+      </div>
+
+      <div
+        onClick={() => handleOpenModal(setShowPartner)}
+        style={{
+          flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
+          cursor: 'pointer', transition: 'all 0.2s',
+          color: showPartner ? socialPartnerNavActive : socialPartnerNavInactive,
+        }}
+      >
+        <Users size={24} strokeWidth={showPartner ? 2.5 : 1.5} />
+        <span style={{ fontSize: '9px', fontWeight: showPartner ? 900 : 500, marginTop: '3px' }}>
+          {i18n.language?.startsWith('en') ? 'Partner' : '?뚰듃??}
+        </span>
+      </div>
+
+      <div
+        onClick={() => {
+          setShowPartner(false);
+          localStorage.setItem('instructor_target_genre', '?꾩껜');
+          navigate('/instructors');
+          setTimeout(() => { window.dispatchEvent(new CustomEvent('apply-instructor-filter')); }, 300);
+        }}
+        style={{
+          flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
+          cursor: 'pointer', transition: 'all 0.2s',
+          color: ((location.pathname === '/instructors' || view === 'instructors') && !showPartner) ? navActiveColor : navInactiveColor,
+        }}
+      >
+        <GraduationCap size={24} strokeWidth={((location.pathname === '/instructors' || view === 'instructors') && !showPartner) ? 2.5 : 1.5} />
+        <span style={{ fontSize: '9px', fontWeight: ((location.pathname === '/instructors' || view === 'instructors') && !showPartner) ? 900 : 500, marginTop: '3px' }}>
+          {i18n.language?.startsWith('en') ? 'Instructors' : '媛뺤궗李얘린'}
+        </span>
+      </div>
+
+      <div 
+        onClick={() => { navigate('/festival'); setShowPartner(false); }}
+        style={{ 
+          flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
+          cursor: 'pointer', transition: 'all 0.2s',
+          // color: (location.pathname === '/festival' && !showPartner) ? '#FFFFFF' : 'rgba(255,255,255,0.3)'
+          color: (location.pathname === '/festival' && !showPartner) ? navActiveColor : navInactiveColor
+        }}
+      >
+        <Flag size={24} strokeWidth={(location.pathname === '/festival' && !showPartner) ? 2.5 : 1.5} />
+        <span style={{ fontSize: '9px', fontWeight: (location.pathname === '/festival' && !showPartner) ? 900 : 500, marginTop: '3px' }}>
+          {i18n.language?.startsWith('en') ? 'Festival' : '?섏뒪?곕쾶'}
+        </span>
+      </div>
+    </nav>
+    )}
+    <ChatBot />
+    </>
+  );
+}
+
+export default App;

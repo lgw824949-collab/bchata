@@ -1,0 +1,115 @@
+const fs = require('fs');
+const p = 'c:/dev/bchata/src/components/VenueDetailModal.jsx';
+let s = fs.readFileSync(p, 'utf8');
+
+const start = '        {/* 상단: 달력 */}';
+const end = '        {/* 본문: 카드 → 다른 행사 → SNS (한 스크롤) */}';
+const i0 = s.indexOf(start);
+const i1 = s.indexOf(end);
+if (i0 < 0 || i1 < 0) {
+  console.error('markers not found', i0, i1);
+  process.exit(1);
+}
+
+const d = 'div';
+const open = (cls) => `<${d}${cls ? ` className="${cls}"` : ''}`;
+// use style only, no className
+const block = [
+  '        {/* 상단: 앞으로 6주만 (과거·월 이동 없음) */}',
+  `        <${d} style={{ flexShrink: 0, padding: '10px 16px 8px', borderBottom: \`1px solid \${VD.border}\`, background: VD.bgCalendar }}>`,
+  `          <${d} style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', marginBottom: 8 }}>`,
+  "            <span style={{ fontSize: 15, fontWeight: 900, color: VD.brand }}>다음 {ROLLING_CALENDAR_WEEKS}주</span>",
+  '            <span style={{ fontSize: 11, fontWeight: 700, color: VD.muted }}>{calendarRangeLabel}</span>',
+  `          </${d}>`,
+  `          <${d} style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>`,
+  '            {rollingCalendarWeeks.map((week) => (',
+  `              <${d} key={week.label} style={{ display: 'flex', alignItems: 'center', gap: 8 }}>`,
+  '                <span',
+  '                  style={{',
+  '                    width: 32,',
+  '                    flexShrink: 0,',
+  '                    fontSize: 10,',
+  '                    fontWeight: 800,',
+  '                    color: VD.faint,',
+  "                    textAlign: 'right',",
+  '                  }}',
+  '                >',
+  '                  {week.label}',
+  '                </span>',
+  `                <${d}`,
+  '                  style={{',
+  '                    flex: 1,',
+  "                    display: 'flex',",
+  '                    gap: 4,',
+  "                    overflowX: 'auto',",
+  "                    scrollbarWidth: 'none',",
+  "                    WebkitOverflowScrolling: 'touch',",
+  '                  }}',
+  '                >',
+  '                  {week.days.map((day) => {',
+  '                    const isSelected = selectedDate === day.fullDate;',
+  '                    const hasEvent = datesWithEvents.has(day.fullDate);',
+  '                    const isToday = day.fullDate === todayStr;',
+  '                    return (',
+  '                      <button',
+  '                        key={day.fullDate}',
+  '                        type="button"',
+  '                        onClick={() => setSelectedDate(day.fullDate)}',
+  '                        style={{',
+  '                          flexShrink: 0,',
+  '                          minWidth: 44,',
+  '                          border: isSelected ? `2px solid ${VD.brand}` : `1px solid ${VD.border}`,',
+  "                          background: isSelected ? VD.brand : hasEvent ? 'rgba(212, 67, 110, 0.08)' : '#fff',",
+  '                          borderRadius: 10,',
+  "                          padding: '5px 4px 4px',",
+  "                          cursor: 'pointer',",
+  '                        }}',
+  '                      >',
+  `                        <${d}`,
+  '                          style={{',
+  '                            fontSize: 9,',
+  '                            fontWeight: 700,',
+  "                            color: isSelected ? '#fff' : day.dow === 0 ? VD.accent : VD.faint,",
+  '                          }}',
+  '                        >',
+  '                          {DAYS_KOR[day.dow]}',
+  `                        </${d}>`,
+  `                        <${d}`,
+  '                          style={{',
+  '                            fontSize: 13,',
+  '                            fontWeight: 900,',
+  "                            color: isSelected ? '#fff' : VD.title,",
+  '                            lineHeight: 1.2,',
+  '                          }}',
+  '                        >',
+  '                          {day.month}/{day.date}',
+  `                        </${d}>`,
+  '                        {isToday && !isSelected && (',
+  `                          <${d} style={{ fontSize: 8, fontWeight: 800, color: VD.brand, marginTop: 2 }}>오늘</${d}>`,
+  '                        )}',
+  '                        {hasEvent && (',
+  `                          <${d} style={{ height: 4, display: 'flex', justifyContent: 'center', marginTop: 2 }}>`,
+  '                            <span',
+  '                              style={{',
+  '                                width: 4,',
+  '                                height: 4,',
+  "                                borderRadius: '50%',",
+  "                                background: isSelected ? '#fff' : VD.gold,",
+  '                              }}',
+  '                            />',
+  `                          </${d}>`,
+  '                        )}',
+  '                      </button>',
+  '                    );',
+  '                  })}',
+  `                </${d}>`,
+  `              </${d}>`,
+  '            ))}',
+  `          </${d}>`,
+  `        </${d}>`,
+  '',
+].join('\n');
+
+s = s.slice(0, i0) + block + '\n' + s.slice(i1);
+fs.writeFileSync(p, s);
+console.log('ok');

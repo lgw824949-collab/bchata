@@ -1,0 +1,26 @@
+          <motion.div
+            style={{
+              marginTop: 16,
+              marginBottom: 16,
+              padding: 14,
+              borderRadius: 14,
+              border: `1px solid ${VD.borderAccent}`,
+              background: '#fff',
+            }}
+          >
+            <motion.div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
+              <label style={{ fontSize: 12, fontWeight: 800, color: VD.brand }}>상세 설명</label>
+              <span style={{ fontSize: 11, fontWeight: 600, color: VD.faint }}>{venueDescription.length}/{VENUE_DESC_MAX}</span>
+            </motion.div>
+            <textarea
+              value={venueDescription}
+              onChange={(e) => setVenueDescription(e.target.value.slice(0, VENUE_DESC_MAX))}
+              rows={3}
+              maxLength={VENUE_DESC_MAX}
+              placeholder="운영 시간, 주차, 드레스코드 등 (3줄 이내)"
+              style={{ width: '100%', padding: 12, borderRadius: 12, border: `1px solid ${VD.border}`, fontSize: 13, lineHeight: 1.5, color: VD.body, resize: 'none', boxSizing: 'border-box', fontFamily: 'inherit' }}
+            />
+            <button type="button" onClick={saveVenueDescription} disabled={savingDescription} style={{ marginTop: 10, width: '100%', padding: 10, borderRadius: 12, border: 'none', background: VD.brand, color: '#fff', fontWeight: 800, fontSize: 13, cursor: savingDescription ? 'not-allowed' : 'pointer', opacity: savingDescription ? 0.7 : 1 }}>
+              {savingDescription ? '저장 중…' : '상세 설명 저장'}
+            </button>
+          </motion.div>

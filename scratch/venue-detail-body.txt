@@ -1,0 +1,196 @@
+        {/* 본문: 카드 → 다른 행사 → SNS (한 스크롤) */}
+        <motion.div
+          style={{
+            flex: 1,
+            minHeight: 0,
+            overflowY: 'auto',
+            WebkitOverflowScrolling: 'touch',
+            padding: '16px 16px max(20px, env(safe-area-inset-bottom))',
+          }}
+        >
+          {featuredParty ? (
+            <>
+              <motion.div
+                style={{
+                  display: 'flex',
+                  flexDirection: 'row',
+                  borderRadius: 20,
+                  overflow: 'hidden',
+                  border: '1px solid #FFE4E4',
+                  boxShadow: '0 4px 16px rgba(229, 57, 53, 0.08)',
+                  background: '#fff',
+                  minHeight: 150,
+                }}
+              >
+                <button
+                  type="button"
+                  onClick={() => onOpenPoster?.(featuredParty)}
+                  style={{
+                    width: 120,
+                    flexShrink: 0,
+                    padding: 0,
+                    border: 'none',
+                    background: '#111',
+                    cursor: featuredParty.poster_url ? 'pointer' : 'default',
+                  }}
+                >
+                  {featuredParty.poster_url ? (
+                    <img
+                      src={featuredParty.poster_url}
+                      alt=""
+                      style={{ width: '100%', height: '100%', minHeight: 150, objectFit: 'cover' }}
+                    />
+                  ) : (
+                    <div
+                      style={{
+                        width: '100%',
+                        minHeight: 150,
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        color: '#64748B',
+                        fontSize: 12,
+                        fontWeight: 700,
+                      }}
+                    >
+                      포스터 없음
+                    </div>
+                  )}
+                </button>
+                <div style={{ flex: 1, padding: '14px', minWidth: 0, display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                  <span style={{ fontSize: '11px', fontWeight: 800, color: '#D81B60', background: '#FFF0F5', padding: '2px 8px', borderRadius: 20, alignSelf: 'flex-start' }}>
+                    {getGenreLabel(featuredParty)}
+                  </span>
+                  <div style={{ fontSize: '17px', fontWeight: 900, color: '#1E293B', lineHeight: 1.25 }}>
+                    {cleanTitle(featuredParty.title)}
+                  </div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 4, fontSize: '14px', color: '#1E293B', fontWeight: 600 }}>
+                    <Clock size={14} />
+                    {featuredParty.time?.split('-')[0]?.trim() || '—'}
+                  </div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 4, fontSize: '13px', color: '#E53935', fontWeight: 800 }}>
+                    <MapPin size={13} />
+                    {formatPrice(featuredParty.fee)}
+                  </div>
+                  <RatioBar item={featuredParty} />
+                </div>
+              </motion.div>
+
+              {dayParties.length > 1 && (
+                <div style={{ marginTop: '12px' }}>
+                  <p style={{ fontSize: '12px', fontWeight: 800, color: '#94A3B8', margin: '0 0 8px' }}>같은 날 다른 행사</p>
+                  {dayParties.slice(1).map((p) => (
+                    <button
+                      key={p.id}
+                      type="button"
+                      onClick={() => onOpenPoster?.(p)}
+                      style={{
+                        width: '100%',
+                        textAlign: 'left',
+                        padding: '10px 12px',
+                        marginBottom: 6,
+                        borderRadius: 12,
+                        border: '1px solid #F1F5F9',
+                        background: '#F8FAFC',
+                        cursor: 'pointer',
+                        fontSize: 13,
+                        fontWeight: 700,
+                        color: '#334155',
+                      }}
+                    >
+                      {cleanTitle(p.title)} · {p.time?.split('-')[0]?.trim()}
+                    </button>
+                  ))}
+                </div>
+              )}
+            </>
+          ) : (
+            <p style={{ margin: '8px 0 20px', fontSize: '14px', color: '#94A3B8', textAlign: 'center', fontWeight: 600 }}>
+              {selectedDate} — 등록된 파티가 없습니다.
+            </p>
+          )}
+
+          {otherDates.length > 0 && (
+            <div style={{ marginTop: featuredParty ? 20 : 0, marginBottom: 20 }}>
+              <p style={{ fontSize: '11px', fontWeight: 800, color: '#94A3B8', margin: '0 0 8px' }}>다른 날짜 행사</p>
+              <div style={{ display: 'flex', gap: '8px', overflowX: 'auto', scrollbarWidth: 'none' }}>
+                {otherDates.map((p) => {
+                  const d = normDate(p.date);
+                  const dt = new Date(d);
+                  return (
+                    <button
+                      key={`${p.id}-${d}`}
+                      type="button"
+                      onClick={() => setSelectedDate(d)}
+                      style={{
+                        flexShrink: 0,
+                        width: 56,
+                        padding: '6px 4px',
+                        borderRadius: 10,
+                        border: selectedDate === d ? '1.5px solid #E53935' : '1px solid #E2E8F0',
+                        background: '#fff',
+                        cursor: 'pointer',
+                      }}
+                    >
+                      {p.poster_url ? (
+                        <img src={p.poster_url} alt="" style={{ width: 48, height: 48, objectFit: 'cover', borderRadius: 6, display: 'block', margin: '0 auto' }} />
+                      ) : (
+                        <div style={{ width: 48, height: 48, background: '#F1F5F9', borderRadius: 6, margin: '0 auto' }} />
+                      )}
+                      <span style={{ fontSize: '9px', fontWeight: 800, color: '#64748B', display: 'block', marginTop: 4, textAlign: 'center' }}>
+                        {dt.getMonth() + 1}/{dt.getDate()}
+                      </span>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+
+          <div style={{ display: 'flex', gap: '10px', paddingTop: otherDates.length > 0 ? 0 : 4 }}>
+            <button
+              type="button"
+              onClick={openKakao}
+              style={{
+                flex: 1,
+                padding: '12px',
+                borderRadius: 12,
+                border: 'none',
+                background: '#FEE500',
+                color: '#3C1E1E',
+                fontWeight: 800,
+                fontSize: '13px',
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: 6,
+              }}
+            >
+              <MessageCircle size={18} />
+              카카오톡
+            </button>
+            <button
+              type="button"
+              onClick={openInsta}
+              style={{
+                flex: 1,
+                padding: '12px',
+                borderRadius: 12,
+                border: '1px solid #E2E8F0',
+                background: '#fff',
+                color: '#1E293B',
+                fontWeight: 800,
+                fontSize: '13px',
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: 6,
+              }}
+            >
+              <Globe size={18} />
+              인스타그램
+            </button>
+          </div>
+        </motion.div>

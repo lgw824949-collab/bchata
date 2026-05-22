@@ -1,0 +1,79 @@
+              <motion.div
+                style={{
+                  borderRadius: 20,
+                  overflow: 'hidden',
+                  border: '1px solid #FFE4E4',
+                  boxShadow: '0 4px 16px rgba(229, 57, 53, 0.08)',
+                  background: '#fff',
+                }}
+              >
+                <button
+                  type="button"
+                  onClick={() => onOpenPoster?.(featuredParty)}
+                  style={{
+                    display: 'block',
+                    width: '100%',
+                    padding: 0,
+                    border: 'none',
+                    background: '#0f172a',
+                    cursor: featuredParty.poster_url ? 'pointer' : 'default',
+                  }}
+                >
+                  {featuredParty.poster_url ? (
+                    <img
+                      src={featuredParty.poster_url}
+                      alt=""
+                      style={{
+                        display: 'block',
+                        width: '100%',
+                        maxHeight: 300,
+                        objectFit: 'contain',
+                        objectPosition: 'center top',
+                        margin: '0 auto',
+                      }}
+                    />
+                  ) : (
+                    <div
+                      style={{
+                        width: '100%',
+                        height: 200,
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        color: '#64748B',
+                        fontSize: 12,
+                        fontWeight: 700,
+                      }}
+                    >
+                      포스터 없음
+                    </div>
+                  )}
+                </button>
+                <div
+                  style={{
+                    padding: '14px 16px 16px',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    gap: '6px',
+                    borderTop: '1px solid #FFF0F5',
+                  }}
+                >
+                  <span style={{ fontSize: '11px', fontWeight: 800, color: '#D81B60', background: '#FFF0F5', padding: '2px 8px', borderRadius: 20, alignSelf: 'flex-start' }}>
+                    {getGenreLabel(featuredParty)}
+                  </span>
+                  <div style={{ fontSize: '17px', fontWeight: 900, color: '#1E293B', lineHeight: 1.3 }}>
+                    {cleanTitle(featuredParty.title)}
+                  </div>
+                  <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: '10px 14px' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 4, fontSize: '14px', color: '#1E293B', fontWeight: 600 }}>
+                      <Clock size={14} />
+                      {featuredParty.time?.split('-')[0]?.trim() || '—'}
+                    </div>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 4, fontSize: '14px', color: '#E53935', fontWeight: 800 }}>
+                      <MapPin size={13} />
+                      {formatPrice(featuredParty.fee)}
+                    </div>
+                  </div>
+                  <RatioBar item={featuredParty} />
+                </div>
+              </motion.div>

@@ -1,4 +1,4 @@
-import { createClient } from '@supabase/supabase-js';
+﻿import { createClient } from '@supabase/supabase-js';
 
 const supabaseUrl = 'https://biwziyyklaycbjrnitem.supabase.co';
 const supabaseKey = 'sb_publishable_TSfuOakU5BxoKeJrIoRDrw_kd6pz-k1';
@@ -25,7 +25,7 @@ async function syncAddressesAndRegions() {
     if (p.title?.includes('[서울]') && (!p.address || !p.address.includes('서울'))) {
       targetAddress = '서울특별시 강남구 역삼1동 831-34';
       needsUpdate = true;
-    } else if ((p.title?.includes('[경기/인천]') || p.title?.includes('[인천광역시]')) && (!p.address || (!p.address.includes('경기') && !p.address.includes('인천')))) {
+    } else if ((p.title?.includes('[경인]') || p.title?.includes('[인천광역시]')) && (!p.address || (!p.address.includes('경기') && !p.address.includes('인천')))) {
       targetAddress = '인천광역시 부평구 십정동 420-1';
       needsUpdate = true;
     } else if (p.title?.includes('[경상도]') && (!p.address || (!p.address.includes('부산') && !p.address.includes('대구') && !p.address.includes('경상')))) {

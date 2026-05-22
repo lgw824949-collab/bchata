@@ -1,11 +1,11 @@
-import fs from 'fs';
+﻿import fs from 'fs';
 
 const filePath = 'src/pages/Community.jsx';
 let content = fs.readFileSync(filePath, 'utf8');
 
 // Fix regions
 content = content.replace(/'\?쒖슱'/g, "'서울'");
-content = content.replace(/'寃쎄린\/\?몄쿇'/g, "'경기/인천'");
+content = content.replace(/'寃쎄린\/\?몄쿇'/g, "'경인'");
 content = content.replace(/'寃쎌긽\?\?,/g, "'경상도',");
 content = content.replace(/'\?꾨씪\?\?,/g, "'전라도',");
 content = content.replace(/'異⑹껌\?\?,/g, "'충청도',");
