@@ -1,0 +1,12 @@
+---
+description: Local dev/preview must always use port 1234 only.
+alwaysApply: true
+---
+
+# Local dev port (bchata)
+
+**로컬 사이트는 반드시 포트 1234만 사용한다.** 다른 포트(4173, 5173, 3000 등)로 dev/preview를 띄우거나 안내하지 않는다.
+
+- URL: `http://127.0.0.1:1234/` (또는 `http://localhost:1234/`)
+- `npm run dev` · `npm run preview` 모두 1234 (`vite.config.js` + package.json scripts)
+- `strictPort: true` — 1234가 점유 중이면 다른 포트로 바꾸지 말고 점유 프로세스를 정리한다.

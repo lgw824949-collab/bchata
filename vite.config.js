@@ -3,6 +3,9 @@ import react from '@vitejs/plugin-react'
 import fs from 'fs'
 import path from 'path'
 
+/** 로컬 dev·preview 전용 — 다른 포트 사용 금지 */
+const LOCAL_DEV_PORT = 1234
+
 /** .env.local 에 빈 값이 있어도 .env 의 실제 값을 쓰기 위함 */
 function parseEnvFile(filePath) {
   if (!fs.existsSync(filePath)) return {}
@@ -64,7 +67,7 @@ export default defineConfig(({ mode }) => {
     },
     server: {
       host: true,
-      port: 1234,
+      port: LOCAL_DEV_PORT,
       strictPort: true,
       proxy: {
         '/kma-api': {
@@ -76,7 +79,7 @@ export default defineConfig(({ mode }) => {
     },
     preview: {
       host: true,
-      port: 1234,
+      port: LOCAL_DEV_PORT,
       strictPort: true,
     },
   }
