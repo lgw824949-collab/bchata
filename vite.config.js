@@ -63,6 +63,7 @@ export default defineConfig(({ mode }) => {
       'import.meta.env.VITE_PUBLIC_APP_URL': JSON.stringify(env.VITE_PUBLIC_APP_URL),
     },
     server: {
+      host: true,
       port: 1234,
       strictPort: true,
       proxy: {
@@ -72,6 +73,11 @@ export default defineConfig(({ mode }) => {
           rewrite: (path) => path.replace(/^\/kma-api/, ''),
         },
       },
+    },
+    preview: {
+      host: true,
+      port: 4173,
+      strictPort: true,
     },
   }
 })
