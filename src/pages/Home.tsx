@@ -726,11 +726,35 @@ const pickLatestPosterBannerRow = (rows) =>
         - new Date(a.created_at || a.start_date || 0).getTime(),
     )[0] || null;
 
-/** 지역 파티 + 오늘 부트캠프·페스티벌 포스터 (부트캠프·페스티벌을 앞에 배치) */
+/** 종료 전 부트캠프·페스티벌 포스터 (오늘 진행 중 우선, 없으면 가장 가까운 예정) */
+const pickFeaturedPosterBannerRow = (rows, todayStr, kind = 'any') => {
+  const withPoster = (rows || []).filter((r) => String(r.poster_url || '').trim());
+  const notEnded = withPoster.filter((r) => {
+    const end = normDate(r.end_date || r.start_date);
+    return !end || end >= todayStr;
+  });
+  const isToday = (r) => (
+    kind === 'festival'
+      ? festivalsOnDate([r], todayStr).length > 0
+      : bootcampsOnDate([r], todayStr).length > 0
+  );
+  const todayActive = notEnded.filter(isToday);
+  const upcoming = notEnded
+    .filter((r) => normDate(r.start_date) >= todayStr)
+    .sort((a, b) => normDate(a.start_date).localeCompare(normDate(b.start_date)));
+  const pool = todayActive.length
+    ? todayActive
+    : upcoming.length
+      ? upcoming
+      : notEnded;
+  return pickLatestPosterBannerRow(pool);
+};
+
+/** 지역 파티 + 부트캠프·페스티벌 포스터 (부트캠프·페스티벌을 앞에 배치) */
 const buildHomePosterBannerSlides = (partyRows, bootcampRows, festivalRows, todayStr) => {
   const partySlides = pickHomePosterBannerSlides(partyRows);
-  const bootcamp = pickLatestPosterBannerRow(bootcampsOnDate(bootcampRows, todayStr));
-  const festival = pickLatestPosterBannerRow(festivalsOnDate(festivalRows, todayStr));
+  const bootcamp = pickFeaturedPosterBannerRow(bootcampRows, todayStr, 'bootcamp');
+  const festival = pickFeaturedPosterBannerRow(festivalRows, todayStr, 'festival');
   const prefix = [];
 
   if (bootcamp) {
@@ -1598,7 +1622,9 @@ const HomePage = ({
   const [barStatsMap, setBarStatsMap] = useState({});
   const [liveBannerSlideIdx, setLiveBannerSlideIdx] = useState(0);
   const [liveBannerPartyRows, setLiveBannerPartyRows] = useState([]);
-  const [homePosterBannerSlides, setHomePosterBannerSlides] = useState([]);
+  const [homePosterBannerPartyRows, setHomePosterBannerPartyRows] = useState([]);
+  const [homePosterBannerBootcampRows, setHomePosterBannerBootcampRows] = useState([]);
+  const [homePosterBannerFestivalRows, setHomePosterBannerFestivalRows] = useState([]);
   const [homePosterBannerIdx, setHomePosterBannerIdx] = useState(0);
   const liveBannerSlideIdxRef = useRef(0);
 
@@ -2139,12 +2165,12 @@ const HomePage = ({
           .order('created_at', { ascending: false }),
         supabase
           .from('bootcamps')
-          .select('id, instructor, title, start_date, end_date, created_at, poster_url, venue, region, status')
+          .select('*')
           .eq('status', 'active')
           .not('poster_url', 'is', null),
         supabase
           .from('festivals')
-          .select('id, title, genre, start_date, end_date, created_at, poster_url, status, event_type')
+          .select('*')
           .eq('status', 'active')
           .not('poster_url', 'is', null),
       ]);
@@ -2160,14 +2186,9 @@ const HomePage = ({
         console.warn('[Home] poster banner festivals:', festivalsRes.error.message);
       }
 
-      setHomePosterBannerSlides(
-        buildHomePosterBannerSlides(
-          partiesRes.data || [],
-          bootcampsRes.data || [],
-          festivalsRes.data || [],
-          calendarTodayStr,
-        ),
-      );
+      setHomePosterBannerPartyRows(partiesRes.data || []);
+      if (!bootcampsRes.error) setHomePosterBannerBootcampRows(bootcampsRes.data || []);
+      if (!festivalsRes.error) setHomePosterBannerFestivalRows(festivalsRes.data || []);
     } catch (err) {
       console.warn('[Home] poster banner failed:', err);
     }
@@ -2896,12 +2917,28 @@ const HomePage = ({
   };
 
   const homePosterBannerSlidesEffective = useMemo(() => {
-    if (homePosterBannerSlides.length > 0) return homePosterBannerSlides;
-    const todayRows = (parties || []).filter(
-      (p) => isApprovedParty(p) && normDate(p.date) === calendarTodayStr,
+    const todayPartyRows = homePosterBannerPartyRows.length > 0
+      ? homePosterBannerPartyRows
+      : (parties || []).filter(
+          (p) => isApprovedParty(p) && normDate(p.date) === calendarTodayStr,
+        );
+    const bootcampSource = (bootcamps || []).length > 0 ? bootcamps : homePosterBannerBootcampRows;
+    const festivalSource = (festivals || []).length > 0 ? festivals : homePosterBannerFestivalRows;
+    return buildHomePosterBannerSlides(
+      todayPartyRows,
+      bootcampSource,
+      festivalSource,
+      calendarTodayStr,
     );
-    return buildHomePosterBannerSlides(todayRows, bootcamps || [], festivals || [], calendarTodayStr);
-  }, [homePosterBannerSlides, parties, bootcamps, festivals, calendarTodayStr]);
+  }, [
+    homePosterBannerPartyRows,
+    homePosterBannerBootcampRows,
+    homePosterBannerFestivalRows,
+    parties,
+    bootcamps,
+    festivals,
+    calendarTodayStr,
+  ]);
 
   useEffect(() => {
     setHomePosterBannerIdx(0);
