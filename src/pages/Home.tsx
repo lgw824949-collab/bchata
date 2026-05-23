@@ -4142,12 +4142,12 @@ const HomePage = ({
           margin-top: 8px !important;
         }
         .home-gate-shell .home-hot-instructors-wrap {
-          padding: 12px 16px 22px;
+          padding: 12px 16px 28px;
           margin-top: 12px;
         }
         .home-hot-instructors-wrap {
           background: var(--home-page-bg, #0d0d0d);
-          padding: 16px 16px 12px;
+          padding: 16px 16px 20px;
           margin: 0;
         }
         .home-gate-active .home-hot-instructors-title {
@@ -4253,7 +4253,7 @@ const HomePage = ({
       {activeTab === null && (
         <motion.div
           className="home-social-bar-wrap"
-          style={{ padding: '0 16px', marginTop: isHomeGate ? 16 : 0, marginBottom: isHomeGate ? 20 : 0 }}
+          style={{ padding: '0 16px', marginTop: isHomeGate ? 28 : 0, marginBottom: isHomeGate ? 20 : 0 }}
         >
         <section
           ref={barSectionRef}
