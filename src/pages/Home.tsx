@@ -158,6 +158,9 @@ const SOCIAL_BAR_PEEK_VISIBLE = 3;
 /** 메인 홈 — 오늘 지역 대표 포스터 슬라이드 (빠른 메뉴 위) */
 const HOME_POSTER_BANNER_MS = 4000;
 
+/** 지금 핫한 강사 — 1장 + 다음 카드 peek, 자동 순환 */
+const HOT_INSTRUCTOR_ROTATE_MS = 4500;
+
 /** LIVE 배너 — 지역 우선(서울→수도권→지방) 파티 제목·인원 순환 */
 const LIVE_BANNER_SLIDE_MS = 5000;
 
@@ -1536,8 +1539,8 @@ const HomePage = ({
   const scrollRef = useRef(null);
   const regionListRef = useRef(null);
   const barSectionRef = useRef(null);
-  const hotInstructorsMarqueeRef = useRef(null);
-  const hotInstructorsMarqueePausedRef = useRef(false);
+  const hotInstructorsScrollRef = useRef(null);
+  const hotInstructorsRotatePausedRef = useRef(false);
   const [shuffleOffset, setShuffleOffset] = useState(0);
   const [locations, setLocations] = useState([]);
   const [locationsLoading, setLocationsLoading] = useState(true);
@@ -1561,6 +1564,7 @@ const HomePage = ({
   const [liveBannerPartyRows, setLiveBannerPartyRows] = useState([]);
   const [homePosterBannerSlides, setHomePosterBannerSlides] = useState([]);
   const [homePosterBannerIdx, setHomePosterBannerIdx] = useState(0);
+  const [hotInstructorIdx, setHotInstructorIdx] = useState(0);
   const liveBannerSlideIdxRef = useRef(0);
 
   useEffect(() => {
@@ -2006,69 +2010,68 @@ const HomePage = ({
     };
   }, [activeTab]);
 
-  const hotInstructorsLoop = useMemo(() => {
-    if (hotInstructors.length < 2) return hotInstructors;
-    return [...hotInstructors, ...hotInstructors];
+  useEffect(() => {
+    setHotInstructorIdx(0);
+    if (hotInstructorsScrollRef.current) {
+      hotInstructorsScrollRef.current.scrollLeft = 0;
+    }
   }, [hotInstructors]);
 
-  /** 지금 핫한 강사 — 가로 자동 순환 (터치·호버 시 잠시 정지) */
+  /** 지금 핫한 강사 — 1장 + peek, 포스터 배너처럼 자동 슬라이드 */
   useEffect(() => {
-    const el = hotInstructorsMarqueeRef.current;
-    if (!el || hotInstructors.length < 2) return undefined;
+    if (activeTab !== null || hotInstructors.length < 2) return undefined;
     if (typeof window !== 'undefined' && window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
       return undefined;
     }
 
-    let raf = 0;
-    let lastTs = 0;
-    let resumeTimer;
-    const pxPerSec = 34;
+    const timer = setInterval(() => {
+      if (hotInstructorsRotatePausedRef.current) return;
+      setHotInstructorIdx((idx) => (idx + 1) % hotInstructors.length);
+    }, HOT_INSTRUCTOR_ROTATE_MS);
 
+    return () => clearInterval(timer);
+  }, [activeTab, hotInstructors.length]);
+
+  useEffect(() => {
+    const el = hotInstructorsScrollRef.current;
+    if (!el || hotInstructors.length < 2) return;
+
+    const card = el.querySelector('.home-hot-instructor-card');
+    if (!card) return;
+
+    const gap = 12;
+    const step = card.getBoundingClientRect().width + gap;
+    el.scrollTo({ left: hotInstructorIdx * step, behavior: 'smooth' });
+  }, [hotInstructorIdx, hotInstructors.length]);
+
+  useEffect(() => {
+    const el = hotInstructorsScrollRef.current;
+    if (!el || hotInstructors.length < 2) return undefined;
+
+    let resumeTimer;
     const pause = () => {
-      hotInstructorsMarqueePausedRef.current = true;
+      hotInstructorsRotatePausedRef.current = true;
       clearTimeout(resumeTimer);
     };
-    const scheduleResume = () => {
+    const resume = () => {
       clearTimeout(resumeTimer);
       resumeTimer = setTimeout(() => {
-        hotInstructorsMarqueePausedRef.current = false;
-        lastTs = 0;
-      }, 2400);
+        hotInstructorsRotatePausedRef.current = false;
+      }, HOT_INSTRUCTOR_ROTATE_MS);
     };
 
-    const onTouchStart = () => pause();
-    const onTouchEnd = () => scheduleResume();
-    const onMouseEnter = () => pause();
-    const onMouseLeave = () => scheduleResume();
-
-    el.addEventListener('touchstart', onTouchStart, { passive: true });
-    el.addEventListener('touchend', onTouchEnd, { passive: true });
-    el.addEventListener('mouseenter', onMouseEnter);
-    el.addEventListener('mouseleave', onMouseLeave);
-
-    const tick = (ts) => {
-      if (!lastTs) lastTs = ts;
-      const dt = Math.min(ts - lastTs, 48);
-      lastTs = ts;
-      if (!hotInstructorsMarqueePausedRef.current && dt > 0) {
-        el.scrollLeft += (pxPerSec * dt) / 1000;
-        const loopWidth = el.scrollWidth / 2;
-        if (loopWidth > 8 && el.scrollLeft >= loopWidth) {
-          el.scrollLeft -= loopWidth;
-        }
-      }
-      raf = requestAnimationFrame(tick);
-    };
-    raf = requestAnimationFrame(tick);
+    el.addEventListener('touchstart', pause, { passive: true });
+    el.addEventListener('touchend', resume, { passive: true });
+    el.addEventListener('mouseenter', pause);
+    el.addEventListener('mouseleave', resume);
 
     return () => {
-      cancelAnimationFrame(raf);
       clearTimeout(resumeTimer);
-      el.removeEventListener('touchstart', onTouchStart);
-      el.removeEventListener('touchend', onTouchEnd);
-      el.removeEventListener('mouseenter', onMouseEnter);
-      el.removeEventListener('mouseleave', onMouseLeave);
-      hotInstructorsMarqueePausedRef.current = false;
+      el.removeEventListener('touchstart', pause);
+      el.removeEventListener('touchend', resume);
+      el.removeEventListener('mouseenter', pause);
+      el.removeEventListener('mouseleave', resume);
+      hotInstructorsRotatePausedRef.current = false;
     };
   }, [hotInstructors.length, activeTab]);
 
@@ -3126,31 +3129,42 @@ const HomePage = ({
     if (activeTab !== null) return null;
     if (!hotInstructorsLoading && hotInstructors.length === 0) return null;
 
-    const skeletonItems = [0, 1, 2];
-    const marqueeActive = !hotInstructorsLoading && hotInstructors.length >= 2;
+    const peekActive = !hotInstructorsLoading && hotInstructors.length >= 2;
 
     return (
       <section className="home-hot-instructors-wrap" aria-label="지금 핫한 강사">
         <h2 className="home-hot-instructors-title">🔥 지금 핫한 강사</h2>
         <div
-          ref={hotInstructorsMarqueeRef}
-          className={`home-hot-instructors-scroll scrollbar-hide${marqueeActive ? ' home-hot-instructors-scroll--marquee' : ''}`}
+          ref={hotInstructorsScrollRef}
+          className={`home-hot-instructors-scroll scrollbar-hide${peekActive ? ' home-hot-instructors-scroll--peek' : ''}`}
         >
-          <div className="home-hot-instructors-track">
+          <div
+            className={`home-hot-instructors-track${peekActive || hotInstructorsLoading ? ' home-hot-instructors-track--peek' : ''}`}
+          >
             {hotInstructorsLoading
-              ? skeletonItems.map((i) => (
-                  <div
-                    key={`hot-instructor-skeleton-${i}`}
-                    className="home-hot-instructor-card home-hot-instructor-card--skeleton"
-                    aria-hidden
-                  />
-                ))
-              : hotInstructorsLoop.map((inst, idx) => renderHotInstructorCard(
-                  inst,
-                  hotInstructors.length >= 2 ? `-loop-${idx}` : '',
-                ))}
+              ? (
+                <>
+                  <div className="home-hot-instructor-card home-hot-instructor-card--skeleton" aria-hidden />
+                  <div className="home-hot-instructor-card home-hot-instructor-card--skeleton" aria-hidden />
+                </>
+              )
+              : hotInstructors.map((inst) => renderHotInstructorCard(inst))}
           </div>
         </div>
+        {peekActive ? (
+          <div className="home-hot-instructors-dots" role="tablist" aria-label={isEn ? 'Hot instructors' : '핫한 강사'}>
+            {hotInstructors.map((inst, idx) => (
+              <button
+                key={inst.id}
+                type="button"
+                role="tab"
+                aria-selected={idx === hotInstructorIdx}
+                className={`home-hot-instructors-dot${idx === hotInstructorIdx ? ' is-active' : ''}`}
+                onClick={() => setHotInstructorIdx(idx)}
+              />
+            ))}
+          </div>
+        ) : null}
       </section>
     );
   };
@@ -4257,13 +4271,57 @@ const HomePage = ({
         .home-hot-instructors-scroll::-webkit-scrollbar {
           display: none;
         }
-        .home-hot-instructors-scroll--marquee {
-          scroll-behavior: auto;
+        .home-hot-instructors-scroll--peek {
+          overflow-x: auto;
+          scroll-snap-type: x mandatory;
+          scroll-padding-inline: 16px;
+          padding: 0 16px 4px;
+          -webkit-overflow-scrolling: touch;
+          touch-action: pan-y pan-x;
+          overscroll-behavior-y: auto;
+          overscroll-behavior-x: contain;
         }
-        @media (prefers-reduced-motion: reduce) {
-          .home-hot-instructors-scroll--marquee {
-            overflow-x: auto;
-          }
+        .home-hot-instructors-track--peek {
+          display: inline-flex;
+          flex-wrap: nowrap;
+          gap: 12px;
+          width: max-content;
+          min-width: 100%;
+          padding: 0 2px 2px;
+        }
+        .home-hot-instructors-scroll--peek .home-hot-instructor-card {
+          flex: 0 0 auto;
+          width: calc((min(100vw, 500px) - 48px) / 1.18);
+          min-width: calc((min(100vw, 500px) - 48px) / 1.18);
+          max-width: 380px;
+          scroll-snap-align: start;
+          scroll-snap-stop: always;
+        }
+        .home-hot-instructors-dots {
+          display: flex;
+          justify-content: center;
+          gap: 6px;
+          margin-top: 10px;
+          padding: 0 16px;
+        }
+        .home-hot-instructors-dot {
+          width: 6px;
+          height: 6px;
+          border-radius: 50%;
+          border: none;
+          padding: 0;
+          background: rgba(201, 168, 76, 0.28);
+          cursor: pointer;
+        }
+        .home-hot-instructors-dot.is-active {
+          background: #c9a84c;
+          transform: scale(1.15);
+        }
+        .home-gate-active .home-hot-instructors-dot {
+          background: rgba(255, 255, 255, 0.22);
+        }
+        .home-gate-active .home-hot-instructors-dot.is-active {
+          background: #c9a84c;
         }
         .home-hot-instructors-track {
           display: inline-flex;
