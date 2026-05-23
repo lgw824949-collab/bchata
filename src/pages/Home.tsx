@@ -3074,6 +3074,7 @@ const HomePage = ({
                 })}
           </div>
         </div>
+        <hr className="home-hot-instructors-divider" aria-hidden />
       </section>
     );
   };
@@ -4142,13 +4143,25 @@ const HomePage = ({
           margin-top: 8px !important;
         }
         .home-gate-shell .home-hot-instructors-wrap {
-          padding: 12px 16px 28px;
+          padding: 12px 16px 0;
           margin-top: 12px;
         }
         .home-hot-instructors-wrap {
           background: var(--home-page-bg, #0d0d0d);
-          padding: 16px 16px 20px;
+          padding: 16px 16px 0;
           margin: 0;
+        }
+        .home-hot-instructors-divider {
+          display: block;
+          width: 100%;
+          height: 0;
+          margin: 20px 0 0;
+          padding: 0;
+          border: none;
+          border-top: 1px solid #e2e8f0;
+        }
+        .home-gate-active .home-hot-instructors-divider {
+          border-top-color: rgba(255, 255, 255, 0.12);
         }
         .home-gate-active .home-hot-instructors-title {
           color: #ffffff !important;
@@ -4253,7 +4266,7 @@ const HomePage = ({
       {activeTab === null && (
         <motion.div
           className="home-social-bar-wrap"
-          style={{ padding: '0 16px', marginTop: isHomeGate ? 28 : 0, marginBottom: isHomeGate ? 20 : 0 }}
+          style={{ padding: '0 16px', marginTop: isHomeGate ? 36 : 0, marginBottom: isHomeGate ? 20 : 0 }}
         >
         <section
           ref={barSectionRef}
