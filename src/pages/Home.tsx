@@ -3103,6 +3103,15 @@ const HomePage = ({
             <div className="home-hot-instructor-card home-hot-instructor-card--fixed home-hot-instructor-card--skeleton" aria-hidden />
           ) : (
             <>
+              {next ? (
+                <div className="home-hot-instructor-peek" aria-hidden>
+                  <img
+                    src={next.photo_url || DEFAULT_AVATAR_IMAGE}
+                    alt=""
+                    onError={imgFallbackHandler(DEFAULT_AVATAR_IMAGE)}
+                  />
+                </div>
+              ) : null}
               <motion.button
                 type="button"
                 className="home-hot-instructor-card home-hot-instructor-card--fixed"
@@ -3143,15 +3152,6 @@ const HomePage = ({
                   </AnimatePresence>
                 </div>
               </motion.button>
-              {next ? (
-                <div className="home-hot-instructor-peek" aria-hidden>
-                  <img
-                    src={next.photo_url || DEFAULT_AVATAR_IMAGE}
-                    alt=""
-                    onError={imgFallbackHandler(DEFAULT_AVATAR_IMAGE)}
-                  />
-                </div>
-              ) : null}
             </>
           )}
         </div>
@@ -4257,12 +4257,13 @@ const HomePage = ({
         }
         .home-hot-instructors-stage {
           display: flex;
-          align-items: stretch;
-          justify-content: flex-start;
+          align-items: flex-end;
+          justify-content: flex-end;
           gap: 8px;
-          padding: 0 16px;
+          width: 100%;
           max-width: min(100vw, 500px);
           margin: 0 auto;
+          padding: 0 16px 0 16px;
           box-sizing: border-box;
         }
         .home-hot-instructor-card--fixed {
@@ -4325,7 +4326,6 @@ const HomePage = ({
           overflow: hidden;
           border: 1px solid rgba(201, 168, 76, 0.18);
           opacity: 0.72;
-          margin-top: 6px;
           pointer-events: none;
         }
         .home-hot-instructor-peek img {
@@ -4340,10 +4340,13 @@ const HomePage = ({
         }
         .home-hot-instructors-dots {
           display: flex;
-          justify-content: center;
+          justify-content: flex-end;
           gap: 6px;
-          margin-top: 10px;
+          width: 100%;
+          max-width: min(100vw, 500px);
+          margin: 10px auto 0;
           padding: 0 16px;
+          box-sizing: border-box;
         }
         .home-hot-instructors-dot {
           width: 6px;
