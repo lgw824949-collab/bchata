@@ -158,9 +158,6 @@ const SOCIAL_BAR_PEEK_VISIBLE = 3;
 /** 메인 홈 — 오늘 지역 대표 포스터 슬라이드 (빠른 메뉴 위) */
 const HOME_POSTER_BANNER_MS = 4000;
 
-/** 지금 핫한 강사 — 고정 프레임, 사진만 페이드 전환 */
-const HOT_INSTRUCTOR_ROTATE_MS = 5500;
-
 /** LIVE 배너 — 지역 우선(서울→수도권→지방) 파티 제목·인원 순환 */
 const LIVE_BANNER_SLIDE_MS = 5000;
 
@@ -1539,8 +1536,6 @@ const HomePage = ({
   const scrollRef = useRef(null);
   const regionListRef = useRef(null);
   const barSectionRef = useRef(null);
-  const hotInstructorsStageRef = useRef(null);
-  const hotInstructorsRotatePausedRef = useRef(false);
   const [shuffleOffset, setShuffleOffset] = useState(0);
   const [locations, setLocations] = useState([]);
   const [locationsLoading, setLocationsLoading] = useState(true);
@@ -1564,7 +1559,6 @@ const HomePage = ({
   const [liveBannerPartyRows, setLiveBannerPartyRows] = useState([]);
   const [homePosterBannerSlides, setHomePosterBannerSlides] = useState([]);
   const [homePosterBannerIdx, setHomePosterBannerIdx] = useState(0);
-  const [hotInstructorIdx, setHotInstructorIdx] = useState(0);
   const liveBannerSlideIdxRef = useRef(0);
 
   useEffect(() => {
@@ -2010,56 +2004,6 @@ const HomePage = ({
     };
   }, [activeTab]);
 
-  useEffect(() => {
-    setHotInstructorIdx(0);
-  }, [hotInstructors]);
-
-  /** 지금 핫한 강사 — 고정 프레임, 사진·이름만 페이드 */
-  useEffect(() => {
-    if (activeTab !== null || hotInstructors.length < 2) return undefined;
-    if (typeof window !== 'undefined' && window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
-      return undefined;
-    }
-
-    const timer = setInterval(() => {
-      if (hotInstructorsRotatePausedRef.current) return;
-      setHotInstructorIdx((idx) => (idx + 1) % hotInstructors.length);
-    }, HOT_INSTRUCTOR_ROTATE_MS);
-
-    return () => clearInterval(timer);
-  }, [activeTab, hotInstructors.length]);
-
-  useEffect(() => {
-    const el = hotInstructorsStageRef.current;
-    if (!el || hotInstructors.length < 2) return undefined;
-
-    let resumeTimer;
-    const pause = () => {
-      hotInstructorsRotatePausedRef.current = true;
-      clearTimeout(resumeTimer);
-    };
-    const resume = () => {
-      clearTimeout(resumeTimer);
-      resumeTimer = setTimeout(() => {
-        hotInstructorsRotatePausedRef.current = false;
-      }, HOT_INSTRUCTOR_ROTATE_MS);
-    };
-
-    el.addEventListener('touchstart', pause, { passive: true });
-    el.addEventListener('touchend', resume, { passive: true });
-    el.addEventListener('mouseenter', pause);
-    el.addEventListener('mouseleave', resume);
-
-    return () => {
-      clearTimeout(resumeTimer);
-      el.removeEventListener('touchstart', pause);
-      el.removeEventListener('touchend', resume);
-      el.removeEventListener('mouseenter', pause);
-      el.removeEventListener('mouseleave', resume);
-      hotInstructorsRotatePausedRef.current = false;
-    };
-  }, [hotInstructors.length, activeTab]);
-
   /** 앱 첫 진입 시 GPS 기준 150m 이내 locations BAR 자동 체크인 (세션 1회) */
   useEffect(() => {
     if (locationsLoading || !supabase) return;
@@ -2339,7 +2283,7 @@ const HomePage = ({
     if (!isHomeGate) return undefined;
 
     const horizontalBandSelector = [
-      '.home-hot-instructors-stage',
+      '.home-hot-instructors-scroll',
       '.home-social-bar-scroll',
       '.home-social-bar-scroll--peek',
       '.home-quick-menu-scroll--gate-all',
@@ -3087,88 +3031,49 @@ const HomePage = ({
     if (activeTab !== null) return null;
     if (!hotInstructorsLoading && hotInstructors.length === 0) return null;
 
-    const showDots = !hotInstructorsLoading && hotInstructors.length >= 2;
-    const current = hotInstructors[hotInstructorIdx] || hotInstructors[0];
-    const next = hotInstructors.length >= 2
-      ? hotInstructors[(hotInstructorIdx + 1) % hotInstructors.length]
-      : null;
-    const currentGenre = current ? formatHotInstructorGenre(current.genre) : '';
-    const fadeKey = current?.id ?? 'hot-instructor';
+    const skeletonItems = [0, 1, 2];
 
     return (
       <section className="home-hot-instructors-wrap" aria-label="지금 핫한 강사">
         <h2 className="home-hot-instructors-title">🔥 지금 핫한 강사</h2>
-        <div ref={hotInstructorsStageRef} className="home-hot-instructors-stage">
-          {hotInstructorsLoading ? (
-            <div className="home-hot-instructor-card home-hot-instructor-card--fixed home-hot-instructor-card--skeleton" aria-hidden />
-          ) : (
-            <>
-              {next ? (
-                <div className="home-hot-instructor-peek" aria-hidden>
-                  <img
-                    src={next.photo_url || DEFAULT_AVATAR_IMAGE}
-                    alt=""
-                    onError={imgFallbackHandler(DEFAULT_AVATAR_IMAGE)}
+        <div className="home-hot-instructors-scroll scrollbar-hide">
+          <div className="home-hot-instructors-track">
+            {hotInstructorsLoading
+              ? skeletonItems.map((i) => (
+                  <div
+                    key={`hot-instructor-skeleton-${i}`}
+                    className="home-hot-instructor-card home-hot-instructor-card--skeleton"
+                    aria-hidden
                   />
-                </div>
-              ) : null}
-              <motion.button
-                type="button"
-                className="home-hot-instructor-card home-hot-instructor-card--fixed"
-                whileTap={{ scale: 0.98 }}
-                onClick={() => navigate('/instructors')}
-                aria-label={current?.name ? `${current.name} · 강사 보기` : '강사 보기'}
-              >
-                <div className="home-hot-instructor-card__media">
-                  <AnimatePresence mode="wait">
-                    <motion.img
-                      key={fadeKey}
-                      src={current?.photo_url || DEFAULT_AVATAR_IMAGE}
-                      alt={current?.name || ''}
-                      className="home-hot-instructor-card__photo"
-                      initial={{ opacity: 0 }}
-                      animate={{ opacity: 1 }}
-                      exit={{ opacity: 0 }}
-                      transition={{ duration: 0.45, ease: 'easeInOut' }}
-                      onError={imgFallbackHandler(DEFAULT_AVATAR_IMAGE)}
-                    />
-                  </AnimatePresence>
-                </div>
-                <div className="home-hot-instructor-card__meta">
-                  <AnimatePresence mode="wait">
-                    <motion.div
-                      key={`${fadeKey}-meta`}
-                      className="home-hot-instructor-card__meta-inner"
-                      initial={{ opacity: 0 }}
-                      animate={{ opacity: 1 }}
-                      exit={{ opacity: 0 }}
-                      transition={{ duration: 0.35, ease: 'easeInOut' }}
+                ))
+              : hotInstructors.map((inst) => {
+                  const genreLabel = formatHotInstructorGenre(inst.genre);
+                  return (
+                    <motion.button
+                      key={inst.id}
+                      type="button"
+                      className="home-hot-instructor-card"
+                      whileTap={{ scale: 0.97 }}
+                      onClick={() => navigate('/instructors')}
                     >
-                      <span className="home-hot-instructor-card__name">{current?.name}</span>
-                      {currentGenre ? (
-                        <span className="home-hot-instructor-card__genre">{currentGenre}</span>
-                      ) : null}
-                    </motion.div>
-                  </AnimatePresence>
-                </div>
-              </motion.button>
-            </>
-          )}
-        </div>
-        {showDots ? (
-          <div className="home-hot-instructors-dots" role="tablist" aria-label={isEn ? 'Hot instructors' : '핫한 강사'}>
-            {hotInstructors.map((inst, idx) => (
-              <button
-                key={inst.id}
-                type="button"
-                role="tab"
-                aria-selected={idx === hotInstructorIdx}
-                className={`home-hot-instructors-dot${idx === hotInstructorIdx ? ' is-active' : ''}`}
-                onClick={() => setHotInstructorIdx(idx)}
-              />
-            ))}
+                      <div className="home-hot-instructor-card__media">
+                        <img
+                          src={inst.photo_url || DEFAULT_AVATAR_IMAGE}
+                          alt={inst.name || ''}
+                          onError={imgFallbackHandler(DEFAULT_AVATAR_IMAGE)}
+                        />
+                      </div>
+                      <div className="home-hot-instructor-card__meta">
+                        <span className="home-hot-instructor-card__name">{inst.name}</span>
+                        {genreLabel ? (
+                          <span className="home-hot-instructor-card__genre">{genreLabel}</span>
+                        ) : null}
+                      </div>
+                    </motion.button>
+                  );
+                })}
           </div>
-        ) : null}
+        </div>
       </section>
     );
   };
@@ -4255,124 +4160,79 @@ const HomePage = ({
           font-weight: 800;
           letter-spacing: -0.02em;
         }
-        .home-hot-instructors-stage {
-          display: flex;
-          align-items: flex-end;
-          justify-content: flex-end;
-          gap: 8px;
+        .home-hot-instructors-scroll {
+          display: block;
           width: 100%;
-          max-width: min(100vw, 500px);
-          margin: 0 auto;
-          padding: 0 16px 0 16px;
-          box-sizing: border-box;
+          max-width: 100%;
+          min-width: 0;
+          overflow-x: auto;
+          overflow-y: hidden;
+          scroll-snap-type: none;
+          scroll-padding-inline: 16px;
+          -webkit-overflow-scrolling: touch;
+          touch-action: pan-y pan-x;
+          overscroll-behavior-y: auto;
+          overscroll-behavior-x: contain;
+          scrollbar-width: none;
+          -ms-overflow-style: none;
+          padding: 0 0 4px;
         }
-        .home-hot-instructor-card--fixed {
+        .home-hot-instructors-scroll::-webkit-scrollbar {
+          display: none;
+        }
+        .home-hot-instructors-track {
+          display: inline-flex;
+          flex-direction: row;
+          flex-wrap: nowrap;
+          align-items: stretch;
+          gap: 12px;
+          width: max-content;
+          min-width: 100%;
+          padding: 0 2px 2px;
+          vertical-align: top;
+        }
+        .home-hot-instructor-card {
           flex: 0 0 auto;
+          width: calc((min(100vw, 500px) - 56px) / 2.35);
+          min-width: calc((min(100vw, 500px) - 56px) / 2.35);
+          max-width: 200px;
+          aspect-ratio: 2 / 3;
           display: flex;
           flex-direction: column;
-          width: min(36vw, 118px);
-          min-width: 104px;
-          max-width: 118px;
-          aspect-ratio: 2 / 3;
-          padding: 0;
           border: 1px solid rgba(201, 168, 76, 0.3);
-          border-radius: 12px;
+          border-radius: 14px;
           background: #1a1a1a;
           overflow: hidden;
+          padding: 0;
           cursor: pointer;
           text-align: left;
-        }
-        .home-hot-instructor-card--fixed .home-hot-instructor-card__media {
-          position: relative;
-          flex: 1;
-          min-height: 0;
-          width: 100%;
-          background: #111;
-          overflow: hidden;
-        }
-        .home-hot-instructor-card__photo {
-          position: absolute;
-          inset: 0;
-          width: 100%;
-          height: 100%;
-          object-fit: cover;
-          object-position: center top;
-          display: block;
-        }
-        .home-hot-instructor-card--fixed .home-hot-instructor-card__meta {
-          flex-shrink: 0;
-          padding: 8px 10px 10px;
-          min-height: 44px;
-          box-sizing: border-box;
-        }
-        .home-hot-instructor-card__meta-inner {
-          display: flex;
-          flex-direction: column;
-          gap: 2px;
-        }
-        .home-hot-instructor-card--fixed .home-hot-instructor-card__name {
-          font-size: 12px;
-        }
-        .home-hot-instructor-card--fixed .home-hot-instructor-card__genre {
-          font-size: 10px;
-        }
-        .home-hot-instructor-peek {
-          flex: 0 0 auto;
-          width: min(14vw, 44px);
-          min-width: 40px;
-          max-width: 44px;
-          aspect-ratio: 2 / 3;
-          border-radius: 10px;
-          overflow: hidden;
-          border: 1px solid rgba(201, 168, 76, 0.18);
-          opacity: 0.72;
-          pointer-events: none;
-        }
-        .home-hot-instructor-peek img {
-          width: 100%;
-          height: 100%;
-          object-fit: cover;
-          object-position: center top;
-          display: block;
-        }
-        .home-hot-instructor-card--fixed.home-hot-instructor-card--skeleton {
-          pointer-events: none;
-        }
-        .home-hot-instructors-dots {
-          display: flex;
-          justify-content: flex-end;
-          gap: 6px;
-          width: 100%;
-          max-width: min(100vw, 500px);
-          margin: 10px auto 0;
-          padding: 0 16px;
-          box-sizing: border-box;
-        }
-        .home-hot-instructors-dot {
-          width: 6px;
-          height: 6px;
-          border-radius: 50%;
-          border: none;
-          padding: 0;
-          background: rgba(201, 168, 76, 0.28);
-          cursor: pointer;
-        }
-        .home-hot-instructors-dot.is-active {
-          background: #c9a84c;
-          transform: scale(1.15);
-        }
-        .home-gate-active .home-hot-instructors-dot {
-          background: rgba(255, 255, 255, 0.22);
-        }
-        .home-gate-active .home-hot-instructors-dot.is-active {
-          background: #c9a84c;
         }
         .home-hot-instructor-card--skeleton {
           animation: home-hot-instructor-skeleton-pulse 1.2s ease-in-out infinite;
           pointer-events: none;
         }
+        .home-hot-instructor-card__media {
+          flex: 1;
+          min-height: 0;
+          width: 100%;
+          background: #111;
+        }
+        .home-hot-instructor-card__media img {
+          width: 100%;
+          height: 100%;
+          object-fit: cover;
+          display: block;
+        }
+        .home-hot-instructor-card__meta {
+          flex-shrink: 0;
+          padding: 10px 12px 12px;
+          display: flex;
+          flex-direction: column;
+          gap: 3px;
+        }
         .home-hot-instructor-card__name {
           color: #fff;
+          font-size: 13px;
           font-weight: 800;
           line-height: 1.25;
           white-space: nowrap;
@@ -4381,6 +4241,7 @@ const HomePage = ({
         }
         .home-hot-instructor-card__genre {
           color: #c9a84c;
+          font-size: 11px;
           font-weight: 700;
           line-height: 1.2;
           white-space: nowrap;
