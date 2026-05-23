@@ -2238,6 +2238,40 @@ const HomePage = ({
   }, [isEn]);
 
   const isHomeGate = activeTab === null;
+  const [prefersDark, setPrefersDark] = useState(
+    () => typeof window !== 'undefined' && window.matchMedia('(prefers-color-scheme: dark)').matches,
+  -1
+  );
+  const isHomeGateDark = isHomeGate && prefersDark;
+
+  useEffect(() => {
+    const media = window.matchMedia('(prefers-color-scheme: dark)');
+    const sync = (event) => setPrefersDark(event.matches);
+    sync(media);
+    media.addEventListener('change', sync);
+    return () => media.removeEventListener('change', sync);
+  }, []);
+
+  /** App.jsx가 홈 게이트에 dark shell 클래스를 붙이므로, 시스템 테마에 맞게 html/body 동기화 */
+  useEffect(() => {
+    if (!isHomeGate) return undefined;
+
+    const root = document.documentElement;
+    const body = document.body;
+    const themeMeta = document.querySelector('meta[name="theme-color"]');
+
+    if (prefersDark) {
+      root.classList.add('home-gate-theme', 'app-dark-surface');
+      body.classList.add('home-gate-theme', 'app-dark-surface');
+      if (themeMeta) themeMeta.setAttribute('content', '#0D0D0D');
+    } else {
+      root.classList.remove('home-gate-theme', 'app-dark-surface');
+      body.classList.remove('home-gate-theme', 'app-dark-surface');
+      if (themeMeta) themeMeta.setAttribute('content', '#ffffff');
+    }
+
+    return undefined;
+  }, [isHomeGate, prefersDark]);
 
   /** 메인 홈 — 가로 캐러셀 위에서도 세로 휠·트랙패드가 페이지 스크롤 되도록 */
   useEffect(() => {
@@ -2289,7 +2323,7 @@ const HomePage = ({
   const HOME_TEXT_MUTED = '#64748B';
   const HOME_SURFACE = '#F8FAFC';
   const HOME_BORDER = '#E2E8F0';
-  const homeUi = useMemo(() => (isHomeGate ? {
+  const homeUi = useMemo(() => (isHomeGateDark ? {
     pageBg: '#0D0D0D',
     text: '#FFFFFF',
     textMuted: '#FFFFFF',
@@ -2362,7 +2396,7 @@ const HomePage = ({
     liveBorder: 'transparent',
     barSubtitle: HOME_TEXT_MUTED,
     barLabel: HOME_TEXT,
-  }), [isHomeGate]);
+  }), [isHomeGateDark]);
   const homePartyBucketEmpty = homeUi.partyEmpty;
   const homePartyBucketActive = homeUi.partyActive;
   const homePartySectionTitleStyle = {
@@ -2379,7 +2413,7 @@ const HomePage = ({
     border: `1px solid ${homeUi.panelBorder}`,
     boxShadow: homeUi.panelShadow,
   };
-  const homeLuxurySectionBoxStyle = isHomeGate ? {
+  const homeLuxurySectionBoxStyle = isHomeGateDark ? {
     border: `1px solid ${HOME_GOLD_BORDER}`,
     boxShadow: '0 4px 22px rgba(201, 168, 76, 0.14)',
   } : {
@@ -2847,8 +2881,8 @@ const HomePage = ({
             aspect-ratio: 3 / 4;
             max-height: min(72vw, 360px);
             background: #111;
-            border: 1px solid ${isHomeGate ? 'rgba(255,255,255,0.12)' : 'rgba(0,0,0,0.08)'};
-            box-shadow: ${isHomeGate ? '0 8px 28px rgba(0,0,0,0.35)' : '0 6px 20px rgba(0,0,0,0.08)'};
+            border: 1px solid ${isHomeGateDark ? 'rgba(255,255,255,0.12)' : 'rgba(0,0,0,0.08)'};
+            box-shadow: ${isHomeGateDark ? '0 8px 28px rgba(0,0,0,0.35)' : '0 6px 20px rgba(0,0,0,0.08)'};
             cursor: pointer;
           }
           .home-region-poster-banner__img {
@@ -2910,7 +2944,7 @@ const HomePage = ({
             border-radius: 50%;
             border: none;
             padding: 0;
-            background: ${isHomeGate ? 'rgba(255,255,255,0.25)' : 'rgba(0,0,0,0.15)'};
+            background: ${isHomeGateDark ? 'rgba(255,255,255,0.25)' : 'rgba(0,0,0,0.15)'};
           }
           .home-region-poster-banner__dot.is-active {
             background: ${HOME_BRAND};
@@ -3065,8 +3099,8 @@ const HomePage = ({
           background: 'transparent',
           borderRadius: '14px',
           overflow: 'hidden',
-          border: isHomeGate ? '1px solid rgba(201, 168, 76, 0.2)' : 'none',
-          boxShadow: isHomeGate ? '0 6px 24px rgba(0, 0, 0, 0.38)' : 'none',
+          border: isHomeGateDark ? '1px solid rgba(201, 168, 76, 0.2)' : 'none',
+          boxShadow: isHomeGateDark ? '0 6px 24px rgba(0, 0, 0, 0.38)' : 'none',
         }}
       >
         <style>{`
@@ -3338,7 +3372,7 @@ const HomePage = ({
 
   return (
     <div
-      className={`app-container${isHomeGate ? ' home-gate-active' : ''}`}
+      className={`app-container${isHomeGate ? ' home-gate-shell' : ''}${isHomeGateDark ? ' home-gate-active' : ''}`}
       style={{ width: '100%', maxWidth: '500px', margin: '0 auto', background: homeUi.pageBg, minHeight: '100dvh', paddingBottom: '100px', transition: 'background 0.25s ease' }}
     >
 
@@ -3383,8 +3417,8 @@ const HomePage = ({
               borderRadius: '14px',
               cursor: 'pointer',
               userSelect: 'none',
-              boxShadow: isHomeGate ? '0 4px 16px rgba(0,0,0,0.45)' : '0 2px 10px rgba(0,0,0,0.08)',
-              border: isHomeGate ? '1px solid rgba(201,168,76,0.25)' : 'none',
+              boxShadow: isHomeGateDark ? '0 4px 16px rgba(0,0,0,0.45)' : '0 2px 10px rgba(0,0,0,0.08)',
+              border: isHomeGateDark ? '1px solid rgba(201,168,76,0.25)' : 'none',
             }}
             onError={(e) => { e.currentTarget.style.display = 'none' }}
           />
@@ -3418,12 +3452,16 @@ const HomePage = ({
 
       {/* 메인 퀵메뉴: activeTab === null → 3섹션 그리드 / 소셜 탭 → 가로 스크롤 */}
       <style>{`
-        .home-gate-active .home-main-stack {
+        .home-gate-shell {
+          --home-page-bg: ${homeUi.pageBg};
+          --home-fade-rgb: ${isHomeGateDark ? '13, 13, 13' : '255, 255, 255'};
+        }
+        .home-gate-shell .home-main-stack {
           display: flex;
           flex-direction: column;
           gap: 20px;
         }
-        .home-gate-active .home-section-break {
+        .home-gate-shell .home-section-break {
           padding: 28px 0 32px;
         }
         .home-gate-menu {
@@ -3501,6 +3539,57 @@ const HomePage = ({
         .home-gate-main-menu-item--plan .home-gate-main-menu-item__icon {
           color: #ffffff;
         }
+        .home-gate-shell:not(.home-gate-active) .home-gate-main-menu-item__label {
+          color: #1e293b;
+        }
+        .home-gate-shell:not(.home-gate-active) .home-gate-main-menu-item--space .home-gate-main-menu-item__icon,
+        .home-gate-shell:not(.home-gate-active) .home-gate-main-menu-item--plan .home-gate-main-menu-item__icon {
+          color: #1e293b;
+        }
+        .home-gate-shell:not(.home-gate-active) .home-gate-menu__divider {
+          background: linear-gradient(
+            90deg,
+            transparent 0%,
+            rgba(15, 23, 42, 0.12) 20%,
+            rgba(15, 23, 42, 0.12) 80%,
+            transparent 100%
+          );
+        }
+        .home-gate-shell:not(.home-gate-active) .home-gate-king-menu__toggle {
+          border: 1px solid #e2e8f0;
+          background: #f8fafc;
+          color: #64748b;
+        }
+        .home-gate-shell:not(.home-gate-active) .home-gate-king-menu__grid .home-quick-menu-item-label {
+          color: #475569;
+        }
+        .home-gate-shell:not(.home-gate-active) .home-gate-king-menu__grid .home-quick-menu-icon-circle {
+          background: #ffffff;
+          border: 1px solid #e2e8f0;
+          color: #475569;
+        }
+        .home-gate-shell:not(.home-gate-active) .home-hot-instructor-card {
+          background: #ffffff;
+        }
+        .home-gate-shell:not(.home-gate-active) .home-hot-instructor-card__media {
+          background: #f1f5f9;
+        }
+        .home-gate-shell:not(.home-gate-active) .home-hot-instructor-card__name {
+          color: #1e293b;
+        }
+        .home-gate-shell:not(.home-gate-active) .home-hot-instructors-title {
+          color: #c9a84c !important;
+        }
+        .home-gate-shell:not(.home-gate-active) .home-social-bar-scroll--peek-more::after {
+          content: '';
+          position: absolute;
+          top: 0;
+          right: 0;
+          width: 28px;
+          height: calc(100% - 10px);
+          pointer-events: none;
+          background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.92));
+        }
         .home-gate-main-menu-item__label {
           color: #fff;
           font-size: 13px;
@@ -3525,7 +3614,7 @@ const HomePage = ({
           padding: 0 5px;
           border-radius: 999px;
           background: #ff3040;
-          border: 2.5px solid #0d0d0d;
+          border: 2.5px solid var(--home-page-bg, #0d0d0d);
           color: #fff;
           font-size: 12px;
           font-weight: 700;
@@ -3780,7 +3869,7 @@ const HomePage = ({
           width: 28px;
           height: 100%;
           pointer-events: none;
-          background: linear-gradient(to right, rgba(13, 13, 13, 0), #0d0d0d 88%);
+          background: linear-gradient(to right, rgba(var(--home-fade-rgb, 13, 13, 13), 0), var(--home-page-bg, #0d0d0d) 88%);
         }
         .home-quick-menu-scroll--gate-all {
           display: flex;
@@ -3822,7 +3911,7 @@ const HomePage = ({
           padding: 0 5px;
           border-radius: 999px;
           background: #ff3040;
-          border: 2px solid #0d0d0d;
+          border: 2px solid var(--home-page-bg, #0d0d0d);
           color: #fff;
           font-size: 11px;
           font-weight: 700;
@@ -3842,7 +3931,7 @@ const HomePage = ({
           padding: 0 4px;
           border-radius: 999px;
           background: linear-gradient(135deg, #E53935, #FF7043);
-          border: 1.5px solid #0d0d0d;
+          border: 1.5px solid var(--home-page-bg, #0d0d0d);
           color: #fff;
           font-size: 9px;
           font-weight: 900;
@@ -3945,7 +4034,7 @@ const HomePage = ({
           color: #ffffff;
         }
         .home-gate-active .quick-menu-more-wrap::after {
-          background: linear-gradient(to right, rgba(13, 13, 13, 0), #0d0d0d 90%);
+          background: linear-gradient(to right, rgba(var(--home-fade-rgb, 13, 13, 13), 0), var(--home-page-bg, #0d0d0d) 90%);
         }
         .home-hero-brand .home-type-display {
           margin: 0 !important;
@@ -3991,19 +4080,21 @@ const HomePage = ({
           0%, 100% { opacity: 0.4; }
           50% { opacity: 0.75; }
         }
-        .home-gate-active .home-social-bar-panel--gate {
-          border: 1px solid rgba(255, 255, 255, 0.08) !important;
-          box-shadow: none !important;
+        .home-gate-shell .home-social-bar-panel--gate {
           padding: 16px 12px 18px !important;
           border-radius: 16px !important;
         }
-        .home-gate-active .home-social-bar-panel--gate .home-type-section-title {
+        .home-gate-active .home-social-bar-panel--gate {
+          border: 1px solid rgba(255, 255, 255, 0.08) !important;
+          box-shadow: none !important;
+        }
+        .home-gate-shell .home-social-bar-panel--gate .home-type-section-title {
           font-size: 15px !important;
         }
-        .home-gate-active .home-region-tabs {
+        .home-gate-shell .home-region-tabs {
           margin-bottom: 4px;
         }
-        .home-gate-active .home-social-bar-scroll--peek {
+        .home-gate-shell .home-social-bar-scroll--peek {
           overflow-x: auto;
           padding: 2px 12px 10px;
           scroll-snap-type: none;
@@ -4013,7 +4104,7 @@ const HomePage = ({
           overscroll-behavior-y: auto;
           overscroll-behavior-x: contain;
         }
-        .home-gate-active .home-social-bar-scroll--peek-more {
+        .home-gate-shell .home-social-bar-scroll--peek-more {
           position: relative;
         }
         .home-gate-active .home-social-bar-scroll--peek-more::after {
@@ -4024,9 +4115,9 @@ const HomePage = ({
           width: 28px;
           height: calc(100% - 10px);
           pointer-events: none;
-          background: linear-gradient(90deg, transparent, rgba(13, 13, 13, 0.92));
+          background: linear-gradient(90deg, transparent, rgba(var(--home-fade-rgb, 13, 13, 13), 0.92));
         }
-        .home-gate-active .home-social-bar-track--peek {
+        .home-gate-shell .home-social-bar-track--peek {
           display: inline-flex;
           flex-wrap: nowrap;
           gap: 10px;
@@ -4034,26 +4125,26 @@ const HomePage = ({
           min-width: 100%;
           padding: 0 2px 2px;
         }
-        .home-gate-active .home-social-bar-track--peek .home-bar-chip {
+        .home-gate-shell .home-social-bar-track--peek .home-bar-chip {
           flex: 0 0 auto;
           width: calc((min(100vw, 500px) - 56px) / 2.35);
           min-width: calc((min(100vw, 500px) - 56px) / 2.35);
           max-width: 168px;
         }
-        .home-gate-active .home-social-bar-track--peek .home-bar-thumb {
+        .home-gate-shell .home-social-bar-track--peek .home-bar-thumb {
           border-radius: 12px;
         }
-        .home-gate-active .home-social-bar-track--peek .home-bar-chip-name {
+        .home-gate-shell .home-social-bar-track--peek .home-bar-chip-name {
           font-size: 11px !important;
           font-weight: 800 !important;
           margin-top: 8px !important;
         }
-        .home-gate-active .home-hot-instructors-wrap {
+        .home-gate-shell .home-hot-instructors-wrap {
           padding: 12px 16px 22px;
           margin-top: 12px;
         }
         .home-hot-instructors-wrap {
-          background: #0d0d0d;
+          background: var(--home-page-bg, #0d0d0d);
           padding: 16px 16px 12px;
           margin: 0;
         }
@@ -4167,7 +4258,7 @@ const HomePage = ({
           className={`home-depth-panel home-luxury-section-box home-social-bar-panel${isHomeGate ? ' home-social-bar-panel--gate' : ''}`}
           style={{
             ...homeDepthPanelStyle,
-            ...(isHomeGate ? {} : homeLuxurySectionBoxStyle),
+            ...(isHomeGateDark ? {} : homeLuxurySectionBoxStyle),
             marginTop: 0,
             display: 'flex',
             flexDirection: 'column',
@@ -4187,7 +4278,7 @@ const HomePage = ({
               <Plus size={12} strokeWidth={2.5} />
               {isEn ? 'Add' : '등록'}
             </button>,
-            isHomeGate ? { color: homeUi.barSubtitle, fontWeight: 600 } : null,
+            isHomeGateDark ? { color: homeUi.barSubtitle, fontWeight: 600 } : null,
           )}
           <motion.div className="home-region-tabs">
             {socialBarRegionTabs.map((tab) => {
