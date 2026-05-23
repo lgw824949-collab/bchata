@@ -1536,6 +1536,8 @@ const HomePage = ({
   const scrollRef = useRef(null);
   const regionListRef = useRef(null);
   const barSectionRef = useRef(null);
+  const hotInstructorsMarqueeRef = useRef(null);
+  const hotInstructorsMarqueePausedRef = useRef(false);
   const [shuffleOffset, setShuffleOffset] = useState(0);
   const [locations, setLocations] = useState([]);
   const [locationsLoading, setLocationsLoading] = useState(true);
@@ -2003,6 +2005,72 @@ const HomePage = ({
       cancelled = true;
     };
   }, [activeTab]);
+
+  const hotInstructorsLoop = useMemo(() => {
+    if (hotInstructors.length < 2) return hotInstructors;
+    return [...hotInstructors, ...hotInstructors];
+  }, [hotInstructors]);
+
+  /** 지금 핫한 강사 — 가로 자동 순환 (터치·호버 시 잠시 정지) */
+  useEffect(() => {
+    const el = hotInstructorsMarqueeRef.current;
+    if (!el || hotInstructors.length < 2) return undefined;
+    if (typeof window !== 'undefined' && window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+      return undefined;
+    }
+
+    let raf = 0;
+    let lastTs = 0;
+    let resumeTimer;
+    const pxPerSec = 34;
+
+    const pause = () => {
+      hotInstructorsMarqueePausedRef.current = true;
+      clearTimeout(resumeTimer);
+    };
+    const scheduleResume = () => {
+      clearTimeout(resumeTimer);
+      resumeTimer = setTimeout(() => {
+        hotInstructorsMarqueePausedRef.current = false;
+        lastTs = 0;
+      }, 2400);
+    };
+
+    const onTouchStart = () => pause();
+    const onTouchEnd = () => scheduleResume();
+    const onMouseEnter = () => pause();
+    const onMouseLeave = () => scheduleResume();
+
+    el.addEventListener('touchstart', onTouchStart, { passive: true });
+    el.addEventListener('touchend', onTouchEnd, { passive: true });
+    el.addEventListener('mouseenter', onMouseEnter);
+    el.addEventListener('mouseleave', onMouseLeave);
+
+    const tick = (ts) => {
+      if (!lastTs) lastTs = ts;
+      const dt = Math.min(ts - lastTs, 48);
+      lastTs = ts;
+      if (!hotInstructorsMarqueePausedRef.current && dt > 0) {
+        el.scrollLeft += (pxPerSec * dt) / 1000;
+        const loopWidth = el.scrollWidth / 2;
+        if (loopWidth > 8 && el.scrollLeft >= loopWidth) {
+          el.scrollLeft -= loopWidth;
+        }
+      }
+      raf = requestAnimationFrame(tick);
+    };
+    raf = requestAnimationFrame(tick);
+
+    return () => {
+      cancelAnimationFrame(raf);
+      clearTimeout(resumeTimer);
+      el.removeEventListener('touchstart', onTouchStart);
+      el.removeEventListener('touchend', onTouchEnd);
+      el.removeEventListener('mouseenter', onMouseEnter);
+      el.removeEventListener('mouseleave', onMouseLeave);
+      hotInstructorsMarqueePausedRef.current = false;
+    };
+  }, [hotInstructors.length, activeTab]);
 
   /** 앱 첫 진입 시 GPS 기준 150m 이내 locations BAR 자동 체크인 (세션 1회) */
   useEffect(() => {
@@ -3027,16 +3095,47 @@ const HomePage = ({
     return String(genre || '').trim();
   };
 
+  const renderHotInstructorCard = (inst, keySuffix = '') => {
+    const genreLabel = formatHotInstructorGenre(inst.genre);
+    return (
+      <motion.button
+        key={`${inst.id}${keySuffix}`}
+        type="button"
+        className="home-hot-instructor-card"
+        whileTap={{ scale: 0.97 }}
+        onClick={() => navigate('/instructors')}
+      >
+        <div className="home-hot-instructor-card__media">
+          <img
+            src={inst.photo_url || DEFAULT_AVATAR_IMAGE}
+            alt={inst.name || ''}
+            onError={imgFallbackHandler(DEFAULT_AVATAR_IMAGE)}
+          />
+        </div>
+        <div className="home-hot-instructor-card__meta">
+          <span className="home-hot-instructor-card__name">{inst.name}</span>
+          {genreLabel ? (
+            <span className="home-hot-instructor-card__genre">{genreLabel}</span>
+          ) : null}
+        </div>
+      </motion.button>
+    );
+  };
+
   const renderHomeHotInstructorsSection = () => {
     if (activeTab !== null) return null;
     if (!hotInstructorsLoading && hotInstructors.length === 0) return null;
 
     const skeletonItems = [0, 1, 2];
+    const marqueeActive = !hotInstructorsLoading && hotInstructors.length >= 2;
 
     return (
       <section className="home-hot-instructors-wrap" aria-label="지금 핫한 강사">
         <h2 className="home-hot-instructors-title">🔥 지금 핫한 강사</h2>
-        <div className="home-hot-instructors-scroll scrollbar-hide">
+        <div
+          ref={hotInstructorsMarqueeRef}
+          className={`home-hot-instructors-scroll scrollbar-hide${marqueeActive ? ' home-hot-instructors-scroll--marquee' : ''}`}
+        >
           <div className="home-hot-instructors-track">
             {hotInstructorsLoading
               ? skeletonItems.map((i) => (
@@ -3046,32 +3145,10 @@ const HomePage = ({
                     aria-hidden
                   />
                 ))
-              : hotInstructors.map((inst) => {
-                  const genreLabel = formatHotInstructorGenre(inst.genre);
-                  return (
-                    <motion.button
-                      key={inst.id}
-                      type="button"
-                      className="home-hot-instructor-card"
-                      whileTap={{ scale: 0.97 }}
-                      onClick={() => navigate('/instructors')}
-                    >
-                      <div className="home-hot-instructor-card__media">
-                        <img
-                          src={inst.photo_url || DEFAULT_AVATAR_IMAGE}
-                          alt={inst.name || ''}
-                          onError={imgFallbackHandler(DEFAULT_AVATAR_IMAGE)}
-                        />
-                      </div>
-                      <div className="home-hot-instructor-card__meta">
-                        <span className="home-hot-instructor-card__name">{inst.name}</span>
-                        {genreLabel ? (
-                          <span className="home-hot-instructor-card__genre">{genreLabel}</span>
-                        ) : null}
-                      </div>
-                    </motion.button>
-                  );
-                })}
+              : hotInstructorsLoop.map((inst, idx) => renderHotInstructorCard(
+                  inst,
+                  hotInstructors.length >= 2 ? `-loop-${idx}` : '',
+                ))}
           </div>
         </div>
       </section>
@@ -4179,6 +4256,14 @@ const HomePage = ({
         }
         .home-hot-instructors-scroll::-webkit-scrollbar {
           display: none;
+        }
+        .home-hot-instructors-scroll--marquee {
+          scroll-behavior: auto;
+        }
+        @media (prefers-reduced-motion: reduce) {
+          .home-hot-instructors-scroll--marquee {
+            overflow-x: auto;
+          }
         }
         .home-hot-instructors-track {
           display: inline-flex;
