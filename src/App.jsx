@@ -1575,6 +1575,10 @@ function App() {
     }
   };
 
+  const openLessonRegisterChoice = useCallback(() => {
+    setShowLessonRegisterChoice(true);
+  }, []);
+
   const handleCloseModal = () => {
     setIsMenuOpen(false);
     setShowVipLogin(false);
@@ -2027,10 +2031,6 @@ function App() {
     setIsAnalyzing(true);
     setTimeout(() => { setIsAnalyzing(false); setShowIncheonModal(true); }, 1200);
   };
-
-  const openLessonRegisterChoice = useCallback(() => {
-    setShowLessonRegisterChoice(true);
-  }, []);
 
   const handleRegister = (type = 'party') => {
     if (type === 'party') {

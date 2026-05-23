@@ -25,18 +25,6 @@ import { formatPartyTitleDisplay } from '../lib/partyTitleDisplay'
 import { buildHomeLiveBannerSlides } from '../lib/homeLiveBannerSlides'
 import PartyCard from '../components/PartyCard'
 import PostLesson from './PostLesson'
-
-function navigate(path, options = {}) {
-  historyNavigate(path, options);
-}
-
-function closeOverlayNav() {
-  if (parseAppState(window.history.state)?.overlay) {
-    window.history.back();
-    return true;
-  }
-  return false;
-}
 import { Z } from '../constants/zLayers'
 import { DEFAULT_AVATAR_IMAGE, DEFAULT_CARD_IMAGE, imgFallbackHandler } from '../constants/imageAssets'
 import gangturnPhoto from '../assets/gangturn_photo.png'
@@ -49,6 +37,18 @@ import buenaPhoto from '../assets/buena_photo.png'
 import hongturnPhoto from '../assets/hongturn_photo.png'
 import bibigoPhoto from '../assets/bibigo_photo.png'
 import { PartyMusicRatioLine, SocialDateGenreFilterBar, formatPartyMusicRatio } from './Social'
+
+function navigate(path: string, options: Record<string, unknown> = {}) {
+  historyNavigate(path, options);
+}
+
+function closeOverlayNav() {
+  if (parseAppState(window.history.state)?.overlay) {
+    window.history.back();
+    return true;
+  }
+  return false;
+}
 
 const QUICK_MENU_SVG = {
   partyRegister: (
