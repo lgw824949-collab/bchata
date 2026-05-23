@@ -1,65 +1,25 @@
-const CACHE = 'bchata-shell-v12';
+/** 구 SW가 낡은 index.html·JS를 캐시해 빈 화면이 나는 문제 방지 — 캐시 전부 삭제 후 네트워크만 사용 */
+const CACHE = 'bchata-off-v14';
 
 self.addEventListener('install', (event) => {
-  event.waitUntil(
-    caches.open(CACHE).then((cache) => cache.add('/index.html').catch(() => {}))
-  );
   self.skipWaiting();
+  event.waitUntil(
+    caches.keys().then((keys) => Promise.all(keys.map((k) => caches.delete(k)))),
+  );
 });
 
 self.addEventListener('activate', (event) => {
   event.waitUntil(
     caches
       .keys()
-      .then((keys) => Promise.all(keys.filter((k) => k !== CACHE).map((k) => caches.delete(k))))
-      .then(() => self.clients.claim())
+      .then((keys) => Promise.all(keys.map((k) => caches.delete(k))))
+      .then(() => self.clients.claim()),
   );
 });
 
-async function shellFallback() {
-  return (await caches.match('/index.html')) || (await caches.match('/'));
-}
-
 self.addEventListener('fetch', (event) => {
-  const { request } = event;
-  if (request.method !== 'GET') return;
-
-  const accept = request.headers.get('accept') || '';
-  const isDocument =
-    request.mode === 'navigate' || accept.includes('text/html');
-
-  if (isDocument) {
-    event.respondWith(
-      (async () => {
-        try {
-          const response = await fetch(request);
-          if (response.ok) return response;
-        } catch {
-          /* network error */
-        }
-        const cached = await caches.match(request);
-        if (cached) return cached;
-        const shell = await shellFallback();
-        if (shell) return shell;
-        return new Response('Offline', {
-          status: 503,
-          statusText: 'Service Unavailable',
-          headers: { 'Content-Type': 'text/plain; charset=utf-8' },
-        });
-      })()
-    );
-    return;
-  }
-
+  if (event.request.method !== 'GET') return;
   event.respondWith(
-    (async () => {
-      try {
-        return await fetch(request);
-      } catch {
-        const cached = await caches.match(request);
-        if (cached) return cached;
-        return Response.error();
-      }
-    })()
+    fetch(event.request).catch(() => caches.match(event.request)),
   );
 });

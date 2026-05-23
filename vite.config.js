@@ -55,6 +55,11 @@ export default defineConfig(({ mode }) => {
 
   return {
     plugins: [react()],
+    build: {
+      target: 'es2020',
+      cssTarget: 'chrome80',
+      modulePreload: { polyfill: true },
+    },
     resolve: {
       dedupe: ['react', 'react-dom', 'react-i18next'],
     },

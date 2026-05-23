@@ -74,13 +74,35 @@
     </style>
   </head>
   <body>
+    <script>
+      (function () {
+        if (!('serviceWorker' in navigator)) return;
+        var v = 'bchata-sw-purge-v14';
+        var already = false;
+        try {
+          already = localStorage.getItem(v) === '1';
+        } catch (e) { /* private mode — 매 방문 시 1회 정리 */ }
+        if (already) return;
+        try { localStorage.setItem(v, '1'); } catch (e) { /* ignore */ }
+        navigator.serviceWorker.getRegistrations().then(function (regs) {
+          return Promise.all(regs.map(function (r) { return r.unregister(); }));
+        });
+        if (window.caches && caches.keys) {
+          caches.keys().then(function (keys) {
+            return Promise.all(keys.map(function (k) { return caches.delete(k); }));
+          });
+        }
+      })();
+    </script>
     <div id="root"></div>
-    <script src="//t1.daumcdn.net/mapjsapi/bundle/postcode/prod/postcode.v2.js"></script>
+    <script src="https://t1.daumcdn.net/mapjsapi/bundle/postcode/prod/postcode.v2.js"></script>
     <script type="module" src="/src/main.jsx?v=20260519-home-gate"></script>
     <script>
       if ('serviceWorker' in navigator) {
-        window.addEventListener('load', () => {
-          navigator.serviceWorker.register('/sw.js', { updateViaCache: 'none' }).then((reg) => reg.update());
+        window.addEventListener('load', function () {
+          navigator.serviceWorker.register('/sw.js', { updateViaCache: 'none' }).then(function (reg) {
+            return reg.update();
+          });
         });
       }
     </script>

@@ -1030,7 +1030,13 @@ function App() {
 
   const todayData = getKSTDate();
 
-  const [showSplash, setShowSplash] = useState(!localStorage.getItem('splash_shown'));
+  const [showSplash, setShowSplash] = useState(() => {
+    try {
+      return !localStorage.getItem('splash_shown');
+    } catch {
+      return false;
+    }
+  });
 
   useEffect(() => {
     if (!showSplash) return;
