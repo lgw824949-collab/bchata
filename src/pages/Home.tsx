@@ -533,6 +533,7 @@ const pickHomePosterBannerSlides = (rows) => {
   if (seoul) {
     slides.push({
       id: 'seoul',
+      kind: 'party',
       regionLabelKo: '서울',
       regionLabelEn: 'Seoul',
       party: seoul,
@@ -541,6 +542,7 @@ const pickHomePosterBannerSlides = (rows) => {
   if (gyeongin) {
     slides.push({
       id: 'gyeongin',
+      kind: 'party',
       regionLabelKo: '경인',
       regionLabelEn: 'Gyeonggi/Incheon',
       party: gyeongin,
@@ -549,6 +551,7 @@ const pickHomePosterBannerSlides = (rows) => {
   if (local) {
     slides.push({
       id: 'local',
+      kind: 'party',
       regionLabelKo: '지방권',
       regionLabelEn: 'Regions',
       party: local,
@@ -713,6 +716,44 @@ const festivalsOnDate = (list, fullDate) =>
     if (f.start_date && f.end_date) return fullDate >= normDate(f.start_date) && fullDate <= normDate(f.end_date);
     return normDate(f.start_date) === fullDate;
   });
+
+const pickLatestPosterBannerRow = (rows) =>
+  (rows || [])
+    .filter((r) => String(r.poster_url || '').trim())
+    .sort(
+      (a, b) =>
+        new Date(b.created_at || b.start_date || 0).getTime()
+        - new Date(a.created_at || a.start_date || 0).getTime(),
+    )[0] || null;
+
+/** 지역 파티 + 오늘 부트캠프·페스티벌 포스터 (부트캠프·페스티벌을 앞에 배치) */
+const buildHomePosterBannerSlides = (partyRows, bootcampRows, festivalRows, todayStr) => {
+  const partySlides = pickHomePosterBannerSlides(partyRows);
+  const bootcamp = pickLatestPosterBannerRow(bootcampsOnDate(bootcampRows, todayStr));
+  const festival = pickLatestPosterBannerRow(festivalsOnDate(festivalRows, todayStr));
+  const prefix = [];
+
+  if (bootcamp) {
+    prefix.push({
+      id: 'bootcamp',
+      kind: 'bootcamp',
+      regionLabelKo: '부트캠프',
+      regionLabelEn: 'Bootcamp',
+      bootcamp,
+    });
+  }
+  if (festival) {
+    prefix.push({
+      id: 'festival',
+      kind: 'festival',
+      regionLabelKo: '페스티벌',
+      regionLabelEn: 'Festival',
+      festival,
+    });
+  }
+
+  return [...prefix, ...partySlides];
+};
 
 // 지금 노출 중 — App.jsx LiveExposureStrip 사용, 구 구현 보관 (if false)
 if (false) {
@@ -2086,29 +2127,56 @@ const HomePage = ({
   const loadHomePosterBannerSlides = useCallback(async () => {
     if (!supabase) return;
     try {
-      const { data, error } = await supabase
-        .from('parties')
-        .select(
-          'id, title, date, created_at, poster_url, address, location_id, locations!location_id(name)',
-        )
-        .eq('status', 'approved')
-        .eq('date', calendarTodayStr)
-        .not('poster_url', 'is', null)
-        .order('created_at', { ascending: false });
-      if (error) {
-        console.warn('[Home] poster banner parties:', error.message);
+      const [partiesRes, bootcampsRes, festivalsRes] = await Promise.all([
+        supabase
+          .from('parties')
+          .select(
+            'id, title, date, created_at, poster_url, address, location_id, locations!location_id(name)',
+          )
+          .eq('status', 'approved')
+          .eq('date', calendarTodayStr)
+          .not('poster_url', 'is', null)
+          .order('created_at', { ascending: false }),
+        supabase
+          .from('bootcamps')
+          .select('id, instructor, title, start_date, end_date, created_at, poster_url, venue, region, status')
+          .eq('status', 'active')
+          .not('poster_url', 'is', null),
+        supabase
+          .from('festivals')
+          .select('id, title, genre, start_date, end_date, created_at, poster_url, status, event_type')
+          .eq('status', 'active')
+          .not('poster_url', 'is', null),
+      ]);
+
+      if (partiesRes.error) {
+        console.warn('[Home] poster banner parties:', partiesRes.error.message);
         return;
       }
-      setHomePosterBannerSlides(pickHomePosterBannerSlides(data || []));
+      if (bootcampsRes.error) {
+        console.warn('[Home] poster banner bootcamps:', bootcampsRes.error.message);
+      }
+      if (festivalsRes.error) {
+        console.warn('[Home] poster banner festivals:', festivalsRes.error.message);
+      }
+
+      setHomePosterBannerSlides(
+        buildHomePosterBannerSlides(
+          partiesRes.data || [],
+          bootcampsRes.data || [],
+          festivalsRes.data || [],
+          calendarTodayStr,
+        ),
+      );
     } catch (err) {
-      console.warn('[Home] poster banner parties failed:', err);
+      console.warn('[Home] poster banner failed:', err);
     }
   }, [calendarTodayStr]);
 
   useEffect(() => {
     loadLiveBannerPartyRows();
     loadHomePosterBannerSlides();
-  }, [loadLiveBannerPartyRows, loadHomePosterBannerSlides, parties]);
+  }, [loadLiveBannerPartyRows, loadHomePosterBannerSlides, parties, bootcamps, festivals]);
 
   useEffect(() => {
     if (!supabase) return undefined;
@@ -2832,8 +2900,8 @@ const HomePage = ({
     const todayRows = (parties || []).filter(
       (p) => isApprovedParty(p) && normDate(p.date) === calendarTodayStr,
     );
-    return pickHomePosterBannerSlides(todayRows);
-  }, [homePosterBannerSlides, parties, calendarTodayStr]);
+    return buildHomePosterBannerSlides(todayRows, bootcamps || [], festivals || [], calendarTodayStr);
+  }, [homePosterBannerSlides, parties, bootcamps, festivals, calendarTodayStr]);
 
   useEffect(() => {
     setHomePosterBannerIdx(0);
@@ -2849,22 +2917,42 @@ const HomePage = ({
     return () => clearInterval(timer);
   }, [homePosterBannerSlidesEffective.length]);
 
+  const handleHomePosterBannerClick = (slide) => {
+    if (slide?.kind === 'bootcamp') {
+      navigate('/bootcamp', { homeTab: null });
+      return;
+    }
+    if (slide?.kind === 'festival') {
+      navigate('/festival', { homeTab: null });
+      return;
+    }
+    if (slide?.party) openPartyWithAfterParty(slide.party);
+  };
+
   const renderHomeRegionPosterBanner = () => {
     if (!homePosterBannerSlidesEffective.length) return null;
     const slide =
       homePosterBannerSlidesEffective[homePosterBannerIdx] ||
       homePosterBannerSlidesEffective[0];
     const party = slide?.party;
-    const posterUrl = String(party?.poster_url || '').trim();
+    const bootcamp = slide?.bootcamp;
+    const festival = slide?.festival;
+    const posterUrl = String(
+      party?.poster_url || bootcamp?.poster_url || festival?.poster_url || '',
+    ).trim();
     if (!posterUrl) return null;
     const regionLabel = isEn ? slide.regionLabelEn : slide.regionLabelKo;
-    const title = formatPartyTitleDisplay(party?.title) || regionLabel;
+    const title = party
+      ? (formatPartyTitleDisplay(party?.title) || regionLabel)
+      : bootcamp
+        ? (bootcamp.instructor || bootcamp.title || regionLabel)
+        : (festival?.title || regionLabel);
 
     return (
       <motion.section
         className="home-region-poster-banner-standalone"
         style={{ width: '92%', maxWidth: '100%', margin: '0 auto', boxSizing: 'border-box' }}
-        aria-label={isEn ? "Today's regional party posters" : '오늘 지역 대표 포스터'}
+        aria-label={isEn ? "Today's posters" : '오늘 포스터'}
       >
         <style>{`
           .home-region-poster-banner-standalone {
@@ -2956,11 +3044,11 @@ const HomePage = ({
         <button
           type="button"
           className="home-region-poster-banner__frame"
-          onClick={() => openPartyWithAfterParty(party)}
+          onClick={() => handleHomePosterBannerClick(slide)}
           aria-label={
             isEn
-              ? `Today's ${regionLabel} party poster: ${title}`
-              : `오늘 ${regionLabel} 대표 포스터: ${title}`
+              ? `Today's ${regionLabel} poster: ${title}`
+              : `오늘 ${regionLabel} 포스터: ${title}`
           }
         >
           <AnimatePresence mode="wait">
