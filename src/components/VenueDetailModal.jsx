@@ -23,6 +23,7 @@ import {
 } from '../lib/venueLocalExtras';
 import { persistVenueOptionalFields } from '../lib/locationExtrasQuery';
 import { normalizeKakaoContactInput, openKakaoContact } from '../lib/kakaoContact';
+import { lessonPublisherBadge } from '../lib/lessonPublisher';
 
 export { partyMatchesVenue } from '../lib/partyVenueMatch';
 
@@ -557,6 +558,7 @@ export default function VenueDetailModal({
   onClose,
   onOpenPoster,
   onVenueUpdated,
+  onRegisterVenueLesson,
 }) {
   const todayStr = getKSTTodayStr();
   const [calendarMonth, setCalendarMonth] = useState(() => {
@@ -599,11 +601,13 @@ export default function VenueDetailModal({
     setDetailTab('social');
   }, [venue?.id, venue?.name, venue?.kakao_url, venue?.instagram_url, venue?.description]);
 
-  /** 강남턴·라틴 — 수업 탭 스케줄 비표시 (데이터 삭제·운영 정책) */
-  const isLessonsSuppressedVenue = useMemo(() => {
-    const n = String(venue?.name || '').trim();
-    return n === '라틴' || n.includes('강남턴') || n === '강턴';
-  }, [venue?.name]);
+  const [lessonsRefreshKey, setLessonsRefreshKey] = useState(0);
+
+  useEffect(() => {
+    const onRefresh = () => setLessonsRefreshKey((k) => k + 1);
+    window.addEventListener('bchata-lessons-refresh', onRefresh);
+    return () => window.removeEventListener('bchata-lessons-refresh', onRefresh);
+  }, []);
 
   const handleDetailTabChange = useCallback((tab) => {
     setDetailTab(tab);
@@ -641,7 +645,7 @@ export default function VenueDetailModal({
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [lessonsRefreshKey]);
 
   const allLessons = useMemo(() => {
     const base = lessons?.length ? lessons : fetchedLessons;
@@ -676,10 +680,7 @@ export default function VenueDetailModal({
 
   const isSocialTab = detailTab === 'social';
 
-  const venueLessonsForDisplay = useMemo(() => {
-    if (isLessonsSuppressedVenue && !isSocialTab) return [];
-    return venueLessons;
-  }, [isLessonsSuppressedVenue, isSocialTab, venueLessons]);
+  const venueLessonsForDisplay = useMemo(() => venueLessons, [venueLessons]);
 
   const pickInitialSelectedDate = useCallback(() => {
     if (isSocialTab) {
@@ -1034,6 +1035,32 @@ export default function VenueDetailModal({
           </button>
         </div>
 
+        {!isSocialTab && onRegisterVenueLesson ? (
+          <div style={{ flexShrink: 0, padding: '0 16px 10px' }}>
+            <button
+              type="button"
+              onClick={() => onRegisterVenueLesson(displayVenue)}
+              style={{
+                width: '100%',
+                padding: '12px 14px',
+                borderRadius: 12,
+                border: 'none',
+                background: VD.brand,
+                color: '#fff',
+                fontSize: 14,
+                fontWeight: 800,
+                cursor: 'pointer',
+                boxShadow: '0 4px 14px rgba(212, 67, 110, 0.25)',
+              }}
+            >
+              BAR 수업 등록
+            </button>
+            <p style={{ margin: '6px 0 0', fontSize: 11, color: VD.muted, fontWeight: 600, textAlign: 'center' }}>
+              이 BAR에 연결된 정기·단기 수업 (모든 BAR 동일)
+            </p>
+          </div>
+        ) : null}
+
         {/* 상단: 달력 (펼치기/접기) */}
         <div className="vd-cal-wrap" style={{ flexShrink: 0, padding: '12px 16px 10px', borderBottom: `1px solid ${VD.border}`, background: VD.bgCalendar }}>
           <div className="vd-cal-toolbar">
@@ -1218,7 +1245,9 @@ export default function VenueDetailModal({
               <p className="vd-block-title" style={{ margin: '0 0 8px' }}>
                 {isSocialTab ? '같은 날 다른 행사' : '같은 날 다른 수업'}
               </p>
-              {dayItems.slice(1).map((p) => (
+              {dayItems.slice(1).map((p) => {
+                const pubBadge = !isSocialTab ? lessonPublisherBadge(p, displayName) : null;
+                return (
                 <button
                   key={p.id}
                   type="button"
@@ -1237,9 +1266,26 @@ export default function VenueDetailModal({
                     color: VD.body,
                   }}
                 >
+                  {pubBadge ? (
+                    <span
+                      style={{
+                        display: 'inline-block',
+                        marginRight: 6,
+                        padding: '2px 8px',
+                        borderRadius: 999,
+                        fontSize: 10,
+                        fontWeight: 800,
+                        background: 'rgba(212, 67, 110, 0.12)',
+                        color: VD.brandSoft,
+                      }}
+                    >
+                      {pubBadge.ko}
+                    </span>
+                  ) : null}
                   {formatPartyTitleDisplay(p.title)} · {p.time?.split('-')[0]?.trim()}
                 </button>
-              ))}
+              );
+              })}
             </div>
           )}
 

@@ -5,8 +5,10 @@ import { supabase } from '../lib/supabase'
 import Tesseract from 'tesseract.js'
 
 import { CLASS_CATEGORIES, DANCE_STYLES, DAYS } from '../lib/constants'
+import { appendLessonPublisherMeta } from '../lib/lessonPublisher'
 
-const PostLesson = ({ onBack, user }) => {
+const PostLesson = ({ onBack, user, initialVenue = null }) => {
+  const venueLocked = Boolean(initialVenue?.name || initialVenue?.studio_name)
   const [loading, setLoading] = useState(false)
   const [isOcrProcessing, setIsOcrProcessing] = useState(false)
   const [preview, setPreview] = useState(null)
@@ -29,9 +31,10 @@ const PostLesson = ({ onBack, user }) => {
     description: '',
     startDate: new Date().toISOString().split('T')[0],
     endDate: '',
-    studio_name: '',
-    address: '',
-    region: '서울'
+    studio_name: initialVenue?.name || initialVenue?.studio_name || '',
+    address: initialVenue?.address || '',
+    region: initialVenue?.region || '서울',
+    location_id: initialVenue?.id ? String(initialVenue.id) : '',
   })
 
   const REGIONS = ['서울', '경인', '경상', '전라', '충청', '강원/제주']
@@ -88,6 +91,7 @@ const PostLesson = ({ onBack, user }) => {
         posterUrl = data.publicUrl
       }
 
+      const publisherId = formData.location_id || '';
       const { error } = await supabase.from('classes_info').insert([{
         title: formData.title,
         genre: formData.dance_style,
@@ -103,7 +107,8 @@ const PostLesson = ({ onBack, user }) => {
         fee: formData.fee ? `${formData.fee}만원` : '참가비 문의',
         poster_url: posterUrl,
         status: 'approved',
-        category_type: 'class'
+        category_type: 'venue',
+        description: appendLessonPublisherMeta(formData.description, 'venue', publisherId),
       }])
 
       if (error) throw error
@@ -123,7 +128,9 @@ const PostLesson = ({ onBack, user }) => {
         </div>
         <h2 style={{ fontSize: '24px', fontWeight: 800, color: '#111827', marginBottom: '12px' }}>등록 완료!</h2>
         <p style={{ fontSize: '15px', color: '#6B7280', lineHeight: '1.6', marginBottom: '40px' }}>
-          정상적으로 등록되었습니다.<br />강습 목록에 즉시 노출됩니다.
+          {venueLocked
+            ? <>BAR 수업으로 등록되었습니다.<br />해당 BAR 상세 · 수업 탭에서 바로 확인할 수 있습니다.</>
+            : <>정상적으로 등록되었습니다.<br />강습 목록에 즉시 노출됩니다.</>}
         </p>
         <button onClick={onBack} style={{ width: '100%', height: '56px', borderRadius: '16px', background: '#FF8C00', color: 'white', fontWeight: 800, fontSize: '16px', border: 'none' }}>확인</button>
       </div>
@@ -137,7 +144,9 @@ const PostLesson = ({ onBack, user }) => {
           if (step > 1) setStep(step - 1)
           else onBack()
         }} size={28} style={{ cursor: 'pointer' }} />
-        <h1 style={{ flex: 1, textAlign: 'center', fontSize: '18px', fontWeight: 800, marginRight: '28px' }}>강습 홍보하기 ({step}/{TOTAL_STEPS})</h1>
+        <h1 style={{ flex: 1, textAlign: 'center', fontSize: '18px', fontWeight: 800, marginRight: '28px' }}>
+          {venueLocked ? `BAR 수업 등록 (${step}/${TOTAL_STEPS})` : `강습 홍보하기 (${step}/${TOTAL_STEPS})`}
+        </h1>
       </header>
 
       {/* Progress Bar */}
@@ -432,16 +441,23 @@ const PostLesson = ({ onBack, user }) => {
                     <input 
                       placeholder="장소명 (미정 시 '추후 공지' 입력)" 
                       value={formData.studio_name}
+                      readOnly={venueLocked}
                       onChange={e => setFormData({...formData, studio_name: e.target.value})}
-                      style={{ height: '42px', padding: '0 12px', borderRadius: '10px', border: '1px solid #E5E7EB', fontSize: '14px' }} 
+                      style={{ height: '42px', padding: '0 12px', borderRadius: '10px', border: '1px solid #E5E7EB', fontSize: '14px', background: venueLocked ? '#F3F4F6' : '#fff' }} 
                     />
                     <p style={{ fontSize: '11px', color: '#9CA3AF', marginTop: '-4px', marginBottom: '4px' }}>* 장소 미정 시 '추후 공지'라고 적어주세요.</p>
                     <input 
                       placeholder="상세 주소 (카카오 지도 연동용)" 
                       value={formData.address}
+                      readOnly={venueLocked && Boolean(formData.address)}
                       onChange={e => setFormData({...formData, address: e.target.value})}
-                      style={{ height: '42px', padding: '0 12px', borderRadius: '10px', border: '1px solid #E5E7EB', fontSize: '14px' }} 
+                      style={{ height: '42px', padding: '0 12px', borderRadius: '10px', border: '1px solid #E5E7EB', fontSize: '14px', background: venueLocked && formData.address ? '#F3F4F6' : '#fff' }} 
                     />
+                    {venueLocked ? (
+                      <p style={{ fontSize: 11, color: '#D4436E', margin: 0, fontWeight: 700 }}>
+                        * 이 BAR에 연결된 수업으로 등록됩니다.
+                      </p>
+                    ) : null}
                   </div>
                 </div>
 

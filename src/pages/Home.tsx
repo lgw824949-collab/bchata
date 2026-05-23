@@ -24,6 +24,7 @@ import { formatPartyFeeDisplay, PARTY_FEE_CARD_FONT_SIZE } from '../lib/partyFee
 import { formatPartyTitleDisplay } from '../lib/partyTitleDisplay'
 import { buildHomeLiveBannerSlides } from '../lib/homeLiveBannerSlides'
 import PartyCard from '../components/PartyCard'
+import PostLesson from './PostLesson'
 
 function navigate(path, options = {}) {
   historyNavigate(path, options);
@@ -108,7 +109,7 @@ const HOME_GATE_MENU_COPY = {
   bootcampDive: { ko: '부트캠프', en: 'Bootcamp' },
   festivalLive: { ko: '페스티벌', en: 'Festival' },
   partyPost: { ko: '파티 등록', en: 'Party' },
-  classOpen: { ko: '수업 등록', en: 'Class' },
+  classOpen: { ko: '수업·강사', en: 'Classes' },
   conciergePick: { ko: '추천', en: 'Picks' },
   livepickShow: { ko: '라이브픽', en: 'Live pick' },
   wishlistView: { ko: '찜하기', en: 'Saved' },
@@ -1615,6 +1616,7 @@ const HomePage = ({
   const barAutoCheckinAttemptedRef = useRef(false);
   const barViewTimerRef = useRef(null);
   const [selectedVenue, setSelectedVenue] = useState(null);
+  const [venueLessonPostVenue, setVenueLessonPostVenue] = useState(null);
   const [showBarRegisterForm, setShowBarRegisterForm] = useState(false);
   const [quickMenuMoreOpen, setQuickMenuMoreOpen] = useState(false);
   const [kingMenuOpen, setKingMenuOpen] = useState(false);
@@ -1870,6 +1872,17 @@ const HomePage = ({
   const closeVenueDetail = () => {
     if (!closeOverlayNav()) setSelectedVenue(null);
   };
+
+  const openVenueLessonRegister = useCallback((venueRow) => {
+    const merged = mergeVenueWithLocalExtras(venueRow);
+    setVenueLessonPostVenue(merged);
+    if (!closeOverlayNav()) setSelectedVenue(null);
+  }, []);
+
+  const closeVenueLessonPost = useCallback(() => {
+    setVenueLessonPostVenue(null);
+    window.dispatchEvent(new CustomEvent('bchata-lessons-refresh'));
+  }, []);
 
   /** BAR 카드(상세) 진입 7초 후 view_count +1 — 기기당 1회 */
   useEffect(() => {
@@ -5475,12 +5488,31 @@ const HomePage = ({
           lessons={lessons || []}
           onClose={closeVenueDetail}
           onVenueUpdated={syncVenueAcrossHome}
+          onRegisterVenueLesson={openVenueLessonRegister}
           onOpenPoster={(item) => {
             const p = posterSharePayload(item);
             if (p) handleOpenModal(setSelectedPoster, p);
           }}
         />
       )}
+
+      {venueLessonPostVenue ? (
+        <div
+          style={{
+            position: 'fixed',
+            inset: 0,
+            zIndex: Z.modal,
+            background: '#fff',
+            overflowY: 'auto',
+            WebkitOverflowScrolling: 'touch',
+          }}
+        >
+          <PostLesson
+            initialVenue={venueLessonPostVenue}
+            onBack={closeVenueLessonPost}
+          />
+        </div>
+      ) : null}
     </div>
   )
 }

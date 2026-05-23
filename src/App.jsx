@@ -45,6 +45,7 @@ import PartnerModal from './components/PartnerModal'
 import WishlistModal from './components/WishlistModal'
 import RentalModal from './components/RentalModal'
 import ClassRegisterModal from './components/ClassRegisterModal'
+import LessonRegisterChoiceModal from './components/LessonRegisterChoiceModal'
 import ChatBot from './components/ChatBot'
 
 const RegisterForm = lazy(() => import('./RegisterForm'))
@@ -1139,6 +1140,7 @@ function App() {
   }, [isSocialLightNav, isHomeGateNav, isDarkAppSurface])
 
   const [showClassRegister, setShowClassRegister] = useState(false);
+  const [showLessonRegisterChoice, setShowLessonRegisterChoice] = useState(false);
   // const [showStudentManager, setShowStudentManager] = useState(false);
   // const [showRevenueStats, setShowRevenueStats] = useState(false);
   const [showFullCalendar, setShowFullCalendar] = useState(false);
@@ -1660,10 +1662,12 @@ function App() {
   openVipMasterFlowRef.current = openVipMasterFlow;
   const openClassRegisterFromHomeRef = useRef(openClassRegisterFromHome);
   openClassRegisterFromHomeRef.current = openClassRegisterFromHome;
+  const openLessonRegisterChoiceRef = useRef(openLessonRegisterChoice);
+  openLessonRegisterChoiceRef.current = openLessonRegisterChoice;
 
   useEffect(() => {
     const onOpenVip = () => openVipMasterFlowRef.current();
-    const onOpenClassReg = () => openClassRegisterFromHomeRef.current();
+    const onOpenClassReg = () => openLessonRegisterChoiceRef.current();
     window.addEventListener('open-vip-master-login', onOpenVip);
     window.addEventListener('open-class-register', onOpenClassReg);
     return () => {
@@ -2018,12 +2022,16 @@ function App() {
     setTimeout(() => { setIsAnalyzing(false); setShowIncheonModal(true); }, 1200);
   };
 
+  const openLessonRegisterChoice = useCallback(() => {
+    setShowLessonRegisterChoice(true);
+  }, []);
+
   const handleRegister = (type = 'party') => {
     if (type === 'party') {
       navigate('/register-party');
       return;
     }
-    openClassRegisterFromHome();
+    openLessonRegisterChoice();
   };
 
   const requestLocation = (force = false) => {
@@ -3020,6 +3028,23 @@ function App() {
     {!isAdminShell && showPartner && (
       <PartnerModal onClose={() => { if (!closeOverlay()) setShowPartner(false); }} />
     )}
+    <LessonRegisterChoiceModal
+      isOpen={showLessonRegisterChoice}
+      onClose={() => setShowLessonRegisterChoice(false)}
+      isEn={i18n.language.startsWith('en')}
+      onPickInstructorClass={() => openClassRegisterFromHome()}
+      onPickVenueClass={() => {
+        navigateHomeTab('social');
+        window.setTimeout(() => {
+          alert(
+            i18n.language.startsWith('en')
+              ? 'Open any BAR card, go to the Lesson tab, then tap “BAR class register”.'
+              : 'Social BAR에서 원하는 BAR를 연 뒤, 수업 탭의 「BAR 수업 등록」을 눌러 주세요.',
+          );
+        }, 400);
+      }}
+      onPickInstructorProfile={() => historyNavigate('/register-class')}
+    />
     {showClassRegister && (
       <ClassRegisterModal
         onClose={() => { if (!closeOverlay()) setShowClassRegister(false); }}

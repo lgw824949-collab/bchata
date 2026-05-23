@@ -99,8 +99,8 @@ const InstructorRegister = ({ onBack }) => {
           style={{ background: '#F1F5F9', border: 'none', borderRadius: '50%', width: 40, height: 40, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', fontSize: 18 }}
         >←</button>
         <div>
-          <div style={{ fontSize: 18, fontWeight: 900, color: '#111' }}>강사 등록 신청 💃</div>
-          <div style={{ fontSize: 12, color: '#999' }}>라틴에 진심에 등록해보세요</div>
+          <div style={{ fontSize: 18, fontWeight: 900, color: '#111' }}>강사 프로필 등록 💃</div>
+          <div style={{ fontSize: 12, color: '#999' }}>수업이 아닌 강사 찾기 프로필 신청</div>
         </div>
       </div>
 

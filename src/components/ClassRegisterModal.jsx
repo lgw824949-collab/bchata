@@ -5,6 +5,7 @@ import { supabase } from '../lib/supabase';
 import { adminDbMutate } from '../lib/adminApi';
 import { X, Calendar, Clock, MapPin, DollarSign, Users, Info, User, Sparkles, Plus, MessageCircle, Camera, Trash2 } from 'lucide-react';
 import { DEFAULT_CARD_IMAGE, imgFallbackHandler } from '../constants/imageAssets';
+import { appendLessonPublisherMeta, LESSON_PUBLISHER } from '../lib/lessonPublisher';
 
 const GENRE_LIST = ['바차타', '살사', '쥬크', '키좀바'];
 const LATIN_MIX = ['바차타', '살사'];
@@ -577,7 +578,9 @@ const ClassRegisterModal = ({
         location: form.location.trim(),
         fee: form.fee,
         capacity: form.capacity,
-        description: buildDescription(),
+        description: isEditMode
+          ? buildDescription()
+          : appendLessonPublisherMeta(buildDescription(), LESSON_PUBLISHER.INSTRUCTOR, targetInstId),
         poster_url: posterUrl,
       };
 
@@ -691,7 +694,10 @@ const ClassRegisterModal = ({
         >
           <div>
             <div style={{ fontSize: '18px', fontWeight: 900 }}>
-              {isEditMode ? '클래스 수정 모달 ✏️' : '클래스 등록 모달 👑'}
+              {isEditMode ? '강사 수업 수정 ✏️' : '강사 수업 등록 👑'}
+            </div>
+            <div style={{ fontSize: 12, color: '#94A3B8', marginTop: 4, fontWeight: 600 }}>
+              VIP 강사 전용 · BAR 수업과 별도로 저장됩니다
             </div>
             <div
               style={{
