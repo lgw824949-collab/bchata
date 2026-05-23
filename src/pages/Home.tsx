@@ -678,6 +678,17 @@ const dedupePartiesByPoster = (list) => {
   return out;
 };
 
+/** 오늘(KST 달력일) · 승인 · poster_url 등록 파티 — 동일 포스터 URL은 1건 */
+const filterTodayPosterParties = (list, todayStr) =>
+  dedupePartiesByPoster(
+    (list || []).filter(
+      (p) =>
+        isApprovedParty(p)
+        && normDate(p.date) === todayStr
+        && String(p.poster_url || '').trim(),
+    ),
+  );
+
 const dedupeById = (list) => {
   const seen = new Set();
   return (list || []).filter((item) => {
@@ -1429,11 +1440,14 @@ const HomePage = ({
   const todayStr = useMemo(() => getKSTTodayStr(), []);
   const calendarTodayStr = useMemo(() => getKSTCalendarTodayStr(), []);
 
-  // parties = App displayParties (승인·노출 필터됨). 카운터만 달력 오늘(calendarTodayStr) + normDate로 재매칭.
+  // parties = App displayParties (승인·노출 필터됨). 카운터는 달력 오늘 + poster_url 기준(동일 URL 1건).
+  const todayPosterParties = useMemo(
+    () => filterTodayPosterParties(parties, calendarTodayStr),
+    [parties, calendarTodayStr],
+  );
+
   useEffect(() => {
-    const todayParties = (parties || []).filter(
-      (p) => isApprovedParty(p) && normDate(p.date) === calendarTodayStr,
-    );
+    const todayParties = todayPosterParties;
 
     const isSeoulParty = (p) => REGION_FILTER['서울'](p);
     const isMetroParty = (p) =>
@@ -1478,19 +1492,10 @@ const HomePage = ({
       national: nationalParties.length,
       nationalDistricts: getTopDistricts(nationalParties),
     });
-  }, [parties, calendarTodayStr]);
+  }, [todayPosterParties]);
 
-  /** 메인 메뉴 오늘밤빠 — 오늘(KST) 승인 파티 중 포스터 등록 건수 */
-  const todayPosterMenuCount = useMemo(() => {
-    const rows = dedupePartiesByPoster(
-      (parties || []).filter(
-        (p) => isApprovedParty(p)
-          && normDate(p.date) === calendarTodayStr
-          && String(p.poster_url || p.imageUrl || '').trim(),
-      ),
-    );
-    return rows.length;
-  }, [parties, calendarTodayStr]);
+  /** 메인 메뉴 오늘밤빠 — 오늘 포스터(poster_url) 등록 건수 */
+  const todayPosterMenuCount = todayPosterParties.length;
 
   const openTodayPartyBucket = (tab) => {
     setSelectedDate(calendarTodayStr);
@@ -2755,10 +2760,7 @@ const HomePage = ({
 
   const homeLiveBannerSlides = useMemo(() => {
     const sourceRows = (liveBannerPartyRows?.length ? liveBannerPartyRows : parties) || [];
-    const todayRows = sourceRows.filter(
-      (p) => isApprovedParty(p) && normDate(p.date) === calendarTodayStr,
-    );
-    const withPoster = todayRows.filter((p) => String(p.poster_url || p.imageUrl || '').trim());
+    const withPoster = filterTodayPosterParties(sourceRows, calendarTodayStr);
 
     return buildHomeLiveBannerSlides({
       regionCounts,

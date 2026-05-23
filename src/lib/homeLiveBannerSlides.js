@@ -72,7 +72,7 @@ export function buildHomeLiveBannerSlides({
   const now = Date.now();
   const pool = (withPosterParties || [])
     .map(enrichPartyBroadRegion)
-    .filter((p) => String(p.poster_url || p.imageUrl || '').trim())
+    .filter((p) => String(p.poster_url || '').trim())
     .filter((p) => skipLiveWindow || isPartyInLiveBannerWindow(p, now));
 
   const seoul = sortPartiesByStartTime(pool.filter(isPartySeoul));
