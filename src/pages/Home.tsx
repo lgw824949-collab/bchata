@@ -787,8 +787,21 @@ const fitLiveBannerSummaryText = (regionBuckets) => {
     : fallback;
 };
 
+const buildLiveBannerRegionCountsFallbackText = (regionCounts, isEn) => {
+  const seoul = Number(regionCounts?.seoul) || 0;
+  const metro = Number(regionCounts?.metro) || 0;
+  const national = Number(regionCounts?.national) || 0;
+  if (seoul === 0 && metro === 0 && national === 0) {
+    return isEn ? "Check today's party listings" : '오늘 파티 정보를 확인하세요';
+  }
+  if (isEn) {
+    return `Today Seoul ${seoul} · Metro ${metro} · Local ${national}`;
+  }
+  return `오늘 파티 서울 ${seoul} · 수도권 ${metro} · 지방 ${national}`;
+};
+
 /** LIVE 배너 — 오늘 포스터 파티 지역별 click_count 합산 요약 (최대 20자) */
-const buildHomeLiveBannerSummary = ({ sourceRows, todayStr, isEn = false }) => {
+const buildHomeLiveBannerSummary = ({ sourceRows, todayStr, isEn = false, regionCounts = null }) => {
   const todayParties = filterTodayPosterParties(sourceRows, todayStr).map(enrichPosterBannerPartyRow);
 
   const regionBuckets = [
@@ -797,11 +810,15 @@ const buildHomeLiveBannerSummary = ({ sourceRows, todayStr, isEn = false }) => {
     { label: isEn ? 'Local' : '지방', list: todayParties.filter(isHomePosterBannerLocal) },
   ];
 
-  const text = fitLiveBannerSummaryText(regionBuckets);
+  const totalClicks = regionBuckets.reduce((sum, bucket) => sum + sumPartyClickCount(bucket.list), 0);
+  const text = totalClicks > 0
+    ? fitLiveBannerSummaryText(regionBuckets)
+    : buildLiveBannerRegionCountsFallbackText(regionCounts, isEn);
   const pick =
     pickTopClickCountParty(regionBuckets[0].list)
     || pickTopClickCountParty(regionBuckets[1].list)
     || pickTopClickCountParty(regionBuckets[2].list)
+    || todayParties[0]
     || null;
 
   if (!text) {
@@ -2495,18 +2512,20 @@ const HomePage = ({
     return () => document.removeEventListener('wheel', onWheel, { capture: true });
   }, [isHomeGate]);
 
-  const HOME_BRAND = '#FF1744';
-  const HOME_GOLD = '#FF1744';
-  const HOME_GOLD_SOFT = '#FF1744';
-  const HOME_GOLD_MUTED = 'rgba(0, 0, 0, 0.5)';
-  const HOME_GOLD_BORDER = 'rgba(255, 23, 68, 0.1)';
-  const HOME_GOLD_BORDER_SOFT = 'rgba(255, 23, 68, 0.1)';
-  const HOME_BRAND_SOFT = 'rgba(255, 23, 68, 0.1)';
-  const HOME_BRAND_BORDER = 'rgba(255, 23, 68, 0.1)';
-  const HOME_TEXT = '#000000';
-  const HOME_TEXT_MUTED = 'rgba(0, 0, 0, 0.5)';
+  const HOME_BRAND = '#E53935';
+  const HOME_GOLD = '#E53935';
+  const HOME_GOLD_SOFT = '#E53935';
+  const HOME_GOLD_MUTED = 'rgba(30, 41, 59, 0.55)';
+  const HOME_GOLD_BORDER = 'rgba(229, 57, 53, 0.2)';
+  const HOME_GOLD_BORDER_SOFT = 'rgba(229, 57, 53, 0.2)';
+  const HOME_BRAND_SOFT = 'rgba(229, 57, 53, 0.12)';
+  const HOME_BRAND_BORDER = 'rgba(229, 57, 53, 0.2)';
+  const HOME_TEXT = '#1E293B';
+  const HOME_TEXT_MUTED = 'rgba(30, 41, 59, 0.55)';
   const HOME_SURFACE = '#FFFFFF';
-  const HOME_BORDER = 'rgba(0, 0, 0, 0.08)';
+  const HOME_BORDER = '#EDEAE3';
+  const HOME_PAGE_BG = '#FFFDF9';
+  const HOME_CARD_BORDER = '0.5px solid #EDEAE3';
   const homeUi = useMemo(() => (isHomeGateDark ? {
     pageBg: '#0D0D0D',
     text: '#FFFFFF',
@@ -2547,37 +2566,37 @@ const HomePage = ({
     barSubtitle: '#FFFFFF',
     barLabel: '#FFFFFF',
   } : {
-    pageBg: '#FFFFFF',
+    pageBg: HOME_PAGE_BG,
     text: HOME_TEXT,
     textMuted: HOME_TEXT_MUTED,
     surface: HOME_SURFACE,
     border: HOME_BORDER,
     gold: HOME_GOLD,
-    goldSoft: 'rgba(255, 23, 68, 0.1)',
+    goldSoft: HOME_BRAND_SOFT,
     goldBorder: HOME_GOLD_BORDER_SOFT,
     brandSoft: HOME_BRAND_SOFT,
     brandBorder: HOME_BRAND_BORDER,
     partyEmpty: {
-      bg: HOME_SURFACE, border: HOME_BORDER, label: HOME_TEXT_MUTED, count: 'rgba(0, 0, 0, 0.5)', unit: 'rgba(0, 0, 0, 0.5)', districts: 'rgba(0, 0, 0, 0.5)',
+      bg: HOME_SURFACE, border: HOME_BORDER, label: HOME_TEXT_MUTED, count: HOME_TEXT_MUTED, unit: HOME_TEXT_MUTED, districts: HOME_TEXT_MUTED,
     },
     partyActive: {
-      bg: 'rgba(255, 23, 68, 0.1)',
+      bg: HOME_BRAND_SOFT,
       border: HOME_GOLD_BORDER_SOFT,
-      label: '#000000',
+      label: HOME_TEXT,
       count: HOME_GOLD,
-      unit: '#FF1744',
+      unit: HOME_GOLD,
       districts: HOME_GOLD_SOFT,
     },
     divider: HOME_BORDER,
-    panelBg: '#FFFFFF',
-    panelBorder: 'rgba(0, 0, 0, 0.08)',
-    panelShadow: '0 6px 28px rgba(15, 23, 42, 0.06)',
-    quickIcon: 'rgba(0, 0, 0, 0.5)',
+    panelBg: HOME_SURFACE,
+    panelBorder: HOME_CARD_BORDER,
+    panelShadow: 'none',
+    quickIcon: HOME_TEXT_MUTED,
     quickRegisterIcon: HOME_BRAND,
     posterActive: HOME_BRAND,
-    posterIdle: '#F0F0F0',
-    liveShell: 'linear-gradient(135deg, #FF1744 0%, #FF1744 100%)',
-    liveBorder: 'transparent',
+    posterIdle: '#F1F5F9',
+    liveShell: HOME_SURFACE,
+    liveBorder: HOME_CARD_BORDER,
     barSubtitle: HOME_TEXT_MUTED,
     barLabel: HOME_TEXT,
   }), [isHomeGateDark]);
@@ -2594,15 +2613,17 @@ const HomePage = ({
   const homeGateStackGap = 20;
   const homeDepthPanelStyle = {
     background: homeUi.panelBg,
-    border: `1px solid ${homeUi.panelBorder}`,
-    boxShadow: homeUi.panelShadow,
+    border: isHomeGateDark ? `1px solid ${homeUi.panelBorder}` : HOME_CARD_BORDER,
+    boxShadow: isHomeGateDark ? homeUi.panelShadow : 'none',
+    borderRadius: isHomeGate ? 10 : undefined,
   };
   const homeLuxurySectionBoxStyle = isHomeGateDark ? {
     border: `1px solid ${HOME_GOLD_BORDER}`,
-    boxShadow: '0 4px 22px rgba(255, 23, 68, 0.1)',
+    boxShadow: '0 4px 22px rgba(229, 57, 53, 0.12)',
   } : {
-    border: `1px solid ${HOME_GOLD_BORDER_SOFT}`,
-    boxShadow: '0 4px 16px rgba(15, 23, 42, 0.06)',
+    border: HOME_CARD_BORDER,
+    boxShadow: 'none',
+    borderRadius: 10,
   };
   const homeSubtitleStyle = { color: homeUi.textMuted };
   const homeSectionDividerStyle = { height: 1, background: homeUi.divider, margin: '0 20px', border: 'none' };
@@ -2941,8 +2962,9 @@ const HomePage = ({
       sourceRows,
       todayStr: calendarTodayStr,
       isEn,
+      regionCounts,
     });
-  }, [parties, liveBannerPartyRows, calendarTodayStr, isEn]);
+  }, [parties, liveBannerPartyRows, calendarTodayStr, isEn, regionCounts]);
 
   useEffect(() => {
     liveBannerSlideIdxRef.current = 0;
@@ -3073,14 +3095,14 @@ const HomePage = ({
 
     return (
       <motion.section
-        className="home-region-poster-banner-standalone"
-        style={{ width: '92%', maxWidth: '100%', margin: '0 auto', boxSizing: 'border-box' }}
+        className="home-region-poster-banner-standalone home-region-poster-banner-standalone--gate-stack"
+        style={{ width: '100%', maxWidth: '100%', margin: '0 auto', boxSizing: 'border-box' }}
         aria-label={isEn ? "Today's posters" : '오늘 포스터'}
       >
         {renderHomeGateSectionTitle(isEn ? 'Parties & Events' : '파티&행사', 'home-region-poster-banner__section-title')}
         <style>{`
           .home-region-poster-banner-standalone {
-            width: 92%;
+            width: 100%;
             max-width: 100%;
             margin-left: auto;
             margin-right: auto;
@@ -3094,13 +3116,13 @@ const HomePage = ({
             position: relative;
             width: 100%;
             margin: 0 auto;
-            border-radius: 14px;
+            border-radius: 10px;
             overflow: hidden;
             aspect-ratio: 3 / 4;
             max-height: min(72vw, 360px);
             background: #111;
-            border: 1px solid ${isHomeGateDark ? 'rgba(255,255,255,0.12)' : 'rgba(0,0,0,0.08)'};
-            box-shadow: ${isHomeGateDark ? '0 8px 28px rgba(0,0,0,0.35)' : '0 6px 20px rgba(0,0,0,0.08)'};
+            border: ${isHomeGateDark ? '1px solid rgba(255,255,255,0.12)' : '0.5px solid #EDEAE3'};
+            box-shadow: none;
             cursor: pointer;
           }
           .home-region-poster-banner__img {
@@ -3139,7 +3161,7 @@ const HomePage = ({
             font-weight: 800;
             letter-spacing: -0.02em;
             color: #fff;
-            background: rgba(255, 23, 68, 0.1);
+            background: rgba(229, 57, 53, 0.12);
           }
           .home-region-poster-banner__title {
             margin: 0;
@@ -3168,7 +3190,7 @@ const HomePage = ({
             background: ${isHomeGateDark ? 'rgba(255,255,255,0.25)' : 'rgba(0,0,0,0.15)'};
           }
           .home-region-poster-banner__dot.is-active {
-            background: ${HOME_BRAND};
+            background: #E53935;
             transform: scale(1.15);
           }
         `}</style>
@@ -3241,6 +3263,128 @@ const HomePage = ({
     </section>
   );
 
+  const renderHomeSocialBarSection = () => {
+    if (activeTab !== null) return null;
+
+    return (
+      <motion.div
+        className="home-social-bar-wrap"
+        style={{ padding: 0, marginTop: 0, marginBottom: 0 }}
+      >
+        <section
+          ref={barSectionRef}
+          className={`home-depth-panel home-luxury-section-box home-social-bar-panel${isHomeGate ? ' home-social-bar-panel--gate' : ''}`}
+          style={{
+            ...homeDepthPanelStyle,
+            ...(isHomeGateDark ? {} : homeLuxurySectionBoxStyle),
+            marginTop: 0,
+            display: 'flex',
+            flexDirection: 'column',
+          }}
+        >
+          {renderHomeSectionHeader(
+            isEn ? 'Social BAR' : 'Social BAR',
+            null,
+            <button
+              type="button"
+              className="home-section-action"
+              onClick={() => {
+                setShowBarRegisterForm(true);
+                pushOverlay('barRegister');
+              }}
+            >
+              <Plus size={12} strokeWidth={2.5} />
+              {isEn ? 'Add' : '신규등록'}
+            </button>,
+            isHomeGateDark ? { color: homeUi.barSubtitle, fontWeight: 600 } : null,
+          )}
+          <motion.div className="home-region-tabs">
+            {socialBarRegionTabs.map((tab) => {
+              const isSelected = selectedRegionTab === tab;
+              const isMyGeoRegion = geoRegionTab && tab === geoRegionTab;
+
+              return (
+                <button
+                  key={tab}
+                  type="button"
+                  className={`home-region-pill${isSelected ? ' is-selected' : ''}${isMyGeoRegion ? ' is-my-region' : ''}`}
+                  onClick={() => setSelectedRegionTab(tab)}
+                >
+                  {tab}
+                  <span className="home-region-pill-count" aria-label={`${barRegionCounts[tab] ?? 0}곳`}>
+                    {barRegionCounts[tab] ?? 0}
+                  </span>
+                </button>
+              );
+            })}
+          </motion.div>
+
+          <motion.div className="home-social-bar-outer">
+            {locationsLoading || geoRegionStatus === 'pending' ? (
+              <div style={{ padding: '60px 20px', textAlign: 'center', color: 'rgba(0, 0, 0, 0.5)', fontWeight: 700 }}>
+                {geoRegionStatus === 'pending' ? '현재 위치 기준 지역을 확인하는 중...' : '전국 BAR 정보를 정렬하는 중...'}
+              </div>
+            ) : !selectedRegionTab ? (
+              <div style={{ padding: '40px 20px', textAlign: 'center', color: 'rgba(0, 0, 0, 0.5)', fontSize: '13px', fontWeight: 600 }}>
+                지역을 선택해 주세요.
+              </div>
+            ) : (
+              (() => {
+                const filteredBars =
+                  selectedRegionTab === SOCIAL_BAR_REGION_ALL
+                    ? locations
+                    : locations.filter((bar) => bar.region === selectedRegionTab);
+
+                if (filteredBars.length === 0) {
+                  return (
+                    <div style={{ padding: '40px 20px', textAlign: 'center', color: 'rgba(0, 0, 0, 0.5)', fontSize: '13px', fontWeight: 600 }}>
+                      {isEn ? 'No spots in this area yet.' : '이 지역 장소가 아직 없어요.'}
+                    </div>
+                  );
+                }
+
+                const regionBars = sortBarsForSocialBarTab(filteredBars, selectedRegionTab);
+                const hasMoreBars = regionBars.length > SOCIAL_BAR_PEEK_VISIBLE;
+                const barListLabel = isEn
+                  ? `${selectedRegionTab} · ${regionBars.length} spot${regionBars.length === 1 ? '' : 's'}`
+                  : `${selectedRegionTab} · ${regionBars.length}곳`;
+
+                return (
+                  <motion.div
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    key={selectedRegionTab}
+                    className="home-social-bar-fade"
+                  >
+                    <p
+                      className="home-social-bar-region-hint"
+                      style={{ margin: '0 0 12px', padding: '0 2px', color: homeUi.barSubtitle, fontSize: 12, fontWeight: 700 }}
+                    >
+                      {barListLabel}
+                    </p>
+                    <div
+                      className={`home-social-bar-scroll scrollbar-hide${
+                        isHomeGate
+                          ? ` home-social-bar-scroll--peek${hasMoreBars ? ' home-social-bar-scroll--peek-more' : ''}`
+                          : ''
+                      }`}
+                      role="list"
+                      aria-label={isEn ? `Social BAR in ${selectedRegionTab}` : `${selectedRegionTab} Social BAR`}
+                    >
+                      <div className={`home-social-bar-track${isHomeGate ? ' home-social-bar-track--peek' : ''}`}>
+                        {regionBars.map((bar) => renderBarCard(bar))}
+                      </div>
+                    </div>
+                  </motion.div>
+                );
+              })()
+            )}
+          </motion.div>
+        </section>
+      </motion.div>
+    );
+  };
+
   const formatHotInstructorGenre = (genre) => {
     if (Array.isArray(genre)) return genre.filter(Boolean).join(' · ');
     return String(genre || '').trim();
@@ -3293,7 +3437,6 @@ const HomePage = ({
                 })}
           </div>
         </div>
-        <hr className="home-hot-instructors-divider" aria-hidden />
       </section>
     );
   };
@@ -3382,9 +3525,9 @@ const HomePage = ({
               background-size: 100% 100% !important;
               animation: none !important;
               padding: 0 !important;
-              border: 1px solid rgba(0, 0, 0, 0.08) !important;
-              border-radius: 12px !important;
-              box-shadow: 0 2px 10px rgba(0, 0, 0, 0.06) !important;
+              border: 0.5px solid #EDEAE3 !important;
+              border-radius: 10px !important;
+              box-shadow: none !important;
             }
             .home-gate-shell .live-count-premium-wrapper--gate .live-dynamic-banner__inner {
               min-height: 42px !important;
@@ -3396,10 +3539,10 @@ const HomePage = ({
               width: 100% !important;
               overflow: hidden !important;
               flex-wrap: nowrap !important;
-              color: #000000 !important;
+              color: #1E293B !important;
             }
             .home-gate-shell .live-count-premium-wrapper--gate .lc-tag {
-              background: #FF1744 !important;
+              background: #E53935 !important;
               color: #FFFFFF !important;
               border: none !important;
               border-radius: 6px !important;
@@ -3411,17 +3554,17 @@ const HomePage = ({
             .home-gate-shell .live-count-premium-wrapper--gate .lc-dot {
               width: 5px !important;
               height: 5px !important;
-              background: #FF1744 !important;
+              background: #E53935 !important;
               box-shadow: none !important;
             }
             .home-gate-shell .live-count-premium-wrapper--gate .live-dynamic-banner__sep--dot {
-              color: #000000 !important;
+              color: #1E293B !important;
               font-size: 11px !important;
               font-weight: 700 !important;
             }
             .home-gate-shell .live-count-premium-wrapper--gate .live-dynamic-banner__spotlight,
             .home-gate-shell .live-count-premium-wrapper--gate .live-dynamic-banner__spotlight--solo {
-              color: #000000 !important;
+              color: #1E293B !important;
               font-weight: 700 !important;
               font-size: clamp(11px, 3.1vw, 13px) !important;
               letter-spacing: -0.02em !important;
@@ -3601,7 +3744,7 @@ const HomePage = ({
   return (
     <div
       className={`app-container${isHomeGate ? ' home-gate-shell' : ''}${isHomeGateDark ? ' home-gate-active' : ''}`}
-      style={{ width: '100%', maxWidth: '500px', margin: '0 auto', background: homeUi.pageBg, minHeight: '100dvh', paddingBottom: '100px', transition: 'background 0.25s ease' }}
+      style={{ width: '100%', maxWidth: '500px', margin: '0 auto', background: isHomeGate ? HOME_PAGE_BG : homeUi.pageBg, minHeight: '100dvh', paddingBottom: '100px', transition: 'background 0.25s ease' }}
     >
 
       {activeTab === 'social' && (
@@ -3619,7 +3762,7 @@ const HomePage = ({
         style={{
           padding: isHomeGate ? '20px 16px 0' : '20px 16px 0',
           marginBottom: isHomeGate ? 20 : homeSectionSpace - 4,
-          background: isHomeGate ? '#FFFFFF' : undefined,
+          background: isHomeGate ? '#FFFDF9' : undefined,
         }}
       >
         {activeTab === null && (
@@ -3634,13 +3777,13 @@ const HomePage = ({
         >
           <h1
             className="home-type-display home-hero-title"
-            style={{ color: '#FF1744', fontSize: '32px', fontWeight: 900, margin: 0, lineHeight: 1.15 }}
+            style={{ color: '#E53935', fontSize: '32px', fontWeight: 900, margin: 0, lineHeight: 1.15 }}
           >
             오늘밤빠
           </h1>
           <p
             className="home-type-tagline home-type-tagline-sub home-hero-tagline"
-            style={{ color: '#000000', fontSize: '15px', fontWeight: 600, margin: '4px 0 0', lineHeight: 1.35 }}
+            style={{ color: '#1E293B', fontSize: '15px', fontWeight: 600, margin: '4px 0 0', lineHeight: 1.35 }}
           >
             켜고, 찾고, 가면 끝
           </p>
@@ -3657,12 +3800,10 @@ const HomePage = ({
           }}
         >
           {renderHomeMainLiveSlot()}
-          {renderHomeRegionPosterBanner()}
           {renderHomeMainQuickMenuSection()}
-
-          <motion.div className="home-section-break" aria-hidden>
-            <hr className="home-section-break__line" />
-          </motion.div>
+          {renderHomeHotInstructorsSection()}
+          {renderHomeSocialBarSection()}
+          {renderHomeRegionPosterBanner()}
         </motion.div>
       )}
 
@@ -3671,8 +3812,9 @@ const HomePage = ({
       {/* 메인 퀵메뉴: activeTab === null → 3섹션 그리드 / 소셜 탭 → 가로 스크롤 */}
       <style>{`
         .home-gate-shell {
-          --home-page-bg: ${homeUi.pageBg};
-          --home-fade-rgb: ${isHomeGateDark ? '13, 13, 13' : '255, 255, 255'};
+          --home-page-bg: #FFFDF9;
+          --home-fade-rgb: ${isHomeGateDark ? '13, 13, 13' : '255, 253, 249'};
+          background-color: #FFFDF9 !important;
         }
         .home-gate-shell .home-main-stack {
           display: flex;
@@ -3729,7 +3871,7 @@ const HomePage = ({
           flex-shrink: 0;
           background: none !important;
           box-shadow: none !important;
-          color: #000000;
+          color: #1E293B;
         }
         .home-gate-main-menu-item__icon svg {
           width: 32px;
@@ -3750,7 +3892,7 @@ const HomePage = ({
           display: block;
         }
         .home-gate-main-menu-item__label {
-          color: #000000;
+          color: #1E293B;
           font-size: 13px;
           font-weight: 600;
           line-height: 1.28;
@@ -3762,11 +3904,11 @@ const HomePage = ({
         }
         .home-gate-active .home-gate-main-menu-item__icon,
         .home-gate-active .home-gate-main-menu-item__label {
-          color: #000000;
+          color: #1E293B;
         }
         .home-gate-shell:not(.home-gate-active) .home-gate-main-menu-item__icon,
         .home-gate-shell:not(.home-gate-active) .home-gate-main-menu-item__label {
-          color: #000000;
+          color: #1E293B;
         }
         .home-gate-shell:not(.home-gate-active) .home-gate-menu__divider {
           background: linear-gradient(
@@ -3778,41 +3920,57 @@ const HomePage = ({
           );
         }
         .home-gate-shell:not(.home-gate-active) .home-gate-king-menu__toggle {
-          border: 1px solid rgba(0, 0, 0, 0.08);
+          border: 0.5px solid #EDEAE3;
           background: #FFFFFF;
-          color: rgba(0, 0, 0, 0.5);
+          color: rgba(30, 41, 59, 0.55);
+        }
+        .home-gate-shell:not(.home-gate-active) .home-gate-king-menu__toggle[aria-expanded="true"] {
+          color: #E53935;
+          border-color: rgba(229, 57, 53, 0.2);
+          background: rgba(229, 57, 53, 0.08);
         }
         .home-gate-shell:not(.home-gate-active) .home-gate-king-menu__grid .home-quick-menu-item-label {
-          color: rgba(0, 0, 0, 0.5);
+          color: rgba(30, 41, 59, 0.55);
         }
         .home-gate-shell:not(.home-gate-active) .home-gate-king-menu__grid .home-quick-menu-icon-circle {
-          background: #ffffff;
-          border: 1px solid rgba(0, 0, 0, 0.08);
-          color: rgba(0, 0, 0, 0.5);
+          background: #FFFFFF;
+          border: 0.5px solid #EDEAE3;
+          color: #1E293B;
+        }
+        .home-gate-shell:not(.home-gate-active) .home-gate-king-menu__grid .home-quick-menu-item--register-party .home-quick-menu-icon-circle {
+          background: rgba(229, 57, 53, 0.08);
+          border-color: rgba(229, 57, 53, 0.2);
+          color: #E53935;
+        }
+        .home-gate-shell:not(.home-gate-active) .home-gate-king-menu__grid .home-quick-menu-item--register-party .home-quick-menu-item-label {
+          color: #E53935;
         }
         .home-gate-shell:not(.home-gate-active) .home-hot-instructors-title {
-          color: #000000 !important;
+          color: #1E293B !important;
         }
         .home-gate-section-title {
           display: flex;
           align-items: center;
           margin: 0;
-          font-size: 16px;
-          font-weight: 900;
-          color: #000000;
+          font-size: 14px;
+          font-weight: 500;
+          color: #1E293B;
           letter-spacing: -0.02em;
         }
         .home-gate-section-title__point {
           width: 3px;
-          height: 18px;
-          background: #FF1744;
-          border-radius: 2px;
+          height: 16px;
+          background: #E53935;
+          border-radius: 1px;
           margin-right: 8px;
           display: inline-block;
           flex-shrink: 0;
         }
         .home-gate-section-title__text {
           min-width: 0;
+          font-size: 14px;
+          font-weight: 500;
+          color: #1E293B;
         }
         .home-hot-instructors-wrap .home-gate-section-title {
           margin-bottom: 12px;
@@ -3839,14 +3997,14 @@ const HomePage = ({
           height: 20px;
           padding: 0 5px;
           border-radius: 999px;
-          background: #FF1744;
+          background: #E53935;
           border: 2px solid #FFFFFF;
           color: #FFFFFF;
           font-size: 11px;
           font-weight: 700;
           line-height: 1;
           font-variant-numeric: tabular-nums;
-          box-shadow: 0 2px 6px rgba(255, 23, 68, 0.35);
+          box-shadow: none;
           pointer-events: none;
         }
         .home-gate-menu__divider {
@@ -3980,20 +4138,20 @@ const HomePage = ({
           color: rgba(0, 0, 0, 0.5);
         }
         .app-container:not(.home-gate-active) .home-quick-menu-item--register-party .home-quick-menu-icon-circle {
-          background: rgba(255, 23, 68, 0.1);
-          border-color: rgba(255, 23, 68, 0.1);
-          color: #FF1744;
+          background: rgba(229, 57, 53, 0.08);
+          border-color: rgba(229, 57, 53, 0.2);
+          color: #E53935;
         }
         .app-container:not(.home-gate-active) .home-quick-menu-item--register-party .home-quick-menu-item-label {
-          color: #FF1744;
+          color: #E53935;
         }
         .app-container:not(.home-gate-active) .home-quick-menu-item--register-class .home-quick-menu-icon-circle {
-          background: rgba(0, 0, 0, 0.08);
-          border-color: rgba(0, 0, 0, 0.08);
-          color: #000000;
+          background: rgba(30, 41, 59, 0.06);
+          border-color: rgba(30, 41, 59, 0.12);
+          color: #1E293B;
         }
         .app-container:not(.home-gate-active) .home-quick-menu-item--register-class .home-quick-menu-item-label {
-          color: #000000;
+          color: #1E293B;
         }
         .home-quick-menu-grid {
           display: grid;
@@ -4022,13 +4180,33 @@ const HomePage = ({
           gap: 4px;
           padding: 6px 10px;
           border-radius: 100px;
-          border: 1px solid rgba(0, 0, 0, 0.08);
+          border: 0.5px solid #EDEAE3;
           background: #FFFFFF;
-          color: #000000;
+          color: #1E293B;
           font-size: var(--ds-body-size);
           font-weight: var(--ds-subtitle-weight);
           cursor: pointer;
           line-height: 1.2;
+        }
+        .home-gate-shell .home-region-pill.is-selected {
+          background: rgba(229, 57, 53, 0.08);
+          border-color: rgba(229, 57, 53, 0.25);
+          color: #E53935;
+        }
+        .home-gate-shell .home-region-pill.is-selected .home-region-pill-count {
+          color: #E53935;
+        }
+        .home-gate-shell .home-section-break__line {
+          border: none;
+          height: 0.5px;
+          margin: 0;
+          background: #EDEAE3;
+        }
+        .home-gate-shell .quick-menu-more-link {
+          color: rgba(30, 41, 59, 0.55);
+        }
+        .home-gate-shell .quick-menu-more-wrap::after {
+          background: linear-gradient(to right, rgba(255, 253, 249, 0), #FFFDF9 90%);
         }
         .quick-menu-more-wrap {
           position: relative;
@@ -4263,20 +4441,20 @@ const HomePage = ({
           background: linear-gradient(to right, rgba(var(--home-fade-rgb, 13, 13, 13), 0), var(--home-page-bg, #0d0d0d) 90%);
         }
         .home-gate-shell .home-hero-zone {
-          background: #FFFFFF;
+          background: #FFFDF9;
         }
         .home-gate-shell .home-hero-brand .home-hero-title {
-          color: #FF1744 !important;
+          color: #E53935 !important;
           font-size: 32px !important;
           font-weight: 900 !important;
         }
         .home-gate-shell .home-hero-brand .home-hero-tagline {
-          color: #000000 !important;
+          color: #1E293B !important;
           font-size: 15px !important;
           font-weight: 600 !important;
         }
         .home-gate-shell .home-hero-brand .home-type-display {
-          color: #FF1744 !important;
+          color: #E53935 !important;
         }
         .home-hero-brand .home-type-display {
           margin: 0 !important;
@@ -4358,7 +4536,7 @@ const HomePage = ({
           font-weight: 800 !important;
           line-height: 1.25 !important;
           text-align: center !important;
-          color: #000000 !important;
+          color: #1E293B !important;
           text-shadow: none !important;
           white-space: normal !important;
           word-break: keep-all;
@@ -4375,7 +4553,7 @@ const HomePage = ({
           padding: 2px 8px;
           border-radius: 20px;
           background: #F1F5F9;
-          color: rgba(0, 0, 0, 0.5);
+          color: rgba(30, 41, 59, 0.55);
           font-size: 10px;
           font-weight: 600;
           line-height: 1.3;
@@ -4385,10 +4563,10 @@ const HomePage = ({
         }
         .home-social-bar-wrap .home-bar-chip--my-region .home-bar-chip-name,
         .home-social-bar-wrap .home-bar-chip--my-region .social-bar-name-label {
-          color: #000000 !important;
+          color: #1E293B !important;
         }
         .home-social-bar-wrap .home-bar-thumb--my-region {
-          box-shadow: 0 0 0 2px #FF1744;
+          box-shadow: 0 0 0 2px #E53935;
         }
         @keyframes home-hot-instructor-skeleton-pulse {
           0%, 100% { opacity: 0.4; }
@@ -4396,16 +4574,19 @@ const HomePage = ({
         }
         .home-gate-shell .home-social-bar-panel--gate {
           padding: 16px 12px 18px !important;
-          border-radius: 16px !important;
+          border-radius: 10px !important;
+          border: 0.5px solid #EDEAE3 !important;
+          background: #FFFFFF !important;
+          box-shadow: none !important;
         }
         .home-gate-active .home-social-bar-panel--gate {
-          border: 1px solid rgba(255, 255, 255, 0.08) !important;
+          border: 0.5px solid #EDEAE3 !important;
           box-shadow: none !important;
         }
         .home-gate-shell .home-social-bar-panel--gate .home-type-section-title.home-gate-section-title {
-          font-size: 16px !important;
-          font-weight: 900 !important;
-          color: #000000 !important;
+          font-size: 14px !important;
+          font-weight: 500 !important;
+          color: #1E293B !important;
         }
         .home-gate-shell .home-region-tabs {
           margin-bottom: 4px;
@@ -4441,12 +4622,12 @@ const HomePage = ({
           min-width: 100%;
           padding: 0 2px 2px;
         }
-        .home-gate-shell .home-hot-instructors-wrap {
-          padding: 12px 16px 0;
-          margin-top: 12px;
+        .home-gate-shell .home-main-stack .home-hot-instructors-wrap {
+          padding: 0;
+          margin: 0;
         }
         .home-hot-instructors-wrap {
-          background: var(--home-page-bg, #ffffff);
+          background: var(--home-page-bg, #FFFDF9);
           padding: 16px 16px 0;
           margin: 0;
         }
@@ -4457,7 +4638,7 @@ const HomePage = ({
           margin: 20px 0 0;
           padding: 0;
           border: none;
-          border-top: 1px solid rgba(0, 0, 0, 0.08);
+          border-top: 0.5px solid #EDEAE3;
         }
         .home-gate-active .home-hot-instructors-divider {
           border-top-color: rgba(255, 255, 255, 0.12);
@@ -4507,18 +4688,19 @@ const HomePage = ({
           max-width: 140px;
           height: 180px;
           display: block;
-          border: none;
-          border-radius: 16px;
-          background: #111111;
+          border: 0.5px solid #EDEAE3;
+          border-radius: 10px;
+          background: #FFFFFF;
           overflow: hidden;
           padding: 0;
           cursor: pointer;
           text-align: left;
+          box-shadow: none;
         }
         .home-hot-instructor-card--skeleton {
           animation: home-hot-instructor-skeleton-pulse 1.2s ease-in-out infinite;
           pointer-events: none;
-          background: #1a1a1a;
+          background: #F1F5F9;
         }
         .home-hot-instructor-card__media {
           position: absolute;
@@ -4568,124 +4750,6 @@ const HomePage = ({
           text-overflow: ellipsis;
         }
       `}</style>
-      {activeTab === null && renderHomeHotInstructorsSection()}
-      {activeTab === null && (
-        <motion.div
-          className="home-social-bar-wrap"
-          style={{ padding: '0 16px', marginTop: isHomeGate ? 36 : 0, marginBottom: isHomeGate ? 20 : 0 }}
-        >
-        <section
-          ref={barSectionRef}
-          className={`home-depth-panel home-luxury-section-box home-social-bar-panel${isHomeGate ? ' home-social-bar-panel--gate' : ''}`}
-          style={{
-            ...homeDepthPanelStyle,
-            ...(isHomeGateDark ? {} : homeLuxurySectionBoxStyle),
-            marginTop: 0,
-            display: 'flex',
-            flexDirection: 'column',
-          }}
-        >
-          {renderHomeSectionHeader(
-            isEn ? 'Social BAR' : 'Social BAR',
-            null,
-            <button
-              type="button"
-              className="home-section-action"
-              onClick={() => {
-                setShowBarRegisterForm(true);
-                pushOverlay('barRegister');
-              }}
-            >
-              <Plus size={12} strokeWidth={2.5} />
-              {isEn ? 'Add' : '신규등록'}
-            </button>,
-            isHomeGateDark ? { color: homeUi.barSubtitle, fontWeight: 600 } : null,
-          )}
-          <motion.div className="home-region-tabs">
-            {socialBarRegionTabs.map((tab) => {
-              const isSelected = selectedRegionTab === tab;
-              const isMyGeoRegion = geoRegionTab && tab === geoRegionTab;
-
-              return (
-                <button
-                  key={tab}
-                  type="button"
-                  className={`home-region-pill${isSelected ? ' is-selected' : ''}${isMyGeoRegion ? ' is-my-region' : ''}`}
-                  onClick={() => setSelectedRegionTab(tab)}
-                >
-                  {tab}
-                  <span className="home-region-pill-count" aria-label={`${barRegionCounts[tab] ?? 0}곳`}>
-                    {barRegionCounts[tab] ?? 0}
-                  </span>
-                </button>
-              );
-            })}
-          </motion.div>
-
-          <motion.div className="home-social-bar-outer">
-            {locationsLoading || geoRegionStatus === 'pending' ? (
-              <div style={{ padding: '60px 20px', textAlign: 'center', color: 'rgba(0, 0, 0, 0.5)', fontWeight: 700 }}>
-                {geoRegionStatus === 'pending' ? '현재 위치 기준 지역을 확인하는 중...' : '전국 BAR 정보를 정렬하는 중...'}
-              </div>
-            ) : !selectedRegionTab ? (
-              <div style={{ padding: '40px 20px', textAlign: 'center', color: 'rgba(0, 0, 0, 0.5)', fontSize: '13px', fontWeight: 600 }}>
-                지역을 선택해 주세요.
-              </div>
-            ) : (
-              (() => {
-                const filteredBars =
-                  selectedRegionTab === SOCIAL_BAR_REGION_ALL
-                    ? locations
-                    : locations.filter((bar) => bar.region === selectedRegionTab);
-
-                if (filteredBars.length === 0) {
-                  return (
-                    <div style={{ padding: '40px 20px', textAlign: 'center', color: 'rgba(0, 0, 0, 0.5)', fontSize: '13px', fontWeight: 600 }}>
-                      {isEn ? 'No spots in this area yet.' : '이 지역 장소가 아직 없어요.'}
-                    </div>
-                  );
-                }
-
-                const regionBars = sortBarsForSocialBarTab(filteredBars, selectedRegionTab);
-                const hasMoreBars = regionBars.length > SOCIAL_BAR_PEEK_VISIBLE;
-                const barListLabel = isEn
-                  ? `${selectedRegionTab} · ${regionBars.length} spot${regionBars.length === 1 ? '' : 's'}`
-                  : `${selectedRegionTab} · ${regionBars.length}곳`;
-
-                return (
-                  <motion.div
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    key={selectedRegionTab}
-                    className="home-social-bar-fade"
-                  >
-                    <p
-                      className="home-social-bar-region-hint"
-                      style={{ margin: '0 0 12px', padding: '0 2px', color: homeUi.barSubtitle, fontSize: 12, fontWeight: 700 }}
-                    >
-                      {barListLabel}
-                    </p>
-                    <div
-                      className={`home-social-bar-scroll scrollbar-hide${
-                        isHomeGate
-                          ? ` home-social-bar-scroll--peek${hasMoreBars ? ' home-social-bar-scroll--peek-more' : ''}`
-                          : ''
-                      }`}
-                      role="list"
-                      aria-label={isEn ? `Social BAR in ${selectedRegionTab}` : `${selectedRegionTab} Social BAR`}
-                    >
-                      <div className={`home-social-bar-track${isHomeGate ? ' home-social-bar-track--peek' : ''}`}>
-                        {regionBars.map((bar) => renderBarCard(bar))}
-                      </div>
-                    </div>
-                  </motion.div>
-                );
-              })()
-            )}
-          </motion.div>
-        </section>
-        </motion.div>
-      )}
 
         {/*
         <p style={homePartnerSectionTitleStyle}>파트너 &amp; 강사</p>

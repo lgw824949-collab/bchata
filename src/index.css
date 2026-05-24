@@ -36,7 +36,7 @@
   --safe-bottom: env(safe-area-inset-bottom);
 
   /* Light Theme Colors */
-  --color-bg: #ffffff;
+  --color-bg: #FFFDF9;
   --color-text-main: #1e293b;
   --color-text-sub: #64748b;
   --color-card: #f8fafc;
@@ -1131,6 +1131,40 @@ img.bchata-poster-fit {
   gap: 20px;
 }
 
+/* 홈 게이트 — 크림 배경 · 카드 · 섹션 타이틀 */
+.home-gate-shell {
+  background-color: #FFFDF9;
+}
+
+.home-gate-shell .home-gate-section-title,
+.home-gate-shell .home-gate-section-title__text {
+  font-size: 14px;
+  font-weight: 500;
+  color: #1E293B;
+}
+
+.home-gate-shell .home-gate-section-title__point {
+  width: 3px;
+  height: 16px;
+  background: #E53935;
+  border-radius: 1px;
+}
+
+.home-gate-shell .home-depth-panel.home-social-bar-panel--gate,
+.home-gate-shell .live-count-premium-wrapper--gate .live-dynamic-banner,
+.home-gate-shell .live-count-premium-wrapper--gate .live-dynamic-banner--gate {
+  background: #FFFFFF;
+  border: 0.5px solid #EDEAE3;
+  border-radius: 10px;
+  box-shadow: none;
+}
+
+.home-gate-shell .home-hot-instructor-card {
+  border: 0.5px solid #EDEAE3;
+  border-radius: 10px;
+  box-shadow: none;
+}
+
 .home-gate-active .home-section-break {
   padding: 28px 0 32px;
 }
@@ -1565,7 +1599,7 @@ input[type=number] {
 :root {
   --color-primary: #E53935;
   --color-primary-soft: #FFEBEE;
-  --color-bg: #FFFFFF;
+  --color-bg: #FFFDF9;
   --color-bg-soft: #F8FAFC;
   --color-text-strong: #1E293B;
   --color-text-mid: #64748B;
