@@ -1118,14 +1118,8 @@ function App() {
     ['/bootcamp', '/festival', '/instructors', '/livepick', '/community'].some(
       (p) => location.pathname === p || location.pathname.startsWith(`${p}/`),
     )
-  const isDarkBottomNav = !isSocialLightNav
-
   useEffect(() => {
-    if (isSocialLightNav) {
-      document.body.classList.add('bottom-nav-social-light')
-    } else {
-      document.body.classList.remove('bottom-nav-social-light')
-    }
+    document.body.classList.add('bottom-nav-social-light')
     document.documentElement.classList.toggle('home-gate-theme', isHomeGateNav)
     document.body.classList.toggle('home-gate-theme', isHomeGateNav)
     document.documentElement.classList.toggle('app-dark-surface', isDarkAppSurface)
@@ -2141,20 +2135,44 @@ function App() {
 
   const isLegalPage = location.pathname === '/terms' || location.pathname === '/privacy';
 
-  const bottomNavAccent = isSocialLightNav ? '#E53935' : '#FFFFFF'
+  const bottomNavAccent = '#FF1744'
   const navActiveColor = bottomNavAccent
-  const navInactiveColor = isSocialLightNav ? '#94A3B8' : 'rgba(255, 255, 255, 0.42)'
+  const navInactiveColor = '#94A3B8'
   const socialNavActive = bottomNavAccent
   const socialNavInactive = navInactiveColor
   const isHomeNavActive = location.pathname === '/' && view === 'home' && homeActiveTab === null && !showPartner
-  const isBootcampNavActive = (location.pathname === '/bootcamp' || view === 'bootcamp' || view === 'bootcamp-register') && !showPartner
-  const isBottomSocialNavActive = location.pathname === '/' && view === 'home' && homeActiveTab === 'social' && !showPartner
-  const isInstructorsNavActive = (
-    location.pathname === '/instructors'
-    || location.pathname.startsWith('/instructors/')
-    || view === 'instructors'
-  ) && !showPartner
-  const isFestivalNavActive = (location.pathname === '/festival' || view === 'festival' || view === 'festival-register') && !showPartner
+  const isWishlistNavActive = showWishlist
+  const isConciergeNavActive = chatbotOverlay
+  const isLivepickNavActive = location.pathname === '/livepick'
+  const bottomNavRef = useRef(null)
+
+  useEffect(() => {
+    const el = bottomNavRef.current
+    if (!el || hideBottomNav) return undefined
+    const layout = [
+      ['border-radius', '0'],
+      ['margin', '0'],
+      ['width', '100%'],
+      ['max-width', 'none'],
+      ['left', '0'],
+      ['right', '0'],
+      ['bottom', '0'],
+      ['transform', 'none'],
+      ['padding-left', '0'],
+      ['padding-right', '0'],
+      ['padding-bottom', 'env(safe-area-inset-bottom, 0px)'],
+      ['min-height', 'calc(54px + env(safe-area-inset-bottom, 0px))'],
+      ['height', 'auto'],
+    ]
+    layout.forEach(([prop, value]) => {
+      el.style.setProperty(prop, value, 'important')
+    })
+    return () => {
+      layout.forEach(([prop]) => {
+        el.style.removeProperty(prop)
+      })
+    }
+  }, [hideBottomNav])
 
   useEffect(() => {
     document.body.classList.toggle('has-bottom-nav', !hideBottomNav)
@@ -3136,29 +3154,38 @@ function App() {
     {/* [Premium Floating Capsule Navigation - viewport fixed, outside app shell] */}
     {!hideBottomNav && (
     <nav
-      className={[
-        'bottom-nav',
-        isSocialLightNav ? 'bottom-nav--social-light' : 'bottom-nav--dark',
-      ].join(' ')}
+      ref={bottomNavRef}
+      className="bottom-nav bottom-nav--social-light"
       aria-label="메인 메뉴"
+      style={{
+        background: '#FFFFFF',
+        border: '1px solid #E2E8F0',
+        boxShadow: '0 -4px 16px rgba(0, 0, 0, 0.06)',
+        backdropFilter: 'none',
+        WebkitBackdropFilter: 'none',
+        borderRadius: 0,
+        margin: 0,
+        width: '100%',
+        maxWidth: 'none',
+        left: 0,
+        right: 0,
+        bottom: 0,
+        transform: 'none',
+        paddingLeft: 0,
+        paddingRight: 0,
+        paddingBottom: 'env(safe-area-inset-bottom, 0px)',
+        boxSizing: 'border-box',
+      }}
     >
       <div 
         onClick={() => {
-          const alreadyOnMainHome = location.pathname === '/' && view === 'home' && homeActiveTab === null && !showPartner;
-          navigateHomeTab(null);
           setShowPartner(false);
           setActiveTab(null);
-          if (!alreadyOnMainHome) {
-            setTimeout(() => {
-              const el = document.getElementById('quickmenu-section');
-              if (el) el.scrollIntoView({ behavior: 'smooth' });
-            }, 100);
-          }
+          navigate('/');
         }}
         style={{ 
           flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
           cursor: 'pointer', transition: 'all 0.2s',
-          // color: (location.pathname === '/' && !showPartner) ? '#FFFFFF' : 'rgba(255,255,255,0.3)'
           color: isHomeNavActive ? bottomNavAccent : navInactiveColor
         }}
       >
@@ -3170,46 +3197,18 @@ function App() {
       <div
         onClick={() => {
           setShowPartner(false);
-          navigateHomeTab('social');
-          setActiveTab('social');
+          setActiveTab(null);
+          pushOverlay('wishlist');
         }}
         style={{
           flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
           cursor: 'pointer', transition: 'all 0.2s',
-          color: isBottomSocialNavActive ? bottomNavAccent : navInactiveColor,
+          color: isWishlistNavActive ? bottomNavAccent : navInactiveColor,
         }}
       >
-        <Music2 size={22} strokeWidth={isBottomSocialNavActive ? 2.5 : 1.5} />
-        <span style={{ fontSize: '9px', fontWeight: isBottomSocialNavActive ? 900 : 600, marginTop: '2px' }}>
-          {i18n.language?.startsWith('en') ? 'Social' : '소셜'}
-        </span>
-      </div>
-
-      <div
-        onClick={() => { navigate('/bootcamp', { homeTab: null }); setShowPartner(false); setActiveTab(null); }}
-        style={{
-          flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
-          cursor: 'pointer', transition: 'all 0.2s',
-          color: isBootcampNavActive ? bottomNavAccent : navInactiveColor,
-        }}
-      >
-        <Tent size={22} strokeWidth={isBootcampNavActive ? 2.5 : 1.5} />
-        <span style={{ fontSize: '9px', fontWeight: isBootcampNavActive ? 900 : 600, marginTop: '2px' }}>
-          {i18n.language?.startsWith('en') ? 'Bootcamp' : '부트캠프'}
-        </span>
-      </div>
-
-      <div 
-        onClick={() => { navigate('/festival', { homeTab: null }); setShowPartner(false); setActiveTab(null); }}
-        style={{ 
-          flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
-          cursor: 'pointer', transition: 'all 0.2s',
-          color: isFestivalNavActive ? bottomNavAccent : navInactiveColor
-        }}
-      >
-        <Flag size={22} strokeWidth={isFestivalNavActive ? 2.5 : 1.5} />
-        <span style={{ fontSize: '9px', fontWeight: isFestivalNavActive ? 900 : 600, marginTop: '2px' }}>
-          {i18n.language?.startsWith('en') ? 'Festival' : '페스티벌'}
+        <Heart size={22} strokeWidth={isWishlistNavActive ? 2.5 : 1.5} />
+        <span style={{ fontSize: '9px', fontWeight: isWishlistNavActive ? 900 : 600, marginTop: '2px' }}>
+          {i18n.language?.startsWith('en') ? 'Saved' : '찜하기'}
         </span>
       </div>
 
@@ -3217,24 +3216,53 @@ function App() {
         onClick={() => {
           setShowPartner(false);
           setActiveTab(null);
-          localStorage.setItem('instructor_target_genre', '전체');
-          navigate('/instructors', {
-            homeTab: null,
-            instructorId: null,
-            instructorTab: null,
-            force: true,
-          });
-          window.dispatchEvent(new CustomEvent('apply-instructor-filter'));
+          window.dispatchEvent(new CustomEvent('open-chatbot'));
         }}
         style={{
           flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
           cursor: 'pointer', transition: 'all 0.2s',
-          color: isInstructorsNavActive ? bottomNavAccent : navInactiveColor,
+          color: isConciergeNavActive ? bottomNavAccent : navInactiveColor,
         }}
       >
-        <GraduationCap size={22} strokeWidth={isInstructorsNavActive ? 2.5 : 1.5} />
-        <span style={{ fontSize: '9px', fontWeight: isInstructorsNavActive ? 900 : 600, marginTop: '2px' }}>
-          {i18n.language?.startsWith('en') ? 'Instructors' : '강사찾기'}
+        <Zap size={22} strokeWidth={isConciergeNavActive ? 2.5 : 1.5} />
+        <span style={{ fontSize: '9px', fontWeight: isConciergeNavActive ? 900 : 600, marginTop: '2px' }}>
+          {i18n.language?.startsWith('en') ? 'Concierge' : '컨시어지'}
+        </span>
+      </div>
+
+      <div 
+        onClick={() => {
+          setShowPartner(false);
+          setActiveTab(null);
+          navigate('/livepick');
+        }}
+        style={{ 
+          flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
+          cursor: 'pointer', transition: 'all 0.2s',
+          color: isLivepickNavActive ? bottomNavAccent : navInactiveColor
+        }}
+      >
+        <Camera size={22} strokeWidth={isLivepickNavActive ? 2.5 : 1.5} />
+        <span style={{ fontSize: '9px', fontWeight: isLivepickNavActive ? 900 : 600, marginTop: '2px' }}>
+          {i18n.language?.startsWith('en') ? 'Live pick' : '라이브픽'}
+        </span>
+      </div>
+
+      <div
+        onClick={() => {
+          setShowPartner(false);
+          setActiveTab(null);
+          window.open('https://open.kakao.com/o/gP43rNri', '_blank');
+        }}
+        style={{
+          flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
+          cursor: 'pointer', transition: 'all 0.2s',
+          color: navInactiveColor,
+        }}
+      >
+        <MessageSquare size={22} strokeWidth={1.5} />
+        <span style={{ fontSize: '9px', fontWeight: 600, marginTop: '2px' }}>
+          {i18n.language?.startsWith('en') ? 'Chat' : '채팅문의'}
         </span>
       </div>
     </nav>

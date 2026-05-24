@@ -18,11 +18,9 @@ import {
 } from '../lib/venueDedupe'
 import VenueDetailModal from '../components/VenueDetailModal'
 import BarRegisterFormModal from '../components/BarRegisterFormModal'
-import HomeHeroTagline from '../components/HomeHeroTagline'
 import { navigate as historyNavigate, navigateHomeTab, parseAppState, pushOverlay, readNavigationState } from '../lib/appHistory'
 import { formatPartyFeeDisplay, PARTY_FEE_CARD_FONT_SIZE } from '../lib/partyFeeDisplay'
 import { formatPartyTitleDisplay } from '../lib/partyTitleDisplay'
-import { buildHomeLiveBannerSlides } from '../lib/homeLiveBannerSlides'
 import PartyCard from '../components/PartyCard'
 import PostLesson from './PostLesson'
 import { Z } from '../constants/zLayers'
@@ -128,10 +126,10 @@ const HOME_GATE_MAIN_MENU_IDS = ['today-party', 'bootcamp', 'festival', 'instruc
 const HOME_GATE_KING_MENU_ORDER = [
   'party-register',
   'class-register',
-  'concierge',
-  'livepick',
-  'wishlist',
-  'chat',
+  // 'concierge', // 하단 네비 이동 — 더보기 비노출
+  // 'livepick',
+  // 'wishlist',
+  // 'chat',
   'saju',
   'restaurant',
   'weather',
@@ -694,6 +692,64 @@ const filterTodayPosterParties = (list, todayStr) =>
     ),
   );
 
+const pickTopViewCountParty = (list) => {
+  if (!list?.length) return null;
+  return [...list].reduce((best, party) => {
+    const nextCount = Number(party?.view_count) || 0;
+    const bestCount = Number(best?.view_count) || 0;
+    return nextCount > bestCount ? party : best;
+  }, list[0]);
+};
+
+const formatLiveBannerRegionSegment = (regionLabel, party, isEn) => {
+  if (!party) return null;
+  const count = Number(party.view_count) || 0;
+  const people = isEn ? String(count) : `${count}명`;
+  const venue = String(party.location_name || party.locations?.name || '').trim();
+  if (venue) return `${regionLabel} ${venue} ${people}`;
+  return `${regionLabel} ${people}`;
+};
+
+/** LIVE 배너 — 오늘 포스터 파티 지역별 최다 view_count 1건 요약 */
+const buildHomeLiveBannerSummary = ({ sourceRows, todayStr, isEn = false }) => {
+  const todayParties = filterTodayPosterParties(sourceRows, todayStr).map(enrichPosterBannerPartyRow);
+
+  const seoulList = todayParties.filter(isHomePosterBannerSeoul);
+  const metroList = todayParties.filter(isHomePosterBannerMetro);
+  const nationalList = todayParties.filter(isHomePosterBannerLocal);
+
+  const seoulTop = pickTopViewCountParty(seoulList);
+  const metroTop = pickTopViewCountParty(metroList);
+  const nationalTop = pickTopViewCountParty(nationalList);
+
+  const labels = isEn
+    ? { seoul: 'Seoul', metro: 'Metro', national: 'Regions' }
+    : { seoul: '서울', metro: '수도권', national: '지방권' };
+
+  const segments = [
+    formatLiveBannerRegionSegment(labels.seoul, seoulTop, isEn),
+    formatLiveBannerRegionSegment(labels.metro, metroTop, isEn),
+    formatLiveBannerRegionSegment(labels.national, nationalTop, isEn),
+  ].filter(Boolean);
+
+  const text = segments.join(' · ');
+  const pick = seoulTop || metroTop || nationalTop || null;
+
+  if (!text) {
+    return { slides: [], pick: null };
+  }
+
+  return {
+    slides: [{
+      id: 'live-region-summary',
+      text,
+      tier: 'fixed',
+      party: pick,
+    }],
+    pick,
+  };
+};
+
 const dedupeById = (list) => {
   const seen = new Set();
   return (list || []).filter((item) => {
@@ -849,14 +905,14 @@ const LiveExposureStrip = ({ pool, selectedDate, todayStr, onSelect, cleanTitle,
         padding: '18px 16px 20px',
         borderRadius: '24px',
         background: 'linear-gradient(165deg, #141414 0%, #0a0a0a 55%, #1a1510 100%)',
-        border: '1px solid rgba(201, 168, 76, 0.45)',
-        boxShadow: '0 12px 40px rgba(201, 168, 76, 0.12), inset 0 1px 0 rgba(255,255,255,0.06)',
+        border: '1px solid rgba(255, 23, 68, 0.1)',
+        boxShadow: '0 12px 40px rgba(255, 23, 68, 0.1), inset 0 1px 0 rgba(255,255,255,0.06)',
       }}
     >
       <motion.div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 12, marginBottom: 16 }}>
         <motion.div>
           <motion.div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
-            <Star size={16} color="#C9A84C" fill="#C9A84C" />
+            <Star size={16} color="#FF1744" fill="#FF1744" />
             <span style={{ fontSize: 16, fontWeight: 900, color: '#F5E6C8', letterSpacing: '-0.3px' }}>
               {isEn ? 'Now Showing' : '지금 노출 중'}
             </span>
@@ -865,7 +921,7 @@ const LiveExposureStrip = ({ pool, selectedDate, todayStr, onSelect, cleanTitle,
                 fontSize: 10,
                 fontWeight: 800,
                 color: '#1a1a1a',
-                background: 'linear-gradient(135deg, #C9A84C, #FFF3C4)',
+                background: 'linear-gradient(135deg, #FF1744, #FFF3C4)',
                 padding: '3px 8px',
                 borderRadius: 8,
               }}
@@ -873,7 +929,7 @@ const LiveExposureStrip = ({ pool, selectedDate, todayStr, onSelect, cleanTitle,
               LIVE 2
             </span>
           </motion.div>
-          <p style={{ margin: 0, fontSize: 11, color: '#94A3B8', fontWeight: 600, lineHeight: 1.45 }}>
+          <p style={{ margin: 0, fontSize: 11, color: 'rgba(0, 0, 0, 0.5)', fontWeight: 600, lineHeight: 1.45 }}>
             {isEn
               ? 'Two spots rotate every 4 min · one venue at a time'
               : '4분마다 2곳 교체 · 같은 장소 동시 노출 없음'}
@@ -886,9 +942,9 @@ const LiveExposureStrip = ({ pool, selectedDate, todayStr, onSelect, cleanTitle,
             flexShrink: 0,
             padding: '8px 12px',
             borderRadius: 12,
-            border: '1px solid rgba(201,168,76,0.35)',
-            background: 'rgba(201,168,76,0.08)',
-            color: '#C9A84C',
+            border: '1px solid rgba(255, 23, 68, 0.1)',
+            background: 'rgba(255, 23, 68, 0.1)',
+            color: '#FF1744',
             fontSize: 11,
             fontWeight: 800,
             cursor: 'pointer',
@@ -958,7 +1014,7 @@ const LiveExposureStrip = ({ pool, selectedDate, todayStr, onSelect, cleanTitle,
                     style={{
                       fontSize: 10,
                       fontWeight: 800,
-                      color: '#C9A84C',
+                      color: '#FF1744',
                       marginBottom: 4,
                       overflow: 'hidden',
                       textOverflow: 'ellipsis',
@@ -989,7 +1045,7 @@ const LiveExposureStrip = ({ pool, selectedDate, todayStr, onSelect, cleanTitle,
       </AnimatePresence>
 
       {pool.length > 2 ? (
-        <p style={{ margin: '14px 0 0', textAlign: 'center', fontSize: 10, color: '#64748B', fontWeight: 600 }}>
+        <p style={{ margin: '14px 0 0', textAlign: 'center', fontSize: 10, color: 'rgba(0, 0, 0, 0.5)', fontWeight: 600 }}>
           {isEn
             ? `${pool.length} parties today · fair rotation`
             : `오늘 ${pool.length}개 파티 · 공정 순환 노출`}
@@ -1139,7 +1195,7 @@ const ClassCard = ({ item, onSelect }) => {
     '상급': '#EF4444',
     '고급': '#EF4444'
   };
-  const badgeColor = levelColors[item.level] || '#64748B';
+  const badgeColor = levelColors[item.level] || 'rgba(0, 0, 0, 0.5)';
   const weekText = item.week_type?.includes('주차')
     ? item.week_type.replace('주차', '주 과정')
     : (item.week_type || '상시 운영');
@@ -1250,10 +1306,10 @@ const BootcampCard = ({ item, onSelect }) => {
       <div style={{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'center', padding: '0 15px', minWidth: 0 }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '2px' }}>
           <span style={{ fontSize: '11px', fontWeight: '800', color: '#7C3AED' }}>BOOTCAMP · {item.genre}</span>
-          <span style={{ fontSize: '11px', fontWeight: '800', color: '#94A3B8' }}>{item.level}</span>
+          <span style={{ fontSize: '11px', fontWeight: '800', color: 'rgba(0, 0, 0, 0.5)' }}>{item.level}</span>
         </div>
-        <h3 style={{ fontSize: '16px', fontWeight: '950', color: '#1E293B', margin: '0 0 4px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{item.instructor}</h3>
-        <div style={{ fontSize: '11px', fontWeight: '800', color: '#64748B' }}>
+        <h3 style={{ fontSize: '16px', fontWeight: '950', color: '#000000', margin: '0 0 4px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{item.instructor}</h3>
+        <div style={{ fontSize: '11px', fontWeight: '800', color: 'rgba(0, 0, 0, 0.5)' }}>
           📍 {item.venue || item.region} | 💰 {item.fee}
         </div>
       </div>
@@ -1285,8 +1341,8 @@ const FestivalCard = ({ item, onSelect }) => {
       </div>
       <div style={{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'center', padding: '0 15px', minWidth: 0 }}>
         <div style={{ fontSize: '11px', fontWeight: '800', color: '#F97316', marginBottom: '2px' }}>FESTIVAL · {item.genre}</div>
-        <h3 style={{ fontSize: '16px', fontWeight: '950', color: '#1E293B', margin: '0 0 4px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{item.title}</h3>
-        <div style={{ fontSize: '11px', fontWeight: '800', color: '#64748B' }}>
+        <h3 style={{ fontSize: '16px', fontWeight: '950', color: '#000000', margin: '0 0 4px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{item.title}</h3>
+        <div style={{ fontSize: '11px', fontWeight: '800', color: 'rgba(0, 0, 0, 0.5)' }}>
           📍 {item.location} | 💰 ₩{item.price?.toLocaleString()}
         </div>
       </div>
@@ -1332,7 +1388,7 @@ const FilterBar = ({ filterRegion, setFilterRegion, filterGenre, setFilterGenre 
   return (
     <div style={{ padding: '0 15px 12px', background: '#fff', display: 'flex', flexDirection: 'column', gap: '12px' }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-        <div style={{ color: '#94A3B8' }}><MapPin size={16} /></div>
+        <div style={{ color: 'rgba(0, 0, 0, 0.5)' }}><MapPin size={16} /></div>
         <div style={{ flex: 1, display: 'flex', overflowX: 'auto', gap: '12px', msOverflowStyle: 'none', scrollbarWidth: 'none', WebkitOverflowScrolling: 'touch' }} className="filter-scroll">
           {regions.map(r => (
             <button key={r}
@@ -1341,7 +1397,7 @@ const FilterBar = ({ filterRegion, setFilterRegion, filterGenre, setFilterGenre 
                 console.log('지역 선택:', newVal);
                 setFilterRegion(newVal);
               }}
-              style={{ padding: '6px 12px', borderRadius: '8px', fontSize: '12px', fontWeight: 700, whiteSpace: 'nowrap', border: filterRegion === r ? '1px solid rgba(201, 168, 76, 0.55)' : '1px solid transparent', background: filterRegion === r ? 'rgba(201, 168, 76, 0.12)' : 'var(--color-border)', color: filterRegion === r ? '#9A7B2E' : 'var(--color-text-sub)', transition: 'all 0.2s' }}
+              style={{ padding: '6px 12px', borderRadius: '8px', fontSize: '12px', fontWeight: 700, whiteSpace: 'nowrap', border: filterRegion === r ? '1px solid rgba(255, 23, 68, 0.1)' : '1px solid transparent', background: filterRegion === r ? 'rgba(255, 23, 68, 0.1)' : 'var(--color-border)', color: filterRegion === r ? '#FF1744' : 'var(--color-text-sub)', transition: 'all 0.2s' }}
             >
               {isEn ? REGION_MAP_EN[r] : r}
             </button>
@@ -1349,7 +1405,7 @@ const FilterBar = ({ filterRegion, setFilterRegion, filterGenre, setFilterGenre 
         </div>
       </div>
       <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-        <div style={{ color: '#94A3B8' }}><Music size={16} /></div>
+        <div style={{ color: 'rgba(0, 0, 0, 0.5)' }}><Music size={16} /></div>
         <div style={{ flex: 1, display: 'flex', overflowX: 'auto', gap: '12px', msOverflowStyle: 'none', scrollbarWidth: 'none', WebkitOverflowScrolling: 'touch' }} className="filter-scroll">
           {genres.map(g => (
             <button key={g}
@@ -1358,7 +1414,7 @@ const FilterBar = ({ filterRegion, setFilterRegion, filterGenre, setFilterGenre 
                 console.log('장르 선택:', newVal);
                 setFilterGenre(newVal);
               }}
-              style={{ padding: '6px 12px', borderRadius: '8px', fontSize: '12px', fontWeight: 700, whiteSpace: 'nowrap', border: 'none', background: filterGenre === g ? '#FF1744' : '#F1F5F9', color: filterGenre === g ? '#fff' : '#64748B', transition: 'all 0.2s' }}
+              style={{ padding: '6px 12px', borderRadius: '8px', fontSize: '12px', fontWeight: 700, whiteSpace: 'nowrap', border: 'none', background: filterGenre === g ? '#FF1744' : '#F1F5F9', color: filterGenre === g ? '#fff' : 'rgba(0, 0, 0, 0.5)', transition: 'all 0.2s' }}
             >
               {isEn ? GENRE_MAP[g].label_en : g}
             </button>
@@ -1970,30 +2026,7 @@ const HomePage = ({
 
   const renderBarCard = (bar) => {
     const barName = bar.name || '이름 없음';
-    const viewLine = formatBarViewCountLine(bar.view_count);
     const isMyGeoRegion = geoRegionTab && bar.region === geoRegionTab;
-    const barNameStyle = {
-      margin: 0,
-      width: '100%',
-      fontSize: 11,
-      fontWeight: 700,
-      lineHeight: 1.25,
-      textAlign: 'center',
-      whiteSpace: 'normal',
-      wordBreak: 'keep-all',
-    };
-    const metaLineStyle = {
-      margin: '2px 0 0',
-      width: '100%',
-      fontSize: 11,
-      fontWeight: 700,
-      lineHeight: 1.25,
-      textAlign: 'center',
-      whiteSpace: 'normal',
-      wordBreak: 'keep-all',
-      overflow: 'visible',
-      textOverflow: 'unset',
-    };
 
     return (
       <motion.button
@@ -2006,39 +2039,26 @@ const HomePage = ({
       >
         <span
           className={`home-bar-thumb${isMyGeoRegion ? ' home-bar-thumb--my-region' : ''}`}
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            borderRadius: 12,
-            overflow: 'hidden',
-          }}
         >
           {bar.image_url ? (
             <img
               src={bar.image_url}
               alt=""
               onError={imgFallbackHandler(DEFAULT_CARD_IMAGE)}
-              style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: 12 }}
             />
           ) : (
             <img
               src="/logo.png"
               alt=""
-              style={{ width: '40%', height: '40%', objectFit: 'contain', opacity: 0.85, borderRadius: 12 }}
+              className="home-bar-thumb-fallback"
             />
           )}
         </span>
-        <div className="home-bar-chip-text">
-          <p className="home-bar-chip-name social-bar-name-label" style={barNameStyle} title={barName}>
+        <motion.div className="home-bar-chip-text">
+          <p className="home-bar-chip-name social-bar-name-label" title={barName}>
             {barName}
           </p>
-          {!isHomeGate ? (
-            <p className="home-bar-chip-line home-bar-chip-line--muted" style={metaLineStyle} title={viewLine}>
-              {viewLine}
-            </p>
-          ) : null}
-        </div>
+        </motion.div>
       </motion.button>
     );
   };
@@ -2404,18 +2424,18 @@ const HomePage = ({
     return () => document.removeEventListener('wheel', onWheel, { capture: true });
   }, [isHomeGate]);
 
-  const HOME_BRAND = '#D4436E';
-  const HOME_GOLD = '#C9A84C';
-  const HOME_GOLD_SOFT = '#C4A86A';
-  const HOME_GOLD_MUTED = '#9A9078';
-  const HOME_GOLD_BORDER = 'rgba(201, 168, 76, 0.38)';
-  const HOME_GOLD_BORDER_SOFT = 'rgba(201, 168, 76, 0.22)';
-  const HOME_BRAND_SOFT = '#FFF5F7';
-  const HOME_BRAND_BORDER = '#FBCFE8';
-  const HOME_TEXT = '#1E293B';
-  const HOME_TEXT_MUTED = '#64748B';
-  const HOME_SURFACE = '#F8FAFC';
-  const HOME_BORDER = '#E2E8F0';
+  const HOME_BRAND = '#FF1744';
+  const HOME_GOLD = '#FF1744';
+  const HOME_GOLD_SOFT = '#FF1744';
+  const HOME_GOLD_MUTED = 'rgba(0, 0, 0, 0.5)';
+  const HOME_GOLD_BORDER = 'rgba(255, 23, 68, 0.1)';
+  const HOME_GOLD_BORDER_SOFT = 'rgba(255, 23, 68, 0.1)';
+  const HOME_BRAND_SOFT = 'rgba(255, 23, 68, 0.1)';
+  const HOME_BRAND_BORDER = 'rgba(255, 23, 68, 0.1)';
+  const HOME_TEXT = '#000000';
+  const HOME_TEXT_MUTED = 'rgba(0, 0, 0, 0.5)';
+  const HOME_SURFACE = '#FFFFFF';
+  const HOME_BORDER = 'rgba(0, 0, 0, 0.08)';
   const homeUi = useMemo(() => (isHomeGateDark ? {
     pageBg: '#0D0D0D',
     text: '#FFFFFF',
@@ -2423,10 +2443,10 @@ const HomePage = ({
     surface: 'rgba(255, 255, 255, 0.06)',
     border: 'rgba(255, 255, 255, 0.1)',
     gold: HOME_GOLD,
-    goldSoft: 'rgba(201, 168, 76, 0.14)',
+    goldSoft: 'rgba(255, 23, 68, 0.1)',
     goldBorder: HOME_GOLD_BORDER,
-    brandSoft: 'rgba(212, 67, 110, 0.18)',
-    brandBorder: 'rgba(212, 67, 110, 0.45)',
+    brandSoft: 'rgba(255, 23, 68, 0.1)',
+    brandBorder: 'rgba(255, 23, 68, 0.1)',
     partyEmpty: {
       bg: 'rgba(255, 255, 255, 0.04)',
       border: 'rgba(255, 255, 255, 0.1)',
@@ -2436,7 +2456,7 @@ const HomePage = ({
       districts: '#FFFFFF',
     },
     partyActive: {
-      bg: 'rgba(201, 168, 76, 0.12)',
+      bg: 'rgba(255, 23, 68, 0.1)',
       border: HOME_GOLD_BORDER,
       label: '#FFFFFF',
       count: '#FFFFFF',
@@ -2462,30 +2482,30 @@ const HomePage = ({
     surface: HOME_SURFACE,
     border: HOME_BORDER,
     gold: HOME_GOLD,
-    goldSoft: 'rgba(201, 168, 76, 0.1)',
+    goldSoft: 'rgba(255, 23, 68, 0.1)',
     goldBorder: HOME_GOLD_BORDER_SOFT,
     brandSoft: HOME_BRAND_SOFT,
     brandBorder: HOME_BRAND_BORDER,
     partyEmpty: {
-      bg: HOME_SURFACE, border: HOME_BORDER, label: HOME_TEXT_MUTED, count: '#94A3B8', unit: '#94A3B8', districts: '#94A3B8',
+      bg: HOME_SURFACE, border: HOME_BORDER, label: HOME_TEXT_MUTED, count: 'rgba(0, 0, 0, 0.5)', unit: 'rgba(0, 0, 0, 0.5)', districts: 'rgba(0, 0, 0, 0.5)',
     },
     partyActive: {
-      bg: 'rgba(201, 168, 76, 0.1)',
+      bg: 'rgba(255, 23, 68, 0.1)',
       border: HOME_GOLD_BORDER_SOFT,
-      label: '#92400E',
+      label: '#000000',
       count: HOME_GOLD,
-      unit: '#B45309',
+      unit: '#FF1744',
       districts: HOME_GOLD_SOFT,
     },
     divider: HOME_BORDER,
     panelBg: '#FFFFFF',
-    panelBorder: '#E2E8F0',
+    panelBorder: 'rgba(0, 0, 0, 0.08)',
     panelShadow: '0 6px 28px rgba(15, 23, 42, 0.06)',
-    quickIcon: '#475569',
+    quickIcon: 'rgba(0, 0, 0, 0.5)',
     quickRegisterIcon: HOME_BRAND,
     posterActive: HOME_BRAND,
     posterIdle: '#F0F0F0',
-    liveShell: 'linear-gradient(135deg, #D4436E 0%, #C7365F 100%)',
+    liveShell: 'linear-gradient(135deg, #FF1744 0%, #FF1744 100%)',
     liveBorder: 'transparent',
     barSubtitle: HOME_TEXT_MUTED,
     barLabel: HOME_TEXT,
@@ -2508,7 +2528,7 @@ const HomePage = ({
   };
   const homeLuxurySectionBoxStyle = isHomeGateDark ? {
     border: `1px solid ${HOME_GOLD_BORDER}`,
-    boxShadow: '0 4px 22px rgba(201, 168, 76, 0.14)',
+    boxShadow: '0 4px 22px rgba(255, 23, 68, 0.1)',
   } : {
     border: `1px solid ${HOME_GOLD_BORDER_SOFT}`,
     boxShadow: '0 4px 16px rgba(15, 23, 42, 0.06)',
@@ -2707,12 +2727,25 @@ const HomePage = ({
     );
   };
 
+  const renderHomeGateSectionTitle = (title, extraClass = '') => (
+    <h2 className={`home-gate-section-title${extraClass ? ` ${extraClass}` : ''}`}>
+      <span className="home-gate-section-title__point" aria-hidden />
+      <span className="home-gate-section-title__text">{title}</span>
+    </h2>
+  );
+
   const renderHomeSectionHeader = (title, subtitle, trailing = null, subtitleStyle = null) => (
     <header style={{ marginBottom: 14 }}>
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8 }}>
-        <h2 className="home-type-section-title home-ds-title" style={{ ...homeSectionTitleStyle, flex: 1, minWidth: 0 }}>{title}</h2>
+      <motion.div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8 }}>
+        {isHomeGate ? (
+          <motion.div style={{ flex: 1, minWidth: 0 }}>
+            {renderHomeGateSectionTitle(title, 'home-type-section-title home-ds-title')}
+          </motion.div>
+        ) : (
+          <h2 className="home-type-section-title home-ds-title" style={{ ...homeSectionTitleStyle, flex: 1, minWidth: 0 }}>{title}</h2>
+        )}
         {trailing}
-      </div>
+      </motion.div>
       {subtitle ? (
         <p className="home-ds-subtitle" style={subtitleStyle || homeSubtitleStyle}>{subtitle}</p>
       ) : null}
@@ -2833,27 +2866,17 @@ const HomePage = ({
 
   const homeLiveBannerSlides = useMemo(() => {
     const sourceRows = (liveBannerPartyRows?.length ? liveBannerPartyRows : parties) || [];
-    const withPoster = filterTodayPosterParties(sourceRows, calendarTodayStr);
-
-    const built = buildHomeLiveBannerSlides({
-      regionCounts,
-      withPosterParties: withPoster,
-      isEn: isHomeGate ? false : isEn,
+    return buildHomeLiveBannerSummary({
+      sourceRows,
+      todayStr: calendarTodayStr,
+      isEn,
     });
-
-    if (!isHomeGate) return built;
-
-    const slides = built.slides.filter((slide) => slide.tier === 'fixed' && slide.party);
-    return {
-      ...built,
-      slides: slides.length > 0 ? slides : built.slides.filter((slide) => slide.party),
-    };
-  }, [parties, liveBannerPartyRows, calendarTodayStr, isEn, isHomeGate, regionCounts]);
+  }, [parties, liveBannerPartyRows, calendarTodayStr, isEn]);
 
   useEffect(() => {
     liveBannerSlideIdxRef.current = 0;
     setLiveBannerSlideIdx(0);
-  }, [calendarTodayStr, regionCounts.seoul, regionCounts.metro, regionCounts.national]);
+  }, [calendarTodayStr]);
 
   useEffect(() => {
     if (homeLiveBannerSlides.slides.length < 2) return undefined;
@@ -2983,6 +3006,7 @@ const HomePage = ({
         style={{ width: '92%', maxWidth: '100%', margin: '0 auto', boxSizing: 'border-box' }}
         aria-label={isEn ? "Today's posters" : '오늘 포스터'}
       >
+        {renderHomeGateSectionTitle(isEn ? 'Recommended Events' : '추천 행사', 'home-region-poster-banner__section-title')}
         <style>{`
           .home-region-poster-banner-standalone {
             width: 92%;
@@ -2990,6 +3014,9 @@ const HomePage = ({
             margin-left: auto;
             margin-right: auto;
             box-sizing: border-box;
+          }
+          .home-region-poster-banner__section-title {
+            margin: 0 0 12px;
           }
           .home-region-poster-banner__frame {
             position: relative;
@@ -3037,7 +3064,7 @@ const HomePage = ({
             font-weight: 800;
             letter-spacing: -0.02em;
             color: #fff;
-            background: rgba(212, 67, 110, 0.92);
+            background: rgba(255, 23, 68, 0.1);
           }
           .home-region-poster-banner__title {
             margin: 0;
@@ -3152,7 +3179,7 @@ const HomePage = ({
 
     return (
       <section className="home-hot-instructors-wrap" aria-label="지금 핫한 강사">
-        <h2 className="home-hot-instructors-title">🔥 지금 핫한 강사</h2>
+        {renderHomeGateSectionTitle('지금 핫한 강사', 'home-hot-instructors-title')}
         <div className="home-hot-instructors-scroll scrollbar-hide">
           <div className="home-hot-instructors-track">
             {hotInstructorsLoading
@@ -3219,7 +3246,7 @@ const HomePage = ({
           background: 'transparent',
           borderRadius: '14px',
           overflow: 'hidden',
-          border: isHomeGateDark ? '1px solid rgba(201, 168, 76, 0.2)' : 'none',
+          border: isHomeGateDark ? '1px solid rgba(255, 23, 68, 0.1)' : 'none',
           boxShadow: isHomeGateDark ? '0 6px 24px rgba(0, 0, 0, 0.38)' : 'none',
         }}
       >
@@ -3248,8 +3275,8 @@ const HomePage = ({
               box-shadow: none !important;
             }
             body.home-gate-theme button[style*="z-index: 1005"] {
-              border: 1px solid rgba(201, 168, 76, 0.28) !important;
-              background: rgba(0, 0, 0, 0.45) !important;
+              border: 1px solid rgba(0, 0, 0, 0.08) !important;
+              background: rgba(255, 255, 255, 0.9) !important;
             }
             body:not(.home-gate-theme) button[style*="z-index: 1005"] {
               border: 1px solid rgba(0,0,0,0.08) !important;
@@ -3266,27 +3293,25 @@ const HomePage = ({
               100% { background-position: 0% 50%; }
             }
 
-            /* 메인 홈 LIVE — 다크·골드 (포스터·퀵메뉴와 톤 통일) */
-            .home-gate-active .home-main-live-slot--gate {
+            /* 메인 홈 LIVE — 흰/검/빨 (히어로 톤) */
+            .home-gate-shell .home-main-live-slot--gate {
               width: 100%;
             }
-            .home-gate-active .home-live-banner-fallback--gate {
+            .home-gate-shell .home-live-banner-fallback--gate {
               width: 100%;
             }
-            .home-gate-active .live-count-premium-wrapper--gate .live-dynamic-banner,
-            .home-gate-active .live-count-premium-wrapper--gate .live-dynamic-banner--gate {
+            .home-gate-shell .live-count-premium-wrapper--gate .live-dynamic-banner,
+            .home-gate-shell .live-count-premium-wrapper--gate .live-dynamic-banner--gate {
               width: 100% !important;
-              background: linear-gradient(135deg, #121212 0%, #1a1610 48%, #0f0f0f 100%) !important;
+              background: #FFFFFF !important;
               background-size: 100% 100% !important;
               animation: none !important;
               padding: 0 !important;
-              border: 1px solid rgba(201, 168, 76, 0.22) !important;
+              border: 1px solid rgba(0, 0, 0, 0.08) !important;
               border-radius: 12px !important;
-              box-shadow:
-                inset 0 1px 0 rgba(201, 168, 76, 0.1),
-                0 6px 22px rgba(0, 0, 0, 0.4) !important;
+              box-shadow: 0 2px 10px rgba(0, 0, 0, 0.06) !important;
             }
-            .home-gate-active .live-count-premium-wrapper--gate .live-dynamic-banner__inner {
+            .home-gate-shell .live-count-premium-wrapper--gate .live-dynamic-banner__inner {
               min-height: 42px !important;
               height: 42px !important;
               padding: 0 14px !important;
@@ -3296,40 +3321,48 @@ const HomePage = ({
               width: 100% !important;
               overflow: hidden !important;
               flex-wrap: nowrap !important;
-              color: rgba(255, 255, 255, 0.92) !important;
+              color: #000000 !important;
             }
-            .home-gate-active .live-count-premium-wrapper--gate .lc-tag {
-              background: rgba(201, 168, 76, 0.12) !important;
-              color: #e8d5a3 !important;
-              border: 1px solid rgba(201, 168, 76, 0.32) !important;
+            .home-gate-shell .live-count-premium-wrapper--gate .lc-tag {
+              background: #FF1744 !important;
+              color: #FFFFFF !important;
+              border: none !important;
               border-radius: 6px !important;
               padding: 2px 8px !important;
               font-size: 10px !important;
               font-weight: 800 !important;
               letter-spacing: 0.06em !important;
             }
-            .home-gate-active .live-count-premium-wrapper--gate .lc-dot {
+            .home-gate-shell .live-count-premium-wrapper--gate .lc-dot {
               width: 5px !important;
               height: 5px !important;
-              background: #d4436e !important;
-              box-shadow: 0 0 8px rgba(212, 67, 110, 0.45) !important;
+              background: #FF1744 !important;
+              box-shadow: none !important;
             }
-            .home-gate-active .live-count-premium-wrapper--gate .live-dynamic-banner__sep--dot {
-              color: rgba(201, 168, 76, 0.42) !important;
+            .home-gate-shell .live-count-premium-wrapper--gate .live-dynamic-banner__sep--dot {
+              color: #000000 !important;
               font-size: 11px !important;
               font-weight: 700 !important;
             }
-            .home-gate-active .live-count-premium-wrapper--gate .live-dynamic-banner__spotlight,
-            .home-gate-active .live-count-premium-wrapper--gate .live-dynamic-banner__spotlight--solo {
-              color: #f8fafc !important;
+            .home-gate-shell .live-count-premium-wrapper--gate .live-dynamic-banner__spotlight,
+            .home-gate-shell .live-count-premium-wrapper--gate .live-dynamic-banner__spotlight--solo {
+              color: #000000 !important;
               font-weight: 700 !important;
               font-size: clamp(11px, 3.1vw, 13px) !important;
               letter-spacing: -0.02em !important;
               text-shadow: none !important;
             }
+            @media (max-width: 390px) {
+              .home-gate-shell .live-count-premium-wrapper--gate .live-dynamic-banner__inner {
+                padding: 0 12px !important;
+              }
+              .home-gate-shell .live-count-premium-wrapper--gate .live-dynamic-banner__spotlight--solo {
+                font-size: 11px !important;
+              }
+            }
 
-            /* 소셜 탭 등 — 기존 무지개 LIVE */
-            .app-container:not(.home-gate-active) .live-count-premium-wrapper .live-dynamic-banner {
+            /* 메인 홈 LIVE — 다크·골드 (레거시 home-gate-active) */
+            .app-container:not(.home-gate-active) .live-count-premium-wrapper:not(.live-count-premium-wrapper--gate) .live-dynamic-banner {
               width: 100% !important;
               background: linear-gradient(270deg, #ff6b6b, #ffd93d, #6bcb77, #4d96ff, #c77dff) !important;
               background-size: 400% 400% !important;
@@ -3338,7 +3371,7 @@ const HomePage = ({
               border: none !important;
               border-radius: 14px !important;
             }
-            .live-count-premium-wrapper .live-dynamic-banner__inner {
+            .live-count-premium-wrapper:not(.live-count-premium-wrapper--gate) .live-dynamic-banner__inner {
               min-height: 48px !important;
               height: 48px !important;
               padding: 0 clamp(12px, 3.5vw, 16px) !important;
@@ -3410,8 +3443,8 @@ const HomePage = ({
               flex-shrink: 1 !important;
               min-width: 0 !important;
             }
-            .app-container:not(.home-gate-active) .live-count-premium-wrapper .live-dynamic-banner__spotlight,
-            .app-container:not(.home-gate-active) .live-count-premium-wrapper .live-dynamic-banner__spotlight--solo {
+            .app-container:not(.home-gate-active) .live-count-premium-wrapper:not(.live-count-premium-wrapper--gate) .live-dynamic-banner__spotlight,
+            .app-container:not(.home-gate-active) .live-count-premium-wrapper:not(.live-count-premium-wrapper--gate) .live-dynamic-banner__spotlight--solo {
               color: #ffffff !important;
               font-weight: 900 !important;
               font-size: clamp(12px, 3.6vw, 15px) !important;
@@ -3461,14 +3494,14 @@ const HomePage = ({
               min-width: 54px;
               padding: 0 12px;
               border-radius: 14px;
-              border: 1px solid rgba(212, 67, 110, 0.35);
-              background: linear-gradient(180deg, #fff5f7 0%, #ffe4ec 100%);
-              color: #D4436E;
+              border: 1px solid rgba(255, 23, 68, 0.1);
+              background: linear-gradient(180deg, #FFFFFF 0%, rgba(255, 23, 68, 0.1) 100%);
+              color: #FF1744;
               font-size: 12px;
               font-weight: 900;
               line-height: 1.15;
               cursor: pointer;
-              box-shadow: 0 4px 14px rgba(212, 67, 110, 0.18);
+              box-shadow: 0 4px 14px rgba(255, 23, 68, 0.1);
             }
             .home-party-register-outside__line { display: block; }
           `}</style>
@@ -3507,45 +3540,35 @@ const HomePage = ({
 
       {/* 📌 [영역 A: 히어로 / 메인 게이트] */}
       <motion.div
+        className={isHomeGate ? 'home-hero-zone' : undefined}
         style={{
           padding: isHomeGate ? '20px 16px 0' : '20px 16px 0',
           marginBottom: isHomeGate ? 20 : homeSectionSpace - 4,
+          background: isHomeGate ? '#FFFFFF' : undefined,
         }}
       >
         {activeTab === null && (
         <motion.div
           className="home-hero-brand"
-          style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: isHomeGate ? 18 : 20 }}
+          style={{
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'flex-start',
+            marginBottom: isHomeGate ? 18 : 20,
+          }}
         >
-          <img
-            src="/logo.png"
-            alt="오늘밤빠 로고"
-            onClick={() => {
-              const now = Date.now();
-              if (now - lastAdminTap < 2000) {
-                const nextCount = adminTapCount + 1;
-                if (nextCount >= 3) { navigate('/admin-portal'); setAdminTapCount(0); }
-                else { setAdminTapCount(nextCount); }
-              } else { setAdminTapCount(1); }
-              setLastAdminTap(now);
-            }}
-            style={{
-              width: '56px',
-              height: '56px',
-              flexShrink: 0,
-              objectFit: 'contain',
-              borderRadius: '14px',
-              cursor: 'pointer',
-              userSelect: 'none',
-              boxShadow: isHomeGateDark ? '0 4px 16px rgba(0,0,0,0.45)' : '0 2px 10px rgba(0,0,0,0.08)',
-              border: isHomeGateDark ? '1px solid rgba(201,168,76,0.25)' : 'none',
-            }}
-            onError={(e) => { e.currentTarget.style.display = 'none' }}
-          />
-          <motion.div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', gap: isHomeGate ? 6 : 2 }}>
-            <h1 className="home-type-display" style={{ color: homeUi.text, fontWeight: 900, margin: 0 }}>오늘 어디서 춤추실까요?</h1>
-            <HomeHeroTagline />
-          </motion.div>
+          <h1
+            className="home-type-display home-hero-title"
+            style={{ color: '#FF1744', fontSize: '32px', fontWeight: 900, margin: 0, lineHeight: 1.15 }}
+          >
+            오늘밤빠
+          </h1>
+          <p
+            className="home-type-tagline home-type-tagline-sub home-hero-tagline"
+            style={{ color: '#000000', fontSize: '15px', fontWeight: 600, margin: '4px 0 0', lineHeight: 1.35 }}
+          >
+            켜고, 찾고, 가면 끝
+          </p>
         </motion.div>
         )}
       </motion.div>
@@ -3680,20 +3703,44 @@ const HomePage = ({
           );
         }
         .home-gate-shell:not(.home-gate-active) .home-gate-king-menu__toggle {
-          border: 1px solid #e2e8f0;
-          background: #f8fafc;
-          color: #64748b;
+          border: 1px solid rgba(0, 0, 0, 0.08);
+          background: #FFFFFF;
+          color: rgba(0, 0, 0, 0.5);
         }
         .home-gate-shell:not(.home-gate-active) .home-gate-king-menu__grid .home-quick-menu-item-label {
-          color: #475569;
+          color: rgba(0, 0, 0, 0.5);
         }
         .home-gate-shell:not(.home-gate-active) .home-gate-king-menu__grid .home-quick-menu-icon-circle {
           background: #ffffff;
-          border: 1px solid #e2e8f0;
-          color: #475569;
+          border: 1px solid rgba(0, 0, 0, 0.08);
+          color: rgba(0, 0, 0, 0.5);
         }
         .home-gate-shell:not(.home-gate-active) .home-hot-instructors-title {
-          color: #c9a84c !important;
+          color: #000000 !important;
+        }
+        .home-gate-section-title {
+          display: flex;
+          align-items: center;
+          margin: 0;
+          font-size: 16px;
+          font-weight: 900;
+          color: #000000;
+          letter-spacing: -0.02em;
+        }
+        .home-gate-section-title__point {
+          width: 3px;
+          height: 18px;
+          background: #FF1744;
+          border-radius: 2px;
+          margin-right: 8px;
+          display: inline-block;
+          flex-shrink: 0;
+        }
+        .home-gate-section-title__text {
+          min-width: 0;
+        }
+        .home-hot-instructors-wrap .home-gate-section-title {
+          margin-bottom: 12px;
         }
         .home-gate-shell:not(.home-gate-active) .home-social-bar-scroll--peek-more::after {
           content: '';
@@ -3778,9 +3825,9 @@ const HomePage = ({
           cursor: pointer;
         }
         .home-gate-king-menu__toggle[aria-expanded="true"] {
-          color: #f5e6b8;
-          border-color: rgba(201, 168, 76, 0.35);
-          background: rgba(201, 168, 76, 0.1);
+          color: #FF1744;
+          border-color: rgba(255, 23, 68, 0.1);
+          background: rgba(255, 23, 68, 0.1);
         }
         .home-gate-king-menu__grid {
           grid-template-columns: repeat(5, minmax(0, 1fr));
@@ -3799,8 +3846,8 @@ const HomePage = ({
           height: 48px;
           border-radius: 50%;
           background: rgba(255, 255, 255, 0.05);
-          border: 1px solid rgba(201, 168, 76, 0.22);
-          color: #C9A84C;
+          border: 1px solid rgba(255, 23, 68, 0.1);
+          color: #FF1744;
           display: flex;
           align-items: center;
           justify-content: center;
@@ -3815,23 +3862,23 @@ const HomePage = ({
         .home-quick-menu-item--register-party .home-quick-menu-icon-circle {
           width: 52px;
           height: 52px;
-          background: rgba(212, 67, 110, 0.14);
-          border: 1.5px solid rgba(212, 67, 110, 0.45);
-          color: #F472B6;
+          background: rgba(255, 23, 68, 0.1);
+          border: 1.5px solid rgba(255, 23, 68, 0.1);
+          color: #FF1744;
         }
         .home-quick-menu-item--register-party .home-quick-menu-item-label {
-          color: #F9A8D4;
+          color: #FF1744;
           font-weight: 800;
         }
         .home-quick-menu-item--register-class .home-quick-menu-icon-circle {
           width: 52px;
           height: 52px;
-          background: rgba(37, 99, 235, 0.14);
-          border: 1.5px solid rgba(37, 99, 235, 0.45);
-          color: #60A5FA;
+          background: rgba(0, 0, 0, 0.08);
+          border: 1.5px solid rgba(0, 0, 0, 0.08);
+          color: #000000;
         }
         .home-quick-menu-item--register-class .home-quick-menu-item-label {
-          color: #93C5FD;
+          color: rgba(0, 0, 0, 0.5);
           font-weight: 800;
         }
         .home-gate-active .home-quick-menu-icon-circle {
@@ -3842,7 +3889,7 @@ const HomePage = ({
           color: #ffffff;
         }
         .home-gate-active .home-quick-menu-item--register-party .home-quick-menu-icon-circle {
-          background: rgba(212, 67, 110, 0.18);
+          background: rgba(255, 23, 68, 0.1);
         }
         .home-gate-active .home-quick-menu-item--register-party .home-quick-menu-item-label,
         .home-gate-active .home-quick-menu-item--register-class .home-quick-menu-item-label,
@@ -3850,28 +3897,28 @@ const HomePage = ({
           color: #ffffff !important;
         }
         .home-gate-active .home-quick-menu-item--register-class .home-quick-menu-icon-circle {
-          background: rgba(37, 99, 235, 0.18);
+          background: rgba(0, 0, 0, 0.08);
         }
         .app-container:not(.home-gate-active) .home-quick-menu-icon-circle {
-          background: #F8FAFC;
-          border-color: #E2E8F0;
-          color: #64748B;
+          background: #FFFFFF;
+          border-color: rgba(0, 0, 0, 0.08);
+          color: rgba(0, 0, 0, 0.5);
         }
         .app-container:not(.home-gate-active) .home-quick-menu-item--register-party .home-quick-menu-icon-circle {
-          background: rgba(212, 67, 110, 0.1);
-          border-color: rgba(212, 67, 110, 0.35);
-          color: #D4436E;
+          background: rgba(255, 23, 68, 0.1);
+          border-color: rgba(255, 23, 68, 0.1);
+          color: #FF1744;
         }
         .app-container:not(.home-gate-active) .home-quick-menu-item--register-party .home-quick-menu-item-label {
-          color: #BE185D;
+          color: #FF1744;
         }
         .app-container:not(.home-gate-active) .home-quick-menu-item--register-class .home-quick-menu-icon-circle {
-          background: rgba(37, 99, 235, 0.08);
-          border-color: rgba(37, 99, 235, 0.35);
-          color: #2563EB;
+          background: rgba(0, 0, 0, 0.08);
+          border-color: rgba(0, 0, 0, 0.08);
+          color: #000000;
         }
         .app-container:not(.home-gate-active) .home-quick-menu-item--register-class .home-quick-menu-item-label {
-          color: #1D4ED8;
+          color: #000000;
         }
         .home-quick-menu-grid {
           display: grid;
@@ -3887,7 +3934,7 @@ const HomePage = ({
           padding: 4px 0;
           border: none;
           background: none;
-          color: #64748B;
+          color: rgba(0, 0, 0, 0.5);
           font-size: var(--ds-body-size);
           font-weight: var(--ds-subtitle-weight);
           cursor: pointer;
@@ -3900,9 +3947,9 @@ const HomePage = ({
           gap: 4px;
           padding: 6px 10px;
           border-radius: 100px;
-          border: 1px solid #E2E8F0;
-          background: #F8FAFC;
-          color: #334155;
+          border: 1px solid rgba(0, 0, 0, 0.08);
+          background: #FFFFFF;
+          color: #000000;
           font-size: var(--ds-body-size);
           font-weight: var(--ds-subtitle-weight);
           cursor: pointer;
@@ -4077,28 +4124,28 @@ const HomePage = ({
           background: #ffffff !important;
           border: 1.5px solid rgba(255, 255, 255, 0.92) !important;
           box-shadow: 0 2px 10px rgba(0, 0, 0, 0.28);
-          color: #1e293b !important;
+          color: #000000 !important;
         }
         .home-gate-active .home-quick-menu-scroll--gate-all .home-quick-menu-icon-circle svg {
           width: 26px;
           height: 26px;
-          color: #1e293b !important;
+          color: #000000 !important;
         }
         .home-gate-active .home-quick-menu-scroll--gate-all .home-quick-menu-item--register-party .home-quick-menu-icon-circle {
-          background: rgba(212, 67, 110, 0.2) !important;
-          border: 1.5px solid rgba(244, 114, 182, 0.55) !important;
-          color: #F9A8D4 !important;
+          background: rgba(255, 23, 68, 0.1) !important;
+          border: 1.5px solid rgba(255, 23, 68, 0.1) !important;
+          color: #FF1744 !important;
         }
         .home-gate-active .home-quick-menu-scroll--gate-all .home-quick-menu-item--register-party .home-quick-menu-icon-circle svg {
-          color: #F9A8D4 !important;
+          color: #FF1744 !important;
         }
         .home-gate-active .home-quick-menu-scroll--gate-all .home-quick-menu-item--register-class .home-quick-menu-icon-circle {
-          background: rgba(37, 99, 235, 0.2) !important;
-          border: 1.5px solid rgba(96, 165, 250, 0.55) !important;
-          color: #93C5FD !important;
+          background: rgba(0, 0, 0, 0.08) !important;
+          border: 1.5px solid rgba(0, 0, 0, 0.08) !important;
+          color: #000000 !important;
         }
         .home-gate-active .home-quick-menu-scroll--gate-all .home-quick-menu-item--register-class .home-quick-menu-icon-circle svg {
-          color: #93C5FD !important;
+          color: rgba(0, 0, 0, 0.5) !important;
         }
         .home-gate-active .home-quick-menu-scroll--gate-all .home-quick-menu-item-label {
           color: #ffffff !important;
@@ -4118,8 +4165,8 @@ const HomePage = ({
           color: #ffffff;
         }
         .home-gate-active .home-section-action {
-          border-color: rgba(201, 168, 76, 0.4);
-          background: rgba(201, 168, 76, 0.12);
+          border-color: rgba(255, 23, 68, 0.1);
+          background: rgba(255, 23, 68, 0.1);
           color: #ffffff;
         }
         .home-gate-active .home-social-bar-wrap .home-bar-thumb {
@@ -4127,8 +4174,8 @@ const HomePage = ({
           border: 1px solid rgba(255, 255, 255, 0.1);
         }
         .home-gate-active .home-social-bar-wrap .home-bar-thumb--my-region {
-          box-shadow: 0 0 0 1px rgba(201, 168, 76, 0.38);
-          border-color: rgba(201, 168, 76, 0.4);
+          box-shadow: 0 0 0 1px rgba(255, 23, 68, 0.1);
+          border-color: rgba(255, 23, 68, 0.1);
         }
         .home-gate-active .home-social-bar-wrap .home-bar-chip--my-region .home-bar-chip-name,
         .home-gate-active .home-social-bar-wrap .home-bar-chip--my-region .social-bar-name-label {
@@ -4140,11 +4187,27 @@ const HomePage = ({
         .home-gate-active .quick-menu-more-wrap::after {
           background: linear-gradient(to right, rgba(var(--home-fade-rgb, 13, 13, 13), 0), var(--home-page-bg, #0d0d0d) 90%);
         }
+        .home-gate-shell .home-hero-zone {
+          background: #FFFFFF;
+        }
+        .home-gate-shell .home-hero-brand .home-hero-title {
+          color: #FF1744 !important;
+          font-size: 32px !important;
+          font-weight: 900 !important;
+        }
+        .home-gate-shell .home-hero-brand .home-hero-tagline {
+          color: #000000 !important;
+          font-size: 15px !important;
+          font-weight: 600 !important;
+        }
+        .home-gate-shell .home-hero-brand .home-type-display {
+          color: #FF1744 !important;
+        }
         .home-hero-brand .home-type-display {
           margin: 0 !important;
         }
         .home-hero-brand .home-type-tagline {
-          margin: 0 !important;
+          margin: 4px 0 0 !important;
         }
         .social-bar-name-label {
           font-weight: 900;
@@ -4153,32 +4216,104 @@ const HomePage = ({
           color: #FFFFFF;
           text-shadow: 0 1px 4px rgba(0, 0, 0, 0.8);
         }
+        .home-social-bar-wrap .home-social-bar-track,
+        .home-social-bar-wrap .home-social-bar-track--peek {
+          display: inline-flex;
+          flex-wrap: nowrap;
+          align-items: flex-start;
+          gap: 12px;
+          width: max-content;
+          min-width: 100%;
+          padding: 0 2px 2px;
+        }
+        .home-social-bar-wrap .home-bar-chip {
+          flex: 0 0 auto !important;
+          width: 80px !important;
+          min-width: 80px !important;
+          max-width: 80px !important;
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          padding: 0;
+          margin: 0;
+          border: none;
+          background: none;
+          box-sizing: border-box;
+        }
+        .home-social-bar-wrap .home-bar-thumb {
+          width: 72px !important;
+          height: 72px !important;
+          aspect-ratio: auto !important;
+          border-radius: 50% !important;
+          overflow: hidden;
+          background: #FFFFFF;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          flex-shrink: 0;
+        }
+        .home-social-bar-wrap .home-bar-thumb img {
+          width: 100%;
+          height: 100%;
+          object-fit: cover;
+          object-position: center;
+          border-radius: 50%;
+          display: block;
+        }
+        .home-social-bar-wrap .home-bar-thumb-fallback {
+          width: 40%;
+          height: 40%;
+          object-fit: contain;
+          opacity: 0.85;
+        }
         .home-social-bar-wrap .home-bar-chip-text {
           display: flex;
           flex-direction: column;
           align-items: center;
           width: 100%;
-          margin-top: 4px;
+          margin-top: 0;
           text-align: center;
+          gap: 4px;
         }
-        .home-social-bar-wrap .home-bar-chip-name {
-          font-size: 11px !important;
-          font-weight: 700 !important;
+        .home-social-bar-wrap .home-bar-chip-name,
+        .home-social-bar-wrap .social-bar-name-label {
+          margin: 6px 0 0 !important;
+          width: 100%;
+          font-size: 12px !important;
+          font-weight: 800 !important;
           line-height: 1.25 !important;
           text-align: center !important;
+          color: #000000 !important;
+          text-shadow: none !important;
           white-space: normal !important;
           word-break: keep-all;
-        }
-        .home-social-bar-wrap .home-bar-chip-line,
-        .home-social-bar-wrap .home-bar-chip-line--muted,
-        .home-social-bar-wrap .home-bar-chip-line--hot {
-          font-size: 11px !important;
-          font-weight: 700 !important;
-          text-align: center !important;
-          white-space: normal !important;
-          word-break: keep-all;
-          overflow: visible !important;
+          display: -webkit-box;
+          -webkit-line-clamp: 2;
+          -webkit-box-orient: vertical;
+          overflow: hidden;
           text-overflow: unset !important;
+        }
+        .home-social-bar-wrap .home-bar-region-badge {
+          display: inline-block;
+          max-width: 100%;
+          margin: 0;
+          padding: 2px 8px;
+          border-radius: 20px;
+          background: #F1F5F9;
+          color: rgba(0, 0, 0, 0.5);
+          font-size: 10px;
+          font-weight: 600;
+          line-height: 1.3;
+          white-space: nowrap;
+          overflow: hidden;
+          text-overflow: ellipsis;
+        }
+        .home-social-bar-wrap .home-bar-chip--my-region .home-bar-chip-name,
+        .home-social-bar-wrap .home-bar-chip--my-region .social-bar-name-label {
+          color: #000000 !important;
+        }
+        .home-social-bar-wrap .home-bar-thumb--my-region {
+          box-shadow: 0 0 0 2px #FF1744;
         }
         @keyframes home-hot-instructor-skeleton-pulse {
           0%, 100% { opacity: 0.4; }
@@ -4192,8 +4327,10 @@ const HomePage = ({
           border: 1px solid rgba(255, 255, 255, 0.08) !important;
           box-shadow: none !important;
         }
-        .home-gate-shell .home-social-bar-panel--gate .home-type-section-title {
-          font-size: 15px !important;
+        .home-gate-shell .home-social-bar-panel--gate .home-type-section-title.home-gate-section-title {
+          font-size: 16px !important;
+          font-weight: 900 !important;
+          color: #000000 !important;
         }
         .home-gate-shell .home-region-tabs {
           margin-bottom: 4px;
@@ -4224,24 +4361,10 @@ const HomePage = ({
         .home-gate-shell .home-social-bar-track--peek {
           display: inline-flex;
           flex-wrap: nowrap;
-          gap: 10px;
+          gap: 12px;
           width: max-content;
           min-width: 100%;
           padding: 0 2px 2px;
-        }
-        .home-gate-shell .home-social-bar-track--peek .home-bar-chip {
-          flex: 0 0 auto;
-          width: calc((min(100vw, 500px) - 56px) / 2.35);
-          min-width: calc((min(100vw, 500px) - 56px) / 2.35);
-          max-width: 168px;
-        }
-        .home-gate-shell .home-social-bar-track--peek .home-bar-thumb {
-          border-radius: 12px;
-        }
-        .home-gate-shell .home-social-bar-track--peek .home-bar-chip-name {
-          font-size: 11px !important;
-          font-weight: 800 !important;
-          margin-top: 8px !important;
         }
         .home-gate-shell .home-hot-instructors-wrap {
           padding: 12px 16px 0;
@@ -4259,7 +4382,7 @@ const HomePage = ({
           margin: 20px 0 0;
           padding: 0;
           border: none;
-          border-top: 1px solid #e2e8f0;
+          border-top: 1px solid rgba(0, 0, 0, 0.08);
         }
         .home-gate-active .home-hot-instructors-divider {
           border-top-color: rgba(255, 255, 255, 0.12);
@@ -4269,10 +4392,6 @@ const HomePage = ({
         }
         .home-hot-instructors-title {
           margin: 0 0 12px;
-          color: #c9a84c;
-          font-size: 15px;
-          font-weight: 800;
-          letter-spacing: -0.02em;
         }
         .home-hot-instructors-scroll {
           display: block;
@@ -4403,7 +4522,7 @@ const HomePage = ({
               }}
             >
               <Plus size={12} strokeWidth={2.5} />
-              {isEn ? 'Add' : '등록'}
+              {isEn ? 'Add' : '신규등록'}
             </button>,
             isHomeGateDark ? { color: homeUi.barSubtitle, fontWeight: 600 } : null,
           )}
@@ -4430,11 +4549,11 @@ const HomePage = ({
 
           <motion.div className="home-social-bar-outer">
             {locationsLoading || geoRegionStatus === 'pending' ? (
-              <div style={{ padding: '60px 20px', textAlign: 'center', color: '#94A3B8', fontWeight: 700 }}>
+              <div style={{ padding: '60px 20px', textAlign: 'center', color: 'rgba(0, 0, 0, 0.5)', fontWeight: 700 }}>
                 {geoRegionStatus === 'pending' ? '현재 위치 기준 지역을 확인하는 중...' : '전국 BAR 정보를 정렬하는 중...'}
               </div>
             ) : !selectedRegionTab ? (
-              <div style={{ padding: '40px 20px', textAlign: 'center', color: '#94A3B8', fontSize: '13px', fontWeight: 600 }}>
+              <div style={{ padding: '40px 20px', textAlign: 'center', color: 'rgba(0, 0, 0, 0.5)', fontSize: '13px', fontWeight: 600 }}>
                 지역을 선택해 주세요.
               </div>
             ) : (
@@ -4446,7 +4565,7 @@ const HomePage = ({
 
                 if (filteredBars.length === 0) {
                   return (
-                    <div style={{ padding: '40px 20px', textAlign: 'center', color: '#94A3B8', fontSize: '13px', fontWeight: 600 }}>
+                    <div style={{ padding: '40px 20px', textAlign: 'center', color: 'rgba(0, 0, 0, 0.5)', fontSize: '13px', fontWeight: 600 }}>
                       {isEn ? 'No spots in this area yet.' : '이 지역 장소가 아직 없어요.'}
                     </div>
                   );
@@ -4510,22 +4629,22 @@ const HomePage = ({
           }}
         >
           {[
-            { icon: <Calendar size={32} strokeWidth={1.2} color="#D4436E" />, label: '행사달력', particles: '📅', action: () => setShowFullCalendar(true) },
-            // { icon: <MapPin size={32} strokeWidth={1.2} color="#D4436E" />, label: '위치·대관', particles: '📍', action: () => setShowRentalModal(true) },
-            { icon: <Users size={32} strokeWidth={1.2} color="#C9A84C" />, label: '파트너', particles: '💑', action: () => setActiveTab('partner') },
-            { icon: <Users size={32} strokeWidth={1.2} color="#C9A84C" />, label: '강사찾기', particles: '🕺', action: () => { localStorage.setItem('instructor_target_genre', '전체'); navigate('/instructors'); setTimeout(() => { window.dispatchEvent(new CustomEvent('apply-instructor-filter')); }, 300); } },
+            { icon: <Calendar size={32} strokeWidth={1.2} color="#FF1744" />, label: '행사달력', particles: '📅', action: () => setShowFullCalendar(true) },
+            // { icon: <MapPin size={32} strokeWidth={1.2} color="#FF1744" />, label: '위치·대관', particles: '📍', action: () => setShowRentalModal(true) },
+            { icon: <Users size={32} strokeWidth={1.2} color="#FF1744" />, label: '파트너', particles: '💑', action: () => setActiveTab('partner') },
+            { icon: <Users size={32} strokeWidth={1.2} color="#FF1744" />, label: '강사찾기', particles: '🕺', action: () => { localStorage.setItem('instructor_target_genre', '전체'); navigate('/instructors'); setTimeout(() => { window.dispatchEvent(new CustomEvent('apply-instructor-filter')); }, 300); } },
             { textIcon: '1:1', label: '채팅문의', particles: '💬', action: () => window.open('https://open.kakao.com/o/gP43rNri', '_blank') },
-            { icon: <MessageSquare size={32} strokeWidth={1.2} color="#C9A84C" />, label: '컨시어지', particles: '✨', action: () => window.dispatchEvent(new CustomEvent('open-chatbot')) },
-            { icon: <Star size={32} strokeWidth={1.2} color="#C9A84C" />, label: '운명의좌표', particles: '🌟', action: () => setShowSaju(true) },
-            { icon: <Heart size={32} strokeWidth={1.2} color="#C9A84C" />, label: '찜하기', particles: '❤️', action: () => pushOverlay('wishlist') },
-            { icon: <Utensils size={32} strokeWidth={1.2} color="#C9A84C" />, label: '맛집뒷풀이', particles: '🍽', action: () => navigate('/restaurant') },
-            { icon: <Camera size={32} strokeWidth={1.2} color="#C9A84C" />, label: '라이브픽', particles: '📸', action: () => navigate('/livepick') },
-            { icon: <CloudSun size={32} strokeWidth={1.2} color="#C9A84C" />, label: '오늘날씨', particles: '☀️', action: () => pushOverlay('weather') },
-            { icon: <Navigation size={32} strokeWidth={1.2} color="#C9A84C" />, label: '지능형경로', particles: '🧭', action: () => pushOverlay('route') },
+            { icon: <MessageSquare size={32} strokeWidth={1.2} color="#FF1744" />, label: '컨시어지', particles: '✨', action: () => window.dispatchEvent(new CustomEvent('open-chatbot')) },
+            { icon: <Star size={32} strokeWidth={1.2} color="#FF1744" />, label: '운명의좌표', particles: '🌟', action: () => setShowSaju(true) },
+            { icon: <Heart size={32} strokeWidth={1.2} color="#FF1744" />, label: '찜하기', particles: '❤️', action: () => pushOverlay('wishlist') },
+            { icon: <Utensils size={32} strokeWidth={1.2} color="#FF1744" />, label: '맛집뒷풀이', particles: '🍽', action: () => navigate('/restaurant') },
+            { icon: <Camera size={32} strokeWidth={1.2} color="#FF1744" />, label: '라이브픽', particles: '📸', action: () => navigate('/livepick') },
+            { icon: <CloudSun size={32} strokeWidth={1.2} color="#FF1744" />, label: '오늘날씨', particles: '☀️', action: () => pushOverlay('weather') },
+            { icon: <Navigation size={32} strokeWidth={1.2} color="#FF1744" />, label: '지능형경로', particles: '🧭', action: () => pushOverlay('route') },
           ].map((item, idx) => (
             <motion.div key={`partner-${idx}`} whileTap={{ scale: 0.92 }} onClick={(e) => { triggerParticle(e, item.particles); item.action(); }} style={{ ...quickMenuFloatStyle, position: 'relative', width: 'calc(22% - 6px)', minWidth: 'calc(22% - 6px)', flexShrink: 0, scrollSnapAlign: 'start' }}>
               {item.textIcon ? (
-                <motion.div style={{ ...quickMenuIconWrapStyle, width: '44px', height: '44px', fontSize: 18, fontWeight: 900, color: '#C9A84C', letterSpacing: '-0.8px' }}>{item.textIcon}</motion.div>
+                <motion.div style={{ ...quickMenuIconWrapStyle, width: '44px', height: '44px', fontSize: 18, fontWeight: 900, color: '#FF1744', letterSpacing: '-0.8px' }}>{item.textIcon}</motion.div>
               ) : (
                 <motion.div style={{ ...quickMenuIconWrapStyle, width: '44px', height: '44px' }}>{item.icon}</motion.div>
               )}
@@ -4546,15 +4665,15 @@ const HomePage = ({
       {followedInstructors?.length > 0 && (
         <div style={{ padding: '0 12px 14px' }}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8, padding: '0 4px' }}>
-            <span style={{ fontSize: 13, fontWeight: 800, color: '#1E293B' }}>내 강사</span>
+            <span style={{ fontSize: 13, fontWeight: 800, color: '#000000' }}>내 강사</span>
             <button
               type="button"
               onClick={() => setMyInstructorsOpen((open) => !open)}
               style={{
                 padding: '5px 10px', borderRadius: 8,
-                border: myInstructorsOpen ? '1px solid #C9A84C' : '1px solid #E2E8F0',
-                background: myInstructorsOpen ? 'rgba(201,168,76,0.12)' : '#fff',
-                color: myInstructorsOpen ? '#B8860B' : '#64748B',
+                border: myInstructorsOpen ? '1px solid #FF1744' : '1px solid #E2E8F0',
+                background: myInstructorsOpen ? 'rgba(255, 23, 68, 0.1)' : '#fff',
+                color: myInstructorsOpen ? '#FF1744' : 'rgba(0, 0, 0, 0.5)',
                 fontSize: 11, fontWeight: 700, cursor: 'pointer',
               }}
             >
@@ -4573,10 +4692,10 @@ const HomePage = ({
                 }}
                 style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4, flexShrink: 0, cursor: 'pointer' }}
               >
-                <div style={{ width: 52, height: 52, borderRadius: '50%', border: '2px solid #C9A84C', padding: 2, background: '#fff', boxShadow: '0 2px 8px rgba(0,0,0,0.08)' }}>
+                <div style={{ width: 52, height: 52, borderRadius: '50%', border: '2px solid #FF1744', padding: 2, background: '#fff', boxShadow: '0 2px 8px rgba(0,0,0,0.08)' }}>
                   <img src={inst.photo_url || DEFAULT_AVATAR_IMAGE} onError={imgFallbackHandler(DEFAULT_AVATAR_IMAGE)} alt={inst.name} style={{ width: '100%', height: '100%', borderRadius: '50%', objectFit: 'cover' }} />
                 </div>
-                <span style={{ fontSize: 10, fontWeight: 700, color: '#475569', maxWidth: 56, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                <span style={{ fontSize: 10, fontWeight: 700, color: 'rgba(0, 0, 0, 0.5)', maxWidth: 56, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                   {(inst.name || '').split(' ')[0]}
                 </span>
               </motion.div>
@@ -4594,8 +4713,8 @@ const HomePage = ({
             const isSelected = selectedDate === item.fullDate;
             const isHoliday = item.dayOfWeek === 0 || (item.month === '5' && item.date === '5');
             const isSaturday = item.dayOfWeek === 6;
-            const dayColor = isSelected ? '#fff' : (isHoliday ? '#FF1744' : (isSaturday ? '#FF1744' : '#94A3B8'));
-            const labelColor = isSelected ? '#FF1744' : (isHoliday ? '#FF1744' : (isSaturday ? '#FF1744' : '#94A3B8'));
+            const dayColor = isSelected ? '#fff' : (isHoliday ? '#FF1744' : (isSaturday ? '#FF1744' : 'rgba(0, 0, 0, 0.5)'));
+            const labelColor = isSelected ? '#FF1744' : (isHoliday ? '#FF1744' : (isSaturday ? '#FF1744' : 'rgba(0, 0, 0, 0.5)'));
             
             // 페스티벌, 부트캠프, 파티 존재 여부 확인
             const dayPartyCount = partiesOnDate(calendarParties, item.fullDate).length;
@@ -4738,11 +4857,11 @@ const HomePage = ({
                             <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                               <h2 style={{ fontSize: '20px', fontWeight: '950', margin: 0, display: 'flex', alignItems: 'center', gap: '5px' }}>
                                 <span style={{ color: '#E53935' }}>HOT</span>
-                                <span style={{ color: '#1E293B' }}>PICK</span>
+                                <span style={{ color: '#000000' }}>PICK</span>
                               </h2>
                               {/* <span style={{ fontSize: '18px' }}>🔥</span> */}
                             </div>
-                            <span style={{ fontSize: '12px', color: '#64748B', fontWeight: 600 }}>지금 가장 핫한 파티</span>
+                            <span style={{ fontSize: '12px', color: 'rgba(0, 0, 0, 0.5)', fontWeight: 600 }}>지금 가장 핫한 파티</span>
                           </div>
                           {/* 컨시어지 버튼 */}
                           <style>{`
@@ -4758,7 +4877,7 @@ const HomePage = ({
                               display: 'flex', alignItems: 'center', gap: 6,
                               padding: '8px 14px', borderRadius: 20,
                               background: '#F8FAFC', border: '1px solid #E2E8F0',
-                              cursor: 'pointer', color: '#334155',
+                              cursor: 'pointer', color: '#000000',
                               fontSize: 12, fontWeight: 700,
                             }}
                           >
@@ -4895,7 +5014,7 @@ const HomePage = ({
                                     {t(regionKeys[regionName] || regionName)}
                                   </span>
                                   {weather && regionName === '서울' && (
-                                    <span style={{ fontSize: '12px', color: '#C9A84C', fontWeight: '600', marginLeft: '4px' }}>
+                                    <span style={{ fontSize: '12px', color: '#FF1744', fontWeight: '600', marginLeft: '4px' }}>
                                       {weather.temperature}° {weather.icon}
                                     </span>
                                   )}
@@ -5025,7 +5144,7 @@ const HomePage = ({
                     <span style={{ width: '6px', height: '6px', borderRadius: '50%', backgroundColor: '#E53935' }} /> 파티
                   </div>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-                    <span style={{ width: '6px', height: '6px', borderRadius: '50%', backgroundColor: '#2563EB' }} /> 부트캠프
+                    <span style={{ width: '6px', height: '6px', borderRadius: '50%', backgroundColor: '#000000' }} /> 부트캠프
                   </div>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
                     <span style={{ width: '6px', height: '6px', borderRadius: '50%', backgroundColor: '#9333EA' }} /> 페스티벌
@@ -5068,7 +5187,7 @@ const HomePage = ({
                         <span style={{ lineHeight: 1 }}>{day.date}</span>
                         <div style={{ display: 'flex', gap: '2px', position: 'absolute', bottom: '4px', height: '4px', alignItems: 'center', justifyContent: 'center' }}>
                           {hasParty && <span style={{ width: '4px', height: '4px', borderRadius: '50%', backgroundColor: '#E53935', boxShadow: isSelected ? '0 0 0 0.5px #fff' : 'none' }} />}
-                          {hasBootcamp && <span style={{ width: '4px', height: '4px', borderRadius: '50%', backgroundColor: '#2563EB', boxShadow: isSelected ? '0 0 0 0.5px #fff' : 'none' }} />}
+                          {hasBootcamp && <span style={{ width: '4px', height: '4px', borderRadius: '50%', backgroundColor: '#000000', boxShadow: isSelected ? '0 0 0 0.5px #fff' : 'none' }} />}
                           {hasFestival && <span style={{ width: '4px', height: '4px', borderRadius: '50%', backgroundColor: '#9333EA', boxShadow: isSelected ? '0 0 0 0.5px #fff' : 'none' }} />}
                         </div>
                         {dayTotalCount > 0 && (
@@ -5186,7 +5305,7 @@ const HomePage = ({
               })()}
 
               <div style={{ flexShrink: 0, marginTop: '12px' }}>
-                <button onClick={handleCloseModal} style={{ width: '100%', height: '50px', borderRadius: '16px', background: '#1E293B', color: '#fff', fontSize: '15px', fontWeight: 800, border: 'none', cursor: 'pointer' }}>확인 완료</button>
+                <button onClick={handleCloseModal} style={{ width: '100%', height: '50px', borderRadius: '16px', background: '#000000', color: '#fff', fontSize: '15px', fontWeight: 800, border: 'none', cursor: 'pointer' }}>확인 완료</button>
               </div>
             </motion.div>
           </motion.div>
@@ -5279,7 +5398,7 @@ const HomePage = ({
                             }}
                           >
                             {item.icon}
-                            <span style={{ fontSize: '12px', fontWeight: 600, color: '#1E293B', textAlign: 'center', wordBreak: 'keep-all' }}>
+                            <span style={{ fontSize: '12px', fontWeight: 600, color: '#000000', textAlign: 'center', wordBreak: 'keep-all' }}>
                               {item.label}
                             </span>
                           </motion.div>
@@ -5322,7 +5441,7 @@ const HomePage = ({
                             }}
                           >
                             <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                              <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: dateKey === todayStr ? '#E53935' : '#94A3B8', flexShrink: 0 }} />
+                              <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: dateKey === todayStr ? '#E53935' : 'rgba(0, 0, 0, 0.5)', flexShrink: 0 }} />
                               <span style={{ fontSize: '16px', fontWeight: 900, color: 'var(--color-text-main)', letterSpacing: '-0.02em' }}>
                                 {formatGridDateSectionLabel(dateKey, isEn, todayStr)}
                               </span>
@@ -5376,7 +5495,7 @@ const HomePage = ({
                 {gridRegion !== 'more' && (() => {
                   const hasPosters = (parties || []).some(p => p.poster_url && REGION_FILTER[gridRegion]?.(p));
                   return !hasPosters && (
-                    <div style={{ padding: '100px 0', textAlign: 'center', color: '#64748B', fontWeight: '700' }}>해당 지역에 등록된 포스터가 없습니다.</div>
+                    <div style={{ padding: '100px 0', textAlign: 'center', color: 'rgba(0, 0, 0, 0.5)', fontWeight: '700' }}>해당 지역에 등록된 포스터가 없습니다.</div>
                   );
                 })()}
                 {/* 하단 여백 */}
