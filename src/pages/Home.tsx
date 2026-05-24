@@ -692,48 +692,117 @@ const filterTodayPosterParties = (list, todayStr) =>
     ),
   );
 
-const pickTopViewCountParty = (list) => {
+const POSTER_CLICK_COUNT_DELAY_MS = 3000;
+const partyClickCountInFlight = new Set();
+
+const partyClickStorageKey = (partyId) => `clicked_party_${partyId}`;
+
+/** 포스터 클릭 — 세션당 1회, 3초 후 parties.click_count +1 */
+const schedulePartyClickCountIncrement = (partyId) => {
+  if (partyId == null || partyId === '') return;
+  const key = partyClickStorageKey(partyId);
+  try {
+    if (sessionStorage.getItem(key)) return;
+  } catch {
+    return;
+  }
+  const idKey = String(partyId);
+  if (partyClickCountInFlight.has(idKey)) return;
+  partyClickCountInFlight.add(idKey);
+
+  window.setTimeout(async () => {
+    partyClickCountInFlight.delete(idKey);
+    try {
+      if (sessionStorage.getItem(key)) return;
+      const { data, error: fetchErr } = await supabase
+        .from('parties')
+        .select('click_count')
+        .eq('id', partyId)
+        .maybeSingle();
+      if (fetchErr) return;
+      const currentClicks = Number(data?.click_count) || 0;
+      const { error: updateErr } = await supabase
+        .from('parties')
+        .update({ click_count: currentClicks + 1 })
+        .eq('id', partyId);
+      if (!updateErr) sessionStorage.setItem(key, '1');
+    } catch {
+      /* ignore */
+    }
+  }, POSTER_CLICK_COUNT_DELAY_MS);
+};
+
+const sumPartyClickCount = (list) =>
+  (list || []).reduce((sum, party) => sum + (Number(party?.click_count) || 0), 0);
+
+const pickTopClickCountParty = (list) => {
   if (!list?.length) return null;
   return [...list].reduce((best, party) => {
-    const nextCount = Number(party?.view_count) || 0;
-    const bestCount = Number(best?.view_count) || 0;
+    const nextCount = Number(party?.click_count) || 0;
+    const bestCount = Number(best?.click_count) || 0;
     return nextCount > bestCount ? party : best;
   }, list[0]);
 };
 
-const formatLiveBannerRegionSegment = (regionLabel, party, isEn) => {
-  if (!party) return null;
-  const count = Number(party.view_count) || 0;
-  const people = isEn ? String(count) : `${count}명`;
-  const venue = String(party.location_name || party.locations?.name || '').trim();
-  if (venue) return `${regionLabel} ${venue} ${people}`;
-  return `${regionLabel} ${people}`;
+const formatLiveBannerRegionSegment = (regionLabel, partyList, includeVenue = true) => {
+  const total = sumPartyClickCount(partyList);
+  if (!total) return null;
+  if (includeVenue) {
+    const top = pickTopClickCountParty(partyList);
+    const venue = String(top?.location_name || top?.locations?.name || '').trim();
+    if (venue) return `${regionLabel} ${venue} ${total}`;
+  }
+  return `${regionLabel} ${total}`;
 };
 
-/** LIVE 배너 — 오늘 포스터 파티 지역별 최다 view_count 1건 요약 */
+const LIVE_BANNER_MAX_CHARS = 20;
+
+const fitLiveBannerSummaryText = (regionBuckets) => {
+  const build = (includeVenue, maxRegions) => {
+    const segments = regionBuckets
+      .map(({ label, list }) => formatLiveBannerRegionSegment(label, list, includeVenue))
+      .filter(Boolean)
+      .sort((a, b) => {
+        const tailNum = (seg) => {
+          const match = String(seg).match(/(\d+)\s*$/);
+          return match ? Number(match[1]) : 0;
+        };
+        return tailNum(b) - tailNum(a);
+      })
+      .slice(0, maxRegions);
+    return segments.join(' · ');
+  };
+
+  for (const maxRegions of [3, 2, 1]) {
+    for (const includeVenue of [true, false]) {
+      const text = build(includeVenue, maxRegions);
+      if (text && text.length <= LIVE_BANNER_MAX_CHARS) return text;
+    }
+  }
+
+  const fallback = build(false, 1);
+  if (!fallback) return '';
+  return fallback.length > LIVE_BANNER_MAX_CHARS
+    ? fallback.slice(0, LIVE_BANNER_MAX_CHARS)
+    : fallback;
+};
+
+/** LIVE 배너 — 오늘 포스터 파티 지역별 click_count 합산 요약 (최대 20자) */
 const buildHomeLiveBannerSummary = ({ sourceRows, todayStr, isEn = false }) => {
   const todayParties = filterTodayPosterParties(sourceRows, todayStr).map(enrichPosterBannerPartyRow);
 
-  const seoulList = todayParties.filter(isHomePosterBannerSeoul);
-  const metroList = todayParties.filter(isHomePosterBannerMetro);
-  const nationalList = todayParties.filter(isHomePosterBannerLocal);
+  const regionBuckets = [
+    { label: isEn ? 'Seoul' : '서울', list: todayParties.filter(isHomePosterBannerSeoul) },
+    { label: isEn ? 'Metro' : '수도권', list: todayParties.filter(isHomePosterBannerMetro) },
+    { label: isEn ? 'Local' : '지방', list: todayParties.filter(isHomePosterBannerLocal) },
+  ];
 
-  const seoulTop = pickTopViewCountParty(seoulList);
-  const metroTop = pickTopViewCountParty(metroList);
-  const nationalTop = pickTopViewCountParty(nationalList);
-
-  const labels = isEn
-    ? { seoul: 'Seoul', metro: 'Metro', national: 'Regions' }
-    : { seoul: '서울', metro: '수도권', national: '지방권' };
-
-  const segments = [
-    formatLiveBannerRegionSegment(labels.seoul, seoulTop, isEn),
-    formatLiveBannerRegionSegment(labels.metro, metroTop, isEn),
-    formatLiveBannerRegionSegment(labels.national, nationalTop, isEn),
-  ].filter(Boolean);
-
-  const text = segments.join(' · ');
-  const pick = seoulTop || metroTop || nationalTop || null;
+  const text = fitLiveBannerSummaryText(regionBuckets);
+  const pick =
+    pickTopClickCountParty(regionBuckets[0].list)
+    || pickTopClickCountParty(regionBuckets[1].list)
+    || pickTopClickCountParty(regionBuckets[2].list)
+    || null;
 
   if (!text) {
     return { slides: [], pick: null };
@@ -1489,6 +1558,8 @@ const HomePage = ({
   const openPartyWithAfterParty = (item) => {
     const p = posterSharePayload(item);
     if (!p) return;
+    const partyId = item?.id ?? p?.id;
+    if (partyId != null) schedulePartyClickCountIncrement(partyId);
     handleOpenModal(setSelectedPoster, p);
   };
 
@@ -3006,7 +3077,7 @@ const HomePage = ({
         style={{ width: '92%', maxWidth: '100%', margin: '0 auto', boxSizing: 'border-box' }}
         aria-label={isEn ? "Today's posters" : '오늘 포스터'}
       >
-        {renderHomeGateSectionTitle(isEn ? 'Recommended Events' : '추천 행사', 'home-region-poster-banner__section-title')}
+        {renderHomeGateSectionTitle(isEn ? 'Parties & Events' : '파티&행사', 'home-region-poster-banner__section-title')}
         <style>{`
           .home-region-poster-banner-standalone {
             width: 92%;
@@ -3016,7 +3087,8 @@ const HomePage = ({
             box-sizing: border-box;
           }
           .home-region-poster-banner__section-title {
-            margin: 0 0 12px;
+            margin: 0;
+            margin-bottom: 12px;
           }
           .home-region-poster-banner__frame {
             position: relative;
@@ -3033,7 +3105,10 @@ const HomePage = ({
           }
           .home-region-poster-banner__img {
             position: absolute;
-            inset: 0;
+            top: 8px;
+            left: 0;
+            right: 0;
+            bottom: 0;
             width: 100%;
             height: 100%;
             object-fit: cover;
@@ -4911,15 +4986,7 @@ const HomePage = ({
                                 className="party-carousel-card"
                                 {...partyCardZoomHandlers}
                                 key={`${item.id}-${idx}`} 
-                                onClick={async () => {
-                                  openPartyWithAfterParty(item);
-                                  if (item.id && item._table) {
-                                    try {
-                                      const currentClicks = item.click_count || 0;
-                                      await supabase.from(item._table).update({ click_count: currentClicks + 1 }).eq('id', item.id);
-                                    } catch (err) {}
-                                  }
-                                }} 
+                                onClick={() => openPartyWithAfterParty(item)} 
                                 className="bchata-poster-frame party-carousel-card"
                                 style={{ 
                                   width: '140px', 
