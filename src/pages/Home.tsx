@@ -2346,21 +2346,9 @@ const HomePage = ({
   }, [isEn]);
 
   const isHomeGate = activeTab === null;
-  const [prefersDark, setPrefersDark] = useState(
-    () => typeof window !== 'undefined' && window.matchMedia('(prefers-color-scheme: dark)').matches,
-  -1
-  );
-  const isHomeGateDark = isHomeGate && prefersDark;
+  /** 홈 게이트는 모바일 시스템 다크모드와 무관하게 항상 라이트(흰색) */
+  const isHomeGateDark = false;
 
-  useEffect(() => {
-    const media = window.matchMedia('(prefers-color-scheme: dark)');
-    const sync = (event) => setPrefersDark(event.matches);
-    sync(media);
-    media.addEventListener('change', sync);
-    return () => media.removeEventListener('change', sync);
-  }, []);
-
-  /** App.jsx가 홈 게이트에 dark shell 클래스를 붙이므로, 시스템 테마에 맞게 html/body 동기화 */
   useEffect(() => {
     if (!isHomeGate) return undefined;
 
@@ -2368,18 +2356,15 @@ const HomePage = ({
     const body = document.body;
     const themeMeta = document.querySelector('meta[name="theme-color"]');
 
-    if (prefersDark) {
-      root.classList.add('home-gate-theme', 'app-dark-surface');
-      body.classList.add('home-gate-theme', 'app-dark-surface');
-      if (themeMeta) themeMeta.setAttribute('content', '#0D0D0D');
-    } else {
+    root.classList.remove('home-gate-theme', 'app-dark-surface');
+    body.classList.remove('home-gate-theme', 'app-dark-surface');
+    if (themeMeta) themeMeta.setAttribute('content', '#ffffff');
+
+    return () => {
       root.classList.remove('home-gate-theme', 'app-dark-surface');
       body.classList.remove('home-gate-theme', 'app-dark-surface');
-      if (themeMeta) themeMeta.setAttribute('content', '#ffffff');
-    }
-
-    return undefined;
-  }, [isHomeGate, prefersDark]);
+    };
+  }, [isHomeGate]);
 
   /** 메인 홈 — 가로 캐러셀 위에서도 세로 휠·트랙패드가 페이지 스크롤 되도록 */
   useEffect(() => {
@@ -4263,7 +4248,7 @@ const HomePage = ({
           margin-top: 12px;
         }
         .home-hot-instructors-wrap {
-          background: var(--home-page-bg, #0d0d0d);
+          background: var(--home-page-bg, #ffffff);
           padding: 16px 16px 0;
           margin: 0;
         }
