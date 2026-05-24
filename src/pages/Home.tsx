@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo, useRef, useCallback } from 'react';
+﻿import React, { useState, useEffect, useMemo, useRef, useCallback } from 'react';
 import { Heart, MapPin, Calendar, Clock, User, Users, Music, ChevronRight, ChevronDown, ShieldCheck, X, Home as HomeIcon, ChevronLeft, CloudSun, Utensils, Zap, PlusCircle, Languages, Bell, Globe, Navigation, CalendarDays, Star, Camera, MessageSquare, Tent, Loader2, Plus } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -153,10 +153,8 @@ const HOME_REGIONS_ORDER = [
 /** Social BAR — 위치 실패 시 전국 노출 */
 const SOCIAL_BAR_REGION_ALL = '전체';
 
-/** 홈 Social BAR — 게이트 peek 4개 */
-const HOME_GATE_BAR_PEEK = 4;
-/** 홈 게이트 — 핫 강사 최대 노출 */
-const HOME_GATE_HOT_INSTRUCTOR_MAX = 4;
+/** 홈 Social BAR — 2장 + 3번째 peek 이후 스크롤로 더 보기 */
+const SOCIAL_BAR_PEEK_VISIBLE = 3;
 
 /** 메인 홈 — 오늘 지역 대표 포스터 슬라이드 (빠른 메뉴 위) */
 const HOME_POSTER_BANNER_MS = 4000;
@@ -3167,125 +3165,16 @@ const HomePage = ({
     return String(genre || '').trim();
   };
 
-
-  const renderHomeSocialBarSection = () => {
-    if (activeTab !== null) return null;
-
-    return (
-      <motion.div className="home-social-bar-wrap">
-        <section
-          ref={barSectionRef}
-          className="home-social-bar-panel home-social-bar-panel--gate"
-          style={{
-            background: 'transparent',
-            border: 'none',
-            boxShadow: 'none',
-            marginTop: 0,
-            padding: 0,
-            display: 'flex',
-            flexDirection: 'column',
-          }}
-        >
-          <motion.div className="home-gate-section-head">
-            <h2 className="home-gate-section-title">{isEn ? 'Social BAR' : 'Social BAR'}</h2>
-            <button
-              type="button"
-              className="home-gate-section-more"
-              onClick={() => {
-                navigateHomeTab('social');
-                setActiveTab('social');
-              }}
-            >
-              {isEn ? 'More' : '더보기'}
-            </button>
-          </motion.div>
-
-          <motion.div className="home-social-bar-outer">
-            {locationsLoading || geoRegionStatus === 'pending' ? (
-              <motion.div style={{ padding: '24px 0', textAlign: 'center', color: 'rgba(0,0,0,0.45)', fontWeight: 600, fontSize: 13 }}>
-                {geoRegionStatus === 'pending' ? '내 위치 기준 지역을 확인하는 중...' : '주변 BAR 정보를 불러오는 중...'}
-              </motion.div>
-            ) : !selectedRegionTab ? (
-              <motion.div style={{ padding: '20px 0', textAlign: 'center', color: 'rgba(0,0,0,0.45)', fontSize: 13, fontWeight: 600 }}>
-                지역을 선택해 주세요.
-              </motion.div>
-            ) : (
-              (() => {
-                const filteredBars =
-                  selectedRegionTab === SOCIAL_BAR_REGION_ALL
-                    ? locations
-                    : locations.filter((bar) => bar.region === selectedRegionTab);
-
-                if (filteredBars.length === 0) {
-                  return (
-                    <motion.div style={{ padding: '20px 0', textAlign: 'center', color: 'rgba(0,0,0,0.45)', fontSize: 13, fontWeight: 600 }}>
-                      {isEn ? 'No spots in this area yet.' : '이 지역 장소가 아직 없어요.'}
-                    </motion.div>
-                  );
-                }
-
-                const regionBars = sortBarsForSocialBarTab(filteredBars, selectedRegionTab);
-                const displayBars = regionBars.slice(0, HOME_GATE_BAR_PEEK);
-                const hasMoreBars = regionBars.length > HOME_GATE_BAR_PEEK;
-                const barListLabel = isEn
-                  ? `${selectedRegionTab} · ${regionBars.length} spot${regionBars.length === 1 ? '' : 's'}`
-                  : `${selectedRegionTab} · ${regionBars.length}곳`;
-
-                return (
-                  <motion.div
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    key={selectedRegionTab}
-                    className="home-social-bar-fade"
-                  >
-                    <p className="home-social-bar-region-hint">{barListLabel}</p>
-                    <div
-                      className={`home-social-bar-scroll scrollbar-hide home-social-bar-scroll--peek${hasMoreBars ? ' home-social-bar-scroll--peek-more' : ''}`}
-                      role="list"
-                      aria-label={isEn ? `Social BAR in ${selectedRegionTab}` : `${selectedRegionTab} Social BAR`}
-                    >
-                      <div className="home-social-bar-track home-social-bar-track--peek">
-                        {displayBars.map((bar) => renderBarCard(bar))}
-                      </div>
-                    </div>
-                  </motion.div>
-                );
-              })()
-            )}
-          </motion.div>
-        </section>
-      </motion.div>
-    );
-  };
-
   const renderHomeHotInstructorsSection = () => {
     if (activeTab !== null) return null;
     if (!hotInstructorsLoading && hotInstructors.length === 0) return null;
 
-    const skeletonItems = [0, 1, 2, 3];
-    const visibleInstructors = isHomeGate
-      ? hotInstructors.slice(0, HOME_GATE_HOT_INSTRUCTOR_MAX)
-      : hotInstructors;
+    const skeletonItems = [0, 1, 2];
 
     return (
-      <section className={`home-hot-instructors-wrap${isHomeGate ? ' home-hot-instructors-wrap--gate' : ''}`} aria-label="핫 인스�터">
-        <motion.div className="home-hot-instructors-head">
-          <h2 className="home-hot-instructors-title">{isEn ? 'Hot instructors' : '핫 인스�터'}</h2>
-          {isHomeGate ? (
-            <button
-              type="button"
-              className="home-gate-section-more"
-              onClick={() => {
-                localStorage.setItem('instructor_target_genre', '전체');
-                navigate('/instructors', { homeTab: null, instructorId: null, instructorTab: null });
-                setTimeout(() => window.dispatchEvent(new CustomEvent('apply-instructor-filter')), 300);
-              }}
-            >
-              {isEn ? 'More' : '더보기'}
-            </button>
-          ) : null}
-        </motion.div>
-        <motion.div className="home-hot-instructors-scroll scrollbar-hide">
+      <section className="home-hot-instructors-wrap" aria-label="지금 핫한 강사">
+        <h2 className="home-hot-instructors-title">🔥 지금 핫한 강사</h2>
+        <div className="home-hot-instructors-scroll scrollbar-hide">
           <div className="home-hot-instructors-track">
             {hotInstructorsLoading
               ? skeletonItems.map((i) => (
@@ -3295,7 +3184,7 @@ const HomePage = ({
                     aria-hidden
                   />
                 ))
-              : visibleInstructors.map((inst) => {
+              : hotInstructors.map((inst) => {
                   const genreLabel = formatHotInstructorGenre(inst.genre);
                   return (
                     <motion.button
@@ -3322,7 +3211,8 @@ const HomePage = ({
                   );
                 })}
           </div>
-        </motion.div>
+        </div>
+        <hr className="home-hot-instructors-divider" aria-hidden />
       </section>
     );
   };
@@ -3692,8 +3582,10 @@ const HomePage = ({
           {renderHomeMainLiveSlot()}
           {renderHomeRegionPosterBanner()}
           {renderHomeMainQuickMenuSection()}
-          {renderHomeSocialBarSection()}
-          {renderHomeHotInstructorsSection()}
+
+          <motion.div className="home-section-break" aria-hidden>
+            <hr className="home-section-break__line" />
+          </motion.div>
         </motion.div>
       )}
 
@@ -4329,55 +4221,25 @@ const HomePage = ({
           0%, 100% { opacity: 0.4; }
           50% { opacity: 0.75; }
         }
-        .home-gate-section-head,
-        .home-hot-instructors-head {
-          display: flex;
-          align-items: center;
-          justify-content: space-between;
-          gap: 8px;
-          margin-bottom: 10px;
-        }
-        .home-gate-section-title,
-        .home-hot-instructors-wrap--gate .home-hot-instructors-title {
-          margin: 0;
-          color: #000000 !important;
-          font-size: 15px;
-          font-weight: 800;
-          letter-spacing: -0.02em;
-        }
-        .home-gate-section-more {
-          border: none;
-          background: none;
-          color: #FF1744;
-          font-size: 13px;
-          font-weight: 700;
-          padding: 4px 0;
-          cursor: pointer;
-          -webkit-tap-highlight-color: transparent;
-        }
-        .home-gate-shell .home-social-bar-wrap {
-          margin: 0;
-          padding: 0;
-        }
         .home-gate-shell .home-social-bar-panel--gate {
-          padding: 0 !important;
-          border: none !important;
-          box-shadow: none !important;
-          background: transparent !important;
-          border-radius: 0 !important;
+          padding: 16px 12px 18px !important;
+          border-radius: 16px !important;
         }
-        .home-gate-shell .home-social-bar-region-hint {
-          margin: 0 0 10px;
-          padding: 0 2px;
-          color: rgba(0, 0, 0, 0.5);
-          font-size: 12px;
-          font-weight: 600;
+        .home-gate-active .home-social-bar-panel--gate {
+          border: 1px solid rgba(255, 255, 255, 0.08) !important;
+          box-shadow: none !important;
+        }
+        .home-gate-shell .home-social-bar-panel--gate .home-type-section-title {
+          font-size: 15px !important;
+        }
+        .home-gate-shell .home-region-tabs {
+          margin-bottom: 4px;
         }
         .home-gate-shell .home-social-bar-scroll--peek {
           overflow-x: auto;
-          padding: 0 0 4px;
+          padding: 2px 12px 10px;
           scroll-snap-type: none;
-          scroll-padding-inline: 0;
+          scroll-padding-inline: 12px;
           -webkit-overflow-scrolling: touch;
           touch-action: pan-y pan-x;
           overscroll-behavior-y: auto;
@@ -4386,15 +4248,15 @@ const HomePage = ({
         .home-gate-shell .home-social-bar-scroll--peek-more {
           position: relative;
         }
-        .home-gate-shell .home-social-bar-scroll--peek-more::after {
+        .home-gate-active .home-social-bar-scroll--peek-more::after {
           content: '';
           position: absolute;
           top: 0;
           right: 0;
           width: 28px;
-          height: 100%;
+          height: calc(100% - 10px);
           pointer-events: none;
-          background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.95));
+          background: linear-gradient(90deg, transparent, rgba(var(--home-fade-rgb, 13, 13, 13), 0.92));
         }
         .home-gate-shell .home-social-bar-track--peek {
           display: inline-flex;
@@ -4406,9 +4268,9 @@ const HomePage = ({
         }
         .home-gate-shell .home-social-bar-track--peek .home-bar-chip {
           flex: 0 0 auto;
-          width: calc((min(100vw, 468px) - 36px) / 2.35);
-          min-width: calc((min(100vw, 468px) - 36px) / 2.35);
-          max-width: 148px;
+          width: calc((min(100vw, 500px) - 56px) / 2.35);
+          min-width: calc((min(100vw, 500px) - 56px) / 2.35);
+          max-width: 168px;
         }
         .home-gate-shell .home-social-bar-track--peek .home-bar-thumb {
           border-radius: 12px;
@@ -4417,40 +4279,10 @@ const HomePage = ({
           font-size: 11px !important;
           font-weight: 800 !important;
           margin-top: 8px !important;
-          color: #000000 !important;
         }
-        .home-hot-instructors-wrap--gate {
-          background: transparent;
-          padding: 0;
-          margin: 0;
-        }
-        .home-hot-instructors-wrap--gate .home-hot-instructor-card {
-          width: calc((min(100vw, 468px) - 36px) / 4.15);
-          min-width: 72px;
-          max-width: 92px;
-          aspect-ratio: 1 / 1;
-          border: 1px solid rgba(0, 0, 0, 0.08);
-          border-radius: 12px;
-          background: #ffffff;
-        }
-        .home-hot-instructors-wrap--gate .home-hot-instructor-card__media {
-          background: #f5f5f5;
-        }
-        .home-hot-instructors-wrap--gate .home-hot-instructor-card__meta {
-          padding: 6px 8px 8px;
-        }
-        .home-hot-instructors-wrap--gate .home-hot-instructor-card__name {
-          color: #000000;
-          font-size: 11px;
-          font-weight: 700;
-        }
-        .home-hot-instructors-wrap--gate .home-hot-instructor-card__genre {
-          color: rgba(0, 0, 0, 0.55);
-          font-size: 10px;
-          font-weight: 600;
-        }
-        .home-hot-instructors-wrap--gate .home-hot-instructors-track {
-          gap: 10px;
+        .home-gate-shell .home-hot-instructors-wrap {
+          padding: 12px 16px 0;
+          margin-top: 12px;
         }
         .home-hot-instructors-wrap {
           background: var(--home-page-bg, #0d0d0d);
@@ -4568,6 +4400,124 @@ const HomePage = ({
           text-overflow: ellipsis;
         }
       `}</style>
+      {activeTab === null && renderHomeHotInstructorsSection()}
+      {activeTab === null && (
+        <motion.div
+          className="home-social-bar-wrap"
+          style={{ padding: '0 16px', marginTop: isHomeGate ? 36 : 0, marginBottom: isHomeGate ? 20 : 0 }}
+        >
+        <section
+          ref={barSectionRef}
+          className={`home-depth-panel home-luxury-section-box home-social-bar-panel${isHomeGate ? ' home-social-bar-panel--gate' : ''}`}
+          style={{
+            ...homeDepthPanelStyle,
+            ...(isHomeGateDark ? {} : homeLuxurySectionBoxStyle),
+            marginTop: 0,
+            display: 'flex',
+            flexDirection: 'column',
+          }}
+        >
+          {renderHomeSectionHeader(
+            isEn ? 'Social BAR' : 'Social BAR',
+            null,
+            <button
+              type="button"
+              className="home-section-action"
+              onClick={() => {
+                setShowBarRegisterForm(true);
+                pushOverlay('barRegister');
+              }}
+            >
+              <Plus size={12} strokeWidth={2.5} />
+              {isEn ? 'Add' : '등록'}
+            </button>,
+            isHomeGateDark ? { color: homeUi.barSubtitle, fontWeight: 600 } : null,
+          )}
+          <motion.div className="home-region-tabs">
+            {socialBarRegionTabs.map((tab) => {
+              const isSelected = selectedRegionTab === tab;
+              const isMyGeoRegion = geoRegionTab && tab === geoRegionTab;
+
+              return (
+                <button
+                  key={tab}
+                  type="button"
+                  className={`home-region-pill${isSelected ? ' is-selected' : ''}${isMyGeoRegion ? ' is-my-region' : ''}`}
+                  onClick={() => setSelectedRegionTab(tab)}
+                >
+                  {tab}
+                  <span className="home-region-pill-count" aria-label={`${barRegionCounts[tab] ?? 0}곳`}>
+                    {barRegionCounts[tab] ?? 0}
+                  </span>
+                </button>
+              );
+            })}
+          </motion.div>
+
+          <motion.div className="home-social-bar-outer">
+            {locationsLoading || geoRegionStatus === 'pending' ? (
+              <div style={{ padding: '60px 20px', textAlign: 'center', color: '#94A3B8', fontWeight: 700 }}>
+                {geoRegionStatus === 'pending' ? '현재 위치 기준 지역을 확인하는 중...' : '전국 BAR 정보를 정렬하는 중...'}
+              </div>
+            ) : !selectedRegionTab ? (
+              <div style={{ padding: '40px 20px', textAlign: 'center', color: '#94A3B8', fontSize: '13px', fontWeight: 600 }}>
+                지역을 선택해 주세요.
+              </div>
+            ) : (
+              (() => {
+                const filteredBars =
+                  selectedRegionTab === SOCIAL_BAR_REGION_ALL
+                    ? locations
+                    : locations.filter((bar) => bar.region === selectedRegionTab);
+
+                if (filteredBars.length === 0) {
+                  return (
+                    <div style={{ padding: '40px 20px', textAlign: 'center', color: '#94A3B8', fontSize: '13px', fontWeight: 600 }}>
+                      {isEn ? 'No spots in this area yet.' : '이 지역 장소가 아직 없어요.'}
+                    </div>
+                  );
+                }
+
+                const regionBars = sortBarsForSocialBarTab(filteredBars, selectedRegionTab);
+                const hasMoreBars = regionBars.length > SOCIAL_BAR_PEEK_VISIBLE;
+                const barListLabel = isEn
+                  ? `${selectedRegionTab} · ${regionBars.length} spot${regionBars.length === 1 ? '' : 's'}`
+                  : `${selectedRegionTab} · ${regionBars.length}곳`;
+
+                return (
+                  <motion.div
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    key={selectedRegionTab}
+                    className="home-social-bar-fade"
+                  >
+                    <p
+                      className="home-social-bar-region-hint"
+                      style={{ margin: '0 0 12px', padding: '0 2px', color: homeUi.barSubtitle, fontSize: 12, fontWeight: 700 }}
+                    >
+                      {barListLabel}
+                    </p>
+                    <div
+                      className={`home-social-bar-scroll scrollbar-hide${
+                        isHomeGate
+                          ? ` home-social-bar-scroll--peek${hasMoreBars ? ' home-social-bar-scroll--peek-more' : ''}`
+                          : ''
+                      }`}
+                      role="list"
+                      aria-label={isEn ? `Social BAR in ${selectedRegionTab}` : `${selectedRegionTab} Social BAR`}
+                    >
+                      <div className={`home-social-bar-track${isHomeGate ? ' home-social-bar-track--peek' : ''}`}>
+                        {regionBars.map((bar) => renderBarCard(bar))}
+                      </div>
+                    </div>
+                  </motion.div>
+                );
+              })()
+            )}
+          </motion.div>
+        </section>
+        </motion.div>
+      )}
 
         {/*
         <p style={homePartnerSectionTitleStyle}>파트너 &amp; 강사</p>
