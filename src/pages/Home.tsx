@@ -1,5 +1,5 @@
 ﻿import React, { useState, useEffect, useMemo, useRef, useCallback } from 'react';
-import { Heart, MapPin, Calendar, Clock, User, Users, Music, ChevronRight, ChevronDown, ShieldCheck, X, Home as HomeIcon, ChevronLeft, CloudSun, Utensils, Zap, PlusCircle, Languages, Bell, Globe, Navigation, CalendarDays, Star, Camera, MessageSquare, Tent, Loader2, Plus } from 'lucide-react';
+import { Heart, MapPin, Calendar, Clock, User, Users, Music, Music2, ChevronRight, ChevronDown, ShieldCheck, X, Home as HomeIcon, ChevronLeft, CloudSun, Utensils, Zap, PlusCircle, Languages, Bell, Globe, Navigation, CalendarDays, Star, Camera, MessageSquare, Tent, Loader2, Plus, GraduationCap, Flag } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { motion, AnimatePresence } from 'framer-motion';
 import QuickPinchZoom, { make3dTransformValue } from 'react-quick-pinch-zoom';
@@ -103,7 +103,7 @@ function QuickMenuIconCircle({ children }) {
 
 /** 홈 퀵메뉴 — 클릭 유도형 카피 (ko / en) */
 const HOME_GATE_MENU_COPY = {
-  todayParty: { ko: '오늘밤빠', en: 'Tonight' },
+  todayParty: { ko: '오늘파티', en: 'Tonight' },
   manwonSpace: { ko: 'BAR', en: 'BAR' },
   myNightPlan: { ko: '플랜', en: 'Plan' },
   bootcampDive: { ko: '부트캠프', en: 'Bootcamp' },
@@ -121,12 +121,13 @@ const HOME_GATE_MENU_COPY = {
   languageSwitch: { ko: '언어', en: 'Language' },
 };
 
+/** 메인 홈 게이트 — 상단 노출 4개 (하단 네비 연동) */
+const HOME_GATE_MAIN_MENU_IDS = ['today-party', 'bootcamp', 'festival', 'instructors'];
+
 /** 더보기 메뉴 노출 순서 — 등록 2종 맨 앞 */
 const HOME_GATE_KING_MENU_ORDER = [
   'party-register',
   'class-register',
-  'bootcamp',
-  'festival',
   'concierge',
   'livepick',
   'wishlist',
@@ -1560,7 +1561,7 @@ const HomePage = ({
     });
   }, [todayPosterParties]);
 
-  /** 메인 메뉴 오늘밤빠 — 오늘 포스터(poster_url) 등록 건수 */
+  /** 메인 메뉴 오늘파티 — 오늘 포스터(poster_url) 등록 건수 */
   const todayPosterMenuCount = todayPosterParties.length;
 
   const openTodayPartyBucket = (tab) => {
@@ -2535,49 +2536,42 @@ const HomePage = ({
   const quickMenuIconColor = homeUi.quickIcon;
   const QUICK_MENU_PRIMARY_IDS = ['party-register', 'class-register', 'concierge', 'calendar', 'language'];
 
-  /** 홈 게이트 메인 3 — 오늘 · BAR · 일정 */
-  const HOME_GATE_KING_EXCLUDE_IDS = ['calendar'];
+  /** 홈 게이트 더보기 — 메인 4종 제외 */
+  const HOME_GATE_KING_EXCLUDE_IDS = ['calendar', ...HOME_GATE_MAIN_MENU_IDS];
 
   const homeGateMainMenuItems = useMemo(() => [
     {
       id: 'today-party',
-      icon: Users,
+      icon: Music2,
       label: homeGateMenuLabel('todayParty', isEn),
-      particles: '🎉',
-      action: () => setActiveTab('social'),
-    },
-    {
-      id: 'social-bar',
-      icon: MapPin,
-      label: homeGateMenuLabel('manwonSpace', isEn),
-      particles: '🍸',
       action: () => {
-        barSectionRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        navigateHomeTab('social');
+        setActiveTab('social');
       },
     },
-    {
-      id: 'my-schedule',
-      menuSvg: QUICK_MENU_SVG.calendar,
-      label: homeGateMenuLabel('myNightPlan', isEn),
-      particles: '📅',
-      action: openFullCalendarModal,
-    },
-  ], [isEn, openFullCalendarModal]);
-
-  const homeGateKingNavItems = useMemo(() => [
     {
       id: 'bootcamp',
       icon: Tent,
       label: homeGateMenuLabel('bootcampDive', isEn),
-      particles: '🏕',
       action: () => navigate('/bootcamp', { homeTab: null }),
     },
     {
       id: 'festival',
-      icon: Music,
+      icon: Flag,
       label: homeGateMenuLabel('festivalLive', isEn),
-      particles: '🎪',
       action: () => navigate('/festival', { homeTab: null }),
+    },
+    {
+      id: 'instructors',
+      icon: GraduationCap,
+      label: isEn ? 'Instructors' : '강사찾기',
+      action: () => {
+        localStorage.setItem('instructor_target_genre', '전체');
+        navigate('/instructors', { homeTab: null, instructorId: null, instructorTab: null });
+        setTimeout(() => {
+          window.dispatchEvent(new CustomEvent('apply-instructor-filter'));
+        }, 300);
+      },
     },
   ], [isEn]);
 
@@ -2630,15 +2624,12 @@ const HomePage = ({
   ], [handleRegister, openFullCalendarModal, setView, setShowWishlist, setShowSaju, setShowWeather, openAnalysis, i18n, isEn]);
 
   const homeGateKingMenuItems = useMemo(() => {
-    const pool = [
-      ...quickMenuItems.filter((item) => !HOME_GATE_KING_EXCLUDE_IDS.includes(item.id)),
-      ...homeGateKingNavItems,
-    ];
+    const pool = quickMenuItems.filter((item) => !HOME_GATE_KING_EXCLUDE_IDS.includes(item.id));
     const byId = new Map(pool.map((item) => [item.id, item]));
     return HOME_GATE_KING_MENU_ORDER
       .map((id) => byId.get(id))
       .filter(Boolean);
-  }, [homeGateKingNavItems, quickMenuItems]);
+  }, [quickMenuItems]);
 
   const { quickMenuPrimary, quickMenuMore } = useMemo(() => {
     const primary = QUICK_MENU_PRIMARY_IDS
@@ -2651,11 +2642,6 @@ const HomePage = ({
 
   const renderGateMainMenuItem = (item) => {
     const Icon = item.icon;
-    const variant = item.id === 'today-party'
-      ? 'tonight'
-      : item.id === 'social-bar'
-        ? 'space'
-        : 'plan';
     const todayPartyBadgeCount = item.id === 'today-party' ? todayPosterMenuCount : 0;
     const badgeCountLabel = todayPartyBadgeCount > 99 ? '99+' : String(todayPartyBadgeCount);
     const ariaLabel = item.id === 'today-party' && todayPartyBadgeCount > 0
@@ -2671,7 +2657,7 @@ const HomePage = ({
           setKingMenuOpen(false);
           item.action();
         }}
-        className={`home-gate-main-menu-item home-gate-main-menu-item--${variant}`}
+        className="home-gate-main-menu-item"
         aria-label={ariaLabel}
       >
         <span className="home-gate-main-menu-item__icon-wrap">
@@ -2679,7 +2665,7 @@ const HomePage = ({
             {item.menuSvg ? (
               <span className="home-gate-main-menu-item__svg">{item.menuSvg}</span>
             ) : (
-              Icon ? <Icon size={26} strokeWidth={1.75} color="currentColor" /> : null
+              Icon ? <Icon size={32} strokeWidth={1.5} color="currentColor" /> : null
             )}
           </span>
           {todayPartyBadgeCount > 0 ? (
@@ -2777,7 +2763,7 @@ const HomePage = ({
                     transform: kingMenuOpen ? 'rotate(45deg)' : 'rotate(0deg)',
                   }}
                 />
-                <span>{kingMenuOpen ? (isEn ? 'Close' : '쏙 접기') : (isEn ? 'More' : '더 둘러보기')}</span>
+                <span>{kingMenuOpen ? (isEn ? 'Close' : '접기') : (isEn ? 'More' : '더보기')}</span>
               </button>
             </div>
             <AnimatePresence initial={false}>
@@ -2864,11 +2850,19 @@ const HomePage = ({
     const sourceRows = (liveBannerPartyRows?.length ? liveBannerPartyRows : parties) || [];
     const withPoster = filterTodayPosterParties(sourceRows, calendarTodayStr);
 
-    return buildHomeLiveBannerSlides({
+    const built = buildHomeLiveBannerSlides({
       regionCounts,
       withPosterParties: withPoster,
       isEn: isHomeGate ? false : isEn,
     });
+
+    if (!isHomeGate) return built;
+
+    const slides = built.slides.filter((slide) => slide.tier === 'fixed' && slide.party);
+    return {
+      ...built,
+      slides: slides.length > 0 ? slides : built.slides.filter((slide) => slide.party),
+    };
   }, [parties, liveBannerPartyRows, calendarTodayStr, isEn, isHomeGate, regionCounts]);
 
   useEffect(() => {
@@ -3610,8 +3604,8 @@ const HomePage = ({
         }
         .home-gate-main-menu-grid {
           display: grid;
-          grid-template-columns: repeat(3, minmax(0, 1fr));
-          gap: 14px 12px;
+          grid-template-columns: repeat(4, minmax(0, 1fr));
+          gap: 10px 8px;
           margin: 0;
           padding: 0 4px;
         }
@@ -3620,9 +3614,9 @@ const HomePage = ({
           flex-direction: column;
           align-items: center;
           justify-content: flex-start;
-          gap: 8px;
+          gap: 6px;
           min-height: 0;
-          padding: 8px 4px 10px;
+          padding: 4px 2px 8px;
           border: none;
           border-radius: 0;
           background: none;
@@ -3633,12 +3627,6 @@ const HomePage = ({
         }
         .home-gate-main-menu-item:active {
           opacity: 0.72;
-        }
-        .home-gate-main-menu-item--tonight,
-        .home-gate-main-menu-item--space,
-        .home-gate-main-menu-item--plan {
-          background: none;
-          box-shadow: none;
         }
         .home-gate-main-menu-item__icon-wrap {
           position: relative;
@@ -3658,34 +3646,44 @@ const HomePage = ({
           flex-shrink: 0;
           background: none !important;
           box-shadow: none !important;
+          color: #000000;
+        }
+        .home-gate-main-menu-item__icon svg {
+          width: 32px;
+          height: 32px;
+          display: block;
         }
         .home-gate-main-menu-item__svg {
           display: flex;
           align-items: center;
           justify-content: center;
-          width: 30px;
-          height: 30px;
+          width: 32px;
+          height: 32px;
           color: currentColor;
         }
         .home-gate-main-menu-item__svg svg {
-          width: 30px;
-          height: 30px;
+          width: 32px;
+          height: 32px;
           display: block;
         }
-        .home-gate-main-menu-item--tonight .home-gate-main-menu-item__icon,
-        .home-gate-main-menu-item--tonight .home-gate-main-menu-item__label {
-          color: #d4436e;
+        .home-gate-main-menu-item__label {
+          color: #000000;
+          font-size: 13px;
+          font-weight: 600;
+          line-height: 1.28;
+          letter-spacing: -0.02em;
+          text-align: center;
+          word-break: keep-all;
+          max-width: 100%;
+          text-shadow: none;
         }
-        .home-gate-main-menu-item--space .home-gate-main-menu-item__icon,
-        .home-gate-main-menu-item--plan .home-gate-main-menu-item__icon {
-          color: #ffffff;
+        .home-gate-active .home-gate-main-menu-item__icon,
+        .home-gate-active .home-gate-main-menu-item__label {
+          color: #000000;
         }
+        .home-gate-shell:not(.home-gate-active) .home-gate-main-menu-item__icon,
         .home-gate-shell:not(.home-gate-active) .home-gate-main-menu-item__label {
-          color: #1e293b;
-        }
-        .home-gate-shell:not(.home-gate-active) .home-gate-main-menu-item--space .home-gate-main-menu-item__icon,
-        .home-gate-shell:not(.home-gate-active) .home-gate-main-menu-item--plan .home-gate-main-menu-item__icon {
-          color: #1e293b;
+          color: #000000;
         }
         .home-gate-shell:not(.home-gate-active) .home-gate-menu__divider {
           background: linear-gradient(
@@ -3709,15 +3707,6 @@ const HomePage = ({
           border: 1px solid #e2e8f0;
           color: #475569;
         }
-        .home-gate-shell:not(.home-gate-active) .home-hot-instructor-card {
-          background: #ffffff;
-        }
-        .home-gate-shell:not(.home-gate-active) .home-hot-instructor-card__media {
-          background: #f1f5f9;
-        }
-        .home-gate-shell:not(.home-gate-active) .home-hot-instructor-card__name {
-          color: #1e293b;
-        }
         .home-gate-shell:not(.home-gate-active) .home-hot-instructors-title {
           color: #c9a84c !important;
         }
@@ -3731,17 +3720,6 @@ const HomePage = ({
           pointer-events: none;
           background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.92));
         }
-        .home-gate-main-menu-item__label {
-          color: #fff;
-          font-size: 13px;
-          font-weight: 800;
-          line-height: 1.28;
-          letter-spacing: -0.04em;
-          text-align: center;
-          word-break: keep-all;
-          max-width: 100%;
-          text-shadow: none;
-        }
         .home-gate-main-menu-item__badge {
           position: absolute;
           top: -6px;
@@ -3754,14 +3732,14 @@ const HomePage = ({
           height: 20px;
           padding: 0 5px;
           border-radius: 999px;
-          background: #ff3040;
-          border: 2.5px solid var(--home-page-bg, #0d0d0d);
-          color: #fff;
-          font-size: 12px;
+          background: #FF1744;
+          border: 2px solid #FFFFFF;
+          color: #FFFFFF;
+          font-size: 11px;
           font-weight: 700;
           line-height: 1;
           font-variant-numeric: tabular-nums;
-          box-shadow: 0 2px 6px rgba(0, 0, 0, 0.4);
+          box-shadow: 0 2px 6px rgba(255, 23, 68, 0.35);
           pointer-events: none;
         }
         .home-gate-menu__divider {
@@ -4336,23 +4314,23 @@ const HomePage = ({
           flex-direction: row;
           flex-wrap: nowrap;
           align-items: stretch;
-          gap: 12px;
+          gap: 10px;
           width: max-content;
           min-width: 100%;
           padding: 0 2px 2px;
           vertical-align: top;
         }
         .home-hot-instructor-card {
+          position: relative;
           flex: 0 0 auto;
-          width: calc((min(100vw, 500px) - 56px) / 2.35);
-          min-width: calc((min(100vw, 500px) - 56px) / 2.35);
-          max-width: 200px;
-          aspect-ratio: 2 / 3;
-          display: flex;
-          flex-direction: column;
-          border: 1px solid rgba(201, 168, 76, 0.3);
-          border-radius: 14px;
-          background: #1a1a1a;
+          width: 140px;
+          min-width: 140px;
+          max-width: 140px;
+          height: 180px;
+          display: block;
+          border: none;
+          border-radius: 16px;
+          background: #111111;
           overflow: hidden;
           padding: 0;
           cursor: pointer;
@@ -4361,39 +4339,50 @@ const HomePage = ({
         .home-hot-instructor-card--skeleton {
           animation: home-hot-instructor-skeleton-pulse 1.2s ease-in-out infinite;
           pointer-events: none;
+          background: #1a1a1a;
         }
         .home-hot-instructor-card__media {
-          flex: 1;
-          min-height: 0;
+          position: absolute;
+          inset: 0;
           width: 100%;
-          background: #111;
+          height: 100%;
+          background: #111111;
         }
         .home-hot-instructor-card__media img {
           width: 100%;
           height: 100%;
           object-fit: cover;
+          object-position: top;
           display: block;
         }
         .home-hot-instructor-card__meta {
-          flex-shrink: 0;
-          padding: 10px 12px 12px;
+          position: absolute;
+          left: 0;
+          right: 0;
+          bottom: 0;
+          z-index: 1;
+          height: 50px;
+          padding: 8px 10px;
           display: flex;
           flex-direction: column;
-          gap: 3px;
+          justify-content: center;
+          gap: 2px;
+          background: rgba(0, 0, 0, 0.85);
+          box-sizing: border-box;
         }
         .home-hot-instructor-card__name {
-          color: #fff;
+          color: #ffffff;
           font-size: 13px;
           font-weight: 800;
-          line-height: 1.25;
+          line-height: 1.2;
           white-space: nowrap;
           overflow: hidden;
           text-overflow: ellipsis;
         }
         .home-hot-instructor-card__genre {
-          color: #c9a84c;
+          color: rgba(255, 255, 255, 0.7);
           font-size: 11px;
-          font-weight: 700;
+          font-weight: 600;
           line-height: 1.2;
           white-space: nowrap;
           overflow: hidden;
