@@ -1,25 +1,16 @@
 import React from 'react';
 import { motion } from 'framer-motion';
-import { X, GraduationCap, Building2, UserPlus } from 'lucide-react';
+import { X, Building2, UserPlus, GraduationCap } from 'lucide-react';
 import { Z } from '../constants/zLayers';
 
 const OPTIONS = [
-  {
-    id: 'instructor-class',
-    icon: GraduationCap,
-    titleKo: '강사 수업 등록',
-    titleEn: 'Instructor class',
-    descKo: 'VIP 강사 · 개인/그룹 수업 · 강사 프로필에 노출',
-    descEn: 'VIP instructor · classes on your profile',
-    accent: '#C9A84C',
-  },
   {
     id: 'venue-class',
     icon: Building2,
     titleKo: 'BAR · 업체 수업 등록',
     titleEn: 'BAR / venue class',
-    descKo: 'BAR 상세 → 수업 탭에서 등록 (모든 BAR 동일)',
-    descEn: 'Open any BAR → Lesson tab → register',
+    descKo: 'Social BAR → BAR 열기 → 수업 탭 → BAR 수업 등록',
+    descEn: 'Social BAR → open BAR → Lesson tab → register',
     accent: '#D4436E',
   },
   {
@@ -37,14 +28,13 @@ export default function LessonRegisterChoiceModal({
   isOpen,
   onClose,
   isEn = false,
-  onPickInstructorClass,
   onPickVenueClass,
   onPickInstructorProfile,
+  onPickVipInstructorClass,
 }) {
   if (!isOpen) return null;
 
   const handlers = {
-    'instructor-class': onPickInstructorClass,
     'venue-class': onPickVenueClass,
     'instructor-profile': onPickInstructorProfile,
   };
@@ -97,12 +87,12 @@ export default function LessonRegisterChoiceModal({
         >
           <div>
             <h2 style={{ margin: 0, fontSize: 18, fontWeight: 900 }}>
-              {isEn ? 'What do you want to register?' : '무엇을 등록할까요?'}
+              {isEn ? 'BAR / venue registration' : '업체 · BAR 수업 등록'}
             </h2>
             <p style={{ margin: '6px 0 0', fontSize: 12, color: '#94A3B8', lineHeight: 1.45 }}>
               {isEn
-                ? 'Instructor classes and BAR classes are saved separately.'
-                : '강사 수업과 BAR 수업은 서로 다른 목록에 저장됩니다.'}
+                ? 'Instructor classes are registered separately in the VIP lounge.'
+                : '강사 수업은 VIP 마스터 라운지에서만 등록합니다.'}
             </p>
           </div>
           <button
@@ -184,6 +174,63 @@ export default function LessonRegisterChoiceModal({
               </button>
             );
           })}
+
+          <div
+            style={{
+              padding: '12px 14px',
+              borderRadius: 14,
+              border: '1px solid rgba(201,168,76,0.35)',
+              background: 'rgba(201,168,76,0.08)',
+              display: 'flex',
+              gap: 12,
+              alignItems: 'flex-start',
+            }}
+          >
+            <span
+              style={{
+                flexShrink: 0,
+                width: 44,
+                height: 44,
+                borderRadius: 12,
+                background: 'rgba(201,168,76,0.15)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+              }}
+            >
+              <GraduationCap size={22} color="#C9A84C" />
+            </span>
+            <span style={{ flex: 1, minWidth: 0 }}>
+              <span style={{ display: 'block', fontSize: 14, fontWeight: 800, color: '#F8FAFC' }}>
+                {isEn ? 'Instructor class (VIP)' : '강사 수업 등록 (VIP)'}
+              </span>
+              <span style={{ display: 'block', marginTop: 4, fontSize: 12, color: '#94A3B8', lineHeight: 1.4 }}>
+                {isEn
+                  ? 'Master lounge → Class register after VIP login'
+                  : '마스터 라운지 → VIP 로그인 → 클래스등록'}
+              </span>
+              <button
+                type="button"
+                onClick={() => {
+                  onPickVipInstructorClass?.();
+                  onClose();
+                }}
+                style={{
+                  marginTop: 10,
+                  padding: '8px 12px',
+                  borderRadius: 10,
+                  border: '1px solid rgba(201,168,76,0.5)',
+                  background: 'transparent',
+                  color: '#E8D5A3',
+                  fontSize: 12,
+                  fontWeight: 800,
+                  cursor: 'pointer',
+                }}
+              >
+                {isEn ? 'Open VIP lounge' : 'VIP 라운지로 이동'}
+              </button>
+            </span>
+          </div>
         </div>
       </motion.div>
     </div>

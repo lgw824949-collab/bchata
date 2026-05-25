@@ -112,7 +112,7 @@ const HOME_GATE_MENU_COPY = {
   bootcampDive: { ko: '부트캠프', en: 'Bootcamp' },
   festivalLive: { ko: '페스티벌', en: 'Festival' },
   partyPost: { ko: '파티 등록', en: 'Party' },
-  classOpen: { ko: '수업·강사', en: 'Classes' },
+  classOpen: { ko: 'BAR 수업', en: 'BAR class' },
   conciergePick: { ko: '추천', en: 'Picks' },
   livepickShow: { ko: '라이브픽', en: 'Live pick' },
   wishlistView: { ko: '찜하기', en: 'Saved' },

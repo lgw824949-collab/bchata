@@ -1740,7 +1740,7 @@ function App() {
 
   useEffect(() => {
     const onOpenVip = () => openVipMasterFlowRef.current();
-    const onOpenClassReg = () => openLessonRegisterChoiceRef.current();
+    const onOpenClassReg = () => openClassRegisterFromHomeRef.current();
     window.addEventListener('open-vip-master-login', onOpenVip);
     window.addEventListener('open-class-register', onOpenClassReg);
     return () => {
@@ -2094,6 +2094,17 @@ function App() {
     setIsAnalyzing(true);
     setTimeout(() => { setIsAnalyzing(false); setShowIncheonModal(true); }, 1200);
   };
+
+  const goVenueLessonRegister = useCallback(() => {
+    navigateHomeTab('social');
+    window.setTimeout(() => {
+      alert(
+        i18n.language?.startsWith('en')
+          ? 'Open any BAR → Lesson tab → tap “BAR class register”.'
+          : 'Social BAR에서 BAR를 연 뒤 「수업」 탭 → 「BAR 수업 등록」을 눌러 주세요.',
+      );
+    }, 400);
+  }, [i18n.language]);
 
   const handleRegister = (type = 'party') => {
     if (type === 'party') {
@@ -3119,17 +3130,8 @@ function App() {
       isOpen={showLessonRegisterChoice}
       onClose={() => setShowLessonRegisterChoice(false)}
       isEn={i18n.language.startsWith('en')}
-      onPickInstructorClass={() => openClassRegisterFromHome()}
-      onPickVenueClass={() => {
-        navigateHomeTab('social');
-        window.setTimeout(() => {
-          alert(
-            i18n.language.startsWith('en')
-              ? 'Open any BAR card, go to the Lesson tab, then tap “BAR class register”.'
-              : 'Social BAR에서 원하는 BAR를 연 뒤, 수업 탭의 「BAR 수업 등록」을 눌러 주세요.',
-          );
-        }, 400);
-      }}
+      onPickVenueClass={goVenueLessonRegister}
+      onPickVipInstructorClass={openVipMasterFlow}
       onPickInstructorProfile={() => historyNavigate('/register-class')}
     />
     {showClassRegister && (

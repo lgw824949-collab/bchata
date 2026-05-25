@@ -1036,7 +1036,16 @@ export default function VenueDetailModal({
         </div>
 
         {!isSocialTab && onRegisterVenueLesson ? (
-          <div style={{ flexShrink: 0, padding: '0 16px 10px' }}>
+          <div
+            style={{
+              flexShrink: 0,
+              padding: '0 16px 12px',
+              borderBottom: `1px solid ${VD.border}`,
+            }}
+          >
+            <p style={{ margin: '0 0 8px', fontSize: 11, fontWeight: 800, color: VD.brandSoft, letterSpacing: '0.04em' }}>
+              업체 · BAR 전용
+            </p>
             <button
               type="button"
               onClick={() => onRegisterVenueLesson(displayVenue)}
@@ -1055,8 +1064,8 @@ export default function VenueDetailModal({
             >
               BAR 수업 등록
             </button>
-            <p style={{ margin: '6px 0 0', fontSize: 11, color: VD.muted, fontWeight: 600, textAlign: 'center' }}>
-              이 BAR에 연결된 정기·단기 수업 (모든 BAR 동일)
+            <p style={{ margin: '6px 0 0', fontSize: 11, color: VD.muted, fontWeight: 600, textAlign: 'center', lineHeight: 1.45 }}>
+              강사 VIP 클래스등록과 별도 · 포스터·요일·시간 입력
             </p>
           </div>
         ) : null}
@@ -1180,9 +1189,30 @@ export default function VenueDetailModal({
               clickCount={venueBarStats.clickCount}
             />
           ) : (
-            <p style={{ margin: '8px 0 12px', fontSize: '14px', color: VD.muted, textAlign: 'center', fontWeight: 600 }}>
-              {formatLessonShortDate(selectedDate)} — 이 날 등록된 {isSocialTab ? '파티' : '수업'}이 없습니다.
-            </p>
+            <div style={{ margin: '8px 0 12px', textAlign: 'center' }}>
+              <p style={{ margin: 0, fontSize: '14px', color: VD.muted, fontWeight: 600 }}>
+                {formatLessonShortDate(selectedDate)} — 이 날 등록된 {isSocialTab ? '파티' : '수업'}이 없습니다.
+              </p>
+              {!isSocialTab && onRegisterVenueLesson ? (
+                <button
+                  type="button"
+                  onClick={() => onRegisterVenueLesson(displayVenue)}
+                  style={{
+                    marginTop: 10,
+                    padding: '8px 14px',
+                    borderRadius: 999,
+                    border: `1px solid ${VD.borderAccent}`,
+                    background: '#fff',
+                    color: VD.brandSoft,
+                    fontSize: 12,
+                    fontWeight: 800,
+                    cursor: 'pointer',
+                  }}
+                >
+                  BAR 수업 등록하기
+                </button>
+              ) : null}
+            </div>
           )}
 
           <div
@@ -1195,9 +1225,12 @@ export default function VenueDetailModal({
               background: '#fff',
             }}
           >
-            <span className="vd-block-title" style={{ display: 'block', marginBottom: 8 }}>
-              상세 설명
+            <span className="vd-block-title" style={{ display: 'block', marginBottom: 4 }}>
+              BAR 소개글
             </span>
+            <p style={{ margin: '0 0 8px', fontSize: 11, color: VD.muted, fontWeight: 600, lineHeight: 1.4 }}>
+              수업 등록과 무관 · BAR 안내 문구만 저장됩니다
+            </p>
             <textarea
               value={venueDescription}
               onChange={(e) => setVenueDescription(e.target.value.slice(0, VENUE_DESC_MAX))}
@@ -1227,16 +1260,16 @@ export default function VenueDetailModal({
                 width: '100%',
                 padding: 9,
                 borderRadius: 10,
-                border: 'none',
-                background: VD.brand,
-                color: '#fff',
+                border: `1px solid ${VD.borderAccent}`,
+                background: '#fff',
+                color: VD.brandSoft,
                 fontWeight: 800,
                 fontSize: 12,
-                cursor: savingDescription ? "not-allowed" : "pointer",
+                cursor: savingDescription ? 'not-allowed' : 'pointer',
                 opacity: savingDescription ? 0.7 : 1,
               }}
             >
-              {savingDescription ? '저장 중…' : '저장'}
+              {savingDescription ? '저장 중…' : 'BAR 소개 저장'}
             </button>
           </div>
 
@@ -1295,8 +1328,14 @@ export default function VenueDetailModal({
                 {isSocialTab ? '행사 일정' : '수업 일정'}
               </p>
               {schedulePosters.length === 0 ? (
-                <p style={{ margin: 0, fontSize: 13, color: VD.muted, fontWeight: 600 }}>
+                <p style={{ margin: 0, fontSize: 13, color: VD.muted, fontWeight: 600, lineHeight: 1.45 }}>
                   등록된 수업 일정이 없습니다.
+                  {onRegisterVenueLesson ? (
+                    <>
+                      <br />
+                      위 「BAR 수업 등록」에서 추가하세요.
+                    </>
+                  ) : null}
                 </p>
               ) : (
               <div style={{ display: 'flex', gap: 10, overflowX: 'auto', scrollbarWidth: 'none' }}>

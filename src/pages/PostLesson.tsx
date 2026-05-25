@@ -159,6 +159,23 @@ const PostLesson = ({ onBack, user, initialVenue = null }) => {
       </div>
 
       <main style={{ padding: '24px 20px' }}>
+        {venueLocked ? (
+          <p
+            style={{
+              margin: '0 0 20px',
+              padding: '12px 14px',
+              borderRadius: 12,
+              background: 'rgba(212, 67, 110, 0.08)',
+              border: '1px solid rgba(212, 67, 110, 0.2)',
+              fontSize: 12,
+              fontWeight: 700,
+              color: '#9D174D',
+              lineHeight: 1.45,
+            }}
+          >
+            업체(BAR) 전용 등록입니다. 강사 수업은 VIP 마스터 라운지 → 클래스등록에서 하세요.
+          </p>
+        ) : null}
         <AnimatePresence mode="wait">
           {step === 1 && (
             <motion.div
