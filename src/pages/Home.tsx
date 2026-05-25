@@ -118,6 +118,7 @@ const HOME_GATE_MENU_COPY = {
   wishlistView: { ko: '찜하기', en: 'Saved' },
   kakaoChat: { ko: '채팅 문의', en: 'Chat' },
   destinyMatch: { ko: '파트너 찾기', en: 'Partner' },
+  destinyCoords: { ko: '운명의 좌표', en: 'Fortune' },
   afterpartyFood: { ko: '맛집', en: 'Food' },
   weatherGo: { ko: '오늘 날씨', en: 'Weather' },
   smartRoute: { ko: '길찾기', en: 'Route' },
@@ -135,6 +136,7 @@ const HOME_GATE_KING_MENU_ORDER = [
   // 'livepick',
   // 'wishlist',
   // 'chat',
+  'partner-find',
   'saju',
   'restaurant',
   'weather',
@@ -2690,7 +2692,27 @@ const HomePage = ({
     { id: 'livepick', icon: Camera, label: homeGateMenuLabel('livepickShow', isEn), particles: '📸', action: () => navigate('/livepick') },
     { id: 'wishlist', icon: Heart, label: homeGateMenuLabel('wishlistView', isEn), particles: '❤️', action: () => pushOverlay('wishlist') },
     { id: 'chat', icon: MessageSquare, label: homeGateMenuLabel('kakaoChat', isEn), particles: '💬', action: () => window.open('https://open.kakao.com/o/gP43rNri', '_blank') },
-    { id: 'saju', icon: Star, label: homeGateMenuLabel('destinyMatch', isEn), particles: '🌟', action: () => { pushOverlay('barMatching'); setShowSaju(true); } },
+    {
+      id: 'partner-find',
+      icon: Users,
+      label: homeGateMenuLabel('destinyMatch', isEn),
+      particles: '💑',
+      action: () => {
+        setShowPartner(true);
+        navigateHomeTab('partner');
+        onHomeTabChange?.('partner');
+      },
+    },
+    {
+      id: 'saju',
+      icon: Star,
+      label: homeGateMenuLabel('destinyCoords', isEn),
+      particles: '🌟',
+      action: () => {
+        pushOverlay('barMatching');
+        setShowSaju(true);
+      },
+    },
     { id: 'restaurant', icon: Utensils, label: homeGateMenuLabel('afterpartyFood', isEn), particles: '🍽', action: () => navigate('/restaurant') },
     { id: 'weather', icon: CloudSun, label: homeGateMenuLabel('weatherGo', isEn), particles: '☀️', action: () => pushOverlay('weather') },
     { id: 'route', icon: Navigation, label: homeGateMenuLabel('smartRoute', isEn), particles: '🧭', action: () => openAnalysis(false) },
@@ -2705,7 +2727,7 @@ const HomePage = ({
         i18n.changeLanguage(next);
       },
     },
-  ], [handleRegister, openFullCalendarModal, setView, setShowWishlist, setShowSaju, setShowWeather, openAnalysis, i18n, isEn]);
+  ], [handleRegister, openFullCalendarModal, setView, setShowWishlist, setShowSaju, setShowWeather, setShowPartner, openAnalysis, onHomeTabChange, i18n, isEn]);
 
   const homeGateKingMenuItems = useMemo(() => {
     const pool = quickMenuItems.filter((item) => !HOME_GATE_KING_EXCLUDE_IDS.includes(item.id));
