@@ -3783,7 +3783,9 @@ const HomePage = ({
           {renderHomeMainLiveSlot()}
           {renderHomeMainQuickMenuSection()}
           {renderHomeHotInstructorsSection()}
+          {isHomeGate ? <div className="home-gate-section-rule" aria-hidden /> : null}
           {renderHomeSocialBarSection()}
+          {isHomeGate ? <div className="home-gate-section-rule" aria-hidden /> : null}
           {renderHomeRegionPosterBanner()}
         </motion.div>
       )}

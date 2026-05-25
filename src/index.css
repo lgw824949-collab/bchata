@@ -1150,14 +1150,23 @@ img.bchata-poster-fit {
   border-radius: 1px;
 }
 
-/* 홈 게이트 — 핫 강사 · Social BAR · 파티&행사 섹션 간격 */
+/* 홈 게이트 — 핫 강사 · Social BAR · 파티&행사: 실선 + 여백 */
 .home-gate-shell .home-main-stack .home-social-bar-wrap {
-  margin-top: 52px;
+  margin-top: 0;
   margin-bottom: 0;
 }
 
 .home-gate-shell .home-social-bar-wrap + .home-region-poster-banner-standalone--gate-stack {
-  margin-top: 52px;
+  margin-top: 0;
+}
+
+.home-gate-shell .home-gate-section-rule {
+  flex-shrink: 0;
+  height: 0;
+  border: none;
+  border-top: 1px solid #EDEAE3;
+  margin: 32px 4px 28px;
+  padding: 0;
 }
 
 .home-gate-shell .home-depth-panel.home-social-bar-panel--gate,
