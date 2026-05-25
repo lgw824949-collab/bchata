@@ -3454,7 +3454,7 @@ const HomePage = ({
         style={{
           flex: 1,
           minWidth: 0,
-          minHeight: isHomeGate ? 42 : 48,
+          minHeight: isHomeGate ? 44 : 48,
           background: 'transparent',
           borderRadius: '14px',
           overflow: 'hidden',
@@ -3512,64 +3512,16 @@ const HomePage = ({
             .home-gate-shell .home-live-banner-fallback--gate {
               width: 100%;
             }
-            .home-gate-shell .live-count-premium-wrapper--gate .live-dynamic-banner,
-            .home-gate-shell .live-count-premium-wrapper--gate .live-dynamic-banner--gate {
-              width: 100% !important;
-              background: #FFFFFF !important;
-              background-size: 100% 100% !important;
-              animation: none !important;
-              padding: 0 !important;
-              border: 0.5px solid #EDEAE3 !important;
-              border-radius: 10px !important;
-              box-shadow: none !important;
-            }
+            .home-gate-shell .home-live-banner-fallback--gate .live-dynamic-banner__inner,
             .home-gate-shell .live-count-premium-wrapper--gate .live-dynamic-banner__inner {
-              min-height: 42px !important;
-              height: 42px !important;
+              height: 44px !important;
               padding: 0 14px !important;
               gap: 8px !important;
-              background: transparent !important;
-              box-sizing: border-box !important;
-              width: 100% !important;
-              overflow: hidden !important;
-              flex-wrap: nowrap !important;
-              color: #1E293B !important;
-            }
-            .home-gate-shell .live-count-premium-wrapper--gate .lc-tag {
-              background: #E53935 !important;
-              color: #FFFFFF !important;
-              border: none !important;
-              border-radius: 6px !important;
-              padding: 2px 8px !important;
-              font-size: 10px !important;
-              font-weight: 800 !important;
-              letter-spacing: 0.06em !important;
-            }
-            .home-gate-shell .live-count-premium-wrapper--gate .lc-dot {
-              width: 5px !important;
-              height: 5px !important;
-              background: #E53935 !important;
-              box-shadow: none !important;
-            }
-            .home-gate-shell .live-count-premium-wrapper--gate .live-dynamic-banner__sep--dot {
-              color: #1E293B !important;
-              font-size: 11px !important;
-              font-weight: 700 !important;
-            }
-            .home-gate-shell .live-count-premium-wrapper--gate .live-dynamic-banner__spotlight,
-            .home-gate-shell .live-count-premium-wrapper--gate .live-dynamic-banner__spotlight--solo {
-              color: #1E293B !important;
-              font-weight: 700 !important;
-              font-size: clamp(11px, 3.1vw, 13px) !important;
-              letter-spacing: -0.02em !important;
-              text-shadow: none !important;
             }
             @media (max-width: 390px) {
+              .home-gate-shell .home-live-banner-fallback--gate .live-dynamic-banner__inner,
               .home-gate-shell .live-count-premium-wrapper--gate .live-dynamic-banner__inner {
                 padding: 0 12px !important;
-              }
-              .home-gate-shell .live-count-premium-wrapper--gate .live-dynamic-banner__spotlight--solo {
-                font-size: 11px !important;
               }
             }
 

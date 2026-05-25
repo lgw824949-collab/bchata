@@ -1152,11 +1152,59 @@ img.bchata-poster-fit {
 
 .home-gate-shell .home-depth-panel.home-social-bar-panel--gate,
 .home-gate-shell .live-count-premium-wrapper--gate .live-dynamic-banner,
-.home-gate-shell .live-count-premium-wrapper--gate .live-dynamic-banner--gate {
+.home-gate-shell .live-count-premium-wrapper--gate .live-dynamic-banner--gate,
+.home-gate-shell .home-live-banner-fallback--gate .live-dynamic-banner,
+.home-gate-shell .home-live-banner-fallback--gate .live-dynamic-banner--gate {
   background: #FFFFFF;
-  border: 0.5px solid #EDEAE3;
-  border-radius: 10px;
+  border: 1px solid #E5DFD6;
+  border-radius: 12px;
+  box-shadow:
+    0 2px 10px rgba(15, 23, 42, 0.07),
+    0 0 0 1px rgba(229, 57, 53, 0.05);
+  animation: none !important;
+  background-size: 100% 100% !important;
+}
+
+.home-gate-shell .live-count-premium-wrapper--gate .live-dynamic-banner__inner,
+.home-gate-shell .home-live-banner-fallback--gate .live-dynamic-banner__inner {
+  min-height: 44px;
+  color: #0F172A;
+}
+
+.home-gate-shell .live-count-premium-wrapper--gate .lc-tag,
+.home-gate-shell .home-live-banner-fallback--gate .lc-tag {
+  background: #E53935;
+  color: #FFFFFF;
+  border: none;
+  border-radius: 6px;
+  padding: 3px 8px;
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+}
+
+.home-gate-shell .live-count-premium-wrapper--gate .lc-dot,
+.home-gate-shell .home-live-banner-fallback--gate .lc-dot {
+  width: 6px;
+  height: 6px;
+  background: #E53935;
   box-shadow: none;
+  animation: lc-blink 1.4s ease-in-out infinite;
+}
+
+.home-gate-shell .live-count-premium-wrapper--gate .live-dynamic-banner__sep--dot,
+.home-gate-shell .home-live-banner-fallback--gate .live-dynamic-banner__sep--dot {
+  color: #94A3B8;
+  font-weight: 700;
+}
+
+.home-gate-shell .live-count-premium-wrapper--gate .live-dynamic-banner__spotlight,
+.home-gate-shell .live-count-premium-wrapper--gate .live-dynamic-banner__spotlight--solo,
+.home-gate-shell .home-live-banner-fallback--gate .live-dynamic-banner__spotlight,
+.home-gate-shell .home-live-banner-fallback--gate .live-dynamic-banner__spotlight--solo {
+  color: #0F172A;
+  font-weight: 800;
+  text-shadow: none;
 }
 
 .home-gate-shell .home-hot-instructor-card {
