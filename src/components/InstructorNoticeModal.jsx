@@ -132,7 +132,7 @@ const InstructorNoticeModal = ({ onClose, instructorId }) => {
       if (data) setHistory((prev) => [data, ...prev].slice(0, 10));
       setTitle('');
       setBody('');
-      alert('공지가 저장되었습니다. 카톡·단톡 등에 공유해 주세요.');
+      alert('공지가 저장되었습니다. 팔로워에게 자동 전송되지 않으니, 복사·카톡으로 직접 공유해 주세요.');
     } catch {
       alert('저장에 실패했습니다. 복사 후 직접 보내주세요.');
     } finally {
@@ -188,7 +188,7 @@ const InstructorNoticeModal = ({ onClose, instructorId }) => {
               공지 보내기
             </div>
             <div style={{ fontSize: 12, color: '#94A3B8', marginTop: 4, fontWeight: 600 }}>
-              VIP · 수강생·팔로워에게 직접 공유
+              VIP · 카톡·복사로 직접 공유 (자동 발송 없음)
             </div>
           </div>
           <button
@@ -221,8 +221,11 @@ const InstructorNoticeModal = ({ onClose, instructorId }) => {
               fontWeight: 600,
             }}
           >
-            앱 푸시는 아직 없습니다. 공지 작성 → <strong style={{ color: '#C9A84C' }}>저장</strong> 후 카톡·단톡·인스타에
-            붙여넣기 하세요. 카카오 링크가 있으면 바로 열 수 있습니다.
+            <strong style={{ color: '#C9A84C' }}>팔로워·수강생에게 앱으로 자동 전달되지 않습니다.</strong>
+            <br />
+            강사 페이지 「팔로우」와 공지는 연결되어 있지 않습니다. 공지 작성 후 <strong style={{ color: '#F8FAFC' }}>복사</strong> 또는{' '}
+            <strong style={{ color: '#F8FAFC' }}>카톡</strong>으로 오픈채팅·단톡·수강생 연락처에 직접 보내 주세요.
+            수강생 연락처는 <strong style={{ color: '#F8FAFC' }}>수강생 관리</strong>에서 확인할 수 있습니다.
           </div>
 
           {!dbReady && (
