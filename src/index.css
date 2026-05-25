@@ -1150,14 +1150,14 @@ img.bchata-poster-fit {
   border-radius: 1px;
 }
 
-/* 홈 게이트 — 핫 강사 · Social BAR · 파티&행사 사이 48px (스택 gap 20px + 28px) */
+/* 홈 게이트 — 핫 강사 · Social BAR · 파티&행사 사이 56px (스택 gap 20px + 36px) */
 .home-gate-shell .home-main-stack .home-social-bar-wrap {
-  margin-top: 28px;
+  margin-top: 36px;
   margin-bottom: 0;
 }
 
 .home-gate-shell .home-social-bar-wrap + .home-region-poster-banner-standalone--gate-stack {
-  margin-top: 28px;
+  margin-top: 36px;
 }
 
 .home-gate-shell .home-depth-panel.home-social-bar-panel--gate,

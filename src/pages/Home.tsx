@@ -3392,6 +3392,19 @@ const HomePage = ({
 
     return (
       <section className="home-hot-instructors-wrap" aria-label="지금 핫한 강사">
+        <div className="home-hot-instructors-head">
+          <div className="home-hot-instructors-head__divider" aria-hidden />
+          <div className="home-hot-instructors-head__toolbar">
+            <button
+              type="button"
+              className="home-hot-instructors-more"
+              onClick={() => navigate('/instructors')}
+            >
+              <Plus size={16} strokeWidth={2.5} />
+              <span>{isEn ? 'More' : '더보기'}</span>
+            </button>
+          </div>
+        </div>
         {renderHomeGateSectionTitle('지금 핫한 강사', 'home-hot-instructors-title')}
         <div className="home-hot-instructors-scroll scrollbar-hide">
           <div className="home-hot-instructors-track">
@@ -3953,8 +3966,38 @@ const HomePage = ({
           font-weight: 500;
           color: #1E293B;
         }
+        .home-hot-instructors-head__divider {
+          height: 1px;
+          margin: 24px 8px 20px;
+          background: linear-gradient(
+            90deg,
+            transparent 0%,
+            rgba(15, 23, 42, 0.12) 20%,
+            rgba(15, 23, 42, 0.12) 80%,
+            transparent 100%
+          );
+        }
+        .home-hot-instructors-head__toolbar {
+          display: flex;
+          justify-content: flex-end;
+          padding: 0 4px;
+          margin: 4px 0 24px;
+        }
+        .home-gate-shell:not(.home-gate-active) .home-hot-instructors-more {
+          display: inline-flex;
+          align-items: center;
+          gap: 6px;
+          padding: 6px 14px;
+          border-radius: 100px;
+          border: 0.5px solid #EDEAE3;
+          background: #FFFFFF;
+          color: rgba(30, 41, 59, 0.55);
+          font-size: 12px;
+          font-weight: 700;
+          cursor: pointer;
+        }
         .home-hot-instructors-wrap .home-gate-section-title {
-          margin-bottom: 12px;
+          margin-bottom: 16px;
         }
         .home-gate-shell:not(.home-gate-active) .home-social-bar-scroll--peek-more::after {
           content: '';
@@ -4023,7 +4066,7 @@ const HomePage = ({
         .home-gate-king-menu__toolbar {
           display: flex;
           justify-content: center;
-          margin: 4px 0 16px;
+          margin: 4px 0 24px;
         }
         .home-gate-king-menu__toggle {
           display: inline-flex;
