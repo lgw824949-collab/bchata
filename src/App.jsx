@@ -920,97 +920,64 @@ const formatDateToKSTString = (date) => {
   return `${y}-${m}-${d}`;
 };
 
-const SplashScreen = () => {
-  const [phase, setPhase] = useState('rotate');
-
-  useEffect(() => {
-    const holdTimer = setTimeout(() => setPhase('hold'), 800);
-    const exitTimer = setTimeout(() => setPhase('exit'), 1300);
-    return () => {
-      clearTimeout(holdTimer);
-      clearTimeout(exitTimer);
-    };
-  }, []);
-
-  const exitDuration = 1.7;
-
-  return (
-    <motion.div
-      initial={{ opacity: 1 }}
-      animate={{ opacity: phase === 'exit' ? 0 : 1 }}
-      transition={{ duration: phase === 'exit' ? exitDuration : 0, ease: 'easeInOut' }}
+const SplashScreen = () => (
+  <motion.div
+    initial={{ opacity: 1 }}
+    animate={{ opacity: 0 }}
+    transition={{ delay: 1.1, duration: 0.4, ease: 'easeOut' }}
+    style={{
+      position: 'fixed',
+      inset: 0,
+      zIndex: Z.modalBackdrop,
+      backgroundColor: '#FFFDF9',
+      display: 'flex',
+      flexDirection: 'column',
+      alignItems: 'center',
+      justifyContent: 'center',
+      gap: 20,
+      padding: '24px',
+      boxSizing: 'border-box',
+    }}
+  >
+    <motion.img
+      src="/logo.png"
+      alt="오늘밤빠"
+      initial={{ opacity: 0, scale: 0.94 }}
+      animate={{ opacity: 1, scale: 1 }}
+      transition={{ duration: 0.35, ease: 'easeOut' }}
+      style={{ width: 160, maxWidth: '52vw', height: 'auto', objectFit: 'contain' }}
+    />
+    <motion.p
+      initial={{ opacity: 0, y: 6 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ delay: 0.12, duration: 0.35, ease: 'easeOut' }}
       style={{
-        position: 'fixed',
-        inset: 0,
-        zIndex: Z.modalBackdrop,
-        backgroundColor: '#0a0a0a',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        overflow: 'hidden',
+        margin: 0,
+        fontSize: 15,
+        fontWeight: 800,
+        color: '#1E293B',
+        letterSpacing: '-0.3px',
+        textAlign: 'center',
       }}
     >
-      <motion.img
-        src="/logo.png"
-        alt="BAMPPA"
-        initial={{ rotate: 0, scale: 1, opacity: 1 }}
-        animate={
-          phase === 'rotate'
-            ? { rotate: 360, scale: 1, opacity: 1 }
-            : phase === 'hold'
-              ? { rotate: 360, scale: 1, opacity: 1 }
-              : { rotate: 360, scale: 1.8, opacity: 0 }
-        }
-        transition={
-          phase === 'rotate'
-            ? { duration: 0.8, ease: 'easeInOut' }
-            : phase === 'exit'
-              ? { duration: exitDuration, ease: 'easeIn' }
-              : { duration: 0 }
-        }
-        style={{ width: '200px', objectFit: 'contain' }}
-      />
-      {/* 이전 stage 1/2 — 보관
-        {false && stage === 1 ? (
-          <motion.img
-            key="stage1"
-            src="/logo.png"
-            alt="BAMPPA"
-            initial={{ opacity: 1 }}
-            exit={{ opacity: 0, transition: { duration: 0.2 } }}
-            style={{ width: '200px', objectFit: 'contain' }}
-          />
-        ) : (
-          <motion.div
-            key="stage2"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}
-          >
-            <motion.img
-              src="/logo.png"
-              alt="BAMPPA"
-              initial={{ scale: 0.8, opacity: 0 }}
-              animate={{ scale: [0.8, 1.2, 1.0], opacity: 1 }}
-              transition={{ duration: 0.8, times: [0, 0.6, 1], ease: "easeOut" }}
-              style={{ width: '200px', objectFit: 'contain' }}
-            />
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ delay: 0.4, duration: 0.5 }}
-              style={{ marginTop: '24px', textAlign: 'center' }}
-            >
-              <div style={{ fontSize: '9px', color: '#FF1744', fontWeight: 700, letterSpacing: '1px' }}>
-                BACHATA · SALSA · KIZOMBA · ZOUK
-              </div>
-            </motion.div>
-          </motion.div>
-        )}
-      */}
-    </motion.div>
-  );
-};
+      켜고, 찾고, 가면 끝
+    </motion.p>
+    <motion.p
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      transition={{ delay: 0.22, duration: 0.3 }}
+      style={{
+        margin: 0,
+        fontSize: 10,
+        fontWeight: 700,
+        color: '#E53935',
+        letterSpacing: '0.08em',
+      }}
+    >
+      BACHATA · SALSA · KIZOMBA · ZOUK
+    </motion.p>
+  </motion.div>
+);
 
 function App() {
   const { t, i18n } = useTranslation('translation', { i18n: i18nCore });
@@ -1050,7 +1017,7 @@ function App() {
     const timer = setTimeout(() => {
       localStorage.setItem('splash_shown', 'true');
       setShowSplash(false);
-    }, 3000);
+    }, 1500);
     return () => clearTimeout(timer);
   }, [showSplash]);
 
