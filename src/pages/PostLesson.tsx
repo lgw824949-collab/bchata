@@ -160,21 +160,34 @@ const PostLesson = ({ onBack, user, initialVenue = null }) => {
 
       <main style={{ padding: '24px 20px' }}>
         {venueLocked ? (
-          <p
-            style={{
-              margin: '0 0 20px',
-              padding: '12px 14px',
-              borderRadius: 12,
-              background: 'rgba(212, 67, 110, 0.08)',
-              border: '1px solid rgba(212, 67, 110, 0.2)',
-              fontSize: 12,
-              fontWeight: 700,
-              color: '#9D174D',
-              lineHeight: 1.45,
-            }}
-          >
-            업체(BAR) 전용 등록입니다. 강사 수업은 VIP 마스터 라운지 → 클래스등록에서 하세요.
-          </p>
+          <div style={{ margin: '0 0 16px', display: 'flex', flexWrap: 'wrap', gap: 6 }}>
+            <span
+              style={{
+                padding: '4px 8px',
+                borderRadius: 6,
+                fontSize: 10,
+                fontWeight: 700,
+                background: 'rgba(212, 67, 110, 0.1)',
+                color: '#9D174D',
+                border: '1px solid rgba(212, 67, 110, 0.2)',
+              }}
+            >
+              업체 전용
+            </span>
+            <span
+              style={{
+                padding: '4px 8px',
+                borderRadius: 6,
+                fontSize: 10,
+                fontWeight: 700,
+                background: '#F8FAFC',
+                color: '#64748B',
+                border: '1px solid #E2E8F0',
+              }}
+            >
+              VIP 별도
+            </span>
+          </div>
         ) : null}
         <AnimatePresence mode="wait">
           {step === 1 && (

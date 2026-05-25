@@ -62,11 +62,58 @@ const VD_GENRE_PILL = {
 };
 
 const vdSectionLabel = (dateLabel, suffix) => (
-  <p className="vd-section-label" style={{ margin: '0 0 10px' }}>
+  <p className="vd-section-label" style={{ margin: '0 0 8px' }}>
     <span className="vd-section-label__date">{dateLabel}</span>
     <span className="vd-section-label__sep"> · </span>
     <span className="vd-section-label__text">{suffix}</span>
   </p>
+);
+
+const vdChip = (label, tone = 'muted') => (
+  <span
+    style={{
+      display: 'inline-flex',
+      alignItems: 'center',
+      padding: '3px 7px',
+      borderRadius: 6,
+      fontSize: 10,
+      fontWeight: 700,
+      lineHeight: 1.2,
+      whiteSpace: 'nowrap',
+      ...(tone === 'brand'
+        ? {
+            background: 'rgba(212, 67, 110, 0.08)',
+            color: VD.brandSoft,
+            border: `1px solid ${VD.borderAccent}`,
+          }
+        : {
+            background: '#F8FAFC',
+            color: VD.muted,
+            border: `1px solid ${VD.border}`,
+          }),
+    }}
+  >
+    {label}
+  </span>
+);
+
+const vdHintBox = (children, style = {}) => (
+  <div
+    style={{
+      padding: '10px 12px',
+      borderRadius: 10,
+      border: `1px solid ${VD.border}`,
+      background: '#fff',
+      fontSize: 12,
+      fontWeight: 600,
+      color: VD.muted,
+      lineHeight: 1.35,
+      textAlign: 'center',
+      ...style,
+    }}
+  >
+    {children}
+  </div>
 );
 
 /** 상세 설명: 약 3줄 분량 */
@@ -1039,34 +1086,35 @@ export default function VenueDetailModal({
           <div
             style={{
               flexShrink: 0,
-              padding: '0 16px 12px',
+              padding: '8px 16px 10px',
               borderBottom: `1px solid ${VD.border}`,
+              display: 'flex',
+              flexDirection: 'column',
+              gap: 8,
             }}
           >
-            <p style={{ margin: '0 0 8px', fontSize: 11, fontWeight: 800, color: VD.brandSoft, letterSpacing: '0.04em' }}>
-              업체 · BAR 전용
-            </p>
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
+              {vdChip('업체', 'brand')}
+              {vdChip('VIP 별도')}
+            </div>
             <button
               type="button"
               onClick={() => onRegisterVenueLesson(displayVenue)}
               style={{
                 width: '100%',
-                padding: '12px 14px',
-                borderRadius: 12,
+                padding: '11px 12px',
+                borderRadius: 10,
                 border: 'none',
                 background: VD.brand,
                 color: '#fff',
-                fontSize: 14,
+                fontSize: 13,
                 fontWeight: 800,
                 cursor: 'pointer',
-                boxShadow: '0 4px 14px rgba(212, 67, 110, 0.25)',
+                boxShadow: '0 4px 14px rgba(212, 67, 110, 0.2)',
               }}
             >
               BAR 수업 등록
             </button>
-            <p style={{ margin: '6px 0 0', fontSize: 11, color: VD.muted, fontWeight: 600, textAlign: 'center', lineHeight: 1.45 }}>
-              강사 VIP 클래스등록과 별도 · 포스터·요일·시간 입력
-            </p>
           </div>
         ) : null}
 
@@ -1189,88 +1237,74 @@ export default function VenueDetailModal({
               clickCount={venueBarStats.clickCount}
             />
           ) : (
-            <div style={{ margin: '8px 0 12px', textAlign: 'center' }}>
-              <p style={{ margin: 0, fontSize: '14px', color: VD.muted, fontWeight: 600 }}>
-                {formatLessonShortDate(selectedDate)} — 이 날 등록된 {isSocialTab ? '파티' : '수업'}이 없습니다.
-              </p>
-              {!isSocialTab && onRegisterVenueLesson ? (
-                <button
-                  type="button"
-                  onClick={() => onRegisterVenueLesson(displayVenue)}
-                  style={{
-                    marginTop: 10,
-                    padding: '8px 14px',
-                    borderRadius: 999,
-                    border: `1px solid ${VD.borderAccent}`,
-                    background: '#fff',
-                    color: VD.brandSoft,
-                    fontSize: 12,
-                    fontWeight: 800,
-                    cursor: 'pointer',
-                  }}
-                >
-                  BAR 수업 등록하기
-                </button>
-              ) : null}
-            </div>
+            vdHintBox(
+              isSocialTab ? '이 날 파티 없음' : '이 날 수업 없음',
+              { margin: '4px 0 10px' },
+            )
           )}
 
           <div
             style={{
-              marginTop: 12,
-              marginBottom: 16,
-              padding: 14,
-              borderRadius: 14,
-              border: `1px solid ${VD.borderAccent}`,
+              marginTop: 10,
+              marginBottom: 12,
+              padding: 10,
+              borderRadius: 10,
+              border: `1px solid ${VD.border}`,
               background: '#fff',
             }}
           >
-            <span className="vd-block-title" style={{ display: 'block', marginBottom: 4 }}>
-              BAR 소개글
-            </span>
-            <p style={{ margin: '0 0 8px', fontSize: 11, color: VD.muted, fontWeight: 600, lineHeight: 1.4 }}>
-              수업 등록과 무관 · BAR 안내 문구만 저장됩니다
-            </p>
+            <div
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                gap: 8,
+                marginBottom: 8,
+              }}
+            >
+              <span style={{ fontSize: 13, fontWeight: 800, color: VD.title }}>BAR 소개</span>
+              {vdChip('소개만')}
+            </div>
             <textarea
               value={venueDescription}
               onChange={(e) => setVenueDescription(e.target.value.slice(0, VENUE_DESC_MAX))}
-              rows={3}
+              rows={2}
               maxLength={VENUE_DESC_MAX}
-              placeholder=""
-              aria-label="상세 설명"
+              placeholder="BAR 한 줄 소개"
+              aria-label="BAR 소개"
               style={{
                 width: '100%',
-                padding: 12,
-                borderRadius: 12,
+                padding: '8px 10px',
+                borderRadius: 8,
                 border: `1px solid ${VD.border}`,
-                fontSize: 13,
-                lineHeight: 1.5,
+                fontSize: 12,
+                lineHeight: 1.45,
                 color: VD.body,
                 resize: 'none',
                 boxSizing: 'border-box',
                 fontFamily: 'inherit',
               }}
             />
-            <button
-              type="button"
-              onClick={saveVenueDescription}
-              disabled={savingDescription}
-              style={{
-                marginTop: 8,
-                width: '100%',
-                padding: 9,
-                borderRadius: 10,
-                border: `1px solid ${VD.borderAccent}`,
-                background: '#fff',
-                color: VD.brandSoft,
-                fontWeight: 800,
-                fontSize: 12,
-                cursor: savingDescription ? 'not-allowed' : 'pointer',
-                opacity: savingDescription ? 0.7 : 1,
-              }}
-            >
-              {savingDescription ? '저장 중…' : 'BAR 소개 저장'}
-            </button>
+            <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: 8 }}>
+              <button
+                type="button"
+                onClick={saveVenueDescription}
+                disabled={savingDescription}
+                style={{
+                  padding: '6px 12px',
+                  borderRadius: 8,
+                  border: `1px solid ${VD.borderAccent}`,
+                  background: '#fff',
+                  color: VD.brandSoft,
+                  fontWeight: 800,
+                  fontSize: 11,
+                  cursor: savingDescription ? 'not-allowed' : 'pointer',
+                  opacity: savingDescription ? 0.7 : 1,
+                }}
+              >
+                {savingDescription ? '저장…' : '저장'}
+              </button>
+            </div>
           </div>
 
           {featuredItem && dayItems.length > 1 && (
@@ -1323,20 +1357,12 @@ export default function VenueDetailModal({
           )}
 
           {(isSocialTab ? schedulePosters.length > 0 : true) && (
-            <div style={{ marginBottom: 16 }}>
-              <p className="vd-block-title" style={{ margin: '0 0 8px' }}>
+            <div style={{ marginBottom: 12 }}>
+              <p className="vd-block-title" style={{ margin: '0 0 6px', fontSize: 13 }}>
                 {isSocialTab ? '행사 일정' : '수업 일정'}
               </p>
               {schedulePosters.length === 0 ? (
-                <p style={{ margin: 0, fontSize: 13, color: VD.muted, fontWeight: 600, lineHeight: 1.45 }}>
-                  등록된 수업 일정이 없습니다.
-                  {onRegisterVenueLesson ? (
-                    <>
-                      <br />
-                      위 「BAR 수업 등록」에서 추가하세요.
-                    </>
-                  ) : null}
-                </p>
+                vdHintBox(isSocialTab ? '일정 없음' : '일정 없음 · 상단 등록')
               ) : (
               <div style={{ display: 'flex', gap: 10, overflowX: 'auto', scrollbarWidth: 'none' }}>
                 {schedulePosters.map(({ date, party: p }) => (
