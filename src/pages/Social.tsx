@@ -130,6 +130,95 @@ export function PartyMusicRatioLine({ item, style, className }: PartyMusicRatioL
   );
 }
 
+export const PARTY_LIST_REGION_ORDER = [
+  '경인',
+  '서울',
+  '경상도',
+  '전라도',
+  '충청도',
+  '강원/제주',
+] as const;
+
+export type PartyListRegionName = (typeof PARTY_LIST_REGION_ORDER)[number];
+
+type SocialPartyRegionFilterBarProps = {
+  regions: { name: PartyListRegionName; count: number }[];
+  activeRegion: PartyListRegionName | '';
+  onSelectRegion: (region: PartyListRegionName | '') => void;
+  regionLabel: (name: PartyListRegionName) => string;
+  isEn?: boolean;
+};
+
+/** 소셜 파티 — 파티 있는 지역만 · 전체/지역 필터 */
+export function SocialPartyRegionFilterBar({
+  regions,
+  activeRegion,
+  onSelectRegion,
+  regionLabel,
+  isEn = false,
+}: SocialPartyRegionFilterBarProps) {
+  if (!regions.length) return null;
+
+  const totalCount = regions.reduce((sum, r) => sum + r.count, 0);
+
+  return (
+    <div
+      className="social-party-region-filter"
+      style={{
+        display: 'flex',
+        overflowX: 'auto',
+        gap: '8px',
+        padding: '10px 16px 6px',
+        msOverflowStyle: 'none',
+        scrollbarWidth: 'none',
+        WebkitOverflowScrolling: 'touch',
+      }}
+    >
+      <button
+        type="button"
+        onClick={() => onSelectRegion('')}
+        style={{
+          flexShrink: 0,
+          padding: '8px 14px',
+          borderRadius: '100px',
+          fontSize: '12px',
+          fontWeight: activeRegion === '' ? 800 : 600,
+          border: `1px solid ${activeRegion === '' ? '#E53935' : '#E2E8F0'}`,
+          background: activeRegion === '' ? '#E53935' : '#FFFFFF',
+          color: activeRegion === '' ? '#FFFFFF' : '#64748B',
+          cursor: 'pointer',
+        }}
+      >
+        {isEn ? `All ${totalCount}` : `전체 ${totalCount}`}
+      </button>
+      {regions.map(({ name, count }) => {
+        const isActive = activeRegion === name;
+        const label = regionLabel(name);
+        return (
+          <button
+            key={name}
+            type="button"
+            onClick={() => onSelectRegion(isActive ? '' : name)}
+            style={{
+              flexShrink: 0,
+              padding: '8px 14px',
+              borderRadius: '100px',
+              fontSize: '12px',
+              fontWeight: isActive ? 800 : 600,
+              border: `1px solid ${isActive ? '#E53935' : '#E2E8F0'}`,
+              background: isActive ? '#E53935' : '#FFFFFF',
+              color: isActive ? '#FFFFFF' : '#64748B',
+              cursor: 'pointer',
+            }}
+          >
+            {isEn ? `${label} ${count}` : `${label} 파티 ${count}`}
+          </button>
+        );
+      })}
+    </div>
+  );
+}
+
 export default function SocialPage() {
   return null;
 }

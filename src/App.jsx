@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo, useRef, useCallback, lazy, Suspense } from 'react'
-import { Home as HomeIcon, Users, LogOut, Heart, X, MessageSquare, RefreshCw, CloudSun, Utensils, Zap, Languages, Bell, Star, Navigation, CreditCard, Settings, Map as MapIcon, BarChart, BarChart2, Gift, Coffee, User, Menu, Music2, Tent, Flag, Download, Globe, ShieldCheck, Calendar, CalendarDays, Camera, ChevronLeft, ChevronRight, Loader2, Search, Share2, Copy, TrendingUp, GraduationCap } from 'lucide-react'
+import { Home as HomeIcon, Users, LogOut, Heart, X, MessageSquare, RefreshCw, CloudSun, Utensils, Zap, Languages, Star, Navigation, CreditCard, Settings, Map as MapIcon, BarChart, BarChart2, Gift, Coffee, User, Menu, Music2, Tent, Flag, Download, Globe, ShieldCheck, Calendar, CalendarDays, Camera, ChevronLeft, ChevronRight, Loader2, Search, Share2, Copy, TrendingUp, GraduationCap } from 'lucide-react'
 import { useTranslation } from 'react-i18next';
 import { motion, AnimatePresence } from 'framer-motion'
 import { logActivity, runSupabaseQuery, supabase } from './lib/supabase'
@@ -49,7 +49,6 @@ import StudentManagementModal from './components/StudentManagementModal'
 import RevenueSummaryModal from './components/RevenueSummaryModal'
 import MyClassScheduleModal from './components/MyClassScheduleModal'
 import InstructorProfileStatsModal from './components/InstructorProfileStatsModal'
-import InstructorNoticeModal from './components/InstructorNoticeModal'
 import LessonRegisterChoiceModal from './components/LessonRegisterChoiceModal'
 import ChatBot from './components/ChatBot'
 
@@ -1152,7 +1151,6 @@ function App() {
   const [showRevenueStats, setShowRevenueStats] = useState(false);
   const [showClassSchedule, setShowClassSchedule] = useState(false);
   const [showProfileStats, setShowProfileStats] = useState(false);
-  const [showInstructorNotice, setShowInstructorNotice] = useState(false);
   const [showLessonRegisterChoice, setShowLessonRegisterChoice] = useState(false);
   const [showFullCalendar, setShowFullCalendar] = useState(false);
   const [showFilterPanel, setShowFilterPanel] = useState(false);
@@ -1593,27 +1591,6 @@ function App() {
     }
     if (vipLoggedIn) {
       setShowProfileStats(true);
-      return;
-    }
-    setVipAuthMode('login');
-    setShowVipLogin(true);
-  }, [vipLoggedIn]);
-
-  /** Route_Lounge — 마스터 메뉴에서 공지 보내기 */
-  const openInstructorNoticeFromLounge = useCallback(() => {
-    const session = readVipInstructorSession();
-    setShowLuxuryUpsellModal(false);
-    setVipPendingClassRegister(false);
-    setShowVipMenu(false);
-    setShowVipLogin(false);
-
-    if (session?.id) {
-      setVipLoggedIn(true);
-      setShowInstructorNotice(true);
-      return;
-    }
-    if (vipLoggedIn) {
-      setShowInstructorNotice(true);
       return;
     }
     setVipAuthMode('login');
@@ -2411,11 +2388,6 @@ function App() {
                   text: '내 프로필 통계',
                   action: () => { setIsMenuOpen(false); alert('준비 중입니다 🔧'); },
                 },
-                {
-                  icon: <span style={{ fontSize: '20px', lineHeight: 1 }}>📢</span>,
-                  text: '공지 보내기',
-                  action: () => { setIsMenuOpen(false); alert('준비 중입니다 🔧'); },
-                },
               ].map((item, idx) => (
                 <motion.div
                   key={idx}
@@ -2723,7 +2695,6 @@ function App() {
                 { icon: <TrendingUp size={20} color="#C9A84C" />, text: '수입 집계', action: () => openRevenueSummaryFromLounge() },
                 { icon: <CalendarDays size={20} color="#C9A84C" />, text: '내 클래스 일정', action: () => openClassScheduleFromLounge() },
                 { icon: <BarChart2 size={20} color="#C9A84C" />, text: '내 프로필 통계', action: () => openProfileStatsFromLounge() },
-                { icon: <Bell size={20} color="#C9A84C" />, text: '공지 보내기', action: () => openInstructorNoticeFromLounge() },
               ].map((item, idx) => (
                 <motion.div
                   key={idx}
@@ -3219,12 +3190,6 @@ function App() {
     {showProfileStats && (
       <InstructorProfileStatsModal
         onClose={() => { if (!closeOverlay()) setShowProfileStats(false); }}
-        instructorId={readVipInstructorSession()?.id || ''}
-      />
-    )}
-    {showInstructorNotice && (
-      <InstructorNoticeModal
-        onClose={() => { if (!closeOverlay()) setShowInstructorNotice(false); }}
         instructorId={readVipInstructorSession()?.id || ''}
       />
     )}

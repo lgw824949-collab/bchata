@@ -34,7 +34,12 @@ import bonitaPhoto from '../assets/bonita_photo.png'
 import buenaPhoto from '../assets/buena_photo.png'
 import hongturnPhoto from '../assets/hongturn_photo.png'
 import bibigoPhoto from '../assets/bibigo_photo.png'
-import { PartyMusicRatioLine, SocialDateGenreFilterBar, formatPartyMusicRatio } from './Social'
+import {
+  PartyMusicRatioLine,
+  SocialPartyRegionFilterBar,
+  PARTY_LIST_REGION_ORDER,
+  formatPartyMusicRatio,
+} from './Social'
 
 function navigate(path: string, options: Record<string, unknown> = {}) {
   historyNavigate(path, options);
@@ -1629,24 +1634,13 @@ const HomePage = ({
   const [weatherMap, setWeatherMap] = useState({});
   const [adminTapCount, setAdminTapCount] = useState(0);
   const [lastAdminTap, setLastAdminTap] = useState(0);
-  const [activeDateGenre, setActiveDateGenre] = useState('전체');
-  const [isFilterBarVisible, setIsFilterBarVisible] = useState(false);
   const [isModalFilterVisible, setIsModalFilterVisible] = useState(false);
+  const [partyListRegionFilter, setPartyListRegionFilter] = useState('');
   const stickyHeaderRef = useRef(null);
 
   useEffect(() => {
-    const handleClickOutside = (e) => {
-      if (stickyHeaderRef.current && !stickyHeaderRef.current.contains(e.target)) {
-        setIsFilterBarVisible(false);
-      }
-    };
-    document.addEventListener('mousedown', handleClickOutside);
-    document.addEventListener('touchstart', handleClickOutside);
-    return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
-      document.removeEventListener('touchstart', handleClickOutside);
-    };
-  }, []);
+    setPartyListRegionFilter('');
+  }, [selectedDate]);
 
   const todayStr = useMemo(() => getKSTTodayStr(), []);
   const calendarTodayStr = useMemo(() => getKSTCalendarTodayStr(), []);
@@ -4863,16 +4857,7 @@ const HomePage = ({
 
             return (
               <div key={item.fullDate}
-                onClick={() => {
-                  console.log('클릭한 날짜:', item.fullDate);
-                  if (selectedDate === item.fullDate) {
-                    setIsFilterBarVisible(v => !v);
-                  } else {
-                    setSelectedDate(item.fullDate);
-                    setActiveDateGenre('전체');
-                    setIsFilterBarVisible(true);
-                  }
-                }}
+                onClick={() => setSelectedDate(item.fullDate)}
                 style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minWidth: '13.5%', cursor: 'pointer', position: 'relative', paddingBottom: '6px' }}
               >
                 <span style={{ fontSize: '10px', fontWeight: '700', color: labelColor, marginBottom: '2px' }}>{item.dayName}</span>
@@ -4889,12 +4874,6 @@ const HomePage = ({
             );
           })}
         </div>
-
-        <SocialDateGenreFilterBar
-          visible={isFilterBarVisible}
-          activeGenre={activeDateGenre}
-          onSelectGenre={(g) => setActiveDateGenre(g)}
-        />
       </div>
 
 
@@ -4945,11 +4924,8 @@ const HomePage = ({
                   };
                 });
 
-                // 통합된 해당 날짜의 모든 이벤트
-                const unifiedDayEvents = [...activeParties, ...activeBootcamps, ...activeFestivals].filter(item => {
-                  if (activeDateGenre === '전체') return true;
-                  return item._itemGenre === activeDateGenre;
-                });
+                // 통합된 해당 날짜의 모든 이벤트 (장르 필터 없음 — 카드·포스터로 구분)
+                const unifiedDayEvents = [...activeParties, ...activeBootcamps, ...activeFestivals];
 
                 // 전국 포스터 있는 모든 이벤트 추출 (날짜/장르 필터 무관)
                 const globalBootcamps = (bootcamps || []).map(b => ({
@@ -5084,34 +5060,83 @@ const HomePage = ({
                       </div>
                     )}
 
-                    {/* [지역 리스트 처리 루프] */}
+                    {/* [지역 리스트 — 파티 있는 지역만 · 필터 연동] */}
                     {(() => {
                       const regionKeys = {
-                        "서울": "region_seoul",
-                        "경인": "region_gyeonggi_incheon",
-                        "경상도": "region_gyeongsang",
-                        "전라도": "region_jeolla",
-                        "충청도": "region_chungcheong",
-                        "강원/제주": "region_gangwon_jeju"
+                        서울: 'region_seoul',
+                        경인: 'region_gyeonggi_incheon',
+                        경상도: 'region_gyeongsang',
+                        전라도: 'region_jeolla',
+                        충청도: 'region_chungcheong',
+                        '강원/제주': 'region_gangwon_jeju',
                       };
-                      const regions = ["경인", "서울", "경상도", "전라도", "충청도", "강원/제주"];
 
-                      return regions.map((regionName, idx) => {
+                      const buildRollingParties = (regionName) => {
                         const regionParties = unifiedDayEvents
-                          .filter(p => REGION_FILTER[regionName](p))
-                          .filter(p => {
-                            if (filterGenre && GENRE_MAP[filterGenre]) {
-                              if (!(p[GENRE_MAP[filterGenre].key] > 0)) return false;
-                            }
-                            return true;
-                          })
-                          .sort((a, b) => new Date(b.created_at || 0).getTime() - new Date(a.created_at || 0).getTime());
-
-                        const rollingParties = dedupePartiesByPoster(
-                          regionParties.filter((p) => p.poster_url && String(p.poster_url).trim())
+                          .filter((p) => REGION_FILTER[regionName](p))
+                          .sort(
+                            (a, b) =>
+                              new Date(b.created_at || 0).getTime() -
+                              new Date(a.created_at || 0).getTime(),
+                          );
+                        return dedupePartiesByPoster(
+                          regionParties.filter((p) => p.poster_url && String(p.poster_url).trim()),
                         );
+                      };
 
-                        const isFirst = regionName === '경인';
+                      const partyRegionsForDay = PARTY_LIST_REGION_ORDER.map((regionName) => ({
+                        name: regionName,
+                        rollingParties: buildRollingParties(regionName),
+                      })).filter((r) => r.rollingParties.length > 0);
+
+                      const safePartyRegionFilter =
+                        partyListRegionFilter &&
+                        partyRegionsForDay.some((r) => r.name === partyListRegionFilter)
+                          ? partyListRegionFilter
+                          : '';
+
+                      const displayPartyRegions = safePartyRegionFilter
+                        ? partyRegionsForDay.filter((r) => r.name === safePartyRegionFilter)
+                        : partyRegionsForDay;
+
+                      if (!partyRegionsForDay.length) {
+                        return (
+                          <div
+                            style={{
+                              margin: '8px 16px 24px',
+                              padding: '40px 20px',
+                              borderRadius: '16px',
+                              textAlign: 'center',
+                              color: 'var(--color-text-sub)',
+                              fontSize: '13px',
+                              fontWeight: 700,
+                              border: '1px dashed #E2E8F0',
+                              background: 'var(--color-card)',
+                            }}
+                          >
+                            {isEn
+                              ? 'No parties on this date yet.'
+                              : '이 날짜에 등록된 파티가 없습니다.'}
+                          </div>
+                        );
+                      }
+
+                      return (
+                        <>
+                          <SocialPartyRegionFilterBar
+                            regions={partyRegionsForDay.map((r) => ({
+                              name: r.name,
+                              count: r.rollingParties.length,
+                            }))}
+                            activeRegion={safePartyRegionFilter}
+                            onSelectRegion={setPartyListRegionFilter}
+                            regionLabel={(name) => t(regionKeys[name] || name)}
+                            isEn={isEn}
+                          />
+                          {displayPartyRegions.map((regionBlock, idx) => {
+                        const { name: regionName, rollingParties } = regionBlock;
+
+                        const isFirst = idx === 0;
                         const weather = regionName === '서울' && weatherMap['서울'] ? { temperature: weatherMap['서울'].temp, icon: weatherMap['서울'].icon } : null;
 
                         return (
@@ -5186,13 +5211,9 @@ const HomePage = ({
                                   scrollSnapType: 'x mandatory',
                                   scrollPaddingLeft: '16px',
                                   scrollPaddingRight: '16px',
-                                  // overscrollBehaviorX: 'contain',
-                                  // scrollBehavior: 'smooth',
                                 }}
                               >
-                                {rollingParties.length === 0 ? (
-                                  <div style={{ flexShrink: 0, width: '100%', padding: '50px', background: 'var(--color-bg)', borderRadius: '24px', textAlign: 'center', color: 'var(--color-text-sub)', fontSize: '13px', fontWeight: '900', border: '1px dashed #E2E8F0' }}>{t('no_parties')}</div>
-                                ) : rollingParties.map((item) => (
+                                {rollingParties.map((item) => (
                                   <div
                                     key={item.id}
                                     className="party-carousel-card region-carousel-card"
@@ -5218,10 +5239,11 @@ const HomePage = ({
 
                             </section>
 
-                            {/* 지방권 HOT PICK 별도 트랙은 최상단 통합 운영으로 삭제됨 */}
                           </React.Fragment>
                         );
-                      });
+                      })}
+                        </>
+                      );
                     })()}
 
                     <LiveExposureStrip
@@ -5309,9 +5331,7 @@ const HomePage = ({
                             setIsModalFilterVisible(v => !v);
                           } else {
                             setSelectedDate(day.fullDate);
-                            setActiveDateGenre('전체');
                             setIsModalFilterVisible(true);
-                            setIsFilterBarVisible(true);
                           }
                         }}
                       >
