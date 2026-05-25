@@ -1150,59 +1150,14 @@ img.bchata-poster-fit {
   border-radius: 1px;
 }
 
-/* 홈 게이트 — 섹션 타이포 유지, 레이아웃만 촘촘히 */
-.home-gate-shell .home-main-stack {
-  gap: 12px;
-}
-
+/* 홈 게이트 — 핫 강사 · Social BAR · 파티&행사 사이 24px (스택 gap 20px + 4px) */
 .home-gate-shell .home-main-stack .home-social-bar-wrap {
-  margin-top: 0;
+  margin-top: 4px;
   margin-bottom: 0;
 }
 
-.home-gate-shell .home-region-tabs {
-  padding-bottom: 8px;
-  margin-bottom: 6px;
-}
-
-.home-gate-shell .home-hot-instructors-wrap {
-  padding: 0;
-}
-
-.home-gate-shell .home-hot-instructors-wrap .home-gate-section-title,
-.home-gate-shell .home-region-poster-banner__section-title {
-  margin-bottom: 8px;
-}
-
-.home-gate-shell .home-hot-instructor-card {
-  width: 124px;
-  min-width: 124px;
-  max-width: 124px;
-  height: 158px;
-}
-
-.home-gate-shell .home-hot-instructor-card__meta {
-  height: 44px;
-  padding: 6px 8px;
-}
-
-.home-gate-shell .home-social-bar-panel--gate {
-  padding: 10px 10px 12px !important;
-}
-
-.home-gate-shell .home-social-bar-wrap .home-bar-chip {
-  width: 72px !important;
-  min-width: 72px !important;
-  max-width: 72px !important;
-}
-
-.home-gate-shell .home-social-bar-wrap .home-bar-thumb {
-  width: 64px !important;
-  height: 64px !important;
-}
-
-.home-gate-shell .home-region-poster-banner__frame {
-  max-height: min(52vw, 240px);
+.home-gate-shell .home-social-bar-wrap + .home-region-poster-banner-standalone--gate-stack {
+  margin-top: 4px;
 }
 
 .home-gate-shell .home-depth-panel.home-social-bar-panel--gate,

@@ -2604,7 +2604,7 @@ const HomePage = ({
   };
   const homeSectionSpace = isHomeGate ? 32 : 36;
   const homeBlockSpace = isHomeGate ? 22 : 28;
-  const homeGateStackGap = 12;
+  const homeGateStackGap = 20;
   const homeDepthPanelStyle = {
     background: homeUi.panelBg,
     border: isHomeGateDark ? `1px solid ${homeUi.panelBorder}` : HOME_CARD_BORDER,
@@ -2821,7 +2821,7 @@ const HomePage = ({
   );
 
   const renderHomeSectionHeader = (title, subtitle, trailing = null, subtitleStyle = null) => (
-    <header style={{ marginBottom: isHomeGate ? 8 : 14 }}>
+    <header style={{ marginBottom: 14 }}>
       <motion.div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8 }}>
         {isHomeGate ? (
           <motion.div style={{ flex: 1, minWidth: 0 }}>
@@ -3104,7 +3104,7 @@ const HomePage = ({
           }
           .home-region-poster-banner__section-title {
             margin: 0;
-            margin-bottom: 8px;
+            margin-bottom: 12px;
           }
           .home-region-poster-banner__frame {
             position: relative;
@@ -3113,7 +3113,7 @@ const HomePage = ({
             border-radius: 10px;
             overflow: hidden;
             aspect-ratio: 3 / 4;
-            max-height: min(52vw, 240px);
+            max-height: min(72vw, 360px);
             background: #111;
             border: ${isHomeGateDark ? '1px solid rgba(255,255,255,0.12)' : '0.5px solid #EDEAE3'};
             box-shadow: none;
@@ -3352,7 +3352,7 @@ const HomePage = ({
                   >
                     <p
                       className="home-social-bar-region-hint"
-                      style={{ margin: '0 0 6px', padding: '0 2px', color: homeUi.barSubtitle, fontSize: 12, fontWeight: 700 }}
+                      style={{ margin: '0 0 12px', padding: '0 2px', color: homeUi.barSubtitle, fontSize: 12, fontWeight: 700 }}
                     >
                       {barListLabel}
                     </p>
@@ -3800,7 +3800,7 @@ const HomePage = ({
         .home-gate-shell .home-main-stack {
           display: flex;
           flex-direction: column;
-          gap: 12px;
+          gap: 20px;
         }
         .home-gate-shell .home-section-break {
           padding: 28px 0 32px;
@@ -3954,7 +3954,7 @@ const HomePage = ({
           color: #1E293B;
         }
         .home-hot-instructors-wrap .home-gate-section-title {
-          margin-bottom: 8px;
+          margin-bottom: 12px;
         }
         .home-gate-shell:not(.home-gate-active) .home-social-bar-scroll--peek-more::after {
           content: '';
@@ -4554,7 +4554,7 @@ const HomePage = ({
           50% { opacity: 0.75; }
         }
         .home-gate-shell .home-social-bar-panel--gate {
-          padding: 10px 10px 12px !important;
+          padding: 16px 12px 18px !important;
           border-radius: 10px !important;
           border: 0.5px solid #EDEAE3 !important;
           background: #FFFFFF !important;
@@ -4574,7 +4574,7 @@ const HomePage = ({
         }
         .home-gate-shell .home-social-bar-scroll--peek {
           overflow-x: auto;
-          padding: 2px 8px 6px;
+          padding: 2px 12px 10px;
           scroll-snap-type: none;
           scroll-padding-inline: 12px;
           -webkit-overflow-scrolling: touch;
@@ -4609,7 +4609,7 @@ const HomePage = ({
         }
         .home-hot-instructors-wrap {
           background: var(--home-page-bg, #FFFDF9);
-          padding: 0;
+          padding: 16px 16px 0;
           margin: 0;
         }
         .home-hot-instructors-divider {
@@ -4628,7 +4628,7 @@ const HomePage = ({
           color: #ffffff !important;
         }
         .home-hot-instructors-title {
-          margin: 0 0 8px;
+          margin: 0 0 12px;
         }
         .home-hot-instructors-scroll {
           display: block;
@@ -4660,12 +4660,6 @@ const HomePage = ({
           min-width: 100%;
           padding: 0 2px 2px;
           vertical-align: top;
-        }
-        .home-gate-shell .home-hot-instructor-card {
-          width: 124px;
-          min-width: 124px;
-          max-width: 124px;
-          height: 158px;
         }
         .home-hot-instructor-card {
           position: relative;
@@ -4702,10 +4696,6 @@ const HomePage = ({
           object-fit: cover;
           object-position: top;
           display: block;
-        }
-        .home-gate-shell .home-hot-instructor-card__meta {
-          height: 44px;
-          padding: 6px 8px;
         }
         .home-hot-instructor-card__meta {
           position: absolute;
