@@ -355,11 +355,16 @@ export async function fetchUpcomingPartiesForSaju(supabaseClient, { todayStr, li
       .order('time', { ascending: true })
       .limit(limit);
 
-  const joined = await upcomingQuery(PARTIES_WITH_LOCATION);
-  if (!joined.error) return joined;
+  try {
+    const joined = await upcomingQuery(PARTIES_WITH_LOCATION);
+    if (!joined.error) return joined;
 
-  logPartiesFetchError(joined.error);
-  return upcomingQuery(PARTIES_SELECT);
+    logPartiesFetchError(joined.error);
+    return await upcomingQuery(PARTIES_SELECT);
+  } catch (err) {
+    logPartiesFetchError(err);
+    return { data: [], error: err };
+  }
 }
 
 /** 사주 추천 카드용 — locations join·App parties 필드 통합 */

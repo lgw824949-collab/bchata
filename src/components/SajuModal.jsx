@@ -250,11 +250,15 @@ const SajuModal = ({ parties = [], onClose, lang = 'ko' }) => {
 
     if (!supabase) return fromProp;
 
-    const { data, error } = await fetchUpcomingPartiesForSaju(supabase, { todayStr, limit: 100 });
-    if (error) logPartiesFetchError(error);
+    try {
+      const { data, error } = await fetchUpcomingPartiesForSaju(supabase, { todayStr, limit: 100 });
+      if (error) logPartiesFetchError(error);
 
-    const fromDb = (data || []).map(normalizePartyForSajuDisplay).filter(Boolean);
-    if (fromDb.length) return fromDb;
+      const fromDb = (data || []).map(normalizePartyForSajuDisplay).filter(Boolean);
+      if (fromDb.length) return fromDb;
+    } catch (err) {
+      logPartiesFetchError(err);
+    }
     return fromProp;
   };
 
