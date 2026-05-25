@@ -46,6 +46,7 @@ import WishlistModal from './components/WishlistModal'
 import RentalModal from './components/RentalModal'
 import ClassRegisterModal from './components/ClassRegisterModal'
 import StudentManagementModal from './components/StudentManagementModal'
+import RevenueSummaryModal from './components/RevenueSummaryModal'
 import LessonRegisterChoiceModal from './components/LessonRegisterChoiceModal'
 import ChatBot from './components/ChatBot'
 
@@ -1145,8 +1146,8 @@ function App() {
 
   const [showClassRegister, setShowClassRegister] = useState(false);
   const [showStudentManager, setShowStudentManager] = useState(false);
+  const [showRevenueStats, setShowRevenueStats] = useState(false);
   const [showLessonRegisterChoice, setShowLessonRegisterChoice] = useState(false);
-  // const [showRevenueStats, setShowRevenueStats] = useState(false);
   const [showFullCalendar, setShowFullCalendar] = useState(false);
   const [showFilterPanel, setShowFilterPanel] = useState(false);
   const [showFilteredResults, setShowFilteredResults] = useState(false);
@@ -1523,6 +1524,27 @@ function App() {
     }
     if (vipLoggedIn) {
       setShowStudentManager(true);
+      return;
+    }
+    setVipAuthMode('login');
+    setShowVipLogin(true);
+  }, [vipLoggedIn]);
+
+  /** Route_Lounge — 마스터 메뉴에서 수입 집계 */
+  const openRevenueSummaryFromLounge = useCallback(() => {
+    const session = readVipInstructorSession();
+    setShowLuxuryUpsellModal(false);
+    setVipPendingClassRegister(false);
+    setShowVipMenu(false);
+    setShowVipLogin(false);
+
+    if (session?.id) {
+      setVipLoggedIn(true);
+      setShowRevenueStats(true);
+      return;
+    }
+    if (vipLoggedIn) {
+      setShowRevenueStats(true);
       return;
     }
     setVipAuthMode('login');
@@ -2629,7 +2651,7 @@ function App() {
                   action: () => openClassRegisterFromLounge(),
                 },
                 { icon: <Users size={20} color="#C9A84C" />, text: '수강생 관리', action: () => openStudentManagementFromLounge() },
-                { icon: <TrendingUp size={20} color="#C9A84C" />, text: '수입 집계' },
+                { icon: <TrendingUp size={20} color="#C9A84C" />, text: '수입 집계', action: () => openRevenueSummaryFromLounge() },
                 { icon: <CalendarDays size={20} color="#C9A84C" />, text: '내 클래스 일정' },
                 { icon: <BarChart2 size={20} color="#C9A84C" />, text: '내 프로필 통계' },
                 { icon: <Bell size={20} color="#C9A84C" />, text: '공지 보내기' },
@@ -3113,6 +3135,12 @@ function App() {
         instructorId={readVipInstructorSession()?.id || ''}
       />
     )}
+    {showRevenueStats && (
+      <RevenueSummaryModal
+        onClose={() => { if (!closeOverlay()) setShowRevenueStats(false); }}
+        instructorId={readVipInstructorSession()?.id || ''}
+      />
+    )}
     {(view === 'register-class' || location.pathname === '/register-class') && (
       <div
         style={{
@@ -3127,16 +3155,6 @@ function App() {
         <Suspense fallback={null}>
           <InstructorRegister onBack={goBack} />
         </Suspense>
-      </div>
-    )}
-    {false && false && (
-      <div
-        style={{ position: 'fixed', inset: 0, zIndex: Z.modal, background: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
-        onClick={() => setShowRevenueStats(false)}
-      >
-        <motion.div onClick={(e) => e.stopPropagation()} style={{ width: '90%', maxWidth: '400px', minHeight: '200px', background: '#121212', borderRadius: '16px', border: '1px solid rgba(201,168,76,0.3)' }}>
-          <div />
-        </motion.div>
       </div>
     )}
     {(view === 'register-party' || location.pathname === '/register-party') && (
