@@ -69,6 +69,14 @@ const QUICK_MENU_SVG = {
       <line x1="29" y1="7" x2="29" y2="13" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
     </svg>
   ),
+  barVenueClassRegister: (
+    <svg viewBox="0 0 36 36" aria-hidden>
+      <rect x="6" y="10" width="24" height="20" rx="3" stroke="currentColor" strokeWidth="1.5" fill="none" />
+      <path d="M6 16 H30" stroke="currentColor" strokeWidth="1.5" />
+      <rect x="14" y="20" width="8" height="10" stroke="currentColor" strokeWidth="1.5" fill="none" />
+      <line x1="18" y1="6" x2="18" y2="10" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+    </svg>
+  ),
   concierge: (
     <svg viewBox="0 0 36 36" aria-hidden>
       <rect x="4" y="6" width="28" height="18" rx="4" stroke="currentColor" strokeWidth="1.5" fill="none" />
@@ -112,7 +120,8 @@ const HOME_GATE_MENU_COPY = {
   bootcampDive: { ko: '부트캠프', en: 'Bootcamp' },
   festivalLive: { ko: '페스티벌', en: 'Festival' },
   partyPost: { ko: '파티 등록', en: 'Party' },
-  classOpen: { ko: 'BAR 수업', en: 'BAR class' },
+  barVenueClass: { ko: '업체 수업', en: 'BAR class' },
+  instructorRegister: { ko: '강사 등록', en: 'Instructor' },
   conciergePick: { ko: '추천', en: 'Picks' },
   livepickShow: { ko: '라이브픽', en: 'Live pick' },
   wishlistView: { ko: '찜하기', en: 'Saved' },
@@ -131,7 +140,8 @@ const HOME_GATE_MAIN_MENU_IDS = ['today-party', 'bootcamp', 'festival', 'instruc
 /** 더보기 메뉴 노출 순서 — 등록 2종 맨 앞 */
 const HOME_GATE_KING_MENU_ORDER = [
   'party-register',
-  'class-register',
+  'bar-venue-class-register',
+  'instructor-register',
   // 'concierge', // 하단 네비 이동 — 더보기 비노출
   // 'livepick',
   // 'wishlist',
@@ -1758,6 +1768,7 @@ const HomePage = ({
   const barViewTimerRef = useRef(null);
   const [selectedVenue, setSelectedVenue] = useState(null);
   const [venueLessonPostVenue, setVenueLessonPostVenue] = useState(null);
+  const [showVenueLessonPick, setShowVenueLessonPick] = useState(false);
   const [showBarRegisterForm, setShowBarRegisterForm] = useState(false);
   const [quickMenuMoreOpen, setQuickMenuMoreOpen] = useState(false);
   const [kingMenuOpen, setKingMenuOpen] = useState(false);
@@ -2024,6 +2035,22 @@ const HomePage = ({
     setVenueLessonPostVenue(null);
     window.dispatchEvent(new CustomEvent('bchata-lessons-refresh'));
   }, []);
+
+  const openBarVenueLessonPick = useCallback(() => {
+    if (!locations.length) {
+      alert(isEn ? 'No BAR listed yet. Try again after Social BAR loads.' : '등록된 BAR가 없습니다. Social BAR 목록이 로드된 뒤 다시 시도해 주세요.');
+      return;
+    }
+    setShowVenueLessonPick(true);
+  }, [locations.length, isEn]);
+
+  const pickBarForVenueLesson = useCallback(
+    (bar) => {
+      setShowVenueLessonPick(false);
+      openVenueLessonRegister(bar);
+    },
+    [openVenueLessonRegister],
+  );
 
   /** BAR 카드(상세) 진입 7초 후 view_count +1 — 기기당 1회 */
   useEffect(() => {
@@ -2620,7 +2647,7 @@ const HomePage = ({
   const QUICK_MENU_ICON_SIZE = 22;
   const QUICK_MENU_STROKE = 1.5;
   const quickMenuIconColor = homeUi.quickIcon;
-  const QUICK_MENU_PRIMARY_IDS = ['party-register', 'class-register', 'concierge', 'calendar', 'language'];
+  const QUICK_MENU_PRIMARY_IDS = ['party-register', 'bar-venue-class-register', 'instructor-register', 'concierge', 'calendar', 'language'];
 
   /** 홈 게이트 더보기 — 메인 4종 제외 */
   const HOME_GATE_KING_EXCLUDE_IDS = ['calendar', ...HOME_GATE_MAIN_MENU_IDS];
@@ -2672,12 +2699,20 @@ const HomePage = ({
       action: () => handleRegister('party'),
     },
     {
-      id: 'class-register',
+      id: 'bar-venue-class-register',
+      menuSvg: QUICK_MENU_SVG.barVenueClassRegister,
+      registerKind: 'bar-venue',
+      label: homeGateMenuLabel('barVenueClass', isEn),
+      particles: '🏢',
+      action: openBarVenueLessonPick,
+    },
+    {
+      id: 'instructor-register',
       menuSvg: QUICK_MENU_SVG.classRegister,
-      registerKind: 'class',
-      label: homeGateMenuLabel('classOpen', isEn),
-      particles: '📚',
-      action: () => handleRegister('class'),
+      registerKind: 'instructor',
+      label: homeGateMenuLabel('instructorRegister', isEn),
+      particles: '🕺',
+      action: () => window.dispatchEvent(new CustomEvent('open-class-register')),
     },
     {
       id: 'concierge',
@@ -2727,7 +2762,7 @@ const HomePage = ({
         i18n.changeLanguage(next);
       },
     },
-  ], [handleRegister, openFullCalendarModal, setView, setShowWishlist, setShowSaju, setShowWeather, setShowPartner, openAnalysis, onHomeTabChange, i18n, isEn]);
+  ], [handleRegister, openBarVenueLessonPick, openFullCalendarModal, setView, setShowWishlist, setShowSaju, setShowWeather, setShowPartner, openAnalysis, onHomeTabChange, i18n, isEn]);
 
   const homeGateKingMenuItems = useMemo(() => {
     const pool = quickMenuItems.filter((item) => !HOME_GATE_KING_EXCLUDE_IDS.includes(item.id));
@@ -2785,11 +2820,12 @@ const HomePage = ({
 
   const renderQuickMenuItem = (item, gateSwipe = false) => {
     const Icon = item.icon;
-    const registerMod = item.registerKind === 'party'
-      ? ' home-quick-menu-item--register-party'
-      : item.registerKind === 'class'
-        ? ' home-quick-menu-item--register-class'
-        : '';
+    const registerMod =
+      item.registerKind === 'party' || item.registerKind === 'bar-venue'
+        ? ' home-quick-menu-item--register-party'
+        : item.registerKind === 'instructor'
+          ? ' home-quick-menu-item--register-class'
+          : '';
     const liveUploadMod = item.id === 'livepick' && hasLivePickUploadToday
       ? ' home-quick-menu-item--live-uploaded'
       : '';
@@ -5754,6 +5790,104 @@ const HomePage = ({
           }}
         />
       )}
+
+      <AnimatePresence>
+        {showVenueLessonPick ? (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            role="dialog"
+            aria-modal="true"
+            aria-label={isEn ? 'Choose BAR for class registration' : '수업 등록할 BAR 선택'}
+            style={{
+              position: 'fixed',
+              inset: 0,
+              zIndex: Z.modal,
+              background: 'rgba(0,0,0,0.55)',
+              display: 'flex',
+              alignItems: 'flex-end',
+              justifyContent: 'center',
+              padding: 16,
+              boxSizing: 'border-box',
+            }}
+            onClick={() => setShowVenueLessonPick(false)}
+          >
+            <motion.div
+              initial={{ y: 40 }}
+              animate={{ y: 0 }}
+              exit={{ y: 24 }}
+              onClick={(e) => e.stopPropagation()}
+              style={{
+                width: '100%',
+                maxWidth: 440,
+                maxHeight: 'min(70vh, 480px)',
+                background: '#fff',
+                borderRadius: 16,
+                border: '1px solid #E5DFD6',
+                display: 'flex',
+                flexDirection: 'column',
+                overflow: 'hidden',
+              }}
+            >
+              <div
+                style={{
+                  flexShrink: 0,
+                  padding: '16px 18px 12px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  borderBottom: '1px solid #EDEAE3',
+                }}
+              >
+                <h2 style={{ margin: 0, fontSize: 17, fontWeight: 900, color: '#1E293B' }}>
+                  {isEn ? 'BAR class registration' : '업체 수업 등록'}
+                </h2>
+                <button
+                  type="button"
+                  onClick={() => setShowVenueLessonPick(false)}
+                  aria-label={isEn ? 'Close' : '닫기'}
+                  style={{ border: 'none', background: 'none', padding: 4, cursor: 'pointer', color: '#64748B' }}
+                >
+                  <X size={22} />
+                </button>
+              </div>
+              <p style={{ margin: 0, padding: '10px 18px 8px', fontSize: 12, color: '#64748B', fontWeight: 600 }}>
+                {isEn ? 'Select the BAR to register a class for.' : '수업을 등록할 BAR를 선택하세요.'}
+              </p>
+              <div style={{ flex: 1, minHeight: 0, overflowY: 'auto', padding: '0 12px 16px' }}>
+                {[...locations]
+                  .sort((a, b) => String(a.name || '').localeCompare(String(b.name || ''), 'ko'))
+                  .map((bar) => (
+                    <button
+                      key={bar.id || bar.name}
+                      type="button"
+                      onClick={() => pickBarForVenueLesson(bar)}
+                      style={{
+                        width: '100%',
+                        textAlign: 'left',
+                        padding: '12px 14px',
+                        marginBottom: 8,
+                        borderRadius: 12,
+                        border: '1px solid #EDEAE3',
+                        background: '#FFFDF9',
+                        cursor: 'pointer',
+                        display: 'flex',
+                        flexDirection: 'column',
+                        gap: 4,
+                      }}
+                    >
+                      <span style={{ fontSize: 15, fontWeight: 800, color: '#1E293B' }}>{bar.name}</span>
+                      {bar.region ? (
+                        <span style={{ fontSize: 12, color: '#64748B', fontWeight: 600 }}>{bar.region}</span>
+                      ) : null}
+                    </button>
+                  ))}
+              </div>
+            </motion.div>
+          </motion.div>
+        ) : null}
+      </AnimatePresence>
 
       {venueLessonPostVenue ? (
         <div
