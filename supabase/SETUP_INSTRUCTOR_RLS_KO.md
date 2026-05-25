@@ -24,3 +24,10 @@
 1. SQL Editor에서 `supabase/migrations/20260523120000_instructor_class_students.sql` 실행
 2. 앱에서 VIP 로그인 → 수강생 관리 → 이름·연락처·클래스별 등록 확인
 3. **수입 집계**는 수강생 상태(신청/입금/수강)와 클래스 수업료(예: `12만원`)로 자동 계산됩니다
+
+## VIP 공지 저장 (선택)
+
+**공지 보내기** 기록 저장 전:
+
+1. SQL Editor에서 `supabase/migrations/20260524120000_instructor_notices.sql` 실행
+2. 없어도 복사·카톡 공유는 사용 가능 (저장·최근 목록만 비활성)

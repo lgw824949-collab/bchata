@@ -48,6 +48,8 @@ import ClassRegisterModal from './components/ClassRegisterModal'
 import StudentManagementModal from './components/StudentManagementModal'
 import RevenueSummaryModal from './components/RevenueSummaryModal'
 import MyClassScheduleModal from './components/MyClassScheduleModal'
+import InstructorProfileStatsModal from './components/InstructorProfileStatsModal'
+import InstructorNoticeModal from './components/InstructorNoticeModal'
 import LessonRegisterChoiceModal from './components/LessonRegisterChoiceModal'
 import ChatBot from './components/ChatBot'
 
@@ -1149,6 +1151,8 @@ function App() {
   const [showStudentManager, setShowStudentManager] = useState(false);
   const [showRevenueStats, setShowRevenueStats] = useState(false);
   const [showClassSchedule, setShowClassSchedule] = useState(false);
+  const [showProfileStats, setShowProfileStats] = useState(false);
+  const [showInstructorNotice, setShowInstructorNotice] = useState(false);
   const [showLessonRegisterChoice, setShowLessonRegisterChoice] = useState(false);
   const [showFullCalendar, setShowFullCalendar] = useState(false);
   const [showFilterPanel, setShowFilterPanel] = useState(false);
@@ -1568,6 +1572,48 @@ function App() {
     }
     if (vipLoggedIn) {
       setShowClassSchedule(true);
+      return;
+    }
+    setVipAuthMode('login');
+    setShowVipLogin(true);
+  }, [vipLoggedIn]);
+
+  /** Route_Lounge — 마스터 메뉴에서 프로필 통계 */
+  const openProfileStatsFromLounge = useCallback(() => {
+    const session = readVipInstructorSession();
+    setShowLuxuryUpsellModal(false);
+    setVipPendingClassRegister(false);
+    setShowVipMenu(false);
+    setShowVipLogin(false);
+
+    if (session?.id) {
+      setVipLoggedIn(true);
+      setShowProfileStats(true);
+      return;
+    }
+    if (vipLoggedIn) {
+      setShowProfileStats(true);
+      return;
+    }
+    setVipAuthMode('login');
+    setShowVipLogin(true);
+  }, [vipLoggedIn]);
+
+  /** Route_Lounge — 마스터 메뉴에서 공지 보내기 */
+  const openInstructorNoticeFromLounge = useCallback(() => {
+    const session = readVipInstructorSession();
+    setShowLuxuryUpsellModal(false);
+    setVipPendingClassRegister(false);
+    setShowVipMenu(false);
+    setShowVipLogin(false);
+
+    if (session?.id) {
+      setVipLoggedIn(true);
+      setShowInstructorNotice(true);
+      return;
+    }
+    if (vipLoggedIn) {
+      setShowInstructorNotice(true);
       return;
     }
     setVipAuthMode('login');
@@ -2676,8 +2722,8 @@ function App() {
                 { icon: <Users size={20} color="#C9A84C" />, text: '수강생 관리', action: () => openStudentManagementFromLounge() },
                 { icon: <TrendingUp size={20} color="#C9A84C" />, text: '수입 집계', action: () => openRevenueSummaryFromLounge() },
                 { icon: <CalendarDays size={20} color="#C9A84C" />, text: '내 클래스 일정', action: () => openClassScheduleFromLounge() },
-                { icon: <BarChart2 size={20} color="#C9A84C" />, text: '내 프로필 통계' },
-                { icon: <Bell size={20} color="#C9A84C" />, text: '공지 보내기' },
+                { icon: <BarChart2 size={20} color="#C9A84C" />, text: '내 프로필 통계', action: () => openProfileStatsFromLounge() },
+                { icon: <Bell size={20} color="#C9A84C" />, text: '공지 보내기', action: () => openInstructorNoticeFromLounge() },
               ].map((item, idx) => (
                 <motion.div
                   key={idx}
@@ -3167,6 +3213,18 @@ function App() {
     {showClassSchedule && (
       <MyClassScheduleModal
         onClose={() => { if (!closeOverlay()) setShowClassSchedule(false); }}
+        instructorId={readVipInstructorSession()?.id || ''}
+      />
+    )}
+    {showProfileStats && (
+      <InstructorProfileStatsModal
+        onClose={() => { if (!closeOverlay()) setShowProfileStats(false); }}
+        instructorId={readVipInstructorSession()?.id || ''}
+      />
+    )}
+    {showInstructorNotice && (
+      <InstructorNoticeModal
+        onClose={() => { if (!closeOverlay()) setShowInstructorNotice(false); }}
         instructorId={readVipInstructorSession()?.id || ''}
       />
     )}
