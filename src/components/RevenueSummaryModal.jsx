@@ -8,6 +8,20 @@ import { formatWon, parseClassFeeWon } from '../lib/parseClassFee';
 const CONFIRMED_STATUSES = new Set(['paid', 'attended']);
 const PENDING_STATUSES = new Set(['registered']);
 
+const STATUS_LABEL = {
+  registered: '신청',
+  paid: '입금완료',
+  attended: '수강완료',
+  cancelled: '취소',
+};
+
+const formatShortDate = (iso) => {
+  if (!iso) return '';
+  const d = new Date(iso);
+  if (Number.isNaN(d.getTime())) return '';
+  return `${d.getMonth() + 1}/${d.getDate()}`;
+};
+
 const isThisMonth = (iso) => {
   if (!iso) return false;
   const d = new Date(iso);
@@ -38,9 +52,9 @@ const RevenueSummaryModal = ({ onClose, instructorId }) => {
           .order('created_at', { ascending: false }),
         supabase
           .from('instructor_class_students')
-          .select('id, class_id, status, created_at')
+          .select('id, class_id, name, phone, status, created_at, updated_at')
           .eq('instructor_id', instructorId)
-          .order('created_at', { ascending: false }),
+          .order('updated_at', { ascending: false }),
       ]);
 
       if (classRes.error) throw classRes.error;
@@ -96,21 +110,44 @@ const RevenueSummaryModal = ({ onClose, instructorId }) => {
     let confirmedCount = 0;
     let pendingCount = 0;
     let unpricedCount = 0;
+    const confirmedPeople = [];
+    const pendingPeople = [];
 
     const byClass = {};
+
+    const pushPerson = (list, s, meta, unit) => {
+      list.push({
+        id: s.id,
+        name: s.name || '이름 없음',
+        phone: s.phone || '',
+        status: s.status,
+        statusLabel: STATUS_LABEL[s.status] || s.status,
+        classTitle: meta?.title || '클래스 미지정',
+        amountWon: unit,
+        markedAt: s.updated_at || s.created_at,
+      });
+    };
 
     filteredStudents.forEach((s) => {
       if (s.status === 'cancelled') return;
       const key = s.class_id || '_none';
       if (!byClass[key]) {
-        byClass[key] = { confirmed: 0, pending: 0, confirmedN: 0, pendingN: 0, unpricedN: 0 };
+        byClass[key] = { confirmed: 0, pending: 0, confirmedN: 0, pendingN: 0, unpricedN: 0, people: [] };
       }
       const meta = s.class_id ? classMeta[s.class_id] : null;
       const unit = meta?.unitWon ?? null;
+      const amountLabel = unit != null ? formatWon(unit) : '—';
 
       if (CONFIRMED_STATUSES.has(s.status)) {
         confirmedCount += 1;
         byClass[key].confirmedN += 1;
+        pushPerson(confirmedPeople, s, meta, unit);
+        byClass[key].people.push({
+          name: s.name || '이름 없음',
+          statusLabel: STATUS_LABEL[s.status],
+          amountLabel,
+          kind: 'confirmed',
+        });
         if (unit != null) {
           confirmed += unit;
           byClass[key].confirmed += unit;
@@ -121,6 +158,13 @@ const RevenueSummaryModal = ({ onClose, instructorId }) => {
       } else if (PENDING_STATUSES.has(s.status)) {
         pendingCount += 1;
         byClass[key].pendingN += 1;
+        pushPerson(pendingPeople, s, meta, unit);
+        byClass[key].people.push({
+          name: s.name || '이름 없음',
+          statusLabel: STATUS_LABEL[s.status],
+          amountLabel,
+          kind: 'pending',
+        });
         if (unit != null) {
           pending += unit;
           byClass[key].pending += unit;
@@ -133,7 +177,7 @@ const RevenueSummaryModal = ({ onClose, instructorId }) => {
 
     const classRows = classes
       .map((c) => {
-        const agg = byClass[c.id] || { confirmed: 0, pending: 0, confirmedN: 0, pendingN: 0, unpricedN: 0 };
+        const agg = byClass[c.id] || { confirmed: 0, pending: 0, confirmedN: 0, pendingN: 0, unpricedN: 0, people: [] };
         const meta = classMeta[c.id];
         return {
           id: c.id,
@@ -155,6 +199,7 @@ const RevenueSummaryModal = ({ onClose, instructorId }) => {
         feeLabel: '—',
         unitWon: null,
         parseable: false,
+        people: unassigned.people || [],
         ...unassigned,
         total: unassigned.confirmed + unassigned.pending,
       });
@@ -170,10 +215,54 @@ const RevenueSummaryModal = ({ onClose, instructorId }) => {
       pendingCount,
       unpricedCount,
       classRows,
+      confirmedPeople,
+      pendingPeople,
     };
   }, [filteredStudents, classMeta, classes]);
 
   const periodLabel = period === 'month' ? '이번 달' : '전체';
+
+  const renderPersonList = (people, emptyText, accentColor) => {
+    if (!people.length) {
+      return (
+        <div style={{ fontSize: 12, color: '#64748B', fontWeight: 600, padding: '8px 0' }}>{emptyText}</div>
+      );
+    }
+    return (
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+        {people.map((p) => (
+          <div
+            key={p.id}
+            style={{
+              padding: '10px 12px',
+              borderRadius: 12,
+              background: 'rgba(255,255,255,0.04)',
+              border: `1px solid ${accentColor}33`,
+            }}
+          >
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 8 }}>
+              <div style={{ minWidth: 0 }}>
+                <div style={{ fontSize: 14, fontWeight: 800, color: '#F8FAFC' }}>{p.name}</div>
+                {p.phone && (
+                  <div style={{ fontSize: 11, color: '#94A3B8', marginTop: 4, fontWeight: 600 }}>{p.phone}</div>
+                )}
+                <div style={{ fontSize: 11, color: '#64748B', marginTop: 4, fontWeight: 700 }}>
+                  {p.classTitle}
+                  {p.markedAt ? ` · 상태 변경 ${formatShortDate(p.markedAt)}` : ''}
+                </div>
+              </div>
+              <div style={{ textAlign: 'right', flexShrink: 0 }}>
+                <div style={{ fontSize: 12, fontWeight: 900, color: accentColor }}>
+                  {p.amountWon != null ? formatWon(p.amountWon) : '—'}
+                </div>
+                <div style={{ fontSize: 10, color: '#94A3B8', marginTop: 4, fontWeight: 700 }}>{p.statusLabel}</div>
+              </div>
+            </div>
+          </div>
+        ))}
+      </div>
+    );
+  };
 
   return (
     <div
@@ -224,7 +313,7 @@ const RevenueSummaryModal = ({ onClose, instructorId }) => {
               수입 집계
             </div>
             <div style={{ fontSize: 12, color: '#94A3B8', marginTop: 4, fontWeight: 600 }}>
-              VIP INSTRUCTOR · {periodLabel} · 수업료×인원 추정
+              VIP INSTRUCTOR · {periodLabel}
             </div>
           </div>
           <button
@@ -261,6 +350,25 @@ const RevenueSummaryModal = ({ onClose, instructorId }) => {
               수강생 DB가 없으면 집계할 수 없습니다. Supabase에서 수강생 테이블 migration을 먼저 실행해 주세요.
             </div>
           )}
+
+          <div
+            style={{
+              marginBottom: 16,
+              padding: '12px 14px',
+              borderRadius: 12,
+              background: 'rgba(59,130,246,0.1)',
+              border: '1px solid rgba(59,130,246,0.22)',
+              fontSize: 11,
+              color: '#BFDBFE',
+              lineHeight: 1.55,
+              fontWeight: 600,
+            }}
+          >
+            <strong style={{ color: '#93C5FD' }}>입금 확인 방법</strong>
+            <br />
+            통장 자동 연동은 없습니다. <strong style={{ color: '#E0F2FE' }}>수강생 관리</strong>에서 입금 확인 후
+            「입금완료」 또는 「수강완료」로 바꾼 사람만 확정 수입·합계에 들어갑니다. 아래 명단에서 누가 포함됐는지 확인하세요.
+          </div>
 
           <div style={{ display: 'flex', gap: 8, marginBottom: 16 }}>
             {[
@@ -359,6 +467,28 @@ const RevenueSummaryModal = ({ onClose, instructorId }) => {
                 </div>
               </div>
 
+              <div style={{ marginBottom: 16 }}>
+                <div style={{ fontSize: 11, fontWeight: 900, color: '#86EFAC', marginBottom: 8, letterSpacing: '0.5px' }}>
+                  입금 확인된 수강생 ({stats.confirmedCount}명)
+                </div>
+                {renderPersonList(
+                  stats.confirmedPeople,
+                  '아직 입금완료·수강완료로 표시한 수강생이 없습니다.',
+                  '#22C55E',
+                )}
+              </div>
+
+              <div style={{ marginBottom: 16 }}>
+                <div style={{ fontSize: 11, fontWeight: 900, color: '#C9A84C', marginBottom: 8, letterSpacing: '0.5px' }}>
+                  입금 대기 — 신청만 한 수강생 ({stats.pendingCount}명)
+                </div>
+                {renderPersonList(
+                  stats.pendingPeople,
+                  '신청 상태 수강생이 없습니다.',
+                  '#C9A84C',
+                )}
+              </div>
+
               {stats.unpricedCount > 0 && (
                 <div
                   style={{
@@ -411,10 +541,22 @@ const RevenueSummaryModal = ({ onClose, instructorId }) => {
                         수업료: {row.feeLabel}
                         {row.parseable ? ` · 1인 ${formatWon(row.unitWon)}` : ' · 금액 자동 계산 불가'}
                       </div>
-                      <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 12, fontWeight: 700 }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 12, fontWeight: 700, marginBottom: row.people?.length ? 10 : 0 }}>
                         <span style={{ color: '#22C55E' }}>확정 {formatWon(row.confirmed)} ({row.confirmedN}명)</span>
                         <span style={{ color: '#C9A84C' }}>예상 {formatWon(row.pending)} ({row.pendingN}명)</span>
                       </div>
+                      {row.people?.length > 0 && (
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: 6, paddingTop: 8, borderTop: '1px solid rgba(255,255,255,0.06)' }}>
+                          {row.people.map((p, i) => (
+                            <div key={`${row.id}-${i}`} style={{ display: 'flex', justifyContent: 'space-between', fontSize: 11, fontWeight: 700 }}>
+                              <span style={{ color: p.kind === 'confirmed' ? '#E2E8F0' : '#94A3B8' }}>
+                                {p.name} · {p.statusLabel}
+                              </span>
+                              <span style={{ color: p.kind === 'confirmed' ? '#22C55E' : '#C9A84C' }}>{p.amountLabel}</span>
+                            </div>
+                          ))}
+                        </div>
+                      )}
                     </div>
                   ))}
                 </div>
