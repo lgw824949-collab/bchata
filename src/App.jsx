@@ -45,6 +45,7 @@ import PartnerModal from './components/PartnerModal'
 import WishlistModal from './components/WishlistModal'
 import RentalModal from './components/RentalModal'
 import ClassRegisterModal from './components/ClassRegisterModal'
+import StudentManagementModal from './components/StudentManagementModal'
 import LessonRegisterChoiceModal from './components/LessonRegisterChoiceModal'
 import ChatBot from './components/ChatBot'
 
@@ -1143,8 +1144,8 @@ function App() {
   }, [isSocialLightNav, isHomeGateNav, isDarkAppSurface])
 
   const [showClassRegister, setShowClassRegister] = useState(false);
+  const [showStudentManager, setShowStudentManager] = useState(false);
   const [showLessonRegisterChoice, setShowLessonRegisterChoice] = useState(false);
-  // const [showStudentManager, setShowStudentManager] = useState(false);
   // const [showRevenueStats, setShowRevenueStats] = useState(false);
   const [showFullCalendar, setShowFullCalendar] = useState(false);
   const [showFilterPanel, setShowFilterPanel] = useState(false);
@@ -1506,6 +1507,27 @@ function App() {
       setVipLoginLoading(false);
     }
   };
+
+  /** Route_Lounge — 마스터 메뉴에서 수강생 관리 */
+  const openStudentManagementFromLounge = useCallback(() => {
+    const session = readVipInstructorSession();
+    setShowLuxuryUpsellModal(false);
+    setVipPendingClassRegister(false);
+    setShowVipMenu(false);
+    setShowVipLogin(false);
+
+    if (session?.id) {
+      setVipLoggedIn(true);
+      setShowStudentManager(true);
+      return;
+    }
+    if (vipLoggedIn) {
+      setShowStudentManager(true);
+      return;
+    }
+    setVipAuthMode('login');
+    setShowVipLogin(true);
+  }, [vipLoggedIn]);
 
   /** Route_Lounge — 이미 로그인된 마스터 메뉴에서 진입: 재인증 없이 바로 클래스 등록 모달 */
   const openClassRegisterFromLounge = useCallback(() => {
@@ -2606,7 +2628,7 @@ function App() {
                   text: '클래스등록',
                   action: () => openClassRegisterFromLounge(),
                 },
-                { icon: <Users size={20} color="#C9A84C" />, text: '수강생 관리' },
+                { icon: <Users size={20} color="#C9A84C" />, text: '수강생 관리', action: () => openStudentManagementFromLounge() },
                 { icon: <TrendingUp size={20} color="#C9A84C" />, text: '수입 집계' },
                 { icon: <CalendarDays size={20} color="#C9A84C" />, text: '내 클래스 일정' },
                 { icon: <BarChart2 size={20} color="#C9A84C" />, text: '내 프로필 통계' },
@@ -3085,6 +3107,12 @@ function App() {
         })()}
       />
     )}
+    {showStudentManager && (
+      <StudentManagementModal
+        onClose={() => { if (!closeOverlay()) setShowStudentManager(false); }}
+        instructorId={readVipInstructorSession()?.id || ''}
+      />
+    )}
     {(view === 'register-class' || location.pathname === '/register-class') && (
       <div
         style={{
@@ -3099,16 +3127,6 @@ function App() {
         <Suspense fallback={null}>
           <InstructorRegister onBack={goBack} />
         </Suspense>
-      </div>
-    )}
-    {false && false && (
-      <div
-        style={{ position: 'fixed', inset: 0, zIndex: Z.modal, background: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
-        onClick={() => setShowStudentManager(false)}
-      >
-        <motion.div onClick={(e) => e.stopPropagation()} style={{ width: '90%', maxWidth: '400px', minHeight: '200px', background: '#121212', borderRadius: '16px', border: '1px solid rgba(201,168,76,0.3)' }}>
-          <div />
-        </motion.div>
       </div>
     )}
     {false && false && (

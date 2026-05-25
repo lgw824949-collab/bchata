@@ -16,3 +16,10 @@
 - `ADMIN_API_SECRET` — 관리자 로그인 비밀번호와 동일한 값
 
 배포 후 `/api/admin-db` 가 RLS 없이 반영합니다. SQL 정책을 적용했다면 필수는 아닙니다.
+
+## VIP 수강생 관리 (1회)
+
+마스터 메뉴 → **수강생 관리** 사용 전:
+
+1. SQL Editor에서 `supabase/migrations/20260523120000_instructor_class_students.sql` 실행
+2. 앱에서 VIP 로그인 → 수강생 관리 → 이름·연락처·클래스별 등록 확인
