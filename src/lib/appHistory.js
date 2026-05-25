@@ -241,6 +241,30 @@ export function isHomeRoot(state, path = window.location.pathname) {
   );
 }
 
+function isBareHomeUrl(pathname, urlPatch, hashPatch) {
+  return (
+    normalizeNavPathname(pathname) === '/'
+    && !urlPatch.homeTab
+    && !urlPatch.instructorId
+    && !hashPatch?.homeTab
+    && !window.location.search
+  );
+}
+
+/** F5 on `/` without ?tab= — 메인 게이트 유지 (session의 social 탭 복원 안 함) */
+function normalizeBareHomeRefreshState(state, pathname, urlPatch, hashPatch) {
+  if (!state || !isBareHomeUrl(pathname, urlPatch, hashPatch)) return state;
+  return buildAppState({
+    view: state.view ?? 'home',
+    homeTab: null,
+    overlay: state.overlay ?? null,
+    overlayMeta: state.overlayMeta ?? null,
+    date: state.date ?? null,
+    instructorId: null,
+    instructorTab: null,
+  });
+}
+
 /**
  * 새로고침 직후: history.state · sessionStorage · URL 쿼리에서 복원
  * @returns {{ state: object, url: string }}
@@ -252,7 +276,9 @@ export function restoreNavigationOnLoad() {
   const hashPatch = patchFromLocationHash(hash);
 
   const toRestoreUrl = (state, basePath = pathname) => {
-    const cleaned = stripEphemeralOverlayFromNavState(state);
+    const basePatch = readUrlNavPatch(basePath);
+    const normalized = normalizeBareHomeRefreshState(state, basePath, basePatch, hashPatch);
+    const cleaned = stripEphemeralOverlayFromNavState(normalized);
     const canonicalPath = resolveNavPath(basePath, cleaned);
     return { state: cleaned, url: buildNavUrl(canonicalPath, cleaned) + hash };
   };
@@ -275,15 +301,11 @@ export function restoreNavigationOnLoad() {
   const savedSearch = savedPath.includes('?') ? savedPath.slice(savedPath.indexOf('?')) : '';
   const savedUrlPatch = readUrlNavPatch(savedBase, savedSearch);
 
-  if (parsed && savedBase && savedBase !== currentBase) {
+  const currentIsBareHome = isBareHomeUrl(pathname, urlPatch, hashPatch);
+
+  if (parsed && savedBase && savedBase !== currentBase && !currentIsBareHome) {
     const savedHasDeep = savedBase !== '/' || savedUrlPatch.instructorId || parsed.instructorId;
-    const currentIsBareHome =
-      currentBase === '/'
-      && !urlPatch.homeTab
-      && !urlPatch.instructorId
-      && !hashPatch?.homeTab
-      && !window.location.search;
-    if (savedHasDeep && currentIsBareHome) {
+    if (savedHasDeep) {
       const state = mergeNavState({
         pathname: savedBase,
         hashPatch,
@@ -315,9 +337,7 @@ export function restoreNavigationOnLoad() {
     });
   }
 
-  const cleaned = stripEphemeralOverlayFromNavState(state);
-  const canonicalPath = resolveNavPath(pathname, cleaned);
-  return { state: cleaned, url: buildNavUrl(canonicalPath, cleaned) + hash };
+  return toRestoreUrl(state);
 }
 
 export function persistNavSession() {
