@@ -4,6 +4,7 @@ export const BAMPPA_HISTORY = '__bamppa';
 export const NAV_SESSION_PATH_KEY = 'bchata:session-path';
 export const NAV_SESSION_STATE_KEY = 'bchata:session-state';
 export const NAV_PENDING_INSTRUCTOR_KEY = 'bchata:pending-instructor-id';
+export const NAV_HOME_SCROLL_KEY = 'bchata:home-scroll-y';
 
 const HOME_TABS = new Set(['social', 'partner']);
 const INSTRUCTOR_TABS = new Set(['BIO', 'CLASSES']);
@@ -340,6 +341,28 @@ export function restoreNavigationOnLoad() {
   return toRestoreUrl(state);
 }
 
+export function persistHomeScrollY() {
+  if (normalizeNavPathname(window.location.pathname) !== '/') return;
+  try {
+    sessionStorage.setItem(NAV_HOME_SCROLL_KEY, String(Math.round(window.scrollY || 0)));
+  } catch {
+    /* quota / private mode */
+  }
+}
+
+export function restoreHomeScrollY() {
+  if (normalizeNavPathname(window.location.pathname) !== '/') return;
+  try {
+    const y = Number(sessionStorage.getItem(NAV_HOME_SCROLL_KEY));
+    if (!Number.isFinite(y) || y <= 0) return;
+    requestAnimationFrame(() => {
+      window.scrollTo(0, y);
+    });
+  } catch {
+    /* ignore */
+  }
+}
+
 export function persistNavSession() {
   try {
     const path = window.location.pathname + window.location.search + window.location.hash;
@@ -351,6 +374,7 @@ export function persistNavSession() {
         JSON.stringify(stripEphemeralOverlayFromNavState(st)),
       );
     }
+    persistHomeScrollY();
   } catch {
     /* quota / private mode */
   }
@@ -436,12 +460,20 @@ export function navigate(path, options = {}) {
     return;
   }
 
+  const prevUrl = window.location.pathname + window.location.search + (window.location.hash || '');
   if (replace) {
     window.history.replaceState(state, '', url);
   } else {
     window.history.pushState(state, '', url);
   }
-  window.scrollTo(0, 0);
+  const scrollReset =
+    force
+    || prevUrl !== url
+    || (overlay ?? null) !== (current?.overlay ?? null)
+    || (path === '/' && (current?.homeTab ?? null) !== resolvedHomeTab);
+  if (scrollReset) {
+    window.scrollTo(0, 0);
+  }
   syncHistoryToApp(state);
   persistNavSession();
 }

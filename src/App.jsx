@@ -22,6 +22,7 @@ import {
   readUrlNavPatch,
   instructorProfilePath,
   restoreNavigationOnLoad,
+  restoreHomeScrollY,
   installNavSessionPersistence,
 } from './lib/appHistory'
 import { registerExitToast } from './lib/mobileExitGuard'
@@ -1293,6 +1294,7 @@ function App() {
       window.history.replaceState(state, '', url);
     }
     applyHistoryState(state);
+    restoreHomeScrollY();
     navSnapshotRef.current = state;
     persistNavSession();
     navBootstrappedRef.current = true;
