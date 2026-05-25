@@ -3933,23 +3933,23 @@ const HomePage = ({
           display: flex;
           align-items: center;
           margin: 0;
-          font-size: 14px;
+          font-size: 12px;
           font-weight: 500;
           color: #1E293B;
           letter-spacing: -0.02em;
         }
         .home-gate-section-title__point {
           width: 3px;
-          height: 16px;
+          height: 13px;
           background: #E53935;
           border-radius: 1px;
-          margin-right: 8px;
+          margin-right: 6px;
           display: inline-block;
           flex-shrink: 0;
         }
         .home-gate-section-title__text {
           min-width: 0;
-          font-size: 14px;
+          font-size: 12px;
           font-weight: 500;
           color: #1E293B;
         }
@@ -4565,7 +4565,7 @@ const HomePage = ({
           box-shadow: none !important;
         }
         .home-gate-shell .home-social-bar-panel--gate .home-type-section-title.home-gate-section-title {
-          font-size: 14px !important;
+          font-size: 12px !important;
           font-weight: 500 !important;
           color: #1E293B !important;
         }

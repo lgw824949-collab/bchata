@@ -1138,14 +1138,14 @@ img.bchata-poster-fit {
 
 .home-gate-shell .home-gate-section-title,
 .home-gate-shell .home-gate-section-title__text {
-  font-size: 14px;
+  font-size: 12px;
   font-weight: 500;
   color: #1E293B;
 }
 
 .home-gate-shell .home-gate-section-title__point {
   width: 3px;
-  height: 16px;
+  height: 13px;
   background: #E53935;
   border-radius: 1px;
 }
