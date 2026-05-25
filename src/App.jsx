@@ -605,10 +605,10 @@ const LiveExposureStrip = ({
                 <motion.div
                   style={{
                     width: '100%',
-                    height: 200,
+                    aspectRatio: '3 / 4',
                     flexShrink: 0,
                     overflow: 'hidden',
-                    background: '#F1F5F9',
+                    background: '#111',
                     border: '1px solid #E2E8F0',
                     borderRadius: 12,
                     boxSizing: 'border-box',
@@ -624,10 +624,13 @@ const LiveExposureStrip = ({
                     src={item.poster_url}
                     alt=""
                     style={{
+                      position: 'absolute',
+                      top: 0,
+                      left: 0,
                       width: '100%',
                       height: '100%',
                       objectFit: 'cover',
-                      objectPosition: 'center center',
+                      objectPosition: 'top center',
                       display: 'block',
                     }}
                   />
