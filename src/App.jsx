@@ -586,10 +586,17 @@ const LiveExposureStrip = ({
           {featured.map((item) => {
             const title = formatPartyTitleDisplay(item.title || '');
             return (
-              <button
+              <div
                 key={item.id}
-                type="button"
+                role="button"
+                tabIndex={0}
                 onClick={() => onSelect(item)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    onSelect(item);
+                  }
+                }}
                 style={{
                   padding: 0,
                   border: 'none',
@@ -668,7 +675,7 @@ const LiveExposureStrip = ({
                     {translateDynamicText(title, isEn)}
                   </div>
                 </div>
-              </button>
+              </div>
             );
           })}
         </motion.div>
