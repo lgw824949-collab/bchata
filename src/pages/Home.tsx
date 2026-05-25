@@ -2166,15 +2166,8 @@ const HomePage = ({
             .eq('status', 'active')
             .limit(10);
 
-        let rows = null;
-        const byView = await baseQuery().order('view_count', { ascending: false });
-        if (!byView.error) {
-          rows = byView.data;
-        } else {
-          const byFollowers = await baseQuery().order('follower_count', { ascending: false });
-          rows = byFollowers.error ? [] : byFollowers.data;
-        }
-        if (!cancelled) setHotInstructors(rows || []);
+        const { data, error } = await baseQuery().order('follower_count', { ascending: false });
+        if (!cancelled) setHotInstructors(error ? [] : (data || []));
       } catch {
         if (!cancelled) setHotInstructors([]);
       } finally {
