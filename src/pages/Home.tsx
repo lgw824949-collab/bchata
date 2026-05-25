@@ -3104,7 +3104,7 @@ const HomePage = ({
 
     return (
       <motion.section
-        className="home-region-poster-banner-standalone home-region-poster-banner-standalone--gate-stack"
+        className={`home-region-poster-banner-standalone home-region-poster-banner-standalone--gate-stack${isHomeGate ? ' home-gate-section-box' : ''}`}
         style={{ width: '100%', maxWidth: '100%', margin: '0 auto', boxSizing: 'border-box' }}
         aria-label={isEn ? "Today's posters" : '오늘 포스터'}
       >
@@ -3249,22 +3249,28 @@ const HomePage = ({
   };
 
   const renderHomeMainLiveSlot = () => (
-    <div className="home-main-live-slot home-main-live-slot--gate">
+    <div
+      className={`home-main-live-slot home-main-live-slot--gate${isHomeGate ? ' home-gate-section-box' : ''}`}
+    >
       {renderHomeLiveAdRow(true)}
     </div>
   );
 
   const renderHomeMainQuickMenuSection = () => (
     <section
-      className="home-quick-menu-standalone home-quick-menu-standalone--gate"
+      className={`home-quick-menu-standalone home-quick-menu-standalone--gate${isHomeGate ? ' home-gate-section-box' : ''}`}
       style={{
         display: 'flex',
         flexDirection: 'column',
         marginBottom: 0,
-        padding: 0,
-        background: 'transparent',
-        border: 'none',
-        boxShadow: 'none',
+        ...(isHomeGate
+          ? {}
+          : {
+              padding: 0,
+              background: 'transparent',
+              border: 'none',
+              boxShadow: 'none',
+            }),
       }}
       aria-label={isHomeGate ? (isEn ? 'Main menu' : '메인 메뉴') : (isEn ? 'Quick menu' : '빠른 메뉴')}
     >
@@ -3282,13 +3288,17 @@ const HomePage = ({
       >
         <section
           ref={barSectionRef}
-          className={`home-depth-panel home-luxury-section-box home-social-bar-panel${isHomeGate ? ' home-social-bar-panel--gate' : ''}`}
+          className={`home-depth-panel home-luxury-section-box home-social-bar-panel${isHomeGate ? ' home-social-bar-panel--gate home-gate-section-box' : ''}`}
           style={{
-            ...homeDepthPanelStyle,
-            ...(isHomeGateDark ? {} : homeLuxurySectionBoxStyle),
-            marginTop: 0,
-            display: 'flex',
-            flexDirection: 'column',
+            ...(isHomeGate
+              ? { marginTop: 0, display: 'flex', flexDirection: 'column' }
+              : {
+                  ...homeDepthPanelStyle,
+                  ...(isHomeGateDark ? {} : homeLuxurySectionBoxStyle),
+                  marginTop: 0,
+                  display: 'flex',
+                  flexDirection: 'column',
+                }),
           }}
         >
           {renderHomeSectionHeader(
@@ -3406,7 +3416,10 @@ const HomePage = ({
     const skeletonItems = [0, 1, 2];
 
     return (
-      <section className="home-hot-instructors-wrap" aria-label="지금 핫한 강사">
+      <section
+        className={`home-hot-instructors-wrap${isHomeGate ? ' home-gate-section-box' : ''}`}
+        aria-label="지금 핫한 강사"
+      >
         {renderHomeGateSectionTitle('지금 핫한 강사', 'home-hot-instructors-title')}
         <div className="home-hot-instructors-scroll scrollbar-hide">
           <div className="home-hot-instructors-track">
@@ -3798,9 +3811,7 @@ const HomePage = ({
           {renderHomeMainLiveSlot()}
           {renderHomeMainQuickMenuSection()}
           {renderHomeHotInstructorsSection()}
-          {isHomeGate ? <div className="home-gate-section-rule" aria-hidden /> : null}
           {renderHomeSocialBarSection()}
-          {isHomeGate ? <div className="home-gate-section-rule" aria-hidden /> : null}
           {renderHomeRegionPosterBanner()}
         </motion.div>
       )}

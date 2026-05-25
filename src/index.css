@@ -1169,13 +1169,43 @@ img.bchata-poster-fit {
   padding: 0;
 }
 
-.home-gate-shell .home-depth-panel.home-social-bar-panel--gate,
+/* 메인 홈 — 섹션별 카드 박스 */
+.home-gate-shell .home-gate-section-box {
+  background: #ffffff;
+  border: 1px solid #e5dfd6;
+  border-radius: 12px;
+  padding: 14px 16px;
+  box-shadow: 0 2px 10px rgba(15, 23, 42, 0.07);
+  box-sizing: border-box;
+  min-width: 0;
+}
+
+.home-gate-shell .home-gate-section-box .home-gate-section-title,
+.home-gate-shell .home-gate-section-box .home-hot-instructors-title {
+  margin-top: 0;
+  margin-bottom: 12px;
+}
+
+.home-gate-shell .home-gate-section-box .live-dynamic-banner--gate,
+.home-gate-shell .home-gate-section-box .home-live-banner-fallback--gate .live-dynamic-banner--gate {
+  background: #f8fafc !important;
+  border: none !important;
+  box-shadow: none !important;
+  border-radius: 8px !important;
+  animation: none !important;
+  background-size: 100% 100% !important;
+}
+
+.home-gate-shell .home-gate-section-box.home-social-bar-panel--gate {
+  overflow: visible;
+}
+
 .home-gate-shell .live-count-premium-wrapper--gate .live-dynamic-banner,
 .home-gate-shell .live-count-premium-wrapper--gate .live-dynamic-banner--gate,
 .home-gate-shell .home-live-banner-fallback--gate .live-dynamic-banner,
 .home-gate-shell .home-live-banner-fallback--gate .live-dynamic-banner--gate {
-  background: #FFFFFF;
-  border: 1px solid #E5DFD6;
+  background: #ffffff;
+  border: 1px solid #e5dfd6;
   border-radius: 12px;
   box-shadow:
     0 2px 10px rgba(15, 23, 42, 0.07),
