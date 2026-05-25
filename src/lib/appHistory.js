@@ -5,6 +5,7 @@ export const NAV_SESSION_PATH_KEY = 'bchata:session-path';
 export const NAV_SESSION_STATE_KEY = 'bchata:session-state';
 export const NAV_PENDING_INSTRUCTOR_KEY = 'bchata:pending-instructor-id';
 export const NAV_HOME_SCROLL_KEY = 'bchata:home-scroll-y';
+export const NAV_HOME_SCROLL_TAB_KEY = 'bchata:home-scroll-tab';
 
 const HOME_TABS = new Set(['social', 'partner']);
 const INSTRUCTOR_TABS = new Set(['BIO', 'CLASSES']);
@@ -252,6 +253,35 @@ function isBareHomeUrl(pathname, urlPatch, hashPatch) {
   );
 }
 
+function stripLegacyHomeTabHash(hash) {
+  const key = String(hash || '').replace(/^#/, '').trim().toLowerCase();
+  return key === 'social' || key === 'partner' ? '' : hash || '';
+}
+
+/** bare `/` — URL·hash에 탭이 없으면 게이트(null)만 (stale session/history의 social 무시) */
+export function resolveHomeTabForLocation(path = window.location.pathname, st = null) {
+  if (normalizeNavPathname(path) !== '/') return null;
+  const urlPatch = readUrlNavPatch(path);
+  const hashPatch = patchFromLocationHash(window.location.hash || '');
+  if (urlPatch.homeTab && HOME_TABS.has(urlPatch.homeTab)) return urlPatch.homeTab;
+  if (hashPatch?.homeTab) return hashPatch.homeTab;
+  if (isBareHomeUrl(path, urlPatch, hashPatch)) return null;
+  return st?.homeTab ?? null;
+}
+
+export function navStateContentDiff(a, b) {
+  if (!a && !b) return false;
+  if (!a || !b) return true;
+  return (
+    (a.view ?? null) !== (b.view ?? null)
+    || (a.homeTab ?? null) !== (b.homeTab ?? null)
+    || (a.overlay ?? null) !== (b.overlay ?? null)
+    || JSON.stringify(a.overlayMeta ?? null) !== JSON.stringify(b.overlayMeta ?? null)
+    || (a.instructorId ?? null) !== (b.instructorId ?? null)
+    || (a.instructorTab ?? null) !== (b.instructorTab ?? null)
+  );
+}
+
 /** F5 on `/` without ?tab= — 메인 게이트 유지 (session의 social 탭 복원 안 함) */
 function normalizeBareHomeRefreshState(state, pathname, urlPatch, hashPatch) {
   if (!state || !isBareHomeUrl(pathname, urlPatch, hashPatch)) return state;
@@ -281,7 +311,9 @@ export function restoreNavigationOnLoad() {
     const normalized = normalizeBareHomeRefreshState(state, basePath, basePatch, hashPatch);
     const cleaned = stripEphemeralOverlayFromNavState(normalized);
     const canonicalPath = resolveNavPath(basePath, cleaned);
-    return { state: cleaned, url: buildNavUrl(canonicalPath, cleaned) + hash };
+    const outHash =
+      (cleaned.homeTab ?? null) === null ? stripLegacyHomeTabHash(hash) : hash;
+    return { state: cleaned, url: buildNavUrl(canonicalPath, cleaned) + outHash };
   };
 
   const existing = parseAppState(window.history.state);
@@ -344,17 +376,28 @@ export function restoreNavigationOnLoad() {
 export function persistHomeScrollY() {
   if (normalizeNavPathname(window.location.pathname) !== '/') return;
   try {
+    const tab = resolveHomeTabForLocation(
+      window.location.pathname,
+      readNavigationState(),
+    );
     sessionStorage.setItem(NAV_HOME_SCROLL_KEY, String(Math.round(window.scrollY || 0)));
+    sessionStorage.setItem(NAV_HOME_SCROLL_TAB_KEY, tab ?? '');
   } catch {
     /* quota / private mode */
   }
 }
 
-export function restoreHomeScrollY() {
+export function restoreHomeScrollY(navState) {
   if (normalizeNavPathname(window.location.pathname) !== '/') return;
+  const tab = resolveHomeTabForLocation(
+    window.location.pathname,
+    navState ?? readNavigationState(),
+  );
   try {
     const y = Number(sessionStorage.getItem(NAV_HOME_SCROLL_KEY));
     if (!Number.isFinite(y) || y <= 0) return;
+    const savedTab = sessionStorage.getItem(NAV_HOME_SCROLL_TAB_KEY);
+    if (savedTab !== (tab ?? '')) return;
     requestAnimationFrame(() => {
       window.scrollTo(0, y);
     });

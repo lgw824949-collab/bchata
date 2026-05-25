@@ -24,6 +24,8 @@ import {
   restoreNavigationOnLoad,
   restoreHomeScrollY,
   installNavSessionPersistence,
+  navStateContentDiff,
+  resolveHomeTabForLocation,
 } from './lib/appHistory'
 import { registerExitToast } from './lib/mobileExitGuard'
 import { Z } from './constants/zLayers'
@@ -1167,7 +1169,10 @@ function App() {
     const st = parsed
       ? {
           ...parsed,
-          homeTab: parsed.homeTab ?? urlPatch.homeTab ?? null,
+          homeTab:
+            path === '/'
+              ? resolveHomeTabForLocation(path, parsed)
+              : (parsed.homeTab ?? urlPatch.homeTab ?? null),
           instructorId: parsed.instructorId ?? urlPatch.instructorId ?? null,
           instructorTab: parsed.instructorTab ?? urlPatch.instructorTab ?? null,
         }
@@ -1249,7 +1254,7 @@ function App() {
 
   useEffect(() => {
     if (!navBootstrappedRef.current) return;
-    applyHistoryState(window.history.state);
+    applyHistoryState(navSnapshotRef.current ?? window.history.state);
     navSnapshotRef.current = readNavigationState();
   }, [location.pathname]);
 
@@ -1290,11 +1295,12 @@ function App() {
     installNavSessionPersistence();
     const { state, url } = restoreNavigationOnLoad();
     const currentUrl = window.location.pathname + window.location.search + (window.location.hash || '');
-    if (!parseAppState(window.history.state) || url !== currentUrl) {
+    const prevState = parseAppState(window.history.state);
+    if (!prevState || url !== currentUrl || navStateContentDiff(prevState, state)) {
       window.history.replaceState(state, '', url);
     }
     applyHistoryState(state);
-    restoreHomeScrollY();
+    restoreHomeScrollY(state);
     navSnapshotRef.current = state;
     persistNavSession();
     navBootstrappedRef.current = true;
@@ -3250,7 +3256,7 @@ function App() {
         onClick={() => {
           setShowPartner(false);
           setActiveTab(null);
-          navigate('/');
+          historyNavigate('/', { homeTab: null, replace: true, force: true });
         }}
         style={{ 
           flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
