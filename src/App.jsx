@@ -47,6 +47,7 @@ import RentalModal from './components/RentalModal'
 import ClassRegisterModal from './components/ClassRegisterModal'
 import StudentManagementModal from './components/StudentManagementModal'
 import RevenueSummaryModal from './components/RevenueSummaryModal'
+import MyClassScheduleModal from './components/MyClassScheduleModal'
 import LessonRegisterChoiceModal from './components/LessonRegisterChoiceModal'
 import ChatBot from './components/ChatBot'
 
@@ -1147,6 +1148,7 @@ function App() {
   const [showClassRegister, setShowClassRegister] = useState(false);
   const [showStudentManager, setShowStudentManager] = useState(false);
   const [showRevenueStats, setShowRevenueStats] = useState(false);
+  const [showClassSchedule, setShowClassSchedule] = useState(false);
   const [showLessonRegisterChoice, setShowLessonRegisterChoice] = useState(false);
   const [showFullCalendar, setShowFullCalendar] = useState(false);
   const [showFilterPanel, setShowFilterPanel] = useState(false);
@@ -1545,6 +1547,27 @@ function App() {
     }
     if (vipLoggedIn) {
       setShowRevenueStats(true);
+      return;
+    }
+    setVipAuthMode('login');
+    setShowVipLogin(true);
+  }, [vipLoggedIn]);
+
+  /** Route_Lounge — 마스터 메뉴에서 내 클래스 일정 */
+  const openClassScheduleFromLounge = useCallback(() => {
+    const session = readVipInstructorSession();
+    setShowLuxuryUpsellModal(false);
+    setVipPendingClassRegister(false);
+    setShowVipMenu(false);
+    setShowVipLogin(false);
+
+    if (session?.id) {
+      setVipLoggedIn(true);
+      setShowClassSchedule(true);
+      return;
+    }
+    if (vipLoggedIn) {
+      setShowClassSchedule(true);
       return;
     }
     setVipAuthMode('login');
@@ -2652,7 +2675,7 @@ function App() {
                 },
                 { icon: <Users size={20} color="#C9A84C" />, text: '수강생 관리', action: () => openStudentManagementFromLounge() },
                 { icon: <TrendingUp size={20} color="#C9A84C" />, text: '수입 집계', action: () => openRevenueSummaryFromLounge() },
-                { icon: <CalendarDays size={20} color="#C9A84C" />, text: '내 클래스 일정' },
+                { icon: <CalendarDays size={20} color="#C9A84C" />, text: '내 클래스 일정', action: () => openClassScheduleFromLounge() },
                 { icon: <BarChart2 size={20} color="#C9A84C" />, text: '내 프로필 통계' },
                 { icon: <Bell size={20} color="#C9A84C" />, text: '공지 보내기' },
               ].map((item, idx) => (
@@ -3138,6 +3161,12 @@ function App() {
     {showRevenueStats && (
       <RevenueSummaryModal
         onClose={() => { if (!closeOverlay()) setShowRevenueStats(false); }}
+        instructorId={readVipInstructorSession()?.id || ''}
+      />
+    )}
+    {showClassSchedule && (
+      <MyClassScheduleModal
+        onClose={() => { if (!closeOverlay()) setShowClassSchedule(false); }}
         instructorId={readVipInstructorSession()?.id || ''}
       />
     )}
