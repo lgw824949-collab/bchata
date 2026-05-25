@@ -529,88 +529,229 @@ const Community = ({ setSelectedPoster, setView }) => {
         document.body,
       )}
 
-      <AnimatePresence>
-        {showUploadModal && (
-          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.8)', backdropFilter: 'blur(10px)', zIndex: Z.modal, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px' }}>
-            <motion.div initial={{ y: 100, opacity: 0 }} animate={{ y: 0, opacity: 1 }} style={{ background: 'var(--color-bg)', width: '100%', maxWidth: '400px', borderRadius: '32px', padding: '30px', border: '1px solid var(--color-border)' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
-                <h2 style={{ fontSize: '20px', fontWeight: 900, color: 'var(--color-text-main)' }}>현장 리포트 등록</h2>
-                <button onClick={() => setShowUploadModal(false)} style={{ background: 'none', border: 'none', color: 'var(--color-text-sub)' }}><X size={24} /></button>
-              </div>
-
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
-                <div onClick={() => document.getElementById('file-upload').click()} style={{ width: '100%', height: '200px', borderRadius: '24px', background: 'var(--color-card)', border: '2px dashed var(--color-border)', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', overflow: 'hidden' }}>
-                  {newPost.image ? <img src={URL.createObjectURL(newPost.image)} style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : <div style={{ textAlign: 'center' }}><Camera size={40} color="var(--color-text-sub)" style={{ marginBottom: '10px' }} /><p style={{ color: 'var(--color-text-sub)', fontSize: '13px', fontWeight: 700 }}>현장 사진을 선택하세요</p></div>}
-                  <input id="file-upload" type="file" accept="image/*" hidden onChange={e => setNewPost({...newPost, image: e.target.files[0]})} />
+      {createPortal(
+        <AnimatePresence>
+          {showUploadModal && (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setShowUploadModal(false)}
+              style={{
+                position: 'fixed',
+                inset: 0,
+                background: 'rgba(0,0,0,0.8)',
+                backdropFilter: 'blur(10px)',
+                zIndex: Z.modal,
+                display: 'flex',
+                flexDirection: 'column',
+                justifyContent: 'flex-end',
+              }}
+            >
+              <motion.div
+                initial={{ y: '100%' }}
+                animate={{ y: 0 }}
+                exit={{ y: '100%' }}
+                transition={{ type: 'spring', damping: 28, stiffness: 320 }}
+                onClick={(e) => e.stopPropagation()}
+                style={{
+                  background: 'var(--color-bg)',
+                  width: '100%',
+                  maxWidth: '500px',
+                  margin: '0 auto',
+                  maxHeight: 'min(92dvh, calc(100dvh - env(safe-area-inset-top, 0px) - 8px))',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  borderRadius: '24px 24px 0 0',
+                  border: '1px solid var(--color-border)',
+                  borderBottom: 'none',
+                  boxSizing: 'border-box',
+                  overflow: 'hidden',
+                }}
+              >
+                <div
+                  style={{
+                    flexShrink: 0,
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    alignItems: 'center',
+                    padding: '20px 20px 12px',
+                  }}
+                >
+                  <h2 style={{ fontSize: '20px', fontWeight: 900, color: 'var(--color-text-main)', margin: 0 }}>
+                    현장 리포트 등록
+                  </h2>
+                  <button
+                    type="button"
+                    onClick={() => setShowUploadModal(false)}
+                    aria-label="닫기"
+                    style={{ background: 'none', border: 'none', color: 'var(--color-text-sub)', padding: 4, cursor: 'pointer' }}
+                  >
+                    <X size={24} />
+                  </button>
                 </div>
 
-                <div>
-                  <p style={{ fontSize: '13px', color: 'var(--color-text-main)', fontWeight: 900, marginBottom: '15px', display: 'flex', alignItems: 'center', gap: '8px', opacity: 0.9 }}>
-                    <Flame size={15} color="#E53935" fill="#E53935" /> 지금 이 순간의 현장 텐션 (필수)
-                  </p>
-                  <div style={{ 
-                    display: 'grid', 
-                    gridTemplateColumns: 'repeat(3, 1fr)', 
-                    gap: '10px',
-                    background: 'rgba(255,255,255,0.02)',
-                    padding: '5px',
-                    borderRadius: '20px'
-                  }}>
-                    {quickTags.map(tag => (
-                      <motion.button 
-                        key={tag} 
-                        whileHover={{ scale: 1.02 }}
-                        whileTap={{ scale: 0.95 }}
-                        onClick={() => handleQuickTag(tag)} 
-                        style={{ 
-                          height: '42px',
-                          borderRadius: '14px', 
-                          border: '1px solid',
-                          borderColor: newPost.content.includes(tag) ? '#E53935' : 'var(--color-border)', 
-                          background: newPost.content.includes(tag) ? 'linear-gradient(135deg, #E53935, #FF1744)' : 'var(--color-card)', 
-                          color: newPost.content.includes(tag) ? '#fff' : 'var(--color-text-sub)', 
-                          fontSize: '11px', 
-                          fontWeight: 1000, 
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'center',
-                          transition: 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
-                          boxShadow: newPost.content.includes(tag) ? '0 4px 12px rgba(229, 57, 53, 0.3)' : 'none'
-                        }}
-                      >
-                        {tag}
-                      </motion.button>
-                    ))}
+                <div
+                  style={{
+                    flex: 1,
+                    minHeight: 0,
+                    overflowY: 'auto',
+                    WebkitOverflowScrolling: 'touch',
+                    padding: '0 20px',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    gap: '20px',
+                  }}
+                >
+                  <div
+                    onClick={() => document.getElementById('file-upload').click()}
+                    style={{
+                      width: '100%',
+                      height: '160px',
+                      borderRadius: '20px',
+                      background: 'var(--color-card)',
+                      border: '2px dashed var(--color-border)',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      cursor: 'pointer',
+                      overflow: 'hidden',
+                      flexShrink: 0,
+                    }}
+                  >
+                    {newPost.image ? (
+                      <img src={URL.createObjectURL(newPost.image)} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                    ) : (
+                      <div style={{ textAlign: 'center' }}>
+                        <Camera size={40} color="var(--color-text-sub)" style={{ marginBottom: '10px' }} />
+                        <p style={{ color: 'var(--color-text-sub)', fontSize: '13px', fontWeight: 700, margin: 0 }}>
+                          현장 사진을 선택하세요
+                        </p>
+                      </div>
+                    )}
+                    <input
+                      id="file-upload"
+                      type="file"
+                      accept="image/*"
+                      hidden
+                      onChange={(e) => setNewPost({ ...newPost, image: e.target.files[0] })}
+                    />
                   </div>
-                </div>
 
-                <div style={{ display: 'flex', gap: '10px' }}>
-                  <input 
-                    placeholder="현재 바(Bar) 이름을 적어주세요" 
-                    value={newPost.bar_name} 
-                    onChange={e => setNewPost({...newPost, bar_name: e.target.value})} 
-                    style={{ width: '100%', padding: '18px', borderRadius: '18px', background: 'var(--color-card)', border: '1px solid var(--color-border)', color: 'var(--color-text-main)', fontWeight: 800, fontSize: '15px' }} 
+                  <div>
+                    <p
+                      style={{
+                        fontSize: '13px',
+                        color: 'var(--color-text-main)',
+                        fontWeight: 900,
+                        marginBottom: '15px',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '8px',
+                        opacity: 0.9,
+                      }}
+                    >
+                      <Flame size={15} color="#E53935" fill="#E53935" /> 지금 이 순간의 현장 텐션 (필수)
+                    </p>
+                    <div
+                      style={{
+                        display: 'grid',
+                        gridTemplateColumns: 'repeat(3, 1fr)',
+                        gap: '10px',
+                        background: 'rgba(255,255,255,0.02)',
+                        padding: '5px',
+                        borderRadius: '20px',
+                      }}
+                    >
+                      {quickTags.map((tag) => (
+                        <motion.button
+                          key={tag}
+                          type="button"
+                          whileHover={{ scale: 1.02 }}
+                          whileTap={{ scale: 0.95 }}
+                          onClick={() => handleQuickTag(tag)}
+                          style={{
+                            height: '42px',
+                            borderRadius: '14px',
+                            border: '1px solid',
+                            borderColor: newPost.content.includes(tag) ? '#E53935' : 'var(--color-border)',
+                            background: newPost.content.includes(tag)
+                              ? 'linear-gradient(135deg, #E53935, #FF1744)'
+                              : 'var(--color-card)',
+                            color: newPost.content.includes(tag) ? '#fff' : 'var(--color-text-sub)',
+                            fontSize: '11px',
+                            fontWeight: 1000,
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            boxShadow: newPost.content.includes(tag) ? '0 4px 12px rgba(229, 57, 53, 0.3)' : 'none',
+                          }}
+                        >
+                          {tag}
+                        </motion.button>
+                      ))}
+                    </div>
+                  </div>
+
+                  <input
+                    placeholder="현재 바(Bar) 이름을 적어주세요"
+                    value={newPost.bar_name}
+                    onChange={(e) => setNewPost({ ...newPost, bar_name: e.target.value })}
+                    style={{
+                      width: '100%',
+                      padding: '16px',
+                      borderRadius: '16px',
+                      background: 'var(--color-card)',
+                      border: '1px solid var(--color-border)',
+                      color: 'var(--color-text-main)',
+                      fontWeight: 800,
+                      fontSize: '15px',
+                      boxSizing: 'border-box',
+                    }}
                   />
                 </div>
 
-                <button 
-                  onClick={() => {
-                    if (!newPost.content.trim()) {
-                      alert('분위기 태그를 최소 하나 선택해주세요!');
-                      return;
-                    }
-                    handleUpload();
+                <div
+                  style={{
+                    flexShrink: 0,
+                    padding: '12px 20px calc(16px + env(safe-area-inset-bottom, 0px))',
+                    borderTop: '1px solid var(--color-border)',
+                    background: 'var(--color-bg)',
                   }}
-                  disabled={uploading}
-                  style={{ width: '100%', padding: '18px', borderRadius: '18px', background: 'linear-gradient(135deg, #E53935, #FF1744)', color: 'white', fontSize: '17px', fontWeight: 1000, border: 'none', boxShadow: '0 8px 25px rgba(229, 57, 53, 0.4)', marginTop: '10px' }}
                 >
-                  {uploading ? '전송 중...' : '현장 리포트 올리기'}
-                </button>
-              </div>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      if (!newPost.content.trim()) {
+                        alert('분위기 태그를 최소 하나 선택해주세요!');
+                        return;
+                      }
+                      handleUpload();
+                    }}
+                    disabled={uploading}
+                    style={{
+                      width: '100%',
+                      padding: '16px',
+                      borderRadius: '16px',
+                      background: 'linear-gradient(135deg, #E53935, #FF1744)',
+                      color: 'white',
+                      fontSize: '16px',
+                      fontWeight: 1000,
+                      border: 'none',
+                      boxShadow: '0 8px 25px rgba(229, 57, 53, 0.35)',
+                      cursor: uploading ? 'not-allowed' : 'pointer',
+                      opacity: uploading ? 0.75 : 1,
+                    }}
+                  >
+                    {uploading ? '전송 중...' : '현장 리포트 올리기'}
+                  </button>
+                </div>
+              </motion.div>
             </motion.div>
-          </motion.div>
-        )}
-      </AnimatePresence>
+          )}
+        </AnimatePresence>,
+        document.body,
+      )}
     </div>
   );
 };
