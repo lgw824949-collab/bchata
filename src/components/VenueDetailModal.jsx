@@ -1086,31 +1086,25 @@ export default function VenueDetailModal({
           <div
             style={{
               flexShrink: 0,
-              padding: '8px 16px 10px',
+              padding: '6px 16px 8px',
               borderBottom: `1px solid ${VD.border}`,
               display: 'flex',
-              flexDirection: 'column',
-              gap: 8,
+              justifyContent: 'flex-end',
             }}
           >
-            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
-              {vdChip('업체', 'brand')}
-              {vdChip('VIP 별도')}
-            </div>
             <button
               type="button"
               onClick={() => onRegisterVenueLesson(displayVenue)}
               style={{
-                width: '100%',
-                padding: '11px 12px',
-                borderRadius: 10,
-                border: 'none',
-                background: VD.brand,
-                color: '#fff',
-                fontSize: 13,
-                fontWeight: 800,
+                padding: '6px 12px',
+                borderRadius: 8,
+                border: `1px solid ${VD.borderAccent}`,
+                background: '#fff',
+                color: VD.brandSoft,
+                fontSize: 12,
+                fontWeight: 700,
                 cursor: 'pointer',
-                boxShadow: '0 4px 14px rgba(212, 67, 110, 0.2)',
+                lineHeight: 1.2,
               }}
             >
               BAR 수업 등록
