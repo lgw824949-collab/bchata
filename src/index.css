@@ -1173,6 +1173,9 @@ img.bchata-poster-fit {
 
 .home-gate-shell .live-count-premium-wrapper--gate .lc-tag,
 .home-gate-shell .home-live-banner-fallback--gate .lc-tag {
+  display: inline-flex;
+  align-items: center;
+  flex-shrink: 0;
   background: #E53935;
   color: #FFFFFF;
   border: none;
@@ -1181,6 +1184,7 @@ img.bchata-poster-fit {
   font-size: 10px;
   font-weight: 800;
   letter-spacing: 0.06em;
+  line-height: 1.2;
 }
 
 .home-gate-shell .live-count-premium-wrapper--gate .lc-dot,

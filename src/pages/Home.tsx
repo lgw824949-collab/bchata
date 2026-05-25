@@ -3552,7 +3552,7 @@ const HomePage = ({
               overflow: hidden !important;
               flex-wrap: nowrap !important;
             }
-            .live-count-premium-wrapper .lc-tag {
+            .live-count-premium-wrapper:not(.live-count-premium-wrapper--gate) .lc-tag {
               background: transparent !important;
               color: #ffffff !important;
               font-size: 10px !important;
@@ -3561,7 +3561,22 @@ const HomePage = ({
               border-radius: 0 !important;
               letter-spacing: 0.5px !important;
             }
-            .live-count-premium-wrapper .lc-dot {
+            .home-gate-shell .live-count-premium-wrapper--gate .lc-tag,
+            .home-gate-shell .home-live-banner-fallback--gate .lc-tag {
+              display: inline-flex !important;
+              align-items: center !important;
+              flex-shrink: 0 !important;
+              background: #E53935 !important;
+              color: #FFFFFF !important;
+              border: none !important;
+              border-radius: 6px !important;
+              padding: 3px 8px !important;
+              font-size: 10px !important;
+              font-weight: 800 !important;
+              letter-spacing: 0.06em !important;
+              line-height: 1.2 !important;
+            }
+            .live-count-premium-wrapper:not(.live-count-premium-wrapper--gate) .lc-dot {
               width: 6px !important;
               height: 6px !important;
               background: #ff6b6b !important;
@@ -3570,12 +3585,32 @@ const HomePage = ({
               margin-right: 2px !important;
               animation: lc-blink 1s infinite;
             }
-            .live-count-premium-wrapper .live-dynamic-banner__sep--dot {
+            .home-gate-shell .live-count-premium-wrapper--gate .lc-dot,
+            .home-gate-shell .home-live-banner-fallback--gate .lc-dot {
+              width: 6px !important;
+              height: 6px !important;
+              background: #E53935 !important;
+              box-shadow: none !important;
+              flex-shrink: 0 !important;
+            }
+            .live-count-premium-wrapper:not(.live-count-premium-wrapper--gate) .live-dynamic-banner__sep--dot {
               color: #ffffff !important;
               font-size: 12px !important;
               font-weight: 800 !important;
               flex-shrink: 0 !important;
               margin: 0 2px !important;
+            }
+            .home-gate-shell .live-count-premium-wrapper--gate .live-dynamic-banner__sep--dot,
+            .home-gate-shell .home-live-banner-fallback--gate .live-dynamic-banner__sep--dot {
+              color: #94A3B8 !important;
+            }
+            .home-gate-shell .live-count-premium-wrapper--gate .live-dynamic-banner__spotlight,
+            .home-gate-shell .live-count-premium-wrapper--gate .live-dynamic-banner__spotlight--solo,
+            .home-gate-shell .home-live-banner-fallback--gate .live-dynamic-banner__spotlight,
+            .home-gate-shell .home-live-banner-fallback--gate .live-dynamic-banner__spotlight--solo {
+              color: #0F172A !important;
+              font-weight: 800 !important;
+              text-shadow: none !important;
             }
             .live-count-premium-wrapper .lc-name {
               color: #ffffff !important;
