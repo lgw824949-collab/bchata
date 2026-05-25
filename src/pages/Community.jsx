@@ -351,22 +351,34 @@ const Community = ({ setSelectedPoster, setView }) => {
         )}
       </div>
 
-      {/* FAB - Upload */}
-      <motion.button 
+      {/* FAB - Upload (above bottom nav) */}
+      <motion.button
+        type="button"
+        aria-label="현장 리포트 등록하기"
         whileHover={{ scale: 1.05 }}
         whileTap={{ scale: 0.95 }}
         onClick={() => setShowUploadModal(true)}
-        style={{ 
-          position: 'fixed', bottom: '100px', right: '20px', 
-          width: '64px', height: '64px', borderRadius: '22px', 
-          background: 'linear-gradient(135deg, #E53935, #FF1744)', 
-          color: 'white', border: 'none', 
-          boxShadow: '0 10px 30px rgba(229, 57, 53, 0.4)', 
-          display: 'flex', alignItems: 'center', justifyContent: 'center', 
-          zIndex: 1000 
+        style={{
+          position: 'fixed',
+          right: '16px',
+          bottom: 'calc(68px + env(safe-area-inset-bottom, 0px))',
+          minWidth: '56px',
+          padding: '10px 12px',
+          borderRadius: '16px',
+          background: 'linear-gradient(135deg, #E53935, #FF1744)',
+          color: 'white',
+          border: 'none',
+          boxShadow: '0 10px 30px rgba(229, 57, 53, 0.4)',
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+          justifyContent: 'center',
+          gap: '2px',
+          zIndex: Z.nav + 1,
         }}
       >
-        <Camera size={28} strokeWidth={2.5} />
+        <Camera size={24} strokeWidth={2.5} />
+        <span style={{ fontSize: '10px', fontWeight: 800, lineHeight: 1.1 }}>등록하기</span>
       </motion.button>
 
       {createPortal(
