@@ -544,14 +544,45 @@ const Bootcamp = ({ onBack, initialView = 'list', cachedBootcamps = null, onBoot
           </h2>
         </div>
         <button
+          type="button"
           onClick={() => setView(view === 'register' ? 'list' : 'register')}
           style={{
-            padding: '8px 14px', borderRadius: '12px', background: 'rgba(201,168,76,0.15)',
-            border: '1px solid #C9A84C', color: '#C9A84C', fontSize: '12px', fontWeight: 800,
-            cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '4px'
+            padding: '7px 14px',
+            borderRadius: '999px',
+            background: 'rgba(201,168,76,0.15)',
+            border: '1px solid #C9A84C',
+            color: '#C9A84C',
+            fontSize: '12px',
+            fontWeight: 800,
+            cursor: 'pointer',
+            display: 'inline-flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            gap: '5px',
+            lineHeight: 1,
+            whiteSpace: 'nowrap',
+            flexShrink: 0,
           }}
         >
-          {view === 'register' ? (editingId ? '수정 취소' : '취소') : '💎 캠프 등록'}
+          {view === 'register' ? (
+            <span style={{ lineHeight: 1 }}>{editingId ? '수정 취소' : '취소'}</span>
+          ) : (
+            <>
+              <span
+                aria-hidden
+                style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  lineHeight: 1,
+                  fontSize: '11px',
+                }}
+              >
+                💎
+              </span>
+              <span style={{ lineHeight: 1 }}>캠프 등록</span>
+            </>
+          )}
         </button>
       </div>
 
