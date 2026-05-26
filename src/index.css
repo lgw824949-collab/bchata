@@ -2836,36 +2836,90 @@ body.bottom-nav-social-light nav.bottom-nav {
   text-overflow: ellipsis;
 }
 
-/* 홈 LIVE — 1장=오늘 파티 요약, 이후=업체 1장씩 순환 */
+/* 홈 LIVE — 요약 고정 + 업체 한 줄(많으면 묶음만 순환) */
 .home-live-banner__inner {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: nowrap;
+  align-items: center;
+  gap: clamp(6px, 1.4vw, 10px);
   overflow: hidden;
+}
+.home-live-banner__track {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: nowrap;
+  align-items: center;
+  flex: 1 1 auto;
+  min-width: 0;
+  gap: clamp(4px, 1.2vw, 8px);
+  overflow-x: auto;
+  overflow-y: hidden;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+}
+.home-live-banner__track::-webkit-scrollbar {
+  display: none;
+}
+.home-live-banner-line,
+.home-live-banner-venue {
+  border: none;
+  background: transparent;
+  padding: 0;
+  margin: 0;
+  font: inherit;
+  color: inherit;
+  cursor: pointer;
+  appearance: none;
+  -webkit-appearance: none;
+  box-shadow: none;
 }
 .home-live-banner-line {
   display: inline-flex;
   align-items: center;
-  flex: 1 1 auto;
-  min-width: 0;
+  flex: 0 0 auto;
   white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
   font-size: clamp(12px, 3.4vw, 14px);
   font-weight: 800;
   color: #0F172A;
 }
-.home-live-banner-line--venue {
-  font-weight: 900;
+.home-live-banner-line--summary {
+  flex-shrink: 0;
 }
 .home-live-banner-today-label {
   flex-shrink: 0;
   font-weight: 900;
 }
-.home-live-banner-region strong {
+.home-live-banner-region strong,
+.home-live-banner-venue strong {
   color: #E53935;
   font-weight: 950;
 }
 .home-live-banner-sep {
   color: #94A3B8;
   font-weight: 700;
+  flex-shrink: 0;
+}
+.home-live-banner-sep--bar {
+  margin: 0 2px;
+}
+.home-live-banner-venues {
+  display: inline-flex;
+  flex-direction: row;
+  flex-wrap: nowrap;
+  align-items: center;
+  flex-shrink: 0;
+  white-space: nowrap;
+  font-size: clamp(12px, 3.4vw, 14px);
+  font-weight: 800;
+  color: #0F172A;
+}
+.home-live-banner-venue {
+  display: inline-flex;
+  align-items: center;
+  flex-shrink: 0;
+  white-space: nowrap;
+  font-weight: 900;
 }
 
 .live-dynamic-banner__spotlight {

@@ -175,7 +175,7 @@ const SOCIAL_BAR_PEEK_VISIBLE = 3;
 /** 메인 홈 — 오늘 지역 대표 포스터 슬라이드 (빠른 메뉴 위) */
 const HOME_POSTER_BANNER_MS = 4000;
 
-/** LIVE 배너 — 5초마다: ①오늘 파티(서울→수도권→지방) ②오늘 포스터 업체 전부 순환 */
+/** LIVE 배너 — 5초마다 업체 묶음만 순환 (요약은 항상 고정) */
 const LIVE_BANNER_SLIDE_MS = 5000;
 
 const BAR_VIEW_COUNT_DELAY_MS = 7000;
@@ -780,56 +780,52 @@ const countTodayPosterPartiesByRegion = (todayParties) => {
   return counts;
 };
 
-/** LIVE 슬라이드: 1장=오늘 파티 지역 요약, 이후=오늘 포스터 업체 각 1장씩 (전부 순환) */
-const buildHomeLiveBannerSlides = ({ sourceRows, todayStr, isEn = false }) => {
+/** 업체가 많을 때만 묶음 롤테이션 (3개면 한 번에 전부 표시) */
+const LIVE_BANNER_VENUE_BATCH_SIZE = 4;
+const LIVE_BANNER_BATCH_MS = 5000;
+
+const chunkLiveBannerVenues = (venues, size = LIVE_BANNER_VENUE_BATCH_SIZE) => {
+  if (!venues.length) return [];
+  if (venues.length <= size) return [venues];
+  const batches = [];
+  for (let i = 0; i < venues.length; i += size) {
+    batches.push(venues.slice(i, i + size));
+  }
+  return batches;
+};
+
+/** LIVE: ① 오늘 파티·서울→수도권→지방 항상 고정 ② 업체는 묶음으로 동시 표시 (많으면 묶음만 순환) */
+const buildHomeLiveBannerModel = ({ sourceRows, todayStr, isEn = false }) => {
   const todayParties = filterTodayPosterParties(sourceRows, todayStr).map(enrichPosterBannerPartyRow);
-  const counts = countTodayPosterPartiesByRegion(todayParties);
-  const slides = [];
 
   const regionParts = LIVE_BANNER_REGION_ORDER.map(({ id, labelKo, labelEn }) => {
-    const n = counts[id] || 0;
+    const n = countTodayPosterPartiesByRegion(todayParties)[id] || 0;
     if (!n) return null;
     return { id, label: isEn ? labelEn : labelKo, count: n };
   }).filter(Boolean);
 
-  if (regionParts.length) {
-    slides.push({
-      id: 'live-summary',
-      kind: 'summary',
-      regionParts,
-      text: regionParts.map((p) => `${p.label} ${p.count}`).join(' · '),
-      party: null,
-    });
-  }
-
+  const venues = [];
   for (const { id, match } of LIVE_BANNER_REGION_ORDER) {
     const list = todayParties
       .filter(match)
       .sort((a, b) => (Number(b.click_count) || 0) - (Number(a.click_count) || 0));
     for (const party of list) {
-      const text = formatLiveBannerPartySlideText(party);
-      if (!text) continue;
-      slides.push({
-        id: `live-venue-${party.id}`,
-        kind: 'venue',
-        text,
+      const name = liveBannerVenueLabel(party);
+      if (!name) continue;
+      venues.push({
+        id: String(party.id),
+        name,
+        clicks: Number(party.click_count) || 0,
+        text: formatLiveBannerPartySlideText(party),
         party,
       });
     }
   }
 
-  if (!slides.length) {
-    return {
-      slides: [{
-        id: 'live-empty',
-        kind: 'empty',
-        text: isEn ? "Check today's party listings" : '오늘 파티 정보를 확인하세요',
-        party: null,
-      }],
-    };
-  }
+  const venueBatches = chunkLiveBannerVenues(venues);
+  const emptyText = isEn ? "Check today's party listings" : '오늘 파티 정보를 확인하세요';
 
-  return { slides };
+  return { regionParts, venueBatches, emptyText };
 };
 
 const dedupeById = (list) => {
@@ -1769,7 +1765,7 @@ const HomePage = ({
   const [kingMenuOpen, setKingMenuOpen] = useState(false);
   const [livePickUploadAt, setLivePickUploadAt] = useState(() => readLivePickUploadAt());
   const [barStatsMap, setBarStatsMap] = useState({});
-  const [liveBannerSlideIdx, setLiveBannerSlideIdx] = useState(0);
+  const [liveBannerBatchIdx, setLiveBannerBatchIdx] = useState(0);
   const [liveBannerPartyRows, setLiveBannerPartyRows] = useState([]);
   const [homePosterBannerPartyRows, setHomePosterBannerPartyRows] = useState([]);
   const [homePosterBannerBootcampRows, setHomePosterBannerBootcampRows] = useState([]);
@@ -2994,68 +2990,96 @@ const HomePage = ({
     );
   };
 
-  const homeLiveBannerSlides = useMemo(() => {
+  const homeLiveBannerModel = useMemo(() => {
     const sourceRows = (liveBannerPartyRows?.length ? liveBannerPartyRows : parties) || [];
-    return buildHomeLiveBannerSlides({
+    return buildHomeLiveBannerModel({
       sourceRows,
       todayStr: calendarTodayStr,
       isEn,
     });
   }, [parties, liveBannerPartyRows, calendarTodayStr, isEn]);
 
-  useEffect(() => {
-    setLiveBannerSlideIdx(0);
-  }, [calendarTodayStr, homeLiveBannerSlides.slides.length]);
+  const venueBatchCount = homeLiveBannerModel.venueBatches.length;
+  const liveBannerSlideCount = Math.max(1, venueBatchCount + 1);
 
   useEffect(() => {
-    if (homeLiveBannerSlides.slides.length < 2) return undefined;
+    setLiveBannerBatchIdx(0);
+  }, [calendarTodayStr, venueBatchCount]);
+
+  useEffect(() => {
+    if (liveBannerSlideCount < 2) return undefined;
     const timer = setInterval(() => {
-      setLiveBannerSlideIdx((idx) => (idx + 1) % homeLiveBannerSlides.slides.length);
-    }, LIVE_BANNER_SLIDE_MS);
+      setLiveBannerBatchIdx((idx) => (idx + 1) % liveBannerSlideCount);
+    }, LIVE_BANNER_BATCH_MS);
     return () => clearInterval(timer);
-  }, [homeLiveBannerSlides.slides.length]);
+  }, [liveBannerSlideCount]);
 
   const renderHomeLiveBannerFallback = () => {
-    const { slides } = homeLiveBannerSlides;
-    const slide = slides[liveBannerSlideIdx] || slides[0];
-    const handleClick = () => {
-      if (slide?.kind === 'summary' || slide?.kind === 'empty') {
-        openFullCalendarModal();
-        return;
-      }
-      if (slide?.party) openPartyWithAfterParty(slide.party);
-    };
+    const { regionParts, venueBatches, emptyText } = homeLiveBannerModel;
+    const showSummaryOnly = liveBannerBatchIdx === 0;
+    const venueBatch = venueBatches[Math.max(0, liveBannerBatchIdx - 1)] || venueBatches[0] || [];
+    const hasSummary = regionParts.length > 0;
+    const hasVenues = venueBatch.length > 0;
 
     return (
       <div className={`home-live-banner-fallback${isHomeGate ? ' home-live-banner-fallback--gate' : ''}`}>
         <div
           className={`live-dynamic-banner${isHomeGate ? ' live-dynamic-banner--gate' : ''}`}
-          role="button"
-          tabIndex={0}
-          onClick={handleClick}
-          aria-label={`LIVE · ${slides.map((s) => s.text).join(' | ')}`}
+          role="group"
+          aria-label="LIVE"
         >
           <div className="live-dynamic-banner__inner home-live-banner__inner">
             <span className="lc-tag">LIVE</span>
-            <span className="lc-dot" />
-            <span className="live-dynamic-banner__sep live-dynamic-banner__sep--dot">·</span>
-            {slide?.kind === 'summary' ? (
-              <span key={slide.id} className="home-live-banner-line home-live-banner-line--summary">
-                <span className="home-live-banner-today-label">{isEn ? 'Today' : '오늘 파티'}</span>
-                {slide.regionParts.map((part, idx) => (
-                  <React.Fragment key={part.id}>
-                    <span className="home-live-banner-sep"> · </span>
-                    <span className="home-live-banner-region">
-                      {part.label} <strong>{part.count}</strong>
-                    </span>
-                  </React.Fragment>
-                ))}
-              </span>
-            ) : (
-              <span key={slide?.id} className="home-live-banner-line home-live-banner-line--venue">
-                {slide?.text}
-              </span>
-            )}
+            <div className="home-live-banner__track">
+              {showSummaryOnly ? (
+                <button
+                  type="button"
+                  className="home-live-banner-line home-live-banner-line--summary"
+                  onClick={openFullCalendarModal}
+                >
+                  {hasSummary ? (
+                    <>
+                      <span className="home-live-banner-today-label">{isEn ? 'Today' : '오늘 파티'}</span>
+                      {regionParts.map((part) => (
+                        <React.Fragment key={part.id}>
+                          <span className="home-live-banner-sep"> · </span>
+                          <span className="home-live-banner-region">
+                            {part.label} <strong>{part.count}</strong>
+                          </span>
+                        </React.Fragment>
+                      ))}
+                    </>
+                  ) : (
+                    emptyText
+                  )}
+                </button>
+              ) : (
+                <span className="home-live-banner-venues" key={`batch-${liveBannerBatchIdx}`}>
+                  {hasVenues ? (
+                    venueBatch.map((venue, idx) => (
+                      <React.Fragment key={venue.id}>
+                        {idx > 0 ? <span className="home-live-banner-sep"> · </span> : null}
+                        <button
+                          type="button"
+                          className="home-live-banner-venue"
+                          onClick={() => openPartyWithAfterParty(venue.party)}
+                        >
+                          {venue.name} <strong>{venue.clicks}</strong>
+                        </button>
+                      </React.Fragment>
+                    ))
+                  ) : (
+                    <button
+                      type="button"
+                      className="home-live-banner-line home-live-banner-line--summary"
+                      onClick={openFullCalendarModal}
+                    >
+                      {emptyText}
+                    </button>
+                  )}
+                </span>
+              )}
+            </div>
           </div>
         </div>
       </div>
