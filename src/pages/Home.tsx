@@ -1646,6 +1646,22 @@ const HomePage = ({
   const [weatherMap, setWeatherMap] = useState({});
   const [adminTapCount, setAdminTapCount] = useState(0);
   const [lastAdminTap, setLastAdminTap] = useState(0);
+
+  const registerAdminPortalTap = () => {
+    const now = Date.now();
+    if (now - lastAdminTap < 2000) {
+      const nextCount = adminTapCount + 1;
+      if (nextCount >= 3) {
+        navigate('/admin-portal');
+        setAdminTapCount(0);
+      } else {
+        setAdminTapCount(nextCount);
+      }
+    } else {
+      setAdminTapCount(1);
+    }
+    setLastAdminTap(now);
+  };
   const [isModalFilterVisible, setIsModalFilterVisible] = useState(false);
   const [partyListRegionFilter, setPartyListRegionFilter] = useState('');
   const stickyHeaderRef = useRef(null);
@@ -3822,7 +3838,24 @@ const HomePage = ({
         >
           <h1
             className="home-type-display home-hero-title"
-            style={{ color: '#E53935', fontSize: '32px', fontWeight: 900, margin: 0, lineHeight: 1.15 }}
+            role="button"
+            tabIndex={0}
+            onClick={registerAdminPortalTap}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault();
+                registerAdminPortalTap();
+              }
+            }}
+            style={{
+              color: '#E53935',
+              fontSize: '32px',
+              fontWeight: 900,
+              margin: 0,
+              lineHeight: 1.15,
+              cursor: 'pointer',
+              userSelect: 'none',
+            }}
           >
             오늘밤빠
           </h1>
@@ -5199,24 +5232,7 @@ const HomePage = ({
                               <div style={{ padding: '15px 20px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', color: 'var(--color-text-main)' }}>
                                 <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                                   <span
-                                    onClick={() => {
-                                      if (regionName === '서울') {
-                                        const now = Date.now();
-                                        if (now - lastAdminTap < 2000) {
-                                          const nextCount = adminTapCount + 1;
-                                          if (nextCount >= 3) {
-                                            navigate('/admin-portal');
-                                            setAdminTapCount(0);
-                                          } else {
-                                            setAdminTapCount(nextCount);
-                                          }
-                                        } else {
-                                          setAdminTapCount(1);
-                                        }
-                                        setLastAdminTap(now);
-                                      }
-                                    }}
-                                    style={{ fontSize: '15px', fontWeight: '800', cursor: regionName === '서울' ? 'pointer' : 'default', userSelect: 'none', padding: '2px 4px' }}
+                                    style={{ fontSize: '15px', fontWeight: '800', userSelect: 'none', padding: '2px 4px' }}
                                   >
                                     {t(regionKeys[regionName] || regionName)}
                                   </span>
