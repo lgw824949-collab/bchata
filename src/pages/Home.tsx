@@ -6,8 +6,9 @@ import QuickPinchZoom, { make3dTransformValue } from 'react-quick-pinch-zoom';
 import { fetchBarStatsMap, bumpBarClickCount, resolveBarStats } from '../lib/barStatsQuery'
 import { KMA_REGION_COORDS, fetchWeatherForecast, parseKmaWeather, HOME_REGION_MAP } from '../utils/kmaApi'
 import { supabase } from '../lib/supabase'
-import { BAR_DATABASE } from '../lib/BarLib'
+import { BAR_DATABASE, findBarByName, findBarByAddress } from '../lib/BarLib'
 import { normDate, getKSTCalendarTodayStr, isApprovedParty } from '../lib/dateNorm'
+import { resolvePartyVenueName } from '../lib/partiesQuery'
 import { logSupabaseError } from '../lib/locationsQuery'
 import { hasOptionalLocationColumns, mergeVenueWithLocalExtras } from '../lib/venueLocalExtras'
 import { applyStoredExtrasToVenueList, fetchLocationExtrasMap } from '../lib/locationExtrasQuery'
@@ -517,7 +518,7 @@ const inferPartyBroadRegionFromRow = (row) => {
 const enrichPosterBannerPartyRow = (row) => ({
   ...row,
   broadRegion: inferPartyBroadRegionFromRow(row),
-  location_name: row?.locations?.name || row?.location_name || '',
+  location_name: row?.locations?.name || row?.location_name || row?.locationName || '',
 });
 
 const isHomePosterBannerSeoul = (p) => REGION_FILTER['서울'](p);
@@ -749,19 +750,53 @@ const schedulePartyClickCountIncrement = (partyId) => {
   }, POSTER_CLICK_COUNT_DELAY_MS);
 };
 
-/** LIVE 배너 — 업체·장소명 (오늘 포스터 1건당 동일 형식) */
+/** LIVE 배너 — BAR 마스터·location_id 기준 업체명만 (파티 제목 미사용) */
+const inferLiveBannerBarFromPartyHints = (party) => {
+  const hay = `${party?.title || ''} ${party?.address || ''} ${party?.locationName || ''} ${party?.location_name || ''}`;
+  const hayCompact = hay.replace(/\s/g, '').toLowerCase();
+  let best = '';
+  let bestLen = 0;
+  for (const bar of BAR_DATABASE) {
+    const keys = [bar.name, ...(bar.aliases || [])];
+    for (const key of keys) {
+      const k = key.replace(/\s/g, '').toLowerCase();
+      if (k.length < 2 || !hayCompact.includes(k)) continue;
+      if (k.length > bestLen) {
+        best = bar.name;
+        bestLen = k.length;
+      }
+    }
+  }
+  return best;
+};
+
 const liveBannerVenueLabel = (party) => {
-  const venue = String(party?.location_name || party?.locations?.name || '').trim();
-  if (venue) return venue;
-  return formatPartyTitleDisplay(party?.title) || '';
+  const resolved = resolvePartyVenueName(party);
+  if (resolved && resolved !== '장소 미정') {
+    const canonical = findBarByName(resolved);
+    return canonical?.name || resolved;
+  }
+
+  const fromTitle = findBarByName(party?.title);
+  if (fromTitle?.name) return fromTitle.name;
+
+  const fromAddress = findBarByAddress(party?.address || '');
+  if (fromAddress?.name) return fromAddress.name;
+
+  return inferLiveBannerBarFromPartyHints(party);
+};
+
+const liveBannerVenueForStats = (party) => {
+  const name = liveBannerVenueLabel(party);
+  return {
+    id: party?.location_id,
+    name: name || party?.locations?.name || party?.locationName || party?.location_name || '',
+  };
 };
 
 /** 예: 보니따 3 · 강남턴 4 — 업체명 + 실시간 BAR 입장 수 */
 const partyLiveBannerCount = (party, statsMap = {}) => {
-  const venue = {
-    id: party?.location_id,
-    name: party?.locations?.name || party?.location_name || '',
-  };
+  const venue = liveBannerVenueForStats(party);
   return Math.max(0, Number(resolveBarStats(venue, statsMap).liveCount) || 0);
 };
 
