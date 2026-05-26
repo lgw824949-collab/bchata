@@ -749,59 +749,22 @@ const schedulePartyClickCountIncrement = (partyId) => {
   }, POSTER_CLICK_COUNT_DELAY_MS);
 };
 
-const sumPartyClickCount = (list) =>
-  (list || []).reduce((sum, party) => sum + (Number(party?.click_count) || 0), 0);
+const LIVE_BANNER_MAX_CHARS = 24;
 
-const pickTopClickCountParty = (list) => {
-  if (!list?.length) return null;
-  return [...list].reduce((best, party) => {
-    const nextCount = Number(party?.click_count) || 0;
-    const bestCount = Number(best?.click_count) || 0;
-    return nextCount > bestCount ? party : best;
-  }, list[0]);
+/** LIVE 배너 — 업체·장소명 (오늘 포스터 1건당 동일 형식) */
+const liveBannerVenueLabel = (party) => {
+  const venue = String(party?.location_name || party?.locations?.name || '').trim();
+  if (venue) return venue;
+  return formatPartyTitleDisplay(party?.title) || '';
 };
 
-const formatLiveBannerRegionSegment = (regionLabel, partyList, includeVenue = true) => {
-  const total = sumPartyClickCount(partyList);
-  if (!total) return null;
-  if (includeVenue) {
-    const top = pickTopClickCountParty(partyList);
-    const venue = String(top?.location_name || top?.locations?.name || '').trim();
-    if (venue) return `${regionLabel} ${venue} ${total}`;
-  }
-  return `${regionLabel} ${total}`;
-};
-
-const LIVE_BANNER_MAX_CHARS = 20;
-
-const fitLiveBannerSummaryText = (regionBuckets) => {
-  const build = (includeVenue, maxRegions) => {
-    const segments = regionBuckets
-      .map(({ label, list }) => formatLiveBannerRegionSegment(label, list, includeVenue))
-      .filter(Boolean)
-      .sort((a, b) => {
-        const tailNum = (seg) => {
-          const match = String(seg).match(/(\d+)\s*$/);
-          return match ? Number(match[1]) : 0;
-        };
-        return tailNum(b) - tailNum(a);
-      })
-      .slice(0, maxRegions);
-    return segments.join(' · ');
-  };
-
-  for (const maxRegions of [3, 2, 1]) {
-    for (const includeVenue of [true, false]) {
-      const text = build(includeVenue, maxRegions);
-      if (text && text.length <= LIVE_BANNER_MAX_CHARS) return text;
-    }
-  }
-
-  const fallback = build(false, 1);
-  if (!fallback) return '';
-  return fallback.length > LIVE_BANNER_MAX_CHARS
-    ? fallback.slice(0, LIVE_BANNER_MAX_CHARS)
-    : fallback;
+/** 예: 보니따 3 · 강남턴 4 — 업체명 + 오늘 포스터 클릭 수 */
+const formatLiveBannerPartySlideText = (party) => {
+  const name = liveBannerVenueLabel(party);
+  if (!name) return '';
+  const clicks = Number(party?.click_count) || 0;
+  const text = `${name} ${clicks}`;
+  return text.length > LIVE_BANNER_MAX_CHARS ? text.slice(0, LIVE_BANNER_MAX_CHARS) : text;
 };
 
 const buildLiveBannerRegionCountsFallbackText = (regionCounts, isEn) => {
@@ -817,40 +780,48 @@ const buildLiveBannerRegionCountsFallbackText = (regionCounts, isEn) => {
   return `오늘 파티 서울 ${seoul} · 수도권 ${metro} · 지방 ${national}`;
 };
 
-/** LIVE 배너 — 오늘 포스터 파티 지역별 click_count 합산 요약 (최대 20자) */
+const LIVE_BANNER_REGION_ORDER = [
+  { id: 'seoul', match: isHomePosterBannerSeoul },
+  { id: 'metro', match: isHomePosterBannerMetro },
+  { id: 'local', match: isHomePosterBannerLocal },
+];
+
+/**
+ * LIVE 배너 롤테이션
+ * 1) 오늘(KST)·poster_url 포스터만
+ * 2) 서울 → 수도권 → 지방 순, 지역 내 클릭 수 내림차순
+ * 3) 슬라이드마다 「업체명 N」(N = click_count) 동일 형식
+ */
 const buildHomeLiveBannerSummary = ({ sourceRows, todayStr, isEn = false, regionCounts = null }) => {
   const todayParties = filterTodayPosterParties(sourceRows, todayStr).map(enrichPosterBannerPartyRow);
 
-  const regionBuckets = [
-    { label: isEn ? 'Seoul' : '서울', list: todayParties.filter(isHomePosterBannerSeoul) },
-    { label: isEn ? 'Metro' : '수도권', list: todayParties.filter(isHomePosterBannerMetro) },
-    { label: isEn ? 'Local' : '지방', list: todayParties.filter(isHomePosterBannerLocal) },
-  ];
-
-  const totalClicks = regionBuckets.reduce((sum, bucket) => sum + sumPartyClickCount(bucket.list), 0);
-  const text = totalClicks > 0
-    ? fitLiveBannerSummaryText(regionBuckets)
-    : buildLiveBannerRegionCountsFallbackText(regionCounts, isEn);
-  const pick =
-    pickTopClickCountParty(regionBuckets[0].list)
-    || pickTopClickCountParty(regionBuckets[1].list)
-    || pickTopClickCountParty(regionBuckets[2].list)
-    || todayParties[0]
-    || null;
-
-  if (!text) {
-    return { slides: [], pick: null };
+  const slides = [];
+  for (const { id, match } of LIVE_BANNER_REGION_ORDER) {
+    const list = todayParties
+      .filter(match)
+      .sort((a, b) => (Number(b.click_count) || 0) - (Number(a.click_count) || 0));
+    for (const party of list) {
+      const text = formatLiveBannerPartySlideText(party);
+      if (!text) continue;
+      slides.push({
+        id: `live-${id}-${party.id}`,
+        text,
+        regionId: id,
+        party,
+      });
+    }
   }
 
-  return {
-    slides: [{
-      id: 'live-region-summary',
-      text,
-      tier: 'fixed',
-      party: pick,
-    }],
-    pick,
-  };
+  if (!slides.length) {
+    const fallbackText = buildLiveBannerRegionCountsFallbackText(regionCounts, isEn);
+    if (!fallbackText) return { slides: [], pick: null };
+    return {
+      slides: [{ id: 'live-fallback', text: fallbackText, party: null }],
+      pick: null,
+    };
+  }
+
+  return { slides, pick: slides[0].party };
 };
 
 const dedupeById = (list) => {
@@ -3030,7 +3001,7 @@ const HomePage = ({
   useEffect(() => {
     liveBannerSlideIdxRef.current = 0;
     setLiveBannerSlideIdx(0);
-  }, [calendarTodayStr]);
+  }, [calendarTodayStr, homeLiveBannerSlides.slides.length]);
 
   useEffect(() => {
     if (homeLiveBannerSlides.slides.length < 2) return undefined;
