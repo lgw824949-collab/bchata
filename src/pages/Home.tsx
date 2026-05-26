@@ -3056,18 +3056,21 @@ const HomePage = ({
               ) : (
                 <span className="home-live-banner-venues" key={`batch-${liveBannerBatchIdx}`}>
                   {hasVenues ? (
-                    venueBatch.map((venue, idx) => (
-                      <React.Fragment key={venue.id}>
-                        {idx > 0 ? <span className="home-live-banner-sep"> · </span> : null}
-                        <button
-                          type="button"
-                          className="home-live-banner-venue"
-                          onClick={() => openPartyWithAfterParty(venue.party)}
-                        >
-                          {venue.name} <strong>{venue.clicks}</strong>
-                        </button>
-                      </React.Fragment>
-                    ))
+                    <>
+                      <span className="home-live-banner-live-label">{isEn ? 'Live' : '실시간'}</span>
+                      {venueBatch.map((venue, idx) => (
+                        <React.Fragment key={venue.id}>
+                          <span className="home-live-banner-sep"> · </span>
+                          <button
+                            type="button"
+                            className="home-live-banner-venue"
+                            onClick={() => openPartyWithAfterParty(venue.party)}
+                          >
+                            {venue.name} <strong>{venue.clicks}</strong>
+                          </button>
+                        </React.Fragment>
+                      ))}
+                    </>
                   ) : (
                     <button
                       type="button"

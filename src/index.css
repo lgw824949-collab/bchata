@@ -2890,6 +2890,10 @@ body.bottom-nav-social-light nav.bottom-nav {
   flex-shrink: 0;
   font-weight: 900;
 }
+.home-live-banner-live-label {
+  flex-shrink: 0;
+  font-weight: 900;
+}
 .home-live-banner-region strong,
 .home-live-banner-venue strong {
   color: #E53935;
