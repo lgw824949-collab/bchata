@@ -2836,6 +2836,41 @@ body.bottom-nav-social-light nav.bottom-nav {
   text-overflow: ellipsis;
 }
 
+/* 홈 LIVE — 오늘 파티 요약·업체명 전부 표시 (말줄임 제거) */
+.home-live-banner__inner {
+  overflow-x: auto;
+  overflow-y: hidden;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+.home-live-banner__inner::-webkit-scrollbar {
+  display: none;
+}
+.home-live-banner-slide-text--summary,
+.home-live-banner-slide-text--venue {
+  display: flex;
+  align-items: center;
+  flex: 1 1 auto;
+  min-width: 0;
+  overflow: visible;
+  text-overflow: unset;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+.home-live-banner-today-label {
+  flex-shrink: 0;
+  font-weight: 900;
+}
+.home-gate-shell .home-live-banner-slide-text--summary .live-dynamic-banner__regions {
+  display: inline-flex;
+  align-items: center;
+  flex-shrink: 0;
+  overflow: visible;
+}
+.home-gate-shell .home-live-banner-slide-text--summary .live-dynamic-banner__region {
+  flex-shrink: 0;
+}
+
 .live-dynamic-banner__spotlight {
   color: #ffffff;
   font-size: clamp(12px, 3.6vw, 15px);

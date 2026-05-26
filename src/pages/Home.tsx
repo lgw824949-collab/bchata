@@ -749,8 +749,6 @@ const schedulePartyClickCountIncrement = (partyId) => {
   }, POSTER_CLICK_COUNT_DELAY_MS);
 };
 
-const LIVE_BANNER_MAX_CHARS = 24;
-
 /** LIVE 배너 — 업체·장소명 (오늘 포스터 1건당 동일 형식) */
 const liveBannerVenueLabel = (party) => {
   const venue = String(party?.location_name || party?.locations?.name || '').trim();
@@ -758,44 +756,60 @@ const liveBannerVenueLabel = (party) => {
   return formatPartyTitleDisplay(party?.title) || '';
 };
 
-/** 예: 보니따 3 · 강남턴 4 — 업체명 + 오늘 포스터 클릭 수 */
+/** 예: 보니따 3 · 강남턴 4 — 업체명 + 오늘 포스터 클릭 수 (잘라내지 않음) */
 const formatLiveBannerPartySlideText = (party) => {
   const name = liveBannerVenueLabel(party);
   if (!name) return '';
   const clicks = Number(party?.click_count) || 0;
-  const text = `${name} ${clicks}`;
-  return text.length > LIVE_BANNER_MAX_CHARS ? text.slice(0, LIVE_BANNER_MAX_CHARS) : text;
-};
-
-const buildLiveBannerRegionCountsFallbackText = (regionCounts, isEn) => {
-  const seoul = Number(regionCounts?.seoul) || 0;
-  const metro = Number(regionCounts?.metro) || 0;
-  const national = Number(regionCounts?.national) || 0;
-  if (seoul === 0 && metro === 0 && national === 0) {
-    return isEn ? "Check today's party listings" : '오늘 파티 정보를 확인하세요';
-  }
-  if (isEn) {
-    return `Today Seoul ${seoul} · Metro ${metro} · Local ${national}`;
-  }
-  return `오늘 파티 서울 ${seoul} · 수도권 ${metro} · 지방 ${national}`;
+  return `${name} ${clicks}`;
 };
 
 const LIVE_BANNER_REGION_ORDER = [
-  { id: 'seoul', match: isHomePosterBannerSeoul },
-  { id: 'metro', match: isHomePosterBannerMetro },
-  { id: 'local', match: isHomePosterBannerLocal },
+  { id: 'seoul', labelKo: '서울', labelEn: 'Seoul', match: isHomePosterBannerSeoul },
+  { id: 'metro', labelKo: '수도권', labelEn: 'Metro', match: isHomePosterBannerMetro },
+  { id: 'local', labelKo: '지방', labelEn: 'Local', match: isHomePosterBannerLocal },
 ];
+
+const countTodayPosterPartiesByRegion = (todayParties) => {
+  const counts = { seoul: 0, metro: 0, local: 0 };
+  for (const party of todayParties) {
+    if (isHomePosterBannerSeoul(party)) counts.seoul += 1;
+    else if (isHomePosterBannerMetro(party)) counts.metro += 1;
+    else counts.local += 1;
+  }
+  return counts;
+};
+
+/** 1번 슬라이드 — 오늘 포스터 지역별 건수 (서울 2 · 수도권 1 …) */
+const buildLiveBannerTodaySummarySlide = (counts, isEn) => {
+  const parts = LIVE_BANNER_REGION_ORDER.map(({ id, labelKo, labelEn }) => {
+    const n = counts[id] || 0;
+    if (!n) return null;
+    return { id, label: isEn ? labelEn : labelKo, count: n };
+  }).filter(Boolean);
+  if (!parts.length) return null;
+  return {
+    id: 'live-today-summary',
+    kind: 'summary',
+    regionParts: parts,
+    text: parts.map((p) => `${p.label} ${p.count}`).join(' · '),
+    party: null,
+  };
+};
 
 /**
  * LIVE 배너 롤테이션
- * 1) 오늘(KST)·poster_url 포스터만
- * 2) 서울 → 수도권 → 지방 순, 지역 내 클릭 수 내림차순
- * 3) 슬라이드마다 「업체명 N」(N = click_count) 동일 형식
+ * ① 오늘 파티 지역별 건수 (포스터 기준) — 항상 첫 슬라이드
+ * ② 오늘 포스터 업체별 「업체명 클릭수」— 전 건 순환 (서울→수도권→지방, 클릭 많은 순)
  */
-const buildHomeLiveBannerSummary = ({ sourceRows, todayStr, isEn = false, regionCounts = null }) => {
+const buildHomeLiveBannerSummary = ({ sourceRows, todayStr, isEn = false }) => {
   const todayParties = filterTodayPosterParties(sourceRows, todayStr).map(enrichPosterBannerPartyRow);
-
+  const counts = countTodayPosterPartiesByRegion(todayParties);
   const slides = [];
+
+  const summarySlide = buildLiveBannerTodaySummarySlide(counts, isEn);
+  if (summarySlide) slides.push(summarySlide);
+
   for (const { id, match } of LIVE_BANNER_REGION_ORDER) {
     const list = todayParties
       .filter(match)
@@ -804,7 +818,8 @@ const buildHomeLiveBannerSummary = ({ sourceRows, todayStr, isEn = false, region
       const text = formatLiveBannerPartySlideText(party);
       if (!text) continue;
       slides.push({
-        id: `live-${id}-${party.id}`,
+        id: `live-venue-${id}-${party.id}`,
+        kind: 'venue',
         text,
         regionId: id,
         party,
@@ -813,15 +828,15 @@ const buildHomeLiveBannerSummary = ({ sourceRows, todayStr, isEn = false, region
   }
 
   if (!slides.length) {
-    const fallbackText = buildLiveBannerRegionCountsFallbackText(regionCounts, isEn);
-    if (!fallbackText) return { slides: [], pick: null };
+    const emptyText = isEn ? "Check today's party listings" : '오늘 파티 정보를 확인하세요';
     return {
-      slides: [{ id: 'live-fallback', text: fallbackText, party: null }],
+      slides: [{ id: 'live-empty', kind: 'empty', text: emptyText, party: null }],
       pick: null,
     };
   }
 
-  return { slides, pick: slides[0].party };
+  const firstVenue = slides.find((s) => s.kind === 'venue');
+  return { slides, pick: firstVenue?.party ?? null };
 };
 
 const dedupeById = (list) => {
@@ -2994,9 +3009,8 @@ const HomePage = ({
       sourceRows,
       todayStr: calendarTodayStr,
       isEn,
-      regionCounts,
     });
-  }, [parties, liveBannerPartyRows, calendarTodayStr, isEn, regionCounts]);
+  }, [parties, liveBannerPartyRows, calendarTodayStr, isEn]);
 
   useEffect(() => {
     liveBannerSlideIdxRef.current = 0;
@@ -3017,6 +3031,10 @@ const HomePage = ({
     const bannerLine = slide?.text || '';
     const ariaLabel = `LIVE · ${slides.map((s) => s.text).join(' | ')}`;
     const handleClick = () => {
+      if (slide?.kind === 'summary' || slide?.kind === 'empty') {
+        openFullCalendarModal();
+        return;
+      }
       const slideParty = slide?.party || pick;
       if (slideParty) {
         openPartyWithAfterParty(slideParty);
@@ -3024,6 +3042,11 @@ const HomePage = ({
       }
       openFullCalendarModal();
     };
+    const spotlightClass =
+      slide?.kind === 'summary'
+        ? 'live-dynamic-banner__spotlight live-dynamic-banner__spotlight--solo home-live-banner-slide-text home-live-banner-slide-text--summary'
+        : 'live-dynamic-banner__spotlight live-dynamic-banner__spotlight--solo home-live-banner-slide-text home-live-banner-slide-text--venue';
+
     return (
       <div className={`home-live-banner-fallback${isHomeGate ? ' home-live-banner-fallback--gate' : ''}`}>
         <div
@@ -3039,17 +3062,38 @@ const HomePage = ({
           }}
           aria-label={ariaLabel}
         >
-          <div className="live-dynamic-banner__inner">
+          <div className="live-dynamic-banner__inner home-live-banner__inner">
             <span className="lc-tag">LIVE</span>
             <span className="lc-dot" />
             <span className="live-dynamic-banner__sep live-dynamic-banner__sep--dot">·</span>
-            <span
-              key={`${slide?.id}-${liveBannerSlideIdx}`}
-              className="live-dynamic-banner__spotlight live-dynamic-banner__spotlight--solo live-banner-text-clip home-live-banner-slide-text"
-              title={bannerLine}
-            >
-              {bannerLine}
-            </span>
+            {slide?.kind === 'summary' && slide.regionParts?.length ? (
+              <span
+                key={`${slide.id}-${liveBannerSlideIdx}`}
+                className={spotlightClass}
+                title={bannerLine}
+              >
+                <span className="home-live-banner-today-label">{isEn ? 'Today' : '오늘 파티'}</span>
+                <span className="live-dynamic-banner__sep"> · </span>
+                <span className="live-dynamic-banner__regions">
+                  {slide.regionParts.map((part, idx) => (
+                    <React.Fragment key={part.id}>
+                      {idx > 0 ? <span className="live-dynamic-banner__sep"> · </span> : null}
+                      <span className="live-dynamic-banner__region">
+                        {part.label} <strong>{part.count}</strong>
+                      </span>
+                    </React.Fragment>
+                  ))}
+                </span>
+              </span>
+            ) : (
+              <span
+                key={`${slide?.id}-${liveBannerSlideIdx}`}
+                className={spotlightClass}
+                title={bannerLine}
+              >
+                {bannerLine}
+              </span>
+            )}
           </div>
         </div>
       </div>
