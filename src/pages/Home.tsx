@@ -3,7 +3,7 @@ import { Heart, MapPin, Calendar, Clock, User, Users, Music, Music2, ChevronRigh
 import { useTranslation } from 'react-i18next';
 import { motion, AnimatePresence } from 'framer-motion';
 import QuickPinchZoom, { make3dTransformValue } from 'react-quick-pinch-zoom';
-import { fetchBarStatsMap, bumpBarClickCount } from '../lib/barStatsQuery'
+import { fetchBarStatsMap, bumpBarClickCount, resolveBarStats } from '../lib/barStatsQuery'
 import { KMA_REGION_COORDS, fetchWeatherForecast, parseKmaWeather, HOME_REGION_MAP } from '../utils/kmaApi'
 import { supabase } from '../lib/supabase'
 import { BAR_DATABASE } from '../lib/BarLib'
@@ -756,12 +756,19 @@ const liveBannerVenueLabel = (party) => {
   return formatPartyTitleDisplay(party?.title) || '';
 };
 
-/** 예: 보니따 3 · 강남턴 4 — 업체명 + 오늘 포스터 클릭 수 (잘라내지 않음) */
-const formatLiveBannerPartySlideText = (party) => {
+/** 예: 보니따 3 · 강남턴 4 — 업체명 + 실시간 BAR 입장 수 */
+const partyLiveBannerCount = (party, statsMap = {}) => {
+  const venue = {
+    id: party?.location_id,
+    name: party?.locations?.name || party?.location_name || '',
+  };
+  return Math.max(0, Number(resolveBarStats(venue, statsMap).liveCount) || 0);
+};
+
+const formatLiveBannerPartySlideText = (party, statsMap = {}) => {
   const name = liveBannerVenueLabel(party);
   if (!name) return '';
-  const clicks = Number(party?.click_count) || 0;
-  return `${name} ${clicks}`;
+  return `${name} ${partyLiveBannerCount(party, statsMap)}`;
 };
 
 const LIVE_BANNER_REGION_ORDER = [
@@ -794,8 +801,8 @@ const chunkLiveBannerVenues = (venues, size = LIVE_BANNER_VENUE_BATCH_SIZE) => {
   return batches;
 };
 
-/** LIVE: ① 오늘 파티·서울→수도권→지방 항상 고정 ② 업체는 묶음으로 동시 표시 (많으면 묶음만 순환) */
-const buildHomeLiveBannerModel = ({ sourceRows, todayStr, isEn = false }) => {
+/** LIVE: ① 오늘 파티·서울→수도권→지방 ② 오늘 포스터 업체만 실시간 입장 수로 묶음 순환 */
+const buildHomeLiveBannerModel = ({ sourceRows, todayStr, isEn = false, barStatsMap = {} }) => {
   const todayParties = filterTodayPosterParties(sourceRows, todayStr).map(enrichPosterBannerPartyRow);
 
   const regionParts = LIVE_BANNER_REGION_ORDER.map(({ id, labelKo, labelEn }) => {
@@ -808,15 +815,18 @@ const buildHomeLiveBannerModel = ({ sourceRows, todayStr, isEn = false }) => {
   for (const { id, match } of LIVE_BANNER_REGION_ORDER) {
     const list = todayParties
       .filter(match)
-      .sort((a, b) => (Number(b.click_count) || 0) - (Number(a.click_count) || 0));
+      .sort(
+        (a, b) => partyLiveBannerCount(b, barStatsMap) - partyLiveBannerCount(a, barStatsMap),
+      );
     for (const party of list) {
       const name = liveBannerVenueLabel(party);
       if (!name) continue;
+      const liveCount = partyLiveBannerCount(party, barStatsMap);
       venues.push({
         id: String(party.id),
         name,
-        clicks: Number(party.click_count) || 0,
-        text: formatLiveBannerPartySlideText(party),
+        clicks: liveCount,
+        text: formatLiveBannerPartySlideText(party, barStatsMap),
         party,
       });
     }
@@ -2266,7 +2276,8 @@ const HomePage = ({
           'id, title, date, time, created_at, address, view_count, click_count, poster_url, location_id, locations!location_id(name)',
         )
         .eq('status', 'approved')
-        .eq('date', calendarTodayStr);
+        .eq('date', calendarTodayStr)
+        .not('poster_url', 'is', null);
       if (error) {
         console.warn('[Home] live banner parties:', error.message);
         return;
@@ -2990,14 +3001,15 @@ const HomePage = ({
     );
   };
 
-  const homeLiveBannerModel = useMemo(() => {
-    const sourceRows = (liveBannerPartyRows?.length ? liveBannerPartyRows : parties) || [];
-    return buildHomeLiveBannerModel({
-      sourceRows,
+  const homeLiveBannerModel = useMemo(
+    () => buildHomeLiveBannerModel({
+      sourceRows: todayPosterParties,
       todayStr: calendarTodayStr,
       isEn,
-    });
-  }, [parties, liveBannerPartyRows, calendarTodayStr, isEn]);
+      barStatsMap,
+    }),
+    [todayPosterParties, calendarTodayStr, isEn, barStatsMap],
+  );
 
   const venueBatchCount = homeLiveBannerModel.venueBatches.length;
   const liveBannerSlideCount = Math.max(1, venueBatchCount + 1);
