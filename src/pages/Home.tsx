@@ -898,6 +898,17 @@ const festivalsOnDate = (list, fullDate) =>
     return normDate(f.start_date) === fullDate;
   });
 
+/** 메인 게이트 뱃지 — 종료 전 부트캠프·페스티벌 (진행 중·예정) */
+const countActiveHomeGateEventRows = (rows, todayStr) =>
+  dedupeById(rows || []).filter((row) => {
+    const end = normDate(row.end_date || row.start_date);
+    if (end && end < todayStr) return false;
+    const start = normDate(row.start_date);
+    if (!start) return true;
+    if (start >= todayStr) return true;
+    return Boolean(end && end >= todayStr);
+  }).length;
+
 const pickLatestPosterBannerRow = (rows) =>
   (rows || [])
     .filter((r) => String(r.poster_url || '').trim())
@@ -1750,19 +1761,13 @@ const HomePage = ({
   /** 메인 게이트 메뉴 — 오늘 포스터·행사·강사 건수 뱃지 */
   const todayPosterMenuCount = todayPosterParties.length;
 
-  const todayBootcampMenuCount = useMemo(
-    () => bootcampsOnDate(
-      (bootcamps || []).filter((b) => String(b.poster_url || '').trim()),
-      calendarTodayStr,
-    ).length,
+  const bootcampMenuCount = useMemo(
+    () => countActiveHomeGateEventRows(bootcamps, calendarTodayStr),
     [bootcamps, calendarTodayStr],
   );
 
-  const todayFestivalMenuCount = useMemo(
-    () => festivalsOnDate(
-      (festivals || []).filter((f) => String(f.poster_url || '').trim()),
-      calendarTodayStr,
-    ).length,
+  const festivalMenuCount = useMemo(
+    () => countActiveHomeGateEventRows(festivals, calendarTodayStr),
     [festivals, calendarTodayStr],
   );
 
@@ -1817,9 +1822,9 @@ const HomePage = ({
       case 'today-party':
         return todayPosterMenuCount;
       case 'bootcamp':
-        return todayBootcampMenuCount;
+        return bootcampMenuCount;
       case 'festival':
-        return todayFestivalMenuCount;
+        return festivalMenuCount;
       case 'instructors':
         return activeInstructorMenuCount;
       default:
@@ -1827,8 +1832,8 @@ const HomePage = ({
     }
   }, [
     todayPosterMenuCount,
-    todayBootcampMenuCount,
-    todayFestivalMenuCount,
+    bootcampMenuCount,
+    festivalMenuCount,
     activeInstructorMenuCount,
   ]);
 
@@ -1838,10 +1843,10 @@ const HomePage = ({
       return isEn ? `${label} · ${count} posters today` : `${label} · 오늘 포스터 ${count}건`;
     }
     if (itemId === 'bootcamp') {
-      return isEn ? `${label} · ${count} bootcamps today` : `${label} · 오늘 부트캠프 ${count}건`;
+      return isEn ? `${label} · ${count} active bootcamps` : `${label} · 진행·예정 부트캠프 ${count}건`;
     }
     if (itemId === 'festival') {
-      return isEn ? `${label} · ${count} festivals today` : `${label} · 오늘 페스티벌 ${count}건`;
+      return isEn ? `${label} · ${count} active festivals` : `${label} · 진행·예정 페스티벌 ${count}건`;
     }
     if (itemId === 'instructors') {
       return isEn ? `${label} · ${count} instructors` : `${label} · 활동 강사 ${count}명`;
