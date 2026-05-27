@@ -1747,8 +1747,24 @@ const HomePage = ({
     });
   }, [todayPosterParties]);
 
-  /** 메인 메뉴 오늘파티 — 오늘 포스터(poster_url) 등록 건수 */
+  /** 메인 게이트 메뉴 — 오늘 포스터·행사·강사 건수 뱃지 */
   const todayPosterMenuCount = todayPosterParties.length;
+
+  const todayBootcampMenuCount = useMemo(
+    () => bootcampsOnDate(
+      (bootcamps || []).filter((b) => String(b.poster_url || '').trim()),
+      calendarTodayStr,
+    ).length,
+    [bootcamps, calendarTodayStr],
+  );
+
+  const todayFestivalMenuCount = useMemo(
+    () => festivalsOnDate(
+      (festivals || []).filter((f) => String(f.poster_url || '').trim()),
+      calendarTodayStr,
+    ).length,
+    [festivals, calendarTodayStr],
+  );
 
   const openTodayPartyBucket = (tab) => {
     setSelectedDate(calendarTodayStr);
@@ -1794,6 +1810,44 @@ const HomePage = ({
   const [locationsLoading, setLocationsLoading] = useState(true);
   const [hotInstructors, setHotInstructors] = useState([]);
   const [hotInstructorsLoading, setHotInstructorsLoading] = useState(true);
+  const [activeInstructorMenuCount, setActiveInstructorMenuCount] = useState(0);
+
+  const getHomeGateMenuBadgeCount = useCallback((itemId) => {
+    switch (itemId) {
+      case 'today-party':
+        return todayPosterMenuCount;
+      case 'bootcamp':
+        return todayBootcampMenuCount;
+      case 'festival':
+        return todayFestivalMenuCount;
+      case 'instructors':
+        return activeInstructorMenuCount;
+      default:
+        return 0;
+    }
+  }, [
+    todayPosterMenuCount,
+    todayBootcampMenuCount,
+    todayFestivalMenuCount,
+    activeInstructorMenuCount,
+  ]);
+
+  const homeGateMenuBadgeAriaLabel = useCallback((itemId, label, count) => {
+    if (count <= 0) return label;
+    if (itemId === 'today-party') {
+      return isEn ? `${label} · ${count} posters today` : `${label} · 오늘 포스터 ${count}건`;
+    }
+    if (itemId === 'bootcamp') {
+      return isEn ? `${label} · ${count} bootcamps today` : `${label} · 오늘 부트캠프 ${count}건`;
+    }
+    if (itemId === 'festival') {
+      return isEn ? `${label} · ${count} festivals today` : `${label} · 오늘 페스티벌 ${count}건`;
+    }
+    if (itemId === 'instructors') {
+      return isEn ? `${label} · ${count} instructors` : `${label} · 활동 강사 ${count}명`;
+    }
+    return label;
+  }, [isEn]);
   const [selectedRegionTab, setSelectedRegionTab] = useState(null);
   /** 휴대폰 GPS로 잡은 내 지역 — Social BAR 탭·정렬 1순위 */
   const [geoRegionTab, setGeoRegionTab] = useState(null);
@@ -2229,10 +2283,22 @@ const HomePage = ({
             .eq('status', 'active')
             .limit(10);
 
-        const { data, error } = await baseQuery().order('follower_count', { ascending: false });
-        if (!cancelled) setHotInstructors(error ? [] : (data || []));
+        const [listRes, countRes] = await Promise.all([
+          baseQuery().order('follower_count', { ascending: false }),
+          supabase
+            .from('instructors')
+            .select('id', { count: 'exact', head: true })
+            .eq('status', 'active'),
+        ]);
+        if (!cancelled) {
+          setHotInstructors(listRes.error ? [] : (listRes.data || []));
+          setActiveInstructorMenuCount(countRes.error ? 0 : (countRes.count || 0));
+        }
       } catch {
-        if (!cancelled) setHotInstructors([]);
+        if (!cancelled) {
+          setHotInstructors([]);
+          setActiveInstructorMenuCount(0);
+        }
       } finally {
         if (!cancelled) setHotInstructorsLoading(false);
       }
@@ -2818,11 +2884,9 @@ const HomePage = ({
 
   const renderGateMainMenuItem = (item) => {
     const Icon = item.icon;
-    const todayPartyBadgeCount = item.id === 'today-party' ? todayPosterMenuCount : 0;
-    const badgeCountLabel = todayPartyBadgeCount > 99 ? '99+' : String(todayPartyBadgeCount);
-    const ariaLabel = item.id === 'today-party' && todayPartyBadgeCount > 0
-      ? `${item.label} · 오늘 포스터 ${todayPartyBadgeCount}건`
-      : item.label;
+    const menuBadgeCount = getHomeGateMenuBadgeCount(item.id);
+    const badgeCountLabel = menuBadgeCount > 99 ? '99+' : String(menuBadgeCount);
+    const ariaLabel = homeGateMenuBadgeAriaLabel(item.id, item.label, menuBadgeCount);
 
     return (
       <motion.button
@@ -2844,7 +2908,7 @@ const HomePage = ({
               Icon ? <Icon size={32} strokeWidth={1.5} color="currentColor" /> : null
             )}
           </span>
-          {todayPartyBadgeCount > 0 ? (
+          {menuBadgeCount > 0 ? (
             <span className="home-gate-main-menu-item__badge" aria-hidden>{badgeCountLabel}</span>
           ) : null}
         </span>
