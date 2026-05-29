@@ -138,8 +138,13 @@ const HOME_GATE_MENU_COPY = {
 /** 메인 홈 게이트 — 상단 노출 4개 (하단 네비 연동) */
 const HOME_GATE_MAIN_MENU_IDS = ['today-party', 'bootcamp', 'festival', 'instructors'];
 
-/** 포토 메뉴 건수 뱃지 — 위로 올리는 단계(오늘파티·부트캠프·페스티벌·강사찾기) */
-const HOME_GATE_PHOTO_BADGE_LIFT = [5, 2, 1, 3];
+/** 포토 메뉴 건수 뱃지 — 대각선 분산(모서리·높이) 오늘파티→부트캠프→페스티벌→강사찾기 */
+const HOME_GATE_PHOTO_BADGE_SLOTS = [
+  { corner: 'tl', liftPx: 2 },
+  { corner: 'tr', liftPx: 10 },
+  { corner: 'tl', liftPx: 18 },
+  { corner: 'tr', liftPx: 26 },
+];
 
 /** source.unsplash.com 은 종료됨 — images.unsplash.com CDN (bachata 검색 결과 고정) */
 const HOME_GATE_PHOTO_CARD_SIZE = { width: 160, height: 210 };
@@ -3004,20 +3009,18 @@ const HomePage = ({
     const badgeCountLabel = menuBadgeCount > 99 ? '99+' : String(menuBadgeCount);
     const ariaLabel = homeGateMenuBadgeAriaLabel(item.id, item.label, menuBadgeCount);
     const photoUrl = item.photoUrl || HOME_GATE_MAIN_MENU_PHOTO_URLS[item.id];
-    const badgeLift = HOME_GATE_PHOTO_BADGE_LIFT[menuIndex] ?? HOME_GATE_PHOTO_BADGE_LIFT[0];
-    const badgePadTop = Math.max(0, (Math.max(...HOME_GATE_PHOTO_BADGE_LIFT) - badgeLift) * 2);
+    const badgeSlot = HOME_GATE_PHOTO_BADGE_SLOTS[menuIndex] ?? HOME_GATE_PHOTO_BADGE_SLOTS[0];
 
     return (
       <div
         key={item.id}
         className="home-gate-photo-menu-card-shell"
         role="listitem"
-        style={{ paddingTop: badgePadTop }}
       >
         {menuBadgeCount > 0 ? (
           <span
-            className="home-gate-photo-menu-card__badge"
-            style={{ '--gate-photo-badge-lift': `${badgeLift * 2}px` }}
+            className={`home-gate-photo-menu-card__badge home-gate-photo-menu-card__badge--${badgeSlot.corner}`}
+            style={{ '--gate-photo-badge-lift': `${badgeSlot.liftPx}px` }}
             aria-hidden
           >
             {badgeCountLabel}
@@ -4174,6 +4177,8 @@ const HomePage = ({
           position: relative;
           flex: 0 0 auto;
           width: 80px;
+          padding-top: 28px;
+          overflow: visible;
         }
         .home-gate-photo-menu-card {
           position: relative;
@@ -4223,8 +4228,7 @@ const HomePage = ({
         .home-gate-photo-menu-card__badge {
           position: absolute;
           top: 0;
-          left: 50%;
-          z-index: 4;
+          z-index: 5;
           display: inline-flex;
           align-items: center;
           justify-content: center;
@@ -4243,7 +4247,16 @@ const HomePage = ({
           box-sizing: border-box;
           box-shadow: 0 1px 4px rgba(0, 0, 0, 0.35);
           pointer-events: none;
-          transform: translate(-50%, calc(-1 * var(--gate-photo-badge-lift, 6px)));
+        }
+        .home-gate-photo-menu-card__badge--tl {
+          left: 0;
+          right: auto;
+          transform: translate(-2px, calc(-4px - var(--gate-photo-badge-lift, 0px)));
+        }
+        .home-gate-photo-menu-card__badge--tr {
+          right: 0;
+          left: auto;
+          transform: translate(2px, calc(-4px - var(--gate-photo-badge-lift, 0px)));
         }
         .home-gate-shell:not(.home-gate-active) .home-gate-menu__divider {
           background: linear-gradient(
