@@ -145,7 +145,8 @@ const buildHomeGateMenuPhotoUrl = (photoPath) =>
   `https://images.unsplash.com/${photoPath}?w=${HOME_GATE_PHOTO_CARD_SIZE.width}&h=${HOME_GATE_PHOTO_CARD_SIZE.height}&fit=crop&q=80&auto=format`;
 
 const HOME_GATE_MAIN_MENU_PHOTO_URLS = {
-  'today-party': buildHomeGateMenuPhotoUrl('photo-1766650551665-45f1998bd671'),
+  'today-party':
+    'https://live.staticflickr.com/200/31495988665_e64fc2a593_b.jpg',
   bootcamp: buildHomeGateMenuPhotoUrl('photo-1682760631807-71067eeea033'),
   festival: buildHomeGateMenuPhotoUrl('photo-1514525253161-7a46d19cd819'),
   instructors: buildHomeGateMenuPhotoUrl('photo-1555489387-f7fa3290a63b'),
