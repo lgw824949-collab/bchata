@@ -27,6 +27,7 @@ export const BAR_DATABASE = [
   { name: '원스', name_en: 'Ones', address: '경기도 수원시 팔달구 인계동 1024-5, 4층', region: '경기도' },
 
   // [경기 - 안산]
+  { name: '아임살사', name_en: 'I Am Salsa', address: '경기도 안산시 상록구', region: '경기도', aliases: ['안산 상록수역', '안산상록수역', '상록수역'] },
   { name: '라소클', name_en: 'Lasocle', address: '경기도 안산시 단원구 민육공원로 85 지하1층', region: '경기도' },
   { name: '퀸즈살사', name_en: 'Queens Salsa', address: '경기도 안산시 상록구 팝핀스 493-13 2층', region: '경기도' },
   { name: 'EDM댄스스튜디오', name_en: 'EDM Dance', address: '경기도 안산시 상록구 180/B102호', region: '경기도' },

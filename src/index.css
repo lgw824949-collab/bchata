@@ -2921,9 +2921,18 @@ body.bottom-nav-social-light nav.bottom-nav {
 .home-live-banner-venue {
   display: inline-flex;
   align-items: center;
+  gap: 4px;
   flex-shrink: 0;
   white-space: nowrap;
   font-weight: 900;
+}
+.home-live-banner-venue__name {
+  font-weight: 900;
+}
+.home-live-banner-venue__count {
+  color: #E53935;
+  font-weight: 950;
+  font-variant-numeric: tabular-nums;
 }
 
 .live-dynamic-banner__spotlight {

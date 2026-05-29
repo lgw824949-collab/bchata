@@ -787,6 +787,12 @@ const inferLiveBannerBarFromPartyHints = (party) => {
 
 const liveBannerVenueLabel = (party) => {
   const resolved = resolvePartyVenueName(party);
+  const titleClean = formatPartyTitleDisplay(party?.title || '');
+  const haystack = `${resolved} ${titleClean} ${party?.address || ''} ${party?.locationName || ''} ${party?.location_name || ''}`;
+
+  const fromHaystack = findBarByName(haystack);
+  if (fromHaystack?.name) return fromHaystack.name;
+
   if (resolved && resolved !== '장소 미정') {
     const canonical = findBarByName(resolved);
     return canonical?.name || resolved;
@@ -854,8 +860,36 @@ const chunkLiveBannerVenues = (venues, size = LIVE_BANNER_VENUE_BATCH_SIZE) => {
 const compactLiveBannerVenueName = (name) =>
   String(name || '').replace(/\s/g, '').toLowerCase();
 
+/** LIVE 업체 줄 — 소셜 BAR 통계 전용(파티 업체명으로 쓰지 않음) */
+const LIVE_BANNER_SKIP_VENUE_NAMES = new Set(['라틴', '카디즈']);
+
+const liveBannerCanonicalBarKey = (name) => {
+  const bar = findBarByName(name);
+  if (bar?.name) return compactLiveBannerVenueName(bar.name);
+
+  const compact = compactLiveBannerVenueName(name);
+  if (!compact) return '';
+
+  let best = '';
+  for (const row of BAR_DATABASE) {
+    const keys = [row.name, ...(row.aliases || [])];
+    for (const key of keys) {
+      const token = compactLiveBannerVenueName(key);
+      if (token.length < 2) continue;
+      if (compact.includes(token) && token.length > best.length) {
+        best = compactLiveBannerVenueName(row.name);
+      }
+    }
+  }
+  return best || compact;
+};
+
 /** LIVE 배너 — 동일 BAR가 다른 문자열로 두 번 나오지 않게 (아임살사 vs 안산 상록수역 아임살사) */
 const liveBannerVenuesOverlap = (nameA, nameB) => {
+  const keyA = liveBannerCanonicalBarKey(nameA);
+  const keyB = liveBannerCanonicalBarKey(nameB);
+  if (keyA && keyB && keyA === keyB) return true;
+
   const barA = findBarByName(nameA);
   const barB = findBarByName(nameB);
   if (barA?.name && barB?.name && barA.name === barB.name) return true;
@@ -900,13 +934,14 @@ const dedupeLiveBannerVenues = (venues) => {
     }
     const prev = merged[idx];
     const name = pickLiveBannerVenueDisplayName(prev.name, venue.name);
+    const displayName = findBarByName(name)?.name || name;
     const clicks = Math.max(prev.clicks, venue.clicks);
     const keep = venue.clicks >= prev.clicks ? venue : prev;
     merged[idx] = {
       ...keep,
-      name,
+      name: displayName,
       clicks,
-      text: `${name} ${clicks}`,
+      text: clicks > 0 ? `${displayName} ${clicks}` : displayName,
     };
   }
   return merged;
@@ -956,7 +991,7 @@ const buildHomeLiveBannerModel = ({ sourceRows, todayStr, isEn = false, barStats
       );
     for (const party of list) {
       const name = liveBannerVenueLabel(party);
-      if (!name) continue;
+      if (!name || LIVE_BANNER_SKIP_VENUE_NAMES.has(name)) continue;
       const liveCount = partyLiveBannerCount(party, barStatsMap);
       venues.push({
         id: String(party.id),
@@ -968,7 +1003,11 @@ const buildHomeLiveBannerModel = ({ sourceRows, todayStr, isEn = false, barStats
     }
   }
 
-  const venueBatches = chunkLiveBannerVenues(dedupeLiveBannerVenues(venues));
+  const dedupedVenues = dedupeLiveBannerVenues(venues);
+  const venuesForSlide = dedupedVenues.filter((v) => v.clicks > 0);
+  const venueBatches = chunkLiveBannerVenues(
+    venuesForSlide.length > 0 ? venuesForSlide : dedupedVenues,
+  );
   const emptyText = isEn ? "Check today's party listings" : '오늘 파티 정보를 확인하세요';
 
   return { regionParts, venueBatches, emptyText };
@@ -3305,7 +3344,10 @@ const HomePage = ({
                             className="home-live-banner-venue"
                             onClick={() => openPartyWithAfterParty(venue.party)}
                           >
-                            {venue.name} <strong>{venue.clicks}</strong>
+                            <span className="home-live-banner-venue__name">{venue.name}</span>
+                            {venue.clicks > 0 ? (
+                              <strong className="home-live-banner-venue__count">{venue.clicks}</strong>
+                            ) : null}
                           </button>
                         </React.Fragment>
                       ))}
