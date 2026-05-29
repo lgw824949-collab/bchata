@@ -1811,8 +1811,8 @@ const HomePage = ({
   );
 
   const todayPosterPartiesForCount = useMemo(
-    () => dedupeTodayPosterPartiesByVenue(todayPosterParties, barStatsMap),
-    [todayPosterParties, barStatsMap],
+    () => dedupeTodayPosterPartiesByVenue(todayPosterParties, {}),
+    [todayPosterParties],
   );
 
   useEffect(() => {
