@@ -3031,8 +3031,9 @@ const HomePage = ({
     );
   };
 
-  const renderQuickMenuItem = (item, gateSwipe = false) => {
+  const renderQuickMenuItem = (item, gateSwipe = false, kingMenu = false) => {
     const Icon = item.icon;
+    const quickMenuIconSize = kingMenu ? 24 : QUICK_MENU_ICON_SIZE;
     const registerMod =
       item.registerKind === 'party' || item.registerKind === 'bar-venue'
         ? ' home-quick-menu-item--register-party'
@@ -3062,7 +3063,7 @@ const HomePage = ({
             <QuickMenuIconCircle>{item.menuSvg}</QuickMenuIconCircle>
           ) : (
             <QuickMenuIconCircle>
-              {Icon ? <Icon size={QUICK_MENU_ICON_SIZE} strokeWidth={QUICK_MENU_STROKE} color="currentColor" aria-hidden /> : null}
+              {Icon ? <Icon size={quickMenuIconSize} strokeWidth={QUICK_MENU_STROKE} color="currentColor" aria-hidden /> : null}
             </QuickMenuIconCircle>
           )}
           {todayPartyBadgeCount > 0 ? (
@@ -3124,7 +3125,7 @@ const HomePage = ({
                 aria-label={kingMenuOpen ? (isEn ? 'Close more' : '더보기 닫기') : (isEn ? 'Show more' : '더보기')}
               >
                 <Plus
-                  size={16}
+                  size={18}
                   strokeWidth={2.5}
                   style={{
                     transition: 'transform 0.25s ease',
@@ -3152,7 +3153,7 @@ const HomePage = ({
                         setKingMenuOpen(false);
                         item.action();
                       },
-                    }))}
+                    }, false, true))}
                   </div>
                 </motion.div>
               )}
@@ -4325,25 +4326,35 @@ const HomePage = ({
           );
         }
         .home-gate-king-menu__grid .home-quick-menu-item {
-          padding: 8px 4px 14px;
-          min-height: 76px;
+          padding: 10px 4px 16px;
+          min-height: 88px;
+          gap: 6px;
         }
         .home-gate-king-menu__grid .home-quick-menu-item-label {
           white-space: nowrap;
-          line-height: 1.25;
-          font-size: 10px;
+          line-height: 1.3;
+          font-size: 12px;
           font-weight: 700;
-          color: rgba(255, 255, 255, 0.9);
+          color: rgba(255, 255, 255, 0.92);
           max-width: 100%;
           overflow: hidden;
           text-overflow: ellipsis;
         }
         .home-gate-king-menu__grid .home-quick-menu-icon-circle {
-          width: 44px;
-          height: 44px;
+          width: 50px;
+          height: 50px;
           background: rgba(255, 255, 255, 0.04);
           border: 1px solid rgba(255, 255, 255, 0.1);
           color: rgba(255, 255, 255, 0.82);
+        }
+        .home-gate-king-menu__grid .home-quick-menu-icon-circle svg {
+          width: 28px;
+          height: 28px;
+        }
+        .home-gate-king-menu__grid .home-quick-menu-item--register-party .home-quick-menu-icon-circle,
+        .home-gate-king-menu__grid .home-quick-menu-item--register-class .home-quick-menu-icon-circle {
+          width: 54px;
+          height: 54px;
         }
         .home-gate-king-menu__toolbar {
           display: flex;
@@ -4354,12 +4365,12 @@ const HomePage = ({
           display: inline-flex;
           align-items: center;
           gap: 6px;
-          padding: 6px 14px;
+          padding: 8px 16px;
           border-radius: 100px;
           border: 1px solid rgba(255, 255, 255, 0.12);
           background: rgba(255, 255, 255, 0.04);
           color: rgba(255, 255, 255, 0.72);
-          font-size: 12px;
+          font-size: 13px;
           font-weight: 700;
           cursor: pointer;
         }
@@ -4370,10 +4381,10 @@ const HomePage = ({
         }
         .home-gate-king-menu__grid {
           grid-template-columns: repeat(5, minmax(0, 1fr));
-          gap: 14px 10px;
+          gap: 16px 8px;
           margin-top: 0;
           margin-bottom: 12px;
-          padding: 0 4px 8px;
+          padding: 4px 4px 10px;
         }
         @keyframes gentleSparkle {
           0% { box-shadow: 0 0 2px rgba(85, 139, 47, 0.1); filter: drop-shadow(0 0 1px rgba(85, 139, 47, 0.1)); }
