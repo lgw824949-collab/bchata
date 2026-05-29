@@ -911,9 +911,34 @@ const dedupeLiveBannerVenues = (venues) => {
   return merged;
 };
 
+/** 오늘 파티 건수·LIVE 지역 합계 — 동일 업체는 1건 (메뉴 뱃지 = 서울+수도권+지방) */
+const dedupeTodayPosterPartiesByVenue = (parties, barStatsMap = {}) => {
+  const venueRows = [];
+  const unnamed = [];
+  for (const party of (parties || []).map(enrichPosterBannerPartyRow)) {
+    const name = liveBannerVenueLabel(party);
+    if (!name) {
+      unnamed.push(party);
+      continue;
+    }
+    venueRows.push({
+      id: String(party.id),
+      name,
+      clicks: partyLiveBannerCount(party, barStatsMap),
+      party,
+      text: '',
+    });
+  }
+  const named = dedupeLiveBannerVenues(venueRows).map((v) => v.party).filter(Boolean);
+  return [...named, ...dedupeById(unnamed)];
+};
+
 /** LIVE: ① 오늘 파티·서울→수도권→지방 ② 오늘 포스터 업체만 실시간 입장 수로 묶음 순환 */
 const buildHomeLiveBannerModel = ({ sourceRows, todayStr, isEn = false, barStatsMap = {} }) => {
-  const todayParties = filterTodayPosterParties(sourceRows, todayStr).map(enrichPosterBannerPartyRow);
+  const todayParties = dedupeTodayPosterPartiesByVenue(
+    filterTodayPosterParties(sourceRows, todayStr),
+    barStatsMap,
+  );
 
   const regionParts = LIVE_BANNER_REGION_ORDER.map(({ id, labelKo, labelEn }) => {
     const n = countTodayPosterPartiesByRegion(todayParties)[id] || 0;
@@ -1785,8 +1810,13 @@ const HomePage = ({
     [parties, calendarTodayStr],
   );
 
+  const todayPosterPartiesForCount = useMemo(
+    () => dedupeTodayPosterPartiesByVenue(todayPosterParties, barStatsMap),
+    [todayPosterParties, barStatsMap],
+  );
+
   useEffect(() => {
-    const todayParties = todayPosterParties;
+    const todayParties = todayPosterPartiesForCount;
 
     const isSeoulParty = (p) => REGION_FILTER['서울'](p);
     const isMetroParty = (p) =>
@@ -1831,10 +1861,10 @@ const HomePage = ({
       national: nationalParties.length,
       nationalDistricts: getTopDistricts(nationalParties),
     });
-  }, [todayPosterParties]);
+  }, [todayPosterPartiesForCount]);
 
   /** 메인 게이트 메뉴 — 오늘 포스터·행사·강사 건수 뱃지 */
-  const todayPosterMenuCount = todayPosterParties.length;
+  const todayPosterMenuCount = todayPosterPartiesForCount.length;
 
   const bootcampMenuCount = useMemo(
     () => countActiveHomeGateEventRows(bootcamps, calendarTodayStr),
@@ -3186,12 +3216,12 @@ const HomePage = ({
 
   const homeLiveBannerModel = useMemo(
     () => buildHomeLiveBannerModel({
-      sourceRows: todayPosterParties,
+      sourceRows: parties,
       todayStr: calendarTodayStr,
       isEn,
       barStatsMap,
     }),
-    [todayPosterParties, calendarTodayStr, isEn, barStatsMap],
+    [parties, calendarTodayStr, isEn, barStatsMap],
   );
 
   const venueBatchCount = homeLiveBannerModel.venueBatches.length;
