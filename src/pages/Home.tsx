@@ -138,11 +138,17 @@ const HOME_GATE_MENU_COPY = {
 /** 메인 홈 게이트 — 상단 노출 4개 (하단 네비 연동) */
 const HOME_GATE_MAIN_MENU_IDS = ['today-party', 'bootcamp', 'festival', 'instructors'];
 
+/** source.unsplash.com 은 종료됨 — images.unsplash.com CDN (bachata 검색 결과 고정) */
+const HOME_GATE_PHOTO_CARD_SIZE = { width: 128, height: 168 };
+
+const buildHomeGateMenuPhotoUrl = (photoPath) =>
+  `https://images.unsplash.com/${photoPath}?w=${HOME_GATE_PHOTO_CARD_SIZE.width}&h=${HOME_GATE_PHOTO_CARD_SIZE.height}&fit=crop&q=80&auto=format`;
+
 const HOME_GATE_MAIN_MENU_PHOTO_URLS = {
-  'today-party': 'https://source.unsplash.com/featured/?salsa,party,night',
-  bootcamp: 'https://source.unsplash.com/featured/?dance,workshop',
-  festival: 'https://source.unsplash.com/featured/?latin,festival',
-  instructors: 'https://source.unsplash.com/featured/?dance,teacher',
+  'today-party': buildHomeGateMenuPhotoUrl('photo-1766650551665-45f1998bd671'),
+  bootcamp: buildHomeGateMenuPhotoUrl('photo-1682760631807-71067eeea033'),
+  festival: buildHomeGateMenuPhotoUrl('photo-1514525253161-7a46d19cd819'),
+  instructors: buildHomeGateMenuPhotoUrl('photo-1555489387-f7fa3290a63b'),
 };
 
 /** 더보기 메뉴 노출 순서 — 등록 2종 맨 앞 */
@@ -2922,6 +2928,7 @@ const HomePage = ({
           className="home-gate-photo-menu-card__img"
           loading="lazy"
           decoding="async"
+          onError={imgFallbackHandler(DEFAULT_CARD_IMAGE)}
         />
         <span className="home-gate-photo-menu-card__overlay" aria-hidden />
         <span className="home-gate-photo-menu-card__label">{item.label}</span>
