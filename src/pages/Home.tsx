@@ -138,13 +138,8 @@ const HOME_GATE_MENU_COPY = {
 /** 메인 홈 게이트 — 상단 노출 4개 (하단 네비 연동) */
 const HOME_GATE_MAIN_MENU_IDS = ['today-party', 'bootcamp', 'festival', 'instructors'];
 
-/** 포토 메뉴 건수 뱃지 — 대각선 분산(모서리·높이) 오늘파티→부트캠프→페스티벌→강사찾기 */
-const HOME_GATE_PHOTO_BADGE_SLOTS = [
-  { corner: 'tl', liftPx: 2 },
-  { corner: 'tr', liftPx: 10 },
-  { corner: 'tl', liftPx: 18 },
-  { corner: 'tr', liftPx: 26 },
-];
+/** 포토 메뉴 건수 뱃지 — 좌상·우상 교차(오늘파티→부트캠프→페스티벌→강사찾기) */
+const homeGatePhotoBadgeCorner = (menuIndex) => (menuIndex % 2 === 0 ? 'tl' : 'tr');
 
 /** source.unsplash.com 은 종료됨 — images.unsplash.com CDN (bachata 검색 결과 고정) */
 const HOME_GATE_PHOTO_CARD_SIZE = { width: 160, height: 210 };
@@ -3009,7 +3004,7 @@ const HomePage = ({
     const badgeCountLabel = menuBadgeCount > 99 ? '99+' : String(menuBadgeCount);
     const ariaLabel = homeGateMenuBadgeAriaLabel(item.id, item.label, menuBadgeCount);
     const photoUrl = item.photoUrl || HOME_GATE_MAIN_MENU_PHOTO_URLS[item.id];
-    const badgeSlot = HOME_GATE_PHOTO_BADGE_SLOTS[menuIndex] ?? HOME_GATE_PHOTO_BADGE_SLOTS[0];
+    const badgeCorner = homeGatePhotoBadgeCorner(menuIndex);
 
     return (
       <div
@@ -3017,15 +3012,6 @@ const HomePage = ({
         className="home-gate-photo-menu-card-shell"
         role="listitem"
       >
-        {menuBadgeCount > 0 ? (
-          <span
-            className={`home-gate-photo-menu-card__badge home-gate-photo-menu-card__badge--${badgeSlot.corner}`}
-            style={{ '--gate-photo-badge-lift': `${badgeSlot.liftPx}px` }}
-            aria-hidden
-          >
-            {badgeCountLabel}
-          </span>
-        ) : null}
         <motion.button
           type="button"
           whileTap={{ scale: 0.98 }}
@@ -3036,15 +3022,25 @@ const HomePage = ({
           className="home-gate-photo-menu-card"
           aria-label={ariaLabel}
         >
-          <img
-            src={photoUrl}
-            alt=""
-            className="home-gate-photo-menu-card__img"
-            loading="lazy"
-            decoding="async"
-            onError={imgFallbackHandler(DEFAULT_CARD_IMAGE)}
-          />
-          <span className="home-gate-photo-menu-card__overlay" aria-hidden />
+          <span className="home-gate-photo-menu-card__media" aria-hidden>
+            <img
+              src={photoUrl}
+              alt=""
+              className="home-gate-photo-menu-card__img"
+              loading="lazy"
+              decoding="async"
+              onError={imgFallbackHandler(DEFAULT_CARD_IMAGE)}
+            />
+            <span className="home-gate-photo-menu-card__overlay" />
+          </span>
+          {menuBadgeCount > 0 ? (
+            <span
+              className={`home-gate-photo-menu-card__badge home-gate-photo-menu-card__badge--${badgeCorner}`}
+              aria-hidden
+            >
+              {badgeCountLabel}
+            </span>
+          ) : null}
           <span className="home-gate-photo-menu-card__label">{item.label}</span>
         </motion.button>
       </div>
@@ -4158,7 +4154,7 @@ const HomePage = ({
         .home-gate-photo-menu-scroll {
           display: flex;
           flex-direction: row;
-          align-items: flex-end;
+          align-items: flex-start;
           justify-content: center;
           gap: 10px;
           width: 100%;
@@ -4168,7 +4164,7 @@ const HomePage = ({
           -webkit-overflow-scrolling: touch;
           scrollbar-width: none;
           margin: 0;
-          padding: 12px 14px 2px;
+          padding: 10px 14px 4px;
         }
         .home-gate-photo-menu-scroll::-webkit-scrollbar {
           display: none;
@@ -4177,25 +4173,32 @@ const HomePage = ({
           position: relative;
           flex: 0 0 auto;
           width: 80px;
-          padding-top: 28px;
-          overflow: visible;
         }
         .home-gate-photo-menu-card {
           position: relative;
           display: block;
           width: 100%;
           height: 104px;
-          border-radius: 12px;
-          overflow: hidden;
           padding: 0;
           border: none;
-          background: #1E293B;
+          background: transparent;
           cursor: pointer;
+          overflow: visible;
           -webkit-tap-highlight-color: transparent;
           transition: opacity 0.15s ease;
         }
         .home-gate-photo-menu-card:active {
           opacity: 0.88;
+        }
+        .home-gate-photo-menu-card:active .home-gate-photo-menu-card__media {
+          opacity: 0.88;
+        }
+        .home-gate-photo-menu-card__media {
+          position: absolute;
+          inset: 0;
+          border-radius: 12px;
+          overflow: hidden;
+          background: #1E293B;
         }
         .home-gate-photo-menu-card__img {
           position: absolute;
@@ -4227,7 +4230,7 @@ const HomePage = ({
         }
         .home-gate-photo-menu-card__badge {
           position: absolute;
-          top: 0;
+          top: -8px;
           z-index: 5;
           display: inline-flex;
           align-items: center;
@@ -4249,14 +4252,12 @@ const HomePage = ({
           pointer-events: none;
         }
         .home-gate-photo-menu-card__badge--tl {
-          left: 0;
+          left: -4px;
           right: auto;
-          transform: translate(-2px, calc(-4px - var(--gate-photo-badge-lift, 0px)));
         }
         .home-gate-photo-menu-card__badge--tr {
-          right: 0;
+          right: -4px;
           left: auto;
-          transform: translate(2px, calc(-4px - var(--gate-photo-badge-lift, 0px)));
         }
         .home-gate-shell:not(.home-gate-active) .home-gate-menu__divider {
           background: linear-gradient(
