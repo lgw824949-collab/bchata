@@ -138,6 +138,13 @@ const HOME_GATE_MENU_COPY = {
 /** 메인 홈 게이트 — 상단 노출 4개 (하단 네비 연동) */
 const HOME_GATE_MAIN_MENU_IDS = ['today-party', 'bootcamp', 'festival', 'instructors'];
 
+const HOME_GATE_MAIN_MENU_PHOTO_URLS = {
+  'today-party': 'https://source.unsplash.com/featured/?salsa,party,night',
+  bootcamp: 'https://source.unsplash.com/featured/?dance,workshop',
+  festival: 'https://source.unsplash.com/featured/?latin,festival',
+  instructors: 'https://source.unsplash.com/featured/?dance,teacher',
+};
+
 /** 더보기 메뉴 노출 순서 — 등록 2종 맨 앞 */
 const HOME_GATE_KING_MENU_ORDER = [
   'party-register',
@@ -2762,6 +2769,7 @@ const HomePage = ({
     {
       id: 'today-party',
       icon: Music2,
+      photoUrl: HOME_GATE_MAIN_MENU_PHOTO_URLS['today-party'],
       label: homeGateMenuLabel('todayParty', isEn),
       action: () => {
         navigateHomeTab('social');
@@ -2771,18 +2779,21 @@ const HomePage = ({
     {
       id: 'bootcamp',
       icon: Tent,
+      photoUrl: HOME_GATE_MAIN_MENU_PHOTO_URLS.bootcamp,
       label: homeGateMenuLabel('bootcampDive', isEn),
       action: () => navigate('/bootcamp', { homeTab: null }),
     },
     {
       id: 'festival',
       icon: Flag,
+      photoUrl: HOME_GATE_MAIN_MENU_PHOTO_URLS.festival,
       label: homeGateMenuLabel('festivalLive', isEn),
       action: () => navigate('/festival', { homeTab: null }),
     },
     {
       id: 'instructors',
       icon: GraduationCap,
+      photoUrl: HOME_GATE_MAIN_MENU_PHOTO_URLS.instructors,
       label: isEn ? 'Instructors' : '강사찾기',
       action: () => {
         localStorage.setItem('instructor_target_genre', '전체');
@@ -2888,10 +2899,10 @@ const HomePage = ({
   }, [quickMenuItems]);
 
   const renderGateMainMenuItem = (item) => {
-    const Icon = item.icon;
     const menuBadgeCount = getHomeGateMenuBadgeCount(item.id);
     const badgeCountLabel = menuBadgeCount > 99 ? '99+' : String(menuBadgeCount);
     const ariaLabel = homeGateMenuBadgeAriaLabel(item.id, item.label, menuBadgeCount);
+    const photoUrl = item.photoUrl || HOME_GATE_MAIN_MENU_PHOTO_URLS[item.id];
 
     return (
       <motion.button
@@ -2902,22 +2913,21 @@ const HomePage = ({
           setKingMenuOpen(false);
           item.action();
         }}
-        className="home-gate-main-menu-item"
+        className="home-gate-photo-menu-card"
         aria-label={ariaLabel}
       >
-        <span className="home-gate-main-menu-item__icon-wrap">
-          <span className="home-gate-main-menu-item__icon" aria-hidden>
-            {item.menuSvg ? (
-              <span className="home-gate-main-menu-item__svg">{item.menuSvg}</span>
-            ) : (
-              Icon ? <Icon size={32} strokeWidth={1.5} color="currentColor" /> : null
-            )}
-          </span>
-          {menuBadgeCount > 0 ? (
-            <span className="home-gate-main-menu-item__badge" aria-hidden>{badgeCountLabel}</span>
-          ) : null}
-        </span>
-        <span className="home-gate-main-menu-item__label">{item.label}</span>
+        <img
+          src={photoUrl}
+          alt=""
+          className="home-gate-photo-menu-card__img"
+          loading="lazy"
+          decoding="async"
+        />
+        <span className="home-gate-photo-menu-card__overlay" aria-hidden />
+        <span className="home-gate-photo-menu-card__label">{item.label}</span>
+        {menuBadgeCount > 0 ? (
+          <span className="home-gate-photo-menu-card__badge" aria-hidden>{badgeCountLabel}</span>
+        ) : null}
       </motion.button>
     );
   };
@@ -2998,7 +3008,7 @@ const HomePage = ({
       return (
         <div className="home-gate-menu">
           <div
-            className="home-gate-main-menu-grid"
+            className="home-gate-photo-menu-scroll"
             role="list"
             aria-label={isEn ? 'Main menu' : '메인 메뉴'}
           >
@@ -4025,88 +4035,84 @@ const HomePage = ({
         .home-gate-menu {
           padding: 6px 0 10px;
         }
-        .home-gate-main-menu-grid {
-          display: grid;
-          grid-template-columns: repeat(4, minmax(0, 1fr));
-          gap: 10px 8px;
+        .home-gate-photo-menu-scroll {
+          display: flex;
+          flex-direction: row;
+          align-items: flex-start;
+          gap: 8px;
+          overflow-x: auto;
+          overflow-y: hidden;
+          -webkit-overflow-scrolling: touch;
+          scrollbar-width: none;
           margin: 0;
           padding: 0 4px;
         }
-        .home-gate-main-menu-item {
-          display: flex;
-          flex-direction: column;
-          align-items: center;
-          justify-content: flex-start;
-          gap: 6px;
-          min-height: 0;
-          padding: 4px 2px 8px;
+        .home-gate-photo-menu-scroll::-webkit-scrollbar {
+          display: none;
+        }
+        .home-gate-photo-menu-card {
+          position: relative;
+          flex: 0 0 auto;
+          width: 64px;
+          height: 84px;
+          border-radius: 10px;
+          overflow: hidden;
+          padding: 0;
           border: none;
-          border-radius: 0;
-          background: none;
-          box-shadow: none;
+          background: #1E293B;
           cursor: pointer;
           -webkit-tap-highlight-color: transparent;
           transition: opacity 0.15s ease;
         }
-        .home-gate-main-menu-item:active {
-          opacity: 0.72;
+        .home-gate-photo-menu-card:active {
+          opacity: 0.88;
         }
-        .home-gate-main-menu-item__icon-wrap {
-          position: relative;
+        .home-gate-photo-menu-card__img {
+          position: absolute;
+          inset: 0;
+          width: 100%;
+          height: 100%;
+          object-fit: cover;
+          display: block;
+        }
+        .home-gate-photo-menu-card__overlay {
+          position: absolute;
+          inset: 0;
+          background: linear-gradient(to top, rgba(0, 0, 0, 0.75), rgba(0, 0, 0, 0));
+          pointer-events: none;
+        }
+        .home-gate-photo-menu-card__label {
+          position: absolute;
+          left: 0;
+          right: 0;
+          bottom: 6px;
+          z-index: 2;
+          color: #FFFFFF;
+          font-size: 10px;
+          font-weight: 700;
+          line-height: 1.2;
+          text-align: center;
+          padding: 0 4px;
+          word-break: keep-all;
+        }
+        .home-gate-photo-menu-card__badge {
+          position: absolute;
+          top: 4px;
+          right: 4px;
+          z-index: 3;
           display: inline-flex;
           align-items: center;
           justify-content: center;
-          overflow: visible;
-          min-height: 32px;
-        }
-        .home-gate-main-menu-item__icon {
-          width: auto;
-          height: auto;
-          border-radius: 0;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          flex-shrink: 0;
-          background: none !important;
-          box-shadow: none !important;
-          color: #1E293B;
-        }
-        .home-gate-main-menu-item__icon svg {
-          width: 32px;
-          height: 32px;
-          display: block;
-        }
-        .home-gate-main-menu-item__svg {
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          width: 32px;
-          height: 32px;
-          color: currentColor;
-        }
-        .home-gate-main-menu-item__svg svg {
-          width: 32px;
-          height: 32px;
-          display: block;
-        }
-        .home-gate-main-menu-item__label {
-          color: #1E293B;
-          font-size: 13px;
-          font-weight: 600;
-          line-height: 1.28;
-          letter-spacing: -0.02em;
-          text-align: center;
-          word-break: keep-all;
-          max-width: 100%;
-          text-shadow: none;
-        }
-        .home-gate-active .home-gate-main-menu-item__icon,
-        .home-gate-active .home-gate-main-menu-item__label {
-          color: #1E293B;
-        }
-        .home-gate-shell:not(.home-gate-active) .home-gate-main-menu-item__icon,
-        .home-gate-shell:not(.home-gate-active) .home-gate-main-menu-item__label {
-          color: #1E293B;
+          min-width: 18px;
+          height: 18px;
+          padding: 0 4px;
+          border-radius: 999px;
+          background: #E8281E;
+          color: #FFFFFF;
+          font-size: 10px;
+          font-weight: 700;
+          line-height: 1;
+          font-variant-numeric: tabular-nums;
         }
         .home-gate-shell:not(.home-gate-active) .home-gate-menu__divider {
           background: linear-gradient(
@@ -4195,7 +4201,7 @@ const HomePage = ({
           height: 20px;
           padding: 0 5px;
           border-radius: 999px;
-          background: #E53935;
+          background: #E8281E;
           border: 2px solid #FFFFFF;
           color: #FFFFFF;
           font-size: 11px;
