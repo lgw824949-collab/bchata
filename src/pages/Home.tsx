@@ -4138,13 +4138,16 @@ const HomePage = ({
           display: flex;
           flex-direction: row;
           align-items: flex-start;
+          justify-content: center;
           gap: 8px;
+          width: 100%;
+          box-sizing: border-box;
           overflow-x: auto;
           overflow-y: hidden;
           -webkit-overflow-scrolling: touch;
           scrollbar-width: none;
           margin: 0;
-          padding: 0 4px;
+          padding: 0 12px;
         }
         .home-gate-photo-menu-scroll::-webkit-scrollbar {
           display: none;
