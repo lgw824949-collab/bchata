@@ -148,7 +148,8 @@ const HOME_GATE_MAIN_MENU_PHOTO_URLS = {
   'today-party':
     'https://live.staticflickr.com/200/31495988665_e64fc2a593_b.jpg',
   bootcamp: buildHomeGateMenuPhotoUrl('photo-1682760631807-71067eeea033'),
-  festival: 'https://images.pexels.com/photos/18482960/pexels-photo-18482960.jpeg',
+  festival:
+    'https://fileswp.canalcapital.gov.co/wp-content/uploads/2026/03/13101455/1000148016.webp',
   instructors: buildHomeGateMenuPhotoUrl('photo-1555489387-f7fa3290a63b'),
 };
 
