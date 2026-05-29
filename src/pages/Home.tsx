@@ -138,8 +138,6 @@ const HOME_GATE_MENU_COPY = {
 /** 메인 홈 게이트 — 상단 노출 4개 (하단 네비 연동) */
 const HOME_GATE_MAIN_MENU_IDS = ['today-party', 'bootcamp', 'festival', 'instructors'];
 
-/** 포토 메뉴 건수 뱃지 — 좌상·우상 교차(오늘파티→부트캠프→페스티벌→강사찾기) */
-const homeGatePhotoBadgeCorner = (menuIndex) => (menuIndex % 2 === 0 ? 'tl' : 'tr');
 
 /** source.unsplash.com 은 종료됨 — images.unsplash.com CDN (bachata 검색 결과 고정) */
 const HOME_GATE_PHOTO_CARD_SIZE = { width: 160, height: 210 };
@@ -2999,12 +2997,11 @@ const HomePage = ({
     return { quickMenuPrimary: primary, quickMenuMore: more };
   }, [quickMenuItems]);
 
-  const renderGateMainMenuItem = (item, menuIndex = 0) => {
+  const renderGateMainMenuItem = (item) => {
     const menuBadgeCount = getHomeGateMenuBadgeCount(item.id);
     const badgeCountLabel = menuBadgeCount > 99 ? '99+' : String(menuBadgeCount);
     const ariaLabel = homeGateMenuBadgeAriaLabel(item.id, item.label, menuBadgeCount);
     const photoUrl = item.photoUrl || HOME_GATE_MAIN_MENU_PHOTO_URLS[item.id];
-    const badgeCorner = homeGatePhotoBadgeCorner(menuIndex);
 
     return (
       <div
@@ -3035,7 +3032,7 @@ const HomePage = ({
           </span>
           {menuBadgeCount > 0 ? (
             <span
-              className={`home-gate-photo-menu-card__badge home-gate-photo-menu-card__badge--${badgeCorner}`}
+              className="home-gate-photo-menu-card__badge home-gate-photo-menu-card__badge--tr"
               aria-hidden
             >
               {badgeCountLabel}
@@ -3128,7 +3125,7 @@ const HomePage = ({
             role="list"
             aria-label={isEn ? 'Main menu' : '메인 메뉴'}
           >
-            {homeGateMainMenuItems.map((item, index) => renderGateMainMenuItem(item, index))}
+            {homeGateMainMenuItems.map((item) => renderGateMainMenuItem(item))}
           </div>
           <div className="home-gate-menu__divider" aria-hidden />
           <div className="home-gate-king-menu">
@@ -4250,10 +4247,6 @@ const HomePage = ({
           box-sizing: border-box;
           box-shadow: 0 1px 4px rgba(0, 0, 0, 0.35);
           pointer-events: none;
-        }
-        .home-gate-photo-menu-card__badge--tl {
-          left: -4px;
-          right: auto;
         }
         .home-gate-photo-menu-card__badge--tr {
           right: -4px;
