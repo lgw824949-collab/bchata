@@ -6,6 +6,19 @@ import path from 'path'
 /** 로컬 dev·preview 전용 — 다른 포트 사용 금지 */
 const LOCAL_DEV_PORT = 1234
 
+const REACT_VENDOR_CHUNK = 'vendor-react'
+
+/** Vite 8(rolldown)이 react를 jsx-runtime 청크와 메인에 이중 번들하면 useContext null 크래시 */
+function isReactVendorModule(id) {
+  return (
+    /node_modules[/\\]react[/\\]/.test(id)
+    || /node_modules[/\\]react-dom[/\\]/.test(id)
+    || /node_modules[/\\]scheduler[/\\]/.test(id)
+    || /node_modules[/\\]react[/\\]jsx-runtime/.test(id)
+    || /node_modules[/\\]react[/\\]jsx-dev-runtime/.test(id)
+  )
+}
+
 /** .env.local 에 빈 값이 있어도 .env 의 실제 값을 쓰기 위함 */
 function parseEnvFile(filePath) {
   if (!fs.existsSync(filePath)) return {}
@@ -59,9 +72,30 @@ export default defineConfig(({ mode }) => {
       target: 'es2020',
       cssTarget: 'chrome80',
       modulePreload: { polyfill: true },
+      rolldownOptions: {
+        output: {
+          manualChunks(id) {
+            if (isReactVendorModule(id)) return REACT_VENDOR_CHUNK
+          },
+        },
+      },
+    },
+    optimizeDeps: {
+      force: true,
+      entries: ['src/main.jsx'],
+      include: [
+        'react',
+        'react-dom',
+        'react/jsx-runtime',
+        'react/jsx-dev-runtime',
+        'react-dom/client',
+        'framer-motion',
+        'lucide-react',
+        'react-i18next',
+      ],
     },
     resolve: {
-      dedupe: ['react', 'react-dom', 'react-i18next'],
+      dedupe: ['react', 'react-dom', 'react/jsx-runtime', 'react/jsx-dev-runtime', 'react-i18next'],
     },
     envPrefix: 'VITE_',
     define: {

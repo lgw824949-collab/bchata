@@ -138,8 +138,11 @@ const HOME_GATE_MENU_COPY = {
 /** 메인 홈 게이트 — 상단 노출 4개 (하단 네비 연동) */
 const HOME_GATE_MAIN_MENU_IDS = ['today-party', 'bootcamp', 'festival', 'instructors'];
 
+/** 포토 메뉴 건수 뱃지 — 위로 올리는 단계(오늘파티·부트캠프·페스티벌·강사찾기) */
+const HOME_GATE_PHOTO_BADGE_LIFT = [5, 2, 1, 3];
+
 /** source.unsplash.com 은 종료됨 — images.unsplash.com CDN (bachata 검색 결과 고정) */
-const HOME_GATE_PHOTO_CARD_SIZE = { width: 128, height: 168 };
+const HOME_GATE_PHOTO_CARD_SIZE = { width: 160, height: 210 };
 
 const buildHomeGateMenuPhotoUrl = (photoPath) =>
   `https://images.unsplash.com/${photoPath}?w=${HOME_GATE_PHOTO_CARD_SIZE.width}&h=${HOME_GATE_PHOTO_CARD_SIZE.height}&fit=crop&q=80&auto=format`;
@@ -2996,38 +2999,52 @@ const HomePage = ({
     return { quickMenuPrimary: primary, quickMenuMore: more };
   }, [quickMenuItems]);
 
-  const renderGateMainMenuItem = (item) => {
+  const renderGateMainMenuItem = (item, menuIndex = 0) => {
     const menuBadgeCount = getHomeGateMenuBadgeCount(item.id);
     const badgeCountLabel = menuBadgeCount > 99 ? '99+' : String(menuBadgeCount);
     const ariaLabel = homeGateMenuBadgeAriaLabel(item.id, item.label, menuBadgeCount);
     const photoUrl = item.photoUrl || HOME_GATE_MAIN_MENU_PHOTO_URLS[item.id];
+    const badgeLift = HOME_GATE_PHOTO_BADGE_LIFT[menuIndex] ?? HOME_GATE_PHOTO_BADGE_LIFT[0];
+    const badgePadTop = Math.max(0, (Math.max(...HOME_GATE_PHOTO_BADGE_LIFT) - badgeLift) * 2);
 
     return (
-      <motion.button
+      <div
         key={item.id}
-        type="button"
-        whileTap={{ scale: 0.98 }}
-        onClick={() => {
-          setKingMenuOpen(false);
-          item.action();
-        }}
-        className="home-gate-photo-menu-card"
-        aria-label={ariaLabel}
+        className="home-gate-photo-menu-card-shell"
+        role="listitem"
+        style={{ paddingTop: badgePadTop }}
       >
-        <img
-          src={photoUrl}
-          alt=""
-          className="home-gate-photo-menu-card__img"
-          loading="lazy"
-          decoding="async"
-          onError={imgFallbackHandler(DEFAULT_CARD_IMAGE)}
-        />
-        <span className="home-gate-photo-menu-card__overlay" aria-hidden />
-        <span className="home-gate-photo-menu-card__label">{item.label}</span>
         {menuBadgeCount > 0 ? (
-          <span className="home-gate-photo-menu-card__badge" aria-hidden>{badgeCountLabel}</span>
+          <span
+            className="home-gate-photo-menu-card__badge"
+            style={{ '--gate-photo-badge-lift': `${badgeLift * 2}px` }}
+            aria-hidden
+          >
+            {badgeCountLabel}
+          </span>
         ) : null}
-      </motion.button>
+        <motion.button
+          type="button"
+          whileTap={{ scale: 0.98 }}
+          onClick={() => {
+            setKingMenuOpen(false);
+            item.action();
+          }}
+          className="home-gate-photo-menu-card"
+          aria-label={ariaLabel}
+        >
+          <img
+            src={photoUrl}
+            alt=""
+            className="home-gate-photo-menu-card__img"
+            loading="lazy"
+            decoding="async"
+            onError={imgFallbackHandler(DEFAULT_CARD_IMAGE)}
+          />
+          <span className="home-gate-photo-menu-card__overlay" aria-hidden />
+          <span className="home-gate-photo-menu-card__label">{item.label}</span>
+        </motion.button>
+      </div>
     );
   };
 
@@ -3112,7 +3129,7 @@ const HomePage = ({
             role="list"
             aria-label={isEn ? 'Main menu' : '메인 메뉴'}
           >
-            {homeGateMainMenuItems.map((item) => renderGateMainMenuItem(item))}
+            {homeGateMainMenuItems.map((item, index) => renderGateMainMenuItem(item, index))}
           </div>
           <div className="home-gate-menu__divider" aria-hidden />
           <div className="home-gate-king-menu">
@@ -4138,27 +4155,32 @@ const HomePage = ({
         .home-gate-photo-menu-scroll {
           display: flex;
           flex-direction: row;
-          align-items: flex-start;
+          align-items: flex-end;
           justify-content: center;
-          gap: 8px;
+          gap: 10px;
           width: 100%;
           box-sizing: border-box;
           overflow-x: auto;
-          overflow-y: hidden;
+          overflow-y: visible;
           -webkit-overflow-scrolling: touch;
           scrollbar-width: none;
           margin: 0;
-          padding: 0 12px;
+          padding: 12px 14px 2px;
         }
         .home-gate-photo-menu-scroll::-webkit-scrollbar {
           display: none;
         }
-        .home-gate-photo-menu-card {
+        .home-gate-photo-menu-card-shell {
           position: relative;
           flex: 0 0 auto;
-          width: 64px;
-          height: 84px;
-          border-radius: 10px;
+          width: 80px;
+        }
+        .home-gate-photo-menu-card {
+          position: relative;
+          display: block;
+          width: 100%;
+          height: 104px;
+          border-radius: 12px;
           overflow: hidden;
           padding: 0;
           border: none;
@@ -4188,34 +4210,40 @@ const HomePage = ({
           position: absolute;
           left: 0;
           right: 0;
-          bottom: 6px;
+          bottom: 7px;
           z-index: 2;
           color: #FFFFFF;
-          font-size: 10px;
+          font-size: 11px;
           font-weight: 700;
           line-height: 1.2;
           text-align: center;
-          padding: 0 4px;
+          padding: 0 5px;
           word-break: keep-all;
         }
         .home-gate-photo-menu-card__badge {
           position: absolute;
-          top: 4px;
-          right: 4px;
-          z-index: 3;
+          top: 0;
+          left: 50%;
+          z-index: 4;
           display: inline-flex;
           align-items: center;
           justify-content: center;
-          min-width: 18px;
-          height: 18px;
-          padding: 0 4px;
+          min-width: 20px;
+          height: 20px;
+          padding: 0 5px;
           border-radius: 999px;
-          background: #E8281E;
-          color: #FFFFFF;
-          font-size: 10px;
+          background: #ff3040;
+          border: 2px solid #FFFDF9;
+          color: #fff;
+          font-size: 11px;
           font-weight: 700;
           line-height: 1;
+          letter-spacing: -0.03em;
           font-variant-numeric: tabular-nums;
+          box-sizing: border-box;
+          box-shadow: 0 1px 4px rgba(0, 0, 0, 0.35);
+          pointer-events: none;
+          transform: translate(-50%, calc(-1 * var(--gate-photo-badge-lift, 6px)));
         }
         .home-gate-shell:not(.home-gate-active) .home-gate-menu__divider {
           background: linear-gradient(
