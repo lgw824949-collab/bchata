@@ -850,6 +850,67 @@ const chunkLiveBannerVenues = (venues, size = LIVE_BANNER_VENUE_BATCH_SIZE) => {
   return batches;
 };
 
+const compactLiveBannerVenueName = (name) =>
+  String(name || '').replace(/\s/g, '').toLowerCase();
+
+/** LIVE 배너 — 동일 BAR가 다른 문자열로 두 번 나오지 않게 (아임살사 vs 안산 상록수역 아임살사) */
+const liveBannerVenuesOverlap = (nameA, nameB) => {
+  const barA = findBarByName(nameA);
+  const barB = findBarByName(nameB);
+  if (barA?.name && barB?.name && barA.name === barB.name) return true;
+
+  const a = compactLiveBannerVenueName(barA?.name || nameA);
+  const b = compactLiveBannerVenueName(barB?.name || nameB);
+  if (!a || !b) return a === b;
+  if (a === b) return true;
+  const minLen = 3;
+  if (a.length >= minLen && b.length >= minLen) {
+    return a.includes(b) || b.includes(a);
+  }
+  return false;
+};
+
+const pickLiveBannerVenueDisplayName = (nameA, nameB) => {
+  const barA = findBarByName(nameA);
+  const barB = findBarByName(nameB);
+  if (barA?.name && barB?.name && barA.name === barB.name) return barA.name;
+  if (barA?.name) return barA.name;
+  if (barB?.name) return barB.name;
+
+  const a = compactLiveBannerVenueName(nameA);
+  const b = compactLiveBannerVenueName(nameB);
+  if (a.includes(b) && b.length >= 3) return nameB.length <= nameA.length ? nameB : nameA;
+  if (b.includes(a) && a.length >= 3) return nameA.length <= nameB.length ? nameA : nameB;
+  return nameA.length <= nameB.length ? nameA : nameB;
+};
+
+const dedupeLiveBannerVenues = (venues) => {
+  const merged = [];
+  for (const venue of venues) {
+    const idx = merged.findIndex((v) => {
+      const locA = venue.party?.location_id;
+      const locB = v.party?.location_id;
+      if (locA != null && locB != null && String(locA) === String(locB)) return true;
+      return liveBannerVenuesOverlap(v.name, venue.name);
+    });
+    if (idx < 0) {
+      merged.push({ ...venue });
+      continue;
+    }
+    const prev = merged[idx];
+    const name = pickLiveBannerVenueDisplayName(prev.name, venue.name);
+    const clicks = Math.max(prev.clicks, venue.clicks);
+    const keep = venue.clicks >= prev.clicks ? venue : prev;
+    merged[idx] = {
+      ...keep,
+      name,
+      clicks,
+      text: `${name} ${clicks}`,
+    };
+  }
+  return merged;
+};
+
 /** LIVE: ① 오늘 파티·서울→수도권→지방 ② 오늘 포스터 업체만 실시간 입장 수로 묶음 순환 */
 const buildHomeLiveBannerModel = ({ sourceRows, todayStr, isEn = false, barStatsMap = {} }) => {
   const todayParties = filterTodayPosterParties(sourceRows, todayStr).map(enrichPosterBannerPartyRow);
@@ -881,7 +942,7 @@ const buildHomeLiveBannerModel = ({ sourceRows, todayStr, isEn = false, barStats
     }
   }
 
-  const venueBatches = chunkLiveBannerVenues(venues);
+  const venueBatches = chunkLiveBannerVenues(dedupeLiveBannerVenues(venues));
   const emptyText = isEn ? "Check today's party listings" : '오늘 파티 정보를 확인하세요';
 
   return { regionParts, venueBatches, emptyText };
