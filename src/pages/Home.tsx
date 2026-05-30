@@ -4191,33 +4191,28 @@ const HomePage = ({
           padding: 6px 0 10px;
         }
         .home-gate-photo-menu-scroll {
-          display: flex;
-          flex-direction: row;
-          align-items: flex-start;
-          justify-content: center;
-          gap: 10px;
+          display: grid;
+          grid-template-columns: repeat(4, minmax(0, 1fr));
+          align-items: start;
+          gap: clamp(5px, 1.6vw, 8px);
           width: 100%;
           box-sizing: border-box;
-          overflow-x: auto;
-          overflow-y: visible;
-          -webkit-overflow-scrolling: touch;
-          scrollbar-width: none;
+          overflow: visible;
           margin: 0;
-          padding: 10px 14px 4px;
-        }
-        .home-gate-photo-menu-scroll::-webkit-scrollbar {
-          display: none;
+          padding: 10px 0 6px;
         }
         .home-gate-photo-menu-card-shell {
           position: relative;
-          flex: 0 0 auto;
-          width: 80px;
+          min-width: 0;
+          width: 100%;
         }
         .home-gate-photo-menu-card {
           position: relative;
           display: block;
           width: 100%;
-          height: 104px;
+          aspect-ratio: 4 / 5;
+          height: auto;
+          min-height: 0;
           padding: 0;
           border: none;
           background: transparent;
@@ -4257,31 +4252,31 @@ const HomePage = ({
           position: absolute;
           left: 0;
           right: 0;
-          bottom: 7px;
+          bottom: clamp(5px, 1.6vw, 7px);
           z-index: 2;
           color: #FFFFFF;
-          font-size: 11px;
+          font-size: clamp(9px, 2.6vw, 11px);
           font-weight: 700;
           line-height: 1.2;
           text-align: center;
-          padding: 0 5px;
+          padding: 0 3px;
           word-break: keep-all;
         }
         .home-gate-photo-menu-card__badge {
           position: absolute;
-          top: -8px;
+          top: -7px;
           z-index: 5;
           display: inline-flex;
           align-items: center;
           justify-content: center;
-          min-width: 20px;
-          height: 20px;
-          padding: 0 5px;
+          min-width: clamp(17px, 4.8vw, 20px);
+          height: clamp(17px, 4.8vw, 20px);
+          padding: 0 4px;
           border-radius: 999px;
           background: #ff3040;
           border: 2px solid #FFFDF9;
           color: #fff;
-          font-size: 11px;
+          font-size: clamp(9px, 2.5vw, 11px);
           font-weight: 700;
           line-height: 1;
           letter-spacing: -0.03em;
@@ -4291,8 +4286,11 @@ const HomePage = ({
           pointer-events: none;
         }
         .home-gate-photo-menu-card__badge--tr {
-          right: -4px;
+          right: -2px;
           left: auto;
+        }
+        .home-quick-menu-standalone--gate.home-gate-section-box {
+          overflow: visible;
         }
         .home-gate-shell:not(.home-gate-active) .home-gate-menu__divider {
           background: linear-gradient(
