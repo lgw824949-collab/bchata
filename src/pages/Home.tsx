@@ -3595,9 +3595,7 @@ const HomePage = ({
   };
 
   const renderHomeMainLiveSlot = () => (
-    <div
-      className={`home-main-live-slot home-main-live-slot--gate${isHomeGate ? ' home-gate-section-box' : ''}`}
-    >
+    <div className="home-main-live-slot home-main-live-slot--gate">
       {renderHomeLiveAdRow(true)}
     </div>
   );
@@ -3888,14 +3886,17 @@ const HomePage = ({
             }
             .home-gate-shell .home-live-banner-fallback--gate .live-dynamic-banner__inner,
             .home-gate-shell .live-count-premium-wrapper--gate .live-dynamic-banner__inner {
-              height: 44px !important;
-              padding: 0 14px !important;
+              min-height: 44px !important;
+              height: auto !important;
+              padding: 10px 14px !important;
               gap: 8px !important;
+              align-items: center !important;
+              box-sizing: border-box !important;
             }
             @media (max-width: 390px) {
               .home-gate-shell .home-live-banner-fallback--gate .live-dynamic-banner__inner,
               .home-gate-shell .live-count-premium-wrapper--gate .live-dynamic-banner__inner {
-                padding: 0 12px !important;
+                padding: 9px 12px !important;
               }
             }
 
