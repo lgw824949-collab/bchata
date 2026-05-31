@@ -14,6 +14,7 @@ import macondoPhoto from './assets/macondo_photo.png'
 import bonitaPhoto from './assets/bonita_photo.png'
 import buenaPhoto from './assets/buena_photo.png'
 import hongturnPhoto from './assets/hongturn_photo.png'
+import havanaPhoto from './assets/havana_photo.png'
 import bibigoPhoto from './assets/bibigo_photo.png'
 
 const EventRanking = () => {
@@ -1079,6 +1080,7 @@ export default function AdminDashboard({ onBack }) {
                   else if (key.includes('보니따')) img = bonitaPhoto;
                   else if (key.includes('부에나') && !key.includes('비스타')) img = buenaPhoto;
                   else if (key.includes('홍턴')) img = hongturnPhoto;
+                  else if (key.includes('하바나') || key.includes('havana')) img = havanaPhoto;
                   else if (key.includes('비비고')) img = bibigoPhoto;
                 }
                 return img ? <img src={img} style={{ width: '80px', height: '110px', objectFit: 'cover', borderRadius: '12px' }} /> : null;
@@ -1246,7 +1248,7 @@ export default function AdminDashboard({ onBack }) {
                         {(() => {
                           const key = `${item.name || ''}`.replace(/\s+/g, '').toLowerCase();
                           const isLatinValid = key === '라틴';
-                          const isCustom = key.includes('강남턴') || key.includes('강턴') || key.includes('꼼애야') || key.includes('놀이터') || isLatinValid || key.includes('마콘도') || key.includes('보니따') || (key.includes('부에나') && !key.includes('비스타')) || key.includes('홍턴') || key.includes('비비고');
+                          const isCustom = key.includes('강남턴') || key.includes('강턴') || key.includes('꼼애야') || key.includes('놀이터') || isLatinValid || key.includes('마콘도') || key.includes('보니따') || (key.includes('부에나') && !key.includes('비스타')) || key.includes('홍턴') || key.includes('하바나') || key.includes('havana') || key.includes('비비고');
                           return (item.image_url || isCustom) && <div style={{ fontSize: '11px', color: '#94A3B8', marginTop: '2px', wordBreak: 'break-all' }}>이미지: {isCustom ? '✨ 내장 브랜드 고유 에셋 매핑 적용 완료' : item.image_url}</div>;
                         })()}
                       </div>

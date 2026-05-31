@@ -34,6 +34,7 @@ import macondoPhoto from '../assets/macondo_photo.png'
 import bonitaPhoto from '../assets/bonita_photo.png'
 import buenaPhoto from '../assets/buena_photo.png'
 import hongturnPhoto from '../assets/hongturn_photo.png'
+import havanaPhoto from '../assets/havana_photo.png'
 import bibigoPhoto from '../assets/bibigo_photo.png'
 import {
   PartyMusicRatioLine,
@@ -410,6 +411,7 @@ const classifyVenueLocation = (loc) => {
   const isBonita = nameKey.includes('보니따');
   const isBuena = nameKey.includes('부에나') && !nameKey.includes('비스타');
   const isHongturn = nameKey.includes('홍턴');
+  const isHavana = nameKey.includes('하바나') || nameKey.includes('havana');
   const isBibigo = nameKey.includes('비비고');
 
   let finalImg = loc.image_url;
@@ -421,6 +423,7 @@ const classifyVenueLocation = (loc) => {
   else if (isBonita) finalImg = bonitaPhoto;
   else if (isBuena) finalImg = buenaPhoto;
   else if (isHongturn) finalImg = hongturnPhoto;
+  else if (isHavana) finalImg = havanaPhoto;
   else if (isBibigo) finalImg = bibigoPhoto;
 
   return {
