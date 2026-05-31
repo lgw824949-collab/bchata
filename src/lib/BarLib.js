@@ -17,7 +17,7 @@ export const BAR_DATABASE = [
   { name: '마콘도', name_en: 'Macondo', address: '서울특별시 마포구 홍익로 6길48', region: '서울' },
   { name: '안단테', name_en: 'Andante', address: '서울특별시 마포구 양화로12길 24', region: '서울' },
   { name: '놀이터', name_en: 'Noriter', address: '서울특별시 마포구 동교로213', region: '서울' },
-  { name: '하바나', name_en: 'Havana', address: '서울특별시 마포구 서교동 어울마당로 53', region: '서울' },
+  { name: '하바나', name_en: 'Havana', address: '서울특별시 마포구 서교동 어울마당로 53', region: '서울', aliases: ['Havana', 'HAVANA'] },
   { name: '아난타라', name_en: 'Anantara', address: '서울특별시 마포구 양화로 18안길20', region: '서울' },
   { name: '홍대SOL', name_en: 'Hongdae SOL', address: '서울특별시 마포구 홍익로6길 83', region: '서울', aliases: ['솔SOL빠', 'Sol Bar'] },
   { name: '꼼애야', name_en: 'Come Ya', address: '서울특별시 마포구 동교로 209-4', region: '서울' },

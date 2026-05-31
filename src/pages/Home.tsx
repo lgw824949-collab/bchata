@@ -294,12 +294,18 @@ const SEOUL_SOCIAL_BAR_ORDER = [
   { match: (key) => key === '라틴' },
   { match: (key) => key.includes('보니타') || key.includes('보니따') },
   { match: (key) => key.includes('홍턴') },
-  { match: (key) => key.includes('하바나') },
+  { match: (key) => key.includes('하바나') || key.includes('havana') },
   { match: (key) => key.includes('마콘도') },
+];
+
+/** 서울 탭 — 우선 노출에서 제외(뒤로) */
+const SEOUL_SOCIAL_BAR_DEMOTE = [
+  { match: (key) => key === '강턴' || key.includes('강남턴') },
 ];
 
 const getSeoulSocialBarSortRank = (bar) => {
   const key = normalizeVenueNameKey(bar?.name || '');
+  if (SEOUL_SOCIAL_BAR_DEMOTE.some((rule) => rule.match(key))) return 9000;
   const priorityIdx = SEOUL_SOCIAL_BAR_ORDER.findIndex((rule) => rule.match(key));
   if (priorityIdx >= 0) return priorityIdx;
   const sortOrder = Number(bar?.sort_order);
