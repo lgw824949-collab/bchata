@@ -6,6 +6,48 @@ import { resolveEventDates, inferOneDayEvent } from '../lib/dbSanitize';
 import EventDateFields from '../components/EventDateFields';
 import { Z } from '../constants/zLayers';
 import { goBackOrHome, parseAppState, pushOverlay, readNavigationState } from '../lib/appHistory';
+import { BAR_DATABASE, findBarByName } from '../lib/BarLib';
+
+const mapBarRegionToFestivalRegion = (regionLabel) => {
+  const r = String(regionLabel || '');
+  if (r.includes('서울')) return '서울';
+  if (r.includes('경기') || r.includes('인천')) return '경인';
+  if (r.includes('제주')) return '제주';
+  if (r.includes('강원')) return '강원';
+  if (r.includes('부산') || r.includes('경상') || r.includes('대구') || r.includes('울산')) return '부산/경남';
+  if (r.includes('전라') || r.includes('광주')) return '전라도';
+  if (r.includes('충청') || r.includes('대전') || r.includes('세종')) return '충청도';
+  return '서울';
+};
+
+const formatBarVenueLocationLine = (bar) => {
+  if (!bar?.name) return '';
+  const address = String(bar.address || '').trim();
+  return address ? `${bar.name} · ${address}` : bar.name;
+};
+
+const searchBarVenueSuggestions = (query, limit = 8) => {
+  const q = String(query || '').replace(/\s/g, '').toLowerCase();
+  if (!q) return [];
+  return BAR_DATABASE.filter((bar) => {
+    const haystack = [bar.name, ...(bar.aliases || []), bar.address]
+      .map((s) => String(s || '').replace(/\s/g, '').toLowerCase());
+    return haystack.some((s) => s && (s.includes(q) || q.includes(s)));
+  }).slice(0, limit);
+};
+
+const resolveFestivalLocationFields = (locationText, regionFallback = '서울') => {
+  const raw = String(locationText || '').trim();
+  if (!raw || raw === '추후 공지') {
+    return { location: raw || '추후 공지', region: regionFallback };
+  }
+  const bar = findBarByName(raw);
+  if (!bar) return { location: raw, region: regionFallback };
+  return {
+    location: formatBarVenueLocationLine(bar),
+    region: mapBarRegionToFestivalRegion(bar.region),
+  };
+};
 
 const filterFestivalsClient = (all, selectedRegion, activeTab) => {
   const rows = (all || []).filter((f) => f.event_type === (activeTab === 'mt' ? 'mt' : 'festival'));
@@ -37,6 +79,7 @@ const Festival = ({ onBack, initialRegister = false, cachedFestivals = null, onF
   const [uploading, setUploading] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [isOneDayEvent, setIsOneDayEvent] = useState(true);
+  const [locationSuggestions, setLocationSuggestions] = useState([]);
   const [formData, setFormData] = useState({
     title: '', start_date: '', end_date: '', region: '서울',
     location: '', price: '', description: '', poster_url: '',
@@ -169,6 +212,24 @@ const Festival = ({ onBack, initialRegister = false, cachedFestivals = null, onF
     setTimeout(() => setIsRegistering(true), 50);
   };
 
+  const handleLocationInputChange = (value) => {
+    setFormData((prev) => ({ ...prev, location: value }));
+    if (!value.trim() || value.trim() === '추후 공지') {
+      setLocationSuggestions([]);
+      return;
+    }
+    setLocationSuggestions(searchBarVenueSuggestions(value));
+  };
+
+  const selectLocationSuggestion = (bar) => {
+    setFormData((prev) => ({
+      ...prev,
+      location: formatBarVenueLocationLine(bar),
+      region: mapBarRegionToFestivalRegion(bar.region),
+    }));
+    setLocationSuggestions([]);
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     const dates = resolveEventDates({
@@ -183,14 +244,15 @@ const Festival = ({ onBack, initialRegister = false, cachedFestivals = null, onF
     }
     setSubmitting(true);
     try {
+      const resolvedLocation = resolveFestivalLocationFields(formData.location, formData.region);
       const payload = {
         title:       formData.title,
         organizer:   formData.organizer,
         genre:       formData.genre,
         start_date:  dates.start_date,
         end_date:    dates.end_date,
-        region:      formData.region,
-        location:    formData.location,
+        region:      resolvedLocation.region,
+        location:    resolvedLocation.location,
         price:       formData.price,
         description: formData.description,
         poster_url:  formData.poster_url || null,
@@ -560,9 +622,30 @@ const Festival = ({ onBack, initialRegister = false, cachedFestivals = null, onF
                   <div>
                     <label style={{ display: 'block', fontSize: '12px', fontWeight: 900, color: '#C9A84C', marginBottom: '12px', letterSpacing: '1.5px' }}>6. 상세 장소/주소</label>
                     <div style={{ display: 'flex', gap: '10px' }}>
-                      <input required value={formData.location} onChange={e => setFormData(prev => ({ ...prev, location: e.target.value }))} placeholder="상세 장소 입력 (미정 시 우측 버튼)" style={{ flex: 1, padding: '20px', borderRadius: '18px', border: '1px solid rgba(255,255,255,0.1)', background: '#1A1A1A', fontSize: '16px', color: '#f8fafc', outline: 'none' }} />
-                      <button type="button" onClick={() => setFormData(prev => ({ ...prev, location: '추후 공지' }))} style={{ padding: '0 20px', borderRadius: '18px', background: formData.location === '추후 공지' ? '#C9A84C' : 'rgba(255,255,255,0.05)', color: formData.location === '추후 공지' ? '#000' : '#94a3b8', fontSize: '13px', fontWeight: 900, border: '1px solid rgba(255,255,255,0.1)', whiteSpace: 'nowrap' }}>추후 공지</button>
+                      <input
+                        required
+                        value={formData.location}
+                        onChange={(e) => handleLocationInputChange(e.target.value)}
+                        placeholder="BAR·장소명 검색 (예: 보니따, 라틴)"
+                        style={{ flex: 1, padding: '20px', borderRadius: '18px', border: '1px solid rgba(255,255,255,0.1)', background: '#1A1A1A', fontSize: '16px', color: '#f8fafc', outline: 'none' }}
+                      />
+                      <button type="button" onClick={() => { setFormData(prev => ({ ...prev, location: '추후 공지' })); setLocationSuggestions([]); }} style={{ padding: '0 20px', borderRadius: '18px', background: formData.location === '추후 공지' ? '#C9A84C' : 'rgba(255,255,255,0.05)', color: formData.location === '추후 공지' ? '#000' : '#94a3b8', fontSize: '13px', fontWeight: 900, border: '1px solid rgba(255,255,255,0.1)', whiteSpace: 'nowrap' }}>추후 공지</button>
                     </div>
+                    {locationSuggestions.length > 0 ? (
+                      <div style={{ marginTop: 10, borderRadius: 14, border: '1px solid rgba(255,255,255,0.1)', background: '#141414', overflow: 'hidden' }}>
+                        {locationSuggestions.map((bar) => (
+                          <button
+                            key={`${bar.name}-${bar.address}`}
+                            type="button"
+                            onClick={() => selectLocationSuggestion(bar)}
+                            style={{ width: '100%', textAlign: 'left', padding: '14px 16px', border: 'none', borderBottom: '1px solid rgba(255,255,255,0.06)', background: 'transparent', color: '#f8fafc', cursor: 'pointer' }}
+                          >
+                            <div style={{ fontSize: 14, fontWeight: 800 }}>{bar.name}</div>
+                            <div style={{ fontSize: 12, color: '#94a3b8', marginTop: 4 }}>{bar.address}</div>
+                          </button>
+                        ))}
+                      </div>
+                    ) : null}
                   </div>
                   <div><label style={{ display: 'block', fontSize: '12px', fontWeight: 900, color: '#C9A84C', marginBottom: '12px', letterSpacing: '1.5px' }}>7. 지역</label><select value={formData.region} onChange={e => setFormData(prev => ({ ...prev, region: e.target.value }))} style={{ width: '100%', padding: '20px', borderRadius: '18px', border: '1px solid rgba(255,255,255,0.1)', background: '#1A1A1A', fontSize: '16px', color: '#f8fafc', outline: 'none' }}>{['서울','경인','강원','제주','부산/경남','전라도','충청도'].map(r => <option key={r} value={r}>{r}</option>)}</select></div>
                 </motion.div>

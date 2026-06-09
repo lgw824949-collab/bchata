@@ -116,7 +116,7 @@ function QuickMenuIconCircle({ children }) {
 
 /** 홈 퀵메뉴 — 클릭 유도형 카피 (ko / en) */
 const HOME_GATE_MENU_COPY = {
-  todayParty: { ko: '오늘파티', en: 'Tonight' },
+  todayParty: { ko: '오늘소셜', en: 'Social' },
   manwonSpace: { ko: 'BAR', en: 'BAR' },
   myNightPlan: { ko: '플랜', en: 'Plan' },
   bootcampDive: { ko: '부트캠프', en: 'Bootcamp' },
@@ -1017,7 +1017,7 @@ const buildHomeLiveBannerModel = ({ sourceRows, todayStr, isEn = false, barStats
   const venueBatches = chunkLiveBannerVenues(
     venuesForSlide.length > 0 ? venuesForSlide : dedupedVenues,
   );
-  const emptyText = isEn ? "Check today's party listings" : '오늘 파티 정보를 확인하세요';
+  const emptyText = isEn ? "Check today's social listings" : '오늘 소셜 정보를 확인하세요';
 
   return { regionParts, venueBatches, emptyText };
 };
@@ -3107,7 +3107,7 @@ const HomePage = ({
     const todayPartyBadgeCount = item.id === 'today-party' ? todayPosterMenuCount : 0;
     const badgeCountLabel = todayPartyBadgeCount > 99 ? '99+' : String(todayPartyBadgeCount);
     const ariaLabel = item.id === 'today-party' && todayPartyBadgeCount > 0
-      ? `${item.label} · 오늘 포스터 ${todayPartyBadgeCount}건`
+      ? `${item.label} · 오늘 소셜 포스터 ${todayPartyBadgeCount}건`
       : item.id === 'livepick' && hasLivePickUploadToday
         ? `${item.label} · 오늘 업로드함`
         : item.label;
@@ -3326,7 +3326,7 @@ const HomePage = ({
                 >
                   {hasSummary ? (
                     <>
-                      <span className="home-live-banner-today-label">{isEn ? 'Today' : '오늘 파티'}</span>
+                      <span className="home-live-banner-today-label">{isEn ? 'Today' : '오늘 소셜'}</span>
                       {regionParts.map((part) => (
                         <React.Fragment key={part.id}>
                           <span className="home-live-banner-sep"> · </span>
@@ -4176,7 +4176,6 @@ const HomePage = ({
           {renderHomeMainQuickMenuSection()}
           {renderHomeHotInstructorsSection()}
           {renderHomeSocialBarSection()}
-          {renderHomeRegionPosterBanner()}
         </motion.div>
       )}
 

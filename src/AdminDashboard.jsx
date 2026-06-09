@@ -6,6 +6,7 @@ import { ChevronLeft, Check, Trash2, ShieldCheck, X, RefreshCw, XCircle, Clock, 
 import { motion, AnimatePresence } from 'framer-motion'
 import RegisterForm from './RegisterForm'
 import ClassRegisterModal from './components/ClassRegisterModal'
+import { findBarByName } from './lib/BarLib'
 import gangturnPhoto from './assets/gangturn_photo.png'
 import ggomaeyaPhoto from './assets/ggomaeya_photo.jpg'
 import noriterPhoto from './assets/noriter_photo.png'
@@ -514,6 +515,22 @@ export default function AdminDashboard({ onBack }) {
         const { locations, created_at, id, locationName, location_name, photo_url: _photo, instructors, ...updateData } = editFormData;
         const finalUpdate = { ...updateData };
         finalUpdate.poster_url = updateData.poster_url || _photo || '';
+        if (category === 'festival' && finalUpdate.location) {
+          const bar = findBarByName(finalUpdate.location);
+          if (bar) {
+            finalUpdate.location = bar.address
+              ? `${bar.name} · ${bar.address}`
+              : bar.name;
+            const r = String(bar.region || '');
+            if (r.includes('서울')) finalUpdate.region = '서울';
+            else if (r.includes('경기') || r.includes('인천')) finalUpdate.region = '경인';
+            else if (r.includes('제주')) finalUpdate.region = '제주';
+            else if (r.includes('강원')) finalUpdate.region = '강원';
+            else if (r.includes('부산') || r.includes('경상') || r.includes('대구')) finalUpdate.region = '부산/경남';
+            else if (r.includes('전라') || r.includes('광주')) finalUpdate.region = '전라도';
+            else if (r.includes('충청') || r.includes('대전') || r.includes('세종')) finalUpdate.region = '충청도';
+          }
+        }
         // 빈 문자열 날짜 → null 변환 (DB date 타입 오류 방지)
         ['start_date', 'end_date', 'date'].forEach(k => {
           if (finalUpdate[k] === '') finalUpdate[k] = null;
