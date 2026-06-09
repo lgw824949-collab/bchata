@@ -3,15 +3,11 @@ import path from 'path'
 import { createClient } from '@supabase/supabase-js'
 
 const POSTER_CANDIDATES = [
+  path.join(process.cwd(), 'public', 'cali-9th-party.png'),
   path.join(process.cwd(), 'public', 'home-gate-party.jpg'),
   path.resolve(
-    'C:/Users/^^/.cursor/projects/c-dev-bchata/assets/c__Users____AppData_Roaming_Cursor_User_workspaceStorage_empty-window_images_image-6fac1fa2-b9b3-4c48-bc48-5d3aee0a89f5.png',
+    'C:/Users/^^/.cursor/projects/c-dev-bchata/assets/c__Users____AppData_Roaming_Cursor_User_workspaceStorage_empty-window_images_KakaoTalk_20260607_134417887-f1f6aa08-7a8c-4722-b62c-84ae7667243d.png',
   ),
-  path.resolve(
-    'C:/Users/^^/.cursor/projects/c-dev-bchata/assets/c__Users____AppData_Roaming_Cursor_User_workspaceStorage_empty-window_images_KakaoTalk_20260607_134417887-4767792d-e048-43f6-a0a9-151519ba72b4.png',
-  ),
-  path.join(process.cwd(), 'public', 'Photo', 'cali-9th-party.png'),
-  path.join(process.cwd(), 'assets', 'cali-9th-party.png'),
 ]
 
 function parseEnvFile(filePath) {
@@ -77,7 +73,6 @@ const payload = {
   price: '파티비 10,000원',
   bank_info: '농협 351-127252-1793 (고양시라틴댄스협회)',
   event_type: 'party',
-  status: 'pending',
   description: [
     '2026년 6월 13일(토) 19:00–01:00',
     '',
@@ -116,17 +111,32 @@ async function main() {
 
   let result
   if (existing?.id) {
-    result = await supabase.from('festivals').update(payload).eq('id', EXISTING_ID).select().maybeSingle()
+    const { data: current } = await supabase
+      .from('festivals')
+      .select('status')
+      .eq('id', EXISTING_ID)
+      .maybeSingle()
+    const updatePayload = { ...payload, poster_url: payload.poster_url }
+    if (current?.status) updatePayload.status = current.status
+    result = await supabase.from('festivals').update(updatePayload).eq('id', EXISTING_ID).select().maybeSingle()
   } else {
+    payload.status = 'pending'
     const { data: byTitle } = await supabase
       .from('festivals')
       .select('id')
       .ilike('title', '%칼리9%')
       .maybeSingle()
     if (byTitle?.id) {
-      result = await supabase.from('festivals').update(payload).eq('id', byTitle.id).select().maybeSingle()
+      const { data: current } = await supabase
+        .from('festivals')
+        .select('status')
+        .eq('id', byTitle.id)
+        .maybeSingle()
+      const updatePayload = { ...payload, poster_url: payload.poster_url }
+      if (current?.status) updatePayload.status = current.status
+      result = await supabase.from('festivals').update(updatePayload).eq('id', byTitle.id).select().maybeSingle()
     } else {
-      result = await supabase.from('festivals').insert([payload]).select().maybeSingle()
+      result = await supabase.from('festivals').insert([{ ...payload, status: 'pending' }]).select().maybeSingle()
     }
   }
 
