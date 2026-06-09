@@ -1068,6 +1068,24 @@ const collectGateMenuPhotoUrls = (rows, getUrl, fallback) => {
   return urls.length ? urls : [fallback];
 };
 
+/** 강사 소개 — 순위 없이 일자 기준 셔플 (팔로워 경쟁 유발 방지) */
+const shuffleInstructorsByDay = (rows, daySeed = '') => {
+  const arr = [...rows];
+  let seed = 0;
+  for (let i = 0; i < daySeed.length; i += 1) {
+    seed = ((seed << 5) - seed + daySeed.charCodeAt(i)) | 0;
+  }
+  const rand = () => {
+    seed = (seed * 1664525 + 1013904223) | 0;
+    return (seed >>> 0) / 4294967296;
+  };
+  for (let i = arr.length - 1; i > 0; i -= 1) {
+    const j = Math.floor(rand() * (i + 1));
+    [arr[i], arr[j]] = [arr[j], arr[i]];
+  }
+  return arr;
+};
+
 const pickLatestPosterBannerRow = (rows) =>
   (rows || [])
     .filter((r) => String(r.poster_url || '').trim())
@@ -2622,29 +2640,23 @@ const HomePage = ({
     (async () => {
       setHotInstructorsLoading(true);
       try {
-        const baseQuery = () =>
-          supabase
-            .from('instructors')
-            .select('id, name, genre, photo_url, follower_count, created_at')
-            .eq('status', 'active');
+        const { data: allActive, count, error } = await supabase
+          .from('instructors')
+          .select('id, name, genre, photo_url, created_at', { count: 'exact' })
+          .eq('status', 'active');
 
-        const [listRes, countRes] = await Promise.all([
-          baseQuery().order('follower_count', { ascending: false }).limit(HOME_GATE_HOT_INSTRUCTORS_LIMIT),
-          supabase
-            .from('instructors')
-            .select('id, name, genre, photo_url, follower_count, created_at', { count: 'exact' })
-            .eq('status', 'active'),
-        ]);
         if (!cancelled) {
-          const allActive = countRes.error ? [] : (countRes.data || []);
-          const withPhoto = allActive
+          const rows = error ? [] : (allActive || []);
+          const withPhoto = rows
             .filter((row) => String(row.photo_url || '').trim())
             .sort(
               (a, b) => new Date(a.created_at || 0).getTime() - new Date(b.created_at || 0).getTime(),
             );
           setGateMenuInstructors(withPhoto);
-          setHotInstructors(listRes.error ? [] : (listRes.data || []).slice(0, HOME_GATE_HOT_INSTRUCTORS_LIMIT));
-          setActiveInstructorMenuCount(countRes.error ? 0 : (countRes.count || allActive.length || 0));
+          setHotInstructors(
+            shuffleInstructorsByDay(withPhoto, calendarTodayStr).slice(0, HOME_GATE_HOT_INSTRUCTORS_LIMIT),
+          );
+          setActiveInstructorMenuCount(error ? 0 : (count || rows.length || 0));
         }
       } catch {
         if (!cancelled) {
@@ -2660,7 +2672,7 @@ const HomePage = ({
     return () => {
       cancelled = true;
     };
-  }, [activeTab]);
+  }, [activeTab, calendarTodayStr]);
 
   /** 앱 첫 진입 시 GPS 기준 150m 이내 locations BAR 자동 체크인 (세션 1회) */
   useEffect(() => {
@@ -3959,12 +3971,9 @@ const HomePage = ({
     return (
       <section
         className={`home-hot-instructors-wrap${isHomeGate ? ' home-gate-section-box' : ''}`}
-        aria-label={isEn ? 'Top instructors by followers' : '인기 강사 TOP'}
+        aria-label={isEn ? 'Active instructors' : '활동 강사'}
       >
-        {renderHomeGateSectionTitle(isEn ? 'Top instructors' : '인기 강사 TOP', 'home-hot-instructors-title')}
-        <p className="home-hot-instructors-caption">
-          {isEn ? 'By followers' : '팔로워 순'}
-        </p>
+        {renderHomeGateSectionTitle(isEn ? 'Instructors' : '강사 한눈에', 'home-hot-instructors-title')}
         <div className="home-hot-instructors-scroll scrollbar-hide">
           <div className="home-hot-instructors-track">
             {hotInstructorsLoading
@@ -5295,16 +5304,7 @@ const HomePage = ({
           color: #ffffff !important;
         }
         .home-hot-instructors-title {
-          margin: 0 0 4px;
-        }
-        .home-hot-instructors-caption {
           margin: 0 0 12px;
-          font-size: 12px;
-          font-weight: 600;
-          color: rgba(100, 116, 139, 0.95);
-        }
-        .home-gate-active .home-hot-instructors-caption {
-          color: rgba(255, 255, 255, 0.55);
         }
         .home-hot-instructors-scroll {
           display: block;
