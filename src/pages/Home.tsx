@@ -121,7 +121,7 @@ const HOME_GATE_MENU_COPY = {
   myNightPlan: { ko: '플랜', en: 'Plan' },
   bootcampDive: { ko: '부트캠프', en: 'Bootcamp' },
   festivalLive: { ko: '페스티벌', en: 'Festival' },
-  partyLive: { ko: '🎉 파티', en: '🎉 Party' },
+  partyLive: { ko: '파티', en: 'Party' },
   partyPost: { ko: '소셜등록', en: 'Social' },
   barVenueClass: { ko: 'BAR 수업', en: 'BAR class' },
   instructorRegister: { ko: '강사 등록', en: 'Instructor' },
@@ -216,8 +216,9 @@ const SOCIAL_BAR_PEEK_VISIBLE = 3;
 /** 메인 홈 — 오늘 지역 대표 포스터 슬라이드 (빠른 메뉴 위) */
 const HOME_POSTER_BANNER_MS = 4000;
 
-/** 메인 게이트 카드 — 등록 포스터·강사 사진 로테이션 */
-const HOME_GATE_MENU_ROTATE_MS = 4000;
+/** 메인 게이트 카드 — 등록 포스터·강사 사진 로테이션 (한 장씩 순차 전환) */
+const HOME_GATE_MENU_ROTATE_STEP_MS = 800;
+const HOME_GATE_HOT_INSTRUCTORS_LIMIT = 5;
 
 /** LIVE 배너 — 5초마다 업체 묶음만 순환 (요약은 항상 고정) */
 const LIVE_BANNER_SLIDE_MS = 5000;
@@ -2050,6 +2051,8 @@ const HomePage = ({
   const [gateMenuPhotoIdx, setGateMenuPhotoIdx] = useState(() =>
     Object.fromEntries(HOME_GATE_MAIN_MENU_IDS.map((id) => [id, 0])),
   );
+  const gateMenuPhotoUrlLengthsRef = useRef({});
+  const gateMenuRotateStepRef = useRef(0);
 
   const instructorMenuPhotoUrls = useMemo(
     () => collectGateMenuPhotoUrls(
@@ -2061,16 +2064,46 @@ const HomePage = ({
   );
 
   useEffect(() => {
+    gateMenuPhotoUrlLengthsRef.current = {
+      'today-party': todayPartyMenuPhotoUrls.length,
+      bootcamp: bootcampMenuPhotoUrls.length,
+      festival: festivalMenuPhotoUrls.length,
+      'festival-party': partyMenuPhotoUrls.length,
+      instructors: instructorMenuPhotoUrls.length,
+    };
+  }, [
+    todayPartyMenuPhotoUrls,
+    bootcampMenuPhotoUrls,
+    festivalMenuPhotoUrls,
+    partyMenuPhotoUrls,
+    instructorMenuPhotoUrls,
+  ]);
+
+  useEffect(() => {
     if (activeTab !== null) return undefined;
+
     const timer = setInterval(() => {
-      setGateMenuPhotoIdx((prev) => {
-        const next = { ...prev };
-        for (const id of HOME_GATE_MAIN_MENU_IDS) {
-          next[id] = (prev[id] || 0) + 1;
-        }
-        return next;
-      });
-    }, HOME_GATE_MENU_ROTATE_MS);
+      const ids = HOME_GATE_MAIN_MENU_IDS;
+      const lengths = gateMenuPhotoUrlLengthsRef.current;
+      let advanced = false;
+
+      for (let i = 0; i < ids.length; i += 1) {
+        const id = ids[(gateMenuRotateStepRef.current + i) % ids.length];
+        if ((lengths[id] || 0) <= 1) continue;
+        gateMenuRotateStepRef.current = (gateMenuRotateStepRef.current + i + 1) % ids.length;
+        setGateMenuPhotoIdx((prev) => ({
+          ...prev,
+          [id]: (prev[id] || 0) + 1,
+        }));
+        advanced = true;
+        break;
+      }
+
+      if (!advanced) {
+        gateMenuRotateStepRef.current = (gateMenuRotateStepRef.current + 1) % ids.length;
+      }
+    }, HOME_GATE_MENU_ROTATE_STEP_MS);
+
     return () => clearInterval(timer);
   }, [activeTab]);
 
@@ -2121,7 +2154,7 @@ const HomePage = ({
         : `${label} · 진행·예정 ${count}건 (${breakdown})`;
     }
     if (itemId === 'festival-party') {
-      return isEn ? `${label} · ${count} active parties` : `${label} · 진행·예정 파티 ${count}건`;
+      return isEn ? `🎉 Party · ${count} active parties` : `🎉 파티 · 진행·예정 ${count}건`;
     }
     if (itemId === 'instructors') {
       return isEn ? `${label} · ${count} instructors` : `${label} · 활동 강사 ${count}명`;
@@ -2596,7 +2629,7 @@ const HomePage = ({
             .eq('status', 'active');
 
         const [listRes, countRes] = await Promise.all([
-          baseQuery().order('follower_count', { ascending: false }).limit(10),
+          baseQuery().order('follower_count', { ascending: false }).limit(HOME_GATE_HOT_INSTRUCTORS_LIMIT),
           supabase
             .from('instructors')
             .select('id, name, genre, photo_url, follower_count, created_at', { count: 'exact' })
@@ -2607,10 +2640,10 @@ const HomePage = ({
           const withPhoto = allActive
             .filter((row) => String(row.photo_url || '').trim())
             .sort(
-              (a, b) => new Date(b.created_at || 0).getTime() - new Date(a.created_at || 0).getTime(),
+              (a, b) => new Date(a.created_at || 0).getTime() - new Date(b.created_at || 0).getTime(),
             );
           setGateMenuInstructors(withPhoto);
-          setHotInstructors(listRes.error ? [] : (listRes.data || []));
+          setHotInstructors(listRes.error ? [] : (listRes.data || []).slice(0, HOME_GATE_HOT_INSTRUCTORS_LIMIT));
           setActiveInstructorMenuCount(countRes.error ? 0 : (countRes.count || allActive.length || 0));
         }
       } catch {
@@ -3076,6 +3109,7 @@ const HomePage = ({
       photoUrl: HOME_GATE_MAIN_MENU_PHOTO_URLS['festival-party'],
       photoUrls: partyMenuPhotoUrls,
       label: homeGateMenuLabel('partyLive', isEn),
+      labelEmoji: '🎉',
       action: () => {
         try {
           sessionStorage.setItem(FESTIVAL_TAB_SESSION_KEY, 'party');
@@ -3248,13 +3282,18 @@ const HomePage = ({
               {badgeCountLabel}
             </span>
           ) : null}
+          {item.labelEmoji ? (
+            <span className="home-gate-photo-menu-card__emoji-chip" aria-hidden>
+              {item.labelEmoji}
+            </span>
+          ) : null}
           <span className="home-gate-photo-menu-card__label">
             {item.label}
             {item.id === 'festival' && festivalEventTypeCountParts.length > 0 ? (
               <span className="home-gate-photo-menu-card__emoji-counts" aria-hidden>
                 {festivalEventTypeCountParts.map((part, idx) => (
                   <React.Fragment key={part.id}>
-                    {idx > 0 ? ' ' : null}
+                    {idx > 0 ? ' · ' : null}
                     {part.emoji}
                     {part.count}
                   </React.Fragment>
@@ -3920,9 +3959,12 @@ const HomePage = ({
     return (
       <section
         className={`home-hot-instructors-wrap${isHomeGate ? ' home-gate-section-box' : ''}`}
-        aria-label="지금 핫한 강사"
+        aria-label={isEn ? 'Top instructors by followers' : '인기 강사 TOP'}
       >
-        {renderHomeGateSectionTitle('지금 핫한 강사', 'home-hot-instructors-title')}
+        {renderHomeGateSectionTitle(isEn ? 'Top instructors' : '인기 강사 TOP', 'home-hot-instructors-title')}
+        <p className="home-hot-instructors-caption">
+          {isEn ? 'By followers' : '팔로워 순'}
+        </p>
         <div className="home-hot-instructors-scroll scrollbar-hide">
           <div className="home-hot-instructors-track">
             {hotInstructorsLoading
@@ -4475,6 +4517,16 @@ const HomePage = ({
         .home-gate-photo-menu-card__badge--tr {
           right: -2px;
           left: auto;
+        }
+        .home-gate-photo-menu-card__emoji-chip {
+          position: absolute;
+          top: 4px;
+          left: 4px;
+          z-index: 4;
+          font-size: clamp(10px, 2.8vw, 12px);
+          line-height: 1;
+          pointer-events: none;
+          text-shadow: 0 1px 3px rgba(0, 0, 0, 0.65);
         }
         .home-quick-menu-standalone--gate.home-gate-section-box {
           overflow: visible;
@@ -5243,7 +5295,16 @@ const HomePage = ({
           color: #ffffff !important;
         }
         .home-hot-instructors-title {
+          margin: 0 0 4px;
+        }
+        .home-hot-instructors-caption {
           margin: 0 0 12px;
+          font-size: 12px;
+          font-weight: 600;
+          color: rgba(100, 116, 139, 0.95);
+        }
+        .home-gate-active .home-hot-instructors-caption {
+          color: rgba(255, 255, 255, 0.55);
         }
         .home-hot-instructors-scroll {
           display: block;
