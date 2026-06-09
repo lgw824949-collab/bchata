@@ -216,6 +216,9 @@ const SOCIAL_BAR_PEEK_VISIBLE = 3;
 /** 메인 홈 — 오늘 지역 대표 포스터 슬라이드 (빠른 메뉴 위) */
 const HOME_POSTER_BANNER_MS = 4000;
 
+/** 메인 게이트 카드 — 등록 포스터·강사 사진 로테이션 */
+const HOME_GATE_MENU_ROTATE_MS = 4000;
+
 /** LIVE 배너 — 5초마다 업체 묶음만 순환 (요약은 항상 고정) */
 const LIVE_BANNER_SLIDE_MS = 5000;
 
@@ -1039,6 +1042,29 @@ const buildFestivalEventTypeCounts = (rows, todayStr) => {
     counts[meta.id] = countActiveHomeGateEventRowsByType(rows, todayStr, meta.id);
   }
   return counts;
+};
+
+/** 메인 게이트 카드 — 종료 전·승인·포스터 있는 행사 */
+const filterActiveGateEventPosters = (rows, todayStr, eventTypes = null) =>
+  dedupeById(rows || []).filter((row) => {
+    if (row.status && row.status !== 'active') return false;
+    if (eventTypes && !eventTypes.includes(row.event_type || 'festival')) return false;
+    if (!String(row.poster_url || '').trim()) return false;
+    const end = normDate(row.end_date || row.start_date);
+    if (end && end < todayStr) return false;
+    return true;
+  });
+
+const collectGateMenuPhotoUrls = (rows, getUrl, fallback) => {
+  const seen = new Set();
+  const urls = [];
+  for (const row of rows || []) {
+    const url = String(getUrl(row) || '').trim();
+    if (!url || seen.has(url)) continue;
+    seen.add(url);
+    urls.push(url);
+  }
+  return urls.length ? urls : [fallback];
 };
 
 const pickLatestPosterBannerRow = (rows) =>
@@ -1934,14 +1960,41 @@ const HomePage = ({
     [festivalEventTypeCounts],
   );
 
-  const partyMenuPhotoUrl = useMemo(() => {
-    const partyRows = (festivals || []).filter(
-      (row) => (row.event_type || 'festival') === 'party' && row.status === 'active',
-    );
-    const featured = pickFeaturedPosterBannerRow(partyRows, calendarTodayStr, 'festival', 'party');
-    const url = String(featured?.poster_url || '').trim();
-    return url || HOME_GATE_MAIN_MENU_PHOTO_URLS['festival-party'];
-  }, [festivals, calendarTodayStr]);
+  const partyMenuPhotoUrls = useMemo(
+    () => collectGateMenuPhotoUrls(
+      filterActiveGateEventPosters(festivals, calendarTodayStr, ['party']),
+      (row) => row.poster_url,
+      HOME_GATE_MAIN_MENU_PHOTO_URLS['festival-party'],
+    ),
+    [festivals, calendarTodayStr],
+  );
+
+  const todayPartyMenuPhotoUrls = useMemo(
+    () => collectGateMenuPhotoUrls(
+      todayPosterPartiesForCount,
+      (row) => row.poster_url,
+      HOME_GATE_MAIN_MENU_PHOTO_URLS['today-party'],
+    ),
+    [todayPosterPartiesForCount],
+  );
+
+  const bootcampMenuPhotoUrls = useMemo(
+    () => collectGateMenuPhotoUrls(
+      filterActiveGateEventPosters(bootcamps, calendarTodayStr),
+      (row) => row.poster_url,
+      HOME_GATE_MAIN_MENU_PHOTO_URLS.bootcamp,
+    ),
+    [bootcamps, calendarTodayStr],
+  );
+
+  const festivalMenuPhotoUrls = useMemo(
+    () => collectGateMenuPhotoUrls(
+      filterActiveGateEventPosters(festivals, calendarTodayStr, ['festival', 'mt']),
+      (row) => row.poster_url,
+      HOME_GATE_MAIN_MENU_PHOTO_URLS.festival,
+    ),
+    [festivals, calendarTodayStr],
+  );
 
   const openTodayPartyBucket = (tab) => {
     setSelectedDate(calendarTodayStr);
@@ -1992,7 +2045,34 @@ const HomePage = ({
   const [locationsLoading, setLocationsLoading] = useState(true);
   const [hotInstructors, setHotInstructors] = useState([]);
   const [hotInstructorsLoading, setHotInstructorsLoading] = useState(true);
+  const [gateMenuInstructors, setGateMenuInstructors] = useState([]);
   const [activeInstructorMenuCount, setActiveInstructorMenuCount] = useState(0);
+  const [gateMenuPhotoIdx, setGateMenuPhotoIdx] = useState(() =>
+    Object.fromEntries(HOME_GATE_MAIN_MENU_IDS.map((id) => [id, 0])),
+  );
+
+  const instructorMenuPhotoUrls = useMemo(
+    () => collectGateMenuPhotoUrls(
+      gateMenuInstructors,
+      (row) => row.photo_url,
+      HOME_GATE_MAIN_MENU_PHOTO_URLS.instructors,
+    ),
+    [gateMenuInstructors],
+  );
+
+  useEffect(() => {
+    if (activeTab !== null) return undefined;
+    const timer = setInterval(() => {
+      setGateMenuPhotoIdx((prev) => {
+        const next = { ...prev };
+        for (const id of HOME_GATE_MAIN_MENU_IDS) {
+          next[id] = (prev[id] || 0) + 1;
+        }
+        return next;
+      });
+    }, HOME_GATE_MENU_ROTATE_MS);
+    return () => clearInterval(timer);
+  }, [activeTab]);
 
   const getHomeGateMenuBadgeCount = useCallback((itemId) => {
     switch (itemId) {
@@ -2512,24 +2592,31 @@ const HomePage = ({
         const baseQuery = () =>
           supabase
             .from('instructors')
-            .select('id, name, genre, photo_url, follower_count')
-            .eq('status', 'active')
-            .limit(10);
+            .select('id, name, genre, photo_url, follower_count, created_at')
+            .eq('status', 'active');
 
         const [listRes, countRes] = await Promise.all([
-          baseQuery().order('follower_count', { ascending: false }),
+          baseQuery().order('follower_count', { ascending: false }).limit(10),
           supabase
             .from('instructors')
-            .select('id', { count: 'exact', head: true })
+            .select('id, name, genre, photo_url, follower_count, created_at', { count: 'exact' })
             .eq('status', 'active'),
         ]);
         if (!cancelled) {
+          const allActive = countRes.error ? [] : (countRes.data || []);
+          const withPhoto = allActive
+            .filter((row) => String(row.photo_url || '').trim())
+            .sort(
+              (a, b) => new Date(b.created_at || 0).getTime() - new Date(a.created_at || 0).getTime(),
+            );
+          setGateMenuInstructors(withPhoto);
           setHotInstructors(listRes.error ? [] : (listRes.data || []));
-          setActiveInstructorMenuCount(countRes.error ? 0 : (countRes.count || 0));
+          setActiveInstructorMenuCount(countRes.error ? 0 : (countRes.count || allActive.length || 0));
         }
       } catch {
         if (!cancelled) {
           setHotInstructors([]);
+          setGateMenuInstructors([]);
           setActiveInstructorMenuCount(0);
         }
       } finally {
@@ -2960,6 +3047,7 @@ const HomePage = ({
       id: 'today-party',
       icon: Music2,
       photoUrl: HOME_GATE_MAIN_MENU_PHOTO_URLS['today-party'],
+      photoUrls: todayPartyMenuPhotoUrls,
       label: homeGateMenuLabel('todayParty', isEn),
       action: () => {
         navigateHomeTab('social');
@@ -2970,6 +3058,7 @@ const HomePage = ({
       id: 'bootcamp',
       icon: Tent,
       photoUrl: HOME_GATE_MAIN_MENU_PHOTO_URLS.bootcamp,
+      photoUrls: bootcampMenuPhotoUrls,
       label: homeGateMenuLabel('bootcampDive', isEn),
       action: () => navigate('/bootcamp', { homeTab: null }),
     },
@@ -2977,13 +3066,15 @@ const HomePage = ({
       id: 'festival',
       icon: Flag,
       photoUrl: HOME_GATE_MAIN_MENU_PHOTO_URLS.festival,
+      photoUrls: festivalMenuPhotoUrls,
       label: homeGateMenuLabel('festivalLive', isEn),
       action: () => navigate('/festival', { homeTab: null }),
     },
     {
       id: 'festival-party',
       icon: Music2,
-      photoUrl: partyMenuPhotoUrl,
+      photoUrl: HOME_GATE_MAIN_MENU_PHOTO_URLS['festival-party'],
+      photoUrls: partyMenuPhotoUrls,
       label: homeGateMenuLabel('partyLive', isEn),
       action: () => {
         try {
@@ -2998,6 +3089,7 @@ const HomePage = ({
       id: 'instructors',
       icon: GraduationCap,
       photoUrl: HOME_GATE_MAIN_MENU_PHOTO_URLS.instructors,
+      photoUrls: instructorMenuPhotoUrls,
       label: isEn ? 'Instructors' : '강사찾기',
       action: () => {
         localStorage.setItem('instructor_target_genre', '전체');
@@ -3007,7 +3099,14 @@ const HomePage = ({
         }, 300);
       },
     },
-  ], [isEn, partyMenuPhotoUrl]);
+  ], [
+    isEn,
+    todayPartyMenuPhotoUrls,
+    bootcampMenuPhotoUrls,
+    festivalMenuPhotoUrls,
+    partyMenuPhotoUrls,
+    instructorMenuPhotoUrls,
+  ]);
 
   /** 메인 노출 5종 — 커스텀 SVG 원형 아이콘 */
   const quickMenuItems = useMemo(() => [
@@ -3106,7 +3205,12 @@ const HomePage = ({
     const menuBadgeCount = getHomeGateMenuBadgeCount(item.id);
     const badgeCountLabel = menuBadgeCount > 99 ? '99+' : String(menuBadgeCount);
     const ariaLabel = homeGateMenuBadgeAriaLabel(item.id, item.label, menuBadgeCount);
-    const photoUrl = item.photoUrl || HOME_GATE_MAIN_MENU_PHOTO_URLS[item.id];
+    const fallbackPhotoUrl = item.photoUrl || HOME_GATE_MAIN_MENU_PHOTO_URLS[item.id];
+    const photoUrls = item.photoUrls?.length ? item.photoUrls : [fallbackPhotoUrl];
+    const rotateIdx = photoUrls.length > 1
+      ? (gateMenuPhotoIdx[item.id] || 0) % photoUrls.length
+      : 0;
+    const displayPhotoUrl = photoUrls[rotateIdx] || fallbackPhotoUrl;
 
     return (
       <div
@@ -3126,9 +3230,10 @@ const HomePage = ({
         >
           <span className="home-gate-photo-menu-card__media" aria-hidden>
             <img
-              src={photoUrl}
+              key={displayPhotoUrl}
+              src={displayPhotoUrl}
               alt=""
-              className="home-gate-photo-menu-card__img"
+              className="home-gate-photo-menu-card__img home-gate-photo-menu-card__img--rotate"
               loading="lazy"
               decoding="async"
               onError={imgFallbackHandler(DEFAULT_CARD_IMAGE)}
@@ -4307,6 +4412,13 @@ const HomePage = ({
           height: 100%;
           object-fit: cover;
           display: block;
+        }
+        .home-gate-photo-menu-card__img--rotate {
+          animation: home-gate-menu-photo-fade 0.45s ease;
+        }
+        @keyframes home-gate-menu-photo-fade {
+          from { opacity: 0.4; }
+          to { opacity: 1; }
         }
         .home-gate-photo-menu-card__overlay {
           position: absolute;
