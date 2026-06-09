@@ -7,6 +7,7 @@ import EventDateFields from '../components/EventDateFields';
 import { Z } from '../constants/zLayers';
 import { goBackOrHome, parseAppState, pushOverlay, readNavigationState } from '../lib/appHistory';
 import { BAR_DATABASE, findBarByName } from '../lib/BarLib';
+import { getKSTCalendarTodayStr, normDate } from '../lib/dateNorm';
 
 const mapBarRegionToFestivalRegion = (regionLabel) => {
   const r = String(regionLabel || '');
@@ -49,8 +50,56 @@ const resolveFestivalLocationFields = (locationText, regionFallback = '서울') 
   };
 };
 
+const isFestivalEnded = (fest, todayStr = getKSTCalendarTodayStr()) => {
+  const end = normDate(fest?.end_date || fest?.start_date);
+  return Boolean(end && end < todayStr);
+};
+
+const FESTIVAL_GENRE_OPTIONS = ['바차타', '살사', '키좀바', '쥬크'];
+
+const parseFestivalGenres = (value) => {
+  if (Array.isArray(value)) return value.map((s) => String(s).trim()).filter(Boolean);
+  const raw = String(value || '').trim();
+  if (!raw) return ['바차타'];
+  return raw.split(/[,/·|]/).map((s) => s.trim()).filter(Boolean);
+};
+
+const formatFestivalGenres = (value) => parseFestivalGenres(value).join(', ');
+
+const FESTIVAL_EVENT_TYPE_OPTIONS = [
+  ['festival', '🎪 페스티벌'],
+  ['mt', '🏕️ MT'],
+  ['party', '🎉 파티'],
+];
+
+const getFestivalTabMeta = (activeTab) => {
+  if (activeTab === 'mt') return { emoji: '🏕️', name: 'MT' };
+  if (activeTab === 'party') return { emoji: '🎉', name: '파티' };
+  return { emoji: '🎪', name: '페스티벌' };
+};
+
+const createEmptyFestivalForm = (eventType = 'festival') => ({
+  title: '',
+  start_date: '',
+  end_date: '',
+  region: '서울',
+  location: '',
+  price: '',
+  description: '',
+  poster_url: '',
+  organizer: '',
+  genres: ['바차타'],
+  bank_info: '',
+  event_type: eventType,
+});
+
 const filterFestivalsClient = (all, selectedRegion, activeTab) => {
-  const rows = (all || []).filter((f) => f.event_type === (activeTab === 'mt' ? 'mt' : 'festival'));
+  const eventType = activeTab || 'festival';
+  const rows = (all || []).filter(
+    (f) =>
+      f.event_type === eventType
+      && !isFestivalEnded(f),
+  );
   if (selectedRegion === '전체') return rows;
   const REGION_MAP = {
     '수도권': ['서울', '경인', '수도권'],
@@ -64,11 +113,13 @@ const filterFestivalsClient = (all, selectedRegion, activeTab) => {
   return rows.filter((f) => aliases.some((a) => (f.region || '').includes(a)));
 };
 
+const FESTIVAL_TAB_SESSION_KEY = 'bchata_festival_tab';
+
 const Festival = ({ onBack, initialRegister = false, cachedFestivals = null, onFestivalsRefresh }) => {
   const [festivals, setFestivals] = useState(() => filterFestivalsClient(cachedFestivals, '전체', 'festival'));
   const [loading, setLoading] = useState(!cachedFestivals?.length);
   const usedCacheRef = useRef(Boolean(cachedFestivals?.length));
-  const [activeTab, setActiveTab] = useState('festival'); // 'festival' | 'mt'
+  const [activeTab, setActiveTab] = useState('festival'); // 'festival' | 'mt' | 'party'
   const [selectedRegion, setSelectedRegion] = useState('전체');
   const [selectedFestival, setSelectedFestival] = useState(null);
   const [showBookingGuide, setShowBookingGuide] = useState(false);
@@ -80,13 +131,21 @@ const Festival = ({ onBack, initialRegister = false, cachedFestivals = null, onF
   const [submitting, setSubmitting] = useState(false);
   const [isOneDayEvent, setIsOneDayEvent] = useState(true);
   const [locationSuggestions, setLocationSuggestions] = useState([]);
-  const [formData, setFormData] = useState({
-    title: '', start_date: '', end_date: '', region: '서울',
-    location: '', price: '', description: '', poster_url: '',
-    organizer: '', genre: '바차타', bank_info: '', event_type: 'festival'
-  });
+  const [formData, setFormData] = useState(() => createEmptyFestivalForm());
 
   const regions = ['전체', '수도권', '강원', '제주', '부산/경남', '전라', '충청'];
+
+  useEffect(() => {
+    try {
+      const tab = sessionStorage.getItem(FESTIVAL_TAB_SESSION_KEY);
+      if (tab && ['festival', 'mt', 'party'].includes(tab)) {
+        setActiveTab(tab);
+        sessionStorage.removeItem(FESTIVAL_TAB_SESSION_KEY);
+      }
+    } catch {
+      /* ignore */
+    }
+  }, []);
 
   useEffect(() => {
     if (cachedFestivals?.length) {
@@ -158,7 +217,7 @@ const Festival = ({ onBack, initialRegister = false, cachedFestivals = null, onF
     try {
       const { data, error } = await supabase
         .from('festivals').select('*').eq('status', 'active')
-        .eq('event_type', activeTab === 'mt' ? 'mt' : 'festival')
+        .eq('event_type', activeTab || 'festival')
         .order('start_date', { ascending: true });
       if (error) throw error;
       const all = data || [];
@@ -194,7 +253,7 @@ const Festival = ({ onBack, initialRegister = false, cachedFestivals = null, onF
     setFormData({
       title:       fest.title || '',
       organizer:   fest.organizer || '',
-      genre:       fest.genre || '바차타',
+      genres:      parseFestivalGenres(fest.genre),
       start_date:  fest.start_date || '',
       end_date:    fest.end_date || '',
       region:      fest.region || '서울',
@@ -221,6 +280,73 @@ const Festival = ({ onBack, initialRegister = false, cachedFestivals = null, onF
     setLocationSuggestions(searchBarVenueSuggestions(value));
   };
 
+  const toggleFestivalGenre = (genre) => {
+    setFormData((prev) => {
+      const selected = prev.genres || [];
+      const has = selected.includes(genre);
+      if (has) return { ...prev, genres: selected.filter((g) => g !== genre) };
+      return { ...prev, genres: [...selected, genre] };
+    });
+  };
+
+  const validateRegisterStep = (step) => {
+    if (step === 1) {
+      if (!String(formData.title || '').trim()) {
+        alert('이름을 입력해 주세요.');
+        return false;
+      }
+      if (!String(formData.organizer || '').trim()) {
+        alert('주최/주관을 입력해 주세요.');
+        return false;
+      }
+      if (!(formData.genres || []).length) {
+        alert('주요 장르를 하나 이상 선택해 주세요.');
+        return false;
+      }
+      return true;
+    }
+    if (step === 2) {
+      const dates = resolveEventDates({
+        isOneDay: isOneDayEvent,
+        start_date: formData.start_date,
+        end_date: formData.end_date,
+      });
+      if (!dates.ok) {
+        alert(dates.error);
+        return false;
+      }
+      if (!String(formData.location || '').trim()) {
+        alert('상세 장소/주소를 입력해 주세요.');
+        return false;
+      }
+      return true;
+    }
+    if (step === 3) {
+      if (!String(formData.price || '').trim()) {
+        alert('티켓 가격 정보를 입력해 주세요.');
+        return false;
+      }
+      return true;
+    }
+    return true;
+  };
+
+  const goNextRegisterStep = () => {
+    if (!validateRegisterStep(currentStep)) return;
+    setCurrentStep((s) => s + 1);
+  };
+
+  const closeRegisterForm = () => {
+    setIsRegistering(false);
+    setEditingId(null);
+    setCurrentStep(1);
+    setIsOneDayEvent(true);
+    setSubmitting(false);
+    setUploading(false);
+    setLocationSuggestions([]);
+    setFormData(createEmptyFestivalForm(activeTab));
+  };
+
   const selectLocationSuggestion = (bar) => {
     setFormData((prev) => ({
       ...prev,
@@ -230,8 +356,14 @@ const Festival = ({ onBack, initialRegister = false, cachedFestivals = null, onF
     setLocationSuggestions([]);
   };
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
+  const handleSubmit = async () => {
+    if (submitting) return;
+    for (const step of [1, 2, 3]) {
+      if (!validateRegisterStep(step)) {
+        setCurrentStep(step);
+        return;
+      }
+    }
     const dates = resolveEventDates({
       isOneDay: isOneDayEvent,
       start_date: formData.start_date,
@@ -243,12 +375,13 @@ const Festival = ({ onBack, initialRegister = false, cachedFestivals = null, onF
       return;
     }
     setSubmitting(true);
+    const wasEdit = Boolean(editingId);
     try {
       const resolvedLocation = resolveFestivalLocationFields(formData.location, formData.region);
       const payload = {
         title:       formData.title,
         organizer:   formData.organizer,
-        genre:       formData.genre,
+        genre:       formatFestivalGenres(formData.genres),
         start_date:  dates.start_date,
         end_date:    dates.end_date,
         region:      resolvedLocation.region,
@@ -258,7 +391,7 @@ const Festival = ({ onBack, initialRegister = false, cachedFestivals = null, onF
         poster_url:  formData.poster_url || null,
         bank_info:   formData.bank_info || null,
         event_type:  formData.event_type || 'festival',
-        status:      'active'
+        status:      'pending',
       };
       let error;
       if (editingId) {
@@ -267,15 +400,17 @@ const Festival = ({ onBack, initialRegister = false, cachedFestivals = null, onF
         ({ error } = await supabase.from('festivals').insert([payload]));
       }
       if (error) throw error;
-      alert(editingId ? '수정되었습니다!' : '등록되었습니다!');
-      setIsRegistering(false);
-      setEditingId(null);
-      setCurrentStep(1);
-      setIsOneDayEvent(true);
+      closeRegisterForm();
       fetchFestivals();
+      window.setTimeout(() => {
+        alert(
+          wasEdit
+            ? '수정 신청이 접수되었습니다. 관리자 승인 후 반영됩니다.'
+            : '신청이 접수되었습니다. 관리자 승인 후 노출됩니다.',
+        );
+      }, 0);
     } catch (err) {
       alert('실패: ' + err.message);
-    } finally {
       setSubmitting(false);
     }
   };
@@ -299,13 +434,17 @@ const Festival = ({ onBack, initialRegister = false, cachedFestivals = null, onF
     setTimeout(() => setCopied(false), 2000);
   };
 
-  const getDDay = (date) => {
-    const d = new Date(date);
-    const now = new Date();
-    const diff = d - now;
-    const days = Math.ceil(diff / (1000 * 60 * 60 * 24));
+  const getDDay = (fest) => {
+    const todayStr = getKSTCalendarTodayStr();
+    const start = normDate(fest?.start_date);
+    const end = normDate(fest?.end_date || fest?.start_date);
+    if (isFestivalEnded(fest, todayStr)) return '종료';
+    const target = start && start >= todayStr ? start : end;
+    const targetDate = new Date(`${target}T12:00:00+09:00`);
+    const todayDate = new Date(`${todayStr}T12:00:00+09:00`);
+    const days = Math.ceil((targetDate - todayDate) / (1000 * 60 * 60 * 24));
     if (days === 0) return 'D-DAY';
-    return days > 0 ? `D-${days}` : `종료`;
+    return days > 0 ? `D-${days}` : '종료';
   };
 
   const formatDate = (date) => {
@@ -356,7 +495,8 @@ const Festival = ({ onBack, initialRegister = false, cachedFestivals = null, onF
               <div style={{ display: 'flex', gap: 6, background: 'rgba(255,255,255,0.06)', borderRadius: 14, padding: '4px' }}>
                 {[
                   { key: 'festival', label: 'FESTIVAL' },
-                  { key: 'mt', label: 'MT' }
+                  { key: 'mt', label: 'MT' },
+                  { key: 'party', label: 'PARTY' },
                 ].map(tab => (
                   <button
                     key={tab.key}
@@ -392,7 +532,7 @@ const Festival = ({ onBack, initialRegister = false, cachedFestivals = null, onF
                 {selectedRegion} <ChevronDown size={14} color="#C9A84C" />
               </button>
               <button 
-                onClick={() => setTimeout(() => setIsRegistering(true), 50)}
+                onClick={() => { setFormData(prev => ({ ...prev, event_type: activeTab })); setTimeout(() => setIsRegistering(true), 50); }}
                 style={{ 
                   background: 'linear-gradient(135deg, #C9A84C, #A68A3D)', 
                   color: '#000', 
@@ -462,23 +602,32 @@ const Festival = ({ onBack, initialRegister = false, cachedFestivals = null, onF
                 ))
               ) : festivals.length === 0 ? (
                 <div style={{ marginTop: 40, textAlign: 'center', padding: '40px 20px', borderRadius: 24, border: '1px dashed rgba(201,168,76,0.25)', background: 'rgba(201,168,76,0.03)' }}>
-                  <div style={{ fontSize: 36, marginBottom: 14 }}>{activeTab === 'mt' ? '🏕️' : '🎪'}</div>
+                  {(() => {
+                    const tabMeta = getFestivalTabMeta(activeTab);
+                    return (
+                      <>
+                  <div style={{ fontSize: 36, marginBottom: 14 }}>{tabMeta.emoji}</div>
                   <div style={{ fontSize: 16, fontWeight: 900, color: '#fff', marginBottom: 8 }}>
                     {selectedRegion === '전체'
-                      ? `등록된 ${activeTab === 'mt' ? 'MT' : '페스티벌'}이 없습니다`
-                      : `${selectedRegion} 지역 ${activeTab === 'mt' ? 'MT' : '페스티벌'}이 없습니다`}
+                      ? `등록된 ${tabMeta.name}이 없습니다`
+                      : `${selectedRegion} 지역 ${tabMeta.name}이 없습니다`}
                   </div>
                   <div style={{ fontSize: 13, color: '#64748b', marginBottom: 24 }}>
-                    {activeTab === 'mt' ? '첫 번째 MT를 등록해 보세요!' : '첫 번째 페스티벌을 등록해 보세요!'}
+                    {`첫 번째 ${tabMeta.name}를 등록해 보세요!`}
                   </div>
                   <button
                     onClick={() => { setFormData(prev => ({ ...prev, event_type: activeTab })); setTimeout(() => setIsRegistering(true), 50); }}
                     style={{ background: 'linear-gradient(135deg, #C9A84C, #A68A3D)', color: '#000', border: 'none', padding: '13px 28px', borderRadius: 14, fontSize: 14, fontWeight: 900, cursor: 'pointer' }}>
-                    + {activeTab === 'mt' ? 'MT' : '페스티벌'} 등록
+                    + {tabMeta.name} 등록
                   </button>
+                      </>
+                    );
+                  })()}
                 </div>
               ) : (
-                festivals.map((fest) => (
+                festivals.map((fest) => {
+                  const ddayLabel = getDDay(fest);
+                  return (
                   <motion.div
                     key={fest.id}
                     initial={{ opacity: 0, y: 10 }}
@@ -502,16 +651,16 @@ const Festival = ({ onBack, initialRegister = false, cachedFestivals = null, onF
                       {/* 장르 + D-day */}
                       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                         <span style={{ fontSize: 11, fontWeight: 700, color: '#C9A84C', letterSpacing: '0.8px', textTransform: 'uppercase' }}>
-                          {fest.genre}
+                          {formatFestivalGenres(fest.genre)}
                         </span>
                         <span style={{
                           fontSize: 11, fontWeight: 900,
-                          color: getDDay(fest.start_date) === '종료' ? '#475569' : getDDay(fest.start_date) === 'D-DAY' ? '#000' : '#C9A84C',
-                          background: getDDay(fest.start_date) === 'D-DAY' ? '#C9A84C' : 'rgba(201,168,76,0.1)',
+                          color: ddayLabel === '종료' ? '#475569' : ddayLabel === 'D-DAY' ? '#000' : '#C9A84C',
+                          background: ddayLabel === 'D-DAY' ? '#C9A84C' : 'rgba(201,168,76,0.1)',
                           border: '1px solid rgba(201,168,76,0.3)',
                           padding: '3px 9px', borderRadius: 6, whiteSpace: 'nowrap'
                         }}>
-                          {getDDay(fest.start_date)}
+                          {ddayLabel}
                         </span>
                       </div>
 
@@ -545,7 +694,8 @@ const Festival = ({ onBack, initialRegister = false, cachedFestivals = null, onF
                       </div>
                     </div>
                   </motion.div>
-                ))
+                  );
+                })
               )}
             </div>
           </div>
@@ -572,7 +722,7 @@ const Festival = ({ onBack, initialRegister = false, cachedFestivals = null, onF
           >
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '30px' }}>
               <h2 style={{ fontSize: '24px', fontWeight: 950, color: '#f8fafc', margin: 0 }}>{editingId ? '페스티벌 수정' : '페스티벌 신청'} ({currentStep}/4)</h2>
-              <button onClick={() => { setIsRegistering(false); setEditingId(null); setCurrentStep(1); }} style={{ background: '#1e293b', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '50%', width: '44px', height: '44px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><X size={24} color="#94a3b8" /></button>
+              <button type="button" onClick={closeRegisterForm} style={{ background: '#1e293b', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '50%', width: '44px', height: '44px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><X size={24} color="#94a3b8" /></button>
             </div>
 
             <div style={{ display: 'flex', gap: '8px', marginBottom: '40px' }}>
@@ -581,15 +731,23 @@ const Festival = ({ onBack, initialRegister = false, cachedFestivals = null, onF
               ))}
             </div>
 
-            <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '28px' }}>
+            <form
+              onSubmit={(e) => e.preventDefault()}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' && e.target.tagName !== 'TEXTAREA') {
+                  e.preventDefault();
+                }
+              }}
+              style={{ display: 'flex', flexDirection: 'column', gap: '28px' }}
+            >
               {currentStep === 1 && (
                 <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} style={{ display: 'flex', flexDirection: 'column', gap: '28px' }}>
                   <div>
                     <label style={{ display: 'block', fontSize: '12px', fontWeight: 900, color: '#C9A84C', marginBottom: '12px', letterSpacing: '1.5px' }}>1. 유형 선택</label>
-                    <div style={{ display: 'flex', gap: 10 }}>
-                      {[['festival','🎪 페스티벌'], ['mt','🏕️ MT']].map(([val, label]) => (
+                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: 10 }}>
+                      {FESTIVAL_EVENT_TYPE_OPTIONS.map(([val, label]) => (
                         <button key={val} type="button" onClick={() => setFormData(prev => ({ ...prev, event_type: val }))}
-                          style={{ flex: 1, padding: '16px', borderRadius: 14, fontWeight: 900, fontSize: 15, cursor: 'pointer',
+                          style={{ flex: '1 1 calc(33.333% - 7px)', minWidth: 96, padding: '14px 10px', borderRadius: 14, fontWeight: 900, fontSize: 14, cursor: 'pointer',
                             border: `1px solid ${formData.event_type === val ? '#C9A84C' : 'rgba(255,255,255,0.1)'}`,
                             background: formData.event_type === val ? 'rgba(201,168,76,0.15)' : '#1A1A1A',
                             color: formData.event_type === val ? '#C9A84C' : '#8E8E93' }}
@@ -597,10 +755,35 @@ const Festival = ({ onBack, initialRegister = false, cachedFestivals = null, onF
                       ))}
                     </div>
                   </div>
-                  <div><label style={{ display: 'block', fontSize: '12px', fontWeight: 900, color: '#C9A84C', marginBottom: '12px', letterSpacing: '1.5px' }}>2. 이름 (최대 18자)</label><input required maxLength={18} value={formData.title} onChange={e => setFormData(prev => ({ ...prev, title: e.target.value }))} placeholder="이름을 입력하세요" style={{ width: '100%', padding: '20px', borderRadius: '18px', border: '1px solid rgba(255,255,255,0.1)', background: '#1A1A1A', fontSize: '16px', color: '#f8fafc', outline: 'none' }} /></div>
-                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '15px' }}>
-                    <div><label style={{ display: 'block', fontSize: '12px', fontWeight: 900, color: '#C9A84C', marginBottom: '12px', letterSpacing: '1.5px' }}>2. 주최/주관</label><input required value={formData.organizer} onChange={e => setFormData(prev => ({ ...prev, organizer: e.target.value }))} placeholder="단체 또는 이름" style={{ width: '100%', padding: '20px', borderRadius: '18px', border: '1px solid rgba(255,255,255,0.1)', background: '#1A1A1A', fontSize: '16px', color: '#f8fafc', outline: 'none' }} /></div>
-                    <div><label style={{ display: 'block', fontSize: '12px', fontWeight: 900, color: '#C9A84C', marginBottom: '12px', letterSpacing: '1.5px' }}>3. 주요 장르</label><select value={formData.genre} onChange={e => setFormData(prev => ({ ...prev, genre: e.target.value }))} style={{ width: '100%', padding: '20px', borderRadius: '18px', border: '1px solid rgba(255,255,255,0.1)', background: '#1A1A1A', fontSize: '16px', color: '#f8fafc', outline: 'none' }}><option value="바차타">바차타</option><option value="살사">살사</option><option value="키좀바">키좀바</option><option value="쥬크">쥬크</option></select></div>
+                  <div><label style={{ display: 'block', fontSize: '12px', fontWeight: 900, color: '#C9A84C', marginBottom: '12px', letterSpacing: '1.5px' }}>2. 이름 (최대 18자)</label><input maxLength={18} value={formData.title} onChange={e => setFormData(prev => ({ ...prev, title: e.target.value }))} placeholder="이름을 입력하세요" style={{ width: '100%', padding: '20px', borderRadius: '18px', border: '1px solid rgba(255,255,255,0.1)', background: '#1A1A1A', fontSize: '16px', color: '#f8fafc', outline: 'none' }} /></div>
+                  <div><label style={{ display: 'block', fontSize: '12px', fontWeight: 900, color: '#C9A84C', marginBottom: '12px', letterSpacing: '1.5px' }}>2. 주최/주관</label><input value={formData.organizer} onChange={e => setFormData(prev => ({ ...prev, organizer: e.target.value }))} placeholder="단체 또는 이름" style={{ width: '100%', padding: '20px', borderRadius: '18px', border: '1px solid rgba(255,255,255,0.1)', background: '#1A1A1A', fontSize: '16px', color: '#f8fafc', outline: 'none' }} /></div>
+                  <div>
+                    <label style={{ display: 'block', fontSize: '12px', fontWeight: 900, color: '#C9A84C', marginBottom: '12px', letterSpacing: '1.5px' }}>3. 주요 장르 (중복 선택 가능)</label>
+                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: 10 }}>
+                      {FESTIVAL_GENRE_OPTIONS.map((genre) => {
+                        const selected = (formData.genres || []).includes(genre);
+                        return (
+                          <button
+                            key={genre}
+                            type="button"
+                            onClick={() => toggleFestivalGenre(genre)}
+                            aria-pressed={selected}
+                            style={{
+                              padding: '14px 18px',
+                              borderRadius: 14,
+                              fontWeight: 900,
+                              fontSize: 15,
+                              cursor: 'pointer',
+                              border: `1px solid ${selected ? '#C9A84C' : 'rgba(255,255,255,0.1)'}`,
+                              background: selected ? 'rgba(201,168,76,0.15)' : '#1A1A1A',
+                              color: selected ? '#C9A84C' : '#8E8E93',
+                            }}
+                          >
+                            {genre}
+                          </button>
+                        );
+                      })}
+                    </div>
                   </div>
                 </motion.div>
               )}
@@ -623,7 +806,6 @@ const Festival = ({ onBack, initialRegister = false, cachedFestivals = null, onF
                     <label style={{ display: 'block', fontSize: '12px', fontWeight: 900, color: '#C9A84C', marginBottom: '12px', letterSpacing: '1.5px' }}>6. 상세 장소/주소</label>
                     <div style={{ display: 'flex', gap: '10px' }}>
                       <input
-                        required
                         value={formData.location}
                         onChange={(e) => handleLocationInputChange(e.target.value)}
                         placeholder="BAR·장소명 검색 (예: 보니따, 라틴)"
@@ -653,7 +835,7 @@ const Festival = ({ onBack, initialRegister = false, cachedFestivals = null, onF
 
               {currentStep === 3 && (
                 <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} style={{ display: 'flex', flexDirection: 'column', gap: '28px' }}>
-                  <div><label style={{ display: 'block', fontSize: '12px', fontWeight: 900, color: '#C9A84C', marginBottom: '12px', letterSpacing: '1.5px' }}>8. 티켓 가격 정보</label><input required value={formData.price} onChange={e => setFormData(prev => ({ ...prev, price: e.target.value }))} placeholder="예: 풀패스 250,000 / 파티패스 50,000" style={{ width: '100%', padding: '20px', borderRadius: '18px', border: '1px solid rgba(255,255,255,0.1)', background: '#1A1A1A', fontSize: '16px', color: '#f8fafc', outline: 'none' }} /></div>
+                  <div><label style={{ display: 'block', fontSize: '12px', fontWeight: 900, color: '#C9A84C', marginBottom: '12px', letterSpacing: '1.5px' }}>8. 티켓 가격 정보</label><input value={formData.price} onChange={e => setFormData(prev => ({ ...prev, price: e.target.value }))} placeholder="예: 풀패스 250,000 / 파티패스 50,000" style={{ width: '100%', padding: '20px', borderRadius: '18px', border: '1px solid rgba(255,255,255,0.1)', background: '#1A1A1A', fontSize: '16px', color: '#f8fafc', outline: 'none' }} /></div>
                   <div><label style={{ display: 'block', fontSize: '12px', fontWeight: 900, color: '#C9A84C', marginBottom: '12px', letterSpacing: '1.5px' }}>9. 포스터 이미지</label>
                     <div style={{ width: '100%', height: '220px', borderRadius: '24px', border: '2px dashed rgba(201,168,76,0.3)', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', background: '#1A1A1A', cursor: 'pointer', position: 'relative', overflow: 'hidden' }}>
                       {formData.poster_url ? <img src={formData.poster_url} style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : <><ImageIcon color="#F59E0B" size={40} /><span style={{ fontSize: '13px', color: '#94a3b8', marginTop: '10px' }}>{uploading ? '업로드 중...' : '포스터 선택'}</span></>}
@@ -672,7 +854,18 @@ const Festival = ({ onBack, initialRegister = false, cachedFestivals = null, onF
 
               <div style={{ display: 'flex', gap: '12px', marginTop: 'auto', paddingBottom: '30px' }}>
                 {currentStep > 1 && <button type="button" onClick={() => setCurrentStep(s => s - 1)} style={{ flex: 1, padding: '20px', borderRadius: '18px', background: 'rgba(255,255,255,0.05)', color: '#fff', fontWeight: 900, border: '1px solid rgba(255,255,255,0.1)' }}>이전</button>}
-                {currentStep < 4 ? <button type="button" onClick={() => setCurrentStep(s => s + 1)} style={{ flex: 2, padding: '20px', borderRadius: '18px', background: 'linear-gradient(135deg, #C9A84C, #A68A3D)', color: '#000', fontWeight: 900, border: 'none' }}>다음 단계</button> : <button type="submit" disabled={submitting} style={{ flex: 2, padding: '24px', borderRadius: '20px', background: 'linear-gradient(135deg, #C9A84C, #A68A3D)', color: '#000', fontWeight: 1000, fontSize: '18px', border: 'none' }}>{submitting ? '등록 중...' : '신청 완료'}</button>}
+                {currentStep < 4 ? (
+                  <button type="button" onClick={goNextRegisterStep} style={{ flex: 2, padding: '20px', borderRadius: '18px', background: 'linear-gradient(135deg, #C9A84C, #A68A3D)', color: '#000', fontWeight: 900, border: 'none' }}>다음 단계</button>
+                ) : (
+                  <button
+                    type="button"
+                    onClick={handleSubmit}
+                    disabled={submitting}
+                    style={{ flex: 2, padding: '24px', borderRadius: '20px', background: submitting ? 'rgba(201,168,76,0.45)' : 'linear-gradient(135deg, #C9A84C, #A68A3D)', color: '#000', fontWeight: 1000, fontSize: '18px', border: 'none', cursor: submitting ? 'wait' : 'pointer' }}
+                  >
+                    {submitting ? '등록 중...' : '신청 완료'}
+                  </button>
+                )}
               </div>
             </form>
           </motion.div>
@@ -699,12 +892,12 @@ const Festival = ({ onBack, initialRegister = false, cachedFestivals = null, onF
               </div>
               <div style={{ padding: '30px' }}>
                 <h2 style={{ fontSize: '28px', fontWeight: 950, marginBottom: '8px', color: '#f8fafc' }}>{selectedFestival.title}</h2>
-                <div style={{ color: '#C9A84C', fontSize: '14px', fontWeight: 900, marginBottom: '25px' }}>{selectedFestival.organizer} · {selectedFestival.genre}</div>
+                <div style={{ color: '#C9A84C', fontSize: '14px', fontWeight: 900, marginBottom: '25px' }}>{selectedFestival.organizer} · {formatFestivalGenres(selectedFestival.genre)}</div>
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', marginBottom: '30px' }}>
                   {[
                     { label: '기간', value: `${selectedFestival.start_date} - ${selectedFestival.end_date}`, icon: <Calendar size={18} color="#C9A84C" /> },
                     { label: '장소', value: selectedFestival.venue || selectedFestival.location, icon: <MapPin size={18} color="#C9A84C" /> },
-                    { label: '장르', value: selectedFestival.genre, icon: <Zap size={18} color="#C9A84C" /> },
+                    { label: '장르', value: formatFestivalGenres(selectedFestival.genre), icon: <Zap size={18} color="#C9A84C" /> },
                     { label: '지역', value: selectedFestival.region, icon: <ImageIcon size={18} color="#C9A84C" /> }
                   ].map((cell, idx) => (
                     <div key={idx} style={{ background: 'rgba(255,255,255,0.03)', borderRadius: '16px', padding: '16px', border: '1px solid rgba(255,255,255,0.05)' }}>

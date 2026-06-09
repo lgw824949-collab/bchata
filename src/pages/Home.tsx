@@ -1,5 +1,5 @@
 ﻿import React, { useState, useEffect, useMemo, useRef, useCallback } from 'react';
-import { Heart, MapPin, Calendar, Clock, User, Users, Music, Music2, ChevronRight, ChevronDown, ShieldCheck, X, Home as HomeIcon, ChevronLeft, CloudSun, Utensils, Zap, PlusCircle, Languages, Bell, Globe, Navigation, CalendarDays, Star, Camera, MessageSquare, Tent, Loader2, Plus, GraduationCap, Flag } from 'lucide-react';
+import { Heart, MapPin, Calendar, Clock, User, Users, Music, Music2, ChevronRight, ChevronDown, ShieldCheck, X, Home as HomeIcon, ChevronLeft, CloudSun, Utensils, Zap, PlusCircle, Languages, Bell, Globe, Navigation, CalendarDays, Star, Camera, MessageSquare, Tent, Loader2, Plus, GraduationCap, Flag, Building2, UserPlus } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { motion, AnimatePresence } from 'framer-motion';
 import QuickPinchZoom, { make3dTransformValue } from 'react-quick-pinch-zoom';
@@ -121,8 +121,8 @@ const HOME_GATE_MENU_COPY = {
   myNightPlan: { ko: '플랜', en: 'Plan' },
   bootcampDive: { ko: '부트캠프', en: 'Bootcamp' },
   festivalLive: { ko: '페스티벌', en: 'Festival' },
-  partyPost: { ko: '파티 등록', en: 'Party' },
-  barVenueClass: { ko: '업체 수업', en: 'BAR class' },
+  partyPost: { ko: '소셜등록', en: 'Social' },
+  barVenueClass: { ko: 'BAR 수업', en: 'BAR class' },
   instructorRegister: { ko: '강사 등록', en: 'Instructor' },
   conciergePick: { ko: '추천', en: 'Picks' },
   livepickShow: { ko: '라이브픽', en: 'Live pick' },
@@ -154,6 +154,19 @@ const HOME_GATE_MAIN_MENU_PHOTO_URLS = {
   instructors: buildHomeGateMenuPhotoUrl('photo-1494790108377-be9c29b29330'),
 };
 
+/** 메인 더보기 — Lucide 아이콘 통일 (king menu 전용) */
+const HOME_KING_MENU_ICONS = {
+  'party-register': Music2,
+  'bar-venue-class-register': Building2,
+  'instructor-register': UserPlus,
+  'partner-find': Users,
+  saju: Star,
+  restaurant: Utensils,
+  weather: CloudSun,
+  route: Navigation,
+  language: Languages,
+};
+
 /** 더보기 메뉴 노출 순서 — 등록 2종 맨 앞 */
 const HOME_GATE_KING_MENU_ORDER = [
   'party-register',
@@ -172,6 +185,15 @@ const HOME_GATE_KING_MENU_ORDER = [
 ];
 
 const homeGateMenuLabel = (key, isEn) => (isEn ? HOME_GATE_MENU_COPY[key].en : HOME_GATE_MENU_COPY[key].ko);
+
+/** 페스티벌 화면 event_type — 메인 뱃지·포스터 배너 라벨 공통 */
+const FESTIVAL_EVENT_TYPE_META = [
+  { id: 'festival', emoji: '🎪', labelKo: '페스티벌', labelEn: 'Festival' },
+  { id: 'mt', emoji: '🏕️', labelKo: 'MT', labelEn: 'MT' },
+  { id: 'party', emoji: '🎉', labelKo: '파티', labelEn: 'Party' },
+];
+
+const FESTIVAL_TAB_SESSION_KEY = 'bchata_festival_tab';
 
 /** 메인 홈 지역 pill 순서 (표시 개수는 DB 분류 결과) */
 const HOME_REGIONS_ORDER = [
@@ -1003,6 +1025,20 @@ const countActiveHomeGateEventRows = (rows, todayStr) =>
     return Boolean(end && end >= todayStr);
   }).length;
 
+const countActiveHomeGateEventRowsByType = (rows, todayStr, eventType) =>
+  countActiveHomeGateEventRows(
+    (rows || []).filter((row) => (row.event_type || 'festival') === eventType),
+    todayStr,
+  );
+
+const buildFestivalEventTypeCounts = (rows, todayStr) => {
+  const counts = {};
+  for (const meta of FESTIVAL_EVENT_TYPE_META) {
+    counts[meta.id] = countActiveHomeGateEventRowsByType(rows, todayStr, meta.id);
+  }
+  return counts;
+};
+
 const pickLatestPosterBannerRow = (rows) =>
   (rows || [])
     .filter((r) => String(r.poster_url || '').trim())
@@ -1013,8 +1049,12 @@ const pickLatestPosterBannerRow = (rows) =>
     )[0] || null;
 
 /** 종료 전 부트캠프·페스티벌 포스터 (오늘 진행 중 우선, 없으면 가장 가까운 예정) */
-const pickFeaturedPosterBannerRow = (rows, todayStr, kind = 'any') => {
-  const withPoster = (rows || []).filter((r) => String(r.poster_url || '').trim());
+const pickFeaturedPosterBannerRow = (rows, todayStr, kind = 'any', eventType = null) => {
+  let scopedRows = rows || [];
+  if (eventType) {
+    scopedRows = scopedRows.filter((r) => (r.event_type || 'festival') === eventType);
+  }
+  const withPoster = scopedRows.filter((r) => String(r.poster_url || '').trim());
   const notEnded = withPoster.filter((r) => {
     const end = normDate(r.end_date || r.start_date);
     return !end || end >= todayStr;
@@ -1036,11 +1076,10 @@ const pickFeaturedPosterBannerRow = (rows, todayStr, kind = 'any') => {
   return pickLatestPosterBannerRow(pool);
 };
 
-/** 지역 파티 + 부트캠프·페스티벌 포스터 (부트캠프·페스티벌을 앞에 배치) */
+/** 지역 파티 + 부트캠프·페스티벌·MT·파티 포스터 (행사 유형별 최대 1장) */
 const buildHomePosterBannerSlides = (partyRows, bootcampRows, festivalRows, todayStr) => {
   const partySlides = pickHomePosterBannerSlides(partyRows);
   const bootcamp = pickFeaturedPosterBannerRow(bootcampRows, todayStr, 'bootcamp');
-  const festival = pickFeaturedPosterBannerRow(festivalRows, todayStr, 'festival');
   const prefix = [];
 
   if (bootcamp) {
@@ -1052,13 +1091,17 @@ const buildHomePosterBannerSlides = (partyRows, bootcampRows, festivalRows, toda
       bootcamp,
     });
   }
-  if (festival) {
+
+  for (const meta of FESTIVAL_EVENT_TYPE_META) {
+    const featured = pickFeaturedPosterBannerRow(festivalRows, todayStr, 'festival', meta.id);
+    if (!featured) continue;
     prefix.push({
-      id: 'festival',
+      id: `festival-${meta.id}`,
       kind: 'festival',
-      regionLabelKo: '페스티벌',
-      regionLabelEn: 'Festival',
-      festival,
+      eventType: meta.id,
+      regionLabelKo: `${meta.emoji} ${meta.labelKo}`,
+      regionLabelEn: `${meta.emoji} ${meta.labelEn}`,
+      festival: featured,
     });
   }
 
@@ -1865,9 +1908,24 @@ const HomePage = ({
     [bootcamps, calendarTodayStr],
   );
 
-  const festivalMenuCount = useMemo(
-    () => countActiveHomeGateEventRows(festivals, calendarTodayStr),
+  const festivalEventTypeCounts = useMemo(
+    () => buildFestivalEventTypeCounts(festivals, calendarTodayStr),
     [festivals, calendarTodayStr],
+  );
+
+  const festivalMenuCount = useMemo(
+    () => FESTIVAL_EVENT_TYPE_META.reduce(
+      (sum, meta) => sum + (festivalEventTypeCounts[meta.id] || 0),
+      0,
+    ),
+    [festivalEventTypeCounts],
+  );
+
+  const festivalEventTypeCountParts = useMemo(
+    () => FESTIVAL_EVENT_TYPE_META
+      .map((meta) => ({ ...meta, count: festivalEventTypeCounts[meta.id] || 0 }))
+      .filter((part) => part.count > 0),
+    [festivalEventTypeCounts],
   );
 
   const openTodayPartyBucket = (tab) => {
@@ -1950,13 +2008,24 @@ const HomePage = ({
       return isEn ? `${label} · ${count} active bootcamps` : `${label} · 진행·예정 부트캠프 ${count}건`;
     }
     if (itemId === 'festival') {
-      return isEn ? `${label} · ${count} active festivals` : `${label} · 진행·예정 페스티벌 ${count}건`;
+      const parts = FESTIVAL_EVENT_TYPE_META
+        .map((meta) => ({ ...meta, count: festivalEventTypeCounts[meta.id] || 0 }))
+        .filter((part) => part.count > 0);
+      if (parts.length === 0) {
+        return isEn ? `${label} · ${count} active events` : `${label} · 진행·예정 행사 ${count}건`;
+      }
+      const breakdown = parts
+        .map((part) => (isEn ? `${part.emoji} ${part.labelEn} ${part.count}` : `${part.emoji} ${part.labelKo} ${part.count}`))
+        .join(' · ');
+      return isEn
+        ? `${label} · ${count} active events (${breakdown})`
+        : `${label} · 진행·예정 ${count}건 (${breakdown})`;
     }
     if (itemId === 'instructors') {
       return isEn ? `${label} · ${count} instructors` : `${label} · 활동 강사 ${count}명`;
     }
     return label;
-  }, [isEn]);
+  }, [isEn, festivalEventTypeCounts]);
   const [selectedRegionTab, setSelectedRegionTab] = useState(null);
   /** 휴대폰 GPS로 잡은 내 지역 — Social BAR 탭·정렬 1순위 */
   const [geoRegionTab, setGeoRegionTab] = useState(null);
@@ -2223,12 +2292,21 @@ const HomePage = ({
   const openVenueLessonRegister = useCallback((venueRow) => {
     const merged = mergeVenueWithLocalExtras(venueRow);
     setVenueLessonPostVenue(merged);
-    if (!closeOverlayNav()) setSelectedVenue(null);
+    pushOverlay('venueLessonPost', {
+      meta: {
+        venueId: merged?.id ? String(merged.id) : null,
+        venueName: merged?.name || merged?.studio_name || null,
+      },
+    });
   }, []);
 
   const closeVenueLessonPost = useCallback(() => {
-    setVenueLessonPostVenue(null);
+    if (!closeOverlayNav()) setVenueLessonPostVenue(null);
     window.dispatchEvent(new CustomEvent('bchata-lessons-refresh'));
+  }, []);
+
+  const closeVenueLessonPick = useCallback(() => {
+    if (!closeOverlayNav()) setShowVenueLessonPick(false);
   }, []);
 
   const openBarVenueLessonPick = useCallback(() => {
@@ -2237,15 +2315,29 @@ const HomePage = ({
       return;
     }
     setShowVenueLessonPick(true);
+    pushOverlay('venueLessonPick');
   }, [locations.length, isEn]);
 
   const pickBarForVenueLesson = useCallback(
     (bar) => {
+      const merged = mergeVenueWithLocalExtras(bar);
       setShowVenueLessonPick(false);
-      openVenueLessonRegister(bar);
+      setVenueLessonPostVenue(merged);
+      pushOverlay('venueLessonPost', {
+        meta: {
+          venueId: merged?.id ? String(merged.id) : null,
+          venueName: merged?.name || merged?.studio_name || null,
+        },
+      });
     },
-    [openVenueLessonRegister],
+    [],
   );
+
+  useEffect(() => {
+    const onOpenBarLessonRegister = () => openBarVenueLessonPick();
+    window.addEventListener('open-bar-lesson-register', onOpenBarLessonRegister);
+    return () => window.removeEventListener('open-bar-lesson-register', onOpenBarLessonRegister);
+  }, [openBarVenueLessonPick]);
 
   /** BAR 카드(상세) 진입 7초 후 view_count +1 — 기기당 1회 */
   useEffect(() => {
@@ -2321,6 +2413,18 @@ const HomePage = ({
     if (st?.overlay !== 'venue') setSelectedVenue(null);
     if (st?.overlay === 'barRegister') setShowBarRegisterForm(true);
     else if (st?.overlay !== 'barRegister') setShowBarRegisterForm(false);
+    if (st?.overlay === 'venueLessonPick') setShowVenueLessonPick(true);
+    else if (st?.overlay !== 'venueLessonPick') setShowVenueLessonPick(false);
+    if (st?.overlay === 'venueLessonPost') {
+      const id = st.overlayMeta?.venueId;
+      const name = st.overlayMeta?.venueName;
+      const bar = id
+        ? locations.find((b) => String(b.id) === String(id))
+        : (name ? locations.find((b) => b.name === name) : null);
+      setVenueLessonPostVenue(bar ? mergeVenueWithLocalExtras(bar) : null);
+    } else if (st?.overlay !== 'venueLessonPost') {
+      setVenueLessonPostVenue(null);
+    }
   };
 
   useEffect(() => {
@@ -2514,8 +2618,8 @@ const HomePage = ({
       setHomePosterBannerPartyRows(
         (partiesRes.data || []).filter((p) => partyRowMatchesSlot(p, '소셜')),
       );
-      setHomePosterBannerBootcampRows([]);
-      setHomePosterBannerFestivalRows([]);
+      setHomePosterBannerBootcampRows(bootcampsRes.data || []);
+      setHomePosterBannerFestivalRows(festivalsRes.data || []);
     } catch (err) {
       console.warn('[Home] poster banner failed:', err);
     }
@@ -2717,7 +2821,7 @@ const HomePage = ({
   const HOME_TEXT_MUTED = 'rgba(30, 41, 59, 0.55)';
   const HOME_SURFACE = '#FFFFFF';
   const HOME_BORDER = '#EDEAE3';
-  const HOME_PAGE_BG = '#FFFDF9';
+  const HOME_PAGE_BG = '#F5F6F8';
   const HOME_CARD_BORDER = '0.5px solid #EDEAE3';
   const homeUi = useMemo(() => (isHomeGateDark ? {
     pageBg: '#0D0D0D',
@@ -2803,7 +2907,7 @@ const HomePage = ({
   };
   const homeSectionSpace = isHomeGate ? 32 : 36;
   const homeBlockSpace = isHomeGate ? 22 : 28;
-  const homeGateStackGap = 20;
+  const homeGateStackGap = 24;
   const homeDepthPanelStyle = {
     background: homeUi.panelBg,
     border: isHomeGateDark ? `1px solid ${homeUi.panelBorder}` : HOME_CARD_BORDER,
@@ -3003,15 +3107,30 @@ const HomePage = ({
               {badgeCountLabel}
             </span>
           ) : null}
-          <span className="home-gate-photo-menu-card__label">{item.label}</span>
+          <span className="home-gate-photo-menu-card__label">
+            {item.label}
+            {item.id === 'festival' && festivalEventTypeCountParts.length > 0 ? (
+              <span className="home-gate-photo-menu-card__emoji-counts" aria-hidden>
+                {festivalEventTypeCountParts.map((part, idx) => (
+                  <React.Fragment key={part.id}>
+                    {idx > 0 ? ' ' : null}
+                    {part.emoji}
+                    {part.count}
+                  </React.Fragment>
+                ))}
+              </span>
+            ) : null}
+          </span>
         </motion.button>
       </div>
     );
   };
 
   const renderQuickMenuItem = (item, gateSwipe = false, kingMenu = false) => {
-    const Icon = item.icon;
-    const quickMenuIconSize = kingMenu ? 24 : QUICK_MENU_ICON_SIZE;
+    const KingIcon = kingMenu ? HOME_KING_MENU_ICONS[item.id] : null;
+    const Icon = KingIcon || item.icon;
+    const quickMenuIconSize = kingMenu ? 22 : QUICK_MENU_ICON_SIZE;
+    const quickMenuStroke = kingMenu ? 1.75 : QUICK_MENU_STROKE;
     const registerMod =
       item.registerKind === 'party' || item.registerKind === 'bar-venue'
         ? ' home-quick-menu-item--register-party'
@@ -3037,11 +3156,15 @@ const HomePage = ({
         aria-label={ariaLabel}
       >
         <span className="home-quick-menu-icon-wrap">
-          {item.menuSvg ? (
+          {kingMenu && KingIcon ? (
+            <QuickMenuIconCircle>
+              <KingIcon size={quickMenuIconSize} strokeWidth={quickMenuStroke} color="currentColor" aria-hidden />
+            </QuickMenuIconCircle>
+          ) : item.menuSvg ? (
             <QuickMenuIconCircle>{item.menuSvg}</QuickMenuIconCircle>
           ) : (
             <QuickMenuIconCircle>
-              {Icon ? <Icon size={quickMenuIconSize} strokeWidth={QUICK_MENU_STROKE} color="currentColor" aria-hidden /> : null}
+              {Icon ? <Icon size={quickMenuIconSize} strokeWidth={quickMenuStroke} color="currentColor" aria-hidden /> : null}
             </QuickMenuIconCircle>
           )}
           {todayPartyBadgeCount > 0 ? (
@@ -3260,10 +3383,20 @@ const HomePage = ({
             && normDate(p.date) === calendarTodayStr
             && partyRowMatchesSlot(p, '소셜'),
         );
+    const bootcampRows = homePosterBannerBootcampRows.length > 0
+      ? homePosterBannerBootcampRows
+      : (bootcamps || []).filter(
+          (row) => row.status === 'active' && String(row.poster_url || '').trim(),
+        );
+    const festivalRows = homePosterBannerFestivalRows.length > 0
+      ? homePosterBannerFestivalRows
+      : (festivals || []).filter(
+          (row) => row.status === 'active' && String(row.poster_url || '').trim(),
+        );
     return buildHomePosterBannerSlides(
       todayPartyRows,
-      [],
-      [],
+      bootcampRows,
+      festivalRows,
       calendarTodayStr,
     );
   }, [
@@ -3290,13 +3423,24 @@ const HomePage = ({
     return () => clearInterval(timer);
   }, [homePosterBannerSlidesEffective.length]);
 
+  const openFestivalWithTab = useCallback((eventType = 'festival') => {
+    if (eventType && eventType !== 'festival') {
+      try {
+        sessionStorage.setItem(FESTIVAL_TAB_SESSION_KEY, eventType);
+      } catch {
+        /* ignore */
+      }
+    }
+    navigate('/festival', { homeTab: null });
+  }, [navigate]);
+
   const handleHomePosterBannerClick = (slide) => {
     if (slide?.kind === 'bootcamp') {
       navigate('/bootcamp', { homeTab: null });
       return;
     }
     if (slide?.kind === 'festival') {
-      navigate('/festival', { homeTab: null });
+      openFestivalWithTab(slide.eventType || 'festival');
       return;
     }
     if (slide?.party) openPartyWithAfterParty(slide.party);
@@ -3961,9 +4105,9 @@ const HomePage = ({
           type="button"
           className="home-party-register-outside"
           onClick={() => handleRegister('party')}
-          aria-label={isEn ? 'Register party' : '파티등록'}
+          aria-label={isEn ? 'Register social' : '소셜등록'}
         >
-          <span className="home-party-register-outside__line">{isEn ? 'Party' : '파티'}</span>
+          <span className="home-party-register-outside__line">{isEn ? 'Social' : '소셜'}</span>
           <span className="home-party-register-outside__line">{isEn ? 'Register' : '등록'}</span>
         </button>
       )}
@@ -3991,7 +4135,7 @@ const HomePage = ({
         style={{
           padding: isHomeGate ? '20px 16px 0' : '20px 16px 0',
           marginBottom: isHomeGate ? 20 : homeSectionSpace - 4,
-          background: isHomeGate ? '#FFFDF9' : undefined,
+          background: isHomeGate ? HOME_PAGE_BG : undefined,
         }}
       >
         {activeTab === null && (
@@ -4029,7 +4173,7 @@ const HomePage = ({
           </h1>
           <p
             className="home-type-tagline home-type-tagline-sub home-hero-tagline"
-            style={{ color: '#1E293B', fontSize: '15px', fontWeight: 600, margin: '4px 0 0', lineHeight: 1.35 }}
+            style={{ color: '#191F28', fontSize: '14px', fontWeight: 500, margin: '6px 0 0', lineHeight: 1.4 }}
           >
             켜고, 찾고, 가면 끝
           </p>
@@ -4057,14 +4201,18 @@ const HomePage = ({
       {/* 메인 퀵메뉴: activeTab === null → 3섹션 그리드 / 소셜 탭 → 가로 스크롤 */}
       <style>{`
         .home-gate-shell {
-          --home-page-bg: #FFFDF9;
-          --home-fade-rgb: ${isHomeGateDark ? '13, 13, 13' : '255, 253, 249'};
-          background-color: #FFFDF9 !important;
+          --home-page-bg: #F5F6F8;
+          --home-text-primary: #191F28;
+          --home-text-secondary: #191F28;
+          --home-text-tertiary: #4B5563;
+          --home-card-border: #E8EBED;
+          --home-fade-rgb: ${isHomeGateDark ? '13, 13, 13' : '245, 246, 248'};
+          background-color: #F5F6F8 !important;
         }
         .home-gate-shell .home-main-stack {
           display: flex;
           flex-direction: column;
-          gap: 20px;
+          gap: 24px;
         }
         .home-gate-shell .home-section-break {
           padding: 28px 0 32px;
@@ -4144,6 +4292,15 @@ const HomePage = ({
           padding: 0 3px;
           word-break: keep-all;
         }
+        .home-gate-photo-menu-card__emoji-counts {
+          display: block;
+          margin-top: 2px;
+          font-size: clamp(8px, 2.2vw, 10px);
+          font-weight: 600;
+          letter-spacing: 0.02em;
+          font-variant-numeric: tabular-nums;
+          opacity: 0.95;
+        }
         .home-gate-photo-menu-card__badge {
           position: absolute;
           top: -7px;
@@ -4156,7 +4313,7 @@ const HomePage = ({
           padding: 0 4px;
           border-radius: 999px;
           background: #ff3040;
-          border: 2px solid #FFFDF9;
+          border: 2px solid #F5F6F8;
           color: #fff;
           font-size: clamp(9px, 2.5vw, 11px);
           font-weight: 700;
@@ -4184,46 +4341,54 @@ const HomePage = ({
           );
         }
         .home-gate-shell:not(.home-gate-active) .home-gate-king-menu__toggle {
-          border: 0.5px solid #EDEAE3;
+          border: 1px solid var(--home-card-border, #E8EBED);
           background: #FFFFFF;
-          color: rgba(30, 41, 59, 0.55);
+          color: #191F28;
         }
         .home-gate-shell:not(.home-gate-active) .home-gate-king-menu__toggle[aria-expanded="true"] {
-          color: #E53935;
-          border-color: rgba(229, 57, 53, 0.2);
-          background: rgba(229, 57, 53, 0.08);
+          color: #191F28;
+          border-color: var(--home-card-border, #E8EBED);
+          background: #F5F6F8;
         }
         .home-gate-shell:not(.home-gate-active) .home-gate-king-menu__grid .home-quick-menu-item-label {
-          color: rgba(30, 41, 59, 0.55);
+          color: #191F28 !important;
+          font-weight: 600;
         }
         .home-gate-shell:not(.home-gate-active) .home-gate-king-menu__grid .home-quick-menu-icon-circle {
+          width: 50px;
+          height: 50px;
           background: #FFFFFF;
-          border: 0.5px solid #EDEAE3;
-          color: #1E293B;
+          border: 1px solid var(--home-card-border, #E8EBED);
+          color: #191F28;
         }
-        .home-gate-shell:not(.home-gate-active) .home-gate-king-menu__grid .home-quick-menu-item--register-party .home-quick-menu-icon-circle {
-          background: rgba(229, 57, 53, 0.08);
-          border-color: rgba(229, 57, 53, 0.2);
-          color: #E53935;
+        .home-gate-shell:not(.home-gate-active) .home-gate-king-menu__grid .home-quick-menu-item--register-party .home-quick-menu-icon-circle,
+        .home-gate-shell:not(.home-gate-active) .home-gate-king-menu__grid .home-quick-menu-item--register-class .home-quick-menu-icon-circle {
+          width: 50px;
+          height: 50px;
+          background: #FFFFFF;
+          border: 1px solid var(--home-card-border, #E8EBED);
+          color: #191F28;
         }
-        .home-gate-shell:not(.home-gate-active) .home-gate-king-menu__grid .home-quick-menu-item--register-party .home-quick-menu-item-label {
-          color: #E53935;
+        .home-gate-shell:not(.home-gate-active) .home-gate-king-menu__grid .home-quick-menu-item--register-party .home-quick-menu-item-label,
+        .home-gate-shell:not(.home-gate-active) .home-gate-king-menu__grid .home-quick-menu-item--register-class .home-quick-menu-item-label {
+          color: #191F28 !important;
+          font-weight: 600;
         }
         .home-gate-shell:not(.home-gate-active) .home-hot-instructors-title {
-          color: #1E293B !important;
+          color: #191F28 !important;
         }
         .home-gate-section-title {
           display: flex;
           align-items: center;
           margin: 0;
-          font-size: 14px;
-          font-weight: 500;
-          color: #1E293B;
-          letter-spacing: -0.02em;
+          font-size: 17px;
+          font-weight: 700;
+          color: var(--home-text-primary, #333D4B);
+          letter-spacing: -0.03em;
         }
         .home-gate-section-title__point {
-          width: 3px;
-          height: 16px;
+          width: 2px;
+          height: 14px;
           background: #E53935;
           border-radius: 1px;
           margin-right: 8px;
@@ -4232,9 +4397,9 @@ const HomePage = ({
         }
         .home-gate-section-title__text {
           min-width: 0;
-          font-size: 14px;
-          font-weight: 500;
-          color: #1E293B;
+          font-size: 17px;
+          font-weight: 700;
+          color: var(--home-text-primary, #333D4B);
         }
         .home-hot-instructors-wrap .home-gate-section-title {
           margin-bottom: 12px;
@@ -4454,11 +4619,11 @@ const HomePage = ({
           gap: 4px;
           padding: 6px 10px;
           border-radius: 100px;
-          border: 0.5px solid #EDEAE3;
+          border: 1px solid var(--home-card-border, #E8EBED);
           background: #FFFFFF;
-          color: #1E293B;
+          color: #191F28;
           font-size: var(--ds-body-size);
-          font-weight: var(--ds-subtitle-weight);
+          font-weight: 600;
           cursor: pointer;
           line-height: 1.2;
         }
@@ -4472,15 +4637,15 @@ const HomePage = ({
         }
         .home-gate-shell .home-section-break__line {
           border: none;
-          height: 0.5px;
+          height: 1px;
           margin: 0;
-          background: #EDEAE3;
+          background: var(--home-card-border, #E8EBED);
         }
         .home-gate-shell .quick-menu-more-link {
-          color: rgba(30, 41, 59, 0.55);
+          color: #191F28;
         }
         .home-gate-shell .quick-menu-more-wrap::after {
-          background: linear-gradient(to right, rgba(255, 253, 249, 0), #FFFDF9 90%);
+          background: linear-gradient(to right, rgba(245, 246, 248, 0), #F5F6F8 90%);
         }
         .quick-menu-more-wrap {
           position: relative;
@@ -4715,7 +4880,7 @@ const HomePage = ({
           background: linear-gradient(to right, rgba(var(--home-fade-rgb, 13, 13, 13), 0), var(--home-page-bg, #0d0d0d) 90%);
         }
         .home-gate-shell .home-hero-zone {
-          background: #FFFDF9;
+          background: #F5F6F8;
         }
         .home-gate-shell .home-hero-brand .home-hero-title {
           color: #E53935 !important;
@@ -4723,9 +4888,9 @@ const HomePage = ({
           font-weight: 900 !important;
         }
         .home-gate-shell .home-hero-brand .home-hero-tagline {
-          color: #1E293B !important;
-          font-size: 15px !important;
-          font-weight: 600 !important;
+          color: #191F28 !important;
+          font-size: 14px !important;
+          font-weight: 500 !important;
         }
         .home-gate-shell .home-hero-brand .home-type-display {
           color: #E53935 !important;
@@ -4807,10 +4972,10 @@ const HomePage = ({
           margin: 6px 0 0 !important;
           width: 100%;
           font-size: 12px !important;
-          font-weight: 800 !important;
+          font-weight: 700 !important;
           line-height: 1.25 !important;
           text-align: center !important;
-          color: #1E293B !important;
+          color: #191F28 !important;
           text-shadow: none !important;
           white-space: normal !important;
           word-break: keep-all;
@@ -4837,7 +5002,10 @@ const HomePage = ({
         }
         .home-social-bar-wrap .home-bar-chip--my-region .home-bar-chip-name,
         .home-social-bar-wrap .home-bar-chip--my-region .social-bar-name-label {
-          color: #1E293B !important;
+          color: #191F28 !important;
+        }
+        .home-gate-shell .home-social-bar-wrap .home-bar-view-line {
+          color: #4B5563 !important;
         }
         .home-social-bar-wrap .home-bar-thumb--my-region {
           box-shadow: 0 0 0 2px #E53935;
@@ -4846,10 +5014,16 @@ const HomePage = ({
           0%, 100% { opacity: 0.4; }
           50% { opacity: 0.75; }
         }
+        .home-gate-shell .home-quick-menu-standalone--gate.home-gate-section-box {
+          background: transparent !important;
+          border: none !important;
+          box-shadow: none !important;
+          padding: 0 !important;
+        }
         .home-gate-shell .home-social-bar-panel--gate {
-          padding: 16px 12px 18px !important;
-          border-radius: 10px !important;
-          border: 0.5px solid #EDEAE3 !important;
+          padding: 16px 14px 18px !important;
+          border-radius: 14px !important;
+          border: 1px solid var(--home-card-border, #E8EBED) !important;
           background: #FFFFFF !important;
           box-shadow: none !important;
         }
@@ -4901,7 +5075,7 @@ const HomePage = ({
           margin: 0;
         }
         .home-hot-instructors-wrap {
-          background: var(--home-page-bg, #FFFDF9);
+          background: var(--home-page-bg, #F5F6F8);
           padding: 16px 16px 0;
           margin: 0;
         }
@@ -4912,7 +5086,7 @@ const HomePage = ({
           margin: 20px 0 0;
           padding: 0;
           border: none;
-          border-top: 0.5px solid #EDEAE3;
+          border-top: 1px solid var(--home-card-border, #E8EBED);
         }
         .home-gate-active .home-hot-instructors-divider {
           border-top-color: rgba(255, 255, 255, 0.12);
@@ -4962,8 +5136,8 @@ const HomePage = ({
           max-width: 140px;
           height: 180px;
           display: block;
-          border: 0.5px solid #EDEAE3;
-          border-radius: 10px;
+          border: 1px solid var(--home-card-border, #E8EBED);
+          border-radius: 12px;
           background: #FFFFFF;
           overflow: hidden;
           padding: 0;
@@ -5922,7 +6096,7 @@ const HomePage = ({
               padding: 16,
               boxSizing: 'border-box',
             }}
-            onClick={() => setShowVenueLessonPick(false)}
+            onClick={closeVenueLessonPick}
           >
             <motion.div
               initial={{ y: 40 }}
@@ -5952,11 +6126,11 @@ const HomePage = ({
                 }}
               >
                 <h2 style={{ margin: 0, fontSize: 17, fontWeight: 900, color: '#1E293B' }}>
-                  {isEn ? 'BAR class registration' : '업체 수업 등록'}
+                  {isEn ? 'BAR class registration' : 'BAR 수업 등록'}
                 </h2>
                 <button
                   type="button"
-                  onClick={() => setShowVenueLessonPick(false)}
+                  onClick={closeVenueLessonPick}
                   aria-label={isEn ? 'Close' : '닫기'}
                   style={{ border: 'none', background: 'none', padding: 4, cursor: 'pointer', color: '#64748B' }}
                 >
