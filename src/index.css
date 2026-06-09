@@ -2361,15 +2361,6 @@ body.party-register-open .bottom-nav {
   opacity: 0 !important;
 }
 
-/* BAR 상세: 스크롤 다운 시에만 네비 숨김 (z-index는 항상 모달 아래) */
-body.venue-detail-open.venue-detail-nav-hidden nav.bottom-nav,
-body.venue-detail-open.venue-detail-nav-hidden .bottom-nav {
-  opacity: 0 !important;
-  visibility: hidden !important;
-  pointer-events: none !important;
-  transform: translateX(-50%) translateY(120px) !important;
-}
-
 /* 메인 탭 — 마운트 유지·즉시 전환 */
 .bchata-tab-panels {
   position: relative;
@@ -3485,37 +3476,230 @@ body.bottom-nav-social-light nav.bottom-nav {
 
 /* BAR 상세(사장님 공간) — Pretendard 기반 타이포·색 계층 */
 .venue-detail-modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: calc(72px + env(safe-area-inset-bottom, 0px));
+  display: flex;
+  justify-content: center;
+  background: #fffbfa;
   font-family: Pretendard, -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
 }
 
-.venue-detail-modal .vd-header-eyebrow {
+.venue-detail-modal__frame {
+  width: 100%;
+  max-width: min(100%, var(--bchata-app-width));
+  height: 100%;
+  min-height: 0;
+  overflow: hidden;
+}
+
+@media (min-width: 520px) {
+  .venue-detail-modal {
+    background: rgba(15, 23, 42, 0.42);
+  }
+
+  .venue-detail-modal__frame {
+    box-shadow: 0 0 48px rgba(15, 23, 42, 0.2);
+  }
+}
+
+.venue-detail-modal .vd-schedule-row {
+  display: flex;
+  gap: 12px;
+  overflow-x: auto;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.venue-detail-modal .vd-schedule-row::-webkit-scrollbar {
+  display: none;
+}
+
+.venue-detail-modal .vd-schedule-thumb {
+  flex-shrink: 0;
+  padding: 5px;
+  border-radius: 12px;
+  border: 1px solid #f1f5f9;
+  background: #fff;
+  cursor: pointer;
+}
+
+.venue-detail-modal .vd-schedule-thumb[data-selected='true'] {
+  border: 2px solid #d4436e;
+  padding: 4px;
+}
+
+.venue-detail-modal .vd-schedule-thumb__img,
+.venue-detail-modal .vd-schedule-thumb__placeholder {
+  width: 96px;
+  height: 134px;
+  border-radius: 10px;
+  display: block;
+}
+
+.venue-detail-modal .vd-schedule-thumb__img {
+  object-fit: cover;
+}
+
+.venue-detail-modal .vd-schedule-thumb__placeholder {
+  background: #f1f5f9;
+}
+
+.venue-detail-modal .vd-schedule-thumb__date {
   font-size: 11px;
-  font-weight: 600;
-  letter-spacing: 0.04em;
+  font-weight: 800;
   color: #64748b;
-  margin: 0 0 2px;
+  display: block;
+  margin-top: 6px;
+  text-align: center;
 }
 
 .venue-detail-modal .vd-header-name {
   margin: 0;
-  font-size: 18px;
+  font-size: 19px;
   font-weight: 700;
   letter-spacing: -0.03em;
   color: #0f172a;
   line-height: 1.25;
 }
 
-.venue-detail-modal .vd-header-address {
-  margin: 3px 0 0;
+.venue-detail-modal .vd-header-address-line {
+  display: flex;
+  align-items: flex-start;
+  gap: 4px;
+  width: 100%;
+  margin: 5px 0 0;
+  padding: 0;
+  border: none;
+  background: none;
   font-size: 12px;
   font-weight: 500;
   color: #64748b;
-  line-height: 1.4;
+  line-height: 1.45;
+  text-align: left;
+  cursor: pointer;
+  font-family: inherit;
+}
+
+.venue-detail-modal .vd-header-address-line span {
+  flex: 1;
+  min-width: 0;
+}
+
+.venue-detail-modal .vd-header-chips {
+  display: flex;
+  gap: 5px;
+  margin-top: 10px;
+  padding: 3px;
+  border-radius: 10px;
+  background: rgba(212, 67, 110, 0.07);
+}
+
+.venue-detail-modal .vd-header-chip {
+  flex: 1;
+  min-width: 0;
+  padding: 7px 2px;
+  border-radius: 8px;
+  border: none;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  cursor: pointer;
+  font-family: inherit;
+  background: transparent;
+  color: #64748b;
+  line-height: 1.2;
+}
+
+.venue-detail-modal .vd-header-chip[data-active='true'] {
+  background: #fff;
+  color: #c2185b;
+  box-shadow: 0 1px 4px rgba(212, 67, 110, 0.14);
+}
+
+.venue-detail-modal .vd-header-chip[data-kind='action'] {
+  background: linear-gradient(180deg, #fffbfb 0%, #fff0f5 100%);
+  color: #c2185b;
+  box-shadow: inset 0 0 0 1px rgba(216, 27, 96, 0.12);
+}
+
+.venue-detail-modal .vd-featured-card {
+  border-radius: 16px;
   overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  background: #fff;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.06);
+  border: 1px solid rgba(216, 27, 96, 0.12);
+}
+
+.venue-detail-modal .vd-featured-card__poster {
+  position: relative;
+  display: block;
+  width: 100%;
+  padding: 0;
+  border: none;
+  background: #1a1a2e;
+}
+
+.venue-detail-modal .vd-featured-card__poster-img {
+  width: 100%;
+  max-height: min(68vw, 340px);
+  aspect-ratio: 3 / 4;
+  object-fit: cover;
+  object-position: center top;
+  display: block;
+}
+
+.venue-detail-modal .vd-featured-card__poster-empty {
+  width: 100%;
+  aspect-ratio: 3 / 4;
+  max-height: min(68vw, 340px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #94a3b8;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.venue-detail-modal .vd-featured-card__poster-hint {
+  position: absolute;
+  left: 10px;
+  right: 10px;
+  bottom: 10px;
+  padding: 5px 0;
+  border-radius: 8px;
+  background: rgba(0, 0, 0, 0.45);
+  color: #fff;
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.02em;
+  text-align: center;
+}
+
+.venue-detail-modal .vd-featured-card__body {
+  padding: 16px 16px 14px;
+}
+
+.venue-detail-modal .vd-featured-card__footer {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 10px;
+  margin-top: 12px;
+}
+
+.venue-detail-modal .vd-week-section {
+  margin-top: 24px;
+  margin-bottom: 4px;
+}
+
+.venue-detail-modal .vd-week-section__title {
+  margin: 0 0 10px;
+  font-size: 14px;
 }
 
 .venue-detail-modal .vd-cal-toolbar {

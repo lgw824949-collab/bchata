@@ -5,16 +5,7 @@ import { X, MapPin, MessageCircle, Globe, Plus, ChevronLeft, Loader2 } from 'luc
 import { supabase } from '../lib/supabase';
 import { findBarByName } from '../lib/BarLib';
 import { dedupeVenueList } from '../lib/venueDedupe';
-import gangturnPhoto from '../assets/gangturn_photo.png';
-import ggomaeyaPhoto from '../assets/ggomaeya_photo.jpg';
-import noriterPhoto from '../assets/noriter_photo.png';
-import latinPhoto from '../assets/latin_photo.png';
-import macondoPhoto from '../assets/macondo_photo.png';
-import bonitaPhoto from '../assets/bonita_photo.png';
-import buenaPhoto from '../assets/buena_photo.png';
-import hongturnPhoto from '../assets/hongturn_photo.png';
-import havanaPhoto from '../assets/havana_photo.png';
-import bibigoPhoto from '../assets/bibigo_photo.png';
+import { resolveBarVenuePhoto } from '../lib/barVenuePhotos';
 
 const REGIONS_ORDER = [
   '서울',
@@ -92,33 +83,12 @@ export default function RentalModal({ onClose }) {
 
         const nameKey = `${loc.name || ''}`.replace(/\s+/g, '').toLowerCase();
         const isGangturn = nameKey.includes('강남턴') || nameKey.includes('강턴');
-        const isGgomaeya = nameKey.includes('꼼애야');
-        const isNoriter = nameKey.includes('놀이터');
-        const isLatin = nameKey === '라틴';
-        const isMacondo = nameKey.includes('마콘도');
-        const isBonita = nameKey.includes('보니따');
-        const isBuena = nameKey.includes('부에나') && !nameKey.includes('비스타');
-        const isHongturn = nameKey.includes('홍턴');
-        const isHavana = nameKey.includes('하바나') || nameKey.includes('havana');
-        const isBibigo = nameKey.includes('비비고');
 
-        let finalImg = loc.image_url;
-        if (isGangturn) finalImg = gangturnPhoto;
-        else if (isGgomaeya) finalImg = ggomaeyaPhoto;
-        else if (isNoriter) finalImg = noriterPhoto;
-        else if (isLatin) finalImg = latinPhoto;
-        else if (isMacondo) finalImg = macondoPhoto;
-        else if (isBonita) finalImg = bonitaPhoto;
-        else if (isBuena) finalImg = buenaPhoto;
-        else if (isHongturn) finalImg = hongturnPhoto;
-        else if (isHavana) finalImg = havanaPhoto;
-        else if (isBibigo) finalImg = bibigoPhoto;
-
-        return { 
-          ...loc, 
-          region, 
-          image_url: finalImg,
-          instagram_url: isGangturn ? 'https://www.instagram.com/turn_latinclub_no.1?igsh=MW94ajh3OHZ3NDZ6bg%3D%3D' : loc.instagram_url
+        return {
+          ...loc,
+          region,
+          image_url: resolveBarVenuePhoto(loc.name, loc.image_url),
+          instagram_url: isGangturn ? 'https://www.instagram.com/turn_latinclub_no.1?igsh=MW94ajh3OHZ3NDZ6bg%3D%3D' : loc.instagram_url,
         };
       });
 

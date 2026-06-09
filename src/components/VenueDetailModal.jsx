@@ -1,7 +1,7 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Z } from '../constants/zLayers';
-import { X, ChevronLeft, ChevronRight, ChevronDown, Clock, MessageCircle, Globe, Loader2 } from 'lucide-react';
+import { X, ChevronLeft, ChevronRight, ChevronDown, Clock, MapPin } from 'lucide-react';
 import { findBarByName } from '../lib/BarLib';
 import { getDevTestLessons } from '../data/devTestLessons';
 import { lessonMatchesVenue, partyMatchesVenue } from '../lib/partyVenueMatch';
@@ -11,18 +11,7 @@ import { useBarStatsRealtime } from '../hooks/useBarStatsRealtime';
 import { formatPartyMusicRatio } from '../pages/Social';
 import PartyFeeChips from './PartyFeeChips';
 import { formatPartyTitleDisplay, PARTY_TITLE_CARD_FONT_SIZE } from '../lib/partyTitleDisplay';
-import {
-  hasOptionalLocationColumns,
-  isMissingLocationsColumnError,
-  mergeVenueWithLocalExtras,
-  mergeVenueWithStoredExtras,
-  omitOptionalLocationFields,
-  pickOptionalLocationFields,
-  resetOptionalColumnsCache,
-  writeVenueLocalExtras,
-} from '../lib/venueLocalExtras';
-import { persistVenueOptionalFields } from '../lib/locationExtrasQuery';
-import { normalizeKakaoContactInput, openKakaoContact } from '../lib/kakaoContact';
+import { mergeVenueWithLocalExtras, resetOptionalColumnsCache } from '../lib/venueLocalExtras';
 import { lessonPublisherBadge } from '../lib/lessonPublisher';
 
 export { partyMatchesVenue } from '../lib/partyVenueMatch';
@@ -62,7 +51,7 @@ const VD_GENRE_PILL = {
 };
 
 const vdSectionLabel = (dateLabel, suffix) => (
-  <p className="vd-section-label" style={{ margin: '0 0 8px' }}>
+  <p className="vd-section-label" style={{ margin: '0 0 12px' }}>
     <span className="vd-section-label__date">{dateLabel}</span>
     <span className="vd-section-label__sep"> · </span>
     <span className="vd-section-label__text">{suffix}</span>
@@ -179,7 +168,6 @@ const VenueAvatar = ({ venue, size = 40 }) => (
 );
 
 const VENUE_DETAIL_BODY_CLASS = 'venue-detail-open';
-const VENUE_DETAIL_NAV_HIDDEN_CLASS = 'venue-detail-nav-hidden';
 
 const GenreRatioPill = ({ tagLabel, item }) => {
   const ratio = formatPartyMusicRatio(item);
@@ -292,7 +280,7 @@ const getFeaturedCardSubtitle = (party, isLesson, venueDesc) => {
   return null;
 };
 
-/** 홈 소셜 카드와 같은 톤 — 세로 포스터는 좌측 고정폭 + cover (레터박스 없음) */
+/** 세로형 히어로 카드 — 포스터 크게, 정보는 아래 */
 const FeaturedPartyCard = ({
   party,
   onOpenPoster,
@@ -317,134 +305,54 @@ const FeaturedPartyCard = ({
     : getGenreLabel(party);
 
   return (
-    <motion.div
-      layout
-      style={{
-        display: 'flex',
-        flexDirection: 'row',
-        alignItems: 'stretch',
-        height: 162,
-        borderRadius: 16,
-        overflow: 'hidden',
-        border: `1px solid ${VD.borderAccent}`,
-        boxShadow: VD.shadowCard,
-        background: '#fff',
-      }}
-    >
+    <motion.div layout className="vd-featured-card">
       <button
         type="button"
+        className="vd-featured-card__poster"
         onClick={(e) => {
           e.stopPropagation();
           onOpenPoster?.(party);
         }}
         aria-label="포스터 크게 보기"
-        style={{
-          position: 'relative',
-          width: 118,
-          flexShrink: 0,
-          padding: 0,
-          border: 'none',
-          background: '#1a1a2e',
-          cursor: party.poster_url ? 'pointer' : 'default',
-        }}
+        style={{ cursor: party.poster_url ? 'pointer' : 'default' }}
       >
         {party.poster_url ? (
-          <img
-            src={party.poster_url}
-            alt=""
-            style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'center top', display: 'block' }}
-          />
+          <img src={party.poster_url} alt="" className="vd-featured-card__poster-img" />
         ) : (
-          <div
-            style={{
-              width: '100%',
-              height: '100%',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              color: '#94A3B8',
-              fontSize: 11,
-              fontWeight: 700,
-            }}
-          >
-            포스터
-          </div>
+          <div className="vd-featured-card__poster-empty">포스터</div>
         )}
-        {party.poster_url && (
-          <span
-            style={{
-              position: 'absolute',
-              left: 6,
-              right: 6,
-              bottom: 6,
-              padding: '4px 0',
-              borderRadius: 6,
-              background: 'rgba(0,0,0,0.45)',
-              color: '#fff',
-              fontSize: 9,
-              fontWeight: 800,
-              letterSpacing: 0.2,
-            }}
-          >
-            탭 · 크게 보기
-          </span>
-        )}
+        {party.poster_url ? <span className="vd-featured-card__poster-hint">탭 · 크게 보기</span> : null}
       </button>
 
-      <div
-        style={{
-          flex: 1,
-          minWidth: 0,
-          padding: '14px 16px 12px',
-          display: 'flex',
-          flexDirection: 'column',
-          justifyContent: 'space-between',
-          background: VD.bgCard,
-        }}
-      >
-        <div>
-          <GenreRatioPill tagLabel={tagLabel} item={party} />
-          <div className="vd-card-title-row">
-            <h3 className="vd-card-title">{title}</h3>
-            {dateBadge ? (
-              <span className="vd-date-badge" data-tone={dateBadge.tone}>
-                {dateBadge.label}
-              </span>
-            ) : null}
-          </div>
-          {metaTags.length > 0 ? (
-            <div className="vd-card-tags" role="list">
-              {metaTags.map((t) => (
-                <span key={t.key} className="vd-card-tag" data-kind={t.key} role="listitem">
-                  {t.label}
-                </span>
-              ))}
-            </div>
+      <div className="vd-featured-card__body">
+        <GenreRatioPill tagLabel={tagLabel} item={party} />
+        <div className="vd-card-title-row">
+          <h3 className="vd-card-title">{title}</h3>
+          {dateBadge ? (
+            <span className="vd-date-badge" data-tone={dateBadge.tone}>
+              {dateBadge.label}
+            </span>
           ) : null}
-          {subtitle ? <p className="vd-card-subtitle">{subtitle}</p> : null}
         </div>
-
-        <div
-          style={{
-            display: 'flex',
-            alignItems: 'flex-end',
-            justifyContent: 'space-between',
-            gap: 10,
-            marginTop: 8,
-          }}
-        >
-          <div style={{ flex: 1, minWidth: 0 }}>
-            <div className="vd-card-footer-meta">
-              <span className="vd-card-time">
-                <Clock size={14} color={VD.meta} style={{ flexShrink: 0 }} />
-                <span style={{ fontVariantNumeric: 'tabular-nums' }}>{time}</span>
+        {metaTags.length > 0 ? (
+          <div className="vd-card-tags" role="list">
+            {metaTags.map((t) => (
+              <span key={t.key} className="vd-card-tag" data-kind={t.key} role="listitem">
+                {t.label}
               </span>
-              <PartyFeeChips fee={party.fee} style={{ flex: 1, minWidth: 0 }} />
-            </div>
+            ))}
           </div>
-          {!isLesson ? (
-            <PartyLiveHybridBadge liveCount={liveCount} clickCount={clickCount} />
-          ) : null}
+        ) : null}
+        {subtitle ? <p className="vd-card-subtitle">{subtitle}</p> : null}
+        <div className="vd-featured-card__footer">
+          <div className="vd-card-footer-meta">
+            <span className="vd-card-time">
+              <Clock size={14} color={VD.meta} style={{ flexShrink: 0 }} />
+              <span style={{ fontVariantNumeric: 'tabular-nums' }}>{time}</span>
+            </span>
+            <PartyFeeChips fee={party.fee} style={{ flex: 1, minWidth: 0 }} />
+          </div>
+          {!isLesson ? <PartyLiveHybridBadge liveCount={liveCount} clickCount={clickCount} /> : null}
         </div>
       </div>
     </motion.div>
@@ -539,6 +447,18 @@ const formatLessonShortDate = (dateStr) => {
   return `${d.getMonth() + 1}/${d.getDate()}`;
 };
 
+const formatLessonDateWithDow = (dateStr) => {
+  if (!dateStr) return '';
+  const d = parseDateParts(dateStr);
+  return `${d.getMonth() + 1}/${d.getDate()}(${DAYS_KOR[d.getDay()]})`;
+};
+
+const addDaysToDateStr = (dateStr, days) => {
+  const d = parseDateParts(dateStr);
+  d.setDate(d.getDate() + days);
+  return formatDateParts(d);
+};
+
 const lessonToCardItem = (lesson, todayStr) => {
   const g = String(lesson.genre || '');
   const nextOccurrenceDate = getNextLessonOccurrence(lesson, todayStr);
@@ -555,48 +475,53 @@ const lessonToCardItem = (lesson, todayStr) => {
   };
 };
 
-const VenueModeTabs = ({ mode, onChange }) => (
-  <div
-    style={{
-      display: 'flex',
-      gap: 6,
-      marginTop: 8,
-      padding: 3,
-      borderRadius: 10,
-      background: 'rgba(212, 67, 110, 0.08)',
-      border: `1px solid ${VD.borderAccent}`,
-    }}
-  >
-    {[
-      { id: 'social', label: '소셜' },
-      { id: 'lesson', label: '수업' },
-    ].map(({ id, label }) => {
-      const active = mode === id;
-      return (
-        <button
-          key={id}
-          type="button"
-          onClick={() => onChange(id)}
-          style={{
-            flex: 1,
-            padding: '6px 10px',
-            borderRadius: 8,
-            border: 'none',
-            fontSize: 13,
-            fontWeight: active ? 700 : 600,
-            letterSpacing: '-0.02em',
-            cursor: 'pointer',
-            background: active ? '#fff' : 'transparent',
-            color: active ? VD.brandSoft : VD.muted,
-            boxShadow: active ? '0 1px 4px rgba(212, 67, 110, 0.15)' : 'none',
-          }}
-        >
-          {label}
-        </button>
-      );
-    })}
-  </div>
-);
+const normalizeInstagramUrl = (raw) => {
+  const v = String(raw || '').trim();
+  if (!v) return '';
+  return /^https?:\/\//i.test(v) ? v : `https://${v}`;
+};
+
+const VenueHeaderChips = ({ mode, onModeChange, instagramUrl }) => {
+  const openRental = () => {
+    const href = normalizeInstagramUrl(instagramUrl);
+    if (!href) {
+      alert('인스타그램 링크가 아직 등록되지 않았습니다.');
+      return;
+    }
+    window.open(href, '_blank', 'noopener,noreferrer');
+  };
+
+  const chips = [
+    { id: 'social', label: '소셜', kind: 'tab' },
+    { id: 'lesson', label: '수업', kind: 'tab' },
+    { id: 'rental', label: '대관', kind: 'action' },
+  ];
+
+  return (
+    <div className="vd-header-chips">
+      {chips.map(({ id, label, kind }) => {
+        const isTab = kind === 'tab';
+        const active = isTab && mode === id;
+        const onClick = () => {
+          if (kind === 'tab') onModeChange(id);
+          else openRental();
+        };
+        return (
+          <button
+            key={id}
+            type="button"
+            className="vd-header-chip"
+            data-active={active ? 'true' : undefined}
+            data-kind={kind}
+            onClick={onClick}
+          >
+            {label}
+          </button>
+        );
+      })}
+    </div>
+  );
+};
 
 export default function VenueDetailModal({
   venue,
@@ -613,15 +538,9 @@ export default function VenueDetailModal({
     return { year: y, month: m };
   });
   const [selectedDate, setSelectedDate] = useState(todayStr);
-  const [calendarExpanded, setCalendarExpanded] = useState(true);
-  const [navHidden, setNavHidden] = useState(false);
+  const [calendarExpanded, setCalendarExpanded] = useState(false);
   const scrollRef = useRef(null);
-  const lastScrollTopRef = useRef(0);
-  const [showLinkRegister, setShowLinkRegister] = useState(false);
-  const [linkForm, setLinkForm] = useState({ kakao_url: '', instagram_url: '' });
   const [venueDescription, setVenueDescription] = useState('');
-  const [savingLinks, setSavingLinks] = useState(false);
-  const [savingDescription, setSavingDescription] = useState(false);
   const [detailTab, setDetailTab] = useState('social');
   const [fetchedLessons, setFetchedLessons] = useState([]);
   const [venueFavorited, setVenueFavorited] = useState(false);
@@ -629,24 +548,15 @@ export default function VenueDetailModal({
 
   const displayVenue = useMemo(() => mergeVenueWithLocalExtras(venue), [venue]);
 
-  const hasBothVenueLinks = Boolean(
-    displayVenue?.kakao_url?.trim() && displayVenue?.instagram_url?.trim()
-  );
-
   useEffect(() => {
     resetOptionalColumnsCache();
   }, [venue?.id]);
 
   useEffect(() => {
     const merged = mergeVenueWithLocalExtras(venue);
-    setLinkForm({
-      kakao_url: merged?.kakao_url || '',
-      instagram_url: merged?.instagram_url || '',
-    });
     setVenueDescription((merged?.description || '').slice(0, VENUE_DESC_MAX));
-    setShowLinkRegister(false);
     setDetailTab('social');
-  }, [venue?.id, venue?.name, venue?.kakao_url, venue?.instagram_url, venue?.description]);
+  }, [venue?.id, venue?.name, venue?.description]);
 
   const [lessonsRefreshKey, setLessonsRefreshKey] = useState(0);
 
@@ -654,10 +564,6 @@ export default function VenueDetailModal({
     const onRefresh = () => setLessonsRefreshKey((k) => k + 1);
     window.addEventListener('bchata-lessons-refresh', onRefresh);
     return () => window.removeEventListener('bchata-lessons-refresh', onRefresh);
-  }, []);
-
-  const handleDetailTabChange = useCallback((tab) => {
-    setDetailTab(tab);
   }, []);
 
   useEffect(() => {
@@ -729,19 +635,7 @@ export default function VenueDetailModal({
 
   const venueLessonsForDisplay = useMemo(() => venueLessons, [venueLessons]);
 
-  const pickInitialSelectedDate = useCallback(() => {
-    if (isSocialTab) {
-      const future = venueParties.find((p) => normDate(p.date) >= todayStr);
-      if (future) return normDate(future.date);
-      return todayStr;
-    }
-    const dates = [...venueLessonsForDisplay.flatMap((l) => [...collectLessonCalendarDates(l, todayStr, 8)])]
-      .filter((d) => d >= todayStr)
-      .sort();
-    const future = dates[0];
-    if (future) return future;
-    return todayStr;
-  }, [isSocialTab, venueParties, venueLessonsForDisplay, todayStr]);
+  const pickInitialSelectedDate = useCallback(() => todayStr, [todayStr]);
 
   const activeItems = isSocialTab ? venueParties : venueLessonsForDisplay;
 
@@ -785,37 +679,12 @@ export default function VenueDetailModal({
     setCalendarMonth({ year: y, month: m });
   }, [venue?.id, venue?.name, detailTab, pickInitialSelectedDate]);
 
-  const setDetailNavHidden = useCallback((hidden) => {
-    setNavHidden(hidden);
-    document.body.classList.toggle(VENUE_DETAIL_NAV_HIDDEN_CLASS, hidden);
-  }, []);
-
   useEffect(() => {
     document.body.classList.add(VENUE_DETAIL_BODY_CLASS);
-    setDetailNavHidden(false);
-    lastScrollTopRef.current = 0;
     return () => {
       document.body.classList.remove(VENUE_DETAIL_BODY_CLASS);
-      document.body.classList.remove(VENUE_DETAIL_NAV_HIDDEN_CLASS);
     };
-  }, [setDetailNavHidden]);
-
-  const handleBodyScroll = useCallback(
-    (e) => {
-      const el = e.currentTarget;
-      const scrollTop = el.scrollTop;
-      const delta = scrollTop - lastScrollTopRef.current;
-      lastScrollTopRef.current = scrollTop;
-
-      if (scrollTop <= 40) {
-        setDetailNavHidden(false);
-        return;
-      }
-      if (delta > 10) setDetailNavHidden(true);
-      else if (delta < -10) setDetailNavHidden(false);
-    },
-    [setDetailNavHidden]
-  );
+  }, []);
 
   const dayItems = useMemo(() => {
     if (isSocialTab) return activeItems.filter((p) => normDate(p.date) === selectedDate);
@@ -861,9 +730,25 @@ export default function VenueDetailModal({
       .map(([date, party]) => ({ date, party }));
   }, [activeItems, isSocialTab, venueLessonsForDisplay, todayStr]);
 
+  const weekEndStr = useMemo(() => addDaysToDateStr(todayStr, 6), [todayStr]);
+
+  const weekSchedulePosters = useMemo(
+    () => schedulePosters.filter(({ date }) => date >= todayStr && date <= weekEndStr),
+    [schedulePosters, todayStr, weekEndStr],
+  );
+
   const master = findBarByName(venue?.name);
   const displayName = venue?.name || master?.name || '제휴 BAR';
   const displayAddress = venue?.address || master?.address || '';
+
+  const openVenueMap = useCallback(() => {
+    if (!displayAddress) return;
+    window.open(
+      `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(displayAddress)}`,
+      '_blank',
+      'noopener,noreferrer',
+    );
+  }, [displayAddress]);
 
   const calendarDays = useMemo(() => {
     const { year, month } = calendarMonth;
@@ -880,122 +765,6 @@ export default function VenueDetailModal({
     return days;
   }, [calendarMonth, todayYear, todayMonth, todayDay]);
 
-  const openKakao = () => {
-    if (!displayVenue?.kakao_url?.trim()) {
-      alert('카카오톡 문의 링크 또는 ID가 아직 등록되지 않았습니다.');
-      return;
-    }
-    openKakaoContact(displayVenue.kakao_url);
-  };
-
-  const openInsta = () => {
-    if (!displayVenue?.instagram_url?.trim()) {
-      alert('인스타그램 링크가 아직 등록되지 않았습니다.');
-      return;
-    }
-    window.open(displayVenue.instagram_url, '_blank');
-  };
-
-  const persistVenuePatch = async (patch) => {
-    const optional = pickOptionalLocationFields(patch);
-    const corePatch = omitOptionalLocationFields(patch);
-
-    if (Object.keys(optional).length) {
-      writeVenueLocalExtras(venue, optional);
-    }
-
-    let extrasRow = null;
-    try {
-      const saved = await persistVenueOptionalFields(supabase, venue, patch);
-      extrasRow = saved?.extrasRow ?? null;
-    } catch (err) {
-      console.warn('[VenueDetailModal] location_extras save:', err);
-    }
-
-    const tryDbUpdate = async (payload) => {
-      if (!supabase || !Object.keys(payload).length) return null;
-      if (isPersistedVenueId(venue?.id)) {
-        const { data, error } = await supabase.from('locations').update(payload).eq('id', venue.id).select().single();
-        if (error) throw error;
-        return data;
-      }
-      const masterBar = findBarByName(venue?.name);
-      const { data, error } = await supabase
-        .from('locations')
-        .insert([
-          {
-            name: venue?.name || masterBar?.name,
-            address: venue?.address || masterBar?.address || '',
-            ...payload,
-          },
-        ])
-        .select()
-        .single();
-      if (error) throw error;
-      return data;
-    };
-
-    const finish = (data) => {
-      const base = mergeVenueWithStoredExtras({ ...venue, ...(data || {}), ...optional }, extrasRow);
-      onVenueUpdated?.(mergeVenueWithLocalExtras(base));
-    };
-
-    const useDbOptional = await hasOptionalLocationColumns(supabase);
-    const dbPayload = { ...corePatch, ...(useDbOptional ? optional : {}) };
-
-    if (!Object.keys(dbPayload).length) {
-      finish(null);
-      return;
-    }
-
-    try {
-      finish(await tryDbUpdate(dbPayload));
-    } catch (err) {
-      if (!isMissingLocationsColumnError(err)) throw err;
-      resetOptionalColumnsCache();
-      finish(await tryDbUpdate(corePatch));
-    }
-  };
-
-  const saveVenueDescription = async () => {
-    const text = venueDescription.trim().slice(0, VENUE_DESC_MAX);
-    setSavingDescription(true);
-    try {
-      await persistVenuePatch({ description: text || null });
-      alert('상세 설명이 저장되었습니다.');
-    } catch (err) {
-      console.error(err);
-      alert(`저장에 실패했습니다: ${err.message}`);
-    } finally {
-      setSavingDescription(false);
-    }
-  };
-
-  const saveVenueLinks = async (e) => {
-    e.preventDefault();
-    const kakao = normalizeKakaoContactInput(linkForm.kakao_url);
-    const insta = linkForm.instagram_url.trim();
-    if (!kakao && !insta) {
-      alert('카카오톡 또는 인스타그램 링크를 입력해 주세요.');
-      return;
-    }
-
-    setSavingLinks(true);
-    try {
-      const patch = {};
-      if (kakao) patch.kakao_url = kakao;
-      if (insta) patch.instagram_url = insta;
-      await persistVenuePatch(patch);
-      alert('연락처가 저장되었습니다.');
-      setShowLinkRegister(false);
-    } catch (err) {
-      console.error(err);
-      alert(`저장에 실패했습니다: ${err.message}`);
-    } finally {
-      setSavingLinks(false);
-    }
-  };
-
   return (
     <AnimatePresence>
       <motion.div
@@ -1003,18 +772,19 @@ export default function VenueDetailModal({
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
-        style={{
-          position: 'fixed',
-          inset: 0,
-          zIndex: Z.modalBackdrop,
-          background: VD.bgPage,
-          display: 'flex',
-          flexDirection: 'column',
-          fontFamily: VD.font,
-          paddingTop: 'env(safe-area-inset-top)',
-          paddingBottom: 'env(safe-area-inset-bottom)',
-        }}
+        style={{ zIndex: Z.modalBackdrop }}
       >
+        <div
+          className="venue-detail-modal__frame"
+          style={{
+            display: 'flex',
+            flexDirection: 'column',
+            fontFamily: VD.font,
+            background: VD.bgPage,
+            paddingTop: 'env(safe-area-inset-top)',
+            paddingBottom: 'env(safe-area-inset-bottom)',
+          }}
+        >
         {/* 헤더 */}
         <div
           style={{
@@ -1057,10 +827,18 @@ export default function VenueDetailModal({
           >
             <VenueAvatar venue={venue} size={40} />
             <div style={{ minWidth: 0, textAlign: 'left' }}>
-              <div className="vd-header-eyebrow">{isSocialTab ? '오늘의 플로어' : '오늘의 수업'}</div>
               <h1 className="vd-header-name">{displayName}</h1>
-              {displayAddress && <p className="vd-header-address">{displayAddress}</p>}
-              <VenueModeTabs mode={detailTab} onChange={setDetailTab} />
+              {displayAddress ? (
+                <button type="button" className="vd-header-address-line" onClick={openVenueMap}>
+                  <MapPin size={13} strokeWidth={2.2} aria-hidden />
+                  <span>{displayAddress}</span>
+                </button>
+              ) : null}
+              <VenueHeaderChips
+                mode={detailTab}
+                onModeChange={setDetailTab}
+                instagramUrl={displayVenue?.instagram_url}
+              />
             </div>
           </div>
           <button
@@ -1113,13 +891,21 @@ export default function VenueDetailModal({
         ) : null}
 
         {/* 상단: 달력 (펼치기/접기) */}
-        <div className="vd-cal-wrap" style={{ flexShrink: 0, padding: '12px 16px 10px', borderBottom: `1px solid ${VD.border}`, background: VD.bgCalendar }}>
+        <div
+          className="vd-cal-wrap"
+          style={{
+            flexShrink: 0,
+            padding: calendarExpanded ? '12px 16px 10px' : '8px 16px',
+            borderBottom: `1px solid ${VD.border}`,
+            background: VD.bgCalendar,
+          }}
+        >
           <div className="vd-cal-toolbar">
             <div className="vd-cal-toolbar__left">
               <span className="vd-cal-month">{calendarMonth.month}월</span>
               {!calendarExpanded ? (
                 <span className="vd-cal-collapsed-date">
-                  {formatLessonShortDate(selectedDate)}
+                  {formatLessonDateWithDow(selectedDate)}
                   {datesWithEvents.has(selectedDate) ? <span className="vd-cal-collapsed-dot" aria-hidden /> : null}
                 </span>
               ) : null}
@@ -1202,19 +988,15 @@ export default function VenueDetailModal({
           </AnimatePresence>
         </div>
 
-        {/* 본문: 카드 → 다른 행사 → SNS (한 스크롤) */}
+        {/* 본문: 이 날의 파티 → 이번 주 일정 */}
         <motion.div
           ref={scrollRef}
-          onScroll={handleBodyScroll}
           style={{
             flex: 1,
             minHeight: 0,
             overflowY: 'auto',
             WebkitOverflowScrolling: 'touch',
-            padding: navHidden
-              ? '16px 16px max(20px, env(safe-area-inset-bottom))'
-              : '16px 16px max(100px, calc(88px + env(safe-area-inset-bottom)))',
-            transition: 'padding-bottom 0.25s ease',
+            padding: '20px 16px max(24px, env(safe-area-inset-bottom))',
             background: VD.bgPage,
           }}
         >
@@ -1236,70 +1018,6 @@ export default function VenueDetailModal({
               { margin: '4px 0 10px' },
             )
           )}
-
-          <div
-            style={{
-              marginTop: 10,
-              marginBottom: 12,
-              padding: 10,
-              borderRadius: 10,
-              border: `1px solid ${VD.border}`,
-              background: '#fff',
-            }}
-          >
-            <div
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'space-between',
-                gap: 8,
-                marginBottom: 8,
-              }}
-            >
-              <span style={{ fontSize: 13, fontWeight: 800, color: VD.title }}>BAR 소개</span>
-              {vdChip('소개만')}
-            </div>
-            <textarea
-              value={venueDescription}
-              onChange={(e) => setVenueDescription(e.target.value.slice(0, VENUE_DESC_MAX))}
-              rows={2}
-              maxLength={VENUE_DESC_MAX}
-              placeholder="BAR 한 줄 소개"
-              aria-label="BAR 소개"
-              style={{
-                width: '100%',
-                padding: '8px 10px',
-                borderRadius: 8,
-                border: `1px solid ${VD.border}`,
-                fontSize: 12,
-                lineHeight: 1.45,
-                color: VD.body,
-                resize: 'none',
-                boxSizing: 'border-box',
-                fontFamily: 'inherit',
-              }}
-            />
-            <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: 8 }}>
-              <button
-                type="button"
-                onClick={saveVenueDescription}
-                disabled={savingDescription}
-                style={{
-                  padding: '6px 12px',
-                  borderRadius: 8,
-                  border: `1px solid ${VD.borderAccent}`,
-                  background: '#fff',
-                  color: VD.brandSoft,
-                  fontWeight: 800,
-                  fontSize: 11,
-                  cursor: savingDescription ? 'not-allowed' : 'pointer',
-                  opacity: savingDescription ? 0.7 : 1,
-                }}
-              >
-                {savingDescription ? '저장…' : '저장'}
-              </button>
-            </div>
-          </div>
 
           {featuredItem && dayItems.length > 1 && (
             <div style={{ marginTop: 12, marginBottom: 4 }}>
@@ -1350,40 +1068,32 @@ export default function VenueDetailModal({
             </div>
           )}
 
-          {(isSocialTab ? schedulePosters.length > 0 : true) && (
-            <div style={{ marginBottom: 12 }}>
-              <p className="vd-block-title" style={{ margin: '0 0 6px', fontSize: 13 }}>
-                {isSocialTab ? '행사 일정' : '수업 일정'}
+          {(isSocialTab ? weekSchedulePosters.length > 0 : true) && (
+            <div className="vd-week-section">
+              <p className="vd-block-title vd-week-section__title">
+                {isSocialTab ? '이번 주' : '수업 일정'}
               </p>
-              {schedulePosters.length === 0 ? (
-                vdHintBox(isSocialTab ? '일정 없음' : '일정 없음 · 상단 등록')
+              {!isSocialTab && weekSchedulePosters.length === 0 ? (
+                vdHintBox('일정 없음 · 상단 등록')
               ) : (
-              <div style={{ display: 'flex', gap: 10, overflowX: 'auto', scrollbarWidth: 'none' }}>
-                {schedulePosters.map(({ date, party: p }) => (
+                <div className="vd-schedule-row">
+                  {weekSchedulePosters.map(({ date, party: p }) => (
                     <button
                       key={`${p.id}-${date}`}
                       type="button"
+                      className="vd-schedule-thumb"
+                      data-selected={selectedDate === date ? 'true' : undefined}
                       onClick={() => setSelectedDate(date)}
-                      style={{
-                        flexShrink: 0,
-                        padding: 4,
-                        borderRadius: 10,
-                        border: selectedDate === date ? `2px solid ${VD.brand}` : `1px solid ${VD.border}`,
-                        background: '#fff',
-                        cursor: 'pointer',
-                      }}
                     >
                       {p.poster_url ? (
-                        <img src={p.poster_url} alt="" style={{ width: 64, height: 88, objectFit: "cover", borderRadius: 8, display: "block" }} />
+                        <img src={p.poster_url} alt="" className="vd-schedule-thumb__img" />
                       ) : (
-                        <div style={{ width: 64, height: 88, background: "#F1F5F9", borderRadius: 8 }} />
+                        <div className="vd-schedule-thumb__placeholder" />
                       )}
-                      <span style={{ fontSize: 10, fontWeight: 800, color: VD.muted, display: 'block', marginTop: 4, textAlign: 'center' }}>
-                        {formatLessonShortDate(date)}
-                      </span>
+                      <span className="vd-schedule-thumb__date">{formatLessonShortDate(date)}</span>
                     </button>
-                ))}
-              </div>
+                  ))}
+                </div>
               )}
               {import.meta.env.DEV && !isSocialTab && venueLessonsForDisplay.some((l) => String(l.id).startsWith('dev-lesson-')) && (
                 <p style={{ margin: '8px 0 0', fontSize: 10, color: VD.faint, fontWeight: 600 }}>
@@ -1392,144 +1102,9 @@ export default function VenueDetailModal({
               )}
             </div>
           )}
-
-          <div style={{ display: 'flex', gap: '10px', paddingTop: 4 }}>
-            <button
-              type="button"
-              onClick={openKakao}
-              style={{
-                flex: 1,
-                padding: '12px',
-                borderRadius: 12,
-                border: 'none',
-                background: '#FEE500',
-                color: '#3C1E1E',
-                fontWeight: 800,
-                fontSize: '13px',
-                cursor: 'pointer',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                gap: 6,
-              }}
-            >
-              <MessageCircle size={18} />
-              대관문의
-            </button>
-            <button
-              type="button"
-              onClick={openInsta}
-              style={{
-                flex: 1,
-                padding: '12px',
-                borderRadius: 12,
-                border: `1px solid ${VD.borderAccent}`,
-                background: '#fff',
-                color: VD.brand,
-                fontWeight: 800,
-                fontSize: '13px',
-                cursor: 'pointer',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                gap: 6,
-              }}
-            >
-              <Globe size={18} color={VD.brand} />
-              BAR 구경하기
-            </button>
-          </div>
-
-          <div style={{ marginTop: 20, paddingTop: 16, borderTop: '1px solid #F1F5F9' }}>
-            <button
-              type="button"
-              onClick={() => setShowLinkRegister((v) => !v)}
-              style={{
-                width: '100%',
-                padding: '10px 12px',
-                borderRadius: 12,
-                border: '1px dashed #CBD5E1',
-                background: '#F8FAFC',
-                color: '#475569',
-                fontSize: 13,
-                fontWeight: 800,
-                cursor: 'pointer',
-              }}
-            >
-              {showLinkRegister
-                ? '연락처 수정 닫기'
-                : hasBothVenueLinks
-                  ? '카카오 · 인스타 수정하기'
-                  : '카카오 · 인스타 등록하기'}
-            </button>
-
-            {showLinkRegister && (
-              <form onSubmit={saveVenueLinks} style={{ marginTop: 12, display: 'flex', flexDirection: 'column', gap: 10 }}>
-                <div>
-                  <label style={{ display: 'block', fontSize: 11, fontWeight: 800, color: '#64748B', marginBottom: 4 }}>
-                    카카오톡 링크 또는 ID
-                  </label>
-                  <input
-                    type="text"
-                    value={linkForm.kakao_url}
-                    onChange={(e) => setLinkForm((f) => ({ ...f, kakao_url: e.target.value }))}
-                    placeholder="https://open.kakao.com/o/... 또는 카톡 ID"
-                    style={{
-                      width: '100%',
-                      padding: 12,
-                      borderRadius: 12,
-                      border: '1px solid #E2E8F0',
-                      fontSize: 13,
-                      boxSizing: 'border-box',
-                    }}
-                  />
-                </div>
-                <div>
-                  <label style={{ display: 'block', fontSize: 11, fontWeight: 800, color: '#64748B', marginBottom: 4 }}>
-                    인스타그램 링크
-                  </label>
-                  <input
-                    type="url"
-                    value={linkForm.instagram_url}
-                    onChange={(e) => setLinkForm((f) => ({ ...f, instagram_url: e.target.value }))}
-                    placeholder="https://instagram.com/..."
-                    style={{
-                      width: '100%',
-                      padding: 12,
-                      borderRadius: 12,
-                      border: '1px solid #E2E8F0',
-                      fontSize: 13,
-                      boxSizing: 'border-box',
-                    }}
-                  />
-                </div>
-                <button
-                  type="submit"
-                  disabled={savingLinks}
-                  style={{
-                    width: '100%',
-                    padding: 12,
-                    borderRadius: 12,
-                    border: 'none',
-                    background: '#E53935',
-                    color: '#fff',
-                    fontWeight: 900,
-                    fontSize: 14,
-                    cursor: savingLinks ? 'not-allowed' : 'pointer',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    gap: 8,
-                    opacity: savingLinks ? 0.7 : 1,
-                  }}
-                >
-                  {savingLinks ? <Loader2 size={16} className="animate-spin" /> : '저장하기'}
-                </button>
-              </form>
-            )}
-          </div>
         </motion.div>
 
+        </div>
       </motion.div>
     </AnimatePresence>
   );

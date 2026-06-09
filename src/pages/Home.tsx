@@ -26,16 +26,7 @@ import PartyCard from '../components/PartyCard'
 import PostLesson from './PostLesson'
 import { Z } from '../constants/zLayers'
 import { DEFAULT_AVATAR_IMAGE, DEFAULT_CARD_IMAGE, imgFallbackHandler } from '../constants/imageAssets'
-import gangturnPhoto from '../assets/gangturn_photo.png'
-import ggomaeyaPhoto from '../assets/ggomaeya_photo.jpg'
-import noriterPhoto from '../assets/noriter_photo.png'
-import latinPhoto from '../assets/latin_photo.png'
-import macondoPhoto from '../assets/macondo_photo.png'
-import bonitaPhoto from '../assets/bonita_photo.png'
-import buenaPhoto from '../assets/buena_photo.png'
-import hongturnPhoto from '../assets/hongturn_photo.png'
-import havanaPhoto from '../assets/havana_photo.png'
-import bibigoPhoto from '../assets/bibigo_photo.png'
+import { applyBarVenuePhotosToList, resolveBarVenuePhoto } from '../lib/barVenuePhotos'
 import {
   PartyMusicRatioLine,
   SocialPartyRegionFilterBar,
@@ -363,6 +354,28 @@ const sortSeoulSocialBars = (bars) =>
     return (a.name || '').localeCompare(b.name || '', 'ko');
   });
 
+/** 경인 탭 — 우선 노출 순서 */
+const GYEONGIN_SOCIAL_BAR_ORDER = [
+  { match: (key) => key.includes('엘마르') || key.includes('elmar') || key === '엘마' },
+  { match: (key) => key.includes('카디즈') || key.includes('cadiz') },
+];
+
+const getGyeonginSocialBarSortRank = (bar) => {
+  const key = normalizeVenueNameKey(bar?.name || '');
+  const priorityIdx = GYEONGIN_SOCIAL_BAR_ORDER.findIndex((rule) => rule.match(key));
+  if (priorityIdx >= 0) return priorityIdx;
+  const sortOrder = Number(bar?.sort_order);
+  if (Number.isFinite(sortOrder)) return 100 + sortOrder;
+  return 1000;
+};
+
+const sortGyeonginSocialBars = (bars) =>
+  [...bars].sort((a, b) => {
+    const diff = getGyeonginSocialBarSortRank(a) - getGyeonginSocialBarSortRank(b);
+    if (diff !== 0) return diff;
+    return (a.name || '').localeCompare(b.name || '', 'ko');
+  });
+
 const pickNearestSocialBarRegion = (lat, lng) => {
   const la = Number(lat);
   const ln = Number(lng);
@@ -446,32 +459,11 @@ const classifyVenueLocation = (loc) => {
 
   const nameKey = normalizeVenueNameKey(loc.name);
   const isGangturn = nameKey.includes('강남턴') || nameKey === '강턴';
-  const isGgomaeya = nameKey.includes('꼼애야');
-  const isNoriter = nameKey.includes('놀이터');
-  const isLatin = nameKey === '라틴';
-  const isMacondo = nameKey.includes('마콘도');
-  const isBonita = nameKey.includes('보니따');
-  const isBuena = nameKey.includes('부에나') && !nameKey.includes('비스타');
-  const isHongturn = nameKey.includes('홍턴');
-  const isHavana = nameKey.includes('하바나') || nameKey.includes('havana');
-  const isBibigo = nameKey.includes('비비고');
-
-  let finalImg = loc.image_url;
-  if (isGangturn) finalImg = gangturnPhoto;
-  else if (isGgomaeya) finalImg = ggomaeyaPhoto;
-  else if (isNoriter) finalImg = noriterPhoto;
-  else if (isLatin) finalImg = latinPhoto;
-  else if (isMacondo) finalImg = macondoPhoto;
-  else if (isBonita) finalImg = bonitaPhoto;
-  else if (isBuena) finalImg = buenaPhoto;
-  else if (isHongturn) finalImg = hongturnPhoto;
-  else if (isHavana) finalImg = havanaPhoto;
-  else if (isBibigo) finalImg = bibigoPhoto;
 
   return {
     ...loc,
     region,
-    image_url: finalImg,
+    image_url: resolveBarVenuePhoto(loc.name, loc.image_url),
     instagram_url: isGangturn ? 'https://www.instagram.com/turn_latinclub_no.1?igsh=MW94ajh3OHZ3NDZ6bg%3D%3D' : loc.instagram_url
   };
 };
@@ -2295,6 +2287,12 @@ const HomePage = ({
         const nonSeoul = classified.filter((b) => b.region !== '서울');
         classified = [...nonSeoul, ...sortedSeoul];
       }
+      const gyeonginBars = classified.filter((b) => b.region === '경인');
+      if (gyeonginBars.length > 0) {
+        const sortedGyeongin = sortGyeonginSocialBars(gyeonginBars);
+        const nonGyeongin = classified.filter((b) => b.region !== '경인');
+        classified = [...nonGyeongin, ...sortedGyeongin];
+      }
       let extrasMap = { byId: {}, byName: {} };
       if (supabase) {
         try {
@@ -2303,7 +2301,7 @@ const HomePage = ({
           console.warn('[Home.fetchLocations] location_extras:', err);
         }
       }
-      setLocations(applyStoredExtrasToVenueList(classified, extrasMap));
+      setLocations(applyBarVenuePhotosToList(applyStoredExtrasToVenueList(classified, extrasMap)));
     } catch (err) {
       console.error('Supabase Error:', err);
       console.error('[Home.fetchLocations] BAR 목록 로드 실패 — 로컬 마스터 데이터로 대체:', err);
@@ -2315,7 +2313,7 @@ const HomePage = ({
           /* ignore */
         }
       }
-      setLocations(applyStoredExtrasToVenueList(buildVenueListFromDatabase(), extrasMap));
+      setLocations(applyBarVenuePhotosToList(applyStoredExtrasToVenueList(buildVenueListFromDatabase(), extrasMap)));
     } finally {
       setLocationsLoading(false);
     }
@@ -2341,6 +2339,7 @@ const HomePage = ({
         if (aNear !== bNear) return aNear - bNear;
         if (a.region === nearRegion && b.region === nearRegion) {
           if (nearRegion === '서울') return getSeoulSocialBarSortRank(a) - getSeoulSocialBarSortRank(b);
+          if (nearRegion === '경인') return getGyeonginSocialBarSortRank(a) - getGyeonginSocialBarSortRank(b);
           return scoreBarForPreview(b) - scoreBarForPreview(a);
         }
         return (a.name || '').localeCompare(b.name || '', 'ko');
@@ -2348,6 +2347,7 @@ const HomePage = ({
       return list;
     }
     if (regionTab === '서울') return sortSeoulSocialBars(list);
+    if (regionTab === '경인') return sortGyeonginSocialBars(list);
     return sortBarsByRichness(list);
   };
 
@@ -2549,6 +2549,7 @@ const HomePage = ({
   const renderBarCard = (bar) => {
     const barName = bar.name || '이름 없음';
     const isMyGeoRegion = geoRegionTab && bar.region === geoRegionTab;
+    const chipPhoto = resolveBarVenuePhoto(bar.name, bar.image_url);
 
     return (
       <motion.button
@@ -2562,11 +2563,11 @@ const HomePage = ({
         <span
           className={`home-bar-thumb${isMyGeoRegion ? ' home-bar-thumb--my-region' : ''}`}
         >
-          {bar.image_url ? (
+          {chipPhoto ? (
             <img
-              src={bar.image_url}
+              src={chipPhoto}
               alt=""
-              onError={imgFallbackHandler(DEFAULT_CARD_IMAGE)}
+              onError={imgFallbackHandler('/logo.png')}
             />
           ) : (
             <img
