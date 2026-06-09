@@ -2977,6 +2977,82 @@ body.bottom-nav-social-light nav.bottom-nav {
   animation: home-today-social-banner-in 0.4s ease-out;
 }
 
+.home-today-social-banner__card--summary-only {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  min-height: 48px;
+  padding: 10px 12px;
+  border: none;
+  cursor: pointer;
+  text-align: left;
+  box-sizing: border-box;
+}
+
+.home-today-social-banner__inline {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  flex-wrap: nowrap;
+  gap: 0;
+  overflow-x: auto;
+  overflow-y: hidden;
+  white-space: nowrap;
+  scrollbar-width: none;
+  -webkit-overflow-scrolling: touch;
+}
+
+.home-today-social-banner__inline::-webkit-scrollbar {
+  display: none;
+}
+
+.home-today-social-banner__label {
+  flex-shrink: 0;
+  font-size: clamp(12px, 3.4vw, 14px);
+  font-weight: 900;
+  color: #1e293b;
+}
+
+.home-today-social-banner--gate .home-today-social-banner__label {
+  color: #f8fafc;
+}
+
+.home-today-social-banner__sep {
+  flex-shrink: 0;
+  margin: 0 6px;
+  font-size: 12px;
+  font-weight: 700;
+  color: #94a3b8;
+}
+
+.home-today-social-banner__nation,
+.home-today-social-banner__region {
+  flex-shrink: 0;
+  font-size: clamp(12px, 3.4vw, 14px);
+  font-weight: 800;
+  color: #475569;
+}
+
+.home-today-social-banner--gate .home-today-social-banner__nation,
+.home-today-social-banner--gate .home-today-social-banner__region {
+  color: #e2e8f0;
+}
+
+.home-today-social-banner__nation strong,
+.home-today-social-banner__region strong {
+  color: #e53935;
+  font-weight: 950;
+}
+
+.home-today-social-banner__empty-inline {
+  margin-left: 6px;
+  font-size: 12px;
+  font-weight: 600;
+  color: #94a3b8;
+}
+
 .home-today-social-banner--gate .home-today-social-banner__card {
   background: linear-gradient(135deg, #1a1412 0%, #221a18 55%, #1a1412 100%);
   border-color: rgba(229, 57, 53, 0.22);
