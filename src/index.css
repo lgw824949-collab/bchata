@@ -2961,6 +2961,206 @@ body.bottom-nav-social-light nav.bottom-nav {
   font-variant-numeric: tabular-nums;
 }
 
+/* 홈 · 소셜 탭 — 포스터 기준 오늘/내일 배너 카드 */
+.home-today-social-banner {
+  width: 100%;
+}
+
+.home-today-social-banner__card {
+  width: 100%;
+  min-height: 52px;
+  border-radius: 16px;
+  overflow: hidden;
+  background: linear-gradient(135deg, #fff 0%, #fff8f6 55%, #fff5f0 100%);
+  border: 1px solid rgba(229, 57, 53, 0.14);
+  box-shadow: 0 8px 24px rgba(229, 57, 53, 0.08);
+  animation: home-today-social-banner-in 0.4s ease-out;
+}
+
+.home-today-social-banner--gate .home-today-social-banner__card {
+  background: linear-gradient(135deg, #1a1412 0%, #221a18 55%, #1a1412 100%);
+  border-color: rgba(229, 57, 53, 0.22);
+  box-shadow: 0 8px 28px rgba(0, 0, 0, 0.35);
+}
+
+@keyframes home-today-social-banner-in {
+  from { opacity: 0; transform: translateY(4px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.home-today-social-banner__summary,
+.home-today-social-banner__featured,
+.home-today-social-banner__empty {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  min-height: 52px;
+  padding: 10px 12px;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  text-align: left;
+  box-sizing: border-box;
+}
+
+.home-today-social-banner__badge {
+  flex-shrink: 0;
+  min-width: 38px;
+  padding: 5px 8px;
+  border-radius: 10px;
+  font-size: 10px;
+  font-weight: 900;
+  letter-spacing: -0.2px;
+  text-align: center;
+  line-height: 1.2;
+}
+
+.home-today-social-banner__badge--today {
+  color: #fff;
+  background: linear-gradient(145deg, #ff1744, #e53935);
+  box-shadow: 0 4px 10px rgba(229, 57, 53, 0.25);
+}
+
+.home-today-social-banner__badge--tomorrow {
+  color: #7c2d12;
+  background: linear-gradient(145deg, #fde68a, #fcd34d);
+  box-shadow: 0 4px 10px rgba(245, 158, 11, 0.2);
+}
+
+.home-today-social-banner__summary-body {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.home-today-social-banner__headline {
+  font-size: clamp(13px, 3.6vw, 15px);
+  font-weight: 800;
+  color: #1e293b;
+  line-height: 1.25;
+}
+
+.home-today-social-banner--gate .home-today-social-banner__headline {
+  color: #f8fafc;
+}
+
+.home-today-social-banner__headline strong {
+  color: #e53935;
+  font-weight: 950;
+}
+
+.home-today-social-banner__regions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.home-today-social-banner__region-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  padding: 3px 8px;
+  border-radius: 999px;
+  font-size: 10px;
+  font-weight: 700;
+  color: #64748b;
+  background: rgba(255, 255, 255, 0.85);
+  border: 1px solid rgba(226, 232, 240, 0.9);
+}
+
+.home-today-social-banner--gate .home-today-social-banner__region-chip {
+  color: #cbd5e1;
+  background: rgba(255, 255, 255, 0.06);
+  border-color: rgba(255, 255, 255, 0.1);
+}
+
+.home-today-social-banner__region-chip strong {
+  color: #e53935;
+  font-weight: 900;
+}
+
+.home-today-social-banner__thumb {
+  width: 44px;
+  height: 58px;
+  flex-shrink: 0;
+  border-radius: 8px;
+  object-fit: cover;
+  object-position: top center;
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
+}
+
+.home-today-social-banner__featured-body {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.home-today-social-banner__region-tag {
+  font-size: 9px;
+  font-weight: 800;
+  color: #e53935;
+  letter-spacing: 0.02em;
+}
+
+.home-today-social-banner__venue {
+  font-size: 12px;
+  font-weight: 900;
+  color: #1e293b;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.home-today-social-banner--gate .home-today-social-banner__venue {
+  color: #f1f5f9;
+}
+
+.home-today-social-banner__party-title {
+  font-size: 11px;
+  font-weight: 600;
+  color: #64748b;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.home-today-social-banner--gate .home-today-social-banner__party-title {
+  color: #94a3b8;
+}
+
+.home-today-social-banner__empty {
+  justify-content: center;
+  font-size: 13px;
+  font-weight: 700;
+  color: #64748b;
+}
+
+.home-today-social-banner__dots {
+  display: flex;
+  justify-content: center;
+  gap: 5px;
+  margin-top: 8px;
+}
+
+.home-today-social-banner__dot {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: #cbd5e1;
+  transition: background 0.2s ease, transform 0.2s ease;
+}
+
+.home-today-social-banner__dot.is-active {
+  background: #e53935;
+  transform: scale(1.15);
+}
+
 .live-dynamic-banner__spotlight {
   color: #ffffff;
   font-size: clamp(12px, 3.6vw, 15px);
