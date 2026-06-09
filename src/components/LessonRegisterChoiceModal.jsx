@@ -7,7 +7,7 @@ const OPTIONS = [
   {
     id: 'venue-class',
     icon: Building2,
-    titleKo: 'BAR · 업체 수업 등록',
+    titleKo: 'BAR 수업 등록',
     titleEn: 'BAR / venue class',
     descKo: 'Social BAR → BAR 열기 → 수업 탭 → BAR 수업 등록',
     descEn: 'Social BAR → open BAR → Lesson tab → register',
@@ -87,7 +87,7 @@ export default function LessonRegisterChoiceModal({
         >
           <div>
             <h2 style={{ margin: 0, fontSize: 18, fontWeight: 900 }}>
-              {isEn ? 'BAR / venue registration' : '업체 · BAR 수업 등록'}
+              {isEn ? 'BAR class registration' : 'BAR 수업 등록'}
             </h2>
             <p style={{ margin: '6px 0 0', fontSize: 12, color: '#94A3B8', lineHeight: 1.45 }}>
               {isEn

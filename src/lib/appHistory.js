@@ -28,6 +28,8 @@ const NON_PERSISTED_OVERLAYS = new Set([
   'chatbot',
   'barRegister',
   'partyPoster',
+  'venueLessonPick',
+  'venueLessonPost',
 ]);
 
 /** F5·모바일 새로고침 복원용 — 모달은 닫힌 화면만 복원 */

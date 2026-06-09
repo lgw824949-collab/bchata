@@ -77,6 +77,8 @@
     <script>
       (function () {
         if (!('serviceWorker' in navigator)) return;
+        var host = location.hostname;
+        if (host === 'localhost' || host === '127.0.0.1') return;
         var v = 'bchata-sw-purge-v16';
         var already = false;
         try {
@@ -95,15 +97,38 @@
       })();
     </script>
     <div id="root"></div>
+    <script>
+      window.addEventListener('vite:preloadError', function () {
+        window.location.reload();
+      });
+      window.addEventListener('error', function (e) {
+        var t = e.target;
+        if (t && t.tagName === 'SCRIPT' && t.src && t.src.indexOf('/node_modules/.vite/deps/') !== -1) {
+          try {
+            var key = 'bchata:vite-deps-reload';
+            if (sessionStorage.getItem(key)) return;
+            sessionStorage.setItem(key, '1');
+          } catch (err) { /* ignore */ }
+          window.location.reload();
+        }
+      }, true);
+    </script>
     <script src="https://t1.daumcdn.net/mapjsapi/bundle/postcode/prod/postcode.v2.js"></script>
-    <script type="module" src="/src/main.jsx?v=20260526-havana-bar"></script>
+    <script type="module" src="/src/main.jsx?v=20260609-dev-deps"></script>
     <script>
       if ('serviceWorker' in navigator) {
-        window.addEventListener('load', function () {
-          navigator.serviceWorker.register('/sw.js', { updateViaCache: 'none' }).then(function (reg) {
-            return reg.update();
+        var host = location.hostname;
+        if (host !== 'localhost' && host !== '127.0.0.1') {
+          window.addEventListener('load', function () {
+            navigator.serviceWorker.register('/sw.js', { updateViaCache: 'none' }).then(function (reg) {
+              return reg.update();
+            });
           });
-        });
+        } else {
+          navigator.serviceWorker.getRegistrations().then(function (regs) {
+            return Promise.all(regs.map(function (r) { return r.unregister(); }));
+          });
+        }
       }
     </script>
   </body>

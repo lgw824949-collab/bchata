@@ -60,14 +60,139 @@ function mergeViteEnv(modeEnv, baseEnv, dotEnv) {
   }
 }
 
+const ADMIN_DB_ALLOWED_TABLES = new Set(['instructor_classes', 'instructors', 'festivals', 'bootcamps'])
+
+/** dev: .vite/deps 캐시 무효화·504 시 브라우저가 낡은 청크를 붙잡지 않게 (dev:hmr 전용) */
+function devDepsFreshPlugin() {
+  return {
+    name: 'dev-deps-fresh',
+    configureServer(server) {
+      server.middlewares.use((req, res, next) => {
+        if (req.url?.includes('/node_modules/.vite/deps/')) {
+          res.setHeader('Cache-Control', 'no-store, must-revalidate')
+        }
+        next()
+      })
+    },
+  }
+}
+
+/** 로컬 dev·preview에서 /api/admin-db (Vercel serverless 대체) */
+function adminDbDevPlugin(getServerEnv) {
+  const attach = (middlewares) => {
+    middlewares.use('/api/admin-db', (req, res, next) => {
+      if (req.method !== 'POST') return next()
+      const chunks = []
+      req.on('data', (chunk) => chunks.push(chunk))
+      req.on('end', async () => {
+        const send = (status, body) => {
+          res.statusCode = status
+          res.setHeader('Content-Type', 'application/json')
+          res.end(JSON.stringify(body))
+        }
+        try {
+          const env = getServerEnv()
+          const expectedSecret = env.ADMIN_API_SECRET
+          const raw = Buffer.concat(chunks).toString('utf8')
+          const body = raw ? JSON.parse(raw) : {}
+          const providedSecret = req.headers['x-admin-secret'] || body.adminSecret || ''
+          if (!expectedSecret || providedSecret !== expectedSecret) {
+            send(401, { error: 'Unauthorized' })
+            return
+          }
+          const url = pickNonempty(env.SUPABASE_URL, env.VITE_SUPABASE_URL)
+          const serviceKey = env.SUPABASE_SERVICE_ROLE_KEY
+          if (!url || !serviceKey) {
+            send(500, { error: 'Server missing SUPABASE_SERVICE_ROLE_KEY or SUPABASE_URL' })
+            return
+          }
+          const { table, action, id, payload } = body
+          if (!ADMIN_DB_ALLOWED_TABLES.has(table)) {
+            send(400, { error: 'Invalid table' })
+            return
+          }
+          if (!id) {
+            send(400, { error: 'Missing id' })
+            return
+          }
+          const { createClient } = await import('@supabase/supabase-js')
+          const supabase = createClient(url, serviceKey, {
+            auth: { persistSession: false, autoRefreshToken: false },
+          })
+          if (action === 'update') {
+            const { data, error } = await supabase
+              .from(table)
+              .update(payload || {})
+              .eq('id', id)
+              .select()
+              .maybeSingle()
+            if (error) {
+              send(400, { error: error.message })
+              return
+            }
+            if (!data) {
+              send(400, { error: 'No row updated' })
+              return
+            }
+            send(200, { data })
+            return
+          }
+          if (action === 'delete') {
+            const { data, error } = await supabase.from(table).delete().eq('id', id).select('id')
+            if (error) {
+              send(400, { error: error.message })
+              return
+            }
+            if (!data?.length) {
+              send(400, { error: 'No row deleted' })
+              return
+            }
+            send(200, { data })
+            return
+          }
+          send(400, { error: 'Invalid action' })
+        } catch (err) {
+          send(500, { error: err?.message || 'Server error' })
+        }
+      })
+    })
+  }
+  return {
+    name: 'admin-db-dev',
+    configureServer(server) {
+      attach(server.middlewares)
+    },
+    configurePreviewServer(server) {
+      attach(server.middlewares)
+    },
+  }
+}
+
 // https://vite.dev/config/
 export default defineConfig(({ mode }) => {
   const cwd = process.cwd()
   const dotEnv = parseEnvFile(path.join(cwd, '.env'))
+  const dotEnvLocal = parseEnvFile(path.join(cwd, '.env.local'))
   const env = mergeViteEnv(loadEnv(mode, cwd, ''), loadEnv('', cwd, ''), dotEnv)
+  const pickServer = (key) => pickNonempty(
+    process.env[key],
+    loadEnv(mode, cwd, '')[key],
+    dotEnvLocal[key],
+    dotEnv[key],
+  )
+  const localAdminSecret = pickServer('ADMIN_API_SECRET') || '^^dlwlsdn1052181818'
 
   return {
-    plugins: [react()],
+    plugins: [
+      react(),
+      devDepsFreshPlugin(),
+      adminDbDevPlugin(() => ({
+        ADMIN_API_SECRET: localAdminSecret,
+        SUPABASE_SERVICE_ROLE_KEY: pickServer('SUPABASE_SERVICE_ROLE_KEY'),
+        SUPABASE_URL: pickServer('SUPABASE_URL'),
+        VITE_SUPABASE_URL: env.VITE_SUPABASE_URL,
+      })),
+    ],
     build: {
       target: 'es2020',
       cssTarget: 'chrome80',
@@ -81,7 +206,6 @@ export default defineConfig(({ mode }) => {
       },
     },
     optimizeDeps: {
-      force: true,
       entries: ['src/main.jsx'],
       include: [
         'react',
@@ -92,6 +216,7 @@ export default defineConfig(({ mode }) => {
         'framer-motion',
         'lucide-react',
         'react-i18next',
+        'i18next',
       ],
     },
     resolve: {
@@ -108,6 +233,9 @@ export default defineConfig(({ mode }) => {
       host: true,
       port: LOCAL_DEV_PORT,
       strictPort: true,
+      warmup: {
+        clientFiles: ['./src/main.jsx', './src/App.jsx'],
+      },
       proxy: {
         '/kma-api': {
           target: 'http://apis.data.go.kr',

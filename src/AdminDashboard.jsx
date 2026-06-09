@@ -224,6 +224,12 @@ export default function AdminDashboard({ onBack }) {
     return { label: '승인대기', color: '#F59E0B', bg: '#FFFBEB' }
   }
 
+  const festivalEventTypeLabel = (eventType) => {
+    if (eventType === 'mt') return '🏕️ MT'
+    if (eventType === 'party') return '🎉 파티'
+    return '🎪 페스티벌'
+  }
+
   const buildInstructorUpdatePayload = (form, photoUrl) => {
     const genreRaw = form.genre
     const genre = Array.isArray(genreRaw)
@@ -250,6 +256,65 @@ export default function AdminDashboard({ onBack }) {
       photo_url: photoUrl || String(form.photo_url || '').trim() || null,
     }
   }
+
+  const normalizeEventDates = (form) => {
+    const out = { ...form }
+    ;['start_date', 'end_date', 'date'].forEach((k) => {
+      if (out[k] === '') out[k] = null
+    })
+    return out
+  }
+
+  const applyFestivalBarLocation = (form) => {
+    const out = { ...form }
+    if (!out.location) return out
+    const bar = findBarByName(out.location)
+    if (!bar) return out
+    out.location = bar.address ? `${bar.name} · ${bar.address}` : bar.name
+    const r = String(bar.region || '')
+    if (r.includes('서울')) out.region = '서울'
+    else if (r.includes('경기') || r.includes('인천')) out.region = '경인'
+    else if (r.includes('제주')) out.region = '제주'
+    else if (r.includes('강원')) out.region = '강원'
+    else if (r.includes('부산') || r.includes('경상') || r.includes('대구')) out.region = '부산/경남'
+    else if (r.includes('전라') || r.includes('광주')) out.region = '전라도'
+    else if (r.includes('충청') || r.includes('대전') || r.includes('세종')) out.region = '충청도'
+    return out
+  }
+
+  const buildFestivalUpdatePayload = (form) => ({
+    title: String(form.title || form.name || '').trim(),
+    organizer: String(form.organizer || '').trim() || null,
+    genre: String(form.genre || '').trim() || null,
+    start_date: form.start_date || null,
+    end_date: form.end_date || null,
+    region: String(form.region || '').trim() || null,
+    location: String(form.location || '').trim() || null,
+    price: String(form.price || '').trim() || null,
+    description: String(form.description || '').trim() || null,
+    poster_url: String(form.poster_url || '').trim() || null,
+    bank_info: String(form.bank_info || '').trim() || null,
+    event_type: form.event_type || 'festival',
+  })
+
+  const buildBootcampUpdatePayload = (form) => ({
+    title: String(form.title || form.name || '').trim(),
+    instructor: String(form.instructor || '').trim() || null,
+    type: form.type || 'domestic',
+    region: String(form.region || '').trim() || null,
+    country: String(form.country || '').trim() || null,
+    start_date: form.start_date || null,
+    end_date: form.end_date || null,
+    venue: String(form.venue || '').trim() || null,
+    fee: String(form.fee || '').trim() || null,
+    description: String(form.description || '').trim() || null,
+    poster_url: String(form.poster_url || '').trim() || null,
+    genre: String(form.genre || '').trim() || null,
+    level: String(form.level || '').trim() || null,
+    instagram: String(form.instagram || '').trim() || null,
+    youtube: String(form.youtube || '').trim() || null,
+    bank_info: String(form.bank_info || '').trim() || null,
+  })
 
   const [newRental, setNewRental] = useState({ name: '', address: '', kakao_url: '', instagram_url: '', image_url: '' })
   const [newRentalFile, setNewRentalFile] = useState(null)
@@ -306,7 +371,9 @@ export default function AdminDashboard({ onBack }) {
       setItems(data || [])
       clearAdminMessage()
     } catch (err) {
-      if (category === 'instructor') showAdminError(`목록 불러오기 실패: ${err.message || err}`)
+      if (category === 'instructor' || category === 'festival' || category === 'bootcamp') {
+        showAdminError(`목록 불러오기 실패: ${err.message || err}`)
+      }
     } finally { setLoading(false) }
   }
 
@@ -511,29 +578,36 @@ export default function AdminDashboard({ onBack }) {
           })
           if (classPosterError) throw classPosterError
         }
+      } else if (category === 'festival' || category === 'bootcamp') {
+        const mutateTable = category === 'bootcamp' ? 'bootcamps' : 'festivals'
+        let form = normalizeEventDates(editFormData)
+        if (category === 'festival') form = applyFestivalBarLocation(form)
+        const payload =
+          category === 'festival'
+            ? buildFestivalUpdatePayload(form)
+            : buildBootcampUpdatePayload(form)
+        if (!payload.title) {
+          showAdminError('제목을 입력해 주세요.')
+          return
+        }
+        const { data: updated, error } = await adminDbMutate({
+          adminSecret: adminApiSecret,
+          table: mutateTable,
+          action: 'update',
+          id: editingItem,
+          payload,
+        })
+        if (error) throw error
+        if (!updated) {
+          showAdminError('DB에 반영되지 않았습니다. Supabase SQL Editor에서 festivals/bootcamps RLS 마이그레이션을 실행해 주세요.')
+          return
+        }
+        setItems((prev) => prev.map((i) => (i.id === editingItem ? { ...i, ...updated } : i)))
       } else {
         const { locations, created_at, id, locationName, location_name, photo_url: _photo, instructors, ...updateData } = editFormData;
-        const finalUpdate = { ...updateData };
-        finalUpdate.poster_url = updateData.poster_url || _photo || '';
-        if (category === 'festival' && finalUpdate.location) {
-          const bar = findBarByName(finalUpdate.location);
-          if (bar) {
-            finalUpdate.location = bar.address
-              ? `${bar.name} · ${bar.address}`
-              : bar.name;
-            const r = String(bar.region || '');
-            if (r.includes('서울')) finalUpdate.region = '서울';
-            else if (r.includes('경기') || r.includes('인천')) finalUpdate.region = '경인';
-            else if (r.includes('제주')) finalUpdate.region = '제주';
-            else if (r.includes('강원')) finalUpdate.region = '강원';
-            else if (r.includes('부산') || r.includes('경상') || r.includes('대구')) finalUpdate.region = '부산/경남';
-            else if (r.includes('전라') || r.includes('광주')) finalUpdate.region = '전라도';
-            else if (r.includes('충청') || r.includes('대전') || r.includes('세종')) finalUpdate.region = '충청도';
-          }
-        }
-        // 빈 문자열 날짜 → null 변환 (DB date 타입 오류 방지)
-        ['start_date', 'end_date', 'date'].forEach(k => {
-          if (finalUpdate[k] === '') finalUpdate[k] = null;
+        const finalUpdate = normalizeEventDates({
+          ...updateData,
+          poster_url: updateData.poster_url || _photo || '',
         });
         const { error } = await supabase.from(table).update(finalUpdate).eq('id', editingItem);
         if (error) throw error;
@@ -989,7 +1063,7 @@ export default function AdminDashboard({ onBack }) {
             </form>
           </div>
         )}
-        {adminMessage && (category === 'instructor' || category === 'instructor-classes') && (
+        {adminMessage && category !== 'event' && (
           <div
             style={{
               marginBottom: '12px',
@@ -1136,7 +1210,7 @@ export default function AdminDashboard({ onBack }) {
                         <div>
                           <div style={{ fontSize: '11px', fontWeight: 800, color: '#475569', marginBottom: 6 }}>유형</div>
                           <div style={{ display: 'flex', gap: 8 }}>
-                            {[['festival','🎪 페스티벌'],['mt','🏕️ MT']].map(([val, label]) => (
+                            {[['festival','🎪 페스티벌'],['mt','🏕️ MT'],['party','🎉 파티']].map(([val, label]) => (
                               <button key={val} type="button" onClick={() => setEditFormData({ ...editFormData, event_type: val })}
                                 style={{ flex: 1, padding: '8px', borderRadius: 8, border: `1px solid ${editFormData.event_type === val ? '#C9A84C' : '#E2E8F0'}`, background: editFormData.event_type === val ? 'rgba(201,168,76,0.1)' : '#fff', color: editFormData.event_type === val ? '#B8860B' : '#64748B', fontWeight: 700, fontSize: 13, cursor: 'pointer' }}
                               >{label}</button>
@@ -1290,6 +1364,20 @@ export default function AdminDashboard({ onBack }) {
                       <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
                         <h3 style={{ fontSize: '16px', fontWeight: 900, color: '#1E293B' }}>📍 {item.bar_name || '장소미지정'} ({item.region})</h3>
                         <div style={{ fontSize: '14px', color: '#475569', lineHeight: '1.5', padding: '10px', background: '#F8FAFC', borderRadius: '8px' }}>{item.content}</div>
+                      </div>
+                    ) : category === 'festival' ? (
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
+                          <span style={{ fontSize: 12, fontWeight: 800, color: '#B8860B', background: 'rgba(201,168,76,0.12)', padding: '4px 10px', borderRadius: 999 }}>
+                            {festivalEventTypeLabel(item.event_type)}
+                          </span>
+                          <span style={{ fontSize: 12, fontWeight: 700, color: '#64748B' }}>{item.organizer || '주최 미입력'}</span>
+                        </div>
+                        <h3 style={{ fontSize: '16px', fontWeight: 900, color: '#1E293B', margin: 0 }}>{item.title}</h3>
+                        <div style={{ fontSize: '13px', color: '#7C3AED', fontWeight: 800 }}>🎵 {item.genre || '-'}</div>
+                        <div style={{ fontSize: '13px', color: '#64748B' }}>📍 {item.location || item.region || '-'}</div>
+                        <div style={{ fontSize: '13px', color: '#64748B' }}>📅 {item.start_date}{item.end_date && item.end_date !== item.start_date ? ` ~ ${item.end_date}` : ''}</div>
+                        {item.price ? <div style={{ fontSize: '13px', color: '#475569' }}>💰 {item.price}</div> : null}
                       </div>
                     ) : (
                       <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>

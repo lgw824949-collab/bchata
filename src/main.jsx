@@ -30,19 +30,40 @@ if (!rootEl) {
         </I18nextProvider>
       </StrictMode>,
     )
+    try {
+      sessionStorage.removeItem('bchata:boot-recover')
+      sessionStorage.removeItem('bchata:vite-deps-reload')
+    } catch { /* ignore */ }
   } catch (err) {
     console.error('[boot] render failed:', err)
     showBootError(err?.message || '알 수 없는 오류')
   }
 }
 
+function tryAutoRecoverBootError(message) {
+  const msg = String(message || '')
+  if (!msg.includes('Outdated Optimize Dep') && !msg.includes('useContext')) return false
+  try {
+    const key = 'bchata:boot-recover'
+    if (sessionStorage.getItem(key)) return false
+    sessionStorage.setItem(key, '1')
+    location.reload()
+    return true
+  } catch {
+    return false
+  }
+}
+
 window.addEventListener('error', (e) => {
+  if (tryAutoRecoverBootError(e.message)) return
   if (rootEl && !rootEl.childElementCount) {
     showBootError(e.message || '스크립트 오류')
   }
 })
 window.addEventListener('unhandledrejection', (e) => {
+  const msg = e.reason?.message || String(e.reason || '로딩 실패')
+  if (tryAutoRecoverBootError(msg)) return
   if (rootEl && !rootEl.childElementCount) {
-    showBootError(e.reason?.message || String(e.reason || '로딩 실패'))
+    showBootError(msg)
   }
 })

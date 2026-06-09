@@ -169,27 +169,39 @@ const PosterModal = ({ src, onClose, shareTitle, shareDesc, shareLines, shareFee
     }
   };
 
-  const handleSave = async () => {
-    try {
-      const response = await fetch(src);
-      const blob = await response.blob();
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = 'poster.jpg';
-      a.click();
-      URL.revokeObjectURL(url);
-    } catch (err) {
-      console.error('Save failed:', err);
-      window.open(src, '_blank');
-    }
-  };
-
   const absoluteImageUrl = (() => {
     if (!src) return '';
     if (/^https?:\/\//i.test(src)) return src;
     return `${window.location.origin}${src.startsWith('/') ? '' : '/'}${src}`;
   })();
+
+  const handleSave = async () => {
+    const imageUrl = absoluteImageUrl || src;
+    try {
+      const response = await fetch(imageUrl);
+      if (!response.ok) throw new Error(`HTTP ${response.status}`);
+      const blob = await response.blob();
+      const ext = blob.type?.includes('png')
+        ? 'png'
+        : blob.type?.includes('webp')
+          ? 'webp'
+          : 'jpg';
+      const baseName = (resolvedTitle || 'poster')
+        .replace(/[^\w\uac00-\ud7a3.-]+/g, '_')
+        .slice(0, 48) || 'poster';
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `${baseName}.${ext}`;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      URL.revokeObjectURL(url);
+    } catch (err) {
+      console.error('Save failed:', err);
+      window.open(imageUrl, '_blank');
+    }
+  };
 
   const handleCopyLink = async () => {
     try {
@@ -307,15 +319,19 @@ const PosterModal = ({ src, onClose, shareTitle, shareDesc, shareLines, shareFee
         */}
         <button
           type="button"
-          onClick={handleKakaoShare}
-          title="카카오로 공유하기"
+          onClick={handleSave}
+          title="포스터 다운로드"
+          aria-label="포스터 다운로드"
           style={{
             position: 'absolute',
             left: '50%',
             transform: 'translateX(-50%)',
-            background: '#FEE500',
-            color: '#3E2723',
-            border: 'none',
+            display: 'inline-flex',
+            alignItems: 'center',
+            gap: '6px',
+            background: 'rgba(255, 255, 255, 0.14)',
+            color: '#fff',
+            border: '1px solid rgba(255, 255, 255, 0.28)',
             borderRadius: '20px',
             padding: '8px 14px',
             fontSize: '13px',
@@ -327,7 +343,8 @@ const PosterModal = ({ src, onClose, shareTitle, shareDesc, shareLines, shareFee
             textOverflow: 'ellipsis',
           }}
         >
-          💬 카카오로 공유하기
+          <Download size={16} strokeWidth={2.5} />
+          다운로드
         </button>
       </header>
 
@@ -2102,15 +2119,8 @@ function App() {
   };
 
   const goVenueLessonRegister = useCallback(() => {
-    navigateHomeTab('social');
-    window.setTimeout(() => {
-      alert(
-        i18n.language?.startsWith('en')
-          ? 'Open any BAR → Lesson tab → tap “BAR class register”.'
-          : 'Social BAR에서 BAR를 연 뒤 「수업」 탭 → 「BAR 수업 등록」을 눌러 주세요.',
-      );
-    }, 400);
-  }, [i18n.language]);
+    window.dispatchEvent(new CustomEvent('open-bar-lesson-register'));
+  }, []);
 
   const handleRegister = (type = 'party') => {
     if (type === 'party') {
@@ -3232,25 +3242,6 @@ function App() {
       ref={bottomNavRef}
       className="bottom-nav bottom-nav--social-light"
       aria-label="메인 메뉴"
-      style={{
-        background: '#FFFFFF',
-        border: '1px solid #E2E8F0',
-        boxShadow: '0 -4px 16px rgba(0, 0, 0, 0.06)',
-        backdropFilter: 'none',
-        WebkitBackdropFilter: 'none',
-        borderRadius: 0,
-        margin: 0,
-        width: '100%',
-        maxWidth: 'none',
-        left: 0,
-        right: 0,
-        bottom: 0,
-        transform: 'none',
-        paddingLeft: 0,
-        paddingRight: 0,
-        paddingBottom: 'env(safe-area-inset-bottom, 0px)',
-        boxSizing: 'border-box',
-      }}
     >
       <div 
         onClick={() => {

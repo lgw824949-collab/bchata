@@ -18,7 +18,8 @@ export async function adminDbMutate({ adminSecret, table, action, id, payload })
       if (res.ok && json.data != null) {
         return { data: json.data, error: null, via: 'api' };
       }
-      if (res.status !== 404 && res.status !== 502) {
+      // 로컬 미설정(401/500) · 엔드포인트 없음(404/502) → anon 클라이언트 폴백
+      if (![401, 404, 500, 502].includes(res.status)) {
         return {
           data: null,
           error: new Error(json.error || `Admin API failed (${res.status})`),
@@ -50,7 +51,7 @@ export async function adminDbMutate({ adminSecret, table, action, id, payload })
       return {
         data: null,
         error: new Error(
-          'DB에 반영되지 않았습니다. Supabase SQL Editor에서 instructor RLS 마이그레이션을 실행해 주세요.',
+          'DB에 반영되지 않았습니다. Supabase SQL Editor에서 RLS 마이그레이션(instructor / festivals / bootcamps)을 실행해 주세요.',
         ),
         via: 'client',
       };
@@ -65,7 +66,7 @@ export async function adminDbMutate({ adminSecret, table, action, id, payload })
       return {
         data: null,
         error: new Error(
-          '삭제되지 않았습니다. Supabase SQL Editor에서 instructor RLS 마이그레이션을 실행해 주세요.',
+          '삭제되지 않았습니다. Supabase SQL Editor에서 RLS 마이그레이션(instructor / festivals / bootcamps)을 실행해 주세요.',
         ),
         via: 'client',
       };
