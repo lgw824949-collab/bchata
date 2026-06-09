@@ -217,6 +217,22 @@ const SOCIAL_BAR_PEEK_VISIBLE = 3;
 const HOME_POSTER_BANNER_MS = 4000;
 
 const HOME_GATE_HOT_INSTRUCTORS_LIMIT = 5;
+const HOME_GATE_INSTRUCTOR_POOL_LIMIT = 24;
+
+/** 메인 첫 페인트 이후·유휴 시 실행 (모바일 초기 로딩 부담 완화) */
+const runWhenIdle = (fn, timeoutMs = 2500) => {
+  if (typeof window === 'undefined') return { kind: 'none' };
+  if (typeof window.requestIdleCallback === 'function') {
+    return { kind: 'idle', id: window.requestIdleCallback(fn, { timeout: timeoutMs }) };
+  }
+  return { kind: 'timeout', id: window.setTimeout(fn, 400) };
+};
+
+const cancelWhenIdle = (handle) => {
+  if (!handle || handle.kind === 'none' || typeof window === 'undefined') return;
+  if (handle.kind === 'idle') window.cancelIdleCallback(handle.id);
+  else window.clearTimeout(handle.id);
+};
 
 /** LIVE 배너 — 5초마다 업체 묶음만 순환 (요약은 항상 고정) */
 const LIVE_BANNER_SLIDE_MS = 5000;
@@ -2137,10 +2153,6 @@ const HomePage = ({
   const [kingMenuOpen, setKingMenuOpen] = useState(false);
   const [livePickUploadAt, setLivePickUploadAt] = useState(() => readLivePickUploadAt());
   const [barStatsMap, setBarStatsMap] = useState({});
-  const [homePosterBannerPartyRows, setHomePosterBannerPartyRows] = useState([]);
-  const [homePosterBannerBootcampRows, setHomePosterBannerBootcampRows] = useState([]);
-  const [homePosterBannerFestivalRows, setHomePosterBannerFestivalRows] = useState([]);
-  const [homePosterBannerIdx, setHomePosterBannerIdx] = useState(0);
   useEffect(() => {
     const syncLivePickUpload = () => setLivePickUploadAt(readLivePickUploadAt());
     window.addEventListener('storage', syncLivePickUpload);
@@ -2165,6 +2177,7 @@ const HomePage = ({
   // }, []);
 
   useEffect(() => {
+    let cancelled = false;
     const loadRegionalWeather = async () => {
       const weatherResults = {};
       await Promise.all(Object.entries(HOME_REGION_MAP).map(async ([homeName, kmaName]) => {
@@ -2177,9 +2190,13 @@ const HomePage = ({
           }
         }
       }));
-      setWeatherMap(weatherResults);
+      if (!cancelled) setWeatherMap(weatherResults);
     };
-    loadRegionalWeather();
+    const handle = runWhenIdle(() => { loadRegionalWeather(); }, 5000);
+    return () => {
+      cancelled = true;
+      cancelWhenIdle(handle);
+    };
   }, []);
 
   const carouselParties = useMemo(() => {
@@ -2569,7 +2586,8 @@ const HomePage = ({
   };
 
   useEffect(() => {
-    fetchLocations();
+    const handle = runWhenIdle(() => { fetchLocations(); }, 2000);
+    return () => cancelWhenIdle(handle);
   }, []);
 
   useEffect(() => {
@@ -2579,27 +2597,39 @@ const HomePage = ({
     }
 
     let cancelled = false;
-    (async () => {
+    const loadInstructors = async () => {
       setHotInstructorsLoading(true);
       try {
-        const { data: allActive, count, error } = await supabase
-          .from('instructors')
-          .select('id, name, genre, photo_url, created_at', { count: 'exact' })
-          .eq('status', 'active');
+        const [countRes, firstPhotoRes, poolRes] = await Promise.all([
+          supabase
+            .from('instructors')
+            .select('id', { count: 'exact', head: true })
+            .eq('status', 'active'),
+          supabase
+            .from('instructors')
+            .select('photo_url')
+            .eq('status', 'active')
+            .not('photo_url', 'is', null)
+            .order('created_at', { ascending: true })
+            .limit(1)
+            .maybeSingle(),
+          supabase
+            .from('instructors')
+            .select('id, name, genre, photo_url, created_at')
+            .eq('status', 'active')
+            .not('photo_url', 'is', null)
+            .order('created_at', { ascending: true })
+            .limit(HOME_GATE_INSTRUCTOR_POOL_LIMIT),
+        ]);
 
         if (!cancelled) {
-          const rows = error ? [] : (allActive || []);
-          const withPhoto = rows
-            .filter((row) => String(row.photo_url || '').trim())
-            .sort(
-              (a, b) => new Date(a.created_at || 0).getTime() - new Date(b.created_at || 0).getTime(),
-            );
-          const firstPhoto = withPhoto[0]?.photo_url || HOME_GATE_MAIN_MENU_PHOTO_URLS.instructors;
+          const withPhoto = poolRes.error ? [] : (poolRes.data || []);
+          const firstPhoto = firstPhotoRes.data?.photo_url || HOME_GATE_MAIN_MENU_PHOTO_URLS.instructors;
           setFirstInstructorPhotoUrl(firstPhoto);
           setHotInstructors(
             shuffleInstructorsByDay(withPhoto, calendarTodayStr).slice(0, HOME_GATE_HOT_INSTRUCTORS_LIMIT),
           );
-          setActiveInstructorMenuCount(error ? 0 : (count || rows.length || 0));
+          setActiveInstructorMenuCount(countRes.error ? 0 : (countRes.count || 0));
         }
       } catch {
         if (!cancelled) {
@@ -2610,10 +2640,12 @@ const HomePage = ({
       } finally {
         if (!cancelled) setHotInstructorsLoading(false);
       }
-    })();
+    };
 
+    const handle = runWhenIdle(() => { loadInstructors(); }, 1500);
     return () => {
       cancelled = true;
+      cancelWhenIdle(handle);
     };
   }, [activeTab, calendarTodayStr]);
 
@@ -2672,64 +2704,15 @@ const HomePage = ({
         }
       },
       () => {},
-      { enableHighAccuracy: true, timeout: 12000, maximumAge: 60 * 1000 },
+      { enableHighAccuracy: false, timeout: 8000, maximumAge: 5 * 60 * 1000 },
     );
   }, [locationsLoading, locations]);
-
-  const loadHomePosterBannerSlides = useCallback(async () => {
-    if (!supabase) return;
-    try {
-      const [partiesRes, bootcampsRes, festivalsRes] = await Promise.all([
-        supabase
-          .from('parties')
-          .select(
-            'id, title, date, created_at, poster_url, address, location_id, locations!location_id(name)',
-          )
-          .eq('status', 'approved')
-          .eq('date', calendarTodayStr)
-          .not('poster_url', 'is', null)
-          .order('created_at', { ascending: false }),
-        supabase
-          .from('bootcamps')
-          .select('*')
-          .eq('status', 'active')
-          .not('poster_url', 'is', null),
-        supabase
-          .from('festivals')
-          .select('*')
-          .eq('status', 'active')
-          .not('poster_url', 'is', null),
-      ]);
-
-      if (partiesRes.error) {
-        console.warn('[Home] poster banner parties:', partiesRes.error.message);
-        return;
-      }
-      if (bootcampsRes.error) {
-        console.warn('[Home] poster banner bootcamps:', bootcampsRes.error.message);
-      }
-      if (festivalsRes.error) {
-        console.warn('[Home] poster banner festivals:', festivalsRes.error.message);
-      }
-
-      setHomePosterBannerPartyRows(
-        (partiesRes.data || []).filter((p) => partyRowMatchesSlot(p, '소셜')),
-      );
-      setHomePosterBannerBootcampRows(bootcampsRes.data || []);
-      setHomePosterBannerFestivalRows(festivalsRes.data || []);
-    } catch (err) {
-      console.warn('[Home] poster banner failed:', err);
-    }
-  }, [calendarTodayStr]);
-
-  useEffect(() => {
-    loadHomePosterBannerSlides();
-  }, [loadHomePosterBannerSlides, parties, bootcamps, festivals]);
 
   useEffect(() => {
     if (!supabase) return undefined;
 
     let cancelled = false;
+    let channel = null;
     const loadBarStats = async () => {
       try {
         const map = await fetchBarStatsMap(supabase);
@@ -2739,20 +2722,23 @@ const HomePage = ({
       }
     };
 
-    loadBarStats();
-
-    const channel = supabase
-      .channel('home-bar-stats')
-      .on(
-        'postgres_changes',
-        { event: '*', schema: 'public', table: 'bar_checkins' },
-        loadBarStats,
-      )
-      .subscribe();
+    const handle = runWhenIdle(() => {
+      if (cancelled) return;
+      loadBarStats();
+      channel = supabase
+        .channel('home-bar-stats')
+        .on(
+          'postgres_changes',
+          { event: '*', schema: 'public', table: 'bar_checkins' },
+          loadBarStats,
+        )
+        .subscribe();
+    }, 3000);
 
     return () => {
       cancelled = true;
-      supabase.removeChannel(channel);
+      cancelWhenIdle(handle);
+      if (channel) supabase.removeChannel(channel);
     };
   }, []);
 
@@ -2814,11 +2800,12 @@ const HomePage = ({
           }
         },
         () => finishGeoTab(null),
-        { enableHighAccuracy: true, timeout: 12000, maximumAge: 60 * 1000 },
+        { enableHighAccuracy: false, timeout: 8000, maximumAge: 5 * 60 * 1000 },
       );
     };
 
-    runSocialBarGeolocation();
+    const handle = runWhenIdle(runSocialBarGeolocation, 2500);
+    return () => cancelWhenIdle(handle);
   }, [activeTab]);
 
   /** 하단 네비 탭 순서: 홈 → 파티(소셜) → 부트캠프 → 페스티벌 → 강사찾기 (마크업은 App.jsx nav) */
@@ -3212,7 +3199,8 @@ const HomePage = ({
               src={displayPhotoUrl}
               alt=""
               className="home-gate-photo-menu-card__img"
-              loading="lazy"
+              loading={item.id === 'festival-party' || item.id === 'today-party' ? 'eager' : 'lazy'}
+              fetchPriority={item.id === 'festival-party' ? 'high' : 'auto'}
               decoding="async"
               onError={imgFallbackHandler(DEFAULT_CARD_IMAGE)}
             />
@@ -3498,243 +3486,6 @@ const HomePage = ({
     );
   };
 
-  const homePosterBannerSlidesEffective = useMemo(() => {
-    const todayPartyRows = homePosterBannerPartyRows.length > 0
-      ? homePosterBannerPartyRows
-      : (parties || []).filter(
-          (p) =>
-            isApprovedParty(p)
-            && normDate(p.date) === calendarTodayStr
-            && partyRowMatchesSlot(p, '소셜'),
-        );
-    const bootcampRows = homePosterBannerBootcampRows.length > 0
-      ? homePosterBannerBootcampRows
-      : (bootcamps || []).filter(
-          (row) => row.status === 'active' && String(row.poster_url || '').trim(),
-        );
-    const festivalRows = homePosterBannerFestivalRows.length > 0
-      ? homePosterBannerFestivalRows
-      : (festivals || []).filter(
-          (row) => row.status === 'active' && String(row.poster_url || '').trim(),
-        );
-    return buildHomePosterBannerSlides(
-      todayPartyRows,
-      bootcampRows,
-      festivalRows,
-      calendarTodayStr,
-    );
-  }, [
-    homePosterBannerPartyRows,
-    homePosterBannerBootcampRows,
-    homePosterBannerFestivalRows,
-    parties,
-    bootcamps,
-    festivals,
-    calendarTodayStr,
-  ]);
-
-  useEffect(() => {
-    setHomePosterBannerIdx(0);
-  }, [homePosterBannerSlidesEffective]);
-
-  useEffect(() => {
-    if (homePosterBannerSlidesEffective.length < 2) return undefined;
-    const timer = setInterval(() => {
-      setHomePosterBannerIdx(
-        (idx) => (idx + 1) % homePosterBannerSlidesEffective.length,
-      );
-    }, HOME_POSTER_BANNER_MS);
-    return () => clearInterval(timer);
-  }, [homePosterBannerSlidesEffective.length]);
-
-  const openFestivalWithTab = useCallback((eventType = 'festival') => {
-    if (eventType && eventType !== 'festival') {
-      try {
-        sessionStorage.setItem(FESTIVAL_TAB_SESSION_KEY, eventType);
-      } catch {
-        /* ignore */
-      }
-    }
-    navigate('/festival', { homeTab: null });
-  }, [navigate]);
-
-  const handleHomePosterBannerClick = (slide) => {
-    if (slide?.kind === 'bootcamp') {
-      navigate('/bootcamp', { homeTab: null });
-      return;
-    }
-    if (slide?.kind === 'festival') {
-      openFestivalWithTab(slide.eventType || 'festival');
-      return;
-    }
-    if (slide?.party) openPartyWithAfterParty(slide.party);
-  };
-
-  const renderHomeRegionPosterBanner = () => {
-    if (!homePosterBannerSlidesEffective.length) return null;
-    const slide =
-      homePosterBannerSlidesEffective[homePosterBannerIdx] ||
-      homePosterBannerSlidesEffective[0];
-    const party = slide?.party;
-    const bootcamp = slide?.bootcamp;
-    const festival = slide?.festival;
-    const posterUrl = String(
-      party?.poster_url || bootcamp?.poster_url || festival?.poster_url || '',
-    ).trim();
-    if (!posterUrl) return null;
-    const regionLabel = isEn ? slide.regionLabelEn : slide.regionLabelKo;
-    const title = party
-      ? (formatPartyTitleDisplay(party?.title) || regionLabel)
-      : bootcamp
-        ? (bootcamp.instructor || bootcamp.title || regionLabel)
-        : (festival?.title || regionLabel);
-
-    return (
-      <motion.section
-        className={`home-region-poster-banner-standalone home-region-poster-banner-standalone--gate-stack${isHomeGate ? ' home-gate-section-box' : ''}`}
-        style={{ width: '100%', maxWidth: '100%', margin: '0 auto', boxSizing: 'border-box' }}
-        aria-label={isEn ? "Today's posters" : '오늘 포스터'}
-      >
-        {renderHomeGateSectionTitle(isEn ? 'Parties & Events' : '파티&행사', 'home-region-poster-banner__section-title')}
-        <style>{`
-          .home-region-poster-banner-standalone {
-            width: 100%;
-            max-width: 100%;
-            margin-left: auto;
-            margin-right: auto;
-            box-sizing: border-box;
-          }
-          .home-region-poster-banner__section-title {
-            margin: 0;
-            margin-bottom: 12px;
-          }
-          .home-region-poster-banner__frame {
-            position: relative;
-            width: 100%;
-            margin: 0 auto;
-            border-radius: 10px;
-            overflow: hidden;
-            aspect-ratio: 3 / 4;
-            max-height: min(72vw, 360px);
-            background: #111;
-            border: ${isHomeGateDark ? '1px solid rgba(255,255,255,0.12)' : '0.5px solid #EDEAE3'};
-            box-shadow: none;
-            cursor: pointer;
-          }
-          .home-region-poster-banner__img {
-            position: absolute;
-            top: 8px;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-            object-position: center top;
-          }
-          .home-region-poster-banner__overlay {
-            position: absolute;
-            inset: 0;
-            display: flex;
-            flex-direction: column;
-            justify-content: flex-end;
-            padding: 12px 14px;
-            background: linear-gradient(
-              to top,
-              rgba(0, 0, 0, 0.82) 0%,
-              rgba(0, 0, 0, 0.35) 45%,
-              transparent 72%
-            );
-            pointer-events: none;
-          }
-          .home-region-poster-banner__region {
-            display: inline-flex;
-            align-self: flex-start;
-            margin-bottom: 6px;
-            padding: 3px 10px;
-            border-radius: 999px;
-            font-size: 11px;
-            font-weight: 800;
-            letter-spacing: -0.02em;
-            color: #fff;
-            background: rgba(229, 57, 53, 0.12);
-          }
-          .home-region-poster-banner__title {
-            margin: 0;
-            color: #fff;
-            font-size: 14px;
-            font-weight: 800;
-            line-height: 1.3;
-            letter-spacing: -0.02em;
-            text-shadow: 0 1px 6px rgba(0, 0, 0, 0.45);
-            overflow: hidden;
-            text-overflow: ellipsis;
-            white-space: nowrap;
-          }
-          .home-region-poster-banner__dots {
-            display: flex;
-            justify-content: center;
-            gap: 6px;
-            margin-top: 8px;
-          }
-          .home-region-poster-banner__dot {
-            width: 6px;
-            height: 6px;
-            border-radius: 50%;
-            border: none;
-            padding: 0;
-            background: ${isHomeGateDark ? 'rgba(255,255,255,0.25)' : 'rgba(0,0,0,0.15)'};
-          }
-          .home-region-poster-banner__dot.is-active {
-            background: #E53935;
-            transform: scale(1.15);
-          }
-        `}</style>
-        <button
-          type="button"
-          className="home-region-poster-banner__frame"
-          onClick={() => handleHomePosterBannerClick(slide)}
-          aria-label={
-            isEn
-              ? `Today's ${regionLabel} poster: ${title}`
-              : `오늘 ${regionLabel} 포스터: ${title}`
-          }
-        >
-          <AnimatePresence mode="wait">
-            <motion.img
-              key={`${slide.id}-${posterUrl}`}
-              src={posterUrl}
-              alt={title}
-              className="home-region-poster-banner__img"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              transition={{ duration: 0.35 }}
-            />
-          </AnimatePresence>
-          <div className="home-region-poster-banner__overlay">
-            <span className="home-region-poster-banner__region">{regionLabel}</span>
-            <p className="home-region-poster-banner__title">{title}</p>
-          </div>
-        </button>
-        {homePosterBannerSlidesEffective.length > 1 && (
-          <div className="home-region-poster-banner__dots" role="tablist" aria-label={isEn ? 'Poster regions' : '지역 포스터'}>
-            {homePosterBannerSlidesEffective.map((s, idx) => (
-              <button
-                key={s.id}
-                type="button"
-                role="tab"
-                aria-selected={idx === homePosterBannerIdx}
-                className={`home-region-poster-banner__dot${idx === homePosterBannerIdx ? ' is-active' : ''}`}
-                onClick={() => setHomePosterBannerIdx(idx)}
-              />
-            ))}
-          </div>
-        )}
-      </motion.section>
-    );
-  };
-
   const renderHomeMainLiveSlot = () => (
     <div className="home-main-live-slot home-main-live-slot--gate">
       {renderHomeLiveAdRow(true)}
@@ -3930,6 +3681,8 @@ const HomePage = ({
                         <img
                           src={inst.photo_url || DEFAULT_AVATAR_IMAGE}
                           alt={inst.name || ''}
+                          loading="lazy"
+                          decoding="async"
                           onError={imgFallbackHandler(DEFAULT_AVATAR_IMAGE)}
                         />
                       </div>

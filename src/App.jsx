@@ -1888,10 +1888,14 @@ function App() {
         ),
         runSupabaseQuery('locations', (db) => db.from('locations').select(LOCATIONS_SELECT)),
         runSupabaseQuery('bootcamps', (db) =>
-          db.from('bootcamps').select('*').eq('status', 'active'),
+          db.from('bootcamps')
+            .select('id, title, instructor, start_date, end_date, poster_url, status, created_at, region, location, price, genre, description')
+            .eq('status', 'active'),
         ),
         runSupabaseQuery('festivals', (db) =>
-          db.from('festivals').select('*').eq('status', 'active'),
+          db.from('festivals')
+            .select('id, title, genre, start_date, end_date, location, region, price, poster_url, organizer, status, created_at, event_type, description, bank_info')
+            .eq('status', 'active'),
         ),
       ]);
 
