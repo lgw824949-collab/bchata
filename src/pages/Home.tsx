@@ -723,14 +723,15 @@ const dedupePartiesByPoster = (list) => {
   return out;
 };
 
-/** 오늘(KST 달력일) · 승인 · poster_url 등록 파티 — 동일 포스터 URL은 1건 */
+/** 오늘(KST 달력일) · 승인 · poster_url 등록 파티 — 동일 포스터 URL은 1건 · 오늘소셜(부트캠프·페스티벌 제외) */
 const filterTodayPosterParties = (list, todayStr) =>
   dedupePartiesByPoster(
     (list || []).filter(
       (p) =>
         isApprovedParty(p)
         && normDate(p.date) === todayStr
-        && String(p.poster_url || '').trim(),
+        && String(p.poster_url || '').trim()
+        && partyRowMatchesSlot(p, '소셜'),
     ),
   );
 
@@ -1939,13 +1940,18 @@ const HomePage = ({
     setShowFullCalendar(true);
   }, [calendarTodayStr, setShowFullCalendar]);
 
-  /** 오늘 이후 등록 파티 (포스터 URL 중복 제거) — 행사달력·날짜바·요약 건수 */
+  /** 오늘 이후 등록 파티 (포스터 URL 중복 제거) — 오늘소셜: 부트캠프·페스티벌 제외 */
   const calendarParties = useMemo(
-    () => dedupePartiesByPoster((parties || []).filter((p) => normDate(p.date) >= todayStr)),
-    [parties, todayStr]
+    () =>
+      dedupePartiesByPoster(
+        (parties || []).filter(
+          (p) => normDate(p.date) >= todayStr && partyRowMatchesSlot(p, '소셜'),
+        ),
+      ),
+    [parties, todayStr],
   );
-  const calendarBootcamps = useMemo(() => dedupeById(bootcamps || []), [bootcamps]);
-  const calendarFestivals = useMemo(() => dedupeById(festivals || []), [festivals]);
+  const calendarBootcamps = useMemo(() => [], []);
+  const calendarFestivals = useMemo(() => [], []);
 
   useEffect(() => {
     if (!showFullCalendar) return;
@@ -2542,7 +2548,7 @@ const HomePage = ({
         console.warn('[Home] live banner parties:', error.message);
         return;
       }
-      setLiveBannerPartyRows(data || []);
+      setLiveBannerPartyRows((data || []).filter((p) => partyRowMatchesSlot(p, '소셜')));
     } catch (err) {
       console.warn('[Home] live banner parties failed:', err);
     }
@@ -2584,9 +2590,11 @@ const HomePage = ({
         console.warn('[Home] poster banner festivals:', festivalsRes.error.message);
       }
 
-      setHomePosterBannerPartyRows(partiesRes.data || []);
-      if (!bootcampsRes.error) setHomePosterBannerBootcampRows(bootcampsRes.data || []);
-      if (!festivalsRes.error) setHomePosterBannerFestivalRows(festivalsRes.data || []);
+      setHomePosterBannerPartyRows(
+        (partiesRes.data || []).filter((p) => partyRowMatchesSlot(p, '소셜')),
+      );
+      setHomePosterBannerBootcampRows([]);
+      setHomePosterBannerFestivalRows([]);
     } catch (err) {
       console.warn('[Home] poster banner failed:', err);
     }
@@ -3383,14 +3391,15 @@ const HomePage = ({
     const todayPartyRows = homePosterBannerPartyRows.length > 0
       ? homePosterBannerPartyRows
       : (parties || []).filter(
-          (p) => isApprovedParty(p) && normDate(p.date) === calendarTodayStr,
+          (p) =>
+            isApprovedParty(p)
+            && normDate(p.date) === calendarTodayStr
+            && partyRowMatchesSlot(p, '소셜'),
         );
-    const bootcampSource = (bootcamps || []).length > 0 ? bootcamps : homePosterBannerBootcampRows;
-    const festivalSource = (festivals || []).length > 0 ? festivals : homePosterBannerFestivalRows;
     return buildHomePosterBannerSlides(
       todayPartyRows,
-      bootcampSource,
-      festivalSource,
+      [],
+      [],
       calendarTodayStr,
     );
   }, [
@@ -4099,7 +4108,7 @@ const HomePage = ({
 
   return (
     <div
-      className={`app-container${isHomeGate ? ' home-gate-shell' : ''}${isHomeGateDark ? ' home-gate-active' : ''}`}
+      className={`app-container${isHomeGate ? ' home-gate-shell' : ''}${isHomeGateDark ? ' home-gate-active' : ''}${activeTab === 'social' ? ' social-tab-active' : ''}`}
       style={{ width: '100%', maxWidth: '500px', margin: '0 auto', background: isHomeGate ? HOME_PAGE_BG : homeUi.pageBg, minHeight: '100dvh', paddingBottom: '100px', transition: 'background 0.25s ease' }}
     >
 
@@ -5247,37 +5256,31 @@ const HomePage = ({
       */}
 
       {/* 📌 [영역 B: 날짜 선택바 - 상단 고정(Sticky)] */}
-      <div ref={stickyHeaderRef} style={{ position: 'sticky', top: 0, zIndex: 1000, background: 'var(--color-bg)', borderBottom: '1px solid var(--color-border)', boxShadow: '0 4px 12px rgba(0,0,0,0.03)', padding: '4px 0 0', transition: 'all 0.3s' }}>
-        <div style={{ flex: 1, display: 'flex', overflowX: 'auto', gap: '8px', padding: '6px 10px 4px', msOverflowStyle: 'none', scrollbarWidth: 'none', WebkitOverflowScrolling: 'touch' }} className="date-stream-bar">
+      <div ref={stickyHeaderRef} className="social-date-bar">
+        <div className="social-date-bar__track date-stream-bar">
           {fourteenDays.map((item) => {
             const isSelected = selectedDate === item.fullDate;
+            const isToday = item.isToday;
             const isHoliday = item.dayOfWeek === 0 || (item.month === '5' && item.date === '5');
             const isSaturday = item.dayOfWeek === 6;
-            const dayColor = isSelected ? '#fff' : (isHoliday ? '#FF1744' : (isSaturday ? '#FF1744' : 'rgba(0, 0, 0, 0.5)'));
-            const labelColor = isSelected ? '#FF1744' : (isHoliday ? '#FF1744' : (isSaturday ? '#FF1744' : 'rgba(0, 0, 0, 0.5)'));
-            
-            // 페스티벌, 부트캠프, 파티 존재 여부 확인
             const dayPartyCount = partiesOnDate(calendarParties, item.fullDate).length;
-            const dayBootCount = bootcampsOnDate(calendarBootcamps, item.fullDate).length;
-            const dayFestCount = festivalsOnDate(calendarFestivals, item.fullDate).length;
-            const hasEvent = dayPartyCount + dayBootCount + dayFestCount > 0;
+            const hasEvent = dayPartyCount > 0;
 
             return (
-              <div key={item.fullDate}
+              <button
+                key={item.fullDate}
+                type="button"
+                className={`social-date-bar__day${isSelected ? ' is-selected' : ''}${isToday ? ' is-today' : ''}${isHoliday || isSaturday ? ' is-weekend' : ''}`}
                 onClick={() => setSelectedDate(item.fullDate)}
-                style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minWidth: '13.5%', cursor: 'pointer', position: 'relative', paddingBottom: '6px' }}
+                aria-label={isEn ? `${item.fullDate}${hasEvent ? `, ${dayPartyCount} social` : ''}` : `${item.fullDate}${hasEvent ? `, 소셜 ${dayPartyCount}건` : ''}`}
               >
-                <span style={{ fontSize: '10px', fontWeight: '700', color: labelColor, marginBottom: '2px' }}>{item.dayName}</span>
-                <div style={{ width: '30px', height: '30px', borderRadius: '10px', display: 'flex', alignItems: 'center', justifyContent: 'center', backgroundColor: isSelected ? '#FF1744' : 'transparent', border: item.isToday && !isSelected ? '1px solid #FF1744' : 'none' }}>
-                  <span style={{ fontSize: '15px', fontWeight: '800', color: isSelected ? '#fff' : dayColor }}>{item.date}</span>
-                </div>
-                {/* 단순화된 빨간 점 하나만 표시 */}
-                <div style={{ height: '5px', display: 'flex', alignItems: 'center', justifyContent: 'center', position: 'absolute', bottom: 0 }}>
-                  {hasEvent && (
-                    <span style={{ width: '5px', height: '5px', borderRadius: '50%', background: '#E53935' }} />
-                  )}
-                </div>
-              </div>
+                <span className="social-date-bar__weekday">{item.dayName}</span>
+                <span className="social-date-bar__num">{item.date}</span>
+                {isToday && !isSelected ? (
+                  <span className="social-date-bar__today-pill">{isEn ? 'Today' : '오늘'}</span>
+                ) : null}
+                {hasEvent ? <span className="social-date-bar__dot" aria-hidden /> : null}
+              </button>
             );
           })}
         </div>
@@ -5285,33 +5288,13 @@ const HomePage = ({
 
 
 
-      <div ref={scrollRef} style={{ width: '100%', background: 'var(--color-bg)' }}>
+      <div ref={scrollRef} className="social-tab-content">
         <div style={{ minHeight: '101%' }}>
           {partiesLoading ? (
             <div style={{ display: 'flex', flexDirection: 'column', marginTop: '120px' }}>{Array(6).fill(0).map((_, i) => <div key={i} style={{ height: '140px', width: '100%', background: 'var(--color-card)', borderBottom: '1px solid var(--color-border)' }} />)}</div>
           ) : (
             <div style={{ width: '100%', padding: '0 0 20px 0', backgroundColor: 'var(--color-bg)' }}>
               {(() => {
-                const activeBootcamps = bootcampsOnDate(calendarBootcamps, selectedDate).map(b => ({
-                  ...b,
-                  _itemGenre: '부트캠프',
-                  date: selectedDate,
-                  broadRegion: b.region?.includes('서울') ? '서울' : (b.region?.includes('경기') || b.region?.includes('인천') ? '경인' : (b.region?.includes('경상') ? '경상도' : (b.region?.includes('전라') ? '전라도' : (b.region?.includes('충청') ? '충청도' : '강원/제주')))),
-                  locationName: b.venue || b.region,
-                  fee: b.fee || b.price_info,
-                  time: b.time || '13:00'
-                }));
-
-                const activeFestivals = festivalsOnDate(calendarFestivals, selectedDate).map(f => ({
-                  ...f,
-                  _itemGenre: '페스티벌',
-                  date: selectedDate,
-                  broadRegion: f.region?.includes('서울') ? '서울' : (f.region?.includes('경기') || f.region?.includes('인천') ? '경인' : (f.region?.includes('경상') ? '경상도' : (f.region?.includes('전라') ? '전라도' : (f.region?.includes('충청') ? '충청도' : '강원/제주')))),
-                  locationName: f.venue || f.region,
-                  fee: f.price_info || f.fee,
-                  time: f.time || '12:00'
-                }));
-
                 const activeParties = partiesOnDate(calendarParties, selectedDate).map(p => {
                   let genre = '소셜';
                   const b = p.b_ratio ?? 0;
@@ -5331,27 +5314,17 @@ const HomePage = ({
                   };
                 });
 
-                // 통합된 해당 날짜의 모든 이벤트 (장르 필터 없음 — 카드·포스터로 구분)
-                const unifiedDayEvents = [...activeParties, ...activeBootcamps, ...activeFestivals];
+                const unifiedDayEvents = [...activeParties];
 
-                // 전국 포스터 있는 모든 이벤트 추출 (날짜/장르 필터 무관)
-                const globalBootcamps = (bootcamps || []).map(b => ({
-                  ...b,
-                  locationName: b.venue || b.region,
-                  _table: 'bootcamps'
-                }));
-                const globalFestivals = (festivals || []).map(f => ({
-                  ...f,
-                  locationName: f.venue || f.region,
-                  _table: 'festivals'
-                }));
-                const globalParties = (parties || []).map(p => ({
-                  ...p,
-                  locationName: p.location_name || p.locations?.name || p.region,
-                  _table: 'parties'
-                }));
+                const globalParties = (parties || [])
+                  .filter((p) => partyRowMatchesSlot(p, '소셜'))
+                  .map(p => ({
+                    ...p,
+                    locationName: p.location_name || p.locations?.name || p.region,
+                    _table: 'parties',
+                  }));
 
-                const allGlobalEvents = [...globalParties, ...globalBootcamps, ...globalFestivals]
+                const allGlobalEvents = globalParties
                   .filter(p => p.poster_url && p.poster_url.trim() !== '');
 
                 // 중복된 포스터 URL 무조건 제거
@@ -5546,89 +5519,54 @@ const HomePage = ({
                         const isFirst = idx === 0;
                         const weather = regionName === '서울' && weatherMap['서울'] ? { temperature: weatherMap['서울'].temp, icon: weatherMap['서울'].icon } : null;
 
+                        const dateChip = (() => {
+                          const d = new Date(selectedDate);
+                          return `${d.getMonth() + 1}/${d.getDate()} (${isEn ? DAYS_EN[d.getDay()] : DAYS_KOR[d.getDay()]})`;
+                        })();
+
                         return (
                           <React.Fragment key={regionName}>
                             <section
                               ref={isFirst ? regionListRef : null}
-                              style={{ marginBottom: '24px', background: 'var(--color-card)' }}
+                              className="social-region-block"
                             >
-                              <div style={{ padding: '15px 20px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', color: 'var(--color-text-main)' }}>
-                                <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                                  <span
-                                    style={{ fontSize: '15px', fontWeight: '800', userSelect: 'none', padding: '2px 4px' }}
-                                  >
+                              <div className="social-region-block__head">
+                                <div className="social-region-block__title-wrap">
+                                  <span className="social-region-block__title">
                                     {t(regionKeys[regionName] || regionName)}
                                   </span>
-                                  {weather && regionName === '서울' && (
-                                    <span style={{ fontSize: '12px', color: '#FF1744', fontWeight: '600', marginLeft: '4px' }}>
+                                  <span className="social-region-block__date">{dateChip}</span>
+                                  {weather && regionName === '서울' ? (
+                                    <span className="social-region-block__weather">
                                       {weather.temperature}° {weather.icon}
                                     </span>
-                                  )}
-                                  <span style={{ fontSize: '12px', color: 'var(--color-text-secondary)', fontWeight: '600', marginLeft: '4px' }}>
-                                    {(() => {
-                                      const d = new Date(selectedDate);
-                                      return `${d.getMonth() + 1}/${d.getDate()} (${isEn ? DAYS_EN[d.getDay()] : DAYS_KOR[d.getDay()]})`;
-                                    })()}
-                                  </span>
+                                  ) : null}
                                 </div>
                                 <button
                                   type="button"
+                                  className="social-region-block__more"
                                   onClick={() => {
                                     setGridRegion(regionName);
                                     handleOpenModal(setShowGridModal, true);
                                   }}
-                                  style={{ fontSize: '12px', fontWeight: '700', color: '#E53935', background: 'none', border: 'none', padding: 0, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '2px' }}
                                 >
                                   {t('view_all')} <ChevronRight size={14} />
                                 </button>
                               </div>
 
-                              <div
-                                className="region-scroll-container"
-                                style={{
-                                  display: 'flex',
-                                  flexDirection: 'row',
-                                  overflowX: 'auto',
-                                  overflowY: 'hidden',
-                                  gap: '12px',
-                                  paddingTop: '10px',
-                                  paddingRight: '16px',
-                                  paddingBottom: '40px',
-                                  paddingLeft: '16px',
-                                  msOverflowStyle: 'none',
-                                  scrollbarWidth: 'none',
-                                  WebkitOverflowScrolling: 'touch',
-                                  scrollSnapType: 'x mandatory',
-                                  scrollPaddingLeft: '16px',
-                                  scrollPaddingRight: '16px',
-                                }}
-                              >
+                              <div className="social-region-block__list">
                                 {rollingParties.map((item) => (
-                                  <div
+                                  <PartyCard
                                     key={item.id}
-                                    className="party-carousel-card region-carousel-card"
-                                    {...partyCardZoomDesktopOnly}
-                                    style={{
-                                      width: 'min(340px, calc(100vw - 56px))',
-                                      flexShrink: 0,
-                                      scrollSnapAlign: 'start',
-                                      scrollSnapStop: 'always',
-                                    }}
-                                  >
-                                    <PartyCard
-                                      item={item}
-                                      onSelect={openPartyWithAfterParty}
-                                      wishlistParties={wishlistParties}
-                                      onToggleWishlist={toggleWishlistParty}
-                                    />
-                                  </div>
+                                    item={item}
+                                    variant="stack"
+                                    onSelect={openPartyWithAfterParty}
+                                    wishlistParties={wishlistParties}
+                                    onToggleWishlist={toggleWishlistParty}
+                                  />
                                 ))}
                               </div>
-
-
-
                             </section>
-
                           </React.Fragment>
                         );
                       })}
@@ -5636,19 +5574,6 @@ const HomePage = ({
                       );
                     })()}
 
-                    <LiveExposureStrip
-                      pool={dedupePartiesByPoster(
-                        unifiedDayEvents.filter(
-                          (p) => p.poster_url && String(p.poster_url).trim()
-                        )
-                      )}
-                      selectedDate={selectedDate}
-                      todayStr={todayStr}
-                      onSelect={openPartyWithAfterParty}
-                      cleanTitle={cleanTitle}
-                      translateDynamicText={translateDynamicText}
-                      isEn={isEn}
-                    />
                   </>
                 );
               })()}
@@ -5684,13 +5609,7 @@ const HomePage = ({
                 {/* 달력 상단 범례 */}
                 <div className="cal-modal-legend" style={{ display: 'flex', justifyContent: 'center', gap: '16px', marginBottom: '16px' }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-                    <span style={{ width: '6px', height: '6px', borderRadius: '50%', backgroundColor: '#E53935' }} /> 파티
-                  </div>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-                    <span style={{ width: '6px', height: '6px', borderRadius: '50%', backgroundColor: '#000000' }} /> 부트캠프
-                  </div>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-                    <span style={{ width: '6px', height: '6px', borderRadius: '50%', backgroundColor: '#9333EA' }} /> 페스티벌
+                    <span style={{ width: '6px', height: '6px', borderRadius: '50%', backgroundColor: '#E53935' }} /> 소셜
                   </div>
                 </div>
                 <motion.div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: '5px', textAlign: 'center' }}>
@@ -5701,12 +5620,8 @@ const HomePage = ({
                     const isSelected = selectedDate === day.fullDate;
 
                     const dayPartyList = partiesOnDate(calendarParties, day.fullDate);
-                    const dayBootList = bootcampsOnDate(calendarBootcamps, day.fullDate);
-                    const dayFestList = festivalsOnDate(calendarFestivals, day.fullDate);
                     const hasParty = dayPartyList.length > 0;
-                    const hasBootcamp = dayBootList.length > 0;
-                    const hasFestival = dayFestList.length > 0;
-                    const dayTotalCount = dayPartyList.length + dayBootList.length + dayFestList.length;
+                    const dayTotalCount = dayPartyList.length;
 
                     const isPast = day.fullDate < todayStr;
                     const isSunday = day.dayName === '일';
@@ -5728,8 +5643,6 @@ const HomePage = ({
                         <span style={{ lineHeight: 1 }}>{day.date}</span>
                         <div style={{ display: 'flex', gap: '2px', position: 'absolute', bottom: '4px', height: '4px', alignItems: 'center', justifyContent: 'center' }}>
                           {hasParty && <span style={{ width: '4px', height: '4px', borderRadius: '50%', backgroundColor: '#E53935', boxShadow: isSelected ? '0 0 0 0.5px #fff' : 'none' }} />}
-                          {hasBootcamp && <span style={{ width: '4px', height: '4px', borderRadius: '50%', backgroundColor: '#000000', boxShadow: isSelected ? '0 0 0 0.5px #fff' : 'none' }} />}
-                          {hasFestival && <span style={{ width: '4px', height: '4px', borderRadius: '50%', backgroundColor: '#9333EA', boxShadow: isSelected ? '0 0 0 0.5px #fff' : 'none' }} />}
                         </div>
                         {dayTotalCount > 0 && (
                           <span className="cal-day-event-badge" aria-label={isEn ? `${dayTotalCount} events` : `행사 ${dayTotalCount}건`}>
@@ -5745,13 +5658,8 @@ const HomePage = ({
               {/* 달력 하단: 선택일 파티·부트캠프·페스티벌 통계 */}
               {selectedDate && (() => {
                     const selParties = partiesOnDate(calendarParties, selectedDate);
-                    const selBootcamps = bootcampsOnDate(calendarBootcamps, selectedDate);
-                    const selFestivals = festivalsOnDate(calendarFestivals, selectedDate);
 
-                    // 1. 이벤트 수
                     const partyCount = selParties.length;
-                    const bootcampCount = selBootcamps.length;
-                    const festivalCount = selFestivals.length;
 
                     // 2. 지역별 카운트 (통합된 모든 이벤트 대상)
                     const regionCounts = {};
@@ -5765,7 +5673,7 @@ const HomePage = ({
                       if (r.includes('충청') || r.includes('대전') || r.includes('세종')) return '충청도';
                       return '강원/제주';
                     };
-                    [...selParties, ...selBootcamps, ...selFestivals].forEach(item => {
+                    selParties.forEach(item => {
                       const r = getRegionName(item);
                       regionCounts[r] = (regionCounts[r] || 0) + 1;
                     });
@@ -5814,7 +5722,7 @@ const HomePage = ({
                           {/* 1. 이벤트 수 */}
                           <div className="cal-event-summary-row cal-event-summary-counts">
                             <span style={{ color: '#FF6B7A' }}>📅</span>
-                            <span>파티 {partyCount}건 / 부트캠프 {bootcampCount}건 / 페스티벌 {festivalCount}건</span>
+                            <span>소셜 {partyCount}건</span>
                           </div>
 
                           {/* 2. 지역별 */}

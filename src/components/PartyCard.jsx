@@ -52,7 +52,13 @@ const translateDynamicText = (text, isEn) => {
   return translated;
 };
 
-const PartyCard = ({ item, onSelect, wishlistParties: wishlistProp, onToggleWishlist: toggleProp }) => {
+const PartyCard = ({
+  item,
+  onSelect,
+  wishlistParties: wishlistProp,
+  onToggleWishlist: toggleProp,
+  variant = 'row',
+}) => {
   const { i18n } = useTranslation();
   const isEn = i18n.language.startsWith('en');
   const fallbackWishlist = usePartyWishlist();
@@ -109,145 +115,77 @@ const PartyCard = ({ item, onSelect, wishlistParties: wishlistProp, onToggleWish
     return sorted[0][0];
   })();
 
+  const genreChip = (
+    <span className="party-card__genre-chip">
+      <span className="party-card__genre-label">{genreLabel}</span>
+      {ratioLabel ? (
+        <>
+          <span className="party-card__genre-sep" aria-hidden />
+          <span className="party-card__genre-ratio">{ratioLabel}</span>
+        </>
+      ) : null}
+    </span>
+  );
+
+  const liveBadge = isTimeLive ? (
+    <span className="party-card__live-badge">LIVE</span>
+  ) : null;
+
+  if (variant === 'stack') {
+    return (
+      <div className="party-card party-card--stack" onClick={handleCardClick} role="button" tabIndex={0}>
+        <div className="party-card__poster-wrap">
+          <PartyWishlistHeart
+            party={item}
+            wishlistParties={wishlistParties}
+            onToggle={onToggleWishlist}
+          />
+          <img src={item.poster_url} className="party-card__poster-img" alt="" />
+          <div className="party-card__poster-overlay" aria-hidden />
+          <div className="party-card__poster-meta">
+            {genreChip}
+            {liveBadge}
+          </div>
+        </div>
+        <div className="party-card__body">
+          <h3 className="party-card__title">{title}</h3>
+          <div className="party-card__meta-row">
+            <span className="party-card__meta-item">{timeLabel}</span>
+            <span className="party-card__meta-dot" aria-hidden />
+            <span className="party-card__meta-item party-card__meta-item--location">{locationLabel}</span>
+          </div>
+          <div className="party-card__fee">{displayFee}</div>
+        </div>
+      </div>
+    );
+  }
+
   return (
-    <div
-      onClick={handleCardClick}
-      style={{
-        display: 'flex',
-        padding: '20px',
-        background: '#FFFFFF',
-        borderRadius: '16px',
-        boxShadow: '0 4px 20px rgba(0,0,0,0.06)',
-        gap: '20px',
-        cursor: 'pointer',
-        marginBottom: '12px',
-        position: 'relative',
-        alignItems: 'center',
-      }}
-    >
+    <div className="party-card party-card--row" onClick={handleCardClick} role="button" tabIndex={0}>
       <PartyWishlistHeart
         party={item}
         wishlistParties={wishlistParties}
         onToggle={onToggleWishlist}
       />
 
-      <div
-        className="bchata-poster-frame"
-        style={{ width: '108px', aspectRatio: '2 / 3', borderRadius: '12px', flexShrink: 0 }}
-      >
+      <div className="bchata-poster-frame party-card__thumb">
         <img src={item.poster_url} className="bchata-poster-fit" alt="Poster" />
       </div>
 
-      <div style={{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'center', gap: '8px', minWidth: 0 }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'nowrap', minWidth: 0 }}>
-          <span
-            style={{
-              display: 'inline-flex',
-              alignItems: 'center',
-              gap: '6px',
-              padding: '4px 11px',
-              borderRadius: '999px',
-              background: 'linear-gradient(180deg, #FFFBFC 0%, #FFF0F5 100%)',
-              border: '1px solid rgba(216, 27, 96, 0.14)',
-              boxShadow: '0 1px 4px rgba(216, 27, 96, 0.08)',
-              flexShrink: 0,
-            }}
-          >
-            <span style={{ fontSize: '11px', fontWeight: 800, color: '#C2185B', letterSpacing: '0.2px' }}>
-              {genreLabel}
-            </span>
-            {ratioLabel ? (
-              <>
-                <span
-                  aria-hidden
-                  style={{
-                    width: '1px',
-                    height: '10px',
-                    background: 'rgba(216, 27, 96, 0.22)',
-                    borderRadius: '1px',
-                    flexShrink: 0,
-                  }}
-                />
-                <span style={{ fontSize: '11px', fontWeight: 800, color: '#E53935', letterSpacing: '0.02em' }}>
-                  {ratioLabel}
-                </span>
-              </>
-            ) : null}
-          </span>
-          {isTimeLive ? (
-            <span
-              style={{
-                fontSize: '10px',
-                fontWeight: 800,
-                color: '#fff',
-                background: '#E53935',
-                letterSpacing: '0.3px',
-                flexShrink: 0,
-                padding: '3px 7px',
-                borderRadius: '999px',
-              }}
-            >
-              LIVE
-            </span>
-          ) : null}
+      <div className="party-card__content">
+        <div className="party-card__tags">
+          {genreChip}
+          {liveBadge}
         </div>
 
-        <h3
-          style={{
-            margin: 0,
-            fontSize: PARTY_TITLE_CARD_FONT_SIZE,
-            fontWeight: 800,
-            color: '#111',
-            lineHeight: 1.35,
-            display: '-webkit-box',
-            WebkitLineClamp: 1,
-            WebkitBoxOrient: 'vertical',
-            overflow: 'hidden',
-            textOverflow: 'ellipsis',
-          }}
-        >
-          {title}
-        </h3>
+        <h3 className="party-card__title party-card__title--row">{title}</h3>
 
-        <div
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: '12px',
-            fontSize: '13px',
-            color: '#757575',
-            fontWeight: 500,
-            minWidth: 0,
-          }}
-        >
-          <span style={{ flexShrink: 0 }}>🕒 {timeLabel}</span>
-          <span
-            style={{
-              overflow: 'hidden',
-              textOverflow: 'ellipsis',
-              whiteSpace: 'nowrap',
-              minWidth: 0,
-            }}
-          >
-            📍 {locationLabel}
-          </span>
+        <div className="party-card__meta-row party-card__meta-row--row">
+          <span className="party-card__meta-item">🕒 {timeLabel}</span>
+          <span className="party-card__meta-item party-card__meta-item--location">📍 {locationLabel}</span>
         </div>
 
-        <div style={{ display: 'flex', alignItems: 'center', marginTop: '4px', flexWrap: 'nowrap', minWidth: 0 }}>
-          <span
-            style={{
-              fontSize: PARTY_FEE_CARD_FONT_SIZE,
-              fontWeight: 900,
-              color: '#E53935',
-              whiteSpace: 'nowrap',
-              overflow: 'hidden',
-              textOverflow: 'ellipsis',
-              minWidth: 0,
-            }}
-          >
-            {displayFee}
-          </span>
-        </div>
+        <div className="party-card__fee party-card__fee--row">{displayFee}</div>
       </div>
     </div>
   );

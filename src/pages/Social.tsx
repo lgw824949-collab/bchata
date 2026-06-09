@@ -162,34 +162,14 @@ export function SocialPartyRegionFilterBar({
   const totalCount = regions.reduce((sum, r) => sum + r.count, 0);
 
   return (
-    <div
-      className="social-party-region-filter"
-      style={{
-        display: 'flex',
-        overflowX: 'auto',
-        gap: '8px',
-        padding: '10px 16px 6px',
-        msOverflowStyle: 'none',
-        scrollbarWidth: 'none',
-        WebkitOverflowScrolling: 'touch',
-      }}
-    >
+    <div className="social-party-region-filter">
       <button
         type="button"
+        className={`social-party-region-filter__btn${activeRegion === '' ? ' is-active' : ''}`}
         onClick={() => onSelectRegion('')}
-        style={{
-          flexShrink: 0,
-          padding: '8px 14px',
-          borderRadius: '100px',
-          fontSize: '12px',
-          fontWeight: activeRegion === '' ? 800 : 600,
-          border: `1px solid ${activeRegion === '' ? '#E53935' : '#E2E8F0'}`,
-          background: activeRegion === '' ? '#E53935' : '#FFFFFF',
-          color: activeRegion === '' ? '#FFFFFF' : '#64748B',
-          cursor: 'pointer',
-        }}
       >
-        {isEn ? `All ${totalCount}` : `전체 ${totalCount}`}
+        {isEn ? 'All' : '전체'}
+        <span className="social-party-region-filter__count">{totalCount}</span>
       </button>
       {regions.map(({ name, count }) => {
         const isActive = activeRegion === name;
@@ -198,20 +178,11 @@ export function SocialPartyRegionFilterBar({
           <button
             key={name}
             type="button"
+            className={`social-party-region-filter__btn${isActive ? ' is-active' : ''}`}
             onClick={() => onSelectRegion(isActive ? '' : name)}
-            style={{
-              flexShrink: 0,
-              padding: '8px 14px',
-              borderRadius: '100px',
-              fontSize: '12px',
-              fontWeight: isActive ? 800 : 600,
-              border: `1px solid ${isActive ? '#E53935' : '#E2E8F0'}`,
-              background: isActive ? '#E53935' : '#FFFFFF',
-              color: isActive ? '#FFFFFF' : '#64748B',
-              cursor: 'pointer',
-            }}
           >
-            {isEn ? `${label} ${count}` : `${label} 파티 ${count}`}
+            {label}
+            <span className="social-party-region-filter__count">{count}</span>
           </button>
         );
       })}
