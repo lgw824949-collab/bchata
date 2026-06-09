@@ -121,6 +121,7 @@ const HOME_GATE_MENU_COPY = {
   myNightPlan: { ko: '플랜', en: 'Plan' },
   bootcampDive: { ko: '부트캠프', en: 'Bootcamp' },
   festivalLive: { ko: '페스티벌', en: 'Festival' },
+  partyLive: { ko: '🎉 파티', en: '🎉 Party' },
   partyPost: { ko: '소셜등록', en: 'Social' },
   barVenueClass: { ko: 'BAR 수업', en: 'BAR class' },
   instructorRegister: { ko: '강사 등록', en: 'Instructor' },
@@ -136,8 +137,8 @@ const HOME_GATE_MENU_COPY = {
   languageSwitch: { ko: '언어', en: 'Language' },
 };
 
-/** 메인 홈 게이트 — 상단 노출 4개 (하단 네비 연동) */
-const HOME_GATE_MAIN_MENU_IDS = ['today-party', 'bootcamp', 'festival', 'instructors'];
+/** 메인 홈 게이트 — 상단 노출 5개 (하단 네비 연동) */
+const HOME_GATE_MAIN_MENU_IDS = ['today-party', 'bootcamp', 'festival', 'festival-party', 'instructors'];
 
 
 /** source.unsplash.com 은 종료됨 — images.unsplash.com CDN (bachata 검색 결과 고정) */
@@ -151,6 +152,7 @@ const HOME_GATE_MAIN_MENU_PHOTO_URLS = {
     'https://live.staticflickr.com/200/31495988665_e64fc2a593_b.jpg',
   bootcamp: buildHomeGateMenuPhotoUrl('photo-1682760631807-71067eeea033'),
   festival: buildHomeGateMenuPhotoUrl('photo-1530103862676-de8c9debad1d'),
+  'festival-party': '/home-gate-party.jpg',
   instructors: buildHomeGateMenuPhotoUrl('photo-1494790108377-be9c29b29330'),
 };
 
@@ -1914,19 +1916,32 @@ const HomePage = ({
   );
 
   const festivalMenuCount = useMemo(
-    () => FESTIVAL_EVENT_TYPE_META.reduce(
-      (sum, meta) => sum + (festivalEventTypeCounts[meta.id] || 0),
-      0,
-    ),
-    [festivalEventTypeCounts],
+    () => countActiveHomeGateEventRowsByType(festivals, calendarTodayStr, 'festival')
+      + countActiveHomeGateEventRowsByType(festivals, calendarTodayStr, 'mt'),
+    [festivals, calendarTodayStr],
+  );
+
+  const partyMenuCount = useMemo(
+    () => countActiveHomeGateEventRowsByType(festivals, calendarTodayStr, 'party'),
+    [festivals, calendarTodayStr],
   );
 
   const festivalEventTypeCountParts = useMemo(
     () => FESTIVAL_EVENT_TYPE_META
+      .filter((meta) => meta.id !== 'party')
       .map((meta) => ({ ...meta, count: festivalEventTypeCounts[meta.id] || 0 }))
       .filter((part) => part.count > 0),
     [festivalEventTypeCounts],
   );
+
+  const partyMenuPhotoUrl = useMemo(() => {
+    const partyRows = (festivals || []).filter(
+      (row) => (row.event_type || 'festival') === 'party' && row.status === 'active',
+    );
+    const featured = pickFeaturedPosterBannerRow(partyRows, calendarTodayStr, 'festival', 'party');
+    const url = String(featured?.poster_url || '').trim();
+    return url || HOME_GATE_MAIN_MENU_PHOTO_URLS['festival-party'];
+  }, [festivals, calendarTodayStr]);
 
   const openTodayPartyBucket = (tab) => {
     setSelectedDate(calendarTodayStr);
@@ -1987,6 +2002,8 @@ const HomePage = ({
         return bootcampMenuCount;
       case 'festival':
         return festivalMenuCount;
+      case 'festival-party':
+        return partyMenuCount;
       case 'instructors':
         return activeInstructorMenuCount;
       default:
@@ -1996,6 +2013,7 @@ const HomePage = ({
     todayPosterMenuCount,
     bootcampMenuCount,
     festivalMenuCount,
+    partyMenuCount,
     activeInstructorMenuCount,
   ]);
 
@@ -2009,10 +2027,11 @@ const HomePage = ({
     }
     if (itemId === 'festival') {
       const parts = FESTIVAL_EVENT_TYPE_META
+        .filter((meta) => meta.id !== 'party')
         .map((meta) => ({ ...meta, count: festivalEventTypeCounts[meta.id] || 0 }))
         .filter((part) => part.count > 0);
       if (parts.length === 0) {
-        return isEn ? `${label} · ${count} active events` : `${label} · 진행·예정 행사 ${count}건`;
+        return isEn ? `${label} · ${count} active events` : `${label} · 진행·예정 페스티벌·MT ${count}건`;
       }
       const breakdown = parts
         .map((part) => (isEn ? `${part.emoji} ${part.labelEn} ${part.count}` : `${part.emoji} ${part.labelKo} ${part.count}`))
@@ -2020,6 +2039,9 @@ const HomePage = ({
       return isEn
         ? `${label} · ${count} active events (${breakdown})`
         : `${label} · 진행·예정 ${count}건 (${breakdown})`;
+    }
+    if (itemId === 'festival-party') {
+      return isEn ? `${label} · ${count} active parties` : `${label} · 진행·예정 파티 ${count}건`;
     }
     if (itemId === 'instructors') {
       return isEn ? `${label} · ${count} instructors` : `${label} · 활동 강사 ${count}명`;
@@ -2959,6 +2981,20 @@ const HomePage = ({
       action: () => navigate('/festival', { homeTab: null }),
     },
     {
+      id: 'festival-party',
+      icon: Music2,
+      photoUrl: partyMenuPhotoUrl,
+      label: homeGateMenuLabel('partyLive', isEn),
+      action: () => {
+        try {
+          sessionStorage.setItem(FESTIVAL_TAB_SESSION_KEY, 'party');
+        } catch {
+          /* ignore */
+        }
+        navigate('/festival', { homeTab: null });
+      },
+    },
+    {
       id: 'instructors',
       icon: GraduationCap,
       photoUrl: HOME_GATE_MAIN_MENU_PHOTO_URLS.instructors,
@@ -2971,7 +3007,7 @@ const HomePage = ({
         }, 300);
       },
     },
-  ], [isEn]);
+  ], [isEn, partyMenuPhotoUrl]);
 
   /** 메인 노출 5종 — 커스텀 SVG 원형 아이콘 */
   const quickMenuItems = useMemo(() => [
@@ -4222,7 +4258,7 @@ const HomePage = ({
         }
         .home-gate-photo-menu-scroll {
           display: grid;
-          grid-template-columns: repeat(4, minmax(0, 1fr));
+          grid-template-columns: repeat(5, minmax(0, 1fr));
           align-items: start;
           gap: clamp(5px, 1.6vw, 8px);
           width: 100%;
