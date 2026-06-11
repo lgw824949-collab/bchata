@@ -18,6 +18,8 @@ import {
   normalizeVenueNameKey,
 } from '../lib/venueDedupe'
 import AppPageHeader from '../components/AppPageHeader'
+import { HomeDarkGate } from '../components/home'
+import { useHomeDarkGateProps } from '../hooks/useHomeDarkGateProps'
 import VenueDetailModal from '../components/VenueDetailModal'
 import BarRegisterFormModal from '../components/BarRegisterFormModal'
 import { navigate as historyNavigate, navigateHomeTab, parseAppState, pushOverlay, readNavigationState } from '../lib/appHistory'
@@ -2390,6 +2392,38 @@ const HomePage = ({
     });
   };
 
+  const filterTodayPartiesByPill = useCallback((parties, pillId) => {
+    if (pillId === 'seoul') return parties.filter(isHomePosterBannerSeoul);
+    if (pillId === 'metro') return parties.filter(isHomePosterBannerMetro);
+    if (pillId === 'national') return parties.filter(isHomePosterBannerLocal);
+    return parties;
+  }, []);
+
+  const { gateProps: homeDarkGateProps } = useHomeDarkGateProps({
+    isEn,
+    translateDynamicText,
+    todayPosterPartiesForCount,
+    regionCounts,
+    wishlistParties,
+    hotInstructors,
+    hotInstructorsLoading,
+    socialBarRegionTabs,
+    selectedRegionTab,
+    setSelectedRegionTab,
+    barRegionCounts,
+    geoRegionTab,
+    locations,
+    locationsLoading,
+    geoRegionStatus,
+    socialBarRegionAll: SOCIAL_BAR_REGION_ALL,
+    sortBarsForSocialBarTab,
+    openPartyWithAfterParty,
+    toggleWishlistParty,
+    openVenueDetail,
+    registerAdminPortalTap,
+    filterTodayPartiesByPill,
+  });
+
   const closeVenueDetail = () => {
     if (!closeOverlayNav()) setSelectedVenue(null);
   };
@@ -2829,8 +2863,7 @@ const HomePage = ({
   }, [isEn]);
 
   const isHomeGate = activeTab === null;
-  /** 홈 게이트는 모바일 시스템 다크모드와 무관하게 항상 라이트(흰색) */
-  const isHomeGateDark = false;
+  const isHomeGateDark = isHomeGate;
 
   useEffect(() => {
     if (!isHomeGate) return undefined;
@@ -2839,15 +2872,21 @@ const HomePage = ({
     const body = document.body;
     const themeMeta = document.querySelector('meta[name="theme-color"]');
 
-    root.classList.remove('home-gate-theme', 'app-dark-surface');
-    body.classList.remove('home-gate-theme', 'app-dark-surface');
-    if (themeMeta) themeMeta.setAttribute('content', '#ffffff');
+    if (isHomeGateDark) {
+      root.classList.add('home-gate-theme', 'app-dark-surface');
+      body.classList.add('home-gate-theme', 'app-dark-surface');
+      if (themeMeta) themeMeta.setAttribute('content', '#0B0B0B');
+    } else {
+      root.classList.remove('home-gate-theme', 'app-dark-surface');
+      body.classList.remove('home-gate-theme', 'app-dark-surface');
+      if (themeMeta) themeMeta.setAttribute('content', '#ffffff');
+    }
 
     return () => {
       root.classList.remove('home-gate-theme', 'app-dark-surface');
       body.classList.remove('home-gate-theme', 'app-dark-surface');
     };
-  }, [isHomeGate]);
+  }, [isHomeGate, isHomeGateDark]);
 
   /** 메인 홈 — 가로 캐러셀 위에서도 세로 휠·트랙패드가 페이지 스크롤 되도록 */
   useEffect(() => {
@@ -2899,7 +2938,7 @@ const HomePage = ({
   const HOME_TEXT_MUTED = 'rgba(30, 41, 59, 0.55)';
   const HOME_SURFACE = '#FFFFFF';
   const HOME_BORDER = '#EDEAE3';
-  const HOME_PAGE_BG = '#F5F6F8';
+  const HOME_PAGE_BG = isHomeGateDark ? '#0B0B0B' : '#F5F6F8';
   const HOME_CARD_BORDER = '0.5px solid #EDEAE3';
   const homeUi = useMemo(() => (isHomeGateDark ? {
     pageBg: '#0D0D0D',
@@ -3989,8 +4028,8 @@ const HomePage = ({
         />
       )}
 
-      {/* 📌 [영역 A: 히어로 / 메인 게이트] */}
-      {activeTab === null && (
+      {/* 📌 [영역 A: 히어로 / 메인 게이트] — 다크: HomeDarkGate / 라이트: 기존 스택 */}
+      {activeTab === null && !isHomeGateDark && (
         <AppPageHeader variant="light" sticky className={isHomeGate ? 'home-hero-zone' : undefined}>
           <div className="home-hero-brand" style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', flex: 1, minWidth: 0 }}>
             <h1
@@ -4030,14 +4069,20 @@ const HomePage = ({
         <motion.div
           className="home-main-stack"
           style={{
-            padding: '0 16px',
+            padding: isHomeGateDark ? '0 16px' : '0 16px',
             gap: isHomeGate ? homeGateStackGap : undefined,
           }}
         >
-          {renderHomeMainLiveSlot()}
-          {renderHomeMainQuickMenuSection()}
-          {renderHomeHotInstructorsSection()}
-          {renderHomeSocialBarSection()}
+          {isHomeGateDark ? (
+            <HomeDarkGate {...homeDarkGateProps} />
+          ) : (
+            <>
+              {renderHomeMainLiveSlot()}
+              {renderHomeMainQuickMenuSection()}
+              {renderHomeHotInstructorsSection()}
+              {renderHomeSocialBarSection()}
+            </>
+          )}
         </motion.div>
       )}
 
@@ -4046,13 +4091,13 @@ const HomePage = ({
       {/* 메인 퀵메뉴: activeTab === null → 3섹션 그리드 / 소셜 탭 → 가로 스크롤 */}
       <style>{`
         .home-gate-shell {
-          --home-page-bg: #F5F6F8;
-          --home-text-primary: #191F28;
-          --home-text-secondary: #191F28;
-          --home-text-tertiary: #4B5563;
-          --home-card-border: #E8EBED;
-          --home-fade-rgb: ${isHomeGateDark ? '13, 13, 13' : '245, 246, 248'};
-          background-color: #F5F6F8 !important;
+          --home-page-bg: ${isHomeGateDark ? '#0B0B0B' : '#F5F6F8'};
+          --home-text-primary: ${isHomeGateDark ? '#FFFFFF' : '#191F28'};
+          --home-text-secondary: ${isHomeGateDark ? '#B8B8B8' : '#191F28'};
+          --home-text-tertiary: ${isHomeGateDark ? 'rgba(255,255,255,0.45)' : '#4B5563'};
+          --home-card-border: ${isHomeGateDark ? '#2A2A2A' : '#E8EBED'};
+          --home-fade-rgb: ${isHomeGateDark ? '11, 11, 11' : '245, 246, 248'};
+          background-color: ${isHomeGateDark ? '#0B0B0B' : '#F5F6F8'} !important;
         }
         .home-gate-shell .home-main-stack {
           display: flex;
