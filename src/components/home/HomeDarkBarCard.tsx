@@ -4,6 +4,8 @@ import { imgFallbackHandler } from '../../constants/imageAssets';
 import { formatBarDistrictLabel } from './homeDarkUtils';
 import { HD_VENUE_IMG_CLASS } from './homeDarkMedia';
 
+const BAR_LOGO_FALLBACK = '/logo.png';
+
 type BarLike = {
   id: string | number;
   name?: string;
@@ -31,6 +33,8 @@ export default function HomeDarkBarCard({
 }: HomeDarkBarCardProps) {
   const barName = bar.name || '이름 없음';
   const district = formatBarDistrictLabel(bar);
+  const coverSrc = coverPhoto || BAR_LOGO_FALLBACK;
+  const isLogoFallback = coverSrc === BAR_LOGO_FALLBACK;
 
   return (
     <motion.button
@@ -41,18 +45,14 @@ export default function HomeDarkBarCard({
       whileTap={{ scale: 0.98 }}
     >
       <span className="home-dark-poster-card__media">
-        {coverPhoto ? (
-          <img
-            className={HD_VENUE_IMG_CLASS}
-            src={coverPhoto}
-            alt=""
-            loading="lazy"
-            decoding="async"
-            onError={imgFallbackHandler('/logo.png')}
-          />
-        ) : (
-          <span className="home-dark-bar-card-v__cover-fallback" aria-hidden />
-        )}
+        <img
+          className={`${HD_VENUE_IMG_CLASS}${isLogoFallback ? ' home-dark-bar-card-v__img--logo' : ''}`}
+          src={coverSrc}
+          alt=""
+          loading="lazy"
+          decoding="async"
+          onError={imgFallbackHandler(BAR_LOGO_FALLBACK)}
+        />
         <span className="home-dark-card__scrim" aria-hidden />
         <span className="home-dark-card__body">
           <span className="home-dark-card__title">{barName}</span>

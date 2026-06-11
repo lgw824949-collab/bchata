@@ -4,6 +4,7 @@ import { motion } from 'framer-motion';
 import { DEFAULT_AVATAR_IMAGE, imgFallbackHandler } from '../../constants/imageAssets';
 import HomeDarkSectionHeader from './HomeDarkSectionHeader';
 import { HD_PORTRAIT_IMG_CLASS } from './homeDarkMedia';
+import { HOME_DARK_VISIBLE_INSTRUCTOR } from './constants';
 import { formatInstructorGenre } from './homeDarkUtils';
 
 type InstructorLike = {
@@ -40,7 +41,7 @@ export default function HomeDarkInstructors({
         linkLabel={isEn ? 'View all' : '전체보기'}
         onLinkClick={onViewAll}
       />
-      <div className={`home-dark-scroll-peek${!loading && instructors.length >= 4 ? ' home-dark-scroll-peek--active' : ''}`}>
+      <div className={`home-dark-scroll-peek${!loading && instructors.length > HOME_DARK_VISIBLE_INSTRUCTOR ? ' home-dark-scroll-peek--active' : ''}`}>
         <div className="home-dark-hscroll scrollbar-hide">
           <div className="home-dark-hscroll__track home-dark-hscroll__track--instructor">
             {loading

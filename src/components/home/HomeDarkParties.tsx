@@ -3,6 +3,7 @@ import { Heart } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { DEFAULT_CARD_IMAGE, imgFallbackHandler } from '../../constants/imageAssets';
 import HomeDarkSectionHeader from './HomeDarkSectionHeader';
+import { HOME_DARK_VISIBLE_PARTY } from './constants';
 import { HD_POSTER_IMG_CLASS } from './homeDarkMedia';
 
 type PartyLike = {
@@ -49,7 +50,7 @@ export default function HomeDarkParties({
         onLinkClick={onViewAll}
       />
       {parties.length > 0 ? (
-        <div className={`home-dark-scroll-peek${parties.length >= 3 ? ' home-dark-scroll-peek--active' : ''}`}>
+        <div className={`home-dark-scroll-peek${parties.length > HOME_DARK_VISIBLE_PARTY ? ' home-dark-scroll-peek--active' : ''}`}>
           <div className="home-dark-hscroll scrollbar-hide">
             <div className="home-dark-hscroll__track home-dark-hscroll__track--party">
               {parties.map((party, index) => {

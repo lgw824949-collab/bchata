@@ -30,20 +30,20 @@
   --hd-text: #ffffff;
   --hd-text-secondary: #b8b8b8;
   --hd-border: #2a2a2a;
-  --hd-gap: 12px;
+  --hd-gap: 8px;
   --hd-section-gap: 32px;
   --hd-radius-hero: 22px;
   --hd-radius-card: 16px;
   --hd-radius-pill: 999px;
-  --hd-peek-party: 2.35;
-  --hd-peek-instructor: 2.35;
-  --hd-peek-bar: 3.15;
-  --hd-party-w: calc((100cqw - var(--hd-gap)) / var(--hd-peek-party));
-  --hd-party-h: calc(var(--hd-party-w) * 5 / 4);
-  --hd-instructor-w: var(--hd-party-w);
-  --hd-instructor-h: calc(var(--hd-party-w) * 1.38);
-  --hd-bar-w: calc((100cqw - var(--hd-gap) * 2) / var(--hd-peek-bar));
-  --hd-bar-h: calc(var(--hd-bar-w) * 1.12);
+  --hd-visible-party: 5;
+  --hd-visible-instructor: 4;
+  --hd-visible-bar: 5;
+  --hd-party-w: calc((100cqw - var(--hd-gap) * (var(--hd-visible-party) - 1)) / var(--hd-visible-party));
+  --hd-party-h: calc(var(--hd-party-w) * 1.28);
+  --hd-instructor-w: calc((100cqw - var(--hd-gap) * (var(--hd-visible-instructor) - 1)) / var(--hd-visible-instructor));
+  --hd-instructor-h: calc(var(--hd-instructor-w) * 1.32);
+  --hd-bar-w: calc((100cqw - var(--hd-gap) * (var(--hd-visible-bar) - 1)) / var(--hd-visible-bar));
+  --hd-bar-h: calc(var(--hd-bar-w) * 1.08);
   --hd-hero-h: 300px;
   --hd-hero-rotate: 4.5s;
   --hd-font-display: 'Playfair Display', Georgia, serif;
@@ -59,11 +59,12 @@
 
 @supports not (width: 1cqw) {
   .home-dark-gate {
-    --hd-party-w: 156px;
-    --hd-party-h: 195px;
-    --hd-instructor-h: 215px;
-    --hd-bar-w: 108px;
-    --hd-bar-h: 121px;
+    --hd-party-w: 68px;
+    --hd-party-h: 87px;
+    --hd-instructor-w: 86px;
+    --hd-instructor-h: 114px;
+    --hd-bar-w: 68px;
+    --hd-bar-h: 73px;
   }
 }
 
@@ -568,6 +569,37 @@
   object-position: center top !important;
 }
 
+.home-dark-party-card .home-dark-card__body,
+.home-dark-bar-card-v .home-dark-card__body {
+  padding: 8px 6px;
+  gap: 1px;
+}
+
+.home-dark-party-card .home-dark-card__title,
+.home-dark-bar-card-v .home-dark-card__title {
+  font-size: 11px;
+}
+
+.home-dark-party-card .home-dark-card__meta,
+.home-dark-bar-card-v .home-dark-card__meta {
+  font-size: 9px;
+}
+
+.home-dark-party-card .home-dark-card__badge {
+  top: 5px;
+  left: 5px;
+  padding: 2px 5px;
+  font-size: 8px;
+  border-radius: 4px;
+}
+
+.home-dark-party-card .home-dark-card__heart {
+  top: 5px;
+  right: 5px;
+  width: 22px;
+  height: 22px;
+}
+
 /* instructor cards */
 .home-dark-instructor-card {
   flex: 0 0 var(--hd-instructor-w) !important;
@@ -633,8 +665,10 @@
   box-shadow: 0 8px 24px rgba(255, 91, 58, 0.22);
 }
 
-.home-dark-bar-card-v__cover-fallback {
-  position: absolute;
-  inset: 0;
-  background: linear-gradient(145deg, #222, #141414);
+.home-dark-bar-card-v__img--logo {
+  object-fit: contain !important;
+  object-position: center center !important;
+  padding: 22%;
+  background: #111;
+  box-sizing: border-box;
 }

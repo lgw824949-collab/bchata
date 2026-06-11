@@ -9,7 +9,10 @@ import {
   pushOverlay,
 } from '../lib/appHistory';
 import { buildHomeDarkHeroSlides } from '../components/home/buildHomeDarkHeroSlides';
-import { HOME_DARK_REGION_PILLS } from '../components/home/constants';
+import {
+  HOME_DARK_MIN_BAR_ITEMS,
+  HOME_DARK_REGION_PILLS,
+} from '../components/home/constants';
 import type { HomeDarkGateProps } from '../components/home/HomeDarkGate';
 import type { HomeDarkBar, HomeDarkHeroSlide, HomeDarkParty } from '../components/home/types';
 
@@ -146,12 +149,26 @@ export function useHomeDarkGateProps(input: UseHomeDarkGatePropsInput) {
     return hotInstructors.filter((inst) => inst.photo_url && !posterUrls.has(inst.photo_url));
   }, [hotInstructors, todayPosterPartiesForCount]);
 
+  const homeDarkDisplayParties = useMemo(
+    () => homeFilteredTodayParties.filter((party) => String(party.poster_url || '').trim()),
+    [homeFilteredTodayParties],
+  );
+
   const homeDarkRegionBars = useMemo(() => {
     if (!selectedRegionTab) return [];
     const filteredBars = selectedRegionTab === socialBarRegionAll
       ? locations
       : locations.filter((bar) => bar.region === selectedRegionTab);
-    return sortBarsForSocialBarTab(filteredBars, selectedRegionTab);
+    const sorted = sortBarsForSocialBarTab(filteredBars, selectedRegionTab);
+    if (sorted.length >= HOME_DARK_MIN_BAR_ITEMS || selectedRegionTab === socialBarRegionAll) {
+      return sorted;
+    }
+    const seen = new Set(sorted.map((bar) => bar.id));
+    const extras = sortBarsForSocialBarTab(
+      locations.filter((bar) => !seen.has(bar.id)),
+      socialBarRegionAll,
+    );
+    return [...sorted, ...extras].slice(0, Math.max(sorted.length, HOME_DARK_MIN_BAR_ITEMS));
   }, [locations, selectedRegionTab, socialBarRegionAll, sortBarsForSocialBarTab]);
 
   const navHandlers = useMemo(() => ({
@@ -224,7 +241,7 @@ export function useHomeDarkGateProps(input: UseHomeDarkGatePropsInput) {
     onPickIndexChange: setHomePickIndex,
     onHeroRotateNext: rotateHeroNext,
     onHeroOpen: () => homeActiveHeroSlide && openHeroSlide(homeActiveHeroSlide),
-    todayParties: homeFilteredTodayParties,
+    todayParties: homeDarkDisplayParties,
     wishlistPartyIds: wishlistParties,
     getPartyTitle,
     getPartyVenue,
@@ -242,7 +259,10 @@ export function useHomeDarkGateProps(input: UseHomeDarkGatePropsInput) {
     regionBars: homeDarkRegionBars,
     locationsLoading,
     geoRegionPending: geoRegionStatus === 'pending',
-    getBarCoverPhoto: (bar) => bar.image_url || resolveBarVenuePhoto(bar.name, bar.image_url),
+    getBarCoverPhoto: (bar) => {
+      const resolved = resolveBarVenuePhoto(bar.name, bar.image_url) || bar.image_url;
+      return resolved || '/logo.png';
+    },
     getBarEventCount: getBarTodayEventCount,
     onBarRegionTabChange: setSelectedRegionTab,
     onBarClick: openVenueDetail,

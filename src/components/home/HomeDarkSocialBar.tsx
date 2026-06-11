@@ -1,6 +1,7 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 import HomeDarkSectionHeader from './HomeDarkSectionHeader';
+import { HOME_DARK_VISIBLE_BAR } from './constants';
 import HomeDarkBarCard from './HomeDarkBarCard';
 
 type BarLike = {
@@ -82,7 +83,7 @@ export default function HomeDarkSocialBar({
           </p>
         ) : (
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} key={selectedTab}>
-            <div className={`home-dark-scroll-peek${bars.length >= 4 ? ' home-dark-scroll-peek--active' : ''}`}>
+            <div className={`home-dark-scroll-peek${bars.length > HOME_DARK_VISIBLE_BAR ? ' home-dark-scroll-peek--active' : ''}`}>
               <div className="home-dark-hscroll scrollbar-hide">
                 <div className="home-dark-hscroll__track home-dark-hscroll__track--bar">
                   {bars.map((bar) => (
