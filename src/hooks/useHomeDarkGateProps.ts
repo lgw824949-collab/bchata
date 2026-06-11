@@ -8,14 +8,18 @@ import {
   navigateHomeTab,
   pushOverlay,
 } from '../lib/appHistory';
+import { buildHomeDarkHeroSlides } from '../components/home/buildHomeDarkHeroSlides';
 import { HOME_DARK_REGION_PILLS } from '../components/home/constants';
 import type { HomeDarkGateProps } from '../components/home/HomeDarkGate';
-import type { HomeDarkBar, HomeDarkParty } from '../components/home/types';
+import type { HomeDarkBar, HomeDarkHeroSlide, HomeDarkParty } from '../components/home/types';
 
 export type UseHomeDarkGatePropsInput = {
   isEn: boolean;
   translateDynamicText: (text: string, isEn: boolean) => string;
   todayPosterPartiesForCount: HomeDarkParty[];
+  bootcamps: Array<Record<string, unknown>>;
+  festivals: Array<Record<string, unknown>>;
+  calendarTodayStr: string;
   regionCounts: {
     national: number;
     seoul: number;
@@ -35,6 +39,8 @@ export type UseHomeDarkGatePropsInput = {
   socialBarRegionAll: string;
   sortBarsForSocialBarTab: (bars: HomeDarkBar[], regionTab: string) => HomeDarkBar[];
   openPartyWithAfterParty: (party: HomeDarkParty) => void;
+  openBootcampPage: () => void;
+  openFestivalPage: () => void;
   toggleWishlistParty: (e: React.MouseEvent, party: HomeDarkParty) => void;
   openVenueDetail: (bar: HomeDarkBar) => void;
   registerAdminPortalTap: () => void;
@@ -47,6 +53,9 @@ export function useHomeDarkGateProps(input: UseHomeDarkGatePropsInput) {
     isEn,
     translateDynamicText,
     todayPosterPartiesForCount,
+    bootcamps,
+    festivals,
+    calendarTodayStr,
     regionCounts,
     wishlistParties,
     hotInstructors,
@@ -62,6 +71,8 @@ export function useHomeDarkGateProps(input: UseHomeDarkGatePropsInput) {
     socialBarRegionAll,
     sortBarsForSocialBarTab,
     openPartyWithAfterParty,
+    openBootcampPage,
+    openFestivalPage,
     toggleWishlistParty,
     openVenueDetail,
     registerAdminPortalTap,
@@ -95,13 +106,29 @@ export function useHomeDarkGateProps(input: UseHomeDarkGatePropsInput) {
     [todayPosterPartiesForCount, homeRegionPill, filterTodayPartiesByPill],
   );
 
-  const homeTodayPickParty = homeFilteredTodayParties.length
-    ? homeFilteredTodayParties[homePickIndex % homeFilteredTodayParties.length]
+  const homeHeroSlides = useMemo(
+    () => buildHomeDarkHeroSlides(
+      homeFilteredTodayParties,
+      bootcamps,
+      festivals,
+      calendarTodayStr,
+    ),
+    [homeFilteredTodayParties, bootcamps, festivals, calendarTodayStr],
+  );
+
+  const homeActiveHeroSlide = homeHeroSlides.length
+    ? homeHeroSlides[homePickIndex % homeHeroSlides.length]
     : null;
 
   useEffect(() => {
     setHomePickIndex(0);
   }, [homeRegionPill]);
+
+  useEffect(() => {
+    if (homePickIndex >= homeHeroSlides.length && homeHeroSlides.length > 0) {
+      setHomePickIndex(0);
+    }
+  }, [homePickIndex, homeHeroSlides.length]);
 
   const homeDarkRegionPillCounts = useMemo(() => ({
     all: todayPosterPartiesForCount.length,
@@ -126,13 +153,9 @@ export function useHomeDarkGateProps(input: UseHomeDarkGatePropsInput) {
   }, [locations, selectedRegionTab, socialBarRegionAll, sortBarsForSocialBarTab]);
 
   const navHandlers = useMemo(() => ({
-    /** 하단 네비 · 전체보기 — /?tab=social */
     openPartyTab: () => navigateHomeTab('social'),
-    /** 하단 네비 · 강사 — /instructors */
     openInstructors: () => historyNavigate('/instructors', { homeTab: null }),
-    /** 하단 네비 · BAR — incheon 오버레이 */
     openBarOverlay: () => pushOverlay('incheon'),
-    /** 하단 네비 · 마이 — partner 오버레이 */
     openProfileOverlay: () => pushOverlay('partner'),
   }), []);
 
@@ -149,17 +172,46 @@ export function useHomeDarkGateProps(input: UseHomeDarkGatePropsInput) {
     [isEn, translateDynamicText],
   );
 
+  const getHeroTitle = useCallback(
+    (slide: HomeDarkHeroSlide) => translateDynamicText(
+      slide.kind === 'party'
+        ? formatPartyTitleDisplay(slide.title)
+        : slide.title,
+      isEn,
+    ),
+    [isEn, translateDynamicText],
+  );
+
+  const getHeroVenue = useCallback(
+    (slide: HomeDarkHeroSlide) => translateDynamicText(slide.venue, isEn),
+    [isEn, translateDynamicText],
+  );
+
+  const openHeroSlide = useCallback((slide: HomeDarkHeroSlide) => {
+    if (slide.kind === 'bootcamp') {
+      openBootcampPage();
+      return;
+    }
+    if (slide.kind === 'festival') {
+      openFestivalPage();
+      return;
+    }
+    openPartyWithAfterParty(slide.raw as HomeDarkParty);
+  }, [openBootcampPage, openFestivalPage, openPartyWithAfterParty]);
+
   const gateProps: HomeDarkGateProps = {
     isEn,
     regionPills: [...HOME_DARK_REGION_PILLS],
     regionPill: homeRegionPill,
     regionPillCounts: homeDarkRegionPillCounts,
     onRegionPillChange: setHomeRegionPill,
-    todayPickParty: homeTodayPickParty,
-    todayPickTitle: homeTodayPickParty ? getPartyTitle(homeTodayPickParty) : '',
-    todayPickVenue: homeTodayPickParty ? getPartyVenue(homeTodayPickParty) : '',
+    heroSlide: homeActiveHeroSlide,
+    heroTitle: homeActiveHeroSlide ? getHeroTitle(homeActiveHeroSlide) : '',
+    heroVenue: homeActiveHeroSlide ? getHeroVenue(homeActiveHeroSlide) : '',
+    heroSlideCount: homeHeroSlides.length,
     pickIndex: homePickIndex,
     onPickIndexChange: setHomePickIndex,
+    onHeroOpen: () => homeActiveHeroSlide && openHeroSlide(homeActiveHeroSlide),
     todayParties: homeFilteredTodayParties,
     wishlistPartyIds: wishlistParties,
     getPartyTitle,

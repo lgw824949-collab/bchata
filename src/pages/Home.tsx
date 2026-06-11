@@ -2399,10 +2399,22 @@ const HomePage = ({
     return parties;
   }, []);
 
+  const openBootcampPage = useCallback(
+    () => historyNavigate('/bootcamp', { homeTab: null }),
+    [],
+  );
+  const openFestivalPage = useCallback(
+    () => historyNavigate('/festival', { homeTab: null }),
+    [],
+  );
+
   const { gateProps: homeDarkGateProps } = useHomeDarkGateProps({
     isEn,
     translateDynamicText,
     todayPosterPartiesForCount,
+    bootcamps,
+    festivals,
+    calendarTodayStr,
     regionCounts,
     wishlistParties,
     hotInstructors,
@@ -2418,6 +2430,8 @@ const HomePage = ({
     socialBarRegionAll: SOCIAL_BAR_REGION_ALL,
     sortBarsForSocialBarTab,
     openPartyWithAfterParty,
+    openBootcampPage,
+    openFestivalPage,
     toggleWishlistParty,
     openVenueDetail,
     registerAdminPortalTap,

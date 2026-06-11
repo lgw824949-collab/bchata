@@ -5,7 +5,13 @@ import HomeDarkTodayPick from './HomeDarkTodayPick';
 import HomeDarkParties from './HomeDarkParties';
 import HomeDarkInstructors from './HomeDarkInstructors';
 import HomeDarkSocialBar from './HomeDarkSocialBar';
-import type { HomeDarkBar, HomeDarkInstructor, HomeDarkParty, HomeDarkRegionPill } from './types';
+import type {
+  HomeDarkBar,
+  HomeDarkHeroSlide,
+  HomeDarkInstructor,
+  HomeDarkParty,
+  HomeDarkRegionPill,
+} from './types';
 
 export type HomeDarkGateProps = {
   isEn: boolean;
@@ -13,11 +19,13 @@ export type HomeDarkGateProps = {
   regionPill: string;
   regionPillCounts: Record<string, number>;
   onRegionPillChange: (id: string) => void;
-  todayPickParty: HomeDarkParty | null;
-  todayPickTitle: string;
-  todayPickVenue: string;
+  heroSlide: HomeDarkHeroSlide | null;
+  heroTitle: string;
+  heroVenue: string;
+  heroSlideCount: number;
   pickIndex: number;
   onPickIndexChange: (index: number) => void;
+  onHeroOpen: () => void;
   todayParties: HomeDarkParty[];
   wishlistPartyIds: Array<string | number>;
   getPartyTitle: (party: HomeDarkParty) => string;
@@ -51,11 +59,13 @@ export default function HomeDarkGate({
   regionPill,
   regionPillCounts,
   onRegionPillChange,
-  todayPickParty,
-  todayPickTitle,
-  todayPickVenue,
+  heroSlide,
+  heroTitle,
+  heroVenue,
+  heroSlideCount,
   pickIndex,
   onPickIndexChange,
+  onHeroOpen,
   todayParties,
   wishlistPartyIds,
   getPartyTitle,
@@ -97,15 +107,15 @@ export default function HomeDarkGate({
         onChange={onRegionPillChange}
       />
       <HomeDarkTodayPick
-        party={todayPickParty}
-        title={todayPickTitle}
-        venue={todayPickVenue}
+        slide={heroSlide}
+        title={heroTitle}
+        venue={heroVenue}
         isEn={isEn}
-        pickCount={todayParties.length}
-        activeDot={pickIndex % Math.max(todayParties.length, 1)}
+        slideCount={heroSlideCount}
+        activeDot={pickIndex % Math.max(heroSlideCount, 1)}
         onDotSelect={onPickIndexChange}
-        onOpen={() => todayPickParty && onPartyClick(todayPickParty)}
-        emptyLabel={isEn ? 'No parties registered today' : '오늘 등록된 파티가 없어요'}
+        onOpen={onHeroOpen}
+        emptyLabel={isEn ? 'No featured events today' : '오늘 등록된 행사가 없어요'}
       />
       <HomeDarkParties
         isEn={isEn}
