@@ -17,7 +17,6 @@ import {
   normalizeVenueAddressKey,
   normalizeVenueNameKey,
 } from '../lib/venueDedupe'
-import HomeDarkGate from '../components/home/HomeDarkGate'
 import VenueDetailModal from '../components/VenueDetailModal'
 import BarRegisterFormModal from '../components/BarRegisterFormModal'
 import { navigate as historyNavigate, navigateHomeTab, parseAppState, pushOverlay, readNavigationState } from '../lib/appHistory'
@@ -201,13 +200,6 @@ const HOME_REGIONS_ORDER = [
 
 /** Social BAR — 위치 실패 시 전국 노출 */
 const SOCIAL_BAR_REGION_ALL = '전체';
-
-const HOME_DARK_REGION_PILLS = [
-  { id: 'all', labelKo: '전체', labelEn: 'All' },
-  { id: 'national', labelKo: '전국', labelEn: 'National' },
-  { id: 'seoul', labelKo: '서울', labelEn: 'Seoul' },
-  { id: 'metro', labelKo: '수도권', labelEn: 'Metro' },
-];
 
 /** 홈 Social BAR — 2장 + 3번째 peek 이후 스크롤로 더 보기 */
 const SOCIAL_BAR_PEEK_VISIBLE = 3;
@@ -1914,44 +1906,6 @@ const HomePage = ({
     [todayPosterParties],
   );
 
-  const barTodayPartyCountByKey = useMemo(() => {
-    const map = new Map();
-    todayPosterPartiesForCount.forEach((party) => {
-      const venueName = resolvePartyVenueName(party)
-        || party.locationName
-        || party.location_name
-        || '';
-      const key = normalizeVenueNameKey(venueName);
-      if (!key) return;
-      map.set(key, (map.get(key) || 0) + 1);
-    });
-    return map;
-  }, [todayPosterPartiesForCount]);
-
-  const getBarTodayEventCount = useCallback((bar) => {
-    const key = normalizeVenueNameKey(bar?.name || '');
-    return key ? (barTodayPartyCountByKey.get(key) || 0) : 0;
-  }, [barTodayPartyCountByKey]);
-
-  const [homeRegionPill, setHomeRegionPill] = useState('all');
-  const [homePickIndex, setHomePickIndex] = useState(0);
-
-  const homeFilteredTodayParties = useMemo(() => {
-    const base = todayPosterPartiesForCount;
-    if (homeRegionPill === 'seoul') return base.filter(isHomePosterBannerSeoul);
-    if (homeRegionPill === 'metro') return base.filter(isHomePosterBannerMetro);
-    if (homeRegionPill === 'national') return base.filter(isHomePosterBannerLocal);
-    return base;
-  }, [todayPosterPartiesForCount, homeRegionPill]);
-
-  const homeTodayPickParty = homeFilteredTodayParties.length
-    ? homeFilteredTodayParties[homePickIndex % homeFilteredTodayParties.length]
-    : null;
-
-  useEffect(() => {
-    setHomePickIndex(0);
-  }, [homeRegionPill]);
-
   useEffect(() => {
     const todayParties = todayPosterPartiesForCount;
 
@@ -2412,21 +2366,6 @@ const HomePage = ({
     const rest = withVenues.filter((tab) => tab !== geoRegionTab);
     return [geoRegionTab, ...rest, SOCIAL_BAR_REGION_ALL];
   }, [locations, geoRegionTab, geoRegionStatus]);
-
-  const homeDarkRegionPillCounts = useMemo(() => ({
-    all: todayPosterPartiesForCount.length,
-    national: regionCounts.national,
-    seoul: regionCounts.seoul,
-    metro: regionCounts.metro,
-  }), [todayPosterPartiesForCount.length, regionCounts]);
-
-  const homeDarkRegionBars = useMemo(() => {
-    if (!selectedRegionTab) return [];
-    const filteredBars = selectedRegionTab === SOCIAL_BAR_REGION_ALL
-      ? locations
-      : locations.filter((bar) => bar.region === selectedRegionTab);
-    return sortBarsForSocialBarTab(filteredBars, selectedRegionTab);
-  }, [locations, selectedRegionTab, geoRegionTab]);
 
   const syncVenueAcrossHome = (updated) => {
     if (!updated) return;
@@ -2889,7 +2828,8 @@ const HomePage = ({
   }, [isEn]);
 
   const isHomeGate = activeTab === null;
-  const isHomeGateDark = isHomeGate;
+  /** 홈 게이트는 모바일 시스템 다크모드와 무관하게 항상 라이트(흰색) */
+  const isHomeGateDark = false;
 
   useEffect(() => {
     if (!isHomeGate) return undefined;
@@ -2898,9 +2838,9 @@ const HomePage = ({
     const body = document.body;
     const themeMeta = document.querySelector('meta[name="theme-color"]');
 
-    root.classList.add('home-gate-theme', 'app-dark-surface');
-    body.classList.add('home-gate-theme', 'app-dark-surface');
-    if (themeMeta) themeMeta.setAttribute('content', '#0B0B0B');
+    root.classList.remove('home-gate-theme', 'app-dark-surface');
+    body.classList.remove('home-gate-theme', 'app-dark-surface');
+    if (themeMeta) themeMeta.setAttribute('content', '#ffffff');
 
     return () => {
       root.classList.remove('home-gate-theme', 'app-dark-surface');
@@ -2913,11 +2853,9 @@ const HomePage = ({
     if (!isHomeGate) return undefined;
 
     const horizontalBandSelector = [
-      '.home-dark-parties-scroll',
       '.home-hot-instructors-scroll',
       '.home-social-bar-scroll',
       '.home-social-bar-scroll--peek',
-      '.home-dark-region-pills',
       '.home-quick-menu-scroll--gate-all',
       '.home-quick-menu-scroll',
       '.home-quick-menu-more-scroll',
@@ -2960,7 +2898,7 @@ const HomePage = ({
   const HOME_TEXT_MUTED = 'rgba(30, 41, 59, 0.55)';
   const HOME_SURFACE = '#FFFFFF';
   const HOME_BORDER = '#EDEAE3';
-  const HOME_PAGE_BG = isHomeGateDark ? '#0B0B0B' : '#F5F6F8';
+  const HOME_PAGE_BG = '#F5F6F8';
   const HOME_CARD_BORDER = '0.5px solid #EDEAE3';
   const homeUi = useMemo(() => (isHomeGateDark ? {
     pageBg: '#0D0D0D',
@@ -4054,12 +3992,12 @@ const HomePage = ({
       <motion.div
         className={isHomeGate ? 'home-hero-zone' : undefined}
         style={{
-          padding: isHomeGateDark ? '16px 20px 0' : (isHomeGate ? '20px 16px 0' : '20px 16px 0'),
-          marginBottom: isHomeGateDark ? 0 : (isHomeGate ? 20 : homeSectionSpace - 4),
+          padding: isHomeGate ? '20px 16px 0' : '20px 16px 0',
+          marginBottom: isHomeGate ? 20 : homeSectionSpace - 4,
           background: isHomeGate ? HOME_PAGE_BG : undefined,
         }}
       >
-        {activeTab === null && !isHomeGateDark && (
+        {activeTab === null && (
         <motion.div
           className="home-hero-brand"
           style={{
@@ -4106,66 +4044,14 @@ const HomePage = ({
         <motion.div
           className="home-main-stack"
           style={{
-            padding: isHomeGateDark ? '0 20px' : '0 16px',
+            padding: '0 16px',
             gap: isHomeGate ? homeGateStackGap : undefined,
           }}
         >
-          {isHomeGateDark ? (
-            <HomeDarkGate
-              isEn={isEn}
-              regionPills={HOME_DARK_REGION_PILLS}
-              regionPill={homeRegionPill}
-              regionPillCounts={homeDarkRegionPillCounts}
-              onRegionPillChange={setHomeRegionPill}
-              todayPickParty={homeTodayPickParty}
-              todayPickTitle={homeTodayPickParty
-                ? translateDynamicText(formatPartyTitleDisplay(homeTodayPickParty.title), isEn)
-                : ''}
-              todayPickVenue={homeTodayPickParty
-                ? translateDynamicText(
-                  homeTodayPickParty.locationName || homeTodayPickParty.location_name || homeTodayPickParty.venue || '',
-                  isEn,
-                )
-                : ''}
-              pickIndex={homePickIndex}
-              onPickIndexChange={setHomePickIndex}
-              todayParties={homeFilteredTodayParties}
-              wishlistPartyIds={wishlistParties}
-              getPartyTitle={(party) => translateDynamicText(formatPartyTitleDisplay(party.title), isEn)}
-              getPartyVenue={(party) => translateDynamicText(
-                party.locationName || party.location_name || party.venue || '',
-                isEn,
-              )}
-              onPartyClick={openPartyWithAfterParty}
-              onToggleWishlist={toggleWishlistParty}
-              onViewAllParties={() => navigateHomeTab('social')}
-              instructors={hotInstructors}
-              instructorsLoading={hotInstructorsLoading}
-              onViewAllInstructors={() => navigate('/instructors', { homeTab: null })}
-              onInstructorClick={() => navigate('/instructors')}
-              socialBarRegionTabs={socialBarRegionTabs}
-              selectedBarRegionTab={selectedRegionTab}
-              barRegionCounts={barRegionCounts}
-              geoRegionTab={geoRegionTab}
-              regionBars={homeDarkRegionBars}
-              locationsLoading={locationsLoading}
-              geoRegionPending={geoRegionStatus === 'pending'}
-              getBarCoverPhoto={(bar) => bar.image_url || resolveBarVenuePhoto(bar.name, bar.image_url)}
-              getBarEventCount={getBarTodayEventCount}
-              onBarRegionTabChange={setSelectedRegionTab}
-              onBarClick={openVenueDetail}
-              onViewMap={() => openAnalysis(false)}
-              onAdminTap={registerAdminPortalTap}
-              onSearch={() => navigateHomeTab('social')}
-            />
-          ) : (
-            <>
-              {renderHomeMainLiveSlot()}
-              {renderHomeMainQuickMenuSection()}
-              {renderHomeHotInstructorsSection()}
-              {renderHomeSocialBarSection()}
-            </>
-          )}
+          {renderHomeMainLiveSlot()}
+          {renderHomeMainQuickMenuSection()}
+          {renderHomeHotInstructorsSection()}
+          {renderHomeSocialBarSection()}
         </motion.div>
       )}
 
