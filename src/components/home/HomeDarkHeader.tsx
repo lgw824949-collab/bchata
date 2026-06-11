@@ -3,11 +3,12 @@ import { Bell, Search } from 'lucide-react';
 
 type HomeDarkHeaderProps = {
   tagline: string;
+  mission: string;
   onAdminTap: () => void;
   onSearch: () => void;
 };
 
-export default function HomeDarkHeader({ tagline, onAdminTap, onSearch }: HomeDarkHeaderProps) {
+export default function HomeDarkHeader({ tagline, mission, onAdminTap, onSearch }: HomeDarkHeaderProps) {
   return (
     <header className="home-dark-header">
       <div className="home-dark-header__brand">
@@ -26,6 +27,7 @@ export default function HomeDarkHeader({ tagline, onAdminTap, onSearch }: HomeDa
           오늘밤빠
         </h1>
         <p className="home-dark-header__tagline">{tagline}</p>
+        <p className="home-dark-header__mission">{mission}</p>
       </div>
       <div className="home-dark-header__actions">
         <button type="button" className="home-dark-header__icon-btn" aria-label="알림">

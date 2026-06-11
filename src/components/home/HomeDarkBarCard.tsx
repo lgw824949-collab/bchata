@@ -56,10 +56,12 @@ export default function HomeDarkBarCard({
       </span>
       <span className="home-dark-bar-card-v__body">
         <span className="home-dark-bar-card-v__name">{barName}</span>
-        <span className="home-dark-bar-card-v__parties">
-          {isEn
-            ? `Today ${eventCount} ${eventCount === 1 ? 'event' : 'events'}`
-            : `오늘 ${eventCount}개 행사`}
+        <span className={`home-dark-bar-card-v__parties${eventCount > 0 ? ' is-live' : ''}`}>
+          {eventCount > 0
+            ? (isEn
+              ? `Tonight ${eventCount} ${eventCount === 1 ? 'event' : 'events'}`
+              : `오늘 행사 ${eventCount}개`)
+            : (isEn ? 'No event tonight' : '오늘 행사 없음')}
         </span>
         <span className="home-dark-bar-card-v__district">{district}</span>
       </span>

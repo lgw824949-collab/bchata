@@ -20,6 +20,7 @@ type PartyLike = {
 type HomeDarkPartiesProps = {
   isEn: boolean;
   parties: PartyLike[];
+  hasFeaturedPick: boolean;
   wishlistIds: Array<string | number>;
   getTitle: (party: PartyLike) => string;
   getVenue: (party: PartyLike) => string;
@@ -32,6 +33,7 @@ type HomeDarkPartiesProps = {
 export default function HomeDarkParties({
   isEn,
   parties,
+  hasFeaturedPick,
   wishlistIds,
   getTitle,
   getVenue,
@@ -40,16 +42,19 @@ export default function HomeDarkParties({
   onViewAll,
   emptyLabel,
 }: HomeDarkPartiesProps) {
+  const sectionTitle = hasFeaturedPick
+    ? (isEn ? 'More tonight' : '다른 소셜')
+    : (isEn ? "Tonight's social" : '오늘소셜');
+
   return (
-    <section className="home-dark-section home-dark-parties" aria-label={isEn ? "Today's social" : '오늘소셜'}>
+    <section className="home-dark-section home-dark-parties" aria-label={sectionTitle}>
       <HomeDarkSectionHeader
-        title={isEn ? "Today's social" : '오늘소셜'}
-        subtitle={isEn ? 'Socials happening tonight' : '오늘 밤 열리는 소셜'}
+        title={sectionTitle}
         linkLabel={isEn ? 'View all' : '전체보기'}
         onLinkClick={onViewAll}
       />
       {parties.length > 0 ? (
-        <div className={`home-dark-scroll-peek${parties.length >= 5 ? ' home-dark-scroll-peek--active' : ''}`}>
+        <div className={`home-dark-scroll-peek${parties.length >= 4 ? ' home-dark-scroll-peek--active' : ''}`}>
           <div className="home-dark-parties-scroll scrollbar-hide">
             <div className="home-dark-parties-track">
               {parties.map((party, index) => {
@@ -63,11 +68,11 @@ export default function HomeDarkParties({
                   <motion.button
                     key={party.id}
                     type="button"
-                    className="home-dark-party-card"
+                    className="home-dark-tile-card home-dark-tile-card--party"
                     whileTap={{ scale: 0.98 }}
                     onClick={() => onPartyClick(party)}
                   >
-                    <div className="home-dark-party-card__media">
+                    <div className="home-dark-tile-card__media">
                       <img
                         className={HD_POSTER_IMG_CLASS}
                         src={party.poster_url}
@@ -97,9 +102,9 @@ export default function HomeDarkParties({
                         <Heart size={14} fill={isWishlisted ? 'currentColor' : 'none'} />
                       </span>
                     </div>
-                    <div className="home-dark-party-card__foot">
-                      <p className="home-dark-party-card__title">{title}</p>
-                      <p className="home-dark-party-card__meta">
+                    <div className="home-dark-tile-card__foot">
+                      <p className="home-dark-tile-card__title">{title}</p>
+                      <p className="home-dark-tile-card__meta">
                         {[venue || regionLabel, time].filter(Boolean).join(' · ')}
                       </p>
                     </div>

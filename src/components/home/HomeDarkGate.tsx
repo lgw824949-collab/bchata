@@ -1,6 +1,7 @@
 import React from 'react';
 import HomeDarkHeader from './HomeDarkHeader';
 import HomeDarkRegionPills from './HomeDarkRegionPills';
+import HomeDarkSummary from './HomeDarkSummary';
 import HomeDarkTodayPick from './HomeDarkTodayPick';
 import HomeDarkParties from './HomeDarkParties';
 import HomeDarkInstructors from './HomeDarkInstructors';
@@ -82,10 +83,17 @@ export default function HomeDarkGate({
   onAdminTap,
   onSearch,
 }: HomeDarkGateProps) {
+  const activeRegion = regionPills.find((pill) => pill.id === regionPill);
+  const regionLabel = isEn ? (activeRegion?.labelEn || 'All') : (activeRegion?.labelKo || '전체');
+  const moreParties = todayPickParty
+    ? todayParties.filter((party) => party.id !== todayPickParty.id)
+    : todayParties;
+
   return (
     <div className="home-dark-gate">
       <HomeDarkHeader
-        tagline={isEn ? 'Time to dance' : '지금, 춤추러 갈 시간'}
+        tagline={isEn ? 'Latin dance tonight' : '라틴 댄스 소셜'}
+        mission={isEn ? 'Where are you going tonight?' : '오늘 밤, 어디 갈까?'}
         onAdminTap={onAdminTap}
         onSearch={onSearch}
       />
@@ -95,6 +103,11 @@ export default function HomeDarkGate({
         counts={regionPillCounts}
         isEn={isEn}
         onChange={onRegionPillChange}
+      />
+      <HomeDarkSummary
+        isEn={isEn}
+        partyCount={todayParties.length}
+        regionLabel={regionLabel}
       />
       <HomeDarkTodayPick
         party={todayPickParty}
@@ -109,14 +122,19 @@ export default function HomeDarkGate({
       />
       <HomeDarkParties
         isEn={isEn}
-        parties={todayParties}
+        parties={moreParties}
+        hasFeaturedPick={Boolean(todayPickParty)}
         wishlistIds={wishlistPartyIds}
         getTitle={getPartyTitle}
         getVenue={getPartyVenue}
         onPartyClick={onPartyClick}
         onToggleWishlist={onToggleWishlist}
         onViewAll={onViewAllParties}
-        emptyLabel={isEn ? 'No parties in this region today' : '이 지역 오늘 파티가 없어요'}
+        emptyLabel={
+          todayPickParty
+            ? (isEn ? 'No other socials in this area' : '추천 말고는 다른 소셜이 없어요')
+            : (isEn ? 'No parties in this region today' : '이 지역 오늘 파티가 없어요')
+        }
       />
       <HomeDarkInstructors
         isEn={isEn}

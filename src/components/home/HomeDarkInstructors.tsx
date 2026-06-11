@@ -29,14 +29,13 @@ export default function HomeDarkInstructors({
 }: HomeDarkInstructorsProps) {
   if (!loading && instructors.length === 0) return null;
 
-  const skeletonItems = [0, 1, 2, 3, 4];
-  const showPeek = loading || instructors.length >= 5;
+  const skeletonItems = [0, 1, 2, 3];
+  const showPeek = loading || instructors.length >= 4;
 
   return (
-    <section className="home-dark-section home-hot-instructors-wrap home-hot-instructors-wrap--dark" aria-label={isEn ? 'Active instructors' : '활동 강사'}>
+    <section className="home-dark-section home-hot-instructors-wrap home-hot-instructors-wrap--dark" aria-label={isEn ? 'Instructors' : '강사'}>
       <HomeDarkSectionHeader
-        title={isEn ? 'Instructors' : '강사 한눈에'}
-        subtitle={isEn ? 'Active instructors tonight' : '오늘 밤 활동하는 강사'}
+        title={isEn ? 'Instructors' : '강사'}
         linkLabel={isEn ? 'View all' : '전체보기'}
         onLinkClick={onViewAll}
       />
@@ -45,8 +44,9 @@ export default function HomeDarkInstructors({
           <div className="home-hot-instructors-track">
             {loading
               ? skeletonItems.map((i) => (
-                  <div key={`sk-${i}`} className="home-premium-instructor-card home-premium-instructor-card--skeleton" aria-hidden>
-                    <div className="home-premium-instructor-card__media" />
+                  <div key={`sk-${i}`} className="home-dark-tile-card home-dark-tile-card--skeleton" aria-hidden>
+                    <div className="home-dark-tile-card__media" />
+                    <div className="home-dark-tile-card__foot" />
                   </div>
                 ))
               : instructors.map((inst) => {
@@ -55,11 +55,11 @@ export default function HomeDarkInstructors({
                     <motion.button
                       key={inst.id}
                       type="button"
-                      className="home-premium-instructor-card"
+                      className="home-dark-tile-card home-dark-tile-card--instructor"
                       whileTap={{ scale: 0.98 }}
                       onClick={onInstructorClick}
                     >
-                      <div className="home-premium-instructor-card__media">
+                      <div className="home-dark-tile-card__media home-dark-tile-card__media--portrait">
                         <img
                           className={HD_PORTRAIT_IMG_CLASS}
                           src={inst.photo_url || DEFAULT_AVATAR_IMAGE}
@@ -68,31 +68,12 @@ export default function HomeDarkInstructors({
                           decoding="async"
                           onError={imgFallbackHandler(DEFAULT_AVATAR_IMAGE)}
                         />
-                        <span className="home-dark-card__scrim home-dark-card__scrim--portrait" aria-hidden />
-                        <span className="home-dark-card__body">
-                          <span className="home-dark-card__title">{inst.name}</span>
-                          {genreLabel ? (
-                            <span className="home-dark-card__meta home-dark-card__meta--accent">{genreLabel}</span>
-                          ) : null}
-                          <span
-                            role="button"
-                            tabIndex={0}
-                            className="home-dark-card__chip"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              onInstructorClick();
-                            }}
-                            onKeyDown={(e) => {
-                              if (e.key === 'Enter' || e.key === ' ') {
-                                e.preventDefault();
-                                e.stopPropagation();
-                                onInstructorClick();
-                              }
-                            }}
-                          >
-                            {isEn ? 'Follow' : '팔로우'}
-                          </span>
-                        </span>
+                      </div>
+                      <div className="home-dark-tile-card__foot">
+                        <p className="home-dark-tile-card__title">{inst.name}</p>
+                        {genreLabel ? (
+                          <p className="home-dark-tile-card__meta">{genreLabel}</p>
+                        ) : null}
                       </div>
                     </motion.button>
                   );

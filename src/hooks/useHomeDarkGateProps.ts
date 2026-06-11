@@ -110,6 +110,13 @@ export function useHomeDarkGateProps(input: UseHomeDarkGatePropsInput) {
     metro: regionCounts.metro,
   }), [todayPosterPartiesForCount.length, regionCounts]);
 
+  const homeDarkInstructors = useMemo(() => {
+    const posterUrls = new Set(
+      todayPosterPartiesForCount.map((party) => party.poster_url).filter(Boolean),
+    );
+    return hotInstructors.filter((inst) => inst.photo_url && !posterUrls.has(inst.photo_url));
+  }, [hotInstructors, todayPosterPartiesForCount]);
+
   const homeDarkRegionBars = useMemo(() => {
     if (!selectedRegionTab) return [];
     const filteredBars = selectedRegionTab === socialBarRegionAll
@@ -160,7 +167,7 @@ export function useHomeDarkGateProps(input: UseHomeDarkGatePropsInput) {
     onPartyClick: openPartyWithAfterParty,
     onToggleWishlist: toggleWishlistParty,
     onViewAllParties: navHandlers.openPartyTab,
-    instructors: hotInstructors,
+    instructors: homeDarkInstructors,
     instructorsLoading: hotInstructorsLoading,
     onViewAllInstructors: navHandlers.openInstructors,
     onInstructorClick: navHandlers.openInstructors,
