@@ -122,11 +122,21 @@ export function readUrlNavPatch(pathname = window.location.pathname, search = wi
 
   const itab = params.get('itab');
   if (itab && INSTRUCTOR_TABS.has(itab)) patch.instructorTab = itab;
+
+  if (pathname === '/party') patch.homeTab = 'social';
+  if (pathname === '/teacher') patch.view = 'instructors';
+  if (pathname === '/bar') patch.overlay = 'incheon';
+  if (pathname === '/profile') patch.overlay = 'partner';
+
   return patch;
 }
 
 export const PATH_TO_VIEW = {
   '/': 'home',
+  '/party': 'home',
+  '/teacher': 'instructors',
+  '/bar': 'home',
+  '/profile': 'home',
   '/livepick': 'community',
   '/community': 'community',
   '/instructors': 'instructors',
@@ -186,7 +196,16 @@ export function buildNavUrl(pathname, state) {
   const params = new URLSearchParams();
   let path = pathname || '/';
 
-  if (path === '/') {
+  if (path === '/party') {
+    path = '/';
+    params.set('tab', 'social');
+  } else if (path === '/teacher') {
+    path = '/instructors';
+  } else if (path === '/bar') {
+    path = '/';
+  } else if (path === '/profile') {
+    path = '/';
+  } else if (path === '/') {
     if (state?.homeTab && HOME_TABS.has(state.homeTab)) {
       params.set('tab', state.homeTab);
     }

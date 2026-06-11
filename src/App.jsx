@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo, useRef, useCallback, lazy, Suspense } from 'react'
-import { Home as HomeIcon, Users, LogOut, Heart, X, MessageSquare, RefreshCw, CloudSun, Utensils, Zap, Languages, Star, Navigation, CreditCard, Settings, Map as MapIcon, BarChart, BarChart2, Gift, Coffee, User, Menu, Music2, Tent, Flag, Download, Globe, ShieldCheck, Calendar, CalendarDays, Camera, ChevronLeft, ChevronRight, Loader2, Search, Share2, Copy, TrendingUp, GraduationCap } from 'lucide-react'
+import { Home as HomeIcon, Users, LogOut, Heart, X, MessageSquare, RefreshCw, CloudSun, Utensils, Zap, Languages, Star, Navigation, CreditCard, Settings, Map as MapIcon, BarChart, BarChart2, Gift, Coffee, User, Menu, Music2, Tent, Flag, Download, Globe, ShieldCheck, Calendar, CalendarDays, Camera, ChevronLeft, ChevronRight, Loader2, Search, Share2, Copy, TrendingUp, GraduationCap, Building2 } from 'lucide-react'
 import { useTranslation } from 'react-i18next';
 import { motion, AnimatePresence } from 'framer-motion'
 import { logActivity, runSupabaseQuery, supabase } from './lib/supabase'
@@ -1120,14 +1120,14 @@ function App() {
       (p) => location.pathname === p || location.pathname.startsWith(`${p}/`),
     )
   useEffect(() => {
-    document.body.classList.add('bottom-nav-social-light')
+    document.body.classList.toggle('bottom-nav-social-light', isSocialLightNav)
     document.documentElement.classList.toggle('home-gate-theme', isHomeGateNav)
     document.body.classList.toggle('home-gate-theme', isHomeGateNav)
     document.documentElement.classList.toggle('app-dark-surface', isDarkAppSurface)
     document.body.classList.toggle('app-dark-surface', isDarkAppSurface)
     const themeMeta = document.querySelector('meta[name="theme-color"]')
     if (themeMeta) {
-      if (isDarkAppSurface) themeMeta.setAttribute('content', '#0D0D0D')
+      if (isDarkAppSurface) themeMeta.setAttribute('content', '#0B0B0B')
       else if (isSocialLightNav) themeMeta.setAttribute('content', '#ffffff')
       else themeMeta.setAttribute('content', '#FF1744')
     }
@@ -2235,12 +2235,16 @@ function App() {
 
   const isLegalPage = location.pathname === '/terms' || location.pathname === '/privacy';
 
-  const bottomNavAccent = '#FF1744'
+  const bottomNavAccent = '#FF5B3A'
   const navActiveColor = bottomNavAccent
-  const navInactiveColor = '#94A3B8'
-  const socialNavActive = bottomNavAccent
-  const socialNavInactive = navInactiveColor
+  const navInactiveColor = '#6B6B6B'
+  const socialNavActive = '#FF1744'
+  const socialNavInactive = '#94A3B8'
   const isHomeNavActive = location.pathname === '/' && view === 'home' && homeActiveTab === null && !showPartner
+  const isPartyNavActive = (location.pathname === '/' || location.pathname === '/party') && view === 'home' && homeActiveTab === 'social' && !showPartner
+  const isInstructorNavActive = location.pathname === '/instructors' || location.pathname === '/teacher' || location.pathname.startsWith('/instructors/')
+  const isBarNavActive = showIncheonModal || location.pathname === '/bar'
+  const isMyNavActive = showPartner || location.pathname === '/profile'
   const isWishlistNavActive = showWishlist
   const isConciergeNavActive = chatbotOverlay
   const isLivepickNavActive = location.pathname === '/livepick'
@@ -3244,97 +3248,56 @@ function App() {
     {!hideBottomNav && (
     <nav
       ref={bottomNavRef}
-      className="bottom-nav bottom-nav--social-light"
+      className={`bottom-nav ${isSocialLightNav ? 'bottom-nav--social-light' : 'bottom-nav--dark'}`}
       aria-label="메인 메뉴"
     >
-      <div 
-        onClick={() => {
-          setShowPartner(false);
-          setActiveTab(null);
-          historyNavigate('/', { homeTab: null, replace: true, force: true });
-        }}
-        style={{ 
-          flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
-          cursor: 'pointer', transition: 'all 0.2s',
-          color: isHomeNavActive ? bottomNavAccent : navInactiveColor
-        }}
-      >
-        <HomeIcon size={22} strokeWidth={isHomeNavActive ? 2.5 : 1.5} />
-        <span style={{ fontSize: '9px', fontWeight: isHomeNavActive ? 900 : 600, marginTop: '2px' }}>
-          {i18n.language?.startsWith('en') ? 'Home' : '홈'}
-        </span>
-      </div>
-      <div
-        onClick={() => {
-          setShowPartner(false);
-          setActiveTab(null);
-          pushOverlay('wishlist');
-        }}
-        style={{
-          flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
-          cursor: 'pointer', transition: 'all 0.2s',
-          color: isWishlistNavActive ? bottomNavAccent : navInactiveColor,
-        }}
-      >
-        <Heart size={22} strokeWidth={isWishlistNavActive ? 2.5 : 1.5} />
-        <span style={{ fontSize: '9px', fontWeight: isWishlistNavActive ? 900 : 600, marginTop: '2px' }}>
-          {i18n.language?.startsWith('en') ? 'Saved' : '찜하기'}
-        </span>
-      </div>
-
-      <div
-        onClick={() => {
-          setShowPartner(false);
-          setActiveTab(null);
-          window.dispatchEvent(new CustomEvent('open-chatbot'));
-        }}
-        style={{
-          flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
-          cursor: 'pointer', transition: 'all 0.2s',
-          color: isConciergeNavActive ? bottomNavAccent : navInactiveColor,
-        }}
-      >
-        <Zap size={22} strokeWidth={isConciergeNavActive ? 2.5 : 1.5} />
-        <span style={{ fontSize: '9px', fontWeight: isConciergeNavActive ? 900 : 600, marginTop: '2px' }}>
-          {i18n.language?.startsWith('en') ? 'Concierge' : '컨시어지'}
-        </span>
-      </div>
-
-      <div 
-        onClick={() => {
-          setShowPartner(false);
-          setActiveTab(null);
-          navigate('/livepick');
-        }}
-        style={{ 
-          flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
-          cursor: 'pointer', transition: 'all 0.2s',
-          color: isLivepickNavActive ? bottomNavAccent : navInactiveColor
-        }}
-      >
-        <Camera size={22} strokeWidth={isLivepickNavActive ? 2.5 : 1.5} />
-        <span style={{ fontSize: '9px', fontWeight: isLivepickNavActive ? 900 : 600, marginTop: '2px' }}>
-          {i18n.language?.startsWith('en') ? 'Live pick' : '라이브픽'}
-        </span>
-      </div>
-
-      <div
-        onClick={() => {
-          setShowPartner(false);
-          setActiveTab(null);
-          window.open('https://open.kakao.com/o/gP43rNri', '_blank');
-        }}
-        style={{
-          flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
-          cursor: 'pointer', transition: 'all 0.2s',
-          color: navInactiveColor,
-        }}
-      >
-        <MessageSquare size={22} strokeWidth={1.5} />
-        <span style={{ fontSize: '9px', fontWeight: 600, marginTop: '2px' }}>
-          {i18n.language?.startsWith('en') ? 'Chat' : '채팅문의'}
-        </span>
-      </div>
+      {isSocialLightNav ? (
+        <>
+          <div onClick={() => { setShowPartner(false); historyNavigate('/', { homeTab: null, replace: true, force: true }); }} style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', color: isHomeNavActive ? socialNavActive : socialNavInactive }}>
+            <HomeIcon size={22} strokeWidth={isHomeNavActive ? 2.5 : 1.5} />
+            <span style={{ fontSize: '9px', fontWeight: isHomeNavActive ? 900 : 600, marginTop: '2px' }}>홈</span>
+          </div>
+          <div onClick={() => { setShowPartner(false); pushOverlay('wishlist'); }} style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', color: isWishlistNavActive ? socialNavActive : socialNavInactive }}>
+            <Heart size={22} strokeWidth={isWishlistNavActive ? 2.5 : 1.5} />
+            <span style={{ fontSize: '9px', fontWeight: isWishlistNavActive ? 900 : 600, marginTop: '2px' }}>찜하기</span>
+          </div>
+          <div onClick={() => { setShowPartner(false); window.dispatchEvent(new CustomEvent('open-chatbot')); }} style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', color: isConciergeNavActive ? socialNavActive : socialNavInactive }}>
+            <Zap size={22} strokeWidth={isConciergeNavActive ? 2.5 : 1.5} />
+            <span style={{ fontSize: '9px', fontWeight: isConciergeNavActive ? 900 : 600, marginTop: '2px' }}>컨시어지</span>
+          </div>
+          <div onClick={() => { setShowPartner(false); navigate('/livepick'); }} style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', color: isLivepickNavActive ? socialNavActive : socialNavInactive }}>
+            <Camera size={22} strokeWidth={isLivepickNavActive ? 2.5 : 1.5} />
+            <span style={{ fontSize: '9px', fontWeight: isLivepickNavActive ? 900 : 600, marginTop: '2px' }}>라이브픽</span>
+          </div>
+          <div onClick={() => { setShowPartner(false); window.open('https://open.kakao.com/o/gP43rNri', '_blank'); }} style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', color: socialNavInactive }}>
+            <MessageSquare size={22} strokeWidth={1.5} />
+            <span style={{ fontSize: '9px', fontWeight: 600, marginTop: '2px' }}>채팅문의</span>
+          </div>
+        </>
+      ) : (
+        <>
+          <div onClick={() => { setShowPartner(false); historyNavigate('/', { homeTab: null, replace: true, force: true }); }} style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', color: isHomeNavActive ? bottomNavAccent : navInactiveColor }}>
+            <HomeIcon size={22} strokeWidth={isHomeNavActive ? 2.5 : 1.5} />
+            <span style={{ fontSize: '9px', fontWeight: isHomeNavActive ? 900 : 600, marginTop: '2px' }}>홈</span>
+          </div>
+          <div onClick={() => { setShowPartner(false); navigateHomeTab('social'); }} style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', color: isPartyNavActive ? bottomNavAccent : navInactiveColor }}>
+            <Music2 size={22} strokeWidth={isPartyNavActive ? 2.5 : 1.5} />
+            <span style={{ fontSize: '9px', fontWeight: isPartyNavActive ? 900 : 600, marginTop: '2px' }}>파티</span>
+          </div>
+          <div onClick={() => { setShowPartner(false); navigate('/instructors'); }} style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', color: isInstructorNavActive ? bottomNavAccent : navInactiveColor }}>
+            <GraduationCap size={22} strokeWidth={isInstructorNavActive ? 2.5 : 1.5} />
+            <span style={{ fontSize: '9px', fontWeight: isInstructorNavActive ? 900 : 600, marginTop: '2px' }}>강사</span>
+          </div>
+          <div onClick={() => { setShowPartner(false); openAnalysis(false); }} style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', color: isBarNavActive ? bottomNavAccent : navInactiveColor }}>
+            <Building2 size={22} strokeWidth={isBarNavActive ? 2.5 : 1.5} />
+            <span style={{ fontSize: '9px', fontWeight: isBarNavActive ? 900 : 600, marginTop: '2px' }}>BAR</span>
+          </div>
+          <div onClick={() => { pushOverlay('partner'); setShowPartner(true); }} style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', color: isMyNavActive ? bottomNavAccent : navInactiveColor }}>
+            <User size={22} strokeWidth={isMyNavActive ? 2.5 : 1.5} />
+            <span style={{ fontSize: '9px', fontWeight: isMyNavActive ? 900 : 600, marginTop: '2px' }}>마이</span>
+          </div>
+        </>
+      )}
     </nav>
     )}
     {!isAdminShell && chatbotOverlay && (
