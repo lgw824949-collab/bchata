@@ -1,5 +1,5 @@
 /** 한 화면에 보일 카드 수 (목업 밸런스) */
-export const HOME_DARK_VISIBLE_PARTY = 5;
+export const HOME_DARK_VISIBLE_PARTY = 4;
 export const HOME_DARK_VISIBLE_INSTRUCTOR = 4;
 export const HOME_DARK_VISIBLE_BAR = 5;
 export const HOME_DARK_MIN_BAR_ITEMS = 5;

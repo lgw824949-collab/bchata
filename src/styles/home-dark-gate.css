@@ -35,11 +35,11 @@
   --hd-radius-hero: 22px;
   --hd-radius-card: 16px;
   --hd-radius-pill: 999px;
-  --hd-visible-party: 5;
+  --hd-visible-party: 4;
   --hd-visible-instructor: 4;
   --hd-visible-bar: 5;
   --hd-party-w: calc((100cqw - var(--hd-gap) * (var(--hd-visible-party) - 1)) / var(--hd-visible-party));
-  --hd-party-h: calc(var(--hd-party-w) * 1.28);
+  --hd-party-h: calc(var(--hd-party-w) * 1.32);
   --hd-instructor-w: calc((100cqw - var(--hd-gap) * (var(--hd-visible-instructor) - 1)) / var(--hd-visible-instructor));
   --hd-instructor-h: calc(var(--hd-instructor-w) * 1.32);
   --hd-bar-w: calc((100cqw - var(--hd-gap) * (var(--hd-visible-bar) - 1)) / var(--hd-visible-bar));
@@ -59,8 +59,8 @@
 
 @supports not (width: 1cqw) {
   .home-dark-gate {
-    --hd-party-w: 68px;
-    --hd-party-h: 87px;
+    --hd-party-w: 86px;
+    --hd-party-h: 114px;
     --hd-instructor-w: 86px;
     --hd-instructor-h: 114px;
     --hd-bar-w: 68px;
@@ -575,12 +575,18 @@
   gap: 1px;
 }
 
-.home-dark-party-card .home-dark-card__title,
+.home-dark-party-card .home-dark-card__title {
+  font-size: 12px;
+}
+
+.home-dark-party-card .home-dark-card__meta {
+  font-size: 10px;
+}
+
 .home-dark-bar-card-v .home-dark-card__title {
   font-size: 11px;
 }
 
-.home-dark-party-card .home-dark-card__meta,
 .home-dark-bar-card-v .home-dark-card__meta {
   font-size: 9px;
 }
