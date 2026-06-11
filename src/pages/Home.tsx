@@ -128,8 +128,8 @@ const HOME_GATE_MENU_COPY = {
   languageSwitch: { ko: '언어', en: 'Language' },
 };
 
-/** 메인 홈 게이트 — 상단 노출 4개 (2×2, 강사찾기는 더보기) */
-const HOME_GATE_MAIN_MENU_IDS = ['today-party', 'bootcamp', 'festival', 'festival-party'];
+/** 메인 홈 게이트 — 상단 노출 5개 (하단 네비 연동) */
+const HOME_GATE_MAIN_MENU_IDS = ['today-party', 'bootcamp', 'festival', 'festival-party', 'instructors'];
 
 
 /** source.unsplash.com 은 종료됨 — images.unsplash.com CDN (bachata 검색 결과 고정) */
@@ -149,7 +149,6 @@ const HOME_GATE_MAIN_MENU_PHOTO_URLS = {
 
 /** 메인 더보기 — Lucide 아이콘 통일 (king menu 전용) */
 const HOME_KING_MENU_ICONS = {
-  instructors: GraduationCap,
   'party-register': Music2,
   'bar-venue-class-register': Building2,
   'instructor-register': UserPlus,
@@ -161,9 +160,8 @@ const HOME_KING_MENU_ICONS = {
   language: Languages,
 };
 
-/** 더보기 메뉴 노출 순서 — 강사찾기·등록 2종 맨 앞 */
+/** 더보기 메뉴 노출 순서 — 등록 2종 맨 앞 */
 const HOME_GATE_KING_MENU_ORDER = [
-  'instructors',
   'party-register',
   'bar-venue-class-register',
   'instructor-register',
@@ -2067,6 +2065,8 @@ const HomePage = ({
   );
   const [activeInstructorMenuCount, setActiveInstructorMenuCount] = useState(0);
 
+  const instructorMenuPhotoUrl = firstInstructorPhotoUrl;
+
   const getHomeGateMenuBadgeCount = useCallback((itemId) => {
     switch (itemId) {
       case 'today-party':
@@ -2984,7 +2984,7 @@ const HomePage = ({
   };
   const homeSectionSpace = isHomeGate ? 32 : 36;
   const homeBlockSpace = isHomeGate ? 22 : 28;
-  const homeGateStackGap = 36;
+  const homeGateStackGap = 24;
   const homeDepthPanelStyle = {
     background: homeUi.panelBg,
     border: isHomeGateDark ? `1px solid ${homeUi.panelBorder}` : HOME_CARD_BORDER,
@@ -3050,19 +3050,10 @@ const HomePage = ({
         navigate('/festival', { homeTab: null });
       },
     },
-  ], [
-    isEn,
-    todayPartyMenuPhotoUrl,
-    bootcampMenuPhotoUrl,
-    festivalMenuPhotoUrl,
-    partyMenuPhotoUrl,
-  ]);
-
-  /** 메인 더보기·퀵메뉴 — 커스텀 SVG 원형 아이콘 */
-  const quickMenuItems = useMemo(() => [
     {
       id: 'instructors',
       icon: GraduationCap,
+      photoUrl: instructorMenuPhotoUrl,
       label: isEn ? 'Instructors' : '강사찾기',
       action: () => {
         localStorage.setItem('instructor_target_genre', '전체');
@@ -3072,6 +3063,17 @@ const HomePage = ({
         }, 300);
       },
     },
+  ], [
+    isEn,
+    todayPartyMenuPhotoUrl,
+    bootcampMenuPhotoUrl,
+    festivalMenuPhotoUrl,
+    partyMenuPhotoUrl,
+    instructorMenuPhotoUrl,
+  ]);
+
+  /** 메인 노출 5종 — 커스텀 SVG 원형 아이콘 */
+  const quickMenuItems = useMemo(() => [
     {
       id: 'party-register',
       menuSvg: QUICK_MENU_SVG.partyRegister,
@@ -3232,10 +3234,10 @@ const HomePage = ({
     const liveUploadMod = item.id === 'livepick' && hasLivePickUploadToday
       ? ' home-quick-menu-item--live-uploaded'
       : '';
-    const menuBadgeCount = getHomeGateMenuBadgeCount(item.id);
-    const badgeCountLabel = menuBadgeCount > 99 ? '99+' : String(menuBadgeCount);
-    const ariaLabel = menuBadgeCount > 0
-      ? homeGateMenuBadgeAriaLabel(item.id, item.label, menuBadgeCount)
+    const todayPartyBadgeCount = item.id === 'today-party' ? todayPosterMenuCount : 0;
+    const badgeCountLabel = todayPartyBadgeCount > 99 ? '99+' : String(todayPartyBadgeCount);
+    const ariaLabel = item.id === 'today-party' && todayPartyBadgeCount > 0
+      ? `${item.label} · 오늘 소셜 포스터 ${todayPartyBadgeCount}건`
       : item.id === 'livepick' && hasLivePickUploadToday
         ? `${item.label} · 오늘 업로드함`
         : item.label;
@@ -3259,7 +3261,7 @@ const HomePage = ({
               {Icon ? <Icon size={quickMenuIconSize} strokeWidth={quickMenuStroke} color="currentColor" aria-hidden /> : null}
             </QuickMenuIconCircle>
           )}
-          {menuBadgeCount > 0 ? (
+          {todayPartyBadgeCount > 0 ? (
             <span className="home-quick-menu-count-badge" aria-hidden>{badgeCountLabel}</span>
           ) : null}
           {item.id === 'livepick' && hasLivePickUploadToday ? (
@@ -3990,8 +3992,8 @@ const HomePage = ({
       <motion.div
         className={isHomeGate ? 'home-hero-zone' : undefined}
         style={{
-          padding: isHomeGate ? '20px 20px 0' : '20px 16px 0',
-          marginBottom: isHomeGate ? 24 : homeSectionSpace - 4,
+          padding: isHomeGate ? '20px 16px 0' : '20px 16px 0',
+          marginBottom: isHomeGate ? 20 : homeSectionSpace - 4,
           background: isHomeGate ? HOME_PAGE_BG : undefined,
         }}
       >
@@ -4042,7 +4044,7 @@ const HomePage = ({
         <motion.div
           className="home-main-stack"
           style={{
-            padding: isHomeGate ? '0 20px' : '0 16px',
+            padding: '0 16px',
             gap: isHomeGate ? homeGateStackGap : undefined,
           }}
         >
@@ -4069,24 +4071,24 @@ const HomePage = ({
         .home-gate-shell .home-main-stack {
           display: flex;
           flex-direction: column;
-          gap: 36px;
+          gap: 24px;
         }
         .home-gate-shell .home-section-break {
           padding: 28px 0 32px;
         }
         .home-gate-menu {
-          padding: 2px 0 4px;
+          padding: 6px 0 10px;
         }
         .home-gate-photo-menu-scroll {
           display: grid;
-          grid-template-columns: repeat(2, minmax(0, 1fr));
+          grid-template-columns: repeat(5, minmax(0, 1fr));
           align-items: start;
-          gap: clamp(10px, 2.8vw, 14px);
+          gap: clamp(5px, 1.6vw, 8px);
           width: 100%;
           box-sizing: border-box;
           overflow: visible;
           margin: 0;
-          padding: 4px 0 8px;
+          padding: 10px 0 6px;
         }
         .home-gate-photo-menu-card-shell {
           position: relative;
@@ -4139,14 +4141,14 @@ const HomePage = ({
           position: absolute;
           left: 0;
           right: 0;
-          bottom: clamp(8px, 2.2vw, 10px);
+          bottom: clamp(5px, 1.6vw, 7px);
           z-index: 2;
           color: #FFFFFF;
-          font-size: clamp(12px, 3.4vw, 14px);
+          font-size: clamp(9px, 2.6vw, 11px);
           font-weight: 700;
-          line-height: 1.25;
+          line-height: 1.2;
           text-align: center;
-          padding: 0 6px;
+          padding: 0 3px;
           word-break: keep-all;
         }
         .home-gate-photo-menu-card__badge {
@@ -4189,6 +4191,7 @@ const HomePage = ({
         .home-quick-menu-standalone--gate.home-gate-section-box {
           overflow: visible;
         }
+        .home-gate-shell:not(.home-gate-active) .home-gate-menu__divider {
           background: linear-gradient(
             90deg,
             transparent 0%,
@@ -4295,7 +4298,7 @@ const HomePage = ({
         }
         .home-gate-menu__divider {
           height: 1px;
-          margin: 16px 4px 14px;
+          margin: 24px 8px 20px;
           background: linear-gradient(
             90deg,
             transparent 0%,
@@ -4810,11 +4813,10 @@ const HomePage = ({
           display: block;
         }
         .home-social-bar-wrap .home-bar-thumb-fallback {
-          width: 36%;
-          height: 36%;
+          width: 40%;
+          height: 40%;
           object-fit: contain;
-          opacity: 0.28;
-          filter: grayscale(1);
+          opacity: 0.85;
         }
         .home-social-bar-wrap .home-bar-chip-text {
           display: flex;
@@ -4872,9 +4874,15 @@ const HomePage = ({
           0%, 100% { opacity: 0.4; }
           50% { opacity: 0.75; }
         }
+        .home-gate-shell .home-quick-menu-standalone--gate.home-gate-section-box {
+          background: transparent !important;
+          border: none !important;
+          box-shadow: none !important;
+          padding: 0 !important;
+        }
         .home-gate-shell .home-social-bar-panel--gate {
-          padding: 20px !important;
-          border-radius: 16px !important;
+          padding: 16px 14px 18px !important;
+          border-radius: 14px !important;
           border: 1px solid var(--home-card-border, #E8EBED) !important;
           background: #FFFFFF !important;
           box-shadow: none !important;
@@ -4928,7 +4936,7 @@ const HomePage = ({
         }
         .home-hot-instructors-wrap {
           background: var(--home-page-bg, #F5F6F8);
-          padding: 0;
+          padding: 16px 16px 0;
           margin: 0;
         }
         .home-hot-instructors-divider {
