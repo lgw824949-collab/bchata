@@ -1,5 +1,10 @@
 import React from 'react';
-import type { HomeDarkRegionPill } from './types';
+
+export type HomeDarkRegionPill = {
+  id: string;
+  labelKo: string;
+  labelEn: string;
+};
 
 type HomeDarkRegionPillsProps = {
   pills: HomeDarkRegionPill[];

@@ -1,11 +1,37 @@
 import React from 'react';
 import HomeDarkHeader from './HomeDarkHeader';
-import HomeDarkRegionPills from './HomeDarkRegionPills';
+import HomeDarkRegionPills, { type HomeDarkRegionPill } from './HomeDarkRegionPills';
 import HomeDarkTodayPick from './HomeDarkTodayPick';
 import HomeDarkParties from './HomeDarkParties';
 import HomeDarkInstructors from './HomeDarkInstructors';
 import HomeDarkSocialBar from './HomeDarkSocialBar';
-import type { HomeDarkBar, HomeDarkInstructor, HomeDarkParty, HomeDarkRegionPill } from './types';
+
+type PartyLike = {
+  id: string | number;
+  poster_url?: string;
+  title?: string;
+  locationName?: string;
+  location_name?: string;
+  venue?: string;
+  start_time?: string;
+  region?: string;
+  broadRegion?: string;
+};
+
+type InstructorLike = {
+  id: string | number;
+  name?: string;
+  genre?: unknown;
+  photo_url?: string;
+};
+
+type BarLike = {
+  id: string | number;
+  name?: string;
+  image_url?: string;
+  address?: string;
+  region?: string;
+};
 
 export type HomeDarkGateProps = {
   isEn: boolean;
@@ -13,19 +39,19 @@ export type HomeDarkGateProps = {
   regionPill: string;
   regionPillCounts: Record<string, number>;
   onRegionPillChange: (id: string) => void;
-  todayPickParty: HomeDarkParty | null;
+  todayPickParty: PartyLike | null;
   todayPickTitle: string;
   todayPickVenue: string;
   pickIndex: number;
   onPickIndexChange: (index: number) => void;
-  todayParties: HomeDarkParty[];
+  todayParties: PartyLike[];
   wishlistPartyIds: Array<string | number>;
-  getPartyTitle: (party: HomeDarkParty) => string;
-  getPartyVenue: (party: HomeDarkParty) => string;
-  onPartyClick: (party: HomeDarkParty) => void;
-  onToggleWishlist: (e: React.MouseEvent, party: HomeDarkParty) => void;
+  getPartyTitle: (party: PartyLike) => string;
+  getPartyVenue: (party: PartyLike) => string;
+  onPartyClick: (party: PartyLike) => void;
+  onToggleWishlist: (e: React.MouseEvent, party: PartyLike) => void;
   onViewAllParties: () => void;
-  instructors: HomeDarkInstructor[];
+  instructors: InstructorLike[];
   instructorsLoading: boolean;
   onViewAllInstructors: () => void;
   onInstructorClick: () => void;
@@ -33,13 +59,13 @@ export type HomeDarkGateProps = {
   selectedBarRegionTab: string | null;
   barRegionCounts: Record<string, number>;
   geoRegionTab: string | null;
-  regionBars: HomeDarkBar[];
+  regionBars: BarLike[];
   locationsLoading: boolean;
   geoRegionPending: boolean;
-  getBarCoverPhoto: (bar: HomeDarkBar) => string | null;
-  getBarEventCount: (bar: HomeDarkBar) => number;
+  getBarCoverPhoto: (bar: BarLike) => string | null;
+  getBarEventCount: (bar: BarLike) => number;
   onBarRegionTabChange: (tab: string) => void;
-  onBarClick: (bar: HomeDarkBar) => void;
+  onBarClick: (bar: BarLike) => void;
   onViewMap: () => void;
   onAdminTap: () => void;
   onSearch: () => void;
