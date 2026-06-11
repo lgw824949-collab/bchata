@@ -1,5 +1,5 @@
 ﻿import React, { useState, useEffect, useMemo, useRef, useCallback } from 'react';
-import { Heart, MapPin, Calendar, Clock, User, Users, Music, Music2, ChevronRight, ChevronDown, ShieldCheck, X, Home as HomeIcon, ChevronLeft, CloudSun, Utensils, Zap, PlusCircle, Languages, Bell, Globe, Navigation, CalendarDays, Star, Camera, MessageSquare, Tent, Loader2, Plus, GraduationCap, Flag, Building2, UserPlus, Search } from 'lucide-react';
+import { Heart, MapPin, Calendar, Clock, User, Users, Music, Music2, ChevronRight, ChevronDown, ShieldCheck, X, Home as HomeIcon, ChevronLeft, CloudSun, Utensils, Zap, PlusCircle, Languages, Bell, Globe, Navigation, CalendarDays, Star, Camera, MessageSquare, Tent, Loader2, Plus, GraduationCap, Flag, Building2, UserPlus } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { motion, AnimatePresence } from 'framer-motion';
 import QuickPinchZoom, { make3dTransformValue } from 'react-quick-pinch-zoom';
@@ -130,13 +130,6 @@ const HOME_GATE_MENU_COPY = {
 
 /** 메인 홈 게이트 — 상단 노출 5개 (하단 네비 연동) */
 const HOME_GATE_MAIN_MENU_IDS = ['today-party', 'bootcamp', 'festival', 'festival-party', 'instructors'];
-
-const HOME_REGION_PILLS = [
-  { id: 'all', labelKo: '전체', labelEn: 'All' },
-  { id: 'national', labelKo: '전국', labelEn: 'Nationwide' },
-  { id: 'seoul', labelKo: '서울', labelEn: 'Seoul' },
-  { id: 'metro', labelKo: '수도권', labelEn: 'Metro' },
-];
 
 
 /** source.unsplash.com 은 종료됨 — images.unsplash.com CDN (bachata 검색 결과 고정) */
@@ -2835,7 +2828,8 @@ const HomePage = ({
   }, [isEn]);
 
   const isHomeGate = activeTab === null;
-  const isHomeGateDark = isHomeGate;
+  /** 홈 게이트는 모바일 시스템 다크모드와 무관하게 항상 라이트(흰색) */
+  const isHomeGateDark = false;
 
   useEffect(() => {
     if (!isHomeGate) return undefined;
@@ -2844,14 +2838,13 @@ const HomePage = ({
     const body = document.body;
     const themeMeta = document.querySelector('meta[name="theme-color"]');
 
-    root.classList.add('home-gate-theme', 'app-dark-surface');
-    body.classList.add('home-gate-theme', 'app-dark-surface');
-    if (themeMeta) themeMeta.setAttribute('content', '#0a0a0a');
+    root.classList.remove('home-gate-theme', 'app-dark-surface');
+    body.classList.remove('home-gate-theme', 'app-dark-surface');
+    if (themeMeta) themeMeta.setAttribute('content', '#ffffff');
 
     return () => {
       root.classList.remove('home-gate-theme', 'app-dark-surface');
       body.classList.remove('home-gate-theme', 'app-dark-surface');
-      if (themeMeta) themeMeta.setAttribute('content', '#ffffff');
     };
   }, [isHomeGate]);
 
@@ -2861,7 +2854,6 @@ const HomePage = ({
 
     const horizontalBandSelector = [
       '.home-hot-instructors-scroll',
-      '.home-dark-parties-scroll',
       '.home-social-bar-scroll',
       '.home-social-bar-scroll--peek',
       '.home-quick-menu-scroll--gate-all',
@@ -2906,7 +2898,7 @@ const HomePage = ({
   const HOME_TEXT_MUTED = 'rgba(30, 41, 59, 0.55)';
   const HOME_SURFACE = '#FFFFFF';
   const HOME_BORDER = '#EDEAE3';
-  const HOME_PAGE_BG = isHomeGateDark ? '#0a0a0a' : '#F5F6F8';
+  const HOME_PAGE_BG = '#F5F6F8';
   const HOME_CARD_BORDER = '0.5px solid #EDEAE3';
   const homeUi = useMemo(() => (isHomeGateDark ? {
     pageBg: '#0D0D0D',
@@ -2992,25 +2984,7 @@ const HomePage = ({
   };
   const homeSectionSpace = isHomeGate ? 32 : 36;
   const homeBlockSpace = isHomeGate ? 22 : 28;
-  const homeGateStackGap = 28;
-  const [homeRegionPill, setHomeRegionPill] = useState('all');
-  const [homePickIndex, setHomePickIndex] = useState(0);
-
-  const homeFilteredTodayParties = useMemo(() => {
-    const base = todayPosterPartiesForCount;
-    if (homeRegionPill === 'seoul') return base.filter(isHomePosterBannerSeoul);
-    if (homeRegionPill === 'metro') return base.filter(isHomePosterBannerMetro);
-    if (homeRegionPill === 'national') return base.filter(isHomePosterBannerLocal);
-    return base;
-  }, [todayPosterPartiesForCount, homeRegionPill]);
-
-  const homeTodayPickParty = homeFilteredTodayParties.length
-    ? homeFilteredTodayParties[homePickIndex % homeFilteredTodayParties.length]
-    : null;
-
-  useEffect(() => {
-    setHomePickIndex(0);
-  }, [homeRegionPill]);
+  const homeGateStackGap = 24;
   const homeDepthPanelStyle = {
     background: homeUi.panelBg,
     border: isHomeGateDark ? `1px solid ${homeUi.panelBorder}` : HOME_CARD_BORDER,
@@ -3494,290 +3468,6 @@ const HomePage = ({
     );
   };
 
-  const renderHomeDarkHeader = () => (
-    <header className="home-dark-header">
-      <div className="home-dark-header__brand">
-        <h1
-          className="home-dark-header__title"
-          role="button"
-          tabIndex={0}
-          onClick={registerAdminPortalTap}
-          onKeyDown={(e) => {
-            if (e.key === 'Enter' || e.key === ' ') {
-              e.preventDefault();
-              registerAdminPortalTap();
-            }
-          }}
-        >
-          오늘밤빠
-        </h1>
-        <p className="home-dark-header__tagline">
-          {isEn ? 'Time to dance' : '지금, 춤추러 갈 시간'}
-        </p>
-      </div>
-      <div className="home-dark-header__actions">
-        <button type="button" className="home-dark-header__icon-btn" aria-label={isEn ? 'Notifications' : '알림'}>
-          <Bell size={20} strokeWidth={2} />
-        </button>
-        <button
-          type="button"
-          className="home-dark-header__icon-btn"
-          aria-label={isEn ? 'Search parties' : '파티 검색'}
-          onClick={() => navigateHomeTab('social')}
-        >
-          <Search size={20} strokeWidth={2} />
-        </button>
-      </div>
-    </header>
-  );
-
-  const renderHomeRegionPills = () => {
-    const counts = {
-      all: todayPosterMenuCount,
-      national: regionCounts.national,
-      seoul: regionCounts.seoul,
-      metro: regionCounts.metro,
-    };
-
-    return (
-      <div className="home-dark-region-pills" role="tablist" aria-label={isEn ? 'Region filter' : '지역 필터'}>
-        {HOME_REGION_PILLS.map((pill) => (
-          <button
-            key={pill.id}
-            type="button"
-            role="tab"
-            aria-selected={homeRegionPill === pill.id}
-            className={`home-dark-region-pill${homeRegionPill === pill.id ? ' is-active' : ''}`}
-            onClick={() => setHomeRegionPill(pill.id)}
-          >
-            {isEn ? pill.labelEn : pill.labelKo}
-            {counts[pill.id] > 0 ? (
-              <span className="home-dark-region-pill__count">{counts[pill.id]}</span>
-            ) : null}
-          </button>
-        ))}
-      </div>
-    );
-  };
-
-  const renderHomeTodayPick = () => {
-    const party = homeTodayPickParty;
-    if (!party) {
-      return (
-        <div className="home-dark-today-pick home-dark-today-pick--empty">
-          <p>{isEn ? 'No parties registered today' : '오늘 등록된 파티가 없어요'}</p>
-        </div>
-      );
-    }
-
-    const title = formatPartyTitleDisplay(party.title);
-    const venue = translateDynamicText(party.locationName || party.location_name || party.venue || '', isEn);
-    const time = party.start_time ? String(party.start_time).slice(0, 5) : '';
-    const pickDots = homeFilteredTodayParties.slice(0, 5);
-    const activeDot = homePickIndex % homeFilteredTodayParties.length;
-
-    return (
-      <article className="home-dark-today-pick">
-        <div
-          className="home-dark-today-pick__bg"
-          style={{ backgroundImage: `url(${party.poster_url})` }}
-          aria-hidden
-        />
-        <div className="home-dark-today-pick__overlay" aria-hidden />
-        <div className="home-dark-today-pick__content">
-          <span className="home-dark-today-pick__eyebrow">TODAY PICK 🔥</span>
-          <h2 className="home-dark-today-pick__title">{translateDynamicText(title, isEn)}</h2>
-          <div className="home-dark-today-pick__meta">
-            {venue ? (
-              <span><MapPin size={14} aria-hidden /> {venue}</span>
-            ) : null}
-            {time ? (
-              <span><Clock size={14} aria-hidden /> {time} ~</span>
-            ) : null}
-          </div>
-          <button
-            type="button"
-            className="home-dark-today-pick__cta"
-            onClick={() => openPartyWithAfterParty(party)}
-          >
-            {isEn ? 'View details' : '자세히 보기'}
-            <ChevronRight size={16} aria-hidden />
-          </button>
-        </div>
-        {pickDots.length > 1 ? (
-          <div className="home-dark-today-pick__dots" aria-hidden>
-            {pickDots.map((_, i) => (
-              <button
-                key={i}
-                type="button"
-                className={i === activeDot ? 'is-active' : ''}
-                onClick={() => setHomePickIndex(i)}
-                tabIndex={-1}
-              />
-            ))}
-          </div>
-        ) : null}
-      </article>
-    );
-  };
-
-  const renderHomeDarkSectionHeader = (title, subtitle, onViewAll, linkLabel) => (
-    <header className="home-dark-section-header">
-      <div className="home-dark-section-header__text">
-        <h2>{title}</h2>
-        {subtitle ? <p>{subtitle}</p> : null}
-      </div>
-      {onViewAll ? (
-        <button type="button" className="home-dark-section-header__link" onClick={onViewAll}>
-          {linkLabel || (isEn ? 'View all' : '전체보기')}
-          <ChevronRight size={14} aria-hidden />
-        </button>
-      ) : null}
-    </header>
-  );
-
-  const renderHomePartyStripCard = (party, index) => {
-    const title = formatPartyTitleDisplay(party.title);
-    const venue = translateDynamicText(party.locationName || party.location_name || party.venue || '', isEn);
-    const time = party.start_time ? String(party.start_time).slice(0, 5) : '';
-    const regionLabel = party.region || party.broadRegion || '';
-    const isWishlisted = wishlistParties.includes(party.id);
-
-    return (
-      <motion.button
-        key={party.id}
-        type="button"
-        className="home-dark-party-card"
-        whileTap={{ scale: 0.98 }}
-        onClick={() => openPartyWithAfterParty(party)}
-      >
-        <div className="home-dark-party-card__media">
-          <img
-            src={party.poster_url}
-            alt=""
-            loading="lazy"
-            decoding="async"
-            onError={imgFallbackHandler(DEFAULT_CARD_IMAGE)}
-          />
-          {index < 2 ? (
-            <span className={`home-dark-party-card__badge${index === 0 ? ' home-dark-party-card__badge--hot' : ' home-dark-party-card__badge--new'}`}>
-              {index === 0 ? 'HOT' : 'NEW'}
-            </span>
-          ) : null}
-          <span
-            role="button"
-            tabIndex={0}
-            className={`home-dark-party-card__heart${isWishlisted ? ' is-active' : ''}`}
-            aria-label={isEn ? 'Save party' : '파티 찜하기'}
-            onClick={(e) => toggleWishlistParty(e, party)}
-            onKeyDown={(e) => {
-              if (e.key === 'Enter' || e.key === ' ') {
-                e.preventDefault();
-                toggleWishlistParty(e, party);
-              }
-            }}
-          >
-            <Heart size={14} fill={isWishlisted ? 'currentColor' : 'none'} />
-          </span>
-        </div>
-        <p className="home-dark-party-card__title">{translateDynamicText(title, isEn)}</p>
-        <p className="home-dark-party-card__meta">
-          {[regionLabel, time || venue].filter(Boolean).join(' · ')}
-        </p>
-      </motion.button>
-    );
-  };
-
-  const renderHomeTodaysPartySection = () => (
-    <section className="home-dark-parties" aria-label={isEn ? "Today's parties" : '오늘의 파티'}>
-      {renderHomeDarkSectionHeader(
-        isEn ? '🎉 Today\'s parties' : '🎉 오늘의 파티',
-        isEn ? 'Parties happening tonight' : '오늘 밤 열리는 파티',
-        () => navigateHomeTab('social'),
-      )}
-      {homeFilteredTodayParties.length > 0 ? (
-        <div className="home-dark-parties-scroll scrollbar-hide">
-          <div className="home-dark-parties-track">
-            {homeFilteredTodayParties.map((party, index) => renderHomePartyStripCard(party, index))}
-          </div>
-        </div>
-      ) : (
-        <p className="home-dark-parties-empty">
-          {isEn ? 'No parties in this region today' : '이 지역 오늘 파티가 없어요'}
-        </p>
-      )}
-    </section>
-  );
-
-  const renderHomeDarkShortcutRow = () => (
-    <div className="home-dark-shortcuts" role="list" aria-label={isEn ? 'Quick links' : '바로가기'}>
-      {homeGateMainMenuItems
-        .filter((item) => item.id !== 'today-party')
-        .map((item) => (
-          <button
-            key={item.id}
-            type="button"
-            role="listitem"
-            className="home-dark-shortcut"
-            onClick={() => item.action()}
-          >
-            {item.label}
-            {getHomeGateMenuBadgeCount(item.id) > 0 ? (
-              <span className="home-dark-shortcut__badge">{getHomeGateMenuBadgeCount(item.id)}</span>
-            ) : null}
-          </button>
-        ))}
-    </div>
-  );
-
-  const renderHomeDarkMoreMenu = () => (
-    <section className="home-dark-more" aria-label={isEn ? 'More menu' : '더보기 메뉴'}>
-      <div className="home-gate-king-menu">
-        <div className="home-gate-king-menu__toolbar">
-          <button
-            type="button"
-            className="home-gate-king-menu__toggle home-dark-more__toggle"
-            onClick={() => setKingMenuOpen((open) => !open)}
-            aria-expanded={kingMenuOpen}
-          >
-            <Plus
-              size={18}
-              strokeWidth={2.5}
-              style={{
-                transition: 'transform 0.25s ease',
-                transform: kingMenuOpen ? 'rotate(45deg)' : 'rotate(0deg)',
-              }}
-            />
-            <span>{kingMenuOpen ? (isEn ? 'Close' : '접기') : (isEn ? 'More' : '더보기')}</span>
-          </button>
-        </div>
-        <AnimatePresence initial={false}>
-          {kingMenuOpen && (
-            <motion.div
-              key="home-dark-king-panel"
-              className="home-gate-king-menu__panel"
-              initial={{ height: 0, opacity: 0 }}
-              animate={{ height: 'auto', opacity: 1 }}
-              exit={{ height: 0, opacity: 0 }}
-              transition={{ duration: 0.22, ease: 'easeOut' }}
-              style={{ overflow: 'hidden' }}
-            >
-              <div className="home-quick-menu-grid home-gate-king-menu__grid">
-                {homeGateKingMenuItems.map((item) => renderQuickMenuItem({
-                  ...item,
-                  action: () => {
-                    setKingMenuOpen(false);
-                    item.action();
-                  },
-                }, false, true))}
-              </div>
-            </motion.div>
-          )}
-        </AnimatePresence>
-      </div>
-    </section>
-  );
-
   const renderHomeMainLiveSlot = () => (
     <div className="home-main-live-slot home-main-live-slot--gate">
       {renderHomeLiveAdRow(true)}
@@ -3829,14 +3519,7 @@ const HomePage = ({
                 }),
           }}
         >
-          {isHomeGateDark ? (
-            renderHomeDarkSectionHeader(
-              isEn ? '🌴 Social BAR' : '🌴 Social BAR',
-              isEn ? 'Find your favorite spot' : '내가 좋아하는 장소를 찾아보세요',
-              () => openAnalysis(false),
-              isEn ? 'Map' : '지도보기',
-            )
-          ) : renderHomeSectionHeader(
+          {renderHomeSectionHeader(
             isEn ? 'Social BAR' : 'Social BAR',
             null,
             <button
@@ -3850,7 +3533,7 @@ const HomePage = ({
               <Plus size={12} strokeWidth={2.5} />
               {isEn ? 'Add' : '신규등록'}
             </button>,
-            null,
+            isHomeGateDark ? { color: homeUi.barSubtitle, fontWeight: 600 } : null,
           )}
           <motion.div className="home-region-tabs">
             {socialBarRegionTabs.map((tab) => {
@@ -3952,16 +3635,10 @@ const HomePage = ({
 
     return (
       <section
-        className={`home-hot-instructors-wrap${isHomeGate ? ' home-gate-section-box' : ''}${isHomeGateDark ? ' home-hot-instructors-wrap--dark' : ''}`}
+        className={`home-hot-instructors-wrap${isHomeGate ? ' home-gate-section-box' : ''}`}
         aria-label={isEn ? 'Active instructors' : '활동 강사'}
       >
-        {isHomeGateDark
-          ? renderHomeDarkSectionHeader(
-            isEn ? '⭐ Instructors' : '⭐ 강사 한눈에',
-            isEn ? 'Active instructors tonight' : '오늘 밤 활동하는 강사',
-            () => navigate('/instructors', { homeTab: null }),
-          )
-          : renderHomeGateSectionTitle(isEn ? 'Instructors' : '강사 한눈에', 'home-hot-instructors-title')}
+        {renderHomeGateSectionTitle(isEn ? 'Instructors' : '강사 한눈에', 'home-hot-instructors-title')}
         <div className="home-hot-instructors-scroll scrollbar-hide">
           <div className="home-hot-instructors-track">
             {hotInstructorsLoading
@@ -4315,19 +3992,19 @@ const HomePage = ({
       <motion.div
         className={isHomeGate ? 'home-hero-zone' : undefined}
         style={{
-          padding: isHomeGate ? '16px 20px 0' : '20px 16px 0',
-          marginBottom: isHomeGate ? 16 : homeSectionSpace - 4,
+          padding: isHomeGate ? '20px 16px 0' : '20px 16px 0',
+          marginBottom: isHomeGate ? 20 : homeSectionSpace - 4,
           background: isHomeGate ? HOME_PAGE_BG : undefined,
         }}
       >
-        {activeTab === null && (isHomeGate ? renderHomeDarkHeader() : (
+        {activeTab === null && (
         <motion.div
           className="home-hero-brand"
           style={{
             display: 'flex',
             flexDirection: 'column',
             alignItems: 'flex-start',
-            marginBottom: 20,
+            marginBottom: isHomeGate ? 18 : 20,
           }}
         >
           <h1
@@ -4360,35 +4037,21 @@ const HomePage = ({
             켜고, 찾고, 가면 끝
           </p>
         </motion.div>
-      ))}
+        )}
       </motion.div>
 
       {activeTab === null && (
         <motion.div
           className="home-main-stack"
           style={{
-            padding: isHomeGate ? '0 20px' : '0 16px',
+            padding: '0 16px',
             gap: isHomeGate ? homeGateStackGap : undefined,
           }}
         >
-          {isHomeGate ? (
-            <>
-              {renderHomeRegionPills()}
-              {renderHomeTodayPick()}
-              {renderHomeTodaysPartySection()}
-              {renderHomeDarkShortcutRow()}
-              {renderHomeDarkMoreMenu()}
-              {renderHomeHotInstructorsSection()}
-              {renderHomeSocialBarSection()}
-            </>
-          ) : (
-            <>
-              {renderHomeMainLiveSlot()}
-              {renderHomeMainQuickMenuSection()}
-              {renderHomeHotInstructorsSection()}
-              {renderHomeSocialBarSection()}
-            </>
-          )}
+          {renderHomeMainLiveSlot()}
+          {renderHomeMainQuickMenuSection()}
+          {renderHomeHotInstructorsSection()}
+          {renderHomeSocialBarSection()}
         </motion.div>
       )}
 
@@ -4397,13 +4060,13 @@ const HomePage = ({
       {/* 메인 퀵메뉴: activeTab === null → 3섹션 그리드 / 소셜 탭 → 가로 스크롤 */}
       <style>{`
         .home-gate-shell {
-          --home-page-bg: #0a0a0a;
-          --home-text-primary: #ffffff;
-          --home-text-secondary: rgba(255, 255, 255, 0.72);
-          --home-text-tertiary: rgba(255, 255, 255, 0.45);
-          --home-card-border: rgba(255, 255, 255, 0.08);
-          --home-fade-rgb: 10, 10, 10;
-          background-color: #0a0a0a !important;
+          --home-page-bg: #F5F6F8;
+          --home-text-primary: #191F28;
+          --home-text-secondary: #191F28;
+          --home-text-tertiary: #4B5563;
+          --home-card-border: #E8EBED;
+          --home-fade-rgb: ${isHomeGateDark ? '13, 13, 13' : '245, 246, 248'};
+          background-color: #F5F6F8 !important;
         }
         .home-gate-shell .home-main-stack {
           display: flex;
@@ -5077,7 +4740,7 @@ const HomePage = ({
           background: linear-gradient(to right, rgba(var(--home-fade-rgb, 13, 13, 13), 0), var(--home-page-bg, #0d0d0d) 90%);
         }
         .home-gate-shell .home-hero-zone {
-          background: #0a0a0a;
+          background: #F5F6F8;
         }
         .home-gate-shell .home-hero-brand .home-hero-title {
           color: #E53935 !important;
