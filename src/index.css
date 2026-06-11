@@ -1136,13 +1136,13 @@ img.bchata-poster-fit {
   gap: 20px;
 }
 
-/* 홈 게이트 — 라이트 그레이 배경 · 화이트 카드 · 섹션 타이틀 (Jakob's Law) */
+/* 홈 게이트 — 다크 프리미엄 */
 .home-gate-shell {
-  --home-bg: #F5F6F8;
-  --home-text-primary: #191F28;
-  --home-text-secondary: #191F28;
-  --home-text-tertiary: #4B5563;
-  --home-card-border: #E8EBED;
+  --home-bg: #0a0a0a;
+  --home-text-primary: #ffffff;
+  --home-text-secondary: rgba(255, 255, 255, 0.72);
+  --home-text-tertiary: rgba(255, 255, 255, 0.45);
+  --home-card-border: rgba(255, 255, 255, 0.08);
   background-color: var(--home-bg);
 }
 
@@ -1180,12 +1180,12 @@ img.bchata-poster-fit {
   padding: 0;
 }
 
-/* 메인 홈 — 섹션별 카드 박스 */
+/* 메인 홈 — 섹션별 카드 박스 (다크: 투명) */
 .home-gate-shell .home-gate-section-box {
-  background: #ffffff;
-  border: 1px solid var(--home-card-border);
-  border-radius: 14px;
-  padding: 16px;
+  background: transparent;
+  border: none;
+  border-radius: 0;
+  padding: 0;
   box-shadow: none;
   box-sizing: border-box;
   min-width: 0;
@@ -1880,7 +1880,7 @@ body.home-gate-theme {
 html.home-gate-theme .bchata-app-shell,
 body.home-gate-theme .bchata-app-shell,
 body.home-gate-theme [data-bchata-app-root] {
-  background-color: #0d0d0d !important;
+  background-color: #0a0a0a !important;
   color: #f8fafc;
   box-shadow: 0 0 48px rgba(0, 0, 0, 0.35);
 }
