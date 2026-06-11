@@ -2376,28 +2376,6 @@ const HomePage = ({
     return parties;
   }, []);
 
-  const syncVenueAcrossHome = (updated) => {
-    if (!updated) return;
-    setSelectedVenue(updated);
-    setLocations((prev) =>
-      prev.map((b) => {
-        const sameId = String(b.id) === String(updated.id);
-        const sameName =
-          normalizeVenueNameKey(b.name) &&
-          normalizeVenueNameKey(b.name) === normalizeVenueNameKey(updated.name);
-        return sameId || sameName ? mergeVenueWithLocalExtras({ ...b, ...updated }) : b;
-      }),
-    );
-  };
-
-  const openVenueDetail = (bar) => {
-    const merged = mergeVenueWithLocalExtras(bar);
-    setSelectedVenue(merged);
-    pushOverlay('venue', {
-      meta: { venueId: String(merged.id), venueName: merged.name || '' },
-    });
-  };
-
   const { gateProps: homeDarkGateProps } = useHomeDarkGateProps({
     isEn,
     translateDynamicText,
@@ -2422,6 +2400,28 @@ const HomePage = ({
     registerAdminPortalTap,
     filterTodayPartiesByPill,
   });
+
+  const syncVenueAcrossHome = (updated) => {
+    if (!updated) return;
+    setSelectedVenue(updated);
+    setLocations((prev) =>
+      prev.map((b) => {
+        const sameId = String(b.id) === String(updated.id);
+        const sameName =
+          normalizeVenueNameKey(b.name) &&
+          normalizeVenueNameKey(b.name) === normalizeVenueNameKey(updated.name);
+        return sameId || sameName ? mergeVenueWithLocalExtras({ ...b, ...updated }) : b;
+      }),
+    );
+  };
+
+  const openVenueDetail = (bar) => {
+    const merged = mergeVenueWithLocalExtras(bar);
+    setSelectedVenue(merged);
+    pushOverlay('venue', {
+      meta: { venueId: String(merged.id), venueName: merged.name || '' },
+    });
+  };
 
   const closeVenueDetail = () => {
     if (!closeOverlayNav()) setSelectedVenue(null);
