@@ -1978,14 +1978,6 @@ const HomePage = ({
     [festivals, calendarTodayStr],
   );
 
-  const festivalEventTypeCountParts = useMemo(
-    () => FESTIVAL_EVENT_TYPE_META
-      .filter((meta) => meta.id !== 'party')
-      .map((meta) => ({ ...meta, count: festivalEventTypeCounts[meta.id] || 0 }))
-      .filter((part) => part.count > 0),
-    [festivalEventTypeCounts],
-  );
-
   /** 파티 카드 — 최초 업로드 포스터 고정 (칼리9주년) */
   const partyMenuPhotoUrl = HOME_GATE_MAIN_MENU_PHOTO_URLS['festival-party'];
 
@@ -3222,17 +3214,6 @@ const HomePage = ({
           ) : null}
           <span className="home-gate-photo-menu-card__label">
             {item.label}
-            {item.id === 'festival' && festivalEventTypeCountParts.length > 0 ? (
-              <span className="home-gate-photo-menu-card__emoji-counts" aria-hidden>
-                {festivalEventTypeCountParts.map((part, idx) => (
-                  <React.Fragment key={part.id}>
-                    {idx > 0 ? ' · ' : null}
-                    {part.emoji}
-                    {part.count}
-                  </React.Fragment>
-                ))}
-              </span>
-            ) : null}
           </span>
         </motion.button>
       </div>
