@@ -2550,6 +2550,33 @@ const HomePage = ({
     const isMyGeoRegion = geoRegionTab && bar.region === geoRegionTab;
     const chipPhoto = resolveBarVenuePhoto(bar.name, bar.image_url);
 
+    if (isHomeGateDark) {
+      return (
+        <motion.button
+          key={bar.id}
+          type="button"
+          role="listitem"
+          className={`home-dark-bar-card${isMyGeoRegion ? ' home-dark-bar-card--my-region' : ''}`}
+          onClick={() => openVenueDetail(bar)}
+          whileTap={{ scale: 0.98 }}
+        >
+          <span className="home-dark-bar-card__thumb">
+            {chipPhoto ? (
+              <img src={chipPhoto} alt="" onError={imgFallbackHandler('/logo.png')} />
+            ) : (
+              <img src="/logo.png" alt="" className="home-dark-bar-card__thumb-fallback" />
+            )}
+          </span>
+          <span className="home-dark-bar-card__body">
+            <span className="home-dark-bar-card__name">{barName}</span>
+            <span className="home-dark-bar-card__sub">
+              {bar.region || selectedRegionTab || (isEn ? 'Social BAR' : '소셜 BAR')}
+            </span>
+          </span>
+        </motion.button>
+      );
+    }
+
     return (
       <motion.button
         key={bar.id}
@@ -2992,7 +3019,7 @@ const HomePage = ({
   };
   const homeSectionSpace = isHomeGate ? 32 : 36;
   const homeBlockSpace = isHomeGate ? 22 : 28;
-  const homeGateStackGap = 28;
+  const homeGateStackGap = 36;
   const [homeRegionPill, setHomeRegionPill] = useState('all');
   const [homePickIndex, setHomePickIndex] = useState(0);
 
@@ -3578,10 +3605,13 @@ const HomePage = ({
 
     return (
       <article className="home-dark-today-pick">
-        <div
-          className="home-dark-today-pick__bg"
-          style={{ backgroundImage: `url(${party.poster_url})` }}
-          aria-hidden
+        <img
+          className="home-dark-today-pick__photo"
+          src={party.poster_url}
+          alt=""
+          loading="eager"
+          decoding="async"
+          onError={imgFallbackHandler(DEFAULT_CARD_IMAGE)}
         />
         <div className="home-dark-today-pick__overlay" aria-hidden />
         <div className="home-dark-today-pick__content">
@@ -3659,6 +3689,7 @@ const HomePage = ({
             decoding="async"
             onError={imgFallbackHandler(DEFAULT_CARD_IMAGE)}
           />
+          <div className="home-dark-party-card__shade" aria-hidden />
           {index < 2 ? (
             <span className={`home-dark-party-card__badge${index === 0 ? ' home-dark-party-card__badge--hot' : ' home-dark-party-card__badge--new'}`}>
               {index === 0 ? 'HOT' : 'NEW'}
@@ -3679,11 +3710,13 @@ const HomePage = ({
           >
             <Heart size={14} fill={isWishlisted ? 'currentColor' : 'none'} />
           </span>
+          <div className="home-dark-party-card__caption">
+            <p className="home-dark-party-card__title">{translateDynamicText(title, isEn)}</p>
+            <p className="home-dark-party-card__meta">
+              {[venue || regionLabel, time].filter(Boolean).join(' · ')}
+            </p>
+          </div>
         </div>
-        <p className="home-dark-party-card__title">{translateDynamicText(title, isEn)}</p>
-        <p className="home-dark-party-card__meta">
-          {[regionLabel, time || venue].filter(Boolean).join(' · ')}
-        </p>
       </motion.button>
     );
   };
@@ -3994,7 +4027,7 @@ const HomePage = ({
                       <div className="home-hot-instructor-card__meta">
                         <span className="home-hot-instructor-card__name">{inst.name}</span>
                         {genreLabel ? (
-                          <span className="home-hot-instructor-card__genre">{genreLabel}</span>
+                          <span className="home-hot-instructor-card__genre home-hot-instructor-card__genre--accent">{genreLabel}</span>
                         ) : null}
                       </div>
                     </motion.button>
@@ -4376,7 +4409,6 @@ const HomePage = ({
               {renderHomeRegionPills()}
               {renderHomeTodayPick()}
               {renderHomeTodaysPartySection()}
-              {renderHomeDarkShortcutRow()}
               {renderHomeDarkMoreMenu()}
               {renderHomeHotInstructorsSection()}
               {renderHomeSocialBarSection()}
@@ -4408,7 +4440,7 @@ const HomePage = ({
         .home-gate-shell .home-main-stack {
           display: flex;
           flex-direction: column;
-          gap: 24px;
+          gap: 36px;
         }
         .home-gate-shell .home-section-break {
           padding: 28px 0 32px;
@@ -5218,14 +5250,9 @@ const HomePage = ({
           padding: 0 !important;
         }
         .home-gate-shell .home-social-bar-panel--gate {
-          padding: 16px 14px 18px !important;
-          border-radius: 14px !important;
-          border: 1px solid var(--home-card-border, #E8EBED) !important;
-          background: #FFFFFF !important;
-          box-shadow: none !important;
-        }
-        .home-gate-active .home-social-bar-panel--gate {
-          border: 0.5px solid #EDEAE3 !important;
+          padding: 0 !important;
+          border: none !important;
+          background: transparent !important;
           box-shadow: none !important;
         }
         .home-gate-shell .home-social-bar-panel--gate .home-type-section-title.home-gate-section-title {
