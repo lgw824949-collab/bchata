@@ -1,7 +1,7 @@
 import React from 'react';
 import { MapPin, Clock, ChevronRight } from 'lucide-react';
 import { DEFAULT_CARD_IMAGE, imgFallbackHandler } from '../../constants/imageAssets';
-import { englishDaySocialPartyLabel } from './homeDarkUtils';
+import { HD_POSTER_IMG_CLASS } from './homeDarkMedia';
 
 type PartyLike = {
   poster_url?: string;
@@ -48,7 +48,7 @@ export default function HomeDarkTodayPick({
   return (
     <article className="home-dark-today-pick">
       <img
-        className="home-dark-today-pick__photo"
+        className={`home-dark-today-pick__photo ${HD_POSTER_IMG_CLASS}`}
         src={party.poster_url}
         alt=""
         loading="eager"
@@ -59,7 +59,7 @@ export default function HomeDarkTodayPick({
       <div className="home-dark-today-pick__content">
         <span className="home-dark-today-pick__eyebrow">TODAY PICK 🔥</span>
         <h2 className="home-dark-today-pick__title">{title}</h2>
-        <p className="home-dark-today-pick__title-en">{englishDaySocialPartyLabel()}</p>
+        <p className="home-dark-today-pick__subtitle">{isEn ? 'Tonight\'s social pick' : '오늘의 소셜 픽'}</p>
         <div className="home-dark-today-pick__meta">
           {venue ? (
             <span>

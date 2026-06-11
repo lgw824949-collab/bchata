@@ -3,6 +3,7 @@ import { Heart } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { DEFAULT_CARD_IMAGE, imgFallbackHandler } from '../../constants/imageAssets';
 import HomeDarkSectionHeader from './HomeDarkSectionHeader';
+import { HD_POSTER_IMG_CLASS } from './homeDarkMedia';
 
 type PartyLike = {
   id: string | number;
@@ -40,9 +41,9 @@ export default function HomeDarkParties({
   emptyLabel,
 }: HomeDarkPartiesProps) {
   return (
-    <section className="home-dark-parties" aria-label={isEn ? "Today's social" : '오늘소셜'}>
+    <section className="home-dark-section home-dark-parties" aria-label={isEn ? "Today's social" : '오늘소셜'}>
       <HomeDarkSectionHeader
-        title={isEn ? '🎉 Today\'s social' : '🎉 오늘소셜'}
+        title={isEn ? "Today's social" : '오늘소셜'}
         subtitle={isEn ? 'Socials happening tonight' : '오늘 밤 열리는 소셜'}
         linkLabel={isEn ? 'View all' : '전체보기'}
         onLinkClick={onViewAll}
@@ -68,21 +69,23 @@ export default function HomeDarkParties({
                   >
                     <div className="home-dark-party-card__media">
                       <img
+                        className={HD_POSTER_IMG_CLASS}
                         src={party.poster_url}
                         alt=""
                         loading="lazy"
                         decoding="async"
                         onError={imgFallbackHandler(DEFAULT_CARD_IMAGE)}
                       />
+                      <span className="home-dark-card__scrim" aria-hidden />
                       {index < 2 ? (
-                        <span className={`home-dark-party-card__badge${index === 0 ? ' home-dark-party-card__badge--hot' : ' home-dark-party-card__badge--new'}`}>
+                        <span className={`home-dark-card__badge${index === 0 ? ' home-dark-card__badge--hot' : ' home-dark-card__badge--new'}`}>
                           {index === 0 ? 'HOT' : 'NEW'}
                         </span>
                       ) : null}
                       <span
                         role="button"
                         tabIndex={0}
-                        className={`home-dark-party-card__heart${isWishlisted ? ' is-active' : ''}`}
+                        className={`home-dark-card__heart${isWishlisted ? ' is-active' : ''}`}
                         aria-label={isEn ? 'Save party' : '파티 찜하기'}
                         onClick={(e) => onToggleWishlist(e, party)}
                         onKeyDown={(e) => {
@@ -94,12 +97,12 @@ export default function HomeDarkParties({
                       >
                         <Heart size={14} fill={isWishlisted ? 'currentColor' : 'none'} />
                       </span>
-                    </div>
-                    <div className="home-dark-party-card__info">
-                      <p className="home-dark-party-card__title">{title}</p>
-                      <p className="home-dark-party-card__meta">
-                        {[venue || regionLabel, time].filter(Boolean).join(' · ')}
-                      </p>
+                      <div className="home-dark-card__body">
+                        <p className="home-dark-card__title">{title}</p>
+                        <p className="home-dark-card__meta">
+                          {[venue || regionLabel, time].filter(Boolean).join(' · ')}
+                        </p>
+                      </div>
                     </div>
                   </motion.button>
                 );

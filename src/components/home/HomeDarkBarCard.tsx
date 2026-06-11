@@ -2,6 +2,7 @@ import React from 'react';
 import { motion } from 'framer-motion';
 import { imgFallbackHandler } from '../../constants/imageAssets';
 import { formatBarDistrictLabel } from './homeDarkUtils';
+import { HD_VENUE_IMG_CLASS } from './homeDarkMedia';
 
 type BarLike = {
   id: string | number;
@@ -42,7 +43,7 @@ export default function HomeDarkBarCard({
       <span className="home-dark-bar-card-v__cover">
         {coverPhoto ? (
           <img
-            className="home-dark-bar-card-v__cover-img"
+            className={`home-dark-bar-card-v__cover-img ${HD_VENUE_IMG_CLASS}`}
             src={coverPhoto}
             alt=""
             loading="lazy"

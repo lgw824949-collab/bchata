@@ -2,6 +2,7 @@ import React from 'react';
 import { motion } from 'framer-motion';
 import { DEFAULT_AVATAR_IMAGE, imgFallbackHandler } from '../../constants/imageAssets';
 import HomeDarkSectionHeader from './HomeDarkSectionHeader';
+import { HD_PORTRAIT_IMG_CLASS } from './homeDarkMedia';
 import { formatInstructorGenre } from './homeDarkUtils';
 
 type InstructorLike = {
@@ -32,9 +33,9 @@ export default function HomeDarkInstructors({
   const showPeek = loading || instructors.length >= 5;
 
   return (
-    <section className="home-hot-instructors-wrap home-hot-instructors-wrap--dark" aria-label={isEn ? 'Active instructors' : '활동 강사'}>
+    <section className="home-dark-section home-hot-instructors-wrap home-hot-instructors-wrap--dark" aria-label={isEn ? 'Active instructors' : '활동 강사'}>
       <HomeDarkSectionHeader
-        title={isEn ? '⭐ Instructors' : '⭐ 강사 한눈에'}
+        title={isEn ? 'Instructors' : '강사 한눈에'}
         subtitle={isEn ? 'Active instructors tonight' : '오늘 밤 활동하는 강사'}
         linkLabel={isEn ? 'View all' : '전체보기'}
         onLinkClick={onViewAll}
@@ -60,22 +61,23 @@ export default function HomeDarkInstructors({
                     >
                       <div className="home-premium-instructor-card__media">
                         <img
+                          className={HD_PORTRAIT_IMG_CLASS}
                           src={inst.photo_url || DEFAULT_AVATAR_IMAGE}
                           alt={inst.name || ''}
                           loading="lazy"
                           decoding="async"
                           onError={imgFallbackHandler(DEFAULT_AVATAR_IMAGE)}
                         />
-                        <span className="home-premium-instructor-card__glow" aria-hidden />
-                        <span className="home-premium-instructor-card__body">
-                          <span className="home-premium-instructor-card__name">{inst.name}</span>
+                        <span className="home-dark-card__scrim" aria-hidden />
+                        <span className="home-dark-card__body">
+                          <span className="home-dark-card__title">{inst.name}</span>
                           {genreLabel ? (
-                            <span className="home-premium-instructor-card__genre">{genreLabel}</span>
+                            <span className="home-dark-card__meta home-dark-card__meta--accent">{genreLabel}</span>
                           ) : null}
                           <span
                             role="button"
                             tabIndex={0}
-                            className="home-premium-instructor-card__follow"
+                            className="home-dark-card__chip"
                             onClick={(e) => {
                               e.stopPropagation();
                               onInstructorClick();

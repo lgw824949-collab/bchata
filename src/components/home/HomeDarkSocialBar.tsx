@@ -43,29 +43,28 @@ export default function HomeDarkSocialBar({
   onViewMap,
 }: HomeDarkSocialBarProps) {
   return (
-    <section className="home-social-bar-panel home-social-bar-panel--gate" aria-label="Social BAR">
+    <section className="home-dark-section home-social-bar-panel home-social-bar-panel--gate" aria-label="Social BAR">
       <HomeDarkSectionHeader
-        title="🌴 Social BAR"
+        title="Social BAR"
         subtitle={isEn ? 'Where the Latin night begins' : '라틴의 밤이 시작되는 곳'}
         linkLabel={isEn ? 'Map' : '지도보기'}
         onLinkClick={onViewMap}
         linkVariant="map"
       />
-      <div className="home-region-tabs">
+      <div className="home-dark-region-pills home-dark-region-pills--compact" role="tablist" aria-label={isEn ? 'BAR region' : 'BAR 지역'}>
         {regionTabs.map((tab) => {
           const isSelected = selectedTab === tab;
-          const isMyGeoRegion = geoRegionTab && tab === geoRegionTab;
           return (
             <button
               key={tab}
               type="button"
-              className={`home-region-pill${isSelected ? ' is-selected' : ''}${isMyGeoRegion ? ' is-my-region' : ''}`}
+              role="tab"
+              aria-selected={isSelected}
+              className={`home-dark-region-pill${isSelected ? ' is-active' : ''}`}
               onClick={() => onTabChange(tab)}
             >
               {tab}
-              <span className="home-region-pill-count" aria-label={`${barCounts[tab] ?? 0}곳`}>
-                {barCounts[tab] ?? 0}
-              </span>
+              <span className="home-dark-region-pill__count">{barCounts[tab] ?? 0}</span>
             </button>
           );
         })}
