@@ -81,22 +81,18 @@ export default function HomeDarkSocialBar({
           </p>
         ) : (
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} key={selectedTab}>
-            <div className={`home-dark-scroll-peek${bars.length >= 5 ? ' home-dark-scroll-peek--active' : ''}`}>
-              <div className="home-social-bar-scroll scrollbar-hide home-social-bar-scroll--peek home-social-bar-scroll--peek-more" role="list">
-                <div className="home-social-bar-track home-social-bar-track--peek">
-                  {bars.map((bar) => (
-                    <HomeDarkBarCard
-                      key={bar.id}
-                      bar={bar}
-                      coverPhoto={getCoverPhoto(bar)}
-                      eventCount={getEventCount(bar)}
-                      isMyGeoRegion={Boolean(geoRegionTab && bar.region === geoRegionTab)}
-                      isEn={isEn}
-                      onClick={() => onBarClick(bar)}
-                    />
-                  ))}
-                </div>
-              </div>
+            <div className="home-dark-grid home-dark-grid--3 home-dark-grid--scroll" role="list">
+              {bars.map((bar) => (
+                <HomeDarkBarCard
+                  key={bar.id}
+                  bar={bar}
+                  coverPhoto={getCoverPhoto(bar)}
+                  eventCount={getEventCount(bar)}
+                  isMyGeoRegion={Boolean(geoRegionTab && bar.region === geoRegionTab)}
+                  isEn={isEn}
+                  onClick={() => onBarClick(bar)}
+                />
+              ))}
             </div>
           </motion.div>
         )}
