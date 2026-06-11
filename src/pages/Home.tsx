@@ -209,19 +209,7 @@ const HOME_REGIONS_ORDER = [
 const SOCIAL_BAR_REGION_ALL = '전체';
 
 /** 홈 Social BAR — 2장 + 3번째 peek 이후 스크롤로 더 보기 */
-const SOCIAL_BAR_PEEK_VISIBLE = 4;
-
-const formatBarDistrictLabel = (bar) => {
-  const addr = String(bar?.address || '').trim();
-  if (addr) {
-    const districtMatch = addr.match(/([가-힣]+(?:구|동))/);
-    if (districtMatch) return districtMatch[1];
-    const parts = addr.split(/\s+/).filter(Boolean);
-    if (parts.length >= 2) return parts[1];
-    if (parts.length) return parts[0];
-  }
-  return bar?.region || '';
-};
+const SOCIAL_BAR_PEEK_VISIBLE = 3;
 
 /** 메인 홈 — 오늘 지역 대표 포스터 슬라이드 (빠른 메뉴 위) */
 const HOME_POSTER_BANNER_MS = 4000;
@@ -1925,25 +1913,6 @@ const HomePage = ({
     [todayPosterParties],
   );
 
-  const barTodayPartyCountByKey = useMemo(() => {
-    const map = new Map();
-    todayPosterPartiesForCount.forEach((party) => {
-      const venueName = resolvePartyVenueName(party)
-        || party.locationName
-        || party.location_name
-        || '';
-      const key = normalizeVenueNameKey(venueName);
-      if (!key) return;
-      map.set(key, (map.get(key) || 0) + 1);
-    });
-    return map;
-  }, [todayPosterPartiesForCount]);
-
-  const getBarTodayPartyCount = useCallback((bar) => {
-    const key = normalizeVenueNameKey(bar?.name || '');
-    return key ? (barTodayPartyCountByKey.get(key) || 0) : 0;
-  }, [barTodayPartyCountByKey]);
-
   useEffect(() => {
     const todayParties = todayPosterPartiesForCount;
 
@@ -2582,48 +2551,27 @@ const HomePage = ({
     const chipPhoto = resolveBarVenuePhoto(bar.name, bar.image_url);
 
     if (isHomeGateDark) {
-      const coverPhoto = bar.image_url || chipPhoto;
-      const partyCount = getBarTodayPartyCount(bar);
-      const district = formatBarDistrictLabel(bar);
-
       return (
         <motion.button
           key={bar.id}
           type="button"
           role="listitem"
-          className={`home-dark-bar-card-v${isMyGeoRegion ? ' home-dark-bar-card-v--my-region' : ''}`}
+          className={`home-dark-bar-card${isMyGeoRegion ? ' home-dark-bar-card--my-region' : ''}`}
           onClick={() => openVenueDetail(bar)}
           whileTap={{ scale: 0.98 }}
         >
-          <span className="home-dark-bar-card-v__cover">
-            {coverPhoto ? (
-              <img
-                className="home-dark-bar-card-v__cover-img"
-                src={coverPhoto}
-                alt=""
-                loading="lazy"
-                decoding="async"
-                onError={imgFallbackHandler('/logo.png')}
-              />
+          <span className="home-dark-bar-card__thumb">
+            {chipPhoto ? (
+              <img src={chipPhoto} alt="" onError={imgFallbackHandler('/logo.png')} />
             ) : (
-              <span className="home-dark-bar-card-v__cover-fallback" aria-hidden />
+              <img src="/logo.png" alt="" className="home-dark-bar-card__thumb-fallback" />
             )}
-            <span className="home-dark-bar-card-v__logo">
-              {chipPhoto ? (
-                <img src={chipPhoto} alt="" onError={imgFallbackHandler('/logo.png')} />
-              ) : (
-                <img src="/logo.png" alt="" className="home-dark-bar-card-v__logo-fallback" />
-              )}
-            </span>
           </span>
-          <span className="home-dark-bar-card-v__body">
-            <span className="home-dark-bar-card-v__name">{barName}</span>
-            <span className="home-dark-bar-card-v__parties">
-              {isEn
-                ? `Today ${partyCount} ${partyCount === 1 ? 'party' : 'parties'}`
-                : `오늘 ${partyCount}개 파티`}
+          <span className="home-dark-bar-card__body">
+            <span className="home-dark-bar-card__name">{barName}</span>
+            <span className="home-dark-bar-card__sub">
+              {bar.region || selectedRegionTab || (isEn ? 'Social BAR' : '소셜 BAR')}
             </span>
-            <span className="home-dark-bar-card-v__district">{district}</span>
           </span>
         </motion.button>
       );
@@ -3703,29 +3651,20 @@ const HomePage = ({
     );
   };
 
-  const renderHomeDarkSectionHeader = (title, subtitle, onViewAll, linkLabel, options = {}) => {
-    const isMapLink = options.variant === 'map';
-
-    return (
-      <header className="home-dark-section-header">
-        <div className="home-dark-section-header__text">
-          <h2>{title}</h2>
-          {subtitle ? <p>{subtitle}</p> : null}
-        </div>
-        {onViewAll ? (
-          <button
-            type="button"
-            className={`home-dark-section-header__link${isMapLink ? ' home-dark-section-header__link--pill' : ''}`}
-            onClick={onViewAll}
-          >
-            {isMapLink ? <MapPin size={13} aria-hidden /> : null}
-            {linkLabel || (isEn ? 'View all' : '전체보기')}
-            {!isMapLink ? <ChevronRight size={14} aria-hidden /> : null}
-          </button>
-        ) : null}
-      </header>
-    );
-  };
+  const renderHomeDarkSectionHeader = (title, subtitle, onViewAll, linkLabel) => (
+    <header className="home-dark-section-header">
+      <div className="home-dark-section-header__text">
+        <h2>{title}</h2>
+        {subtitle ? <p>{subtitle}</p> : null}
+      </div>
+      {onViewAll ? (
+        <button type="button" className="home-dark-section-header__link" onClick={onViewAll}>
+          {linkLabel || (isEn ? 'View all' : '전체보기')}
+          <ChevronRight size={14} aria-hidden />
+        </button>
+      ) : null}
+    </header>
+  );
 
   const renderHomePartyStripCard = (party, index) => {
     const title = formatPartyTitleDisplay(party.title);
@@ -3790,15 +3729,9 @@ const HomePage = ({
         () => navigateHomeTab('social'),
       )}
       {homeFilteredTodayParties.length > 0 ? (
-        <div
-          className={`home-dark-scroll-peek${
-            homeFilteredTodayParties.length >= 5 ? ' home-dark-scroll-peek--active' : ''
-          }`}
-        >
-          <div className="home-dark-parties-scroll scrollbar-hide">
-            <div className="home-dark-parties-track">
-              {homeFilteredTodayParties.map((party, index) => renderHomePartyStripCard(party, index))}
-            </div>
+        <div className="home-dark-parties-scroll scrollbar-hide">
+          <div className="home-dark-parties-track">
+            {homeFilteredTodayParties.map((party, index) => renderHomePartyStripCard(party, index))}
           </div>
         </div>
       ) : (
@@ -3932,10 +3865,9 @@ const HomePage = ({
           {isHomeGateDark ? (
             renderHomeDarkSectionHeader(
               isEn ? '🌴 Social BAR' : '🌴 Social BAR',
-              isEn ? 'Where the Latin night begins' : '라틴의 밤이 시작되는 곳',
+              isEn ? 'Find your favorite spot' : '내가 좋아하는 장소를 찾아보세요',
               () => openAnalysis(false),
               isEn ? 'Map' : '지도보기',
-              { variant: 'map' },
             )
           ) : renderHomeSectionHeader(
             isEn ? 'Social BAR' : 'Social BAR',
@@ -4018,22 +3950,16 @@ const HomePage = ({
                       {barListLabel}
                     </p>
                     <div
-                      className={`home-dark-scroll-peek${
-                        isHomeGateDark && regionBars.length >= 5 ? ' home-dark-scroll-peek--active' : ''
+                      className={`home-social-bar-scroll scrollbar-hide${
+                        isHomeGate
+                          ? ` home-social-bar-scroll--peek${hasMoreBars ? ' home-social-bar-scroll--peek-more' : ''}`
+                          : ''
                       }`}
+                      role="list"
+                      aria-label={isEn ? `Social BAR in ${selectedRegionTab}` : `${selectedRegionTab} Social BAR`}
                     >
-                      <div
-                        className={`home-social-bar-scroll scrollbar-hide${
-                          isHomeGate
-                            ? ` home-social-bar-scroll--peek${hasMoreBars ? ' home-social-bar-scroll--peek-more' : ''}`
-                            : ''
-                        }`}
-                        role="list"
-                        aria-label={isEn ? `Social BAR in ${selectedRegionTab}` : `${selectedRegionTab} Social BAR`}
-                      >
-                        <div className={`home-social-bar-track${isHomeGate ? ' home-social-bar-track--peek' : ''}`}>
-                          {regionBars.map((bar) => renderBarCard(bar))}
-                        </div>
+                      <div className={`home-social-bar-track${isHomeGate ? ' home-social-bar-track--peek' : ''}`}>
+                        {regionBars.map((bar) => renderBarCard(bar))}
                       </div>
                     </div>
                   </motion.div>
@@ -4069,15 +3995,10 @@ const HomePage = ({
             () => navigate('/instructors', { homeTab: null }),
           )
           : renderHomeGateSectionTitle(isEn ? 'Instructors' : '강사 한눈에', 'home-hot-instructors-title')}
-        <div
-          className={`home-dark-scroll-peek${
-            isHomeGateDark && hotInstructors.length >= 5 ? ' home-dark-scroll-peek--active' : ''
-          }`}
-        >
-          <div className="home-hot-instructors-scroll scrollbar-hide">
-            <div className="home-hot-instructors-track">
-              {hotInstructorsLoading
-                ? skeletonItems.map((i) => (
+        <div className="home-hot-instructors-scroll scrollbar-hide">
+          <div className="home-hot-instructors-track">
+            {hotInstructorsLoading
+              ? skeletonItems.map((i) => (
                   <div
                     key={`hot-instructor-skeleton-${i}`}
                     className="home-hot-instructor-card home-hot-instructor-card--skeleton"
@@ -4112,7 +4033,6 @@ const HomePage = ({
                     </motion.button>
                   );
                 })}
-            </div>
           </div>
         </div>
       </section>

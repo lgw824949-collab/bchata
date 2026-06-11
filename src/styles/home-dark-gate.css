@@ -8,18 +8,18 @@
   --hd-radius-card: 16px;
   --hd-radius-bar: 14px;
   --hd-radius-pill: 999px;
-  /* 4장 전체 + 5번째 살짝 보이게 */
-  --hd-peek-visible: 4.2;
-  --hd-bar-peek-visible: 5.15;
-  --hd-party-w: calc((100% - (var(--hd-gap) * 4)) / var(--hd-peek-visible));
-  --hd-party-h: calc(var(--hd-party-w) * 4 / 3);
-  --hd-instructor-w: var(--hd-party-w);
-  --hd-instructor-h: calc(var(--hd-party-w) * 1.48);
+  /* 파티 카드 3:4 (목업) */
+  --hd-party-w: 140px;
+  --hd-party-h: 187px;
+  /* 강사 카드 — 파티보다 약간 길게 */
+  --hd-instructor-w: 140px;
+  --hd-instructor-h: 210px;
   /* TODAY PICK 히어로 */
   --hd-hero-h: 228px;
-  /* Social BAR 세로 카드 (파티보다 작게) */
-  --hd-bar-w: calc((100% - (var(--hd-gap) * 4)) / var(--hd-bar-peek-visible));
-  --hd-bar-cover-h: calc(var(--hd-bar-w) * 0.68);
+  /* Social BAR 가로 카드 ~3.2:1 */
+  --hd-bar-w: 248px;
+  --hd-bar-h: 72px;
+  --hd-bar-thumb: 48px;
   font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, system-ui, sans-serif !important;
 }
 
@@ -283,34 +283,6 @@
   cursor: pointer;
 }
 
-.home-dark-section-header__link--pill {
-  gap: 4px;
-  padding: 6px 11px;
-  border: 1px solid rgba(255, 255, 255, 0.22);
-  border-radius: var(--hd-radius-pill);
-  background: transparent;
-  color: rgba(255, 255, 255, 0.9);
-  font-size: 11px;
-  font-weight: 700;
-}
-
-/* 가로 스크롤 — 5번째 카드 peek + 우측 페이드 */
-.home-dark-scroll-peek {
-  position: relative;
-}
-
-.home-dark-scroll-peek--active::after {
-  content: '';
-  position: absolute;
-  top: 0;
-  right: 0;
-  width: 28px;
-  height: 100%;
-  pointer-events: none;
-  z-index: 2;
-  background: linear-gradient(90deg, transparent, #0a0a0a 92%);
-}
-
 /* ── 오늘의 파티 카드 3:4 ── */
 .home-dark-parties-scroll {
   overflow-x: auto;
@@ -553,114 +525,75 @@
   gap: var(--hd-gap) !important;
 }
 
-.home-gate-shell .home-social-bar-scroll--peek {
-  padding: 2px 0 10px !important;
-  scroll-padding-inline: 0 !important;
-}
-
-/* BAR 세로 카드 (목업) */
-.home-dark-bar-card-v {
+/* BAR 가로 카드 248×72 */
+.home-dark-bar-card {
   flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  gap: 10px;
   width: var(--hd-bar-w);
   min-width: var(--hd-bar-w);
-  padding: 0;
-  border: none;
-  border-radius: 12px;
-  background: #141414;
-  overflow: hidden;
-  display: flex;
-  flex-direction: column;
+  height: var(--hd-bar-h);
+  padding: 0 12px;
+  box-sizing: border-box;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: var(--hd-radius-bar);
+  background: rgba(255, 255, 255, 0.04);
   cursor: pointer;
   text-align: left;
-  box-sizing: border-box;
 }
 
-.home-dark-bar-card-v--my-region {
-  box-shadow: inset 0 0 0 1px rgba(255, 77, 77, 0.38);
+.home-dark-bar-card--my-region {
+  border-color: rgba(255, 77, 77, 0.35);
+  background: rgba(255, 77, 77, 0.08);
 }
 
-.home-dark-bar-card-v__cover {
-  position: relative;
-  width: 100%;
-  height: var(--hd-bar-cover-h);
-  background: #1a1a1a;
-  overflow: visible;
-}
-
-.home-dark-bar-card-v__cover-img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  display: block;
-  border-radius: 12px 12px 0 0;
-}
-
-.home-dark-bar-card-v__cover-fallback {
-  display: block;
-  width: 100%;
-  height: 100%;
-  background: linear-gradient(145deg, #222 0%, #111 100%);
-}
-
-.home-dark-bar-card-v__logo {
-  position: absolute;
-  left: 7px;
-  bottom: -11px;
-  z-index: 2;
-  width: 24px;
-  height: 24px;
-  border-radius: 50%;
-  border: 2px solid #141414;
+.home-dark-bar-card__thumb {
+  flex-shrink: 0;
+  width: var(--hd-bar-thumb);
+  height: var(--hd-bar-thumb);
+  border-radius: 10px;
   overflow: hidden;
-  background: #1c1c1c;
+  background: #1a1a1a;
   display: flex;
   align-items: center;
   justify-content: center;
 }
 
-.home-dark-bar-card-v__logo img {
+.home-dark-bar-card__thumb img {
   width: 100%;
   height: 100%;
   object-fit: cover;
 }
 
-.home-dark-bar-card-v__logo-fallback {
-  width: 55%;
-  height: 55%;
+.home-dark-bar-card__thumb-fallback {
+  width: 36%;
+  height: 36%;
   object-fit: contain;
-  opacity: 0.35;
+  opacity: 0.28;
   filter: grayscale(1);
 }
 
-.home-dark-bar-card-v__body {
+.home-dark-bar-card__body {
+  min-width: 0;
   display: flex;
   flex-direction: column;
   gap: 2px;
-  padding: 14px 8px 10px;
-  min-width: 0;
 }
 
-.home-dark-bar-card-v__name {
-  font-size: 11px;
+.home-dark-bar-card__name {
+  font-size: 13px;
   font-weight: 800;
   color: #fff;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  letter-spacing: -0.02em;
 }
 
-.home-dark-bar-card-v__parties {
-  font-size: 10px;
-  font-weight: 700;
-  color: #ff9f43;
-  white-space: nowrap;
-}
-
-.home-dark-bar-card-v__district {
-  font-size: 10px;
+.home-dark-bar-card__sub {
+  font-size: 11px;
   font-weight: 600;
-  color: rgba(255, 255, 255, 0.42);
+  color: rgba(255, 255, 255, 0.45);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
