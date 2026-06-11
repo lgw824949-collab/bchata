@@ -34,8 +34,8 @@
   --hd-radius-hero: 22px;
   --hd-radius-card: 20px;
   --hd-radius-pill: 999px;
-  --hd-peek-visible: 4.2;
-  --hd-bar-peek-visible: 5.15;
+  --hd-peek-visible: 3.05;
+  --hd-bar-peek-visible: 4.35;
   --hd-party-w: calc((100cqw - (var(--hd-gap) * 4)) / var(--hd-peek-visible));
   --hd-party-h: calc(var(--hd-party-w) * 5 / 4);
   --hd-instructor-w: var(--hd-party-w);
@@ -77,11 +77,11 @@
 
 @supports not (width: 1cqw) {
   .home-dark-gate {
-    --hd-party-w: 86px;
-    --hd-party-h: 108px;
-    --hd-instructor-h: 122px;
-    --hd-bar-w: 70px;
-    --hd-bar-cover-h: 44px;
+    --hd-party-w: 112px;
+    --hd-party-h: 140px;
+    --hd-instructor-h: 159px;
+    --hd-bar-w: 78px;
+    --hd-bar-cover-h: 48px;
   }
 }
 
@@ -146,6 +146,14 @@
   background: linear-gradient(180deg, transparent 0%, rgba(0, 0, 0, 0.2) 30%, rgba(0, 0, 0, 0.9) 100%);
   pointer-events: none;
   z-index: 1;
+}
+
+.home-dark-gate .home-dark-card__scrim--portrait {
+  inset: 0;
+  height: auto;
+  background:
+    linear-gradient(180deg, rgba(11, 11, 11, 0.35) 0%, transparent 22%, transparent 48%, rgba(0, 0, 0, 0.92) 100%),
+    linear-gradient(90deg, rgba(11, 11, 11, 0.28), transparent 18%, transparent 82%, rgba(11, 11, 11, 0.28));
 }
 
 .home-dark-gate .home-dark-card__body {
@@ -317,7 +325,7 @@
 
 .home-dark-region-pill.is-active {
   border-color: transparent;
-  background: linear-gradient(135deg, var(--hd-primary), var(--hd-gold));
+  background: var(--hd-primary);
   color: #fff;
   font-weight: 700;
 }
@@ -363,18 +371,25 @@
   box-shadow: none;
 }
 
-.home-dark-today-pick__photo {
+.home-dark-today-pick__bg {
   position: absolute;
-  inset: 0;
+  inset: -16px;
+  overflow: hidden;
+}
+
+.home-dark-today-pick__photo {
   width: 100%;
   height: 100%;
   object-fit: cover;
+  transform: scale(1.1);
+  filter: blur(10px) brightness(0.38) saturate(0.75);
 }
 
 .home-dark-today-pick__overlay {
   position: absolute;
   inset: 0;
-  background: linear-gradient(180deg, rgba(0, 0, 0, 0.05) 0%, rgba(0, 0, 0, 0.4) 50%, rgba(0, 0, 0, 0.9) 100%);
+  background:
+    linear-gradient(180deg, rgba(11, 11, 11, 0.2) 0%, rgba(11, 11, 11, 0.72) 55%, rgba(11, 11, 11, 0.96) 100%);
 }
 
 .home-dark-today-pick__content {
@@ -402,14 +417,6 @@
   font-weight: var(--hd-fw-hero-title);
   line-height: var(--hd-lh-tight);
   color: #fff;
-}
-
-.home-dark-today-pick__subtitle {
-  margin: 0;
-  font-size: var(--hd-fs-hero-sub);
-  font-weight: var(--hd-fw-hero-sub);
-  line-height: var(--hd-lh-normal);
-  color: var(--hd-gold);
 }
 
 .home-dark-today-pick__meta {
@@ -552,11 +559,15 @@
   min-width: var(--hd-party-w) !important;
   max-width: var(--hd-party-w) !important;
   padding: 0;
-  border: none;
-  background: none;
+  border: 1px solid var(--hd-border);
+  border-radius: var(--hd-radius-card);
+  background: var(--hd-card);
   cursor: pointer;
   text-align: left;
   overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35);
 }
 
 .home-dark-party-card__media {
@@ -564,10 +575,41 @@
   width: 100% !important;
   height: var(--hd-party-h) !important;
   aspect-ratio: 4 / 5;
-  border-radius: var(--hd-radius-card);
   overflow: hidden;
-  background: var(--hd-card);
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35);
+  background: #111;
+  flex-shrink: 0;
+}
+
+.home-dark-party-card__foot {
+  padding: 8px 8px 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  min-height: 48px;
+  box-sizing: border-box;
+}
+
+.home-dark-party-card__title {
+  margin: 0;
+  font-size: var(--hd-fs-card-title);
+  font-weight: var(--hd-fw-card-title);
+  line-height: var(--hd-lh-tight);
+  color: #fff;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.home-dark-party-card__meta {
+  margin: 0;
+  font-size: var(--hd-fs-card-meta);
+  font-weight: var(--hd-fw-card-meta);
+  line-height: var(--hd-lh-normal);
+  color: var(--hd-text-secondary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .home-dark-parties-empty,
@@ -659,7 +701,7 @@
   width: var(--hd-bar-w) !important;
   min-width: var(--hd-bar-w) !important;
   max-width: var(--hd-bar-w) !important;
-  border: none;
+  border: 1px solid var(--hd-border);
   border-radius: var(--hd-radius-card);
   background: var(--hd-card);
   overflow: hidden;

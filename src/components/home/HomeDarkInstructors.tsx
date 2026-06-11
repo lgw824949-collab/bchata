@@ -68,7 +68,7 @@ export default function HomeDarkInstructors({
                           decoding="async"
                           onError={imgFallbackHandler(DEFAULT_AVATAR_IMAGE)}
                         />
-                        <span className="home-dark-card__scrim" aria-hidden />
+                        <span className="home-dark-card__scrim home-dark-card__scrim--portrait" aria-hidden />
                         <span className="home-dark-card__body">
                           <span className="home-dark-card__title">{inst.name}</span>
                           {genreLabel ? (

@@ -45,7 +45,7 @@ export default function HomeDarkSocialBar({
   return (
     <section className="home-dark-section home-social-bar-panel home-social-bar-panel--gate" aria-label="Social BAR">
       <HomeDarkSectionHeader
-        title="Social BAR"
+        title={isEn ? 'Social BAR' : '소셜 BAR'}
         subtitle={isEn ? 'Where the Latin night begins' : '라틴의 밤이 시작되는 곳'}
         linkLabel={isEn ? 'Map' : '지도보기'}
         onLinkClick={onViewMap}

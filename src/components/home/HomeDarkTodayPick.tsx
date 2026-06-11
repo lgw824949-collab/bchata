@@ -47,19 +47,20 @@ export default function HomeDarkTodayPick({
 
   return (
     <article className="home-dark-today-pick">
-      <img
-        className={`home-dark-today-pick__photo ${HD_POSTER_IMG_CLASS}`}
-        src={party.poster_url}
-        alt=""
-        loading="eager"
-        decoding="async"
-        onError={imgFallbackHandler(DEFAULT_CARD_IMAGE)}
-      />
+      <div className="home-dark-today-pick__bg" aria-hidden>
+        <img
+          className={`home-dark-today-pick__photo ${HD_POSTER_IMG_CLASS}`}
+          src={party.poster_url}
+          alt=""
+          loading="eager"
+          decoding="async"
+          onError={imgFallbackHandler(DEFAULT_CARD_IMAGE)}
+        />
+      </div>
       <div className="home-dark-today-pick__overlay" aria-hidden />
       <div className="home-dark-today-pick__content">
-        <span className="home-dark-today-pick__eyebrow">TODAY PICK 🔥</span>
+        <span className="home-dark-today-pick__eyebrow">{isEn ? 'TODAY PICK' : '오늘의 픽'}</span>
         <h2 className="home-dark-today-pick__title">{title}</h2>
-        <p className="home-dark-today-pick__subtitle">{isEn ? 'Tonight\'s social pick' : '오늘의 소셜 픽'}</p>
         <div className="home-dark-today-pick__meta">
           {venue ? (
             <span>

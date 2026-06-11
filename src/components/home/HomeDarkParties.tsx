@@ -76,7 +76,6 @@ export default function HomeDarkParties({
                         decoding="async"
                         onError={imgFallbackHandler(DEFAULT_CARD_IMAGE)}
                       />
-                      <span className="home-dark-card__scrim" aria-hidden />
                       {index < 2 ? (
                         <span className={`home-dark-card__badge${index === 0 ? ' home-dark-card__badge--hot' : ' home-dark-card__badge--new'}`}>
                           {index === 0 ? 'HOT' : 'NEW'}
@@ -97,12 +96,12 @@ export default function HomeDarkParties({
                       >
                         <Heart size={14} fill={isWishlisted ? 'currentColor' : 'none'} />
                       </span>
-                      <div className="home-dark-card__body">
-                        <p className="home-dark-card__title">{title}</p>
-                        <p className="home-dark-card__meta">
-                          {[venue || regionLabel, time].filter(Boolean).join(' · ')}
-                        </p>
-                      </div>
+                    </div>
+                    <div className="home-dark-party-card__foot">
+                      <p className="home-dark-party-card__title">{title}</p>
+                      <p className="home-dark-party-card__meta">
+                        {[venue || regionLabel, time].filter(Boolean).join(' · ')}
+                      </p>
                     </div>
                   </motion.button>
                 );
