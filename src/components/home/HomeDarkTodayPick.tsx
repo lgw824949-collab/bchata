@@ -65,11 +65,20 @@ export default function HomeDarkTodayPick({
       <AnimatePresence mode="wait">
         <motion.div
           key={slide.id}
-          className="home-dark-today-pick__stage"
+          className="home-dark-today-pick__stage home-dark-today-pick__stage--clickable"
+          role="button"
+          tabIndex={0}
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
           transition={{ duration: 0.5, ease: 'easeInOut' }}
+          onClick={onOpen}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter' || e.key === ' ') {
+              e.preventDefault();
+              onOpen();
+            }
+          }}
         >
           <img
             className={`home-dark-today-pick__photo ${HD_POSTER_IMG_CLASS} home-dark-today-pick__photo--hero`}
@@ -102,7 +111,14 @@ export default function HomeDarkTodayPick({
                 </span>
               ) : null}
             </div>
-            <button type="button" className="home-dark-today-pick__cta" onClick={onOpen}>
+            <button
+              type="button"
+              className="home-dark-today-pick__cta"
+              onClick={(e) => {
+                e.stopPropagation();
+                onOpen();
+              }}
+            >
               {isEn ? 'View details' : '자세히 보기'}
               <ChevronRight size={16} aria-hidden />
             </button>

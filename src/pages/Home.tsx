@@ -1763,6 +1763,7 @@ const HomePage = ({
   showLatinModal, setShowLatinModal, setShowSaju, setShowWishlist, latinCat, setLatinCat, selPatternId, setSelPatternId, regionalTheme, recordTraffic, IncheonBanner, venueCounts, openAnalysis,
   showGridModal, setShowGridModal, gridRegion, setGridRegion, filterStep, setFilterStep,
   handleOpenModal, handleCloseModal,
+  enterPosterDetailView,
   isDark, setIsDark, followedInstructors, likedLivePicks, setShowRentalModal, setShowPartner,
   LiveExposureStrip,
   homeTab = null,
@@ -1817,9 +1818,21 @@ const HomePage = ({
   const openPartyWithAfterParty = (item) => {
     const p = posterSharePayload(item);
     if (!p) return;
-    const partyId = item?.id ?? p?.id;
+    const partyId = item?.id ?? p?.partyId;
     if (partyId != null) schedulePartyClickCountIncrement(partyId);
-    handleOpenModal(setSelectedPoster, p);
+
+    setShowPartner(false);
+    setActiveTab('social');
+
+    const partyDate = item?.date || item?.start_date;
+    if (partyDate) setSelectedDate(String(partyDate).slice(0, 10));
+
+    pushOverlay('partyPoster', { meta: { partyId: String(partyId) } });
+    if (enterPosterDetailView) {
+      enterPosterDetailView(p, { pushHistory: false });
+    } else {
+      setSelectedPoster(p);
+    }
   };
 
   const [isPaused, setIsPaused] = useState(false);
@@ -5994,10 +6007,7 @@ const HomePage = ({
           onClose={closeVenueDetail}
           onVenueUpdated={syncVenueAcrossHome}
           onRegisterVenueLesson={openVenueLessonRegister}
-          onOpenPoster={(item) => {
-            const p = posterSharePayload(item);
-            if (p) handleOpenModal(setSelectedPoster, p);
-          }}
+          onOpenPoster={openPartyWithAfterParty}
         />
       )}
 

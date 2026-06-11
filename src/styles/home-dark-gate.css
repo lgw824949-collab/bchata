@@ -364,6 +364,10 @@
   height: 100%;
 }
 
+.home-dark-today-pick__stage--clickable {
+  cursor: pointer;
+}
+
 .home-dark-today-pick__photo {
   position: absolute;
   inset: 0;
