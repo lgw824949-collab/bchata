@@ -67,7 +67,7 @@ export default function HomeDarkParties({
                     whileTap={{ scale: 0.98 }}
                     onClick={() => onPartyClick(party)}
                   >
-                    <div className="home-dark-party-card__media">
+                    <div className="home-dark-poster-card__media">
                       <img
                         className={HD_POSTER_IMG_CLASS}
                         src={party.poster_url}
@@ -76,7 +76,7 @@ export default function HomeDarkParties({
                         decoding="async"
                         onError={imgFallbackHandler(DEFAULT_CARD_IMAGE)}
                       />
-                      <div className="home-dark-party-card__shade" aria-hidden />
+                      <span className="home-dark-card__scrim" aria-hidden />
                       {index < 2 ? (
                         <span className={`home-dark-card__badge${index === 0 ? ' home-dark-card__badge--hot' : ' home-dark-card__badge--new'}`}>
                           {index === 0 ? 'HOT' : 'NEW'}
@@ -97,12 +97,12 @@ export default function HomeDarkParties({
                       >
                         <Heart size={14} fill={isWishlisted ? 'currentColor' : 'none'} />
                       </span>
-                      <div className="home-dark-party-card__foot">
-                        <p className="home-dark-party-card__title">{title}</p>
-                        <p className="home-dark-party-card__meta">
+                      <span className="home-dark-card__body">
+                        <span className="home-dark-card__title">{title}</span>
+                        <span className="home-dark-card__meta">
                           {[venue || regionLabel, time].filter(Boolean).join(' · ')}
-                        </p>
-                      </div>
+                        </span>
+                      </span>
                     </div>
                   </motion.button>
                 );

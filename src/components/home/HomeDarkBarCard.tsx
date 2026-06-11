@@ -40,10 +40,10 @@ export default function HomeDarkBarCard({
       onClick={onClick}
       whileTap={{ scale: 0.98 }}
     >
-      <span className="home-dark-bar-card-v__cover">
+      <span className="home-dark-poster-card__media">
         {coverPhoto ? (
           <img
-            className={`home-dark-bar-card-v__cover-img ${HD_VENUE_IMG_CLASS}`}
+            className={HD_VENUE_IMG_CLASS}
             src={coverPhoto}
             alt=""
             loading="lazy"
@@ -53,17 +53,18 @@ export default function HomeDarkBarCard({
         ) : (
           <span className="home-dark-bar-card-v__cover-fallback" aria-hidden />
         )}
-      </span>
-      <span className="home-dark-bar-card-v__body">
-        <span className="home-dark-bar-card-v__name">{barName}</span>
-        <span className={`home-dark-bar-card-v__parties${eventCount > 0 ? ' is-live' : ''}`}>
-          {eventCount > 0
-            ? (isEn
-              ? `Today ${eventCount} ${eventCount === 1 ? 'party' : 'parties'}`
-              : `오늘 ${eventCount}개 파티`)
-            : (isEn ? 'No party tonight' : '오늘 파티 없음')}
+        <span className="home-dark-card__scrim" aria-hidden />
+        <span className="home-dark-card__body">
+          <span className="home-dark-card__title">{barName}</span>
+          <span className={`home-dark-card__meta${eventCount > 0 ? ' home-dark-card__meta--accent' : ''}`}>
+            {eventCount > 0
+              ? (isEn
+                ? `Today ${eventCount} ${eventCount === 1 ? 'party' : 'parties'}`
+                : `오늘 ${eventCount}개 파티`)
+              : (isEn ? 'No party tonight' : '오늘 파티 없음')}
+          </span>
+          <span className="home-dark-card__meta">{district}</span>
         </span>
-        <span className="home-dark-bar-card-v__district">{district}</span>
       </span>
     </motion.button>
   );

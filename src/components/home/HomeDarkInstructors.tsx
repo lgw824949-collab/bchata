@@ -1,4 +1,5 @@
 import React from 'react';
+import { Heart } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { DEFAULT_AVATAR_IMAGE, imgFallbackHandler } from '../../constants/imageAssets';
 import HomeDarkSectionHeader from './HomeDarkSectionHeader';
@@ -45,7 +46,7 @@ export default function HomeDarkInstructors({
             {loading
               ? skeletonItems.map((i) => (
                   <div key={`sk-${i}`} className="home-dark-instructor-card home-dark-instructor-card--skeleton" aria-hidden>
-                    <div className="home-dark-instructor-card__media" />
+                    <div className="home-dark-poster-card__media" />
                   </div>
                 ))
               : instructors.map((inst) => {
@@ -58,7 +59,7 @@ export default function HomeDarkInstructors({
                       whileTap={{ scale: 0.98 }}
                       onClick={onInstructorClick}
                     >
-                      <div className="home-dark-instructor-card__media">
+                      <div className="home-dark-poster-card__media">
                         <img
                           className={HD_PORTRAIT_IMG_CLASS}
                           src={inst.photo_url || DEFAULT_AVATAR_IMAGE}
@@ -68,8 +69,11 @@ export default function HomeDarkInstructors({
                           onError={imgFallbackHandler(DEFAULT_AVATAR_IMAGE)}
                         />
                         <span className="home-dark-card__scrim" aria-hidden />
+                        <span className="home-dark-card__heart" aria-hidden>
+                          <Heart size={14} fill="none" />
+                        </span>
                         <span className="home-dark-card__body">
-                          <span className="home-dark-card__title">{inst.name}</span>
+                          <span className="home-dark-card__title home-dark-card__title--lg">{inst.name}</span>
                           {genreLabel ? (
                             <span className="home-dark-card__meta home-dark-card__meta--accent">{genreLabel}</span>
                           ) : null}
