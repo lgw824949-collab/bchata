@@ -3019,7 +3019,7 @@ const HomePage = ({
   };
   const homeSectionSpace = isHomeGate ? 32 : 36;
   const homeBlockSpace = isHomeGate ? 22 : 28;
-  const homeGateStackGap = 36;
+  const homeGateStackGap = 32;
   const [homeRegionPill, setHomeRegionPill] = useState('all');
   const [homePickIndex, setHomePickIndex] = useState(0);
 
@@ -5289,7 +5289,7 @@ const HomePage = ({
         .home-gate-shell .home-social-bar-track--peek {
           display: inline-flex;
           flex-wrap: nowrap;
-          gap: 12px;
+          gap: var(--hd-gap, 12px);
           width: max-content;
           min-width: 100%;
           padding: 0 2px 2px;
@@ -5297,6 +5297,7 @@ const HomePage = ({
         .home-gate-shell .home-main-stack .home-hot-instructors-wrap {
           padding: 0;
           margin: 0;
+          background: transparent;
         }
         .home-hot-instructors-wrap {
           background: var(--home-page-bg, #F5F6F8);
@@ -5368,6 +5369,18 @@ const HomePage = ({
           cursor: pointer;
           text-align: left;
           box-shadow: none;
+        }
+        .home-gate-shell .home-hot-instructor-card {
+          width: var(--hd-instructor-w, 140px);
+          min-width: var(--hd-instructor-w, 140px);
+          max-width: var(--hd-instructor-w, 140px);
+          height: var(--hd-instructor-h, 210px);
+          border-radius: var(--hd-radius-card, 16px);
+          border-color: rgba(255, 255, 255, 0.08);
+          background: #141414;
+        }
+        .home-gate-shell .home-hot-instructors-track {
+          gap: var(--hd-gap, 12px);
         }
         .home-hot-instructor-card--skeleton {
           animation: home-hot-instructor-skeleton-pulse 1.2s ease-in-out infinite;

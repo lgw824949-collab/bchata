@@ -79,7 +79,7 @@
         if (!('serviceWorker' in navigator)) return;
         var host = location.hostname;
         if (host === 'localhost' || host === '127.0.0.1') return;
-        var v = 'bchata-sw-purge-v19';
+        var v = 'bchata-sw-purge-v20';
         var already = false;
         try {
           already = localStorage.getItem(v) === '1';
