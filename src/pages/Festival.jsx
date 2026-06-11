@@ -78,6 +78,12 @@ const getFestivalTabMeta = (activeTab) => {
   return { emoji: '🎪', name: '페스티벌' };
 };
 
+const FESTIVAL_POSTER_FIELDS = [
+  { key: 'poster_url', label: '행사 포스터', hint: '행사 메인 포스터 (필수)' },
+  { key: 'price_poster_url', label: '가격 포스터', hint: '티켓·가격 안내 포스터 (필수)' },
+  { key: 'extra_poster_url', label: '추가 이미지', hint: '타임테이블·부스 안내 등 (필수)' },
+];
+
 const createEmptyFestivalForm = (eventType = 'festival') => ({
   title: '',
   start_date: '',
@@ -87,11 +93,21 @@ const createEmptyFestivalForm = (eventType = 'festival') => ({
   price: '',
   description: '',
   poster_url: '',
+  price_poster_url: '',
+  extra_poster_url: '',
   organizer: '',
   genres: ['바차타'],
   bank_info: '',
   event_type: eventType,
 });
+
+const countFestivalPosterImages = (form) =>
+  FESTIVAL_POSTER_FIELDS.filter(({ key }) => String(form?.[key] || '').trim()).length;
+
+const festivalDetailPosterImages = (fest) =>
+  FESTIVAL_POSTER_FIELDS
+    .map(({ key, label }) => ({ label, url: String(fest?.[key] || '').trim() }))
+    .filter((item) => item.url);
 
 const filterFestivalsClient = (all, selectedRegion, activeTab) => {
   const eventType = activeTab || 'festival';
@@ -127,7 +143,7 @@ const Festival = ({ onBack, initialRegister = false, cachedFestivals = null, onF
   const [isRegistering, setIsRegistering] = useState(initialRegister);
   const [editingId, setEditingId] = useState(null);
   const [currentStep, setCurrentStep] = useState(1);
-  const [uploading, setUploading] = useState(false);
+  const [uploadingField, setUploadingField] = useState(null);
   const [submitting, setSubmitting] = useState(false);
   const [isOneDayEvent, setIsOneDayEvent] = useState(true);
   const [locationSuggestions, setLocationSuggestions] = useState([]);
@@ -230,10 +246,10 @@ const Festival = ({ onBack, initialRegister = false, cachedFestivals = null, onF
     }
   };
 
-  const handleImageUpload = async (e) => {
+  const handleImageUpload = async (e, fieldKey) => {
     const file = e.target.files[0];
     if (!file) return;
-    setUploading(true);
+    setUploadingField(fieldKey);
     try {
       const fileExt = file.name.split('.').pop();
       const fileName = `${Math.random()}.${fileExt}`;
@@ -241,11 +257,12 @@ const Festival = ({ onBack, initialRegister = false, cachedFestivals = null, onF
       const { error: uploadError } = await supabase.storage.from('posters').upload(filePath, file);
       if (uploadError) throw uploadError;
       const { data: { publicUrl } } = supabase.storage.from('posters').getPublicUrl(filePath);
-      setFormData(prev => ({ ...prev, poster_url: publicUrl }));
+      setFormData((prev) => ({ ...prev, [fieldKey]: publicUrl }));
     } catch (err) {
       alert('이미지 업로드 실패');
     } finally {
-      setUploading(false);
+      setUploadingField(null);
+      e.target.value = '';
     }
   };
 
@@ -260,7 +277,9 @@ const Festival = ({ onBack, initialRegister = false, cachedFestivals = null, onF
       location:    fest.location || '',
       price:       fest.price || '',
       description: fest.description || '',
-      poster_url:  fest.poster_url || '',
+      poster_url:       fest.poster_url || '',
+      price_poster_url: fest.price_poster_url || '',
+      extra_poster_url: fest.extra_poster_url || '',
       bank_info:   fest.bank_info || '',
       event_type:  fest.event_type || 'festival',
     });
@@ -326,6 +345,18 @@ const Festival = ({ onBack, initialRegister = false, cachedFestivals = null, onF
         alert('티켓 가격 정보를 입력해 주세요.');
         return false;
       }
+      if (!String(formData.poster_url || '').trim()) {
+        alert('행사 포스터를 업로드해 주세요.');
+        return false;
+      }
+      if (!String(formData.price_poster_url || '').trim()) {
+        alert('가격 포스터를 업로드해 주세요.');
+        return false;
+      }
+      if (countFestivalPosterImages(formData) < 3) {
+        alert('이미지는 최소 3장이 필요합니다. (행사 포스터, 가격 포스터, 추가 이미지)');
+        return false;
+      }
       return true;
     }
     return true;
@@ -342,7 +373,7 @@ const Festival = ({ onBack, initialRegister = false, cachedFestivals = null, onF
     setCurrentStep(1);
     setIsOneDayEvent(true);
     setSubmitting(false);
-    setUploading(false);
+    setUploadingField(null);
     setLocationSuggestions([]);
     setFormData(createEmptyFestivalForm(activeTab));
   };
@@ -388,7 +419,9 @@ const Festival = ({ onBack, initialRegister = false, cachedFestivals = null, onF
         location:    resolvedLocation.location,
         price:       formData.price,
         description: formData.description,
-        poster_url:  formData.poster_url || null,
+        poster_url:       formData.poster_url || null,
+        price_poster_url: formData.price_poster_url || null,
+        extra_poster_url: formData.extra_poster_url || null,
         bank_info:   formData.bank_info || null,
         event_type:  formData.event_type || 'festival',
         status:      'pending',
@@ -836,19 +869,37 @@ const Festival = ({ onBack, initialRegister = false, cachedFestivals = null, onF
               {currentStep === 3 && (
                 <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} style={{ display: 'flex', flexDirection: 'column', gap: '28px' }}>
                   <div><label style={{ display: 'block', fontSize: '12px', fontWeight: 900, color: '#C9A84C', marginBottom: '12px', letterSpacing: '1.5px' }}>8. 티켓 가격 정보</label><input value={formData.price} onChange={e => setFormData(prev => ({ ...prev, price: e.target.value }))} placeholder="예: 풀패스 250,000 / 파티패스 50,000" style={{ width: '100%', padding: '20px', borderRadius: '18px', border: '1px solid rgba(255,255,255,0.1)', background: '#1A1A1A', fontSize: '16px', color: '#f8fafc', outline: 'none' }} /></div>
-                  <div><label style={{ display: 'block', fontSize: '12px', fontWeight: 900, color: '#C9A84C', marginBottom: '12px', letterSpacing: '1.5px' }}>9. 포스터 이미지</label>
-                    <div style={{ width: '100%', height: '220px', borderRadius: '24px', border: '2px dashed rgba(201,168,76,0.3)', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', background: '#1A1A1A', cursor: 'pointer', position: 'relative', overflow: 'hidden' }}>
-                      {formData.poster_url ? <img src={formData.poster_url} style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : <><ImageIcon color="#F59E0B" size={40} /><span style={{ fontSize: '13px', color: '#94a3b8', marginTop: '10px' }}>{uploading ? '업로드 중...' : '포스터 선택'}</span></>}
-                      <input type="file" accept="image/*" onChange={handleImageUpload} style={{ position: 'absolute', inset: 0, opacity: 0 }} />
+                  <p style={{ margin: 0, fontSize: '13px', color: '#94a3b8', lineHeight: 1.5 }}>
+                    이미지 <strong style={{ color: '#C9A84C' }}>최소 3장</strong> 필수 · 행사 포스터와 가격 포스터를 반드시 포함해 주세요.
+                  </p>
+                  {FESTIVAL_POSTER_FIELDS.map(({ key, label, hint }, index) => (
+                    <div key={key}>
+                      <label style={{ display: 'block', fontSize: '12px', fontWeight: 900, color: '#C9A84C', marginBottom: '12px', letterSpacing: '1.5px' }}>
+                        {9 + index}. {label}
+                      </label>
+                      <div style={{ width: '100%', height: '200px', borderRadius: '24px', border: `2px dashed ${formData[key] ? 'rgba(201,168,76,0.55)' : 'rgba(201,168,76,0.3)'}`, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', background: '#1A1A1A', cursor: 'pointer', position: 'relative', overflow: 'hidden' }}>
+                        {formData[key] ? (
+                          <img src={formData[key]} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                        ) : (
+                          <>
+                            <ImageIcon color="#F59E0B" size={36} />
+                            <span style={{ fontSize: '13px', color: '#94a3b8', marginTop: '10px' }}>
+                              {uploadingField === key ? '업로드 중...' : `${label} 선택`}
+                            </span>
+                          </>
+                        )}
+                        <input type="file" accept="image/*" onChange={(e) => handleImageUpload(e, key)} style={{ position: 'absolute', inset: 0, opacity: 0, cursor: 'pointer' }} />
+                      </div>
+                      <p style={{ margin: '8px 0 0', fontSize: '12px', color: '#64748b' }}>{hint}</p>
                     </div>
-                  </div>
+                  ))}
                 </motion.div>
               )}
 
               {currentStep === 4 && (
                 <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} style={{ display: 'flex', flexDirection: 'column', gap: '28px' }}>
-                  <div><label style={{ display: 'block', fontSize: '12px', fontWeight: 900, color: '#C9A84C', marginBottom: '12px', letterSpacing: '1.5px' }}>10. 상세 설명</label><textarea rows={4} value={formData.description} onChange={e => setFormData(prev => ({ ...prev, description: e.target.value }))} placeholder="상세 내용 입력" style={{ width: '100%', padding: '20px', borderRadius: '18px', border: '1px solid rgba(255,255,255,0.1)', background: '#1A1A1A', fontSize: '16px', color: '#f8fafc', outline: 'none', resize: 'none' }} /></div>
-                  <div><label style={{ display: 'block', fontSize: '12px', fontWeight: 900, color: '#C9A84C', marginBottom: '12px', letterSpacing: '1.5px' }}>11. 입금 계좌 정보</label><input value={formData.bank_info} onChange={e => setFormData(prev => ({ ...prev, bank_info: e.target.value }))} placeholder="예: 카카오뱅크 3333-01-1234567 홍길동" style={{ width: '100%', padding: '20px', borderRadius: '18px', border: '1px solid rgba(255,255,255,0.1)', background: '#1A1A1A', fontSize: '16px', color: '#f8fafc', outline: 'none', boxSizing: 'border-box' }} /></div>
+                  <div><label style={{ display: 'block', fontSize: '12px', fontWeight: 900, color: '#C9A84C', marginBottom: '12px', letterSpacing: '1.5px' }}>12. 상세 설명</label><textarea rows={4} value={formData.description} onChange={e => setFormData(prev => ({ ...prev, description: e.target.value }))} placeholder="상세 내용 입력" style={{ width: '100%', padding: '20px', borderRadius: '18px', border: '1px solid rgba(255,255,255,0.1)', background: '#1A1A1A', fontSize: '16px', color: '#f8fafc', outline: 'none', resize: 'none' }} /></div>
+                  <div><label style={{ display: 'block', fontSize: '12px', fontWeight: 900, color: '#C9A84C', marginBottom: '12px', letterSpacing: '1.5px' }}>13. 입금 계좌 정보</label><input value={formData.bank_info} onChange={e => setFormData(prev => ({ ...prev, bank_info: e.target.value }))} placeholder="예: 카카오뱅크 3333-01-1234567 홍길동" style={{ width: '100%', padding: '20px', borderRadius: '18px', border: '1px solid rgba(255,255,255,0.1)', background: '#1A1A1A', fontSize: '16px', color: '#f8fafc', outline: 'none', boxSizing: 'border-box' }} /></div>
                 </motion.div>
               )}
 
@@ -888,8 +939,18 @@ const Festival = ({ onBack, initialRegister = false, cachedFestivals = null, onF
             <div style={{ flex: 1, overflowY: 'auto' }}>
               <div style={{ position: 'relative', background: '#000', minHeight: '300px', display: 'flex', alignItems: 'center' }}>
                 <div style={{ position: 'absolute', inset: 0, backgroundImage: `url(${selectedFestival.poster_url})`, backgroundSize: 'cover', backgroundPosition: 'center', filter: 'blur(30px) brightness(0.3)', transform: 'scale(1.2)' }} />
-                <img src={selectedFestival.poster_url} style={{ width: '100%', height: 'auto', display: 'block', position: 'relative', zIndex: 1 }} />
+                <img src={selectedFestival.poster_url} alt="" style={{ width: '100%', height: 'auto', display: 'block', position: 'relative', zIndex: 1 }} />
               </div>
+              {festivalDetailPosterImages(selectedFestival).length > 1 ? (
+                <div style={{ padding: '20px 20px 0', display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                  {festivalDetailPosterImages(selectedFestival).slice(1).map((item) => (
+                    <div key={item.label} style={{ background: '#141414', borderRadius: '20px', border: '1px solid rgba(255,255,255,0.06)', overflow: 'hidden' }}>
+                      <p style={{ margin: 0, padding: '12px 16px', fontSize: '12px', fontWeight: 900, color: '#C9A84C', letterSpacing: '1px' }}>{item.label}</p>
+                      <img src={item.url} alt="" style={{ width: '100%', height: 'auto', display: 'block' }} />
+                    </div>
+                  ))}
+                </div>
+              ) : null}
               <div style={{ padding: '30px' }}>
                 <h2 style={{ fontSize: '28px', fontWeight: 950, marginBottom: '8px', color: '#f8fafc' }}>{selectedFestival.title}</h2>
                 <div style={{ color: '#C9A84C', fontSize: '14px', fontWeight: 900, marginBottom: '25px' }}>{selectedFestival.organizer} · {formatFestivalGenres(selectedFestival.genre)}</div>
