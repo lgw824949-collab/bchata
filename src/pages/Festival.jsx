@@ -66,6 +66,15 @@ const parseFestivalGenres = (value) => {
 
 const formatFestivalGenres = (value) => parseFestivalGenres(value).join(', ');
 
+const parseFestivalPriceLines = (value) => {
+  const raw = String(value || '').trim();
+  if (!raw) return [];
+  return raw
+    .split(/\n|\/\/+/)
+    .map((line) => line.trim())
+    .filter(Boolean);
+};
+
 const FESTIVAL_EVENT_TYPE_OPTIONS = [
   ['festival', '🎪 페스티벌'],
   ['mt', '🏕️ MT'],
@@ -875,7 +884,7 @@ const Festival = ({ onBack, initialRegister = false, cachedFestivals = null, onF
 
               {currentStep === 3 && (
                 <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} style={{ display: 'flex', flexDirection: 'column', gap: '28px' }}>
-                  <div><label style={{ display: 'block', fontSize: '12px', fontWeight: 900, color: '#C9A84C', marginBottom: '12px', letterSpacing: '1.5px' }}>8. 티켓 가격 정보</label><input value={formData.price} onChange={e => setFormData(prev => ({ ...prev, price: e.target.value }))} placeholder="예: 풀패스 250,000 / 파티패스 50,000" style={{ width: '100%', padding: '20px', borderRadius: '18px', border: '1px solid rgba(255,255,255,0.1)', background: '#1A1A1A', fontSize: '16px', color: '#f8fafc', outline: 'none' }} /></div>
+                  <div><label style={{ display: 'block', fontSize: '12px', fontWeight: 900, color: '#C9A84C', marginBottom: '12px', letterSpacing: '1.5px' }}>8. 티켓 가격 정보</label><input value={formData.price} onChange={e => setFormData(prev => ({ ...prev, price: e.target.value }))} placeholder="예: 풀패스 250,000 / 파티패스 50,000 // 공연자 풀패스 200,000" style={{ width: '100%', padding: '20px', borderRadius: '18px', border: '1px solid rgba(255,255,255,0.1)', background: '#1A1A1A', fontSize: '16px', color: '#f8fafc', outline: 'none' }} /></div>
                   <p style={{ margin: 0, fontSize: '13px', color: '#94a3b8', lineHeight: 1.5 }}>
                     이미지 <strong style={{ color: '#C9A84C' }}>최소 3장</strong> 필수 · 행사 포스터와 가격 포스터를 반드시 포함해 주세요.
                   </p>
@@ -974,10 +983,27 @@ const Festival = ({ onBack, initialRegister = false, cachedFestivals = null, onF
                     </div>
                   ))}
                 </div>
-                <div style={{ background: 'linear-gradient(135deg, #C9A84C 0%, #A68A3D 100%)', padding: '24px', borderRadius: '24px', marginBottom: '30px', display: 'flex', flexDirection: 'column', gap: '16px', boxShadow: '0 10px 30px rgba(201, 168, 76, 0.3)' }}>
-                  <div style={{ minWidth: 0 }}>
-                    <p style={{ fontSize: '11px', color: 'rgba(0,0,0,0.7)', fontWeight: 800, marginBottom: '4px', letterSpacing: '1px' }}>티켓 가격</p>
-                    <h3 style={{ fontSize: '20px', fontWeight: 950, color: '#000', margin: 0, lineHeight: 1.45, wordBreak: 'break-word', overflowWrap: 'anywhere' }}>{selectedFestival.price}</h3>
+                <div style={{ background: 'linear-gradient(135deg, #C9A84C 0%, #A68A3D 100%)', padding: '24px', borderRadius: '24px', marginBottom: '30px', display: 'flex', flexDirection: 'column', gap: '20px', boxShadow: '0 10px 30px rgba(201, 168, 76, 0.3)' }}>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', minWidth: 0 }}>
+                    <p style={{ fontSize: '11px', color: 'rgba(0,0,0,0.7)', fontWeight: 800, margin: 0, letterSpacing: '1px' }}>티켓 가격</p>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                      {parseFestivalPriceLines(selectedFestival.price).map((line, idx) => (
+                        <p
+                          key={idx}
+                          style={{
+                            fontSize: '18px',
+                            fontWeight: 950,
+                            color: '#000',
+                            margin: 0,
+                            lineHeight: 1.5,
+                            wordBreak: 'keep-all',
+                            overflowWrap: 'break-word',
+                          }}
+                        >
+                          {line}
+                        </p>
+                      ))}
+                    </div>
                   </div>
                   <button onClick={() => handleBookingClick(selectedFestival)} style={{ alignSelf: 'flex-end', flexShrink: 0, background: '#000', border: 'none', padding: '14px 24px', borderRadius: '16px', color: '#C9A84C', fontWeight: 1000, fontSize: '16px', boxShadow: '0 4px 12px rgba(0,0,0,0.3)', cursor: 'pointer' }}>예매하기</button>
                 </div>
