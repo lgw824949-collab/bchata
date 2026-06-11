@@ -492,6 +492,13 @@ const Festival = ({ onBack, initialRegister = false, cachedFestivals = null, onF
     return `${date.slice(5).replace('-', '.')} (${days[d.getDay()]})`;
   };
 
+  const formatFestivalPeriodRange = (start, end) => {
+    if (!start) return '';
+    const startLabel = formatDate(start);
+    if (!end || end === start) return startLabel;
+    return `${startLabel} - ${formatDate(end)}`;
+  };
+
   return (
     <>
       <style>{`
@@ -956,7 +963,7 @@ const Festival = ({ onBack, initialRegister = false, cachedFestivals = null, onF
                 <div style={{ color: '#C9A84C', fontSize: '14px', fontWeight: 900, marginBottom: '25px' }}>{selectedFestival.organizer} · {formatFestivalGenres(selectedFestival.genre)}</div>
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', marginBottom: '30px' }}>
                   {[
-                    { label: '기간', value: `${selectedFestival.start_date} - ${selectedFestival.end_date}`, icon: <Calendar size={18} color="#C9A84C" /> },
+                    { label: '기간', value: formatFestivalPeriodRange(selectedFestival.start_date, selectedFestival.end_date), icon: <Calendar size={18} color="#C9A84C" /> },
                     { label: '장소', value: selectedFestival.venue || selectedFestival.location, icon: <MapPin size={18} color="#C9A84C" /> },
                     { label: '장르', value: formatFestivalGenres(selectedFestival.genre), icon: <Zap size={18} color="#C9A84C" /> },
                     { label: '지역', value: selectedFestival.region, icon: <ImageIcon size={18} color="#C9A84C" /> }
