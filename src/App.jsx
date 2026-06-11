@@ -2292,6 +2292,7 @@ function App() {
         isHomeGateNav ? 'bchata-app-shell--gate' : '',
         isDarkAppSurface ? 'bchata-app-shell--dark' : '',
       ].filter(Boolean).join(' ')}
+      id="bchata-app-shell"
     >
     <div
       data-bchata-app-root
@@ -3238,9 +3239,8 @@ function App() {
         </motion.div>
       )}
     </AnimatePresence>
-    </div>
 
-    {/* [Premium Floating Capsule Navigation - viewport fixed, outside app shell] */}
+    {/* [Premium Floating Capsule Navigation — app shell 내부, PC 500px 프레임] */}
     {!hideBottomNav && (
     <nav
       ref={bottomNavRef}
@@ -3365,6 +3365,7 @@ function App() {
         {exitToast}
       </motion.div>
     ) : null}
+    </div>
     </>
   );
 }

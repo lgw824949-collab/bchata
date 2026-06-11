@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { createPortal } from 'react-dom';
+import { getAppShellElement } from '../lib/appShellRoot';
 import { Z } from '../constants/zLayers';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Heart, Eye, Share2, Plus, X, Camera, MapPin, Search, Home as HomeIcon, Star, Info, CheckCircle2, Trophy, Award, Zap, TrendingUp, Clock, Flame } from 'lucide-react';
@@ -526,7 +527,7 @@ const Community = ({ setSelectedPoster, setView }) => {
             </motion.div>
           )}
         </AnimatePresence>,
-        document.body,
+        getAppShellElement(),
       )}
 
       {createPortal(
@@ -750,7 +751,7 @@ const Community = ({ setSelectedPoster, setView }) => {
             </motion.div>
           )}
         </AnimatePresence>,
-        document.body,
+        getAppShellElement(),
       )}
     </div>
   );

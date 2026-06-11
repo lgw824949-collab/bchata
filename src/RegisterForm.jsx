@@ -1,6 +1,7 @@
 import { Z } from './constants/zLayers';
 import { useState, useEffect } from 'react'
 import { createPortal } from 'react-dom'
+import { getAppShellElement } from './lib/appShellRoot'
 import { Plus, ChevronLeft, Check, X, MapPin } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { supabase } from './lib/supabase'
@@ -641,7 +642,7 @@ const RegisterForm = ({ onBack, onSuccess, isEdit = false, isAdminMode = false, 
           <button onClick={onSuccess || onBack} style={{ width: '100%', padding: '20px', background: '#FF1744', color: 'white', borderRadius: '16px', fontWeight: 900, fontSize: '18px', border: 'none' }}>확인</button>
         </motion.div>
       </div>,
-      document.body
+      getAppShellElement()
     )
   }
 
@@ -969,7 +970,7 @@ const RegisterForm = ({ onBack, onSuccess, isEdit = false, isAdminMode = false, 
         </div>
       </motion.div>
     </motion.div>,
-    document.body
+    getAppShellElement()
   )
 }
 

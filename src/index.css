@@ -1846,6 +1846,9 @@ body {
   background: #ffffff;
   box-shadow: 0 0 48px rgba(15, 23, 42, 0.1);
   overflow-x: hidden;
+  /* PC: position:fixed 자식을 뷰포트가 아닌 셸(500px) 기준으로 */
+  transform: translateZ(0);
+  -webkit-transform: translateZ(0);
 }
 
 @media (max-width: 519px) {
@@ -2379,11 +2382,63 @@ body.party-register-open .bottom-nav {
 .bchata-admin-shell {
   isolation: isolate;
   min-height: 100dvh;
+  width: 100%;
   background: #0f172a;
 }
 
 .bchata-user-shell {
   isolation: isolate;
+  width: 100%;
+}
+
+@media (min-width: 520px) {
+  html {
+    background: #dfe3e8;
+  }
+
+  body.app-dark-surface,
+  body.home-gate-theme,
+  body.bchata-admin-shell-active {
+    background: #050608 !important;
+  }
+
+  body.bchata-admin-shell-active .bchata-app-shell {
+    background: #0f172a;
+    box-shadow: 0 0 56px rgba(0, 0, 0, 0.5);
+  }
+
+  .bchata-app-shell--dark,
+  .bchata-app-shell--gate {
+    box-shadow: 0 0 56px rgba(0, 0, 0, 0.45);
+  }
+
+  /* 셸 내부 fixed 오버레이 — 좌우 여백 없이 500px에 맞춤 */
+  .bchata-app-shell .bchata-overlay-backdrop,
+  .bchata-app-shell .bchata-overlay-panel {
+    left: 0 !important;
+    right: 0 !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    margin-left: 0 !important;
+    margin-right: 0 !important;
+  }
+
+  .bchata-app-shell .bchata-overlay-sheet {
+    left: 10px !important;
+    right: 10px !important;
+    width: auto !important;
+    max-width: none !important;
+  }
+
+  nav.bottom-nav,
+  .bottom-nav {
+    left: 0 !important;
+    right: 0 !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    margin-left: 0 !important;
+    transform: none !important;
+  }
 }
 
 .bottom-nav__item {
@@ -3499,6 +3554,9 @@ body.bottom-nav-social-light nav.bottom-nav {
 
 @media (min-width: 520px) {
   .venue-detail-modal {
+    left: 0;
+    right: 0;
+    width: 100%;
     background: rgba(15, 23, 42, 0.42);
   }
 
