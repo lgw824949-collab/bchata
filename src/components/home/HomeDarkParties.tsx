@@ -40,10 +40,10 @@ export default function HomeDarkParties({
   emptyLabel,
 }: HomeDarkPartiesProps) {
   return (
-    <section className="home-dark-parties" aria-label={isEn ? "Today's parties" : '오늘의 파티'}>
+    <section className="home-dark-parties" aria-label={isEn ? "Today's social" : '오늘소셜'}>
       <HomeDarkSectionHeader
-        title={isEn ? '🎉 Today\'s parties' : '🎉 오늘의 파티'}
-        subtitle={isEn ? 'Parties happening tonight' : '오늘 밤 열리는 파티'}
+        title={isEn ? '🎉 Today\'s social' : '🎉 오늘소셜'}
+        subtitle={isEn ? 'Socials happening tonight' : '오늘 밤 열리는 소셜'}
         linkLabel={isEn ? 'View all' : '전체보기'}
         onLinkClick={onViewAll}
       />

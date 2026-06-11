@@ -7,6 +7,24 @@
   --hd-card: #1a1a1a;
   --hd-primary: #ff5b3a;
   --hd-gold: #f6b84c;
+  --hd-text: #ffffff;
+  --hd-text-secondary: #b8b8b8;
+  --hd-border: #2a2a2a;
+  background-color: var(--hd-bg) !important;
+  color: var(--hd-text);
+  font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, system-ui, sans-serif !important;
+}
+
+.home-gate-shell.home-gate-active * {
+  font-family: inherit !important;
+}
+
+/* 치수 토큰은 게이트 루트에 두어 100%·peek 계산이 깨지지 않게 함 */
+.home-dark-gate {
+  --hd-bg: #0b0b0b;
+  --hd-card: #1a1a1a;
+  --hd-primary: #ff5b3a;
+  --hd-gold: #f6b84c;
   --hd-pink: #ff4d8d;
   --hd-text: #ffffff;
   --hd-text-secondary: #b8b8b8;
@@ -18,6 +36,7 @@
   --hd-radius-pill: 999px;
   --hd-peek-visible: 4.2;
   --hd-bar-peek-visible: 5.15;
+  --hd-party-w-fallback: 88px;
   --hd-party-w: calc((100% - (var(--hd-gap) * 4)) / var(--hd-peek-visible));
   --hd-party-h: calc(var(--hd-party-w) * 5 / 4);
   --hd-instructor-w: var(--hd-party-w);
@@ -26,20 +45,45 @@
   --hd-bar-w: calc((100% - (var(--hd-gap) * 4)) / var(--hd-bar-peek-visible));
   --hd-bar-cover-h: calc(var(--hd-bar-w) * 0.62);
   --hd-font-display: 'Playfair Display', Georgia, serif;
-  background-color: var(--hd-bg) !important;
-  color: var(--hd-text);
-  font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, system-ui, sans-serif !important;
-}
-
-.home-gate-shell.home-gate-active * {
-  font-family: inherit !important;
-}
-
-.home-dark-gate {
   display: flex;
   flex-direction: column;
   gap: var(--hd-section-gap);
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
   padding: 0 4px;
+  overflow-x: clip;
+}
+
+.home-gate-active .home-hot-instructors-wrap--dark {
+  background: transparent !important;
+  padding: 0 !important;
+  margin: 0 !important;
+  border: none !important;
+  box-shadow: none !important;
+}
+
+.home-dark-gate .home-dark-parties-scroll,
+.home-dark-gate .home-hot-instructors-scroll,
+.home-dark-gate .home-social-bar-scroll {
+  max-width: 100%;
+  min-width: 0;
+}
+
+.home-dark-gate .home-hot-instructors-track,
+.home-dark-gate .home-dark-parties-track,
+.home-dark-gate .home-social-bar-track--peek {
+  min-width: 0 !important;
+  width: max-content;
+}
+
+.home-dark-gate .home-premium-instructor-card__media img,
+.home-dark-gate .home-dark-party-card__media img,
+.home-dark-gate .home-dark-bar-card-v__cover-img,
+.home-dark-gate .home-dark-today-pick__photo {
+  display: block;
+  object-fit: cover;
 }
 
 .home-dark-header {
@@ -122,7 +166,8 @@
 .home-dark-today-pick {
   position: relative;
   width: 100%;
-  height: var(--hd-hero-h);
+  min-height: var(--hd-hero-h, 300px);
+  height: var(--hd-hero-h, 300px);
   border-radius: var(--hd-radius-hero);
   overflow: hidden;
   background: var(--hd-card);
@@ -318,7 +363,8 @@
 
 .home-dark-party-card {
   flex: 0 0 auto;
-  width: var(--hd-party-w);
+  width: var(--hd-party-w, var(--hd-party-w-fallback, 88px));
+  max-width: var(--hd-party-w, var(--hd-party-w-fallback, 88px));
   padding: 0;
   border: none;
   background: none;
@@ -328,8 +374,9 @@
 
 .home-dark-party-card__media {
   position: relative;
-  width: var(--hd-party-w);
-  height: var(--hd-party-h);
+  width: var(--hd-party-w, var(--hd-party-w-fallback, 88px));
+  height: var(--hd-party-h, 110px);
+  max-width: 100%;
   border-radius: var(--hd-radius-card);
   overflow: hidden;
   background: var(--hd-card);
@@ -438,7 +485,8 @@
 
 .home-premium-instructor-card {
   flex: 0 0 auto;
-  width: var(--hd-instructor-w);
+  width: var(--hd-instructor-w, var(--hd-party-w-fallback, 88px));
+  max-width: var(--hd-instructor-w, var(--hd-party-w-fallback, 88px));
   padding: 0;
   border: none;
   background: none;
@@ -449,7 +497,8 @@
 .home-premium-instructor-card__media {
   position: relative;
   width: 100%;
-  height: var(--hd-instructor-h);
+  height: var(--hd-instructor-h, 125px);
+  max-width: 100%;
   border-radius: var(--hd-radius-card);
   overflow: hidden;
   background: var(--hd-card);
@@ -559,7 +608,8 @@
 
 .home-dark-bar-card-v {
   flex: 0 0 auto;
-  width: var(--hd-bar-w);
+  width: var(--hd-bar-w, var(--hd-party-w-fallback, 88px));
+  max-width: var(--hd-bar-w, var(--hd-party-w-fallback, 88px));
   border: none;
   border-radius: 16px;
   background: var(--hd-card);

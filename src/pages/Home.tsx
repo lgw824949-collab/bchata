@@ -4103,6 +4103,12 @@ const HomePage = ({
           display: flex;
           flex-direction: column;
           gap: 24px;
+          min-width: 0;
+          max-width: 100%;
+          overflow-x: clip;
+        }
+        .home-gate-active .home-main-stack {
+          gap: 0;
         }
         .home-gate-shell .home-section-break {
           padding: 28px 0 32px;
