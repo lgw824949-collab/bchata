@@ -4917,15 +4917,17 @@ const HomePage = ({
           box-shadow: none !important;
           padding: 0 !important;
         }
-        .home-gate-shell .home-social-bar-panel--gate {
+        .home-gate-shell:not(.home-gate-active) .home-social-bar-panel--gate {
           padding: 16px 14px 18px !important;
           border-radius: 14px !important;
           border: 1px solid var(--home-card-border, #E8EBED) !important;
           background: #FFFFFF !important;
           box-shadow: none !important;
         }
-        .home-gate-active .home-social-bar-panel--gate {
-          border: 0.5px solid #EDEAE3 !important;
+        .home-gate-active .home-dark-gate .home-social-bar-panel--gate {
+          padding: 0 !important;
+          border: none !important;
+          background: transparent !important;
           box-shadow: none !important;
         }
         .home-gate-shell .home-social-bar-panel--gate .home-type-section-title.home-gate-section-title {
@@ -5024,6 +5026,9 @@ const HomePage = ({
           min-width: 100%;
           padding: 0 2px 2px;
           vertical-align: top;
+        }
+        .home-gate-active .home-dark-gate .home-hot-instructors-track {
+          min-width: 0 !important;
         }
         .home-hot-instructor-card {
           position: relative;
