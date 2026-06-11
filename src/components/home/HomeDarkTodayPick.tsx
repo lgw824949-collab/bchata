@@ -58,7 +58,7 @@ export default function HomeDarkTodayPick({
 
   const time = slide.start_time || '';
   const kindLabel = isEn ? slide.subtitleEn : slide.subtitleKo;
-  const showTodayPickEyebrow = slide.kind === 'party';
+  const showTodayPickEyebrow = slide.kind === 'social';
 
   return (
     <article className="home-dark-today-pick">

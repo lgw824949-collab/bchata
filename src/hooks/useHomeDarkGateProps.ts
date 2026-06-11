@@ -41,6 +41,7 @@ export type UseHomeDarkGatePropsInput = {
   openPartyWithAfterParty: (party: HomeDarkParty) => void;
   openBootcampPage: () => void;
   openFestivalPage: () => void;
+  openFestivalPartyPage: () => void;
   toggleWishlistParty: (e: React.MouseEvent, party: HomeDarkParty) => void;
   openVenueDetail: (bar: HomeDarkBar) => void;
   registerAdminPortalTap: () => void;
@@ -73,6 +74,7 @@ export function useHomeDarkGateProps(input: UseHomeDarkGatePropsInput) {
     openPartyWithAfterParty,
     openBootcampPage,
     openFestivalPage,
+    openFestivalPartyPage,
     toggleWishlistParty,
     openVenueDetail,
     registerAdminPortalTap,
@@ -174,7 +176,7 @@ export function useHomeDarkGateProps(input: UseHomeDarkGatePropsInput) {
 
   const getHeroTitle = useCallback(
     (slide: HomeDarkHeroSlide) => translateDynamicText(
-      slide.kind === 'party'
+      slide.kind === 'social'
         ? formatPartyTitleDisplay(slide.title)
         : slide.title,
       isEn,
@@ -201,8 +203,12 @@ export function useHomeDarkGateProps(input: UseHomeDarkGatePropsInput) {
       openFestivalPage();
       return;
     }
+    if (slide.kind === 'party') {
+      openFestivalPartyPage();
+      return;
+    }
     openPartyWithAfterParty(slide.raw as HomeDarkParty);
-  }, [openBootcampPage, openFestivalPage, openPartyWithAfterParty]);
+  }, [openBootcampPage, openFestivalPage, openFestivalPartyPage, openPartyWithAfterParty]);
 
   const gateProps: HomeDarkGateProps = {
     isEn,

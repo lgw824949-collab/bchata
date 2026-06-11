@@ -1,6 +1,6 @@
 export type HomeDarkHeroSlide = {
   id: string;
-  kind: 'bootcamp' | 'party' | 'festival';
+  kind: 'social' | 'bootcamp' | 'festival' | 'party';
   poster_url: string;
   title: string;
   venue: string;

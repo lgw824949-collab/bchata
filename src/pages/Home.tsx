@@ -2407,6 +2407,14 @@ const HomePage = ({
     () => historyNavigate('/festival', { homeTab: null }),
     [],
   );
+  const openFestivalPartyPage = useCallback(() => {
+    try {
+      sessionStorage.setItem(FESTIVAL_TAB_SESSION_KEY, 'party');
+    } catch {
+      /* ignore */
+    }
+    historyNavigate('/festival', { homeTab: null });
+  }, []);
 
   const { gateProps: homeDarkGateProps } = useHomeDarkGateProps({
     isEn,
@@ -2432,6 +2440,7 @@ const HomePage = ({
     openPartyWithAfterParty,
     openBootcampPage,
     openFestivalPage,
+    openFestivalPartyPage,
     toggleWishlistParty,
     openVenueDetail,
     registerAdminPortalTap,

@@ -30,11 +30,12 @@ const pickLatestPosterRow = (rows: PosterRow[]) =>
 const pickFeaturedEventRow = (
   rows: PosterRow[],
   todayStr: string,
-  eventType?: string,
+  eventTypes?: string | string[],
 ) => {
   let scoped = rows || [];
-  if (eventType) {
-    scoped = scoped.filter((row) => (row.event_type || 'festival') === eventType);
+  if (eventTypes) {
+    const types = Array.isArray(eventTypes) ? eventTypes : [eventTypes];
+    scoped = scoped.filter((row) => types.includes(row.event_type || 'festival'));
   }
   const withPoster = scoped.filter((row) => String(row.poster_url || '').trim());
   const notEnded = withPoster.filter((row) => {
@@ -66,7 +67,7 @@ const toSlide = (
   raw: row,
 });
 
-/** 히어로 로테이션: 소셜(파티) → 부트캠프 → 페스티벌 */
+/** 히어로 로테이션: 오늘소셜(2) → 부트캠프(1) → 페스티벌(1) → 파티(1) */
 export function buildHomeDarkHeroSlides(
   socialParties: PosterRow[],
   bootcampRows: PosterRow[],
@@ -76,10 +77,10 @@ export function buildHomeDarkHeroSlides(
   const slides: HomeDarkHeroSlide[] = [];
 
   (socialParties || [])
-    .filter((party) => String(party.poster_url || '').trim())
+    .filter((party) => String(party.poster_url || '').trim() && party.id != null)
+    .slice(0, 2)
     .forEach((party) => {
-      if (party.id == null) return;
-      slides.push(toSlide(party, 'party', `party-${party.id}`, '오늘 소셜', 'Tonight\'s Social'));
+      slides.push(toSlide(party, 'social', `social-${party.id}`, '오늘 소셜', 'Tonight\'s Social'));
     });
 
   const bootcamp = pickFeaturedEventRow(bootcampRows, todayStr);
@@ -87,9 +88,14 @@ export function buildHomeDarkHeroSlides(
     slides.push(toSlide(bootcamp, 'bootcamp', `bootcamp-${bootcamp.id}`, '부트캠프', 'Bootcamp'));
   }
 
-  const festival = pickFeaturedEventRow(festivalRows, todayStr, 'festival');
+  const festival = pickFeaturedEventRow(festivalRows, todayStr, ['festival', 'mt']);
   if (festival?.id != null) {
     slides.push(toSlide(festival, 'festival', `festival-${festival.id}`, '페스티벌', 'Festival'));
+  }
+
+  const partyEvent = pickFeaturedEventRow(festivalRows, todayStr, 'party');
+  if (partyEvent?.id != null) {
+    slides.push(toSlide(partyEvent, 'party', `event-party-${partyEvent.id}`, '파티', 'Party'));
   }
 
   return slides;
