@@ -226,7 +226,7 @@ const formatBarDistrictLabel = (bar) => {
 /** 메인 홈 — 오늘 지역 대표 포스터 슬라이드 (빠른 메뉴 위) */
 const HOME_POSTER_BANNER_MS = 4000;
 
-const HOME_GATE_HOT_INSTRUCTORS_LIMIT = 5;
+const HOME_GATE_HOT_INSTRUCTORS_LIMIT = 8;
 const HOME_GATE_INSTRUCTOR_POOL_LIMIT = 24;
 
 /** 메인 첫 페인트 이후·유휴 시 실행 (모바일 초기 로딩 부담 완화) */
@@ -2595,7 +2595,7 @@ const HomePage = ({
           onClick={() => openVenueDetail(bar)}
           whileTap={{ scale: 0.98 }}
         >
-          <span className="home-dark-bar-card-v__cover">
+            <span className="home-dark-bar-card-v__cover">
             {coverPhoto ? (
               <img
                 className="home-dark-bar-card-v__cover-img"
@@ -2608,20 +2608,13 @@ const HomePage = ({
             ) : (
               <span className="home-dark-bar-card-v__cover-fallback" aria-hidden />
             )}
-            <span className="home-dark-bar-card-v__logo">
-              {chipPhoto ? (
-                <img src={chipPhoto} alt="" onError={imgFallbackHandler('/logo.png')} />
-              ) : (
-                <img src="/logo.png" alt="" className="home-dark-bar-card-v__logo-fallback" />
-              )}
-            </span>
           </span>
           <span className="home-dark-bar-card-v__body">
             <span className="home-dark-bar-card-v__name">{barName}</span>
             <span className="home-dark-bar-card-v__parties">
               {isEn
-                ? `Today ${partyCount} ${partyCount === 1 ? 'party' : 'parties'}`
-                : `오늘 ${partyCount}개 파티`}
+                ? `Today ${partyCount} ${partyCount === 1 ? 'event' : 'events'}`
+                : `오늘 ${partyCount}개 행사`}
             </span>
             <span className="home-dark-bar-card-v__district">{district}</span>
           </span>
@@ -2985,7 +2978,7 @@ const HomePage = ({
   const HOME_TEXT_MUTED = 'rgba(30, 41, 59, 0.55)';
   const HOME_SURFACE = '#FFFFFF';
   const HOME_BORDER = '#EDEAE3';
-  const HOME_PAGE_BG = isHomeGateDark ? '#0a0a0a' : '#F5F6F8';
+  const HOME_PAGE_BG = isHomeGateDark ? '#0B0B0B' : '#F5F6F8';
   const HOME_CARD_BORDER = '0.5px solid #EDEAE3';
   const homeUi = useMemo(() => (isHomeGateDark ? {
     pageBg: '#0D0D0D',
@@ -3669,6 +3662,13 @@ const HomePage = ({
         <div className="home-dark-today-pick__content">
           <span className="home-dark-today-pick__eyebrow">TODAY PICK 🔥</span>
           <h2 className="home-dark-today-pick__title">{translateDynamicText(title, isEn)}</h2>
+          <p className="home-dark-today-pick__title-en">
+            {(() => {
+              const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+              const dayEn = days[new Date().getDay()];
+              return `${dayEn} Social Party`;
+            })()}
+          </p>
           <div className="home-dark-today-pick__meta">
             {venue ? (
               <span><MapPin size={14} aria-hidden /> {venue}</span>
@@ -3750,7 +3750,6 @@ const HomePage = ({
             decoding="async"
             onError={imgFallbackHandler(DEFAULT_CARD_IMAGE)}
           />
-          <div className="home-dark-party-card__shade" aria-hidden />
           {index < 2 ? (
             <span className={`home-dark-party-card__badge${index === 0 ? ' home-dark-party-card__badge--hot' : ' home-dark-party-card__badge--new'}`}>
               {index === 0 ? 'HOT' : 'NEW'}
@@ -3771,12 +3770,12 @@ const HomePage = ({
           >
             <Heart size={14} fill={isWishlisted ? 'currentColor' : 'none'} />
           </span>
-          <div className="home-dark-party-card__caption">
-            <p className="home-dark-party-card__title">{translateDynamicText(title, isEn)}</p>
-            <p className="home-dark-party-card__meta">
-              {[venue || regionLabel, time].filter(Boolean).join(' · ')}
-            </p>
-          </div>
+        </div>
+        <div className="home-dark-party-card__info">
+          <p className="home-dark-party-card__title">{translateDynamicText(title, isEn)}</p>
+          <p className="home-dark-party-card__meta">
+            {[venue || regionLabel, time].filter(Boolean).join(' · ')}
+          </p>
         </div>
       </motion.button>
     );
@@ -4055,7 +4054,8 @@ const HomePage = ({
     if (activeTab !== null) return null;
     if (!hotInstructorsLoading && hotInstructors.length === 0) return null;
 
-    const skeletonItems = [0, 1, 2];
+    const skeletonItems = [0, 1, 2, 3, 4];
+    const showInstructorPeek = isHomeGateDark && (hotInstructorsLoading || hotInstructors.length >= 5);
 
     return (
       <section
@@ -4070,22 +4070,76 @@ const HomePage = ({
           )
           : renderHomeGateSectionTitle(isEn ? 'Instructors' : '강사 한눈에', 'home-hot-instructors-title')}
         <div
-          className={`home-dark-scroll-peek${
-            isHomeGateDark && hotInstructors.length >= 5 ? ' home-dark-scroll-peek--active' : ''
-          }`}
+          className={`home-dark-scroll-peek${showInstructorPeek ? ' home-dark-scroll-peek--active' : ''}`}
         >
           <div className="home-hot-instructors-scroll scrollbar-hide">
             <div className="home-hot-instructors-track">
               {hotInstructorsLoading
                 ? skeletonItems.map((i) => (
-                  <div
-                    key={`hot-instructor-skeleton-${i}`}
-                    className="home-hot-instructor-card home-hot-instructor-card--skeleton"
-                    aria-hidden
-                  />
+                  isHomeGateDark ? (
+                    <div
+                      key={`hot-instructor-skeleton-${i}`}
+                      className="home-premium-instructor-card home-premium-instructor-card--skeleton"
+                      aria-hidden
+                    >
+                      <div className="home-premium-instructor-card__media" />
+                    </div>
+                  ) : (
+                    <div
+                      key={`hot-instructor-skeleton-${i}`}
+                      className="home-hot-instructor-card home-hot-instructor-card--skeleton"
+                      aria-hidden
+                    />
+                  )
                 ))
               : hotInstructors.map((inst) => {
                   const genreLabel = formatHotInstructorGenre(inst.genre);
+                  if (isHomeGateDark) {
+                    return (
+                      <motion.button
+                        key={inst.id}
+                        type="button"
+                        className="home-premium-instructor-card"
+                        whileTap={{ scale: 0.98 }}
+                        onClick={() => navigate('/instructors')}
+                      >
+                        <div className="home-premium-instructor-card__media">
+                          <img
+                            src={inst.photo_url || DEFAULT_AVATAR_IMAGE}
+                            alt={inst.name || ''}
+                            loading="lazy"
+                            decoding="async"
+                            onError={imgFallbackHandler(DEFAULT_AVATAR_IMAGE)}
+                          />
+                          <span className="home-premium-instructor-card__glow" aria-hidden />
+                          <span className="home-premium-instructor-card__body">
+                            <span className="home-premium-instructor-card__name">{inst.name}</span>
+                            {genreLabel ? (
+                              <span className="home-premium-instructor-card__genre">{genreLabel}</span>
+                            ) : null}
+                            <span
+                              role="button"
+                              tabIndex={0}
+                              className="home-premium-instructor-card__follow"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                navigate('/instructors');
+                              }}
+                              onKeyDown={(e) => {
+                                if (e.key === 'Enter' || e.key === ' ') {
+                                  e.preventDefault();
+                                  e.stopPropagation();
+                                  navigate('/instructors');
+                                }
+                              }}
+                            >
+                              {isEn ? 'Follow' : '팔로우'}
+                            </span>
+                          </span>
+                        </div>
+                      </motion.button>
+                    );
+                  }
                   return (
                     <motion.button
                       key={inst.id}
@@ -4489,7 +4543,6 @@ const HomePage = ({
               {renderHomeRegionPills()}
               {renderHomeTodayPick()}
               {renderHomeTodaysPartySection()}
-              {renderHomeDarkMoreMenu()}
               {renderHomeHotInstructorsSection()}
               {renderHomeSocialBarSection()}
             </>
@@ -4509,13 +4562,13 @@ const HomePage = ({
       {/* 메인 퀵메뉴: activeTab === null → 3섹션 그리드 / 소셜 탭 → 가로 스크롤 */}
       <style>{`
         .home-gate-shell {
-          --home-page-bg: #0a0a0a;
+          --home-page-bg: #0B0B0B;
           --home-text-primary: #ffffff;
-          --home-text-secondary: rgba(255, 255, 255, 0.72);
+          --home-text-secondary: #B8B8B8;
           --home-text-tertiary: rgba(255, 255, 255, 0.45);
-          --home-card-border: rgba(255, 255, 255, 0.08);
-          --home-fade-rgb: 10, 10, 10;
-          background-color: #0a0a0a !important;
+          --home-card-border: #2A2A2A;
+          --home-fade-rgb: 11, 11, 11;
+          background-color: #0B0B0B !important;
         }
         .home-gate-shell .home-main-stack {
           display: flex;

@@ -1,26 +1,35 @@
-/* 메인 홈 — 다크 게이트 (목업 규격 통일) */
+/* 메인 홈 — Premium Latin Nightlife */
+
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,500;0,600;1,400;1,500&display=swap');
 
 .home-gate-shell {
+  --hd-bg: #0b0b0b;
+  --hd-card: #1a1a1a;
+  --hd-primary: #ff5b3a;
+  --hd-gold: #f6b84c;
+  --hd-pink: #ff4d8d;
+  --hd-text: #ffffff;
+  --hd-text-secondary: #b8b8b8;
+  --hd-border: #2a2a2a;
   --hd-page-pad: 20px;
   --hd-gap: 12px;
   --hd-section-gap: 32px;
-  --hd-radius-hero: 20px;
-  --hd-radius-card: 16px;
-  --hd-radius-bar: 14px;
+  --hd-radius-hero: 22px;
+  --hd-radius-card: 20px;
   --hd-radius-pill: 999px;
-  /* 4장 전체 + 5번째 살짝 보이게 */
   --hd-peek-visible: 4.2;
   --hd-bar-peek-visible: 5.15;
   --hd-party-w: calc((100% - (var(--hd-gap) * 4)) / var(--hd-peek-visible));
-  --hd-party-h: calc(var(--hd-party-w) * 4 / 3);
+  --hd-party-h: calc(var(--hd-party-w) * 5 / 4);
   --hd-instructor-w: var(--hd-party-w);
-  --hd-instructor-h: calc(var(--hd-party-w) * 1.48);
-  /* TODAY PICK 히어로 */
-  --hd-hero-h: 228px;
-  /* Social BAR 세로 카드 (파티보다 작게) */
+  --hd-instructor-h: calc(var(--hd-party-w) * 1.42);
+  --hd-hero-h: 300px;
   --hd-bar-w: calc((100% - (var(--hd-gap) * 4)) / var(--hd-bar-peek-visible));
-  --hd-bar-cover-h: calc(var(--hd-bar-w) * 0.68);
+  --hd-bar-cover-h: calc(var(--hd-bar-w) * 0.62);
+  --hd-font-display: 'Playfair Display', Georgia, 'Times New Roman', serif;
   font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, system-ui, sans-serif !important;
+  background-color: var(--hd-bg) !important;
+  color: var(--hd-text);
 }
 
 .home-gate-shell * {
@@ -37,16 +46,16 @@
   align-items: flex-start;
   justify-content: space-between;
   gap: var(--hd-gap);
-  margin-bottom: 10px;
+  margin-bottom: 4px;
 }
 
 .home-dark-header__title {
   margin: 0;
-  font-size: 28px;
-  font-weight: 900;
+  font-size: 30px;
+  font-weight: 800;
   line-height: 1.05;
   letter-spacing: -0.04em;
-  color: #ff5c5c;
+  color: var(--hd-primary);
   cursor: pointer;
   user-select: none;
 }
@@ -55,37 +64,38 @@
   margin: 6px 0 0;
   font-size: 13px;
   font-weight: 500;
-  color: rgba(255, 255, 255, 0.5);
+  color: var(--hd-text-secondary);
 }
 
 .home-dark-header__actions {
   display: flex;
   gap: 8px;
   flex-shrink: 0;
-  padding-top: 2px;
+  padding-top: 4px;
 }
 
 .home-dark-header__icon-btn {
-  width: 38px;
-  height: 38px;
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  width: 40px;
+  height: 40px;
+  border: 1px solid var(--hd-border);
   border-radius: 12px;
-  background: rgba(255, 255, 255, 0.05);
-  color: rgba(255, 255, 255, 0.88);
+  background: var(--hd-card);
+  color: var(--hd-text);
   display: inline-flex;
   align-items: center;
   justify-content: center;
   cursor: pointer;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.22);
 }
 
-/* ── Region pills (목업: 한 줄 칩) ── */
+/* ── Region pills ── */
 .home-dark-region-pills {
   display: flex;
   flex-wrap: nowrap;
   gap: 8px;
   overflow-x: auto;
   scrollbar-width: none;
-  padding: 2px 0 10px;
+  padding: 4px 0 12px;
 }
 
 .home-dark-region-pills::-webkit-scrollbar {
@@ -100,9 +110,9 @@
   height: 36px;
   padding: 0 16px;
   border-radius: var(--hd-radius-pill);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  background: rgba(255, 255, 255, 0.05);
-  color: rgba(255, 255, 255, 0.65);
+  border: 1px solid var(--hd-border);
+  background: var(--hd-card);
+  color: var(--hd-text-secondary);
   font-size: 13px;
   font-weight: 600;
   cursor: pointer;
@@ -110,10 +120,10 @@
 
 .home-dark-region-pill.is-active {
   border-color: transparent;
-  background: linear-gradient(135deg, #ff4d4d 0%, #ff8f4d 100%);
+  background: linear-gradient(135deg, var(--hd-primary) 0%, var(--hd-gold) 100%);
   color: #fff;
   font-weight: 700;
-  box-shadow: 0 4px 14px rgba(255, 77, 77, 0.28);
+  box-shadow: 0 6px 18px rgba(255, 91, 58, 0.28);
 }
 
 .home-dark-region-pill__count {
@@ -121,7 +131,7 @@
   font-weight: 800;
 }
 
-/* ── TODAY PICK (전폭 히어로) ── */
+/* ── TODAY PICK ── */
 .home-dark-today-pick {
   position: relative;
   width: 100%;
@@ -129,18 +139,18 @@
   min-height: var(--hd-hero-h);
   border-radius: var(--hd-radius-hero);
   overflow: hidden;
-  background: #111;
-  box-shadow: 0 8px 28px rgba(0, 0, 0, 0.4);
+  background: var(--hd-card);
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.45);
 }
 
 .home-dark-today-pick--empty {
   display: flex;
   align-items: center;
   justify-content: center;
-  height: 140px;
-  min-height: 140px;
-  border: 1px dashed rgba(255, 255, 255, 0.1);
-  color: rgba(255, 255, 255, 0.4);
+  height: 180px;
+  min-height: 180px;
+  border: 1px dashed var(--hd-border);
+  color: var(--hd-text-secondary);
   font-size: 14px;
   font-weight: 600;
   box-shadow: none;
@@ -158,14 +168,14 @@
 .home-dark-today-pick__overlay {
   position: absolute;
   inset: 0;
-  background: linear-gradient(180deg, rgba(0, 0, 0, 0.08) 0%, rgba(0, 0, 0, 0.4) 50%, rgba(0, 0, 0, 0.9) 100%);
+  background: linear-gradient(180deg, rgba(0, 0, 0, 0.05) 0%, rgba(0, 0, 0, 0.35) 45%, rgba(0, 0, 0, 0.88) 100%);
 }
 
 .home-dark-today-pick__content {
   position: relative;
   z-index: 1;
   height: 100%;
-  padding: 18px 18px 16px;
+  padding: 20px 20px 18px;
   display: flex;
   flex-direction: column;
   justify-content: flex-end;
@@ -176,26 +186,36 @@
 .home-dark-today-pick__eyebrow {
   font-size: 11px;
   font-weight: 800;
-  letter-spacing: 0.1em;
-  color: #ff7a5c;
+  letter-spacing: 0.08em;
+  color: var(--hd-primary);
 }
 
 .home-dark-today-pick__title {
   margin: 0;
-  font-size: 22px;
-  font-weight: 900;
+  font-size: 24px;
+  font-weight: 800;
   line-height: 1.15;
-  color: #fff;
+  color: var(--hd-text);
   letter-spacing: -0.03em;
+}
+
+.home-dark-today-pick__title-en {
+  margin: 0;
+  font-family: var(--hd-font-display) !important;
+  font-size: 14px;
+  font-style: italic;
+  font-weight: 500;
+  color: var(--hd-gold);
+  line-height: 1.2;
 }
 
 .home-dark-today-pick__meta {
   display: flex;
   flex-wrap: wrap;
-  gap: 8px 12px;
+  gap: 8px 14px;
   font-size: 12px;
   font-weight: 600;
-  color: rgba(255, 255, 255, 0.72);
+  color: var(--hd-text-secondary);
 }
 
 .home-dark-today-pick__meta span {
@@ -208,23 +228,24 @@
   display: inline-flex;
   align-items: center;
   gap: 4px;
-  margin-top: 6px;
-  height: 36px;
+  margin-top: 8px;
+  height: 38px;
   padding: 0 16px;
-  border: none;
+  border: 1px solid rgba(255, 255, 255, 0.22);
   border-radius: var(--hd-radius-pill);
-  background: linear-gradient(135deg, #ff4d4d 0%, #ff8f4d 100%);
+  background: rgba(0, 0, 0, 0.55);
   color: #fff;
   font-size: 13px;
-  font-weight: 800;
+  font-weight: 700;
   cursor: pointer;
-  box-shadow: 0 4px 16px rgba(255, 77, 77, 0.32);
+  backdrop-filter: blur(8px);
+  width: fit-content;
 }
 
 .home-dark-today-pick__dots {
   position: absolute;
-  right: 14px;
-  bottom: 14px;
+  right: 16px;
+  bottom: 16px;
   z-index: 2;
   display: flex;
   gap: 5px;
@@ -258,7 +279,7 @@
   margin: 0;
   font-size: 17px;
   font-weight: 800;
-  color: #fff;
+  color: var(--hd-text);
   letter-spacing: -0.03em;
 }
 
@@ -266,7 +287,7 @@
   margin: 4px 0 0;
   font-size: 12px;
   font-weight: 500;
-  color: rgba(255, 255, 255, 0.42);
+  color: var(--hd-text-secondary);
 }
 
 .home-dark-section-header__link {
@@ -277,7 +298,7 @@
   padding: 2px 0;
   border: none;
   background: none;
-  color: rgba(255, 255, 255, 0.5);
+  color: var(--hd-text-secondary);
   font-size: 12px;
   font-weight: 600;
   cursor: pointer;
@@ -286,15 +307,15 @@
 .home-dark-section-header__link--pill {
   gap: 4px;
   padding: 6px 11px;
-  border: 1px solid rgba(255, 255, 255, 0.22);
+  border: 1px solid var(--hd-border);
   border-radius: var(--hd-radius-pill);
-  background: transparent;
-  color: rgba(255, 255, 255, 0.9);
+  background: var(--hd-card);
+  color: var(--hd-text);
   font-size: 11px;
   font-weight: 700;
 }
 
-/* 가로 스크롤 — 5번째 카드 peek + 우측 페이드 */
+/* Peek scroll */
 .home-dark-scroll-peek {
   position: relative;
 }
@@ -304,14 +325,14 @@
   position: absolute;
   top: 0;
   right: 0;
-  width: 28px;
+  width: 32px;
   height: 100%;
   pointer-events: none;
   z-index: 2;
-  background: linear-gradient(90deg, transparent, #0a0a0a 92%);
+  background: linear-gradient(90deg, transparent, var(--hd-bg) 92%);
 }
 
-/* ── 오늘의 파티 카드 3:4 ── */
+/* ── 오늘의 파티 4:5 ── */
 .home-dark-parties-scroll {
   overflow-x: auto;
   scrollbar-width: none;
@@ -345,7 +366,8 @@
   height: var(--hd-party-h);
   border-radius: var(--hd-radius-card);
   overflow: hidden;
-  background: #161616;
+  background: var(--hd-card);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35);
 }
 
 .home-dark-party-card__media img {
@@ -353,13 +375,6 @@
   height: 100%;
   object-fit: cover;
   display: block;
-}
-
-.home-dark-party-card__shade {
-  position: absolute;
-  inset: 0;
-  background: linear-gradient(180deg, rgba(0, 0, 0, 0) 40%, rgba(0, 0, 0, 0.85) 100%);
-  pointer-events: none;
 }
 
 .home-dark-party-card__badge {
@@ -376,7 +391,7 @@
 }
 
 .home-dark-party-card__badge--hot {
-  background: #ff4d4d;
+  background: var(--hd-primary);
 }
 
 .home-dark-party-card__badge--new {
@@ -391,33 +406,30 @@
   width: 28px;
   height: 28px;
   border-radius: var(--hd-radius-pill);
-  background: rgba(0, 0, 0, 0.45);
-  color: rgba(255, 255, 255, 0.92);
+  background: rgba(0, 0, 0, 0.5);
+  color: #fff;
   display: inline-flex;
   align-items: center;
   justify-content: center;
   cursor: pointer;
+  border: 1px solid rgba(255, 255, 255, 0.12);
 }
 
 .home-dark-party-card__heart.is-active {
-  color: #ff4d6d;
+  color: var(--hd-pink);
 }
 
-.home-dark-party-card__caption {
-  position: absolute;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  z-index: 2;
-  padding: 10px 10px 12px;
+.home-dark-party-card__info {
+  padding: 10px 2px 0;
+  min-width: 0;
 }
 
 .home-dark-party-card__title {
   margin: 0;
   font-size: 13px;
   font-weight: 800;
-  color: #fff;
-  line-height: 1.25;
+  color: var(--hd-text);
+  line-height: 1.3;
   display: -webkit-box;
   -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
@@ -425,10 +437,10 @@
 }
 
 .home-dark-party-card__meta {
-  margin: 3px 0 0;
+  margin: 4px 0 0;
   font-size: 11px;
   font-weight: 600;
-  color: rgba(255, 255, 255, 0.65);
+  color: var(--hd-text-secondary);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -439,74 +451,123 @@
   padding: 24px 0;
   text-align: center;
   font-size: 13px;
-  color: rgba(255, 255, 255, 0.38);
+  color: var(--hd-text-secondary);
 }
 
-/* ── 더보기 (전폭 pill) ── */
-.home-dark-more {
-  margin-top: 4px;
-}
-
-.home-dark-more .home-gate-king-menu__toolbar {
-  margin: 0;
-}
-
-.home-dark-more__toggle {
-  width: 100%;
-  justify-content: center;
-  height: 44px;
-  border-radius: var(--hd-radius-card) !important;
-  border-color: rgba(255, 255, 255, 0.1) !important;
-  background: rgba(255, 255, 255, 0.04) !important;
-  color: rgba(255, 255, 255, 0.65) !important;
-}
-
-.home-gate-shell .home-gate-king-menu__toggle[aria-expanded='true'] {
-  color: #ff7a5c !important;
-  border-color: rgba(255, 122, 92, 0.3) !important;
-  background: rgba(255, 77, 77, 0.1) !important;
-}
-
-.home-gate-shell .home-gate-king-menu__grid .home-quick-menu-item-label {
-  color: rgba(255, 255, 255, 0.88) !important;
-}
-
-.home-gate-shell .home-gate-king-menu__grid .home-quick-menu-icon-circle {
-  background: rgba(255, 255, 255, 0.06) !important;
-  border-color: rgba(255, 255, 255, 0.1) !important;
-  color: rgba(255, 255, 255, 0.85) !important;
-}
-
-/* ── 강사 카드 ── */
+/* ── 강사 프로필 카드 ── */
 .home-hot-instructors-wrap--dark {
   padding: 0;
   background: transparent;
 }
 
-.home-gate-shell .home-hot-instructor-card {
-  width: var(--hd-instructor-w) !important;
-  min-width: var(--hd-instructor-w) !important;
-  max-width: var(--hd-instructor-w) !important;
-  height: var(--hd-instructor-h) !important;
-  border-radius: var(--hd-radius-card) !important;
-  border: 1px solid rgba(255, 255, 255, 0.08) !important;
-  background: #141414 !important;
+.home-premium-instructor-card {
+  flex: 0 0 auto;
+  width: var(--hd-instructor-w);
+  padding: 0;
+  border: none;
+  background: none;
+  cursor: pointer;
+  text-align: left;
 }
 
-.home-gate-shell .home-hot-instructor-card__meta {
-  height: 54px;
-  padding: 8px 10px;
-  background: linear-gradient(180deg, rgba(0, 0, 0, 0) 0%, rgba(0, 0, 0, 0.92) 100%);
+.home-premium-instructor-card__media {
+  position: relative;
+  width: 100%;
+  height: var(--hd-instructor-h);
+  border-radius: var(--hd-radius-card);
+  overflow: hidden;
+  background: var(--hd-card);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35);
 }
 
-.home-gate-shell .home-hot-instructor-card__name {
+.home-premium-instructor-card__media img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: top center;
+  display: block;
+}
+
+.home-premium-instructor-card__glow {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 45%;
+  background: linear-gradient(180deg, transparent 0%, rgba(255, 91, 58, 0.35) 100%);
+  pointer-events: none;
+}
+
+.home-premium-instructor-card__heart {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  z-index: 2;
+  width: 28px;
+  height: 28px;
+  border-radius: var(--hd-radius-pill);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: rgba(0, 0, 0, 0.5);
+  color: #fff;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
+.home-premium-instructor-card__body {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 2;
+  padding: 12px 10px 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.home-premium-instructor-card__name {
   font-size: 13px;
+  font-weight: 800;
+  color: #fff;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
-.home-gate-shell .home-hot-instructor-card__genre--accent {
-  color: #ffb347 !important;
+.home-premium-instructor-card__genre {
   font-size: 11px;
   font-weight: 700;
+  color: var(--hd-gold);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.home-premium-instructor-card__follow {
+  margin-top: 6px;
+  align-self: flex-start;
+  height: 26px;
+  padding: 0 10px;
+  border: 1px solid rgba(255, 255, 255, 0.28);
+  border-radius: var(--hd-radius-pill);
+  background: rgba(0, 0, 0, 0.45);
+  color: #fff;
+  font-size: 10px;
+  font-weight: 700;
+  cursor: pointer;
+  backdrop-filter: blur(6px);
+}
+
+.home-premium-instructor-card--skeleton .home-premium-instructor-card__media {
+  animation: home-premium-pulse 1.2s ease-in-out infinite;
+  background: var(--hd-card);
+}
+
+@keyframes home-premium-pulse {
+  0%, 100% { opacity: 0.55; }
+  50% { opacity: 0.9; }
 }
 
 .home-gate-shell .home-hot-instructors-track {
@@ -524,29 +585,30 @@
 .home-gate-shell .home-region-pill {
   height: 32px;
   padding: 0 12px;
-  background: rgba(255, 255, 255, 0.05) !important;
-  border-color: rgba(255, 255, 255, 0.1) !important;
-  color: rgba(255, 255, 255, 0.7) !important;
+  background: var(--hd-card) !important;
+  border-color: var(--hd-border) !important;
+  color: var(--hd-text-secondary) !important;
   border-radius: var(--hd-radius-pill) !important;
 }
 
 .home-gate-shell .home-region-pill-count {
-  color: rgba(255, 255, 255, 0.55) !important;
+  color: var(--hd-text-secondary) !important;
+  font-weight: 800;
 }
 
 .home-gate-shell .home-region-pill.is-selected {
-  background: rgba(255, 77, 77, 0.14) !important;
-  border-color: rgba(255, 77, 77, 0.38) !important;
-  color: #ff7a5c !important;
+  border-color: transparent !important;
+  background: linear-gradient(135deg, var(--hd-primary) 0%, var(--hd-gold) 100%) !important;
+  color: #fff !important;
+  box-shadow: 0 4px 14px rgba(255, 91, 58, 0.25);
 }
 
 .home-gate-shell .home-region-pill.is-selected .home-region-pill-count {
-  color: #ff7a5c !important;
+  color: rgba(255, 255, 255, 0.92) !important;
 }
 
 .home-gate-shell .home-social-bar-region-hint {
-  color: rgba(255, 255, 255, 0.4) !important;
-  margin-bottom: 10px !important;
+  display: none !important;
 }
 
 .home-gate-shell .home-social-bar-track--peek {
@@ -558,33 +620,33 @@
   scroll-padding-inline: 0 !important;
 }
 
-/* BAR 세로 카드 (목업) */
 .home-dark-bar-card-v {
   flex: 0 0 auto;
   width: var(--hd-bar-w);
   min-width: var(--hd-bar-w);
   padding: 0;
   border: none;
-  border-radius: 12px;
-  background: #141414;
+  border-radius: 16px;
+  background: var(--hd-card);
   overflow: hidden;
   display: flex;
   flex-direction: column;
   cursor: pointer;
   text-align: left;
   box-sizing: border-box;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
 }
 
 .home-dark-bar-card-v--my-region {
-  box-shadow: inset 0 0 0 1px rgba(255, 77, 77, 0.38);
+  box-shadow: inset 0 0 0 1px rgba(255, 91, 58, 0.45), 0 6px 20px rgba(0, 0, 0, 0.3);
 }
 
 .home-dark-bar-card-v__cover {
   position: relative;
   width: 100%;
   height: var(--hd-bar-cover-h);
-  background: #1a1a1a;
-  overflow: visible;
+  background: #111;
+  overflow: hidden;
 }
 
 .home-dark-bar-card-v__cover-img {
@@ -592,80 +654,48 @@
   height: 100%;
   object-fit: cover;
   display: block;
-  border-radius: 12px 12px 0 0;
 }
 
 .home-dark-bar-card-v__cover-fallback {
   display: block;
   width: 100%;
   height: 100%;
-  background: linear-gradient(145deg, #222 0%, #111 100%);
-}
-
-.home-dark-bar-card-v__logo {
-  position: absolute;
-  left: 7px;
-  bottom: -11px;
-  z-index: 2;
-  width: 24px;
-  height: 24px;
-  border-radius: 50%;
-  border: 2px solid #141414;
-  overflow: hidden;
-  background: #1c1c1c;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.home-dark-bar-card-v__logo img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-}
-
-.home-dark-bar-card-v__logo-fallback {
-  width: 55%;
-  height: 55%;
-  object-fit: contain;
-  opacity: 0.35;
-  filter: grayscale(1);
+  background: linear-gradient(145deg, #222 0%, #141414 100%);
 }
 
 .home-dark-bar-card-v__body {
   display: flex;
   flex-direction: column;
-  gap: 2px;
-  padding: 14px 8px 10px;
+  gap: 3px;
+  padding: 10px 10px 12px;
   min-width: 0;
 }
 
 .home-dark-bar-card-v__name {
-  font-size: 11px;
+  font-size: 12px;
   font-weight: 800;
-  color: #fff;
+  color: var(--hd-text);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  letter-spacing: -0.02em;
 }
 
 .home-dark-bar-card-v__parties {
   font-size: 10px;
   font-weight: 700;
-  color: #ff9f43;
+  color: var(--hd-gold);
   white-space: nowrap;
 }
 
 .home-dark-bar-card-v__district {
   font-size: 10px;
   font-weight: 600;
-  color: rgba(255, 255, 255, 0.42);
+  color: var(--hd-text-secondary);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 }
 
 .home-gate-shell .home-social-bar-scroll--peek-more::after {
-  background: linear-gradient(90deg, transparent, #0a0a0a 92%) !important;
+  background: linear-gradient(90deg, transparent, var(--hd-bg) 92%) !important;
 }
