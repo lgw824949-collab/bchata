@@ -97,7 +97,7 @@ export default function HomeDarkGate({
   return (
     <div className="home-dark-gate">
       <HomeDarkHeader
-        tagline={isEn ? 'Time to dance' : '지금, 춤추러 갈 시간'}
+        tagline={isEn ? 'Ready to dance tonight?' : '오늘 밤, 춤출 준비 됐나요?'}
         onAdminTap={onAdminTap}
         onSearch={onSearch}
       />
