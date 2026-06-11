@@ -1120,7 +1120,7 @@ function App() {
       (p) => location.pathname === p || location.pathname.startsWith(`${p}/`),
     )
   useEffect(() => {
-    document.body.classList.toggle('bottom-nav-social-light', isSocialLightNav)
+    document.body.classList.add('bottom-nav-social-light')
     document.documentElement.classList.toggle('home-gate-theme', isHomeGateNav)
     document.body.classList.toggle('home-gate-theme', isHomeGateNav)
     document.documentElement.classList.toggle('app-dark-surface', isDarkAppSurface)
@@ -3244,7 +3244,7 @@ function App() {
     {!hideBottomNav && (
     <nav
       ref={bottomNavRef}
-      className={`bottom-nav ${isSocialLightNav ? 'bottom-nav--social-light' : 'bottom-nav--dark'}`}
+      className="bottom-nav bottom-nav--social-light"
       aria-label="메인 메뉴"
     >
       <div 
