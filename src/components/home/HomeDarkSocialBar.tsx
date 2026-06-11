@@ -45,7 +45,8 @@ export default function HomeDarkSocialBar({
   return (
     <section className="home-dark-section home-social-bar-panel home-social-bar-panel--gate" aria-label="Social BAR">
       <HomeDarkSectionHeader
-        title={isEn ? 'Social BAR' : '소셜 BAR'}
+        title={isEn ? '🌴 Social BAR' : '🌴 소셜 BAR'}
+        subtitle={isEn ? 'Where the Latin night begins' : '라틴의 밤이 시작되는 곳'}
         linkLabel={isEn ? 'Map' : '지도보기'}
         onLinkClick={onViewMap}
         linkVariant="map"
@@ -81,18 +82,22 @@ export default function HomeDarkSocialBar({
           </p>
         ) : (
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} key={selectedTab}>
-            <div className="home-dark-grid home-dark-grid--3 home-dark-grid--scroll" role="list">
-              {bars.map((bar) => (
-                <HomeDarkBarCard
-                  key={bar.id}
-                  bar={bar}
-                  coverPhoto={getCoverPhoto(bar)}
-                  eventCount={getEventCount(bar)}
-                  isMyGeoRegion={Boolean(geoRegionTab && bar.region === geoRegionTab)}
-                  isEn={isEn}
-                  onClick={() => onBarClick(bar)}
-                />
-              ))}
+            <div className={`home-dark-scroll-peek${bars.length >= 4 ? ' home-dark-scroll-peek--active' : ''}`}>
+              <div className="home-dark-hscroll scrollbar-hide">
+                <div className="home-dark-hscroll__track home-dark-hscroll__track--bar">
+                  {bars.map((bar) => (
+                    <HomeDarkBarCard
+                      key={bar.id}
+                      bar={bar}
+                      coverPhoto={getCoverPhoto(bar)}
+                      eventCount={getEventCount(bar)}
+                      isMyGeoRegion={Boolean(geoRegionTab && bar.region === geoRegionTab)}
+                      isEn={isEn}
+                      onClick={() => onBarClick(bar)}
+                    />
+                  ))}
+                </div>
+              </div>
             </div>
           </motion.div>
         )}

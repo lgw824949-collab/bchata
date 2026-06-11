@@ -59,9 +59,9 @@ export default function HomeDarkBarCard({
         <span className={`home-dark-bar-card-v__parties${eventCount > 0 ? ' is-live' : ''}`}>
           {eventCount > 0
             ? (isEn
-              ? `Tonight ${eventCount} ${eventCount === 1 ? 'event' : 'events'}`
-              : `오늘 행사 ${eventCount}개`)
-            : (isEn ? 'No event tonight' : '오늘 행사 없음')}
+              ? `Today ${eventCount} ${eventCount === 1 ? 'party' : 'parties'}`
+              : `오늘 ${eventCount}개 파티`)
+            : (isEn ? 'No party tonight' : '오늘 파티 없음')}
         </span>
         <span className="home-dark-bar-card-v__district">{district}</span>
       </span>
