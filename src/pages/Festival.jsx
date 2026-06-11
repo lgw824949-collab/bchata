@@ -974,9 +974,12 @@ const Festival = ({ onBack, initialRegister = false, cachedFestivals = null, onF
                     </div>
                   ))}
                 </div>
-                <div style={{ background: 'linear-gradient(135deg, #C9A84C 0%, #A68A3D 100%)', padding: '24px', borderRadius: '24px', marginBottom: '30px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', boxShadow: '0 10px 30px rgba(201, 168, 76, 0.3)' }}>
-                  <div><p style={{ fontSize: '11px', color: 'rgba(0,0,0,0.7)', fontWeight: 800, marginBottom: '4px', letterSpacing: '1px' }}>티켓 가격</p><h3 style={{ fontSize: '20px', fontWeight: 950, color: '#000' }}>{selectedFestival.price}</h3></div>
-                  <button onClick={() => handleBookingClick(selectedFestival)} style={{ background: '#000', border: 'none', padding: '14px 24px', borderRadius: '16px', color: '#C9A84C', fontWeight: 1000, fontSize: '16px', boxShadow: '0 4px 12px rgba(0,0,0,0.3)', cursor: 'pointer' }}>예매하기</button>
+                <div style={{ background: 'linear-gradient(135deg, #C9A84C 0%, #A68A3D 100%)', padding: '24px', borderRadius: '24px', marginBottom: '30px', display: 'flex', flexDirection: 'column', gap: '16px', boxShadow: '0 10px 30px rgba(201, 168, 76, 0.3)' }}>
+                  <div style={{ minWidth: 0 }}>
+                    <p style={{ fontSize: '11px', color: 'rgba(0,0,0,0.7)', fontWeight: 800, marginBottom: '4px', letterSpacing: '1px' }}>티켓 가격</p>
+                    <h3 style={{ fontSize: '20px', fontWeight: 950, color: '#000', margin: 0, lineHeight: 1.45, wordBreak: 'break-word', overflowWrap: 'anywhere' }}>{selectedFestival.price}</h3>
+                  </div>
+                  <button onClick={() => handleBookingClick(selectedFestival)} style={{ alignSelf: 'flex-end', flexShrink: 0, background: '#000', border: 'none', padding: '14px 24px', borderRadius: '16px', color: '#C9A84C', fontWeight: 1000, fontSize: '16px', boxShadow: '0 4px 12px rgba(0,0,0,0.3)', cursor: 'pointer' }}>예매하기</button>
                 </div>
                 {selectedFestival.description && (<div style={{ padding: '24px', background: '#141414', borderRadius: '24px', border: '1px solid rgba(255,255,255,0.05)' }}><p style={{ color: '#f8fafc', lineHeight: 1.8, fontSize: '16px', whiteSpace: 'pre-wrap', margin: 0 }}>{selectedFestival.description}</p></div>)}
               </div>
