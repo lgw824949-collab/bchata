@@ -4151,15 +4151,6 @@ const HomePage = ({
           padding: 0 3px;
           word-break: keep-all;
         }
-        .home-gate-photo-menu-card__emoji-counts {
-          display: block;
-          margin-top: 2px;
-          font-size: clamp(8px, 2.2vw, 10px);
-          font-weight: 600;
-          letter-spacing: 0.02em;
-          font-variant-numeric: tabular-nums;
-          opacity: 0.95;
-        }
         .home-gate-photo-menu-card__badge {
           position: absolute;
           top: -7px;
