@@ -212,34 +212,60 @@
   pointer-events: none;
 }
 
-/* header */
+/* header — 목업: 그라데이션 로고 + 슬로건 한 줄 */
 .home-dark-header {
   display: flex;
   align-items: flex-start;
   justify-content: space-between;
-  gap: var(--hd-gap);
+  gap: 12px;
+  padding: 2px 0 6px;
+}
+
+.home-dark-header__brand {
+  flex: 1;
+  min-width: 0;
 }
 
 .home-dark-header__title {
   margin: 0;
-  font-size: 30px;
-  font-weight: 800;
-  line-height: 1.05;
-  letter-spacing: -0.04em;
-  color: var(--hd-primary);
+  font-size: 28px;
+  font-weight: 900;
+  line-height: 1.08;
+  letter-spacing: -0.03em;
   cursor: pointer;
+  background: linear-gradient(135deg, #ff5b3a 0%, #ff7344 42%, #f6b84c 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  color: transparent;
+}
+
+.home-gate-active .home-dark-header__title {
+  background: linear-gradient(135deg, #ff5b3a 0%, #ff7344 42%, #f6b84c 100%) !important;
+  -webkit-background-clip: text !important;
+  background-clip: text !important;
+  -webkit-text-fill-color: transparent !important;
+  color: transparent !important;
 }
 
 .home-dark-header__tagline {
-  margin: 6px 0 0;
-  font-size: 13px;
+  margin: 4px 0 0;
+  padding: 0;
+  font-size: 12px;
   font-weight: 500;
-  color: var(--hd-text-secondary);
+  line-height: 1.35;
+  letter-spacing: -0.01em;
+  color: rgba(255, 255, 255, 0.62);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .home-dark-header__actions {
   display: flex;
+  flex-shrink: 0;
   gap: 8px;
+  padding-top: 2px;
 }
 
 .home-dark-header__icon-btn {

@@ -5,6 +5,7 @@ import HomeDarkTodayPick from './HomeDarkTodayPick';
 import HomeDarkParties from './HomeDarkParties';
 import HomeDarkInstructors from './HomeDarkInstructors';
 import HomeDarkSocialBar from './HomeDarkSocialBar';
+import { HOME_DARK_HEADER_TAGLINE } from './constants';
 import type {
   HomeDarkBar,
   HomeDarkHeroSlide,
@@ -97,7 +98,7 @@ export default function HomeDarkGate({
   return (
     <div className="home-dark-gate">
       <HomeDarkHeader
-        tagline={isEn ? 'Ready to dance tonight?' : '오늘 밤, 춤출 준비 됐나요?'}
+        tagline={HOME_DARK_HEADER_TAGLINE}
         onAdminTap={onAdminTap}
         onSearch={onSearch}
       />
