@@ -25,6 +25,7 @@ export type HomeDarkGateProps = {
   heroSlideCount: number;
   pickIndex: number;
   onPickIndexChange: (index: number) => void;
+  onHeroRotateNext: () => void;
   onHeroOpen: () => void;
   todayParties: HomeDarkParty[];
   wishlistPartyIds: Array<string | number>;
@@ -65,6 +66,7 @@ export default function HomeDarkGate({
   heroSlideCount,
   pickIndex,
   onPickIndexChange,
+  onHeroRotateNext,
   onHeroOpen,
   todayParties,
   wishlistPartyIds,
@@ -114,6 +116,7 @@ export default function HomeDarkGate({
         slideCount={heroSlideCount}
         activeDot={pickIndex % Math.max(heroSlideCount, 1)}
         onDotSelect={onPickIndexChange}
+        onRotateNext={onHeroRotateNext}
         onOpen={onHeroOpen}
         emptyLabel={isEn ? 'No featured events today' : '오늘 등록된 행사가 없어요'}
       />

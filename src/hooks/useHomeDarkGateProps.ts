@@ -187,6 +187,11 @@ export function useHomeDarkGateProps(input: UseHomeDarkGatePropsInput) {
     [isEn, translateDynamicText],
   );
 
+  const rotateHeroNext = useCallback(() => {
+    if (homeHeroSlides.length <= 1) return;
+    setHomePickIndex((index) => (index + 1) % homeHeroSlides.length);
+  }, [homeHeroSlides.length]);
+
   const openHeroSlide = useCallback((slide: HomeDarkHeroSlide) => {
     if (slide.kind === 'bootcamp') {
       openBootcampPage();
@@ -211,6 +216,7 @@ export function useHomeDarkGateProps(input: UseHomeDarkGatePropsInput) {
     heroSlideCount: homeHeroSlides.length,
     pickIndex: homePickIndex,
     onPickIndexChange: setHomePickIndex,
+    onHeroRotateNext: rotateHeroNext,
     onHeroOpen: () => homeActiveHeroSlide && openHeroSlide(homeActiveHeroSlide),
     todayParties: homeFilteredTodayParties,
     wishlistPartyIds: wishlistParties,

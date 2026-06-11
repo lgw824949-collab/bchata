@@ -66,7 +66,7 @@ const toSlide = (
   raw: row,
 });
 
-/** 히어로: 부트캠프 → 소셜(오늘 파티) → 페스티벌 */
+/** 히어로 로테이션: 소셜(파티) → 부트캠프 → 페스티벌 */
 export function buildHomeDarkHeroSlides(
   socialParties: PosterRow[],
   bootcampRows: PosterRow[],
@@ -75,17 +75,17 @@ export function buildHomeDarkHeroSlides(
 ): HomeDarkHeroSlide[] {
   const slides: HomeDarkHeroSlide[] = [];
 
-  const bootcamp = pickFeaturedEventRow(bootcampRows, todayStr);
-  if (bootcamp?.id != null) {
-    slides.push(toSlide(bootcamp, 'bootcamp', `bootcamp-${bootcamp.id}`, '부트캠프', 'Bootcamp'));
-  }
-
   (socialParties || [])
     .filter((party) => String(party.poster_url || '').trim())
     .forEach((party) => {
       if (party.id == null) return;
       slides.push(toSlide(party, 'party', `party-${party.id}`, '오늘 소셜', 'Tonight\'s Social'));
     });
+
+  const bootcamp = pickFeaturedEventRow(bootcampRows, todayStr);
+  if (bootcamp?.id != null) {
+    slides.push(toSlide(bootcamp, 'bootcamp', `bootcamp-${bootcamp.id}`, '부트캠프', 'Bootcamp'));
+  }
 
   const festival = pickFeaturedEventRow(festivalRows, todayStr, 'festival');
   if (festival?.id != null) {
@@ -94,3 +94,5 @@ export function buildHomeDarkHeroSlides(
 
   return slides;
 }
+
+export const HOME_DARK_HERO_ROTATE_MS = 4500;
