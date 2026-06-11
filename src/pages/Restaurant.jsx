@@ -3,6 +3,7 @@ import { ChevronLeft, MapPin, Navigation, Info, AlertCircle, Utensils } from 'lu
 import { motion, AnimatePresence } from 'framer-motion';
 import { useTranslation } from 'react-i18next';
 import { getUserCoords, isGeoDenied, readCachedCoords } from '../lib/geoCache';
+import AppPageHeader from '../components/AppPageHeader';
 
 const SkeletonCard = () => (
   <div style={{
@@ -133,16 +134,18 @@ const Restaurant = ({ onBack }) => {
       width: '100%', height: '100vh', background: '#F8FAFC',
       display: 'flex', flexDirection: 'column', fontFamily: "inherit"
     }}>
-      {/* 헤더 */}
-      <div style={{
-        padding: '20px', display: 'flex', alignItems: 'center', background: '#fff',
-        borderBottom: '1px solid #E2E8F0', position: 'sticky', top: 0, zIndex: 10
-      }}>
-        <button onClick={onBack} style={{ background: 'none', border: 'none', padding: '5px', cursor: 'pointer', marginRight: '10px' }}>
-          <ChevronLeft size={24} color="#1E293B" />
-        </button>
-        <h1 style={{ fontSize: '18px', fontWeight: 900, color: '#1E293B', margin: 0 }}>🍽️ 뒤풀이 맛집</h1>
-      </div>
+      <AppPageHeader
+        variant="light"
+        sticky
+        left={(
+          <button type="button" onClick={onBack} style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer', display: 'flex' }}>
+            <ChevronLeft size={24} color="#1E293B" />
+          </button>
+        )}
+        center={(
+          <h1 style={{ fontSize: '18px', fontWeight: 900, color: '#1E293B', margin: 0 }}>🍽️ 뒤풀이 맛집</h1>
+        )}
+      />
 
       {/* 본문 */}
       <div style={{ flex: 1, overflowY: 'auto', padding: '20px' }}>

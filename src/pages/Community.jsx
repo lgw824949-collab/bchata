@@ -6,6 +6,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Heart, Eye, Share2, Plus, X, Camera, MapPin, Search, Home as HomeIcon, Star, Info, CheckCircle2, Trophy, Award, Zap, TrendingUp, Clock, Flame } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import { navigate } from '../lib/appHistory';
+import AppPageHeader from '../components/AppPageHeader';
 import { useTranslation } from 'react-i18next';
 
 const Community = ({ setSelectedPoster, setView }) => {
@@ -218,22 +219,29 @@ const Community = ({ setSelectedPoster, setView }) => {
   return (
     <div style={{ background: 'var(--color-bg)', minHeight: '100vh', paddingBottom: '100px' }}>
       {/* Header Section */}
-      <div style={{ padding: '20px 20px 10px', position: 'sticky', top: 0, zIdentity: 100, background: 'var(--color-bg)', backdropFilter: 'blur(10px)' }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
-          <div>
-            <h1 style={{ fontSize: '26px', fontWeight: 1000, color: 'var(--color-text-main)', letterSpacing: '-1px', display: 'flex', alignItems: 'center', gap: '8px' }}>
-              LIVE PICK <Flame size={24} color="#E53935" fill="#E53935" />
+      <AppPageHeader
+        variant="light"
+        sticky
+        left={(
+          <div style={{ minWidth: 0 }}>
+            <h1 style={{ fontSize: '22px', fontWeight: 1000, color: 'var(--color-text-main)', letterSpacing: '-1px', display: 'flex', alignItems: 'center', gap: '8px', margin: 0 }}>
+              LIVE PICK <Flame size={22} color="#E53935" fill="#E53935" />
             </h1>
-            <p style={{ fontSize: '13px', color: 'var(--color-text-sub)', fontWeight: 600 }}>지금 전국에서 가장 뜨거운 현장 리포트</p>
+            <p style={{ fontSize: '12px', color: 'var(--color-text-sub)', fontWeight: 600, margin: '2px 0 0' }}>지금 전국에서 가장 뜨거운 현장 리포트</p>
           </div>
-          <motion.button 
+        )}
+        right={(
+          <motion.button
+            type="button"
             whileTap={{ scale: 0.9 }}
-            onClick={() => navigate('/')} 
-            style={{ width: '44px', height: '44px', borderRadius: '14px', background: 'var(--color-card)', border: '1px solid var(--color-border)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+            onClick={() => navigate('/')}
+            style={{ width: '40px', height: '40px', borderRadius: '12px', background: 'var(--color-card)', border: '1px solid var(--color-border)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
           >
             <HomeIcon size={20} color="var(--color-text-main)" />
           </motion.button>
-        </div>
+        )}
+      />
+      <div style={{ padding: '0 20px 10px' }}>
 
         {/* Hot Bars Horizontal Row */}
         {hotBars.length > 0 && (

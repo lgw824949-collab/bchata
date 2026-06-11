@@ -5,6 +5,7 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { supabase } from '../lib/supabase'
 import { ChevronLeft, Share2, Bell, Heart, User, MapPin, Globe, ShieldCheck, Zap, MessageCircle, Star, Info, Plus, Check, Search, Calendar, CreditCard, Users, Music } from 'lucide-react'
 import ClassRegisterModal from './ClassRegisterModal'
+import AppPageHeader from './AppPageHeader'
 import {
   readInstructorIdFromLocation,
   readNavigationState,
@@ -667,12 +668,15 @@ const InstructorSection = ({ onOpenVipMaster, cachedInstructors = null }) => {
         }
       `}</style>
       
-      {/* List Header */}
-      <div style={{ padding: '30px 25px 10px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        <h2 style={{ fontSize: '28px', fontWeight: 900, color: '#FFF', margin: 0, letterSpacing: '-1px' }}>
-          DANCE <span style={{ color: '#C9A84C' }}>MASTERS</span>
-        </h2>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+      <AppPageHeader
+        variant="dark"
+        sticky={false}
+        left={(
+          <h2 style={{ fontSize: '22px', fontWeight: 900, color: '#FFF', margin: 0, letterSpacing: '-1px', whiteSpace: 'nowrap' }}>
+            DANCE <span style={{ color: '#C9A84C' }}>MASTERS</span>
+          </h2>
+        )}
+        right={(
           <button
             type="button"
             onClick={() => {
@@ -690,8 +694,8 @@ const InstructorSection = ({ onOpenVipMaster, cachedInstructors = null }) => {
           >
             👑 강사 전용
           </button>
-        </div>
-      </div>
+        )}
+      />
 
       {/* 스타일 삽입 (스크롤바 숨김) */}
       <style>{`

@@ -6,6 +6,7 @@ import { resolveEventDates, inferOneDayEvent } from '../lib/dbSanitize';
 import EventDateFields from '../components/EventDateFields';
 import { Z } from '../constants/zLayers';
 import { goBackOrHome, parseAppState, pushOverlay, readNavigationState } from '../lib/appHistory';
+import AppPageHeader from '../components/AppPageHeader';
 import { BAR_DATABASE, findBarByName } from '../lib/BarLib';
 import { getKSTCalendarTodayStr, normDate } from '../lib/dateNorm';
 
@@ -533,14 +534,15 @@ const Festival = ({ onBack, initialRegister = false, cachedFestivals = null, onF
 
         {/* Header */}
         {!isRegistering && (
-          <div style={{ 
-            position: 'sticky', top: 0, zIndex: 2000, background: 'rgba(13, 13, 13, 0.95)', 
-            backdropFilter: 'blur(20px)', borderBottom: '1px solid rgba(255,255,255,0.08)',
-            padding: '12px 20px', display: 'flex', alignItems: 'center', justifyContent: 'space-between'
-          }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-              <button onClick={onBack} style={{ background: 'none', border: 'none', cursor: 'pointer' }}><ChevronLeft size={24} color="#f8fafc" /></button>
-              {/* FESTIVAL / MT 탭 */}
+          <AppPageHeader
+            variant="dark"
+            sticky
+            left={(
+              <button type="button" onClick={onBack} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0, display: 'flex' }}>
+                <ChevronLeft size={24} color="#f8fafc" />
+              </button>
+            )}
+            center={(
               <div style={{ display: 'flex', gap: 6, background: 'rgba(255,255,255,0.06)', borderRadius: 14, padding: '4px' }}>
                 {[
                   { key: 'festival', label: 'FESTIVAL' },
@@ -549,6 +551,7 @@ const Festival = ({ onBack, initialRegister = false, cachedFestivals = null, onF
                 ].map(tab => (
                   <button
                     key={tab.key}
+                    type="button"
                     onClick={() => { setActiveTab(tab.key); setSelectedRegion('전체'); }}
                     style={{
                       padding: '7px 14px', borderRadius: 10, border: 'none', cursor: 'pointer',
@@ -560,8 +563,8 @@ const Festival = ({ onBack, initialRegister = false, cachedFestivals = null, onF
                   >{tab.label}</button>
                 ))}
               </div>
-            </div>
-            
+            )}
+            right={(
             <div style={{ display: 'flex', gap: '8px' }}>
               <button 
                 onClick={() => setShowFilters(!showFilters)}
@@ -599,7 +602,8 @@ const Festival = ({ onBack, initialRegister = false, cachedFestivals = null, onF
                 <Plus size={14} strokeWidth={3} /> 등록
               </button>
             </div>
-          </div>
+            )}
+          />
         )}
 
         {/* Main Content Area */}

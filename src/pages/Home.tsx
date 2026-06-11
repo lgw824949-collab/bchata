@@ -17,6 +17,7 @@ import {
   normalizeVenueAddressKey,
   normalizeVenueNameKey,
 } from '../lib/venueDedupe'
+import AppPageHeader from '../components/AppPageHeader'
 import VenueDetailModal from '../components/VenueDetailModal'
 import BarRegisterFormModal from '../components/BarRegisterFormModal'
 import { navigate as historyNavigate, navigateHomeTab, parseAppState, pushOverlay, readNavigationState } from '../lib/appHistory'
@@ -3989,56 +3990,41 @@ const HomePage = ({
       )}
 
       {/* 📌 [영역 A: 히어로 / 메인 게이트] */}
-      <motion.div
-        className={isHomeGate ? 'home-hero-zone' : undefined}
-        style={{
-          padding: isHomeGate ? '20px 16px 0' : '20px 16px 0',
-          marginBottom: isHomeGate ? 20 : homeSectionSpace - 4,
-          background: isHomeGate ? HOME_PAGE_BG : undefined,
-        }}
-      >
-        {activeTab === null && (
-        <motion.div
-          className="home-hero-brand"
-          style={{
-            display: 'flex',
-            flexDirection: 'column',
-            alignItems: 'flex-start',
-            marginBottom: isHomeGate ? 18 : 20,
-          }}
-        >
-          <h1
-            className="home-type-display home-hero-title"
-            role="button"
-            tabIndex={0}
-            onClick={registerAdminPortalTap}
-            onKeyDown={(e) => {
-              if (e.key === 'Enter' || e.key === ' ') {
-                e.preventDefault();
-                registerAdminPortalTap();
-              }
-            }}
-            style={{
-              color: '#E53935',
-              fontSize: '32px',
-              fontWeight: 900,
-              margin: 0,
-              lineHeight: 1.15,
-              cursor: 'pointer',
-              userSelect: 'none',
-            }}
-          >
-            오늘밤빠
-          </h1>
-          <p
-            className="home-type-tagline home-type-tagline-sub home-hero-tagline"
-            style={{ color: '#191F28', fontSize: '14px', fontWeight: 500, margin: '6px 0 0', lineHeight: 1.4 }}
-          >
-            켜고, 찾고, 가면 끝
-          </p>
-        </motion.div>
-        )}
-      </motion.div>
+      {activeTab === null && (
+        <AppPageHeader variant="light" sticky className={isHomeGate ? 'home-hero-zone' : undefined}>
+          <div className="home-hero-brand" style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', flex: 1, minWidth: 0 }}>
+            <h1
+              className="home-type-display home-hero-title"
+              role="button"
+              tabIndex={0}
+              onClick={registerAdminPortalTap}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                  e.preventDefault();
+                  registerAdminPortalTap();
+                }
+              }}
+              style={{
+                color: '#E53935',
+                fontSize: '28px',
+                fontWeight: 900,
+                margin: 0,
+                lineHeight: 1.1,
+                cursor: 'pointer',
+                userSelect: 'none',
+              }}
+            >
+              오늘밤빠
+            </h1>
+            <p
+              className="home-type-tagline home-type-tagline-sub home-hero-tagline"
+              style={{ color: '#191F28', fontSize: '13px', fontWeight: 500, margin: '2px 0 0', lineHeight: 1.35 }}
+            >
+              켜고, 찾고, 가면 끝
+            </p>
+          </div>
+        </AppPageHeader>
+      )}
 
       {activeTab === null && (
         <motion.div

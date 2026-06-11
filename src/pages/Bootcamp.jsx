@@ -13,6 +13,7 @@ import { resolveEventDates, inferOneDayEvent } from '../lib/dbSanitize';
 import EventDateFields from '../components/EventDateFields';
 import { useTranslation } from 'react-i18next';
 import { DEFAULT_CARD_IMAGE, imgFallbackHandler } from '../constants/imageAssets';
+import AppPageHeader from '../components/AppPageHeader';
 
 const GENRES = ['전체', '바차타', '살사', '키좀바', '쥬크'];
 const REGIONS = ['전국', '서울', '경인', '경상도', '전라도', '충청도', '강원/제주', '해외'];
@@ -533,16 +534,20 @@ const Bootcamp = ({ onBack, initialView = 'list', cachedBootcamps = null, onBoot
         style={{ width: '100%', height: '200px', objectFit: 'cover', display: 'block' }}
       />
 
-      {/* Header */}
-      <div style={{ padding: '30px 25px 10px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
-          <button onClick={onBack} style={{ background: 'none', border: 'none', cursor: 'pointer' }}>
-            <ChevronLeft size={24} color="#FFFFFF" />
-          </button>
-          <h2 style={{ fontSize: '24px', fontWeight: 900, color: '#FFFFFF', margin: 0, letterSpacing: '-0.5px' }}>
-            BOOTCAMP <span style={{ color: '#C9A84C' }}>MASTERS</span>
-          </h2>
-        </div>
+      <AppPageHeader
+        variant="dark"
+        sticky
+        left={(
+          <div style={{ display: 'flex', alignItems: 'center', gap: '12px', minWidth: 0 }}>
+            <button type="button" onClick={onBack} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0, display: 'flex' }}>
+              <ChevronLeft size={24} color="#FFFFFF" />
+            </button>
+            <h2 style={{ fontSize: '20px', fontWeight: 900, color: '#FFFFFF', margin: 0, letterSpacing: '-0.5px', whiteSpace: 'nowrap' }}>
+              BOOTCAMP <span style={{ color: '#C9A84C' }}>MASTERS</span>
+            </h2>
+          </div>
+        )}
+        right={(
         <button
           type="button"
           onClick={() => setView(view === 'register' ? 'list' : 'register')}
@@ -584,7 +589,8 @@ const Bootcamp = ({ onBack, initialView = 'list', cachedBootcamps = null, onBoot
             </>
           )}
         </button>
-      </div>
+        )}
+      />
 
       <style>{`
         .hide-scrollbar::-webkit-scrollbar { display: none; }

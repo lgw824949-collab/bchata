@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo, useRef, useCallback, lazy, Suspense } from 'react'
-import { Home as HomeIcon, Users, LogOut, Heart, X, MessageSquare, RefreshCw, CloudSun, Utensils, Zap, Languages, Star, Navigation, CreditCard, Settings, Map as MapIcon, BarChart, BarChart2, Gift, Coffee, User, Menu, Music2, Tent, Flag, Download, Globe, ShieldCheck, Calendar, CalendarDays, Camera, ChevronLeft, ChevronRight, Loader2, Search, Share2, Copy, TrendingUp, GraduationCap } from 'lucide-react'
+import { Home as HomeIcon, Users, LogOut, Heart, X, MessageSquare, RefreshCw, CloudSun, Utensils, Zap, Languages, Star, Navigation, CreditCard, Settings, Map as MapIcon, BarChart, BarChart2, Gift, Coffee, User, Menu, Music2, Tent, Flag, Download, Globe, ShieldCheck, Calendar, CalendarDays, Camera, ChevronLeft, ChevronRight, Loader2, Search, Share2, Copy, TrendingUp, GraduationCap, Building2 } from 'lucide-react'
 import { useTranslation } from 'react-i18next';
 import { motion, AnimatePresence } from 'framer-motion'
 import { logActivity, runSupabaseQuery, supabase } from './lib/supabase'
@@ -1120,7 +1120,7 @@ function App() {
       (p) => location.pathname === p || location.pathname.startsWith(`${p}/`),
     )
   useEffect(() => {
-    document.body.classList.add('bottom-nav-social-light')
+    document.body.classList.toggle('bottom-nav-social-light', isSocialLightNav)
     document.documentElement.classList.toggle('home-gate-theme', isHomeGateNav)
     document.body.classList.toggle('home-gate-theme', isHomeGateNav)
     document.documentElement.classList.toggle('app-dark-surface', isDarkAppSurface)
@@ -2240,10 +2240,11 @@ function App() {
   const navInactiveColor = '#94A3B8'
   const socialNavActive = bottomNavAccent
   const socialNavInactive = navInactiveColor
-  const isHomeNavActive = location.pathname === '/' && view === 'home' && homeActiveTab === null && !showPartner
-  const isWishlistNavActive = showWishlist
-  const isConciergeNavActive = chatbotOverlay
-  const isLivepickNavActive = location.pathname === '/livepick'
+  const isHomeNavActive = location.pathname === '/' && view === 'home' && homeActiveTab === null && !showPartner && !showIncheonModal
+  const isPartyNavActive = location.pathname === '/' && view === 'home' && homeActiveTab === 'social' && !showPartner
+  const isInstructorNavActive = location.pathname === '/instructors' || location.pathname.startsWith('/instructors/')
+  const isBarNavActive = showIncheonModal
+  const isMyNavActive = showPartner
   const bottomNavRef = useRef(null)
 
   useEffect(() => {
@@ -3244,97 +3245,72 @@ function App() {
     {!hideBottomNav && (
     <nav
       ref={bottomNavRef}
-      className="bottom-nav bottom-nav--social-light"
+      className={`bottom-nav ${isSocialLightNav ? 'bottom-nav--social-light' : 'bottom-nav--dark'}`}
       aria-label="메인 메뉴"
     >
-      <div 
+      <button
+        type="button"
+        className={`bottom-nav__item${isHomeNavActive ? ' bottom-nav__item--active' : ''}`}
         onClick={() => {
           setShowPartner(false);
-          setActiveTab(null);
           historyNavigate('/', { homeTab: null, replace: true, force: true });
         }}
-        style={{ 
-          flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
-          cursor: 'pointer', transition: 'all 0.2s',
-          color: isHomeNavActive ? bottomNavAccent : navInactiveColor
-        }}
+        style={{ '--bottom-nav-accent': bottomNavAccent }}
       >
         <HomeIcon size={22} strokeWidth={isHomeNavActive ? 2.5 : 1.5} />
-        <span style={{ fontSize: '9px', fontWeight: isHomeNavActive ? 900 : 600, marginTop: '2px' }}>
-          {i18n.language?.startsWith('en') ? 'Home' : '홈'}
-        </span>
-      </div>
-      <div
-        onClick={() => {
-          setShowPartner(false);
-          setActiveTab(null);
-          pushOverlay('wishlist');
-        }}
-        style={{
-          flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
-          cursor: 'pointer', transition: 'all 0.2s',
-          color: isWishlistNavActive ? bottomNavAccent : navInactiveColor,
-        }}
-      >
-        <Heart size={22} strokeWidth={isWishlistNavActive ? 2.5 : 1.5} />
-        <span style={{ fontSize: '9px', fontWeight: isWishlistNavActive ? 900 : 600, marginTop: '2px' }}>
-          {i18n.language?.startsWith('en') ? 'Saved' : '찜하기'}
-        </span>
-      </div>
+        <span>{i18n.language?.startsWith('en') ? 'Home' : '홈'}</span>
+      </button>
 
-      <div
+      <button
+        type="button"
+        className={`bottom-nav__item${isPartyNavActive ? ' bottom-nav__item--active' : ''}`}
         onClick={() => {
           setShowPartner(false);
-          setActiveTab(null);
-          window.dispatchEvent(new CustomEvent('open-chatbot'));
+          navigateHomeTab('social');
         }}
-        style={{
-          flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
-          cursor: 'pointer', transition: 'all 0.2s',
-          color: isConciergeNavActive ? bottomNavAccent : navInactiveColor,
-        }}
+        style={{ '--bottom-nav-accent': bottomNavAccent }}
       >
-        <Zap size={22} strokeWidth={isConciergeNavActive ? 2.5 : 1.5} />
-        <span style={{ fontSize: '9px', fontWeight: isConciergeNavActive ? 900 : 600, marginTop: '2px' }}>
-          {i18n.language?.startsWith('en') ? 'Concierge' : '컨시어지'}
-        </span>
-      </div>
+        <Music2 size={22} strokeWidth={isPartyNavActive ? 2.5 : 1.5} />
+        <span>{i18n.language?.startsWith('en') ? 'Party' : '파티'}</span>
+      </button>
 
-      <div 
+      <button
+        type="button"
+        className={`bottom-nav__item${isInstructorNavActive ? ' bottom-nav__item--active' : ''}`}
         onClick={() => {
           setShowPartner(false);
-          setActiveTab(null);
-          navigate('/livepick');
+          historyNavigate('/instructors', { homeTab: null });
         }}
-        style={{ 
-          flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
-          cursor: 'pointer', transition: 'all 0.2s',
-          color: isLivepickNavActive ? bottomNavAccent : navInactiveColor
-        }}
+        style={{ '--bottom-nav-accent': bottomNavAccent }}
       >
-        <Camera size={22} strokeWidth={isLivepickNavActive ? 2.5 : 1.5} />
-        <span style={{ fontSize: '9px', fontWeight: isLivepickNavActive ? 900 : 600, marginTop: '2px' }}>
-          {i18n.language?.startsWith('en') ? 'Live pick' : '라이브픽'}
-        </span>
-      </div>
+        <GraduationCap size={22} strokeWidth={isInstructorNavActive ? 2.5 : 1.5} />
+        <span>{i18n.language?.startsWith('en') ? 'Instructors' : '강사'}</span>
+      </button>
 
-      <div
+      <button
+        type="button"
+        className={`bottom-nav__item${isBarNavActive ? ' bottom-nav__item--active' : ''}`}
         onClick={() => {
           setShowPartner(false);
-          setActiveTab(null);
-          window.open('https://open.kakao.com/o/gP43rNri', '_blank');
+          pushOverlay('incheon');
         }}
-        style={{
-          flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
-          cursor: 'pointer', transition: 'all 0.2s',
-          color: navInactiveColor,
-        }}
+        style={{ '--bottom-nav-accent': bottomNavAccent }}
       >
-        <MessageSquare size={22} strokeWidth={1.5} />
-        <span style={{ fontSize: '9px', fontWeight: 600, marginTop: '2px' }}>
-          {i18n.language?.startsWith('en') ? 'Chat' : '채팅문의'}
-        </span>
-      </div>
+        <Building2 size={22} strokeWidth={isBarNavActive ? 2.5 : 1.5} />
+        <span>BAR</span>
+      </button>
+
+      <button
+        type="button"
+        className={`bottom-nav__item${isMyNavActive ? ' bottom-nav__item--active' : ''}`}
+        onClick={() => {
+          pushOverlay('partner');
+        }}
+        style={{ '--bottom-nav-accent': bottomNavAccent }}
+      >
+        <User size={22} strokeWidth={isMyNavActive ? 2.5 : 1.5} />
+        <span>{i18n.language?.startsWith('en') ? 'My' : '마이'}</span>
+      </button>
     </nav>
     )}
     {!isAdminShell && chatbotOverlay && (
