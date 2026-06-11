@@ -2546,11 +2546,8 @@ body.party-register-open [data-bchata-app-root] {
 nav.bottom-nav.bottom-nav--dark,
 .bottom-nav.bottom-nav--dark,
 body:not(.bottom-nav-social-light) nav.bottom-nav {
-  background: #0b0b0b !important;
-  border-top: 1px solid #2a2a2a !important;
-  border-left: none !important;
-  border-right: none !important;
-  border-bottom: none !important;
+  background: #0a0a0a !important;
+  border: 1px solid rgba(255, 255, 255, 0.12) !important;
   box-shadow: 0 10px 40px rgba(0, 0, 0, 0.55) !important;
   backdrop-filter: blur(10px) !important;
   -webkit-backdrop-filter: blur(10px) !important;

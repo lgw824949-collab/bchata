@@ -1127,7 +1127,7 @@ function App() {
     document.body.classList.toggle('app-dark-surface', isDarkAppSurface)
     const themeMeta = document.querySelector('meta[name="theme-color"]')
     if (themeMeta) {
-      if (isDarkAppSurface) themeMeta.setAttribute('content', '#0B0B0B')
+      if (isDarkAppSurface) themeMeta.setAttribute('content', '#0D0D0D')
       else if (isSocialLightNav) themeMeta.setAttribute('content', '#ffffff')
       else themeMeta.setAttribute('content', '#FF1744')
     }
@@ -2235,16 +2235,12 @@ function App() {
 
   const isLegalPage = location.pathname === '/terms' || location.pathname === '/privacy';
 
-  const bottomNavAccent = '#FF5B3A'
+  const bottomNavAccent = '#FF1744'
   const navActiveColor = bottomNavAccent
-  const navInactiveColor = '#6B6B6B'
-  const socialNavActive = '#FF1744'
-  const socialNavInactive = '#94A3B8'
+  const navInactiveColor = '#94A3B8'
+  const socialNavActive = bottomNavAccent
+  const socialNavInactive = navInactiveColor
   const isHomeNavActive = location.pathname === '/' && view === 'home' && homeActiveTab === null && !showPartner
-  const isPartyNavActive = location.pathname === '/' && view === 'home' && homeActiveTab === 'social' && !showPartner
-  const isInstructorNavActive = location.pathname === '/instructors' || location.pathname.startsWith('/instructors/')
-  const isBarNavActive = showIncheonModal
-  const isMyNavActive = showPartner
   const isWishlistNavActive = showWishlist
   const isConciergeNavActive = chatbotOverlay
   const isLivepickNavActive = location.pathname === '/livepick'
@@ -3251,173 +3247,94 @@ function App() {
       className={`bottom-nav ${isSocialLightNav ? 'bottom-nav--social-light' : 'bottom-nav--dark'}`}
       aria-label="메인 메뉴"
     >
-      {isSocialLightNav ? (
-        <>
-          <div
-            onClick={() => {
-              setShowPartner(false);
-              historyNavigate('/', { homeTab: null, replace: true, force: true });
-            }}
-            style={{
-              flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
-              cursor: 'pointer', transition: 'all 0.2s',
-              color: isHomeNavActive ? socialNavActive : socialNavInactive,
-            }}
-          >
-            <HomeIcon size={22} strokeWidth={isHomeNavActive ? 2.5 : 1.5} />
-            <span style={{ fontSize: '9px', fontWeight: isHomeNavActive ? 900 : 600, marginTop: '2px' }}>
-              {i18n.language?.startsWith('en') ? 'Home' : '홈'}
-            </span>
-          </div>
-          <div
-            onClick={() => {
-              setShowPartner(false);
-              pushOverlay('wishlist');
-            }}
-            style={{
-              flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
-              cursor: 'pointer', transition: 'all 0.2s',
-              color: isWishlistNavActive ? socialNavActive : socialNavInactive,
-            }}
-          >
-            <Heart size={22} strokeWidth={isWishlistNavActive ? 2.5 : 1.5} />
-            <span style={{ fontSize: '9px', fontWeight: isWishlistNavActive ? 900 : 600, marginTop: '2px' }}>
-              {i18n.language?.startsWith('en') ? 'Saved' : '찜하기'}
-            </span>
-          </div>
-          <div
-            onClick={() => {
-              setShowPartner(false);
-              window.dispatchEvent(new CustomEvent('open-chatbot'));
-            }}
-            style={{
-              flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
-              cursor: 'pointer', transition: 'all 0.2s',
-              color: isConciergeNavActive ? socialNavActive : socialNavInactive,
-            }}
-          >
-            <Zap size={22} strokeWidth={isConciergeNavActive ? 2.5 : 1.5} />
-            <span style={{ fontSize: '9px', fontWeight: isConciergeNavActive ? 900 : 600, marginTop: '2px' }}>
-              {i18n.language?.startsWith('en') ? 'Concierge' : '컨시어지'}
-            </span>
-          </div>
-          <div
-            onClick={() => {
-              setShowPartner(false);
-              navigate('/livepick');
-            }}
-            style={{
-              flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
-              cursor: 'pointer', transition: 'all 0.2s',
-              color: isLivepickNavActive ? socialNavActive : socialNavInactive,
-            }}
-          >
-            <Camera size={22} strokeWidth={isLivepickNavActive ? 2.5 : 1.5} />
-            <span style={{ fontSize: '9px', fontWeight: isLivepickNavActive ? 900 : 600, marginTop: '2px' }}>
-              {i18n.language?.startsWith('en') ? 'Live pick' : '라이브픽'}
-            </span>
-          </div>
-          <div
-            onClick={() => {
-              setShowPartner(false);
-              window.open('https://open.kakao.com/o/gP43rNri', '_blank');
-            }}
-            style={{
-              flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
-              cursor: 'pointer', transition: 'all 0.2s',
-              color: socialNavInactive,
-            }}
-          >
-            <MessageSquare size={22} strokeWidth={1.5} />
-            <span style={{ fontSize: '9px', fontWeight: 600, marginTop: '2px' }}>
-              {i18n.language?.startsWith('en') ? 'Chat' : '채팅문의'}
-            </span>
-          </div>
-        </>
-      ) : (
-        <>
-          <div
-            onClick={() => {
-              setShowPartner(false);
-              historyNavigate('/', { homeTab: null, replace: true, force: true });
-            }}
-            style={{
-              flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
-              cursor: 'pointer', transition: 'all 0.2s',
-              color: isHomeNavActive ? bottomNavAccent : navInactiveColor,
-            }}
-          >
-            <HomeIcon size={22} strokeWidth={isHomeNavActive ? 2.5 : 1.5} />
-            <span style={{ fontSize: '9px', fontWeight: isHomeNavActive ? 900 : 600, marginTop: '2px' }}>
-              {i18n.language?.startsWith('en') ? 'Home' : '홈'}
-            </span>
-          </div>
-          <div
-            onClick={() => {
-              setShowPartner(false);
-              navigateHomeTab('social');
-            }}
-            style={{
-              flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
-              cursor: 'pointer', transition: 'all 0.2s',
-              color: isPartyNavActive ? bottomNavAccent : navInactiveColor,
-            }}
-          >
-            <Music2 size={22} strokeWidth={isPartyNavActive ? 2.5 : 1.5} />
-            <span style={{ fontSize: '9px', fontWeight: isPartyNavActive ? 900 : 600, marginTop: '2px' }}>
-              {i18n.language?.startsWith('en') ? 'Party' : '파티'}
-            </span>
-          </div>
-          <div
-            onClick={() => {
-              setShowPartner(false);
-              navigate('/instructors');
-            }}
-            style={{
-              flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
-              cursor: 'pointer', transition: 'all 0.2s',
-              color: isInstructorNavActive ? bottomNavAccent : navInactiveColor,
-            }}
-          >
-            <GraduationCap size={22} strokeWidth={isInstructorNavActive ? 2.5 : 1.5} />
-            <span style={{ fontSize: '9px', fontWeight: isInstructorNavActive ? 900 : 600, marginTop: '2px' }}>
-              {i18n.language?.startsWith('en') ? 'Instructor' : '강사'}
-            </span>
-          </div>
-          <div
-            onClick={() => {
-              setShowPartner(false);
-              openAnalysis(false);
-            }}
-            style={{
-              flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
-              cursor: 'pointer', transition: 'all 0.2s',
-              color: isBarNavActive ? bottomNavAccent : navInactiveColor,
-            }}
-          >
-            <Building2 size={22} strokeWidth={isBarNavActive ? 2.5 : 1.5} />
-            <span style={{ fontSize: '9px', fontWeight: isBarNavActive ? 900 : 600, marginTop: '2px' }}>
-              BAR
-            </span>
-          </div>
-          <div
-            onClick={() => {
-              pushOverlay('partner');
-              setShowPartner(true);
-            }}
-            style={{
-              flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
-              cursor: 'pointer', transition: 'all 0.2s',
-              color: isMyNavActive ? bottomNavAccent : navInactiveColor,
-            }}
-          >
-            <User size={22} strokeWidth={isMyNavActive ? 2.5 : 1.5} />
-            <span style={{ fontSize: '9px', fontWeight: isMyNavActive ? 900 : 600, marginTop: '2px' }}>
-              {i18n.language?.startsWith('en') ? 'My' : '마이'}
-            </span>
-          </div>
-        </>
-      )}
+      <div 
+        onClick={() => {
+          setShowPartner(false);
+          setActiveTab(null);
+          historyNavigate('/', { homeTab: null, replace: true, force: true });
+        }}
+        style={{ 
+          flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
+          cursor: 'pointer', transition: 'all 0.2s',
+          color: isHomeNavActive ? bottomNavAccent : navInactiveColor
+        }}
+      >
+        <HomeIcon size={22} strokeWidth={isHomeNavActive ? 2.5 : 1.5} />
+        <span style={{ fontSize: '9px', fontWeight: isHomeNavActive ? 900 : 600, marginTop: '2px' }}>
+          {i18n.language?.startsWith('en') ? 'Home' : '홈'}
+        </span>
+      </div>
+      <div
+        onClick={() => {
+          setShowPartner(false);
+          setActiveTab(null);
+          pushOverlay('wishlist');
+        }}
+        style={{
+          flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
+          cursor: 'pointer', transition: 'all 0.2s',
+          color: isWishlistNavActive ? bottomNavAccent : navInactiveColor,
+        }}
+      >
+        <Heart size={22} strokeWidth={isWishlistNavActive ? 2.5 : 1.5} />
+        <span style={{ fontSize: '9px', fontWeight: isWishlistNavActive ? 900 : 600, marginTop: '2px' }}>
+          {i18n.language?.startsWith('en') ? 'Saved' : '찜하기'}
+        </span>
+      </div>
+
+      <div
+        onClick={() => {
+          setShowPartner(false);
+          setActiveTab(null);
+          window.dispatchEvent(new CustomEvent('open-chatbot'));
+        }}
+        style={{
+          flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
+          cursor: 'pointer', transition: 'all 0.2s',
+          color: isConciergeNavActive ? bottomNavAccent : navInactiveColor,
+        }}
+      >
+        <Zap size={22} strokeWidth={isConciergeNavActive ? 2.5 : 1.5} />
+        <span style={{ fontSize: '9px', fontWeight: isConciergeNavActive ? 900 : 600, marginTop: '2px' }}>
+          {i18n.language?.startsWith('en') ? 'Concierge' : '컨시어지'}
+        </span>
+      </div>
+
+      <div 
+        onClick={() => {
+          setShowPartner(false);
+          setActiveTab(null);
+          navigate('/livepick');
+        }}
+        style={{ 
+          flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
+          cursor: 'pointer', transition: 'all 0.2s',
+          color: isLivepickNavActive ? bottomNavAccent : navInactiveColor
+        }}
+      >
+        <Camera size={22} strokeWidth={isLivepickNavActive ? 2.5 : 1.5} />
+        <span style={{ fontSize: '9px', fontWeight: isLivepickNavActive ? 900 : 600, marginTop: '2px' }}>
+          {i18n.language?.startsWith('en') ? 'Live pick' : '라이브픽'}
+        </span>
+      </div>
+
+      <div
+        onClick={() => {
+          setShowPartner(false);
+          setActiveTab(null);
+          window.open('https://open.kakao.com/o/gP43rNri', '_blank');
+        }}
+        style={{
+          flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
+          cursor: 'pointer', transition: 'all 0.2s',
+          color: navInactiveColor,
+        }}
+      >
+        <MessageSquare size={22} strokeWidth={1.5} />
+        <span style={{ fontSize: '9px', fontWeight: 600, marginTop: '2px' }}>
+          {i18n.language?.startsWith('en') ? 'Chat' : '채팅문의'}
+        </span>
+      </div>
     </nav>
     )}
     {!isAdminShell && chatbotOverlay && (
