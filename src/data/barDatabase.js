@@ -2,7 +2,7 @@
 export const BAR_DATABASE = [
   // [서울 - 강남권]
   { name: '라틴', address: '서울특별시 강남구 테헤란로 6길 9', region: '서울', lat: 37.4980, lon: 127.0279 },
-  { name: '강남턴', address: '서울특별시 강남구 역삼1동 831-34', region: '서울', aliases: ['강턴'], lat: 37.4975, lon: 127.0358 },
+  { name: '강남턴', address: '서울특별시 강남구 역삼로3길 17-5 (역삼동), 삼영빌딩 지하 1층', region: '서울', aliases: ['강턴'], lat: 37.4975, lon: 127.0358 },
   { name: '강남SOL', address: '서울특별시 강남구 테헤란로 8길 11-7', region: '서울', aliases: ['Sol bar', 'SOL'], lat: 37.4982, lon: 127.0285 },
   { name: '마이애미', address: '서울특별시 강남구 테헤란로14길 25', region: '서울', lat: 37.4985, lon: 127.0312 },
   { name: '뉴욕', address: '서울특별시 강남구 강남대로84길 24-4', region: '서울', lat: 37.5015, lon: 127.0247 },

@@ -37,6 +37,28 @@ const KOREAN_WEEKDAYS = ['일', '월', '화', '수', '목', '금', '토'];
 
 const PLATFORM_NAME_RE = /오늘밤빠|밤빠|bamppa|tonightbamppa/i;
 
+const VENUE_SHORT_LABEL = {
+  강남턴: '강턴',
+};
+
+const GANGTURN_ADDRESS_HINTS = ['역삼로3길', '831-34', '삼영빌딩'];
+
+function finalizePartyVenueLabel(name) {
+  const trimmed = String(name || '').trim();
+  if (!trimmed) return '';
+  return VENUE_SHORT_LABEL[trimmed] || trimmed;
+}
+
+function inferPartyVenueFromContext(p) {
+  const title = String(p?.title || '');
+  if (title.includes('강턴') || title.includes('강남턴')) return '강턴';
+
+  const addr = String(p?.locations?.address || p?.address || '');
+  if (GANGTURN_ADDRESS_HINTS.some((hint) => addr.includes(hint))) return '강턴';
+
+  return '';
+}
+
 export const CHAT_GENRE_BY_NUM = {
   '1': '바차타',
   '2': '살사',
@@ -116,18 +138,21 @@ export function attachPartyDistances(parties, userCoords, coordMap = {}) {
 export function resolvePartyVenueName(p, locationMap = {}) {
   const joined = p?.locations?.name;
   if (joined && !PLATFORM_NAME_RE.test(joined)) {
-    return String(joined).trim();
+    return finalizePartyVenueLabel(joined);
   }
 
   const mapped = locationMap[p?.location_id];
   if (mapped && !PLATFORM_NAME_RE.test(mapped)) {
-    return String(mapped).trim();
+    return finalizePartyVenueLabel(mapped);
   }
 
   const legacy = p?.locationName || p?.location_name || p?.studio_name;
   if (legacy && !PLATFORM_NAME_RE.test(legacy)) {
-    return String(legacy).trim();
+    return finalizePartyVenueLabel(legacy);
   }
+
+  const inferred = inferPartyVenueFromContext(p);
+  if (inferred) return inferred;
 
   return '장소 미정';
 }

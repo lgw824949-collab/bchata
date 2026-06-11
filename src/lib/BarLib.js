@@ -2,7 +2,7 @@
 export const BAR_DATABASE = [
   // [서울 - 강남권]
   { name: '라틴', name_en: 'Latin', address: '서울특별시 강남구 테헤란로 6길 9', region: '서울' },
-  { name: '강남턴', name_en: 'Gangnam Turn', address: '서울특별시 강남구 역삼1동 831-34', region: '서울', aliases: ['강턴'] },
+  { name: '강남턴', name_en: 'Gangnam Turn', address: '서울특별시 강남구 역삼로3길 17-5 (역삼동), 삼영빌딩 지하 1층', region: '서울', aliases: ['강턴'] },
   { name: '강남SOL', name_en: 'Gangnam SOL', address: '서울특별시 강남구 테헤란로 8길 11-7', region: '서울', aliases: ['Sol bar', 'SOL'] },
   { name: '마이애미', name_en: 'Miami', address: '서울특별시 강남구 테헤란로14길 25', region: '서울' },
   { name: '뉴욕', name_en: 'New York', address: '서울특별시 강남구 강남대로84길 24-4', region: '서울' },
