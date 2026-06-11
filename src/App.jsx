@@ -3288,11 +3288,11 @@ function App() {
             <GraduationCap size={22} strokeWidth={isInstructorNavActive ? 2.5 : 1.5} />
             <span style={{ fontSize: '9px', fontWeight: isInstructorNavActive ? 900 : 600, marginTop: '2px' }}>강사</span>
           </div>
-          <div onClick={() => { setShowPartner(false); openAnalysis(false); }} style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', color: isBarNavActive ? bottomNavAccent : navInactiveColor }}>
+          <div onClick={() => { setShowPartner(false); pushOverlay('incheon'); }} style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', color: isBarNavActive ? bottomNavAccent : navInactiveColor }}>
             <Building2 size={22} strokeWidth={isBarNavActive ? 2.5 : 1.5} />
             <span style={{ fontSize: '9px', fontWeight: isBarNavActive ? 900 : 600, marginTop: '2px' }}>BAR</span>
           </div>
-          <div onClick={() => { pushOverlay('partner'); setShowPartner(true); }} style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', color: isMyNavActive ? bottomNavAccent : navInactiveColor }}>
+          <div onClick={() => { setShowPartner(false); pushOverlay('partner'); }} style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', color: isMyNavActive ? bottomNavAccent : navInactiveColor }}>
             <User size={22} strokeWidth={isMyNavActive ? 2.5 : 1.5} />
             <span style={{ fontSize: '9px', fontWeight: isMyNavActive ? 900 : 600, marginTop: '2px' }}>마이</span>
           </div>

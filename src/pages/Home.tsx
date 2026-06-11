@@ -17,7 +17,8 @@ import {
   normalizeVenueAddressKey,
   normalizeVenueNameKey,
 } from '../lib/venueDedupe'
-import HomeDarkGate from '../components/home/HomeDarkGate'
+import { HomeDarkGate } from '../components/home'
+import { useHomeDarkGateProps } from '../hooks/useHomeDarkGateProps'
 import VenueDetailModal from '../components/VenueDetailModal'
 import BarRegisterFormModal from '../components/BarRegisterFormModal'
 import { navigate as historyNavigate, navigateHomeTab, parseAppState, pushOverlay, readNavigationState } from '../lib/appHistory'
@@ -201,13 +202,6 @@ const HOME_REGIONS_ORDER = [
 
 /** Social BAR — 위치 실패 시 전국 노출 */
 const SOCIAL_BAR_REGION_ALL = '전체';
-
-const HOME_DARK_REGION_PILLS = [
-  { id: 'all', labelKo: '전체', labelEn: 'All' },
-  { id: 'national', labelKo: '전국', labelEn: 'National' },
-  { id: 'seoul', labelKo: '서울', labelEn: 'Seoul' },
-  { id: 'metro', labelKo: '수도권', labelEn: 'Metro' },
-];
 
 /** 홈 Social BAR — 2장 + 3번째 peek 이후 스크롤로 더 보기 */
 const SOCIAL_BAR_PEEK_VISIBLE = 3;
@@ -1914,44 +1908,6 @@ const HomePage = ({
     [todayPosterParties],
   );
 
-  const barTodayPartyCountByKey = useMemo(() => {
-    const map = new Map();
-    todayPosterPartiesForCount.forEach((party) => {
-      const venueName = resolvePartyVenueName(party)
-        || party.locationName
-        || party.location_name
-        || '';
-      const key = normalizeVenueNameKey(venueName);
-      if (!key) return;
-      map.set(key, (map.get(key) || 0) + 1);
-    });
-    return map;
-  }, [todayPosterPartiesForCount]);
-
-  const getBarTodayEventCount = useCallback((bar) => {
-    const key = normalizeVenueNameKey(bar?.name || '');
-    return key ? (barTodayPartyCountByKey.get(key) || 0) : 0;
-  }, [barTodayPartyCountByKey]);
-
-  const [homeRegionPill, setHomeRegionPill] = useState('all');
-  const [homePickIndex, setHomePickIndex] = useState(0);
-
-  const homeFilteredTodayParties = useMemo(() => {
-    const base = todayPosterPartiesForCount;
-    if (homeRegionPill === 'seoul') return base.filter(isHomePosterBannerSeoul);
-    if (homeRegionPill === 'metro') return base.filter(isHomePosterBannerMetro);
-    if (homeRegionPill === 'national') return base.filter(isHomePosterBannerLocal);
-    return base;
-  }, [todayPosterPartiesForCount, homeRegionPill]);
-
-  const homeTodayPickParty = homeFilteredTodayParties.length
-    ? homeFilteredTodayParties[homePickIndex % homeFilteredTodayParties.length]
-    : null;
-
-  useEffect(() => {
-    setHomePickIndex(0);
-  }, [homeRegionPill]);
-
   useEffect(() => {
     const todayParties = todayPosterPartiesForCount;
 
@@ -2413,20 +2369,37 @@ const HomePage = ({
     return [geoRegionTab, ...rest, SOCIAL_BAR_REGION_ALL];
   }, [locations, geoRegionTab, geoRegionStatus]);
 
-  const homeDarkRegionPillCounts = useMemo(() => ({
-    all: todayPosterPartiesForCount.length,
-    national: regionCounts.national,
-    seoul: regionCounts.seoul,
-    metro: regionCounts.metro,
-  }), [todayPosterPartiesForCount.length, regionCounts]);
+  const filterTodayPartiesByPill = useCallback((parties, pillId) => {
+    if (pillId === 'seoul') return parties.filter(isHomePosterBannerSeoul);
+    if (pillId === 'metro') return parties.filter(isHomePosterBannerMetro);
+    if (pillId === 'national') return parties.filter(isHomePosterBannerLocal);
+    return parties;
+  }, []);
 
-  const homeDarkRegionBars = useMemo(() => {
-    if (!selectedRegionTab) return [];
-    const filteredBars = selectedRegionTab === SOCIAL_BAR_REGION_ALL
-      ? locations
-      : locations.filter((bar) => bar.region === selectedRegionTab);
-    return sortBarsForSocialBarTab(filteredBars, selectedRegionTab);
-  }, [locations, selectedRegionTab, geoRegionTab]);
+  const { gateProps: homeDarkGateProps } = useHomeDarkGateProps({
+    isEn,
+    translateDynamicText,
+    todayPosterPartiesForCount,
+    regionCounts,
+    wishlistParties,
+    hotInstructors,
+    hotInstructorsLoading,
+    socialBarRegionTabs,
+    selectedRegionTab,
+    setSelectedRegionTab,
+    barRegionCounts,
+    geoRegionTab,
+    locations,
+    locationsLoading,
+    geoRegionStatus,
+    socialBarRegionAll: SOCIAL_BAR_REGION_ALL,
+    sortBarsForSocialBarTab,
+    openPartyWithAfterParty,
+    toggleWishlistParty,
+    openVenueDetail,
+    registerAdminPortalTap,
+    filterTodayPartiesByPill,
+  });
 
   const syncVenueAcrossHome = (updated) => {
     if (!updated) return;
@@ -4111,53 +4084,7 @@ const HomePage = ({
           }}
         >
           {isHomeGateDark ? (
-            <HomeDarkGate
-              isEn={isEn}
-              regionPills={HOME_DARK_REGION_PILLS}
-              regionPill={homeRegionPill}
-              regionPillCounts={homeDarkRegionPillCounts}
-              onRegionPillChange={setHomeRegionPill}
-              todayPickParty={homeTodayPickParty}
-              todayPickTitle={homeTodayPickParty
-                ? translateDynamicText(formatPartyTitleDisplay(homeTodayPickParty.title), isEn)
-                : ''}
-              todayPickVenue={homeTodayPickParty
-                ? translateDynamicText(
-                  homeTodayPickParty.locationName || homeTodayPickParty.location_name || homeTodayPickParty.venue || '',
-                  isEn,
-                )
-                : ''}
-              pickIndex={homePickIndex}
-              onPickIndexChange={setHomePickIndex}
-              todayParties={homeFilteredTodayParties}
-              wishlistPartyIds={wishlistParties}
-              getPartyTitle={(party) => translateDynamicText(formatPartyTitleDisplay(party.title), isEn)}
-              getPartyVenue={(party) => translateDynamicText(
-                party.locationName || party.location_name || party.venue || '',
-                isEn,
-              )}
-              onPartyClick={openPartyWithAfterParty}
-              onToggleWishlist={toggleWishlistParty}
-              onViewAllParties={() => navigateHomeTab('social')}
-              instructors={hotInstructors}
-              instructorsLoading={hotInstructorsLoading}
-              onViewAllInstructors={() => navigate('/instructors', { homeTab: null })}
-              onInstructorClick={() => navigate('/instructors')}
-              socialBarRegionTabs={socialBarRegionTabs}
-              selectedBarRegionTab={selectedRegionTab}
-              barRegionCounts={barRegionCounts}
-              geoRegionTab={geoRegionTab}
-              regionBars={homeDarkRegionBars}
-              locationsLoading={locationsLoading}
-              geoRegionPending={geoRegionStatus === 'pending'}
-              getBarCoverPhoto={(bar) => bar.image_url || resolveBarVenuePhoto(bar.name, bar.image_url)}
-              getBarEventCount={getBarTodayEventCount}
-              onBarRegionTabChange={setSelectedRegionTab}
-              onBarClick={openVenueDetail}
-              onViewMap={() => openAnalysis(false)}
-              onAdminTap={registerAdminPortalTap}
-              onSearch={() => navigateHomeTab('social')}
-            />
+            <HomeDarkGate {...homeDarkGateProps} />
           ) : (
             <>
               {renderHomeMainLiveSlot()}
@@ -4174,13 +4101,13 @@ const HomePage = ({
       {/* 메인 퀵메뉴: activeTab === null → 3섹션 그리드 / 소셜 탭 → 가로 스크롤 */}
       <style>{`
         .home-gate-shell {
-          --home-page-bg: #F5F6F8;
-          --home-text-primary: #191F28;
-          --home-text-secondary: #191F28;
-          --home-text-tertiary: #4B5563;
-          --home-card-border: #E8EBED;
-          --home-fade-rgb: ${isHomeGateDark ? '13, 13, 13' : '245, 246, 248'};
-          background-color: #F5F6F8 !important;
+          --home-page-bg: ${isHomeGateDark ? '#0B0B0B' : '#F5F6F8'};
+          --home-text-primary: ${isHomeGateDark ? '#FFFFFF' : '#191F28'};
+          --home-text-secondary: ${isHomeGateDark ? '#B8B8B8' : '#191F28'};
+          --home-text-tertiary: ${isHomeGateDark ? 'rgba(255,255,255,0.45)' : '#4B5563'};
+          --home-card-border: ${isHomeGateDark ? '#2A2A2A' : '#E8EBED'};
+          --home-fade-rgb: ${isHomeGateDark ? '11, 11, 11' : '245, 246, 248'};
+          background-color: ${isHomeGateDark ? '#0B0B0B' : '#F5F6F8'} !important;
         }
         .home-gate-shell .home-main-stack {
           display: flex;
