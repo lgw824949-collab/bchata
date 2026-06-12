@@ -1735,6 +1735,17 @@ const HomePage = ({
     [todayPosterParties],
   );
 
+  /** 소셜 탭 — 날짜바·달력·목록 (오늘 이후, 소셜 슬롯만) */
+  const calendarParties = useMemo(
+    () =>
+      dedupePartiesByPoster(
+        (parties || []).filter(
+          (p) => normDate(p.date) >= todayStr && partyRowMatchesSlot(p, '소셜'),
+        ),
+      ),
+    [parties, todayStr],
+  );
+
   useEffect(() => {
     const todayParties = todayPosterPartiesForCount;
 
