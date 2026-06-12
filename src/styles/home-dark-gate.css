@@ -4,31 +4,39 @@
 
 .home-gate-shell.home-gate-active,
 .home-dark-gate {
-  --hd-lux-top: #1c1924;
-  --hd-lux-mid: #15131c;
-  --hd-lux-deep: #12101a;
-  --hd-lux-base: #0f0d14;
-  --hd-bg: #12101a;
-  --hd-bg-fade: #0f0d14;
-  --hd-card: #221e2c;
-  --hd-card-soft: rgba(34, 30, 44, 0.88);
-  --hd-card-media: #181520;
+  /* 목업 톤: 웜 브라운-버건디 베이스 */
+  --hd-lux-top: #1f1816;
+  --hd-lux-mid: #181310;
+  --hd-lux-deep: #120f0d;
+  --hd-lux-base: #0d0b0a;
+  --hd-bg: #14100e;
+  --hd-bg-fade: #0d0b0a;
+  --hd-card: #2a2220;
+  --hd-card-soft: rgba(42, 34, 32, 0.9);
+  --hd-card-media: #1e1816;
+  --hd-ui-surface: linear-gradient(165deg, rgba(48, 38, 34, 0.96) 0%, rgba(30, 24, 20, 0.98) 100%);
   --hd-primary: #ff5b3a;
   --hd-gold: #f6b84c;
   --hd-pink: #ff4d8d;
   --hd-text: #faf7f4;
   --hd-text-secondary: rgba(255, 244, 235, 0.58);
-  --hd-border: rgba(255, 214, 180, 0.11);
-  --hd-border-strong: rgba(255, 214, 180, 0.18);
-  --hd-poster-border: 1px solid rgba(255, 214, 180, 0.16);
-  --hd-elev-shadow: 0 10px 36px rgba(0, 0, 0, 0.38);
-  --hd-elev-poster: 0 16px 44px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(255, 214, 180, 0.1);
+  --hd-border: rgba(255, 200, 160, 0.12);
+  --hd-border-strong: rgba(255, 200, 160, 0.2);
+  --hd-poster-border: 1px solid rgba(255, 200, 160, 0.15);
+  --hd-elev-shadow: 0 10px 36px rgba(0, 0, 0, 0.4);
+  --hd-elev-poster:
+    0 16px 44px rgba(0, 0, 0, 0.52),
+    0 0 28px rgba(160, 64, 40, 0.1),
+    0 0 0 1px rgba(255, 200, 160, 0.1);
   --hd-elev-inset: inset 0 1px 0 rgba(255, 255, 255, 0.06);
-  --hd-lux-bg-base: linear-gradient(180deg, var(--hd-lux-top) 0%, var(--hd-lux-mid) 40%, var(--hd-lux-deep) 74%, var(--hd-lux-base) 100%);
-  --hd-lux-ambient:
-    radial-gradient(circle at 50% -8%, rgba(255, 91, 58, 0.42) 0%, transparent 52%),
-    radial-gradient(circle at 92% 6%, rgba(246, 184, 76, 0.28) 0%, transparent 48%),
-    radial-gradient(circle at 8% 90%, rgba(108, 68, 148, 0.32) 0%, transparent 50%);
+  --hd-lux-bg-base: linear-gradient(180deg, var(--hd-lux-top) 0%, var(--hd-lux-mid) 42%, var(--hd-lux-deep) 76%, var(--hd-lux-base) 100%);
+  /* 가운데 단일 스포트라이트 — 목업처럼 한 덩어리 분위기 */
+  --hd-lux-ambient: radial-gradient(
+    ellipse 100% 82% at 50% 22%,
+    rgba(180, 72, 48, 0.4) 0%,
+    rgba(120, 48, 36, 0.16) 42%,
+    transparent 74%
+  );
 }
 
 .home-gate-shell.home-gate-active {
@@ -40,17 +48,17 @@
   font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, system-ui, sans-serif !important;
 }
 
-/* 앰비언트 글로우 — blur로 넓게 퍼져 포스터가 더 선명하게 돋보임 */
+/* 앰비언트 — 넓은 블러 스포트라이트 (배경만, 포스터는 위 레이어) */
 .home-gate-shell.home-gate-active::before {
   content: '';
   position: absolute;
-  inset: -12% -8%;
+  inset: -18% -14%;
   z-index: 0;
   pointer-events: none;
   background: var(--hd-lux-ambient);
-  filter: blur(88px);
-  opacity: 0.72;
-  transform: scale(1.08);
+  filter: blur(96px);
+  opacity: 0.78;
+  transform: scale(1.12);
 }
 
 .home-gate-shell.home-gate-active > * {
@@ -314,7 +322,7 @@
   height: 40px;
   border: 1px solid var(--hd-border);
   border-radius: 12px;
-  background: linear-gradient(165deg, rgba(44, 39, 56, 0.95) 0%, rgba(30, 27, 40, 0.98) 100%);
+  background: var(--hd-ui-surface);
   box-shadow: var(--hd-elev-shadow), var(--hd-elev-inset);
   color: var(--hd-text);
   display: inline-flex;
@@ -345,8 +353,8 @@
   padding: 0 16px;
   border-radius: var(--hd-radius-pill);
   border: 1px solid var(--hd-border);
-  background: linear-gradient(165deg, rgba(40, 36, 52, 0.92) 0%, rgba(28, 25, 38, 0.96) 100%);
-  box-shadow: 0 4px 18px rgba(0, 0, 0, 0.22), var(--hd-elev-inset);
+  background: var(--hd-ui-surface);
+  box-shadow: 0 4px 18px rgba(0, 0, 0, 0.24), var(--hd-elev-inset);
   color: var(--hd-text-secondary);
   font-size: 13px;
   font-weight: 600;
@@ -401,7 +409,7 @@
   height: 50px;
   border-radius: 14px;
   border: 1px solid var(--hd-border);
-  background: linear-gradient(165deg, rgba(44, 39, 56, 0.88) 0%, rgba(26, 23, 34, 0.94) 100%);
+  background: var(--hd-ui-surface);
   font-size: 24px;
   line-height: 1;
   display: inline-flex;
@@ -431,12 +439,29 @@
   min-height: var(--hd-hero-h);
   border: var(--hd-poster-border);
   border-radius: var(--hd-radius-hero);
-  overflow: hidden;
-  background: var(--hd-card-media);
-  box-shadow:
-    var(--hd-elev-poster),
-    0 18px 56px rgba(255, 91, 58, 0.1);
+  overflow: visible;
+  background: transparent;
+  box-shadow: var(--hd-elev-poster);
   box-sizing: border-box;
+  isolation: isolate;
+}
+
+/* 히어로 전용 헤일로 — 목업의 포스터 뒤 웜 글로우 */
+.home-dark-today-pick::before {
+  content: '';
+  position: absolute;
+  inset: -10% -6%;
+  z-index: -1;
+  pointer-events: none;
+  border-radius: calc(var(--hd-radius-hero) + 8px);
+  background: radial-gradient(
+    ellipse 88% 72% at 50% 42%,
+    rgba(200, 80, 48, 0.28) 0%,
+    rgba(140, 52, 36, 0.1) 48%,
+    transparent 72%
+  );
+  filter: blur(52px);
+  opacity: 0.9;
 }
 
 .home-dark-today-pick--empty {
@@ -455,6 +480,9 @@
   inset: 0;
   width: 100%;
   height: 100%;
+  border-radius: var(--hd-radius-hero);
+  overflow: hidden;
+  background: var(--hd-card-media);
 }
 
 .home-dark-today-pick__stage--clickable {
@@ -482,12 +510,13 @@
 .home-dark-today-pick__overlay {
   position: absolute;
   inset: 0;
+  /* 상단·중앙은 포스터 색 살리고, 하단 텍스트만 어둡게 */
   background: linear-gradient(
     180deg,
-    rgba(20, 16, 28, 0.02) 0%,
-    rgba(12, 10, 18, 0.22) 38%,
-    rgba(8, 6, 14, 0.55) 62%,
-    rgba(8, 6, 14, 0.94) 100%
+    rgba(24, 18, 14, 0.04) 0%,
+    rgba(16, 12, 10, 0.08) 45%,
+    rgba(10, 8, 6, 0.42) 72%,
+    rgba(8, 6, 5, 0.95) 100%
   );
 }
 
@@ -848,7 +877,7 @@
   border-radius: 22px 22px 0 0;
   border: 1px solid rgba(255, 255, 255, 0.1);
   border-bottom: none;
-  background: linear-gradient(180deg, #252030 0%, #1a1722 100%);
+  background: linear-gradient(180deg, #2a2220 0%, #1a1412 100%);
   box-shadow: 0 -16px 52px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.05);
   pointer-events: auto;
   box-sizing: border-box;
@@ -961,7 +990,7 @@
   padding: 0 4px;
   border-radius: 999px;
   background: #ff3040;
-  border: 2px solid #1a1722;
+  border: 2px solid #1a1412;
   color: #fff;
   font-size: 9px;
   font-weight: 800;
