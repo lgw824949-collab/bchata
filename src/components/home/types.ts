@@ -1,3 +1,5 @@
+import type { LucideIcon } from 'lucide-react';
+
 export type HomeDarkHeroSlide = {
   id: string;
   kind: 'social' | 'bootcamp' | 'festival' | 'party';
@@ -41,4 +43,14 @@ export type HomeDarkRegionPill = {
   id: string;
   labelKo: string;
   labelEn: string;
+};
+
+export type HomeDarkMoreAction = {
+  id: string;
+  labelKo: string;
+  labelEn: string;
+  icon: LucideIcon;
+  tier?: 'primary' | 'secondary';
+  badge?: string;
+  onClick: () => void;
 };

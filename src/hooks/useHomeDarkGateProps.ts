@@ -9,6 +9,7 @@ import {
   pushOverlay,
 } from '../lib/appHistory';
 import { buildHomeDarkHeroSlides } from '../components/home/buildHomeDarkHeroSlides';
+import { buildHomeDarkMoreActions } from '../components/home/buildHomeDarkMoreActions';
 import {
   HOME_DARK_MIN_BAR_ITEMS,
   HOME_DARK_REGION_PILLS,
@@ -49,6 +50,20 @@ export type UseHomeDarkGatePropsInput = {
   openVenueDetail: (bar: HomeDarkBar) => void;
   registerAdminPortalTap: () => void;
   filterTodayPartiesByPill: (parties: HomeDarkParty[], pillId: string) => HomeDarkParty[];
+  hasLivePickUploadToday: boolean;
+  onRegisterParty: () => void;
+  onRegisterBarClass: () => void;
+  onRegisterInstructor: () => void;
+  onOpenWishlist: () => void;
+  onOpenCalendar: () => void;
+  onOpenConcierge: () => void;
+  onOpenLivePick: () => void;
+  onOpenKakaoChat: () => void;
+  onOpenRestaurant: () => void;
+  onOpenWeather: () => void;
+  onOpenRoute: () => void;
+  onOpenSaju: () => void;
+  onToggleLanguage: () => void;
 };
 
 /** Home.tsx — fetch·상태 유지, HomeDarkGate에 넘길 props + 네비 콜백 생성 */
@@ -82,6 +97,20 @@ export function useHomeDarkGateProps(input: UseHomeDarkGatePropsInput) {
     openVenueDetail,
     registerAdminPortalTap,
     filterTodayPartiesByPill,
+    hasLivePickUploadToday,
+    onRegisterParty,
+    onRegisterBarClass,
+    onRegisterInstructor,
+    onOpenWishlist,
+    onOpenCalendar,
+    onOpenConcierge,
+    onOpenLivePick,
+    onOpenKakaoChat,
+    onOpenRestaurant,
+    onOpenWeather,
+    onOpenRoute,
+    onOpenSaju,
+    onToggleLanguage,
   } = input;
 
   const [homeRegionPill, setHomeRegionPill] = useState('national');
@@ -227,6 +256,41 @@ export function useHomeDarkGateProps(input: UseHomeDarkGatePropsInput) {
     openPartyWithAfterParty(slide.raw as HomeDarkParty);
   }, [openBootcampPage, openFestivalPage, openFestivalPartyPage, openPartyWithAfterParty]);
 
+  const moreActions = useMemo(
+    () => buildHomeDarkMoreActions({
+      hasLivePickUploadToday,
+      onRegisterParty,
+      onRegisterBarClass,
+      onRegisterInstructor,
+      onOpenWishlist,
+      onOpenCalendar,
+      onOpenConcierge,
+      onOpenLivePick,
+      onOpenKakaoChat,
+      onOpenRestaurant,
+      onOpenWeather,
+      onOpenRoute,
+      onOpenSaju,
+      onToggleLanguage,
+    }),
+    [
+      hasLivePickUploadToday,
+      onRegisterParty,
+      onRegisterBarClass,
+      onRegisterInstructor,
+      onOpenWishlist,
+      onOpenCalendar,
+      onOpenConcierge,
+      onOpenLivePick,
+      onOpenKakaoChat,
+      onOpenRestaurant,
+      onOpenWeather,
+      onOpenRoute,
+      onOpenSaju,
+      onToggleLanguage,
+    ],
+  );
+
   const gateProps: HomeDarkGateProps = {
     isEn,
     regionPills: [...HOME_DARK_REGION_PILLS],
@@ -269,6 +333,8 @@ export function useHomeDarkGateProps(input: UseHomeDarkGatePropsInput) {
     onViewMap: navHandlers.openBarOverlay,
     onAdminTap: registerAdminPortalTap,
     onSearch: navHandlers.openPartyTab,
+    onOpenWishlist,
+    moreActions,
   };
 
   return { gateProps, navHandlers };

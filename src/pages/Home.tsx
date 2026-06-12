@@ -2080,6 +2080,68 @@ const HomePage = ({
     historyNavigate('/festival', { homeTab: null });
   }, []);
 
+  const openBarVenueLessonPick = useCallback(() => {
+    if (!locations.length) {
+      alert(isEn ? 'No BAR listed yet. Try again after Social BAR loads.' : '등록된 BAR가 없습니다. Social BAR 목록이 로드된 뒤 다시 시도해 주세요.');
+      return;
+    }
+    setShowVenueLessonPick(true);
+    pushOverlay('venueLessonPick');
+  }, [locations.length, isEn]);
+
+  const openFullCalendarModal = useCallback(() => {
+    setSelectedDate(calendarTodayStr);
+    setIsModalFilterVisible(true);
+    setShowFullCalendar(true);
+  }, [calendarTodayStr, setShowFullCalendar]);
+
+  const onRegisterParty = useCallback(() => {
+    handleRegister('party');
+  }, [handleRegister]);
+
+  const onRegisterInstructor = useCallback(() => {
+    window.dispatchEvent(new CustomEvent('open-class-register'));
+  }, []);
+
+  const onOpenWishlistOverlay = useCallback(() => {
+    pushOverlay('wishlist');
+  }, []);
+
+  const onOpenConcierge = useCallback(() => {
+    pushOverlay('chatbot');
+    window.dispatchEvent(new CustomEvent('open-chatbot'));
+  }, []);
+
+  const onOpenLivePick = useCallback(() => {
+    navigate('/livepick');
+  }, []);
+
+  const onOpenKakaoChat = useCallback(() => {
+    window.open('https://open.kakao.com/o/gP43rNri', '_blank');
+  }, []);
+
+  const onOpenRestaurant = useCallback(() => {
+    navigate('/restaurant');
+  }, []);
+
+  const onOpenWeatherOverlay = useCallback(() => {
+    pushOverlay('weather');
+  }, []);
+
+  const onOpenRouteOverlay = useCallback(() => {
+    openAnalysis(false);
+  }, [openAnalysis]);
+
+  const onOpenSajuOverlay = useCallback(() => {
+    pushOverlay('barMatching');
+    setShowSaju(true);
+  }, [setShowSaju]);
+
+  const onToggleAppLanguage = useCallback(() => {
+    const next = i18n.language.startsWith('ko') ? 'en' : 'ko';
+    i18n.changeLanguage(next);
+  }, [i18n]);
+
   const { gateProps: homeDarkGateProps } = useHomeDarkGateProps({
     isEn,
     translateDynamicText,
@@ -2109,6 +2171,20 @@ const HomePage = ({
     openVenueDetail,
     registerAdminPortalTap,
     filterTodayPartiesByPill,
+    hasLivePickUploadToday,
+    onRegisterParty,
+    onRegisterBarClass: openBarVenueLessonPick,
+    onRegisterInstructor,
+    onOpenWishlist: onOpenWishlistOverlay,
+    onOpenCalendar: openFullCalendarModal,
+    onOpenConcierge,
+    onOpenLivePick,
+    onOpenKakaoChat,
+    onOpenRestaurant,
+    onOpenWeather: onOpenWeatherOverlay,
+    onOpenRoute: onOpenRouteOverlay,
+    onOpenSaju: onOpenSajuOverlay,
+    onToggleLanguage: onToggleAppLanguage,
   });
 
   const closeVenueDetail = () => {
@@ -2134,15 +2210,6 @@ const HomePage = ({
   const closeVenueLessonPick = useCallback(() => {
     if (!closeOverlayNav()) setShowVenueLessonPick(false);
   }, []);
-
-  const openBarVenueLessonPick = useCallback(() => {
-    if (!locations.length) {
-      alert(isEn ? 'No BAR listed yet. Try again after Social BAR loads.' : '등록된 BAR가 없습니다. Social BAR 목록이 로드된 뒤 다시 시도해 주세요.');
-      return;
-    }
-    setShowVenueLessonPick(true);
-    pushOverlay('venueLessonPick');
-  }, [locations.length, isEn]);
 
   const pickBarForVenueLesson = useCallback(
     (bar) => {
