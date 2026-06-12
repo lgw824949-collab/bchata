@@ -2713,6 +2713,65 @@ const HomePage = ({
   };
   const homeSectionSpace = isHomeGate ? 32 : 36;
   const homeBlockSpace = isHomeGate ? 22 : 28;
+
+  const homeTodaySocialBannerModel = useMemo(
+    () => buildTodaySocialBannerModel({
+      sourceRows: parties,
+      todayStr: calendarTodayStr,
+      isEn,
+    }),
+    [parties, calendarTodayStr, isEn],
+  );
+
+  const renderHomeTodaySocialBanner = () => {
+    const { total, regionParts, emptyText } = homeTodaySocialBannerModel;
+    const hasToday = total > 0;
+
+    return (
+      <div className={`home-today-social-banner${isHomeGate ? ' home-today-social-banner--gate' : ''}`}>
+        <button
+          type="button"
+          className="home-today-social-banner__card home-today-social-banner__card--summary-only"
+          onClick={() => navigateHomeTab('social')}
+          aria-label={
+            hasToday
+              ? (isEn
+                ? `Today social nationwide ${total}`
+                : `오늘소셜 전국 ${total}건`)
+              : emptyText
+          }
+        >
+          <span className="home-today-social-banner__badge home-today-social-banner__badge--today">
+            {isEn ? 'Today' : '오늘'}
+          </span>
+          <span className="home-today-social-banner__inline">
+            <span className="home-today-social-banner__label">
+              {isEn ? 'Social' : '오늘소셜'}
+            </span>
+            {hasToday ? (
+              <>
+                <span className="home-today-social-banner__sep" aria-hidden>·</span>
+                <span className="home-today-social-banner__nation">
+                  {isEn ? 'Nationwide' : '전국'} <strong>{total}</strong>
+                </span>
+                {regionParts.map((part) => (
+                  <React.Fragment key={part.id}>
+                    <span className="home-today-social-banner__sep" aria-hidden>·</span>
+                    <span className="home-today-social-banner__region">
+                      {part.label} <strong>{part.count}</strong>
+                    </span>
+                  </React.Fragment>
+                ))}
+              </>
+            ) : (
+              <span className="home-today-social-banner__empty-inline">{emptyText}</span>
+            )}
+          </span>
+        </button>
+      </div>
+    );
+  };
+
   const renderHomeLiveAdRow = (inPanel = false) => (
     <motion.div
       className={`home-live-row${inPanel ? ' home-live-row--in-panel' : ''}`}
