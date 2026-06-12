@@ -20,21 +20,42 @@
   --hd-text-secondary: rgba(255, 244, 235, 0.58);
   --hd-border: rgba(255, 214, 180, 0.11);
   --hd-border-strong: rgba(255, 214, 180, 0.18);
-  --hd-poster-border: 1px solid rgba(255, 214, 180, 0.14);
+  --hd-poster-border: 1px solid rgba(255, 214, 180, 0.16);
   --hd-elev-shadow: 0 10px 36px rgba(0, 0, 0, 0.38);
+  --hd-elev-poster: 0 16px 44px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(255, 214, 180, 0.1);
   --hd-elev-inset: inset 0 1px 0 rgba(255, 255, 255, 0.06);
-  --hd-lux-bg-image:
-    radial-gradient(ellipse 120% 72% at 50% -14%, rgba(255, 91, 58, 0.14) 0%, transparent 54%),
-    radial-gradient(ellipse 88% 52% at 100% 4%, rgba(246, 184, 76, 0.09) 0%, transparent 50%),
-    radial-gradient(ellipse 72% 48% at 0% 92%, rgba(108, 68, 148, 0.1) 0%, transparent 48%),
-    linear-gradient(180deg, var(--hd-lux-top) 0%, var(--hd-lux-mid) 40%, var(--hd-lux-deep) 74%, var(--hd-lux-base) 100%);
+  --hd-lux-bg-base: linear-gradient(180deg, var(--hd-lux-top) 0%, var(--hd-lux-mid) 40%, var(--hd-lux-deep) 74%, var(--hd-lux-base) 100%);
+  --hd-lux-ambient:
+    radial-gradient(circle at 50% -8%, rgba(255, 91, 58, 0.42) 0%, transparent 52%),
+    radial-gradient(circle at 92% 6%, rgba(246, 184, 76, 0.28) 0%, transparent 48%),
+    radial-gradient(circle at 8% 90%, rgba(108, 68, 148, 0.32) 0%, transparent 50%);
 }
 
 .home-gate-shell.home-gate-active {
-  background: var(--hd-lux-bg-image) !important;
+  position: relative;
+  isolation: isolate;
+  background: var(--hd-lux-bg-base) !important;
   background-color: var(--hd-lux-deep) !important;
   color: var(--hd-text);
   font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, system-ui, sans-serif !important;
+}
+
+/* 앰비언트 글로우 — blur로 넓게 퍼져 포스터가 더 선명하게 돋보임 */
+.home-gate-shell.home-gate-active::before {
+  content: '';
+  position: absolute;
+  inset: -12% -8%;
+  z-index: 0;
+  pointer-events: none;
+  background: var(--hd-lux-ambient);
+  filter: blur(88px);
+  opacity: 0.72;
+  transform: scale(1.08);
+}
+
+.home-gate-shell.home-gate-active > * {
+  position: relative;
+  z-index: 1;
 }
 
 .home-gate-shell.home-gate-active * {
@@ -128,12 +149,17 @@
   inset: 0;
   background: linear-gradient(
     180deg,
-    rgba(0, 0, 0, 0) 38%,
-    rgba(0, 0, 0, 0.45) 68%,
-    rgba(0, 0, 0, 0.92) 100%
+    rgba(0, 0, 0, 0) 28%,
+    rgba(0, 0, 0, 0.28) 62%,
+    rgba(0, 0, 0, 0.86) 100%
   );
   pointer-events: none;
   z-index: 1;
+}
+
+.home-dark-gate .hd-cover-img--poster,
+.home-dark-gate .hd-cover-img--portrait {
+  filter: saturate(1.1) contrast(1.05);
 }
 
 .home-dark-gate .home-dark-card__body {
@@ -408,9 +434,8 @@
   overflow: hidden;
   background: var(--hd-card-media);
   box-shadow:
-    var(--hd-elev-shadow),
-    0 0 0 1px rgba(255, 200, 160, 0.06),
-    0 12px 40px rgba(255, 91, 58, 0.06);
+    var(--hd-elev-poster),
+    0 18px 56px rgba(255, 91, 58, 0.1);
   box-sizing: border-box;
 }
 
@@ -445,6 +470,7 @@
 
 .home-dark-today-pick__photo--hero {
   object-position: center center !important;
+  filter: saturate(1.12) contrast(1.06);
   animation: hd-hero-kenburns var(--hd-hero-rotate, 4.5s) ease-out forwards;
 }
 
@@ -458,9 +484,10 @@
   inset: 0;
   background: linear-gradient(
     180deg,
-    rgba(28, 22, 38, 0.1) 0%,
-    rgba(12, 10, 18, 0.45) 42%,
-    rgba(8, 6, 14, 0.93) 100%
+    rgba(20, 16, 28, 0.02) 0%,
+    rgba(12, 10, 18, 0.22) 38%,
+    rgba(8, 6, 14, 0.55) 62%,
+    rgba(8, 6, 14, 0.94) 100%
   );
 }
 
@@ -668,7 +695,7 @@
   overflow: hidden;
   cursor: pointer;
   text-align: left;
-  box-shadow: var(--hd-elev-shadow), var(--hd-elev-inset);
+  box-shadow: var(--hd-elev-poster), var(--hd-elev-inset);
   box-sizing: border-box;
 }
 
@@ -727,7 +754,7 @@
   cursor: pointer;
   text-align: left;
   overflow: hidden;
-  box-shadow: var(--hd-elev-shadow), var(--hd-elev-inset);
+  box-shadow: var(--hd-elev-poster), var(--hd-elev-inset);
   box-sizing: border-box;
 }
 
@@ -772,7 +799,7 @@
   cursor: pointer;
   text-align: left;
   padding: 0;
-  box-shadow: var(--hd-elev-shadow), var(--hd-elev-inset);
+  box-shadow: var(--hd-elev-poster), var(--hd-elev-inset);
   box-sizing: border-box;
 }
 
