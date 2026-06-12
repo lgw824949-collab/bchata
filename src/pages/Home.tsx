@@ -1783,6 +1783,13 @@ const HomePage = ({
     });
   }, [todayPosterPartiesForCount]);
 
+  const scrollRef = useRef(null);
+  const regionListRef = useRef(null);
+  const [locations, setLocations] = useState([]);
+  const [locationsLoading, setLocationsLoading] = useState(true);
+  const [hotInstructors, setHotInstructors] = useState([]);
+  const [hotInstructorsLoading, setHotInstructorsLoading] = useState(true);
+
   const [selectedRegionTab, setSelectedRegionTab] = useState(null);
   /** 휴대폰 GPS로 잡은 내 지역 — Social BAR 탭·정렬 1순위 */
   const [geoRegionTab, setGeoRegionTab] = useState(null);
@@ -1795,8 +1802,6 @@ const HomePage = ({
   const [venueLessonPostVenue, setVenueLessonPostVenue] = useState(null);
   const [showVenueLessonPick, setShowVenueLessonPick] = useState(false);
   const [showBarRegisterForm, setShowBarRegisterForm] = useState(false);
-  const [quickMenuMoreOpen, setQuickMenuMoreOpen] = useState(false);
-  const [kingMenuOpen, setKingMenuOpen] = useState(false);
   const [livePickUploadAt, setLivePickUploadAt] = useState(() => readLivePickUploadAt());
   const [barStatsMap, setBarStatsMap] = useState({});
   useEffect(() => {
