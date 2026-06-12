@@ -84,7 +84,7 @@ export function useHomeDarkGateProps(input: UseHomeDarkGatePropsInput) {
     filterTodayPartiesByPill,
   } = input;
 
-  const [homeRegionPill, setHomeRegionPill] = useState('all');
+  const [homeRegionPill, setHomeRegionPill] = useState('national');
   const [homePickIndex, setHomePickIndex] = useState(0);
 
   const barTodayPartyCountByKey = useMemo(() => {
@@ -136,10 +136,10 @@ export function useHomeDarkGateProps(input: UseHomeDarkGatePropsInput) {
   }, [homePickIndex, homeHeroSlides.length]);
 
   const homeDarkRegionPillCounts = useMemo(() => ({
-    all: todayPosterPartiesForCount.length,
-    national: regionCounts.national,
+    national: todayPosterPartiesForCount.length,
     seoul: regionCounts.seoul,
     metro: regionCounts.metro,
+    local: regionCounts.national,
   }), [todayPosterPartiesForCount.length, regionCounts]);
 
   const homeDarkInstructors = useMemo(() => {

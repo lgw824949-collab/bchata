@@ -2059,7 +2059,7 @@ const HomePage = ({
   const filterTodayPartiesByPill = useCallback((parties, pillId) => {
     if (pillId === 'seoul') return parties.filter(isHomePosterBannerSeoul);
     if (pillId === 'metro') return parties.filter(isHomePosterBannerMetro);
-    if (pillId === 'national') return parties.filter(isHomePosterBannerLocal);
+    if (pillId === 'local') return parties.filter(isHomePosterBannerLocal);
     return parties;
   }, []);
 
