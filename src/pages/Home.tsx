@@ -2580,7 +2580,7 @@ const HomePage = ({
 
     root.classList.add('home-gate-theme', 'app-dark-surface');
     body.classList.add('home-gate-theme', 'app-dark-surface');
-    if (themeMeta) themeMeta.setAttribute('content', '#0B0B0B');
+    if (themeMeta) themeMeta.setAttribute('content', '#12101A');
 
     return () => {
       root.classList.remove('home-gate-theme', 'app-dark-surface');
@@ -2638,10 +2638,10 @@ const HomePage = ({
   const HOME_TEXT_MUTED = 'rgba(30, 41, 59, 0.55)';
   const HOME_SURFACE = '#FFFFFF';
   const HOME_BORDER = '#EDEAE3';
-  const HOME_PAGE_BG = isHomeGate ? '#0B0B0B' : '#F5F6F8';
+  const HOME_PAGE_BG = isHomeGate ? '#12101A' : '#F5F6F8';
   const HOME_CARD_BORDER = '0.5px solid #EDEAE3';
   const homeUi = useMemo(() => (isHomeGate ? {
-    pageBg: '#0D0D0D',
+    pageBg: 'transparent',
     text: '#FFFFFF',
     textMuted: '#FFFFFF',
     surface: 'rgba(255, 255, 255, 0.06)',
@@ -2668,14 +2668,14 @@ const HomePage = ({
       districts: '#FFFFFF',
     },
     divider: 'rgba(255, 255, 255, 0.08)',
-    panelBg: '#121212',
+    panelBg: '#1a1722',
     panelBorder: 'rgba(255, 255, 255, 0.08)',
     panelShadow: '0 10px 40px rgba(0, 0, 0, 0.38)',
     quickIcon: '#FFFFFF',
     quickRegisterIcon: '#FFFFFF',
     posterActive: '#FFFFFF',
     posterIdle: 'rgba(255, 255, 255, 0.12)',
-    liveShell: 'linear-gradient(135deg, #1a1510 0%, #0a0a0a 55%, #141018 100%)',
+    liveShell: 'linear-gradient(135deg, #221e2c 0%, #15131c 52%, #1a1520 100%)',
     liveBorder: HOME_GOLD_BORDER,
     barSubtitle: '#FFFFFF',
     barLabel: '#FFFFFF',
@@ -3076,7 +3076,7 @@ const HomePage = ({
   return (
     <div
       className={`app-container${isHomeGate ? ' home-gate-shell home-gate-active' : ''}${activeTab === 'social' ? ' social-tab-active' : ''}`}
-      style={{ width: '100%', maxWidth: '500px', margin: '0 auto', background: isHomeGate ? HOME_PAGE_BG : homeUi.pageBg, minHeight: '100dvh', paddingBottom: '100px', transition: 'background 0.25s ease' }}
+      style={{ width: '100%', maxWidth: '500px', margin: '0 auto', background: isHomeGate ? 'transparent' : homeUi.pageBg, minHeight: '100dvh', paddingBottom: '100px', transition: 'background 0.25s ease' }}
     >
 
       {activeTab === 'social' && (
@@ -3099,13 +3099,13 @@ const HomePage = ({
       {/* 메인 퀵메뉴: activeTab === null → 3섹션 그리드 / 소셜 탭 → 가로 스크롤 */}
       <style>{`
         .home-gate-shell {
-          --home-page-bg: ${isHomeGate ? '#0B0B0B' : '#F5F6F8'};
-          --home-text-primary: ${isHomeGate ? '#FFFFFF' : '#191F28'};
-          --home-text-secondary: ${isHomeGate ? '#B8B8B8' : '#191F28'};
-          --home-text-tertiary: ${isHomeGate ? 'rgba(255,255,255,0.45)' : '#4B5563'};
-          --home-card-border: ${isHomeGate ? '#2A2A2A' : '#E8EBED'};
-          --home-fade-rgb: ${isHomeGate ? '11, 11, 11' : '245, 246, 248'};
-          background-color: ${isHomeGate ? '#0B0B0B' : '#F5F6F8'} !important;
+          --home-page-bg: ${isHomeGate ? '#0f0d14' : '#F5F6F8'};
+          --home-text-primary: ${isHomeGate ? '#FAF7F4' : '#191F28'};
+          --home-text-secondary: ${isHomeGate ? 'rgba(255, 244, 235, 0.58)' : '#191F28'};
+          --home-text-tertiary: ${isHomeGate ? 'rgba(255, 244, 235, 0.42)' : '#4B5563'};
+          --home-card-border: ${isHomeGate ? 'rgba(255, 214, 180, 0.11)' : '#E8EBED'};
+          --home-fade-rgb: ${isHomeGate ? '15, 13, 20' : '245, 246, 248'};
+          ${isHomeGate ? '' : 'background-color: #F5F6F8 !important;'}
         }
         .home-gate-shell .home-main-stack {
           display: flex;

@@ -1872,22 +1872,27 @@ body.app-dark-surface {
 /* 메인 홈 게이트(activeTab 없음): 앱 셸·루트까지 다크 (Home 내부만 어두운 문제 방지) */
 html.home-gate-theme,
 body.home-gate-theme {
-  --color-bg: #0d0d0d;
-  --color-text-main: #f8fafc;
-  --color-text-sub: #94a3b8;
+  --color-bg: #12101a;
+  --color-text-main: #faf7f4;
+  --color-text-sub: rgba(255, 244, 235, 0.58);
   --color-card: rgba(255, 255, 255, 0.06);
-  --color-border: rgba(255, 255, 255, 0.1);
-  background-color: #0d0d0d !important;
-  color: #f8fafc;
+  --color-border: rgba(255, 214, 180, 0.11);
+  background:
+    radial-gradient(ellipse 140% 90% at 50% -20%, rgba(255, 91, 58, 0.1) 0%, transparent 55%),
+    radial-gradient(ellipse 100% 70% at 100% 0%, rgba(246, 184, 76, 0.06) 0%, transparent 50%),
+    radial-gradient(ellipse 80% 60% at 0% 100%, rgba(108, 68, 148, 0.08) 0%, transparent 48%),
+    linear-gradient(180deg, #1c1924 0%, #15131c 45%, #12101a 78%, #0f0d14 100%) !important;
+  background-color: #12101a !important;
+  color: #faf7f4;
 }
 
 .bchata-app-shell--gate,
 html.home-gate-theme .bchata-app-shell,
 body.home-gate-theme .bchata-app-shell,
 body.home-gate-theme [data-bchata-app-root] {
-  background-color: #0d0d0d !important;
-  color: #f8fafc;
-  box-shadow: 0 0 48px rgba(0, 0, 0, 0.35);
+  background-color: transparent !important;
+  color: #faf7f4;
+  box-shadow: 0 0 56px rgba(0, 0, 0, 0.42);
 }
 
 /* Premium Layout Container */
@@ -2402,9 +2407,14 @@ body.party-register-open .bottom-nav {
   }
 
   body.app-dark-surface,
-  body.home-gate-theme,
   body.bchata-admin-shell-active {
     background: #050608 !important;
+  }
+
+  body.home-gate-theme {
+    background:
+      radial-gradient(ellipse 120% 80% at 50% -15%, rgba(255, 91, 58, 0.06) 0%, transparent 50%),
+      linear-gradient(180deg, #14121c 0%, #0a0812 100%) !important;
   }
 
   body.bchata-admin-shell-active .bchata-app-shell {
