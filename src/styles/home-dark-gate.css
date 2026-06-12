@@ -334,6 +334,53 @@
   font-size: 12px;
 }
 
+/* emoji quick menu */
+.home-dark-quick-menu {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 6px;
+  padding: 2px 0 6px;
+}
+
+.home-dark-quick-menu__btn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 2px 2px;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.home-dark-quick-menu__emoji {
+  width: 50px;
+  height: 50px;
+  border-radius: 14px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgba(255, 255, 255, 0.04);
+  font-size: 24px;
+  line-height: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.28);
+}
+
+.home-dark-quick-menu__btn:active .home-dark-quick-menu__emoji {
+  opacity: 0.88;
+}
+
+.home-dark-quick-menu__label {
+  font-size: 10px;
+  font-weight: 700;
+  line-height: 1.2;
+  color: rgba(255, 255, 255, 0.82);
+  text-align: center;
+  word-break: keep-all;
+}
+
 /* TODAY PICK hero */
 .home-dark-today-pick {
   position: relative;

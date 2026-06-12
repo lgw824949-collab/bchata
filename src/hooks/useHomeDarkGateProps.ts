@@ -10,6 +10,7 @@ import {
 } from '../lib/appHistory';
 import { buildHomeDarkHeroSlides } from '../components/home/buildHomeDarkHeroSlides';
 import { buildHomeDarkMoreActions } from '../components/home/buildHomeDarkMoreActions';
+import { buildHomeDarkQuickMenu } from '../components/home/buildHomeDarkQuickMenu';
 import {
   HOME_DARK_MIN_BAR_ITEMS,
   HOME_DARK_REGION_PILLS,
@@ -291,6 +292,16 @@ export function useHomeDarkGateProps(input: UseHomeDarkGatePropsInput) {
     ],
   );
 
+  const quickMenuItems = useMemo(
+    () => buildHomeDarkQuickMenu({
+      onOpenSocial: navHandlers.openPartyTab,
+      onOpenBootcamp: openBootcampPage,
+      onOpenFestival: openFestivalPage,
+      onOpenFestivalParty: openFestivalPartyPage,
+    }),
+    [navHandlers.openPartyTab, openBootcampPage, openFestivalPage, openFestivalPartyPage],
+  );
+
   const gateProps: HomeDarkGateProps = {
     isEn,
     regionPills: [...HOME_DARK_REGION_PILLS],
@@ -335,6 +346,7 @@ export function useHomeDarkGateProps(input: UseHomeDarkGatePropsInput) {
     onSearch: navHandlers.openPartyTab,
     onOpenWishlist,
     moreActions,
+    quickMenuItems,
   };
 
   return { gateProps, navHandlers };

@@ -6,6 +6,7 @@ import HomeDarkParties from './HomeDarkParties';
 import HomeDarkInstructors from './HomeDarkInstructors';
 import HomeDarkSocialBar from './HomeDarkSocialBar';
 import HomeDarkMoreSheet from './HomeDarkMoreSheet';
+import HomeDarkQuickMenu from './HomeDarkQuickMenu';
 import { HOME_DARK_HEADER_TAGLINE } from './constants';
 import type {
   HomeDarkBar,
@@ -13,6 +14,7 @@ import type {
   HomeDarkInstructor,
   HomeDarkMoreAction,
   HomeDarkParty,
+  HomeDarkQuickMenuItem,
   HomeDarkRegionPill,
 } from './types';
 
@@ -57,6 +59,7 @@ export type HomeDarkGateProps = {
   onSearch: () => void;
   onOpenWishlist: () => void;
   moreActions: HomeDarkMoreAction[];
+  quickMenuItems: HomeDarkQuickMenuItem[];
 };
 
 export default function HomeDarkGate({
@@ -100,6 +103,7 @@ export default function HomeDarkGate({
   onSearch,
   onOpenWishlist,
   moreActions,
+  quickMenuItems,
 }: HomeDarkGateProps) {
   const [moreOpen, setMoreOpen] = useState(false);
 
@@ -119,6 +123,7 @@ export default function HomeDarkGate({
         isEn={isEn}
         onChange={onRegionPillChange}
       />
+      <HomeDarkQuickMenu isEn={isEn} items={quickMenuItems} />
       <HomeDarkTodayPick
         slide={heroSlide}
         title={heroTitle}

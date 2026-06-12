@@ -54,3 +54,11 @@ export type HomeDarkMoreAction = {
   badge?: string;
   onClick: () => void;
 };
+
+export type HomeDarkQuickMenuItem = {
+  id: string;
+  emoji: string;
+  labelKo: string;
+  labelEn: string;
+  onClick: () => void;
+};
