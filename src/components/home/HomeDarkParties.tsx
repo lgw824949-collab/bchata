@@ -50,7 +50,7 @@ export default function HomeDarkParties({
         onLinkClick={onViewAll}
       />
       {parties.length > 0 ? (
-        <div className={`home-dark-scroll-peek${parties.length > HOME_DARK_VISIBLE_PARTY ? ' home-dark-scroll-peek--active' : ''}`}>
+        <div className={`home-dark-scroll-peek${parties.length >= HOME_DARK_VISIBLE_PARTY ? ' home-dark-scroll-peek--active' : ''}`}>
           <div className="home-dark-hscroll scrollbar-hide">
             <div className="home-dark-hscroll__track home-dark-hscroll__track--party">
               {parties.map((party, index) => {
