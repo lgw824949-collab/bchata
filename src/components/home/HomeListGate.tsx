@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import HomeDarkHeader from './HomeDarkHeader';
 import HomeDarkTodayPick from './HomeDarkTodayPick';
 import HomeListBarSection from './HomeListBarSection';
@@ -118,6 +118,8 @@ export default function HomeListGate({
 }: HomeListGateProps) {
   const [searchOpen, setSearchOpen] = useState(false);
   const [moreOpen, setMoreOpen] = useState(false);
+  const [headerCompact, setHeaderCompact] = useState(false);
+  const gateRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const closeMore = () => setMoreOpen(false);
@@ -129,10 +131,20 @@ export default function HomeListGate({
     };
   }, []);
 
+  useEffect(() => {
+    const onScroll = () => {
+      setHeaderCompact(window.scrollY > 96);
+    };
+    onScroll();
+    window.addEventListener('scroll', onScroll, { passive: true });
+    return () => window.removeEventListener('scroll', onScroll);
+  }, []);
+
   return (
-    <div className="home-list-gate">
+    <div className={`home-list-gate${headerCompact ? ' home-list-gate--header-compact' : ''}`} ref={gateRef}>
       <HomeDarkHeader
         tagline={isEn ? HOME_LIST_TAGLINE_EN : HOME_LIST_TAGLINE_KO}
+        compact={headerCompact}
         onAdminTap={onAdminTap}
         onSearch={() => setSearchOpen(true)}
         onOpenMore={() => setMoreOpen(true)}
@@ -154,6 +166,8 @@ export default function HomeListGate({
           emptyLabel={isEn ? 'No featured events today' : '오늘 등록된 행사가 없어요'}
         />
       </div>
+
+      <HomeListPhotoMenu isEn={isEn} items={photoMenuItems} />
 
       <HomeListTodayAgenda
         isEn={isEn}
@@ -182,8 +196,6 @@ export default function HomeListGate({
         onViewMap={onOpenBarMap}
         onRequestLocation={onRequestLocation}
       />
-
-      <HomeListPhotoMenu isEn={isEn} items={photoMenuItems} />
 
       <HomePartySearchSheet
         open={searchOpen}

@@ -1,8 +1,18 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { MapPin } from 'lucide-react';
 import { imgFallbackHandler } from '../../constants/imageAssets';
 import { formatBarDistrictLabel } from './homeDarkUtils';
 import type { HomeDarkBar } from './types';
+
+const BAR_REGION_ALL = '전체';
+
+function orderBarRegionTabs(tabs: string[], geoTab: string | null): string[] {
+  const all = tabs.filter((tab) => tab === BAR_REGION_ALL);
+  const rest = tabs.filter((tab) => tab !== BAR_REGION_ALL);
+  const geo = geoTab && rest.includes(geoTab) ? geoTab : null;
+  const others = rest.filter((tab) => tab !== geoTab);
+  return [...all, ...(geo ? [geo] : []), ...others];
+}
 
 const BAR_LOGO_FALLBACK = '/logo.png';
 
@@ -45,6 +55,11 @@ export default function HomeListBarSection({
 }: HomeListBarSectionProps) {
   if (regionTabs.length === 0 && !loading) return null;
 
+  const orderedTabs = useMemo(
+    () => orderBarRegionTabs(regionTabs, geoRegionTab),
+    [regionTabs, geoRegionTab],
+  );
+
   const statusText = geoPending
     ? (isEn ? 'Finding your area…' : '현재 위치 기준 지역을 확인하는 중...')
     : loading
@@ -62,7 +77,13 @@ export default function HomeListBarSection({
           <h2 className="home-list-gate__section-title">
             BAR
             {selectedTab && barCounts[selectedTab] != null ? (
-              <span className="home-list-gate__section-count">{barCounts[selectedTab]}</span>
+              <span
+                className="home-list-gate__section-count home-list-gate__section-count--muted"
+                aria-label={isEn ? `${barCounts[selectedTab]} venues` : `${barCounts[selectedTab]}곳`}
+              >
+                {barCounts[selectedTab]}
+                <span className="home-list-gate__count-unit">{isEn ? '' : '곳'}</span>
+              </span>
             ) : null}
           </h2>
           <p className="home-list-gate__bar-panel-caption">
@@ -90,28 +111,36 @@ export default function HomeListBarSection({
         </div>
       </div>
 
-      {regionTabs.length > 0 ? (
-        <div
-          className="home-list-gate__bar-tabs"
-          role="tablist"
-          aria-label={isEn ? 'BAR region' : 'BAR 지역'}
-        >
-          {regionTabs.map((tab) => {
-            const isSelected = selectedTab === tab;
-            const isMyRegion = Boolean(geoRegionTab && tab === geoRegionTab);
-            return (
-              <button
-                key={tab}
-                type="button"
-                role="tab"
-                aria-selected={isSelected}
-                className={`home-list-gate__bar-tab${isSelected ? ' is-active' : ''}${isMyRegion ? ' is-my-region' : ''}`}
-                onClick={() => onTabChange(tab)}
-              >
-                {tab} {barCounts[tab] ?? 0}
-              </button>
-            );
-          })}
+      {orderedTabs.length > 0 ? (
+        <div className="home-list-gate__bar-tabs-wrap">
+          <div
+            className="home-list-gate__bar-tabs"
+            role="tablist"
+            aria-label={isEn ? 'BAR region' : 'BAR 지역'}
+          >
+            {orderedTabs.map((tab) => {
+              const isSelected = selectedTab === tab;
+              const isMyRegion = Boolean(geoRegionTab && tab === geoRegionTab);
+              const isAll = tab === BAR_REGION_ALL;
+              const count = barCounts[tab] ?? 0;
+              return (
+                <button
+                  key={tab}
+                  type="button"
+                  role="tab"
+                  aria-selected={isSelected}
+                  className={`home-list-gate__bar-tab${isSelected ? ' is-active' : ''}${isMyRegion ? ' is-my-region' : ''}${isAll ? ' is-all' : ''}`}
+                  onClick={() => onTabChange(tab)}
+                >
+                  <span className="home-list-gate__bar-tab-label">
+                    {isMyRegion && !isSelected ? (isEn ? 'Near me · ' : '내 주변 · ') : ''}
+                    {tab}
+                  </span>
+                  <span className="home-list-gate__bar-tab-count">{count}</span>
+                </button>
+              );
+            })}
+          </div>
         </div>
       ) : null}
 

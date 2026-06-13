@@ -13,8 +13,16 @@ export default function HomeListPhotoMenu({ isEn, items }: HomeListPhotoMenuProp
   return (
     <section
       className="home-list-gate__panel home-list-gate__quick-panel"
-      aria-label={isEn ? 'Quick menu' : '퀵메뉴'}
+      aria-label={isEn ? 'Explore categories' : '카테고리 탐색'}
     >
+      <div className="home-list-gate__quick-panel-head">
+        <h2 className="home-list-gate__section-title home-list-gate__quick-panel-title">
+          {isEn ? 'Explore' : '탐색'}
+        </h2>
+        <p className="home-list-gate__quick-panel-caption">
+          {isEn ? 'Bootcamp · Festival · Party · Instructors' : '부트캠프 · 페스티벌 · 파티 · 강사'}
+        </p>
+      </div>
       <div className="home-list-gate__quick-menu-grid" role="list">
         {items.map((item) => {
           const badgeLabel = item.count > 99 ? '99+' : String(item.count);

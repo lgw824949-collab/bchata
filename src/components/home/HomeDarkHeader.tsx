@@ -3,6 +3,7 @@ import { Heart, Menu, Search } from 'lucide-react';
 
 type HomeDarkHeaderProps = {
   tagline: string;
+  compact?: boolean;
   onAdminTap: () => void;
   onSearch: () => void;
   onWishlist: () => void;
@@ -11,13 +12,14 @@ type HomeDarkHeaderProps = {
 
 export default function HomeDarkHeader({
   tagline,
+  compact = false,
   onAdminTap,
   onSearch,
   onWishlist,
   onOpenMore,
 }: HomeDarkHeaderProps) {
   return (
-    <header className="home-dark-header">
+    <header className={`home-dark-header${compact ? ' home-dark-header--compact' : ''}`}>
       <div className="home-dark-header__brand">
         <h1
           className="home-dark-header__title"

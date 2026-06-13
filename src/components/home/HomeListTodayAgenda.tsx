@@ -76,7 +76,13 @@ export default function HomeListTodayAgenda({
         <h2 className="home-list-gate__today-agenda-title">
           {isEn ? 'Upcoming' : '다가오는 일정'}
           {totalCount > 0 ? (
-            <span className="home-list-gate__today-agenda-badge">{totalCount}</span>
+            <span
+              className="home-list-gate__today-agenda-badge"
+              aria-label={isEn ? `${totalCount} events` : `일정 ${totalCount}건`}
+            >
+              {totalCount}
+              <span className="home-list-gate__count-unit">{isEn ? '' : '건'}</span>
+            </span>
           ) : null}
         </h2>
         <button
