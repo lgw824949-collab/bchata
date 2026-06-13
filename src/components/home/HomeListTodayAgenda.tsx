@@ -18,8 +18,6 @@ export type HomeListUpcomingAgendaDay = {
   dateStr: string;
   dateLabel: string;
   isToday: boolean;
-  count: number;
-  summaryLabel: string;
   rows: HomeListTodayAgendaRow[];
 };
 
@@ -27,7 +25,6 @@ type HomeListTodayAgendaProps = {
   isEn: boolean;
   dayCount: number;
   totalCount: number;
-  summaryLabel: string;
   dayGroups: HomeListUpcomingAgendaDay[];
   previewLimit?: number;
   onItemClick: (item: HomeTodayAgendaItem) => void;
@@ -56,7 +53,6 @@ export default function HomeListTodayAgenda({
   isEn,
   dayCount,
   totalCount,
-  summaryLabel,
   dayGroups,
   previewLimit = UPCOMING_AGENDA_PREVIEW_LIMIT,
   onItemClick,
@@ -72,21 +68,15 @@ export default function HomeListTodayAgenda({
     [dayGroups, expanded, hiddenCount, previewLimit],
   );
 
-  const rangeHint = isEn ? `Next ${dayCount} days` : `앞으로 ${dayCount}일`;
-
   return (
     <section className="home-list-gate__today-agenda" aria-label={isEn ? 'Upcoming schedule' : '다가오는 일정'}>
       <div className="home-list-gate__today-agenda-head">
-        <div className="home-list-gate__today-agenda-head-copy">
-          <p className="home-list-gate__section-caption">{isEn ? 'Upcoming' : '다가오는 일정'}</p>
-          <h2 className="home-list-gate__today-agenda-title">
-            {isEn ? `${totalCount} events` : `전체 ${totalCount}건`}
-            <span className="home-list-gate__today-agenda-range">{rangeHint}</span>
-          </h2>
-          {summaryLabel ? (
-            <p className="home-list-gate__today-agenda-summary">{summaryLabel}</p>
+        <h2 className="home-list-gate__today-agenda-title">
+          {isEn ? 'Upcoming' : '다가오는 일정'}
+          {totalCount > 0 ? (
+            <span className="home-list-gate__today-agenda-badge">{totalCount}</span>
           ) : null}
-        </div>
+        </h2>
         <button
           type="button"
           className="home-list-gate__today-agenda-calendar"
@@ -100,8 +90,8 @@ export default function HomeListTodayAgenda({
       {dayGroups.length === 0 ? (
         <div className="home-list-gate__today-agenda-empty">
           {isEn
-            ? `No posters in the next ${dayCount} days.`
-            : `앞으로 ${dayCount}일 등록된 일정이 없어요.`}
+            ? `Nothing in the next ${dayCount} days.`
+            : `앞으로 ${dayCount}일 일정 없음`}
         </div>
       ) : (
         <>
@@ -111,17 +101,7 @@ export default function HomeListTodayAgenda({
                 key={group.dateStr}
                 className={`home-list-gate__today-agenda-day${group.isToday ? ' is-today' : ''}`}
               >
-                <div className="home-list-gate__today-agenda-day-head">
-                  <h3 className="home-list-gate__today-agenda-day-title">
-                    {group.dateLabel}
-                    <span className="home-list-gate__today-agenda-day-count">
-                      {isEn ? `${group.count} events` : `${group.count}건`}
-                    </span>
-                  </h3>
-                  {group.summaryLabel ? (
-                    <p className="home-list-gate__today-agenda-day-summary">{group.summaryLabel}</p>
-                  ) : null}
-                </div>
+                <h3 className="home-list-gate__today-agenda-day-title">{group.dateLabel}</h3>
                 <ul className="home-list-gate__today-agenda-list">
                   {group.rows.map((row) => (
                     <li key={row.id}>
@@ -168,12 +148,12 @@ export default function HomeListTodayAgenda({
             >
               {expanded ? (
                 <>
-                  {isEn ? 'Show less' : '접기'}
+                  {isEn ? 'Less' : '접기'}
                   <ChevronUp size={16} aria-hidden />
                 </>
               ) : (
                 <>
-                  {isEn ? `Show ${hiddenCount} more` : `더보기 ${hiddenCount}건`}
+                  {isEn ? `+${hiddenCount} more` : `더보기 ${hiddenCount}`}
                   <ChevronDown size={16} aria-hidden />
                 </>
               )}

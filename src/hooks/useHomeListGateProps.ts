@@ -213,38 +213,15 @@ export function useHomeListGateProps(input: UseHomeDarkGatePropsInput) {
     [homeUpcomingAgendaDays],
   );
 
-  const buildAgendaSummaryLabel = useCallback((counts: ReturnType<typeof summarizeTodayAgendaCounts>) => {
-    const { social, bootcamp, festival, party } = counts;
-    const parts: string[] = [];
-    if (social > 0) parts.push(isEn ? `Social ${social}` : `소셜 ${social}`);
-    if (bootcamp > 0) parts.push(isEn ? `Bootcamp ${bootcamp}` : `부트캠프 ${bootcamp}`);
-    if (festival > 0) parts.push(isEn ? `Festival ${festival}` : `페스 ${festival}`);
-    if (party > 0) parts.push(isEn ? `Party ${party}` : `파티 ${party}`);
+  const formatAgendaTimeMeta = useCallback((item: HomeTodayAgendaItem) => {
+    const parts = [item.timeLabel, item.venue].filter(Boolean);
     return parts.join(' · ');
-  }, [isEn]);
-
-  const homeUpcomingAgendaSummaryLabel = useMemo(
-    () => buildAgendaSummaryLabel(homeUpcomingAgendaCounts),
-    [homeUpcomingAgendaCounts, buildAgendaSummaryLabel],
-  );
-
-  const formatAgendaTimeMeta = useCallback((
-    item: HomeTodayAgendaItem,
-    eventDateStr: string,
-  ) => {
-    if (!item.timeLabel) return '';
-    if (eventDateStr === calendarTodayStr) {
-      return isEn ? item.timeLabel : `오늘 ${item.timeLabel}`;
-    }
-    return item.timeLabel;
-  }, [calendarTodayStr, isEn]);
+  }, []);
 
   const mapAgendaItemsToRows = useCallback((items: HomeTodayAgendaItem[]) => (
     items.map((item) => {
       const title = translateDynamicText(item.title, isEn);
-      const venue = translateDynamicText(item.venue, isEn);
-      const time = formatAgendaTimeMeta(item, item.dateStr);
-      const meta = [time, venue].filter(Boolean).join(' · ');
+      const meta = translateDynamicText(formatAgendaTimeMeta(item), isEn);
       return {
         id: `${item.dateStr}-${item.id}`,
         kind: item.kind,
@@ -262,15 +239,12 @@ export function useHomeListGateProps(input: UseHomeDarkGatePropsInput) {
       dateStr: day.dateStr,
       dateLabel: formatAgendaDayLabel(day.dateStr, calendarTodayStr, isEn),
       isToday: day.dateStr === calendarTodayStr,
-      count: day.items.length,
-      summaryLabel: buildAgendaSummaryLabel(summarizeTodayAgendaCounts(day.items)),
       rows: mapAgendaItemsToRows(day.items),
     }))
   ), [
     homeUpcomingAgendaDays,
     calendarTodayStr,
     isEn,
-    buildAgendaSummaryLabel,
     mapAgendaItemsToRows,
   ]);
 
@@ -424,7 +398,6 @@ export function useHomeListGateProps(input: UseHomeDarkGatePropsInput) {
     todayAgendaDayCount: UPCOMING_AGENDA_DAY_COUNT,
     todayAgendaDayGroups: homeUpcomingAgendaDayGroups,
     todayAgendaCount: homeUpcomingAgendaCounts.total,
-    todayAgendaSummaryLabel: homeUpcomingAgendaSummaryLabel,
     onAgendaItemClick: openAgendaItem,
     onOpenCalendar,
     calendarTodayStr,

@@ -40,7 +40,6 @@ export type HomeListGateProps = {
   todayAgendaDayCount: number;
   todayAgendaDayGroups: HomeListUpcomingAgendaDay[];
   todayAgendaCount: number;
-  todayAgendaSummaryLabel: string;
   onAgendaItemClick: (item: HomeTodayAgendaItem) => void;
   onOpenCalendar: () => void;
   calendarTodayStr: string;
@@ -90,7 +89,6 @@ export default function HomeListGate({
   todayAgendaDayCount,
   todayAgendaDayGroups,
   todayAgendaCount,
-  todayAgendaSummaryLabel,
   onAgendaItemClick,
   onOpenCalendar,
   calendarTodayStr,
@@ -145,7 +143,6 @@ export default function HomeListGate({
         isEn={isEn}
         dayCount={todayAgendaDayCount}
         totalCount={todayAgendaCount}
-        summaryLabel={todayAgendaSummaryLabel}
         dayGroups={todayAgendaDayGroups}
         onItemClick={onAgendaItemClick}
         onOpenCalendar={onOpenCalendar}
