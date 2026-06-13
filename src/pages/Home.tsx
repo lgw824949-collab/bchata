@@ -62,8 +62,8 @@ const FESTIVAL_TAB_SESSION_KEY = 'bchata_festival_tab';
 
 /** 메인 홈 지역 pill 순서 (표시 개수는 DB 분류 결과) */
 const HOME_REGIONS_ORDER = [
-  '서울',
   '경인',
+  '서울',
   '경상도',
   '충청도',
   '전라도',
@@ -2034,7 +2034,7 @@ const HomePage = ({
       locations.some((b) => b.region === tab),
     );
     if (geoRegionStatus !== 'ready' || !geoRegionTab || !withVenues.includes(geoRegionTab)) {
-      return withVenues;
+      return [...withVenues, SOCIAL_BAR_REGION_ALL];
     }
     const rest = withVenues.filter((tab) => tab !== geoRegionTab);
     return [geoRegionTab, ...rest, SOCIAL_BAR_REGION_ALL];

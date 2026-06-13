@@ -1,9 +1,6 @@
 import React, { useState } from 'react';
-import { ChevronRight } from 'lucide-react';
 import HomeDarkHeader from './HomeDarkHeader';
-import HomeDarkRegionPills from './HomeDarkRegionPills';
 import HomeDarkMoreSheet from './HomeDarkMoreSheet';
-import HomeListTodaySocialRotator from './HomeListTodaySocialRotator';
 import HomeListBarSection from './HomeListBarSection';
 import HomeListPhotoMenu from './HomeListPhotoMenu';
 import { HOME_LIST_TAGLINE_EN, HOME_LIST_TAGLINE_KO } from './constants';
@@ -46,15 +43,15 @@ export type HomeListGateProps = {
 
 export default function HomeListGate({
   isEn,
-  regionPills,
-  regionPill,
-  regionPillCounts,
-  onRegionPillChange,
-  todayParties,
-  getPartyTitle,
-  getPartyVenue,
-  onPartyClick,
-  onViewAllSocial,
+  regionPills: _regionPills,
+  regionPill: _regionPill,
+  regionPillCounts: _regionPillCounts,
+  onRegionPillChange: _onRegionPillChange,
+  todayParties: _todayParties,
+  getPartyTitle: _getPartyTitle,
+  getPartyVenue: _getPartyVenue,
+  onPartyClick: _onPartyClick,
+  onViewAllSocial: _onViewAllSocial,
   photoMenuItems,
   onOpenBarMap,
   socialBarRegionTabs,
@@ -87,42 +84,6 @@ export default function HomeListGate({
         onWishlist={onOpenWishlist}
         onMore={() => setMoreOpen(true)}
       />
-
-      <div className="home-list-gate__toolbar">
-        <p className="home-list-gate__section-caption">
-          {isEn ? 'Social only · filter below' : '오늘소셜만 · 아래 목록 필터'}
-        </p>
-        <HomeDarkRegionPills
-          pills={regionPills}
-          activeId={regionPill}
-          counts={regionPillCounts}
-          isEn={isEn}
-          onChange={onRegionPillChange}
-        />
-      </div>
-
-      <section className="home-list-gate__panel" aria-label={isEn ? "Today's social" : '오늘소셜'}>
-        <div className="home-list-gate__panel-head">
-          <h2 className="home-list-gate__section-title">
-            {isEn ? "Today's social" : '오늘소셜'}
-            {todayParties.length > 0 ? (
-              <span className="home-list-gate__section-count">{todayParties.length}</span>
-            ) : null}
-          </h2>
-          <button type="button" className="home-list-gate__section-action" onClick={onViewAllSocial}>
-            {isEn ? 'Calendar' : '달력'}
-            <ChevronRight size={14} aria-hidden />
-          </button>
-        </div>
-
-        <HomeListTodaySocialRotator
-          isEn={isEn}
-          parties={todayParties}
-          getPartyTitle={getPartyTitle}
-          getPartyVenue={getPartyVenue}
-          onPartyClick={onPartyClick}
-        />
-      </section>
 
       <HomeListBarSection
         isEn={isEn}

@@ -1,7 +1,6 @@
 import React from 'react';
 import { MapPin } from 'lucide-react';
 import { imgFallbackHandler } from '../../constants/imageAssets';
-import { formatBarDistrictLabel } from './homeDarkUtils';
 import type { HomeDarkBar } from './types';
 
 const BAR_LOGO_FALLBACK = '/logo.png';
@@ -36,7 +35,7 @@ export default function HomeListBarSection({
   geoPending,
   sortByNearest,
   getCoverPhoto,
-  getEventCount,
+  getEventCount: _getEventCount,
   getDistanceLabel,
   onTabChange,
   onBarClick,
@@ -100,8 +99,7 @@ export default function HomeListBarSection({
                 className={`home-list-gate__bar-tab${isSelected ? ' is-active' : ''}${isMyRegion ? ' is-my-region' : ''}`}
                 onClick={() => onTabChange(tab)}
               >
-                <span className="home-list-gate__bar-tab-label">{tab}</span>
-                <span className="home-list-gate__bar-tab-count">{barCounts[tab] ?? 0}</span>
+                {tab} {barCounts[tab] ?? 0}
               </button>
             );
           })}
@@ -115,15 +113,8 @@ export default function HomeListBarSection({
           <div className="home-list-gate__bar-scroll" role="list">
             {bars.map((bar, index) => {
               const coverSrc = getCoverPhoto(bar) || BAR_LOGO_FALLBACK;
-              const eventCount = getEventCount(bar);
               const distanceLabel = getDistanceLabel(bar);
               const isNearest = sortByNearest && index === 0 && Boolean(distanceLabel);
-              const district = formatBarDistrictLabel(bar);
-              const metaParts = [
-                distanceLabel,
-                eventCount > 0 ? (isEn ? `${eventCount} tonight` : `오늘 ${eventCount}건`) : null,
-                !distanceLabel && eventCount <= 0 ? district : null,
-              ].filter(Boolean);
 
               return (
                 <button
@@ -148,22 +139,8 @@ export default function HomeListBarSection({
                     />
                   </span>
                   <span className="home-list-gate__bar-name">{bar.name || (isEn ? 'Unnamed' : '이름 없음')}</span>
-                  {metaParts.length > 0 ? (
-                    <span className={`home-list-gate__bar-meta${eventCount > 0 ? ' is-live' : ''}`}>
-                      {metaParts.map((part, partIndex) => (
-                        <React.Fragment key={part}>
-                          {partIndex > 0 ? <span className="home-list-gate__bar-meta-sep"> · </span> : null}
-                          <span className={
-                            partIndex === 0 && distanceLabel
-                              ? 'home-list-gate__bar-meta-dist'
-                              : 'home-list-gate__bar-meta-text'
-                          }
-                          >
-                            {part}
-                          </span>
-                        </React.Fragment>
-                      ))}
-                    </span>
+                  {distanceLabel ? (
+                    <span className="home-list-gate__bar-meta-dist">{distanceLabel}</span>
                   ) : null}
                 </button>
               );
