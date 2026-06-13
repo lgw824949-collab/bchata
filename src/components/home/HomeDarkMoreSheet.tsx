@@ -39,32 +39,26 @@ export default function HomeDarkMoreSheet({
   const primary = actions.filter((a) => a.tier !== 'secondary');
   const secondary = actions.filter((a) => a.tier === 'secondary');
 
-  const renderGrid = (items: HomeDarkMoreAction[]) => (
-    <div className="home-dark-more-sheet__grid">
-      {items.map((action) => {
-        const Icon = action.icon;
-        return (
-          <button
-            key={action.id}
-            type="button"
-            className={`home-dark-more-sheet__item${action.tier === 'secondary' ? ' home-dark-more-sheet__item--secondary' : ''}`}
-            onClick={() => {
-              action.onClick();
-              onClose();
-            }}
-          >
-            <span className="home-dark-more-sheet__icon" aria-hidden>
-              <Icon size={22} strokeWidth={1.75} />
-              {action.badge ? (
-                <span className="home-dark-more-sheet__badge">{action.badge}</span>
-              ) : null}
-            </span>
-            <span className="home-dark-more-sheet__label">
-              {isEn ? action.labelEn : action.labelKo}
-            </span>
-          </button>
-        );
-      })}
+  const renderList = (items: HomeDarkMoreAction[]) => (
+    <div className="home-dark-more-sheet__list">
+      {items.map((action) => (
+        <button
+          key={action.id}
+          type="button"
+          className={`home-dark-more-sheet__row${action.tier === 'secondary' ? ' home-dark-more-sheet__row--secondary' : ''}`}
+          onClick={() => {
+            action.onClick();
+            onClose();
+          }}
+        >
+          <span className="home-dark-more-sheet__label">
+            {isEn ? action.labelEn : action.labelKo}
+          </span>
+          {action.badge ? (
+            <span className="home-dark-more-sheet__badge">{action.badge}</span>
+          ) : null}
+        </button>
+      ))}
     </div>
   );
 
@@ -112,7 +106,7 @@ export default function HomeDarkMoreSheet({
                 <p className="home-dark-more-sheet__section-label">
                   {isEn ? 'Register & shortcuts' : '등록 · 바로가기'}
                 </p>
-                {renderGrid(primary)}
+                {renderList(primary)}
               </section>
             ) : null}
             {secondary.length > 0 ? (
@@ -120,7 +114,7 @@ export default function HomeDarkMoreSheet({
                 <p className="home-dark-more-sheet__section-label">
                   {isEn ? 'Tools' : '기타'}
                 </p>
-                {renderGrid(secondary)}
+                {renderList(secondary)}
               </section>
             ) : null}
           </motion.div>
