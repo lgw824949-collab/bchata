@@ -570,7 +570,7 @@
   color: rgba(30, 41, 59, 0.5);
 }
 
-/* ── 퀵메뉴 (4열 · Lucide) ── */
+/* ── 퀵메뉴 (4열 · 진행 포스터 원형) ── */
 .home-list-gate__quick-panel {
   background: #fff;
   border-color: #eef1f4;
@@ -603,37 +603,26 @@
   background: #f6f7f9;
 }
 
-.home-list-gate__quick-menu-icon {
-  position: relative;
-  width: 56px;
-  height: 56px;
-  border-radius: 18px;
-  border: 1px solid #eceff3;
-  background: linear-gradient(165deg, #ffffff 0%, #f8fafc 100%);
-  box-shadow:
-    0 1px 2px rgba(15, 23, 42, 0.04),
-    0 6px 18px rgba(15, 23, 42, 0.05);
-  color: #e53935;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
+.home-list-gate__quick-menu-thumb {
+  display: block;
+  width: 58px;
+  height: 58px;
+  border-radius: 999px;
+  overflow: hidden;
   flex-shrink: 0;
+  background: #f1f5f9;
+  box-shadow:
+    0 0 0 2px #fff,
+    0 0 0 3px #eceff3,
+    0 4px 14px rgba(15, 23, 42, 0.08);
 }
 
-.home-list-gate__quick-menu-btn--festival .home-list-gate__quick-menu-icon {
-  color: #ef5350;
-}
-
-.home-list-gate__quick-menu-btn--party .home-list-gate__quick-menu-icon {
-  color: #d84315;
-}
-
-.home-list-gate__quick-menu-btn--bootcamp .home-list-gate__quick-menu-icon {
-  color: #f4511e;
-}
-
-.home-list-gate__quick-menu-btn--instructors .home-list-gate__quick-menu-icon {
-  color: #546e7a;
+.home-list-gate__quick-menu-thumb-img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center top;
 }
 
 .home-list-gate__quick-menu-copy {

@@ -113,6 +113,13 @@ export function buildHomeListPhotoMenuItems(input: BuildHomeListPhotoMenuItemsIn
     HOME_LIST_PHOTO_MENU_FALLBACKS.festival,
   );
 
+  const partyPhotoUrl = pickFirstGateMenuPhotoUrl(
+    filterActiveGateEventPosters(festivals, calendarTodayStr, 'party'),
+    (row) => row.poster_url,
+    (row) => row.created_at || row.start_date,
+    HOME_LIST_PHOTO_MENU_FALLBACKS.party,
+  );
+
   const instructorPhoto = String(instructorPhotoUrl || '').trim() || HOME_LIST_PHOTO_MENU_FALLBACKS.instructors;
   const activeHint = isEn ? 'active' : '진행·예정';
 
@@ -136,7 +143,7 @@ export function buildHomeListPhotoMenuItems(input: BuildHomeListPhotoMenuItemsIn
     {
       id: 'party',
       label: isEn ? 'Party' : '파티',
-      photoUrl: HOME_LIST_PHOTO_MENU_FALLBACKS.party,
+      photoUrl: partyPhotoUrl,
       count: partyEventCount,
       countHint: activeHint,
       onClick: onOpenPartyEvents,

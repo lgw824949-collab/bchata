@@ -1,13 +1,6 @@
 import React from 'react';
-import { Disc3, Sparkles, Tent, UserRound, type LucideIcon } from 'lucide-react';
-import { homeListPhotoMenuAriaLabel, type HomeListPhotoMenuItem, type HomeListPhotoMenuItemId } from '../../lib/homeListPhotoMenu';
-
-const QUICK_MENU_ICONS: Record<HomeListPhotoMenuItemId, LucideIcon> = {
-  bootcamp: Tent,
-  festival: Sparkles,
-  party: Disc3,
-  instructors: UserRound,
-};
+import { DEFAULT_CARD_IMAGE, imgFallbackHandler } from '../../constants/imageAssets';
+import { homeListPhotoMenuAriaLabel, type HomeListPhotoMenuItem } from '../../lib/homeListPhotoMenu';
 
 type HomeListPhotoMenuProps = {
   isEn: boolean;
@@ -24,7 +17,6 @@ export default function HomeListPhotoMenu({ isEn, items }: HomeListPhotoMenuProp
     >
       <div className="home-list-gate__quick-menu-grid" role="list">
         {items.map((item) => {
-          const Icon = QUICK_MENU_ICONS[item.id];
           const countLabel = item.count > 0
             ? (isEn ? `${item.count} open` : `${item.count}건`)
             : null;
@@ -38,8 +30,15 @@ export default function HomeListPhotoMenu({ isEn, items }: HomeListPhotoMenuProp
               aria-label={homeListPhotoMenuAriaLabel(item, isEn)}
               onClick={item.onClick}
             >
-              <span className="home-list-gate__quick-menu-icon" aria-hidden>
-                <Icon size={22} strokeWidth={1.65} />
+              <span className="home-list-gate__quick-menu-thumb" aria-hidden>
+                <img
+                  src={item.photoUrl}
+                  alt=""
+                  className="home-list-gate__quick-menu-thumb-img"
+                  loading="lazy"
+                  decoding="async"
+                  onError={imgFallbackHandler(DEFAULT_CARD_IMAGE)}
+                />
               </span>
               <span className="home-list-gate__quick-menu-copy">
                 <span className="home-list-gate__quick-menu-label">{item.label}</span>
