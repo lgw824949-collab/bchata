@@ -3780,6 +3780,18 @@ body.bottom-nav-social-light nav.bottom-nav {
   height: 100%;
 }
 
+.venue-detail-modal .vd-map-preview__iframe {
+  display: block;
+  width: 100%;
+  height: 100%;
+  border: 0;
+  pointer-events: none;
+}
+
+.venue-detail-modal .vd-map-preview--osm {
+  overflow: hidden;
+}
+
 .venue-detail-modal .vd-map-preview--fallback .vd-map-preview__canvas {
   visibility: hidden;
 }

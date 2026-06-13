@@ -1,6 +1,11 @@
 import { getKakaoApiKey } from './kakaoEnv';
 
 let loadPromise = null;
+let kakaoMapsBlocked = false;
+
+export function isKakaoMapsSdkBlocked() {
+  return kakaoMapsBlocked;
+}
 
 function backupPostcodeNamespace() {
   const kakao = typeof window !== 'undefined' ? window.kakao : null;
@@ -27,6 +32,9 @@ function clearKakaoNamespaceForMaps() {
 export function loadKakaoMapsSdk() {
   const key = getKakaoApiKey();
   if (!key) return Promise.reject(new Error('Kakao API key missing'));
+  if (kakaoMapsBlocked) {
+    return Promise.reject(new Error('disabled OPEN_MAP_AND_LOCAL service'));
+  }
 
   if (typeof window !== 'undefined' && window.kakao?.maps) {
     return new Promise((resolve) => {
@@ -46,8 +54,9 @@ export function loadKakaoMapsSdk() {
     script.onload = () => {
       if (!window.kakao?.maps) {
         loadPromise = null;
+        kakaoMapsBlocked = true;
         restorePostcodeNamespace(postcodeBackup);
-        reject(new Error('Kakao Maps SDK failed to initialize — 카카오맵 API 사용 설정 ON 확인'));
+        reject(new Error('disabled OPEN_MAP_AND_LOCAL service'));
         return;
       }
       restorePostcodeNamespace(postcodeBackup);
@@ -55,8 +64,9 @@ export function loadKakaoMapsSdk() {
     };
     script.onerror = () => {
       loadPromise = null;
+      kakaoMapsBlocked = true;
       restorePostcodeNamespace(postcodeBackup);
-      reject(new Error('Kakao Maps SDK script error — Web 도메인·API 활성화 확인'));
+      reject(new Error('disabled OPEN_MAP_AND_LOCAL service'));
     };
     document.head.appendChild(script);
   });

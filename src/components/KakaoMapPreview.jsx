@@ -1,8 +1,9 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { MapPin } from 'lucide-react';
 import { geocodeAddress } from '../lib/kakaoGeocode';
 import { getKakaoApiKey } from '../lib/kakaoEnv';
 import { loadKakaoMapsSdk } from '../lib/kakaoMapsSdk';
+import { buildOsmEmbedUrl } from '../lib/openStreetMap';
 
 const KAKAO_MAP_SETUP_HINT =
   'developers.kakao.com → 오늘밤빠 앱 → 제품 설정 → 카카오맵 → 사용 설정 ON';
@@ -12,16 +13,25 @@ function KakaoMapPreview({ lat, lng, address, label, onOpenExternal }) {
   const mapRef = useRef(null);
   const [ready, setReady] = useState(false);
   const [failed, setFailed] = useState(false);
+  const [useOsmFallback, setUseOsmFallback] = useState(false);
+  const [center, setCenter] = useState(null);
   const [errorMessage, setErrorMessage] = useState('');
   const hasApiKey = Boolean(getKakaoApiKey());
   const hasTarget = Boolean(address?.trim()) || (Number.isFinite(lat) && Number.isFinite(lng));
 
+  const osmEmbedUrl = useMemo(() => {
+    if (!center) return '';
+    return buildOsmEmbedUrl(center.lat, center.lng);
+  }, [center]);
+
   useEffect(() => {
-    if (!hasTarget || !hasApiKey) return undefined;
+    if (!hasTarget) return undefined;
 
     let cancelled = false;
     setReady(false);
     setFailed(false);
+    setUseOsmFallback(false);
+    setCenter(null);
     setErrorMessage('');
 
     const mountMap = async () => {
@@ -40,35 +50,46 @@ function KakaoMapPreview({ lat, lng, address, label, onOpenExternal }) {
         centerLng = coords.lng;
       }
 
-      try {
-        const maps = await loadKakaoMapsSdk();
-        if (cancelled || !containerRef.current) return;
+      if (cancelled) return;
+      setCenter({ lat: centerLat, lng: centerLng });
 
-        const center = new maps.LatLng(centerLat, centerLng);
-        const map = new maps.Map(containerRef.current, {
-          center,
-          level: 3,
-          draggable: false,
-          scrollwheel: false,
-          disableDoubleClick: true,
-          disableDoubleClickZoom: true,
-        });
-        mapRef.current = map;
-        new maps.Marker({ map, position: center });
+      if (hasApiKey) {
+        try {
+          const maps = await loadKakaoMapsSdk();
+          if (cancelled || !containerRef.current) return;
 
-        requestAnimationFrame(() => {
-          if (cancelled || !mapRef.current) return;
-          mapRef.current.relayout();
+          const mapCenter = new maps.LatLng(centerLat, centerLng);
+          const map = new maps.Map(containerRef.current, {
+            center: mapCenter,
+            level: 3,
+            draggable: false,
+            scrollwheel: false,
+            disableDoubleClick: true,
+            disableDoubleClickZoom: true,
+          });
+          mapRef.current = map;
+          new maps.Marker({ map, position: mapCenter });
+
+          requestAnimationFrame(() => {
+            if (cancelled || !mapRef.current) return;
+            mapRef.current.relayout();
+            setReady(true);
+          });
+          return;
+        } catch (err) {
+          const message = String(err?.message || err || 'Kakao Maps SDK error');
+          if (!message.includes('disabled OPEN_MAP_AND_LOCAL')) {
+            console.error('Kakao map preview error:', message);
+          }
+          if (cancelled) return;
+          setUseOsmFallback(true);
           setReady(true);
-        });
-      } catch (err) {
-        const message = String(err?.message || err || 'Kakao Maps SDK error');
-        console.error('Kakao map preview error:', message);
-        if (!cancelled) {
-          setFailed(true);
-          setErrorMessage(message);
+          return;
         }
       }
+
+      setUseOsmFallback(true);
+      setReady(true);
     };
 
     mountMap();
@@ -81,16 +102,26 @@ function KakaoMapPreview({ lat, lng, address, label, onOpenExternal }) {
 
   if (!hasTarget) return null;
 
-  const showFallback = !hasApiKey || failed;
+  const showFallback = failed || (!ready && !hasApiKey && !useOsmFallback);
 
   return (
-    <div className={`vd-map-preview${showFallback ? ' vd-map-preview--fallback' : ''}`}>
-      <div
-        ref={containerRef}
-        className="vd-map-preview__canvas"
-        aria-hidden={showFallback}
-        aria-label={label || address || 'BAR location map'}
-      />
+    <div className={`vd-map-preview${showFallback ? ' vd-map-preview--fallback' : ''}${useOsmFallback ? ' vd-map-preview--osm' : ''}`}>
+      {useOsmFallback && osmEmbedUrl ? (
+        <iframe
+          title={label || address || 'BAR location map'}
+          src={osmEmbedUrl}
+          className="vd-map-preview__iframe"
+          loading="lazy"
+          referrerPolicy="no-referrer-when-downgrade"
+        />
+      ) : (
+        <div
+          ref={containerRef}
+          className="vd-map-preview__canvas"
+          aria-hidden={showFallback}
+          aria-label={label || address || 'BAR location map'}
+        />
+      )}
       {showFallback && (
         <div className="vd-map-preview__placeholder">
           <MapPin size={18} aria-hidden />
@@ -106,9 +137,9 @@ function KakaoMapPreview({ lat, lng, address, label, onOpenExternal }) {
           )}
         </div>
       )}
-      {hasApiKey && !ready && !failed && (
+      {hasApiKey && !ready && !failed && !useOsmFallback && (
         <div className="vd-map-preview__loading" aria-hidden>
-          카카오맵 불러오는 중…
+          지도 불러오는 중…
         </div>
       )}
       <button type="button" className="vd-map-preview__open" onClick={onOpenExternal}>
