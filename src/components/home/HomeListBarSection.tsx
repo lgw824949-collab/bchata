@@ -45,7 +45,9 @@ export default function HomeListBarSection({
 }: HomeListBarSectionProps) {
   if (regionTabs.length === 0 && !loading) return null;
 
-  const nearestDistance = sortByNearest && bars.length > 0 ? getDistanceLabel(bars[0]) : null;
+  const nearestBar = sortByNearest && bars.length > 0 ? bars[0] : null;
+  const nearestDistance = nearestBar ? getDistanceLabel(nearestBar) : null;
+  const nearestName = nearestBar?.name || '';
 
   const statusText = geoPending
     ? (isEn ? 'Finding your area…' : '현재 위치 기준 지역을 확인하는 중...')
@@ -61,15 +63,27 @@ export default function HomeListBarSection({
     <section className="home-list-gate__panel home-list-gate__bar-panel" aria-label={isEn ? 'Venue BAR' : '업체 BAR'}>
       <div className="home-list-gate__panel-head">
         <div className="home-list-gate__panel-head-copy">
-          <p className="home-list-gate__section-caption">
-            {isEn ? 'Venue BAR · nearest first' : '업체 BAR · 가까운 순'}
-          </p>
           <h2 className="home-list-gate__section-title">
             {isEn ? 'Venue BAR' : '업체 BAR'}
             {selectedTab && barCounts[selectedTab] != null ? (
               <span className="home-list-gate__section-count">{barCounts[selectedTab]}</span>
             ) : null}
           </h2>
+          {sortByNearest && selectedTab ? (
+            <p className="home-list-gate__bar-subtitle">
+              {nearestDistance && nearestName
+                ? (isEn
+                  ? `${selectedTab} · nearest ${nearestName} ${nearestDistance}`
+                  : `${selectedTab} · ${nearestName} ${nearestDistance}`)
+                : (isEn
+                  ? `${selectedTab} · sorted by distance`
+                  : `${selectedTab} · 내 위치 기준 가까운 순`)}
+            </p>
+          ) : (
+            <p className="home-list-gate__bar-subtitle home-list-gate__bar-subtitle--muted">
+              {isEn ? 'Find a BAR near you' : '내 주변 BAR 찾기'}
+            </p>
+          )}
         </div>
         <button type="button" className="home-list-gate__section-action" onClick={onViewMap}>
           {isEn ? 'Map' : '지도'}
@@ -77,17 +91,7 @@ export default function HomeListBarSection({
         </button>
       </div>
 
-      {sortByNearest && selectedTab ? (
-        <p className="home-list-gate__bar-hint">
-          {nearestDistance
-            ? (isEn
-              ? `${selectedTab} · nearest ${nearestDistance}`
-              : `${selectedTab} · 가장 가까운 곳 ${nearestDistance}`)
-            : (isEn
-              ? `${selectedTab} · sorted by distance`
-              : `${selectedTab} · 내 위치 기준 가까운 순`)}
-        </p>
-      ) : !geoPending && !loading ? (
+      {!sortByNearest && !geoPending && !loading ? (
         <div className="home-list-gate__bar-hint-row">
           <p className="home-list-gate__bar-hint home-list-gate__bar-hint--muted">
             {isEn ? 'Allow location to sort by nearest BAR' : '위치 허용하면 가까운 BAR부터 보여드려요'}
@@ -128,6 +132,9 @@ export default function HomeListBarSection({
         <p className="home-list-gate__bar-status">{statusText}</p>
       ) : (
         <div className="home-list-gate__bar-scroll-wrap home-list-gate__bar-scroll-wrap--peek">
+          <p className="home-list-gate__bar-scroll-hint" aria-hidden>
+            {isEn ? 'Swipe for more' : '좌우로 더보기'}
+          </p>
           <div className="home-list-gate__bar-scroll" role="list">
             {bars.map((bar, index) => {
               const coverSrc = getCoverPhoto(bar) || BAR_LOGO_FALLBACK;

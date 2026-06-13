@@ -7,6 +7,7 @@ import { fetchBarStatsMap, bumpBarClickCount } from '../lib/barStatsQuery'
 import { KMA_REGION_COORDS, fetchWeatherForecast, parseKmaWeather, HOME_REGION_MAP } from '../utils/kmaApi'
 import { supabase } from '../lib/supabase'
 import { BAR_DATABASE, findBarByName, findBarByAddress } from '../lib/BarLib'
+import { enrichBarRowCoordinates } from '../lib/barMasterCoords'
 import { normDate, getKSTCalendarTodayStr, isApprovedParty } from '../lib/dateNorm'
 import { resolvePartyVenueName } from '../lib/partiesQuery'
 import { logSupabaseError } from '../lib/locationsQuery'
@@ -328,12 +329,12 @@ const classifyVenueLocation = (loc) => {
   const nameKey = normalizeVenueNameKey(loc.name);
   const isGangturn = nameKey.includes('강남턴') || nameKey === '강턴';
 
-  return {
+  return enrichBarRowCoordinates({
     ...loc,
     region,
     image_url: resolveBarVenuePhoto(loc.name, loc.image_url),
     instagram_url: isGangturn ? 'https://www.instagram.com/turn_latinclub_no.1?igsh=MW94ajh3OHZ3NDZ6bg%3D%3D' : loc.instagram_url
-  };
+  });
 };
 
 const buildVenueListFromDatabase = () =>

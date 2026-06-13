@@ -103,19 +103,15 @@ export function useHomeListGateProps(input: UseHomeDarkGatePropsInput) {
     const filteredBars = selectedRegionTab === socialBarRegionAll
       ? locations
       : locations.filter((bar) => bar.region === selectedRegionTab);
-    let sorted = sortBarsForSocialBarTab(filteredBars, selectedRegionTab);
     if (userGeoCoords?.lat != null && userGeoCoords?.lng != null) {
-      sorted = sortByDistanceFromUser(sorted, userGeoCoords, (bar) => {
+      return sortByDistanceFromUser(filteredBars, userGeoCoords, (bar) => {
         const lat = Number(bar.latitude);
         const lng = Number(bar.longitude);
         return Number.isFinite(lat) && Number.isFinite(lng) ? { lat, lng } : null;
       });
     }
-    if (
-      sorted.length >= HOME_DARK_MIN_BAR_ITEMS
-      || selectedRegionTab === socialBarRegionAll
-      || userGeoCoords
-    ) {
+    const sorted = sortBarsForSocialBarTab(filteredBars, selectedRegionTab);
+    if (sorted.length >= HOME_DARK_MIN_BAR_ITEMS || selectedRegionTab === socialBarRegionAll) {
       return sorted;
     }
     const seen = new Set(sorted.map((bar) => bar.id));
