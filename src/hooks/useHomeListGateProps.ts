@@ -2,6 +2,7 @@ import { useCallback, useMemo, useState } from 'react';
 import { filterSocialPartyRows } from '../lib/postKind';
 import { resolvePartyVenueName } from '../lib/partiesQuery';
 import { normalizeVenueNameKey } from '../lib/venueDedupe';
+import { resolveBarVenuePhoto } from '../lib/barVenuePhotos';
 import { haversineKm, formatDistanceLabel, sortByDistanceFromUser } from '../lib/geoDistance';
 import { navigate as historyNavigate, navigateHomeTab, pushOverlay } from '../lib/appHistory';
 import { buildHomeDarkMoreActions } from '../components/home/buildHomeDarkMoreActions';
