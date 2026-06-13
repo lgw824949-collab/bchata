@@ -4,8 +4,9 @@ import HomeDarkHeader from './HomeDarkHeader';
 import HomeDarkRegionPills from './HomeDarkRegionPills';
 import HomeDarkMoreSheet from './HomeDarkMoreSheet';
 import HomeListTodaySocialRotator from './HomeListTodaySocialRotator';
+import HomeListBarSection from './HomeListBarSection';
 import { HOME_LIST_TAGLINE_EN, HOME_LIST_TAGLINE_KO } from './constants';
-import type { HomeDarkMoreAction, HomeDarkParty, HomeDarkRegionPill } from './types';
+import type { HomeDarkBar, HomeDarkMoreAction, HomeDarkParty, HomeDarkRegionPill } from './types';
 
 export type HomeListGateProps = {
   isEn: boolean;
@@ -28,6 +29,17 @@ export type HomeListGateProps = {
   onOpenInstructors: () => void;
   onOpenBarMap: () => void;
   barCount: number;
+  socialBarRegionTabs: string[];
+  selectedBarRegionTab: string | null;
+  barRegionCounts: Record<string, number>;
+  geoRegionTab: string | null;
+  regionBars: HomeDarkBar[];
+  locationsLoading: boolean;
+  geoRegionPending: boolean;
+  getBarCoverPhoto: (bar: HomeDarkBar) => string | null;
+  getBarEventCount: (bar: HomeDarkBar) => number;
+  onBarRegionTabChange: (tab: string) => void;
+  onBarClick: (bar: HomeDarkBar) => void;
   onAdminTap: () => void;
   onSearch: () => void;
   onOpenWishlist: () => void;
@@ -71,6 +83,17 @@ export default function HomeListGate({
   onOpenInstructors,
   onOpenBarMap,
   barCount,
+  socialBarRegionTabs,
+  selectedBarRegionTab,
+  barRegionCounts,
+  geoRegionTab,
+  regionBars,
+  locationsLoading,
+  geoRegionPending,
+  getBarCoverPhoto,
+  getBarEventCount,
+  onBarRegionTabChange,
+  onBarClick,
   onAdminTap,
   onSearch,
   onOpenWishlist,
@@ -120,6 +143,22 @@ export default function HomeListGate({
           onPartyClick={onPartyClick}
         />
       </section>
+
+      <HomeListBarSection
+        isEn={isEn}
+        regionTabs={socialBarRegionTabs}
+        selectedTab={selectedBarRegionTab}
+        barCounts={barRegionCounts}
+        geoRegionTab={geoRegionTab}
+        bars={regionBars}
+        loading={locationsLoading}
+        geoPending={geoRegionPending}
+        getCoverPhoto={getBarCoverPhoto}
+        getEventCount={getBarEventCount}
+        onTabChange={onBarRegionTabChange}
+        onBarClick={onBarClick}
+        onViewMap={onOpenBarMap}
+      />
 
       <nav className="home-list-gate__nav-chips" aria-label={isEn ? 'More categories' : '밤빠 더보기'}>
         <HomeListNavChip

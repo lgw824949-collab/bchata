@@ -1,11 +1,13 @@
 import { useCallback, useMemo, useState } from 'react';
 import { filterSocialPartyRows } from '../lib/postKind';
 import { resolvePartyVenueName } from '../lib/partiesQuery';
+import { normalizeVenueNameKey } from '../lib/venueDedupe';
+import { resolveBarVenuePhoto } from '../lib/barVenuePhotos';
 import { navigate as historyNavigate, navigateHomeTab, pushOverlay } from '../lib/appHistory';
 import { buildHomeDarkMoreActions } from '../components/home/buildHomeDarkMoreActions';
 import { formatPartyTitleDisplay } from '../lib/partyTitleDisplay';
-import { HOME_DARK_REGION_PILLS } from '../components/home/constants';
-import type { HomeDarkParty } from '../components/home/types';
+import { HOME_DARK_MIN_BAR_ITEMS, HOME_DARK_REGION_PILLS } from '../components/home/constants';
+import type { HomeDarkBar, HomeDarkParty } from '../components/home/types';
 import type { HomeListGateProps } from '../components/home/HomeListGate';
 import type { UseHomeDarkGatePropsInput } from './useHomeDarkGateProps';
 
@@ -28,6 +30,16 @@ export function useHomeListGateProps(input: UseHomeDarkGatePropsInput) {
     regionCounts,
     hotInstructors,
     locations,
+    socialBarRegionTabs,
+    selectedRegionTab,
+    setSelectedRegionTab,
+    barRegionCounts,
+    geoRegionTab,
+    locationsLoading,
+    geoRegionStatus,
+    socialBarRegionAll,
+    sortBarsForSocialBarTab,
+    openVenueDetail,
     openPartyWithAfterParty,
     openBootcampPage,
     openFestivalPage,
@@ -66,6 +78,44 @@ export function useHomeListGateProps(input: UseHomeDarkGatePropsInput) {
     metro: regionCounts.metro,
     local: regionCounts.national,
   }), [todayPosterPartiesForCount.length, regionCounts]);
+
+  const barTodayPartyCountByKey = useMemo(() => {
+    const map = new Map<string, number>();
+    todayPosterPartiesForCount.forEach((party) => {
+      const key = normalizeVenueNameKey(
+        resolvePartyVenueName(party) || party.locationName || party.location_name || '',
+      );
+      if (key) map.set(key, (map.get(key) || 0) + 1);
+    });
+    return map;
+  }, [todayPosterPartiesForCount]);
+
+  const getBarTodayEventCount = useCallback((bar: HomeDarkBar) => {
+    const key = normalizeVenueNameKey(bar?.name || '');
+    return key ? (barTodayPartyCountByKey.get(key) || 0) : 0;
+  }, [barTodayPartyCountByKey]);
+
+  const homeListRegionBars = useMemo(() => {
+    if (!selectedRegionTab) return [];
+    const filteredBars = selectedRegionTab === socialBarRegionAll
+      ? locations
+      : locations.filter((bar) => bar.region === selectedRegionTab);
+    const sorted = sortBarsForSocialBarTab(filteredBars, selectedRegionTab);
+    if (sorted.length >= HOME_DARK_MIN_BAR_ITEMS || selectedRegionTab === socialBarRegionAll) {
+      return sorted;
+    }
+    const seen = new Set(sorted.map((bar) => bar.id));
+    const extras = sortBarsForSocialBarTab(
+      locations.filter((bar) => !seen.has(bar.id)),
+      socialBarRegionAll,
+    );
+    return [...sorted, ...extras].slice(0, Math.max(sorted.length, HOME_DARK_MIN_BAR_ITEMS));
+  }, [locations, selectedRegionTab, socialBarRegionAll, sortBarsForSocialBarTab]);
+
+  const getBarCoverPhoto = useCallback((bar: HomeDarkBar) => {
+    const resolved = resolveBarVenuePhoto(bar.name, bar.image_url) || bar.image_url;
+    return resolved || '/logo.png';
+  }, []);
 
   const bootcampCount = useMemo(
     () => (bootcamps || []).filter((row) => isUpcomingEvent(row, calendarTodayStr)).length,
@@ -168,6 +218,17 @@ export function useHomeListGateProps(input: UseHomeDarkGatePropsInput) {
     onOpenInstructors: openInstructors,
     onOpenBarMap: openBarMap,
     barCount: locations.length,
+    socialBarRegionTabs,
+    selectedBarRegionTab: selectedRegionTab,
+    barRegionCounts,
+    geoRegionTab,
+    regionBars: homeListRegionBars,
+    locationsLoading,
+    geoRegionPending: geoRegionStatus === 'pending',
+    getBarCoverPhoto,
+    getBarEventCount: getBarTodayEventCount,
+    onBarRegionTabChange: setSelectedRegionTab,
+    onBarClick: openVenueDetail,
     onAdminTap: registerAdminPortalTap,
     onSearch: openSocialTab,
     onOpenWishlist,
