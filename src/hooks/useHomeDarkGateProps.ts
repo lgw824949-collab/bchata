@@ -70,6 +70,7 @@ export type UseHomeDarkGatePropsInput = {
   onOpenRoute: () => void;
   onOpenSaju: () => void;
   onToggleLanguage: () => void;
+  barStatsMap?: Record<string, { liveCount: number; clickCount: number }>;
 };
 
 /** Home.tsx — fetch·상태 유지, HomeDarkGate에 넘길 props + 네비 콜백 생성 */

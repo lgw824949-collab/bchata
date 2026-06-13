@@ -22,6 +22,7 @@ import {
 import type { HomeListUpcomingAgendaDay } from '../components/home/HomeListTodayAgenda';
 import type { HomeListGateProps } from '../components/home/HomeListGate';
 import type { UseHomeDarkGatePropsInput } from './useHomeDarkGateProps';
+import { resolveAgendaLiveStatus } from '../lib/agendaLiveStatus';
 
 const normDate = (value?: unknown) => String(value ?? '').slice(0, 10);
 
@@ -64,6 +65,7 @@ export function useHomeListGateProps(input: UseHomeDarkGatePropsInput) {
     filterTodayPartiesByPill,
     onOpenWishlist,
     onOpenCalendar,
+    barStatsMap = {},
   } = input;
 
   const [homeRegionPill, setHomeRegionPill] = useState('national');
@@ -222,6 +224,7 @@ export function useHomeListGateProps(input: UseHomeDarkGatePropsInput) {
     items.map((item) => {
       const title = translateDynamicText(item.title, isEn);
       const meta = translateDynamicText(formatAgendaTimeMeta(item), isEn);
+      const live = resolveAgendaLiveStatus(item, calendarTodayStr, locations, barStatsMap);
       return {
         id: `${item.dateStr}-${item.id}`,
         kind: item.kind,
@@ -229,10 +232,12 @@ export function useHomeListGateProps(input: UseHomeDarkGatePropsInput) {
         posterUrl: item.posterUrl,
         title,
         meta,
+        liveLabel: live ? (isEn ? live.labelEn : live.labelKo) : null,
+        liveCount: live?.liveCount ?? null,
         item,
       };
     })
-  ), [formatAgendaTimeMeta, isEn, translateDynamicText]);
+  ), [barStatsMap, calendarTodayStr, formatAgendaTimeMeta, isEn, locations, translateDynamicText]);
 
   const homeUpcomingAgendaDayGroups = useMemo((): HomeListUpcomingAgendaDay[] => (
     homeUpcomingAgendaDays.map((day) => ({

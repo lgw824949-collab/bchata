@@ -2230,6 +2230,7 @@ const HomePage = ({
     onOpenRoute: onOpenRouteOverlay,
     onOpenSaju: onOpenSajuOverlay,
     onToggleLanguage: onToggleAppLanguage,
+    barStatsMap,
   });
 
   const closeVenueDetail = () => {

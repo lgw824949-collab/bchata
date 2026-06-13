@@ -11,6 +11,8 @@ export type HomeListTodayAgendaRow = {
   posterUrl: string;
   title: string;
   meta: string;
+  liveLabel?: string | null;
+  liveCount?: number | null;
   item: HomeTodayAgendaItem;
 };
 
@@ -122,8 +124,18 @@ export default function HomeListTodayAgenda({
                           />
                         </span>
                         <span className="home-list-gate__today-agenda-body">
-                          <span className={`home-list-gate__today-agenda-kind home-list-gate__today-agenda-kind--${row.kind}`}>
-                            {row.kindLabel}
+                          <span className="home-list-gate__today-agenda-tags">
+                            <span className={`home-list-gate__today-agenda-kind home-list-gate__today-agenda-kind--${row.kind}`}>
+                              {row.kindLabel}
+                            </span>
+                            {row.liveLabel ? (
+                              <span
+                                className="home-list-gate__today-agenda-live"
+                                aria-label={isEn ? `Live ${row.liveCount ?? 0} people` : `실시간 ${row.liveCount ?? 0}명`}
+                              >
+                                {row.liveLabel}
+                              </span>
+                            ) : null}
                           </span>
                           <span className="home-list-gate__today-agenda-row-title">{row.title}</span>
                           {row.meta ? (

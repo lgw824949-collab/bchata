@@ -332,6 +332,33 @@
   gap: 4px;
 }
 
+.home-list-gate__today-agenda-tags {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.home-list-gate__today-agenda-live {
+  display: inline-flex;
+  align-items: center;
+  padding: 3px 8px;
+  border-radius: 999px;
+  background: #e53935;
+  color: #fff;
+  font-size: 10px;
+  font-weight: 900;
+  letter-spacing: 0.02em;
+  line-height: 1.2;
+  box-shadow: 0 0 8px rgba(229, 57, 53, 0.35);
+  animation: home-list-agenda-live-pulse 1.5s ease-in-out infinite;
+}
+
+@keyframes home-list-agenda-live-pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.82; }
+}
+
 .home-list-gate__today-agenda-kind {
   display: inline-flex;
   align-items: center;
