@@ -28,6 +28,7 @@ import type { HomeListUpcomingAgendaDay } from '../components/home/HomeListToday
 import type { HomeListGateProps } from '../components/home/HomeListGate';
 import type { UseHomeDarkGatePropsInput } from './useHomeDarkGateProps';
 import { resolveAgendaLiveStatus } from '../lib/agendaLiveStatus';
+import { buildHomeListMoreActions } from '../components/home/buildHomeListMoreActions';
 
 const normDate = (value?: unknown) => String(value ?? '').slice(0, 10);
 
@@ -70,6 +71,18 @@ export function useHomeListGateProps(input: UseHomeDarkGatePropsInput) {
     filterTodayPartiesByPill,
     onOpenWishlist,
     onOpenCalendar,
+    hasLivePickUploadToday,
+    onRegisterParty,
+    onRegisterBarClass,
+    onRegisterInstructor,
+    onOpenConcierge,
+    onOpenLivePick,
+    onOpenKakaoChat,
+    onOpenRestaurant,
+    onOpenWeather,
+    onOpenRoute,
+    onOpenSaju,
+    onToggleLanguage,
     barStatsMap = {},
   } = input;
 
@@ -384,6 +397,43 @@ export function useHomeListGateProps(input: UseHomeDarkGatePropsInput) {
     ],
   );
 
+  const moreMenuActions = useMemo(
+    () => buildHomeListMoreActions({
+      hasLivePickUploadToday,
+      onRegisterParty,
+      onRegisterBarClass,
+      onRegisterInstructor,
+      onOpenWishlist,
+      onOpenCalendar,
+      onOpenConcierge,
+      onOpenLivePick,
+      onOpenKakaoChat,
+      onOpenRestaurant,
+      onOpenWeather,
+      onOpenRoute,
+      onOpenSaju,
+      onToggleLanguage,
+      onOpenSocial: openSocialTab,
+    }),
+    [
+      hasLivePickUploadToday,
+      onRegisterParty,
+      onRegisterBarClass,
+      onRegisterInstructor,
+      onOpenWishlist,
+      onOpenCalendar,
+      onOpenConcierge,
+      onOpenLivePick,
+      onOpenKakaoChat,
+      onOpenRestaurant,
+      onOpenWeather,
+      onOpenRoute,
+      onOpenSaju,
+      onToggleLanguage,
+      openSocialTab,
+    ],
+  );
+
   const gateProps: HomeListGateProps = {
     isEn,
     regionPills: [...HOME_DARK_REGION_PILLS],
@@ -431,6 +481,7 @@ export function useHomeListGateProps(input: UseHomeDarkGatePropsInput) {
     onRequestLocation: requestUserLocation,
     onAdminTap: registerAdminPortalTap,
     onOpenWishlist,
+    moreMenuActions,
   };
 
   return { gateProps };

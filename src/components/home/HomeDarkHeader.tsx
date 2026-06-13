@@ -1,11 +1,12 @@
 import React from 'react';
-import { Heart, Search } from 'lucide-react';
+import { Heart, Menu, Search } from 'lucide-react';
 
 type HomeDarkHeaderProps = {
   tagline: string;
   onAdminTap: () => void;
   onSearch: () => void;
   onWishlist: () => void;
+  onOpenMore?: () => void;
 };
 
 export default function HomeDarkHeader({
@@ -13,6 +14,7 @@ export default function HomeDarkHeader({
   onAdminTap,
   onSearch,
   onWishlist,
+  onOpenMore,
 }: HomeDarkHeaderProps) {
   return (
     <header className="home-dark-header">
@@ -50,6 +52,17 @@ export default function HomeDarkHeader({
         >
           <Search size={20} strokeWidth={2} />
         </button>
+        {onOpenMore ? (
+          <button
+            type="button"
+            className="home-dark-header__icon-btn home-dark-header__icon-btn--menu"
+            aria-label="전체 메뉴"
+            aria-haspopup="dialog"
+            onClick={onOpenMore}
+          >
+            <Menu size={20} strokeWidth={2} />
+          </button>
+        ) : null}
       </div>
     </header>
   );

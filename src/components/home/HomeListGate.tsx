@@ -5,7 +5,9 @@ import HomeListBarSection from './HomeListBarSection';
 import HomeListPhotoMenu from './HomeListPhotoMenu';
 import HomeListTodayAgenda from './HomeListTodayAgenda';
 import HomePartySearchSheet from './HomePartySearchSheet';
+import HomeDarkMoreSheet from './HomeDarkMoreSheet';
 import { HOME_LIST_TAGLINE_EN, HOME_LIST_TAGLINE_KO } from './constants';
+import type { HomeDarkMoreAction } from './types';
 import type { HomeListPhotoMenuItem } from '../../lib/homeListPhotoMenu';
 import type { HomeTodayAgendaItem } from '../../lib/buildHomeTodayAgenda';
 import type { HomeListUpcomingAgendaDay } from './HomeListTodayAgenda';
@@ -63,6 +65,7 @@ export type HomeListGateProps = {
   onRequestLocation: () => void;
   onAdminTap: () => void;
   onOpenWishlist: () => void;
+  moreMenuActions: HomeDarkMoreAction[];
 };
 
 export default function HomeListGate({
@@ -111,8 +114,10 @@ export default function HomeListGate({
   onRequestLocation,
   onAdminTap,
   onOpenWishlist,
+  moreMenuActions,
 }: HomeListGateProps) {
   const [searchOpen, setSearchOpen] = useState(false);
+  const [moreOpen, setMoreOpen] = useState(false);
 
   return (
     <div className="home-list-gate">
@@ -120,6 +125,7 @@ export default function HomeListGate({
         tagline={isEn ? HOME_LIST_TAGLINE_EN : HOME_LIST_TAGLINE_KO}
         onAdminTap={onAdminTap}
         onSearch={() => setSearchOpen(true)}
+        onOpenMore={() => setMoreOpen(true)}
         onWishlist={onOpenWishlist}
       />
 
@@ -176,6 +182,13 @@ export default function HomeListGate({
         items={partySearchItems}
         onClose={() => setSearchOpen(false)}
         onItemClick={onAgendaItemClick}
+      />
+
+      <HomeDarkMoreSheet
+        open={moreOpen}
+        isEn={isEn}
+        actions={moreMenuActions}
+        onClose={() => setMoreOpen(false)}
       />
     </div>
   );
