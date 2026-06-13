@@ -3,6 +3,9 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Z } from '../constants/zLayers';
 import { X, ChevronLeft, ChevronRight, ChevronDown, Clock, MapPin } from 'lucide-react';
 import { findBarByName } from '../lib/BarLib';
+import { findBarMasterGps } from '../lib/barMasterCoords';
+import { openExternalMap } from '../lib/mapLinks';
+import KakaoMapPreview from './KakaoMapPreview';
 import { getDevTestLessons } from '../data/devTestLessons';
 import { lessonMatchesVenue, partyMatchesVenue } from '../lib/partyVenueMatch';
 import { supabase, logActivity } from '../lib/supabase';
@@ -481,38 +484,22 @@ const normalizeInstagramUrl = (raw) => {
   return /^https?:\/\//i.test(v) ? v : `https://${v}`;
 };
 
-const resolveVenueMapQuery = (venue, master, displayAddress, displayName) => {
+const resolveVenueMapTarget = (venue, master, displayAddress, displayName) => {
   const lat = Number(venue?.latitude ?? master?.latitude);
   const lng = Number(venue?.longitude ?? master?.longitude);
-  if (Number.isFinite(lat) && Number.isFinite(lng)) return `${lat},${lng}`;
-  return displayAddress || displayName || '';
+  if (Number.isFinite(lat) && Number.isFinite(lng)) {
+    return { lat, lng, query: displayAddress || displayName || '' };
+  }
+  const gps = findBarMasterGps(venue?.name || master?.name, displayAddress);
+  if (gps) {
+    return { lat: gps.lat, lng: gps.lon, query: displayAddress || displayName || '' };
+  }
+  return {
+    lat: null,
+    lng: null,
+    query: displayAddress || displayName || '',
+  };
 };
-
-const buildVenueMapEmbedUrl = (query) => {
-  if (!String(query || '').trim()) return null;
-  return `https://maps.google.com/maps?q=${encodeURIComponent(String(query).trim())}&z=16&output=embed`;
-};
-
-function VenueMapPreview({ query, onOpenExternal }) {
-  const embedUrl = buildVenueMapEmbedUrl(query);
-  if (!embedUrl) return null;
-
-  return (
-    <div className="vd-map-preview">
-      <iframe
-        title="BAR location map"
-        src={embedUrl}
-        loading="lazy"
-        referrerPolicy="no-referrer-when-downgrade"
-        allowFullScreen
-      />
-      <button type="button" className="vd-map-preview__open" onClick={onOpenExternal}>
-        <MapPin size={14} aria-hidden />
-        <span>앱에서 열기</span>
-      </button>
-    </div>
-  );
-}
 
 const VenueHeaderChips = ({ mode, onModeChange, instagramUrl }) => {
   const openRental = () => {
@@ -773,16 +760,14 @@ export default function VenueDetailModal({
   const master = findBarByName(venue?.name);
   const displayName = venue?.name || master?.name || '제휴 BAR';
   const displayAddress = venue?.address || master?.address || '';
-  const mapQuery = resolveVenueMapQuery(displayVenue, master, displayAddress, displayName);
+  const mapTarget = useMemo(
+    () => resolveVenueMapTarget(displayVenue, master, displayAddress, displayName),
+    [displayVenue, master, displayAddress, displayName],
+  );
 
   const openVenueMap = useCallback(() => {
-    if (!mapQuery) return;
-    window.open(
-      `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(mapQuery)}`,
-      '_blank',
-      'noopener,noreferrer',
-    );
-  }, [mapQuery]);
+    openExternalMap(mapTarget);
+  }, [mapTarget]);
 
   const calendarDays = useMemo(() => {
     const { year, month } = calendarMonth;
@@ -850,7 +835,13 @@ export default function VenueDetailModal({
           </div>
         </header>
 
-        <VenueMapPreview query={mapQuery} onOpenExternal={openVenueMap} />
+        <KakaoMapPreview
+          lat={mapTarget.lat}
+          lng={mapTarget.lng}
+          address={mapTarget.query}
+          label={displayName}
+          onOpenExternal={openVenueMap}
+        />
 
         {!isSocialTab && onRegisterVenueLesson ? (
           <div
