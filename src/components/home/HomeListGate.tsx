@@ -3,9 +3,11 @@ import { ChevronRight } from 'lucide-react';
 import PartyCard from '../PartyCard';
 import HomeDarkHeader from './HomeDarkHeader';
 import HomeDarkRegionPills from './HomeDarkRegionPills';
+import HomeDarkQuickMenu from './HomeDarkQuickMenu';
+import HomeDarkTodayPick from './HomeDarkTodayPick';
 import HomeDarkMoreSheet from './HomeDarkMoreSheet';
 import { HOME_DARK_HEADER_TAGLINE } from './constants';
-import type { HomeDarkMoreAction, HomeDarkParty, HomeDarkRegionPill } from './types';
+import type { HomeDarkHeroSlide, HomeDarkMoreAction, HomeDarkParty, HomeDarkQuickMenuItem, HomeDarkRegionPill } from './types';
 
 export type HomeListGateProps = {
   isEn: boolean;
@@ -13,6 +15,15 @@ export type HomeListGateProps = {
   regionPill: string;
   regionPillCounts: Record<string, number>;
   onRegionPillChange: (id: string) => void;
+  quickMenuItems: HomeDarkQuickMenuItem[];
+  heroSlide: HomeDarkHeroSlide | null;
+  heroTitle: string;
+  heroVenue: string;
+  heroSlideCount: number;
+  pickIndex: number;
+  onPickIndexChange: (index: number) => void;
+  onHeroRotateNext: () => void;
+  onHeroOpen: () => void;
   todayParties: HomeDarkParty[];
   wishlistPartyIds: Array<string | number>;
   onPartyClick: (party: HomeDarkParty) => void;
@@ -68,6 +79,15 @@ export default function HomeListGate({
   regionPill,
   regionPillCounts,
   onRegionPillChange,
+  quickMenuItems,
+  heroSlide,
+  heroTitle,
+  heroVenue,
+  heroSlideCount,
+  pickIndex,
+  onPickIndexChange,
+  onHeroRotateNext,
+  onHeroOpen,
   todayParties,
   wishlistPartyIds,
   onPartyClick,
@@ -109,6 +129,21 @@ export default function HomeListGate({
           onChange={onRegionPillChange}
         />
       </div>
+
+      <HomeDarkQuickMenu isEn={isEn} items={quickMenuItems} />
+
+      <HomeDarkTodayPick
+        slide={heroSlide}
+        title={heroTitle}
+        venue={heroVenue}
+        isEn={isEn}
+        slideCount={heroSlideCount}
+        activeDot={pickIndex % Math.max(heroSlideCount, 1)}
+        onDotSelect={onPickIndexChange}
+        onRotateNext={onHeroRotateNext}
+        onOpen={onHeroOpen}
+        emptyLabel={isEn ? 'No featured events today' : '오늘 등록된 행사가 없어요'}
+      />
 
       <section className="home-list-gate__panel" aria-label={isEn ? "Today's home feed" : '오늘밤빠 홈'}>
         <div className="home-list-gate__panel-head">
