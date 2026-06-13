@@ -17,8 +17,8 @@ import {
   normalizeVenueAddressKey,
   normalizeVenueNameKey,
 } from '../lib/venueDedupe'
-import { HomeListGate } from '../components/home'
-import { useHomeListGateProps } from '../hooks/useHomeListGateProps'
+import { HomeDarkGate } from '../components/home'
+import { useHomeDarkGateProps } from '../hooks/useHomeDarkGateProps'
 import VenueDetailModal from '../components/VenueDetailModal'
 import BarRegisterFormModal from '../components/BarRegisterFormModal'
 import { navigate as historyNavigate, navigateHomeTab, parseAppState, pushOverlay, readNavigationState } from '../lib/appHistory'
@@ -2142,7 +2142,7 @@ const HomePage = ({
     i18n.changeLanguage(next);
   }, [i18n]);
 
-  const { gateProps: homeListGateProps } = useHomeListGateProps({
+  const { gateProps: homeDarkGateProps } = useHomeDarkGateProps({
     isEn,
     translateDynamicText,
     todayPosterPartiesForCount,
@@ -2557,17 +2557,63 @@ const HomePage = ({
     ordered.forEach((el) => nav.appendChild(el));
   }, [isEn]);
 
-  /** Hybrid layout: home tab (null) = 네이버형 리스트 · social tab = 달력+리스트 */
+  /** Hybrid layout: home tab (null) = dark HomeDarkGate; social tab = light party list */
   const isHomeGate = activeTab === null;
 
   useEffect(() => {
     if (!isHomeGate) return undefined;
+
+    const root = document.documentElement;
+    const body = document.body;
     const themeMeta = document.querySelector('meta[name="theme-color"]');
-    if (themeMeta) themeMeta.setAttribute('content', '#F5F6F8');
-    return undefined;
+
+    root.classList.add('home-gate-theme', 'app-dark-surface');
+    body.classList.add('home-gate-theme', 'app-dark-surface');
+    if (themeMeta) themeMeta.setAttribute('content', '#0F0F12');
+
+    return () => {
+      root.classList.remove('home-gate-theme', 'app-dark-surface');
+      body.classList.remove('home-gate-theme', 'app-dark-surface');
+    };
   }, [isHomeGate]);
 
-  /** 메인 리스트 — 가로 캐러셀 없음, 휠 가로 밴드 처리 불필요 */
+  /** 메인 홈 — 가로 캐러셀 위에서도 세로 휠·트랙패드가 페이지 스크롤 되도록 */
+  useEffect(() => {
+    if (!isHomeGate) return undefined;
+
+    const horizontalBandSelector = [
+      '.home-hot-instructors-scroll',
+      '.home-social-bar-scroll',
+      '.home-social-bar-scroll--peek',
+      '.home-quick-menu-scroll--gate-all',
+      '.home-quick-menu-scroll',
+      '.home-quick-menu-more-scroll',
+      '.home-region-tabs',
+    ].join(',');
+
+    const onWheel = (e) => {
+      const band = e.target instanceof Element ? e.target.closest(horizontalBandSelector) : null;
+      if (!band) return;
+      if (Math.abs(e.deltaY) < Math.abs(e.deltaX)) return;
+
+      const maxScrollLeft = band.scrollWidth - band.clientWidth;
+      if (maxScrollLeft <= 1) {
+        const root = document.scrollingElement || document.documentElement;
+        if (root) root.scrollTop += e.deltaY;
+        e.preventDefault();
+        return;
+      }
+
+      const root = document.scrollingElement || document.documentElement;
+      if (!root) return;
+
+      root.scrollTop += e.deltaY;
+      e.preventDefault();
+    };
+
+    document.addEventListener('wheel', onWheel, { passive: false, capture: true });
+    return () => document.removeEventListener('wheel', onWheel, { capture: true });
+  }, [isHomeGate]);
 
   const HOME_BRAND = '#E53935';
   const HOME_GOLD = '#E53935';
@@ -2581,9 +2627,48 @@ const HomePage = ({
   const HOME_TEXT_MUTED = 'rgba(30, 41, 59, 0.55)';
   const HOME_SURFACE = '#FFFFFF';
   const HOME_BORDER = '#EDEAE3';
-  const HOME_PAGE_BG = '#F5F6F8';
+  const HOME_PAGE_BG = isHomeGate ? '#0F0F12' : '#F5F6F8';
   const HOME_CARD_BORDER = '0.5px solid #EDEAE3';
-  const homeUi = useMemo(() => ({
+  const homeUi = useMemo(() => (isHomeGate ? {
+    pageBg: 'transparent',
+    text: '#FFFFFF',
+    textMuted: '#FFFFFF',
+    surface: 'rgba(255, 255, 255, 0.06)',
+    border: 'rgba(255, 255, 255, 0.1)',
+    gold: HOME_GOLD,
+    goldSoft: 'rgba(255, 23, 68, 0.1)',
+    goldBorder: HOME_GOLD_BORDER,
+    brandSoft: 'rgba(255, 23, 68, 0.1)',
+    brandBorder: 'rgba(255, 23, 68, 0.1)',
+    partyEmpty: {
+      bg: 'rgba(255, 255, 255, 0.04)',
+      border: 'rgba(255, 255, 255, 0.1)',
+      label: '#FFFFFF',
+      count: '#FFFFFF',
+      unit: '#FFFFFF',
+      districts: '#FFFFFF',
+    },
+    partyActive: {
+      bg: 'rgba(255, 23, 68, 0.1)',
+      border: HOME_GOLD_BORDER,
+      label: '#FFFFFF',
+      count: '#FFFFFF',
+      unit: '#FFFFFF',
+      districts: '#FFFFFF',
+    },
+    divider: 'rgba(255, 255, 255, 0.08)',
+    panelBg: '#1a1a1e',
+    panelBorder: 'rgba(255, 255, 255, 0.08)',
+    panelShadow: '0 10px 40px rgba(0, 0, 0, 0.38)',
+    quickIcon: '#FFFFFF',
+    quickRegisterIcon: '#FFFFFF',
+    posterActive: '#FFFFFF',
+    posterIdle: 'rgba(255, 255, 255, 0.12)',
+    liveShell: 'linear-gradient(135deg, #222228 0%, #141418 52%, #161618 100%)',
+    liveBorder: HOME_GOLD_BORDER,
+    barSubtitle: '#FFFFFF',
+    barLabel: '#FFFFFF',
+  } : {
     pageBg: HOME_PAGE_BG,
     text: HOME_TEXT,
     textMuted: HOME_TEXT_MUTED,
@@ -2617,7 +2702,7 @@ const HomePage = ({
     liveBorder: HOME_CARD_BORDER,
     barSubtitle: HOME_TEXT_MUTED,
     barLabel: HOME_TEXT,
-  }), []);
+  }), [isHomeGate]);
   const homePartyBucketEmpty = homeUi.partyEmpty;
   const homePartyBucketActive = homeUi.partyActive;
   const homePartySectionTitleStyle = {
@@ -2979,8 +3064,8 @@ const HomePage = ({
 
   return (
     <div
-      className={`app-container${isHomeGate ? ' home-list-shell' : ''}${activeTab === 'social' ? ' social-tab-active' : ''}`}
-      style={{ width: '100%', maxWidth: '500px', margin: '0 auto', background: homeUi.pageBg, minHeight: '100dvh', paddingBottom: '100px', transition: 'background 0.25s ease' }}
+      className={`app-container${isHomeGate ? ' home-gate-shell home-gate-active' : ''}${activeTab === 'social' ? ' social-tab-active' : ''}`}
+      style={{ width: '100%', maxWidth: '500px', margin: '0 auto', background: isHomeGate ? 'transparent' : homeUi.pageBg, minHeight: '100dvh', paddingBottom: '100px', transition: 'background 0.25s ease' }}
     >
 
       {activeTab === 'social' && (
@@ -2993,8 +3078,8 @@ const HomePage = ({
       )}
 
       {activeTab === null && (
-        <motion.div className="home-main-stack" style={{ padding: 0 }}>
-          <HomeListGate {...homeListGateProps} />
+        <motion.div className="home-main-stack" style={{ padding: '0 16px' }}>
+          <HomeDarkGate {...homeDarkGateProps} />
         </motion.div>
       )}
 
@@ -3002,14 +3087,14 @@ const HomePage = ({
 
       {/* 메인 퀵메뉴: activeTab === null → 3섹션 그리드 / 소셜 탭 → 가로 스크롤 */}
       <style>{`
-        .home-list-shell {
-          --home-page-bg: #F5F6F8;
-          --home-text-primary: #191F28;
-          --home-text-secondary: #191F28;
-          --home-text-tertiary: #4B5563;
-          --home-card-border: #E8EBED;
-          --home-fade-rgb: 245, 246, 248;
-          background-color: #F5F6F8 !important;
+        .home-gate-shell {
+          --home-page-bg: ${isHomeGate ? '#09090b' : '#F5F6F8'};
+          --home-text-primary: ${isHomeGate ? '#F5F5F7' : '#191F28'};
+          --home-text-secondary: ${isHomeGate ? 'rgba(255, 255, 255, 0.52)' : '#191F28'};
+          --home-text-tertiary: ${isHomeGate ? 'rgba(255, 255, 255, 0.38)' : '#4B5563'};
+          --home-card-border: ${isHomeGate ? 'rgba(255, 255, 255, 0.09)' : '#E8EBED'};
+          --home-fade-rgb: ${isHomeGate ? '15, 15, 18' : '245, 246, 248'};
+          ${isHomeGate ? '' : 'background-color: #F5F6F8 !important;'}
         }
         .home-gate-shell .home-main-stack {
           display: flex;
