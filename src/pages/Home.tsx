@@ -18,6 +18,11 @@ import {
   normalizeVenueAddressKey,
   normalizeVenueNameKey,
 } from '../lib/venueDedupe'
+import {
+  canonicalizeVenueRow,
+  classifyVenueRegion,
+  findBarMasterRecord,
+} from '../lib/venueCanonical'
 import { readCachedCoords, writeCachedCoords } from '../lib/geoCache'
 import { parseVenueCoordinates } from '../lib/geoDistance'
 import { HomeListGate } from '../components/home'
@@ -269,70 +274,18 @@ const pickNearestSocialBarRegion = (lat, lng) => {
   return best;
 };
 
-const mapBarLibRegionToPill = (regionLabel) => {
-  const r = `${regionLabel || ''}`;
-  if (r.includes('서울')) return '서울';
-  if (r.includes('경기') || r.includes('인천')) return '경인';
-  if (r.includes('경상') || r.includes('부산') || r.includes('대구')) return '경상도';
-  if (r.includes('전라') || r.includes('광주')) return '전라도';
-  if (r.includes('충청') || r.includes('대전') || r.includes('세종')) return '충청도';
-  if (r.includes('강원') || r.includes('제주')) return '강원/제주';
-  return null;
-};
-
 const classifyVenueLocation = (loc) => {
-  const text = `${loc.address || ''}`.toLowerCase();
-  const nameText = `${loc.name || ''}`.toLowerCase();
-  const combined = `${text} ${nameText}`;
-  let region = '기타';
-
-  if (combined.includes('서울')) region = '서울';
-  else if (combined.includes('경기') || combined.includes('인천')) region = '경인';
-  else if (
-    combined.includes('경상') || combined.includes('부산') || combined.includes('대구') ||
-    combined.includes('울산') || combined.includes('창원') || combined.includes('포항') ||
-    combined.includes('구미') || combined.includes('김천') || combined.includes('김해')
-  ) region = '경상도';
-  else if (
-    combined.includes('전라') || combined.includes('광주') || combined.includes('전북') ||
-    combined.includes('전남') || combined.includes('여수') || combined.includes('순천') ||
-    combined.includes('목포')
-  ) region = '전라도';
-  else if (
-    combined.includes('충청') || combined.includes('대전') || combined.includes('충북') ||
-    combined.includes('충남') || combined.includes('세종') || combined.includes('청주') ||
-    combined.includes('천안')
-  ) region = '충청도';
-  else if (combined.includes('강원') || combined.includes('제주') || combined.includes('춘천') || combined.includes('원주')) {
-    region = '강원/제주';
-  } else {
-    const fromMaster = BAR_DATABASE.find((b) => normalizeVenueNameKey(b.name) === normalizeVenueNameKey(loc.name));
-    const mapped = fromMaster ? mapBarLibRegionToPill(fromMaster.region) : null;
-    region = mapped || '기타';
-  }
-
-  const masterMatch = BAR_DATABASE.find((b) => {
-    const locName = normalizeVenueNameKey(loc.name);
-    const barName = normalizeVenueNameKey(b.name);
-    if (locName && barName && locName === barName) return true;
-    if (locName && (b.aliases || []).some((a) => normalizeVenueNameKey(a) === locName)) return true;
-    const locAddr = normalizeVenueAddressKey(loc.address);
-    const barAddr = normalizeVenueAddressKey(b.address);
-    return locAddr && barAddr && locAddr === barAddr;
-  });
-  if (masterMatch) {
-    const mapped = mapBarLibRegionToPill(masterMatch.region);
-    if (mapped) region = mapped;
-  }
-
-  const nameKey = normalizeVenueNameKey(loc.name);
+  const canonical = canonicalizeVenueRow(loc);
+  const masterMatch = findBarMasterRecord(canonical.name, canonical.address);
+  const region = classifyVenueRegion(canonical, masterMatch);
+  const nameKey = normalizeVenueNameKey(canonical.name);
   const isGangturn = nameKey.includes('강남턴') || nameKey === '강턴';
 
   return enrichBarRowCoordinates({
-    ...loc,
+    ...canonical,
     region,
-    image_url: resolveBarVenuePhoto(loc.name, loc.image_url),
-    instagram_url: isGangturn ? 'https://www.instagram.com/turn_latinclub_no.1?igsh=MW94ajh3OHZ3NDZ6bg%3D%3D' : loc.instagram_url
+    image_url: resolveBarVenuePhoto(canonical.name, canonical.image_url) || canonical.image_url,
+    instagram_url: isGangturn ? 'https://www.instagram.com/turn_latinclub_no.1?igsh=MW94ajh3OHZ3NDZ6bg%3D%3D' : canonical.instagram_url,
   });
 };
 

@@ -1,20 +1,10 @@
-import { BAR_DATABASE as GPS_BARS } from '../data/barDatabase';
-import { normalizeKoreaCoordinates } from './geoDistance';
-import { normalizeVenueAddressKey, normalizeVenueNameKey } from './venueDedupe';
+import { BAR_DATABASE as GPS_BARS } from '../data/barDatabase.js';
+import { normalizeKoreaCoordinates } from './geoDistance.js';
+import { findBarMasterRecord } from './venueCanonical.js';
 
 /** barDatabase.js 마스터에서 name·address·alias 매칭 */
 export function findBarMasterGps(name, address) {
-  const locName = normalizeVenueNameKey(name);
-  const locAddr = normalizeVenueAddressKey(address);
-  const match = GPS_BARS.find((bar) => {
-    const barName = normalizeVenueNameKey(bar.name);
-    if (locName && barName && locName === barName) return true;
-    if (locName && (bar.aliases || []).some((alias) => normalizeVenueNameKey(alias) === locName)) {
-      return true;
-    }
-    const barAddr = normalizeVenueAddressKey(bar.address);
-    return locAddr && barAddr && locAddr === barAddr;
-  });
+  const match = findBarMasterRecord(name, address);
   if (!match || match.lat == null || match.lon == null) return null;
   return { lat: Number(match.lat), lon: Number(match.lon) };
 }

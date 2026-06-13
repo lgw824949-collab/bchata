@@ -9,6 +9,7 @@ import { getKakaoApiKey } from './lib/kakaoEnv'
 import { loadDaumPostcode } from './lib/loadDaumPostcode'
 import { findBarByName } from './lib/BarLib'
 import { normalizeVenueAddressKey } from './lib/venueDedupe'
+import { canonicalizeVenueRow, getVenueDedupeKey } from './lib/venueCanonical'
 import { PARTY_TITLE_MAX_LENGTH } from './lib/partyTitleDisplay'
 import { validateSocialPartyRegistration } from './lib/postKind'
 
@@ -242,19 +243,17 @@ const RegisterForm = ({ onBack, onSuccess, isEdit = false, isAdminMode = false, 
     const seen = new Set()
     const unique = []
     for (const row of rows || []) {
-      const venueName = (row.name || '').trim()
-      const venueAddress = (row.address || '').trim()
-      if (!venueName) continue
-      const key = `${venueName}|||${venueAddress}`
+      const canonical = canonicalizeVenueRow(row)
+      const key = getVenueDedupeKey(canonical) || `${canonical.name}|||${canonical.address}`
       if (seen.has(key)) continue
       seen.add(key)
       unique.push({
         id: row.id ?? null,
-        name: venueName,
-        address: venueAddress,
+        name: canonical.name,
+        address: canonical.address,
         latitude: row.latitude,
         longitude: row.longitude,
-        region: classifyRegion(venueAddress),
+        region: classifyRegion(canonical.address),
       })
     }
     return unique

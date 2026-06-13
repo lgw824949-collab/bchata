@@ -27,17 +27,17 @@ export const BAR_DATABASE = [
   { name: '원스', name_en: 'Ones', address: '경기도 수원시 팔달구 인계동 1024-5, 4층', region: '경기도' },
 
   // [경기 - 안산]
-  { name: '아임살사', name_en: 'I Am Salsa', address: '경기도 안산시 상록구', region: '경기도', aliases: ['안산 상록수역', '안산상록수역', '상록수역'] },
+  { name: '아임살사', name_en: 'I Am Salsa', address: '경기도 안산시 상록구 샘골로 180', region: '경기도', aliases: ['안산 상록수역', '안산상록수역', '상록수역', '안산아임살사', '안산 상록수역 아임살사'] },
   { name: '라소클', name_en: 'Lasocle', address: '경기도 안산시 단원구 민육공원로 85 지하1층', region: '경기도' },
   { name: '퀸즈살사', name_en: 'Queens Salsa', address: '경기도 안산시 상록구 팝핀스 493-13 2층', region: '경기도' },
-  { name: 'EDM댄스스튜디오', name_en: 'EDM Dance', address: '경기도 안산시 상록구 180/B102호', region: '경기도' },
+  { name: 'EDM댄스스튜디오', name_en: 'EDM Dance', address: '경기도 안산시 상록구 샘골로 180/B102호', region: '경기도' },
 
   // [경기 - 분당]
   { name: '분당살사', name_en: 'Bundang Salsa', address: '경기도 분당구 정자동 23-1 지파크프라자5층', region: '경기도' },
   { name: '바이라모스', name_en: 'Baila Ramos', address: '경기도 성남시 분당구 수내동 19-3 대덕프라자 509호', region: '경기도', aliases: ['바일라모스'] },
 
   // [경기 - 용인]
-  { name: '비비고댄스', name_en: 'Bibigo Dance', address: '경기도 용인시 기흥구 용구대로 2390-12 삼송빌딩지하', region: '경기도' },
+  { name: '비비고댄스', name_en: 'Bibigo Dance', address: '경기도 용인시 기흥구 용구대로 2390-12 삼송빌딩지하', region: '경기도', aliases: ['비비고'] },
 
   // [경기 - 부천]
   { name: '카디즈', name_en: 'Cadiz', address: '경기도 부천시 숭내대로 265번길 17, 효성프라자 6F', region: '경기도' },
@@ -79,6 +79,7 @@ export const BAR_DATABASE = [
   { name: '부에나비스타바', name_en: 'Buena Vista', address: '광주광역시 동구 문화전당로23번길 38-1', region: '전라도' },
   { name: '마얀', name_en: 'Mayan', address: '광주광역시 동구 황금동 84번지 3층', region: '전라도' },
   { name: '엘카리베', name_en: 'El Caribe', address: '전라남도 여수시 소라면 죽림중앙로 13-12 4층', region: '전라도' },
+  { name: '몬투노bar', name_en: 'Montuno Bar', address: '광주광역시 동구 무등로 400, 3층', region: '전라도', aliases: ['몬투노', 'Montuno'] },
 ]
 
 export const findBarByName = (text) => {

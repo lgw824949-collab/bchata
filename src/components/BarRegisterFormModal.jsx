@@ -4,6 +4,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { X, Loader2 } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import { findBarByName } from '../lib/BarLib';
+import { canonicalizeVenueRow } from '../lib/venueCanonical';
 
 const emptyForm = () => ({
   name: '',
@@ -68,9 +69,14 @@ export default function BarRegisterFormModal({ open, onClose, onSuccess }) {
         }
       }
 
-      const payload = {
+      const canonical = canonicalizeVenueRow({
         name: formData.name.trim(),
         address: formData.address.trim(),
+      });
+
+      const payload = {
+        name: canonical.name,
+        address: canonical.address,
       };
       if (uploadedImageUrl) payload.image_url = uploadedImageUrl;
       if (formData.kakao_url.trim()) payload.kakao_url = formData.kakao_url.trim();
