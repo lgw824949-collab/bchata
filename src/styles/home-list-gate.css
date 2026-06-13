@@ -89,33 +89,29 @@
   background: #f8fafc;
 }
 
-/* ── 지역 필 ── */
+/* ── 지역 필 — 4개 전부 노출 (Local 잘림 방지) ── */
 .home-list-gate__toolbar {
   margin: 0;
   padding: 4px 0 2px;
 }
 
 .home-list-gate .home-dark-region-pills {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  overflow-x: auto;
-  scrollbar-width: none;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+  overflow: visible;
   padding: 2px 0 4px;
-  -webkit-overflow-scrolling: touch;
-}
-
-.home-list-gate .home-dark-region-pills::-webkit-scrollbar {
-  display: none;
 }
 
 .home-list-gate .home-dark-region-pill {
   flex-shrink: 0;
   display: inline-flex;
   align-items: center;
-  gap: 8px;
+  justify-content: center;
+  gap: 6px;
+  width: 100%;
   height: 42px;
-  padding: 0 18px;
+  padding: 0 12px;
   border-radius: 999px;
   border: 1px solid #e8ebed;
   background: #fff;
@@ -125,6 +121,8 @@
   font-weight: 700;
   cursor: pointer;
   white-space: nowrap;
+  min-width: 0;
+  box-sizing: border-box;
 }
 
 .home-list-gate .home-dark-region-pill.is-active {
