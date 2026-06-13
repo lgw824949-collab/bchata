@@ -1,5 +1,5 @@
 import React from 'react';
-import { Bell, MoreHorizontal, Search } from 'lucide-react';
+import { Heart, MoreHorizontal, Search } from 'lucide-react';
 
 type HomeDarkHeaderProps = {
   tagline: string;
@@ -38,11 +38,11 @@ export default function HomeDarkHeader({
       <div className="home-dark-header__actions">
         <button
           type="button"
-          className="home-dark-header__icon-btn"
+          className="home-dark-header__icon-btn home-dark-header__icon-btn--wishlist"
           aria-label="찜 목록"
           onClick={onWishlist}
         >
-          <Bell size={20} strokeWidth={2} />
+          <Heart size={20} strokeWidth={2} />
         </button>
         <button
           type="button"
@@ -52,7 +52,12 @@ export default function HomeDarkHeader({
         >
           <MoreHorizontal size={20} strokeWidth={2} />
         </button>
-        <button type="button" className="home-dark-header__icon-btn" aria-label="파티 검색" onClick={onSearch}>
+        <button
+          type="button"
+          className="home-dark-header__icon-btn"
+          aria-label="파티·행사 검색"
+          onClick={onSearch}
+        >
           <Search size={20} strokeWidth={2} />
         </button>
       </div>

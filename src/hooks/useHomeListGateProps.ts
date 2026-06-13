@@ -11,6 +11,7 @@ import { formatPartyTitleDisplay } from '../lib/partyTitleDisplay';
 import { HOME_DARK_MIN_BAR_ITEMS, HOME_DARK_REGION_PILLS } from '../components/home/constants';
 import type { HomeDarkBar, HomeDarkHeroSlide, HomeDarkParty } from '../components/home/types';
 import { buildHomeListPhotoMenuItems } from '../lib/homeListPhotoMenu';
+import { buildHomePartySearchItems } from '../lib/buildHomePartySearchItems';
 import {
   buildHomeUpcomingAgenda,
   formatAgendaDayLabel,
@@ -321,6 +322,16 @@ export function useHomeListGateProps(input: UseHomeDarkGatePropsInput) {
     mapAgendaItemsToRows,
   ]);
 
+  const homePartySearchItems = useMemo(
+    () => buildHomePartySearchItems({
+      fromDateStr: calendarTodayStr,
+      parties,
+      bootcamps,
+      festivals,
+    }),
+    [calendarTodayStr, parties, bootcamps, festivals],
+  );
+
   const openAgendaItem = useCallback((item: HomeTodayAgendaItem) => {
     if (item.kind === 'social') {
       openPartyWithAfterParty(item.raw as HomeDarkParty);
@@ -464,6 +475,8 @@ export function useHomeListGateProps(input: UseHomeDarkGatePropsInput) {
     todayAgendaSummaryLabel: homeUpcomingAgendaSummaryLabel,
     onAgendaItemClick: openAgendaItem,
     onOpenCalendar,
+    calendarTodayStr,
+    partySearchItems: homePartySearchItems,
     photoMenuItems,
     onOpenBarMap: openBarMap,
     barCount: locations.length,
@@ -482,7 +495,6 @@ export function useHomeListGateProps(input: UseHomeDarkGatePropsInput) {
     onBarClick: openVenueDetail,
     onRequestLocation: requestUserLocation,
     onAdminTap: registerAdminPortalTap,
-    onSearch: openSocialTab,
     onOpenWishlist,
     moreActions,
   };

@@ -5,6 +5,7 @@ import HomeDarkTodayPick from './HomeDarkTodayPick';
 import HomeListBarSection from './HomeListBarSection';
 import HomeListPhotoMenu from './HomeListPhotoMenu';
 import HomeListTodayAgenda from './HomeListTodayAgenda';
+import HomePartySearchSheet from './HomePartySearchSheet';
 import { HOME_LIST_TAGLINE_EN, HOME_LIST_TAGLINE_KO } from './constants';
 import type { HomeListPhotoMenuItem } from '../../lib/homeListPhotoMenu';
 import type { HomeTodayAgendaItem } from '../../lib/buildHomeTodayAgenda';
@@ -44,6 +45,8 @@ export type HomeListGateProps = {
   todayAgendaSummaryLabel: string;
   onAgendaItemClick: (item: HomeTodayAgendaItem) => void;
   onOpenCalendar: () => void;
+  calendarTodayStr: string;
+  partySearchItems: HomeTodayAgendaItem[];
   photoMenuItems: HomeListPhotoMenuItem[];
   onOpenBarMap: () => void;
   barCount: number;
@@ -62,7 +65,6 @@ export type HomeListGateProps = {
   onBarClick: (bar: HomeDarkBar) => void;
   onRequestLocation: () => void;
   onAdminTap: () => void;
-  onSearch: () => void;
   onOpenWishlist: () => void;
   moreActions: HomeDarkMoreAction[];
 };
@@ -94,6 +96,8 @@ export default function HomeListGate({
   todayAgendaSummaryLabel,
   onAgendaItemClick,
   onOpenCalendar,
+  calendarTodayStr,
+  partySearchItems,
   photoMenuItems,
   onOpenBarMap,
   socialBarRegionTabs,
@@ -111,18 +115,18 @@ export default function HomeListGate({
   onBarClick,
   onRequestLocation,
   onAdminTap,
-  onSearch,
   onOpenWishlist,
   moreActions,
 }: HomeListGateProps) {
   const [moreOpen, setMoreOpen] = useState(false);
+  const [searchOpen, setSearchOpen] = useState(false);
 
   return (
     <div className="home-list-gate">
       <HomeDarkHeader
         tagline={isEn ? HOME_LIST_TAGLINE_EN : HOME_LIST_TAGLINE_KO}
         onAdminTap={onAdminTap}
-        onSearch={onSearch}
+        onSearch={() => setSearchOpen(true)}
         onWishlist={onOpenWishlist}
         onMore={() => setMoreOpen(true)}
       />
@@ -179,6 +183,15 @@ export default function HomeListGate({
         isEn={isEn}
         actions={moreActions}
         onClose={() => setMoreOpen(false)}
+      />
+
+      <HomePartySearchSheet
+        open={searchOpen}
+        isEn={isEn}
+        todayStr={calendarTodayStr}
+        items={partySearchItems}
+        onClose={() => setSearchOpen(false)}
+        onItemClick={onAgendaItemClick}
       />
     </div>
   );
