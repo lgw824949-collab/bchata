@@ -77,16 +77,25 @@ const parseFestivalPriceLines = (value) => {
     .filter(Boolean);
 };
 
+const FESTIVAL_PAGE_TABS = [
+  { key: 'festival', label: 'FESTIVAL' },
+  { key: 'party', label: 'PARTY' },
+];
+
 const FESTIVAL_EVENT_TYPE_OPTIONS = [
   ['festival', '🎪 페스티벌'],
-  ['mt', '🏕️ MT'],
   ['party', '🎉 파티'],
 ];
 
 const getFestivalTabMeta = (activeTab) => {
-  if (activeTab === 'mt') return { emoji: '🏕️', name: 'MT' };
   if (activeTab === 'party') return { emoji: '🎉', name: '파티' };
   return { emoji: '🎪', name: '페스티벌' };
+};
+
+const matchesFestivalPageTab = (row, activeTab) => {
+  const type = row?.event_type || 'festival';
+  if (activeTab === 'party') return type === 'party';
+  return type === 'festival' || type === 'mt';
 };
 
 const FESTIVAL_POSTER_FIELDS = [
@@ -121,11 +130,9 @@ const festivalDetailPosterImages = (fest) =>
     .filter((item) => item.url);
 
 const filterFestivalsClient = (all, selectedRegion, activeTab) => {
-  const eventType = activeTab || 'festival';
+  const tab = activeTab || 'festival';
   const rows = (all || []).filter(
-    (f) =>
-      f.event_type === eventType
-      && !isFestivalEnded(f),
+    (f) => matchesFestivalPageTab(f, tab) && !isFestivalEnded(f),
   );
   if (selectedRegion === '전체') return rows;
   const REGION_MAP = {
@@ -146,7 +153,7 @@ const Festival = ({ onBack, initialRegister = false, cachedFestivals = null, onF
   const [festivals, setFestivals] = useState(() => filterFestivalsClient(cachedFestivals, '전체', 'festival'));
   const [loading, setLoading] = useState(!cachedFestivals?.length);
   const usedCacheRef = useRef(Boolean(cachedFestivals?.length));
-  const [activeTab, setActiveTab] = useState('festival'); // 'festival' | 'mt' | 'party'
+  const [activeTab, setActiveTab] = useState('festival'); // 'festival' | 'party'
   const [selectedRegion, setSelectedRegion] = useState('전체');
   const [selectedFestival, setSelectedFestival] = useState(null);
   const [showBookingGuide, setShowBookingGuide] = useState(false);
@@ -165,8 +172,8 @@ const Festival = ({ onBack, initialRegister = false, cachedFestivals = null, onF
   useEffect(() => {
     try {
       const tab = sessionStorage.getItem(FESTIVAL_TAB_SESSION_KEY);
-      if (tab && ['festival', 'mt', 'party'].includes(tab)) {
-        setActiveTab(tab);
+      if (tab === 'party' || tab === 'festival' || tab === 'mt') {
+        setActiveTab(tab === 'party' ? 'party' : 'festival');
         sessionStorage.removeItem(FESTIVAL_TAB_SESSION_KEY);
       }
     } catch {
@@ -242,10 +249,17 @@ const Festival = ({ onBack, initialRegister = false, cachedFestivals = null, onF
   const fetchFestivals = async () => {
     setLoading(true);
     try {
-      const { data, error } = await supabase
-        .from('festivals').select('*').eq('status', 'active')
-        .eq('event_type', activeTab || 'festival')
+      let query = supabase
+        .from('festivals')
+        .select('*')
+        .eq('status', 'active')
         .order('start_date', { ascending: true });
+      if (activeTab === 'party') {
+        query = query.eq('event_type', 'party');
+      } else {
+        query = query.in('event_type', ['festival', 'mt']);
+      }
+      const { data, error } = await query;
       if (error) throw error;
       const all = data || [];
       if (typeof onFestivalsRefresh === 'function') onFestivalsRefresh(all);
@@ -553,18 +567,15 @@ const Festival = ({ onBack, initialRegister = false, cachedFestivals = null, onF
               </button>
             )}
             center={(
-              <div style={{ display: 'flex', gap: 6, background: 'rgba(255,255,255,0.06)', borderRadius: 14, padding: '4px' }}>
-                {[
-                  { key: 'festival', label: 'FESTIVAL' },
-                  { key: 'mt', label: 'MT' },
-                  { key: 'party', label: 'PARTY' },
-                ].map(tab => (
+              <div style={{ display: 'flex', gap: 4, background: 'rgba(255,255,255,0.06)', borderRadius: 14, padding: 4, width: '100%', maxWidth: 200 }}>
+                {FESTIVAL_PAGE_TABS.map(tab => (
                   <button
                     key={tab.key}
                     type="button"
                     onClick={() => { setActiveTab(tab.key); setSelectedRegion('전체'); }}
                     style={{
-                      padding: '7px 14px', borderRadius: 10, border: 'none', cursor: 'pointer',
+                      flex: 1,
+                      padding: '8px 10px', borderRadius: 10, border: 'none', cursor: 'pointer',
                       background: activeTab === tab.key ? '#C9A84C' : 'transparent',
                       color: activeTab === tab.key ? '#000' : '#8E8E93',
                       fontSize: 13, fontWeight: 900, letterSpacing: '0.5px',
@@ -810,7 +821,7 @@ const Festival = ({ onBack, initialRegister = false, cachedFestivals = null, onF
                     <div style={{ display: 'flex', flexWrap: 'wrap', gap: 10 }}>
                       {FESTIVAL_EVENT_TYPE_OPTIONS.map(([val, label]) => (
                         <button key={val} type="button" onClick={() => setFormData(prev => ({ ...prev, event_type: val }))}
-                          style={{ flex: '1 1 calc(33.333% - 7px)', minWidth: 96, padding: '14px 10px', borderRadius: 14, fontWeight: 900, fontSize: 14, cursor: 'pointer',
+                          style={{ flex: '1 1 calc(50% - 5px)', minWidth: 120, padding: '14px 10px', borderRadius: 14, fontWeight: 900, fontSize: 14, cursor: 'pointer',
                             border: `1px solid ${formData.event_type === val ? '#C9A84C' : 'rgba(255,255,255,0.1)'}`,
                             background: formData.event_type === val ? 'rgba(201,168,76,0.15)' : '#1A1A1A',
                             color: formData.event_type === val ? '#C9A84C' : '#8E8E93' }}

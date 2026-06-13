@@ -155,18 +155,6 @@ export function validateFestivalRegistration(
     if (matchesAny(text, PARTY_EVENT_PATTERNS)) {
       return fail('주년·기념 파티는 [파티] 탭에서 등록해 주세요. 페스티벌 탭에는 올릴 수 없어요.');
     }
-    if (/\bmt\b/i.test(text) || /엠티/.test(text)) {
-      return fail('MT는 [페스티벌] 페이지의 MT 탭에서 등록해 주세요.');
-    }
-  }
-
-  if (eventType === 'mt') {
-    if (/페스티벌|festival/i.test(text)) {
-      return fail('페스티벌 행사는 [페스티벌] 탭에서 등록해 주세요. MT 탭에는 올릴 수 없어요.');
-    }
-    if (matchesAny(text, PARTY_EVENT_PATTERNS)) {
-      return fail('주년·기념 파티는 [파티] 탭에서 등록해 주세요.');
-    }
   }
 
   if (eventType === 'party') {

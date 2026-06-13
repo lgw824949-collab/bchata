@@ -1201,7 +1201,7 @@ export default function AdminDashboard({ onBack }) {
                         <div>
                           <div style={{ fontSize: '11px', fontWeight: 800, color: '#475569', marginBottom: 6 }}>유형</div>
                           <div style={{ display: 'flex', gap: 8 }}>
-                            {[['festival','🎪 페스티벌'],['mt','🏕️ MT'],['party','🎉 파티']].map(([val, label]) => (
+                            {[['festival','🎪 페스티벌'],['party','🎉 파티']].map(([val, label]) => (
                               <button key={val} type="button" onClick={() => setEditFormData({ ...editFormData, event_type: val })}
                                 style={{ flex: 1, padding: '8px', borderRadius: 8, border: `1px solid ${editFormData.event_type === val ? '#C9A84C' : '#E2E8F0'}`, background: editFormData.event_type === val ? 'rgba(201,168,76,0.1)' : '#fff', color: editFormData.event_type === val ? '#B8860B' : '#64748B', fontWeight: 700, fontSize: 13, cursor: 'pointer' }}
                               >{label}</button>

@@ -54,7 +54,6 @@ function closeOverlayNav() {
 /** 페스티벌 화면 event_type — 메인 뱃지·포스터 배너 라벨 공통 */
 const FESTIVAL_EVENT_TYPE_META = [
   { id: 'festival', emoji: '🎪', labelKo: '페스티벌', labelEn: 'Festival' },
-  { id: 'mt', emoji: '🏕️', labelKo: 'MT', labelEn: 'MT' },
   { id: 'party', emoji: '🎉', labelKo: '파티', labelEn: 'Party' },
 ];
 
@@ -913,7 +912,11 @@ const pickLatestPosterBannerRow = (rows) =>
 const pickFeaturedPosterBannerRow = (rows, todayStr, kind = 'any', eventType = null) => {
   let scopedRows = rows || [];
   if (eventType) {
-    scopedRows = scopedRows.filter((r) => (r.event_type || 'festival') === eventType);
+    scopedRows = scopedRows.filter((r) => {
+      const type = r.event_type || 'festival';
+      if (eventType === 'festival') return type === 'festival' || type === 'mt';
+      return type === eventType;
+    });
   }
   const withPoster = scopedRows.filter((r) => String(r.poster_url || '').trim());
   const notEnded = withPoster.filter((r) => {
@@ -937,7 +940,7 @@ const pickFeaturedPosterBannerRow = (rows, todayStr, kind = 'any', eventType = n
   return pickLatestPosterBannerRow(pool);
 };
 
-/** 지역 파티 + 부트캠프·페스티벌·MT·파티 포스터 (행사 유형별 최대 1장) */
+/** 지역 파티 + 부트캠프·페스티벌·파티 포스터 (행사 유형별 최대 1장) */
 const buildHomePosterBannerSlides = (partyRows, bootcampRows, festivalRows, todayStr) => {
   const partySlides = pickHomePosterBannerSlides(partyRows);
   const bootcamp = pickFeaturedPosterBannerRow(bootcampRows, todayStr, 'bootcamp');
