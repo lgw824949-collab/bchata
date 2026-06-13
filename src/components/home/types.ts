@@ -7,6 +7,7 @@ export type HomeDarkHeroSlide = {
   title: string;
   venue: string;
   start_time?: string;
+  date_label?: string;
   subtitleKo: string;
   subtitleEn: string;
   raw: unknown;

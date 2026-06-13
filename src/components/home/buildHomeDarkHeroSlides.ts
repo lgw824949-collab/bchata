@@ -11,12 +11,31 @@ type PosterRow = {
   start_time?: string;
   time?: string;
   start_date?: string;
+  date?: string;
   end_date?: string;
   created_at?: string;
   event_type?: string;
 };
 
 const normDate = (value?: string) => String(value || '').slice(0, 10);
+
+export function formatHeroDateLabel(
+  startDate: string | undefined,
+  todayStr: string,
+  isEn: boolean,
+): string | undefined {
+  const d = normDate(startDate);
+  if (!d) return undefined;
+  if (d === todayStr) return isEn ? 'Today' : '오늘';
+  const date = new Date(`${d}T12:00:00`);
+  if (Number.isNaN(date.getTime())) return d.slice(5).replace('-', '/');
+  const weekdaysKo = ['일', '월', '화', '수', '목', '금', '토'];
+  const weekdaysEn = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+  const month = date.getMonth() + 1;
+  const day = date.getDate();
+  const weekday = isEn ? weekdaysEn[date.getDay()] : weekdaysKo[date.getDay()];
+  return isEn ? `${month}/${day} (${weekday})` : `${month}월 ${day}일 (${weekday})`;
+}
 
 const pickLatestPosterRow = (rows: PosterRow[]) =>
   (rows || [])
@@ -55,6 +74,7 @@ const toSlide = (
   id: string,
   subtitleKo: string,
   subtitleEn: string,
+  todayStr: string,
 ): HomeDarkHeroSlide => ({
   id,
   kind,
@@ -62,6 +82,11 @@ const toSlide = (
   title: String(row.title || row.name || '').trim(),
   venue: String(row.venue || row.location_name || row.locationName || '').trim(),
   start_time: String(row.start_time || row.time || '').slice(0, 5) || undefined,
+  date_label: formatHeroDateLabel(
+    normDate(row.start_date || row.date),
+    todayStr,
+    false,
+  ),
   subtitleKo,
   subtitleEn,
   raw: row,
@@ -80,22 +105,22 @@ export function buildHomeDarkHeroSlides(
     .filter((party) => String(party.poster_url || '').trim() && party.id != null)
     .slice(0, 2)
     .forEach((party) => {
-      slides.push(toSlide(party, 'social', `social-${party.id}`, '오늘 소셜', 'Tonight\'s Social'));
+      slides.push(toSlide(party, 'social', `social-${party.id}`, '오늘 소셜', 'Tonight\'s Social', todayStr));
     });
 
   const bootcamp = pickFeaturedEventRow(bootcampRows, todayStr);
   if (bootcamp?.id != null) {
-    slides.push(toSlide(bootcamp, 'bootcamp', `bootcamp-${bootcamp.id}`, '부트캠프', 'Bootcamp'));
+    slides.push(toSlide(bootcamp, 'bootcamp', `bootcamp-${bootcamp.id}`, '부트캠프', 'Bootcamp', todayStr));
   }
 
   const festival = pickFeaturedEventRow(festivalRows, todayStr, ['festival', 'mt']);
   if (festival?.id != null) {
-    slides.push(toSlide(festival, 'festival', `festival-${festival.id}`, '페스티벌', 'Festival'));
+    slides.push(toSlide(festival, 'festival', `festival-${festival.id}`, '페스티벌', 'Festival', todayStr));
   }
 
   const partyEvent = pickFeaturedEventRow(festivalRows, todayStr, 'party');
   if (partyEvent?.id != null) {
-    slides.push(toSlide(partyEvent, 'party', `event-party-${partyEvent.id}`, '파티', 'Party'));
+    slides.push(toSlide(partyEvent, 'party', `event-party-${partyEvent.id}`, '파티', 'Party', todayStr));
   }
 
   return slides;

@@ -115,6 +115,50 @@
   --hd-font-display: Georgia, 'Times New Roman', serif;
   width: 100%;
   min-width: 0;
+  margin-bottom: 4px;
+}
+
+.home-list-gate__hero .home-dark-today-pick__meta-line {
+  margin: 2px 0 0;
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 1.4;
+  color: rgba(255, 255, 255, 0.88);
+  word-break: keep-all;
+}
+
+.home-list-gate__hero .home-dark-today-pick__meta-sep {
+  opacity: 0.72;
+}
+
+.home-list-gate__social-strip {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  margin: 2px 0 6px;
+  padding: 10px 12px;
+  border-radius: 12px;
+  background: #fff;
+  border: 1px solid #e8ebed;
+}
+
+.home-list-gate__social-strip-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  padding: 0;
+  border: none;
+  background: none;
+  color: #e53935;
+  font-size: 13px;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.home-list-gate__social-strip-sep {
+  color: #cbd5e1;
+  font-weight: 700;
 }
 
 .home-list-gate__hero .home-dark-today-pick {
@@ -607,14 +651,27 @@
   right: 0;
   bottom: 0;
   z-index: 2;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
   color: #ffffff;
+  text-align: center;
+  padding: 8px 8px 10px;
+  background: rgba(0, 0, 0, 0.52);
+  word-break: keep-all;
+}
+
+.home-list-gate__photo-menu-label-title {
   font-size: 14px;
   font-weight: 800;
   line-height: 1.2;
-  text-align: center;
-  padding: 10px 8px;
-  background: rgba(0, 0, 0, 0.52);
-  word-break: keep-all;
+}
+
+.home-list-gate__photo-menu-label-hint {
+  font-size: 10px;
+  font-weight: 600;
+  line-height: 1.2;
+  color: rgba(255, 255, 255, 0.78);
 }
 
 .home-list-gate__photo-menu-badge {
@@ -702,8 +759,38 @@
 }
 
 .home-list-gate__bar-panel-head {
-  align-items: center;
+  align-items: flex-start;
   padding: 8px 16px 4px;
+}
+
+.home-list-gate__bar-panel-title-wrap {
+  flex: 1;
+  min-width: 0;
+}
+
+.home-list-gate__bar-panel-caption {
+  margin: 2px 0 0;
+  font-size: 11px;
+  font-weight: 600;
+  color: #94a3b8;
+}
+
+.home-list-gate__bar-panel-actions {
+  display: flex;
+  flex-shrink: 0;
+  align-items: center;
+  gap: 8px;
+}
+
+.home-list-gate__bar-locate-link {
+  padding: 0;
+  border: none;
+  background: none;
+  color: #e53935;
+  font-size: 11px;
+  font-weight: 800;
+  cursor: pointer;
+  white-space: nowrap;
 }
 
 .home-list-gate__bar-panel-head .home-list-gate__section-title {
@@ -939,6 +1026,15 @@
   font-weight: 800;
   line-height: 1.3;
   color: #ff3040;
+  word-break: keep-all;
+}
+
+.home-list-gate__bar-meta-district {
+  width: 100%;
+  font-size: 10px;
+  font-weight: 700;
+  line-height: 1.3;
+  color: #94a3b8;
   word-break: keep-all;
 }
 

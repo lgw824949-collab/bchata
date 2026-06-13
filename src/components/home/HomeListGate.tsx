@@ -4,6 +4,7 @@ import HomeDarkMoreSheet from './HomeDarkMoreSheet';
 import HomeDarkTodayPick from './HomeDarkTodayPick';
 import HomeListBarSection from './HomeListBarSection';
 import HomeListPhotoMenu from './HomeListPhotoMenu';
+import HomeListSocialStrip from './HomeListSocialStrip';
 import { HOME_LIST_TAGLINE_EN, HOME_LIST_TAGLINE_KO } from './constants';
 import type { HomeListPhotoMenuItem } from '../../lib/homeListPhotoMenu';
 import type {
@@ -23,11 +24,13 @@ export type HomeListGateProps = {
   heroSlide: HomeDarkHeroSlide | null;
   heroTitle: string;
   heroVenue: string;
+  heroDateLabel: string;
   heroSlideCount: number;
   pickIndex: number;
   onPickIndexChange: (index: number) => void;
   onHeroRotateNext: () => void;
   onHeroOpen: () => void;
+  todaySocialCount: number;
   todayParties: HomeDarkParty[];
   getPartyTitle: (party: HomeDarkParty) => string;
   getPartyVenue: (party: HomeDarkParty) => string;
@@ -65,16 +68,18 @@ export default function HomeListGate({
   heroSlide,
   heroTitle,
   heroVenue,
+  heroDateLabel,
   heroSlideCount,
   pickIndex,
   onPickIndexChange,
   onHeroRotateNext,
   onHeroOpen,
+  todaySocialCount,
   todayParties: _todayParties,
   getPartyTitle: _getPartyTitle,
   getPartyVenue: _getPartyVenue,
   onPartyClick: _onPartyClick,
-  onViewAllSocial: _onViewAllSocial,
+  onViewAllSocial,
   photoMenuItems,
   onOpenBarMap,
   socialBarRegionTabs,
@@ -113,6 +118,7 @@ export default function HomeListGate({
           slide={heroSlide}
           title={heroTitle}
           venue={heroVenue}
+          dateLabel={heroDateLabel}
           isEn={isEn}
           slideCount={heroSlideCount}
           activeDot={pickIndex % Math.max(heroSlideCount, 1)}
@@ -122,6 +128,13 @@ export default function HomeListGate({
           emptyLabel={isEn ? 'No featured events today' : '오늘 등록된 행사가 없어요'}
         />
       </div>
+
+      <HomeListSocialStrip
+        isEn={isEn}
+        count={todaySocialCount}
+        onOpenSocial={onViewAllSocial}
+        onOpenCalendar={onViewAllSocial}
+      />
 
       <HomeListBarSection
         isEn={isEn}

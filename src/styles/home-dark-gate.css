@@ -594,6 +594,19 @@
   color: var(--hd-text-secondary);
 }
 
+.home-dark-today-pick__meta-line {
+  margin: 2px 0 0;
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 1.4;
+  color: rgba(255, 255, 255, 0.88);
+  word-break: keep-all;
+}
+
+.home-dark-today-pick__meta-sep {
+  opacity: 0.72;
+}
+
 .home-dark-today-pick__meta span {
   display: inline-flex;
   align-items: center;

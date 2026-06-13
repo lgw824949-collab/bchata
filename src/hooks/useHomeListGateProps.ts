@@ -6,7 +6,7 @@ import { resolveBarVenuePhoto } from '../lib/barVenuePhotos';
 import { haversineKm, formatDistanceLabel, sortByDistanceFromUser } from '../lib/geoDistance';
 import { navigate as historyNavigate, navigateHomeTab, pushOverlay } from '../lib/appHistory';
 import { buildHomeDarkMoreActions } from '../components/home/buildHomeDarkMoreActions';
-import { buildHomeDarkHeroSlides } from '../components/home/buildHomeDarkHeroSlides';
+import { buildHomeDarkHeroSlides, formatHeroDateLabel } from '../components/home/buildHomeDarkHeroSlides';
 import { formatPartyTitleDisplay } from '../lib/partyTitleDisplay';
 import { HOME_DARK_MIN_BAR_ITEMS, HOME_DARK_REGION_PILLS } from '../components/home/constants';
 import type { HomeDarkBar, HomeDarkHeroSlide, HomeDarkParty } from '../components/home/types';
@@ -269,6 +269,11 @@ export function useHomeListGateProps(input: UseHomeDarkGatePropsInput) {
     [isEn, translateDynamicText],
   );
 
+  const getHeroDateLabel = useCallback((slide: HomeDarkHeroSlide) => {
+    const raw = slide.raw as { start_date?: string; date?: string };
+    return formatHeroDateLabel(raw?.start_date || raw?.date, calendarTodayStr, isEn) || '';
+  }, [calendarTodayStr, isEn]);
+
   const rotateHeroNext = useCallback(() => {
     if (homeHeroSlides.length <= 1) return;
     setHomePickIndex((index) => (index + 1) % homeHeroSlides.length);
@@ -337,11 +342,13 @@ export function useHomeListGateProps(input: UseHomeDarkGatePropsInput) {
     heroSlide: homeActiveHeroSlide,
     heroTitle: homeActiveHeroSlide ? getHeroTitle(homeActiveHeroSlide) : '',
     heroVenue: homeActiveHeroSlide ? getHeroVenue(homeActiveHeroSlide) : '',
+    heroDateLabel: homeActiveHeroSlide ? getHeroDateLabel(homeActiveHeroSlide) : '',
     heroSlideCount: homeHeroSlides.length,
     pickIndex: homePickIndex,
     onPickIndexChange: setHomePickIndex,
     onHeroRotateNext: rotateHeroNext,
     onHeroOpen: () => homeActiveHeroSlide && openHeroSlide(homeActiveHeroSlide),
+    todaySocialCount: homeHeroSocialParties.length,
     todayParties: homeFilteredTodayParties,
     getPartyTitle,
     getPartyVenue,

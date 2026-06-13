@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useRef } from 'react';
-import { MapPin, Clock, ChevronRight } from 'lucide-react';
+import { ChevronRight } from 'lucide-react';
 import { AnimatePresence, motion } from 'framer-motion';
 import { DEFAULT_CARD_IMAGE, imgFallbackHandler } from '../../constants/imageAssets';
 import { HD_POSTER_IMG_CLASS } from './homeDarkMedia';
@@ -10,6 +10,7 @@ type HomeDarkTodayPickProps = {
   slide: HomeDarkHeroSlide | null;
   title: string;
   venue: string;
+  dateLabel?: string;
   isEn: boolean;
   slideCount: number;
   activeDot: number;
@@ -23,6 +24,7 @@ export default function HomeDarkTodayPick({
   slide,
   title,
   venue,
+  dateLabel = '',
   isEn,
   slideCount,
   activeDot,
@@ -59,6 +61,11 @@ export default function HomeDarkTodayPick({
   const time = slide.start_time || '';
   const kindLabel = isEn ? slide.subtitleEn : slide.subtitleKo;
   const showTodayPickEyebrow = slide.kind === 'social';
+  const metaParts = [
+    dateLabel || slide.date_label,
+    venue,
+    time ? `${time}~` : null,
+  ].filter(Boolean);
 
   return (
     <article className="home-dark-today-pick">
@@ -99,18 +106,16 @@ export default function HomeDarkTodayPick({
                 {isEn ? slide.subtitleEn : slide.subtitleKo}
               </p>
             ) : null}
-            <div className="home-dark-today-pick__meta">
-              {venue ? (
-                <span>
-                  <MapPin size={14} aria-hidden /> {venue}
-                </span>
-              ) : null}
-              {time ? (
-                <span>
-                  <Clock size={14} aria-hidden /> {time} ~
-                </span>
-              ) : null}
-            </div>
+            {metaParts.length > 0 ? (
+              <p className="home-dark-today-pick__meta-line">
+                {metaParts.map((part, index) => (
+                  <React.Fragment key={`${part}-${index}`}>
+                    {index > 0 ? <span className="home-dark-today-pick__meta-sep"> · </span> : null}
+                    <span>{part}</span>
+                  </React.Fragment>
+                ))}
+              </p>
+            ) : null}
             <button
               type="button"
               className="home-dark-today-pick__cta"

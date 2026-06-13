@@ -1,6 +1,7 @@
 import React from 'react';
 import { MapPin } from 'lucide-react';
 import { imgFallbackHandler } from '../../constants/imageAssets';
+import { formatBarDistrictLabel } from './homeDarkUtils';
 import type { HomeDarkBar } from './types';
 
 const BAR_LOGO_FALLBACK = '/logo.png';
@@ -57,29 +58,37 @@ export default function HomeListBarSection({
   return (
     <section className="home-list-gate__panel home-list-gate__bar-panel" aria-label={isEn ? 'BAR venues' : 'BAR'}>
       <div className="home-list-gate__panel-head home-list-gate__bar-panel-head">
-        <h2 className="home-list-gate__section-title">
-          BAR
-          {selectedTab && barCounts[selectedTab] != null ? (
-            <span className="home-list-gate__section-count">{barCounts[selectedTab]}</span>
+        <div className="home-list-gate__bar-panel-title-wrap">
+          <h2 className="home-list-gate__section-title">
+            BAR
+            {selectedTab && barCounts[selectedTab] != null ? (
+              <span className="home-list-gate__section-count">{barCounts[selectedTab]}</span>
+            ) : null}
+          </h2>
+          <p className="home-list-gate__bar-panel-caption">
+            {isEn ? 'Venues in selected region' : '선택 지역 BAR 수'}
+          </p>
+        </div>
+        <div className="home-list-gate__bar-panel-actions">
+          {!sortByNearest && !geoPending && !loading ? (
+            <button
+              type="button"
+              className="home-list-gate__bar-locate-link"
+              onClick={onRequestLocation}
+            >
+              {isEn ? 'Sort by distance' : '내 위치로 정렬'}
+            </button>
           ) : null}
-        </h2>
-        <button
-          type="button"
-          className="home-list-gate__bar-map-btn"
-          onClick={onViewMap}
-          aria-label={isEn ? 'Open map' : '지도 열기'}
-        >
-          <MapPin size={18} aria-hidden />
-        </button>
-      </div>
-
-      {!sortByNearest && !geoPending && !loading ? (
-        <div className="home-list-gate__bar-locate-row">
-          <button type="button" className="home-list-gate__bar-locate-btn" onClick={onRequestLocation}>
-            {isEn ? 'Use my location' : '내 위치로 정렬'}
+          <button
+            type="button"
+            className="home-list-gate__bar-map-btn"
+            onClick={onViewMap}
+            aria-label={isEn ? 'Open map' : '지도 열기'}
+          >
+            <MapPin size={18} aria-hidden />
           </button>
         </div>
-      ) : null}
+      </div>
 
       {regionTabs.length > 0 ? (
         <div
@@ -114,6 +123,7 @@ export default function HomeListBarSection({
             {bars.map((bar, index) => {
               const coverSrc = getCoverPhoto(bar) || BAR_LOGO_FALLBACK;
               const distanceLabel = getDistanceLabel(bar);
+              const districtLabel = !distanceLabel ? formatBarDistrictLabel(bar) : null;
               const isNearest = sortByNearest && index === 0 && Boolean(distanceLabel);
 
               return (
@@ -141,6 +151,8 @@ export default function HomeListBarSection({
                   <span className="home-list-gate__bar-name">{bar.name || (isEn ? 'Unnamed' : '이름 없음')}</span>
                   {distanceLabel ? (
                     <span className="home-list-gate__bar-meta-dist">{distanceLabel}</span>
+                  ) : districtLabel ? (
+                    <span className="home-list-gate__bar-meta-district">{districtLabel}</span>
                   ) : null}
                 </button>
               );

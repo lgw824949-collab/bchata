@@ -39,7 +39,14 @@ export default function HomeListPhotoMenu({ isEn, items }: HomeListPhotoMenuProp
                     {badgeLabel}
                   </span>
                 ) : null}
-                <span className="home-list-gate__photo-menu-label">{item.label}</span>
+                <span className="home-list-gate__photo-menu-label">
+                  <span className="home-list-gate__photo-menu-label-title">{item.label}</span>
+                  {item.count > 0 ? (
+                    <span className="home-list-gate__photo-menu-label-hint">
+                      {item.countHint} {item.count}
+                    </span>
+                  ) : null}
+                </span>
               </button>
             </div>
           );
