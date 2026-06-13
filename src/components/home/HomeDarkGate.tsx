@@ -1,18 +1,16 @@
-import React, { useState } from 'react';
+import React from 'react';
 import HomeDarkHeader from './HomeDarkHeader';
 import HomeDarkRegionPills from './HomeDarkRegionPills';
 import HomeDarkTodayPick from './HomeDarkTodayPick';
 import HomeDarkParties from './HomeDarkParties';
 import HomeDarkInstructors from './HomeDarkInstructors';
 import HomeDarkSocialBar from './HomeDarkSocialBar';
-import HomeDarkMoreSheet from './HomeDarkMoreSheet';
 import HomeDarkQuickMenu from './HomeDarkQuickMenu';
 import { HOME_DARK_HEADER_TAGLINE } from './constants';
 import type {
   HomeDarkBar,
   HomeDarkHeroSlide,
   HomeDarkInstructor,
-  HomeDarkMoreAction,
   HomeDarkParty,
   HomeDarkQuickMenuItem,
   HomeDarkRegionPill,
@@ -58,7 +56,6 @@ export type HomeDarkGateProps = {
   onAdminTap: () => void;
   onSearch: () => void;
   onOpenWishlist: () => void;
-  moreActions: HomeDarkMoreAction[];
   quickMenuItems: HomeDarkQuickMenuItem[];
 };
 
@@ -102,11 +99,8 @@ export default function HomeDarkGate({
   onAdminTap,
   onSearch,
   onOpenWishlist,
-  moreActions,
   quickMenuItems,
 }: HomeDarkGateProps) {
-  const [moreOpen, setMoreOpen] = useState(false);
-
   return (
     <div className="home-dark-gate">
       <HomeDarkHeader
@@ -114,7 +108,6 @@ export default function HomeDarkGate({
         onAdminTap={onAdminTap}
         onSearch={onSearch}
         onWishlist={onOpenWishlist}
-        onMore={() => setMoreOpen(true)}
       />
       <HomeDarkRegionPills
         pills={regionPills}
@@ -168,12 +161,6 @@ export default function HomeDarkGate({
         onTabChange={onBarRegionTabChange}
         onBarClick={onBarClick}
         onViewMap={onViewMap}
-      />
-      <HomeDarkMoreSheet
-        open={moreOpen}
-        isEn={isEn}
-        actions={moreActions}
-        onClose={() => setMoreOpen(false)}
       />
     </div>
   );

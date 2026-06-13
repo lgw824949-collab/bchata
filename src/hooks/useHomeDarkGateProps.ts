@@ -9,7 +9,6 @@ import {
   pushOverlay,
 } from '../lib/appHistory';
 import { buildHomeDarkHeroSlides } from '../components/home/buildHomeDarkHeroSlides';
-import { buildHomeDarkMoreActions } from '../components/home/buildHomeDarkMoreActions';
 import { buildHomeDarkQuickMenu } from '../components/home/buildHomeDarkQuickMenu';
 import {
   HOME_DARK_MIN_BAR_ITEMS,
@@ -263,41 +262,6 @@ export function useHomeDarkGateProps(input: UseHomeDarkGatePropsInput) {
     openPartyWithAfterParty(slide.raw as HomeDarkParty);
   }, [openBootcampPage, openFestivalPage, openFestivalPartyPage, openPartyWithAfterParty]);
 
-  const moreActions = useMemo(
-    () => buildHomeDarkMoreActions({
-      hasLivePickUploadToday,
-      onRegisterParty,
-      onRegisterBarClass,
-      onRegisterInstructor,
-      onOpenWishlist,
-      onOpenCalendar,
-      onOpenConcierge,
-      onOpenLivePick,
-      onOpenKakaoChat,
-      onOpenRestaurant,
-      onOpenWeather,
-      onOpenRoute,
-      onOpenSaju,
-      onToggleLanguage,
-    }),
-    [
-      hasLivePickUploadToday,
-      onRegisterParty,
-      onRegisterBarClass,
-      onRegisterInstructor,
-      onOpenWishlist,
-      onOpenCalendar,
-      onOpenConcierge,
-      onOpenLivePick,
-      onOpenKakaoChat,
-      onOpenRestaurant,
-      onOpenWeather,
-      onOpenRoute,
-      onOpenSaju,
-      onToggleLanguage,
-    ],
-  );
-
   const quickMenuItems = useMemo(
     () => buildHomeDarkQuickMenu({
       onOpenSocial: navHandlers.openPartyTab,
@@ -351,7 +315,6 @@ export function useHomeDarkGateProps(input: UseHomeDarkGatePropsInput) {
     onAdminTap: registerAdminPortalTap,
     onSearch: navHandlers.openPartyTab,
     onOpenWishlist,
-    moreActions,
     quickMenuItems,
   };
 

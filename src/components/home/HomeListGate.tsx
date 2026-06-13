@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
 import HomeDarkHeader from './HomeDarkHeader';
-import HomeDarkMoreSheet from './HomeDarkMoreSheet';
 import HomeDarkTodayPick from './HomeDarkTodayPick';
 import HomeListBarSection from './HomeListBarSection';
 import HomeListPhotoMenu from './HomeListPhotoMenu';
@@ -13,7 +12,6 @@ import type { HomeListUpcomingAgendaDay } from './HomeListTodayAgenda';
 import type {
   HomeDarkBar,
   HomeDarkHeroSlide,
-  HomeDarkMoreAction,
   HomeDarkParty,
   HomeDarkRegionPill,
 } from './types';
@@ -66,7 +64,6 @@ export type HomeListGateProps = {
   onRequestLocation: () => void;
   onAdminTap: () => void;
   onOpenWishlist: () => void;
-  moreActions: HomeDarkMoreAction[];
 };
 
 export default function HomeListGate({
@@ -116,9 +113,7 @@ export default function HomeListGate({
   onRequestLocation,
   onAdminTap,
   onOpenWishlist,
-  moreActions,
 }: HomeListGateProps) {
-  const [moreOpen, setMoreOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
 
   return (
@@ -128,7 +123,6 @@ export default function HomeListGate({
         onAdminTap={onAdminTap}
         onSearch={() => setSearchOpen(true)}
         onWishlist={onOpenWishlist}
-        onMore={() => setMoreOpen(true)}
       />
 
       <div className="home-list-gate__hero">
@@ -177,13 +171,6 @@ export default function HomeListGate({
       />
 
       <HomeListPhotoMenu isEn={isEn} items={photoMenuItems} />
-
-      <HomeDarkMoreSheet
-        open={moreOpen}
-        isEn={isEn}
-        actions={moreActions}
-        onClose={() => setMoreOpen(false)}
-      />
 
       <HomePartySearchSheet
         open={searchOpen}

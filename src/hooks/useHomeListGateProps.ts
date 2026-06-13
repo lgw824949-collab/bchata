@@ -5,7 +5,6 @@ import { normalizeVenueNameKey } from '../lib/venueDedupe';
 import { resolveBarVenuePhoto } from '../lib/barVenuePhotos';
 import { haversineKm, formatDistanceLabel, sortByDistanceFromUser } from '../lib/geoDistance';
 import { navigate as historyNavigate, navigateHomeTab, pushOverlay } from '../lib/appHistory';
-import { buildHomeDarkMoreActions } from '../components/home/buildHomeDarkMoreActions';
 import { buildHomeDarkHeroSlides, formatHeroDateLabel } from '../components/home/buildHomeDarkHeroSlides';
 import { formatPartyTitleDisplay } from '../lib/partyTitleDisplay';
 import { HOME_DARK_MIN_BAR_ITEMS, HOME_DARK_REGION_PILLS } from '../components/home/constants';
@@ -63,20 +62,8 @@ export function useHomeListGateProps(input: UseHomeDarkGatePropsInput) {
     openFestivalPartyPage,
     registerAdminPortalTap,
     filterTodayPartiesByPill,
-    hasLivePickUploadToday,
-    onRegisterParty,
-    onRegisterBarClass,
-    onRegisterInstructor,
     onOpenWishlist,
     onOpenCalendar,
-    onOpenConcierge,
-    onOpenLivePick,
-    onOpenKakaoChat,
-    onOpenRestaurant,
-    onOpenWeather,
-    onOpenRoute,
-    onOpenSaju,
-    onToggleLanguage,
   } = input;
 
   const [homeRegionPill, setHomeRegionPill] = useState('national');
@@ -204,41 +191,6 @@ export function useHomeListGateProps(input: UseHomeDarkGatePropsInput) {
       (row) => row.event_type === 'party' && isUpcomingEvent(row, calendarTodayStr),
     ).length,
     [festivals, calendarTodayStr],
-  );
-
-  const moreActions = useMemo(
-    () => buildHomeDarkMoreActions({
-      hasLivePickUploadToday,
-      onRegisterParty,
-      onRegisterBarClass,
-      onRegisterInstructor,
-      onOpenWishlist,
-      onOpenCalendar,
-      onOpenConcierge,
-      onOpenLivePick,
-      onOpenKakaoChat,
-      onOpenRestaurant,
-      onOpenWeather,
-      onOpenRoute,
-      onOpenSaju,
-      onToggleLanguage,
-    }),
-    [
-      hasLivePickUploadToday,
-      onRegisterParty,
-      onRegisterBarClass,
-      onRegisterInstructor,
-      onOpenWishlist,
-      onOpenCalendar,
-      onOpenConcierge,
-      onOpenLivePick,
-      onOpenKakaoChat,
-      onOpenRestaurant,
-      onOpenWeather,
-      onOpenRoute,
-      onOpenSaju,
-      onToggleLanguage,
-    ],
   );
 
   const openSocialTab = useCallback(() => {
@@ -496,7 +448,6 @@ export function useHomeListGateProps(input: UseHomeDarkGatePropsInput) {
     onRequestLocation: requestUserLocation,
     onAdminTap: registerAdminPortalTap,
     onOpenWishlist,
-    moreActions,
   };
 
   return { gateProps };

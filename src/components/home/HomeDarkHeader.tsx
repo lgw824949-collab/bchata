@@ -1,12 +1,11 @@
 import React from 'react';
-import { Heart, MoreHorizontal, Search } from 'lucide-react';
+import { Heart, Search } from 'lucide-react';
 
 type HomeDarkHeaderProps = {
   tagline: string;
   onAdminTap: () => void;
   onSearch: () => void;
   onWishlist: () => void;
-  onMore: () => void;
 };
 
 export default function HomeDarkHeader({
@@ -14,7 +13,6 @@ export default function HomeDarkHeader({
   onAdminTap,
   onSearch,
   onWishlist,
-  onMore,
 }: HomeDarkHeaderProps) {
   return (
     <header className="home-dark-header">
@@ -43,14 +41,6 @@ export default function HomeDarkHeader({
           onClick={onWishlist}
         >
           <Heart size={20} strokeWidth={2} />
-        </button>
-        <button
-          type="button"
-          className="home-dark-header__icon-btn"
-          aria-label="더보기"
-          onClick={onMore}
-        >
-          <MoreHorizontal size={20} strokeWidth={2} />
         </button>
         <button
           type="button"
