@@ -8,7 +8,7 @@ import HomeListTodayAgenda from './HomeListTodayAgenda';
 import { HOME_LIST_TAGLINE_EN, HOME_LIST_TAGLINE_KO } from './constants';
 import type { HomeListPhotoMenuItem } from '../../lib/homeListPhotoMenu';
 import type { HomeTodayAgendaItem } from '../../lib/buildHomeTodayAgenda';
-import type { HomeListTodayAgendaRow } from './HomeListTodayAgenda';
+import type { HomeListUpcomingAgendaDay } from './HomeListTodayAgenda';
 import type {
   HomeDarkBar,
   HomeDarkHeroSlide,
@@ -38,8 +38,8 @@ export type HomeListGateProps = {
   getPartyVenue: (party: HomeDarkParty) => string;
   onPartyClick: (party: HomeDarkParty) => void;
   onViewAllSocial: () => void;
-  todayAgendaDateLabel: string;
-  todayAgendaRows: HomeListTodayAgendaRow[];
+  todayAgendaDayCount: number;
+  todayAgendaDayGroups: HomeListUpcomingAgendaDay[];
   todayAgendaCount: number;
   todayAgendaSummaryLabel: string;
   onAgendaItemClick: (item: HomeTodayAgendaItem) => void;
@@ -88,8 +88,8 @@ export default function HomeListGate({
   getPartyVenue: _getPartyVenue,
   onPartyClick: _onPartyClick,
   onViewAllSocial: _onViewAllSocial,
-  todayAgendaDateLabel,
-  todayAgendaRows,
+  todayAgendaDayCount,
+  todayAgendaDayGroups,
   todayAgendaCount,
   todayAgendaSummaryLabel,
   onAgendaItemClick,
@@ -145,10 +145,10 @@ export default function HomeListGate({
 
       <HomeListTodayAgenda
         isEn={isEn}
-        dateLabel={todayAgendaDateLabel}
+        dayCount={todayAgendaDayCount}
         totalCount={todayAgendaCount}
         summaryLabel={todayAgendaSummaryLabel}
-        rows={todayAgendaRows}
+        dayGroups={todayAgendaDayGroups}
         onItemClick={onAgendaItemClick}
         onOpenCalendar={onOpenCalendar}
       />

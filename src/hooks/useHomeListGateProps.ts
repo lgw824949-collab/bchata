@@ -12,11 +12,14 @@ import { HOME_DARK_MIN_BAR_ITEMS, HOME_DARK_REGION_PILLS } from '../components/h
 import type { HomeDarkBar, HomeDarkHeroSlide, HomeDarkParty } from '../components/home/types';
 import { buildHomeListPhotoMenuItems } from '../lib/homeListPhotoMenu';
 import {
-  buildHomeTodayAgenda,
-  formatTodayAgendaDateLabel,
+  buildHomeUpcomingAgenda,
+  formatAgendaDayLabel,
+  summarizeAgendaCountsFromDays,
   summarizeTodayAgendaCounts,
+  UPCOMING_AGENDA_DAY_COUNT,
   type HomeTodayAgendaItem,
 } from '../lib/buildHomeTodayAgenda';
+import type { HomeListUpcomingAgendaDay } from '../components/home/HomeListTodayAgenda';
 import type { HomeListGateProps } from '../components/home/HomeListGate';
 import type { UseHomeDarkGatePropsInput } from './useHomeDarkGateProps';
 
@@ -241,9 +244,10 @@ export function useHomeListGateProps(input: UseHomeDarkGatePropsInput) {
     navigateHomeTab('social');
   }, []);
 
-  const homeTodayAgendaItems = useMemo(
-    () => buildHomeTodayAgenda({
-      dateStr: calendarTodayStr,
+  const homeUpcomingAgendaDays = useMemo(
+    () => buildHomeUpcomingAgenda({
+      fromDateStr: calendarTodayStr,
+      dayCount: UPCOMING_AGENDA_DAY_COUNT,
       parties,
       bootcamps,
       festivals,
@@ -251,36 +255,45 @@ export function useHomeListGateProps(input: UseHomeDarkGatePropsInput) {
     [calendarTodayStr, parties, bootcamps, festivals],
   );
 
-  const homeTodayAgendaCounts = useMemo(
-    () => summarizeTodayAgendaCounts(homeTodayAgendaItems),
-    [homeTodayAgendaItems],
+  const homeUpcomingAgendaCounts = useMemo(
+    () => summarizeAgendaCountsFromDays(homeUpcomingAgendaDays),
+    [homeUpcomingAgendaDays],
   );
 
-  const homeTodayAgendaDateLabel = useMemo(
-    () => formatTodayAgendaDateLabel(calendarTodayStr, isEn),
-    [calendarTodayStr, isEn],
-  );
-
-  const homeTodayAgendaSummaryLabel = useMemo(() => {
-    const { social, bootcamp, festival, party } = homeTodayAgendaCounts;
+  const buildAgendaSummaryLabel = useCallback((counts: ReturnType<typeof summarizeTodayAgendaCounts>) => {
+    const { social, bootcamp, festival, party } = counts;
     const parts: string[] = [];
     if (social > 0) parts.push(isEn ? `Social ${social}` : `소셜 ${social}`);
     if (bootcamp > 0) parts.push(isEn ? `Bootcamp ${bootcamp}` : `부트캠프 ${bootcamp}`);
     if (festival > 0) parts.push(isEn ? `Festival ${festival}` : `페스 ${festival}`);
     if (party > 0) parts.push(isEn ? `Party ${party}` : `파티 ${party}`);
     return parts.join(' · ');
-  }, [homeTodayAgendaCounts, isEn]);
+  }, [isEn]);
 
-  const homeTodayAgendaRows = useMemo(
-    () => homeTodayAgendaItems.map((item) => {
+  const homeUpcomingAgendaSummaryLabel = useMemo(
+    () => buildAgendaSummaryLabel(homeUpcomingAgendaCounts),
+    [homeUpcomingAgendaCounts, buildAgendaSummaryLabel],
+  );
+
+  const formatAgendaTimeMeta = useCallback((
+    item: HomeTodayAgendaItem,
+    eventDateStr: string,
+  ) => {
+    if (!item.timeLabel) return '';
+    if (eventDateStr === calendarTodayStr) {
+      return isEn ? item.timeLabel : `오늘 ${item.timeLabel}`;
+    }
+    return item.timeLabel;
+  }, [calendarTodayStr, isEn]);
+
+  const mapAgendaItemsToRows = useCallback((items: HomeTodayAgendaItem[]) => (
+    items.map((item) => {
       const title = translateDynamicText(item.title, isEn);
       const venue = translateDynamicText(item.venue, isEn);
-      const time = item.timeLabel
-        ? (isEn ? item.timeLabel : `오늘 ${item.timeLabel}`)
-        : '';
+      const time = formatAgendaTimeMeta(item, item.dateStr);
       const meta = [time, venue].filter(Boolean).join(' · ');
       return {
-        id: item.id,
+        id: `${item.dateStr}-${item.id}`,
         kind: item.kind,
         kindLabel: isEn ? item.kindLabelEn : item.kindLabelKo,
         posterUrl: item.posterUrl,
@@ -288,9 +301,25 @@ export function useHomeListGateProps(input: UseHomeDarkGatePropsInput) {
         meta,
         item,
       };
-    }),
-    [homeTodayAgendaItems, isEn, translateDynamicText],
-  );
+    })
+  ), [formatAgendaTimeMeta, isEn, translateDynamicText]);
+
+  const homeUpcomingAgendaDayGroups = useMemo((): HomeListUpcomingAgendaDay[] => (
+    homeUpcomingAgendaDays.map((day) => ({
+      dateStr: day.dateStr,
+      dateLabel: formatAgendaDayLabel(day.dateStr, calendarTodayStr, isEn),
+      isToday: day.dateStr === calendarTodayStr,
+      count: day.items.length,
+      summaryLabel: buildAgendaSummaryLabel(summarizeTodayAgendaCounts(day.items)),
+      rows: mapAgendaItemsToRows(day.items),
+    }))
+  ), [
+    homeUpcomingAgendaDays,
+    calendarTodayStr,
+    isEn,
+    buildAgendaSummaryLabel,
+    mapAgendaItemsToRows,
+  ]);
 
   const openAgendaItem = useCallback((item: HomeTodayAgendaItem) => {
     if (item.kind === 'social') {
@@ -429,10 +458,10 @@ export function useHomeListGateProps(input: UseHomeDarkGatePropsInput) {
     getPartyVenue,
     onPartyClick: openPartyWithAfterParty,
     onViewAllSocial: openSocialTab,
-    todayAgendaDateLabel: homeTodayAgendaDateLabel,
-    todayAgendaRows: homeTodayAgendaRows,
-    todayAgendaCount: homeTodayAgendaCounts.total,
-    todayAgendaSummaryLabel: homeTodayAgendaSummaryLabel,
+    todayAgendaDayCount: UPCOMING_AGENDA_DAY_COUNT,
+    todayAgendaDayGroups: homeUpcomingAgendaDayGroups,
+    todayAgendaCount: homeUpcomingAgendaCounts.total,
+    todayAgendaSummaryLabel: homeUpcomingAgendaSummaryLabel,
     onAgendaItemClick: openAgendaItem,
     onOpenCalendar,
     photoMenuItems,

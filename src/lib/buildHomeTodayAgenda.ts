@@ -9,6 +9,7 @@ export type HomeTodayAgendaKind = 'social' | 'bootcamp' | 'festival' | 'party';
 
 export type HomeTodayAgendaItem = {
   id: string;
+  dateStr: string;
   kind: HomeTodayAgendaKind;
   kindLabelKo: string;
   kindLabelEn: string;
@@ -32,6 +33,24 @@ const KIND_ORDER: Record<HomeTodayAgendaKind, number> = {
   bootcamp: 1,
   festival: 2,
   party: 3,
+};
+
+/** 메인 다가오는 일정 — 오늘 포함 N일 */
+export const UPCOMING_AGENDA_DAY_COUNT = 7;
+
+export const addDaysToDateStr = (dateStr: string, days: number) => {
+  const base = new Date(`${normDate(dateStr)}T12:00:00`);
+  if (Number.isNaN(base.getTime())) return normDate(dateStr);
+  base.setDate(base.getDate() + days);
+  return normDate(base);
+};
+
+export const buildUpcomingDateRange = (fromDateStr: string, dayCount = UPCOMING_AGENDA_DAY_COUNT) => {
+  const dates: string[] = [];
+  for (let i = 0; i < dayCount; i += 1) {
+    dates.push(addDaysToDateStr(fromDateStr, i));
+  }
+  return dates;
 };
 
 const dedupeById = <T extends { id?: unknown }>(list: T[]): T[] => {
@@ -90,6 +109,7 @@ export const filterAgendaPartiesForDate = (
 
 const toAgendaItem = (
   id: string,
+  dateStr: string,
   kind: HomeTodayAgendaKind,
   row: Record<string, unknown>,
 ): HomeTodayAgendaItem | null => {
@@ -116,6 +136,7 @@ const toAgendaItem = (
 
   return {
     id,
+    dateStr,
     kind,
     kindLabelKo: labels.ko,
     kindLabelEn: labels.en,
@@ -128,8 +149,13 @@ const toAgendaItem = (
   };
 };
 
+export function formatAgendaDayLabel(dateStr: string, todayStr: string, isEn: boolean) {
+  return formatHeroDateLabel(dateStr, todayStr, isEn) || dateStr.slice(5).replace('-', '/');
+}
+
+/** @deprecated use formatAgendaDayLabel */
 export function formatTodayAgendaDateLabel(dateStr: string, isEn: boolean) {
-  return formatHeroDateLabel(dateStr, dateStr, isEn) || dateStr.slice(5).replace('-', '/');
+  return formatAgendaDayLabel(dateStr, dateStr, isEn);
 }
 
 type BuildHomeTodayAgendaInput = {
@@ -157,13 +183,13 @@ export function buildHomeTodayAgenda({
   };
 
   eventsOnDate(bootcamps || [], dateStr).forEach((row) => {
-    const item = toAgendaItem(`bootcamp-${row.id}`, 'bootcamp', row);
+    const item = toAgendaItem(`bootcamp-${row.id}`, dateStr, 'bootcamp', row);
     if (item && rememberPoster(item.posterUrl)) items.push(item);
   });
 
   eventsOnDate(festivals || [], dateStr).forEach((row) => {
     const kind = resolveFestivalKind(row);
-    const item = toAgendaItem(`${kind}-${row.id}`, kind, row);
+    const item = toAgendaItem(`${kind}-${row.id}`, dateStr, kind, row);
     if (item && rememberPoster(item.posterUrl)) items.push(item);
   });
 
@@ -177,7 +203,7 @@ export function buildHomeTodayAgenda({
       kind = 'social';
     }
 
-    const item = toAgendaItem(`party-row-${party.id}`, kind, row);
+    const item = toAgendaItem(`party-row-${party.id}`, dateStr, kind, row);
     if (!item) return;
 
     // bootcamp/festival 테이블과 같은 포스터면 parties 중복 제외
@@ -192,6 +218,44 @@ export function buildHomeTodayAgenda({
     }
     return a.title.localeCompare(b.title, 'ko');
   });
+}
+
+export type HomeUpcomingAgendaDay = {
+  dateStr: string;
+  items: HomeTodayAgendaItem[];
+};
+
+type BuildHomeUpcomingAgendaInput = {
+  fromDateStr: string;
+  dayCount?: number;
+  parties: HomeDarkParty[] | null | undefined;
+  bootcamps: Record<string, unknown>[] | null | undefined;
+  festivals: Record<string, unknown>[] | null | undefined;
+};
+
+/** 오늘부터 N일 — 포스터 있는 날짜만 */
+export function buildHomeUpcomingAgenda({
+  fromDateStr,
+  dayCount = UPCOMING_AGENDA_DAY_COUNT,
+  parties,
+  bootcamps,
+  festivals,
+}: BuildHomeUpcomingAgendaInput): HomeUpcomingAgendaDay[] {
+  return buildUpcomingDateRange(fromDateStr, dayCount)
+    .map((dateStr) => ({
+      dateStr,
+      items: buildHomeTodayAgenda({
+        dateStr,
+        parties,
+        bootcamps,
+        festivals,
+      }),
+    }))
+    .filter((day) => day.items.length > 0);
+}
+
+export function summarizeAgendaCountsFromDays(days: HomeUpcomingAgendaDay[]) {
+  return summarizeTodayAgendaCounts(days.flatMap((day) => day.items));
 }
 
 export function summarizeTodayAgendaCounts(items: HomeTodayAgendaItem[]) {
