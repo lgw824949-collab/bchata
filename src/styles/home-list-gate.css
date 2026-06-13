@@ -211,6 +211,12 @@
   color: #e53935;
 }
 
+.home-list-gate__today-agenda-range {
+  font-size: 13px;
+  font-weight: 700;
+  color: #94a3b8;
+}
+
 .home-list-gate__today-agenda-summary {
   margin: 6px 0 0;
   font-size: 12px;
@@ -406,6 +412,27 @@
 .home-list-gate__today-agenda-chevron {
   flex-shrink: 0;
   color: #cbd5e1;
+}
+
+.home-list-gate__today-agenda-more {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  width: 100%;
+  margin-top: 4px;
+  padding: 12px 8px 4px;
+  border: none;
+  border-top: 1px dashed #e8ebed;
+  background: transparent;
+  color: #64748b;
+  font-size: 13px;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.home-list-gate__today-agenda-more:active {
+  color: #e53935;
 }
 
 .home-list-gate__hero .home-dark-today-pick {

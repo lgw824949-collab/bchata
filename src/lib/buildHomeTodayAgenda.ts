@@ -38,6 +38,9 @@ const KIND_ORDER: Record<HomeTodayAgendaKind, number> = {
 /** 메인 다가오는 일정 — 오늘 포함 N일 */
 export const UPCOMING_AGENDA_DAY_COUNT = 7;
 
+/** 메인 첫 화면에 보여줄 최대 건수 */
+export const UPCOMING_AGENDA_PREVIEW_LIMIT = 5;
+
 export const addDaysToDateStr = (dateStr: string, days: number) => {
   const base = new Date(`${normDate(dateStr)}T12:00:00`);
   if (Number.isNaN(base.getTime())) return normDate(dateStr);
