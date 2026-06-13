@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import HomeDarkHeader from './HomeDarkHeader';
 import HomeDarkTodayPick from './HomeDarkTodayPick';
 import HomeListBarSection from './HomeListBarSection';
@@ -118,6 +118,16 @@ export default function HomeListGate({
 }: HomeListGateProps) {
   const [searchOpen, setSearchOpen] = useState(false);
   const [moreOpen, setMoreOpen] = useState(false);
+
+  useEffect(() => {
+    const closeMore = () => setMoreOpen(false);
+    window.addEventListener('bamppa-navigate', closeMore);
+    window.addEventListener('popstate', closeMore);
+    return () => {
+      window.removeEventListener('bamppa-navigate', closeMore);
+      window.removeEventListener('popstate', closeMore);
+    };
+  }, []);
 
   return (
     <div className="home-list-gate">

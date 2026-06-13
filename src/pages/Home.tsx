@@ -2062,8 +2062,8 @@ const HomePage = ({
   }, [calendarTodayStr, setShowFullCalendar]);
 
   const onRegisterParty = useCallback(() => {
-    handleRegister('party');
-  }, [handleRegister]);
+    historyNavigate('/register-party', { homeTab: null });
+  }, []);
 
   const onRegisterInstructor = useCallback(() => {
     window.dispatchEvent(new CustomEvent('open-class-register'));
@@ -2087,11 +2087,11 @@ const HomePage = ({
   }, []);
 
   const onOpenRestaurant = useCallback(() => {
-    navigate('/restaurant');
+    historyNavigate('/restaurant', { homeTab: null });
   }, []);
 
   const onOpenWeatherOverlay = useCallback(() => {
-    pushOverlay('weather');
+    pushOverlay('weather', { path: window.location.pathname });
   }, []);
 
   const onOpenRouteOverlay = useCallback(() => {
@@ -2099,8 +2099,8 @@ const HomePage = ({
   }, [openAnalysis]);
 
   const onOpenSajuOverlay = useCallback(() => {
-    pushOverlay('barMatching');
     setShowSaju(true);
+    pushOverlay('barMatching', { path: window.location.pathname });
   }, [setShowSaju]);
 
   const onToggleAppLanguage = useCallback(() => {

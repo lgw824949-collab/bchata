@@ -1,5 +1,6 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { createPortal } from 'react-dom';
+import { flushSync } from 'react-dom';
 import { AnimatePresence, motion } from 'framer-motion';
 import { X } from 'lucide-react';
 import { Z } from '../../constants/zLayers';
@@ -18,6 +19,12 @@ export default function HomeDarkMoreSheet({
   actions,
   onClose,
 }: HomeDarkMoreSheetProps) {
+  const [quickClose, setQuickClose] = useState(false);
+
+  useEffect(() => {
+    if (open) setQuickClose(false);
+  }, [open]);
+
   useEffect(() => {
     if (!open) return undefined;
     const prev = document.body.style.overflow;
@@ -39,15 +46,20 @@ export default function HomeDarkMoreSheet({
   const primary = actions.filter((a) => a.tier !== 'secondary');
   const secondary = actions.filter((a) => a.tier === 'secondary');
 
+  const runAction = (action: HomeDarkMoreAction) => {
+    flushSync(() => {
+      setQuickClose(true);
+      onClose();
+    });
+    action.onClick();
+  };
+
   const renderLinks = (items: HomeDarkMoreAction[]) => items.map((action) => (
     <button
       key={action.id}
       type="button"
       className="home-dark-more-sheet__link"
-      onClick={() => {
-        action.onClick();
-        onClose();
-      }}
+      onClick={() => runAction(action)}
     >
       <span className="home-dark-more-sheet__label">
         {isEn ? action.labelEn : action.labelKo}
@@ -79,7 +91,12 @@ export default function HomeDarkMoreSheet({
             aria-label={isEn ? 'More actions' : '더보기 메뉴'}
             initial={{ x: '100%' }}
             animate={{ x: 0 }}
-            exit={{ x: '100%' }}
+            exit={{
+              x: '100%',
+              transition: quickClose
+                ? { duration: 0 }
+                : { type: 'spring', damping: 32, stiffness: 360 },
+            }}
             transition={{ type: 'spring', damping: 32, stiffness: 360 }}
             style={{ zIndex: Z.modal }}
           >
