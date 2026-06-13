@@ -1,4 +1,4 @@
-/** 홈 탭 = 다크 게이트(HomeDarkGate), 소셜 탭 = 라이트 파티 목록 */
+/** 홈 탭 = 네이버형 리스트(HomeListGate), 소셜 탭 = 달력+파티 목록 */
 
 /** 다크 홈 헤더 — 오늘밤빠 아래 슬로건 (목업 영문 톤) */
 export const HOME_DARK_HEADER_TAGLINE = 'Ready to dance tonight?';
