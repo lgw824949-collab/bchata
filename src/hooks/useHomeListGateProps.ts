@@ -1,4 +1,5 @@
 import { useCallback, useMemo, useState } from 'react';
+import { filterSocialPartyRows } from '../lib/postKind';
 import { resolvePartyVenueName } from '../lib/partiesQuery';
 import { navigate as historyNavigate, navigateHomeTab, pushOverlay } from '../lib/appHistory';
 import { buildHomeDarkMoreActions } from '../components/home/buildHomeDarkMoreActions';
@@ -52,8 +53,10 @@ export function useHomeListGateProps(input: UseHomeDarkGatePropsInput) {
   const [homeRegionPill, setHomeRegionPill] = useState('national');
 
   const homeFilteredTodayParties = useMemo(
-    () => filterTodayPartiesByPill(todayPosterPartiesForCount, homeRegionPill)
-      .filter((party) => String(party.poster_url || '').trim()),
+    () => filterSocialPartyRows(
+      filterTodayPartiesByPill(todayPosterPartiesForCount, homeRegionPill)
+        .filter((party) => String(party.poster_url || '').trim()),
+    ),
     [todayPosterPartiesForCount, homeRegionPill, filterTodayPartiesByPill],
   );
 

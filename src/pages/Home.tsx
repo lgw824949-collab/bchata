@@ -2543,7 +2543,7 @@ const HomePage = ({
       const labelSpan = partyTab.querySelector('span');
       if (labelSpan) {
         const en = (labelSpan.textContent || '').includes('Social') || (labelSpan.textContent || '').includes('Party');
-        labelSpan.textContent = en ? 'Party' : '파티';
+        labelSpan.textContent = en ? 'Social' : '소셜';
       }
     }
     const ordered = [

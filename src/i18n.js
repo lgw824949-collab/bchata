@@ -10,7 +10,7 @@ const resources = {
       "nav_class": "수업/정모",
       "nav_bootcamp": "부트캠프",
       "nav_festival": "페스티벌",
-      "nav_party": "PARTY",
+      "nav_party": "SOCIAL",
       "nav_register": "등록",
 
       "filter_where": "어디로 가시나요?",
@@ -123,7 +123,7 @@ const resources = {
       "nav_class": "Classes",
       "nav_bootcamp": "BOOTCAMP",
       "nav_festival": "FESTIVAL",
-      "nav_party": "PARTY",
+      "nav_party": "SOCIAL",
       "nav_register": "Register",
 
       "filter_where": "Where are you going?",

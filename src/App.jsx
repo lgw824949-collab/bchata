@@ -3274,7 +3274,7 @@ function App() {
         style={{ '--bottom-nav-accent': bottomNavAccent }}
       >
         <Music2 size={22} strokeWidth={isPartyNavActive ? 2.5 : 1.5} />
-        <span>{i18n.language?.startsWith('en') ? 'Party' : '파티'}</span>
+        <span>{i18n.language?.startsWith('en') ? 'Social' : '소셜'}</span>
       </button>
 
       <button

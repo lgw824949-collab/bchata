@@ -35,8 +35,8 @@ const PARTY_EVENT_PATTERNS = [
 
 /** BAR 소셜·정기 모임 — parties(오늘소셜) 전용 */
 const SOCIAL_NIGHTLY_PATTERNS = [
-  /소셜\s*파티/,
-  /social\s*party/i,
+  /소셜/,
+  /social/i,
   /클럽\s*나이트/,
   /club\s*night/i,
   /정\s*모/,
@@ -69,17 +69,22 @@ function matchesAny(text: string, patterns: RegExp[]) {
   return patterns.some((re) => re.test(text));
 }
 
-/** parties 행 → 어느 슬롯에 속하는지 (기본 social) */
-export function inferPartyRowSlot(row: PostKindFields | null | undefined): PosterSlot {
+/** parties 행 → 어느 슬롯에 속하는지 (소셜은 명시 패턴만, 그 외는 해당 슬롯 없음) */
+export function inferPartyRowSlot(row: PostKindFields | null | undefined): PosterSlot | null {
   const text = combineText(row?.title, row?.description);
   if (matchesAny(text, BOOTCAMP_PATTERNS)) return 'bootcamp';
   if (matchesAny(text, FESTIVAL_MT_PATTERNS)) return 'festival';
   if (matchesAny(text, PARTY_EVENT_PATTERNS)) return 'party';
-  return 'social';
+  if (matchesAny(text, SOCIAL_NIGHTLY_PATTERNS)) return 'social';
+  return null;
 }
 
 export function isSocialPartyRow(row: PostKindFields | null | undefined) {
   return inferPartyRowSlot(row) === 'social';
+}
+
+export function isUnscopedPartyRow(row: PostKindFields | null | undefined) {
+  return inferPartyRowSlot(row) === null;
 }
 
 export function partyRowMatchesSlot(
@@ -113,6 +118,9 @@ export function validateSocialPartyRegistration(fields: PostKindFields): Validat
   }
   if (matchesAny(text, PARTY_EVENT_PATTERNS)) {
     return fail('행사·주년 파티는 [파티] 메뉴에서만 등록할 수 있습니다. 오늘소셜 등록에는 올릴 수 없어요.');
+  }
+  if (!matchesAny(text, SOCIAL_NIGHTLY_PATTERNS)) {
+    return fail('오늘소셜은 BAR 소셜·정기 모임 포스터만 등록할 수 있습니다. 부트캠프·페스티벌·행사 파티는 각각 전용 메뉴에서 등록해 주세요.');
   }
   return ok();
 }
