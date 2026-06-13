@@ -481,6 +481,39 @@ const normalizeInstagramUrl = (raw) => {
   return /^https?:\/\//i.test(v) ? v : `https://${v}`;
 };
 
+const resolveVenueMapQuery = (venue, master, displayAddress, displayName) => {
+  const lat = Number(venue?.latitude ?? master?.latitude);
+  const lng = Number(venue?.longitude ?? master?.longitude);
+  if (Number.isFinite(lat) && Number.isFinite(lng)) return `${lat},${lng}`;
+  return displayAddress || displayName || '';
+};
+
+const buildVenueMapEmbedUrl = (query) => {
+  if (!String(query || '').trim()) return null;
+  return `https://maps.google.com/maps?q=${encodeURIComponent(String(query).trim())}&z=16&output=embed`;
+};
+
+function VenueMapPreview({ query, onOpenExternal }) {
+  const embedUrl = buildVenueMapEmbedUrl(query);
+  if (!embedUrl) return null;
+
+  return (
+    <div className="vd-map-preview">
+      <iframe
+        title="BAR location map"
+        src={embedUrl}
+        loading="lazy"
+        referrerPolicy="no-referrer-when-downgrade"
+        allowFullScreen
+      />
+      <button type="button" className="vd-map-preview__open" onClick={onOpenExternal}>
+        <MapPin size={14} aria-hidden />
+        <span>앱에서 열기</span>
+      </button>
+    </div>
+  );
+}
+
 const VenueHeaderChips = ({ mode, onModeChange, instagramUrl }) => {
   const openRental = () => {
     const href = normalizeInstagramUrl(instagramUrl);
@@ -740,15 +773,16 @@ export default function VenueDetailModal({
   const master = findBarByName(venue?.name);
   const displayName = venue?.name || master?.name || '제휴 BAR';
   const displayAddress = venue?.address || master?.address || '';
+  const mapQuery = resolveVenueMapQuery(displayVenue, master, displayAddress, displayName);
 
   const openVenueMap = useCallback(() => {
-    if (!displayAddress) return;
+    if (!mapQuery) return;
     window.open(
-      `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(displayAddress)}`,
+      `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(mapQuery)}`,
       '_blank',
       'noopener,noreferrer',
     );
-  }, [displayAddress]);
+  }, [mapQuery]);
 
   const calendarDays = useMemo(() => {
     const { year, month } = calendarMonth;
@@ -785,80 +819,38 @@ export default function VenueDetailModal({
             paddingBottom: 'env(safe-area-inset-bottom)',
           }}
         >
-        {/* 헤더 */}
-        <div
-          style={{
-            flexShrink: 0,
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-            padding: '12px 16px',
-            borderBottom: `1px solid ${VD.borderAccent}`,
-            background: VD.bgHeader,
-          }}
-        >
-          <button
-            type="button"
-            onClick={onClose}
-            style={{
-              border: 'none',
-              background: '#F8FAFC',
-              borderRadius: '50%',
-              width: 40,
-              height: 40,
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              cursor: 'pointer',
-            }}
-          >
-            <ChevronLeft size={22} color="#1E293B" />
-          </button>
-          <div
-            style={{
-              flex: 1,
-              minWidth: 0,
-              padding: '0 8px',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              gap: '10px',
-            }}
-          >
-            <VenueAvatar venue={venue} size={40} />
-            <div style={{ minWidth: 0, textAlign: 'left' }}>
+        {/* 헤더 + 지도 */}
+        <header className="vd-shell-header">
+          <div className="vd-topbar">
+            <button type="button" className="vd-icon-btn" onClick={onClose} aria-label="뒤로">
+              <ChevronLeft size={22} aria-hidden />
+            </button>
+            <span className="vd-topbar-label">BAR</span>
+            <button type="button" className="vd-icon-btn" onClick={onClose} aria-label="닫기">
+              <X size={20} aria-hidden />
+            </button>
+          </div>
+
+          <div className="vd-venue-row">
+            <VenueAvatar venue={venue} size={48} />
+            <div className="vd-venue-copy">
               <h1 className="vd-header-name">{displayName}</h1>
               {displayAddress ? (
-                <button type="button" className="vd-header-address-line" onClick={openVenueMap}>
-                  <MapPin size={13} strokeWidth={2.2} aria-hidden />
-                  <span>{displayAddress}</span>
-                </button>
+                <p className="vd-venue-address">{displayAddress}</p>
               ) : null}
-              <VenueHeaderChips
-                mode={detailTab}
-                onModeChange={setDetailTab}
-                instagramUrl={displayVenue?.instagram_url}
-              />
             </div>
           </div>
-          <button
-            type="button"
-            onClick={onClose}
-            style={{
-              border: 'none',
-              background: '#F8FAFC',
-              borderRadius: '50%',
-              width: 40,
-              height: 40,
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              cursor: 'pointer',
-            }}
-          >
-            <X size={20} color="#64748B" />
-          </button>
-        </div>
+
+          <div className="vd-header-chips-wrap">
+            <VenueHeaderChips
+              mode={detailTab}
+              onModeChange={setDetailTab}
+              instagramUrl={displayVenue?.instagram_url}
+            />
+          </div>
+        </header>
+
+        <VenueMapPreview query={mapQuery} onOpenExternal={openVenueMap} />
 
         {!isSocialTab && onRegisterVenueLesson ? (
           <div
