@@ -2580,7 +2580,7 @@ const HomePage = ({
 
     root.classList.add('home-gate-theme', 'app-dark-surface');
     body.classList.add('home-gate-theme', 'app-dark-surface');
-    if (themeMeta) themeMeta.setAttribute('content', '#14100E');
+    if (themeMeta) themeMeta.setAttribute('content', '#0F0F12');
 
     return () => {
       root.classList.remove('home-gate-theme', 'app-dark-surface');
@@ -2638,7 +2638,7 @@ const HomePage = ({
   const HOME_TEXT_MUTED = 'rgba(30, 41, 59, 0.55)';
   const HOME_SURFACE = '#FFFFFF';
   const HOME_BORDER = '#EDEAE3';
-  const HOME_PAGE_BG = isHomeGate ? '#14100E' : '#F5F6F8';
+  const HOME_PAGE_BG = isHomeGate ? '#0F0F12' : '#F5F6F8';
   const HOME_CARD_BORDER = '0.5px solid #EDEAE3';
   const homeUi = useMemo(() => (isHomeGate ? {
     pageBg: 'transparent',
@@ -2668,14 +2668,14 @@ const HomePage = ({
       districts: '#FFFFFF',
     },
     divider: 'rgba(255, 255, 255, 0.08)',
-    panelBg: '#221a18',
+    panelBg: '#1a1a1e',
     panelBorder: 'rgba(255, 255, 255, 0.08)',
     panelShadow: '0 10px 40px rgba(0, 0, 0, 0.38)',
     quickIcon: '#FFFFFF',
     quickRegisterIcon: '#FFFFFF',
     posterActive: '#FFFFFF',
     posterIdle: 'rgba(255, 255, 255, 0.12)',
-    liveShell: 'linear-gradient(135deg, #2a2220 0%, #181310 52%, #1f1816 100%)',
+    liveShell: 'linear-gradient(135deg, #222228 0%, #141418 52%, #161618 100%)',
     liveBorder: HOME_GOLD_BORDER,
     barSubtitle: '#FFFFFF',
     barLabel: '#FFFFFF',
@@ -3099,12 +3099,12 @@ const HomePage = ({
       {/* 메인 퀵메뉴: activeTab === null → 3섹션 그리드 / 소셜 탭 → 가로 스크롤 */}
       <style>{`
         .home-gate-shell {
-          --home-page-bg: ${isHomeGate ? '#0d0b0a' : '#F5F6F8'};
-          --home-text-primary: ${isHomeGate ? '#FAF7F4' : '#191F28'};
-          --home-text-secondary: ${isHomeGate ? 'rgba(255, 244, 235, 0.58)' : '#191F28'};
-          --home-text-tertiary: ${isHomeGate ? 'rgba(255, 244, 235, 0.42)' : '#4B5563'};
-          --home-card-border: ${isHomeGate ? 'rgba(255, 200, 160, 0.12)' : '#E8EBED'};
-          --home-fade-rgb: ${isHomeGate ? '20, 16, 14' : '245, 246, 248'};
+          --home-page-bg: ${isHomeGate ? '#09090b' : '#F5F6F8'};
+          --home-text-primary: ${isHomeGate ? '#F5F5F7' : '#191F28'};
+          --home-text-secondary: ${isHomeGate ? 'rgba(255, 255, 255, 0.52)' : '#191F28'};
+          --home-text-tertiary: ${isHomeGate ? 'rgba(255, 255, 255, 0.38)' : '#4B5563'};
+          --home-card-border: ${isHomeGate ? 'rgba(255, 255, 255, 0.09)' : '#E8EBED'};
+          --home-fade-rgb: ${isHomeGate ? '15, 15, 18' : '245, 246, 248'};
           ${isHomeGate ? '' : 'background-color: #F5F6F8 !important;'}
         }
         .home-gate-shell .home-main-stack {

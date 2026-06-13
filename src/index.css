@@ -1872,16 +1872,16 @@ body.app-dark-surface {
 /* 메인 홈 게이트(activeTab 없음): 앱 셸·루트까지 다크 (Home 내부만 어두운 문제 방지) */
 html.home-gate-theme,
 body.home-gate-theme {
-  --color-bg: #14100e;
-  --color-text-main: #faf7f4;
-  --color-text-sub: rgba(255, 244, 235, 0.58);
+  --color-bg: #0f0f12;
+  --color-text-main: #f5f5f7;
+  --color-text-sub: rgba(255, 255, 255, 0.52);
   --color-card: rgba(255, 255, 255, 0.06);
-  --color-border: rgba(255, 200, 160, 0.12);
+  --color-border: rgba(255, 255, 255, 0.09);
   background:
-    radial-gradient(ellipse 120% 95% at 50% 8%, rgba(180, 72, 48, 0.09) 0%, rgba(120, 48, 36, 0.03) 45%, transparent 72%),
-    linear-gradient(180deg, #1f1816 0%, #181310 48%, #120f0d 80%, #0d0b0a 100%) !important;
-  background-color: #14100e !important;
-  color: #faf7f4;
+    radial-gradient(ellipse 120% 80% at 50% -6%, rgba(255, 255, 255, 0.025) 0%, rgba(255, 91, 58, 0.035) 38%, transparent 68%),
+    linear-gradient(180deg, #161618 0%, #121214 50%, #0e0e11 82%, #09090b 100%) !important;
+  background-color: #0f0f12 !important;
+  color: #f5f5f7;
 }
 
 .bchata-app-shell--gate,
@@ -1889,7 +1889,7 @@ html.home-gate-theme .bchata-app-shell,
 body.home-gate-theme .bchata-app-shell,
 body.home-gate-theme [data-bchata-app-root] {
   background-color: transparent !important;
-  color: #faf7f4;
+  color: #f5f5f7;
   box-shadow: 0 0 56px rgba(0, 0, 0, 0.42);
 }
 
@@ -2411,8 +2411,8 @@ body.party-register-open .bottom-nav {
 
   body.home-gate-theme {
     background:
-      radial-gradient(ellipse 140% 90% at 50% 0%, rgba(180, 72, 48, 0.07) 0%, transparent 65%),
-      linear-gradient(180deg, #181310 0%, #0d0b0a 100%) !important;
+      radial-gradient(ellipse 140% 85% at 50% -8%, rgba(255, 91, 58, 0.04) 0%, transparent 62%),
+      linear-gradient(180deg, #141416 0%, #09090b 100%) !important;
   }
 
   body.bchata-admin-shell-active .bchata-app-shell {
