@@ -9,6 +9,7 @@ import { buildHomeDarkMoreActions } from '../components/home/buildHomeDarkMoreAc
 import { formatPartyTitleDisplay } from '../lib/partyTitleDisplay';
 import { HOME_DARK_MIN_BAR_ITEMS, HOME_DARK_REGION_PILLS } from '../components/home/constants';
 import type { HomeDarkBar, HomeDarkParty } from '../components/home/types';
+import { buildHomeListPhotoMenuItems } from '../lib/homeListPhotoMenu';
 import type { HomeListGateProps } from '../components/home/HomeListGate';
 import type { UseHomeDarkGatePropsInput } from './useHomeDarkGateProps';
 
@@ -224,6 +225,44 @@ export function useHomeListGateProps(input: UseHomeDarkGatePropsInput) {
     [isEn, translateDynamicText],
   );
 
+  const instructorMenuPhotoUrl = useMemo(() => {
+    const withPhoto = (hotInstructors || []).find((inst) => String(inst.photo_url || '').trim());
+    return withPhoto?.photo_url || null;
+  }, [hotInstructors]);
+
+  const photoMenuItems = useMemo(
+    () => buildHomeListPhotoMenuItems({
+      isEn,
+      bootcamps,
+      festivals,
+      calendarTodayStr,
+      bootcampCount,
+      festivalCount,
+      partyEventCount,
+      instructorCount: hotInstructors.length,
+      instructorPhotoUrl: instructorMenuPhotoUrl,
+      onOpenBootcamp: openBootcampPage,
+      onOpenFestival: openFestivalPage,
+      onOpenPartyEvents: openFestivalPartyPage,
+      onOpenInstructors: openInstructors,
+    }),
+    [
+      isEn,
+      bootcamps,
+      festivals,
+      calendarTodayStr,
+      bootcampCount,
+      festivalCount,
+      partyEventCount,
+      hotInstructors.length,
+      instructorMenuPhotoUrl,
+      openBootcampPage,
+      openFestivalPage,
+      openFestivalPartyPage,
+      openInstructors,
+    ],
+  );
+
   const gateProps: HomeListGateProps = {
     isEn,
     regionPills: [...HOME_DARK_REGION_PILLS],
@@ -235,14 +274,7 @@ export function useHomeListGateProps(input: UseHomeDarkGatePropsInput) {
     getPartyVenue,
     onPartyClick: openPartyWithAfterParty,
     onViewAllSocial: openSocialTab,
-    bootcampCount,
-    festivalCount,
-    partyEventCount,
-    instructorCount: hotInstructors.length,
-    onOpenBootcamp: openBootcampPage,
-    onOpenFestival: openFestivalPage,
-    onOpenPartyEvents: openFestivalPartyPage,
-    onOpenInstructors: openInstructors,
+    photoMenuItems,
     onOpenBarMap: openBarMap,
     barCount: locations.length,
     socialBarRegionTabs,

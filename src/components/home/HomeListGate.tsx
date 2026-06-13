@@ -5,7 +5,9 @@ import HomeDarkRegionPills from './HomeDarkRegionPills';
 import HomeDarkMoreSheet from './HomeDarkMoreSheet';
 import HomeListTodaySocialRotator from './HomeListTodaySocialRotator';
 import HomeListBarSection from './HomeListBarSection';
+import HomeListPhotoMenu from './HomeListPhotoMenu';
 import { HOME_LIST_TAGLINE_EN, HOME_LIST_TAGLINE_KO } from './constants';
+import type { HomeListPhotoMenuItem } from '../../lib/homeListPhotoMenu';
 import type { HomeDarkBar, HomeDarkMoreAction, HomeDarkParty, HomeDarkRegionPill } from './types';
 
 export type HomeListGateProps = {
@@ -19,14 +21,7 @@ export type HomeListGateProps = {
   getPartyVenue: (party: HomeDarkParty) => string;
   onPartyClick: (party: HomeDarkParty) => void;
   onViewAllSocial: () => void;
-  bootcampCount: number;
-  festivalCount: number;
-  partyEventCount: number;
-  instructorCount: number;
-  onOpenBootcamp: () => void;
-  onOpenFestival: () => void;
-  onOpenPartyEvents: () => void;
-  onOpenInstructors: () => void;
+  photoMenuItems: HomeListPhotoMenuItem[];
   onOpenBarMap: () => void;
   barCount: number;
   socialBarRegionTabs: string[];
@@ -49,22 +44,6 @@ export type HomeListGateProps = {
   moreActions: HomeDarkMoreAction[];
 };
 
-type NavChipProps = {
-  label: string;
-  count: number;
-  onClick: () => void;
-};
-
-function HomeListNavChip({ label, count, onClick }: NavChipProps) {
-  if (count <= 0) return null;
-  return (
-    <button type="button" className="home-list-gate__nav-chip" onClick={onClick}>
-      <span className="home-list-gate__nav-chip-label">{label}</span>
-      <span className="home-list-gate__nav-chip-count">{count}</span>
-    </button>
-  );
-}
-
 export default function HomeListGate({
   isEn,
   regionPills,
@@ -76,14 +55,7 @@ export default function HomeListGate({
   getPartyVenue,
   onPartyClick,
   onViewAllSocial,
-  bootcampCount,
-  festivalCount,
-  partyEventCount,
-  instructorCount,
-  onOpenBootcamp,
-  onOpenFestival,
-  onOpenPartyEvents,
-  onOpenInstructors,
+  photoMenuItems,
   onOpenBarMap,
   socialBarRegionTabs,
   selectedBarRegionTab,
@@ -171,28 +143,7 @@ export default function HomeListGate({
         onRequestLocation={onRequestLocation}
       />
 
-      <nav className="home-list-gate__nav-chips" aria-label={isEn ? 'More categories' : '밤빠 더보기'}>
-        <HomeListNavChip
-          label={isEn ? 'Bootcamp' : '부트캠프'}
-          count={bootcampCount}
-          onClick={onOpenBootcamp}
-        />
-        <HomeListNavChip
-          label={isEn ? 'Festival' : '페스티벌'}
-          count={festivalCount}
-          onClick={onOpenFestival}
-        />
-        <HomeListNavChip
-          label={isEn ? 'Party' : '파티'}
-          count={partyEventCount}
-          onClick={onOpenPartyEvents}
-        />
-        <HomeListNavChip
-          label={isEn ? 'Instructors' : '강사'}
-          count={instructorCount}
-          onClick={onOpenInstructors}
-        />
-      </nav>
+      <HomeListPhotoMenu isEn={isEn} items={photoMenuItems} />
 
       <HomeDarkMoreSheet
         open={moreOpen}
