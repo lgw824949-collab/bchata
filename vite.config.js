@@ -49,8 +49,8 @@ function pickNonempty(...values) {
   return ''
 }
 
-function mergeViteEnv(modeEnv, baseEnv, dotEnv) {
-  const pick = (key) => pickNonempty(modeEnv[key], baseEnv[key], dotEnv[key])
+function mergeViteEnv(modeEnv, baseEnv, dotEnv, dotEnvLocal) {
+  const pick = (key) => pickNonempty(modeEnv[key], baseEnv[key], dotEnvLocal[key], dotEnv[key])
   return {
     ...modeEnv,
     VITE_SUPABASE_URL: pick('VITE_SUPABASE_URL'),
@@ -173,7 +173,7 @@ export default defineConfig(({ mode }) => {
   const cwd = process.cwd()
   const dotEnv = parseEnvFile(path.join(cwd, '.env'))
   const dotEnvLocal = parseEnvFile(path.join(cwd, '.env.local'))
-  const env = mergeViteEnv(loadEnv(mode, cwd, ''), loadEnv('', cwd, ''), dotEnv)
+  const env = mergeViteEnv(loadEnv(mode, cwd, ''), loadEnv('', cwd, ''), dotEnv, dotEnvLocal)
   const pickServer = (key) => pickNonempty(
     process.env[key],
     loadEnv(mode, cwd, '')[key],

@@ -6,6 +6,7 @@ import { Plus, ChevronLeft, Check, X, MapPin } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { supabase } from './lib/supabase'
 import { getKakaoApiKey } from './lib/kakaoEnv'
+import { loadDaumPostcode } from './lib/loadDaumPostcode'
 import { findBarByName } from './lib/BarLib'
 import { normalizeVenueAddressKey } from './lib/venueDedupe'
 import { PARTY_TITLE_MAX_LENGTH } from './lib/partyTitleDisplay'
@@ -417,12 +418,15 @@ const RegisterForm = ({ onBack, onSuccess, isEdit = false, isAdminMode = false, 
     setSuggestions([])
   }
 
-  const handleAddressSearch = () => {
-    if (!window.daum || !window.daum.Postcode) {
+  const handleAddressSearch = async () => {
+    let PostcodeCtor;
+    try {
+      PostcodeCtor = await loadDaumPostcode();
+    } catch {
       alert('주소 서비스 로딩 중입니다. 잠시 후 다시 시도해주세요.');
       return;
     }
-    new window.daum.Postcode({
+    new PostcodeCtor({
       oncomplete: async (data) => {
         const fullAddress = data.roadAddress || data.address;
         let lat = null, lng = null;

@@ -484,10 +484,19 @@ const normalizeInstagramUrl = (raw) => {
   return /^https?:\/\//i.test(v) ? v : `https://${v}`;
 };
 
+const pickCoord = (...values) => {
+  for (const value of values) {
+    if (value == null || value === '') continue;
+    const n = Number(value);
+    if (Number.isFinite(n)) return n;
+  }
+  return null;
+};
+
 const resolveVenueMapTarget = (venue, master, displayAddress, displayName) => {
-  const lat = Number(venue?.latitude ?? master?.latitude);
-  const lng = Number(venue?.longitude ?? master?.longitude);
-  if (Number.isFinite(lat) && Number.isFinite(lng)) {
+  const lat = pickCoord(venue?.latitude, master?.latitude);
+  const lng = pickCoord(venue?.longitude, master?.longitude);
+  if (lat != null && lng != null) {
     return { lat, lng, query: displayAddress || displayName || '' };
   }
   const gps = findBarMasterGps(venue?.name || master?.name, displayAddress);
