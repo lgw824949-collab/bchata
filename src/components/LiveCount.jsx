@@ -16,6 +16,7 @@ import {
   logPartiesFetchError,
   stripPlatformSuffixFromTitle,
 } from '../lib/partiesQuery'
+import { filterSocialPartyRows } from '../lib/postKind'
 
 const SPOTLIGHT_ROTATE_MS = 5000
 const LIVE_QUEUE_REFRESH_MS = 10 * 60 * 1000
@@ -37,7 +38,7 @@ function getRecentActivityTs(p) {
 
 /** 오늘(KST) 날짜에 등록·승인된 파티 — 포스터 있으면 LIVE 바에 모두 순환 */
 function pickTodayPartyPool(list, todayStr) {
-  const rows = (list || [])
+  const rows = filterSocialPartyRows(list || [])
     .filter(isApprovedParty)
     .filter((p) => String(p.poster_url || p.imageUrl || '').trim())
     .filter((p) => String(p.date || '').slice(0, 10) === todayStr)
@@ -216,7 +217,7 @@ const LiveCount = ({
         return acc
       }, {})
 
-      const liveParties = parties.filter((p) => {
+      const liveParties = filterSocialPartyRows(parties).filter((p) => {
         if (!isNowInPartyTime(p.date, p.time)) return false
         return getRecentActivityTs(p) >= Date.now() - LIVE_WINDOW_MS
       })

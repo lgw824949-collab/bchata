@@ -13,6 +13,7 @@ import { resolveEventDates, inferOneDayEvent } from '../lib/dbSanitize';
 import EventDateFields from '../components/EventDateFields';
 import { useTranslation } from 'react-i18next';
 import { DEFAULT_CARD_IMAGE, imgFallbackHandler } from '../constants/imageAssets';
+import { validateBootcampRegistration } from '../lib/postKind';
 import AppPageHeader from '../components/AppPageHeader';
 
 const GENRES = ['전체', '바차타', '살사', '키좀바', '쥬크'];
@@ -228,6 +229,14 @@ const Bootcamp = ({ onBack, initialView = 'list', cachedBootcamps = null, onBoot
     if (!dates.ok) {
       alert(dates.error);
       setCurrentStep(2);
+      return;
+    }
+    const kindCheck = validateBootcampRegistration({
+      title: formData.title,
+      description: formData.description,
+    });
+    if (!kindCheck.ok) {
+      alert(kindCheck.message);
       return;
     }
     setSubmitting(true);

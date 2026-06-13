@@ -1,4 +1,5 @@
 import { normDate, isApprovedParty } from './dateNorm';
+import { filterSocialPartyRows } from './postKind';
 import { formatPartyFeeDisplay } from './partyFeeDisplay';
 import {
   DISTANCE_SORT_FALLBACK,
@@ -331,10 +332,12 @@ export function curatePartiesForChat(
 }
 
 export function filterPartiesForChat(parties, { todayStr, genreName } = {}) {
-  return (parties || [])
-    .filter(isApprovedParty)
-    .filter((p) => !todayStr || isPartyOnCalendarToday(p, todayStr))
-    .filter((p) => !genreName || partyMatchesGenre(p, genreName));
+  return filterSocialPartyRows(
+    (parties || [])
+      .filter(isApprovedParty)
+      .filter((p) => !todayStr || isPartyOnCalendarToday(p, todayStr))
+      .filter((p) => !genreName || partyMatchesGenre(p, genreName)),
+  );
 }
 
 /** Join 실패 시 PARTIES_SELECT 단독 조회 */

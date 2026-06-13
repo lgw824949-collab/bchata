@@ -9,6 +9,7 @@ import { goBackOrHome, parseAppState, pushOverlay, readNavigationState } from '.
 import AppPageHeader from '../components/AppPageHeader';
 import { BAR_DATABASE, findBarByName } from '../lib/BarLib';
 import { getKSTCalendarTodayStr, normDate } from '../lib/dateNorm';
+import { validateFestivalRegistration } from '../lib/postKind';
 
 const mapBarRegionToFestivalRegion = (regionLabel) => {
   const r = String(regionLabel || '');
@@ -330,6 +331,15 @@ const Festival = ({ onBack, initialRegister = false, cachedFestivals = null, onF
       }
       if (!(formData.genres || []).length) {
         alert('주요 장르를 하나 이상 선택해 주세요.');
+        return false;
+      }
+      const eventType = formData.event_type || activeTab || 'festival';
+      const kindCheck = validateFestivalRegistration(eventType, {
+        title: formData.title,
+        description: formData.description,
+      });
+      if (!kindCheck.ok) {
+        alert(kindCheck.message);
         return false;
       }
       return true;

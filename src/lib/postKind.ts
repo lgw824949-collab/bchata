@@ -1,0 +1,182 @@
+/** 포스터 슬롯 — 소셜·부트캠프·페스티벌·파티 상호 등록 방지 */
+export type PosterSlot = 'social' | 'bootcamp' | 'festival' | 'party';
+
+export type FestivalEventType = 'festival' | 'mt' | 'party';
+
+export type PostKindFields = {
+  title?: string | null;
+  description?: string | null;
+};
+
+export type ValidationResult = { ok: true } | { ok: false; message: string };
+
+const BOOTCAMP_PATTERNS = [
+  /부트\s*캠프/,
+  /boot\s*camp/,
+  /bootcamp/i,
+];
+
+const FESTIVAL_MT_PATTERNS = [
+  /페스티벌/,
+  /festival/i,
+  /\bmt\b/i,
+  /엠티/,
+  /membership\s*training/i,
+];
+
+const PARTY_EVENT_PATTERNS = [
+  /주년\s*파티/,
+  /기념\s*파티/,
+  /anniversary/i,
+  /grand\s*party/i,
+  /대형\s*파티/,
+  /행사\s*파티/,
+];
+
+/** BAR 소셜·정기 모임 — parties(오늘소셜) 전용 */
+const SOCIAL_NIGHTLY_PATTERNS = [
+  /소셜\s*파티/,
+  /social\s*party/i,
+  /클럽\s*나이트/,
+  /club\s*night/i,
+  /정\s*모/,
+  /나이트\s*파티/,
+  /night\s*party/i,
+  /맛집/,
+  /오늘밤빠/,
+  /ㅣ\s*오늘밤빠/,
+];
+
+const SLOT_LABEL_KO: Record<PosterSlot, string> = {
+  social: '오늘소셜',
+  bootcamp: '부트캠프',
+  festival: '페스티벌',
+  party: '파티',
+};
+
+const HOME_SLOT_ALIASES: Record<string, PosterSlot> = {
+  소셜: 'social',
+  부트캠프: 'bootcamp',
+  페스티벌: 'festival',
+  파티: 'party',
+};
+
+function combineText(...parts: Array<string | null | undefined>) {
+  return parts.map((p) => String(p ?? '')).join(' ').trim();
+}
+
+function matchesAny(text: string, patterns: RegExp[]) {
+  return patterns.some((re) => re.test(text));
+}
+
+/** parties 행 → 어느 슬롯에 속하는지 (기본 social) */
+export function inferPartyRowSlot(row: PostKindFields | null | undefined): PosterSlot {
+  const text = combineText(row?.title, row?.description);
+  if (matchesAny(text, BOOTCAMP_PATTERNS)) return 'bootcamp';
+  if (matchesAny(text, FESTIVAL_MT_PATTERNS)) return 'festival';
+  if (matchesAny(text, PARTY_EVENT_PATTERNS)) return 'party';
+  return 'social';
+}
+
+export function isSocialPartyRow(row: PostKindFields | null | undefined) {
+  return inferPartyRowSlot(row) === 'social';
+}
+
+export function partyRowMatchesSlot(
+  row: PostKindFields | null | undefined,
+  slot: PosterSlot | keyof typeof HOME_SLOT_ALIASES,
+) {
+  const normalized = (HOME_SLOT_ALIASES[slot as string] || slot) as PosterSlot;
+  return inferPartyRowSlot(row) === normalized;
+}
+
+export function filterSocialPartyRows<T extends PostKindFields>(rows: T[] | null | undefined): T[] {
+  return (rows || []).filter(isSocialPartyRow);
+}
+
+function fail(message: string): ValidationResult {
+  return { ok: false, message };
+}
+
+function ok(): ValidationResult {
+  return { ok: true };
+}
+
+/** RegisterForm — parties / 오늘소셜 전용 */
+export function validateSocialPartyRegistration(fields: PostKindFields): ValidationResult {
+  const text = combineText(fields.title, fields.description);
+  if (matchesAny(text, BOOTCAMP_PATTERNS)) {
+    return fail('부트캠프는 [부트캠프] 메뉴에서만 등록할 수 있습니다. 오늘소셜 등록에는 올릴 수 없어요.');
+  }
+  if (matchesAny(text, FESTIVAL_MT_PATTERNS)) {
+    return fail('페스티벌·MT는 [페스티벌] 메뉴에서만 등록할 수 있습니다. 오늘소셜 등록에는 올릴 수 없어요.');
+  }
+  if (matchesAny(text, PARTY_EVENT_PATTERNS)) {
+    return fail('행사·주년 파티는 [파티] 메뉴에서만 등록할 수 있습니다. 오늘소셜 등록에는 올릴 수 없어요.');
+  }
+  return ok();
+}
+
+/** Bootcamp.jsx — bootcamps 테이블 전용 */
+export function validateBootcampRegistration(fields: PostKindFields): ValidationResult {
+  const text = combineText(fields.title, fields.description);
+  if (matchesAny(text, FESTIVAL_MT_PATTERNS)) {
+    return fail('페스티벌·MT는 [페스티벌] 메뉴에서 등록해 주세요. 부트캠프 등록에는 올릴 수 없어요.');
+  }
+  if (matchesAny(text, PARTY_EVENT_PATTERNS)) {
+    return fail('행사·주년 파티는 [파티] 메뉴에서 등록해 주세요. 부트캠프 등록에는 올릴 수 없어요.');
+  }
+  if (matchesAny(text, SOCIAL_NIGHTLY_PATTERNS) && !matchesAny(text, BOOTCAMP_PATTERNS)) {
+    return fail('BAR 소셜·정기 모임은 [소셜 등록]에서만 등록할 수 있습니다. 부트캠프 등록에는 올릴 수 없어요.');
+  }
+  return ok();
+}
+
+/** Festival.jsx — festivals.event_type별 */
+export function validateFestivalRegistration(
+  eventType: FestivalEventType,
+  fields: PostKindFields,
+): ValidationResult {
+  const text = combineText(fields.title, fields.description);
+
+  if (matchesAny(text, BOOTCAMP_PATTERNS)) {
+    return fail('부트캠프는 [부트캠프] 메뉴에서 등록해 주세요.');
+  }
+
+  if (eventType === 'festival') {
+    if (matchesAny(text, PARTY_EVENT_PATTERNS)) {
+      return fail('주년·기념 파티는 [파티] 탭에서 등록해 주세요. 페스티벌 탭에는 올릴 수 없어요.');
+    }
+    if (/\bmt\b/i.test(text) || /엠티/.test(text)) {
+      return fail('MT는 [페스티벌] 페이지의 MT 탭에서 등록해 주세요.');
+    }
+  }
+
+  if (eventType === 'mt') {
+    if (/페스티벌|festival/i.test(text)) {
+      return fail('페스티벌 행사는 [페스티벌] 탭에서 등록해 주세요. MT 탭에는 올릴 수 없어요.');
+    }
+    if (matchesAny(text, PARTY_EVENT_PATTERNS)) {
+      return fail('주년·기념 파티는 [파티] 탭에서 등록해 주세요.');
+    }
+  }
+
+  if (eventType === 'party') {
+    if (/페스티벌|festival/i.test(text)) {
+      return fail('페스티벌 행사는 [페스티벌] 탭에서 등록해 주세요. 파티 탭에는 올릴 수 없어요.');
+    }
+    if (matchesAny(text, SOCIAL_NIGHTLY_PATTERNS)) {
+      return fail('BAR 소셜·정기 모임은 [소셜 등록]에서만 등록할 수 있습니다. 파티(행사) 탭과는 다릅니다.');
+    }
+  }
+
+  if (matchesAny(text, SOCIAL_NIGHTLY_PATTERNS) && eventType !== 'party') {
+    return fail('BAR 소셜·정기 모임은 [소셜 등록]에서만 등록할 수 있습니다.');
+  }
+
+  return ok();
+}
+
+export function getPosterSlotLabelKo(slot: PosterSlot) {
+  return SLOT_LABEL_KO[slot];
+}

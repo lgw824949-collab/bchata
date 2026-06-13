@@ -24,6 +24,7 @@ import BarRegisterFormModal from '../components/BarRegisterFormModal'
 import { navigate as historyNavigate, navigateHomeTab, parseAppState, pushOverlay, readNavigationState } from '../lib/appHistory'
 import { formatPartyFeeDisplay, PARTY_FEE_CARD_FONT_SIZE } from '../lib/partyFeeDisplay'
 import { formatPartyTitleDisplay } from '../lib/partyTitleDisplay'
+import { partyRowMatchesSlot } from '../lib/postKind'
 import PartyCard from '../components/PartyCard'
 import PostLesson from './PostLesson'
 import { Z } from '../constants/zLayers'
@@ -590,19 +591,7 @@ const getKSTTodayStr = () => {
   return `${y}-${m.padStart(2, '0')}-${d.padStart(2, '0')}`;
 };
 
-/** parties 행: title 키워드로 슬롯 분류 (DB에 genre/category 없음 — RegisterForm·App select('*') 기준) */
-const partyRowIsBootcamp = (row) => String(row?.title ?? '').includes('부트캠프');
-
-const partyRowIsFestival = (row) => String(row?.title ?? '').includes('페스티벌');
-
-const partyRowMatchesSlot = (row, slot) => {
-  const isBoot = partyRowIsBootcamp(row);
-  const isFest = partyRowIsFestival(row);
-  if (slot === '소셜') return !isBoot && !isFest;
-  if (slot === '부트캠프') return isBoot;
-  if (slot === '페스티벌') return isFest;
-  return false;
-};
+/** parties 행: postKind 모듈로 슬롯 분류 (오늘소셜·부트캠프·페스티벌·파티 상호 배제) */
 
 const posterUrlsFromRows = (rows) =>
   [...new Set((rows || []).map((r) => String(r?.poster_url || '').trim()).filter(Boolean))];

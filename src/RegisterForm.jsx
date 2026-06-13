@@ -9,6 +9,7 @@ import { getKakaoApiKey } from './lib/kakaoEnv'
 import { findBarByName } from './lib/BarLib'
 import { normalizeVenueAddressKey } from './lib/venueDedupe'
 import { PARTY_TITLE_MAX_LENGTH } from './lib/partyTitleDisplay'
+import { validateSocialPartyRegistration } from './lib/postKind'
 
 const METRO_REGIONS = ['서울', '인천', '경기', '부산', '대구', '광주', '대전', '울산', '세종', '강원', '충북', '충남', '전북', '전남', '경북', '경남', '제주']
 
@@ -493,6 +494,15 @@ const RegisterForm = ({ onBack, onSuccess, isEdit = false, isAdminMode = false, 
       return
     }
 
+    const kindCheck = validateSocialPartyRegistration({
+      title: `[${formData.region}] ${formData.title}`,
+      description: formData.description,
+    })
+    if (!kindCheck.ok) {
+      alert(kindCheck.message)
+      return
+    }
+
     setLoading(true)
     try {
       const resolveContributorId = () => {
@@ -584,8 +594,19 @@ const RegisterForm = ({ onBack, onSuccess, isEdit = false, isAdminMode = false, 
         finalProcessedTitle = `${finalProcessedTitle}${suffix}`;
       }
 
+      const finalTitle = `[${formData.region}] ${finalProcessedTitle}`;
+      const finalKindCheck = validateSocialPartyRegistration({
+        title: finalTitle,
+        description: formData.description,
+      });
+      if (!finalKindCheck.ok) {
+        alert(finalKindCheck.message);
+        setLoading(false);
+        return;
+      }
+
       const partyData = {
-        title: `[${formData.region}] ${finalProcessedTitle}`,
+        title: finalTitle,
         location_id: finalLocationId,
         address: formData.address,
         fee: composePartyFee(formData.feeParts, formData.feeCustom) || formData.fee || '문의',

@@ -33,6 +33,7 @@ import { DEFAULT_AVATAR_IMAGE, imgFallbackHandler } from './constants/imageAsset
 import { normDate, getKSTCalendarTodayStr } from './lib/dateNorm'
 import { LOCATIONS_SELECT, logSupabaseError } from './lib/locationsQuery'
 import { PARTIES_SELECT, logPartiesFetchError } from './lib/partiesQuery'
+import { filterSocialPartyRows } from './lib/postKind'
 import { readVipInstructorSession, verifyActiveInstructorMember } from './lib/instructorAuth'
 import { purgePastPartyPostersAndRows } from './lib/partyPosterCleanup'
 import QuickPinchZoom, { make3dTransformValue } from 'react-quick-pinch-zoom'
@@ -1979,7 +1980,9 @@ function App() {
 
   useEffect(() => {
     const activeTodayStr = getKSTDate().dateStr;
-    const upcomingParties = parties.filter((p) => normDate(p.date) >= activeTodayStr);
+    const upcomingParties = filterSocialPartyRows(
+      parties.filter((p) => normDate(p.date) >= activeTodayStr),
+    );
     
     const currentLang = i18n.language || 'ko';
     if (currentLang.startsWith('en')) {
