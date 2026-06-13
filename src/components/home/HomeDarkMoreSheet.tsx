@@ -39,28 +39,24 @@ export default function HomeDarkMoreSheet({
   const primary = actions.filter((a) => a.tier !== 'secondary');
   const secondary = actions.filter((a) => a.tier === 'secondary');
 
-  const renderList = (items: HomeDarkMoreAction[]) => (
-    <div className="home-dark-more-sheet__list">
-      {items.map((action) => (
-        <button
-          key={action.id}
-          type="button"
-          className={`home-dark-more-sheet__row${action.tier === 'secondary' ? ' home-dark-more-sheet__row--secondary' : ''}`}
-          onClick={() => {
-            action.onClick();
-            onClose();
-          }}
-        >
-          <span className="home-dark-more-sheet__label">
-            {isEn ? action.labelEn : action.labelKo}
-          </span>
-          {action.badge ? (
-            <span className="home-dark-more-sheet__badge">{action.badge}</span>
-          ) : null}
-        </button>
-      ))}
-    </div>
-  );
+  const renderLinks = (items: HomeDarkMoreAction[]) => items.map((action) => (
+    <button
+      key={action.id}
+      type="button"
+      className="home-dark-more-sheet__link"
+      onClick={() => {
+        action.onClick();
+        onClose();
+      }}
+    >
+      <span className="home-dark-more-sheet__label">
+        {isEn ? action.labelEn : action.labelKo}
+      </span>
+      {action.badge ? (
+        <span className="home-dark-more-sheet__badge">{action.badge}</span>
+      ) : null}
+    </button>
+  ));
 
   return createPortal(
     <AnimatePresence initial={false}>
@@ -76,48 +72,39 @@ export default function HomeDarkMoreSheet({
             onClick={onClose}
             style={{ zIndex: Z.modalBackdrop }}
           />
-          <motion.div
+          <motion.aside
             className="home-dark-more-sheet__panel"
             role="dialog"
             aria-modal="true"
             aria-label={isEn ? 'More actions' : '더보기 메뉴'}
-            initial={{ y: '100%' }}
-            animate={{ y: 0 }}
-            exit={{ y: '100%' }}
-            transition={{ type: 'spring', damping: 28, stiffness: 320 }}
+            initial={{ x: '100%' }}
+            animate={{ x: 0 }}
+            exit={{ x: '100%' }}
+            transition={{ type: 'spring', damping: 32, stiffness: 360 }}
             style={{ zIndex: Z.modal }}
           >
-            <div className="home-dark-more-sheet__handle" aria-hidden />
             <header className="home-dark-more-sheet__header">
-              <h2 className="home-dark-more-sheet__title">
-                {isEn ? 'More' : '더보기'}
-              </h2>
+              <p className="home-dark-more-sheet__eyebrow">
+                {isEn ? 'Menu' : 'Menu'}
+              </p>
               <button
                 type="button"
                 className="home-dark-more-sheet__close"
                 aria-label={isEn ? 'Close' : '닫기'}
                 onClick={onClose}
               >
-                <X size={20} strokeWidth={2} />
+                <X size={18} strokeWidth={1.5} />
               </button>
             </header>
-            {primary.length > 0 ? (
-              <section className="home-dark-more-sheet__section">
-                <p className="home-dark-more-sheet__section-label">
-                  {isEn ? 'Register & shortcuts' : '등록 · 바로가기'}
-                </p>
-                {renderList(primary)}
-              </section>
-            ) : null}
-            {secondary.length > 0 ? (
-              <section className="home-dark-more-sheet__section">
-                <p className="home-dark-more-sheet__section-label">
-                  {isEn ? 'Tools' : '기타'}
-                </p>
-                {renderList(secondary)}
-              </section>
-            ) : null}
-          </motion.div>
+
+            <nav className="home-dark-more-sheet__nav" aria-label={isEn ? 'Shortcuts' : '바로가기'}>
+              {renderLinks(primary)}
+              {primary.length > 0 && secondary.length > 0 ? (
+                <div className="home-dark-more-sheet__divider" aria-hidden />
+              ) : null}
+              {renderLinks(secondary)}
+            </nav>
+          </motion.aside>
         </div>
       ) : null}
     </AnimatePresence>,

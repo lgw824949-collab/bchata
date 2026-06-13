@@ -1,5 +1,7 @@
 /* 메인 — 네이버형 리스트 (Hick/Jakob: 세로 스캔 · 익숙한 패턴) */
 
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;0,600;1,400;1,500&display=swap');
+
 .home-list-shell {
   background: #f5f6f8 !important;
   color: #191f28;
@@ -119,7 +121,7 @@
   --hd-radius-hero: 18px;
   --hd-radius-pill: 999px;
   --hd-hero-rotate: 4.5s;
-  --hd-font-display: Georgia, 'Times New Roman', serif;
+  --hd-font-display: 'Playfair Display', Georgia, 'Times New Roman', serif;
   width: 100%;
   min-width: 0;
   margin-bottom: 4px;
@@ -1444,7 +1446,7 @@
   word-break: keep-all;
 }
 
-/* ── 햄버거 더보기 시트 ── */
+/* ── 햄버거 더보기 — 우측 1/2 드로어 ── */
 .home-dark-more-sheet {
   position: fixed;
   inset: 0;
@@ -1457,146 +1459,140 @@
   border: none;
   padding: 0;
   margin: 0;
-  background: rgba(15, 23, 42, 0.45);
-  backdrop-filter: blur(6px);
+  background: rgba(15, 23, 42, 0.38);
+  backdrop-filter: blur(4px);
   pointer-events: auto;
   cursor: pointer;
 }
 
 .home-dark-more-sheet__panel {
   position: fixed;
-  left: 0;
+  top: 0;
   right: 0;
   bottom: 0;
-  width: min(100%, 500px);
-  margin: 0 auto;
-  max-height: min(78vh, 640px);
+  left: auto;
+  width: 50%;
+  max-width: none;
   overflow-y: auto;
-  padding: 8px 16px calc(20px + env(safe-area-inset-bottom, 0px));
-  border-radius: 22px 22px 0 0;
-  border: 1px solid #e8ebed;
-  border-bottom: none;
-  background: #fff;
-  box-shadow: 0 -12px 40px rgba(15, 23, 42, 0.14);
+  overscroll-behavior: contain;
+  padding:
+    calc(16px + env(safe-area-inset-top, 0px))
+    calc(20px + env(safe-area-inset-right, 0px))
+    calc(28px + env(safe-area-inset-bottom, 0px))
+    24px;
+  border: none;
+  border-left: 1px solid rgba(15, 23, 42, 0.08);
+  border-radius: 0;
+  background: linear-gradient(180deg, #fdfcfb 0%, #f7f5f2 100%);
+  box-shadow: -20px 0 60px rgba(15, 23, 42, 0.12);
   pointer-events: auto;
   box-sizing: border-box;
-}
-
-.home-dark-more-sheet__handle {
-  width: 40px;
-  height: 4px;
-  margin: 4px auto 12px;
-  border-radius: 999px;
-  background: #d1d6db;
+  font-family: var(--hd-font-display);
 }
 
 .home-dark-more-sheet__header {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   justify-content: space-between;
   gap: 12px;
-  margin-bottom: 16px;
+  margin-bottom: 28px;
 }
 
-.home-dark-more-sheet__title {
-  margin: 0;
-  font-size: 18px;
-  font-weight: 800;
-  color: #191f28;
-  letter-spacing: -0.03em;
+.home-dark-more-sheet__eyebrow {
+  margin: 6px 0 0;
+  font-family: var(--hd-font-display);
+  font-size: 13px;
+  font-weight: 500;
+  font-style: italic;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: #8b8178;
 }
 
 .home-dark-more-sheet__close {
-  width: 36px;
-  height: 36px;
-  border: 1px solid #e8ebed;
-  border-radius: 12px;
-  background: #fff;
-  color: #333d4b;
+  width: 32px;
+  height: 32px;
+  border: none;
+  border-radius: 999px;
+  background: transparent;
+  color: #6b6560;
   display: inline-flex;
   align-items: center;
   justify-content: center;
   cursor: pointer;
+  flex-shrink: 0;
 }
 
-.home-dark-more-sheet__section + .home-dark-more-sheet__section {
-  margin-top: 18px;
+.home-dark-more-sheet__close:active {
+  opacity: 0.65;
 }
 
-.home-dark-more-sheet__section-label {
-  margin: 0 0 10px;
-  padding: 0 2px;
-  font-size: 11px;
-  font-weight: 700;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
-  color: #8b95a1;
-}
-
-.home-dark-more-sheet__list {
+.home-dark-more-sheet__nav {
   display: flex;
   flex-direction: column;
-  border: 1px solid #e8ebed;
-  border-radius: 14px;
-  overflow: hidden;
-  background: #fff;
+  gap: 2px;
 }
 
-.home-dark-more-sheet__row {
+.home-dark-more-sheet__divider {
+  width: 28px;
+  height: 1px;
+  margin: 18px 0 16px;
+  background: rgba(15, 23, 42, 0.14);
+}
+
+.home-dark-more-sheet__link {
   display: flex;
-  align-items: center;
+  align-items: baseline;
   justify-content: space-between;
-  gap: 12px;
+  gap: 10px;
   width: 100%;
-  padding: 15px 16px;
+  padding: 10px 0;
   border: none;
-  border-bottom: 1px solid #e8ebed;
-  background: #fff;
+  background: transparent;
   color: #191f28;
   cursor: pointer;
   text-align: left;
   -webkit-tap-highlight-color: transparent;
 }
 
-.home-dark-more-sheet__row:last-child {
-  border-bottom: none;
-}
-
-.home-dark-more-sheet__row:active {
-  background: #f2f4f6;
-}
-
-.home-dark-more-sheet__row--secondary {
-  background: #fafbfc;
-}
-
-.home-dark-more-sheet__row--secondary:active {
-  background: #f2f4f6;
+.home-dark-more-sheet__link:active {
+  opacity: 0.62;
 }
 
 .home-dark-more-sheet__badge {
   flex-shrink: 0;
-  min-width: 22px;
-  height: 22px;
-  padding: 0 6px;
+  min-width: 20px;
+  height: 20px;
+  padding: 0 5px;
   border-radius: 999px;
-  background: #ff3040;
+  background: #c9a962;
   color: #fff;
-  font-size: 10px;
-  font-weight: 800;
-  line-height: 22px;
+  font-family: var(--font-sans);
+  font-size: 9px;
+  font-weight: 700;
+  line-height: 20px;
   text-align: center;
+  letter-spacing: 0.04em;
 }
 
 .home-dark-more-sheet__label {
-  font-size: 15px;
-  font-weight: 600;
+  font-family: var(--hd-font-display);
+  font-size: clamp(17px, 4.8vw, 22px);
+  font-weight: 500;
   line-height: 1.35;
-  color: #191f28;
+  letter-spacing: -0.01em;
+  color: #1a1816;
   word-break: keep-all;
 }
 
-.home-dark-more-sheet__row:not(.home-dark-more-sheet__row--secondary) .home-dark-more-sheet__label {
-  font-weight: 700;
+@media (max-width: 360px) {
+  .home-dark-more-sheet__panel {
+    padding-left: 18px;
+    padding-right: calc(14px + env(safe-area-inset-right, 0px));
+  }
+
+  .home-dark-more-sheet__label {
+    font-size: 16px;
+  }
 }
 
