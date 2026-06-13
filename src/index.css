@@ -4242,10 +4242,9 @@ body.bottom-nav-social-light nav.bottom-nav {
   display: block;
   width: 100%;
   height: auto;
-  aspect-ratio: 16 / 9;
-  object-fit: contain;
-  object-position: center;
-  background: #f5f6f8;
+  object-fit: cover;
+  object-position: center top;
+  background: #fffdf9;
 }
 
 .app-container.social-tab-active {
