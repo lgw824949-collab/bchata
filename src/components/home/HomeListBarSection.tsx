@@ -15,8 +15,10 @@ type HomeListBarSectionProps = {
   bars: HomeDarkBar[];
   loading: boolean;
   geoPending: boolean;
+  sortByNearest: boolean;
   getCoverPhoto: (bar: HomeDarkBar) => string | null;
   getEventCount: (bar: HomeDarkBar) => number;
+  getDistanceLabel: (bar: HomeDarkBar) => string | null;
   onTabChange: (tab: string) => void;
   onBarClick: (bar: HomeDarkBar) => void;
   onViewMap: () => void;
@@ -31,8 +33,10 @@ export default function HomeListBarSection({
   bars,
   loading,
   geoPending,
+  sortByNearest,
   getCoverPhoto,
   getEventCount,
+  getDistanceLabel,
   onTabChange,
   onBarClick,
   onViewMap,
@@ -54,8 +58,8 @@ export default function HomeListBarSection({
       <div className="home-list-gate__panel-head">
         <h2 className="home-list-gate__section-title">
           {isEn ? 'Venue BAR' : '업체 BAR'}
-          {bars.length > 0 ? (
-            <span className="home-list-gate__section-count">{bars.length}</span>
+          {selectedTab && barCounts[selectedTab] != null ? (
+            <span className="home-list-gate__section-count">{barCounts[selectedTab]}</span>
           ) : null}
         </h2>
         <button type="button" className="home-list-gate__section-action" onClick={onViewMap}>
@@ -64,25 +68,32 @@ export default function HomeListBarSection({
         </button>
       </div>
 
+      {sortByNearest ? (
+        <p className="home-list-gate__bar-hint">
+          {isEn ? 'Sorted by distance from you' : '내 위치 기준 가까운 순'}
+        </p>
+      ) : null}
+
       {regionTabs.length > 0 ? (
         <div
-          className="home-list-gate__bar-tabs home-dark-region-pills home-dark-region-pills--compact"
+          className="home-list-gate__bar-tabs"
           role="tablist"
           aria-label={isEn ? 'BAR region' : 'BAR 지역'}
         >
           {regionTabs.map((tab) => {
             const isSelected = selectedTab === tab;
+            const isMyRegion = Boolean(geoRegionTab && tab === geoRegionTab);
             return (
               <button
                 key={tab}
                 type="button"
                 role="tab"
                 aria-selected={isSelected}
-                className={`home-dark-region-pill${isSelected ? ' is-active' : ''}`}
+                className={`home-list-gate__bar-tab${isSelected ? ' is-active' : ''}${isMyRegion ? ' is-my-region' : ''}`}
                 onClick={() => onTabChange(tab)}
               >
-                {tab}
-                <span className="home-dark-region-pill__count">{barCounts[tab] ?? 0}</span>
+                <span className="home-list-gate__bar-tab-label">{tab}</span>
+                <span className="home-list-gate__bar-tab-count">{barCounts[tab] ?? 0}</span>
               </button>
             );
           })}
@@ -92,39 +103,51 @@ export default function HomeListBarSection({
       {statusText ? (
         <p className="home-list-gate__bar-status">{statusText}</p>
       ) : (
-        <div className="home-list-gate__bar-scroll" role="list">
-          {bars.map((bar) => {
-            const coverSrc = getCoverPhoto(bar) || BAR_LOGO_FALLBACK;
-            const eventCount = getEventCount(bar);
-            const isMyRegion = Boolean(geoRegionTab && bar.region === geoRegionTab);
+        <div className="home-list-gate__bar-scroll-wrap">
+          <div className="home-list-gate__bar-scroll" role="list">
+            {bars.map((bar, index) => {
+              const coverSrc = getCoverPhoto(bar) || BAR_LOGO_FALLBACK;
+              const eventCount = getEventCount(bar);
+              const distanceLabel = getDistanceLabel(bar);
+              const isNearest = sortByNearest && index === 0 && Boolean(distanceLabel);
+              const isMyRegion = Boolean(geoRegionTab && bar.region === geoRegionTab);
 
-            return (
-              <button
-                key={bar.id}
-                type="button"
-                role="listitem"
-                className={`home-list-gate__bar-card${isMyRegion ? ' is-my-region' : ''}`}
-                onClick={() => onBarClick(bar)}
-              >
-                <span className="home-list-gate__bar-thumb">
-                  <img
-                    src={coverSrc}
-                    alt=""
-                    loading="lazy"
-                    decoding="async"
-                    onError={imgFallbackHandler(BAR_LOGO_FALLBACK)}
-                  />
-                </span>
-                <span className="home-list-gate__bar-name">{bar.name || (isEn ? 'Unnamed' : '이름 없음')}</span>
-                <span className={`home-list-gate__bar-meta${eventCount > 0 ? ' is-live' : ''}`}>
-                  {eventCount > 0
-                    ? (isEn ? `Tonight ${eventCount}` : `오늘 ${eventCount}건`)
-                    : (isEn ? 'No party tonight' : '오늘 파티 없음')}
-                </span>
-                <span className="home-list-gate__bar-district">{formatBarDistrictLabel(bar)}</span>
-              </button>
-            );
-          })}
+              return (
+                <button
+                  key={bar.id}
+                  type="button"
+                  role="listitem"
+                  className={`home-list-gate__bar-card${isNearest ? ' is-nearest' : ''}${isMyRegion ? ' is-my-region' : ''}`}
+                  onClick={() => onBarClick(bar)}
+                >
+                  {isNearest ? (
+                    <span className="home-list-gate__bar-nearest-badge">
+                      {isEn ? 'Nearest' : '가장 가까움'}
+                    </span>
+                  ) : null}
+                  <span className="home-list-gate__bar-thumb">
+                    <img
+                      src={coverSrc}
+                      alt=""
+                      loading="lazy"
+                      decoding="async"
+                      onError={imgFallbackHandler(BAR_LOGO_FALLBACK)}
+                    />
+                  </span>
+                  <span className="home-list-gate__bar-name">{bar.name || (isEn ? 'Unnamed' : '이름 없음')}</span>
+                  {distanceLabel ? (
+                    <span className="home-list-gate__bar-distance">{distanceLabel}</span>
+                  ) : null}
+                  <span className={`home-list-gate__bar-meta${eventCount > 0 ? ' is-live' : ''}`}>
+                    {eventCount > 0
+                      ? (isEn ? `Tonight ${eventCount}` : `오늘 ${eventCount}건`)
+                      : (isEn ? 'No party tonight' : '오늘 파티 없음')}
+                  </span>
+                  <span className="home-list-gate__bar-district">{formatBarDistrictLabel(bar)}</span>
+                </button>
+              );
+            })}
+          </div>
         </div>
       )}
     </section>

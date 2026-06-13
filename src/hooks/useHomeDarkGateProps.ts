@@ -42,6 +42,7 @@ export type UseHomeDarkGatePropsInput = {
   locationsLoading: boolean;
   geoRegionStatus: string;
   socialBarRegionAll: string;
+  userGeoCoords: { lat: number; lng: number } | null;
   sortBarsForSocialBarTab: (bars: HomeDarkBar[], regionTab: string) => HomeDarkBar[];
   openPartyWithAfterParty: (party: HomeDarkParty) => void;
   openBootcampPage: () => void;

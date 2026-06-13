@@ -38,6 +38,8 @@ export type HomeListGateProps = {
   geoRegionPending: boolean;
   getBarCoverPhoto: (bar: HomeDarkBar) => string | null;
   getBarEventCount: (bar: HomeDarkBar) => number;
+  getBarDistanceLabel: (bar: HomeDarkBar) => string | null;
+  sortByNearest: boolean;
   onBarRegionTabChange: (tab: string) => void;
   onBarClick: (bar: HomeDarkBar) => void;
   onAdminTap: () => void;
@@ -92,6 +94,8 @@ export default function HomeListGate({
   geoRegionPending,
   getBarCoverPhoto,
   getBarEventCount,
+  getBarDistanceLabel,
+  sortByNearest,
   onBarRegionTabChange,
   onBarClick,
   onAdminTap,
@@ -155,6 +159,8 @@ export default function HomeListGate({
         geoPending={geoRegionPending}
         getCoverPhoto={getBarCoverPhoto}
         getEventCount={getBarEventCount}
+        getDistanceLabel={getBarDistanceLabel}
+        sortByNearest={sortByNearest}
         onTabChange={onBarRegionTabChange}
         onBarClick={onBarClick}
         onViewMap={onOpenBarMap}

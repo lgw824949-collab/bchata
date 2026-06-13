@@ -17,6 +17,7 @@ import {
   normalizeVenueAddressKey,
   normalizeVenueNameKey,
 } from '../lib/venueDedupe'
+import { readCachedCoords, writeCachedCoords } from '../lib/geoCache'
 import { HomeListGate } from '../components/home'
 import { useHomeListGateProps } from '../hooks/useHomeListGateProps'
 import VenueDetailModal from '../components/VenueDetailModal'
@@ -1795,6 +1796,10 @@ const HomePage = ({
   const [geoRegionTab, setGeoRegionTab] = useState(null);
   /** pending: GPS 대기 | ready: 지역 확정 | denied: 실패 → 전체 */
   const [geoRegionStatus, setGeoRegionStatus] = useState('pending');
+  const [userGeoCoords, setUserGeoCoords] = useState(() => {
+    const cached = readCachedCoords();
+    return cached ? { lat: cached.lat, lng: cached.lng } : null;
+  });
   const socialBarGeoDoneRef = useRef(false);
   const barAutoCheckinAttemptedRef = useRef(false);
   const barViewTimerRef = useRef(null);
@@ -2162,6 +2167,7 @@ const HomePage = ({
     locationsLoading,
     geoRegionStatus,
     socialBarRegionAll: SOCIAL_BAR_REGION_ALL,
+    userGeoCoords,
     sortBarsForSocialBarTab,
     openPartyWithAfterParty,
     openBootcampPage,
@@ -2512,6 +2518,8 @@ const HomePage = ({
       }
       navigator.geolocation.getCurrentPosition(
         (pos) => {
+          writeCachedCoords(pos.coords.latitude, pos.coords.longitude);
+          setUserGeoCoords({ lat: pos.coords.latitude, lng: pos.coords.longitude });
           const region = pickNearestSocialBarRegion(
             pos.coords.latitude,
             pos.coords.longitude,

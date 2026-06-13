@@ -2,7 +2,7 @@ import { useCallback, useMemo, useState } from 'react';
 import { filterSocialPartyRows } from '../lib/postKind';
 import { resolvePartyVenueName } from '../lib/partiesQuery';
 import { normalizeVenueNameKey } from '../lib/venueDedupe';
-import { resolveBarVenuePhoto } from '../lib/barVenuePhotos';
+import { haversineKm, formatDistanceLabel, sortByDistanceFromUser } from '../lib/geoDistance';
 import { navigate as historyNavigate, navigateHomeTab, pushOverlay } from '../lib/appHistory';
 import { buildHomeDarkMoreActions } from '../components/home/buildHomeDarkMoreActions';
 import { formatPartyTitleDisplay } from '../lib/partyTitleDisplay';
@@ -38,6 +38,7 @@ export function useHomeListGateProps(input: UseHomeDarkGatePropsInput) {
     locationsLoading,
     geoRegionStatus,
     socialBarRegionAll,
+    userGeoCoords,
     sortBarsForSocialBarTab,
     openVenueDetail,
     openPartyWithAfterParty,
@@ -100,8 +101,19 @@ export function useHomeListGateProps(input: UseHomeDarkGatePropsInput) {
     const filteredBars = selectedRegionTab === socialBarRegionAll
       ? locations
       : locations.filter((bar) => bar.region === selectedRegionTab);
-    const sorted = sortBarsForSocialBarTab(filteredBars, selectedRegionTab);
-    if (sorted.length >= HOME_DARK_MIN_BAR_ITEMS || selectedRegionTab === socialBarRegionAll) {
+    let sorted = sortBarsForSocialBarTab(filteredBars, selectedRegionTab);
+    if (userGeoCoords?.lat != null && userGeoCoords?.lng != null) {
+      sorted = sortByDistanceFromUser(sorted, userGeoCoords, (bar) => {
+        const lat = Number(bar.latitude);
+        const lng = Number(bar.longitude);
+        return Number.isFinite(lat) && Number.isFinite(lng) ? { lat, lng } : null;
+      });
+    }
+    if (
+      sorted.length >= HOME_DARK_MIN_BAR_ITEMS
+      || selectedRegionTab === socialBarRegionAll
+      || userGeoCoords
+    ) {
       return sorted;
     }
     const seen = new Set(sorted.map((bar) => bar.id));
@@ -110,12 +122,29 @@ export function useHomeListGateProps(input: UseHomeDarkGatePropsInput) {
       socialBarRegionAll,
     );
     return [...sorted, ...extras].slice(0, Math.max(sorted.length, HOME_DARK_MIN_BAR_ITEMS));
-  }, [locations, selectedRegionTab, socialBarRegionAll, sortBarsForSocialBarTab]);
+  }, [
+    locations,
+    selectedRegionTab,
+    socialBarRegionAll,
+    sortBarsForSocialBarTab,
+    userGeoCoords,
+  ]);
 
   const getBarCoverPhoto = useCallback((bar: HomeDarkBar) => {
     const resolved = resolveBarVenuePhoto(bar.name, bar.image_url) || bar.image_url;
     return resolved || '/logo.png';
   }, []);
+
+  const getBarDistanceLabel = useCallback((bar: HomeDarkBar) => {
+    if (!userGeoCoords) return null;
+    const km = haversineKm(
+      userGeoCoords.lat,
+      userGeoCoords.lng,
+      Number(bar.latitude),
+      Number(bar.longitude),
+    );
+    return km != null ? formatDistanceLabel(km) : null;
+  }, [userGeoCoords]);
 
   const bootcampCount = useMemo(
     () => (bootcamps || []).filter((row) => isUpcomingEvent(row, calendarTodayStr)).length,
@@ -227,6 +256,8 @@ export function useHomeListGateProps(input: UseHomeDarkGatePropsInput) {
     geoRegionPending: geoRegionStatus === 'pending',
     getBarCoverPhoto,
     getBarEventCount: getBarTodayEventCount,
+    getBarDistanceLabel,
+    sortByNearest: Boolean(userGeoCoords),
     onBarRegionTabChange: setSelectedRegionTab,
     onBarClick: openVenueDetail,
     onAdminTap: registerAdminPortalTap,
