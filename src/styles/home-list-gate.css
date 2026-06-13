@@ -308,11 +308,13 @@
 .home-list-gate__today-agenda-thumb {
   display: block;
   flex-shrink: 0;
-  width: 52px;
-  height: 66px;
+  width: 60px;
+  height: 76px;
   border-radius: 10px;
   overflow: hidden;
   background: #f1f5f9;
+  border: 1px solid #d1d9e0;
+  box-sizing: border-box;
 }
 
 .home-list-gate__today-agenda-thumb-img {
