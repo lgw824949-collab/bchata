@@ -1,11 +1,18 @@
 import React, { useState } from 'react';
 import HomeDarkHeader from './HomeDarkHeader';
 import HomeDarkMoreSheet from './HomeDarkMoreSheet';
+import HomeDarkTodayPick from './HomeDarkTodayPick';
 import HomeListBarSection from './HomeListBarSection';
 import HomeListPhotoMenu from './HomeListPhotoMenu';
 import { HOME_LIST_TAGLINE_EN, HOME_LIST_TAGLINE_KO } from './constants';
 import type { HomeListPhotoMenuItem } from '../../lib/homeListPhotoMenu';
-import type { HomeDarkBar, HomeDarkMoreAction, HomeDarkParty, HomeDarkRegionPill } from './types';
+import type {
+  HomeDarkBar,
+  HomeDarkHeroSlide,
+  HomeDarkMoreAction,
+  HomeDarkParty,
+  HomeDarkRegionPill,
+} from './types';
 
 export type HomeListGateProps = {
   isEn: boolean;
@@ -13,6 +20,14 @@ export type HomeListGateProps = {
   regionPill: string;
   regionPillCounts: Record<string, number>;
   onRegionPillChange: (id: string) => void;
+  heroSlide: HomeDarkHeroSlide | null;
+  heroTitle: string;
+  heroVenue: string;
+  heroSlideCount: number;
+  pickIndex: number;
+  onPickIndexChange: (index: number) => void;
+  onHeroRotateNext: () => void;
+  onHeroOpen: () => void;
   todayParties: HomeDarkParty[];
   getPartyTitle: (party: HomeDarkParty) => string;
   getPartyVenue: (party: HomeDarkParty) => string;
@@ -47,6 +62,14 @@ export default function HomeListGate({
   regionPill: _regionPill,
   regionPillCounts: _regionPillCounts,
   onRegionPillChange: _onRegionPillChange,
+  heroSlide,
+  heroTitle,
+  heroVenue,
+  heroSlideCount,
+  pickIndex,
+  onPickIndexChange,
+  onHeroRotateNext,
+  onHeroOpen,
   todayParties: _todayParties,
   getPartyTitle: _getPartyTitle,
   getPartyVenue: _getPartyVenue,
@@ -84,6 +107,21 @@ export default function HomeListGate({
         onWishlist={onOpenWishlist}
         onMore={() => setMoreOpen(true)}
       />
+
+      <div className="home-list-gate__hero">
+        <HomeDarkTodayPick
+          slide={heroSlide}
+          title={heroTitle}
+          venue={heroVenue}
+          isEn={isEn}
+          slideCount={heroSlideCount}
+          activeDot={pickIndex % Math.max(heroSlideCount, 1)}
+          onDotSelect={onPickIndexChange}
+          onRotateNext={onHeroRotateNext}
+          onOpen={onHeroOpen}
+          emptyLabel={isEn ? 'No featured events today' : '오늘 등록된 행사가 없어요'}
+        />
+      </div>
 
       <HomeListBarSection
         isEn={isEn}
