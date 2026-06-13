@@ -20,6 +20,9 @@ export type HomeDarkParty = {
   location_name?: string;
   venue?: string;
   start_time?: string;
+  time?: string;
+  date?: string;
+  fee?: string;
   region?: string;
   broadRegion?: string;
 };

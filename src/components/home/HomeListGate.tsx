@@ -1,13 +1,11 @@
-import React, { useMemo, useState } from 'react';
+import React, { useState } from 'react';
 import { ChevronRight } from 'lucide-react';
-import PartyCard from '../PartyCard';
 import HomeDarkHeader from './HomeDarkHeader';
 import HomeDarkRegionPills from './HomeDarkRegionPills';
 import HomeDarkMoreSheet from './HomeDarkMoreSheet';
+import HomeListTodaySocialRotator from './HomeListTodaySocialRotator';
 import { HOME_LIST_TAGLINE_EN, HOME_LIST_TAGLINE_KO } from './constants';
 import type { HomeDarkMoreAction, HomeDarkParty, HomeDarkRegionPill } from './types';
-
-const HOME_LIST_PREVIEW = 4;
 
 export type HomeListGateProps = {
   isEn: boolean;
@@ -16,9 +14,9 @@ export type HomeListGateProps = {
   regionPillCounts: Record<string, number>;
   onRegionPillChange: (id: string) => void;
   todayParties: HomeDarkParty[];
-  wishlistPartyIds: Array<string | number>;
+  getPartyTitle: (party: HomeDarkParty) => string;
+  getPartyVenue: (party: HomeDarkParty) => string;
   onPartyClick: (party: HomeDarkParty) => void;
-  onToggleWishlist: (e: React.MouseEvent, party: HomeDarkParty) => void;
   onViewAllSocial: () => void;
   bootcampCount: number;
   festivalCount: number;
@@ -59,9 +57,9 @@ export default function HomeListGate({
   regionPillCounts,
   onRegionPillChange,
   todayParties,
-  wishlistPartyIds,
+  getPartyTitle,
+  getPartyVenue,
   onPartyClick,
-  onToggleWishlist,
   onViewAllSocial,
   bootcampCount,
   festivalCount,
@@ -79,18 +77,6 @@ export default function HomeListGate({
   moreActions,
 }: HomeListGateProps) {
   const [moreOpen, setMoreOpen] = useState(false);
-
-  const previewParties = useMemo(
-    () => todayParties.slice(0, HOME_LIST_PREVIEW),
-    [todayParties],
-  );
-  const [featuredParty, ...restParties] = previewParties;
-  const hasMoreParties = todayParties.length > previewParties.length;
-
-  const partyItem = (party: HomeDarkParty) => ({
-    ...party,
-    locationName: party.locationName || party.location_name,
-  });
 
   return (
     <div className="home-list-gate">
@@ -123,50 +109,22 @@ export default function HomeListGate({
           </button>
         </div>
 
-        {todayParties.length === 0 ? (
-          <div className="home-list-gate__empty">
-            {isEn ? 'No social parties in this region today.' : '이 지역에 오늘 등록된 소셜이 없습니다.'}
-          </div>
-        ) : (
-          <div className="home-list-gate__feed">
-            {featuredParty ? (
-              <div className="home-list-gate__featured">
-                <PartyCard
-                  key={featuredParty.id}
-                  item={partyItem(featuredParty)}
-                  variant="stack"
-                  onSelect={onPartyClick}
-                  wishlistParties={wishlistPartyIds}
-                  onToggleWishlist={onToggleWishlist}
-                />
-              </div>
-            ) : null}
-
-            {restParties.length > 0 ? (
-              <div className="home-list-gate__list">
-                {restParties.map((party) => (
-                  <PartyCard
-                    key={party.id}
-                    item={partyItem(party)}
-                    variant="row"
-                    onSelect={onPartyClick}
-                    wishlistParties={wishlistPartyIds}
-                    onToggleWishlist={onToggleWishlist}
-                  />
-                ))}
-              </div>
-            ) : null}
-
-            {hasMoreParties ? (
-              <button type="button" className="home-list-gate__more-parties" onClick={onViewAllSocial}>
-                {isEn
-                  ? `${todayParties.length} parties tonight — see all`
-                  : `오늘 ${todayParties.length}건 · 전체 보기`}
-                <ChevronRight size={16} aria-hidden />
-              </button>
-            ) : null}
-          </div>
-        )}
+        <div className="home-list-gate__social-wrap">
+          <HomeListTodaySocialRotator
+            isEn={isEn}
+            parties={todayParties}
+            getPartyTitle={getPartyTitle}
+            getPartyVenue={getPartyVenue}
+            onPartyClick={onPartyClick}
+          />
+          {todayParties.length > 1 ? (
+            <p className="home-list-gate__social-hint">
+              {isEn
+                ? `${todayParties.length} parties tonight · changes every minute`
+                : `오늘 ${todayParties.length}건 · 1분마다 바뀜`}
+            </p>
+          ) : null}
+        </div>
       </section>
 
       <nav className="home-list-gate__nav-chips" aria-label={isEn ? 'More categories' : '밤빠 더보기'}>

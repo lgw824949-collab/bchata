@@ -1,0 +1,92 @@
+import React, { useEffect, useState } from 'react';
+import { ChevronRight } from 'lucide-react';
+import { formatPartyFeeDisplay } from '../../lib/partyFeeDisplay';
+import type { HomeDarkParty } from './types';
+
+const ROTATE_MS = 60_000;
+
+type HomeListTodaySocialRotatorProps = {
+  isEn: boolean;
+  parties: HomeDarkParty[];
+  getPartyTitle: (party: HomeDarkParty) => string;
+  getPartyVenue: (party: HomeDarkParty) => string;
+  onPartyClick: (party: HomeDarkParty) => void;
+};
+
+const todayStr = () => {
+  const d = new Date();
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+};
+
+const formatPartyTime = (party: HomeDarkParty, isEn: boolean) => {
+  const raw = String(party.start_time || party.time || '').trim();
+  const start = raw.includes('-') ? raw.split('-')[0].trim() : raw;
+  const clock = start.slice(0, 5);
+  if (!clock) return '';
+  const isToday = !party.date || party.date === todayStr();
+  if (isToday) return isEn ? `Tonight ${clock}` : `오늘 ${clock}`;
+  return clock;
+};
+
+export default function HomeListTodaySocialRotator({
+  isEn,
+  parties,
+  getPartyTitle,
+  getPartyVenue,
+  onPartyClick,
+}: HomeListTodaySocialRotatorProps) {
+  const [activeIndex, setActiveIndex] = useState(0);
+
+  useEffect(() => {
+    setActiveIndex(0);
+  }, [parties]);
+
+  useEffect(() => {
+    if (parties.length <= 1) return undefined;
+    const timer = window.setInterval(() => {
+      setActiveIndex((index) => (index + 1) % parties.length);
+    }, ROTATE_MS);
+    return () => window.clearInterval(timer);
+  }, [parties.length]);
+
+  if (parties.length === 0) {
+    return (
+      <div className="home-list-gate__empty">
+        {isEn ? 'No social parties in this region today.' : '이 지역에 오늘 등록된 소셜이 없습니다.'}
+      </div>
+    );
+  }
+
+  const party = parties[activeIndex % parties.length];
+  const title = getPartyTitle(party);
+  const venue = getPartyVenue(party);
+  const time = formatPartyTime(party, isEn);
+  const fee = formatPartyFeeDisplay(party.fee, { fallback: isEn ? 'Ask' : '문의' });
+  const meta = [time, venue, fee].filter(Boolean).join(' · ');
+
+  return (
+    <button
+      type="button"
+      className="home-list-gate__social-rotator"
+      onClick={() => onPartyClick(party)}
+      aria-label={isEn ? `Open ${title}` : `${title} 보기`}
+    >
+      <span className="home-list-gate__social-rotator-badge">
+        {isEn ? 'Today social' : '오늘소셜'}
+      </span>
+      <span key={party.id} className="home-list-gate__social-rotator-title">{title}</span>
+      {meta ? <span className="home-list-gate__social-rotator-meta">{meta}</span> : null}
+      <span className="home-list-gate__social-rotator-foot">
+        {parties.length > 1 ? (
+          <span className="home-list-gate__social-rotator-count">
+            {activeIndex + 1}/{parties.length}
+          </span>
+        ) : null}
+        <span className="home-list-gate__social-rotator-cta">
+          {isEn ? 'View' : '보러가기'}
+          <ChevronRight size={14} aria-hidden />
+        </span>
+      </span>
+    </button>
+  );
+}

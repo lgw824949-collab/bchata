@@ -2,7 +2,9 @@ import { useCallback, useMemo, useState } from 'react';
 import { resolvePartyVenueName } from '../lib/partiesQuery';
 import { navigate as historyNavigate, navigateHomeTab, pushOverlay } from '../lib/appHistory';
 import { buildHomeDarkMoreActions } from '../components/home/buildHomeDarkMoreActions';
+import { formatPartyTitleDisplay } from '../lib/partyTitleDisplay';
 import { HOME_DARK_REGION_PILLS } from '../components/home/constants';
+import type { HomeDarkParty } from '../components/home/types';
 import type { HomeListGateProps } from '../components/home/HomeListGate';
 import type { UseHomeDarkGatePropsInput } from './useHomeDarkGateProps';
 
@@ -17,20 +19,18 @@ const isUpcomingEvent = (row: Record<string, unknown>, todayStr: string) => {
 export function useHomeListGateProps(input: UseHomeDarkGatePropsInput) {
   const {
     isEn,
+    translateDynamicText,
     todayPosterPartiesForCount,
     bootcamps,
     festivals,
     calendarTodayStr,
     regionCounts,
-    wishlistParties,
     hotInstructors,
     locations,
     openPartyWithAfterParty,
     openBootcampPage,
     openFestivalPage,
     openFestivalPartyPage,
-    toggleWishlistParty,
-    openVenueDetail,
     registerAdminPortalTap,
     filterTodayPartiesByPill,
     hasLivePickUploadToday,
@@ -131,6 +131,19 @@ export function useHomeListGateProps(input: UseHomeDarkGatePropsInput) {
     pushOverlay('incheon');
   }, []);
 
+  const getPartyTitle = useCallback(
+    (party: HomeDarkParty) => translateDynamicText(formatPartyTitleDisplay(party.title), isEn),
+    [isEn, translateDynamicText],
+  );
+
+  const getPartyVenue = useCallback(
+    (party: HomeDarkParty) => translateDynamicText(
+      resolvePartyVenueName(party) || party.locationName || party.location_name || '',
+      isEn,
+    ),
+    [isEn, translateDynamicText],
+  );
+
   const gateProps: HomeListGateProps = {
     isEn,
     regionPills: [...HOME_DARK_REGION_PILLS],
@@ -138,9 +151,9 @@ export function useHomeListGateProps(input: UseHomeDarkGatePropsInput) {
     regionPillCounts: homeListRegionPillCounts,
     onRegionPillChange: setHomeRegionPill,
     todayParties: homeFilteredTodayParties,
-    wishlistPartyIds: wishlistParties,
+    getPartyTitle,
+    getPartyVenue,
     onPartyClick: openPartyWithAfterParty,
-    onToggleWishlist: toggleWishlistParty,
     onViewAllSocial: openSocialTab,
     bootcampCount,
     festivalCount,
