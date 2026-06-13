@@ -1,0 +1,220 @@
+/* 메인 — 네이버형 리스트 (Hick/Jakob: 세로 스캔 · 익숙한 패턴) */
+
+.home-list-shell {
+  background: #f5f6f8 !important;
+  color: #191f28;
+}
+
+.home-list-gate {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  width: 100%;
+  min-width: 0;
+  padding: 8px 16px 24px;
+  box-sizing: border-box;
+}
+
+/* 헤더 — 라이트 */
+.home-list-gate .home-dark-header {
+  padding: 4px 0 10px;
+}
+
+.home-list-gate .home-dark-header__title {
+  background: linear-gradient(135deg, #e53935 0%, #ff7043 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  color: transparent;
+  font-size: 26px;
+  font-weight: 900;
+}
+
+.home-list-gate .home-dark-header__tagline {
+  color: rgba(30, 41, 59, 0.55);
+}
+
+.home-list-gate .home-dark-header__icon-btn {
+  background: #fff;
+  border: 1px solid #e8ebed;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.04);
+  color: #191f28;
+}
+
+/* 지역 필 — 라이트 */
+.home-list-gate .home-dark-region-pills {
+  padding: 4px 0 12px;
+}
+
+.home-list-gate .home-dark-region-pill {
+  background: #fff;
+  border: 1px solid #e8ebed;
+  color: rgba(30, 41, 59, 0.65);
+  box-shadow: none;
+}
+
+.home-list-gate .home-dark-region-pill.is-active {
+  background: linear-gradient(135deg, #e53935, #ff7043);
+  border-color: transparent;
+  color: #fff;
+  box-shadow: 0 4px 14px rgba(229, 57, 53, 0.22);
+}
+
+/* 섹션 */
+.home-list-gate__section {
+  margin-bottom: 8px;
+}
+
+.home-list-gate__section-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 8px 0 10px;
+}
+
+.home-list-gate__section-title {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  color: #191f28;
+}
+
+.home-list-gate__section-title--sm {
+  font-size: 15px;
+  padding: 12px 0 8px;
+}
+
+.home-list-gate__section-sub {
+  margin: 4px 0 0;
+  font-size: 12px;
+  font-weight: 600;
+  color: rgba(30, 41, 59, 0.5);
+}
+
+.home-list-gate__section-action {
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  padding: 6px 10px;
+  border-radius: 999px;
+  border: 1px solid #e8ebed;
+  background: #fff;
+  color: #191f28;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+/* 파티 리스트 — 네이버형 row 카드 */
+.home-list-gate__list {
+  display: flex;
+  flex-direction: column;
+  background: #fff;
+  border: 1px solid #e8ebed;
+  border-radius: 14px;
+  overflow: hidden;
+}
+
+.home-list-gate__list .party-card--row {
+  border-bottom: 1px solid #f0f2f5;
+  padding: 14px 16px;
+  background: #fff;
+}
+
+.home-list-gate__list .party-card--row:last-child {
+  border-bottom: none;
+}
+
+.home-list-gate__empty {
+  padding: 36px 20px;
+  border-radius: 14px;
+  border: 1px dashed #e2e8f0;
+  background: #fff;
+  text-align: center;
+  font-size: 13px;
+  font-weight: 700;
+  color: rgba(30, 41, 59, 0.5);
+}
+
+/* 더보기 행 */
+.home-list-gate__section--secondary {
+  margin-top: 8px;
+}
+
+.home-list-gate__more-list {
+  display: flex;
+  flex-direction: column;
+  background: #fff;
+  border: 1px solid #e8ebed;
+  border-radius: 14px;
+  overflow: hidden;
+}
+
+.home-list-gate__more-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  padding: 14px 16px;
+  border: none;
+  border-bottom: 1px solid #f0f2f5;
+  background: #fff;
+  cursor: pointer;
+  text-align: left;
+}
+
+.home-list-gate__more-row:last-child {
+  border-bottom: none;
+}
+
+.home-list-gate__more-row:active {
+  background: #f8fafc;
+}
+
+.home-list-gate__more-row-emoji {
+  font-size: 22px;
+  line-height: 1;
+  flex-shrink: 0;
+}
+
+.home-list-gate__more-row-text {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.home-list-gate__more-row-label {
+  font-size: 15px;
+  font-weight: 800;
+  color: #191f28;
+}
+
+.home-list-gate__more-row-sub {
+  font-size: 11px;
+  font-weight: 600;
+  color: rgba(30, 41, 59, 0.45);
+}
+
+.home-list-gate__more-row-meta {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  flex-shrink: 0;
+  color: rgba(30, 41, 59, 0.45);
+}
+
+.home-list-gate__more-row-count {
+  min-width: 20px;
+  padding: 2px 7px;
+  border-radius: 999px;
+  background: #f1f5f9;
+  font-size: 11px;
+  font-weight: 800;
+  color: #64748b;
+  text-align: center;
+}
