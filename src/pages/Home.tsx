@@ -2076,18 +2076,22 @@ const HomePage = ({
     () => historyNavigate('/bootcamp', { homeTab: null }),
     [],
   );
-  const openFestivalPage = useCallback(
-    () => historyNavigate('/festival', { homeTab: null }),
-    [],
-  );
-  const openFestivalPartyPage = useCallback(() => {
+  const openFestivalWithTab = useCallback((tab: 'festival' | 'party') => {
     try {
-      sessionStorage.setItem(FESTIVAL_TAB_SESSION_KEY, 'party');
+      sessionStorage.setItem(FESTIVAL_TAB_SESSION_KEY, tab);
     } catch {
       /* ignore */
     }
     historyNavigate('/festival', { homeTab: null });
   }, []);
+  const openFestivalPage = useCallback(
+    () => openFestivalWithTab('festival'),
+    [openFestivalWithTab],
+  );
+  const openFestivalPartyPage = useCallback(
+    () => openFestivalWithTab('party'),
+    [openFestivalWithTab],
+  );
 
   const openBarVenueLessonPick = useCallback(() => {
     if (!locations.length) {

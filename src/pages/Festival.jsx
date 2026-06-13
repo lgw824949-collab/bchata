@@ -169,16 +169,20 @@ const Festival = ({ onBack, initialRegister = false, cachedFestivals = null, onF
 
   const regions = ['전체', '수도권', '강원', '제주', '부산/경남', '전라', '충청'];
 
-  useEffect(() => {
+  const applyPendingFestivalTab = () => {
     try {
       const tab = sessionStorage.getItem(FESTIVAL_TAB_SESSION_KEY);
-      if (tab === 'party' || tab === 'festival' || tab === 'mt') {
-        setActiveTab(tab === 'party' ? 'party' : 'festival');
-        sessionStorage.removeItem(FESTIVAL_TAB_SESSION_KEY);
-      }
+      if (tab !== 'party' && tab !== 'festival' && tab !== 'mt') return;
+      setActiveTab(tab === 'party' ? 'party' : 'festival');
+      setSelectedRegion('전체');
+      sessionStorage.removeItem(FESTIVAL_TAB_SESSION_KEY);
     } catch {
       /* ignore */
     }
+  };
+
+  useEffect(() => {
+    applyPendingFestivalTab();
   }, []);
 
   useEffect(() => {
@@ -219,14 +223,21 @@ const Festival = ({ onBack, initialRegister = false, cachedFestivals = null, onF
   }, [selectedFestival]);
 
   useEffect(() => {
-    const onHistory = (event) => {
+    const onNav = (event) => {
       const st = event.detail?.state ?? parseAppState(window.history.state);
+      if (st?.view === 'festival' || st?.view === 'festival-register') {
+        applyPendingFestivalTab();
+      }
       if (st?.overlay !== 'festivalDetail') {
         setSelectedFestival(null);
       }
     };
-    window.addEventListener('bamppa-history', onHistory);
-    return () => window.removeEventListener('bamppa-history', onHistory);
+    window.addEventListener('bamppa-navigate', onNav);
+    window.addEventListener('bamppa-history', onNav);
+    return () => {
+      window.removeEventListener('bamppa-navigate', onNav);
+      window.removeEventListener('bamppa-history', onNav);
+    };
   }, []);
 
   useEffect(() => {
