@@ -3,7 +3,12 @@ import { filterSocialPartyRows } from '../lib/postKind';
 import { resolvePartyVenueName } from '../lib/partiesQuery';
 import { normalizeVenueNameKey } from '../lib/venueDedupe';
 import { resolveBarVenuePhoto } from '../lib/barVenuePhotos';
-import { haversineKm, formatDistanceLabel, sortByDistanceFromUser } from '../lib/geoDistance';
+import {
+  haversineKm,
+  formatDistanceLabel,
+  sortByDistanceFromUser,
+  parseVenueCoordinates,
+} from '../lib/geoDistance';
 import { navigate as historyNavigate, navigateHomeTab, pushOverlay } from '../lib/appHistory';
 import { buildHomeDarkHeroSlides, formatHeroDateLabel } from '../components/home/buildHomeDarkHeroSlides';
 import { formatPartyTitleDisplay } from '../lib/partyTitleDisplay';
@@ -135,11 +140,9 @@ export function useHomeListGateProps(input: UseHomeDarkGatePropsInput) {
       ? locations
       : locations.filter((bar) => bar.region === selectedRegionTab);
     if (userGeoCoords?.lat != null && userGeoCoords?.lng != null) {
-      return sortByDistanceFromUser(filteredBars, userGeoCoords, (bar) => {
-        const lat = Number(bar.latitude);
-        const lng = Number(bar.longitude);
-        return Number.isFinite(lat) && Number.isFinite(lng) ? { lat, lng } : null;
-      });
+      return sortByDistanceFromUser(filteredBars, userGeoCoords, (bar) => (
+        parseVenueCoordinates(bar.latitude, bar.longitude)
+      ));
     }
     const sorted = sortBarsForSocialBarTab(filteredBars, selectedRegionTab);
     if (sorted.length >= HOME_DARK_MIN_BAR_ITEMS || selectedRegionTab === socialBarRegionAll) {
@@ -166,11 +169,13 @@ export function useHomeListGateProps(input: UseHomeDarkGatePropsInput) {
 
   const getBarDistanceLabel = useCallback((bar: HomeDarkBar) => {
     if (!userGeoCoords) return null;
+    const venue = parseVenueCoordinates(bar.latitude, bar.longitude);
+    if (!venue) return null;
     const km = haversineKm(
       userGeoCoords.lat,
       userGeoCoords.lng,
-      Number(bar.latitude),
-      Number(bar.longitude),
+      venue.lat,
+      venue.lng,
     );
     return km != null ? formatDistanceLabel(km) : null;
   }, [userGeoCoords]);

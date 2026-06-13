@@ -1,4 +1,5 @@
 import { BAR_DATABASE as GPS_BARS } from '../data/barDatabase';
+import { normalizeKoreaCoordinates } from './geoDistance';
 import { normalizeVenueAddressKey, normalizeVenueNameKey } from './venueDedupe';
 
 /** barDatabase.js 마스터에서 name·address·alias 매칭 */
@@ -25,12 +26,14 @@ export function enrichBarRowCoordinates(row) {
   if (gps) {
     return { ...row, latitude: gps.lat, longitude: gps.lon };
   }
-  const lat = Number(row.latitude ?? row.lat);
-  const lng = Number(row.longitude ?? row.lon);
-  if (Number.isFinite(lat) && Number.isFinite(lng)) {
-    return { ...row, latitude: lat, longitude: lng };
+  const normalized = normalizeKoreaCoordinates(
+    row.latitude ?? row.lat,
+    row.longitude ?? row.lon,
+  );
+  if (normalized) {
+    return { ...row, latitude: normalized.lat, longitude: normalized.lng };
   }
-  return row;
+  return { ...row, latitude: null, longitude: null };
 }
 
 export function enrichBarListCoordinates(rows) {

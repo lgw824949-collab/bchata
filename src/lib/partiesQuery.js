@@ -5,6 +5,7 @@ import {
   DISTANCE_SORT_FALLBACK,
   formatDistanceLabel,
   haversineKm,
+  parseVenueCoordinates,
   sortByDistanceFromUser,
 } from './geoDistance';
 
@@ -93,10 +94,9 @@ export function buildLocationNameMap(locations) {
 export function buildLocationCoordMap(locations) {
   return (locations || []).reduce((acc, loc) => {
     if (loc?.id == null) return acc;
-    const lat = parseFloat(loc.latitude);
-    const lng = parseFloat(loc.longitude);
-    if (Number.isFinite(lat) && Number.isFinite(lng)) {
-      acc[loc.id] = { lat, lng };
+    const coords = parseVenueCoordinates(loc.latitude, loc.longitude);
+    if (coords) {
+      acc[loc.id] = coords;
     }
     return acc;
   }, {});
@@ -106,9 +106,8 @@ export function buildLocationCoordMap(locations) {
 export function resolvePartyCoords(p, coordMap = {}) {
   const joined = p?.locations;
   if (joined) {
-    const lat = parseFloat(joined.latitude);
-    const lng = parseFloat(joined.longitude);
-    if (Number.isFinite(lat) && Number.isFinite(lng)) return { lat, lng };
+    const coords = parseVenueCoordinates(joined.latitude, joined.longitude);
+    if (coords) return coords;
   }
   const mapped = coordMap[p?.location_id];
   if (mapped) return mapped;

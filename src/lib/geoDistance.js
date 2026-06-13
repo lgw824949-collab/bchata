@@ -1,5 +1,48 @@
 const EARTH_RADIUS_KM = 6371;
 
+/** 한국 서비스 범위 (제주·독도 여유 포함) */
+export const KOREA_BOUNDS = {
+  latMin: 33.0,
+  latMax: 43.0,
+  lngMin: 124.0,
+  lngMax: 132.5,
+};
+
+export function isWithinKoreaBounds(lat, lng) {
+  const a = Number(lat);
+  const o = Number(lng);
+  if (!Number.isFinite(a) || !Number.isFinite(o)) return false;
+  return (
+    a >= KOREA_BOUNDS.latMin
+    && a <= KOREA_BOUNDS.latMax
+    && o >= KOREA_BOUNDS.lngMin
+    && o <= KOREA_BOUNDS.lngMax
+  );
+}
+
+/** lat/lng 뒤바뀐 한국 좌표 보정 · 유효하지 않으면 null */
+export function normalizeKoreaCoordinates(lat, lng) {
+  const a = Number(lat);
+  const o = Number(lng);
+  if (!Number.isFinite(a) || !Number.isFinite(o)) return null;
+  if (a === 0 && o === 0) return null;
+
+  if (isWithinKoreaBounds(a, o)) return { lat: a, lng: o };
+
+  const swappedLat = o;
+  const swappedLng = a;
+  if (isWithinKoreaBounds(swappedLat, swappedLng)) {
+    return { lat: swappedLat, lng: swappedLng };
+  }
+
+  return null;
+}
+
+/** venue 좌표 파싱 — null/0/역외 좌표는 거리 계산에서 제외 */
+export function parseVenueCoordinates(lat, lng) {
+  return normalizeKoreaCoordinates(lat, lng);
+}
+
 /** Haversine — 두 좌표 간 직선거리(km) */
 export function haversineKm(lat1, lon1, lat2, lon2) {
   const a1 = Number(lat1);

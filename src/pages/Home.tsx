@@ -19,6 +19,7 @@ import {
   normalizeVenueNameKey,
 } from '../lib/venueDedupe'
 import { readCachedCoords, writeCachedCoords } from '../lib/geoCache'
+import { parseVenueCoordinates } from '../lib/geoDistance'
 import { HomeListGate } from '../components/home'
 import { useHomeListGateProps } from '../hooks/useHomeListGateProps'
 import VenueDetailModal from '../components/VenueDetailModal'
@@ -142,10 +143,9 @@ const findBarWithinRadiusM = (bars, userLat, userLon, radiusM) => {
   let minDist = Infinity;
   for (const bar of bars) {
     if (!isPersistedLocationId(bar.id)) continue;
-    const lat = Number(bar.latitude);
-    const lon = Number(bar.longitude);
-    if (!Number.isFinite(lat) || !Number.isFinite(lon)) continue;
-    const distM = socialBarHaversineKm(userLat, userLon, lat, lon) * 1000;
+    const venue = parseVenueCoordinates(bar.latitude, bar.longitude);
+    if (!venue) continue;
+    const distM = socialBarHaversineKm(userLat, userLon, venue.lat, venue.lng) * 1000;
     if (distM <= radiusM && distM < minDist) {
       minDist = distM;
       nearest = bar;

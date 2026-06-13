@@ -79,6 +79,7 @@ export const BAR_DATABASE = [
   { name: '부에나비스타바', address: '광주광역시 동구 문화전당로23번길 38-1', region: '전라도', lat: 35.1468, lon: 126.9218 },
   { name: '마얀', address: '광주광역시 동구 황금동 84번지 3층', region: '전라도', lat: 35.1495, lon: 126.9158 },
   { name: '엘카리베', address: '전라남도 여수시 소라면 죽림중앙로 13-12 4층', region: '전라도', lat: 34.7975, lon: 127.6738 },
+  { name: '몬투노bar', address: '광주광역시 동구 무등로 400, 3층', region: '전라도', aliases: ['몬투노', 'Montuno'], lat: 35.1612, lon: 126.9264 },
 ]
 
 export const findBarByName = (text) => {
