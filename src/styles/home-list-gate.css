@@ -6,15 +6,6 @@
 }
 
 .home-list-gate {
-  --hd-hero-h: 220px;
-  --hd-radius-hero: 16px;
-  --hd-radius-pill: 999px;
-  --hd-primary: #e53935;
-  --hd-gold: #ff7043;
-  --hd-text-secondary: rgba(255, 255, 255, 0.78);
-  --hd-border: #e8ebed;
-  --hd-ui-surface: #fff;
-  --hd-card-media: #111;
   display: flex;
   flex-direction: column;
   gap: 16px;
@@ -152,215 +143,7 @@
   color: #fff;
 }
 
-/* ── 히어로 퀵메뉴 ── */
-.home-list-gate .home-dark-quick-menu {
-  display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 10px;
-  padding: 2px 0 4px;
-}
-
-.home-list-gate .home-dark-quick-menu__btn {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 8px;
-  padding: 4px 2px;
-  border: none;
-  background: transparent;
-  cursor: pointer;
-}
-
-.home-list-gate .home-dark-quick-menu__emoji {
-  width: 54px;
-  height: 54px;
-  border-radius: 16px;
-  border: 1px solid #e8ebed;
-  background: #fff;
-  font-size: 24px;
-  line-height: 1;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  box-shadow: 0 2px 10px rgba(15, 23, 42, 0.06);
-}
-
-.home-list-gate .home-dark-quick-menu__label {
-  font-size: 11px;
-  font-weight: 700;
-  line-height: 1.25;
-  color: #4b5563;
-  text-align: center;
-  word-break: keep-all;
-}
-
-/* ── 히어로 포스터 ── */
-.home-list-gate .home-dark-today-pick {
-  position: relative;
-  width: 100%;
-  height: var(--hd-hero-h);
-  min-height: var(--hd-hero-h);
-  border: 1px solid #e8ebed;
-  border-radius: var(--hd-radius-hero);
-  overflow: hidden;
-  background: #111;
-  box-shadow: 0 8px 28px rgba(15, 23, 42, 0.12);
-  box-sizing: border-box;
-  isolation: isolate;
-}
-
-.home-list-gate .home-dark-today-pick::before,
-.home-list-gate .home-dark-today-pick::after {
-  display: none;
-}
-
-.home-list-gate .home-dark-today-pick--empty {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  height: 180px;
-  min-height: 180px;
-  border: 1px dashed #e2e8f0;
-  background: #fff;
-  color: #94a3b8;
-  box-shadow: none;
-}
-
-.home-list-gate .home-dark-today-pick__stage {
-  position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
-  border-radius: var(--hd-radius-hero);
-  overflow: hidden;
-  background: var(--hd-card-media);
-}
-
-.home-list-gate .home-dark-today-pick__stage--clickable {
-  cursor: pointer;
-}
-
-.home-list-gate .home-dark-today-pick__photo {
-  position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-}
-
-.home-list-gate .home-dark-today-pick__photo--hero {
-  object-position: center center;
-  filter: brightness(0.82) saturate(0.9) contrast(1.04);
-}
-
-.home-list-gate .home-dark-today-pick__overlay {
-  position: absolute;
-  inset: 0;
-  z-index: 1;
-  pointer-events: none;
-  background:
-    linear-gradient(
-      180deg,
-      rgba(0, 0, 0, 0.08) 0%,
-      rgba(0, 0, 0, 0.35) 45%,
-      rgba(0, 0, 0, 0.88) 100%
-    );
-}
-
-.home-list-gate .home-dark-today-pick__content {
-  position: absolute;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  z-index: 4;
-  padding: 18px 16px;
-  display: flex;
-  flex-direction: column;
-  justify-content: flex-end;
-  gap: 4px;
-  box-sizing: border-box;
-}
-
-.home-list-gate .home-dark-today-pick__eyebrow {
-  font-size: 11px;
-  font-weight: 800;
-  letter-spacing: 0.06em;
-  color: #ff8a80;
-}
-
-.home-list-gate .home-dark-today-pick__title {
-  margin: 0;
-  font-size: 22px;
-  font-weight: 800;
-  line-height: 1.15;
-  color: #fff;
-}
-
-.home-list-gate .home-dark-today-pick__subtitle-en {
-  margin: 0;
-  font-size: 13px;
-  font-style: italic;
-  color: #ffcc80;
-}
-
-.home-list-gate .home-dark-today-pick__meta {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px 12px;
-  font-size: 12px;
-  font-weight: 600;
-  color: rgba(255, 255, 255, 0.78);
-}
-
-.home-list-gate .home-dark-today-pick__meta span {
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-}
-
-.home-list-gate .home-dark-today-pick__cta {
-  margin-top: 6px;
-  height: 36px;
-  padding: 0 14px;
-  border: none;
-  border-radius: var(--hd-radius-pill);
-  background: linear-gradient(135deg, #e53935, #ff7043);
-  color: #fff;
-  font-size: 12px;
-  font-weight: 700;
-  cursor: pointer;
-  width: fit-content;
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-  box-shadow: 0 4px 14px rgba(229, 57, 53, 0.28);
-}
-
-.home-list-gate .home-dark-today-pick__dots {
-  position: absolute;
-  right: 14px;
-  bottom: 14px;
-  z-index: 4;
-  display: flex;
-  gap: 5px;
-}
-
-.home-list-gate .home-dark-today-pick__dots button {
-  width: 6px;
-  height: 6px;
-  padding: 0;
-  border: none;
-  border-radius: 999px;
-  background: rgba(255, 255, 255, 0.35);
-  cursor: pointer;
-}
-
-.home-list-gate .home-dark-today-pick__dots button.is-active {
-  width: 18px;
-  background: #ff7043;
-}
-
-/* 통합 패널 — 오늘소셜 + 더보기 한 박스 */
+/* ── 오늘소셜 패널 ── */
 .home-list-gate__panel {
   background: #fff;
   border: 1px solid #e8ebed;
@@ -376,22 +159,12 @@
   padding: 14px 16px 10px;
 }
 
-.home-list-gate__panel-head--sub {
-  padding: 12px 16px 8px;
-}
-
 .home-list-gate__section-title {
   margin: 0;
   font-size: 17px;
   font-weight: 800;
   letter-spacing: -0.03em;
   color: #191f28;
-}
-
-.home-list-gate__section-title--sm {
-  font-size: 14px;
-  font-weight: 700;
-  color: #4b5563;
 }
 
 .home-list-gate__section-action {
@@ -409,17 +182,25 @@
   cursor: pointer;
 }
 
-.home-list-gate__panel-divider {
-  height: 8px;
-  background: #f5f6f8;
-  border-top: 1px solid #f0f2f5;
-  border-bottom: 1px solid #f0f2f5;
+.home-list-gate__feed {
+  display: flex;
+  flex-direction: column;
 }
 
-/* 파티 리스트 — 한 박스 안 구분선 */
+.home-list-gate__featured {
+  padding: 0 12px 8px;
+}
+
+.home-list-gate__featured .party-card--stack {
+  margin: 0;
+  box-shadow: 0 8px 24px rgba(15, 23, 42, 0.1);
+  border: 1px solid #eef1f4;
+}
+
 .home-list-gate__list {
   display: flex;
   flex-direction: column;
+  border-top: 1px solid #f0f2f5;
 }
 
 .home-list-gate__list .party-card--row {
@@ -438,7 +219,7 @@
 }
 
 .home-list-gate__list .party-card__thumb {
-  width: 88px;
+  width: 92px;
   border-radius: 10px;
 }
 
@@ -456,6 +237,27 @@
   margin-top: 2px;
 }
 
+.home-list-gate__more-parties {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  width: calc(100% - 24px);
+  margin: 8px 12px 12px;
+  padding: 12px;
+  border: 1px solid #e8ebed;
+  border-radius: 12px;
+  background: #f8fafc;
+  color: #4b5563;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.home-list-gate__more-parties:active {
+  background: #f1f5f9;
+}
+
 .home-list-gate__empty {
   margin: 0 16px 16px;
   padding: 32px 16px;
@@ -468,58 +270,55 @@
   color: rgba(30, 41, 59, 0.5);
 }
 
-/* 더보기 — 2열 그리드 */
-.home-list-gate__cat-grid {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 8px;
-  padding: 0 12px 12px;
-}
-
-.home-list-gate__cat-tile {
+/* ── 보조 네비 — 가로 칩 ── */
+.home-list-gate__nav-chips {
   display: flex;
-  align-items: center;
-  justify-content: space-between;
   gap: 8px;
-  min-height: 44px;
-  padding: 10px 12px;
-  border: 1px solid #eef1f4;
-  border-radius: 12px;
-  background: #f8fafc;
-  cursor: pointer;
-  text-align: left;
+  overflow-x: auto;
+  scrollbar-width: none;
+  padding: 2px 0 4px;
+  -webkit-overflow-scrolling: touch;
 }
 
-.home-list-gate__cat-tile:last-child:nth-child(odd) {
-  grid-column: 1 / -1;
+.home-list-gate__nav-chips::-webkit-scrollbar {
+  display: none;
 }
 
-.home-list-gate__cat-tile:active {
-  background: #f1f5f9;
-}
-
-.home-list-gate__cat-tile-label {
-  font-size: 14px;
-  font-weight: 700;
-  color: #191f28;
-}
-
-.home-list-gate__cat-tile-meta {
+.home-list-gate__nav-chip {
+  flex-shrink: 0;
   display: inline-flex;
   align-items: center;
-  gap: 2px;
-  flex-shrink: 0;
-  color: #94a3b8;
-}
-
-.home-list-gate__cat-tile-count {
-  min-width: 18px;
-  padding: 1px 6px;
+  gap: 6px;
+  height: 38px;
+  padding: 0 14px;
+  border: 1px solid #e8ebed;
   border-radius: 999px;
   background: #fff;
-  border: 1px solid #e2e8f0;
+  box-shadow: 0 1px 4px rgba(15, 23, 42, 0.04);
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.home-list-gate__nav-chip:active {
+  background: #f8fafc;
+}
+
+.home-list-gate__nav-chip-label {
+  font-size: 13px;
+  font-weight: 700;
+  color: #333d4b;
+}
+
+.home-list-gate__nav-chip-count {
+  min-width: 20px;
+  height: 20px;
+  padding: 0 6px;
+  border-radius: 999px;
+  background: #f1f5f9;
   font-size: 11px;
   font-weight: 800;
+  line-height: 20px;
   color: #64748b;
   text-align: center;
 }
+

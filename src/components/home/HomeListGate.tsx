@@ -1,13 +1,13 @@
-import React, { useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import { ChevronRight } from 'lucide-react';
 import PartyCard from '../PartyCard';
 import HomeDarkHeader from './HomeDarkHeader';
 import HomeDarkRegionPills from './HomeDarkRegionPills';
-import HomeDarkQuickMenu from './HomeDarkQuickMenu';
-import HomeDarkTodayPick from './HomeDarkTodayPick';
 import HomeDarkMoreSheet from './HomeDarkMoreSheet';
-import { HOME_DARK_HEADER_TAGLINE } from './constants';
-import type { HomeDarkHeroSlide, HomeDarkMoreAction, HomeDarkParty, HomeDarkQuickMenuItem, HomeDarkRegionPill } from './types';
+import { HOME_LIST_TAGLINE_EN, HOME_LIST_TAGLINE_KO } from './constants';
+import type { HomeDarkMoreAction, HomeDarkParty, HomeDarkRegionPill } from './types';
+
+const HOME_LIST_PREVIEW = 4;
 
 export type HomeListGateProps = {
   isEn: boolean;
@@ -15,15 +15,6 @@ export type HomeListGateProps = {
   regionPill: string;
   regionPillCounts: Record<string, number>;
   onRegionPillChange: (id: string) => void;
-  quickMenuItems: HomeDarkQuickMenuItem[];
-  heroSlide: HomeDarkHeroSlide | null;
-  heroTitle: string;
-  heroVenue: string;
-  heroSlideCount: number;
-  pickIndex: number;
-  onPickIndexChange: (index: number) => void;
-  onHeroRotateNext: () => void;
-  onHeroOpen: () => void;
   todayParties: HomeDarkParty[];
   wishlistPartyIds: Array<string | number>;
   onPartyClick: (party: HomeDarkParty) => void;
@@ -38,37 +29,25 @@ export type HomeListGateProps = {
   onOpenPartyEvents: () => void;
   onOpenInstructors: () => void;
   onOpenBarMap: () => void;
-  socialBarRegionTabs: string[];
-  selectedBarRegionTab: string | null;
-  barRegionCounts: Record<string, number>;
-  geoRegionTab: string | null;
   barCount: number;
-  locationsLoading: boolean;
-  geoRegionPending: boolean;
-  onBarRegionTabChange: (tab: string) => void;
-  onBarClick: (bar: { id?: string | number; name?: string }) => void;
   onAdminTap: () => void;
   onSearch: () => void;
   onOpenWishlist: () => void;
   moreActions: HomeDarkMoreAction[];
-  getPartyVenue: (party: HomeDarkParty) => string;
 };
 
-type CatTileProps = {
+type NavChipProps = {
   label: string;
   count: number;
   onClick: () => void;
 };
 
-function HomeListCatTile({ label, count, onClick }: CatTileProps) {
+function HomeListNavChip({ label, count, onClick }: NavChipProps) {
   if (count <= 0) return null;
   return (
-    <button type="button" className="home-list-gate__cat-tile" onClick={onClick}>
-      <span className="home-list-gate__cat-tile-label">{label}</span>
-      <span className="home-list-gate__cat-tile-meta">
-        <span className="home-list-gate__cat-tile-count">{count}</span>
-        <ChevronRight size={14} aria-hidden />
-      </span>
+    <button type="button" className="home-list-gate__nav-chip" onClick={onClick}>
+      <span className="home-list-gate__nav-chip-label">{label}</span>
+      <span className="home-list-gate__nav-chip-count">{count}</span>
     </button>
   );
 }
@@ -79,15 +58,6 @@ export default function HomeListGate({
   regionPill,
   regionPillCounts,
   onRegionPillChange,
-  quickMenuItems,
-  heroSlide,
-  heroTitle,
-  heroVenue,
-  heroSlideCount,
-  pickIndex,
-  onPickIndexChange,
-  onHeroRotateNext,
-  onHeroOpen,
   todayParties,
   wishlistPartyIds,
   onPartyClick,
@@ -110,10 +80,22 @@ export default function HomeListGate({
 }: HomeListGateProps) {
   const [moreOpen, setMoreOpen] = useState(false);
 
+  const previewParties = useMemo(
+    () => todayParties.slice(0, HOME_LIST_PREVIEW),
+    [todayParties],
+  );
+  const [featuredParty, ...restParties] = previewParties;
+  const hasMoreParties = todayParties.length > previewParties.length;
+
+  const partyItem = (party: HomeDarkParty) => ({
+    ...party,
+    locationName: party.locationName || party.location_name,
+  });
+
   return (
     <div className="home-list-gate">
       <HomeDarkHeader
-        tagline={HOME_DARK_HEADER_TAGLINE}
+        tagline={isEn ? HOME_LIST_TAGLINE_EN : HOME_LIST_TAGLINE_KO}
         onAdminTap={onAdminTap}
         onSearch={onSearch}
         onWishlist={onOpenWishlist}
@@ -130,22 +112,7 @@ export default function HomeListGate({
         />
       </div>
 
-      <HomeDarkQuickMenu isEn={isEn} items={quickMenuItems} />
-
-      <HomeDarkTodayPick
-        slide={heroSlide}
-        title={heroTitle}
-        venue={heroVenue}
-        isEn={isEn}
-        slideCount={heroSlideCount}
-        activeDot={pickIndex % Math.max(heroSlideCount, 1)}
-        onDotSelect={onPickIndexChange}
-        onRotateNext={onHeroRotateNext}
-        onOpen={onHeroOpen}
-        emptyLabel={isEn ? 'No featured events today' : '오늘 등록된 행사가 없어요'}
-      />
-
-      <section className="home-list-gate__panel" aria-label={isEn ? "Today's home feed" : '오늘밤빠 홈'}>
+      <section className="home-list-gate__panel" aria-label={isEn ? "Today's social" : '오늘소셜'}>
         <div className="home-list-gate__panel-head">
           <h2 className="home-list-gate__section-title">
             {isEn ? "Today's social" : '오늘소셜'}
@@ -161,59 +128,74 @@ export default function HomeListGate({
             {isEn ? 'No social parties in this region today.' : '이 지역에 오늘 등록된 소셜이 없습니다.'}
           </div>
         ) : (
-          <div className="home-list-gate__list">
-            {todayParties.map((party) => (
-              <PartyCard
-                key={party.id}
-                item={{
-                  ...party,
-                  locationName: party.locationName || party.location_name,
-                }}
-                variant="row"
-                onSelect={onPartyClick}
-                wishlistParties={wishlistPartyIds}
-                onToggleWishlist={onToggleWishlist}
-              />
-            ))}
+          <div className="home-list-gate__feed">
+            {featuredParty ? (
+              <div className="home-list-gate__featured">
+                <PartyCard
+                  key={featuredParty.id}
+                  item={partyItem(featuredParty)}
+                  variant="stack"
+                  onSelect={onPartyClick}
+                  wishlistParties={wishlistPartyIds}
+                  onToggleWishlist={onToggleWishlist}
+                />
+              </div>
+            ) : null}
+
+            {restParties.length > 0 ? (
+              <div className="home-list-gate__list">
+                {restParties.map((party) => (
+                  <PartyCard
+                    key={party.id}
+                    item={partyItem(party)}
+                    variant="row"
+                    onSelect={onPartyClick}
+                    wishlistParties={wishlistPartyIds}
+                    onToggleWishlist={onToggleWishlist}
+                  />
+                ))}
+              </div>
+            ) : null}
+
+            {hasMoreParties ? (
+              <button type="button" className="home-list-gate__more-parties" onClick={onViewAllSocial}>
+                {isEn
+                  ? `${todayParties.length} parties tonight — see all`
+                  : `오늘 ${todayParties.length}건 · 전체 보기`}
+                <ChevronRight size={16} aria-hidden />
+              </button>
+            ) : null}
           </div>
         )}
-
-        <div className="home-list-gate__panel-divider" aria-hidden />
-
-        <div className="home-list-gate__panel-head home-list-gate__panel-head--sub">
-          <h2 className="home-list-gate__section-title home-list-gate__section-title--sm">
-            {isEn ? 'More tonight' : '밤빠 더보기'}
-          </h2>
-        </div>
-
-        <div className="home-list-gate__cat-grid">
-          <HomeListCatTile
-            label={isEn ? 'Bootcamp' : '부트캠프'}
-            count={bootcampCount}
-            onClick={onOpenBootcamp}
-          />
-          <HomeListCatTile
-            label={isEn ? 'Festival' : '페스티벌'}
-            count={festivalCount}
-            onClick={onOpenFestival}
-          />
-          <HomeListCatTile
-            label={isEn ? 'Party events' : '파티 행사'}
-            count={partyEventCount}
-            onClick={onOpenPartyEvents}
-          />
-          <HomeListCatTile
-            label={isEn ? 'Instructors' : '강사'}
-            count={instructorCount}
-            onClick={onOpenInstructors}
-          />
-          <HomeListCatTile
-            label={isEn ? 'Social BAR' : '소셜 BAR'}
-            count={barCount}
-            onClick={onOpenBarMap}
-          />
-        </div>
       </section>
+
+      <nav className="home-list-gate__nav-chips" aria-label={isEn ? 'More categories' : '밤빠 더보기'}>
+        <HomeListNavChip
+          label={isEn ? 'Bootcamp' : '부트캠프'}
+          count={bootcampCount}
+          onClick={onOpenBootcamp}
+        />
+        <HomeListNavChip
+          label={isEn ? 'Festival' : '페스티벌'}
+          count={festivalCount}
+          onClick={onOpenFestival}
+        />
+        <HomeListNavChip
+          label={isEn ? 'Party' : '파티'}
+          count={partyEventCount}
+          onClick={onOpenPartyEvents}
+        />
+        <HomeListNavChip
+          label={isEn ? 'Instructors' : '강사'}
+          count={instructorCount}
+          onClick={onOpenInstructors}
+        />
+        <HomeListNavChip
+          label={isEn ? 'BAR' : 'BAR'}
+          count={barCount}
+          onClick={onOpenBarMap}
+        />
+      </nav>
 
       <HomeDarkMoreSheet
         open={moreOpen}
