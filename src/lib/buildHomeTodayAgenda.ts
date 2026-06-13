@@ -39,7 +39,7 @@ const KIND_ORDER: Record<HomeTodayAgendaKind, number> = {
 export const UPCOMING_AGENDA_DAY_COUNT = 7;
 
 /** 메인 첫 화면에 보여줄 최대 건수 */
-export const UPCOMING_AGENDA_PREVIEW_LIMIT = 5;
+export const UPCOMING_AGENDA_PREVIEW_LIMIT = 3;
 
 export const addDaysToDateStr = (dateStr: string, days: number) => {
   const base = new Date(`${normDate(dateStr)}T12:00:00`);
