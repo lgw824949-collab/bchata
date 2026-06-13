@@ -413,7 +413,6 @@ export function useHomeListGateProps(input: UseHomeDarkGatePropsInput) {
       onOpenRoute,
       onOpenSaju,
       onToggleLanguage,
-      onOpenSocial: openSocialTab,
     }),
     [
       hasLivePickUploadToday,
@@ -430,7 +429,6 @@ export function useHomeListGateProps(input: UseHomeDarkGatePropsInput) {
       onOpenRoute,
       onOpenSaju,
       onToggleLanguage,
-      openSocialTab,
     ],
   );
 
