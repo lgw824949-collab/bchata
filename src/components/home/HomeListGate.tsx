@@ -90,7 +90,7 @@ export default function HomeListGate({
 
       <div className="home-list-gate__toolbar">
         <p className="home-list-gate__section-caption">
-          {isEn ? "Today's social · by region" : '오늘소셜 · 지역별'}
+          {isEn ? 'Social only · filter below' : '오늘소셜만 · 아래 목록 필터'}
         </p>
         <HomeDarkRegionPills
           pills={regionPills}

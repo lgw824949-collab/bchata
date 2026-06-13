@@ -67,7 +67,9 @@ export default function HomeListTodaySocialRotator({
   if (parties.length === 0) {
     return (
       <div className="home-list-gate__empty">
-        {isEn ? 'No social parties in this region today.' : '이 지역에 오늘 등록된 소셜이 없습니다.'}
+        {isEn
+          ? 'No social in this region today. Check bootcamp · festival · party cards below.'
+          : '이 지역 오늘 소셜 없음 · 부트캠프·페스티벌·파티는 아래 카드에서 확인'}
       </div>
     );
   }
