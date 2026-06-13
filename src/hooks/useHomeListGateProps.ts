@@ -32,7 +32,9 @@ export function useHomeListGateProps(input: UseHomeDarkGatePropsInput) {
   const {
     isEn,
     translateDynamicText,
+    todayPosterParties,
     todayPosterPartiesForCount,
+    parties,
     bootcamps,
     festivals,
     calendarTodayStr,
@@ -242,11 +244,11 @@ export function useHomeListGateProps(input: UseHomeDarkGatePropsInput) {
   const homeTodayAgendaItems = useMemo(
     () => buildHomeTodayAgenda({
       dateStr: calendarTodayStr,
-      socialParties: todayPosterPartiesForCount,
+      parties,
       bootcamps,
       festivals,
     }),
-    [calendarTodayStr, todayPosterPartiesForCount, bootcamps, festivals],
+    [calendarTodayStr, parties, bootcamps, festivals],
   );
 
   const homeTodayAgendaCounts = useMemo(

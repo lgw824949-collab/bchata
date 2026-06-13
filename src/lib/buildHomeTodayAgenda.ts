@@ -1,8 +1,9 @@
 import { formatHeroDateLabel } from '../components/home/buildHomeDarkHeroSlides';
 import type { HomeDarkParty } from '../components/home/types';
+import { isApprovedParty, normDate } from './dateNorm';
 import { formatPartyTitleDisplay } from './partyTitleDisplay';
 import { resolvePartyVenueName } from './partiesQuery';
-import { filterSocialPartyRows } from './postKind';
+import { inferPartyRowSlot } from './postKind';
 
 export type HomeTodayAgendaKind = 'social' | 'bootcamp' | 'festival' | 'party';
 
@@ -33,8 +34,6 @@ const KIND_ORDER: Record<HomeTodayAgendaKind, number> = {
   party: 3,
 };
 
-const normDate = (value?: unknown) => String(value ?? '').slice(0, 10);
-
 const dedupeById = <T extends { id?: unknown }>(list: T[]): T[] => {
   const seen = new Set<unknown>();
   return list.filter((item) => {
@@ -46,22 +45,15 @@ const dedupeById = <T extends { id?: unknown }>(list: T[]): T[] => {
   });
 };
 
-const bootcampsOnDate = (list: Record<string, unknown>[], fullDate: string) =>
+const eventsOnDate = (
+  list: Record<string, unknown>[],
+  fullDate: string,
+  activeStatus = 'active',
+) =>
   dedupeById(list || []).filter((row) => {
-    if (row.status && row.status !== 'active') return false;
-    const start = normDate(row.start_date);
-    const end = normDate(row.end_date || row.start_date);
-    if (start && end && end !== start) {
-      return fullDate >= start && fullDate <= end;
-    }
-    return start === fullDate;
-  });
-
-const festivalsOnDate = (list: Record<string, unknown>[], fullDate: string) =>
-  dedupeById(list || []).filter((row) => {
-    if (row.status && row.status !== 'active') return false;
-    const start = normDate(row.start_date);
-    const end = normDate(row.end_date || row.start_date);
+    if (row.status && row.status !== activeStatus) return false;
+    const start = normDate(row.start_date || row.date);
+    const end = normDate(row.end_date || row.start_date || row.date);
     if (start && end && end !== start) {
       return fullDate >= start && fullDate <= end;
     }
@@ -83,6 +75,19 @@ const resolveFestivalKind = (row: Record<string, unknown>): HomeTodayAgendaKind 
   return 'festival';
 };
 
+/** parties — 해당 날짜·승인·포스터 (업체 dedupe 없음) */
+export const filterAgendaPartiesForDate = (
+  list: HomeDarkParty[] | null | undefined,
+  dateStr: string,
+) => dedupeById(
+  (list || []).filter(
+    (party) =>
+      isApprovedParty(party)
+      && normDate(party.date) === dateStr
+      && String(party.poster_url || '').trim(),
+  ),
+);
+
 const toAgendaItem = (
   id: string,
   kind: HomeTodayAgendaKind,
@@ -94,9 +99,18 @@ const toAgendaItem = (
   const title = String(row.title || row.name || '').trim();
   if (!title) return null;
 
-  const venue = String(
-    row.venue || row.location || row.location_name || row.locationName || '',
-  ).trim();
+  const venue = kind === 'social'
+    ? String(
+      resolvePartyVenueName(row)
+      || row.locationName
+      || row.location_name
+      || row.venue
+      || row.address
+      || '',
+    ).trim()
+    : String(
+      row.venue || row.location || row.location_name || row.locationName || row.address || '',
+    ).trim();
   const clock = normalizeClock(row.start_time || row.time);
   const labels = KIND_LABELS[kind];
 
@@ -120,34 +134,55 @@ export function formatTodayAgendaDateLabel(dateStr: string, isEn: boolean) {
 
 type BuildHomeTodayAgendaInput = {
   dateStr: string;
-  socialParties: HomeDarkParty[];
+  parties: HomeDarkParty[] | null | undefined;
   bootcamps: Record<string, unknown>[] | null | undefined;
   festivals: Record<string, unknown>[] | null | undefined;
 };
 
-/** 오늘(또는 지정일) 소셜·부트캠프·페스·파티 통합 일정 */
+/** 오늘(또는 지정일) 소셜·부트캠프·페스·파티 — 해당 날짜 포스터 전부 */
 export function buildHomeTodayAgenda({
   dateStr,
-  socialParties,
+  parties,
   bootcamps,
   festivals,
 }: BuildHomeTodayAgendaInput): HomeTodayAgendaItem[] {
   const items: HomeTodayAgendaItem[] = [];
+  const seenPosters = new Set<string>();
 
-  filterSocialPartyRows(socialParties || []).forEach((party) => {
-    const item = toAgendaItem(`social-${party.id}`, 'social', party as Record<string, unknown>);
-    if (item) items.push(item);
-  });
+  const rememberPoster = (posterUrl: string) => {
+    const key = `${dateStr}|${posterUrl}`;
+    if (seenPosters.has(key)) return false;
+    seenPosters.add(key);
+    return true;
+  };
 
-  bootcampsOnDate(bootcamps || [], dateStr).forEach((row) => {
+  eventsOnDate(bootcamps || [], dateStr).forEach((row) => {
     const item = toAgendaItem(`bootcamp-${row.id}`, 'bootcamp', row);
-    if (item) items.push(item);
+    if (item && rememberPoster(item.posterUrl)) items.push(item);
   });
 
-  festivalsOnDate(festivals || [], dateStr).forEach((row) => {
+  eventsOnDate(festivals || [], dateStr).forEach((row) => {
     const kind = resolveFestivalKind(row);
     const item = toAgendaItem(`${kind}-${row.id}`, kind, row);
-    if (item) items.push(item);
+    if (item && rememberPoster(item.posterUrl)) items.push(item);
+  });
+
+  filterAgendaPartiesForDate(parties, dateStr).forEach((party) => {
+    const row = party as Record<string, unknown>;
+    const slot = inferPartyRowSlot(party);
+    let kind: HomeTodayAgendaKind;
+    if (slot === 'bootcamp' || slot === 'festival' || slot === 'party') {
+      kind = slot;
+    } else {
+      kind = 'social';
+    }
+
+    const item = toAgendaItem(`party-row-${party.id}`, kind, row);
+    if (!item) return;
+
+    // bootcamp/festival 테이블과 같은 포스터면 parties 중복 제외
+    if (!rememberPoster(item.posterUrl)) return;
+    items.push(item);
   });
 
   return items.sort((a, b) => {

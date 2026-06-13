@@ -2179,6 +2179,8 @@ const HomePage = ({
   const { gateProps: homeListGateProps } = useHomeListGateProps({
     isEn,
     translateDynamicText,
+    parties,
+    todayPosterParties,
     todayPosterPartiesForCount,
     bootcamps,
     festivals,

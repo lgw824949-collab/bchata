@@ -21,6 +21,10 @@ import type { HomeDarkBar, HomeDarkHeroSlide, HomeDarkParty } from '../component
 export type UseHomeDarkGatePropsInput = {
   isEn: boolean;
   translateDynamicText: (text: string, isEn: boolean) => string;
+  /** 승인·노출 parties 전체 — 오늘 일정에서 날짜·종류별 검색 */
+  parties: HomeDarkParty[];
+  /** 오늘 소셜 포스터 전체 (업체 dedupe 전) */
+  todayPosterParties: HomeDarkParty[];
   todayPosterPartiesForCount: HomeDarkParty[];
   bootcamps: Array<Record<string, unknown>>;
   festivals: Array<Record<string, unknown>>;
