@@ -2,7 +2,6 @@ import React, { useCallback, useEffect, useRef } from 'react';
 import { ChevronRight } from 'lucide-react';
 import { AnimatePresence, motion } from 'framer-motion';
 import { DEFAULT_CARD_IMAGE, imgFallbackHandler } from '../../constants/imageAssets';
-import { HD_POSTER_IMG_CLASS } from './homeDarkMedia';
 import { HOME_DARK_HERO_ROTATE_MS } from './buildHomeDarkHeroSlides';
 import type { HomeDarkHeroSlide } from './types';
 
@@ -88,7 +87,7 @@ export default function HomeDarkTodayPick({
           }}
         >
           <img
-            className={`home-dark-today-pick__photo ${HD_POSTER_IMG_CLASS} home-dark-today-pick__photo--hero`}
+            className="home-dark-today-pick__photo bchata-poster-fit home-dark-today-pick__photo--hero"
             src={slide.poster_url}
             alt=""
             loading="eager"

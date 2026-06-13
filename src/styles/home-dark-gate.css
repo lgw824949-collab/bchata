@@ -130,7 +130,8 @@
 }
 
 .home-dark-gate .hd-cover-img--poster {
-  object-position: center top !important;
+  object-fit: contain !important;
+  object-position: center center !important;
 }
 
 .home-dark-gate .hd-cover-img--portrait {
@@ -516,10 +517,10 @@
 }
 
 .home-dark-today-pick__photo--hero {
+  object-fit: contain !important;
   object-position: center center !important;
-  /* 목업처럼 시네마틱 — 밝은 포스터도 배경 톤에 녹임 (작은 카드는 선명 유지) */
-  filter: brightness(0.76) saturate(0.84) contrast(1.06);
-  animation: hd-hero-kenburns var(--hd-hero-rotate, 4.5s) ease-out forwards;
+  filter: none;
+  animation: none;
 }
 
 @keyframes hd-hero-kenburns {
