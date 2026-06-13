@@ -1,0 +1,509 @@
+﻿// src/components/DanceDestiny.tsx
+// ?ъ＜ 遺꾩꽍(?ㅽ뻾) + ?꾩뒪 ?깊뼢(4媛吏 吏덈Ц) ???꾩뒪 ?대챸 醫뚰몴 遺꾩꽍
+// 湲곗〈 SajuModal.jsx 濡쒖쭅??湲곕컲?쇰줈 吏덈Ц 4媛쒕? 異붽???
+import React, { useState } from 'react'
+import { X, ChevronDown, Sparkles, ChevronLeft } from 'lucide-react'
+import { motion } from 'framer-motion'
+import { BAR_DATABASE } from '../lib/BarLib'
+
+// ??? 嫄곕━ 怨꾩궛 (Haversine Formula) ???
+const getDistance = (lat1: number, lon1: number, lat2: number, lon2: number) => {
+  const R = 6371 
+  const dLat = (lat2 - lat1) * Math.PI / 180
+  const dLon = (lon2 - lon1) * Math.PI / 180
+  const a = Math.sin(dLat / 2) ** 2 +
+    Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * Math.sin(dLon / 2) ** 2
+  return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a))
+}
+
+const matchesGenre = (barName: string, genre: string) => {
+  const name = barName.toLowerCase()
+  if (genre === '?댁궗') return name.includes('?댁궗') || name.includes('??) || name.includes('蹂대땲??) || name.includes('源뚮━踰?) || name.includes('留섎낫') || name.includes('?쇳떞')
+  if (genre === '諛붿감?') return name.includes('諛붿감?') || name.includes('?섎쭏瑜?) || name.includes('?쇱뒋??) || name.includes('諛붾컮猷?) || name.includes('蹂대땲??)
+  if (genre === '二쇳겕諛붿감?') return name.includes('二쇳겕') || name.includes('諛붿감?')
+  if (genre === '?ㅼ?諛?) return name.includes('?ㅼ?諛?)
+  return true
+}
+
+// ??? ?ъ＜ ?곸닔 ???
+const CHUN_GAN = ['媛?,'??,'蹂?,'??,'臾?,'湲?,'寃?,'??,'??,'怨?]
+const CHUN_GAN_OHENG = ['??,'??,'??,'??,'??,'??,'??,'??,'麗?,'麗?]
+const CHUN_GAN_EMOJI = ['?뙮','?뙼','?뵦','??,'?곤툘','?뙻','?뷂툘','?뭿','?뙄','?꾬툘']
+const JI_JI = ['??,'異?,'??,'臾?,'吏?,'??,'??,'誘?,'??,'??,'??,'??]
+const JI_JI_OHENG = ['麗?,'??,'??,'??,'??,'??,'??,'??,'??,'??,'??,'麗?]
+
+const TIME_LIST = [
+  { label:'?먯떆 (23:00~01:00) ?맠', value:0 },
+  { label:'異뺤떆 (01:00~03:00) ?맢', value:1 },
+  { label:'?몄떆 (03:00~05:00) ?맦', value:2 },
+  { label:'臾섏떆 (05:00~07:00) ?맧', value:3 },
+  { label:'吏꾩떆 (07:00~09:00) ?맪', value:4 },
+  { label:'?ъ떆 (09:00~11:00) ?릫', value:5 },
+  { label:'?ㅼ떆 (11:00~13:00) ?맭', value:6 },
+  { label:'誘몄떆 (13:00~15:00) ?릲', value:7 },
+  { label:'?좎떆 (15:00~17:00) ?릳', value:8 },
+  { label:'?좎떆 (17:00~19:00) ?릵', value:9 },
+  { label:'?좎떆 (19:00~21:00) ?맯', value:10 },
+  { label:'?댁떆 (21:00~23:00) ?맰', value:11 },
+]
+
+const OHENG_DANCE: Record<string, any> = {
+  '??: { genre:'?댁궗', emoji:'?뵦', color:'#E53935', bg:'#FFF0F0', border:'#FFCDD2',
+    reason:'遺??? 湲곗슫??媛뺥븳 ?뱀떊! ??컻?곸씤 ?먮꼫吏? ?댁젙???댁궗??媛뺣젹??鍮꾪듃? ?꾨꼍?섍쾶 留욎븘??',
+    traits:['?댁젙??,'媛뺣젹??,'移대━?ㅻ쭏','利됲씎??],
+    tip:'?댁궗???뱀떊??遺?湲곗슫???꾩쟾??諛쒖궛?쒖폒二쇰뒗 異ㅼ씠?먯슂.' },
+  '麗?: { genre:'諛붿감?', emoji:'?뙄', color:'#1565C0', bg:'#E3F2FD', border:'#BBDEFB',
+    reason:'臾?麗? 湲곗슫??媛뺥븳 ?뱀떊! 源딆? 媛먯꽦怨??좎뿰???먮쫫??諛붿감????쇱뒋?쇳븳 由щ벉怨??댁슱?ㅼ슂.',
+    traits:['媛먯꽦??,'?좎뿰??,'源딆씠媛?,'?ъ꽭??],
+    tip:'諛붿감????먮쫫? ?뱀떊??臾?湲곗슫??洹몃?濡??쒗쁽?댁슂.' },
+  '??: { genre:'二쇳겕諛붿감?', emoji:'?뙼', color:'#2E7D32', bg:'#E8F5E9', border:'#C8E6C9',
+    reason:'?섎Т(?? 湲곗슫??媛뺥븳 ?뱀떊! ?좎뿰?섎㈃?쒕룄 媛뺤씤???먮꼫吏媛 二쇳겕諛붿감????吏곸엫怨?理쒓퀬??沅곹빀?댁뿉??',
+    traits:['?좎뿰??,'?깆옣','李쎌쓽??,'洹좏삎媛?],
+    tip:'二쇳겕諛붿감???臾쇨껐移섎뒗 臾대툕癒쇳듃媛 ?뱀떊???섎Т 湲곗슫???쒗쁽?댁쨾??' },
+  '??: { genre:'?ㅼ?諛?, emoji:'?뭿', color:'#6D28D9', bg:'#F5F3FF', border:'#DDD6FE',
+    reason:'???? 湲곗슫??媛뺥븳 ?뱀떊! ?덉젣???섍낵 ?뺣??⑥씠 ?ㅼ?諛붿쓽 源딄퀬 臾듭쭅??由щ벉怨?留욎븘??',
+    traits:['?덉젣','?뺣???,'源딆씠','?좊ː媛?],
+    tip:'?ㅼ?諛붾뒗 ?붾젮??湲곗닠蹂대떎 ?곌껐怨??덉젣媛 ?듭떖?댁뿉??' },
+  '??: { genre:'紐⑤뱺 ?λⅤ', emoji:'?곤툘', color:'#92400E', bg:'#FEF3C7', border:'#FDE68A',
+    reason:'???? 湲곗슫??媛뺥븳 ?뱀떊! ?덉젙?곸씠怨?洹좏삎 ?≫엺 ?먮꼫吏媛 ?대뼡 ?λⅤ?????뚰솕?댁슂.',
+    traits:['?덉젙媛?,'洹좏삎','?ъ슜??,'?좊ː'],
+    tip:'?뱀떊? 紐⑤뱺 ?λⅤ?먯꽌 鍮쏅굹?? ?ㅻ뒛 諛?遺꾩쐞湲곗뿉 ?곕씪 怨⑤씪蹂댁꽭??' },
+}
+
+const OHENG_NAMES: Record<string, string>  = { '??:'?섎Т', '??:'遺?, '??:'??, '??:'??, '麗?:'臾? }
+const OHENG_COLORS: Record<string, string> = { '??:'#2E7D32', '??:'#E53935', '??:'#92400E', '??:'#6D28D9', '麗?:'#1565C0' }
+const OHENG_EMOJIS: Record<string, string> = { '??:'?뙼', '??:'?뵦', '??:'?곤툘', '??:'?뭿', '麗?:'?뙄' }
+
+
+// ??? ?ъ＜ 怨꾩궛 ?⑥닔 ???
+function getYearGanJi(y: number) {
+  const g = ((y-4)%10+10)%10, j = ((y-4)%12+12)%12
+  return { gan:CHUN_GAN[g], ji:JI_JI[j], ganOheng:CHUN_GAN_OHENG[g], jiOheng:JI_JI_OHENG[j], emoji:CHUN_GAN_EMOJI[g] }
+}
+function getMonthJi(m: number) {
+  const idx = [2,3,4,5,6,7,8,9,10,11,0,1][m-1]
+  return { gan:'', ji:JI_JI[idx], ganOheng:'', jiOheng:JI_JI_OHENG[idx], emoji:'?뱟' }
+}
+function getDayGanJi(y: number, m: number, d: number) {
+  const base = new Date(2000,0,7), target = new Date(y,m-1,d)
+  const diff = Math.floor((target.getTime() - base.getTime())/(1000*60*60*24))
+  const g = ((diff%10)+10)%10, j = ((diff%12)+12)%12
+  return { gan:CHUN_GAN[g], ji:JI_JI[j], ganOheng:CHUN_GAN_OHENG[g], jiOheng:JI_JI_OHENG[j], emoji:CHUN_GAN_EMOJI[g] }
+}
+function calcOheng(saju: any[]) {
+  const cnt: Record<string, number> = { '??:0,'??:0,'??:0,'??:0,'麗?:0 }
+  saju.forEach(s => {
+    if (s.ganOheng) cnt[s.ganOheng]++
+    if (s.jiOheng)  cnt[s.jiOheng]++
+  })
+  const sorted = Object.entries(cnt).sort((a,b)=>b[1]-a[1])
+  const main = sorted[0][0]
+  return { count:cnt, main }
+}
+
+// ??? 怨듯넻 ?명뭼 ?ㅽ??????
+const INP: React.CSSProperties = {
+  padding:'12px 14px', borderRadius:10,
+  border:'1.5px solid #E2E8F0', fontSize:14,
+  outline:'none', background:'#FAFBFF', color:'#111',
+  fontFamily:"'Pretendard',-apple-system,sans-serif",
+}
+
+export default function DanceDestiny({ onClose, parties=[] }: { onClose: () => void, parties?: any[] }) {
+  const [step, setStep]       = useState(1)
+  const [calType, setCalType] = useState('solar')
+  const [gender, setGender]   = useState('')
+  const [year, setYear]       = useState('')
+  const [month, setMonth]     = useState('')
+  const [day, setDay]         = useState('')
+  const [timeIdx, setTimeIdx] = useState('')
+  
+  // ??? 異붽? 吏덈Ц 4媛????
+  const [q1, setQ1] = useState('') // 紐⑹쟻
+  const [q2, setQ2] = useState('') // 遺꾩쐞湲?  const [q3, setQ3] = useState('') // ?ㅻ젰
+  const [q4, setQ4] = useState('') // 以묒슂 媛移?
+  const [result, setResult]   = useState<any>(null)
+  const [loading, setLoading] = useState(false)
+
+  const isBasicValid = gender && year && month && day && timeIdx !== ''
+  const isQuestionsValid = q1 && q2 && q3 && q4
+  const isValid = isBasicValid && isQuestionsValid
+
+  const analyze = async () => {
+    if (!isValid) return
+    setLoading(true)
+
+    // 1. ?ъ＜ ?곗씠??怨꾩궛
+    const y=parseInt(year), m=parseInt(month), d=parseInt(day), t=parseInt(timeIdx)
+    const yGJ = getYearGanJi(y)
+    const mGJ = getMonthJi(m)
+    const dGJ = getDayGanJi(y,m,d)
+    const tGJ = { gan:'', ji:JI_JI[t], ganOheng:'', jiOheng:JI_JI_OHENG[t], emoji:'?븧' }
+    const { count, main } = calcOheng([yGJ,mGJ,dGJ,tGJ])
+    const dance = { ...OHENG_DANCE[main] }
+
+    // 2. 吏덈Ц ?듬????곕Ⅸ 媛쒖씤??(AI ?꾨＼?꾪듃 ???濡쒖뺄 濡쒖쭅 諛섏쁺)
+    if (q1 === '?쇳룷癒쇱뒪/????섍?怨??띠뼱') dance.traits.push('紐⑺몴吏??)
+    if (q2 === '?댁젙?곸씠怨?鍮≪꽱 遺꾩쐞湲?) dance.tip = '?ㅻ뒛? ?먮꼫吏瑜?120% ?잛븘?????덈뒗 ?뚰떚瑜?異붿쿇?댁슂!'
+    if (q3 === '?댁젣 留??쒖옉???뺤큹蹂?) dance.tip = '珥덈낫?먮? ?꾪븳 踰좎씠吏??섏뾽???덈뒗 怨노????쒖옉?대낫?몄슂.'
+    if (q4 === '?뚯븙怨쇱쓽 援먭컧怨?媛먯꽦') dance.traits.push('?덉닠媛??媛먯꽦')
+
+    // 3. 異붿쿇 ?대옒??媛뺤궗 留ㅼ묶 濡쒖쭅
+    const now = new Date()
+    const kstDate = new Date(now.getTime() + (9 * 60 * 60 * 1000))
+    const todayStr = kstDate.toISOString().split('T')[0]
+
+    const genreMatch = (p: any, targetGenre: string) => {
+      if (targetGenre === '紐⑤뱺 ?λⅤ') return true
+      const title = (p.title || '').toLowerCase()
+      if (targetGenre === '?댁궗') return title.includes('?댁궗') || (p.s_ratio||0) >= 1
+      if (targetGenre === '諛붿감?') return title.includes('諛붿감?') || (p.b_ratio||0) >= 1
+      if (targetGenre === '二쇳겕諛붿감?') return title.includes('二쇳겕') || (p.j_ratio||0) >= 1
+      if (targetGenre === '?ㅼ?諛?) return title.includes('?ㅼ?諛?) || (p.k_ratio||0) >= 1
+      return false
+    }
+
+
+    // 4. 媛뺤궗 ?ㅽ???臾멸뎄 ?앹꽦 (Fallback??
+    let instructorStyle = ""
+    if (q2 === '泥닿퀎?곸씠怨?瑗쇨세?섍쾶') {
+      instructorStyle = `湲곗큹遺???꾪깂?섍쾶 ?≪븘二쇰뒗 ?뺤꽍?곸씤 媛뺤궗 ?ㅽ??쇱씠 留욎븘?? ${main}??湲곗슫??媛吏??뱀떊? ?뺥솗???먮━瑜??댄빐????媛?????깆옣???대９?덈떎.`
+    } else if (q2 === '?쎄퀬 ?щ??덇쾶') {
+      instructorStyle = `?좊㉧?ъ뒪?섍퀬 ?좎풄??遺꾩쐞湲곕? 留뚮뱶??媛뺤궗 ?ㅽ??쇱씠 ?댁슱?ㅼ슂. ${main}???뱀꽦???대젮 遺???놁씠 利먭쾪寃??쒖옉?????덈뒗 ?섏뾽??異붿쿇?⑸땲??`
+    } else if (q2 === '??媛숈씠 移쒗빐吏??遺꾩쐞湲?) {
+      instructorStyle = `而ㅻ??덊떚? ?뚰넻??以묒떆?섎뒗 ?명뼢?곸씤 媛뺤궗 ?ㅽ??쇱씠 留욎븘?? ${main}???ъ슜?μ쓣 諛쒗쐶???ㅻⅨ ?щ엺?ㅺ낵 援먮쪟?섎ŉ 諛곗슦???섍꼍?먯꽌 鍮쏆쓣 諛쒗빀?덈떎.`
+    } else {
+      instructorStyle = `?먮꼫吏媛 ?섏튂怨?媛뺣젹??移대━?ㅻ쭏瑜?媛吏?媛뺤궗 ?ㅽ??쇱씠 ?댁슱?ㅼ슂. ${main}???댁젙???먭레?섎뒗 鍮≪꽭怨??뷀뀒?쇳븳 ?쇰뱶諛깆쓣 ?듯빐 ?쒓퀎瑜??뚰뙆?대낫?몄슂.`
+    }
+
+    // 5. 媛뺤궗 ?좏삎 寃곗젙 濡쒖쭅 (Fallback??
+    let instructorType = ""
+    if (q2 === '泥닿퀎?곸씠怨?瑗쇨세?섍쾶' || q4 === '?뺥솗??湲곗닠怨?踰좎씠吏?) {
+      instructorType = "泥닿퀎??(湲곗큹/?먮━ 以묒떖)"
+    } else if (q2 === '?댁젙?곸씠怨?鍮≪꽱 遺꾩쐞湲? || q4 === '?붾젮???⑦꽩怨?臾대?留ㅻ꼫') {
+      instructorType = "?먮꼫吏??(?댁젙/?쇳룷癒쇱뒪 以묒떖)"
+    } else if (q4 === '?뚯븙怨쇱쓽 援먭컧怨?媛먯꽦' || main === '麗?) {
+      instructorType = "媛먯꽦??(?뚯븙/?먮굦 以묒떖)"
+    } else if (q2 === '??媛숈씠 移쒗빐吏??遺꾩쐞湲? || q4 === '?뚰듃?덉????뚰넻怨??곌껐' || main === '??) {
+      instructorType = "?뚰넻??(?뚰듃?덉떗/利먭굅? 以묒떖)"
+    } else {
+      // 理쒖쥌 Fallback (?ㅽ뻾 湲곕컲)
+      if (main === '?? || main === '??) instructorType = "泥닿퀎??(湲곗큹/?먮━ 以묒떖)"
+      else if (main === '??) instructorType = "?먮꼫吏??(?댁젙/?쇳룷癒쇱뒪 以묒떖)"
+      else instructorType = "?뚰넻??(?뚰듃?덉떗/利먭굅? 以묒떖)"
+    }
+
+    try {
+      // 6. Gemini API ?ㅼ떆媛?遺꾩꽍
+      const apiKey = import.meta.env.VITE_GEMINI_API_KEY
+      if (apiKey) {
+        const prompt = `?뱀떊? ?꾩뒪 媛뺤궗 ?좏삎 遺꾩꽍 ?꾨Ц媛?낅땲??
+?꾨옒 ?뺣낫瑜?諛뷀깢?쇰줈 ???щ엺?먭쾶 留욌뒗 ?꾩뒪 媛뺤궗 ?좏삎??遺꾩꽍?댁＜?몄슂.
+
+- ?ъ＜ ?ㅽ뻾: ${OHENG_NAMES[main]} (${main})
+- ?쒖뼱???? ${JI_JI[t]}??- 異ㅼ쓣 諛곗슦??紐⑹쟻: ${q1}
+- ?좏샇?섎뒗 ?섏뾽 遺꾩쐞湲? ${q2}
+- ?꾩옱 ?꾩뒪 ?ㅻ젰: ${q3}
+- ?좏샇 ?λⅤ: ${q4}
+
+寃곌낵 ?뺤떇(JSON):
+{
+  "type": "泥닿퀎??媛먯꽦???먮꼫吏???뚰넻??以??섎굹",
+  "title": "?쒖쨪 ?붿빟 ??댄?",
+  "analysis": "?ъ＜? ?곌퀎???곸꽭 遺꾩꽍 ?댁슜 (3-4以?",
+  "keywords": ["?ㅼ썙??", "?ㅼ썙??", "?ㅼ썙??"]
+}
+
+二쇱쓽: 諛섎뱶??JSON ?뺤떇?쇰줈留??듬??섏꽭??`
+
+        const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            contents: [{ parts: [{ text: prompt }] }]
+          })
+        })
+
+        const data = await response.json()
+        const text = data.candidates?.[0]?.content?.parts?.[0]?.text || ''
+        
+        // JSON 異붿텧 (留덊겕?ㅼ슫 肄붾뱶 釉붾줉 ?쒓굅 ??
+        const jsonMatch = text.match(/\{[\s\S]*\}/)
+        if (jsonMatch) {
+          const aiResult = JSON.parse(jsonMatch[0])
+            setResult({ 
+              yearGJ:yGJ, monthGJ:mGJ, dayGJ:dGJ, timeGJ:tGJ, 
+              ohengCount:count, mainOheng:main, dance, 
+              instructorStyle: aiResult.analysis, 
+              gender, today: todayStr,
+              instructorType: `${aiResult.type} (${aiResult.title})`,
+              aiKeywords: aiResult.keywords,
+              answers: { q1, q2, q3, q4 }
+            })
+          setLoading(false)
+          setStep(3)
+          return
+        }
+      }
+    } catch (err) {
+      console.error('Gemini API Error:', err)
+    }
+
+    // Fallback 濡쒖쭅 (湲곗〈 ?섎뱶肄붾뵫)
+    setResult({ 
+      yearGJ:yGJ, monthGJ:mGJ, dayGJ:dGJ, timeGJ:tGJ, 
+      ohengCount:count, mainOheng:main, dance, 
+      instructorStyle, gender, today: todayStr,
+      instructorType,
+      answers: { q1, q2, q3, q4 }
+    })
+    setLoading(false)
+    setStep(3)
+  }
+
+  const reset = () => {
+    setStep(1); setResult(null)
+    setYear(''); setMonth(''); setDay(''); setTimeIdx(''); setGender('')
+    setQ1(''); setQ2(''); setQ3(''); setQ4('')
+  }
+
+  return (
+    <>
+      <style>{`
+        @import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css');
+        .destiny-wrap * { font-family:'Pretendard',-apple-system,sans-serif !important; }
+        .destiny-inp:focus { border-color:#1565C0 !important; background:#fff !important; box-shadow:0 0 0 3px rgba(21,101,192,0.1) !important; }
+        .hide-scrollbar::-webkit-scrollbar { display: none; }
+      `}</style>
+
+      <div onClick={onClose} style={{ position:'fixed',inset:0,background:'rgba(0,0,0,0.65)',zIndex:10010, backdropFilter: 'blur(4px)' }} />
+
+      <div className="destiny-wrap" style={{
+        position:'fixed', bottom:0, left:0, width:'100%',
+        maxHeight:'94vh', overflowY:'auto',
+        background:'#fff', zIndex:10011,
+        borderRadius:'32px 32px 0 0',
+        boxShadow: '0 -10px 40px rgba(0,0,0,0.2)'
+      }}>
+
+        {/* ?먥븧 ?ㅻ뜑 ?먥븧 */}
+        <div style={{
+          position:'sticky', top:0, zIndex:2,
+          background:'linear-gradient(135deg,#0D47A1 0%,#1565C0 100%)',
+          padding:'24px 20px 45px',
+          color: '#fff'
+        }}>
+          <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:16 }}>
+            <button onClick={() => {
+              if (step === 1) {
+                onClose();
+              } else {
+                setStep(step - 1);
+              }
+            }} style={{
+              background:'none', border:'none', color:'#fff', fontSize:15, fontWeight:700,
+              display:'flex', alignItems:'center', gap:4, cursor:'pointer', padding:0
+            }}>
+              <ChevronLeft size={20} /> ?ㅻ줈
+            </button>
+            <button onClick={() => onClose()} style={{
+              background:'rgba(255,255,255,0.2)',border:'none',
+              borderRadius:'50%',width:32,height:32,cursor:'pointer',
+              display:'flex',alignItems:'center',justifyContent:'center',
+            }}>
+              <X size={18} color="#fff"/>
+            </button>
+          </div>
+          <div>
+            <div style={{ fontSize:22,fontWeight:900,letterSpacing:'-0.5px', display:'flex', alignItems:'center', gap:8 }}>
+              <Sparkles size={24} /> ?섏쓽 ?꾩뒪 媛뺤궗 ?좏삎 李얘린
+            </div>
+            <div style={{ fontSize:12,color:'rgba(255,255,255,0.7)',marginTop:6 }}>?ъ＜? ?깊뼢??寃고빀???뺣? 遺꾩꽍</div>
+          </div>
+          <svg style={{ position:'absolute',bottom:0,left:0,width:'100%' }} viewBox="0 0 400 50" preserveAspectRatio="none">
+            <path d="M0,50 C110,20 210,60 400,50 L400,50 L0,50 Z" fill="#ffffff"/>
+          </svg>
+        </div>
+
+        {/* ?먥븧 STEP 1: 湲곕낯 ?뺣낫 ?낅젰 ?먥븧 */}
+        {step===1 && (
+          <div style={{ padding:'10px 20px 40px' }}>
+            
+            {/* 湲곕낯 ?뺣낫 */}
+            <div style={{ marginBottom:30 }}>
+              <div style={{ fontSize:15, fontWeight:800, color:'#1e293b', marginBottom:16, display:'flex', alignItems:'center', gap:6 }}>
+                <div style={{ width:4, height:16, background:'#1565C0', borderRadius:2 }}></div>
+                湲곕낯 ?뺣낫 ?낅젰
+              </div>
+              
+              <div style={{ display:'flex',gap:10, marginBottom:16 }}>
+                {['??,'??].map(g=>(
+                  <button key={g} onClick={()=>setGender(g)} style={{
+                    flex:1,padding:'14px',borderRadius:12,fontSize:15,fontWeight:700,
+                    border:gender===g?'2px solid #1565C0':'1.5px solid #E2E8F0',
+                    background:gender===g?'#1565C0':'#fff',
+                    color:gender===g?'#fff':'#94A3B8', transition:'all 0.2s',
+                  }}>{g==='???'?뫅 ?⑥꽦':'?뫆 ?ъ꽦'}</button>
+                ))}
+              </div>
+
+              <div style={{ display:'flex',gap:8, marginBottom:16 }}>
+                <input className="destiny-inp" type="number" placeholder="?꾨룄(1995)" value={year} onChange={e=>setYear(e.target.value)} style={{...INP, flex: 2}}/>
+                <input className="destiny-inp" type="number" placeholder="?? value={month} onChange={e=>setMonth(e.target.value)} style={{...INP, flex: 1}}/>
+                <input className="destiny-inp" type="number" placeholder="?? value={day} onChange={e=>setDay(e.target.value)} style={{...INP, flex: 1}}/>
+              </div>
+
+              <div style={{ position:'relative' }}>
+                <select value={timeIdx} onChange={e=>setTimeIdx(e.target.value)} style={{
+                  ...INP, width:'100%', padding:'14px 40px 14px 14px',
+                  appearance:'none', cursor:'pointer',
+                  color:timeIdx!==''?'#111':'#94A3B8',
+                }}>
+                  <option value="">?쒖뼱???쒓컙 ?좏깮</option>
+                  {TIME_LIST.map(t=>(
+                    <option key={t.value} value={t.value}>{t.label}</option>
+                  ))}
+                </select>
+                <ChevronDown size={18} style={{ position:'absolute',right:14,top:'50%',transform:'translateY(-50%)',color:'#94A3B8',pointerEvents:'none' }}/>
+              </div>
+            </div>
+
+            <button onClick={() => setStep(2)} disabled={!isBasicValid} style={{
+              width:'100%', padding:'18px', borderRadius:16,
+              background: isBasicValid ? 'linear-gradient(135deg,#1565C0,#42A5F5)' : '#E2E8F0',
+              color: '#fff', border:'none', fontSize:17, fontWeight:900, cursor:isBasicValid?'pointer':'not-allowed',
+              boxShadow: isBasicValid ? '0 8px 25px rgba(21,101,192,0.3)' : 'none',
+            }}>
+              ?ㅼ쓬 ?④퀎濡?(1/2)
+            </button>
+          </div>
+        )}
+
+        {/* ?먥븧 STEP 2: ?꾩뒪 ?깊뼢 吏덈Ц ?먥븧 */}
+        {step===2 && (
+          <div style={{ padding:'10px 20px 40px' }}>
+            <div style={{ marginBottom:40 }}>
+              <div style={{ fontSize:15, fontWeight:800, color:'#1e293b', marginBottom:16, display:'flex', alignItems:'center', gap:6 }}>
+                <div style={{ width:4, height:16, background:'#1565C0', borderRadius:2 }}></div>
+                ?꾩뒪 ?깊뼢 遺꾩꽍 (Q1~Q4)
+              </div>
+
+              {/* Q1 */}
+              <div style={{ marginBottom:20 }}>
+                <div style={{ fontSize:13, fontWeight:700, color:'#64748b', marginBottom:10 }}>Q1. 異ㅼ쓣 諛곗슦??紐⑹쟻??</div>
+                <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:8 }}>
+                  {['?뚯뀥?뚰떚?먯꽌 異붽퀬 ?띠뼱', '?쇳룷癒쇱뒪/????섍?怨??띠뼱', '洹몃깷 痍⑤?濡?利먭린怨??띠뼱', '?ㅼ씠?댄듃/?대룞 紐⑹쟻'].map(opt => (
+                    <button key={opt} onClick={()=>setQ1(opt)} style={{
+                      padding:'12px 8px', borderRadius:10, fontSize:12, fontWeight:600,
+                      border: q1===opt ? '1.5px solid #1565C0' : '1px solid #E2E8F0',
+                      background: q1===opt ? '#F0F7FF' : '#fff',
+                      color: q1===opt ? '#1565C0' : '#64748b',
+                    }}>{opt}</button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Q2 */}
+              <div style={{ marginBottom:20 }}>
+                <div style={{ fontSize:13, fontWeight:700, color:'#64748b', marginBottom:10 }}>Q2. ?좏샇?섎뒗 ?섏뾽 遺꾩쐞湲곕뒗?</div>
+                <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:8 }}>
+                  {['泥닿퀎?곸씠怨?瑗쇨세?섍쾶', '?쎄퀬 ?щ??덇쾶', '??媛숈씠 移쒗빐吏??遺꾩쐞湲?, '?댁젙?곸씠怨?鍮≪꽱 遺꾩쐞湲?].map(opt => (
+                    <button key={opt} onClick={()=>setQ2(opt)} style={{
+                      padding:'12px 8px', borderRadius:10, fontSize:12, fontWeight:600,
+                      border: q2===opt ? '1.5px solid #1565C0' : '1px solid #E2E8F0',
+                      background: q2===opt ? '#F0F7FF' : '#fff',
+                      color: q2===opt ? '#1565C0' : '#64748b',
+                    }}>{opt}</button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Q3 */}
+              <div style={{ marginBottom:20 }}>
+                <div style={{ fontSize:13, fontWeight:700, color:'#64748b', marginBottom:10 }}>Q3. 蹂몄씤???앷컖?섎뒗 異??ㅻ젰??</div>
+                <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:8 }}>
+                  {['?댁젣 留??쒖옉???뺤큹蹂?, '湲곕낯湲곕뒗 醫 ?덈뒗 珥덈낫', '?대뵒?쒕뱺 異????덈뒗 以묎툒', '?ㅻ뱾 爾먮떎蹂대뒗 怨좎닔'].map(opt => (
+                    <button key={opt} onClick={()=>setQ3(opt)} style={{
+                      padding:'12px 8px', borderRadius:10, fontSize:12, fontWeight:600,
+                      border: q3===opt ? '1.5px solid #1565C0' : '1px solid #E2E8F0',
+                      background: q3===opt ? '#F0F7FF' : '#fff',
+                      color: q3===opt ? '#1565C0' : '#64748b',
+                    }}>{opt}</button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Q4 */}
+              <div style={{ marginBottom:20 }}>
+                <div style={{ fontSize:13, fontWeight:700, color:'#64748b', marginBottom:10 }}>Q4. 媛??以묒슂?섍쾶 ?앷컖?섎뒗 寃껋??</div>
+                <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:8 }}>
+                  {['?뺥솗??湲곗닠怨?踰좎씠吏?, '?뚯븙怨쇱쓽 援먭컧怨?媛먯꽦', '?뚰듃?덉????뚰넻怨??곌껐', '?붾젮???⑦꽩怨?臾대?留ㅻ꼫'].map(opt => (
+                    <button key={opt} onClick={()=>setQ4(opt)} style={{
+                      padding:'12px 8px', borderRadius:10, fontSize:12, fontWeight:600,
+                      border: q4===opt ? '1.5px solid #1565C0' : '1px solid #E2E8F0',
+                      background: q4===opt ? '#F0F7FF' : '#fff',
+                      color: q4===opt ? '#1565C0' : '#64748b',
+                    }}>{opt}</button>
+                  ))}
+                </div>
+              </div>
+            </div>
+
+            <button onClick={analyze} disabled={!isValid} style={{
+              width:'100%', padding:'18px', borderRadius:16,
+              background: isValid ? 'linear-gradient(135deg,#1565C0,#42A5F5)' : '#E2E8F0',
+              color: '#fff', border:'none', fontSize:17, fontWeight:900, cursor:isValid?'pointer':'not-allowed',
+              boxShadow: isValid ? '0 8px 25px rgba(21,101,192,0.3)' : 'none',
+            }}>
+              {loading ? '?뵰 ?대챸??醫뚰몴 怨꾩궛 以?..' : '?뵰 ?섏쓽 ?꾩뒪 ?대챸 ?뺤씤?섍린'}
+            </button>
+          </div>
+        )}
+
+        {/* ?먥븧 STEP 3: 寃곌낵 ?먥븧 */}
+        {step===3 && result && (
+          <div style={{ padding:'10px 20px 50px' }}>
+            
+            {/* 寃곌낵 移대뱶 */}
+            <div style={{
+              marginBottom:24, background:result.dance.bg, border:`2px solid ${result.dance.border}`,
+              borderRadius:24, padding:24, textAlign:'center'
+            }}>
+              <div style={{ fontSize:40, marginBottom:16 }}>{result.dance.emoji}</div>
+              <div style={{ fontSize:14, color:result.dance.color, fontWeight:800, marginBottom:4 }}>
+                {result.gender}??쨌 {result.mainOheng} 湲곗슫 遺꾩꽍
+              </div>
+              <div style={{ fontSize:26, fontWeight:900, color:'#111', marginBottom:16 }}>
+                ?섏뿉寃?留욌뒗 媛뺤궗 ?좏삎: {result.instructorType}
+              </div>
+              <p style={{ fontSize:15, color:'#444', lineHeight:1.6, marginBottom:20 }}>{result.dance.reason}</p>
+              
+              <div style={{ display:'flex', gap:6, justifyContent:'center', flexWrap:'wrap' }}>
+                {(result.aiKeywords || result.dance.traits).map((t: string)=>(
+                  <span key={t} style={{ padding:'6px 14px', borderRadius:99, background:result.dance.color, color:'#fff', fontSize:13, fontWeight:700 }}>#{t}</span>
+                ))}
+              </div>
+            </div>
+
+            {/* 媛뺤궗 ?ㅽ???異붿쿇 */}
+            <div style={{ marginBottom:30 }}>
+              <div style={{ fontSize:16, fontWeight:900, marginBottom:12, color:'#1e293b', display:'flex', alignItems:'center', gap:6 }}>
+                ?뫅?랅윆??섏뿉寃?留욌뒗 媛뺤궗 ?ㅽ???              </div>
+              <div style={{ padding:20, borderRadius:20, background:'#f8fafc', border:'1px solid #e2e8f0', lineHeight:1.6 }}>
+                <div style={{ fontSize:15, color:'#334155', fontWeight:600 }}>
+                  "{result.instructorStyle}"
+                </div>
+              </div>
+            </div>
+
+
+            <button onClick={reset} style={{
+              width:'100%', padding:16, borderRadius:14, background:'#f1f5f9', color:'#64748b',
+              border:'none', fontSize:15, fontWeight:700, cursor:'pointer'
+            }}>?봽 ?ㅼ떆 遺꾩꽍?섍린</button>
+          </div>
+        )}
+      </div>
+    </>
+  )
+}
