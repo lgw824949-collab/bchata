@@ -1,9 +1,9 @@
 /** 홈 탭 = 네이버형 리스트(HomeListGate), 소셜 탭 = 달력+파티 목록 */
 
 /** 다크 홈 헤더 — 오늘밤빠 아래 슬로건 */
-export const HOME_DARK_HEADER_TAGLINE = '오늘 밤, 어디서 춤출래요?';
-export const HOME_LIST_TAGLINE_KO = '오늘 밤, 어디서 춤출래요?';
-export const HOME_LIST_TAGLINE_EN = 'Where are you dancing tonight?';
+export const HOME_DARK_HEADER_TAGLINE = "Let's hit the bar tonight!";
+export const HOME_LIST_TAGLINE_KO = "Let's hit the bar tonight!";
+export const HOME_LIST_TAGLINE_EN = "Let's hit the bar tonight!";
 
 /** 한 화면에 보일 카드 수 (목업 밸런스) */
 export const HOME_DARK_VISIBLE_PARTY = 4;
