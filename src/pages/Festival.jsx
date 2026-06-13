@@ -1,5 +1,5 @@
-﻿import React, { useState, useEffect, useRef } from 'react';
-import { ChevronLeft, Calendar, MapPin, Zap, X, ChevronDown, Plus, Image as ImageIcon } from 'lucide-react';
+﻿import React, { useState, useEffect, useRef, useMemo } from 'react';
+import { ChevronLeft, Calendar, MapPin, Zap, X, Plus, Image as ImageIcon } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { supabase } from '../lib/supabase';
 import { resolveEventDates, inferOneDayEvent } from '../lib/dbSanitize';
@@ -68,6 +68,36 @@ const parseFestivalGenres = (value) => {
 
 const formatFestivalGenres = (value) => parseFestivalGenres(value).join(', ');
 
+const formatFestDateShort = (date) => {
+  if (!date) return '';
+  const d = new Date(date);
+  const days = ['일', '월', '화', '수', '목', '금', '토'];
+  return `${date.slice(5).replace('-', '.')} (${days[d.getDay()]})`;
+};
+
+const formatFestDateDot = (date) => {
+  if (!date) return '';
+  return date.slice(5).replace('-', '.');
+};
+
+const formatFestivalVenueLabel = (fest) => {
+  const loc = fest?.location || fest?.venue;
+  if (loc && loc !== '추후 공지') return String(loc).split(' · ')[0].trim();
+  return String(fest?.region || '').trim();
+};
+
+const formatFestivalCardMetaLine = (fest) => {
+  const start = formatFestDateShort(fest?.start_date);
+  const end = fest?.end_date && fest.end_date !== fest.start_date
+    ? formatFestDateDot(fest.end_date)
+    : '';
+  const datePart = end ? `${start} — ${end}` : start;
+  const venue = formatFestivalVenueLabel(fest);
+  return venue ? `${datePart} · ${venue}` : datePart;
+};
+
+const FESTIVAL_GENRE_CHIP_LIMIT = 2;
+
 const parseFestivalPriceLines = (value) => {
   const raw = String(value || '').trim();
   if (!raw) return [];
@@ -78,8 +108,8 @@ const parseFestivalPriceLines = (value) => {
 };
 
 const FESTIVAL_PAGE_TABS = [
-  { key: 'festival', label: 'FESTIVAL' },
-  { key: 'party', label: 'PARTY' },
+  { key: 'festival', label: '페스티벌' },
+  { key: 'party', label: '파티' },
 ];
 
 const FESTIVAL_EVENT_TYPE_OPTIONS = [
@@ -134,7 +164,8 @@ const filterFestivalsClient = (all, selectedRegion, activeTab) => {
   const rows = (all || []).filter(
     (f) => matchesFestivalPageTab(f, tab) && !isFestivalEnded(f),
   );
-  if (selectedRegion === '전체') return rows;
+  const sorted = [...rows].sort((a, b) => normDate(a.start_date).localeCompare(normDate(b.start_date)));
+  if (selectedRegion === '전체') return sorted;
   const REGION_MAP = {
     '수도권': ['서울', '경인', '수도권'],
     '강원': ['강원', '강원도', '강원/제주'],
@@ -144,7 +175,15 @@ const filterFestivalsClient = (all, selectedRegion, activeTab) => {
     '충청': ['충청', '충청도', '충북', '충남'],
   };
   const aliases = REGION_MAP[selectedRegion] || [selectedRegion];
-  return rows.filter((f) => aliases.some((a) => (f.region || '').includes(a)));
+  return rows
+    .filter((f) => aliases.some((a) => (f.region || '').includes(a)))
+    .sort((a, b) => normDate(a.start_date).localeCompare(normDate(b.start_date)));
+};
+
+const pickFeaturedFestivalHero = (rows) => {
+  const withPoster = (rows || []).filter((row) => String(row.poster_url || '').trim());
+  if (!withPoster.length) return null;
+  return [...withPoster].sort((a, b) => normDate(a.start_date).localeCompare(normDate(b.start_date)))[0];
 };
 
 const FESTIVAL_TAB_SESSION_KEY = 'bchata_festival_tab';
@@ -168,6 +207,8 @@ const Festival = ({ onBack, initialRegister = false, cachedFestivals = null, onF
   const [formData, setFormData] = useState(() => createEmptyFestivalForm());
 
   const regions = ['전체', '수도권', '강원', '제주', '부산/경남', '전라', '충청'];
+  const tabMeta = getFestivalTabMeta(activeTab);
+  const featuredHero = useMemo(() => pickFeaturedFestivalHero(festivals), [festivals]);
 
   const applyPendingFestivalTab = () => {
     try {
@@ -578,7 +619,7 @@ const Festival = ({ onBack, initialRegister = false, cachedFestivals = null, onF
               </button>
             )}
             center={(
-              <div style={{ display: 'flex', gap: 4, background: 'rgba(255,255,255,0.06)', borderRadius: 14, padding: 4, width: '100%', maxWidth: 200 }}>
+              <div style={{ display: 'flex', gap: 4, background: 'rgba(255,255,255,0.06)', borderRadius: 14, padding: 4, width: '100%', maxWidth: 220 }}>
                 {FESTIVAL_PAGE_TABS.map(tab => (
                   <button
                     key={tab.key}
@@ -589,7 +630,7 @@ const Festival = ({ onBack, initialRegister = false, cachedFestivals = null, onF
                       padding: '8px 10px', borderRadius: 10, border: 'none', cursor: 'pointer',
                       background: activeTab === tab.key ? '#C9A84C' : 'transparent',
                       color: activeTab === tab.key ? '#000' : '#8E8E93',
-                      fontSize: 13, fontWeight: 900, letterSpacing: '0.5px',
+                      fontSize: 13, fontWeight: 900, letterSpacing: '-0.2px',
                       transition: 'all 0.2s'
                     }}
                   >{tab.label}</button>
@@ -597,43 +638,26 @@ const Festival = ({ onBack, initialRegister = false, cachedFestivals = null, onF
               </div>
             )}
             right={(
-            <div style={{ display: 'flex', gap: '8px' }}>
-              <button 
-                onClick={() => setShowFilters(!showFilters)}
-                style={{ 
-                  background: 'rgba(255,255,255,0.05)', 
-                  color: '#C9A84C', 
-                  border: '1px solid rgba(201,168,76,0.3)', 
-                  padding: '8px 16px', 
-                  borderRadius: '12px', 
-                  fontSize: '12px', 
-                  fontWeight: 1000, 
-                  display: 'flex', 
-                  alignItems: 'center', 
-                  gap: '6px'
-                }}
-              >
-                {selectedRegion} <ChevronDown size={14} color="#C9A84C" />
-              </button>
-              <button 
+              <button
+                type="button"
                 onClick={() => { setFormData(prev => ({ ...prev, event_type: activeTab })); setTimeout(() => setIsRegistering(true), 50); }}
-                style={{ 
-                  background: 'linear-gradient(135deg, #C9A84C, #A68A3D)', 
-                  color: '#000', 
-                  border: 'none', 
-                  padding: '8px 16px', 
-                  borderRadius: '12px', 
-                  fontSize: '12px', 
-                  fontWeight: 1000, 
-                  display: 'flex', 
-                  alignItems: 'center', 
+                style={{
+                  background: 'linear-gradient(135deg, #C9A84C, #A68A3D)',
+                  color: '#000',
+                  border: 'none',
+                  padding: '8px 14px',
+                  borderRadius: '12px',
+                  fontSize: '12px',
+                  fontWeight: 1000,
+                  display: 'flex',
+                  alignItems: 'center',
                   gap: '6px',
-                  boxShadow: '0 8px 20px rgba(201, 168, 76, 0.3)'
+                  boxShadow: '0 8px 20px rgba(201, 168, 76, 0.3)',
+                  whiteSpace: 'nowrap',
                 }}
               >
                 <Plus size={14} strokeWidth={3} /> 등록
               </button>
-            </div>
             )}
           />
         )}
@@ -642,18 +666,95 @@ const Festival = ({ onBack, initialRegister = false, cachedFestivals = null, onF
         {!isRegistering && (
           <div style={{ position: 'relative', zIndex: 1 }}>
 
-            {/* ── 히어로 배너 ── */}
-            <div style={{ position: 'relative', width: '100%', height: '200px', overflow: 'hidden' }}>
-              <img
-                src="/festival_hero_2026.png"
-                alt="KEEP FESTIVAL-ING IN 2026"
-                style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'center' }}
-              />
-              <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to bottom, rgba(0,0,0,0.1) 30%, #0D0D0D 100%)' }} />
+            {/* ── 히어로: 임박 행사 포스터 또는 탭별 fallback ── */}
+            <div style={{ padding: '0 15px', marginTop: 10 }}>
+              {featuredHero ? (
+                <button
+                  type="button"
+                  onClick={() => setSelectedFestival(featuredHero)}
+                  style={{
+                    position: 'relative',
+                    width: '100%',
+                    height: 128,
+                    overflow: 'hidden',
+                    borderRadius: 18,
+                    border: `1px solid ${activeTab === 'party' ? 'rgba(244,114,182,0.35)' : 'rgba(201,168,76,0.35)'}`,
+                    padding: 0,
+                    cursor: 'pointer',
+                    background: '#111',
+                    display: 'block',
+                    textAlign: 'left',
+                  }}
+                >
+                  <img
+                    src={featuredHero.poster_url}
+                    alt={featuredHero.title || tabMeta.name}
+                    style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'top' }}
+                  />
+                  <div style={{
+                    position: 'absolute',
+                    inset: 0,
+                    background: 'linear-gradient(to top, rgba(0,0,0,0.92) 0%, rgba(0,0,0,0.35) 55%, rgba(0,0,0,0.08) 100%)',
+                  }} />
+                  <div style={{ position: 'absolute', left: 14, right: 14, bottom: 12 }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 6 }}>
+                      <span style={{
+                        fontSize: 11,
+                        fontWeight: 900,
+                        color: activeTab === 'party' ? '#F472B6' : '#C9A84C',
+                        background: 'rgba(0,0,0,0.45)',
+                        border: `1px solid ${activeTab === 'party' ? 'rgba(244,114,182,0.45)' : 'rgba(201,168,76,0.45)'}`,
+                        padding: '3px 8px',
+                        borderRadius: 999,
+                      }}>
+                        {tabMeta.emoji} {tabMeta.name} · {getDDay(featuredHero)}
+                      </span>
+                    </div>
+                    <div style={{
+                      fontFamily: "'Bebas Neue', 'Black Han Sans', sans-serif",
+                      fontSize: 22,
+                      lineHeight: 1.15,
+                      color: '#fff',
+                      letterSpacing: '0.3px',
+                      overflow: 'hidden',
+                      textOverflow: 'ellipsis',
+                      whiteSpace: 'nowrap',
+                    }}>
+                      {featuredHero.title}
+                    </div>
+                  </div>
+                </button>
+              ) : activeTab === 'party' ? (
+                <div style={{
+                  height: 88,
+                  borderRadius: 18,
+                  border: '1px solid rgba(244,114,182,0.25)',
+                  background: 'linear-gradient(135deg, rgba(244,114,182,0.12), rgba(13,13,13,0.95))',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: 10,
+                  color: '#F9A8D4',
+                  fontWeight: 900,
+                  fontSize: 15,
+                }}>
+                  <span style={{ fontSize: 24 }}>🎉</span>
+                  <span>진행·예정 파티를 모아봤어요</span>
+                </div>
+              ) : (
+                <div style={{ position: 'relative', width: '100%', height: 96, overflow: 'hidden', borderRadius: 18, border: '1px solid rgba(201,168,76,0.2)' }}>
+                  <img
+                    src="/festival_hero_2026.png"
+                    alt="KEEP FESTIVAL-ING IN 2026"
+                    style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'center 40%' }}
+                  />
+                  <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to bottom, rgba(0,0,0,0.05) 20%, #0D0D0D 100%)' }} />
+                </div>
+              )}
             </div>
 
-            {/* ── 지역 필터 탭 ── */}
-            <div style={{ padding: '0 15px', marginTop: 14, marginBottom: 4 }}>
+            {/* ── 지역 필터 ── */}
+            <div style={{ padding: '0 15px', marginTop: 12, marginBottom: 2 }}>
               <div className="hide-scrollbar" style={{ display: 'flex', gap: 8, overflowX: 'auto' }}>
                 {regions.map(r => {
                   const active = selectedRegion === r;
@@ -670,6 +771,12 @@ const Festival = ({ onBack, initialRegister = false, cachedFestivals = null, onF
                 })}
               </div>
             </div>
+
+            {!loading && festivals.length > 0 && (
+              <div style={{ padding: '8px 15px 0', fontSize: 12, fontWeight: 800, color: '#64748b' }}>
+                진행·예정 {festivals.length}건 · 시작일 순
+              </div>
+            )}
 
             {/* ── 카드 리스트 ── */}
             <div style={{ padding: '12px 15px 100px', display: 'flex', flexDirection: 'column', gap: '10px' }}>
@@ -712,6 +819,9 @@ const Festival = ({ onBack, initialRegister = false, cachedFestivals = null, onF
               ) : (
                 festivals.map((fest) => {
                   const ddayLabel = getDDay(fest);
+                  const genreList = parseFestivalGenres(fest.genre);
+                  const visibleGenres = genreList.slice(0, FESTIVAL_GENRE_CHIP_LIMIT);
+                  const extraGenres = genreList.length - visibleGenres.length;
                   return (
                   <motion.div
                     key={fest.id}
@@ -721,8 +831,7 @@ const Festival = ({ onBack, initialRegister = false, cachedFestivals = null, onF
                     onClick={() => setSelectedFestival(fest)}
                     style={{ display: 'flex', cursor: 'pointer', background: '#111', borderRadius: '18px', overflow: 'hidden', border: '1px solid rgba(255,255,255,0.07)' }}
                   >
-                    {/* 포스터 — 정보 영역 높이에 맞게 자동 늘어남 */}
-                    <div style={{ width: '36%', flexShrink: 0, position: 'relative', background: '#000', alignSelf: 'stretch' }}>
+                    <div style={{ width: '36%', flexShrink: 0, position: 'relative', background: '#000', alignSelf: 'stretch', minHeight: 118 }}>
                       <img
                         src={fest.poster_url}
                         style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'top', display: 'block' }}
@@ -730,52 +839,57 @@ const Festival = ({ onBack, initialRegister = false, cachedFestivals = null, onF
                       />
                     </div>
 
-                    {/* 정보 — 내용에 맞게 높이 자동 */}
-                    <div style={{ flex: 1, minWidth: 0, padding: '14px 14px 14px 16px', display: 'flex', flexDirection: 'column', gap: 8, borderLeft: '1px solid rgba(255,255,255,0.06)' }}>
-
-                      {/* 장르 + D-day */}
-                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                        <span style={{ fontSize: 11, fontWeight: 700, color: '#C9A84C', letterSpacing: '0.8px', textTransform: 'uppercase' }}>
-                          {formatFestivalGenres(fest.genre)}
-                        </span>
+                    <div style={{ flex: 1, minWidth: 0, padding: '12px 14px 12px 16px', display: 'flex', flexDirection: 'column', gap: 7, borderLeft: '1px solid rgba(255,255,255,0.06)' }}>
+                      <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 8 }}>
+                        <div style={{
+                          fontFamily: "'Bebas Neue', 'Black Han Sans', sans-serif",
+                          fontSize: 19,
+                          letterSpacing: '0.3px',
+                          lineHeight: 1.2,
+                          color: '#ffffff',
+                          wordBreak: 'keep-all',
+                          overflowWrap: 'break-word',
+                          flex: 1,
+                        }}>
+                          {fest.title}
+                        </div>
                         <span style={{
-                          fontSize: 11, fontWeight: 900,
-                          color: ddayLabel === '종료' ? '#475569' : ddayLabel === 'D-DAY' ? '#000' : '#C9A84C',
-                          background: ddayLabel === 'D-DAY' ? '#C9A84C' : 'rgba(201,168,76,0.1)',
-                          border: '1px solid rgba(201,168,76,0.3)',
+                          fontSize: 11, fontWeight: 900, flexShrink: 0,
+                          color: ddayLabel === '종료' ? '#475569' : ddayLabel === 'D-DAY' ? '#000' : (activeTab === 'party' ? '#F472B6' : '#C9A84C'),
+                          background: ddayLabel === 'D-DAY' ? '#C9A84C' : (activeTab === 'party' ? 'rgba(244,114,182,0.12)' : 'rgba(201,168,76,0.1)'),
+                          border: `1px solid ${activeTab === 'party' ? 'rgba(244,114,182,0.35)' : 'rgba(201,168,76,0.3)'}`,
                           padding: '3px 9px', borderRadius: 6, whiteSpace: 'nowrap'
                         }}>
                           {ddayLabel}
                         </span>
                       </div>
 
-                      {/* 제목 — 글자 수에 따라 자동 줄바꿈 */}
-                      <div style={{
-                        fontFamily: "'Bebas Neue', 'Black Han Sans', sans-serif",
-                        fontSize: 20,
-                        letterSpacing: '0.3px',
-                        lineHeight: 1.25,
-                        color: '#ffffff',
-                        wordBreak: 'keep-all',
-                        overflowWrap: 'break-word'
-                      }}>
-                        {fest.title}
+                      <div style={{ fontSize: 12, lineHeight: 1.35, color: '#94a3b8', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                        {formatFestivalCardMetaLine(fest)}
                       </div>
 
-                      {/* 날짜 + 장소 */}
-                      <div style={{ display: 'flex', flexDirection: 'column', gap: 5, marginTop: 'auto', paddingTop: 4 }}>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 11, color: '#94a3b8' }}>
-                          <Calendar size={11} color="#C9A84C" strokeWidth={2} style={{ flexShrink: 0 }} />
-                          <span style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                            {formatDateWithDay(fest.start_date)}{fest.end_date && fest.end_date !== fest.start_date ? ` — ${formatDate(fest.end_date)}` : ''}
+                      <div style={{ display: 'flex', flexWrap: 'wrap', gap: 5, marginTop: 'auto' }}>
+                        {visibleGenres.map((genre) => (
+                          <span
+                            key={genre}
+                            style={{
+                              fontSize: 10,
+                              fontWeight: 800,
+                              color: activeTab === 'party' ? '#F9A8D4' : '#C9A84C',
+                              background: activeTab === 'party' ? 'rgba(244,114,182,0.1)' : 'rgba(201,168,76,0.08)',
+                              border: `1px solid ${activeTab === 'party' ? 'rgba(244,114,182,0.25)' : 'rgba(201,168,76,0.22)'}`,
+                              padding: '3px 8px',
+                              borderRadius: 999,
+                            }}
+                          >
+                            {genre}
                           </span>
-                        </div>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 11, color: '#94a3b8' }}>
-                          <MapPin size={11} color="#C9A84C" strokeWidth={2} style={{ flexShrink: 0 }} />
-                          <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                            {(fest.location || fest.venue) && (fest.location || fest.venue) !== '추후 공지' ? (fest.location || fest.venue) : fest.region}
+                        ))}
+                        {extraGenres > 0 && (
+                          <span style={{ fontSize: 10, fontWeight: 800, color: '#64748b', padding: '3px 4px' }}>
+                            +{extraGenres}
                           </span>
-                        </div>
+                        )}
                       </div>
                     </div>
                   </motion.div>
