@@ -2569,32 +2569,6 @@ const HomePage = ({
     return () => cancelWhenIdle(handle);
   }, [activeTab]);
 
-  /** 하단 네비 탭 순서: 홈 → 파티(소셜) → 부트캠프 → 페스티벌 → 강사찾기 (마크업은 App.jsx nav) */
-  useEffect(() => {
-    const nav = document.querySelector('nav.bottom-nav');
-    if (!nav) return;
-    const items = Array.from(nav.children).filter((el) => el.nodeType === 1);
-    const pick = (labels) =>
-      items.find((el) => labels.some((l) => (el.textContent || '').includes(l)));
-    const partyTab = pick(['소셜', 'Social', '파티', 'Party']);
-    if (partyTab) {
-      const labelSpan = partyTab.querySelector('span');
-      if (labelSpan) {
-        const en = (labelSpan.textContent || '').includes('Social') || (labelSpan.textContent || '').includes('Party');
-        labelSpan.textContent = en ? 'Social' : '소셜';
-      }
-    }
-    const ordered = [
-      pick(['홈', 'Home']),
-      partyTab || pick(['소셜', 'Social']),
-      pick(['부트캠프', 'Bootcamp']),
-      pick(['페스티벌', 'Festival']),
-      pick(['강사찾기', '강사', 'Instructor']),
-    ].filter(Boolean);
-    if (ordered.length < 5) return;
-    ordered.forEach((el) => nav.appendChild(el));
-  }, [isEn]);
-
   /** Hybrid layout: home tab (null) = 네이버형 리스트 · social tab = 달력+리스트 */
   const isHomeGate = activeTab === null;
 

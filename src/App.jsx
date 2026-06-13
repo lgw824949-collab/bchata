@@ -2243,11 +2243,17 @@ function App() {
   const navInactiveColor = '#94A3B8'
   const socialNavActive = bottomNavAccent
   const socialNavInactive = navInactiveColor
-  const isHomeNavActive = location.pathname === '/' && view === 'home' && homeActiveTab === null && !showPartner && !showIncheonModal
-  const isPartyNavActive = location.pathname === '/' && view === 'home' && homeActiveTab === 'social' && !showPartner
-  const isInstructorNavActive = location.pathname === '/instructors' || location.pathname.startsWith('/instructors/')
-  const isBarNavActive = showIncheonModal
-  const isMyNavActive = showPartner
+  const isHomeNavActive =
+    location.pathname === '/'
+    && view === 'home'
+    && homeActiveTab === null
+    && !showPartner
+    && !showWishlist
+    && !chatbotOverlay
+    && !showIncheonModal
+  const isWishlistNavActive = showWishlist
+  const isConciergeNavActive = chatbotOverlay
+  const isLivepickNavActive = location.pathname === '/livepick'
   const bottomNavRef = useRef(null)
 
   useEffect(() => {
@@ -3266,53 +3272,54 @@ function App() {
 
       <button
         type="button"
-        className={`bottom-nav__item${isPartyNavActive ? ' bottom-nav__item--active' : ''}`}
+        className={`bottom-nav__item${isWishlistNavActive ? ' bottom-nav__item--active' : ''}`}
         onClick={() => {
           setShowPartner(false);
-          navigateHomeTab('social');
+          pushOverlay('wishlist');
         }}
         style={{ '--bottom-nav-accent': bottomNavAccent }}
       >
-        <Music2 size={22} strokeWidth={isPartyNavActive ? 2.5 : 1.5} />
-        <span>{i18n.language?.startsWith('en') ? 'Social' : '소셜'}</span>
+        <Heart size={22} strokeWidth={isWishlistNavActive ? 2.5 : 1.5} />
+        <span>{i18n.language?.startsWith('en') ? 'Saved' : '찜하기'}</span>
       </button>
 
       <button
         type="button"
-        className={`bottom-nav__item${isInstructorNavActive ? ' bottom-nav__item--active' : ''}`}
+        className={`bottom-nav__item${isConciergeNavActive ? ' bottom-nav__item--active' : ''}`}
         onClick={() => {
           setShowPartner(false);
-          historyNavigate('/instructors', { homeTab: null });
+          pushOverlay('chatbot');
         }}
         style={{ '--bottom-nav-accent': bottomNavAccent }}
       >
-        <GraduationCap size={22} strokeWidth={isInstructorNavActive ? 2.5 : 1.5} />
-        <span>{i18n.language?.startsWith('en') ? 'Instructors' : '강사'}</span>
+        <Zap size={22} strokeWidth={isConciergeNavActive ? 2.5 : 1.5} />
+        <span>{i18n.language?.startsWith('en') ? 'Concierge' : '컨시어지'}</span>
       </button>
 
       <button
         type="button"
-        className={`bottom-nav__item${isBarNavActive ? ' bottom-nav__item--active' : ''}`}
+        className={`bottom-nav__item${isLivepickNavActive ? ' bottom-nav__item--active' : ''}`}
         onClick={() => {
           setShowPartner(false);
-          pushOverlay('incheon');
+          historyNavigate('/livepick', { homeTab: null });
         }}
         style={{ '--bottom-nav-accent': bottomNavAccent }}
       >
-        <Building2 size={22} strokeWidth={isBarNavActive ? 2.5 : 1.5} />
-        <span>BAR</span>
+        <Camera size={22} strokeWidth={isLivepickNavActive ? 2.5 : 1.5} />
+        <span>{i18n.language?.startsWith('en') ? 'Live pick' : '라이브픽'}</span>
       </button>
 
       <button
         type="button"
-        className={`bottom-nav__item${isMyNavActive ? ' bottom-nav__item--active' : ''}`}
+        className="bottom-nav__item"
         onClick={() => {
-          pushOverlay('partner');
+          setShowPartner(false);
+          window.open('https://open.kakao.com/o/gP43rNri', '_blank');
         }}
         style={{ '--bottom-nav-accent': bottomNavAccent }}
       >
-        <User size={22} strokeWidth={isMyNavActive ? 2.5 : 1.5} />
-        <span>{i18n.language?.startsWith('en') ? 'My' : '마이'}</span>
+        <MessageSquare size={22} strokeWidth={1.5} />
+        <span>{i18n.language?.startsWith('en') ? 'Chat' : '채팅문의'}</span>
       </button>
     </nav>
     )}
