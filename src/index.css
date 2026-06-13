@@ -4073,6 +4073,16 @@ body.bottom-nav-social-light nav.bottom-nav {
 }
 
 /* ── 오늘소셜 탭 ── */
+.social-tab-hero {
+  display: block;
+  width: 100%;
+  height: auto;
+  aspect-ratio: 16 / 9;
+  object-fit: contain;
+  object-position: center;
+  background: #f5f6f8;
+}
+
 .app-container.social-tab-active {
   background: linear-gradient(180deg, #fffdf9 0%, #faf6f1 42%, #f7f3ee 100%) !important;
 }
