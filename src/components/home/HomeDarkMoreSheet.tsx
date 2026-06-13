@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { flushSync } from 'react-dom';
 import { AnimatePresence, motion } from 'framer-motion';
-import { X } from 'lucide-react';
+import { ChevronLeft } from 'lucide-react';
 import { Z } from '../../constants/zLayers';
 import type { HomeDarkMoreAction } from './types';
 
@@ -12,6 +12,8 @@ type HomeDarkMoreSheetProps = {
   actions: HomeDarkMoreAction[];
   onClose: () => void;
 };
+
+const BODY_MENU_CLASS = 'home-more-menu-open';
 
 export default function HomeDarkMoreSheet({
   open,
@@ -26,12 +28,8 @@ export default function HomeDarkMoreSheet({
   }, [open]);
 
   useEffect(() => {
-    if (!open) return undefined;
-    const prev = document.body.style.overflow;
-    document.body.style.overflow = 'hidden';
-    return () => {
-      document.body.style.overflow = prev;
-    };
+    document.body.classList.toggle(BODY_MENU_CLASS, open);
+    return () => document.body.classList.remove(BODY_MENU_CLASS);
   }, [open]);
 
   useEffect(() => {
@@ -54,21 +52,37 @@ export default function HomeDarkMoreSheet({
     action.onClick();
   };
 
-  const renderLinks = (items: HomeDarkMoreAction[]) => items.map((action) => (
-    <button
-      key={action.id}
-      type="button"
-      className="home-dark-more-sheet__link"
-      onClick={() => runAction(action)}
-    >
-      <span className="home-dark-more-sheet__label">
-        {isEn ? action.labelEn : action.labelKo}
-      </span>
-      {action.badge ? (
-        <span className="home-dark-more-sheet__badge">{action.badge}</span>
-      ) : null}
-    </button>
-  ));
+  const renderSection = (label: string, items: HomeDarkMoreAction[]) => {
+    if (items.length === 0) return null;
+    return (
+      <>
+        <p className="home-dark-more-sheet__section-label">{label}</p>
+        <div className="home-dark-more-sheet__cards">
+          {items.map((action) => {
+            const Icon = action.icon;
+            return (
+              <button
+                key={action.id}
+                type="button"
+                className="home-dark-more-sheet__card"
+                onClick={() => runAction(action)}
+              >
+                <span className="home-dark-more-sheet__card-icon" aria-hidden>
+                  <Icon size={20} strokeWidth={1.75} />
+                </span>
+                <span className="home-dark-more-sheet__label">
+                  {isEn ? action.labelEn : action.labelKo}
+                </span>
+                {action.badge ? (
+                  <span className="home-dark-more-sheet__badge">{action.badge}</span>
+                ) : null}
+              </button>
+            );
+          })}
+        </div>
+      </>
+    );
+  };
 
   return createPortal(
     <AnimatePresence initial={false}>
@@ -101,26 +115,34 @@ export default function HomeDarkMoreSheet({
             style={{ zIndex: Z.modal }}
           >
             <header className="home-dark-more-sheet__header">
-              <p className="home-dark-more-sheet__eyebrow">
-                {isEn ? 'Menu' : 'Menu'}
-              </p>
-              <button
+              <motion.button
                 type="button"
                 className="home-dark-more-sheet__close"
                 aria-label={isEn ? 'Close' : '닫기'}
                 onClick={onClose}
+                whileTap={{ scale: 0.92 }}
               >
-                <X size={18} strokeWidth={1.5} />
-              </button>
+                <ChevronLeft size={22} strokeWidth={2} />
+              </motion.button>
             </header>
 
+            <div className="home-dark-more-sheet__intro">
+              <h2 className="home-dark-more-sheet__title">
+                <span className="home-dark-more-sheet__title-star" aria-hidden>🌟</span>
+                {isEn ? 'More menu' : '더보기 메뉴'}
+              </h2>
+              <p className="home-dark-more-sheet__subtitle">BAMPPA LOUNGE</p>
+            </div>
+
             <nav className="home-dark-more-sheet__nav" aria-label={isEn ? 'Shortcuts' : '바로가기'}>
-              {renderLinks(primary)}
+              {renderSection(isEn ? 'REGISTER' : '등록 · 바로가기', primary)}
               {primary.length > 0 && secondary.length > 0 ? (
                 <div className="home-dark-more-sheet__divider" aria-hidden />
               ) : null}
-              {renderLinks(secondary)}
+              {renderSection(isEn ? 'TOOLS' : '기타', secondary)}
             </nav>
+
+            <p className="home-dark-more-sheet__footer">© 2026 BAMPPA</p>
           </motion.aside>
         </div>
       ) : null}
