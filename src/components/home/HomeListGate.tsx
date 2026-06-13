@@ -4,9 +4,11 @@ import HomeDarkMoreSheet from './HomeDarkMoreSheet';
 import HomeDarkTodayPick from './HomeDarkTodayPick';
 import HomeListBarSection from './HomeListBarSection';
 import HomeListPhotoMenu from './HomeListPhotoMenu';
-import HomeListSocialStrip from './HomeListSocialStrip';
+import HomeListTodayAgenda from './HomeListTodayAgenda';
 import { HOME_LIST_TAGLINE_EN, HOME_LIST_TAGLINE_KO } from './constants';
 import type { HomeListPhotoMenuItem } from '../../lib/homeListPhotoMenu';
+import type { HomeTodayAgendaItem } from '../../lib/buildHomeTodayAgenda';
+import type { HomeListTodayAgendaRow } from './HomeListTodayAgenda';
 import type {
   HomeDarkBar,
   HomeDarkHeroSlide,
@@ -36,6 +38,12 @@ export type HomeListGateProps = {
   getPartyVenue: (party: HomeDarkParty) => string;
   onPartyClick: (party: HomeDarkParty) => void;
   onViewAllSocial: () => void;
+  todayAgendaDateLabel: string;
+  todayAgendaRows: HomeListTodayAgendaRow[];
+  todayAgendaCount: number;
+  todayAgendaSummaryLabel: string;
+  onAgendaItemClick: (item: HomeTodayAgendaItem) => void;
+  onOpenCalendar: () => void;
   photoMenuItems: HomeListPhotoMenuItem[];
   onOpenBarMap: () => void;
   barCount: number;
@@ -74,12 +82,18 @@ export default function HomeListGate({
   onPickIndexChange,
   onHeroRotateNext,
   onHeroOpen,
-  todaySocialCount,
+  todaySocialCount: _todaySocialCount,
   todayParties: _todayParties,
   getPartyTitle: _getPartyTitle,
   getPartyVenue: _getPartyVenue,
   onPartyClick: _onPartyClick,
-  onViewAllSocial,
+  onViewAllSocial: _onViewAllSocial,
+  todayAgendaDateLabel,
+  todayAgendaRows,
+  todayAgendaCount,
+  todayAgendaSummaryLabel,
+  onAgendaItemClick,
+  onOpenCalendar,
   photoMenuItems,
   onOpenBarMap,
   socialBarRegionTabs,
@@ -129,11 +143,14 @@ export default function HomeListGate({
         />
       </div>
 
-      <HomeListSocialStrip
+      <HomeListTodayAgenda
         isEn={isEn}
-        count={todaySocialCount}
-        onOpenSocial={onViewAllSocial}
-        onOpenCalendar={onViewAllSocial}
+        dateLabel={todayAgendaDateLabel}
+        totalCount={todayAgendaCount}
+        summaryLabel={todayAgendaSummaryLabel}
+        rows={todayAgendaRows}
+        onItemClick={onAgendaItemClick}
+        onOpenCalendar={onOpenCalendar}
       />
 
       <HomeListBarSection
