@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { ChevronRight } from 'lucide-react';
+import { DEFAULT_CARD_IMAGE, imgFallbackHandler } from '../../constants/imageAssets';
 import { formatPartyFeeDisplay } from '../../lib/partyFeeDisplay';
 import type { HomeDarkParty } from './types';
 
@@ -63,6 +64,7 @@ export default function HomeListTodaySocialRotator({
   const time = formatPartyTime(party, isEn);
   const fee = formatPartyFeeDisplay(party.fee, { fallback: isEn ? 'Ask' : '문의' });
   const meta = [time, venue, fee].filter(Boolean).join(' · ');
+  const posterUrl = String(party.poster_url || '').trim() || DEFAULT_CARD_IMAGE;
 
   return (
     <div className="home-list-gate__social-rotator-wrap">
@@ -72,12 +74,23 @@ export default function HomeListTodaySocialRotator({
         onClick={() => onPartyClick(party)}
         aria-label={isEn ? `Open ${title}` : `${title} 보기`}
       >
-        <span className="home-list-gate__social-rotator-live" aria-hidden />
-        <span className="home-list-gate__social-rotator-copy">
-          <span key={party.id} className="home-list-gate__social-rotator-title">{title}</span>
-          {meta ? <span className="home-list-gate__social-rotator-meta">{meta}</span> : null}
+        <span key={party.id} className="home-list-gate__social-rotator-poster">
+          <img
+            src={posterUrl}
+            alt=""
+            className="home-list-gate__social-rotator-img"
+            loading="eager"
+            decoding="async"
+            onError={imgFallbackHandler(DEFAULT_CARD_IMAGE)}
+          />
         </span>
-        <ChevronRight size={18} className="home-list-gate__social-rotator-chevron" aria-hidden />
+        <span className="home-list-gate__social-rotator-body">
+          <span className="home-list-gate__social-rotator-copy">
+            <span className="home-list-gate__social-rotator-title">{title}</span>
+            {meta ? <span className="home-list-gate__social-rotator-meta">{meta}</span> : null}
+          </span>
+          <ChevronRight size={18} className="home-list-gate__social-rotator-chevron" aria-hidden />
+        </span>
       </button>
 
       {parties.length > 1 ? (
