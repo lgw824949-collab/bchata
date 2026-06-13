@@ -102,6 +102,9 @@ export default function HomeListGate({
         <div className="home-list-gate__panel-head">
           <h2 className="home-list-gate__section-title">
             {isEn ? "Today's social" : '오늘소셜'}
+            {todayParties.length > 0 ? (
+              <span className="home-list-gate__section-count">{todayParties.length}</span>
+            ) : null}
           </h2>
           <button type="button" className="home-list-gate__section-action" onClick={onViewAllSocial}>
             {isEn ? 'Calendar' : '달력'}
@@ -109,22 +112,13 @@ export default function HomeListGate({
           </button>
         </div>
 
-        <div className="home-list-gate__social-wrap">
-          <HomeListTodaySocialRotator
-            isEn={isEn}
-            parties={todayParties}
-            getPartyTitle={getPartyTitle}
-            getPartyVenue={getPartyVenue}
-            onPartyClick={onPartyClick}
-          />
-          {todayParties.length > 1 ? (
-            <p className="home-list-gate__social-hint">
-              {isEn
-                ? `${todayParties.length} parties tonight · changes every minute`
-                : `오늘 ${todayParties.length}건 · 1분마다 바뀜`}
-            </p>
-          ) : null}
-        </div>
+        <HomeListTodaySocialRotator
+          isEn={isEn}
+          parties={todayParties}
+          getPartyTitle={getPartyTitle}
+          getPartyVenue={getPartyVenue}
+          onPartyClick={onPartyClick}
+        />
       </section>
 
       <nav className="home-list-gate__nav-chips" aria-label={isEn ? 'More categories' : '밤빠 더보기'}>

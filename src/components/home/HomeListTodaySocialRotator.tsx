@@ -65,28 +65,31 @@ export default function HomeListTodaySocialRotator({
   const meta = [time, venue, fee].filter(Boolean).join(' · ');
 
   return (
-    <button
-      type="button"
-      className="home-list-gate__social-rotator"
-      onClick={() => onPartyClick(party)}
-      aria-label={isEn ? `Open ${title}` : `${title} 보기`}
-    >
-      <span className="home-list-gate__social-rotator-badge">
-        {isEn ? 'Today social' : '오늘소셜'}
-      </span>
-      <span key={party.id} className="home-list-gate__social-rotator-title">{title}</span>
-      {meta ? <span className="home-list-gate__social-rotator-meta">{meta}</span> : null}
-      <span className="home-list-gate__social-rotator-foot">
-        {parties.length > 1 ? (
-          <span className="home-list-gate__social-rotator-count">
-            {activeIndex + 1}/{parties.length}
-          </span>
-        ) : null}
-        <span className="home-list-gate__social-rotator-cta">
-          {isEn ? 'View' : '보러가기'}
-          <ChevronRight size={14} aria-hidden />
+    <div className="home-list-gate__social-rotator-wrap">
+      <button
+        type="button"
+        className="home-list-gate__social-rotator"
+        onClick={() => onPartyClick(party)}
+        aria-label={isEn ? `Open ${title}` : `${title} 보기`}
+      >
+        <span className="home-list-gate__social-rotator-live" aria-hidden />
+        <span className="home-list-gate__social-rotator-copy">
+          <span key={party.id} className="home-list-gate__social-rotator-title">{title}</span>
+          {meta ? <span className="home-list-gate__social-rotator-meta">{meta}</span> : null}
         </span>
-      </span>
-    </button>
+        <ChevronRight size={18} className="home-list-gate__social-rotator-chevron" aria-hidden />
+      </button>
+
+      {parties.length > 1 ? (
+        <div className="home-list-gate__social-dots" aria-hidden>
+          {parties.map((p, index) => (
+            <span
+              key={p.id}
+              className={`home-list-gate__social-dot${index === activeIndex ? ' is-active' : ''}`}
+            />
+          ))}
+        </div>
+      ) : null}
+    </div>
   );
 }
