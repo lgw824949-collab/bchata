@@ -43,27 +43,20 @@ export type HomeListGateProps = {
   getPartyVenue: (party: HomeDarkParty) => string;
 };
 
-type MoreRowProps = {
-  emoji: string;
+type CatTileProps = {
   label: string;
-  sub?: string;
   count: number;
   onClick: () => void;
-  isEn: boolean;
 };
 
-function HomeListMoreRow({ emoji, label, sub, count, onClick, isEn }: MoreRowProps) {
+function HomeListCatTile({ label, count, onClick }: CatTileProps) {
   if (count <= 0) return null;
   return (
-    <button type="button" className="home-list-gate__more-row" onClick={onClick}>
-      <span className="home-list-gate__more-row-emoji" aria-hidden>{emoji}</span>
-      <span className="home-list-gate__more-row-text">
-        <span className="home-list-gate__more-row-label">{label}</span>
-        {sub ? <span className="home-list-gate__more-row-sub">{sub}</span> : null}
-      </span>
-      <span className="home-list-gate__more-row-meta">
-        <span className="home-list-gate__more-row-count">{count}</span>
-        <ChevronRight size={16} aria-hidden />
+    <button type="button" className="home-list-gate__cat-tile" onClick={onClick}>
+      <span className="home-list-gate__cat-tile-label">{label}</span>
+      <span className="home-list-gate__cat-tile-meta">
+        <span className="home-list-gate__cat-tile-count">{count}</span>
+        <ChevronRight size={14} aria-hidden />
       </span>
     </button>
   );
@@ -107,24 +100,21 @@ export default function HomeListGate({
         onMore={() => setMoreOpen(true)}
       />
 
-      <HomeDarkRegionPills
-        pills={regionPills}
-        activeId={regionPill}
-        counts={regionPillCounts}
-        isEn={isEn}
-        onChange={onRegionPillChange}
-      />
+      <div className="home-list-gate__toolbar">
+        <HomeDarkRegionPills
+          pills={regionPills}
+          activeId={regionPill}
+          counts={regionPillCounts}
+          isEn={isEn}
+          onChange={onRegionPillChange}
+        />
+      </div>
 
-      <section className="home-list-gate__section" aria-label={isEn ? "Today's social" : '오늘소셜'}>
-        <div className="home-list-gate__section-head">
-          <div>
-            <h2 className="home-list-gate__section-title">
-              {isEn ? "Today's social" : '오늘소셜'}
-            </h2>
-            <p className="home-list-gate__section-sub">
-              {isEn ? 'Parties tonight — scroll to browse' : '오늘 밤 갈 곳 — 아래로 스크롤'}
-            </p>
-          </div>
+      <section className="home-list-gate__panel" aria-label={isEn ? "Today's home feed" : '오늘밤빠 홈'}>
+        <div className="home-list-gate__panel-head">
+          <h2 className="home-list-gate__section-title">
+            {isEn ? "Today's social" : '오늘소셜'}
+          </h2>
           <button type="button" className="home-list-gate__section-action" onClick={onViewAllSocial}>
             {isEn ? 'Calendar' : '달력'}
             <ChevronRight size={14} aria-hidden />
@@ -152,52 +142,40 @@ export default function HomeListGate({
             ))}
           </div>
         )}
-      </section>
 
-      <section className="home-list-gate__section home-list-gate__section--secondary" aria-label={isEn ? 'More categories' : '더보기'}>
-        <h2 className="home-list-gate__section-title home-list-gate__section-title--sm">
-          {isEn ? 'More tonight' : '밤빠 더보기'}
-        </h2>
-        <div className="home-list-gate__more-list">
-          <HomeListMoreRow
-            emoji="🏕️"
+        <div className="home-list-gate__panel-divider" aria-hidden />
+
+        <div className="home-list-gate__panel-head home-list-gate__panel-head--sub">
+          <h2 className="home-list-gate__section-title home-list-gate__section-title--sm">
+            {isEn ? 'More tonight' : '밤빠 더보기'}
+          </h2>
+        </div>
+
+        <div className="home-list-gate__cat-grid">
+          <HomeListCatTile
             label={isEn ? 'Bootcamp' : '부트캠프'}
-            sub={isEn ? 'Workshops & camps' : '워크샵 · 캠프'}
             count={bootcampCount}
             onClick={onOpenBootcamp}
-            isEn={isEn}
           />
-          <HomeListMoreRow
-            emoji="🎪"
+          <HomeListCatTile
             label={isEn ? 'Festival' : '페스티벌'}
-            sub={isEn ? 'Festivals & MT' : '페스티벌 · MT'}
             count={festivalCount}
             onClick={onOpenFestival}
-            isEn={isEn}
           />
-          <HomeListMoreRow
-            emoji="🥳"
+          <HomeListCatTile
             label={isEn ? 'Party events' : '파티 행사'}
-            sub={isEn ? 'Large events' : '대형 행사'}
             count={partyEventCount}
             onClick={onOpenPartyEvents}
-            isEn={isEn}
           />
-          <HomeListMoreRow
-            emoji="⭐"
+          <HomeListCatTile
             label={isEn ? 'Instructors' : '강사'}
-            sub={isEn ? 'Find a pro' : '강사 찾기'}
             count={instructorCount}
             onClick={onOpenInstructors}
-            isEn={isEn}
           />
-          <HomeListMoreRow
-            emoji="🌴"
+          <HomeListCatTile
             label={isEn ? 'Social BAR' : '소셜 BAR'}
-            sub={isEn ? 'Map & venues' : '지도 · BAR'}
             count={barCount}
             onClick={onOpenBarMap}
-            isEn={isEn}
           />
         </div>
       </section>

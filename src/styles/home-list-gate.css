@@ -8,16 +8,16 @@
 .home-list-gate {
   display: flex;
   flex-direction: column;
-  gap: 0;
+  gap: 10px;
   width: 100%;
   min-width: 0;
-  padding: 8px 16px 24px;
+  padding: 8px 16px 28px;
   box-sizing: border-box;
 }
 
 /* 헤더 — 라이트 */
 .home-list-gate .home-dark-header {
-  padding: 4px 0 10px;
+  padding: 4px 0 0;
 }
 
 .home-list-gate .home-dark-header__title {
@@ -41,9 +41,13 @@
   color: #191f28;
 }
 
-/* 지역 필 — 라이트 */
+/* 지역 필 */
+.home-list-gate__toolbar {
+  margin: 0 -4px;
+}
+
 .home-list-gate .home-dark-region-pills {
-  padding: 4px 0 12px;
+  padding: 0;
 }
 
 .home-list-gate .home-dark-region-pill {
@@ -60,37 +64,38 @@
   box-shadow: 0 4px 14px rgba(229, 57, 53, 0.22);
 }
 
-/* 섹션 */
-.home-list-gate__section {
-  margin-bottom: 8px;
+/* 통합 패널 — 오늘소셜 + 더보기 한 박스 */
+.home-list-gate__panel {
+  background: #fff;
+  border: 1px solid #e8ebed;
+  border-radius: 16px;
+  overflow: hidden;
 }
 
-.home-list-gate__section-head {
+.home-list-gate__panel-head {
   display: flex;
-  align-items: flex-start;
+  align-items: center;
   justify-content: space-between;
   gap: 12px;
-  padding: 8px 0 10px;
+  padding: 14px 16px 10px;
+}
+
+.home-list-gate__panel-head--sub {
+  padding: 12px 16px 8px;
 }
 
 .home-list-gate__section-title {
   margin: 0;
-  font-size: 18px;
+  font-size: 17px;
   font-weight: 800;
   letter-spacing: -0.03em;
   color: #191f28;
 }
 
 .home-list-gate__section-title--sm {
-  font-size: 15px;
-  padding: 12px 0 8px;
-}
-
-.home-list-gate__section-sub {
-  margin: 4px 0 0;
-  font-size: 12px;
-  font-weight: 600;
-  color: rgba(30, 41, 59, 0.5);
+  font-size: 14px;
+  font-weight: 700;
+  color: #4b5563;
 }
 
 .home-list-gate__section-action {
@@ -98,29 +103,37 @@
   display: inline-flex;
   align-items: center;
   gap: 2px;
-  padding: 6px 10px;
+  padding: 5px 10px;
   border-radius: 999px;
   border: 1px solid #e8ebed;
-  background: #fff;
-  color: #191f28;
+  background: #f8fafc;
+  color: #64748b;
   font-size: 12px;
   font-weight: 700;
   cursor: pointer;
 }
 
-/* 파티 리스트 — 네이버형 row 카드 */
+.home-list-gate__panel-divider {
+  height: 8px;
+  background: #f5f6f8;
+  border-top: 1px solid #f0f2f5;
+  border-bottom: 1px solid #f0f2f5;
+}
+
+/* 파티 리스트 — 한 박스 안 구분선 */
 .home-list-gate__list {
   display: flex;
   flex-direction: column;
-  background: #fff;
-  border: 1px solid #e8ebed;
-  border-radius: 14px;
-  overflow: hidden;
 }
 
 .home-list-gate__list .party-card--row {
+  align-items: flex-start;
+  gap: 14px;
+  margin: 0;
+  padding: 12px 16px;
+  border-radius: 0;
+  box-shadow: none;
   border-bottom: 1px solid #f0f2f5;
-  padding: 14px 16px;
   background: #fff;
 }
 
@@ -128,91 +141,87 @@
   border-bottom: none;
 }
 
+.home-list-gate__list .party-card__thumb {
+  width: 88px;
+  border-radius: 10px;
+}
+
+.home-list-gate__list .party-card__content {
+  gap: 6px;
+  padding-top: 2px;
+}
+
+.home-list-gate__list .party-card__meta-row--row {
+  margin-top: 0;
+  flex-wrap: wrap;
+}
+
+.home-list-gate__list .party-card__fee--row {
+  margin-top: 2px;
+}
+
 .home-list-gate__empty {
-  padding: 36px 20px;
-  border-radius: 14px;
+  margin: 0 16px 16px;
+  padding: 32px 16px;
+  border-radius: 12px;
   border: 1px dashed #e2e8f0;
-  background: #fff;
+  background: #f8fafc;
   text-align: center;
   font-size: 13px;
   font-weight: 700;
   color: rgba(30, 41, 59, 0.5);
 }
 
-/* 더보기 행 */
-.home-list-gate__section--secondary {
-  margin-top: 8px;
+/* 더보기 — 2열 그리드 */
+.home-list-gate__cat-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+  padding: 0 12px 12px;
 }
 
-.home-list-gate__more-list {
-  display: flex;
-  flex-direction: column;
-  background: #fff;
-  border: 1px solid #e8ebed;
-  border-radius: 14px;
-  overflow: hidden;
-}
-
-.home-list-gate__more-row {
+.home-list-gate__cat-tile {
   display: flex;
   align-items: center;
-  gap: 12px;
-  width: 100%;
-  padding: 14px 16px;
-  border: none;
-  border-bottom: 1px solid #f0f2f5;
-  background: #fff;
+  justify-content: space-between;
+  gap: 8px;
+  min-height: 44px;
+  padding: 10px 12px;
+  border: 1px solid #eef1f4;
+  border-radius: 12px;
+  background: #f8fafc;
   cursor: pointer;
   text-align: left;
 }
 
-.home-list-gate__more-row:last-child {
-  border-bottom: none;
+.home-list-gate__cat-tile:last-child:nth-child(odd) {
+  grid-column: 1 / -1;
 }
 
-.home-list-gate__more-row:active {
-  background: #f8fafc;
+.home-list-gate__cat-tile:active {
+  background: #f1f5f9;
 }
 
-.home-list-gate__more-row-emoji {
-  font-size: 22px;
-  line-height: 1;
-  flex-shrink: 0;
-}
-
-.home-list-gate__more-row-text {
-  flex: 1;
-  min-width: 0;
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-}
-
-.home-list-gate__more-row-label {
-  font-size: 15px;
-  font-weight: 800;
+.home-list-gate__cat-tile-label {
+  font-size: 14px;
+  font-weight: 700;
   color: #191f28;
 }
 
-.home-list-gate__more-row-sub {
-  font-size: 11px;
-  font-weight: 600;
-  color: rgba(30, 41, 59, 0.45);
-}
-
-.home-list-gate__more-row-meta {
+.home-list-gate__cat-tile-meta {
   display: inline-flex;
   align-items: center;
   gap: 2px;
   flex-shrink: 0;
-  color: rgba(30, 41, 59, 0.45);
+  color: #94a3b8;
 }
 
-.home-list-gate__more-row-count {
-  min-width: 20px;
-  padding: 2px 7px;
+.home-list-gate__cat-tile-count {
+  min-width: 18px;
+  padding: 1px 6px;
   border-radius: 999px;
-  background: #f1f5f9;
+  background: #fff;
+  border: 1px solid #e2e8f0;
   font-size: 11px;
   font-weight: 800;
   color: #64748b;
