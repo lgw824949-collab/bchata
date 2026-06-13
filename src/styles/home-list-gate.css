@@ -3,9 +3,6 @@
 .home-list-shell {
   background: #f5f6f8 !important;
   color: #191f28;
-  /* 하단 네비 여백은 [data-bchata-app-root]에서 처리 — 중복 패딩 방지 */
-  padding-bottom: 0 !important;
-  min-height: auto !important;
 }
 
 .home-list-gate {
@@ -14,7 +11,7 @@
   gap: 24px;
   width: 100%;
   min-width: 0;
-  padding: 12px 16px calc(12px + env(safe-area-inset-bottom, 0px));
+  padding: 12px 16px 32px;
   box-sizing: border-box;
 }
 
@@ -344,7 +341,6 @@
 .home-list-gate__photo-menu {
   width: 100%;
   min-width: 0;
-  margin-bottom: 0;
 }
 
 .home-list-gate__photo-menu-scroll {

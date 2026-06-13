@@ -3018,15 +3018,7 @@ const HomePage = ({
   return (
     <div
       className={`app-container${isHomeGate ? ' home-list-shell' : ''}${activeTab === 'social' ? ' social-tab-active' : ''}`}
-      style={{
-        width: '100%',
-        maxWidth: '500px',
-        margin: '0 auto',
-        background: homeUi.pageBg,
-        minHeight: '100dvh',
-        paddingBottom: isHomeGate ? undefined : '100px',
-        transition: 'background 0.25s ease',
-      }}
+      style={{ width: '100%', maxWidth: '500px', margin: '0 auto', background: homeUi.pageBg, minHeight: '100dvh', paddingBottom: '100px', transition: 'background 0.25s ease' }}
     >
 
       {activeTab === 'social' && (
