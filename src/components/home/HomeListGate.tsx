@@ -42,6 +42,7 @@ export type HomeListGateProps = {
   sortByNearest: boolean;
   onBarRegionTabChange: (tab: string) => void;
   onBarClick: (bar: HomeDarkBar) => void;
+  onRequestLocation: () => void;
   onAdminTap: () => void;
   onSearch: () => void;
   onOpenWishlist: () => void;
@@ -84,7 +85,6 @@ export default function HomeListGate({
   onOpenPartyEvents,
   onOpenInstructors,
   onOpenBarMap,
-  barCount,
   socialBarRegionTabs,
   selectedBarRegionTab,
   barRegionCounts,
@@ -98,6 +98,7 @@ export default function HomeListGate({
   sortByNearest,
   onBarRegionTabChange,
   onBarClick,
+  onRequestLocation,
   onAdminTap,
   onSearch,
   onOpenWishlist,
@@ -116,6 +117,9 @@ export default function HomeListGate({
       />
 
       <div className="home-list-gate__toolbar">
+        <p className="home-list-gate__section-caption">
+          {isEn ? "Today's social · by region" : '오늘소셜 · 지역별'}
+        </p>
         <HomeDarkRegionPills
           pills={regionPills}
           activeId={regionPill}
@@ -164,6 +168,7 @@ export default function HomeListGate({
         onTabChange={onBarRegionTabChange}
         onBarClick={onBarClick}
         onViewMap={onOpenBarMap}
+        onRequestLocation={onRequestLocation}
       />
 
       <nav className="home-list-gate__nav-chips" aria-label={isEn ? 'More categories' : '밤빠 더보기'}>
@@ -186,11 +191,6 @@ export default function HomeListGate({
           label={isEn ? 'Instructors' : '강사'}
           count={instructorCount}
           onClick={onOpenInstructors}
-        />
-        <HomeListNavChip
-          label={isEn ? 'BAR' : 'BAR'}
-          count={barCount}
-          onClick={onOpenBarMap}
         />
       </nav>
 

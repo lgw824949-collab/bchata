@@ -2147,6 +2147,34 @@ const HomePage = ({
     i18n.changeLanguage(next);
   }, [i18n]);
 
+  const requestUserLocation = useCallback(() => {
+    if (!navigator.geolocation) {
+      setGeoRegionStatus('denied');
+      return;
+    }
+    setGeoRegionStatus('pending');
+    navigator.geolocation.getCurrentPosition(
+      (pos) => {
+        writeCachedCoords(pos.coords.latitude, pos.coords.longitude);
+        setUserGeoCoords({ lat: pos.coords.latitude, lng: pos.coords.longitude });
+        const region = pickNearestSocialBarRegion(pos.coords.latitude, pos.coords.longitude);
+        if (region && SOCIAL_BAR_GEO_REGIONS.includes(region)) {
+          setGeoRegionStatus('ready');
+          setGeoRegionTab(region);
+          setSelectedRegionTab(region);
+        } else {
+          setGeoRegionStatus('denied');
+          setGeoRegionTab(null);
+        }
+      },
+      () => {
+        setGeoRegionStatus('denied');
+        setGeoRegionTab(null);
+      },
+      { enableHighAccuracy: false, timeout: 8000, maximumAge: 5 * 60 * 1000 },
+    );
+  }, []);
+
   const { gateProps: homeListGateProps } = useHomeListGateProps({
     isEn,
     translateDynamicText,
@@ -2168,6 +2196,7 @@ const HomePage = ({
     geoRegionStatus,
     socialBarRegionAll: SOCIAL_BAR_REGION_ALL,
     userGeoCoords,
+    requestUserLocation,
     sortBarsForSocialBarTab,
     openPartyWithAfterParty,
     openBootcampPage,

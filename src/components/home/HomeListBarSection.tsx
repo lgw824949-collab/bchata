@@ -22,6 +22,7 @@ type HomeListBarSectionProps = {
   onTabChange: (tab: string) => void;
   onBarClick: (bar: HomeDarkBar) => void;
   onViewMap: () => void;
+  onRequestLocation: () => void;
 };
 
 export default function HomeListBarSection({
@@ -40,8 +41,11 @@ export default function HomeListBarSection({
   onTabChange,
   onBarClick,
   onViewMap,
+  onRequestLocation,
 }: HomeListBarSectionProps) {
   if (regionTabs.length === 0 && !loading) return null;
+
+  const nearestDistance = sortByNearest && bars.length > 0 ? getDistanceLabel(bars[0]) : null;
 
   const statusText = geoPending
     ? (isEn ? 'Finding your area…' : '현재 위치 기준 지역을 확인하는 중...')
@@ -56,22 +60,42 @@ export default function HomeListBarSection({
   return (
     <section className="home-list-gate__panel home-list-gate__bar-panel" aria-label={isEn ? 'Venue BAR' : '업체 BAR'}>
       <div className="home-list-gate__panel-head">
-        <h2 className="home-list-gate__section-title">
-          {isEn ? 'Venue BAR' : '업체 BAR'}
-          {selectedTab && barCounts[selectedTab] != null ? (
-            <span className="home-list-gate__section-count">{barCounts[selectedTab]}</span>
-          ) : null}
-        </h2>
+        <div className="home-list-gate__panel-head-copy">
+          <p className="home-list-gate__section-caption">
+            {isEn ? 'Venue BAR · nearest first' : '업체 BAR · 가까운 순'}
+          </p>
+          <h2 className="home-list-gate__section-title">
+            {isEn ? 'Venue BAR' : '업체 BAR'}
+            {selectedTab && barCounts[selectedTab] != null ? (
+              <span className="home-list-gate__section-count">{barCounts[selectedTab]}</span>
+            ) : null}
+          </h2>
+        </div>
         <button type="button" className="home-list-gate__section-action" onClick={onViewMap}>
           {isEn ? 'Map' : '지도'}
           <ChevronRight size={14} aria-hidden />
         </button>
       </div>
 
-      {sortByNearest ? (
+      {sortByNearest && selectedTab ? (
         <p className="home-list-gate__bar-hint">
-          {isEn ? 'Sorted by distance from you' : '내 위치 기준 가까운 순'}
+          {nearestDistance
+            ? (isEn
+              ? `${selectedTab} · nearest ${nearestDistance}`
+              : `${selectedTab} · 가장 가까운 곳 ${nearestDistance}`)
+            : (isEn
+              ? `${selectedTab} · sorted by distance`
+              : `${selectedTab} · 내 위치 기준 가까운 순`)}
         </p>
+      ) : !geoPending && !loading ? (
+        <div className="home-list-gate__bar-hint-row">
+          <p className="home-list-gate__bar-hint home-list-gate__bar-hint--muted">
+            {isEn ? 'Allow location to sort by nearest BAR' : '위치 허용하면 가까운 BAR부터 보여드려요'}
+          </p>
+          <button type="button" className="home-list-gate__bar-locate-btn" onClick={onRequestLocation}>
+            {isEn ? 'Allow' : '위치 허용'}
+          </button>
+        </div>
       ) : null}
 
       {regionTabs.length > 0 ? (
@@ -103,21 +127,25 @@ export default function HomeListBarSection({
       {statusText ? (
         <p className="home-list-gate__bar-status">{statusText}</p>
       ) : (
-        <div className="home-list-gate__bar-scroll-wrap">
+        <div className="home-list-gate__bar-scroll-wrap home-list-gate__bar-scroll-wrap--peek">
           <div className="home-list-gate__bar-scroll" role="list">
             {bars.map((bar, index) => {
               const coverSrc = getCoverPhoto(bar) || BAR_LOGO_FALLBACK;
               const eventCount = getEventCount(bar);
               const distanceLabel = getDistanceLabel(bar);
               const isNearest = sortByNearest && index === 0 && Boolean(distanceLabel);
-              const isMyRegion = Boolean(geoRegionTab && bar.region === geoRegionTab);
+              const district = formatBarDistrictLabel(bar);
+              const partyLine = eventCount > 0
+                ? (isEn ? `${eventCount} tonight` : `오늘 ${eventCount}건`)
+                : (isEn ? 'No party' : '오늘 없음');
+              const restMeta = [partyLine, district].filter(Boolean).join(' · ');
 
               return (
                 <button
                   key={bar.id}
                   type="button"
                   role="listitem"
-                  className={`home-list-gate__bar-card${isNearest ? ' is-nearest' : ''}${isMyRegion ? ' is-my-region' : ''}`}
+                  className={`home-list-gate__bar-card${isNearest ? ' is-nearest' : ''}`}
                   onClick={() => onBarClick(bar)}
                 >
                   {isNearest ? (
@@ -135,15 +163,15 @@ export default function HomeListBarSection({
                     />
                   </span>
                   <span className="home-list-gate__bar-name">{bar.name || (isEn ? 'Unnamed' : '이름 없음')}</span>
-                  {distanceLabel ? (
-                    <span className="home-list-gate__bar-distance">{distanceLabel}</span>
+                  {distanceLabel || restMeta ? (
+                    <span className={`home-list-gate__bar-compact${eventCount > 0 ? ' is-live' : ''}`}>
+                      {distanceLabel ? (
+                        <span className="home-list-gate__bar-compact-dist">{distanceLabel}</span>
+                      ) : null}
+                      {distanceLabel && restMeta ? ' · ' : null}
+                      {restMeta}
+                    </span>
                   ) : null}
-                  <span className={`home-list-gate__bar-meta${eventCount > 0 ? ' is-live' : ''}`}>
-                    {eventCount > 0
-                      ? (isEn ? `Tonight ${eventCount}` : `오늘 ${eventCount}건`)
-                      : (isEn ? 'No party tonight' : '오늘 파티 없음')}
-                  </span>
-                  <span className="home-list-gate__bar-district">{formatBarDistrictLabel(bar)}</span>
                 </button>
               );
             })}
