@@ -53,8 +53,8 @@ export function buildHomeDarkMoreActions(input: BuildHomeDarkMoreActionsInput): 
   return [
     {
       id: 'party-register',
-      labelKo: '소셜 등록',
-      labelEn: 'Post social',
+      labelKo: '파티 등록',
+      labelEn: 'Post party',
       icon: Music2,
       tier: 'primary',
       onClick: onRegisterParty,

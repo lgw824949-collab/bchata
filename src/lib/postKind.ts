@@ -109,22 +109,22 @@ function ok(): ValidationResult {
   return { ok: true };
 }
 
-/** RegisterForm — parties / 오늘소셜 전용 */
+/** RegisterForm — parties / BAR·정기 포스터 등록 전용 */
 export function validateSocialPartyRegistration(fields: PostKindFields): ValidationResult {
   const text = combineText(fields.title, fields.description);
   if (matchesAny(text, BOOTCAMP_PATTERNS)) {
-    return fail('부트캠프는 [부트캠프] 메뉴에서만 등록할 수 있습니다. 오늘소셜 등록에는 올릴 수 없어요.');
+    return fail('부트캠프는 [부트캠프] 메뉴에서만 등록할 수 있습니다. 파티 등록(포스터)에는 올릴 수 없어요.');
   }
   if (matchesAny(text, FESTIVAL_MT_PATTERNS)) {
-    return fail('페스티벌·MT는 [페스티벌] 메뉴에서만 등록할 수 있습니다. 오늘소셜 등록에는 올릴 수 없어요.');
+    return fail('페스티벌·MT는 [페스티벌] 메뉴에서만 등록할 수 있습니다. 파티 등록(포스터)에는 올릴 수 없어요.');
   }
   if (matchesAny(text, PARTY_EVENT_PATTERNS)) {
-    return fail('행사·주년 파티는 [파티] 메뉴에서만 등록할 수 있습니다. 오늘소셜 등록에는 올릴 수 없어요.');
+    return fail('행사·주년 파티는 [페스티벌 > 파티] 메뉴에서만 등록할 수 있습니다. 여기와는 다릅니다.');
   }
   if (!matchesAny(text, SOCIAL_NIGHTLY_PATTERNS)) {
     if (fields.is_weekly_recurring) return ok();
     return fail(
-      '제목에 소셜·맛집·정모·나이트파티 중 하나를 넣어 주세요. (예: [강남] ○○바 소셜 맛집) 매주 고정 BAR 소셜은 「매주 고정」을 선택하면 됩니다.',
+      '제목에 맛집·정모·나이트파티 중 하나를 넣어 주세요. (예: [강남] ○○바 맛집) 매주 고정은 「매주 고정」을 선택하면 됩니다.',
     );
   }
   return ok();

@@ -19,7 +19,7 @@ const METRO_REGIONS = ['서울', '인천', '경기', '부산', '대구', '광주
 
 const TITLE_EXAMPLES = [
   "[강남] 라틴클럽 바차타 맛집 ㅣ 오늘밤빠",
-  "[홍대] 홍턴 외국인의 성지 소셜파티 ㅣ 오늘밤빠",
+  "[홍대] 홍턴 외국인의 성지 맛집 ㅣ 오늘밤빠",
   "[청주] 살사사랑 화요일 정모 맛집 ㅣ 오늘밤빠",
   "[대구] 바야 구라짱이랑 놀자! 라틴 성지 ㅣ 오늘밤빠"
 ];
@@ -998,7 +998,7 @@ const RegisterForm = ({ onBack, onSuccess, isEdit = false, isAdminMode = false, 
               ) : null}
               {formData.is_weekly_recurring ? (
                 <p style={{ marginTop: '8px', fontSize: '12px', fontWeight: 600, color: '#94A3B8', lineHeight: 1.5 }}>
-                  달력에서 해당 요일 아무 날짜나 고르면 됩니다. 예: 화요일 소셜 → 아무 화요일 1개 선택.
+                  달력에서 해당 요일 아무 날짜나 고르면 됩니다. 예: 매주 화요일 → 아무 화요일 1개 선택.
                 </p>
               ) : null}
             </div>
