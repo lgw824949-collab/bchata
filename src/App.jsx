@@ -42,20 +42,21 @@ import PartyWishlistHeart from './components/PartyWishlistHeart'
 import { usePartyWishlist } from './hooks/usePartyWishlist'
 import { BAR_DATABASE, findBarByName } from './data/barDatabase'
 import i18nCore from './i18n'
-import HomePage from './pages/Home'
-import Instructors from './pages/Instructors'
-import Bootcamp from './pages/Bootcamp'
-import Festival from './pages/Festival'
-import PartnerModal from './components/PartnerModal'
-import WishlistModal from './components/WishlistModal'
-import RentalModal from './components/RentalModal'
-import ClassRegisterModal from './components/ClassRegisterModal'
-import StudentManagementModal from './components/StudentManagementModal'
-import RevenueSummaryModal from './components/RevenueSummaryModal'
-import MyClassScheduleModal from './components/MyClassScheduleModal'
-import InstructorProfileStatsModal from './components/InstructorProfileStatsModal'
-import LessonRegisterChoiceModal from './components/LessonRegisterChoiceModal'
-import ChatBot from './components/ChatBot'
+
+const HomePage = lazy(() => import('./pages/Home'))
+const Instructors = lazy(() => import('./pages/Instructors'))
+const Bootcamp = lazy(() => import('./pages/Bootcamp'))
+const Festival = lazy(() => import('./pages/Festival'))
+const PartnerModal = lazy(() => import('./components/PartnerModal'))
+const WishlistModal = lazy(() => import('./components/WishlistModal'))
+const RentalModal = lazy(() => import('./components/RentalModal'))
+const ClassRegisterModal = lazy(() => import('./components/ClassRegisterModal'))
+const StudentManagementModal = lazy(() => import('./components/StudentManagementModal'))
+const RevenueSummaryModal = lazy(() => import('./components/RevenueSummaryModal'))
+const MyClassScheduleModal = lazy(() => import('./components/MyClassScheduleModal'))
+const InstructorProfileStatsModal = lazy(() => import('./components/InstructorProfileStatsModal'))
+const LessonRegisterChoiceModal = lazy(() => import('./components/LessonRegisterChoiceModal'))
+const ChatBot = lazy(() => import('./components/ChatBot'))
 
 const RegisterForm = lazy(() => import('./RegisterForm'))
 const AdminDashboard = lazy(() => import('./AdminDashboard'))
@@ -95,6 +96,21 @@ const LoadingFallback = () => (
     <p style={{ color: '#94A3B8', fontSize: '14px', fontWeight: 600 }}>잠시만 기다려주세요...</p>
   </div>
 );
+
+const TabPanelFallback = () => (
+  <div style={{ minHeight: '40vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+    <motion.div animate={{ rotate: 360 }} transition={{ duration: 1, repeat: Infinity, ease: 'linear' }}>
+      <Loader2 size={28} color="#FF1744" />
+    </motion.div>
+  </div>
+);
+
+const resolveMainTabKey = (currentView) => {
+  if (currentView === 'bootcamp' || currentView === 'bootcamp-register') return 'bootcamp';
+  if (currentView === 'instructors') return 'instructors';
+  if (currentView === 'festival' || currentView === 'festival-register') return 'festival';
+  return 'home';
+};
 
 const ADMIN_SHELL_VIEWS = new Set(['admin', 'admin-portal']);
 
@@ -1070,6 +1086,29 @@ function App() {
     const path = window.location.pathname;
     return viewForPath(path, state);
   });
+  const mainTabKey = useMemo(() => resolveMainTabKey(view), [view]);
+  const [mountedMainTabs, setMountedMainTabs] = useState(() => {
+    const initialView = viewForPath(window.location.pathname, restoreNavigationOnLoad().state);
+    return { [resolveMainTabKey(initialView)]: true };
+  });
+
+  useEffect(() => {
+    setMountedMainTabs((prev) => (prev[mainTabKey] ? prev : { ...prev, [mainTabKey]: true }));
+  }, [mainTabKey]);
+
+  useEffect(() => {
+    const prefetch = () => {
+      import('./pages/Bootcamp');
+      import('./pages/Festival');
+      import('./pages/Instructors');
+    };
+    if (typeof window.requestIdleCallback === 'function') {
+      const id = window.requestIdleCallback(prefetch, { timeout: 5000 });
+      return () => window.cancelIdleCallback(id);
+    }
+    const timer = window.setTimeout(prefetch, 2500);
+    return () => window.clearTimeout(timer);
+  }, []);
 
   useEffect(() => {
     const onRegisterParty = location.pathname === '/register-party' || view === 'register-party'
@@ -2878,65 +2917,55 @@ function App() {
           <>
           <div className="bchata-tab-panels">
 
-          <div className="bchata-tab-panel" data-active={view === 'home'} aria-hidden={view !== 'home'}>
-
-            <HomePage {...sharedProps} />
-
+          {mountedMainTabs.home ? (
+          <div className="bchata-tab-panel" data-active={mainTabKey === 'home'} aria-hidden={mainTabKey !== 'home'}>
+            <Suspense fallback={<TabPanelFallback />}>
+              <HomePage {...sharedProps} />
+            </Suspense>
           </div>
+          ) : null}
 
+          {mountedMainTabs.bootcamp ? (
           <div
-
             className="bchata-tab-panel"
-
-            data-active={view === 'bootcamp' || view === 'bootcamp-register'}
-
-            aria-hidden={view !== 'bootcamp' && view !== 'bootcamp-register'}
-
+            data-active={mainTabKey === 'bootcamp'}
+            aria-hidden={mainTabKey !== 'bootcamp'}
           >
-
+            <Suspense fallback={<TabPanelFallback />}>
             <Bootcamp
-
               onBack={goBack}
-
               initialView={view === 'bootcamp-register' ? 'register' : 'list'}
-
               cachedBootcamps={bootcamps}
-
               onBootcampsRefresh={setBootcamps}
-
             />
-
+            </Suspense>
           </div>
+          ) : null}
 
-          <div className="bchata-tab-panel" data-active={view === 'instructors'} aria-hidden={view !== 'instructors'}>
-
+          {mountedMainTabs.instructors ? (
+          <div className="bchata-tab-panel" data-active={mainTabKey === 'instructors'} aria-hidden={mainTabKey !== 'instructors'}>
+            <Suspense fallback={<TabPanelFallback />}>
             <Instructors onOpenVipMaster={openVipMasterFlow} cachedInstructors={instructorsCache} />
-
+            </Suspense>
           </div>
+          ) : null}
 
+          {mountedMainTabs.festival ? (
           <div
-
             className="bchata-tab-panel"
-
-            data-active={view === 'festival' || view === 'festival-register'}
-
-            aria-hidden={view !== 'festival' && view !== 'festival-register'}
-
+            data-active={mainTabKey === 'festival'}
+            aria-hidden={mainTabKey !== 'festival'}
           >
-
+            <Suspense fallback={<TabPanelFallback />}>
             <Festival
-
               onBack={goBack}
-
               initialRegister={view === 'festival-register'}
-
               cachedFestivals={festivals}
-
               onFestivalsRefresh={setFestivals}
-
             />
-
+            </Suspense>
           </div>
+          ) : null}
 
         </div>
           <Suspense fallback={<LoadingFallback />}>
@@ -2974,14 +3003,20 @@ function App() {
       </AnimatePresence>
       <AnimatePresence>
         {showWishlist && (
+          <Suspense fallback={null}>
           <WishlistModal
             onClose={closeModalWithHistory(() => setShowWishlist(false))}
             setSelectedPoster={enterPosterDetailView}
           />
+          </Suspense>
         )}
       </AnimatePresence>
       <AnimatePresence>
-        {showRentalModal && <RentalModal onClose={() => setShowRentalModal(false)} />}
+        {showRentalModal && (
+          <Suspense fallback={null}>
+            <RentalModal onClose={() => setShowRentalModal(false)} />
+          </Suspense>
+        )}
       </AnimatePresence>
 
       <AnimatePresence>
@@ -3177,8 +3212,11 @@ function App() {
     
     {/* [B] [포스터 확대 모달 - 컨테이너 외부 최상위 배치] */}
     {!isAdminShell && showPartner && (
-      <PartnerModal onClose={() => { if (!closeOverlay()) setShowPartner(false); }} />
+      <Suspense fallback={null}>
+        <PartnerModal onClose={() => { if (!closeOverlay()) setShowPartner(false); }} />
+      </Suspense>
     )}
+    <Suspense fallback={null}>
     <LessonRegisterChoiceModal
       isOpen={showLessonRegisterChoice}
       onClose={() => setShowLessonRegisterChoice(false)}
@@ -3187,7 +3225,9 @@ function App() {
       onPickVipInstructorClass={openVipMasterFlow}
       onPickInstructorProfile={() => historyNavigate('/register-class')}
     />
+    </Suspense>
     {showClassRegister && (
+      <Suspense fallback={null}>
       <ClassRegisterModal
         onClose={() => { if (!closeOverlay()) setShowClassRegister(false); }}
         instructorId={(() => {
@@ -3199,30 +3239,39 @@ function App() {
           }
         })()}
       />
+      </Suspense>
     )}
     {showStudentManager && (
+      <Suspense fallback={null}>
       <StudentManagementModal
         onClose={() => { if (!closeOverlay()) setShowStudentManager(false); }}
         instructorId={readVipInstructorSession()?.id || ''}
       />
+      </Suspense>
     )}
     {showRevenueStats && (
+      <Suspense fallback={null}>
       <RevenueSummaryModal
         onClose={() => { if (!closeOverlay()) setShowRevenueStats(false); }}
         instructorId={readVipInstructorSession()?.id || ''}
       />
+      </Suspense>
     )}
     {showClassSchedule && (
+      <Suspense fallback={null}>
       <MyClassScheduleModal
         onClose={() => { if (!closeOverlay()) setShowClassSchedule(false); }}
         instructorId={readVipInstructorSession()?.id || ''}
       />
+      </Suspense>
     )}
     {showProfileStats && (
+      <Suspense fallback={null}>
       <InstructorProfileStatsModal
         onClose={() => { if (!closeOverlay()) setShowProfileStats(false); }}
         instructorId={readVipInstructorSession()?.id || ''}
       />
+      </Suspense>
     )}
     {(view === 'register-class' || location.pathname === '/register-class') && (
       <div
@@ -3346,7 +3395,9 @@ function App() {
     </nav>
     )}
     {!isAdminShell && chatbotOverlay && (
-      <ChatBot key="chatbot-overlay-active" />
+      <Suspense fallback={null}>
+        <ChatBot key="chatbot-overlay-active" />
+      </Suspense>
     )}
     {exitToast ? (
       <motion.div

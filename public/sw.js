@@ -1,5 +1,5 @@
 /** 구 SW가 낡은 index.html·JS를 캐시해 빈 화면이 나는 문제 방지 — 캐시 전부 삭제 후 네트워크만 사용 */
-const CACHE = 'bchata-off-v31';
+const CACHE = 'bchata-off-v32';
 
 self.addEventListener('install', (event) => {
   self.skipWaiting();

@@ -1,4 +1,5 @@
 import { getKakaoApiKey } from './kakaoEnv';
+import { ensureKakaoSdk } from './loadKakaoSdk';
 import { resolveKakaoShareUrl, toPublicAbsoluteUrl } from './shareLinks';
 
 /** 카톡 공유 — Kakao SDK 피드 + 포스터 이미지 */
@@ -14,6 +15,13 @@ const kakaoLink = (url) => ({
 
 /** @returns {Promise<boolean>} */
 export const sharePartyToKakao = async ({ title, description, posterUrl, imageUrl, linkUrl, partyId }) => {
+  try {
+    await ensureKakaoSdk();
+  } catch {
+    window.alert('카카오 공유를 불러오지 못했습니다. 페이지를 새로고침 후 다시 시도해 주세요.');
+    return false;
+  }
+
   if (!window.Kakao) {
     window.alert('카카오 공유를 불러오지 못했습니다. 페이지를 새로고침 후 다시 시도해 주세요.');
     return false;

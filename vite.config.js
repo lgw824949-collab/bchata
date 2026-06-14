@@ -201,6 +201,10 @@ export default defineConfig(({ mode }) => {
         output: {
           manualChunks(id) {
             if (isReactVendorModule(id)) return REACT_VENDOR_CHUNK
+            if (id.includes('node_modules/@supabase')) return 'supabase'
+            if (id.includes('node_modules/framer-motion')) return 'framer-motion'
+            if (id.includes('node_modules/lucide-react')) return 'lucide'
+            if (id.includes('node_modules/i18next') || id.includes('node_modules/react-i18next')) return 'i18n'
           },
         },
       },
