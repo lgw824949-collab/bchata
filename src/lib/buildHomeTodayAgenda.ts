@@ -5,6 +5,7 @@ import { partyMatchesCalendarDate } from './partyRecurrence';
 import { formatPartyTitleDisplay } from './partyTitleDisplay';
 import { resolvePartyVenueName } from './partiesQuery';
 import { inferPartyRowSlot } from './postKind';
+import { getPartyGenreLabel } from './partyShareCard';
 
 export type HomeTodayAgendaKind = 'social' | 'bootcamp' | 'festival' | 'party';
 
@@ -14,6 +15,7 @@ export type HomeTodayAgendaItem = {
   kind: HomeTodayAgendaKind;
   kindLabelKo: string;
   kindLabelEn: string;
+  genreLabel: string;
   posterUrl: string;
   title: string;
   venue: string;
@@ -39,7 +41,7 @@ const KIND_ORDER: Record<HomeTodayAgendaKind, number> = {
 /** 메인 다가오는 일정 — 오늘 포함 N일 */
 export const UPCOMING_AGENDA_DAY_COUNT = 7;
 
-/** 홈 날짜 스트립 — 오늘부터 N일 */
+/** 홈 날짜 스트립 — 한 달 전체 */
 export const HOME_LIST_DATE_STRIP_DAY_COUNT = 14;
 
 /** @deprecated date strip shows full selected day */
@@ -60,6 +62,50 @@ export const buildUpcomingDateRange = (fromDateStr: string, dayCount = UPCOMING_
   return dates;
 };
 
+export const parseDateStrParts = (dateStr: string) => {
+  const normalized = normDate(dateStr);
+  const [year, month, day] = normalized.split('-').map((part) => Number(part));
+  return {
+    year: Number.isFinite(year) ? year : 0,
+    month: Number.isFinite(month) ? month : 0,
+    day: Number.isFinite(day) ? day : 0,
+  };
+};
+
+export const shiftMonth = (year: number, month: number, delta: number) => {
+  const base = new Date(year, month - 1 + delta, 1, 12, 0, 0);
+  return {
+    year: base.getFullYear(),
+    month: base.getMonth() + 1,
+  };
+};
+
+export const formatAgendaMonthLabel = (year: number, month: number, isEn: boolean) => (
+  isEn ? `${month}/${year}` : `${year}. ${month}.`
+);
+
+const parseRowGenres = (row: Record<string, unknown>) => {
+  if (Array.isArray(row.genre)) {
+    return row.genre.map((value) => String(value).trim()).filter(Boolean);
+  }
+  const raw = String(row.genre || '').trim();
+  if (!raw) return [];
+  return raw.split(/[,/·|]/).map((part) => part.trim()).filter(Boolean);
+};
+
+const resolveAgendaGenreLabel = (
+  row: Record<string, unknown>,
+  kind: HomeTodayAgendaKind,
+): string => {
+  const parsed = parseRowGenres(row);
+  if (parsed.length) return parsed.slice(0, 2).join(' · ');
+
+  const ratioLabel = getPartyGenreLabel(row as HomeDarkParty);
+  if (ratioLabel && ratioLabel !== '소셜') return ratioLabel;
+
+  return kind === 'social' ? '' : '';
+};
+
 const dedupeById = <T extends { id?: unknown }>(list: T[]): T[] => {
   const seen = new Set<unknown>();
   return list.filter((item) => {
@@ -75,11 +121,15 @@ const eventsOnDate = (
   list: Record<string, unknown>[],
   fullDate: string,
   activeStatus = 'active',
+  startDatesOnly = false,
 ) =>
   dedupeById(list || []).filter((row) => {
     if (row.status && row.status !== activeStatus) return false;
     const start = normDate(row.start_date || row.date);
     const end = normDate(row.end_date || row.start_date || row.date);
+    if (startDatesOnly) {
+      return start === fullDate;
+    }
     if (start && end && end !== start) {
       return fullDate >= start && fullDate <= end;
     }
@@ -140,6 +190,7 @@ const toAgendaItem = (
     ).trim();
   const clock = normalizeClock(row.start_time || row.time);
   const labels = KIND_LABELS[kind];
+  const genreLabel = resolveAgendaGenreLabel(row, kind);
 
   return {
     id,
@@ -147,6 +198,7 @@ const toAgendaItem = (
     kind,
     kindLabelKo: labels.ko,
     kindLabelEn: labels.en,
+    genreLabel,
     posterUrl,
     title: kind === 'social' ? formatPartyTitleDisplay(title) : title,
     venue,
@@ -170,6 +222,7 @@ type BuildHomeTodayAgendaInput = {
   parties: HomeDarkParty[] | null | undefined;
   bootcamps: Record<string, unknown>[] | null | undefined;
   festivals: Record<string, unknown>[] | null | undefined;
+  startDatesOnly?: boolean;
 };
 
 /** 오늘(또는 지정일) 소셜·부트캠프·페스·파티 — 해당 날짜 포스터 전부 */
@@ -178,6 +231,7 @@ export function buildHomeTodayAgenda({
   parties,
   bootcamps,
   festivals,
+  startDatesOnly = false,
 }: BuildHomeTodayAgendaInput): HomeTodayAgendaItem[] {
   const items: HomeTodayAgendaItem[] = [];
   const seenPosters = new Set<string>();
@@ -189,12 +243,12 @@ export function buildHomeTodayAgenda({
     return true;
   };
 
-  eventsOnDate(bootcamps || [], dateStr).forEach((row) => {
+  eventsOnDate(bootcamps || [], dateStr, 'active', startDatesOnly).forEach((row) => {
     const item = toAgendaItem(`bootcamp-${row.id}`, dateStr, 'bootcamp', row);
     if (item && rememberPoster(item.posterUrl)) items.push(item);
   });
 
-  eventsOnDate(festivals || [], dateStr).forEach((row) => {
+  eventsOnDate(festivals || [], dateStr, 'active', startDatesOnly).forEach((row) => {
     const kind = resolveFestivalKind(row);
     const item = toAgendaItem(`${kind}-${row.id}`, dateStr, kind, row);
     if (item && rememberPoster(item.posterUrl)) items.push(item);
@@ -238,7 +292,43 @@ type BuildHomeUpcomingAgendaInput = {
   parties: HomeDarkParty[] | null | undefined;
   bootcamps: Record<string, unknown>[] | null | undefined;
   festivals: Record<string, unknown>[] | null | undefined;
+  startDatesOnly?: boolean;
 };
+
+type BuildHomeAgendaMonthInput = {
+  year: number;
+  month: number;
+  parties: HomeDarkParty[] | null | undefined;
+  bootcamps: Record<string, unknown>[] | null | undefined;
+  festivals: Record<string, unknown>[] | null | undefined;
+  startDatesOnly?: boolean;
+};
+
+/** 해당 월 1일~말일 — 일정 없는 날 포함 */
+export function buildHomeAgendaMonthDays({
+  year,
+  month,
+  parties,
+  bootcamps,
+  festivals,
+  startDatesOnly = false,
+}: BuildHomeAgendaMonthInput): HomeUpcomingAgendaDay[] {
+  const daysInMonth = new Date(year, month, 0).getDate();
+  const dates: string[] = [];
+  for (let day = 1; day <= daysInMonth; day += 1) {
+    dates.push(`${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`);
+  }
+  return dates.map((dateStr) => ({
+    dateStr,
+    items: buildHomeTodayAgenda({
+      dateStr,
+      parties,
+      bootcamps,
+      festivals,
+      startDatesOnly,
+    }),
+  }));
+}
 
 /** 오늘부터 N일 — 일정 없는 날 포함 (날짜 스트립용) */
 export function buildHomeAgendaDayRange({
@@ -247,6 +337,7 @@ export function buildHomeAgendaDayRange({
   parties,
   bootcamps,
   festivals,
+  startDatesOnly = false,
 }: BuildHomeUpcomingAgendaInput): HomeUpcomingAgendaDay[] {
   return buildUpcomingDateRange(fromDateStr, dayCount).map((dateStr) => ({
     dateStr,
@@ -255,6 +346,7 @@ export function buildHomeAgendaDayRange({
       parties,
       bootcamps,
       festivals,
+      startDatesOnly,
     }),
   }));
 }

@@ -10,7 +10,7 @@ import { HOME_LIST_TAGLINE_EN, HOME_LIST_TAGLINE_KO } from './constants';
 import type { HomeDarkMoreAction } from './types';
 import type { HomeListPhotoMenuItem } from '../../lib/homeListPhotoMenu';
 import type { HomeTodayAgendaItem } from '../../lib/buildHomeTodayAgenda';
-import type { HomeListUpcomingAgendaDay } from './HomeListTodayAgenda';
+import type { HomeListTodayAgendaRow } from './HomeListTodayAgenda';
 import type {
   HomeDarkBar,
   HomeDarkHeroSlide,
@@ -39,10 +39,12 @@ export type HomeListGateProps = {
   getPartyVenue: (party: HomeDarkParty) => string;
   onPartyClick: (party: HomeDarkParty) => void;
   onViewAllSocial: () => void;
-  todayAgendaDayCount: number;
-  todayAgendaDayGroups: HomeListUpcomingAgendaDay[];
   todayAgendaCount: number;
   onAgendaItemClick: (item: HomeTodayAgendaItem) => void;
+  mapAgendaRows: (items: HomeTodayAgendaItem[]) => HomeListTodayAgendaRow[];
+  agendaParties: HomeDarkParty[] | null | undefined;
+  agendaBootcamps: Record<string, unknown>[] | null | undefined;
+  agendaFestivals: Record<string, unknown>[] | null | undefined;
   onOpenCalendar: () => void;
   calendarTodayStr: string;
   partySearchItems: HomeTodayAgendaItem[];
@@ -89,10 +91,12 @@ export default function HomeListGate({
   getPartyVenue: _getPartyVenue,
   onPartyClick: _onPartyClick,
   onViewAllSocial: _onViewAllSocial,
-  todayAgendaDayCount,
-  todayAgendaDayGroups,
-  todayAgendaCount,
+  todayAgendaCount: _todayAgendaCount,
   onAgendaItemClick,
+  mapAgendaRows,
+  agendaParties,
+  agendaBootcamps,
+  agendaFestivals,
   onOpenCalendar,
   calendarTodayStr,
   partySearchItems,
@@ -180,7 +184,10 @@ export default function HomeListGate({
       <HomeListTodayAgenda
         isEn={isEn}
         todayStr={calendarTodayStr}
-        dayGroups={todayAgendaDayGroups}
+        parties={agendaParties}
+        bootcamps={agendaBootcamps}
+        festivals={agendaFestivals}
+        mapRows={mapAgendaRows}
         onItemClick={onAgendaItemClick}
         onOpenCalendar={onOpenCalendar}
       />

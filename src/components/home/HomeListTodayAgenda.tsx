@@ -1,12 +1,21 @@
-import React, { useEffect, useMemo, useRef, useState } from 'react';
-import { ChevronRight } from 'lucide-react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { DEFAULT_CARD_IMAGE, imgFallbackHandler } from '../../constants/imageAssets';
-import type { HomeTodayAgendaItem } from '../../lib/buildHomeTodayAgenda';
+import {
+  buildHomeAgendaMonthDays,
+  formatAgendaDayLabel,
+  formatAgendaMonthLabel,
+  parseDateStrParts,
+  shiftMonth,
+  type HomeTodayAgendaItem,
+} from '../../lib/buildHomeTodayAgenda';
+import type { HomeDarkParty } from './types';
 
 export type HomeListTodayAgendaRow = {
   id: string;
   kind: HomeTodayAgendaItem['kind'];
   kindLabel: string;
+  genreLabel: string;
   posterUrl: string;
   title: string;
   meta: string;
@@ -25,7 +34,10 @@ export type HomeListUpcomingAgendaDay = {
 type HomeListTodayAgendaProps = {
   isEn: boolean;
   todayStr: string;
-  dayGroups: HomeListUpcomingAgendaDay[];
+  parties: HomeDarkParty[] | null | undefined;
+  bootcamps: Record<string, unknown>[] | null | undefined;
+  festivals: Record<string, unknown>[] | null | undefined;
+  mapRows: (items: HomeTodayAgendaItem[]) => HomeListTodayAgendaRow[];
   onItemClick: (item: HomeTodayAgendaItem) => void;
   onOpenCalendar: () => void;
 };
@@ -33,7 +45,7 @@ type HomeListTodayAgendaProps = {
 const WEEKDAYS_KO = ['일', '월', '화', '수', '목', '금', '토'] as const;
 const WEEKDAYS_EN = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'] as const;
 
-function formatSelectedDateHeading(dateStr: string, todayStr: string, isEn: boolean) {
+function formatSelectedDateHeading(dateStr: string, isEn: boolean) {
   const date = new Date(`${dateStr}T12:00:00`);
   if (Number.isNaN(date.getTime())) return dateStr;
   const year = date.getFullYear();
@@ -44,28 +56,35 @@ function formatSelectedDateHeading(dateStr: string, todayStr: string, isEn: bool
   return `${year}년 ${month}월 ${day}일 (${weekday})`;
 }
 
-function formatStripMonthLabel(dateStr: string, isEn: boolean) {
-  const date = new Date(`${dateStr}T12:00:00`);
-  if (Number.isNaN(date.getTime())) return '';
-  const year = date.getFullYear();
-  const month = date.getMonth() + 1;
-  return isEn ? `${month}/${year}` : `${year}. ${month}.`;
+function clampSelectedDate(year: number, month: number, preferredDay: number) {
+  const daysInMonth = new Date(year, month, 0).getDate();
+  const day = Math.min(Math.max(preferredDay, 1), daysInMonth);
+  return `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
 }
 
 export default function HomeListTodayAgenda({
   isEn,
   todayStr,
-  dayGroups,
+  parties,
+  bootcamps,
+  festivals,
+  mapRows,
   onItemClick,
   onOpenCalendar,
 }: HomeListTodayAgendaProps) {
+  const todayParts = useMemo(() => parseDateStrParts(todayStr), [todayStr]);
+  const [viewYear, setViewYear] = useState(todayParts.year);
+  const [viewMonth, setViewMonth] = useState(todayParts.month);
   const [selectedDateStr, setSelectedDateStr] = useState(todayStr);
+  const [startDatesOnly, setStartDatesOnly] = useState(false);
   const stripRef = useRef<HTMLDivElement>(null);
   const selectedChipRef = useRef<HTMLButtonElement>(null);
 
   useEffect(() => {
+    setViewYear(todayParts.year);
+    setViewMonth(todayParts.month);
     setSelectedDateStr(todayStr);
-  }, [todayStr]);
+  }, [todayParts.month, todayParts.year, todayStr]);
 
   useEffect(() => {
     selectedChipRef.current?.scrollIntoView({
@@ -73,7 +92,34 @@ export default function HomeListTodayAgenda({
       block: 'nearest',
       inline: 'center',
     });
-  }, [selectedDateStr]);
+  }, [selectedDateStr, viewMonth, viewYear]);
+
+  const dayGroups = useMemo((): HomeListUpcomingAgendaDay[] => {
+    const days = buildHomeAgendaMonthDays({
+      year: viewYear,
+      month: viewMonth,
+      parties,
+      bootcamps,
+      festivals,
+      startDatesOnly,
+    });
+    return days.map((day) => ({
+      dateStr: day.dateStr,
+      dateLabel: formatAgendaDayLabel(day.dateStr, todayStr, isEn),
+      isToday: day.dateStr === todayStr,
+      rows: mapRows(day.items),
+    }));
+  }, [
+    viewYear,
+    viewMonth,
+    parties,
+    bootcamps,
+    festivals,
+    startDatesOnly,
+    todayStr,
+    isEn,
+    mapRows,
+  ]);
 
   const selectedGroup = useMemo(
     () => dayGroups.find((group) => group.dateStr === selectedDateStr) || null,
@@ -81,7 +127,23 @@ export default function HomeListTodayAgenda({
   );
 
   const selectedCount = selectedGroup?.rows.length ?? 0;
-  const monthLabel = formatStripMonthLabel(selectedDateStr, isEn);
+  const monthLabel = formatAgendaMonthLabel(viewYear, viewMonth, isEn);
+
+  const shiftViewMonth = useCallback((delta: number) => {
+    const next = shiftMonth(viewYear, viewMonth, delta);
+    setViewYear(next.year);
+    setViewMonth(next.month);
+
+    const selectedParts = parseDateStrParts(selectedDateStr);
+    if (selectedParts.year === next.year && selectedParts.month === next.month) return;
+
+    if (next.year === todayParts.year && next.month === todayParts.month) {
+      setSelectedDateStr(todayStr);
+      return;
+    }
+
+    setSelectedDateStr(clampSelectedDate(next.year, next.month, selectedParts.day || 1));
+  }, [selectedDateStr, todayParts.month, todayParts.year, todayStr, viewMonth, viewYear]);
 
   return (
     <section className="home-list-gate__today-agenda" aria-label={isEn ? 'Schedule by date' : '날짜별 일정'}>
@@ -99,11 +161,36 @@ export default function HomeListTodayAgenda({
         </button>
       </div>
 
-      {monthLabel ? (
-        <p className="home-list-gate__today-agenda-month" aria-hidden>
-          {monthLabel}
-        </p>
-      ) : null}
+      <div className="home-list-gate__today-agenda-toolbar">
+        <label className="home-list-gate__today-agenda-filter">
+          <input
+            type="checkbox"
+            checked={startDatesOnly}
+            onChange={(event) => setStartDatesOnly(event.target.checked)}
+          />
+          <span>{isEn ? 'Start dates only' : '개강일만'}</span>
+        </label>
+
+        <div className="home-list-gate__today-agenda-month-nav" aria-label={isEn ? 'Change month' : '월 이동'}>
+          <button
+            type="button"
+            className="home-list-gate__today-agenda-month-btn"
+            onClick={() => shiftViewMonth(-1)}
+            aria-label={isEn ? 'Previous month' : '이전 달'}
+          >
+            <ChevronLeft size={16} aria-hidden />
+          </button>
+          <span className="home-list-gate__today-agenda-month">{monthLabel}</span>
+          <button
+            type="button"
+            className="home-list-gate__today-agenda-month-btn"
+            onClick={() => shiftViewMonth(1)}
+            aria-label={isEn ? 'Next month' : '다음 달'}
+          >
+            <ChevronRight size={16} aria-hidden />
+          </button>
+        </div>
+      </div>
 
       <div
         ref={stripRef}
@@ -144,14 +231,18 @@ export default function HomeListTodayAgenda({
 
       <div className="home-list-gate__today-agenda-summary">
         <p className="home-list-gate__today-agenda-selected-label">
-          {formatSelectedDateHeading(selectedDateStr, todayStr, isEn)}
+          {formatSelectedDateHeading(selectedDateStr, isEn)}
         </p>
         <div className="home-list-gate__today-agenda-summary-actions">
           {selectedDateStr !== todayStr ? (
             <button
               type="button"
               className="home-list-gate__today-agenda-today-btn"
-              onClick={() => setSelectedDateStr(todayStr)}
+              onClick={() => {
+                setViewYear(todayParts.year);
+                setViewMonth(todayParts.month);
+                setSelectedDateStr(todayStr);
+              }}
             >
               {isEn ? 'Today' : '오늘'}
             </button>
@@ -194,6 +285,9 @@ export default function HomeListTodayAgenda({
                 </span>
                 <span className="home-list-gate__today-agenda-body">
                   <span className="home-list-gate__today-agenda-tags">
+                    {row.genreLabel ? (
+                      <span className="home-list-gate__today-agenda-genre">{row.genreLabel}</span>
+                    ) : null}
                     <span className={`home-list-gate__today-agenda-kind home-list-gate__today-agenda-kind--${row.kind}`}>
                       {row.kindLabel}
                     </span>

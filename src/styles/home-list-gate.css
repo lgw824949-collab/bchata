@@ -279,12 +279,63 @@
 }
 
 .home-list-gate__today-agenda-month {
-  margin: -2px 0 0;
-  padding: 0 2px;
+  min-width: 72px;
+  text-align: center;
   font-size: 13px;
   font-weight: 800;
   letter-spacing: -0.02em;
   color: #64748b;
+}
+
+.home-list-gate__today-agenda-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 0 2px 2px;
+}
+
+.home-list-gate__today-agenda-filter {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  font-weight: 700;
+  color: #64748b;
+  cursor: pointer;
+  user-select: none;
+}
+
+.home-list-gate__today-agenda-filter input {
+  width: 14px;
+  height: 14px;
+  margin: 0;
+  accent-color: #2563eb;
+}
+
+.home-list-gate__today-agenda-month-nav {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  flex-shrink: 0;
+}
+
+.home-list-gate__today-agenda-month-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  border: 1px solid #e8ebef;
+  border-radius: 999px;
+  background: #fff;
+  color: #64748b;
+  cursor: pointer;
+}
+
+.home-list-gate__today-agenda-month-btn:active {
+  background: #f8fafc;
 }
 
 .home-list-gate__date-strip {
@@ -549,6 +600,20 @@
 .home-list-gate__today-agenda-kind--party {
   background: #fdf2f8;
   color: #db2777;
+}
+
+.home-list-gate__today-agenda-genre {
+  display: inline-flex;
+  align-items: center;
+  height: 20px;
+  padding: 0 7px;
+  border-radius: 999px;
+  font-size: 10px;
+  font-weight: 800;
+  line-height: 1;
+  letter-spacing: -0.02em;
+  background: #eff6ff;
+  color: #2563eb;
 }
 
 .home-list-gate__today-agenda-row-title {

@@ -17,13 +17,12 @@ import type { HomeDarkBar, HomeDarkHeroSlide, HomeDarkParty } from '../component
 import { buildHomeListPhotoMenuItems } from '../lib/homeListPhotoMenu';
 import { buildHomePartySearchItems } from '../lib/buildHomePartySearchItems';
 import {
-  buildHomeAgendaDayRange,
-  formatAgendaDayLabel,
-  HOME_LIST_DATE_STRIP_DAY_COUNT,
   summarizeAgendaCountsFromDays,
+  buildHomeAgendaDayRange,
+  HOME_LIST_DATE_STRIP_DAY_COUNT,
   type HomeTodayAgendaItem,
 } from '../lib/buildHomeTodayAgenda';
-import type { HomeListUpcomingAgendaDay } from '../components/home/HomeListTodayAgenda';
+import type { HomeListTodayAgendaRow } from '../components/home/HomeListTodayAgenda';
 import type { HomeListGateProps } from '../components/home/HomeListGate';
 import type { UseHomeDarkGatePropsInput } from './useHomeDarkGateProps';
 import { resolveAgendaLiveStatus } from '../lib/agendaLiveStatus';
@@ -242,10 +241,12 @@ export function useHomeListGateProps(input: UseHomeDarkGatePropsInput) {
       const title = translateDynamicText(item.title, isEn);
       const meta = translateDynamicText(formatAgendaTimeMeta(item), isEn);
       const live = resolveAgendaLiveStatus(item, calendarTodayStr, locations, barStatsMap);
+      const genreLabel = translateDynamicText(item.genreLabel, isEn);
       return {
         id: `${item.dateStr}-${item.id}`,
         kind: item.kind,
         kindLabel: isEn ? item.kindLabelEn : item.kindLabelKo,
+        genreLabel,
         posterUrl: item.posterUrl,
         title,
         meta,
@@ -255,20 +256,6 @@ export function useHomeListGateProps(input: UseHomeDarkGatePropsInput) {
       };
     })
   ), [barStatsMap, calendarTodayStr, formatAgendaTimeMeta, isEn, locations, translateDynamicText]);
-
-  const homeUpcomingAgendaDayGroups = useMemo((): HomeListUpcomingAgendaDay[] => (
-    homeAgendaDayRange.map((day) => ({
-      dateStr: day.dateStr,
-      dateLabel: formatAgendaDayLabel(day.dateStr, calendarTodayStr, isEn),
-      isToday: day.dateStr === calendarTodayStr,
-      rows: mapAgendaItemsToRows(day.items),
-    }))
-  ), [
-    homeAgendaDayRange,
-    calendarTodayStr,
-    isEn,
-    mapAgendaItemsToRows,
-  ]);
 
   const homePartySearchItems = useMemo(
     () => buildHomePartySearchItems({
@@ -460,10 +447,12 @@ export function useHomeListGateProps(input: UseHomeDarkGatePropsInput) {
     getPartyVenue,
     onPartyClick: openPartyWithAfterParty,
     onViewAllSocial: openSocialTab,
-    todayAgendaDayCount: HOME_LIST_DATE_STRIP_DAY_COUNT,
-    todayAgendaDayGroups: homeUpcomingAgendaDayGroups,
     todayAgendaCount: homeUpcomingAgendaCounts.total,
     onAgendaItemClick: openAgendaItem,
+    mapAgendaRows: mapAgendaItemsToRows,
+    agendaParties: parties,
+    agendaBootcamps: bootcamps,
+    agendaFestivals: festivals,
     onOpenCalendar,
     calendarTodayStr,
     partySearchItems: homePartySearchItems,
