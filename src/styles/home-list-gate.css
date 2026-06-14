@@ -278,6 +278,154 @@
   cursor: pointer;
 }
 
+.home-list-gate__today-agenda-month {
+  margin: -2px 0 0;
+  padding: 0 2px;
+  font-size: 13px;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  color: #64748b;
+}
+
+.home-list-gate__date-strip {
+  display: flex;
+  gap: 6px;
+  overflow-x: auto;
+  scrollbar-width: none;
+  padding: 4px 2px 8px;
+  margin: 0 -2px;
+  -webkit-overflow-scrolling: touch;
+}
+
+.home-list-gate__date-strip::-webkit-scrollbar {
+  display: none;
+}
+
+.home-list-gate__date-strip-chip {
+  position: relative;
+  flex: 0 0 auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  min-width: 44px;
+  height: 58px;
+  padding: 6px 8px 8px;
+  border: 1.5px solid #e8ebef;
+  border-radius: 14px;
+  background: #f8fafc;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  transition:
+    border-color 0.18s ease,
+    background 0.18s ease,
+    box-shadow 0.18s ease;
+}
+
+.home-list-gate__date-strip-chip.is-selected {
+  border-color: #2563eb;
+  background: #eff6ff;
+  box-shadow: 0 0 0 1px rgba(37, 99, 235, 0.12);
+}
+
+.home-list-gate__date-strip-chip.is-today:not(.is-selected) {
+  border-color: rgba(229, 57, 53, 0.35);
+  background: #fff8f7;
+}
+
+.home-list-gate__date-strip-weekday {
+  font-size: 10px;
+  font-weight: 700;
+  line-height: 1;
+  color: #94a3b8;
+}
+
+.home-list-gate__date-strip-chip.is-selected .home-list-gate__date-strip-weekday {
+  color: #2563eb;
+}
+
+.home-list-gate__date-strip-chip.is-today .home-list-gate__date-strip-weekday {
+  color: #e53935;
+}
+
+.home-list-gate__date-strip-day {
+  font-size: 16px;
+  font-weight: 900;
+  line-height: 1;
+  letter-spacing: -0.03em;
+  color: #191f28;
+  font-variant-numeric: tabular-nums;
+}
+
+.home-list-gate__date-strip-chip.is-selected .home-list-gate__date-strip-day {
+  color: #1d4ed8;
+}
+
+.home-list-gate__date-strip-count {
+  position: absolute;
+  top: -4px;
+  right: -4px;
+  min-width: 16px;
+  height: 16px;
+  padding: 0 4px;
+  border-radius: 999px;
+  background: #ff3040;
+  border: 2px solid #fff;
+  color: #fff;
+  font-size: 9px;
+  font-weight: 800;
+  line-height: 12px;
+  text-align: center;
+  font-variant-numeric: tabular-nums;
+  box-sizing: border-box;
+}
+
+.home-list-gate__today-agenda-summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 8px 2px 4px;
+  border-top: 1px solid #f0f2f5;
+}
+
+.home-list-gate__today-agenda-selected-label {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 800;
+  line-height: 1.35;
+  letter-spacing: -0.02em;
+  color: #191f28;
+  word-break: keep-all;
+}
+
+.home-list-gate__today-agenda-summary-actions {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+.home-list-gate__today-agenda-today-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: 28px;
+  padding: 0 10px;
+  border: 1px solid #e2e8f0;
+  border-radius: 999px;
+  background: #fff;
+  color: #64748b;
+  font-size: 11px;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.home-list-gate__today-agenda-today-btn:active {
+  background: #f8fafc;
+}
+
 .home-list-gate__today-agenda-empty {
   padding: 18px 8px 10px;
   text-align: center;
@@ -286,60 +434,11 @@
   font-weight: 700;
 }
 
-.home-list-gate__today-agenda-days {
-  display: flex;
-  flex-direction: column;
-  gap: 14px;
-  border-top: 1px solid #f0f2f5;
-  padding-top: 4px;
-}
-
-.home-list-gate__today-agenda-day {
-  padding-top: 8px;
-}
-
-.home-list-gate__today-agenda-day.is-today {
-  margin: 0;
-  padding: 8px 0 0;
-  border-radius: 0;
-  background: transparent;
-}
-
-.home-list-gate__today-agenda-day-title {
-  margin: 0 0 6px;
-  padding: 0 2px;
-  font-size: 13px;
-  font-weight: 800;
-  line-height: 1.3;
-  letter-spacing: -0.02em;
-  color: #64748b;
-}
-
-.home-list-gate__today-agenda-day.is-today .home-list-gate__today-agenda-day-title {
-  position: sticky;
-  top: 58px;
-  z-index: 2;
-  margin-bottom: 8px;
-  padding: 6px 8px;
-  border-radius: 8px;
-  background: rgba(255, 255, 255, 0.94);
-  color: #e53935;
-  box-shadow: 0 1px 0 rgba(240, 242, 245, 0.9);
-}
-
-.home-list-gate__today-agenda-day.is-today .home-list-gate__today-agenda-thumb {
-  width: 76px;
-  height: 96px;
-}
-
-.home-list-gate__today-agenda-day.is-today .home-list-gate__today-agenda-row-title {
-  font-size: 16px;
-}
-
 .home-list-gate__today-agenda-list {
   list-style: none;
   margin: 0;
   padding: 0;
+  border-top: 1px solid #f0f2f5;
 }
 
 .home-list-gate__today-agenda-row {

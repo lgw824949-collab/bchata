@@ -1,7 +1,6 @@
-import React, { useMemo, useState } from 'react';
-import { ChevronDown, ChevronRight, ChevronUp } from 'lucide-react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
+import { ChevronRight } from 'lucide-react';
 import { DEFAULT_CARD_IMAGE, imgFallbackHandler } from '../../constants/imageAssets';
-import { UPCOMING_AGENDA_PREVIEW_LIMIT } from '../../lib/buildHomeTodayAgenda';
 import type { HomeTodayAgendaItem } from '../../lib/buildHomeTodayAgenda';
 
 export type HomeListTodayAgendaRow = {
@@ -25,65 +24,70 @@ export type HomeListUpcomingAgendaDay = {
 
 type HomeListTodayAgendaProps = {
   isEn: boolean;
-  dayCount: number;
-  totalCount: number;
+  todayStr: string;
   dayGroups: HomeListUpcomingAgendaDay[];
-  previewLimit?: number;
   onItemClick: (item: HomeTodayAgendaItem) => void;
   onOpenCalendar: () => void;
 };
 
-function sliceAgendaDayGroups(
-  dayGroups: HomeListUpcomingAgendaDay[],
-  limit: number,
-) {
-  let remaining = limit;
-  const sliced: HomeListUpcomingAgendaDay[] = [];
+const WEEKDAYS_KO = ['일', '월', '화', '수', '목', '금', '토'] as const;
+const WEEKDAYS_EN = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'] as const;
 
-  for (const group of dayGroups) {
-    if (remaining <= 0) break;
-    const rows = group.rows.slice(0, remaining);
-    if (rows.length === 0) continue;
-    remaining -= rows.length;
-    sliced.push({ ...group, rows });
-  }
+function formatSelectedDateHeading(dateStr: string, todayStr: string, isEn: boolean) {
+  const date = new Date(`${dateStr}T12:00:00`);
+  if (Number.isNaN(date.getTime())) return dateStr;
+  const year = date.getFullYear();
+  const month = date.getMonth() + 1;
+  const day = date.getDate();
+  const weekday = isEn ? WEEKDAYS_EN[date.getDay()] : WEEKDAYS_KO[date.getDay()];
+  if (isEn) return `${month}/${day}/${year} (${weekday})`;
+  return `${year}년 ${month}월 ${day}일 (${weekday})`;
+}
 
-  return sliced;
+function formatStripMonthLabel(dateStr: string, isEn: boolean) {
+  const date = new Date(`${dateStr}T12:00:00`);
+  if (Number.isNaN(date.getTime())) return '';
+  const year = date.getFullYear();
+  const month = date.getMonth() + 1;
+  return isEn ? `${month}/${year}` : `${year}. ${month}.`;
 }
 
 export default function HomeListTodayAgenda({
   isEn,
-  dayCount,
-  totalCount,
+  todayStr,
   dayGroups,
-  previewLimit = UPCOMING_AGENDA_PREVIEW_LIMIT,
   onItemClick,
   onOpenCalendar,
 }: HomeListTodayAgendaProps) {
-  const [expanded, setExpanded] = useState(false);
+  const [selectedDateStr, setSelectedDateStr] = useState(todayStr);
+  const stripRef = useRef<HTMLDivElement>(null);
+  const selectedChipRef = useRef<HTMLButtonElement>(null);
 
-  const hiddenCount = Math.max(0, totalCount - previewLimit);
-  const visibleDayGroups = useMemo(
-    () => (expanded || hiddenCount === 0
-      ? dayGroups
-      : sliceAgendaDayGroups(dayGroups, previewLimit)),
-    [dayGroups, expanded, hiddenCount, previewLimit],
+  useEffect(() => {
+    setSelectedDateStr(todayStr);
+  }, [todayStr]);
+
+  useEffect(() => {
+    selectedChipRef.current?.scrollIntoView({
+      behavior: 'smooth',
+      block: 'nearest',
+      inline: 'center',
+    });
+  }, [selectedDateStr]);
+
+  const selectedGroup = useMemo(
+    () => dayGroups.find((group) => group.dateStr === selectedDateStr) || null,
+    [dayGroups, selectedDateStr],
   );
 
+  const selectedCount = selectedGroup?.rows.length ?? 0;
+  const monthLabel = formatStripMonthLabel(selectedDateStr, isEn);
+
   return (
-    <section className="home-list-gate__today-agenda" aria-label={isEn ? 'Upcoming schedule' : '다가오는 일정'}>
+    <section className="home-list-gate__today-agenda" aria-label={isEn ? 'Schedule by date' : '날짜별 일정'}>
       <div className="home-list-gate__today-agenda-head">
         <h2 className="home-list-gate__today-agenda-title">
-          {isEn ? 'Upcoming' : '다가오는 일정'}
-          {totalCount > 0 ? (
-            <span
-              className="home-list-gate__today-agenda-badge"
-              aria-label={isEn ? `${totalCount} events` : `일정 ${totalCount}건`}
-            >
-              {totalCount}
-              <span className="home-list-gate__count-unit">{isEn ? '' : '건'}</span>
-            </span>
-          ) : null}
+          {isEn ? 'Schedule' : '일정'}
         </h2>
         <button
           type="button"
@@ -95,89 +99,123 @@ export default function HomeListTodayAgenda({
         </button>
       </div>
 
-      {dayGroups.length === 0 ? (
-        <div className="home-list-gate__today-agenda-empty">
-          {isEn
-            ? `Nothing in the next ${dayCount} days.`
-            : `앞으로 ${dayCount}일 일정 없음`}
-        </div>
-      ) : (
-        <>
-          <div className="home-list-gate__today-agenda-days">
-            {visibleDayGroups.map((group) => (
-              <section
-                key={group.dateStr}
-                className={`home-list-gate__today-agenda-day${group.isToday ? ' is-today' : ''}`}
-              >
-                <h3 className="home-list-gate__today-agenda-day-title">{group.dateLabel}</h3>
-                <ul className="home-list-gate__today-agenda-list">
-                  {group.rows.map((row) => (
-                    <li key={row.id}>
-                      <button
-                        type="button"
-                        className="home-list-gate__today-agenda-row"
-                        onClick={() => onItemClick(row.item)}
-                        aria-label={isEn ? `Open ${row.title}` : `${row.title} 보기`}
-                      >
-                        <span className="home-list-gate__today-agenda-thumb" aria-hidden>
-                          <img
-                            src={row.posterUrl || DEFAULT_CARD_IMAGE}
-                            alt=""
-                            className="home-list-gate__today-agenda-thumb-img"
-                            loading="lazy"
-                            decoding="async"
-                            onError={imgFallbackHandler(DEFAULT_CARD_IMAGE)}
-                          />
-                        </span>
-                        <span className="home-list-gate__today-agenda-body">
-                          <span className="home-list-gate__today-agenda-tags">
-                            <span className={`home-list-gate__today-agenda-kind home-list-gate__today-agenda-kind--${row.kind}`}>
-                              {row.kindLabel}
-                            </span>
-                            {row.liveLabel ? (
-                              <span
-                                className="home-list-gate__today-agenda-live"
-                                aria-label={isEn ? `Live ${row.liveCount ?? 0} people` : `실시간 ${row.liveCount ?? 0}명`}
-                              >
-                                {row.liveLabel}
-                              </span>
-                            ) : null}
-                          </span>
-                          <span className="home-list-gate__today-agenda-row-title">{row.title}</span>
-                          {row.meta ? (
-                            <span className="home-list-gate__today-agenda-row-meta">{row.meta}</span>
-                          ) : null}
-                        </span>
-                        <ChevronRight size={16} className="home-list-gate__today-agenda-chevron" aria-hidden />
-                      </button>
-                    </li>
-                  ))}
-                </ul>
-              </section>
-            ))}
-          </div>
+      {monthLabel ? (
+        <p className="home-list-gate__today-agenda-month" aria-hidden>
+          {monthLabel}
+        </p>
+      ) : null}
 
-          {hiddenCount > 0 ? (
+      <div
+        ref={stripRef}
+        className="home-list-gate__date-strip"
+        role="tablist"
+        aria-label={isEn ? 'Pick a date' : '날짜 선택'}
+      >
+        {dayGroups.map((group) => {
+          const date = new Date(`${group.dateStr}T12:00:00`);
+          const weekday = Number.isNaN(date.getTime())
+            ? ''
+            : (isEn ? WEEKDAYS_EN[date.getDay()] : WEEKDAYS_KO[date.getDay()]);
+          const dayNum = Number.isNaN(date.getTime()) ? group.dateStr.slice(8, 10) : String(date.getDate());
+          const isSelected = group.dateStr === selectedDateStr;
+          const count = group.rows.length;
+
+          return (
+            <button
+              key={group.dateStr}
+              ref={isSelected ? selectedChipRef : undefined}
+              type="button"
+              role="tab"
+              aria-selected={isSelected}
+              className={`home-list-gate__date-strip-chip${isSelected ? ' is-selected' : ''}${group.isToday ? ' is-today' : ''}`}
+              onClick={() => setSelectedDateStr(group.dateStr)}
+            >
+              <span className="home-list-gate__date-strip-weekday">{weekday}</span>
+              <span className="home-list-gate__date-strip-day">{dayNum}</span>
+              {count > 0 ? (
+                <span className="home-list-gate__date-strip-count" aria-hidden>
+                  {count > 99 ? '99+' : count}
+                </span>
+              ) : null}
+            </button>
+          );
+        })}
+      </div>
+
+      <div className="home-list-gate__today-agenda-summary">
+        <p className="home-list-gate__today-agenda-selected-label">
+          {formatSelectedDateHeading(selectedDateStr, todayStr, isEn)}
+        </p>
+        <div className="home-list-gate__today-agenda-summary-actions">
+          {selectedDateStr !== todayStr ? (
             <button
               type="button"
-              className="home-list-gate__today-agenda-more"
-              onClick={() => setExpanded((value) => !value)}
-              aria-expanded={expanded}
+              className="home-list-gate__today-agenda-today-btn"
+              onClick={() => setSelectedDateStr(todayStr)}
             >
-              {expanded ? (
-                <>
-                  {isEn ? 'Less' : '접기'}
-                  <ChevronUp size={16} aria-hidden />
-                </>
-              ) : (
-                <>
-                  {isEn ? `+${hiddenCount} more` : `더보기 ${hiddenCount}`}
-                  <ChevronDown size={16} aria-hidden />
-                </>
-              )}
+              {isEn ? 'Today' : '오늘'}
             </button>
           ) : null}
-        </>
+          <span
+            className="home-list-gate__today-agenda-badge"
+            aria-label={isEn ? `${selectedCount} events` : `일정 ${selectedCount}건`}
+          >
+            {selectedCount}
+            <span className="home-list-gate__count-unit">{isEn ? '' : '건'}</span>
+          </span>
+        </div>
+      </div>
+
+      {selectedCount === 0 ? (
+        <div className="home-list-gate__today-agenda-empty">
+          {isEn
+            ? 'No events on this date.'
+            : '이 날짜에 등록된 일정이 없어요.'}
+        </div>
+      ) : (
+        <ul className="home-list-gate__today-agenda-list">
+          {selectedGroup?.rows.map((row) => (
+            <li key={row.id}>
+              <button
+                type="button"
+                className="home-list-gate__today-agenda-row"
+                onClick={() => onItemClick(row.item)}
+                aria-label={isEn ? `Open ${row.title}` : `${row.title} 보기`}
+              >
+                <span className="home-list-gate__today-agenda-thumb" aria-hidden>
+                  <img
+                    src={row.posterUrl || DEFAULT_CARD_IMAGE}
+                    alt=""
+                    className="home-list-gate__today-agenda-thumb-img"
+                    loading="lazy"
+                    decoding="async"
+                    onError={imgFallbackHandler(DEFAULT_CARD_IMAGE)}
+                  />
+                </span>
+                <span className="home-list-gate__today-agenda-body">
+                  <span className="home-list-gate__today-agenda-tags">
+                    <span className={`home-list-gate__today-agenda-kind home-list-gate__today-agenda-kind--${row.kind}`}>
+                      {row.kindLabel}
+                    </span>
+                    {row.liveLabel ? (
+                      <span
+                        className="home-list-gate__today-agenda-live"
+                        aria-label={isEn ? `Live ${row.liveCount ?? 0} people` : `실시간 ${row.liveCount ?? 0}명`}
+                      >
+                        {row.liveLabel}
+                      </span>
+                    ) : null}
+                  </span>
+                  <span className="home-list-gate__today-agenda-row-title">{row.title}</span>
+                  {row.meta ? (
+                    <span className="home-list-gate__today-agenda-row-meta">{row.meta}</span>
+                  ) : null}
+                </span>
+                <ChevronRight size={16} className="home-list-gate__today-agenda-chevron" aria-hidden />
+              </button>
+            </li>
+          ))}
+        </ul>
       )}
     </section>
   );

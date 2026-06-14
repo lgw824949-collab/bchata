@@ -179,8 +179,7 @@ export default function HomeListGate({
 
       <HomeListTodayAgenda
         isEn={isEn}
-        dayCount={todayAgendaDayCount}
-        totalCount={todayAgendaCount}
+        todayStr={calendarTodayStr}
         dayGroups={todayAgendaDayGroups}
         onItemClick={onAgendaItemClick}
         onOpenCalendar={onOpenCalendar}

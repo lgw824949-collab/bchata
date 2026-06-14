@@ -39,7 +39,10 @@ const KIND_ORDER: Record<HomeTodayAgendaKind, number> = {
 /** 메인 다가오는 일정 — 오늘 포함 N일 */
 export const UPCOMING_AGENDA_DAY_COUNT = 7;
 
-/** 메인 첫 화면에 보여줄 최대 건수 */
+/** 홈 날짜 스트립 — 오늘부터 N일 */
+export const HOME_LIST_DATE_STRIP_DAY_COUNT = 14;
+
+/** @deprecated date strip shows full selected day */
 export const UPCOMING_AGENDA_PREVIEW_LIMIT = 3;
 
 export const addDaysToDateStr = (dateStr: string, days: number) => {
@@ -237,6 +240,25 @@ type BuildHomeUpcomingAgendaInput = {
   festivals: Record<string, unknown>[] | null | undefined;
 };
 
+/** 오늘부터 N일 — 일정 없는 날 포함 (날짜 스트립용) */
+export function buildHomeAgendaDayRange({
+  fromDateStr,
+  dayCount = HOME_LIST_DATE_STRIP_DAY_COUNT,
+  parties,
+  bootcamps,
+  festivals,
+}: BuildHomeUpcomingAgendaInput): HomeUpcomingAgendaDay[] {
+  return buildUpcomingDateRange(fromDateStr, dayCount).map((dateStr) => ({
+    dateStr,
+    items: buildHomeTodayAgenda({
+      dateStr,
+      parties,
+      bootcamps,
+      festivals,
+    }),
+  }));
+}
+
 /** 오늘부터 N일 — 포스터 있는 날짜만 */
 export function buildHomeUpcomingAgenda({
   fromDateStr,
@@ -245,17 +267,13 @@ export function buildHomeUpcomingAgenda({
   bootcamps,
   festivals,
 }: BuildHomeUpcomingAgendaInput): HomeUpcomingAgendaDay[] {
-  return buildUpcomingDateRange(fromDateStr, dayCount)
-    .map((dateStr) => ({
-      dateStr,
-      items: buildHomeTodayAgenda({
-        dateStr,
-        parties,
-        bootcamps,
-        festivals,
-      }),
-    }))
-    .filter((day) => day.items.length > 0);
+  return buildHomeAgendaDayRange({
+    fromDateStr,
+    dayCount,
+    parties,
+    bootcamps,
+    festivals,
+  }).filter((day) => day.items.length > 0);
 }
 
 export function summarizeAgendaCountsFromDays(days: HomeUpcomingAgendaDay[]) {
