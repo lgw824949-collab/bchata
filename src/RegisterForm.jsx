@@ -541,7 +541,7 @@ const RegisterForm = ({ onBack, onSuccess, isEdit = false, isAdminMode = false, 
           : 'bchata-admin')
         : resolveContributorId()
       if (!isAdminMode && !contributorId) {
-        alert('로그인 후 파티 등록이 가능합니다.')
+        alert('로그인 후 소셜 등록이 가능합니다.')
         setLoading(false)
         return
       }
@@ -673,7 +673,7 @@ const RegisterForm = ({ onBack, onSuccess, isEdit = false, isAdminMode = false, 
           <div style={{ backgroundColor: '#FF1744', width: '80px', height: '80px', borderRadius: '40px', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 24px' }}>
             <Check size={40} color="white" />
           </div>
-          <h2 style={{ fontSize: '24px', fontWeight: 900, color: '#1E293B', marginBottom: '12px' }}>{isEdit ? '파티 수정 완료!' : '파티 등록 완료!'}</h2>
+          <h2 style={{ fontSize: '24px', fontWeight: 900, color: '#1E293B', marginBottom: '12px' }}>{isEdit ? '소셜 수정 완료!' : '소셜 등록 완료!'}</h2>
           <p style={{ fontSize: '16px', color: '#64748B', lineHeight: '1.6', marginBottom: '32px' }}>
             {isAdminMode ? 'Supabase에 저장되었습니다.' : '지금 즉시 메인 화면에 게시되었습니다.'}
           </p>
@@ -689,7 +689,7 @@ const RegisterForm = ({ onBack, onSuccess, isEdit = false, isAdminMode = false, 
       case 1:
         return (
           <motion.div key="step1" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} style={{ padding: '24px' }}>
-            <label style={{ display: 'block', fontSize: '20px', fontWeight: 900, color: '#1E293B', marginBottom: '24px' }}>📸 {isEdit ? '포스터 변경 (선택)' : '파티 포스터 선택'}</label>
+            <label style={{ display: 'block', fontSize: '20px', fontWeight: 900, color: '#1E293B', marginBottom: '24px' }}>📸 {isEdit ? '포스터 변경 (선택)' : '소셜 포스터 선택'}</label>
             <div onClick={() => document.getElementById('poster-upload').click()} style={{ height: '350px', border: '2px dashed #E2E8F0', borderRadius: '24px', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', background: '#F8FAFC', overflow: 'hidden', cursor: 'pointer' }}>
               {(file || inputUrl) ? (
                 <img src={file ? URL.createObjectURL(file) : inputUrl} style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
@@ -716,7 +716,7 @@ const RegisterForm = ({ onBack, onSuccess, isEdit = false, isAdminMode = false, 
       case 2:
         return (
           <motion.div key="step2" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} style={{ padding: '24px' }}>
-            <label style={{ display: 'block', fontSize: '20px', fontWeight: 900, color: '#1E293B', marginBottom: '24px' }}>✍️ 파티 제목 입력</label>
+            <label style={{ display: 'block', fontSize: '20px', fontWeight: 900, color: '#1E293B', marginBottom: '24px' }}>✍️ 소셜 제목 입력</label>
             <textarea 
               value={formData.title} 
               onChange={handleTitleChange} 
@@ -940,7 +940,7 @@ const RegisterForm = ({ onBack, onSuccess, isEdit = false, isAdminMode = false, 
       case 5:
         return (
           <motion.div key="step5" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} style={{ padding: '24px' }}>
-            <label style={{ display: 'block', fontSize: '20px', fontWeight: 900, color: '#1E293B', marginBottom: '16px' }}>📅 파티 일정 확인</label>
+            <label style={{ display: 'block', fontSize: '20px', fontWeight: 900, color: '#1E293B', marginBottom: '16px' }}>📅 소셜 일정 확인</label>
             <p style={{ fontSize: '13px', fontWeight: 600, color: '#94A3B8', marginBottom: '20px', lineHeight: 1.5 }}>
               포스터 내용이 같고 매주 같은 날이면 <strong style={{ color: '#64748B' }}>매주 고정</strong>으로 한 번만 등록하세요.
             </p>
@@ -975,7 +975,7 @@ const RegisterForm = ({ onBack, onSuccess, isEdit = false, isAdminMode = false, 
             </div>
             <div style={{ marginBottom: '24px' }}>
               <p style={{ fontSize: '14px', fontWeight: 800, color: '#64748B', marginBottom: '8px' }}>
-                {formData.is_weekly_recurring ? '기준 날짜 (요일 확인용)' : '파티 날짜'}
+                {formData.is_weekly_recurring ? '기준 날짜 (요일 확인용)' : '소셜 날짜'}
               </p>
               <input
                 type="date"
@@ -1030,7 +1030,7 @@ const RegisterForm = ({ onBack, onSuccess, isEdit = false, isAdminMode = false, 
       >
         <div style={{ padding: '20px', borderBottom: '1px solid #F1F5F9', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexShrink: 0 }}>
           <button onClick={() => { if(step > 1) setStep(step - 1); else onBack(); }} style={{ border: 'none', background: 'none', color: '#1E293B' }}><ChevronLeft size={24} /></button>
-          <span style={{ fontWeight: 900, fontSize: '18px' }}>파티 등록 신청 ({step}/{TOTAL_STEPS})</span>
+          <span style={{ fontWeight: 900, fontSize: '18px' }}>소셜 등록 신청 ({step}/{TOTAL_STEPS})</span>
           <button onClick={onBack} style={{ border: 'none', background: 'none', color: '#94A3B8' }}><X size={24} /></button>
         </div>
 

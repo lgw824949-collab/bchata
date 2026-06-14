@@ -919,7 +919,7 @@ export default function AdminDashboard({ onBack }) {
                 cursor: 'pointer',
               }}
             >
-              <Plus size={14} /> 파티 등록
+              <Plus size={14} /> 소셜 등록
             </button>
           )}
           <button 
@@ -1463,7 +1463,7 @@ export default function AdminDashboard({ onBack }) {
           </div>
         ))}
       </div>
-      {/* 파티 수정 모달 */}
+      {/* 소셜 수정 모달 */}
       <AnimatePresence>
         {showEditModal && (
           <RegisterForm 
