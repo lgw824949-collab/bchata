@@ -19,6 +19,7 @@ import havanaPhoto from './assets/havana_photo.png'
 import bibigoPhoto from './assets/bibigo_photo.png'
 import { resolveBarVenuePhoto } from './lib/barVenuePhotos'
 import { partiesTodayOrWeeklyOrFilter, partyMatchesCalendarDate } from './lib/partyRecurrence'
+import { isPartyInLiveBannerWindow } from './lib/homeLiveBannerSlides'
 
 const EventRanking = () => {
   const [rankings, setRankings] = useState([])
@@ -743,12 +744,16 @@ export default function AdminDashboard({ onBack, refreshData }) {
     } finally { setLoading(false) }
   }
 
-  /** parties.view_count — 오늘 날짜 파티만 누적 (+20/+30/+50/+100) */
+  /** parties.view_count — 오늘 날짜 파티만 누적 (+1/+5/+20/+30/+50/+100) */
   const bumpPartyViewCount = async (party, delta) => {
     if (!party?.id) return;
     const todayStr = getAdminKSTTodayStr();
     if (!partyMatchesCalendarDate(party, todayStr)) {
       alert('오늘 날짜 파티만 인원 조절할 수 있습니다.');
+      return;
+    }
+    if (!isPartyInLiveBannerWindow(party)) {
+      alert('LIVE 시간대(시작 10분 전~8시간) 파티만 인원 조절할 수 있습니다.');
       return;
     }
     const current = Number(party.view_count) || 0;
@@ -761,10 +766,49 @@ export default function AdminDashboard({ onBack, refreshData }) {
       if (error) throw error;
       alert(`인원 ${current}명 → ${next}명 (+${delta}명)`);
       fetchData();
+      if (typeof refreshData === 'function') {
+        await refreshData({ silent: true });
+      }
     } catch (err) {
       console.error('[Admin] bumpPartyViewCount failed:', err);
       alert(`인원 업데이트 실패: ${err.message || err}`);
     }
+  };
+
+  const renderPartyLiveCountControls = (item) => {
+    if (category !== 'social' && category !== 'live-mgmt') return null;
+    if (category === 'social' && activeTab !== 'active') return null;
+
+    const todayStr = getAdminKSTTodayStr();
+    if (!partyMatchesCalendarDate(item, todayStr)) return null;
+    if (!isPartyInLiveBannerWindow(item)) return null;
+
+    const current = Number(item.view_count) || 0;
+
+    return (
+      <div style={{ marginTop: '16px', paddingTop: '16px', borderTop: '1px dashed #E2E8F0', display: 'flex', flexDirection: 'column', gap: '10px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '12px', flexWrap: 'wrap' }}>
+          <div style={{ fontSize: '13px', fontWeight: 800, color: '#F59E0B' }}>
+            LIVE 인원 <span style={{ color: '#1E293B' }}>{current}명</span>
+          </div>
+          <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
+            {[1, 5, 20, 30, 50, 100].map((delta) => (
+              <button
+                key={delta}
+                type="button"
+                onClick={() => bumpPartyViewCount(item, delta)}
+                style={{ padding: '8px 12px', background: '#F59E0B', color: '#FFF', border: 'none', borderRadius: '8px', fontSize: '12px', fontWeight: 900, cursor: 'pointer' }}
+              >
+                +{delta}명
+              </button>
+            ))}
+          </div>
+        </div>
+        <p style={{ margin: 0, fontSize: '11px', color: '#64748B', lineHeight: 1.45 }}>
+          홈 일정 LIVE 배지·LIVE 배너에 반영됩니다. (오늘 · LIVE 시간대만)
+        </p>
+      </div>
+    );
   };
 
   // 수동 체크인 추가 (LIVE 관리용)
@@ -1478,17 +1522,7 @@ export default function AdminDashboard({ onBack, refreshData }) {
               </div>
             </div>
             
-            {category === 'live-mgmt' && (
-              <div style={{ marginTop: '16px', paddingTop: '16px', borderTop: '1px dashed #E2E8F0', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                <div style={{ fontSize: '13px', fontWeight: 800, color: '#F59E0B' }}>수동 인원 조절</div>
-                <div style={{ display: 'flex', gap: '8px' }}>
-                  <button type="button" onClick={() => bumpPartyViewCount(item, 20)} style={{ padding: '8px 16px', background: '#F59E0B', color: '#FFF', border: 'none', borderRadius: '8px', fontSize: '12px', fontWeight: 900, cursor: 'pointer' }}>+20명</button>
-                  <button type="button" onClick={() => bumpPartyViewCount(item, 30)} style={{ padding: '8px 16px', background: '#F59E0B', color: '#FFF', border: 'none', borderRadius: '8px', fontSize: '12px', fontWeight: 900, cursor: 'pointer' }}>+30명</button>
-                  <button type="button" onClick={() => bumpPartyViewCount(item, 50)} style={{ padding: '8px 16px', background: '#F59E0B', color: '#FFF', border: 'none', borderRadius: '8px', fontSize: '12px', fontWeight: 900, cursor: 'pointer' }}>+50명</button>
-                  <button type="button" onClick={() => bumpPartyViewCount(item, 100)} style={{ padding: '8px 16px', background: '#F59E0B', color: '#FFF', border: 'none', borderRadius: '8px', fontSize: '12px', fontWeight: 900, cursor: 'pointer' }}>+100명</button>
-                </div>
-              </div>
-            )}
+            {renderPartyLiveCountControls(item)}
           </div>
         ))}
       </div>

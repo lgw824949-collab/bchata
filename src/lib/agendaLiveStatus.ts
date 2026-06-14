@@ -34,6 +34,9 @@ const resolveLiveCountForParty = (
   locations: HomeDarkBar[],
   barStatsMap: BarStatsMap,
 ) => {
+  const partyViewCount = Number((party as Record<string, unknown>).view_count) || 0;
+  if (partyViewCount > 0) return partyViewCount;
+
   const bar = findBarForParty(party, locations);
   if (bar) return resolveBarStats(bar, barStatsMap).liveCount;
 
@@ -42,7 +45,7 @@ const resolveLiveCountForParty = (
   return barStatsMap[nameKey]?.liveCount || 0;
 };
 
-/** 오늘 소셜 — LIVE 시간대 + bar_checkins 실제 인원 */
+/** 오늘 소셜 — LIVE 시간대 + parties.view_count(어드민 조절) 또는 bar_checkins */
 export function resolveAgendaLiveStatus(
   item: HomeTodayAgendaItem,
   todayStr: string,
