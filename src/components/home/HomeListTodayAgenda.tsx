@@ -56,12 +56,6 @@ function formatSelectedDateHeading(dateStr: string, isEn: boolean) {
   return `${year}년 ${month}월 ${day}일 (${weekday})`;
 }
 
-function clampSelectedDate(year: number, month: number, preferredDay: number) {
-  const daysInMonth = new Date(year, month, 0).getDate();
-  const day = Math.min(Math.max(preferredDay, 1), daysInMonth);
-  return `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
-}
-
 export default function HomeListTodayAgenda({
   isEn,
   todayStr,
@@ -118,6 +112,26 @@ export default function HomeListTodayAgenda({
     mapRows,
   ]);
 
+  const canGoPrevMonth = viewYear > todayParts.year
+    || (viewYear === todayParts.year && viewMonth > todayParts.month);
+
+  /** 홈 일정 — 오늘 이전 날짜·지난 일정 미표시 */
+  const stripDayGroups = useMemo(() => {
+    if (viewYear < todayParts.year) return [];
+    if (viewYear === todayParts.year && viewMonth < todayParts.month) return [];
+    if (viewYear === todayParts.year && viewMonth === todayParts.month) {
+      return dayGroups.filter((group) => group.dateStr >= todayStr);
+    }
+    return dayGroups;
+  }, [dayGroups, todayParts.month, todayParts.year, todayStr, viewMonth, viewYear]);
+
+  useEffect(() => {
+    if (selectedDateStr >= todayStr) return;
+    setSelectedDateStr(todayStr);
+    setViewYear(todayParts.year);
+    setViewMonth(todayParts.month);
+  }, [selectedDateStr, todayParts.month, todayParts.year, todayStr]);
+
   const selectedGroup = useMemo(
     () => dayGroups.find((group) => group.dateStr === selectedDateStr) || null,
     [dayGroups, selectedDateStr],
@@ -127,20 +141,22 @@ export default function HomeListTodayAgenda({
   const monthLabel = formatAgendaMonthLabel(viewYear, viewMonth, isEn);
 
   const shiftViewMonth = useCallback((delta: number) => {
+    if (delta < 0 && !canGoPrevMonth) return;
+
     const next = shiftMonth(viewYear, viewMonth, delta);
     setViewYear(next.year);
     setViewMonth(next.month);
 
-    const selectedParts = parseDateStrParts(selectedDateStr);
-    if (selectedParts.year === next.year && selectedParts.month === next.month) return;
-
-    if (next.year === todayParts.year && next.month === todayParts.month) {
+    const isCurrentMonth = next.year === todayParts.year && next.month === todayParts.month;
+    if (isCurrentMonth) {
       setSelectedDateStr(todayStr);
       return;
     }
 
-    setSelectedDateStr(clampSelectedDate(next.year, next.month, selectedParts.day || 1));
-  }, [selectedDateStr, todayParts.month, todayParts.year, todayStr, viewMonth, viewYear]);
+    if (delta > 0) {
+      setSelectedDateStr(`${next.year}-${String(next.month).padStart(2, '0')}-01`);
+    }
+  }, [canGoPrevMonth, todayParts.month, todayParts.year, todayStr, viewMonth, viewYear]);
 
   return (
     <section className="home-list-gate__today-agenda" aria-label={isEn ? 'Schedule by date' : '날짜별 일정'}>
@@ -164,6 +180,7 @@ export default function HomeListTodayAgenda({
             type="button"
             className="home-list-gate__today-agenda-month-btn"
             onClick={() => shiftViewMonth(-1)}
+            disabled={!canGoPrevMonth}
             aria-label={isEn ? 'Previous month' : '이전 달'}
           >
             <ChevronLeft size={16} aria-hidden />
@@ -186,7 +203,7 @@ export default function HomeListTodayAgenda({
         role="tablist"
         aria-label={isEn ? 'Pick a date' : '날짜 선택'}
       >
-        {dayGroups.map((group) => {
+        {stripDayGroups.map((group) => {
           const date = new Date(`${group.dateStr}T12:00:00`);
           const weekday = Number.isNaN(date.getTime())
             ? ''

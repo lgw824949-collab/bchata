@@ -320,6 +320,11 @@
   background: #f8fafc;
 }
 
+.home-list-gate__today-agenda-month-btn:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+
 .home-list-gate__date-strip {
   display: flex;
   gap: 6px;
