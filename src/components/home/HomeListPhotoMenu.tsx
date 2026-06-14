@@ -1,4 +1,5 @@
 import React from 'react';
+import { DEFAULT_CARD_IMAGE, imgFallbackHandler } from '../../constants/imageAssets';
 import { homeListPhotoMenuAriaLabel, type HomeListPhotoMenuItem } from '../../lib/homeListPhotoMenu';
 
 type HomeListPhotoMenuProps = {
@@ -33,8 +34,15 @@ export default function HomeListPhotoMenu({ isEn, items }: HomeListPhotoMenuProp
               onClick={item.onClick}
             >
               <span className="home-list-gate__quick-menu-thumb-wrap" aria-hidden>
-                <span className="home-list-gate__quick-menu-emoji">
-                  {item.emoji}
+                <span className="home-list-gate__quick-menu-thumb">
+                  <img
+                    src={item.photoUrl}
+                    alt=""
+                    className="home-list-gate__quick-menu-thumb-img"
+                    loading="lazy"
+                    decoding="async"
+                    onError={imgFallbackHandler(DEFAULT_CARD_IMAGE)}
+                  />
                 </span>
                 {item.count > 0 ? (
                   <span className="home-list-gate__quick-menu-badge">{badgeLabel}</span>

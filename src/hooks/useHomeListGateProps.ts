@@ -361,14 +361,24 @@ export function useHomeListGateProps(input: UseHomeDarkGatePropsInput) {
 
   const socialMenuCount = homeHeroSocialParties.length;
 
+  const instructorMenuPhotoUrl = useMemo(() => {
+    const withPhoto = (hotInstructors || []).find((inst) => String(inst.photo_url || '').trim());
+    return withPhoto?.photo_url || null;
+  }, [hotInstructors]);
+
   const photoMenuItems = useMemo(
     () => buildHomeListPhotoMenuItems({
       isEn,
+      socialParties: homeHeroSocialParties,
+      bootcamps,
+      festivals,
+      calendarTodayStr,
       socialCount: socialMenuCount,
       bootcampCount,
       festivalCount,
       partyEventCount,
       instructorCount: hotInstructors.length,
+      instructorPhotoUrl: instructorMenuPhotoUrl,
       onOpenSocial: openSocialTab,
       onOpenBootcamp: openBootcampPage,
       onOpenFestival: openFestivalPage,
@@ -377,11 +387,16 @@ export function useHomeListGateProps(input: UseHomeDarkGatePropsInput) {
     }),
     [
       isEn,
+      homeHeroSocialParties,
+      bootcamps,
+      festivals,
+      calendarTodayStr,
       socialMenuCount,
       bootcampCount,
       festivalCount,
       partyEventCount,
       hotInstructors.length,
+      instructorMenuPhotoUrl,
       openSocialTab,
       openBootcampPage,
       openFestivalPage,

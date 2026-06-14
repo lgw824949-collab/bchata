@@ -1,4 +1,6 @@
-/** 홈 탐색 퀵메뉴 — 다크 퀵메뉴와 동일 이모지 (새로고침 시 구 placeholder 사진 깜빡임 방지) */
+import { DEFAULT_CARD_IMAGE } from '../constants/imageAssets';
+
+/** 다크 홈 퀵메뉴 전용 이모지 (리스트 탐색은 등록 포스터 사용) */
 export const HOME_EXPLORE_MENU_EMOJIS = {
   social: '🎉',
   bootcamp: '🏕️',
@@ -7,12 +9,65 @@ export const HOME_EXPLORE_MENU_EMOJIS = {
   instructors: '🕺',
 } as const;
 
-export type HomeListPhotoMenuItemId = keyof typeof HOME_EXPLORE_MENU_EMOJIS;
+const normDate = (value?: unknown) => String(value ?? '').slice(0, 10);
+
+const dedupeById = <T extends { id?: unknown }>(list: T[]): T[] => {
+  const seen = new Set<unknown>();
+  return list.filter((item) => {
+    const id = item?.id;
+    if (id == null) return true;
+    if (seen.has(id)) return false;
+    seen.add(id);
+    return true;
+  });
+};
+
+/** 종료 전·승인·포스터 있는 행사 */
+export const filterActiveGateEventPosters = (
+  rows: Record<string, unknown>[] | null | undefined,
+  todayStr: string,
+  eventTypes: string[] | null = null,
+) => dedupeById(rows || []).filter((row) => {
+  if (row.status && row.status !== 'active') return false;
+  if (eventTypes && !eventTypes.includes(String(row.event_type || 'festival'))) return false;
+  if (!String(row.poster_url || '').trim()) return false;
+  const end = normDate(row.end_date || row.start_date);
+  if (end && end < todayStr) return false;
+  return true;
+});
+
+/** 최초 등록 포스터 1장 고정 */
+export const pickFirstGateMenuPhotoUrl = (
+  rows: Record<string, unknown>[] | null | undefined,
+  getUrl: (row: Record<string, unknown>) => unknown,
+  getSortKey: (row: Record<string, unknown>) => unknown,
+  fallback: string,
+): string => {
+  const sorted = [...(rows || [])]
+    .filter((row) => String(getUrl(row) || '').trim())
+    .sort((a, b) => {
+      const ta = new Date(String(getSortKey(a) || 0)).getTime();
+      const tb = new Date(String(getSortKey(b) || 0)).getTime();
+      return ta - tb;
+    });
+  const url = sorted[0] ? String(getUrl(sorted[0])).trim() : '';
+  return url || fallback;
+};
+
+export const HOME_LIST_PHOTO_MENU_FALLBACKS = {
+  social: DEFAULT_CARD_IMAGE,
+  bootcamp: DEFAULT_CARD_IMAGE,
+  festival: DEFAULT_CARD_IMAGE,
+  party: '/home-gate-party.jpg',
+  instructors: DEFAULT_CARD_IMAGE,
+} as const;
+
+export type HomeListPhotoMenuItemId = keyof typeof HOME_LIST_PHOTO_MENU_FALLBACKS;
 
 export type HomeListPhotoMenuItem = {
   id: HomeListPhotoMenuItemId;
   label: string;
-  emoji: string;
+  photoUrl: string;
   count: number;
   countHint: string;
   onClick: () => void;
@@ -20,11 +75,16 @@ export type HomeListPhotoMenuItem = {
 
 type BuildHomeListPhotoMenuItemsInput = {
   isEn: boolean;
+  socialParties: Record<string, unknown>[] | null | undefined;
+  bootcamps: Record<string, unknown>[] | null | undefined;
+  festivals: Record<string, unknown>[] | null | undefined;
+  calendarTodayStr: string;
   socialCount: number;
   bootcampCount: number;
   festivalCount: number;
   partyEventCount: number;
   instructorCount: number;
+  instructorPhotoUrl?: string | null;
   onOpenSocial: () => void;
   onOpenBootcamp: () => void;
   onOpenFestival: () => void;
@@ -35,11 +95,16 @@ type BuildHomeListPhotoMenuItemsInput = {
 export function buildHomeListPhotoMenuItems(input: BuildHomeListPhotoMenuItemsInput): HomeListPhotoMenuItem[] {
   const {
     isEn,
+    socialParties,
+    bootcamps,
+    festivals,
+    calendarTodayStr,
     socialCount,
     bootcampCount,
     festivalCount,
     partyEventCount,
     instructorCount,
+    instructorPhotoUrl,
     onOpenSocial,
     onOpenBootcamp,
     onOpenFestival,
@@ -47,13 +112,42 @@ export function buildHomeListPhotoMenuItems(input: BuildHomeListPhotoMenuItemsIn
     onOpenInstructors,
   } = input;
 
+  const socialPhotoUrl = pickFirstGateMenuPhotoUrl(
+    socialParties,
+    (row) => row.poster_url,
+    (row) => row.created_at || row.date || row.start_date,
+    HOME_LIST_PHOTO_MENU_FALLBACKS.social,
+  );
+
+  const bootcampPhotoUrl = pickFirstGateMenuPhotoUrl(
+    filterActiveGateEventPosters(bootcamps, calendarTodayStr),
+    (row) => row.poster_url,
+    (row) => row.created_at || row.start_date,
+    HOME_LIST_PHOTO_MENU_FALLBACKS.bootcamp,
+  );
+
+  const festivalPhotoUrl = pickFirstGateMenuPhotoUrl(
+    filterActiveGateEventPosters(festivals, calendarTodayStr, ['festival', 'mt']),
+    (row) => row.poster_url,
+    (row) => row.created_at || row.start_date,
+    HOME_LIST_PHOTO_MENU_FALLBACKS.festival,
+  );
+
+  const partyPhotoUrl = pickFirstGateMenuPhotoUrl(
+    filterActiveGateEventPosters(festivals, calendarTodayStr, ['party']),
+    (row) => row.poster_url,
+    (row) => row.created_at || row.start_date,
+    HOME_LIST_PHOTO_MENU_FALLBACKS.party,
+  );
+
+  const instructorPhoto = String(instructorPhotoUrl || '').trim() || HOME_LIST_PHOTO_MENU_FALLBACKS.instructors;
   const activeHint = isEn ? 'active' : '진행·예정';
 
   return [
     {
       id: 'social',
       label: isEn ? 'Social' : '소셜',
-      emoji: HOME_EXPLORE_MENU_EMOJIS.social,
+      photoUrl: socialPhotoUrl,
       count: socialCount,
       countHint: isEn ? 'today' : '오늘',
       onClick: onOpenSocial,
@@ -61,7 +155,7 @@ export function buildHomeListPhotoMenuItems(input: BuildHomeListPhotoMenuItemsIn
     {
       id: 'bootcamp',
       label: isEn ? 'Bootcamp' : '부트캠프',
-      emoji: HOME_EXPLORE_MENU_EMOJIS.bootcamp,
+      photoUrl: bootcampPhotoUrl,
       count: bootcampCount,
       countHint: activeHint,
       onClick: onOpenBootcamp,
@@ -69,7 +163,7 @@ export function buildHomeListPhotoMenuItems(input: BuildHomeListPhotoMenuItemsIn
     {
       id: 'festival',
       label: isEn ? 'Festival' : '페스티벌',
-      emoji: HOME_EXPLORE_MENU_EMOJIS.festival,
+      photoUrl: festivalPhotoUrl,
       count: festivalCount,
       countHint: activeHint,
       onClick: onOpenFestival,
@@ -77,7 +171,7 @@ export function buildHomeListPhotoMenuItems(input: BuildHomeListPhotoMenuItemsIn
     {
       id: 'party',
       label: isEn ? 'Party' : '파티',
-      emoji: HOME_EXPLORE_MENU_EMOJIS.party,
+      photoUrl: partyPhotoUrl,
       count: partyEventCount,
       countHint: activeHint,
       onClick: onOpenPartyEvents,
@@ -85,7 +179,7 @@ export function buildHomeListPhotoMenuItems(input: BuildHomeListPhotoMenuItemsIn
     {
       id: 'instructors',
       label: isEn ? 'Instructors' : '강사',
-      emoji: HOME_EXPLORE_MENU_EMOJIS.instructors,
+      photoUrl: instructorPhoto,
       count: instructorCount,
       countHint: isEn ? 'instructors' : '활동 강사',
       onClick: onOpenInstructors,
