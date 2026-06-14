@@ -39,12 +39,22 @@ export default async function handler(req, res) {
 
   try {
     if (action === 'update') {
-      const { data, error } = await supabase
-        .from(table)
-        .update(payload || {})
-        .eq('id', id)
-        .select()
-        .maybeSingle();
+      const runUpdate = async (body) =>
+        supabase.from(table).update(body || {}).eq('id', id).select().maybeSingle();
+
+      let { data, error } = await runUpdate(payload || {});
+      if (
+        error
+        && (
+          String(error.message || '').includes('price_poster_url')
+          || String(error.message || '').includes('extra_poster_url')
+        )
+      ) {
+        const legacy = { ...(payload || {}) };
+        delete legacy.price_poster_url;
+        delete legacy.extra_poster_url;
+        ({ data, error } = await runUpdate(legacy));
+      }
       if (error) return res.status(400).json({ error: error.message });
       if (!data) {
         return res.status(400).json({ error: 'No row updated' });

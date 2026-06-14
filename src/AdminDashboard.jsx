@@ -295,6 +295,8 @@ export default function AdminDashboard({ onBack }) {
     price: String(form.price || '').trim() || null,
     description: String(form.description || '').trim() || null,
     poster_url: String(form.poster_url || '').trim() || null,
+    price_poster_url: String(form.price_poster_url || '').trim() || null,
+    extra_poster_url: String(form.extra_poster_url || '').trim() || null,
     bank_info: String(form.bank_info || '').trim() || null,
     event_type: form.event_type || 'festival',
   })
@@ -302,8 +304,9 @@ export default function AdminDashboard({ onBack }) {
   const buildBootcampUpdatePayload = (form) => {
     const venue = String(form.venue || form.location || '').trim() || null;
     const fee = String(form.fee || form.price || '').trim() || null;
+    const title = String(form.title || form.name || form.instructor || '').trim();
     return {
-      title: String(form.title || form.name || '').trim(),
+      title,
       instructor: String(form.instructor || '').trim() || null,
       type: form.type || 'domestic',
       region: String(form.region || '').trim() || null,
@@ -596,7 +599,12 @@ export default function AdminDashboard({ onBack }) {
           category === 'festival'
             ? buildFestivalUpdatePayload(form)
             : buildBootcampUpdatePayload(form)
-        if (!payload.title) {
+        if (category === 'bootcamp') {
+          if (!payload.title && !payload.instructor) {
+            showAdminError('제목 또는 강사명을 입력해 주세요.')
+            return
+          }
+        } else if (!payload.title) {
           showAdminError('제목을 입력해 주세요.')
           return
         }
@@ -1169,11 +1177,14 @@ export default function AdminDashboard({ onBack }) {
           <div key={item.id} style={{ backgroundColor: '#FFF', borderRadius: '20px', padding: '20px', marginBottom: '16px', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.1)', border: '1px solid #E2E8F0' }}>
             <div style={{ display: 'flex', gap: '16px' }}>
               {(() => {
-                let img = item.poster_url || item.photo_url || item.image_url;
+                const editingThis = editingItem === item.id;
+                let img = editingThis
+                  ? (editFormData.poster_url || editFormData.photo_url || editFormData.image_url || item.poster_url || item.photo_url || item.image_url)
+                  : (item.poster_url || item.photo_url || item.image_url);
                 if (category === 'rental') {
                   img = resolveBarVenuePhoto(item.name, img);
                 }
-                return img ? <img src={img} style={{ width: '80px', height: '110px', objectFit: 'cover', borderRadius: '12px' }} /> : null;
+                return img ? <img src={img} style={{ width: '80px', height: '110px', objectFit: 'cover', borderRadius: '12px', flexShrink: 0 }} alt="" onError={(e) => { e.currentTarget.style.display = 'none'; }} /> : null;
               })()}
               <div style={{ flex: 1 }}>
                 <div style={{ fontSize: '11px', color: '#94A3B8', marginBottom: '4px' }}>ID: {item.id} | {item.created_at?.split('T')[0]} {item.created_at?.split('T')[1]?.slice(0, 5)}</div>
@@ -1204,7 +1215,9 @@ export default function AdminDashboard({ onBack }) {
                         </div>
                         <input value={editFormData.location || ''} onChange={e => setEditFormData({ ...editFormData, location: e.target.value })} placeholder="상세 장소" style={{ width: '100%', padding: '10px', borderRadius: '10px', border: '1px solid #E2E8F0' }} />
                         <textarea rows={3} value={editFormData.description || ''} onChange={e => setEditFormData({ ...editFormData, description: e.target.value })} placeholder="설명" style={{ width: '100%', padding: '10px', borderRadius: '10px', border: '1px solid #E2E8F0', resize: 'none' }} />
-                        <input value={editFormData.poster_url || ''} onChange={e => setEditFormData({ ...editFormData, poster_url: e.target.value })} placeholder="포스터 URL" style={{ width: '100%', padding: '10px', borderRadius: '10px', border: '1px solid #E2E8F0', fontSize: '12px' }} />
+                        <input value={editFormData.poster_url || ''} onChange={e => setEditFormData({ ...editFormData, poster_url: e.target.value })} placeholder="행사 포스터 URL" style={{ width: '100%', padding: '10px', borderRadius: '10px', border: '1px solid #E2E8F0', fontSize: '12px' }} />
+                        <input value={editFormData.price_poster_url || ''} onChange={e => setEditFormData({ ...editFormData, price_poster_url: e.target.value })} placeholder="가격 포스터 URL" style={{ width: '100%', padding: '10px', borderRadius: '10px', border: '1px solid #E2E8F0', fontSize: '12px' }} />
+                        <input value={editFormData.extra_poster_url || ''} onChange={e => setEditFormData({ ...editFormData, extra_poster_url: e.target.value })} placeholder="추가 이미지 URL" style={{ width: '100%', padding: '10px', borderRadius: '10px', border: '1px solid #E2E8F0', fontSize: '12px' }} />
                         <input value={editFormData.bank_info || ''} onChange={e => setEditFormData({ ...editFormData, bank_info: e.target.value })} placeholder="입금 계좌 (예: 카카오뱅크 3333-01-123 홍길동)" style={{ width: '100%', padding: '10px', borderRadius: '10px', border: '1px solid #E2E8F0', fontSize: '12px' }} />
                         <div>
                           <div style={{ fontSize: '11px', fontWeight: 800, color: '#475569', marginBottom: 6 }}>유형</div>
@@ -1253,7 +1266,9 @@ export default function AdminDashboard({ onBack }) {
                           <input value={editFormData.instagram || ''} onChange={e => setEditFormData({ ...editFormData, instagram: e.target.value })} placeholder="인스타그램 URL" style={{ padding: '10px', borderRadius: '10px', border: '1px solid #E2E8F0', fontSize: '12px' }} />
                           <input value={editFormData.youtube || ''} onChange={e => setEditFormData({ ...editFormData, youtube: e.target.value })} placeholder="유튜브 URL" style={{ padding: '10px', borderRadius: '10px', border: '1px solid #E2E8F0', fontSize: '12px' }} />
                         </div>
-                        <input value={editFormData.poster_url || ''} onChange={e => setEditFormData({ ...editFormData, poster_url: e.target.value })} placeholder="포스터 URL" style={{ width: '100%', padding: '10px', borderRadius: '10px', border: '1px solid #E2E8F0', fontSize: '12px' }} />
+                        <input value={editFormData.poster_url || ''} onChange={e => setEditFormData({ ...editFormData, poster_url: e.target.value })} placeholder="마스터 포스터 URL" style={{ width: '100%', padding: '10px', borderRadius: '10px', border: '1px solid #E2E8F0', fontSize: '12px' }} />
+                        <input value={editFormData.price_poster_url || ''} onChange={e => setEditFormData({ ...editFormData, price_poster_url: e.target.value })} placeholder="가격 포스터 URL" style={{ width: '100%', padding: '10px', borderRadius: '10px', border: '1px solid #E2E8F0', fontSize: '12px' }} />
+                        <input value={editFormData.extra_poster_url || ''} onChange={e => setEditFormData({ ...editFormData, extra_poster_url: e.target.value })} placeholder="추가 이미지 URL" style={{ width: '100%', padding: '10px', borderRadius: '10px', border: '1px solid #E2E8F0', fontSize: '12px' }} />
                         <input value={editFormData.bank_info || ''} onChange={e => setEditFormData({ ...editFormData, bank_info: e.target.value })} placeholder="입금 계좌 (예: 카카오뱅크 3333-01-123 홍길동)" style={{ width: '100%', padding: '10px', borderRadius: '10px', border: '1px solid #E2E8F0', fontSize: '12px' }} />
                       </>
                     )}
