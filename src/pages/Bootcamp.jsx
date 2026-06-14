@@ -18,9 +18,9 @@ const BOOTCAMP_GENRE_OPTIONS = ['바차타', '살사', '키좀바', '쥬크'];
 const BOOTCAMP_REGIONS = ['전체', '수도권', '강원', '제주', '부산/경남', '전라', '충청', '해외'];
 
 const BOOTCAMP_POSTER_FIELDS = [
-  { key: 'poster_url', label: '마스터 포스터', hint: '메인 홍보 포스터 (필수)' },
-  { key: 'price_poster_url', label: '가격 포스터', hint: '참가비·패키지 안내 (필수)' },
-  { key: 'extra_poster_url', label: '추가 이미지', hint: '일정·커리큘럼 등 (필수)' },
+  { key: 'poster_url', label: '마스터 포스터', hint: '메인 홍보 포스터 (필수)', required: true },
+  { key: 'price_poster_url', label: '가격 포스터', hint: '참가비·패키지 안내 (선택)' },
+  { key: 'extra_poster_url', label: '추가 이미지', hint: '일정·커리큘럼 등 (선택)' },
 ];
 
 const REGION_MAP = {
@@ -121,9 +121,6 @@ const isBootcampEnded = (row, todayStr = getKSTCalendarTodayStr()) => {
   const end = normDate(row?.end_date || row?.start_date);
   return Boolean(end && end < todayStr);
 };
-
-const countBootcampPosterImages = (form) =>
-  BOOTCAMP_POSTER_FIELDS.filter(({ key }) => String(form?.[key] || '').trim()).length;
 
 const bootcampDetailPosterImages = (row) =>
   BOOTCAMP_POSTER_FIELDS
@@ -405,15 +402,7 @@ const Bootcamp = ({ onBack, initialView = 'list', cachedBootcamps = null, onBoot
         return false;
       }
       if (!String(formData.poster_url || '').trim()) {
-        alert('마스터 포스터를 업로드해 주세요.');
-        return false;
-      }
-      if (!String(formData.price_poster_url || '').trim()) {
-        alert('가격 포스터를 업로드해 주세요.');
-        return false;
-      }
-      if (countBootcampPosterImages(formData) < 3) {
-        alert('이미지는 최소 3장이 필요합니다. (마스터·가격·추가 포스터)');
+        alert('마스터 포스터(필수)를 등록해 주세요.');
         return false;
       }
       return true;
@@ -887,11 +876,11 @@ const Bootcamp = ({ onBack, initialView = 'list', cachedBootcamps = null, onBoot
                     <input value={formData.fee} onChange={(e) => setFormData((p) => ({ ...p, fee: e.target.value }))} placeholder="예: 풀패스 250,000 / 파티 50,000" style={{ width: '100%', padding: 20, borderRadius: 18, border: '1px solid rgba(255,255,255,0.1)', background: '#1A1A1A', fontSize: 16, color: '#f8fafc', outline: 'none', boxSizing: 'border-box' }} />
                   </div>
                   <p style={{ margin: 0, fontSize: 13, color: '#94a3b8', lineHeight: 1.5 }}>
-                    이미지 <strong style={{ color: '#C9A84C' }}>최소 3장</strong> 필수 · 마스터 포스터와 가격 포스터를 반드시 포함해 주세요.
+                    마스터 포스터 <strong style={{ color: '#C9A84C' }}>1장 필수</strong> · 가격·추가 이미지는 선택입니다.
                   </p>
-                  {BOOTCAMP_POSTER_FIELDS.map(({ key, label, hint }, index) => (
+                  {BOOTCAMP_POSTER_FIELDS.map(({ key, label, hint, required }, index) => (
                     <div key={key}>
-                      <label style={{ display: 'block', fontSize: 12, fontWeight: 900, color: '#C9A84C', marginBottom: 12 }}>{11 + index}. {label}</label>
+                      <label style={{ display: 'block', fontSize: 12, fontWeight: 900, color: '#C9A84C', marginBottom: 12 }}>{11 + index}. {label}{required ? ' (필수)' : ' (선택)'}</label>
                       <div style={{ width: '100%', height: 200, borderRadius: 24, border: `2px dashed ${formData[key] ? 'rgba(201,168,76,0.55)' : 'rgba(201,168,76,0.3)'}`, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', background: '#1A1A1A', cursor: 'pointer', position: 'relative', overflow: 'hidden' }}>
                         {formData[key] ? (
                           <img src={formData[key]} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
