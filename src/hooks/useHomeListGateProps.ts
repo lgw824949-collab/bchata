@@ -359,22 +359,17 @@ export function useHomeListGateProps(input: UseHomeDarkGatePropsInput) {
     openPartyWithAfterParty(slide.raw as HomeDarkParty);
   }, [openBootcampPage, openFestivalPage, openFestivalPartyPage, openPartyWithAfterParty]);
 
-  const instructorMenuPhotoUrl = useMemo(() => {
-    const withPhoto = (hotInstructors || []).find((inst) => String(inst.photo_url || '').trim());
-    return withPhoto?.photo_url || null;
-  }, [hotInstructors]);
+  const socialMenuCount = homeHeroSocialParties.length;
 
   const photoMenuItems = useMemo(
     () => buildHomeListPhotoMenuItems({
       isEn,
-      bootcamps,
-      festivals,
-      calendarTodayStr,
+      socialCount: socialMenuCount,
       bootcampCount,
       festivalCount,
       partyEventCount,
       instructorCount: hotInstructors.length,
-      instructorPhotoUrl: instructorMenuPhotoUrl,
+      onOpenSocial: openSocialTab,
       onOpenBootcamp: openBootcampPage,
       onOpenFestival: openFestivalPage,
       onOpenPartyEvents: openFestivalPartyPage,
@@ -382,14 +377,12 @@ export function useHomeListGateProps(input: UseHomeDarkGatePropsInput) {
     }),
     [
       isEn,
-      bootcamps,
-      festivals,
-      calendarTodayStr,
+      socialMenuCount,
       bootcampCount,
       festivalCount,
       partyEventCount,
       hotInstructors.length,
-      instructorMenuPhotoUrl,
+      openSocialTab,
       openBootcampPage,
       openFestivalPage,
       openFestivalPartyPage,

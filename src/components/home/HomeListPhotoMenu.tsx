@@ -1,5 +1,4 @@
 import React from 'react';
-import { DEFAULT_CARD_IMAGE, imgFallbackHandler } from '../../constants/imageAssets';
 import { homeListPhotoMenuAriaLabel, type HomeListPhotoMenuItem } from '../../lib/homeListPhotoMenu';
 
 type HomeListPhotoMenuProps = {
@@ -19,9 +18,6 @@ export default function HomeListPhotoMenu({ isEn, items }: HomeListPhotoMenuProp
         <h2 className="home-list-gate__section-title home-list-gate__quick-panel-title">
           {isEn ? 'Explore' : '탐색'}
         </h2>
-        <p className="home-list-gate__quick-panel-caption">
-          {isEn ? 'Bootcamp · Festival · Party · Instructors' : '부트캠프 · 페스티벌 · 파티 · 강사'}
-        </p>
       </div>
       <div className="home-list-gate__quick-menu-grid" role="list">
         {items.map((item) => {
@@ -37,15 +33,8 @@ export default function HomeListPhotoMenu({ isEn, items }: HomeListPhotoMenuProp
               onClick={item.onClick}
             >
               <span className="home-list-gate__quick-menu-thumb-wrap" aria-hidden>
-                <span className="home-list-gate__quick-menu-thumb">
-                  <img
-                    src={item.photoUrl}
-                    alt=""
-                    className="home-list-gate__quick-menu-thumb-img"
-                    loading="lazy"
-                    decoding="async"
-                    onError={imgFallbackHandler(DEFAULT_CARD_IMAGE)}
-                  />
+                <span className="home-list-gate__quick-menu-emoji">
+                  {item.emoji}
                 </span>
                 {item.count > 0 ? (
                   <span className="home-list-gate__quick-menu-badge">{badgeLabel}</span>
