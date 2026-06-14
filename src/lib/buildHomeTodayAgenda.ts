@@ -1,6 +1,7 @@
 import { formatHeroDateLabel } from '../components/home/buildHomeDarkHeroSlides';
 import type { HomeDarkParty } from '../components/home/types';
 import { isApprovedParty, normDate } from './dateNorm';
+import { partyMatchesCalendarDate } from './partyRecurrence';
 import { formatPartyTitleDisplay } from './partyTitleDisplay';
 import { resolvePartyVenueName } from './partiesQuery';
 import { inferPartyRowSlot } from './postKind';
@@ -105,7 +106,7 @@ export const filterAgendaPartiesForDate = (
   (list || []).filter(
     (party) =>
       isApprovedParty(party)
-      && normDate(party.date) === dateStr
+      && partyMatchesCalendarDate(party, dateStr)
       && String(party.poster_url || '').trim(),
   ),
 );

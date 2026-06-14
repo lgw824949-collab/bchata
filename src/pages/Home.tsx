@@ -9,6 +9,7 @@ import { supabase } from '../lib/supabase'
 import { BAR_DATABASE, findBarByName, findBarByAddress } from '../lib/BarLib'
 import { enrichBarRowCoordinates } from '../lib/barMasterCoords'
 import { normDate, getKSTCalendarTodayStr, isApprovedParty } from '../lib/dateNorm'
+import { partyIsUpcomingOrRecurring, partyMatchesCalendarDate } from '../lib/partyRecurrence'
 import { resolvePartyVenueName } from '../lib/partiesQuery'
 import { logSupabaseError } from '../lib/locationsQuery'
 import { hasOptionalLocationColumns, mergeVenueWithLocalExtras } from '../lib/venueLocalExtras'
@@ -551,11 +552,11 @@ const posterUrlsFromRows = (rows) =>
   [...new Set((rows || []).map((r) => String(r?.poster_url || '').trim()).filter(Boolean))];
 
 /** 같은 날·같은 포스터 URL은 1건 (신규 포스터 URL이면 +1) */
-const dedupePartiesByPoster = (list) => {
+const dedupePartiesByPoster = (list, calendarDateStr) => {
   const seen = new Set();
   const out = [];
   for (const p of list || []) {
-    const date = normDate(p.date);
+    const date = calendarDateStr || normDate(p.date);
     if (!date) continue;
     const poster = String(p.poster_url || '').trim();
     const key = poster ? `${date}|poster:${poster}` : `${date}|id:${p.id}`;
@@ -566,16 +567,27 @@ const dedupePartiesByPoster = (list) => {
   return out;
 };
 
-/** 승인 · poster_url · 소셜만 — 특정 달력일 */
+const dedupeCalendarPartyPool = (list) => {
+  const seen = new Set();
+  return (list || []).filter((p) => {
+    if (p?.id == null) return true;
+    if (seen.has(p.id)) return false;
+    seen.add(p.id);
+    return true;
+  });
+};
+
+/** 승인 · poster_url · 소셜만 — 특정 달력일 (매주 반복 포함) */
 const filterPosterPartiesForDate = (list, dateStr) =>
   dedupePartiesByPoster(
     (list || []).filter(
       (p) =>
         isApprovedParty(p)
-        && normDate(p.date) === dateStr
+        && partyMatchesCalendarDate(p, dateStr)
         && String(p.poster_url || '').trim()
         && partyRowMatchesSlot(p, '소셜'),
     ),
+    dateStr,
   );
 
 /** 오늘(KST 달력일) · 승인 · poster_url 등록 파티 — 동일 포스터 URL은 1건 · 오늘소셜(부트캠프·페스티벌 제외) */
@@ -821,7 +833,7 @@ const dedupeById = (list) => {
 };
 
 const partiesOnDate = (list, fullDate) =>
-  (list || []).filter((p) => normDate(p.date) === fullDate);
+  (list || []).filter((p) => partyMatchesCalendarDate(p, fullDate));
 
 const bootcampsOnDate = (list, fullDate) =>
   dedupeById(list || []).filter((b) => {
@@ -1533,6 +1545,7 @@ const HomePage = ({
   const isEn = i18n.language.startsWith('en');
   const lang = isEn ? 'en' : 'ko';
   const activeTab = homeTab ?? null;
+  const [onHomeGatePath, setOnHomeGatePath] = useState(() => window.location.pathname === '/');
   const [regionCounts, setRegionCounts] = useState({
     seoul: 0, seoulDistricts: '',
     metro: 0, metroDistricts: '',
@@ -1685,9 +1698,9 @@ const HomePage = ({
   /** 소셜 탭 — 날짜바·달력·목록 (오늘 이후, 소셜 슬롯만) */
   const calendarParties = useMemo(
     () =>
-      dedupePartiesByPoster(
+      dedupeCalendarPartyPool(
         (parties || []).filter(
-          (p) => normDate(p.date) >= todayStr && partyRowMatchesSlot(p, '소셜'),
+          (p) => partyIsUpcomingOrRecurring(p, todayStr) && partyRowMatchesSlot(p, '소셜'),
         ),
       ),
     [parties, todayStr],
@@ -2099,9 +2112,8 @@ const HomePage = ({
   }, [openAnalysis]);
 
   const onOpenSajuOverlay = useCallback(() => {
-    setShowSaju(true);
-    pushOverlay('barMatching', { path: window.location.pathname });
-  }, [setShowSaju]);
+    openAnalysis(true);
+  }, [openAnalysis]);
 
   const onToggleAppLanguage = useCallback(() => {
     const next = i18n.language.startsWith('ko') ? 'en' : 'ko';
@@ -2536,6 +2548,19 @@ const HomePage = ({
   const isHomeGate = activeTab === null;
 
   useEffect(() => {
+    const syncHomeGatePath = () => {
+      setOnHomeGatePath(window.location.pathname === '/');
+    };
+    syncHomeGatePath();
+    window.addEventListener('bamppa-navigate', syncHomeGatePath);
+    window.addEventListener('popstate', syncHomeGatePath);
+    return () => {
+      window.removeEventListener('bamppa-navigate', syncHomeGatePath);
+      window.removeEventListener('popstate', syncHomeGatePath);
+    };
+  }, []);
+
+  useEffect(() => {
     if (!isHomeGate) return undefined;
     const themeMeta = document.querySelector('meta[name="theme-color"]');
     if (themeMeta) themeMeta.setAttribute('content', '#F5F6F8');
@@ -2967,7 +2992,7 @@ const HomePage = ({
         />
       )}
 
-      {activeTab === null && (
+      {activeTab === null && onHomeGatePath && view === 'home' && (
         <motion.div className="home-main-stack" style={{ padding: 0 }}>
           <HomeListGate {...homeListGateProps} />
         </motion.div>
@@ -4011,7 +4036,7 @@ const HomePage = ({
             { icon: <Users size={32} strokeWidth={1.2} color="#FF1744" />, label: '강사찾기', particles: '🕺', action: () => { localStorage.setItem('instructor_target_genre', '전체'); navigate('/instructors'); setTimeout(() => { window.dispatchEvent(new CustomEvent('apply-instructor-filter')); }, 300); } },
             { textIcon: '1:1', label: '채팅문의', particles: '💬', action: () => window.open('https://open.kakao.com/o/gP43rNri', '_blank') },
             { icon: <MessageSquare size={32} strokeWidth={1.2} color="#FF1744" />, label: '컨시어지', particles: '✨', action: () => window.dispatchEvent(new CustomEvent('open-chatbot')) },
-            { icon: <Star size={32} strokeWidth={1.2} color="#FF1744" />, label: '운명의좌표', particles: '🌟', action: () => setShowSaju(true) },
+            { icon: <Star size={32} strokeWidth={1.2} color="#FF1744" />, label: '운명의좌표', particles: '🌟', action: () => openAnalysis(true) },
             { icon: <Heart size={32} strokeWidth={1.2} color="#FF1744" />, label: '찜하기', particles: '❤️', action: () => pushOverlay('wishlist') },
             { icon: <Utensils size={32} strokeWidth={1.2} color="#FF1744" />, label: '맛집뒷풀이', particles: '🍽', action: () => navigate('/restaurant') },
             { icon: <Camera size={32} strokeWidth={1.2} color="#FF1744" />, label: '라이브픽', particles: '📸', action: () => navigate('/livepick') },
@@ -4655,7 +4680,7 @@ const HomePage = ({
                       { icon: <CloudSun size={32} color="#1976D2" />, label: '오늘날씨', action: () => pushOverlay('weather') },
                       { icon: <Heart size={32} color="#7B1FA2" />, label: '찜하기', action: () => pushOverlay('wishlist') },
                       { icon: <Navigation size={32} color="#303F9F" />, label: '지능형경로', /* badge: 'LIVE', */ action: () => openAnalysis(false) },
-                      { icon: <Star size={32} color="#F9A825" />, label: '운명의좌표', action: () => pushOverlay('barMatching') },
+                      { icon: <Star size={32} color="#F9A825" />, label: '운명의좌표', action: () => openAnalysis(true) },
                       { icon: <MapPin size={32} color="#0097A7" />, label: '주변주차', action: () => navigate('/parking') },
                     ].map((item, idx) => (
                       <div key={idx} style={{ position: 'relative' }}>

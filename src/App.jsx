@@ -31,6 +31,7 @@ import { registerExitToast } from './lib/mobileExitGuard'
 import { Z } from './constants/zLayers'
 import { DEFAULT_AVATAR_IMAGE, imgFallbackHandler } from './constants/imageAssets'
 import { normDate, getKSTCalendarTodayStr } from './lib/dateNorm'
+import { partyIsUpcomingOrRecurring, partyMatchesCalendarDate } from './lib/partyRecurrence'
 import { LOCATIONS_SELECT, logSupabaseError } from './lib/locationsQuery'
 import { PARTIES_SELECT, logPartiesFetchError } from './lib/partiesQuery'
 import { filterSocialPartyRows } from './lib/postKind'
@@ -763,7 +764,15 @@ const DynamicAnalysisModal = ({ isOpen, onClose, userCoords, isSajuCall }) => {
 
   if (!isOpen) return null;
   const currentTargetDest = targetDest || { region: '서울', name: '강남역 성지' };
-  const isIncheon = currentTargetDest.region === '인천' && isSajuCall;
+  const destinyMode = Boolean(isSajuCall);
+  const isIncheon = currentTargetDest.region === '인천' && destinyMode;
+  const headline = isIncheon
+    ? '성지 상륙 분석'
+    : destinyMode
+      ? '운명의 좌표'
+      : '최단 경로 최적화';
+  const headlineEmoji = destinyMode ? '🌟' : '🛰️';
+  const badgeLabel = destinyMode ? '운명의 좌표' : 'REALTIME GPS';
 
   return (
     <motion.div 
@@ -798,7 +807,7 @@ const DynamicAnalysisModal = ({ isOpen, onClose, userCoords, isSajuCall }) => {
         {!amguho ? (
           <>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '35px' }}>
-              <div style={{ background: '#FF1744', color: '#fff', padding: '8px 16px', borderRadius: '50px', fontSize: '11px', fontWeight: '900', letterSpacing: '0.5px' }}>REALTIME GPS</div>
+              <div style={{ background: '#FF1744', color: '#fff', padding: '8px 16px', borderRadius: '50px', fontSize: '11px', fontWeight: '900', letterSpacing: '0.5px' }}>{badgeLabel}</div>
               <button 
                 onClick={onClose}
                 style={{ background: '#F1F5F9', border: 'none', borderRadius: '50%', width: '44px', height: '44px', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}
@@ -808,7 +817,7 @@ const DynamicAnalysisModal = ({ isOpen, onClose, userCoords, isSajuCall }) => {
             </div>
             
             <h2 style={{ fontSize: '28px', fontWeight: '1000', marginBottom: '30px', color: '#1E293B', lineHeight: '1.3' }}>
-              {isIncheon ? '성지 상륙 분석' : '최단 경로 최적화'} 🛰️<br/>
+              {headline} {headlineEmoji}<br/>
               <span style={{ color: '#FF1744' }}>{currentTargetDest.name}</span>
             </h2>
 
@@ -875,7 +884,7 @@ const DynamicAnalysisModal = ({ isOpen, onClose, userCoords, isSajuCall }) => {
                 cursor: 'pointer'
               }}
             >
-              {isIncheon ? '암구호 수신하기' : '확인 완료'}
+              {isIncheon ? '암구호 수신하기' : destinyMode ? '나의 성지 확인' : '확인 완료'}
             </button>
           </>
         ) : (
@@ -1245,6 +1254,11 @@ function App() {
     setShowRentalModal(overlay === 'rental');
     setShowFullCalendar(overlay === 'fullCalendar');
     setShowIncheonModal(overlay === 'incheon');
+    if (overlay === 'incheon') {
+      setIsSajuCall(Boolean(st?.overlayMeta?.sajuCall));
+    } else {
+      setIsSajuCall(false);
+    }
     setShowFilterPanel(overlay === 'filterPanel');
     setShowFilteredResults(overlay === 'filteredResults');
     setShowGridModal(overlay === 'gridModal');
@@ -1981,7 +1995,7 @@ function App() {
   useEffect(() => {
     const activeTodayStr = getKSTDate().dateStr;
     const upcomingParties = filterSocialPartyRows(
-      parties.filter((p) => normDate(p.date) >= activeTodayStr),
+      parties.filter((p) => partyIsUpcomingOrRecurring(p, activeTodayStr)),
     );
     
     const currentLang = i18n.language || 'ko';
@@ -2119,8 +2133,8 @@ function App() {
   }, [loading, parties]);
 
   const openAnalysis = (saju = false) => {
-    pushOverlay('incheon');
     setIsSajuCall(saju);
+    pushOverlay('incheon', { meta: { sajuCall: saju } });
     setIsAnalyzing(true);
     setTimeout(() => { setIsAnalyzing(false); setShowIncheonModal(true); }, 1200);
   };
@@ -2166,10 +2180,13 @@ function App() {
     return () => clearInterval(timer);
   }, []);
 
-  const withHistory = (overlayKey, isOpen, setter) => (v) => {
-    if (v === true && !isOpen) {
+  const withHistory = (overlayKey, _isOpen, setter) => (v) => {
+    if (v === true) {
       pushOverlay(overlayKey);
-    } else if (v === false && isOpen) {
+      setter(true);
+      return;
+    }
+    if (v === false) {
       if (!closeOverlay()) setter(false);
       return;
     }
@@ -2190,7 +2207,7 @@ function App() {
       const DAYS_EN = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
       const dayName = i18n.language.startsWith('en') ? DAYS_EN[d.getDay()] : DAYS_KOR[d.getDay()];
       return { fullDate: formatDateToKSTString(d), date: String(d.getDate()), month: String(d.getMonth() + 1), dayName, isToday: i === 0, dayOfWeek: d.getDay() };
-    }), weekData: [], allDatesInMonth: [], filteredParties: displayParties.filter(p => p.date === selectedDate),
+    }), weekData: [], allDatesInMonth: [], filteredParties: displayParties.filter(p => partyMatchesCalendarDate(p, selectedDate)),
     showFullCalendar, setShowFullCalendar: withHistory('fullCalendar', showFullCalendar, setShowFullCalendar),
     showFilterPanel, setShowFilterPanel,
     showFilteredResults, setShowFilteredResults,
@@ -3037,14 +3054,14 @@ function App() {
                         {displayParties.filter(p => {
                           const matchesRegion = filterRegion ? (p.broadRegion === filterRegion || p.address?.includes(filterRegion)) : true;
                           const matchesGenre = filterGenre ? p[GENRE_MAP[filterGenre]?.key] > 0 : true;
-                          return p.date === selectedDate && matchesRegion && matchesGenre;
+                          return partyMatchesCalendarDate(p, selectedDate) && matchesRegion && matchesGenre;
                         }).length === 0 ? (
                           <div style={{ padding: '60px 0', textAlign: 'center', color: '#94A3B8', fontWeight: 700 }}>해당 조건의 파티가 없습니다 😅</div>
                         ) : (
                           displayParties.filter(p => {
                             const matchesRegion = filterRegion ? (p.broadRegion === filterRegion || p.address?.includes(filterRegion)) : true;
                             const matchesGenre = filterGenre ? p[GENRE_MAP[filterGenre]?.key] > 0 : true;
-                            return p.date === selectedDate && matchesRegion && matchesGenre;
+                            return partyMatchesCalendarDate(p, selectedDate) && matchesRegion && matchesGenre;
                           }).map(item => (
                             <div key={item.id} onClick={() => {
                               const card = buildPartyShareCard(item);

@@ -56,7 +56,7 @@ const HASH_NAV_PATCH = {
   weather: { overlay: 'weather' },
   route: { overlay: 'incheon' },
   incheon: { overlay: 'incheon' },
-  saju: { overlay: 'barMatching' },
+  saju: { overlay: 'incheon', overlayMeta: { sajuCall: true } },
   restaurant: { view: 'restaurant' },
   community: { view: 'community' },
   parking: { view: 'parking' },

@@ -18,6 +18,7 @@ import hongturnPhoto from './assets/hongturn_photo.png'
 import havanaPhoto from './assets/havana_photo.png'
 import bibigoPhoto from './assets/bibigo_photo.png'
 import { resolveBarVenuePhoto } from './lib/barVenuePhotos'
+import { partiesTodayOrWeeklyOrFilter, partyMatchesCalendarDate } from './lib/partyRecurrence'
 
 const EventRanking = () => {
   const [rankings, setRankings] = useState([])
@@ -351,7 +352,7 @@ export default function AdminDashboard({ onBack }) {
         else query = supabase.from('pending_parties').select('*').eq('status', activeTab);
       } else if (category === 'live-mgmt') {
         const todayStr = getAdminKSTTodayStr();
-        query = supabase.from('parties').select('*, locations!location_id(name)').eq('date', todayStr);
+        query = supabase.from('parties').select('*, locations!location_id(name)').or(partiesTodayOrWeeklyOrFilter(todayStr));
       } else if (category === 'live') {
         query = supabase.from('community_posts').select('*');
       } else if (category === 'bootcamp') {
@@ -652,6 +653,7 @@ export default function AdminDashboard({ onBack }) {
             date: item.date, 
             time: item.time, 
             day_of_week: item.day_of_week, 
+            is_weekly_recurring: Boolean(item.is_weekly_recurring),
             poster_url: item.poster_url,
             s_ratio: item.s_ratio, 
             b_ratio: item.b_ratio, 
@@ -723,8 +725,7 @@ export default function AdminDashboard({ onBack }) {
   const bumpPartyViewCount = async (party, delta) => {
     if (!party?.id) return;
     const todayStr = getAdminKSTTodayStr();
-    const partyDate = String(party.date || '').slice(0, 10);
-    if (partyDate !== todayStr) {
+    if (!partyMatchesCalendarDate(party, todayStr)) {
       alert('오늘 날짜 파티만 인원 조절할 수 있습니다.');
       return;
     }
@@ -734,8 +735,7 @@ export default function AdminDashboard({ onBack }) {
       const { error } = await supabase
         .from('parties')
         .update({ view_count: next })
-        .eq('id', party.id)
-        .eq('date', todayStr);
+        .eq('id', party.id);
       if (error) throw error;
       alert(`인원 ${current}명 → ${next}명 (+${delta}명)`);
       fetchData();

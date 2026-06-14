@@ -2,6 +2,7 @@ import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { ChevronRight } from 'lucide-react';
 import { DEFAULT_CARD_IMAGE, imgFallbackHandler } from '../../constants/imageAssets';
 import { formatPartyFeeDisplay } from '../../lib/partyFeeDisplay';
+import { partyMatchesCalendarDate } from '../../lib/partyRecurrence';
 import type { HomeDarkParty } from './types';
 
 const ROTATE_MS = 60_000;
@@ -25,7 +26,7 @@ const formatPartyTime = (party: HomeDarkParty, isEn: boolean) => {
   const start = raw.includes('-') ? raw.split('-')[0].trim() : raw;
   const clock = start.slice(0, 5);
   if (!clock) return '';
-  const isToday = !party.date || party.date === todayStr();
+  const isToday = partyMatchesCalendarDate(party, todayStr());
   if (isToday) return isEn ? `Tonight ${clock}` : `오늘 ${clock}`;
   return clock;
 };

@@ -12,6 +12,8 @@ import { normalizeVenueAddressKey } from './lib/venueDedupe'
 import { canonicalizeVenueRow, getVenueDedupeKey } from './lib/venueCanonical'
 import { PARTY_TITLE_MAX_LENGTH } from './lib/partyTitleDisplay'
 import { validateSocialPartyRegistration } from './lib/postKind'
+import { toDateOrNull } from './lib/dbSanitize'
+import { KOREAN_WEEKDAYS } from './lib/partyRecurrence'
 
 const METRO_REGIONS = ['서울', '인천', '경기', '부산', '대구', '광주', '대전', '울산', '세종', '강원', '충북', '충남', '전북', '전남', '경북', '경남', '제주']
 
@@ -144,6 +146,7 @@ const RegisterForm = ({ onBack, onSuccess, isEdit = false, isAdminMode = false, 
     feeCustom: parsedFee.feeCustom,
     region: initialData?.region || parseTitleRegion(initialData?.title) || '',
     day_of_week: initialData?.day_of_week || '',
+    is_weekly_recurring: Boolean(initialData?.is_weekly_recurring),
     sRatio: initialData?.s_ratio ?? 5,
     bRatio: initialData?.b_ratio ?? 5,
     jRatio: initialData?.j_ratio ?? 0,
@@ -157,7 +160,7 @@ const RegisterForm = ({ onBack, onSuccess, isEdit = false, isAdminMode = false, 
   const [suggestions, setSuggestions] = useState([])
   const TOTAL_STEPS = 5
 
-  const DAYS_KOR = ['일', '월', '화', '수', '목', '금', '토']
+  const DAYS_KOR = KOREAN_WEEKDAYS
 
   useEffect(() => {
     document.body.classList.add(PARTY_REGISTER_BODY_CLASS)
@@ -185,12 +188,11 @@ const RegisterForm = ({ onBack, onSuccess, isEdit = false, isAdminMode = false, 
   }, [initialData?.id, initialData?.fee, initialData?.poster_url])
 
   useEffect(() => {
-    if (formData.date) {
-      const d = new Date(formData.date)
-      const dayName = DAYS_KOR[d.getDay()]
-      setFormData(prev => ({ ...prev, day_of_week: dayName }))
-    }
-  }, [formData.date])
+    if (formData.is_weekly_recurring || !formData.date) return
+    const d = new Date(formData.date)
+    const dayName = DAYS_KOR[d.getDay()]
+    setFormData(prev => (prev.day_of_week === dayName ? prev : { ...prev, day_of_week: dayName }))
+  }, [formData.date, formData.is_weekly_recurring])
 
   const handleTitleChange = (e) => {
     const value = e.target.value;
@@ -492,7 +494,16 @@ const RegisterForm = ({ onBack, onSuccess, isEdit = false, isAdminMode = false, 
   const handleSubmit = async (e) => {
     if (e) e.preventDefault()
     
-    if (!formData.title || !formData.location_name || !formData.date) {
+    if (!formData.title || !formData.location_name) {
+      alert('필수 정보를 모두 입력해주세요. (제목, 장소명)')
+      return
+    }
+    if (formData.is_weekly_recurring) {
+      if (!formData.day_of_week) {
+        alert('매주 고정은 달력에서 해당 요일 날짜를 선택해주세요.')
+        return
+      }
+    } else if (!formData.date) {
       alert('필수 정보를 모두 입력해주세요. (제목, 장소명, 날짜)')
       return
     }
@@ -613,9 +624,10 @@ const RegisterForm = ({ onBack, onSuccess, isEdit = false, isAdminMode = false, 
         location_id: finalLocationId,
         address: formData.address,
         fee: composePartyFee(formData.feeParts, formData.feeCustom) || formData.fee || '문의',
-        date: formData.date?.trim() || null,
+        date: formData.is_weekly_recurring ? null : toDateOrNull(formData.date),
         time: formData.time,
         day_of_week: formData.day_of_week,
+        is_weekly_recurring: Boolean(formData.is_weekly_recurring),
         poster_url: finalPosterUrl || inputUrl?.trim() || initialData?.poster_url || null,
         s_ratio: formData.sRatio,
         b_ratio: formData.bRatio,
@@ -926,10 +938,67 @@ const RegisterForm = ({ onBack, onSuccess, isEdit = false, isAdminMode = false, 
       case 5:
         return (
           <motion.div key="step5" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} style={{ padding: '24px' }}>
-            <label style={{ display: 'block', fontSize: '20px', fontWeight: 900, color: '#1E293B', marginBottom: '24px' }}>📅 파티 일정 확인</label>
+            <label style={{ display: 'block', fontSize: '20px', fontWeight: 900, color: '#1E293B', marginBottom: '16px' }}>📅 파티 일정 확인</label>
+            <p style={{ fontSize: '13px', fontWeight: 600, color: '#94A3B8', marginBottom: '20px', lineHeight: 1.5 }}>
+              포스터 내용이 같고 매주 같은 날이면 <strong style={{ color: '#64748B' }}>매주 고정</strong>으로 한 번만 등록하세요.
+            </p>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px', marginBottom: '20px' }}>
+              {[
+                { key: false, label: '이번 날짜만', sub: '1회 행사' },
+                { key: true, label: '매주 고정', sub: '같은 포스터·매주' },
+              ].map(({ key, label, sub }) => (
+                <button
+                  key={String(key)}
+                  type="button"
+                  onClick={() => setFormData((prev) => ({
+                    ...prev,
+                    is_weekly_recurring: key,
+                    day_of_week: key && prev.date
+                      ? DAYS_KOR[new Date(prev.date).getDay()]
+                      : prev.day_of_week,
+                  }))}
+                  style={{
+                    padding: '14px 10px',
+                    borderRadius: '14px',
+                    border: formData.is_weekly_recurring === key ? '2px solid #FF1744' : '2px solid #F1F5F9',
+                    background: formData.is_weekly_recurring === key ? '#FFF5F7' : '#F8FAFC',
+                    cursor: 'pointer',
+                    textAlign: 'center',
+                  }}
+                >
+                  <div style={{ fontSize: '14px', fontWeight: 900, color: formData.is_weekly_recurring === key ? '#FF1744' : '#64748B' }}>{label}</div>
+                  <div style={{ fontSize: '11px', fontWeight: 600, color: '#94A3B8', marginTop: '4px' }}>{sub}</div>
+                </button>
+              ))}
+            </div>
             <div style={{ marginBottom: '24px' }}>
-              <p style={{ fontSize: '14px', fontWeight: 800, color: '#64748B', marginBottom: '8px' }}>파티 날짜</p>
-              <input type="date" value={formData.date} onChange={e => setFormData({...formData, date: e.target.value})} style={{ width: '100%', padding: '20px', border: '2px solid #F1F5F9', borderRadius: '16px', fontSize: '18px', fontWeight: 900, background: '#F8FAFC' }} />
+              <p style={{ fontSize: '14px', fontWeight: 800, color: '#64748B', marginBottom: '8px' }}>
+                {formData.is_weekly_recurring ? '기준 날짜 (요일 확인용)' : '파티 날짜'}
+              </p>
+              <input
+                type="date"
+                value={formData.date}
+                onChange={(e) => {
+                  const nextDate = e.target.value
+                  const dayName = nextDate ? DAYS_KOR[new Date(nextDate).getDay()] : ''
+                  setFormData((prev) => ({
+                    ...prev,
+                    date: nextDate,
+                    day_of_week: prev.is_weekly_recurring ? dayName : prev.day_of_week,
+                  }))
+                }}
+                style={{ width: '100%', padding: '20px', border: '2px solid #F1F5F9', borderRadius: '16px', fontSize: '18px', fontWeight: 900, background: '#F8FAFC' }}
+              />
+              {formData.is_weekly_recurring && formData.day_of_week ? (
+                <p style={{ marginTop: '10px', fontSize: '14px', fontWeight: 800, color: '#FF1744' }}>
+                  → 매주 {formData.day_of_week}요일 자동 노출 (포스터 1번 등록)
+                </p>
+              ) : null}
+              {formData.is_weekly_recurring ? (
+                <p style={{ marginTop: '8px', fontSize: '12px', fontWeight: 600, color: '#94A3B8', lineHeight: 1.5 }}>
+                  달력에서 해당 요일 아무 날짜나 고르면 됩니다. 예: 화요일 소셜 → 아무 화요일 1개 선택.
+                </p>
+              ) : null}
             </div>
             <div style={{ display: 'flex', gap: '12px' }}>
               <div style={{ flex: 1 }}>

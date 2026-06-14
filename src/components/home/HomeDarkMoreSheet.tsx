@@ -22,15 +22,31 @@ export default function HomeDarkMoreSheet({
   onClose,
 }: HomeDarkMoreSheetProps) {
   const [quickClose, setQuickClose] = useState(false);
+  const [onHomePath, setOnHomePath] = useState(() => window.location.pathname === '/');
 
   useEffect(() => {
     if (open) setQuickClose(false);
   }, [open]);
 
   useEffect(() => {
-    document.body.classList.toggle(BODY_MENU_CLASS, open);
+    const syncPath = () => {
+      const home = window.location.pathname === '/';
+      setOnHomePath(home);
+      if (!home) onClose();
+    };
+    syncPath();
+    window.addEventListener('bamppa-navigate', syncPath);
+    window.addEventListener('popstate', syncPath);
+    return () => {
+      window.removeEventListener('bamppa-navigate', syncPath);
+      window.removeEventListener('popstate', syncPath);
+    };
+  }, [onClose]);
+
+  useEffect(() => {
+    document.body.classList.toggle(BODY_MENU_CLASS, open && onHomePath);
     return () => document.body.classList.remove(BODY_MENU_CLASS);
-  }, [open]);
+  }, [open, onHomePath]);
 
   useEffect(() => {
     if (!open) return undefined;
@@ -45,11 +61,11 @@ export default function HomeDarkMoreSheet({
   const secondary = actions.filter((a) => a.tier === 'secondary');
 
   const runAction = (action: HomeDarkMoreAction) => {
+    action.onClick();
     flushSync(() => {
       setQuickClose(true);
       onClose();
     });
-    action.onClick();
   };
 
   const renderSection = (label: string, items: HomeDarkMoreAction[]) => {
@@ -86,7 +102,7 @@ export default function HomeDarkMoreSheet({
 
   return createPortal(
     <AnimatePresence initial={false}>
-      {open ? (
+      {open && onHomePath ? (
         <div className="home-dark-more-sheet" style={{ zIndex: Z.modal }}>
           <motion.button
             type="button"

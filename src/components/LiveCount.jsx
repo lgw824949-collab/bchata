@@ -17,6 +17,7 @@ import {
   stripPlatformSuffixFromTitle,
 } from '../lib/partiesQuery'
 import { filterSocialPartyRows } from '../lib/postKind'
+import { partiesTodayOrWeeklyOrFilter, partyMatchesCalendarDate, isWeeklyRecurringParty } from '../lib/partyRecurrence'
 
 const SPOTLIGHT_ROTATE_MS = 5000
 const LIVE_QUEUE_REFRESH_MS = 10 * 60 * 1000
@@ -41,7 +42,7 @@ function pickTodayPartyPool(list, todayStr) {
   const rows = filterSocialPartyRows(list || [])
     .filter(isApprovedParty)
     .filter((p) => String(p.poster_url || p.imageUrl || '').trim())
-    .filter((p) => String(p.date || '').slice(0, 10) === todayStr)
+    .filter((p) => partyMatchesCalendarDate(p, todayStr))
 
   const seen = new Set()
   const unique = []
@@ -182,7 +183,7 @@ const LiveCount = ({
           .from('parties')
           .select(PARTIES_SELECT)
           .eq('status', 'approved')
-          .eq('date', todayStr)
+          .or(partiesTodayOrWeeklyOrFilter(todayStr))
           .not('poster_url', 'is', null),
         supabase.from('locations').select(LOCATIONS_WITH_REGION_NAME),
       ])
@@ -218,7 +219,7 @@ const LiveCount = ({
       }, {})
 
       const liveParties = filterSocialPartyRows(parties).filter((p) => {
-        if (!isNowInPartyTime(p.date, p.time)) return false
+        if (!isNowInPartyTime(isWeeklyRecurringParty(p) ? todayStr : p.date, p.time)) return false
         return getRecentActivityTs(p) >= Date.now() - LIVE_WINDOW_MS
       })
       if (liveParties.length === 0) {
@@ -256,7 +257,7 @@ const LiveCount = ({
         .from('parties')
         .select(PARTIES_WITH_LOCATION)
         .eq('status', 'approved')
-        .eq('date', todayStr)
+        .or(partiesTodayOrWeeklyOrFilter(todayStr))
         .not('poster_url', 'is', null)
 
       if (partiesRes.error) {
@@ -265,7 +266,7 @@ const LiveCount = ({
           .from('parties')
           .select(PARTIES_SELECT)
           .eq('status', 'approved')
-          .eq('date', todayStr)
+          .or(partiesTodayOrWeeklyOrFilter(todayStr))
           .not('poster_url', 'is', null)
       }
 

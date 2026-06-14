@@ -77,6 +77,69 @@ const formatClassType = (classType) => {
     .join(' · ');
 };
 
+const HASHTAG_RE = /#([^\s#]+)/g;
+
+const parseBioContent = (bio) => {
+  if (!bio?.trim()) return { tags: [], storyLines: [] };
+  const tags = [];
+  const storyLines = [];
+
+  bio.split('\n').forEach((rawLine) => {
+    const line = rawLine.trim();
+    if (!line) return;
+    const lineTags = [...line.matchAll(HASHTAG_RE)].map((m) => m[1]);
+    if (lineTags.length > 0) tags.push(...lineTags);
+    const remainder = line.replace(HASHTAG_RE, '').replace(/\s+/g, ' ').trim();
+    if (remainder) storyLines.push(remainder);
+    else if (lineTags.length === 0) storyLines.push(line);
+  });
+
+  return {
+    tags: [...new Set(tags)],
+    storyLines,
+  };
+};
+
+const buildBioLede = (inst, storyLines) => {
+  const first = storyLines.find((line) => line.length > 0);
+  if (first) return first.length > 96 ? `${first.slice(0, 93)}…` : first;
+  const career = getInstructorCareer(inst);
+  const genre = formatInstructorGenre(inst?.genre);
+  const bits = [career, genre ? `${genre} 강사` : ''].filter(Boolean);
+  if (bits.length) return bits.join(' · ');
+  if (inst?.city) return `${inst.city} 활동 강사`;
+  return '';
+};
+
+const buildCredentialItems = (inst) => {
+  const items = [];
+  const career = getInstructorCareer(inst);
+  if (career) items.push({ label: '경력', value: career });
+  if (inst?.awards?.trim()) items.push({ label: '수상', value: inst.awards.trim() });
+  const classType = formatClassType(inst?.class_type);
+  if (classType) items.push({ label: '수업', value: classType });
+  return items;
+};
+
+const hasInstructorContact = (inst) => Boolean(
+  inst?.kakao_link || getInstaLink(inst) || inst?.instagram || inst?.youtube,
+);
+
+const openInstructorKakao = (inst) => {
+  if (inst?.kakao_link) {
+    window.open(inst.kakao_link, '_blank');
+    return;
+  }
+  alert('등록된 카카오 문의 링크가 없습니다.');
+};
+
+const INSTRUCTOR_PROFILE_TABS = [
+  { id: 'BIO', label: '소개', sub: 'BIO' },
+  { id: 'CLASSES', label: '수업', sub: 'CLASSES' },
+];
+
+const formatInstructorGenre = (genre) => (Array.isArray(genre) ? genre.join(' · ') : (genre || ''));
+
 const formatScheduleLabel = (scheduleStr) => {
   if (!scheduleStr) return ''
   const text = String(scheduleStr)
@@ -180,6 +243,11 @@ const InstructorSection = ({ onOpenVipMaster, cachedInstructors = null }) => {
       setLoading(false)
     }
   }, [cachedInstructors])
+
+  useEffect(() => {
+    document.body.classList.toggle('instructor-profile-open', Boolean(selectedInstructor));
+    return () => document.body.classList.remove('instructor-profile-open');
+  }, [selectedInstructor]);
 
   useEffect(() => {
     if (usedCacheRef.current) {
@@ -536,7 +604,7 @@ const InstructorSection = ({ onOpenVipMaster, cachedInstructors = null }) => {
     ? filteredInstructors 
     : filteredInstructors.filter(i => !instructors.slice(0, 5).find(top => top.id === i.id));
 
-  const getGenre = (genre) => Array.isArray(genre) ? genre.join(' · ') : (genre || '')
+  const getGenre = (genre) => formatInstructorGenre(genre)
 
   const formatStat = (num) => {
     if (!num) return '0'
@@ -581,90 +649,190 @@ const InstructorSection = ({ onOpenVipMaster, cachedInstructors = null }) => {
           padding-left: 0;
           padding-right: 0;
         }
-        .instructor-bio-stat-grid {
-          display: grid;
-          grid-template-columns: 1fr;
-          gap: 10px;
-          margin-bottom: 20px;
+        .instructor-bio-meta {
+          display: flex;
+          flex-wrap: wrap;
+          gap: 8px;
+          margin-bottom: 18px;
         }
-        .instructor-bio-stat-card {
-          background: rgba(255, 255, 255, 0.05);
-          border: 1px solid rgba(255, 255, 255, 0.12);
+        .instructor-bio-meta__chip {
+          background: rgba(201, 168, 76, 0.1);
+          border: 1px solid rgba(201, 168, 76, 0.28);
+          color: #f5f0e6;
+          border-radius: 999px;
+          padding: 6px 12px;
+          font-size: 12px;
+          font-weight: 700;
+          letter-spacing: 0.04em;
+        }
+        .instructor-bio-lede {
+          font-size: 22px;
+          line-height: 1.45;
+          font-weight: 800;
+          color: #fafaf9;
+          letter-spacing: -0.02em;
+          margin: 0 0 16px;
+        }
+        .instructor-bio-credentials {
+          display: flex;
+          flex-wrap: wrap;
+          gap: 8px;
+          margin-bottom: 24px;
+          padding: 12px 14px;
           border-radius: 14px;
-          padding: 14px 16px;
-          text-align: left;
+          border: 1px solid rgba(201, 168, 76, 0.22);
+          background: rgba(201, 168, 76, 0.06);
         }
-        .instructor-bio-stat-card__label {
+        .instructor-bio-credentials__item {
+          display: inline-flex;
+          align-items: center;
+          gap: 6px;
           font-size: 13px;
-          color: #ffffff;
-          font-weight: 700;
-          margin-bottom: 8px;
-          line-height: 1.35;
-        }
-        .instructor-bio-stat-card__value {
-          font-size: 15px;
-          color: #f5f5f5;
+          color: #e8e4dc;
           font-weight: 600;
-          line-height: 1.55;
-          word-break: keep-all;
-          overflow-wrap: break-word;
         }
-        .instructor-bio-actions {
-          display: flex;
-          flex-direction: column;
-          gap: 10px;
-          margin-top: 8px;
-        }
-        .instructor-bio-actions__row {
-          display: flex;
-          flex-direction: column;
-          gap: 10px;
-          width: 100%;
-        }
-        .instructor-bio-actions__btn {
-          width: 100%;
-          padding: 14px 12px;
-          border-radius: 14px;
-          border: 1px solid rgba(255, 255, 255, 0.18);
-          background: rgba(255, 255, 255, 0.06);
-          color: #ffffff;
-          font-size: 15px;
+        .instructor-bio-credentials__item + .instructor-bio-credentials__item::before {
+          content: '·';
+          color: rgba(201, 168, 76, 0.55);
+          margin-right: 2px;
           font-weight: 700;
+        }
+        .instructor-bio-credentials__label {
+          color: #c9a84c;
+          font-size: 11px;
+          font-weight: 800;
+          letter-spacing: 0.08em;
+          text-transform: uppercase;
+        }
+        .instructor-bio-section-label {
+          font-size: 11px;
+          font-weight: 800;
+          letter-spacing: 0.14em;
+          text-transform: uppercase;
+          color: rgba(201, 168, 76, 0.85);
+          margin: 0 0 12px;
+        }
+        .instructor-bio-tags {
+          display: flex;
+          flex-wrap: wrap;
+          gap: 8px;
+          margin-bottom: 14px;
+        }
+        .instructor-bio-tags__chip {
+          padding: 5px 10px;
+          border-radius: 999px;
+          background: rgba(255, 255, 255, 0.05);
+          border: 1px solid rgba(255, 255, 255, 0.1);
+          color: #d4d4d8;
+          font-size: 12px;
+          font-weight: 600;
+        }
+        .instructor-bio-story {
+          font-size: 15px;
+          line-height: 1.8;
+          color: #d4d0c8;
+          letter-spacing: 0.01em;
+          white-space: pre-wrap;
+          margin: 0;
+          font-weight: 500;
+        }
+        .instructor-bio-empty {
+          font-size: 14px;
+          line-height: 1.7;
+          color: #71717a;
+          margin: 0;
+        }
+        .instructor-profile-tab {
+          background: none;
+          border: none;
           cursor: pointer;
-          text-align: center;
+          padding: 14px 0;
+          position: relative;
+          flex: 1;
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          gap: 2px;
+          transition: color 0.25s ease;
+        }
+        .instructor-profile-tab__label {
+          font-size: 15px;
+          font-weight: 800;
+          letter-spacing: 0.02em;
+        }
+        .instructor-profile-tab__sub {
+          font-size: 10px;
+          font-weight: 700;
+          letter-spacing: 0.12em;
+          opacity: 0.65;
+        }
+        .instructor-detail-content {
+          padding: 28px 0 120px;
+        }
+        .instructor-profile-shell {
+          --instructor-bottom-nav-offset: calc(54px + env(safe-area-inset-bottom, 0px));
+          position: fixed;
+          top: 0;
+          left: 0;
+          right: 0;
+          bottom: var(--instructor-bottom-nav-offset);
+          display: flex;
+          justify-content: center;
+          background: #000;
+        }
+        .instructor-detail-cta {
+          position: fixed;
+          bottom: var(--instructor-bottom-nav-offset, calc(54px + env(safe-area-inset-bottom, 0px)));
+          left: 50%;
+          transform: translateX(-50%);
+          width: 100%;
+          max-width: 500px;
+          z-index: 2;
+          padding: 12px 16px 14px;
+          background: linear-gradient(to top, rgba(13, 13, 13, 0.98) 65%, rgba(13, 13, 13, 0.85) 85%, transparent);
+          border-top: 1px solid rgba(201, 168, 76, 0.18);
           box-sizing: border-box;
         }
-        .instructor-bio-actions__insta {
+        .instructor-detail-cta__primary {
           width: 100%;
-          height: 52px;
+          padding: 15px 16px;
           border-radius: 14px;
+          border: none;
+          background: linear-gradient(135deg, #c9a84c 0%, #e8d5a3 100%);
+          color: #121212;
+          font-size: 16px;
+          font-weight: 900;
+          cursor: pointer;
+          box-shadow: 0 8px 24px rgba(201, 168, 76, 0.25);
+        }
+        .instructor-detail-cta__primary:disabled {
+          opacity: 0.45;
+          cursor: not-allowed;
+          box-shadow: none;
+        }
+        .instructor-detail-cta__sns {
+          display: flex;
+          justify-content: center;
+          gap: 10px;
+          margin-top: 10px;
+        }
+        .instructor-detail-cta__icon {
+          width: 44px;
+          height: 44px;
+          border-radius: 12px;
           border: 1px solid rgba(255, 255, 255, 0.12);
           background: rgba(255, 255, 255, 0.06);
-          color: #e1306c;
+          color: #fafaf9;
           cursor: pointer;
           display: flex;
           align-items: center;
           justify-content: center;
         }
-        @media (min-width: 400px) {
-          .instructor-bio-stat-grid {
-            grid-template-columns: 1fr 1fr;
-          }
-          .instructor-bio-stat-card--career {
-            grid-column: 1 / -1;
-          }
-          .instructor-bio-actions__row {
-            flex-direction: row;
-            align-items: stretch;
-          }
-          .instructor-bio-actions__btn {
-            flex: 1;
-            width: auto;
-          }
-          .instructor-bio-actions__insta {
-            width: 52px;
-            flex-shrink: 0;
-          }
+        .instructor-detail-cta__icon--insta {
+          color: #e1306c;
+        }
+        .instructor-detail-cta__icon--youtube {
+          color: #ff0000;
         }
       `}</style>
       
@@ -897,13 +1065,11 @@ const InstructorSection = ({ onOpenVipMaster, cachedInstructors = null }) => {
       {/* Detail View (Pixel Perfect to Mockup) */}
       <AnimatePresence>
         {selectedInstructor && (
-          <motion.div 
+          <motion.div
+            className="instructor-profile-shell"
             initial={{ y: '100%' }} animate={{ y: 0 }} exit={{ y: '100%' }}
             transition={{ type: 'spring', damping: 25, stiffness: 200 }}
-            style={{ 
-              position: 'fixed', inset: 0, zIndex: Z.modal, background: '#000',
-              display: 'flex', justifyContent: 'center'
-            }}
+            style={{ zIndex: Z.modal }}
           >
             <div style={{ 
               width: '100%', maxWidth: '500px', height: '100%', 
@@ -1000,184 +1166,112 @@ const InstructorSection = ({ onOpenVipMaster, cachedInstructors = null }) => {
 
                 {/* 4. Tabs */}
                 <div style={{ marginTop: '40px', borderBottom: '1px solid rgba(255,255,255,0.05)', position: 'relative' }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', padding: '0 10px' }}>
-                    {['BIO', 'CLASSES' /* , 'GALLERY' */].map(tab => (
-                      <button 
-                        key={tab} 
+                  <div style={{ display: 'flex', padding: '0 4px' }}>
+                    {INSTRUCTOR_PROFILE_TABS.map((tab) => (
+                      <button
+                        key={tab.id}
+                        type="button"
+                        className="instructor-profile-tab"
                         onClick={() => {
-                          setActiveTab(tab);
-                          if (selectedInstructor) syncInstructorNav(selectedInstructor.id, tab);
+                          setActiveTab(tab.id);
+                          if (selectedInstructor) syncInstructorNav(selectedInstructor.id, tab.id);
                         }}
-                        style={{ 
-                          background: 'none', border: 'none', color: activeTab === tab ? '#FAFAF9' : '#9CA3AF', 
-                          fontSize: '15px', fontWeight: 800, cursor: 'pointer', padding: '15px 0',
-                          position: 'relative', transition: 'all 0.3s', letterSpacing: '0.02em',
-                        }}
+                        style={{ color: activeTab === tab.id ? '#FAFAF9' : '#71717A' }}
                       >
-                        {tab}
-                        {activeTab === tab && <motion.div layoutId="tab-underline" style={{ position: 'absolute', bottom: 0, left: 0, right: 0, height: '2px', background: '#C9A84C' }} />}
+                        <span className="instructor-profile-tab__label">{tab.label}</span>
+                        <span className="instructor-profile-tab__sub">{tab.sub}</span>
+                        {activeTab === tab.id && (
+                          <motion.div
+                            layoutId="tab-underline"
+                            style={{
+                              position: 'absolute',
+                              bottom: 0,
+                              left: '18%',
+                              right: '18%',
+                              height: '2px',
+                              background: '#C9A84C',
+                            }}
+                          />
+                        )}
                       </button>
                     ))}
                   </div>
-                  {/* Reflection Line */}
                   <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, height: '1px', background: 'linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent)' }} />
                 </div>
 
                 {/* 5. Content */}
-                <div style={{ padding: '30px 0 150px' }}>
+                <div className="instructor-detail-content">
                   <AnimatePresence mode="wait">
-                    {activeTab === 'BIO' && (
-                      <motion.div 
-                        key="bio" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }}
+                    {activeTab === 'BIO' && (() => {
+                      const bioRaw = selectedInstructor.bio?.trim() || '';
+                      const { tags, storyLines } = parseBioContent(bioRaw);
+                      const lede = buildBioLede(selectedInstructor, storyLines);
+                      const credentials = buildCredentialItems(selectedInstructor);
+                      const ledeSource = storyLines[0] || '';
+                      const bodyText = storyLines.length > 1
+                        ? storyLines.slice(1).join('\n')
+                        : (ledeSource && ledeSource !== lede && !lede.endsWith('…') ? ledeSource : '');
+
+                      return (
+                      <motion.div
+                        key="bio"
+                        initial={{ opacity: 0, y: 10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, y: -10 }}
                         className="instructor-bio-panel"
                       >
-                        {/* BIO: tags + intro */}
-                        <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap', marginBottom: '18px' }}>
-                          {selectedInstructor.city && (
-                            <span
-                              style={{
-                                background: 'rgba(201,168,76,0.1)',
-                                border: '1px solid rgba(201,168,76,0.28)',
-                                color: '#ffffff',
-                                borderRadius: '999px',
-                                padding: '7px 14px',
-                                fontSize: '13px',
-                                fontWeight: 600,
-                                letterSpacing: '0.02em',
-                              }}
-                            >
-                              {selectedInstructor.city}
-                            </span>
-                          )}
-                          {getGenre(selectedInstructor.genre) && (
-                            <span
-                              style={{
-                                background: 'rgba(201,168,76,0.1)',
-                                border: '1px solid rgba(201,168,76,0.28)',
-                                color: '#ffffff',
-                                borderRadius: '999px',
-                                padding: '7px 14px',
-                                fontSize: '13px',
-                                fontWeight: 600,
-                                letterSpacing: '0.02em',
-                              }}
-                            >
-                              {getGenre(selectedInstructor.genre)}
-                            </span>
-                          )}
-                        </div>
+                        {(selectedInstructor.city || getGenre(selectedInstructor.genre)) && (
+                          <div className="instructor-bio-meta">
+                            {selectedInstructor.city && (
+                              <span className="instructor-bio-meta__chip">{selectedInstructor.city}</span>
+                            )}
+                            {getGenre(selectedInstructor.genre) && (
+                              <span className="instructor-bio-meta__chip">{getGenre(selectedInstructor.genre)}</span>
+                            )}
+                          </div>
+                        )}
 
-                        <div
-                          style={{
-                            background: 'rgba(255,255,255,0.04)',
-                            border: '1px solid rgba(255,255,255,0.08)',
-                            borderRadius: '16px',
-                            padding: '18px 16px',
-                            marginBottom: '20px',
-                          }}
-                        >
-                          <p
-                            style={{
-                              fontSize: '16px',
-                              lineHeight: 1.85,
-                              color: '#F0EDE8',
-                              letterSpacing: '0.01em',
-                              whiteSpace: 'pre-wrap',
-                              margin: 0,
-                              fontWeight: 500,
-                            }}
-                          >
-                            {selectedInstructor.bio?.trim()
-                              || (selectedInstructor.city
-                                ? `${selectedInstructor.name} 강사 · ${selectedInstructor.city} 활동. 수업 등록 시 BIO를 입력하면 이곳에 표시됩니다.`
-                                : '강사 소개(BIO)가 아직 등록되지 않았습니다. 수업 등록 ①단계에서 BIO를 입력해 주세요.')}
+                        {lede ? <p className="instructor-bio-lede">{lede}</p> : null}
+
+                        {credentials.length > 0 && (
+                          <div className="instructor-bio-credentials">
+                            {credentials.map((item, index) => (
+                              <span key={item.label} className="instructor-bio-credentials__item">
+                                {index > 0 ? <span aria-hidden="true">·</span> : null}
+                                <span className="instructor-bio-credentials__label">{item.label}</span>
+                                <span>{item.value}</span>
+                              </span>
+                            ))}
+                          </div>
+                        )}
+
+                        <p className="instructor-bio-section-label">소개</p>
+
+                        {tags.length > 0 && (
+                          <div className="instructor-bio-tags">
+                            {tags.map((tag) => (
+                              <span key={tag} className="instructor-bio-tags__chip">#{tag}</span>
+                            ))}
+                          </div>
+                        )}
+
+                        {bodyText ? (
+                          <p className="instructor-bio-story">{bodyText}</p>
+                        ) : bioRaw && tags.length === 0 ? (
+                          <p className="instructor-bio-story">{bioRaw}</p>
+                        ) : !bioRaw && !lede ? (
+                          <p className="instructor-bio-empty">
+                            {selectedInstructor.city
+                              ? `${selectedInstructor.name} 강사 · ${selectedInstructor.city} 활동. 수업 등록 시 BIO를 입력하면 이곳에 표시됩니다.`
+                              : '강사 소개(BIO)가 아직 등록되지 않았습니다. 수업 등록 ①단계에서 BIO를 입력해 주세요.'}
                           </p>
-                        </div>
-
-                        <div className="instructor-bio-stat-grid">
-                          {[
-                            { key: 'career', icon: '⭐', label: '경력', value: getInstructorCareer(selectedInstructor), wide: true },
-                            { key: 'awards', icon: '🏆', label: '수상', value: selectedInstructor.awards?.trim() },
-                            { key: 'class', icon: '🎓', label: '수업방식', value: formatClassType(selectedInstructor.class_type) },
-                          ].map((card) => (
-                            <div
-                              key={card.key}
-                              className={`instructor-bio-stat-card${card.wide ? ' instructor-bio-stat-card--career' : ''}`}
-                            >
-                              <div className="instructor-bio-stat-card__label">
-                                {card.icon} {card.label}
-                              </div>
-                              <div className="instructor-bio-stat-card__value">
-                                {card.value || '-'}
-                              </div>
-                            </div>
-                          ))}
-                        </div>
-
-                        {/* <div style={{ marginBottom: '16px', fontSize: '13px', color: 'var(--color-text-sub)' }}>
-                          📍 {selectedInstructor.city || '-'}
-                        </div> */}
-
-                        {/* <span>✨ DIRECT INQUIRY & BOOKING</span> */}
-                        {(selectedInstructor.kakao_link || getInstaLink(selectedInstructor) || selectedInstructor.instagram) && (
-                          <div className="instructor-bio-actions">
-                            {selectedInstructor.kakao_link && (
-                              <button
-                                type="button"
-                                className="instructor-bio-actions__btn"
-                                onClick={() => window.open(selectedInstructor.kakao_link, '_blank')}
-                              >💬 수업 문의</button>
-                            )}
-                            {(getInstaLink(selectedInstructor) || selectedInstructor.instagram) && (
-                              <div className="instructor-bio-actions__row">
-                                {getInstaLink(selectedInstructor) && (
-                                  <button
-                                    type="button"
-                                    className="instructor-bio-actions__btn"
-                                    onClick={() => window.open(getInstaLink(selectedInstructor), '_blank')}
-                                  >📅 문의하기</button>
-                                )}
-                                {selectedInstructor.instagram && (
-                                  <button
-                                    type="button"
-                                    className="instructor-bio-actions__insta"
-                                    onClick={() => window.open(getInstaLink(selectedInstructor) || `https://www.instagram.com/${String(selectedInstructor.instagram).replace(/^@/, '')}`, '_blank')}
-                                    aria-label="인스타그램"
-                                  >
-                                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><rect x="2" y="2" width="20" height="20" rx="5" ry="5"/><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"/></svg>
-                                  </button>
-                                )}
-                              </div>
-                            )}
-                          </div>
-                        )}
-
-                        {selectedInstructor.youtube && (
-                          <div style={{ marginTop: '24px', display: 'flex', gap: '12px', justifyContent: 'center' }}>
-                              <button
-                                type="button"
-                                onClick={() => {
-                                  const url = selectedInstructor.youtube.startsWith('http')
-                                    ? selectedInstructor.youtube
-                                    : `https://${selectedInstructor.youtube}`;
-                                  window.open(url, '_blank');
-                                }}
-                                style={{
-                                  width: '48px', height: '48px', borderRadius: '14px', border: '1px solid rgba(255,255,255,0.1)',
-                                  background: 'rgba(255,255,255,0.05)', color: '#FF0000', cursor: 'pointer',
-                                  display: 'flex', alignItems: 'center', justifyContent: 'center',
-                                }}
-                                aria-label="유튜브"
-                              >
-                                <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M22.54 6.42a2.78 2.78 0 0 0-1.95-2C18.88 4 12 4 12 4s-6.88 0-8.59.42a2.78 2.78 0 0 0-1.95 2 2.78 2.78 0 0 0-.42 1.58v3.84a2.78 2.78 0 0 0 .42 1.58 2.78 2.78 0 0 0 1.95 2C5.12 20 12 20 12 20s6.88 0 8.59-.42a2.78 2.78 0 0 0 1.95-2 2.78 2.78 0 0 0 .42-1.58V8a2.78 2.78 0 0 0-.42-1.58zM10 15.5v-7l6 3.5-6 3.5z"/></svg>
-                              </button>
-                          </div>
-                        )}
+                        ) : null}
                       </motion.div>
-                    )}
+                      );
+                    })()}
 
                     {activeTab === 'CLASSES' && (
-                      <div style={{ padding:'16px' }}>
+                      <div>
                         {classes.length === 0 ? (
                           <div style={{ textAlign:'center', padding:'50px 20px', background:'rgba(255,255,255,0.02)', borderRadius:'20px', border:'1px dashed rgba(255,255,255,0.1)' }}>
                             <div style={{ fontSize:15, color:'#E4E4E7', lineHeight:1.6, fontWeight:600, whiteSpace:'pre-wrap', marginBottom:20 }}>
@@ -1242,24 +1336,6 @@ const InstructorSection = ({ onOpenVipMaster, cachedInstructors = null }) => {
                                     </span>
                                   )}
                                 </div>
-                                <button
-                                  type="button"
-                                  onClick={() => {
-                                    if (selectedInstructor.kakao_link) window.open(selectedInstructor.kakao_link, '_blank');
-                                    else alert('등록된 카카오 문의 링크가 없습니다.');
-                                  }}
-                                  style={{
-                                    background: 'linear-gradient(135deg, #C9A84C, #FFE066)',
-                                    color: '#000',
-                                    borderRadius: '14px',
-                                    padding: '14px',
-                                    fontSize: '15px',
-                                    fontWeight: 900,
-                                    width: '100%',
-                                    border: 'none',
-                                    cursor: 'pointer',
-                                  }}
-                                >수업 문의하기</button>
                               </div>
                             </div>
                           ))
@@ -1300,6 +1376,49 @@ const InstructorSection = ({ onOpenVipMaster, cachedInstructors = null }) => {
                   </AnimatePresence>
                 </div>
               </div>
+
+              {hasInstructorContact(selectedInstructor) && (
+                <div className="instructor-detail-cta">
+                  {selectedInstructor.kakao_link ? (
+                    <button
+                      type="button"
+                      className="instructor-detail-cta__primary"
+                      onClick={() => openInstructorKakao(selectedInstructor)}
+                    >
+                      수업 문의하기
+                    </button>
+                  ) : null}
+                  {(getInstaLink(selectedInstructor) || selectedInstructor.youtube) && (
+                    <div className="instructor-detail-cta__sns">
+                      {getInstaLink(selectedInstructor) && (
+                        <button
+                          type="button"
+                          className="instructor-detail-cta__icon instructor-detail-cta__icon--insta"
+                          onClick={() => window.open(getInstaLink(selectedInstructor), '_blank')}
+                          aria-label="인스타그램"
+                        >
+                          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><rect x="2" y="2" width="20" height="20" rx="5" ry="5"/><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"/></svg>
+                        </button>
+                      )}
+                      {selectedInstructor.youtube && (
+                        <button
+                          type="button"
+                          className="instructor-detail-cta__icon instructor-detail-cta__icon--youtube"
+                          onClick={() => {
+                            const url = selectedInstructor.youtube.startsWith('http')
+                              ? selectedInstructor.youtube
+                              : `https://${selectedInstructor.youtube}`;
+                            window.open(url, '_blank');
+                          }}
+                          aria-label="유튜브"
+                        >
+                          <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M22.54 6.42a2.78 2.78 0 0 0-1.95-2C18.88 4 12 4 12 4s-6.88 0-8.59.42a2.78 2.78 0 0 0-1.95 2 2.78 2.78 0 0 0-.42 1.58v3.84a2.78 2.78 0 0 0 .42 1.58 2.78 2.78 0 0 0 1.95 2C5.12 20 12 20 12 20s6.88 0 8.59-.42a2.78 2.78 0 0 0 1.95-2 2.78 2.78 0 0 0 .42-1.58V8a2.78 2.78 0 0 0-.42-1.58zM10 15.5v-7l6 3.5-6 3.5z"/></svg>
+                        </button>
+                      )}
+                    </div>
+                  )}
+                </div>
+              )}
             </div>
           </motion.div>
         )}

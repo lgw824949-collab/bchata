@@ -68,7 +68,9 @@ const MyPartiesSection = ({ onClose }) => {
               {party.status === 'approved' ? '✓ 승인' : party.status === 'pending' ? '⏳ 검토중' : '✕ 반려'}
             </span>
           </div>
-          <div style={{ fontSize:12, color:'#666' }}>{party.date} · {party.location_name}</div>
+          <div style={{ fontSize:12, color:'#666' }}>
+            {party.is_weekly_recurring ? `매주 ${party.day_of_week || ''}` : party.date} · {party.location_name}
+          </div>
         </div>
       ))}
     </div>

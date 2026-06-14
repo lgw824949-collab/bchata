@@ -119,15 +119,23 @@ export default function HomeListGate({
   const [searchOpen, setSearchOpen] = useState(false);
   const [moreOpen, setMoreOpen] = useState(false);
   const [headerCompact, setHeaderCompact] = useState(false);
+  const [onHomePath, setOnHomePath] = useState(() => window.location.pathname === '/');
   const gateRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    const closeMore = () => setMoreOpen(false);
-    window.addEventListener('bamppa-navigate', closeMore);
-    window.addEventListener('popstate', closeMore);
+    const syncPath = () => {
+      const home = window.location.pathname === '/';
+      setOnHomePath(home);
+      if (!home) setMoreOpen(false);
+    };
+    syncPath();
+    window.addEventListener('bamppa-navigate', syncPath);
+    window.addEventListener('bamppa-history', syncPath);
+    window.addEventListener('popstate', syncPath);
     return () => {
-      window.removeEventListener('bamppa-navigate', closeMore);
-      window.removeEventListener('popstate', closeMore);
+      window.removeEventListener('bamppa-navigate', syncPath);
+      window.removeEventListener('bamppa-history', syncPath);
+      window.removeEventListener('popstate', syncPath);
     };
   }, []);
 
@@ -207,7 +215,7 @@ export default function HomeListGate({
       />
 
       <HomeDarkMoreSheet
-        open={moreOpen}
+        open={moreOpen && onHomePath}
         isEn={isEn}
         actions={moreMenuActions}
         onClose={() => setMoreOpen(false)}

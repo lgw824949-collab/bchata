@@ -2585,6 +2585,11 @@ body.has-bottom-nav [data-bchata-app-root] {
   padding-bottom: calc(72px + env(safe-area-inset-bottom, 0px));
 }
 
+body.instructor-profile-open nav.bottom-nav,
+body.instructor-profile-open .bottom-nav {
+  z-index: calc(var(--z-modal) + 2) !important;
+}
+
 /* Global overlay utilities — always above .bottom-nav */
 .bchata-overlay-backdrop {
   position: fixed;

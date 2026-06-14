@@ -1,4 +1,10 @@
 import { normDate, isApprovedParty } from './dateNorm';
+import {
+  getKoreanWeekdayFromDateStr,
+  isWeeklyRecurringParty,
+  partiesTodayOrWeeklyOrFilter,
+  partyMatchesCalendarDate,
+} from './partyRecurrence';
 import { filterSocialPartyRows } from './postKind';
 import { formatPartyFeeDisplay } from './partyFeeDisplay';
 import {
@@ -14,7 +20,7 @@ import {
  * DB columns only (no broadRegion, region, imageUrl in DB).
  */
 export const PARTIES_SELECT =
-  'id, title, title_en, day_of_week, date, time, location_id, poster_url, description, address, fee, s_ratio, b_ratio, j_ratio, k_ratio, status, contributor_id, click_count, view_count, created_at';
+  'id, title, title_en, day_of_week, date, time, location_id, poster_url, description, address, fee, s_ratio, b_ratio, j_ratio, k_ratio, status, contributor_id, click_count, view_count, created_at, is_weekly_recurring';
 
 export const PARTIES_WITH_LOCATION =
   `${PARTIES_SELECT}, locations!location_id(name, address, latitude, longitude)`;
@@ -196,10 +202,12 @@ export function enrichPartiesWithVenues(parties, locations) {
   });
 }
 
-/** 오늘의 파티 카운터와 동일: 달력 오늘만 */
+/** 오늘의 파티 카운터와 동일: 달력 오늘만 (매주 반복 포함) */
 export function isPartyOnCalendarToday(p, todayStr) {
-  return normDate(p?.date) === todayStr;
+  return partyMatchesCalendarDate(p, todayStr);
 }
+
+export { getKoreanWeekdayFromDateStr, isWeeklyRecurringParty, partyMatchesCalendarDate };
 
 /** 선택 장르가 비율·제목 기준으로 실제 매칭되는지 (지배 장르 우선) */
 export function partyMatchesGenre(p, genreName) {
@@ -346,7 +354,7 @@ export async function fetchPartiesForChat(supabase, { todayStr, limit = 50 } = {
       .from('parties')
       .select(PARTIES_SELECT)
       .eq('status', 'approved')
-      .eq('date', todayStr)
+      .or(partiesTodayOrWeeklyOrFilter(todayStr))
       .order('time', { ascending: true })
       .limit(limit);
 
@@ -355,7 +363,7 @@ export async function fetchPartiesForChat(supabase, { todayStr, limit = 50 } = {
       .from('parties')
       .select(PARTIES_WITH_LOCATION)
       .eq('status', 'approved')
-      .eq('date', todayStr)
+      .or(partiesTodayOrWeeklyOrFilter(todayStr))
       .order('time', { ascending: true })
       .limit(limit);
 
@@ -377,7 +385,7 @@ export async function fetchUpcomingPartiesForSaju(supabaseClient, { todayStr, li
       .from('parties')
       .select(selectCols)
       .eq('status', 'approved')
-      .gte('date', todayStr)
+      .or(`date.gte.${todayStr},is_weekly_recurring.eq.true`)
       .order('date', { ascending: true })
       .order('time', { ascending: true })
       .limit(limit);

@@ -1,4 +1,5 @@
 import { getKSTCalendarTodayStr } from './dateNorm';
+import { partiesTodayOrWeeklyOrFilter, partyMatchesCalendarDate } from './partyRecurrence';
 import {
   getBarStatsKey,
   getKSTTodayStartISO,
@@ -63,12 +64,13 @@ export async function fetchBarStatsMap(supabase) {
       'parties clicks',
       supabase
         .from('parties')
-        .select('location_id, click_count, date')
+        .select('location_id, click_count, date, day_of_week, is_weekly_recurring')
         .eq('status', 'approved')
-        .eq('date', todayStr),
+        .or(partiesTodayOrWeeklyOrFilter(todayStr)),
     );
 
     (partyRows || []).forEach((p) => {
+      if (!partyMatchesCalendarDate(p, todayStr)) return;
       if (p.location_id == null) return;
       const key = `id:${p.location_id}`;
       ensure(key).clickCount += Number(p.click_count) || 0;

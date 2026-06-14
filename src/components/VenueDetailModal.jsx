@@ -16,6 +16,12 @@ import PartyFeeChips from './PartyFeeChips';
 import { formatPartyTitleDisplay, PARTY_TITLE_CARD_FONT_SIZE } from '../lib/partyTitleDisplay';
 import { mergeVenueWithLocalExtras, resetOptionalColumnsCache } from '../lib/venueLocalExtras';
 import { lessonPublisherBadge } from '../lib/lessonPublisher';
+import {
+  expandPartyDatesInRange,
+  isWeeklyRecurringParty,
+  partyIsUpcomingOrRecurring,
+  partyMatchesCalendarDate,
+} from '../lib/partyRecurrence';
 
 export { partyMatchesVenue } from '../lib/partyVenueMatch';
 
@@ -646,11 +652,12 @@ export default function VenueDetailModal({
   const venueParties = useMemo(() => {
     return (parties || [])
       .filter((p) => partyMatchesVenue(p, venue))
-      .filter((p) => {
-        const d = normDate(p.date);
-        return d && d >= todayStr;
-      })
-      .sort((a, b) => normDate(a.date).localeCompare(normDate(b.date)));
+      .filter((p) => partyIsUpcomingOrRecurring(p, todayStr))
+      .sort((a, b) => {
+        const da = normDate(a.date) || `9-${a.day_of_week || ''}`;
+        const db = normDate(b.date) || `9-${b.day_of_week || ''}`;
+        return da.localeCompare(db);
+      });
   }, [parties, venue, todayStr]);
 
   const venueLessons = useMemo(() => {
@@ -672,8 +679,12 @@ export default function VenueDetailModal({
     const set = new Set();
     if (isSocialTab) {
       activeItems.forEach((p) => {
-        const d = normDate(p.date);
-        if (d && d >= todayStr) set.add(d);
+        if (isWeeklyRecurringParty(p)) {
+          expandPartyDatesInRange(p, todayStr, addDaysToDateStr(todayStr, 56)).forEach((d) => set.add(d));
+        } else {
+          const d = normDate(p.date);
+          if (d && d >= todayStr) set.add(d);
+        }
       });
     } else {
       venueLessonsForDisplay.forEach((lesson) => {
@@ -716,7 +727,7 @@ export default function VenueDetailModal({
   }, []);
 
   const dayItems = useMemo(() => {
-    if (isSocialTab) return activeItems.filter((p) => normDate(p.date) === selectedDate);
+    if (isSocialTab) return activeItems.filter((p) => partyMatchesCalendarDate(p, selectedDate));
     return activeItems.filter((l) => lessonOccursOnDate(l, selectedDate));
   }, [activeItems, selectedDate, isSocialTab]);
 
@@ -749,6 +760,13 @@ export default function VenueDetailModal({
     }
     const byDate = new Map();
     activeItems.forEach((p) => {
+      if (isWeeklyRecurringParty(p)) {
+        expandPartyDatesInRange(p, todayStr, addDaysToDateStr(todayStr, 56)).forEach((d) => {
+          const prev = byDate.get(d);
+          if (!prev || (p.poster_url && !prev.poster_url)) byDate.set(d, p);
+        });
+        return;
+      }
       const d = normDate(p.date);
       if (!d || d < todayStr) return;
       const prev = byDate.get(d);

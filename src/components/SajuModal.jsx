@@ -8,6 +8,7 @@ import { supabase } from '../lib/supabase'
 import { selectResult } from '../data/sajuResults'
 import { selectResultEn } from '../data/sajuResultsEn'
 import { getKSTCalendarTodayStr } from '../lib/dateNorm'
+import { partyIsUpcomingOrRecurring, partyMatchesCalendarDate } from '../lib/partyRecurrence'
 import { getUserCoords, readCachedCoords } from '../lib/geoCache'
 import {
   fetchUpcomingPartiesForSaju,
@@ -233,7 +234,7 @@ const SajuModal = ({ parties = [], onClose, lang = 'ko' }) => {
       });
 
   const pickRecommendations = (sorted, genreName) => {
-    const todayRows = sorted.filter((p) => p.date === todayStr);
+    const todayRows = sorted.filter((p) => partyMatchesCalendarDate(p, todayStr));
     const schedulePool = todayRows.length ? todayRows : sorted;
     const genreMatched = genreName
       ? schedulePool.filter((p) => partyMatchesGenre(p, genreName))
@@ -246,7 +247,7 @@ const SajuModal = ({ parties = [], onClose, lang = 'ko' }) => {
     const fromProp = (parties || [])
       .map(normalizePartyForSajuDisplay)
       .filter(Boolean)
-      .filter((p) => p.date && p.date >= todayStr);
+      .filter((p) => partyIsUpcomingOrRecurring(p, todayStr));
 
     if (!supabase) return fromProp;
 
