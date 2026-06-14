@@ -76,7 +76,6 @@ export default function HomeListTodayAgenda({
   const [viewYear, setViewYear] = useState(todayParts.year);
   const [viewMonth, setViewMonth] = useState(todayParts.month);
   const [selectedDateStr, setSelectedDateStr] = useState(todayStr);
-  const [startDatesOnly, setStartDatesOnly] = useState(false);
   const stripRef = useRef<HTMLDivElement>(null);
   const selectedChipRef = useRef<HTMLButtonElement>(null);
 
@@ -101,7 +100,6 @@ export default function HomeListTodayAgenda({
       parties,
       bootcamps,
       festivals,
-      startDatesOnly,
     });
     return days.map((day) => ({
       dateStr: day.dateStr,
@@ -115,7 +113,6 @@ export default function HomeListTodayAgenda({
     parties,
     bootcamps,
     festivals,
-    startDatesOnly,
     todayStr,
     isEn,
     mapRows,
@@ -162,15 +159,6 @@ export default function HomeListTodayAgenda({
       </div>
 
       <div className="home-list-gate__today-agenda-toolbar">
-        <label className="home-list-gate__today-agenda-filter">
-          <input
-            type="checkbox"
-            checked={startDatesOnly}
-            onChange={(event) => setStartDatesOnly(event.target.checked)}
-          />
-          <span>{isEn ? 'Start dates only' : '개강일만'}</span>
-        </label>
-
         <div className="home-list-gate__today-agenda-month-nav" aria-label={isEn ? 'Change month' : '월 이동'}>
           <button
             type="button"
