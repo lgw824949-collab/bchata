@@ -30,7 +30,7 @@ import {
 import { registerExitToast } from './lib/mobileExitGuard'
 import { Z } from './constants/zLayers'
 import { DEFAULT_AVATAR_IMAGE, imgFallbackHandler } from './constants/imageAssets'
-import { normDate, getKSTCalendarTodayStr } from './lib/dateNorm'
+import { normDate, getKSTCalendarTodayStr, getKSTNightlifeTodayStr } from './lib/dateNorm'
 import { partyIsUpcomingOrRecurring, partyMatchesCalendarDate } from './lib/partyRecurrence'
 import { LOCATIONS_SELECT, logSupabaseError } from './lib/locationsQuery'
 import { PARTIES_SELECT, logPartiesFetchError } from './lib/partiesQuery'
@@ -1024,19 +1024,16 @@ function App() {
     i18n.changeLanguage(newLang);
   };
 
-  // 환경에 관계없이 정확한 KST(한국 표준시) 날짜를 가져오는 로직
+  // KST 새벽 4시 전까지는 전날 (dateNorm과 동일)
   const getKSTDate = () => {
-    const now = new Date();
-    // ⚠️ [벤틀리 특수 로직] 새벽 4시 이전까지는 '전날'로 간주하여 포스터 유지
-    if (now.getHours() < 4) {
-      now.setDate(now.getDate() - 1);
-    }
-    const kstString = now.toLocaleString('en-US', { timeZone: 'Asia/Seoul', year: 'numeric', month: '2-digit', day: '2-digit' });
-    const [m, d, y] = kstString.split('/');
-    // 0 패딩 보장 (MM, DD)
-    const mm = m.padStart(2, '0');
-    const dd = d.padStart(2, '0');
-    return { year: parseInt(y), month: parseInt(mm), date: parseInt(dd), dateStr: `${y}-${mm}-${dd}` };
+    const dateStr = getKSTNightlifeTodayStr();
+    const [y, m, d] = dateStr.split('-');
+    return {
+      year: parseInt(y, 10),
+      month: parseInt(m, 10),
+      date: parseInt(d, 10),
+      dateStr,
+    };
   };
 
   const todayData = getKSTDate();
@@ -1990,6 +1987,14 @@ function App() {
 
   useEffect(() => {
     fetchParties();
+  }, [fetchParties]);
+
+  useEffect(() => {
+    const refreshParties = () => {
+      fetchParties({ silent: true });
+    };
+    window.addEventListener('bchata-refresh-parties', refreshParties);
+    return () => window.removeEventListener('bchata-refresh-parties', refreshParties);
   }, [fetchParties]);
 
   useEffect(() => {

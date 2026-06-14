@@ -21,6 +21,38 @@ export const getKSTCalendarTodayStr = () => {
   return `${y}-${m.padStart(2, '0')}-${d.padStart(2, '0')}`;
 };
 
+/** KST 새벽 4시 전까지는 전날 — 소셜 탭·노출용 */
+export const getKSTNightlifeTodayStr = () => {
+  const parts = new Intl.DateTimeFormat('en-US', {
+    timeZone: 'Asia/Seoul',
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+    hour: '2-digit',
+    hour12: false,
+  }).formatToParts(new Date());
+  const pick = (type) => parts.find((p) => p.type === type)?.value ?? '';
+  let y = pick('year');
+  let m = pick('month');
+  let d = pick('day');
+  const hour = parseInt(pick('hour'), 10);
+  if (hour < 4) {
+    const rolled = new Date(`${y}-${m}-${d}T12:00:00+09:00`);
+    rolled.setDate(rolled.getDate() - 1);
+    const kst = rolled.toLocaleString('en-US', {
+      timeZone: 'Asia/Seoul',
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit',
+    });
+    const [rm, rd, ry] = kst.split('/');
+    y = ry;
+    m = rm;
+    d = rd;
+  }
+  return `${y}-${m.padStart(2, '0')}-${d.padStart(2, '0')}`;
+};
+
 export const isApprovedParty = (p) => {
   const s = String(p?.status ?? 'approved').trim().toLowerCase();
   return !s || s === 'approved';

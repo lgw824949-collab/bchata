@@ -70,13 +70,14 @@ function matchesAny(text: string, patterns: RegExp[]) {
   return patterns.some((re) => re.test(text));
 }
 
-/** parties 행 → 어느 슬롯에 속하는지 (소셜은 명시 패턴만, 그 외는 해당 슬롯 없음) */
+/** parties 행 → 어느 슬롯에 속하는지 (부트캠프·페스·파티는 제목만 — 설명 키워드 오분류 방지) */
 export function inferPartyRowSlot(row: PostKindFields | null | undefined): PosterSlot | null {
   if (row?.is_weekly_recurring) return 'social';
+  const title = String(row?.title ?? '');
   const text = combineText(row?.title, row?.description);
-  if (matchesAny(text, BOOTCAMP_PATTERNS)) return 'bootcamp';
-  if (matchesAny(text, FESTIVAL_MT_PATTERNS)) return 'festival';
-  if (matchesAny(text, PARTY_EVENT_PATTERNS)) return 'party';
+  if (matchesAny(title, BOOTCAMP_PATTERNS)) return 'bootcamp';
+  if (matchesAny(title, FESTIVAL_MT_PATTERNS)) return 'festival';
+  if (matchesAny(title, PARTY_EVENT_PATTERNS)) return 'party';
   if (matchesAny(text, SOCIAL_NIGHTLY_PATTERNS)) return 'social';
   return null;
 }

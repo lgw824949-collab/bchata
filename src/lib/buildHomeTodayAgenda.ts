@@ -4,7 +4,7 @@ import { isApprovedParty, normDate } from './dateNorm';
 import { partyMatchesCalendarDate } from './partyRecurrence';
 import { formatPartyTitleDisplay } from './partyTitleDisplay';
 import { resolvePartyVenueName } from './partiesQuery';
-import { inferPartyRowSlot } from './postKind';
+import { inferPartyRowSlot, isSocialPartyRow } from './postKind';
 import { getPartyGenreLabel } from './partyShareCard';
 
 export type HomeTodayAgendaKind = 'social' | 'bootcamp' | 'festival' | 'party';
@@ -159,6 +159,7 @@ export const filterAgendaPartiesForDate = (
   (list || []).filter(
     (party) =>
       isApprovedParty(party)
+      && isSocialPartyRow(party)
       && partyMatchesCalendarDate(party, dateStr)
       && String(party.poster_url || '').trim(),
   ),

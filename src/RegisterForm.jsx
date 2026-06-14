@@ -603,6 +603,13 @@ const RegisterForm = ({ onBack, onSuccess, isEdit = false, isAdminMode = false, 
         return
       }
 
+      const posterUrl = finalPosterUrl || inputUrl?.trim() || initialData?.poster_url || ''
+      if (!posterUrl) {
+        alert('포스터 이미지를 업로드하거나 URL을 입력해주세요.')
+        setLoading(false)
+        return
+      }
+
       let finalProcessedTitle = formData.title.trim();
       const suffix = " ㅣ 오늘밤빠";
       if (finalProcessedTitle && !finalProcessedTitle.includes("오늘밤빠")) {
@@ -623,6 +630,7 @@ const RegisterForm = ({ onBack, onSuccess, isEdit = false, isAdminMode = false, 
 
       const partyData = {
         title: finalTitle,
+        region: formData.region || parseTitleRegion(finalTitle) || null,
         location_id: finalLocationId,
         address: formData.address,
         fee: composePartyFee(formData.feeParts, formData.feeCustom) || formData.fee || '문의',
@@ -630,7 +638,7 @@ const RegisterForm = ({ onBack, onSuccess, isEdit = false, isAdminMode = false, 
         time: formData.time,
         day_of_week: formData.day_of_week,
         is_weekly_recurring: Boolean(formData.is_weekly_recurring),
-        poster_url: finalPosterUrl || inputUrl?.trim() || initialData?.poster_url || null,
+        poster_url: posterUrl,
         s_ratio: formData.sRatio,
         b_ratio: formData.bRatio,
         j_ratio: formData.jRatio,
@@ -651,6 +659,7 @@ const RegisterForm = ({ onBack, onSuccess, isEdit = false, isAdminMode = false, 
       }
 
       if (error) throw error
+      window.dispatchEvent(new CustomEvent('bchata-refresh-parties'))
       setSubmitted(true)
     } catch (err) {
       alert('등록 저장 실패: ' + err.message)

@@ -1691,7 +1691,7 @@ const HomePage = ({
   );
 
   const todayPosterPartiesForCount = useMemo(
-    () => dedupeTodayPosterPartiesByVenue(todayPosterParties),
+    () => todayPosterParties,
     [todayPosterParties],
   );
 
