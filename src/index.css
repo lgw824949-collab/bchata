@@ -2521,37 +2521,44 @@ body.party-register-open .bottom-nav {
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 0;
+  gap: 3px;
   margin: 0;
-  padding: 0;
+  min-height: 46px;
+  padding: 4px 2px 2px;
   border: none;
   background: transparent;
   cursor: pointer;
-  color: rgba(255, 255, 255, 0.42);
-  transition: color 0.12s ease;
+  color: var(--bottom-nav-inactive, rgba(255, 255, 255, 0.44));
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+  transition: color 0.18s ease, transform 0.12s ease;
 }
 
-body.bottom-nav-social-light .bottom-nav__item {
-  color: #94a3b8;
+.bottom-nav__item:active {
+  transform: scale(0.96);
 }
 
 .bottom-nav__item--active {
-  color: var(--bottom-nav-accent, #ffffff);
+  color: var(--bottom-nav-accent, #ff1744);
 }
 
 .bottom-nav__item span {
-  font-size: 9px !important;
+  font-size: 10px !important;
   font-weight: 600 !important;
-  line-height: 1.35 !important;
-  margin-top: 2px !important;
+  line-height: 1.2 !important;
+  letter-spacing: -0.02em;
+  margin-top: 0 !important;
 }
 
 .bottom-nav__item--active span {
-  font-weight: 900 !important;
+  font-weight: 800 !important;
 }
 
 nav.bottom-nav,
 .bottom-nav {
+  --bottom-nav-bg: rgba(8, 8, 8, 0.94);
+  --bottom-nav-inactive: rgba(255, 255, 255, 0.44);
+  --bottom-nav-shadow: 0 -10px 36px rgba(0, 0, 0, 0.38);
   position: fixed !important;
   top: auto !important;
   bottom: 0 !important;
@@ -2561,19 +2568,40 @@ nav.bottom-nav,
   max-width: var(--bchata-app-width) !important;
   margin-left: 0 !important;
   margin-right: 0 !important;
-  min-height: calc(54px + env(safe-area-inset-bottom, 0px)) !important;
+  min-height: calc(58px + env(safe-area-inset-bottom, 0px)) !important;
   height: auto !important;
   display: flex !important;
-  align-items: center !important;
+  align-items: stretch !important;
   justify-content: space-between !important;
-  padding: 0 8px env(safe-area-inset-bottom, 0px) !important;
+  padding: 6px 8px calc(6px + env(safe-area-inset-bottom, 0px)) !important;
   box-sizing: border-box !important;
+  border: none !important;
   border-radius: 0 !important;
+  background: var(--bottom-nav-bg) !important;
+  box-shadow: var(--bottom-nav-shadow) !important;
+  backdrop-filter: saturate(180%) blur(20px) !important;
+  -webkit-backdrop-filter: saturate(180%) blur(20px) !important;
   z-index: var(--z-bottom-nav) !important;
   transform: translateX(-50%) !important;
   opacity: 1 !important;
   visibility: visible !important;
   pointer-events: auto !important;
+}
+
+nav.bottom-nav.bottom-nav--social-light,
+.bottom-nav.bottom-nav--social-light,
+body.bottom-nav-social-light nav.bottom-nav {
+  --bottom-nav-bg: rgba(255, 255, 255, 0.94);
+  --bottom-nav-inactive: #94a3b8;
+  --bottom-nav-shadow: 0 -8px 28px rgba(15, 23, 42, 0.08);
+}
+
+nav.bottom-nav.bottom-nav--dark,
+.bottom-nav.bottom-nav--dark,
+body:not(.bottom-nav-social-light) nav.bottom-nav {
+  --bottom-nav-bg: rgba(8, 8, 8, 0.94);
+  --bottom-nav-inactive: rgba(255, 255, 255, 0.44);
+  --bottom-nav-shadow: 0 -10px 36px rgba(0, 0, 0, 0.38);
 }
 
 /* 본문이 하단 네비에 가리지 않도록 (body가 아닌 앱 루트에만 패딩) */
@@ -2582,7 +2610,7 @@ body {
 }
 
 body.has-bottom-nav [data-bchata-app-root] {
-  padding-bottom: calc(72px + env(safe-area-inset-bottom, 0px));
+  padding-bottom: calc(74px + env(safe-area-inset-bottom, 0px));
 }
 
 body.instructor-profile-open nav.bottom-nav,
@@ -2603,7 +2631,7 @@ body.instructor-profile-open .bottom-nav {
 
 .bchata-overlay-sheet {
   z-index: var(--z-modal) !important;
-  bottom: calc(72px + env(safe-area-inset-bottom, 0px));
+  bottom: calc(74px + env(safe-area-inset-bottom, 0px));
 }
 
 body.party-register-open [data-bchata-app-root] {
@@ -2613,34 +2641,7 @@ body.party-register-open [data-bchata-app-root] {
 .bottom-nav svg {
   width: 22px !important;
   height: 22px !important;
-}
-
-.bottom-nav span {
-  font-size: 9px !important;
-  line-height: 1.35 !important;
-  margin-top: 2px !important;
-}
-
-/* 부트캠프·페스티벌·메인 게이트: 다크 캡슐 네비 */
-nav.bottom-nav.bottom-nav--dark,
-.bottom-nav.bottom-nav--dark,
-body:not(.bottom-nav-social-light) nav.bottom-nav {
-  background: #0a0a0a !important;
-  border: 1px solid rgba(255, 255, 255, 0.12) !important;
-  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.55) !important;
-  backdrop-filter: blur(10px) !important;
-  -webkit-backdrop-filter: blur(10px) !important;
-}
-
-/* 소셜·파트너 탭: 흰색 하단 네비 */
-nav.bottom-nav.bottom-nav--social-light,
-.bottom-nav.bottom-nav--social-light,
-body.bottom-nav-social-light nav.bottom-nav {
-  background: #ffffff !important;
-  border: 1px solid #e2e8f0 !important;
-  box-shadow: 0 -4px 16px rgba(0, 0, 0, 0.06) !important;
-  backdrop-filter: none !important;
-  -webkit-backdrop-filter: none !important;
+  flex-shrink: 0;
 }
 
 .bchata-app-shell--dark,
@@ -2932,15 +2933,7 @@ body.bottom-nav-social-light nav.bottom-nav {
 @media (min-width: 520px) {
   nav.bottom-nav,
   .bottom-nav {
-    border-left: 1px solid #e2e8f0;
-    border-right: 1px solid #e2e8f0;
-  }
-
-  nav.bottom-nav.bottom-nav--dark,
-  .bottom-nav.bottom-nav--dark,
-  body:not(.bottom-nav-social-light) nav.bottom-nav {
-    border-left-color: rgba(255, 255, 255, 0.12) !important;
-    border-right-color: rgba(255, 255, 255, 0.12) !important;
+    border: none !important;
   }
 }
 

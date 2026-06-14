@@ -2292,8 +2292,8 @@ function App() {
       ['transform', 'none'],
       ['padding-left', '0'],
       ['padding-right', '0'],
-      ['padding-bottom', 'env(safe-area-inset-bottom, 0px)'],
-      ['min-height', 'calc(54px + env(safe-area-inset-bottom, 0px))'],
+      ['padding-bottom', 'calc(6px + env(safe-area-inset-bottom, 0px))'],
+      ['min-height', 'calc(58px + env(safe-area-inset-bottom, 0px))'],
       ['height', 'auto'],
     ]
     layout.forEach(([prop, value]) => {
