@@ -1,5 +1,5 @@
 ﻿import React, { useState, useEffect, useRef, useMemo } from 'react';
-import { ChevronLeft, Calendar, MapPin, Zap, X, Plus, Image as ImageIcon } from 'lucide-react';
+import { ChevronLeft, Calendar, MapPin, Zap, X, Plus, Image as ImageIcon, Trash2 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { supabase } from '../lib/supabase';
 import { resolveEventDates, inferOneDayEvent } from '../lib/dbSanitize';
@@ -134,6 +134,22 @@ const FESTIVAL_POSTER_FIELDS = [
   { key: 'extra_poster_url', label: '추가 이미지', hint: '타임테이블·부스 안내 등 (선택)' },
 ];
 
+const festivalFormHasDraft = (form, editingId) => {
+  if (editingId) return true;
+  return Boolean(
+    String(form?.title || '').trim()
+    || String(form?.organizer || '').trim()
+    || String(form?.location || '').trim()
+    || String(form?.poster_url || '').trim()
+    || String(form?.price_poster_url || '').trim()
+    || String(form?.extra_poster_url || '').trim()
+    || String(form?.price || '').trim()
+    || String(form?.description || '').trim()
+    || String(form?.bank_info || '').trim()
+    || String(form?.start_date || '').trim()
+  );
+};
+
 const createEmptyFestivalForm = (eventType = 'festival') => ({
   title: '',
   start_date: '',
@@ -198,6 +214,7 @@ const Festival = ({ onBack, initialRegister = false, cachedFestivals = null, onF
   const [editingId, setEditingId] = useState(null);
   const [currentStep, setCurrentStep] = useState(1);
   const [uploadingField, setUploadingField] = useState(null);
+  const posterInputRefs = useRef({});
   const [submitting, setSubmitting] = useState(false);
   const [isOneDayEvent, setIsOneDayEvent] = useState(true);
   const [locationSuggestions, setLocationSuggestions] = useState([]);
@@ -340,6 +357,12 @@ const Festival = ({ onBack, initialRegister = false, cachedFestivals = null, onF
     }
   };
 
+  const handlePosterRemove = (fieldKey) => {
+    setFormData((prev) => ({ ...prev, [fieldKey]: '' }));
+    const input = posterInputRefs.current[fieldKey];
+    if (input) input.value = '';
+  };
+
   const openEdit = (fest) => {
     setFormData({
       title:       fest.title || '',
@@ -451,6 +474,15 @@ const Festival = ({ onBack, initialRegister = false, cachedFestivals = null, onF
     setUploadingField(null);
     setLocationSuggestions([]);
     setFormData(createEmptyFestivalForm(activeTab));
+    FESTIVAL_POSTER_FIELDS.forEach(({ key }) => {
+      const input = posterInputRefs.current[key];
+      if (input) input.value = '';
+    });
+  };
+
+  const requestCloseRegisterForm = () => {
+    if (festivalFormHasDraft(formData, editingId) && !window.confirm('작성 중인 내용을 취소할까요?')) return;
+    closeRegisterForm();
   };
 
   const selectLocationSuggestion = (bar) => {
@@ -910,7 +942,7 @@ const Festival = ({ onBack, initialRegister = false, cachedFestivals = null, onF
           >
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '30px' }}>
               <h2 style={{ fontSize: '24px', fontWeight: 950, color: '#f8fafc', margin: 0 }}>{editingId ? '페스티벌 수정' : '페스티벌 신청'} ({currentStep}/4)</h2>
-              <button type="button" onClick={closeRegisterForm} style={{ background: '#1e293b', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '50%', width: '44px', height: '44px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><X size={24} color="#94a3b8" /></button>
+              <button type="button" onClick={requestCloseRegisterForm} aria-label="등록 취소" style={{ background: '#1e293b', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '50%', width: '44px', height: '44px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><X size={24} color="#94a3b8" /></button>
             </div>
 
             <div style={{ display: 'flex', gap: '8px', marginBottom: '40px' }}>
@@ -1032,18 +1064,48 @@ const Festival = ({ onBack, initialRegister = false, cachedFestivals = null, onF
                       <label style={{ display: 'block', fontSize: '12px', fontWeight: 900, color: '#C9A84C', marginBottom: '12px', letterSpacing: '1.5px' }}>
                         {9 + index}. {label}{required ? ' (필수)' : ' (선택)'}
                       </label>
-                      <div style={{ width: '100%', height: '200px', borderRadius: '24px', border: `2px dashed ${formData[key] ? 'rgba(201,168,76,0.55)' : 'rgba(201,168,76,0.3)'}`, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', background: '#1A1A1A', cursor: 'pointer', position: 'relative', overflow: 'hidden' }}>
+                      <div style={{ width: '100%', height: '200px', borderRadius: '24px', border: `2px dashed ${formData[key] ? 'rgba(201,168,76,0.55)' : 'rgba(201,168,76,0.3)'}`, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', background: '#1A1A1A', cursor: formData[key] ? 'default' : 'pointer', position: 'relative', overflow: 'hidden' }}>
                         {formData[key] ? (
-                          <img src={formData[key]} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                          <>
+                            <img src={formData[key]} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                            <div style={{ position: 'absolute', top: '10px', right: '10px', display: 'flex', gap: '8px' }}>
+                              <label style={{ display: 'flex', alignItems: 'center', padding: '8px 12px', borderRadius: '10px', border: 'none', background: 'rgba(0,0,0,0.72)', color: '#fff', fontSize: '12px', fontWeight: 800, cursor: uploadingField === key ? 'wait' : 'pointer' }}>
+                                {uploadingField === key ? '업로드 중...' : '변경'}
+                                <input
+                                  ref={(el) => { posterInputRefs.current[key] = el; }}
+                                  type="file"
+                                  accept="image/*"
+                                  disabled={uploadingField === key}
+                                  onChange={(e) => handleImageUpload(e, key)}
+                                  style={{ display: 'none' }}
+                                />
+                              </label>
+                              <button
+                                type="button"
+                                onClick={() => handlePosterRemove(key)}
+                                aria-label={`${label} 삭제`}
+                                style={{ display: 'flex', alignItems: 'center', gap: '4px', padding: '8px 12px', borderRadius: '10px', border: 'none', background: 'rgba(127,29,29,0.88)', color: '#fff', fontSize: '12px', fontWeight: 800, cursor: 'pointer' }}
+                              >
+                                <Trash2 size={14} /> 삭제
+                              </button>
+                            </div>
+                          </>
                         ) : (
                           <>
                             <ImageIcon color="#F59E0B" size={36} />
                             <span style={{ fontSize: '13px', color: '#94a3b8', marginTop: '10px' }}>
                               {uploadingField === key ? '업로드 중...' : `${label} 선택`}
                             </span>
+                            <input
+                              ref={(el) => { posterInputRefs.current[key] = el; }}
+                              type="file"
+                              accept="image/*"
+                              disabled={uploadingField === key}
+                              onChange={(e) => handleImageUpload(e, key)}
+                              style={{ position: 'absolute', inset: 0, opacity: 0, cursor: uploadingField === key ? 'wait' : 'pointer' }}
+                            />
                           </>
                         )}
-                        <input type="file" accept="image/*" onChange={(e) => handleImageUpload(e, key)} style={{ position: 'absolute', inset: 0, opacity: 0, cursor: 'pointer' }} />
                       </div>
                       <p style={{ margin: '8px 0 0', fontSize: '12px', color: '#64748b' }}>{hint}</p>
                     </div>
@@ -1059,6 +1121,7 @@ const Festival = ({ onBack, initialRegister = false, cachedFestivals = null, onF
               )}
 
               <div style={{ display: 'flex', gap: '12px', marginTop: 'auto', paddingBottom: '30px' }}>
+                <button type="button" onClick={requestCloseRegisterForm} style={{ flex: 1, padding: '20px', borderRadius: '18px', background: 'rgba(255,255,255,0.03)', color: '#94a3b8', fontWeight: 900, border: '1px solid rgba(255,255,255,0.08)' }}>취소</button>
                 {currentStep > 1 && <button type="button" onClick={() => setCurrentStep(s => s - 1)} style={{ flex: 1, padding: '20px', borderRadius: '18px', background: 'rgba(255,255,255,0.05)', color: '#fff', fontWeight: 900, border: '1px solid rgba(255,255,255,0.1)' }}>이전</button>}
                 {currentStep < 4 ? (
                   <button type="button" onClick={goNextRegisterStep} style={{ flex: 2, padding: '20px', borderRadius: '18px', background: 'linear-gradient(135deg, #C9A84C, #A68A3D)', color: '#000', fontWeight: 900, border: 'none' }}>다음 단계</button>
