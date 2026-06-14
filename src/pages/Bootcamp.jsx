@@ -287,6 +287,18 @@ const Bootcamp = ({ onBack, initialView = 'list', cachedBootcamps = null, onBoot
 
   const isFiltering = selectedGenre !== '전체' || selectedRegion !== '전국' || searchTerm.trim() !== '';
 
+  const BOOTCAMP_SHOWCASE_MIN = 3;
+
+  const openBootcampRegister = () => {
+    setEditingId(null);
+    setCurrentStep(1);
+    setView('register');
+  };
+
+  const showcaseItems = bootcamps.slice(0, BOOTCAMP_SHOWCASE_MIN);
+  const showcaseReady = bootcamps.length >= BOOTCAMP_SHOWCASE_MIN;
+  const showcaseSlots = Array.from({ length: BOOTCAMP_SHOWCASE_MIN }, (_, i) => showcaseItems[i] || null);
+
   /* [OLD] StatCard
   const StatCard = ({ label, value, icon }) => (
     <div style={{
@@ -346,10 +358,90 @@ const Bootcamp = ({ onBack, initialView = 'list', cachedBootcamps = null, onBoot
   );
 
   const EmptyState = () => (
-    <div style={{ textAlign: 'center', padding: '60px 0', color: '#8E8E93' }}>
-      <div style={{ fontSize: 40, marginBottom: 12 }}>🏕️</div>
-      <div style={{ fontSize: 14, fontWeight: 700 }}>등록된 부트캠프가 없습니다</div>
+    <div style={{ textAlign: 'center', padding: '40px 0 20px', color: '#8E8E93' }}>
+      <div style={{ fontSize: 14, fontWeight: 700, color: '#C9A84C', marginBottom: 8 }}>
+        월드 마스터 포스터 {bootcamps.length}/{BOOTCAMP_SHOWCASE_MIN}
+      </div>
+      <div style={{ fontSize: 13, fontWeight: 600, lineHeight: 1.6 }}>
+        홍보관은 포스터 <strong style={{ color: '#fff' }}>최소 3장</strong>부터 열립니다.
+        <br />
+        💎 캠프 등록으로 채워 주세요.
+      </div>
     </div>
+  );
+
+  const renderShowcasePlaceholder = (slotIndex, large = false) => (
+    <button
+      key={`placeholder-${slotIndex}`}
+      type="button"
+      onClick={openBootcampRegister}
+      style={{
+        width: '100%',
+        height: large ? '240px' : '180px',
+        borderRadius: large ? '28px' : '24px',
+        border: '2px dashed rgba(201,168,76,0.35)',
+        background: 'linear-gradient(145deg, rgba(201,168,76,0.08) 0%, rgba(255,255,255,0.02) 100%)',
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+        justifyContent: 'center',
+        gap: 8,
+        cursor: 'pointer',
+        color: '#C9A84C',
+        padding: 16,
+      }}
+    >
+      <Star size={large ? 28 : 22} />
+      <span style={{ fontSize: large ? 16 : 14, fontWeight: 900 }}>마스터 포스터 {slotIndex + 1}</span>
+      <span style={{ fontSize: 12, fontWeight: 600, color: '#8E8E93' }}>탭하여 등록</span>
+    </button>
+  );
+
+  const renderShowcaseFeatured = (item) => (
+    <motion.div
+      key={item.id}
+      onClick={() => setSelectedBootcamp(item)}
+      whileTap={{ scale: 0.98 }}
+      className="spinning-border-wrap"
+      style={{ gridColumn: 'span 2', height: '244px', cursor: 'pointer' }}
+    >
+      <div className="spinning-border-inner" style={{ position: 'relative', height: '240px' }}>
+        <img src={item.poster_url || DEFAULT_CARD_IMAGE} onError={imgFallbackHandler(DEFAULT_CARD_IMAGE)} style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'center top' }} alt={item.instructor} />
+        <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to top, rgba(0,0,0,0.9) 0%, transparent 60%)' }} />
+        <div style={{ position: 'absolute', top: 15, left: 15, background: 'rgba(201,168,76,0.9)', color: '#000', padding: '4px 10px', borderRadius: '10px', fontSize: '10px', fontWeight: 900 }}>FEATURED MASTER</div>
+        <div style={{ position: 'absolute', bottom: 20, left: 20, right: 20 }}>
+          <div style={{ fontSize: '24px', fontWeight: 950, color: '#FFF', marginBottom: '4px' }}>{item.instructor}</div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+            <div style={{ fontSize: '12px', color: '#A1A1AA', fontWeight: 600 }}>{item.genre}</div>
+            <div style={{ width: 4, height: 4, borderRadius: '50%', background: '#C9A84C' }} />
+            <div style={{ display: 'flex', alignItems: 'center', gap: 4, fontSize: '12px', color: '#C9A84C', fontWeight: 800 }}>
+              <Calendar size={12} /> {item.start_date?.slice(0, 10)}
+            </div>
+          </div>
+        </div>
+      </div>
+    </motion.div>
+  );
+
+  const renderShowcaseSecondary = (item, idx) => (
+    <motion.div
+      key={item.id}
+      onClick={() => setSelectedBootcamp(item)}
+      whileTap={{ scale: 0.96 }}
+      style={{ position: 'relative', height: '180px', borderRadius: '24px', overflow: 'hidden', cursor: 'pointer', border: '1px solid rgba(255,255,255,0.05)' }}
+    >
+      <img src={item.poster_url || DEFAULT_CARD_IMAGE} onError={imgFallbackHandler(DEFAULT_CARD_IMAGE)} style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'center top' }} alt={item.instructor} />
+      <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to top, rgba(0,0,0,0.8) 0%, transparent 70%)' }} />
+      <div style={{ position: 'absolute', top: 12, right: 12 }}>
+        <div style={{ background: 'rgba(0,0,0,0.5)', backdropFilter: 'blur(4px)', color: '#FFF', padding: '4px 8px', borderRadius: '8px', fontSize: '9px', fontWeight: 800, border: '1px solid rgba(255,255,255,0.1)' }}>
+          #{idx + 2}
+        </div>
+      </div>
+      <div style={{ position: 'absolute', bottom: 15, left: 15, right: 15 }}>
+        <div style={{ fontSize: '15px', fontWeight: 900, color: '#FFF', marginBottom: '2px' }}>{item.instructor}</div>
+        <div style={{ fontSize: '10px', color: '#C9A84C', fontWeight: 700 }}>{item.genre} · {item.start_date?.slice(0, 10)}</div>
+      </div>
+    </motion.div>
   );
 
   const StatCard = ({ label, value, icon }) => (
@@ -903,7 +995,7 @@ const Bootcamp = ({ onBack, initialView = 'list', cachedBootcamps = null, onBoot
         )}
       </AnimatePresence>
 
-      {/* TOP BOOTCAMPS Skeleton */}
+      {/* TOP BOOTCAMPS Skeleton — 히어로 1 + 하단 2 (최소 3칸) */}
       {loading && !isFiltering && (
         <div style={{ padding: '10px 25px 30px' }}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '18px' }}>
@@ -911,64 +1003,31 @@ const Bootcamp = ({ onBack, initialView = 'list', cachedBootcamps = null, onBoot
           </div>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '12px' }}>
             <div className="skeleton" style={{ gridColumn: 'span 2', height: '240px', borderRadius: '28px' }} />
-            {[0, 1, 2, 3].map(i => (
+            {[0, 1].map(i => (
               <div key={i} className="skeleton" style={{ height: '180px', borderRadius: '24px' }} />
             ))}
           </div>
         </div>
       )}
 
-      {/* TOP BOOTCAMPS Showcase */}
-      {!loading && bootcamps.length > 0 && !isFiltering && (
+      {/* WORLD MASTERS — 포스터 3칸 그리드 (미만이면 플레이스홀더) */}
+      {!loading && !isFiltering && (
         <div style={{ padding: '10px 25px 30px' }}>
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '18px' }}>
-            <h3 style={{ fontSize: '13px', fontWeight: 900, color: '#C9A84C', letterSpacing: '2px', margin: 0 }}>TOP BOOTCAMPS</h3>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '12px' }}>
+            <h3 style={{ fontSize: '13px', fontWeight: 900, color: '#C9A84C', letterSpacing: '2px', margin: 0 }}>WORLD MASTERS</h3>
             <div style={{ width: '40px', height: '1px', background: 'linear-gradient(90deg, #C9A84C, transparent)', marginLeft: 'auto' }} />
           </div>
+          {!showcaseReady && (
+            <p style={{ margin: '0 0 16px', fontSize: 12, fontWeight: 700, color: '#8E8E93', lineHeight: 1.5 }}>
+              포스터 <span style={{ color: '#C9A84C' }}>{bootcamps.length}/{BOOTCAMP_SHOWCASE_MIN}</span> · 3장 채우면 홍보관이 완성됩니다
+            </p>
+          )}
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '12px' }}>
-            {bootcamps[0] && (
-              <motion.div
-                onClick={() => setSelectedBootcamp(bootcamps[0])}
-                whileTap={{ scale: 0.98 }}
-                className="spinning-border-wrap"
-                style={{ gridColumn: 'span 2', height: '244px', cursor: 'pointer' }}
-              >
-                <div className="spinning-border-inner" style={{ position: 'relative', height: '240px' }}>
-                  <img src={bootcamps[0].poster_url || DEFAULT_CARD_IMAGE} onError={imgFallbackHandler(DEFAULT_CARD_IMAGE)} style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'center top' }} alt={bootcamps[0].instructor} />
-                  <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to top, rgba(0,0,0,0.9) 0%, transparent 60%)' }} />
-                  <div style={{ position: 'absolute', top: 15, left: 15, background: 'rgba(201,168,76,0.9)', color: '#000', padding: '4px 10px', borderRadius: '10px', fontSize: '10px', fontWeight: 900 }}>NEXT BOOTCAMP</div>
-                  <div style={{ position: 'absolute', bottom: 20, left: 20, right: 20 }}>
-                    <div style={{ fontSize: '24px', fontWeight: 950, color: '#FFF', marginBottom: '4px' }}>{bootcamps[0].instructor}</div>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                      <div style={{ fontSize: '12px', color: '#A1A1AA', fontWeight: 600 }}>{bootcamps[0].genre}</div>
-                      <div style={{ width: 4, height: 4, borderRadius: '50%', background: '#C9A84C' }} />
-                      <div style={{ display: 'flex', alignItems: 'center', gap: 4, fontSize: '12px', color: '#C9A84C', fontWeight: 800 }}>
-                        <Calendar size={12} /> {bootcamps[0].start_date?.slice(0, 10)}
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </motion.div>
-            )}
-            {bootcamps.slice(1, 5).map((item, idx) => (
-              <motion.div
-                key={item.id}
-                onClick={() => setSelectedBootcamp(item)}
-                whileTap={{ scale: 0.96 }}
-                style={{ position: 'relative', height: '180px', borderRadius: '24px', overflow: 'hidden', cursor: 'pointer', border: '1px solid rgba(255,255,255,0.05)' }}
-              >
-                <img src={item.poster_url || DEFAULT_CARD_IMAGE} onError={imgFallbackHandler(DEFAULT_CARD_IMAGE)} style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'center top' }} alt={item.instructor} />
-                <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to top, rgba(0,0,0,0.8) 0%, transparent 70%)' }} />
-                <div style={{ position: 'absolute', top: 12, right: 12 }}>
-                  <div style={{ background: 'rgba(0,0,0,0.5)', backdropFilter: 'blur(4px)', color: '#FFF', padding: '4px 8px', borderRadius: '8px', fontSize: '9px', fontWeight: 800, border: '1px solid rgba(255,255,255,0.1)' }}>
-                    #{idx + 2}
-                  </div>
-                </div>
-                <div style={{ position: 'absolute', bottom: 15, left: 15, right: 15 }}>
-                  <div style={{ fontSize: '15px', fontWeight: 900, color: '#FFF', marginBottom: '2px' }}>{item.instructor}</div>
-                  <div style={{ fontSize: '10px', color: '#C9A84C', fontWeight: 700 }}>{item.genre} · {item.start_date?.slice(0, 10)}</div>
-                </div>
-              </motion.div>
+            {showcaseSlots[0]
+              ? renderShowcaseFeatured(showcaseSlots[0])
+              : renderShowcasePlaceholder(0, true)}
+            {showcaseSlots.slice(1).map((item, idx) => (
+              item ? renderShowcaseSecondary(item, idx) : renderShowcasePlaceholder(idx + 1, false)
             ))}
           </div>
         </div>
@@ -1000,9 +1059,9 @@ const Bootcamp = ({ onBack, initialView = 'list', cachedBootcamps = null, onBoot
             <div>{[0,1,2,3,4,5].map(i => <SkeletonRow key={i} />)}</div>
           ) : (() => {
             const groups = groupBootcampsByDate(filteredList);
-            const topIds = new Set(bootcamps.slice(0, 5).map(b => b.id));
+            const topIds = new Set(bootcamps.slice(0, BOOTCAMP_SHOWCASE_MIN).map(b => b.id));
             const allEmpty = Object.values(groups).every(g => g.items.filter(i => !topIds.has(i.id)).length === 0);
-            if (allEmpty) return <EmptyState />;
+            if (allEmpty) return null;
 
             return Object.entries(groups).map(([key, group]) => {
               const items = group.items.filter(i => !topIds.has(i.id));
