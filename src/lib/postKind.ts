@@ -6,6 +6,7 @@ export type FestivalEventType = 'festival' | 'mt' | 'party';
 export type PostKindFields = {
   title?: string | null;
   description?: string | null;
+  is_weekly_recurring?: boolean | null;
 };
 
 export type ValidationResult = { ok: true } | { ok: false; message: string };
@@ -71,6 +72,7 @@ function matchesAny(text: string, patterns: RegExp[]) {
 
 /** parties 행 → 어느 슬롯에 속하는지 (소셜은 명시 패턴만, 그 외는 해당 슬롯 없음) */
 export function inferPartyRowSlot(row: PostKindFields | null | undefined): PosterSlot | null {
+  if (row?.is_weekly_recurring) return 'social';
   const text = combineText(row?.title, row?.description);
   if (matchesAny(text, BOOTCAMP_PATTERNS)) return 'bootcamp';
   if (matchesAny(text, FESTIVAL_MT_PATTERNS)) return 'festival';
@@ -120,7 +122,10 @@ export function validateSocialPartyRegistration(fields: PostKindFields): Validat
     return fail('행사·주년 파티는 [파티] 메뉴에서만 등록할 수 있습니다. 오늘소셜 등록에는 올릴 수 없어요.');
   }
   if (!matchesAny(text, SOCIAL_NIGHTLY_PATTERNS)) {
-    return fail('오늘소셜은 BAR 소셜·정기 모임 포스터만 등록할 수 있습니다. 부트캠프·페스티벌·행사 파티는 각각 전용 메뉴에서 등록해 주세요.');
+    if (fields.is_weekly_recurring) return ok();
+    return fail(
+      '제목에 소셜·맛집·정모·나이트파티 중 하나를 넣어 주세요. (예: [강남] ○○바 소셜 맛집) 매주 고정 BAR 소셜은 「매주 고정」을 선택하면 됩니다.',
+    );
   }
   return ok();
 }

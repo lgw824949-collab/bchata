@@ -511,6 +511,7 @@ const RegisterForm = ({ onBack, onSuccess, isEdit = false, isAdminMode = false, 
     const kindCheck = validateSocialPartyRegistration({
       title: `[${formData.region}] ${formData.title}`,
       description: formData.description,
+      is_weekly_recurring: formData.is_weekly_recurring,
     })
     if (!kindCheck.ok) {
       alert(kindCheck.message)
@@ -612,6 +613,7 @@ const RegisterForm = ({ onBack, onSuccess, isEdit = false, isAdminMode = false, 
       const finalKindCheck = validateSocialPartyRegistration({
         title: finalTitle,
         description: formData.description,
+        is_weekly_recurring: formData.is_weekly_recurring,
       });
       if (!finalKindCheck.ok) {
         alert(finalKindCheck.message);
