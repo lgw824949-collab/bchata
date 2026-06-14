@@ -99,7 +99,7 @@ const EventRanking = () => {
   )
 }
 
-export default function AdminDashboard({ onBack }) {
+export default function AdminDashboard({ onBack, refreshData }) {
   const [isAdmin, setIsAdmin] = useState(false)
   const [loginStep, setLoginStep] = useState(1)
   const [adminId, setAdminId] = useState('')
@@ -637,6 +637,9 @@ export default function AdminDashboard({ onBack }) {
       setPreview(null)
       resetInstructorPosterEdit()
       await fetchData()
+      if (typeof refreshData === 'function') {
+        await refreshData({ silent: true })
+      }
     } catch (err) {
       showAdminError(`수정 실패: ${err.message || err}`)
     } finally { setLoading(false) }
@@ -703,6 +706,9 @@ export default function AdminDashboard({ onBack }) {
         }
       }
       await fetchData();
+      if (typeof refreshData === 'function') {
+        await refreshData({ silent: true });
+      }
       showAdminSuccess('상태가 업데이트되었습니다.');
     } catch (err) { 
       showAdminError(`처리 실패: ${err.message || err}`);

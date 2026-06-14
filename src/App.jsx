@@ -1904,7 +1904,7 @@ function App() {
         runSupabaseQuery('locations', (db) => db.from('locations').select(LOCATIONS_SELECT)),
         runSupabaseQuery('bootcamps', (db) =>
           db.from('bootcamps')
-            .select('id, title, instructor, start_date, end_date, poster_url, status, created_at, region, location, price, genre, description')
+            .select('id, title, instructor, start_date, end_date, poster_url, price_poster_url, extra_poster_url, status, created_at, region, location, venue, fee, price, genre, level, description, type')
             .eq('status', 'active'),
         ),
         runSupabaseQuery('festivals', (db) =>

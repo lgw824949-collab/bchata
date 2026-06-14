@@ -173,7 +173,6 @@ const pickFeaturedBootcampHero = (rows) => {
 const Bootcamp = ({ onBack, initialView = 'list', cachedBootcamps = null, onBootcampsRefresh }) => {
   const [bootcamps, setBootcamps] = useState(() => filterBootcampsClient(cachedBootcamps, '전체'));
   const [loading, setLoading] = useState(!cachedBootcamps?.length);
-  const usedCacheRef = useRef(Boolean(cachedBootcamps?.length));
   const [selectedRegion, setSelectedRegion] = useState('전체');
   const [selectedBootcamp, setSelectedBootcamp] = useState(null);
   const [showBookingGuide, setShowBookingGuide] = useState(false);
@@ -241,11 +240,15 @@ const Bootcamp = ({ onBack, initialView = 'list', cachedBootcamps = null, onBoot
   }, []);
 
   useEffect(() => {
-    if (usedCacheRef.current) {
-      usedCacheRef.current = false;
-      return;
-    }
     fetchBootcamps();
+  }, [selectedRegion]);
+
+  useEffect(() => {
+    const onVisible = () => {
+      if (document.visibilityState === 'visible') fetchBootcamps();
+    };
+    window.addEventListener('visibilitychange', onVisible);
+    return () => window.removeEventListener('visibilitychange', onVisible);
   }, [selectedRegion]);
 
   const fetchBootcamps = async () => {
@@ -554,6 +557,20 @@ const Bootcamp = ({ onBack, initialView = 'list', cachedBootcamps = null, onBoot
           border-radius: 12px;
         }
         .hide-scrollbar::-webkit-scrollbar { display: none; }
+        .boot-poster-frame {
+          background: #0a0a0a;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          overflow: hidden;
+        }
+        .boot-poster-img {
+          width: 100%;
+          height: 100%;
+          object-fit: contain;
+          object-position: center top;
+          display: block;
+        }
       `}</style>
 
       <div style={{ background: '#0D0D0D', minHeight: '100dvh', width: '100%', paddingBottom: '100px', color: '#f8fafc', position: 'relative' }}>
@@ -599,15 +616,16 @@ const Bootcamp = ({ onBack, initialView = 'list', cachedBootcamps = null, onBoot
                   type="button"
                   onClick={() => setSelectedBootcamp(featuredHero)}
                   style={{
-                    position: 'relative', width: '100%', height: 128, overflow: 'hidden',
+                    position: 'relative', width: '100%', height: 176, overflow: 'hidden',
                     borderRadius: 18, border: '1px solid rgba(201,168,76,0.35)', padding: 0,
-                    cursor: 'pointer', background: '#111', display: 'block', textAlign: 'left',
+                    cursor: 'pointer', background: '#0a0a0a', display: 'block', textAlign: 'left',
                   }}
                 >
                   <img
                     src={featuredHero.poster_url}
                     alt={featuredHero.title || featuredHero.instructor}
-                    style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'top' }}
+                    className="boot-poster-img"
+                    style={{ objectPosition: 'center top' }}
                     onError={imgFallbackHandler(DEFAULT_CARD_IMAGE)}
                   />
                   <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to top, rgba(0,0,0,0.92) 0%, rgba(0,0,0,0.35) 55%, rgba(0,0,0,0.08) 100%)' }} />
@@ -711,12 +729,12 @@ const Bootcamp = ({ onBack, initialView = 'list', cachedBootcamps = null, onBoot
                       whileInView={{ opacity: 1, y: 0 }}
                       viewport={{ once: true }}
                       onClick={() => setSelectedBootcamp(row)}
-                      style={{ display: 'flex', cursor: 'pointer', background: '#111', borderRadius: 18, overflow: 'hidden', border: '1px solid rgba(255,255,255,0.07)' }}
+                      style={{ display: 'flex', cursor: 'pointer', background: '#111', borderRadius: 18, overflow: 'hidden', border: '1px solid rgba(255,255,255,0.07)', minHeight: 148 }}
                     >
-                      <div style={{ width: '36%', flexShrink: 0, position: 'relative', background: '#000', alignSelf: 'stretch', minHeight: 118 }}>
+                      <div className="boot-poster-frame" style={{ width: '38%', flexShrink: 0, alignSelf: 'stretch', minWidth: 118, padding: '6px 4px', boxSizing: 'border-box' }}>
                         <img
                           src={row.poster_url || DEFAULT_CARD_IMAGE}
-                          style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'top', display: 'block' }}
+                          className="boot-poster-img"
                           alt={row.title}
                           onError={imgFallbackHandler(DEFAULT_CARD_IMAGE)}
                         />
