@@ -299,24 +299,32 @@ export default function AdminDashboard({ onBack }) {
     event_type: form.event_type || 'festival',
   })
 
-  const buildBootcampUpdatePayload = (form) => ({
-    title: String(form.title || form.name || '').trim(),
-    instructor: String(form.instructor || '').trim() || null,
-    type: form.type || 'domestic',
-    region: String(form.region || '').trim() || null,
-    country: String(form.country || '').trim() || null,
-    start_date: form.start_date || null,
-    end_date: form.end_date || null,
-    venue: String(form.venue || '').trim() || null,
-    fee: String(form.fee || '').trim() || null,
-    description: String(form.description || '').trim() || null,
-    poster_url: String(form.poster_url || '').trim() || null,
-    genre: String(form.genre || '').trim() || null,
-    level: String(form.level || '').trim() || null,
-    instagram: String(form.instagram || '').trim() || null,
-    youtube: String(form.youtube || '').trim() || null,
-    bank_info: String(form.bank_info || '').trim() || null,
-  })
+  const buildBootcampUpdatePayload = (form) => {
+    const venue = String(form.venue || form.location || '').trim() || null;
+    const fee = String(form.fee || form.price || '').trim() || null;
+    return {
+      title: String(form.title || form.name || '').trim(),
+      instructor: String(form.instructor || '').trim() || null,
+      type: form.type || 'domestic',
+      region: String(form.region || '').trim() || null,
+      country: String(form.country || '').trim() || null,
+      start_date: form.start_date || null,
+      end_date: form.end_date || null,
+      venue,
+      location: venue,
+      fee,
+      price: fee,
+      description: String(form.description || '').trim() || null,
+      poster_url: String(form.poster_url || '').trim() || null,
+      price_poster_url: String(form.price_poster_url || '').trim() || null,
+      extra_poster_url: String(form.extra_poster_url || '').trim() || null,
+      genre: String(form.genre || '').trim() || null,
+      level: String(form.level || '').trim() || null,
+      instagram: String(form.instagram || '').trim() || null,
+      youtube: String(form.youtube || '').trim() || null,
+      bank_info: String(form.bank_info || '').trim() || null,
+    };
+  };
 
   const [newRental, setNewRental] = useState({ name: '', address: '', kakao_url: '', instagram_url: '', image_url: '' })
   const [newRentalFile, setNewRentalFile] = useState(null)
