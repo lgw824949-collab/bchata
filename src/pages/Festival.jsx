@@ -128,11 +128,9 @@ const matchesFestivalPageTab = (row, activeTab) => {
   return type === 'festival' || type === 'mt';
 };
 
-const FESTIVAL_MIN_POSTER_COUNT = 2;
-
 const FESTIVAL_POSTER_FIELDS = [
-  { key: 'poster_url', label: '행사 포스터', hint: '행사 메인 포스터 (2장 중 1)' },
-  { key: 'price_poster_url', label: '가격 포스터', hint: '티켓·가격 안내 (2장 중 1)' },
+  { key: 'poster_url', label: '행사 포스터', hint: '행사 메인 포스터 (필수)', required: true },
+  { key: 'price_poster_url', label: '가격 포스터', hint: '티켓·가격 안내 (선택)' },
   { key: 'extra_poster_url', label: '추가 이미지', hint: '타임테이블·부스 안내 등 (선택)' },
 ];
 
@@ -152,9 +150,6 @@ const createEmptyFestivalForm = (eventType = 'festival') => ({
   bank_info: '',
   event_type: eventType,
 });
-
-const countFestivalPosterImages = (form) =>
-  FESTIVAL_POSTER_FIELDS.filter(({ key }) => String(form?.[key] || '').trim()).length;
 
 const festivalDetailPosterImages = (fest) =>
   FESTIVAL_POSTER_FIELDS
@@ -433,8 +428,8 @@ const Festival = ({ onBack, initialRegister = false, cachedFestivals = null, onF
         alert('티켓 가격 정보를 입력해 주세요.');
         return false;
       }
-      if (countFestivalPosterImages(formData) < FESTIVAL_MIN_POSTER_COUNT) {
-        alert(`이미지는 최소 ${FESTIVAL_MIN_POSTER_COUNT}장이 필요합니다. (행사·가격·추가 중 ${FESTIVAL_MIN_POSTER_COUNT}장)`);
+      if (!String(formData.poster_url || '').trim()) {
+        alert('행사 포스터(필수)를 등록해 주세요.');
         return false;
       }
       return true;
@@ -1030,12 +1025,12 @@ const Festival = ({ onBack, initialRegister = false, cachedFestivals = null, onF
                 <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} style={{ display: 'flex', flexDirection: 'column', gap: '28px' }}>
                   <div><label style={{ display: 'block', fontSize: '12px', fontWeight: 900, color: '#C9A84C', marginBottom: '12px', letterSpacing: '1.5px' }}>8. 티켓 가격 정보</label><input value={formData.price} onChange={e => setFormData(prev => ({ ...prev, price: e.target.value }))} placeholder="예: 풀패스 250,000 / 파티패스 50,000 // 공연자 풀패스 200,000" style={{ width: '100%', padding: '20px', borderRadius: '18px', border: '1px solid rgba(255,255,255,0.1)', background: '#1A1A1A', fontSize: '16px', color: '#f8fafc', outline: 'none' }} /></div>
                   <p style={{ margin: 0, fontSize: '13px', color: '#94a3b8', lineHeight: 1.5 }}>
-                    이미지 <strong style={{ color: '#C9A84C' }}>최소 2장</strong> · 행사·가격·추가 중 2장만 등록해도 됩니다.
+                    행사 포스터 <strong style={{ color: '#C9A84C' }}>1장 필수</strong> · 가격·추가 이미지는 선택입니다.
                   </p>
-                  {FESTIVAL_POSTER_FIELDS.map(({ key, label, hint }, index) => (
+                  {FESTIVAL_POSTER_FIELDS.map(({ key, label, hint, required }, index) => (
                     <div key={key}>
                       <label style={{ display: 'block', fontSize: '12px', fontWeight: 900, color: '#C9A84C', marginBottom: '12px', letterSpacing: '1.5px' }}>
-                        {9 + index}. {label}
+                        {9 + index}. {label}{required ? ' (필수)' : ' (선택)'}
                       </label>
                       <div style={{ width: '100%', height: '200px', borderRadius: '24px', border: `2px dashed ${formData[key] ? 'rgba(201,168,76,0.55)' : 'rgba(201,168,76,0.3)'}`, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', background: '#1A1A1A', cursor: 'pointer', position: 'relative', overflow: 'hidden' }}>
                         {formData[key] ? (
