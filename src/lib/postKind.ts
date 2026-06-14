@@ -109,16 +109,17 @@ function ok(): ValidationResult {
   return { ok: true };
 }
 
-/** RegisterForm — parties / BAR·정기 포스터 등록 전용 */
+/** RegisterForm — parties / BAR·정기 포스터 등록 전용 (제목 기준 — 설명 일정 문구는 허용) */
 export function validateSocialPartyRegistration(fields: PostKindFields): ValidationResult {
+  const title = String(fields.title ?? '').trim();
   const text = combineText(fields.title, fields.description);
-  if (matchesAny(text, BOOTCAMP_PATTERNS)) {
+  if (matchesAny(title, BOOTCAMP_PATTERNS)) {
     return fail('부트캠프는 [부트캠프] 메뉴에서만 등록할 수 있습니다. 소셜 등록에는 올릴 수 없어요.');
   }
-  if (matchesAny(text, FESTIVAL_MT_PATTERNS)) {
+  if (matchesAny(title, FESTIVAL_MT_PATTERNS)) {
     return fail('페스티벌·MT는 [페스티벌] 메뉴에서만 등록할 수 있습니다. 소셜 등록에는 올릴 수 없어요.');
   }
-  if (matchesAny(text, PARTY_EVENT_PATTERNS)) {
+  if (matchesAny(title, PARTY_EVENT_PATTERNS)) {
     return fail('행사·주년 파티는 [페스티벌 > 파티] 메뉴에서만 등록할 수 있습니다. 여기와는 다릅니다.');
   }
   if (!matchesAny(text, SOCIAL_NIGHTLY_PATTERNS)) {
@@ -130,51 +131,16 @@ export function validateSocialPartyRegistration(fields: PostKindFields): Validat
   return ok();
 }
 
-/** Bootcamp.jsx — bootcamps 테이블 전용 */
-export function validateBootcampRegistration(fields: PostKindFields): ValidationResult {
-  const text = combineText(fields.title, fields.description);
-  if (matchesAny(text, FESTIVAL_MT_PATTERNS)) {
-    return fail('페스티벌·MT는 [페스티벌] 메뉴에서 등록해 주세요. 부트캠프 등록에는 올릴 수 없어요.');
-  }
-  if (matchesAny(text, PARTY_EVENT_PATTERNS)) {
-    return fail('행사·주년 파티는 [파티] 메뉴에서 등록해 주세요. 부트캠프 등록에는 올릴 수 없어요.');
-  }
-  if (matchesAny(text, SOCIAL_NIGHTLY_PATTERNS) && !matchesAny(text, BOOTCAMP_PATTERNS)) {
-    return fail('BAR 소셜·정기 모임은 [소셜 등록]에서만 등록할 수 있습니다. 부트캠프 등록에는 올릴 수 없어요.');
-  }
+/** Bootcamp.jsx — 메뉴 선택을 신뢰 (설명의 festival·소셜 문구 허용) */
+export function validateBootcampRegistration(_fields: PostKindFields): ValidationResult {
   return ok();
 }
 
-/** Festival.jsx — festivals.event_type별 */
+/** Festival.jsx — 탭 event_type 신뢰 (설명 키워드로 막지 않음) */
 export function validateFestivalRegistration(
-  eventType: FestivalEventType,
-  fields: PostKindFields,
+  _eventType: FestivalEventType,
+  _fields: PostKindFields,
 ): ValidationResult {
-  const text = combineText(fields.title, fields.description);
-
-  if (matchesAny(text, BOOTCAMP_PATTERNS)) {
-    return fail('부트캠프는 [부트캠프] 메뉴에서 등록해 주세요.');
-  }
-
-  if (eventType === 'festival') {
-    if (matchesAny(text, PARTY_EVENT_PATTERNS)) {
-      return fail('주년·기념 파티는 [파티] 탭에서 등록해 주세요. 페스티벌 탭에는 올릴 수 없어요.');
-    }
-  }
-
-  if (eventType === 'party') {
-    if (/페스티벌|festival/i.test(text)) {
-      return fail('페스티벌 행사는 [페스티벌] 탭에서 등록해 주세요. 파티 탭에는 올릴 수 없어요.');
-    }
-    if (matchesAny(text, SOCIAL_NIGHTLY_PATTERNS)) {
-      return fail('BAR 소셜·정기 모임은 [소셜 등록]에서만 등록할 수 있습니다. 파티(행사) 탭과는 다릅니다.');
-    }
-  }
-
-  if (matchesAny(text, SOCIAL_NIGHTLY_PATTERNS) && eventType !== 'party') {
-    return fail('BAR 소셜·정기 모임은 [소셜 등록]에서만 등록할 수 있습니다.');
-  }
-
   return ok();
 }
 
