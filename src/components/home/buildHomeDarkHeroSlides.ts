@@ -19,6 +19,41 @@ type PosterRow = {
 
 const normDate = (value?: string) => String(value || '').slice(0, 10);
 
+const resolvePosterEventDate = (row: PosterRow, todayStr: string) => {
+  const direct = normDate(row.start_date || row.date);
+  if (direct) return direct;
+  if ((row as { is_weekly_recurring?: boolean }).is_weekly_recurring) return todayStr;
+  return '';
+};
+
+/** 오늘과 가까운 날짜 우선 — 다가오는 행사는 가까운 순, 지난 행사는 최근 순 */
+export const compareNearestEventDate = (a: string, b: string, todayStr: string) => {
+  if (!a && !b) return 0;
+  if (!a) return 1;
+  if (!b) return -1;
+
+  const aUpcoming = a >= todayStr;
+  const bUpcoming = b >= todayStr;
+  if (aUpcoming && bUpcoming) return a.localeCompare(b);
+  if (aUpcoming) return -1;
+  if (bUpcoming) return 1;
+  return b.localeCompare(a);
+};
+
+const sortRowsByNearestEventDate = (rows: PosterRow[], todayStr: string) =>
+  [...rows].sort((a, b) => compareNearestEventDate(
+    resolvePosterEventDate(a, todayStr),
+    resolvePosterEventDate(b, todayStr),
+    todayStr,
+  ));
+
+const sortSlidesByNearestEventDate = (slides: HomeDarkHeroSlide[], todayStr: string) =>
+  [...slides].sort((a, b) => compareNearestEventDate(
+    resolvePosterEventDate(a.raw as PosterRow, todayStr),
+    resolvePosterEventDate(b.raw as PosterRow, todayStr),
+    todayStr,
+  ));
+
 export function formatHeroDateLabel(
   startDate: string | undefined,
   todayStr: string,
@@ -37,16 +72,7 @@ export function formatHeroDateLabel(
   return isEn ? `${month}/${day} (${weekday})` : `${month}월 ${day}일 (${weekday})`;
 }
 
-const pickLatestPosterRow = (rows: PosterRow[]) =>
-  (rows || [])
-    .filter((row) => String(row.poster_url || '').trim())
-    .sort(
-      (a, b) =>
-        new Date(b.created_at || b.start_date || 0).getTime()
-        - new Date(a.created_at || a.start_date || 0).getTime(),
-    )[0] || null;
-
-const pickFeaturedEventRow = (
+const pickNearestEventRow = (
   rows: PosterRow[],
   todayStr: string,
   eventTypes?: string | string[],
@@ -61,11 +87,9 @@ const pickFeaturedEventRow = (
     const end = normDate(row.end_date || row.start_date);
     return !end || end >= todayStr;
   });
-  const upcoming = notEnded
-    .filter((row) => normDate(row.start_date) >= todayStr)
-    .sort((a, b) => normDate(a.start_date).localeCompare(normDate(b.start_date)));
+  const upcoming = notEnded.filter((row) => normDate(row.start_date) >= todayStr);
   const pool = upcoming.length ? upcoming : notEnded;
-  return pickLatestPosterRow(pool);
+  return sortRowsByNearestEventDate(pool, todayStr)[0] || null;
 };
 
 const toSlide = (
@@ -83,7 +107,7 @@ const toSlide = (
   venue: String(row.venue || row.location_name || row.locationName || '').trim(),
   start_time: String(row.start_time || row.time || '').slice(0, 5) || undefined,
   date_label: formatHeroDateLabel(
-    normDate(row.start_date || row.date),
+    resolvePosterEventDate(row, todayStr),
     todayStr,
     false,
   ),
@@ -92,7 +116,7 @@ const toSlide = (
   raw: row,
 });
 
-/** 히어로 로테이션: 오늘소셜(2) → 부트캠프(1) → 페스티벌(1) → 파티(1) */
+/** 히어로 로테이션: 소셜·부트캠프·페스티벌·파티 후보를 행사일 가까운 순으로 정렬 */
 export function buildHomeDarkHeroSlides(
   socialParties: PosterRow[],
   bootcampRows: PosterRow[],
@@ -101,29 +125,31 @@ export function buildHomeDarkHeroSlides(
 ): HomeDarkHeroSlide[] {
   const slides: HomeDarkHeroSlide[] = [];
 
-  (socialParties || [])
-    .filter((party) => String(party.poster_url || '').trim() && party.id != null)
+  sortRowsByNearestEventDate(
+    (socialParties || []).filter((party) => String(party.poster_url || '').trim() && party.id != null),
+    todayStr,
+  )
     .slice(0, 2)
     .forEach((party) => {
       slides.push(toSlide(party, 'social', `social-${party.id}`, '오늘 소셜', 'Tonight\'s Social', todayStr));
     });
 
-  const bootcamp = pickFeaturedEventRow(bootcampRows, todayStr);
+  const bootcamp = pickNearestEventRow(bootcampRows, todayStr);
   if (bootcamp?.id != null) {
     slides.push(toSlide(bootcamp, 'bootcamp', `bootcamp-${bootcamp.id}`, '부트캠프', 'Bootcamp', todayStr));
   }
 
-  const festival = pickFeaturedEventRow(festivalRows, todayStr, ['festival', 'mt']);
+  const festival = pickNearestEventRow(festivalRows, todayStr, ['festival', 'mt']);
   if (festival?.id != null) {
     slides.push(toSlide(festival, 'festival', `festival-${festival.id}`, '페스티벌', 'Festival', todayStr));
   }
 
-  const partyEvent = pickFeaturedEventRow(festivalRows, todayStr, 'party');
+  const partyEvent = pickNearestEventRow(festivalRows, todayStr, 'party');
   if (partyEvent?.id != null) {
     slides.push(toSlide(partyEvent, 'party', `event-party-${partyEvent.id}`, '파티', 'Party', todayStr));
   }
 
-  return slides;
+  return sortSlidesByNearestEventDate(slides, todayStr);
 }
 
 export const HOME_DARK_HERO_ROTATE_MS = 4500;
