@@ -11,7 +11,6 @@ import { findBarByName } from './lib/BarLib'
 import { normalizeVenueAddressKey } from './lib/venueDedupe'
 import { canonicalizeVenueRow, getVenueDedupeKey } from './lib/venueCanonical'
 import { PARTY_TITLE_MAX_LENGTH } from './lib/partyTitleDisplay'
-import { validateSocialPartyRegistration } from './lib/postKind'
 import { toDateOrNull } from './lib/dbSanitize'
 import { KOREAN_WEEKDAYS } from './lib/partyRecurrence'
 
@@ -508,16 +507,6 @@ const RegisterForm = ({ onBack, onSuccess, isEdit = false, isAdminMode = false, 
       return
     }
 
-    const kindCheck = validateSocialPartyRegistration({
-      title: `[${formData.region}] ${formData.title}`,
-      description: formData.description,
-      is_weekly_recurring: formData.is_weekly_recurring,
-    })
-    if (!kindCheck.ok) {
-      alert(kindCheck.message)
-      return
-    }
-
     setLoading(true)
     try {
       const resolveContributorId = () => {
@@ -617,16 +606,6 @@ const RegisterForm = ({ onBack, onSuccess, isEdit = false, isAdminMode = false, 
       }
 
       const finalTitle = `[${formData.region}] ${finalProcessedTitle}`;
-      const finalKindCheck = validateSocialPartyRegistration({
-        title: finalTitle,
-        description: formData.description,
-        is_weekly_recurring: formData.is_weekly_recurring,
-      });
-      if (!finalKindCheck.ok) {
-        alert(finalKindCheck.message);
-        setLoading(false);
-        return;
-      }
 
       const partyData = {
         title: finalTitle,
