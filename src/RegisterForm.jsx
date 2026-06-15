@@ -630,7 +630,6 @@ const RegisterForm = ({ onBack, onSuccess, isEdit = false, isAdminMode = false, 
 
       const partyData = {
         title: finalTitle,
-        region: formData.region || parseTitleRegion(finalTitle) || null,
         location_id: finalLocationId,
         address: formData.address,
         fee: composePartyFee(formData.feeParts, formData.feeCustom) || formData.fee || '문의',
