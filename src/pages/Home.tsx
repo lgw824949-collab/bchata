@@ -3700,6 +3700,7 @@ const HomePage = ({
           color: #191F28 !important;
           font-size: 14px !important;
           font-weight: 500 !important;
+          font-family: var(--font-brand-tagline) !important;
         }
         .home-gate-shell .home-hero-brand .home-type-display {
           color: #E53935 !important;

@@ -1,7 +1,5 @@
 /* 메인 — 네이버형 리스트 (Hick/Jakob: 세로 스캔 · 익숙한 패턴) */
 
-@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;0,600;1,400;1,500&display=swap');
-
 .home-list-shell {
   background: #f5f6f8 !important;
   color: #191f28;
@@ -105,7 +103,7 @@
   line-height: 1.45;
   letter-spacing: 0;
   color: #6b7684;
-  font-family: var(--font-sans);
+  font-family: var(--font-brand-tagline) !important;
 }
 
 .home-list-gate .home-dark-header__actions {
@@ -153,7 +151,6 @@
   --hd-radius-hero: 18px;
   --hd-radius-pill: 999px;
   --hd-hero-rotate: 4.5s;
-  --hd-font-display: 'Playfair Display', Georgia, 'Times New Roman', serif;
   width: 100%;
   min-width: 0;
   margin-bottom: 4px;
@@ -750,9 +747,10 @@
 
 .home-list-gate__hero .home-dark-today-pick__subtitle-en {
   margin: 0;
-  font-family: var(--hd-font-display) !important;
+  font-family: var(--font-sans) !important;
   font-size: 13px;
-  font-style: italic;
+  font-style: normal;
+  font-weight: 600;
   color: var(--hd-gold);
 }
 
