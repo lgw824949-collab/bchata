@@ -1,28 +1,99 @@
 import {
   Building2,
+  CalendarDays,
+  Camera,
+  CloudSun,
+  Flag,
   Globe,
+  Heart,
+  MessageSquare,
   Music2,
+  Navigation,
+  Sparkles,
+  Star,
+  Tent,
   UserPlus,
+  Utensils,
 } from 'lucide-react';
 import type { HomeDarkMoreAction } from '../components/home/types';
 
 type BuildHomeDarkMoreActionsInput = {
+  hasLivePickUploadToday: boolean;
+  onOpenSocial: () => void;
+  onOpenBootcamp: () => void;
+  onOpenFestival: () => void;
+  onOpenParty: () => void;
   onRegisterParty: () => void;
   onRegisterBarClass: () => void;
   onRegisterInstructor: () => void;
+  onOpenWishlist: () => void;
+  onOpenCalendar: () => void;
+  onOpenConcierge: () => void;
+  onOpenLivePick: () => void;
+  onOpenKakaoChat: () => void;
+  onOpenRestaurant: () => void;
+  onOpenWeather: () => void;
+  onOpenRoute: () => void;
+  onOpenSaju: () => void;
   onToggleLanguage: () => void;
 };
 
-/** 홈 더보기 — 등록·강사·언어만 (나머지는 하단 nav·헤더·일정) */
+/** 홈 햄버거 더보기 — 탐색·등록·유틸 */
 export function buildHomeDarkMoreActions(input: BuildHomeDarkMoreActionsInput): HomeDarkMoreAction[] {
   const {
+    hasLivePickUploadToday,
+    onOpenSocial,
+    onOpenBootcamp,
+    onOpenFestival,
+    onOpenParty,
     onRegisterParty,
     onRegisterBarClass,
     onRegisterInstructor,
+    onOpenWishlist,
+    onOpenCalendar,
+    onOpenConcierge,
+    onOpenLivePick,
+    onOpenKakaoChat,
+    onOpenRestaurant,
+    onOpenWeather,
+    onOpenRoute,
+    onOpenSaju,
     onToggleLanguage,
   } = input;
 
   return [
+    {
+      id: 'explore-social',
+      labelKo: '소셜',
+      labelEn: 'Social',
+      icon: Music2,
+      tier: 'primary',
+      onClick: onOpenSocial,
+    },
+    {
+      id: 'explore-bootcamp',
+      labelKo: '부트캠프',
+      labelEn: 'Bootcamp',
+      icon: Tent,
+      tier: 'primary',
+      onClick: onOpenBootcamp,
+    },
+    {
+      id: 'explore-festival',
+      labelKo: '페스티벌',
+      labelEn: 'Festival',
+      icon: Flag,
+      tier: 'primary',
+      onClick: onOpenFestival,
+    },
+    {
+      id: 'explore-party',
+      labelKo: '파티',
+      labelEn: 'Party',
+      icon: Sparkles,
+      tier: 'primary',
+      onClick: onOpenParty,
+    },
     {
       id: 'party-register',
       labelKo: '소셜 등록',
@@ -46,6 +117,79 @@ export function buildHomeDarkMoreActions(input: BuildHomeDarkMoreActionsInput): 
       icon: UserPlus,
       tier: 'primary',
       onClick: onRegisterInstructor,
+    },
+    {
+      id: 'wishlist',
+      labelKo: '찜하기',
+      labelEn: 'Saved',
+      icon: Heart,
+      tier: 'primary',
+      onClick: onOpenWishlist,
+    },
+    {
+      id: 'calendar',
+      labelKo: '플랜',
+      labelEn: 'Plan',
+      icon: CalendarDays,
+      tier: 'primary',
+      onClick: onOpenCalendar,
+    },
+    {
+      id: 'concierge',
+      labelKo: '추천',
+      labelEn: 'Picks',
+      icon: Sparkles,
+      tier: 'primary',
+      onClick: onOpenConcierge,
+    },
+    {
+      id: 'livepick',
+      labelKo: '라이브픽',
+      labelEn: 'Live pick',
+      icon: Camera,
+      tier: 'secondary',
+      badge: hasLivePickUploadToday ? 'ON' : undefined,
+      onClick: onOpenLivePick,
+    },
+    {
+      id: 'chat',
+      labelKo: '채팅 문의',
+      labelEn: 'Chat',
+      icon: MessageSquare,
+      tier: 'secondary',
+      onClick: onOpenKakaoChat,
+    },
+    {
+      id: 'restaurant',
+      labelKo: '맛집',
+      labelEn: 'Food',
+      icon: Utensils,
+      tier: 'secondary',
+      onClick: onOpenRestaurant,
+    },
+    {
+      id: 'weather',
+      labelKo: '오늘 날씨',
+      labelEn: 'Weather',
+      icon: CloudSun,
+      tier: 'secondary',
+      onClick: onOpenWeather,
+    },
+    {
+      id: 'route',
+      labelKo: '길찾기',
+      labelEn: 'Route',
+      icon: Navigation,
+      tier: 'secondary',
+      onClick: onOpenRoute,
+    },
+    {
+      id: 'saju',
+      labelKo: '운명의 좌표',
+      labelEn: 'Fortune',
+      icon: Star,
+      tier: 'secondary',
+      onClick: onOpenSaju,
     },
     {
       id: 'language',

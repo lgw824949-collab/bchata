@@ -142,16 +142,8 @@ export default function HomeDarkMoreSheet({
               </motion.button>
             </header>
 
-            <div className="home-dark-more-sheet__intro">
-              <h2 className="home-dark-more-sheet__title">
-                <span className="home-dark-more-sheet__title-star" aria-hidden>🌟</span>
-                {isEn ? 'More menu' : '더보기 메뉴'}
-              </h2>
-              <p className="home-dark-more-sheet__subtitle">BAMPPA LOUNGE</p>
-            </div>
-
             <nav className="home-dark-more-sheet__nav" aria-label={isEn ? 'Shortcuts' : '바로가기'}>
-              {renderSection(isEn ? 'REGISTER' : '등록 · 바로가기', primary)}
+              {renderSection(isEn ? 'EXPLORE · REGISTER' : '탐색 · 등록', primary)}
               {primary.length > 0 && secondary.length > 0 ? (
                 <div className="home-dark-more-sheet__divider" aria-hidden />
               ) : null}
