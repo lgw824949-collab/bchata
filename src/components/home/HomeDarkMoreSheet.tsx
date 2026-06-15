@@ -143,7 +143,7 @@ export default function HomeDarkMoreSheet({
             </header>
 
             <nav className="home-dark-more-sheet__nav" aria-label={isEn ? 'Shortcuts' : '바로가기'}>
-              {renderSection(isEn ? 'EXPLORE · REGISTER' : '탐색 · 등록', primary)}
+              {renderSection(isEn ? 'REGISTER' : '등록', primary)}
               {primary.length > 0 && secondary.length > 0 ? (
                 <div className="home-dark-more-sheet__divider" aria-hidden />
               ) : null}

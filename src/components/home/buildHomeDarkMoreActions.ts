@@ -1,17 +1,13 @@
 import {
   Building2,
-  CalendarDays,
   Camera,
   CloudSun,
-  Flag,
   Globe,
-  Heart,
   MessageSquare,
   Music2,
   Navigation,
   Sparkles,
   Star,
-  Tent,
   UserPlus,
   Utensils,
 } from 'lucide-react';
@@ -19,15 +15,9 @@ import type { HomeDarkMoreAction } from '../components/home/types';
 
 type BuildHomeDarkMoreActionsInput = {
   hasLivePickUploadToday: boolean;
-  onOpenSocial: () => void;
-  onOpenBootcamp: () => void;
-  onOpenFestival: () => void;
-  onOpenParty: () => void;
   onRegisterParty: () => void;
   onRegisterBarClass: () => void;
   onRegisterInstructor: () => void;
-  onOpenWishlist: () => void;
-  onOpenCalendar: () => void;
   onOpenConcierge: () => void;
   onOpenLivePick: () => void;
   onOpenKakaoChat: () => void;
@@ -38,19 +28,13 @@ type BuildHomeDarkMoreActionsInput = {
   onToggleLanguage: () => void;
 };
 
-/** 홈 햄버거 더보기 — 탐색·등록·유틸 */
+/** 홈 햄버거 더보기 — 메인에 없는 등록·유틸만 (Explore·찜·달력은 메인 UI 사용) */
 export function buildHomeDarkMoreActions(input: BuildHomeDarkMoreActionsInput): HomeDarkMoreAction[] {
   const {
     hasLivePickUploadToday,
-    onOpenSocial,
-    onOpenBootcamp,
-    onOpenFestival,
-    onOpenParty,
     onRegisterParty,
     onRegisterBarClass,
     onRegisterInstructor,
-    onOpenWishlist,
-    onOpenCalendar,
     onOpenConcierge,
     onOpenLivePick,
     onOpenKakaoChat,
@@ -62,38 +46,6 @@ export function buildHomeDarkMoreActions(input: BuildHomeDarkMoreActionsInput): 
   } = input;
 
   return [
-    {
-      id: 'explore-social',
-      labelKo: '소셜',
-      labelEn: 'Social',
-      icon: Music2,
-      tier: 'primary',
-      onClick: onOpenSocial,
-    },
-    {
-      id: 'explore-bootcamp',
-      labelKo: '부트캠프',
-      labelEn: 'Bootcamp',
-      icon: Tent,
-      tier: 'primary',
-      onClick: onOpenBootcamp,
-    },
-    {
-      id: 'explore-festival',
-      labelKo: '페스티벌',
-      labelEn: 'Festival',
-      icon: Flag,
-      tier: 'primary',
-      onClick: onOpenFestival,
-    },
-    {
-      id: 'explore-party',
-      labelKo: '파티',
-      labelEn: 'Party',
-      icon: Sparkles,
-      tier: 'primary',
-      onClick: onOpenParty,
-    },
     {
       id: 'party-register',
       labelKo: '소셜 등록',
@@ -117,22 +69,6 @@ export function buildHomeDarkMoreActions(input: BuildHomeDarkMoreActionsInput): 
       icon: UserPlus,
       tier: 'primary',
       onClick: onRegisterInstructor,
-    },
-    {
-      id: 'wishlist',
-      labelKo: '찜하기',
-      labelEn: 'Saved',
-      icon: Heart,
-      tier: 'primary',
-      onClick: onOpenWishlist,
-    },
-    {
-      id: 'calendar',
-      labelKo: '플랜',
-      labelEn: 'Plan',
-      icon: CalendarDays,
-      tier: 'primary',
-      onClick: onOpenCalendar,
     },
     {
       id: 'concierge',
