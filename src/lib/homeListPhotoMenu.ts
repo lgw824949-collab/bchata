@@ -158,12 +158,12 @@ export function buildHomeListPhotoMenuItems(input: BuildHomeListPhotoMenuItemsIn
     HOME_LIST_PHOTO_MENU_FALLBACKS.party,
   );
 
-  const activeHint = isEn ? 'active' : '진행·예정';
+  const activeHint = 'upcoming';
 
   return [
     {
       id: 'social',
-      label: isEn ? 'Social' : '소셜',
+      label: 'Social',
       photoUrl: socialPhotoUrl,
       count: socialCount,
       countHint: activeHint,
@@ -171,7 +171,7 @@ export function buildHomeListPhotoMenuItems(input: BuildHomeListPhotoMenuItemsIn
     },
     {
       id: 'bootcamp',
-      label: isEn ? 'Bootcamp' : '부트캠프',
+      label: 'Bootcamp',
       photoUrl: bootcampPhotoUrl,
       count: bootcampCount,
       countHint: activeHint,
@@ -179,7 +179,7 @@ export function buildHomeListPhotoMenuItems(input: BuildHomeListPhotoMenuItemsIn
     },
     {
       id: 'festival',
-      label: isEn ? 'Festival' : '페스티벌',
+      label: 'Festival',
       photoUrl: festivalPhotoUrl,
       count: festivalCount,
       countHint: activeHint,
@@ -187,7 +187,7 @@ export function buildHomeListPhotoMenuItems(input: BuildHomeListPhotoMenuItemsIn
     },
     {
       id: 'party',
-      label: isEn ? 'Party' : '파티',
+      label: 'Party',
       photoUrl: partyPhotoUrl,
       count: partyEventCount,
       countHint: activeHint,

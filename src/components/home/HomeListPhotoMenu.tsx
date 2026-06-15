@@ -7,17 +7,17 @@ type HomeListPhotoMenuProps = {
   items: HomeListPhotoMenuItem[];
 };
 
-export default function HomeListPhotoMenu({ isEn, items }: HomeListPhotoMenuProps) {
+export default function HomeListPhotoMenu({ items }: HomeListPhotoMenuProps) {
   if (items.length === 0) return null;
 
   return (
     <section
       className="home-list-gate__panel home-list-gate__quick-panel"
-      aria-label={isEn ? 'Explore categories' : '카테고리 탐색'}
+      aria-label="Explore categories"
     >
       <div className="home-list-gate__quick-panel-head">
         <h2 className="home-list-gate__section-title home-list-gate__quick-panel-title">
-          {isEn ? 'Explore' : '탐색'}
+          Explore
         </h2>
       </div>
       <div className="home-list-gate__quick-menu-grid" role="list">
@@ -30,7 +30,7 @@ export default function HomeListPhotoMenu({ isEn, items }: HomeListPhotoMenuProp
               type="button"
               role="listitem"
               className={`home-list-gate__quick-menu-btn home-list-gate__quick-menu-btn--${item.id}`}
-              aria-label={homeListPhotoMenuAriaLabel(item, isEn)}
+              aria-label={homeListPhotoMenuAriaLabel(item, true)}
               onClick={item.onClick}
             >
               <span className="home-list-gate__quick-menu-thumb-wrap" aria-hidden>
