@@ -2112,8 +2112,8 @@ const HomePage = ({
   }, [openAnalysis]);
 
   const onOpenSajuOverlay = useCallback(() => {
-    openAnalysis(true);
-  }, [openAnalysis]);
+    setShowSaju(true);
+  }, [setShowSaju]);
 
   const onToggleAppLanguage = useCallback(() => {
     const next = i18n.language.startsWith('ko') ? 'en' : 'ko';
@@ -4037,7 +4037,7 @@ const HomePage = ({
             { icon: <Users size={32} strokeWidth={1.2} color="#FF1744" />, label: '강사찾기', particles: '🕺', action: () => { localStorage.setItem('instructor_target_genre', '전체'); navigate('/instructors'); setTimeout(() => { window.dispatchEvent(new CustomEvent('apply-instructor-filter')); }, 300); } },
             { textIcon: '1:1', label: '채팅문의', particles: '💬', action: () => window.open('https://open.kakao.com/o/gP43rNri', '_blank') },
             { icon: <MessageSquare size={32} strokeWidth={1.2} color="#FF1744" />, label: '컨시어지', particles: '✨', action: () => window.dispatchEvent(new CustomEvent('open-chatbot')) },
-            { icon: <Star size={32} strokeWidth={1.2} color="#FF1744" />, label: '운명의좌표', particles: '🌟', action: () => openAnalysis(true) },
+            { icon: <Star size={32} strokeWidth={1.2} color="#FF1744" />, label: '운명의좌표', particles: '🌟', action: () => setShowSaju(true) },
             { icon: <Heart size={32} strokeWidth={1.2} color="#FF1744" />, label: '찜하기', particles: '❤️', action: () => pushOverlay('wishlist') },
             { icon: <Utensils size={32} strokeWidth={1.2} color="#FF1744" />, label: '맛집뒷풀이', particles: '🍽', action: () => navigate('/restaurant') },
             { icon: <Camera size={32} strokeWidth={1.2} color="#FF1744" />, label: '라이브픽', particles: '📸', action: () => navigate('/livepick') },
@@ -4681,7 +4681,7 @@ const HomePage = ({
                       { icon: <CloudSun size={32} color="#1976D2" />, label: '오늘날씨', action: () => pushOverlay('weather') },
                       { icon: <Heart size={32} color="#7B1FA2" />, label: '찜하기', action: () => pushOverlay('wishlist') },
                       { icon: <Navigation size={32} color="#303F9F" />, label: '지능형경로', /* badge: 'LIVE', */ action: () => openAnalysis(false) },
-                      { icon: <Star size={32} color="#F9A825" />, label: '운명의좌표', action: () => openAnalysis(true) },
+                      { icon: <Star size={32} color="#F9A825" />, label: '운명의좌표', action: () => setShowSaju(true) },
                       { icon: <MapPin size={32} color="#0097A7" />, label: '주변주차', action: () => navigate('/parking') },
                     ].map((item, idx) => (
                       <div key={idx} style={{ position: 'relative' }}>
