@@ -21,7 +21,7 @@ const PostLesson = ({ onBack, user, initialVenue = null }) => {
   // Form State
   const [formData, setFormData] = useState({
     title: '',
-    category: '베이직',
+    categories: [] as string[],
     dance_style: '바차타',
     custom_category: '',
     days: [],
@@ -46,6 +46,24 @@ const PostLesson = ({ onBack, user, initialVenue = null }) => {
         ? prev.days.filter(d => d !== day) 
         : [...prev.days, day]
     }))
+  }
+
+  const toggleCategory = (cat) => {
+    setFormData((prev) => ({
+      ...prev,
+      categories: prev.categories.includes(cat)
+        ? prev.categories.filter((c) => c !== cat)
+        : [...prev.categories, cat],
+    }))
+  }
+
+  const buildCategoryLevelLabel = (categories, customCategory) => {
+    const parts = categories.map((cat) => (
+      cat === '기타' && String(customCategory || '').trim()
+        ? String(customCategory).trim()
+        : cat
+    )).filter(Boolean)
+    return parts.join(' · ')
   }
 
   const handleOcr = async (imageFile) => {
@@ -95,7 +113,7 @@ const PostLesson = ({ onBack, user, initialVenue = null }) => {
       const { error } = await supabase.from('classes_info').insert([{
         title: formData.title,
         genre: formData.dance_style,
-        level: formData.category === '기타' ? formData.custom_category : formData.category,
+        level: buildCategoryLevelLabel(formData.categories, formData.custom_category),
         day_of_week: formData.days.join(', '),
         start_time: formData.startTime,
         end_time: formData.endTime,
@@ -314,25 +332,28 @@ const PostLesson = ({ onBack, user, initialVenue = null }) => {
 
                 {/* 강습 유형 선택 */}
                 <div style={{ marginBottom: '24px' }}>
-                  <label style={{ display: 'block', fontSize: '14px', fontWeight: 700, color: '#4B5563', marginBottom: '12px' }}>강습 유형</label>
+                  <label style={{ display: 'block', fontSize: '14px', fontWeight: 700, color: '#4B5563', marginBottom: '12px' }}>강습 유형 (중복 선택)</label>
                   <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '8px' }}>
-                    {CLASS_CATEGORIES.map(cat => (
+                    {CLASS_CATEGORIES.map(cat => {
+                      const selected = formData.categories.includes(cat)
+                      return (
                       <button
                         key={cat}
-                        onClick={() => setFormData({...formData, category: cat})}
+                        type="button"
+                        onClick={() => toggleCategory(cat)}
                         style={{
                           height: '42px', borderRadius: '10px', border: '1px solid', fontSize: '13px',
-                          borderColor: formData.category === cat ? '#FF8C00' : '#E5E7EB',
-                          background: formData.category === cat ? '#FFF7ED' : 'white',
-                          color: formData.category === cat ? '#FF8C00' : '#6B7280',
-                          fontWeight: formData.category === cat ? 700 : 400
+                          borderColor: selected ? '#FF8C00' : '#E5E7EB',
+                          background: selected ? '#FFF7ED' : 'white',
+                          color: selected ? '#FF8C00' : '#6B7280',
+                          fontWeight: selected ? 700 : 400
                         }}
                       >
                         {cat}
                       </button>
-                    ))}
+                    )})}
                   </div>
-                  {formData.category === '기타' && (
+                  {formData.categories.includes('기타') && (
                     <motion.div initial={{ opacity: 0, y: -5 }} animate={{ opacity: 1, y: 0 }} style={{ marginTop: '10px' }}>
                       <input 
                         type="text" 
@@ -526,6 +547,10 @@ const PostLesson = ({ onBack, user, initialVenue = null }) => {
             <button
               onClick={() => {
                 if (step === 1 && !formData.title) return alert('명칭을 입력해주세요.')
+                if (step === 2 && formData.categories.length === 0) return alert('강습 유형을 하나 이상 선택해주세요.')
+                if (step === 2 && formData.categories.includes('기타') && !String(formData.custom_category || '').trim()) {
+                  return alert('기타 유형을 입력해주세요.')
+                }
                 setStep(step + 1)
               }}
               style={{
