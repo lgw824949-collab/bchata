@@ -192,19 +192,6 @@ const PostLesson = ({ onBack, user, initialVenue = null }) => {
             >
               업체 전용
             </span>
-            <span
-              style={{
-                padding: '4px 8px',
-                borderRadius: 6,
-                fontSize: 10,
-                fontWeight: 700,
-                background: '#F8FAFC',
-                color: '#64748B',
-                border: '1px solid #E2E8F0',
-              }}
-            >
-              VIP 별도
-            </span>
           </div>
         ) : null}
         <AnimatePresence mode="wait">
