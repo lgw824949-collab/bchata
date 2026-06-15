@@ -1,4 +1,5 @@
 import { DEFAULT_CARD_IMAGE } from '../constants/imageAssets';
+import { compareNearestEventDate } from '../components/home/buildHomeDarkHeroSlides';
 
 /** 다크 홈 퀵메뉴 전용 이모지 (리스트 탐색은 등록 포스터 사용) */
 export const HOME_EXPLORE_MENU_EMOJIS = {
@@ -35,6 +36,25 @@ export const filterActiveGateEventPosters = (
   if (end && end < todayStr) return false;
   return true;
 });
+
+/** 행사일 가까운 순 — 탐색 소셜 썸네일 */
+export const pickNearestGateMenuPhotoUrl = (
+  rows: Record<string, unknown>[] | null | undefined,
+  getUrl: (row: Record<string, unknown>) => unknown,
+  getEventDate: (row: Record<string, unknown>) => string,
+  todayStr: string,
+  fallback: string,
+): string => {
+  const sorted = [...(rows || [])]
+    .filter((row) => String(getUrl(row) || '').trim())
+    .sort((a, b) => compareNearestEventDate(
+      getEventDate(a),
+      getEventDate(b),
+      todayStr,
+    ));
+  const url = sorted[0] ? String(getUrl(sorted[0])).trim() : '';
+  return url || fallback;
+};
 
 /** 최초 등록 포스터 1장 고정 */
 export const pickFirstGateMenuPhotoUrl = (
@@ -106,10 +126,14 @@ export function buildHomeListPhotoMenuItems(input: BuildHomeListPhotoMenuItemsIn
     onOpenPartyEvents,
   } = input;
 
-  const socialPhotoUrl = pickFirstGateMenuPhotoUrl(
+  const socialPhotoUrl = pickNearestGateMenuPhotoUrl(
     socialParties,
     (row) => row.poster_url,
-    (row) => row.created_at || row.date || row.start_date,
+    (row) => {
+      if ((row as { is_weekly_recurring?: boolean }).is_weekly_recurring) return calendarTodayStr;
+      return normDate(row.date || row.start_date) || calendarTodayStr;
+    },
+    calendarTodayStr,
     HOME_LIST_PHOTO_MENU_FALLBACKS.social,
   );
 
@@ -142,7 +166,7 @@ export function buildHomeListPhotoMenuItems(input: BuildHomeListPhotoMenuItemsIn
       label: isEn ? 'Social' : '소셜',
       photoUrl: socialPhotoUrl,
       count: socialCount,
-      countHint: isEn ? 'today' : '오늘',
+      countHint: activeHint,
       onClick: onOpenSocial,
     },
     {
@@ -178,7 +202,7 @@ export function homeListPhotoMenuAriaLabel(
 ): string {
   if (item.count <= 0) return item.label;
   if (item.id === 'social') {
-    return isEn ? `${item.label} · ${item.count} tonight` : `${item.label} · 오늘 소셜 ${item.count}건`;
+    return isEn ? `${item.label} · ${item.count} upcoming social` : `${item.label} · 진행·예정 소셜 ${item.count}건`;
   }
   if (item.id === 'bootcamp') {
     return isEn ? `${item.label} · ${item.count} active bootcamps` : `${item.label} · 진행·예정 부트캠프 ${item.count}건`;

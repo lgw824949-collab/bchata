@@ -1,6 +1,8 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { filterSocialPartyRows } from '../lib/postKind';
 import { resolvePartyVenueName } from '../lib/partiesQuery';
+import { isApprovedParty } from '../lib/dateNorm';
+import { partyIsUpcomingOrRecurring } from '../lib/partyRecurrence';
 import { normalizeVenueNameKey } from '../lib/venueDedupe';
 import { resolveBarVenuePhoto } from '../lib/barVenuePhotos';
 import {
@@ -84,6 +86,21 @@ export function useHomeListGateProps(input: UseHomeDarkGatePropsInput) {
     ),
     [todayPosterPartiesForCount],
   );
+
+  /** 탐색 소셜 — 오늘 + 예정(매주 반복 포함), 히어로와 별도 */
+  const exploreSocialParties = useMemo(
+    () => filterSocialPartyRows(
+      (parties || []).filter(
+        (party) =>
+          isApprovedParty(party)
+          && String(party.poster_url || '').trim()
+          && partyIsUpcomingOrRecurring(party, calendarTodayStr),
+      ),
+    ),
+    [parties, calendarTodayStr],
+  );
+
+  const exploreSocialCount = exploreSocialParties.length;
 
   const homeHeroSlides = useMemo(
     () => buildHomeDarkHeroSlides(
@@ -332,12 +349,12 @@ export function useHomeListGateProps(input: UseHomeDarkGatePropsInput) {
     openPartyWithAfterParty(slide.raw as HomeDarkParty);
   }, [openBootcampPage, openFestivalPage, openFestivalPartyPage, openPartyWithAfterParty]);
 
-  const socialMenuCount = homeHeroSocialParties.length;
+  const socialMenuCount = exploreSocialCount;
 
   const photoMenuItems = useMemo(
     () => buildHomeListPhotoMenuItems({
       isEn,
-      socialParties: homeHeroSocialParties,
+      socialParties: exploreSocialParties,
       bootcamps,
       festivals,
       calendarTodayStr,
@@ -352,7 +369,7 @@ export function useHomeListGateProps(input: UseHomeDarkGatePropsInput) {
     }),
     [
       isEn,
-      homeHeroSocialParties,
+      exploreSocialParties,
       bootcamps,
       festivals,
       calendarTodayStr,
