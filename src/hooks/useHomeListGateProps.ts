@@ -78,9 +78,16 @@ export function useHomeListGateProps(input: UseHomeDarkGatePropsInput) {
   const [homeRegionPill, setHomeRegionPill] = useState('national');
   const [homePickIndex, setHomePickIndex] = useState(0);
 
+  const todaySocialPosterParties = useMemo(
+    () => filterSocialPartyRows(
+      (todayPosterPartiesForCount || []).filter((party) => String(party.poster_url || '').trim()),
+    ),
+    [todayPosterPartiesForCount],
+  );
+
   const homeHeroSocialSource = useMemo(
-    () => (todayPosterPartiesForCount.length > 0 ? todayPosterPartiesForCount : parties),
-    [todayPosterPartiesForCount, parties],
+    () => (todaySocialPosterParties.length > 0 ? todaySocialPosterParties : parties),
+    [todaySocialPosterParties, parties],
   );
 
   const homeHeroSocialParties = useMemo(
