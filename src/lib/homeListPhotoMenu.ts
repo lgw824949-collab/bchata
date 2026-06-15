@@ -83,13 +83,10 @@ type BuildHomeListPhotoMenuItemsInput = {
   bootcampCount: number;
   festivalCount: number;
   partyEventCount: number;
-  instructorCount: number;
-  instructorPhotoUrl?: string | null;
   onOpenSocial: () => void;
   onOpenBootcamp: () => void;
   onOpenFestival: () => void;
   onOpenPartyEvents: () => void;
-  onOpenInstructors: () => void;
 };
 
 export function buildHomeListPhotoMenuItems(input: BuildHomeListPhotoMenuItemsInput): HomeListPhotoMenuItem[] {
@@ -103,13 +100,10 @@ export function buildHomeListPhotoMenuItems(input: BuildHomeListPhotoMenuItemsIn
     bootcampCount,
     festivalCount,
     partyEventCount,
-    instructorCount,
-    instructorPhotoUrl,
     onOpenSocial,
     onOpenBootcamp,
     onOpenFestival,
     onOpenPartyEvents,
-    onOpenInstructors,
   } = input;
 
   const socialPhotoUrl = pickFirstGateMenuPhotoUrl(
@@ -140,7 +134,6 @@ export function buildHomeListPhotoMenuItems(input: BuildHomeListPhotoMenuItemsIn
     HOME_LIST_PHOTO_MENU_FALLBACKS.party,
   );
 
-  const instructorPhoto = String(instructorPhotoUrl || '').trim() || HOME_LIST_PHOTO_MENU_FALLBACKS.instructors;
   const activeHint = isEn ? 'active' : '진행·예정';
 
   return [
@@ -175,14 +168,6 @@ export function buildHomeListPhotoMenuItems(input: BuildHomeListPhotoMenuItemsIn
       count: partyEventCount,
       countHint: activeHint,
       onClick: onOpenPartyEvents,
-    },
-    {
-      id: 'instructors',
-      label: isEn ? 'Instructors' : '강사',
-      photoUrl: instructorPhoto,
-      count: instructorCount,
-      countHint: isEn ? 'instructors' : '활동 강사',
-      onClick: onOpenInstructors,
     },
   ];
 }

@@ -47,7 +47,6 @@ export function useHomeListGateProps(input: UseHomeDarkGatePropsInput) {
     festivals,
     calendarTodayStr,
     regionCounts,
-    hotInstructors,
     locations,
     socialBarRegionTabs,
     selectedRegionTab,
@@ -69,17 +68,9 @@ export function useHomeListGateProps(input: UseHomeDarkGatePropsInput) {
     filterTodayPartiesByPill,
     onOpenWishlist,
     onOpenCalendar,
-    hasLivePickUploadToday,
     onRegisterParty,
     onRegisterBarClass,
     onRegisterInstructor,
-    onOpenConcierge,
-    onOpenLivePick,
-    onOpenKakaoChat,
-    onOpenRestaurant,
-    onOpenWeather,
-    onOpenRoute,
-    onOpenSaju,
     onToggleLanguage,
     barStatsMap = {},
   } = input;
@@ -283,10 +274,6 @@ export function useHomeListGateProps(input: UseHomeDarkGatePropsInput) {
     openFestivalPage();
   }, [openBootcampPage, openFestivalPage, openFestivalPartyPage, openPartyWithAfterParty]);
 
-  const openInstructors = useCallback(() => {
-    historyNavigate('/instructors', { homeTab: null });
-  }, []);
-
   const openBarMap = useCallback(() => {
     pushOverlay('incheon');
   }, []);
@@ -347,11 +334,6 @@ export function useHomeListGateProps(input: UseHomeDarkGatePropsInput) {
 
   const socialMenuCount = homeHeroSocialParties.length;
 
-  const instructorMenuPhotoUrl = useMemo(() => {
-    const withPhoto = (hotInstructors || []).find((inst) => String(inst.photo_url || '').trim());
-    return withPhoto?.photo_url || null;
-  }, [hotInstructors]);
-
   const photoMenuItems = useMemo(
     () => buildHomeListPhotoMenuItems({
       isEn,
@@ -363,13 +345,10 @@ export function useHomeListGateProps(input: UseHomeDarkGatePropsInput) {
       bootcampCount,
       festivalCount,
       partyEventCount,
-      instructorCount: hotInstructors.length,
-      instructorPhotoUrl: instructorMenuPhotoUrl,
       onOpenSocial: openSocialTab,
       onOpenBootcamp: openBootcampPage,
       onOpenFestival: openFestivalPage,
       onOpenPartyEvents: openFestivalPartyPage,
-      onOpenInstructors: openInstructors,
     }),
     [
       isEn,
@@ -381,47 +360,24 @@ export function useHomeListGateProps(input: UseHomeDarkGatePropsInput) {
       bootcampCount,
       festivalCount,
       partyEventCount,
-      hotInstructors.length,
-      instructorMenuPhotoUrl,
       openSocialTab,
       openBootcampPage,
       openFestivalPage,
       openFestivalPartyPage,
-      openInstructors,
     ],
   );
 
   const moreMenuActions = useMemo(
     () => buildHomeListMoreActions({
-      hasLivePickUploadToday,
       onRegisterParty,
       onRegisterBarClass,
       onRegisterInstructor,
-      onOpenWishlist,
-      onOpenCalendar,
-      onOpenConcierge,
-      onOpenLivePick,
-      onOpenKakaoChat,
-      onOpenRestaurant,
-      onOpenWeather,
-      onOpenRoute,
-      onOpenSaju,
       onToggleLanguage,
     }),
     [
-      hasLivePickUploadToday,
       onRegisterParty,
       onRegisterBarClass,
       onRegisterInstructor,
-      onOpenWishlist,
-      onOpenCalendar,
-      onOpenConcierge,
-      onOpenLivePick,
-      onOpenKakaoChat,
-      onOpenRestaurant,
-      onOpenWeather,
-      onOpenRoute,
-      onOpenSaju,
       onToggleLanguage,
     ],
   );
