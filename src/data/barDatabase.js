@@ -66,6 +66,7 @@ export const BAR_DATABASE = [
   // [경상 - 대구·김천·창원·김해·부산·포항]
   { name: '개츠비', address: '경상북도 김천시 평화동 260-10 3층', region: '경상도', lat: 36.1398, lon: 128.1138 },
   { name: '바야', address: '대구 중구 동성로4길 20-7 2,3층', region: '경상도', lat: 35.8698, lon: 128.5972 },
+  { name: '아수라랑', address: '대구 중구 동성로2길 18-9', region: '경상도', aliases: ['아수라'], lat: 35.8710, lon: 128.5950 },
   { name: '바바루', address: '대구 중구 동성로 4길 39 4층', region: '경상도', lat: 35.8702, lon: 128.5968 },
   { name: '턴 바', address: '대구광역시 중구 동성로 123', region: '경상도', lat: 35.8695, lon: 128.5978 },
   { name: '난다BAR', address: '경상남도 창원시 성산구 중앙대로83번길 14 창원종합상가 2층', region: '경상도', lat: 35.2278, lon: 128.6818 },
