@@ -1,7 +1,6 @@
-import React, { useCallback, useEffect, useRef } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { ChevronRight } from 'lucide-react';
 import { AnimatePresence, motion } from 'framer-motion';
-import { DEFAULT_CARD_IMAGE, imgFallbackHandler } from '../../constants/imageAssets';
 import { HOME_DARK_HERO_ROTATE_MS } from './buildHomeDarkHeroSlides';
 import type { HomeDarkHeroSlide } from './types';
 
@@ -17,6 +16,7 @@ type HomeDarkTodayPickProps = {
   onRotateNext: () => void;
   onOpen: () => void;
   emptyLabel: string;
+  eventsLoading?: boolean;
 };
 
 export default function HomeDarkTodayPick({
@@ -31,8 +31,14 @@ export default function HomeDarkTodayPick({
   onRotateNext,
   onOpen,
   emptyLabel,
+  eventsLoading = false,
 }: HomeDarkTodayPickProps) {
   const pauseUntilRef = useRef(0);
+  const [posterBroken, setPosterBroken] = useState(false);
+
+  useEffect(() => {
+    setPosterBroken(false);
+  }, [slide?.id, slide?.poster_url]);
 
   const pauseRotation = useCallback(() => {
     pauseUntilRef.current = Date.now() + HOME_DARK_HERO_ROTATE_MS * 2;
@@ -48,6 +54,14 @@ export default function HomeDarkTodayPick({
 
     return () => window.clearInterval(timer);
   }, [slideCount, onRotateNext, slide?.id]);
+
+  if (eventsLoading) {
+    return (
+      <div className="home-dark-today-pick home-dark-today-pick--loading" aria-busy="true">
+        <div className="home-dark-today-pick__skeleton" />
+      </div>
+    );
+  }
 
   if (!slide) {
     return (
@@ -86,14 +100,19 @@ export default function HomeDarkTodayPick({
             }
           }}
         >
-          <img
-            className="home-dark-today-pick__photo bchata-poster-fit home-dark-today-pick__photo--hero"
-            src={slide.poster_url}
-            alt=""
-            loading="eager"
-            decoding="async"
-            onError={imgFallbackHandler(DEFAULT_CARD_IMAGE)}
-          />
+          {slide.poster_url && !posterBroken ? (
+            <img
+              key={slide.poster_url}
+              className="home-dark-today-pick__photo bchata-poster-fit home-dark-today-pick__photo--hero"
+              src={slide.poster_url}
+              alt=""
+              loading="eager"
+              decoding="async"
+              onError={() => setPosterBroken(true)}
+            />
+          ) : (
+            <span className="home-dark-today-pick__poster-placeholder" aria-hidden />
+          )}
           <div className="home-dark-today-pick__overlay" aria-hidden />
           <div className="home-dark-today-pick__content">
             <span className="home-dark-today-pick__eyebrow">

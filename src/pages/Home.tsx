@@ -2156,6 +2156,7 @@ const HomePage = ({
     todayPosterPartiesForCount,
     bootcamps,
     festivals,
+    eventsLoading: partiesLoading,
     calendarTodayStr,
     regionCounts,
     wishlistParties,

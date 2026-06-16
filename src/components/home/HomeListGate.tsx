@@ -49,6 +49,7 @@ export type HomeListGateProps = {
   calendarTodayStr: string;
   partySearchItems: HomeTodayAgendaItem[];
   photoMenuItems: HomeListPhotoMenuItem[];
+  eventsLoading?: boolean;
   onOpenBarMap: () => void;
   barCount: number;
   socialBarRegionTabs: string[];
@@ -101,6 +102,7 @@ export default function HomeListGate({
   calendarTodayStr,
   partySearchItems,
   photoMenuItems,
+  eventsLoading = false,
   onOpenBarMap,
   socialBarRegionTabs,
   selectedBarRegionTab,
@@ -176,10 +178,11 @@ export default function HomeListGate({
           onRotateNext={onHeroRotateNext}
           onOpen={onHeroOpen}
           emptyLabel={isEn ? 'No featured events today' : '오늘 등록된 행사가 없어요'}
+          eventsLoading={eventsLoading}
         />
       </div>
 
-      <HomeListPhotoMenu isEn={isEn} items={photoMenuItems} />
+      <HomeListPhotoMenu isEn={isEn} items={photoMenuItems} eventsLoading={eventsLoading} />
 
       <HomeListTodayAgenda
         isEn={isEn}

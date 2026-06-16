@@ -1,4 +1,3 @@
-import { DEFAULT_CARD_IMAGE } from '../constants/imageAssets';
 import { compareNearestEventDate } from '../components/home/buildHomeDarkHeroSlides';
 
 /** 다크 홈 퀵메뉴 전용 이모지 (리스트 탐색은 등록 포스터 사용) */
@@ -43,8 +42,7 @@ export const pickNearestGateMenuPhotoUrl = (
   getUrl: (row: Record<string, unknown>) => unknown,
   getEventDate: (row: Record<string, unknown>) => string,
   todayStr: string,
-  fallback: string,
-): string => {
+): string | null => {
   const sorted = [...(rows || [])]
     .filter((row) => String(getUrl(row) || '').trim())
     .sort((a, b) => compareNearestEventDate(
@@ -53,7 +51,7 @@ export const pickNearestGateMenuPhotoUrl = (
       todayStr,
     ));
   const url = sorted[0] ? String(getUrl(sorted[0])).trim() : '';
-  return url || fallback;
+  return url || null;
 };
 
 /** 최초 등록 포스터 1장 고정 */
@@ -61,8 +59,7 @@ export const pickFirstGateMenuPhotoUrl = (
   rows: Record<string, unknown>[] | null | undefined,
   getUrl: (row: Record<string, unknown>) => unknown,
   getSortKey: (row: Record<string, unknown>) => unknown,
-  fallback: string,
-): string => {
+): string | null => {
   const sorted = [...(rows || [])]
     .filter((row) => String(getUrl(row) || '').trim())
     .sort((a, b) => {
@@ -71,23 +68,16 @@ export const pickFirstGateMenuPhotoUrl = (
       return ta - tb;
     });
   const url = sorted[0] ? String(getUrl(sorted[0])).trim() : '';
-  return url || fallback;
+  return url || null;
 };
 
-export const HOME_LIST_PHOTO_MENU_FALLBACKS = {
-  social: DEFAULT_CARD_IMAGE,
-  bootcamp: DEFAULT_CARD_IMAGE,
-  festival: DEFAULT_CARD_IMAGE,
-  party: '/home-gate-party.jpg',
-  instructors: DEFAULT_CARD_IMAGE,
-} as const;
-
-export type HomeListPhotoMenuItemId = keyof typeof HOME_LIST_PHOTO_MENU_FALLBACKS;
+export type HomeListPhotoMenuItemId = 'social' | 'bootcamp' | 'festival' | 'party' | 'instructors';
 
 export type HomeListPhotoMenuItem = {
   id: HomeListPhotoMenuItemId;
   label: string;
-  photoUrl: string;
+  /** null — 로딩 중이거나 등록 포스터 없음 (로고·이모지 플레이스홀더 미사용) */
+  photoUrl: string | null;
   count: number;
   countHint: string;
   onClick: () => void;
@@ -103,6 +93,7 @@ type BuildHomeListPhotoMenuItemsInput = {
   bootcampCount: number;
   festivalCount: number;
   partyEventCount: number;
+  eventsLoading?: boolean;
   onOpenSocial: () => void;
   onOpenBootcamp: () => void;
   onOpenFestival: () => void;
@@ -120,43 +111,48 @@ export function buildHomeListPhotoMenuItems(input: BuildHomeListPhotoMenuItemsIn
     bootcampCount,
     festivalCount,
     partyEventCount,
+    eventsLoading = false,
     onOpenSocial,
     onOpenBootcamp,
     onOpenFestival,
     onOpenPartyEvents,
   } = input;
 
-  const socialPhotoUrl = pickNearestGateMenuPhotoUrl(
-    socialParties,
-    (row) => row.poster_url,
-    (row) => {
-      if ((row as { is_weekly_recurring?: boolean }).is_weekly_recurring) return calendarTodayStr;
-      return normDate(row.date || row.start_date) || calendarTodayStr;
-    },
-    calendarTodayStr,
-    HOME_LIST_PHOTO_MENU_FALLBACKS.social,
-  );
+  const socialPhotoUrl = eventsLoading
+    ? null
+    : pickNearestGateMenuPhotoUrl(
+      socialParties,
+      (row) => row.poster_url,
+      (row) => {
+        if ((row as { is_weekly_recurring?: boolean }).is_weekly_recurring) return calendarTodayStr;
+        return normDate(row.date || row.start_date) || calendarTodayStr;
+      },
+      calendarTodayStr,
+    );
 
-  const bootcampPhotoUrl = pickFirstGateMenuPhotoUrl(
-    filterActiveGateEventPosters(bootcamps, calendarTodayStr),
-    (row) => row.poster_url,
-    (row) => row.created_at || row.start_date,
-    HOME_LIST_PHOTO_MENU_FALLBACKS.bootcamp,
-  );
+  const bootcampPhotoUrl = eventsLoading
+    ? null
+    : pickFirstGateMenuPhotoUrl(
+      filterActiveGateEventPosters(bootcamps, calendarTodayStr),
+      (row) => row.poster_url,
+      (row) => row.created_at || row.start_date,
+    );
 
-  const festivalPhotoUrl = pickFirstGateMenuPhotoUrl(
-    filterActiveGateEventPosters(festivals, calendarTodayStr, ['festival', 'mt']),
-    (row) => row.poster_url,
-    (row) => row.created_at || row.start_date,
-    HOME_LIST_PHOTO_MENU_FALLBACKS.festival,
-  );
+  const festivalPhotoUrl = eventsLoading
+    ? null
+    : pickFirstGateMenuPhotoUrl(
+      filterActiveGateEventPosters(festivals, calendarTodayStr, ['festival', 'mt']),
+      (row) => row.poster_url,
+      (row) => row.created_at || row.start_date,
+    );
 
-  const partyPhotoUrl = pickFirstGateMenuPhotoUrl(
-    filterActiveGateEventPosters(festivals, calendarTodayStr, ['party']),
-    (row) => row.poster_url,
-    (row) => row.created_at || row.start_date,
-    HOME_LIST_PHOTO_MENU_FALLBACKS.party,
-  );
+  const partyPhotoUrl = eventsLoading
+    ? null
+    : pickFirstGateMenuPhotoUrl(
+      filterActiveGateEventPosters(festivals, calendarTodayStr, ['party']),
+      (row) => row.poster_url,
+      (row) => row.created_at || row.start_date,
+    );
 
   const activeHint = 'upcoming';
 

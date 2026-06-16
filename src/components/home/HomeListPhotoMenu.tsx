@@ -1,13 +1,13 @@
-import React from 'react';
-import { DEFAULT_CARD_IMAGE, imgFallbackHandler } from '../../constants/imageAssets';
+import React, { useState } from 'react';
 import { homeListPhotoMenuAriaLabel, type HomeListPhotoMenuItem } from '../../lib/homeListPhotoMenu';
 
 type HomeListPhotoMenuProps = {
   isEn: boolean;
   items: HomeListPhotoMenuItem[];
+  eventsLoading?: boolean;
 };
 
-export default function HomeListPhotoMenu({ items }: HomeListPhotoMenuProps) {
+export default function HomeListPhotoMenu({ items, eventsLoading = false }: HomeListPhotoMenuProps) {
   if (items.length === 0) return null;
 
   return (
@@ -21,38 +21,62 @@ export default function HomeListPhotoMenu({ items }: HomeListPhotoMenuProps) {
         </h2>
       </div>
       <div className="home-list-gate__quick-menu-grid" role="list">
-        {items.map((item) => {
-          const badgeLabel = item.count > 99 ? '99+' : String(item.count);
-
-          return (
-            <button
-              key={item.id}
-              type="button"
-              role="listitem"
-              className={`home-list-gate__quick-menu-btn home-list-gate__quick-menu-btn--${item.id}`}
-              aria-label={homeListPhotoMenuAriaLabel(item, true)}
-              onClick={item.onClick}
-            >
-              <span className="home-list-gate__quick-menu-thumb-wrap" aria-hidden>
-                <span className="home-list-gate__quick-menu-thumb">
-                  <img
-                    src={item.photoUrl}
-                    alt=""
-                    className="home-list-gate__quick-menu-thumb-img"
-                    loading="lazy"
-                    decoding="async"
-                    onError={imgFallbackHandler(DEFAULT_CARD_IMAGE)}
-                  />
-                </span>
-                {item.count > 0 ? (
-                  <span className="home-list-gate__quick-menu-badge">{badgeLabel}</span>
-                ) : null}
-              </span>
-              <span className="home-list-gate__quick-menu-label">{item.label}</span>
-            </button>
-          );
-        })}
+        {items.map((item) => (
+          <PhotoMenuButton
+            key={item.id}
+            item={item}
+            eventsLoading={eventsLoading}
+          />
+        ))}
       </div>
     </section>
+  );
+}
+
+function PhotoMenuButton({
+  item,
+  eventsLoading,
+}: {
+  item: HomeListPhotoMenuItem;
+  eventsLoading: boolean;
+}) {
+  const [imageBroken, setImageBroken] = useState(false);
+  const badgeLabel = item.count > 99 ? '99+' : String(item.count);
+  const showPoster = Boolean(item.photoUrl) && !eventsLoading && !imageBroken;
+
+  return (
+    <button
+      type="button"
+      role="listitem"
+      className={`home-list-gate__quick-menu-btn home-list-gate__quick-menu-btn--${item.id}`}
+      aria-label={homeListPhotoMenuAriaLabel(item, true)}
+      onClick={item.onClick}
+    >
+      <span className="home-list-gate__quick-menu-thumb-wrap" aria-hidden>
+        <span className="home-list-gate__quick-menu-thumb">
+          {showPoster ? (
+            <img
+              key={item.photoUrl}
+              src={item.photoUrl!}
+              alt=""
+              className="home-list-gate__quick-menu-thumb-img"
+              loading="eager"
+              decoding="async"
+              onError={() => setImageBroken(true)}
+            />
+          ) : (
+            <span
+              className={`home-list-gate__quick-menu-thumb-placeholder${
+                eventsLoading ? ' home-list-gate__quick-menu-thumb-placeholder--loading' : ''
+              }`}
+            />
+          )}
+        </span>
+        {item.count > 0 ? (
+          <span className="home-list-gate__quick-menu-badge">{badgeLabel}</span>
+        ) : null}
+      </span>
+      <span className="home-list-gate__quick-menu-label">{item.label}</span>
+    </button>
   );
 }

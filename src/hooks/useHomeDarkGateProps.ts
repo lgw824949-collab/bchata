@@ -27,6 +27,8 @@ export type UseHomeDarkGatePropsInput = {
   todayPosterPartiesForCount: HomeDarkParty[];
   bootcamps: Array<Record<string, unknown>>;
   festivals: Array<Record<string, unknown>>;
+  /** parties·부트캠프·페스티벌 초기 로드 중 — 탐색 썸네일 플레이스홀더 방지 */
+  eventsLoading?: boolean;
   calendarTodayStr: string;
   regionCounts: {
     national: number;
