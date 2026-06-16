@@ -19,7 +19,7 @@ import havanaPhoto from './assets/havana_photo.png'
 import bibigoPhoto from './assets/bibigo_photo.png'
 import { resolveBarVenuePhoto } from './lib/barVenuePhotos'
 import { partiesTodayOrWeeklyOrFilter, partyMatchesCalendarDate } from './lib/partyRecurrence'
-import { isPartyInLiveBannerWindow } from './lib/homeLiveBannerSlides'
+import { getKSTCalendarTodayStr } from './lib/dateNorm'
 
 const EventRanking = () => {
   const [rankings, setRankings] = useState([])
@@ -183,7 +183,7 @@ export default function AdminDashboard({ onBack, refreshData }) {
 
   const [items, setItems] = useState([])
   const [category, setCategory] = useState('social') // 'social', 'live-mgmt', 'live', 'bootcamp', 'festival', 'instructor', 'rental'
-  const [activeTab, setActiveTab] = useState('pending') // 'pending', 'active', 'rejected'
+  const [activeTab, setActiveTab] = useState('active') // 'pending', 'active', 'rejected'
   const [showMoreMenu, setShowMoreMenu] = useState(false)
   const [editingItem, setEditingItem] = useState(null)
   const [showEditModal, setShowEditModal] = useState(false)
@@ -646,43 +646,75 @@ export default function AdminDashboard({ onBack, refreshData }) {
     } finally { setLoading(false) }
   }
 
+  /** pending_parties → parties (동일 포스터 중복 insert 방지) */
+  const promotePendingPartyToActive = async (item) => {
+    let finalLocationId = item.location_id ?? null;
+    const locationName = item.location_name || item.locations?.name || '';
+    if (!finalLocationId && locationName) {
+      const { data: locData } = await supabase.from('locations').select('id').eq('name', locationName).maybeSingle();
+      if (locData) {
+        finalLocationId = locData.id;
+      } else {
+        const { data: newLoc } = await supabase.from('locations').insert([{
+          name: locationName,
+          address: item.address,
+          region_id: 1,
+        }]).select('id').maybeSingle();
+        finalLocationId = newLoc?.id;
+      }
+    }
+
+    const poster = String(item.poster_url || '').trim();
+    let existingQuery = supabase.from('parties').select('id').eq('status', 'approved');
+    if (poster) {
+      existingQuery = existingQuery.eq('poster_url', poster);
+    } else {
+      existingQuery = existingQuery.eq('title', item.title);
+    }
+    const { data: existing } = await existingQuery.limit(1).maybeSingle();
+
+    const partyPayload = {
+      title: item.title,
+      location_id: finalLocationId,
+      address: item.address,
+      fee: item.fee,
+      date: item.date,
+      time: item.time,
+      day_of_week: item.day_of_week,
+      is_weekly_recurring: Boolean(item.is_weekly_recurring),
+      poster_url: item.poster_url,
+      s_ratio: item.s_ratio,
+      b_ratio: item.b_ratio,
+      j_ratio: item.j_ratio,
+      k_ratio: item.k_ratio,
+      contributor_id: item.contributor_id || null,
+      status: 'approved',
+    };
+
+    if (existing?.id) {
+      const { error: updateError } = await supabase.from('parties').update(partyPayload).eq('id', existing.id);
+      if (updateError) throw updateError;
+    } else {
+      const { error: insError } = await supabase.from('parties').insert([partyPayload]);
+      if (insError) throw insError;
+    }
+
+    await supabase.from('pending_parties').delete().eq('id', item.id);
+  };
+
   // 상태 업데이트 (승인/보류/반려 - 확인창 제거하여 속도 개선)
   const updateStatus = async (item, newStatus) => {
     setLoading(true)
     try {
       if (category === 'social') {
         if (newStatus === 'active') {
-          // 승인: pending_parties -> parties 이동
-          let finalLocationId = null;
-          const { data: locData } = await supabase.from('locations').select('id').eq('name', item.location_name).maybeSingle();
-          if (locData) {
-            finalLocationId = locData.id;
+          // 승인완료 탭 재승인 시 parties 중복 insert 방지
+          if (activeTab === 'active') {
+            const { error } = await supabase.from('parties').update({ status: 'approved' }).eq('id', item.id);
+            if (error) throw error;
           } else {
-            const { data: newLoc } = await supabase.from('locations').insert([{
-              name: item.location_name,
-              address: item.address,
-              region_id: 1 
-            }]).select().maybeSingle();
-            finalLocationId = newLoc?.id;
+            await promotePendingPartyToActive(item);
           }
-          const { error: insError } = await supabase.from('parties').insert([{
-            title: item.title, 
-            location_id: finalLocationId, 
-            address: item.address, 
-            fee: item.fee,
-            date: item.date, 
-            time: item.time, 
-            day_of_week: item.day_of_week, 
-            is_weekly_recurring: Boolean(item.is_weekly_recurring),
-            poster_url: item.poster_url,
-            s_ratio: item.s_ratio, 
-            b_ratio: item.b_ratio, 
-            j_ratio: item.j_ratio, 
-            k_ratio: item.k_ratio, 
-            status: 'approved'
-          }]);
-          if (insError) throw insError;
-          await supabase.from('pending_parties').delete().eq('id', item.id);
         } else {
           if (activeTab === 'active') return alert('승인된 데이터는 삭제 후 재등록해야 합니다.');
           await supabase.from('pending_parties').update({ status: newStatus }).eq('id', item.id);
@@ -744,16 +776,12 @@ export default function AdminDashboard({ onBack, refreshData }) {
     } finally { setLoading(false) }
   }
 
-  /** parties.view_count — 오늘 날짜 파티만 누적 (+1/+5/+20/+30/+50/+100) */
+  /** parties.view_count — 오늘 달력일 파티만 누적 (+1/+5/+20/+30/+50/+100) */
   const bumpPartyViewCount = async (party, delta) => {
     if (!party?.id) return;
-    const todayStr = getAdminKSTTodayStr();
+    const todayStr = getKSTCalendarTodayStr();
     if (!partyMatchesCalendarDate(party, todayStr)) {
       alert('오늘 날짜 파티만 인원 조절할 수 있습니다.');
-      return;
-    }
-    if (!isPartyInLiveBannerWindow(party)) {
-      alert('LIVE 시간대(시작 10분 전~8시간) 파티만 인원 조절할 수 있습니다.');
       return;
     }
     const current = Number(party.view_count) || 0;
@@ -779,9 +807,8 @@ export default function AdminDashboard({ onBack, refreshData }) {
     if (category !== 'social' && category !== 'live-mgmt') return null;
     if (category === 'social' && activeTab !== 'active') return null;
 
-    const todayStr = getAdminKSTTodayStr();
+    const todayStr = getKSTCalendarTodayStr();
     if (!partyMatchesCalendarDate(item, todayStr)) return null;
-    if (!isPartyInLiveBannerWindow(item)) return null;
 
     const current = Number(item.view_count) || 0;
 
@@ -805,7 +832,7 @@ export default function AdminDashboard({ onBack, refreshData }) {
           </div>
         </div>
         <p style={{ margin: 0, fontSize: '11px', color: '#64748B', lineHeight: 1.45 }}>
-          홈 일정 LIVE 배지·LIVE 배너에 반영됩니다. (오늘 · LIVE 시간대만)
+          홈 일정 LIVE 배지·LIVE 배너에 반영됩니다. (오늘 달력일 파티)
         </p>
       </div>
     );
@@ -822,7 +849,13 @@ export default function AdminDashboard({ onBack, refreshData }) {
       }]);
       if (error) throw error;
       alert('인원이 1명 추가되었습니다.');
-    } catch (err) { console.error('체크인 추가 실패', err); }
+      await fetchData();
+      if (typeof refreshData === 'function') {
+        await refreshData({ silent: true });
+      }
+    } catch (err) {
+      showAdminError(`체크인 추가 실패: ${err.message || err}`);
+    }
   }
 
   if (!isAdmin) {
@@ -1454,42 +1487,48 @@ export default function AdminDashboard({ onBack, refreshData }) {
                     <div style={{ display: 'flex', gap: '8px', marginTop: '16px' }}>
                       {category !== 'rental' && (
                         <>
-                          <button 
-                            type="button"
-                            onClick={() => updateStatus(item, 'active')} 
-                            style={{ 
-                              flex: 1, padding: '10px', borderRadius: '10px', border: 'none', 
-                              background: '#E8F5E9', color: '#2E7D32', cursor: 'pointer', 
-                              pointerEvents: 'auto', position: 'relative', zIndex: 1 
-                            }} 
-                            title="승인"
-                          >
-                            <Check size={18} />
-                          </button>
-                          <button 
-                            type="button"
-                            onClick={() => updateStatus(item, 'pending')} 
-                            style={{ 
-                              flex: 1, padding: '10px', borderRadius: '10px', border: 'none', 
-                              background: '#FFF8E1', color: '#F59E0B', cursor: 'pointer', 
-                              pointerEvents: 'auto', position: 'relative', zIndex: 1 
-                            }} 
-                            title="보류"
-                          >
-                            <Clock size={18} />
-                          </button>
-                          <button 
-                            type="button"
-                            onClick={() => updateStatus(item, 'rejected')} 
-                            style={{ 
-                              flex: 1, padding: '10px', borderRadius: '10px', border: 'none', 
-                              background: '#FFEBEE', color: '#C62828', cursor: 'pointer', 
-                              pointerEvents: 'auto', position: 'relative', zIndex: 1 
-                            }} 
-                            title="반려"
-                          >
-                            <XCircle size={18} />
-                          </button>
+                          {!(category === 'social' && activeTab === 'active') && (
+                            <button 
+                              type="button"
+                              onClick={() => updateStatus(item, 'active')} 
+                              style={{ 
+                                flex: 1, padding: '10px', borderRadius: '10px', border: 'none', 
+                                background: '#E8F5E9', color: '#2E7D32', cursor: 'pointer', 
+                                pointerEvents: 'auto', position: 'relative', zIndex: 1 
+                              }} 
+                              title="승인"
+                            >
+                              <Check size={18} />
+                            </button>
+                          )}
+                          {!(category === 'social' && activeTab === 'active') && (
+                            <button 
+                              type="button"
+                              onClick={() => updateStatus(item, 'pending')} 
+                              style={{ 
+                                flex: 1, padding: '10px', borderRadius: '10px', border: 'none', 
+                                background: '#FFF8E1', color: '#F59E0B', cursor: 'pointer', 
+                                pointerEvents: 'auto', position: 'relative', zIndex: 1 
+                              }} 
+                              title="보류"
+                            >
+                              <Clock size={18} />
+                            </button>
+                          )}
+                          {!(category === 'social' && activeTab === 'active') && (
+                            <button 
+                              type="button"
+                              onClick={() => updateStatus(item, 'rejected')} 
+                              style={{ 
+                                flex: 1, padding: '10px', borderRadius: '10px', border: 'none', 
+                                background: '#FFEBEE', color: '#C62828', cursor: 'pointer', 
+                                pointerEvents: 'auto', position: 'relative', zIndex: 1 
+                              }} 
+                              title="반려"
+                            >
+                              <XCircle size={18} />
+                            </button>
+                          )}
                         </>
                       )}
                       <button 

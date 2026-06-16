@@ -1,4 +1,6 @@
 import { formatPartyTitleDisplay } from './partyTitleDisplay';
+import { getKSTCalendarTodayStr, normDate } from './dateNorm';
+import { getKoreanWeekdayFromDateStr } from './partyRecurrence';
 import {
   enrichPartyBroadRegion,
   isPartyMetro,
@@ -18,8 +20,15 @@ const padTime = (raw) => {
   return `${String(m[1]).padStart(2, '0')}:${m[2]}`;
 };
 
-export const getPartyStartMs = (party) => {
-  const dateStr = String(party?.date || '').slice(0, 10);
+export const getPartyStartMs = (party, referenceDateStr) => {
+  let dateStr = String(party?.date || '').slice(0, 10);
+  if (!dateStr && party?.is_weekly_recurring) {
+    const ref = normDate(referenceDateStr) || getKSTCalendarTodayStr();
+    const dow = String(party?.day_of_week || '').trim();
+    if (!dow || getKoreanWeekdayFromDateStr(ref) === dow) {
+      dateStr = ref;
+    }
+  }
   if (!dateStr) return 0;
   const t = padTime(party?.time);
   const ms = new Date(`${dateStr}T${t}:00+09:00`).getTime();

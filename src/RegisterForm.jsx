@@ -12,6 +12,7 @@ import { normalizeVenueAddressKey } from './lib/venueDedupe'
 import { canonicalizeVenueRow, getVenueDedupeKey } from './lib/venueCanonical'
 import { PARTY_TITLE_MAX_LENGTH } from './lib/partyTitleDisplay'
 import { toDateOrNull } from './lib/dbSanitize'
+import { getKSTNightlifeTodayStr } from './lib/dateNorm'
 import { KOREAN_WEEKDAYS } from './lib/partyRecurrence'
 
 const METRO_REGIONS = ['서울', '인천', '경기', '부산', '대구', '광주', '대전', '울산', '세종', '강원', '충북', '충남', '전북', '전남', '경북', '경남', '제주']
@@ -136,7 +137,7 @@ const RegisterForm = ({ onBack, onSuccess, isEdit = false, isAdminMode = false, 
     location_name: initialData?.location_name || initialData?.locations?.name || '',
     location_id: initialData?.location_id ?? initialData?.locations?.id ?? null,
     address: initialData?.address || initialData?.locations?.address || '',
-    date: initialData?.date || new Date(new Date().getTime() + 9 * 60 * 60 * 1000).toISOString().split('T')[0],
+    date: initialData?.date || getKSTNightlifeTodayStr(),
     time: initialData?.time || '21:00',
     end_time: initialData?.end_time || '02:00',
     fee: initialData?.fee || '',
@@ -638,6 +639,9 @@ const RegisterForm = ({ onBack, onSuccess, isEdit = false, isAdminMode = false, 
 
       if (error) throw error
       window.dispatchEvent(new CustomEvent('bchata-refresh-parties'))
+      if (typeof onSuccess === 'function') {
+        onSuccess()
+      }
       setSubmitted(true)
     } catch (err) {
       alert('등록 저장 실패: ' + err.message)
