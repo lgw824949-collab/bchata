@@ -34,7 +34,7 @@ export const BAR_DATABASE = [
 
   // [경기 - 분당]
   { name: '분당살사', name_en: 'Bundang Salsa', address: '경기도 분당구 정자동 23-1 지파크프라자5층', region: '경기도' },
-  { name: '바이라모스', name_en: 'Baila Ramos', address: '경기도 성남시 분당구 수내동 19-3 대덕프라자 509호', region: '경기도', aliases: ['바일라모스'] },
+  { name: '바일라모스', name_en: 'Baila Ramos', address: '경기도 성남시 분당구 수내동 19-3 대덕프라자 503호', region: '경기도', aliases: ['바이라모스'] },
 
   // [경기 - 용인]
   { name: '비비고댄스', name_en: 'Bibigo Dance', address: '경기도 용인시 기흥구 용구대로 2390-12 삼송빌딩지하', region: '경기도', aliases: ['비비고'] },
@@ -81,6 +81,7 @@ export const BAR_DATABASE = [
   { name: '마얀', name_en: 'Mayan', address: '광주광역시 동구 황금동 84번지 3층', region: '전라도' },
   { name: '엘카리베', name_en: 'El Caribe', address: '전라남도 여수시 소라면 죽림중앙로 13-12 4층', region: '전라도' },
   { name: '몬투노bar', name_en: 'Montuno Bar', address: '광주광역시 동구 무등로 400, 3층', region: '전라도', aliases: ['몬투노', 'Montuno'] },
+  { name: '아리네', name_en: 'Arine', address: '광주광역시 남구 천변좌로428번길 6', region: '전라도' },
 ]
 
 export const findBarByName = (text) => {
