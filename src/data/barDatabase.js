@@ -56,7 +56,7 @@ export const BAR_DATABASE = [
   { name: '이그녹스', address: '경기도 의정부시 평화로 567-1 청관정지하', region: '경기도', lat: 37.7382, lon: 127.0438 },
 
   // [충청 - 대전·천안·청주]
-  { name: '라틴팩토리', address: '대전 유성구 문화원로6번길 B1', region: '충청도', aliases: ['라팩', 'SNS'], lat: 36.3624, lon: 127.3562 },
+  { name: '리트로', address: '대전 유성구 문화원로6번길 B1', region: '충청도', aliases: ['라팩', '라틴팩토리', 'SNS'], lat: 36.3624, lon: 127.3562 },
   { name: '노체', address: '대전 서구 둔산동 31번길 66 3F', region: '충청도', lat: 36.3512, lon: 127.3868 },
   { name: 'DLC', address: '대전 서구 갈마동 395-13 3F', region: '충청도', lat: 36.3498, lon: 127.3742 },
   { name: '미아모르', address: '대전 동남구 신부동 976 B1', region: '충청도', lat: 36.8142, lon: 127.1138 },
