@@ -4312,7 +4312,7 @@ const HomePage = ({
                               new Date(b.created_at || 0).getTime() -
                               new Date(a.created_at || 0).getTime(),
                           );
-                        return dedupePartiesByPoster(
+                        return dedupeCalendarPartyPool(
                           regionParties.filter((p) => p.poster_url && String(p.poster_url).trim()),
                         );
                       };
