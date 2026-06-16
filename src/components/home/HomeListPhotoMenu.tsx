@@ -1,13 +1,18 @@
-import React, { useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { homeListPhotoMenuAriaLabel, type HomeListPhotoMenuItem } from '../../lib/homeListPhotoMenu';
 
 type HomeListPhotoMenuProps = {
   isEn: boolean;
   items: HomeListPhotoMenuItem[];
   eventsLoading?: boolean;
+  remountKey?: number;
 };
 
-export default function HomeListPhotoMenu({ items, eventsLoading = false }: HomeListPhotoMenuProps) {
+export default function HomeListPhotoMenu({
+  items,
+  eventsLoading = false,
+  remountKey = 0,
+}: HomeListPhotoMenuProps) {
   if (items.length === 0) return null;
 
   return (
@@ -23,7 +28,7 @@ export default function HomeListPhotoMenu({ items, eventsLoading = false }: Home
       <div className="home-list-gate__quick-menu-grid" role="list">
         {items.map((item) => (
           <PhotoMenuButton
-            key={item.id}
+            key={`${item.id}-${remountKey}`}
             item={item}
             eventsLoading={eventsLoading}
           />
@@ -40,9 +45,21 @@ function PhotoMenuButton({
   item: HomeListPhotoMenuItem;
   eventsLoading: boolean;
 }) {
+  const candidates = useMemo(
+    () => (item.photoCandidates?.length ? item.photoCandidates : (item.photoUrl ? [item.photoUrl] : [])),
+    [item.photoCandidates, item.photoUrl],
+  );
+  const [candidateIndex, setCandidateIndex] = useState(0);
   const [imageBroken, setImageBroken] = useState(false);
+
+  useEffect(() => {
+    setCandidateIndex(0);
+    setImageBroken(false);
+  }, [item.id, candidates.join('|')]);
+
+  const activeUrl = candidates[candidateIndex] ?? null;
   const badgeLabel = item.count > 99 ? '99+' : String(item.count);
-  const showPoster = Boolean(item.photoUrl) && !eventsLoading && !imageBroken;
+  const showPoster = Boolean(activeUrl) && !eventsLoading && !imageBroken;
 
   return (
     <button
@@ -56,13 +73,19 @@ function PhotoMenuButton({
         <span className="home-list-gate__quick-menu-thumb">
           {showPoster ? (
             <img
-              key={item.photoUrl}
-              src={item.photoUrl!}
+              key={`${item.id}-${activeUrl}`}
+              src={activeUrl!}
               alt=""
               className="home-list-gate__quick-menu-thumb-img"
               loading="eager"
               decoding="async"
-              onError={() => setImageBroken(true)}
+              onError={() => {
+                if (candidateIndex < candidates.length - 1) {
+                  setCandidateIndex((index) => index + 1);
+                  return;
+                }
+                setImageBroken(true);
+              }}
             />
           ) : (
             <span

@@ -1,3 +1,4 @@
+import { isGenericExplorePosterUrl } from '../constants/imageAssets';
 import { compareNearestEventDate } from '../components/home/buildHomeDarkHeroSlides';
 
 /** 다크 홈 퀵메뉴 전용 이모지 (리스트 탐색은 등록 포스터 사용) */
@@ -36,48 +37,68 @@ export const filterActiveGateEventPosters = (
   return true;
 });
 
-/** 행사일 가까운 순 — 탐색 소셜 썸네일 */
+const sortExplorePosterRows = (
+  rows: Record<string, unknown>[],
+  getEventDate: (row: Record<string, unknown>) => string,
+  todayStr: string,
+) => [...rows].sort((a, b) => {
+  const byDate = compareNearestEventDate(
+    getEventDate(a),
+    getEventDate(b),
+    todayStr,
+  );
+  if (byDate !== 0) return byDate;
+  // 같은 행사일 — 최신 등록 포스터 우선 (구 플레이스홀더 회피)
+  const tb = new Date(String(b.created_at || 0)).getTime();
+  const ta = new Date(String(a.created_at || 0)).getTime();
+  return tb - ta;
+});
+
+/** 행사일 가까운 순 + 브랜딩 URL 제외 — Explore 썸네일 후보 */
+export const pickExploreMenuPosterCandidates = (
+  rows: Record<string, unknown>[] | null | undefined,
+  getUrl: (row: Record<string, unknown>) => unknown,
+  getEventDate: (row: Record<string, unknown>) => string,
+  todayStr: string,
+  limit = 3,
+): string[] => {
+  const seen = new Set<string>();
+  const sorted = sortExplorePosterRows(
+    (rows || []).filter((row) => {
+      const url = String(getUrl(row) || '').trim();
+      return url && !isGenericExplorePosterUrl(url);
+    }),
+    getEventDate,
+    todayStr,
+  );
+
+  const candidates: string[] = [];
+  for (const row of sorted) {
+    const url = String(getUrl(row)).trim();
+    if (!url || seen.has(url)) continue;
+    seen.add(url);
+    candidates.push(url);
+    if (candidates.length >= limit) break;
+  }
+  return candidates;
+};
+
 export const pickNearestGateMenuPhotoUrl = (
   rows: Record<string, unknown>[] | null | undefined,
   getUrl: (row: Record<string, unknown>) => unknown,
   getEventDate: (row: Record<string, unknown>) => string,
   todayStr: string,
-): string | null => {
-  const sorted = [...(rows || [])]
-    .filter((row) => String(getUrl(row) || '').trim())
-    .sort((a, b) => compareNearestEventDate(
-      getEventDate(a),
-      getEventDate(b),
-      todayStr,
-    ));
-  const url = sorted[0] ? String(getUrl(sorted[0])).trim() : '';
-  return url || null;
-};
-
-/** 최초 등록 포스터 1장 고정 */
-export const pickFirstGateMenuPhotoUrl = (
-  rows: Record<string, unknown>[] | null | undefined,
-  getUrl: (row: Record<string, unknown>) => unknown,
-  getSortKey: (row: Record<string, unknown>) => unknown,
-): string | null => {
-  const sorted = [...(rows || [])]
-    .filter((row) => String(getUrl(row) || '').trim())
-    .sort((a, b) => {
-      const ta = new Date(String(getSortKey(a) || 0)).getTime();
-      const tb = new Date(String(getSortKey(b) || 0)).getTime();
-      return ta - tb;
-    });
-  const url = sorted[0] ? String(getUrl(sorted[0])).trim() : '';
-  return url || null;
-};
+): string | null => pickExploreMenuPosterCandidates(rows, getUrl, getEventDate, todayStr, 1)[0] ?? null;
 
 export type HomeListPhotoMenuItemId = 'social' | 'bootcamp' | 'festival' | 'party' | 'instructors';
 
 export type HomeListPhotoMenuItem = {
   id: HomeListPhotoMenuItemId;
   label: string;
-  /** null — 로딩 중이거나 등록 포스터 없음 (로고·이모지 플레이스홀더 미사용) */
+  /** 1순위 썸네일 (하위 호환) */
   photoUrl: string | null;
+  /** 로드 실패 시 순차 시도 */
+  photoCandidates: string[];
   count: number;
   countHint: string;
   onClick: () => void;
@@ -100,9 +121,10 @@ type BuildHomeListPhotoMenuItemsInput = {
   onOpenPartyEvents: () => void;
 };
 
+const eventStartDate = (row: Record<string, unknown>) => normDate(row.start_date || row.date);
+
 export function buildHomeListPhotoMenuItems(input: BuildHomeListPhotoMenuItemsInput): HomeListPhotoMenuItem[] {
   const {
-    isEn,
     socialParties,
     bootcamps,
     festivals,
@@ -118,9 +140,9 @@ export function buildHomeListPhotoMenuItems(input: BuildHomeListPhotoMenuItemsIn
     onOpenPartyEvents,
   } = input;
 
-  const socialPhotoUrl = eventsLoading
-    ? null
-    : pickNearestGateMenuPhotoUrl(
+  const socialCandidates = eventsLoading
+    ? []
+    : pickExploreMenuPosterCandidates(
       socialParties,
       (row) => row.poster_url,
       (row) => {
@@ -130,65 +152,56 @@ export function buildHomeListPhotoMenuItems(input: BuildHomeListPhotoMenuItemsIn
       calendarTodayStr,
     );
 
-  const bootcampPhotoUrl = eventsLoading
-    ? null
-    : pickFirstGateMenuPhotoUrl(
+  const bootcampCandidates = eventsLoading
+    ? []
+    : pickExploreMenuPosterCandidates(
       filterActiveGateEventPosters(bootcamps, calendarTodayStr),
       (row) => row.poster_url,
-      (row) => row.created_at || row.start_date,
+      eventStartDate,
+      calendarTodayStr,
     );
 
-  const festivalPhotoUrl = eventsLoading
-    ? null
-    : pickFirstGateMenuPhotoUrl(
+  const festivalCandidates = eventsLoading
+    ? []
+    : pickExploreMenuPosterCandidates(
       filterActiveGateEventPosters(festivals, calendarTodayStr, ['festival', 'mt']),
       (row) => row.poster_url,
-      (row) => row.created_at || row.start_date,
+      eventStartDate,
+      calendarTodayStr,
     );
 
-  const partyPhotoUrl = eventsLoading
-    ? null
-    : pickFirstGateMenuPhotoUrl(
+  const partyCandidates = eventsLoading
+    ? []
+    : pickExploreMenuPosterCandidates(
       filterActiveGateEventPosters(festivals, calendarTodayStr, ['party']),
       (row) => row.poster_url,
-      (row) => row.created_at || row.start_date,
+      eventStartDate,
+      calendarTodayStr,
     );
 
   const activeHint = 'upcoming';
 
+  const toItem = (
+    id: HomeListPhotoMenuItemId,
+    label: string,
+    candidates: string[],
+    count: number,
+    onClick: () => void,
+  ): HomeListPhotoMenuItem => ({
+    id,
+    label,
+    photoCandidates: candidates,
+    photoUrl: candidates[0] ?? null,
+    count,
+    countHint: activeHint,
+    onClick,
+  });
+
   return [
-    {
-      id: 'social',
-      label: 'Social',
-      photoUrl: socialPhotoUrl,
-      count: socialCount,
-      countHint: activeHint,
-      onClick: onOpenSocial,
-    },
-    {
-      id: 'bootcamp',
-      label: 'Bootcamp',
-      photoUrl: bootcampPhotoUrl,
-      count: bootcampCount,
-      countHint: activeHint,
-      onClick: onOpenBootcamp,
-    },
-    {
-      id: 'festival',
-      label: 'Festival',
-      photoUrl: festivalPhotoUrl,
-      count: festivalCount,
-      countHint: activeHint,
-      onClick: onOpenFestival,
-    },
-    {
-      id: 'party',
-      label: 'Party',
-      photoUrl: partyPhotoUrl,
-      count: partyEventCount,
-      countHint: activeHint,
-      onClick: onOpenPartyEvents,
-    },
+    toItem('social', 'Social', socialCandidates, socialCount, onOpenSocial),
+    toItem('bootcamp', 'Bootcamp', bootcampCandidates, bootcampCount, onOpenBootcamp),
+    toItem('festival', 'Festival', festivalCandidates, festivalCount, onOpenFestival),
+    toItem('party', 'Party', partyCandidates, partyEventCount, onOpenPartyEvents),
   ];
 }
 

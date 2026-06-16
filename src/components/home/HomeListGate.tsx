@@ -126,11 +126,17 @@ export default function HomeListGate({
   const [moreOpen, setMoreOpen] = useState(false);
   const [headerCompact, setHeaderCompact] = useState(false);
   const [onHomePath, setOnHomePath] = useState(() => window.location.pathname === '/');
+  const [exploreThumbEpoch, setExploreThumbEpoch] = useState(0);
+  const wasHomePathRef = useRef(window.location.pathname === '/');
   const gateRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const syncPath = () => {
       const home = window.location.pathname === '/';
+      if (home && !wasHomePathRef.current) {
+        setExploreThumbEpoch((epoch) => epoch + 1);
+      }
+      wasHomePathRef.current = home;
       setOnHomePath(home);
       if (!home) setMoreOpen(false);
     };
@@ -182,7 +188,12 @@ export default function HomeListGate({
         />
       </div>
 
-      <HomeListPhotoMenu isEn={isEn} items={photoMenuItems} eventsLoading={eventsLoading} />
+      <HomeListPhotoMenu
+        isEn={isEn}
+        items={photoMenuItems}
+        eventsLoading={eventsLoading}
+        remountKey={exploreThumbEpoch}
+      />
 
       <HomeListTodayAgenda
         isEn={isEn}
