@@ -15,7 +15,7 @@ import { formatPartyMusicRatio } from '../pages/Social';
 import PartyFeeChips from './PartyFeeChips';
 import { formatPartyTitleDisplay, PARTY_TITLE_CARD_FONT_SIZE } from '../lib/partyTitleDisplay';
 import { mergeVenueWithLocalExtras, resetOptionalColumnsCache } from '../lib/venueLocalExtras';
-import { lessonPublisherBadge } from '../lib/lessonPublisher';
+import { lessonPublisherBadge, stripLessonPublisherMeta } from '../lib/lessonPublisher';
 import {
   expandPartyDatesInRange,
   isWeeklyRecurringParty,
@@ -178,8 +178,8 @@ const VenueAvatar = ({ venue, size = 40 }) => (
 
 const VENUE_DETAIL_BODY_CLASS = 'venue-detail-open';
 
-const GenreRatioPill = ({ tagLabel, item }) => {
-  const ratio = formatPartyMusicRatio(item);
+const GenreRatioPill = ({ tagLabel, item, showRatio = true }) => {
+  const ratio = showRatio ? formatPartyMusicRatio(item) : null;
   return (
     <span style={VD_GENRE_PILL}>
       <span style={{ fontSize: 11, fontWeight: 800, color: VD.brandSoft, letterSpacing: '0.2px' }}>{tagLabel}</span>
@@ -217,7 +217,8 @@ const getDateBadge = (selectedDate, todayStr) => {
 
 /** description/title에서 파트너·레벨·DJ·게스트 태그 추출 (최대 3개) */
 const extractPartyMetaTags = (party, isLesson) => {
-  const hay = `${party.title || ''} ${party.description || ''}`;
+  const description = isLesson ? stripLessonPublisherMeta(party.description) : party.description;
+  const hay = `${party.title || ''} ${description || ''}`;
   const tags = [];
   const push = (key, label) => {
     if (!label || tags.some((t) => t.key === key)) return;
@@ -252,7 +253,10 @@ const extractPartyMetaTags = (party, isLesson) => {
 /** 행사 전용 부제 — 매장 공통 설명(venue)과 중복 제거 */
 const getFeaturedCardSubtitle = (party, isLesson, venueDesc) => {
   const venueNorm = String(venueDesc || '').replace(/\s+/g, ' ').trim();
-  let desc = String(party.description || '').replace(/\s+/g, ' ').trim();
+  let desc = (isLesson
+    ? stripLessonPublisherMeta(party.description)
+    : String(party.description || '')
+  ).replace(/\s+/g, ' ').trim();
 
   if (desc && venueNorm) {
     if (desc === venueNorm) desc = '';
@@ -334,7 +338,7 @@ const FeaturedPartyCard = ({
       </button>
 
       <div className="vd-featured-card__body">
-        <GenreRatioPill tagLabel={tagLabel} item={party} />
+        <GenreRatioPill tagLabel={tagLabel} item={party} showRatio={!isLesson} />
         <div className="vd-card-title-row">
           <h3 className="vd-card-title">{title}</h3>
           {dateBadge ? (
@@ -469,7 +473,6 @@ const addDaysToDateStr = (dateStr, days) => {
 };
 
 const lessonToCardItem = (lesson, todayStr) => {
-  const g = String(lesson.genre || '');
   const nextOccurrenceDate = getNextLessonOccurrence(lesson, todayStr);
   return {
     ...lesson,
@@ -477,10 +480,6 @@ const lessonToCardItem = (lesson, todayStr) => {
     nextOccurrenceDate,
     time: [lesson.start_time, lesson.end_time].filter(Boolean).join('-') || lesson.time,
     locationName: lesson.studio_name,
-    b_ratio: g.includes('바차타') ? 1 : 0,
-    s_ratio: g.includes('살사') ? 1 : 0,
-    j_ratio: g.includes('쥬크') ? 1 : 0,
-    k_ratio: g.includes('키좀') ? 1 : 0,
   };
 };
 

@@ -1,4 +1,4 @@
-﻿import React, { useState, useEffect, useMemo, useRef, useCallback } from 'react';
+import React, { useState, useEffect, useMemo, useRef, useCallback } from 'react';
 import { Heart, MapPin, Calendar, Clock, User, Users, Music, ChevronRight, ShieldCheck, X, Home as HomeIcon, ChevronLeft, CloudSun, Utensils, Zap, PlusCircle, Bell, Globe, Navigation, CalendarDays, Star, Camera, MessageSquare, Loader2, Plus } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -1607,6 +1607,22 @@ const HomePage = ({
       setSelectedPoster(p);
     }
   };
+
+  const openVenueDetailPoster = useCallback((item) => {
+    const isVenueLesson = item?.category_type === 'venue'
+      || Boolean(item?.day_of_week && item?.start_time);
+    if (!isVenueLesson) {
+      openPartyWithAfterParty(item);
+      return;
+    }
+    const p = posterSharePayload(item);
+    if (!p) return;
+    if (enterPosterDetailView) {
+      enterPosterDetailView(p, { pushHistory: false });
+    } else {
+      setSelectedPoster(p);
+    }
+  }, [enterPosterDetailView, setSelectedPoster]);
 
   const [isPaused, setIsPaused] = useState(false);
   const [myInstructorsOpen, setMyInstructorsOpen] = useState(false);
@@ -4885,7 +4901,7 @@ const HomePage = ({
           onClose={closeVenueDetail}
           onVenueUpdated={syncVenueAcrossHome}
           onRegisterVenueLesson={openVenueLessonRegister}
-          onOpenPoster={openPartyWithAfterParty}
+          onOpenPoster={openVenueDetailPoster}
         />
       )}
 

@@ -119,7 +119,7 @@ const PostLesson = ({ onBack, user, initialVenue = null }) => {
       }
 
       const publisherId = formData.location_id || '';
-      const { error } = await supabase.from('classes_info').insert([{
+      const lessonRow = {
         title: formData.title,
         genre: formData.dance_styles.join(', '),
         level: buildCategoryLevelLabel(formData.categories, formData.custom_category),
@@ -136,7 +136,16 @@ const PostLesson = ({ onBack, user, initialVenue = null }) => {
         status: 'approved',
         category_type: 'venue',
         description: appendLessonPublisherMeta(formData.description, 'venue', publisherId),
-      }])
+      };
+
+      const withLocationId = publisherId && !String(publisherId).startsWith('bar-')
+        ? { ...lessonRow, location_id: publisherId }
+        : lessonRow;
+
+      let { error } = await supabase.from('classes_info').insert([withLocationId]);
+      if (error && /location_id/i.test(String(error.message || ''))) {
+        ({ error } = await supabase.from('classes_info').insert([lessonRow]));
+      }
 
       if (error) throw error
       setSubmitted(true)

@@ -39,3 +39,8 @@ export function stripLessonPublisherMeta(description) {
     .replace(/^\[publisher:[^\]]+\]\n?/, '')
     .trim();
 }
+
+/** UI 표시용 — publisher 메타 제거 */
+export function getLessonDisplayDescription(row) {
+  return stripLessonPublisherMeta(row?.description);
+}

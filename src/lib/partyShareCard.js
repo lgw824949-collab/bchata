@@ -21,6 +21,8 @@ export const formatPartyPrice = (priceStr) => {
 
 export const getPartyGenreLabel = (item) => {
   if (!item) return '소셜';
+  const genreText = String(item.genre || '').trim();
+  if (genreText) return genreText;
   if (item._itemGenre && item._itemGenre !== '소셜') return item._itemGenre;
   const entries = Object.entries(GENRE_MAP).filter(([, info]) => item[info.key] > 0);
   if (entries.length === 0) return '소셜';

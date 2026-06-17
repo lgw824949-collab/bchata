@@ -1,4 +1,5 @@
 import { BAR_DATABASE } from './BarLib';
+import { getLessonPublisherMeta } from './lessonPublisher';
 import { normalizeVenueAddressKey, normalizeVenueNameKey } from './venueDedupe';
 
 /** BAR(venue)에 대응하는 정규화 이름 키 목록 */
@@ -104,9 +105,21 @@ export const partyMatchesVenue = (party, venue) => {
   return false;
 };
 
-/** 수업(클래스)이 해당 BAR와 같은 장소인지 — studio_name·주소 기준 */
+/** 수업(클래스)이 해당 BAR와 같은 장소인지 — publisher id · studio_name · 주소 기준 */
 export const lessonMatchesVenue = (lesson, venue) => {
   if (!lesson || !venue) return false;
+
+  const publisher = getLessonPublisherMeta(lesson);
+  if (
+    publisher.type === 'venue'
+    && publisher.id
+    && venue.id
+    && !String(venue.id).startsWith('bar-')
+    && String(publisher.id) === String(venue.id)
+  ) {
+    return true;
+  }
+
   if (
     partyMatchesVenue(
       {
