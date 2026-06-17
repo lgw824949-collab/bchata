@@ -200,12 +200,16 @@ export function useHomeListGateProps(input: UseHomeDarkGatePropsInput) {
     return key ? (barTodayPartyCountByKey.get(key) || 0) : 0;
   }, [barTodayPartyCountByKey]);
 
+  const geoSortReady = geoRegionStatus === 'ready'
+    && userGeoCoords?.lat != null
+    && userGeoCoords?.lng != null;
+
   const homeListRegionBars = useMemo(() => {
     if (!selectedRegionTab) return [];
     const filteredBars = selectedRegionTab === socialBarRegionAll
       ? locations
       : locations.filter((bar) => bar.region === selectedRegionTab);
-    if (userGeoCoords?.lat != null && userGeoCoords?.lng != null) {
+    if (geoSortReady) {
       if (selectedRegionTab === '서울') {
         return sortSeoulBarsPinnedThenDistance(filteredBars, userGeoCoords);
       }
@@ -228,6 +232,7 @@ export function useHomeListGateProps(input: UseHomeDarkGatePropsInput) {
     selectedRegionTab,
     socialBarRegionAll,
     sortBarsForSocialBarTab,
+    geoSortReady,
     userGeoCoords,
   ]);
 
@@ -237,7 +242,7 @@ export function useHomeListGateProps(input: UseHomeDarkGatePropsInput) {
   }, []);
 
   const getBarDistanceLabel = useCallback((bar: HomeDarkBar) => {
-    if (!userGeoCoords) return null;
+    if (!geoSortReady || !userGeoCoords) return null;
     const venue = parseVenueCoordinates(bar.latitude, bar.longitude);
     if (!venue) return null;
     const km = haversineKm(
@@ -247,7 +252,7 @@ export function useHomeListGateProps(input: UseHomeDarkGatePropsInput) {
       venue.lng,
     );
     return km != null ? formatDistanceLabel(km) : null;
-  }, [userGeoCoords]);
+  }, [geoSortReady, userGeoCoords]);
 
   const bootcampCount = useMemo(
     () => (bootcamps || []).filter((row) => isUpcomingEvent(row, calendarTodayStr)).length,
@@ -511,7 +516,7 @@ export function useHomeListGateProps(input: UseHomeDarkGatePropsInput) {
     getBarCoverPhoto,
     getBarEventCount: getBarTodayEventCount,
     getBarDistanceLabel,
-    sortByNearest: Boolean(userGeoCoords),
+    sortByNearest: geoSortReady,
     onBarRegionTabChange: setSelectedRegionTab,
     onBarClick: openVenueDetail,
     onRequestLocation: requestUserLocation,

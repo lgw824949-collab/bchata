@@ -125,6 +125,7 @@ export default function HomeListGate({
   const [searchOpen, setSearchOpen] = useState(false);
   const [moreOpen, setMoreOpen] = useState(false);
   const [headerCompact, setHeaderCompact] = useState(false);
+  const headerCompactRef = useRef(false);
   const [onHomePath, setOnHomePath] = useState(() => window.location.pathname === '/');
   const [exploreThumbEpoch, setExploreThumbEpoch] = useState(0);
   const wasHomePathRef = useRef(window.location.pathname === '/');
@@ -152,8 +153,21 @@ export default function HomeListGate({
   }, []);
 
   useEffect(() => {
+    let ticking = false;
     const onScroll = () => {
-      setHeaderCompact(window.scrollY > 96);
+      if (ticking) return;
+      ticking = true;
+      window.requestAnimationFrame(() => {
+        const y = window.scrollY;
+        const next = headerCompactRef.current
+          ? y > 40
+          : y > 128;
+        if (next !== headerCompactRef.current) {
+          headerCompactRef.current = next;
+          setHeaderCompact(next);
+        }
+        ticking = false;
+      });
     };
     onScroll();
     window.addEventListener('scroll', onScroll, { passive: true });

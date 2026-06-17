@@ -1,5 +1,6 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { MapPin } from 'lucide-react';
+import { createPortal } from 'react-dom';
+import { MapPin, X } from 'lucide-react';
 import { imgFallbackHandler } from '../../constants/imageAssets';
 import { formatBarDistrictLabel } from './homeDarkUtils';
 import { HOME_LIST_BAR_PREVIEW_COUNT } from './constants';
@@ -54,28 +55,40 @@ export default function HomeListBarSection({
   onViewMap,
   onRequestLocation,
 }: HomeListBarSectionProps) {
-  const [expanded, setExpanded] = useState(false);
+  const [sheetOpen, setSheetOpen] = useState(false);
 
   useEffect(() => {
-    setExpanded(false);
+    setSheetOpen(false);
   }, [selectedTab]);
 
-  if (regionTabs.length === 0 && !loading) return null;
+  useEffect(() => {
+    if (!sheetOpen) return undefined;
+    const prev = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    return () => { document.body.style.overflow = prev; };
+  }, [sheetOpen]);
 
   const orderedTabs = useMemo(
     () => orderBarRegionTabs(regionTabs, geoRegionTab),
     [regionTabs, geoRegionTab],
   );
 
+  if (regionTabs.length === 0 && !loading) return null;
+
   const hasMoreBars = bars.length > HOME_LIST_BAR_PREVIEW_COUNT;
   const hiddenBarCount = Math.max(0, bars.length - HOME_LIST_BAR_PREVIEW_COUNT);
-  const previewBars = expanded ? bars : bars.slice(0, HOME_LIST_BAR_PREVIEW_COUNT);
+  const previewBars = bars.slice(0, HOME_LIST_BAR_PREVIEW_COUNT);
 
-  const renderBarCard = (bar: HomeDarkBar, index: number, layout: 'scroll' | 'grid') => {
+  const renderBarCard = (
+    bar: HomeDarkBar,
+    index: number,
+    layout: 'scroll' | 'grid',
+    onSelect?: () => void,
+  ) => {
     const coverSrc = getCoverPhoto(bar) || BAR_LOGO_FALLBACK;
     const distanceLabel = getDistanceLabel(bar);
     const districtLabel = !distanceLabel ? formatBarDistrictLabel(bar) : null;
-    const isNearest = sortByNearest && index === 0 && Boolean(distanceLabel) && !expanded;
+    const isNearest = sortByNearest && index === 0 && Boolean(distanceLabel);
 
     return (
       <button
@@ -83,7 +96,10 @@ export default function HomeListBarSection({
         type="button"
         role="listitem"
         className={`home-list-gate__bar-card${isNearest ? ' is-nearest' : ''}${layout === 'grid' ? ' home-list-gate__bar-card--grid' : ''}`}
-        onClick={() => onBarClick(bar)}
+        onClick={() => {
+          onSelect?.();
+          onBarClick(bar);
+        }}
       >
         {isNearest ? (
           <span className="home-list-gate__bar-nearest-badge">
@@ -100,11 +116,14 @@ export default function HomeListBarSection({
           />
         </span>
         <span className="home-list-gate__bar-name">{bar.name || (isEn ? 'Unnamed' : '이름 없음')}</span>
-        {distanceLabel ? (
-          <span className="home-list-gate__bar-meta-dist">{distanceLabel}</span>
-        ) : districtLabel ? (
-          <span className="home-list-gate__bar-meta-district">{districtLabel}</span>
-        ) : null}
+        <span
+          className={`home-list-gate__bar-meta-line${
+            distanceLabel ? ' home-list-gate__bar-meta-line--dist' : ''
+          }`}
+          aria-hidden={!distanceLabel && !districtLabel}
+        >
+          {distanceLabel || districtLabel || '\u00a0'}
+        </span>
       </button>
     );
   };
@@ -119,134 +138,158 @@ export default function HomeListBarSection({
           ? (isEn ? 'No spots in this area yet.' : '이 지역 장소가 아직 없어요.')
           : null;
 
-  return (
-    <section className="home-list-gate__panel home-list-gate__bar-panel" aria-label={isEn ? 'BAR venues' : 'BAR'}>
-      <div className="home-list-gate__panel-head home-list-gate__bar-panel-head">
-        <div className="home-list-gate__bar-panel-title-wrap">
-          <h2 className="home-list-gate__section-title">
-            BAR
-            {selectedTab && barCounts[selectedTab] != null ? (
-              <span
-                className="home-list-gate__section-count home-list-gate__section-count--muted"
-                aria-label={isEn ? `${barCounts[selectedTab]} venues` : `${barCounts[selectedTab]}곳`}
-              >
-                {barCounts[selectedTab]}
-                <span className="home-list-gate__count-unit">{isEn ? '' : '곳'}</span>
-              </span>
-            ) : null}
-          </h2>
-          <p className="home-list-gate__bar-panel-caption">
-            {isEn ? 'Venues in selected region' : '선택 지역 BAR 수'}
-          </p>
-        </div>
-        <div className="home-list-gate__bar-panel-actions">
-          {!sortByNearest && !geoPending && !loading ? (
-            <button
-              type="button"
-              className="home-list-gate__bar-locate-link"
-              onClick={onRequestLocation}
-            >
-              {isEn ? 'Sort by distance' : '내 위치로 정렬'}
-            </button>
-          ) : null}
+  const sheetTitle = selectedTab
+    ? (isEn ? `BAR · ${selectedTab}` : `BAR · ${selectedTab}`)
+    : (isEn ? 'BAR list' : 'BAR 목록');
+
+  const sheet = sheetOpen ? createPortal(
+    <div
+      className="home-bar-list-sheet"
+      role="presentation"
+      onClick={() => setSheetOpen(false)}
+    >
+      <div
+        className="home-bar-list-sheet__panel"
+        role="dialog"
+        aria-modal="true"
+        aria-label={sheetTitle}
+        onClick={(e) => e.stopPropagation()}
+      >
+        <div className="home-bar-list-sheet__head">
+          <h3 className="home-bar-list-sheet__title">{sheetTitle}</h3>
           <button
             type="button"
-            className="home-list-gate__bar-map-btn"
-            onClick={onViewMap}
-            aria-label={isEn ? 'Open map' : '지도 열기'}
+            className="home-bar-list-sheet__close"
+            onClick={() => setSheetOpen(false)}
+            aria-label={isEn ? 'Close' : '닫기'}
           >
-            <MapPin size={18} aria-hidden />
+            <X size={22} aria-hidden />
           </button>
         </div>
-      </div>
-
-      {orderedTabs.length > 0 ? (
-        <div className="home-list-gate__bar-tabs-wrap">
-          <div
-            className="home-list-gate__bar-tabs"
-            role="tablist"
-            aria-label={isEn ? 'BAR region' : 'BAR 지역'}
-          >
-            {orderedTabs.map((tab) => {
-              const isSelected = selectedTab === tab;
-              const isMyRegion = Boolean(geoRegionTab && tab === geoRegionTab);
-              const isAll = tab === BAR_REGION_ALL;
-              const count = barCounts[tab] ?? 0;
-              return (
-                <button
-                  key={tab}
-                  type="button"
-                  role="tab"
-                  aria-selected={isSelected}
-                  className={`home-list-gate__bar-tab${isSelected ? ' is-active' : ''}${isMyRegion ? ' is-my-region' : ''}${isAll ? ' is-all' : ''}`}
-                  onClick={() => onTabChange(tab)}
-                >
-                  <span className="home-list-gate__bar-tab-label">
-                    {isMyRegion && !isSelected ? (isEn ? 'Near me · ' : '내 주변 · ') : ''}
-                    {tab}
-                  </span>
-                  <span className="home-list-gate__bar-tab-count">{count}</span>
-                </button>
-              );
-            })}
-          </div>
+        <div className="home-bar-list-sheet__grid" role="list">
+          {bars.map((bar, index) => renderBarCard(bar, index, 'grid', () => setSheetOpen(false)))}
         </div>
-      ) : null}
+      </div>
+    </div>,
+    document.body,
+  ) : null;
 
-      {statusText ? (
-        <p className="home-list-gate__bar-status">{statusText}</p>
-      ) : expanded ? (
-        <>
-          <div className="home-list-gate__bar-grid" role="list">
-            {bars.map((bar, index) => renderBarCard(bar, index, 'grid'))}
-          </div>
-          <div className="home-list-gate__bar-more-row">
-            <button
-              type="button"
-              className="home-list-gate__bar-more-btn"
-              onClick={() => setExpanded(false)}
-            >
-              {isEn ? 'Show less' : '접기'}
-            </button>
-          </div>
-        </>
-      ) : (
-        <>
-          <div className="home-list-gate__bar-scroll-wrap home-list-gate__bar-scroll-wrap--peek">
-            <div className="home-list-gate__bar-scroll" role="list">
-              {previewBars.map((bar, index) => renderBarCard(bar, index, 'scroll'))}
-              {hasMoreBars ? (
-                <button
-                  type="button"
-                  role="listitem"
-                  className="home-list-gate__bar-card home-list-gate__bar-card--more"
-                  onClick={() => setExpanded(true)}
-                  aria-label={isEn ? `Show ${hiddenBarCount} more venues` : `BAR ${hiddenBarCount}곳 더보기`}
+  return (
+    <>
+      <section className="home-list-gate__panel home-list-gate__bar-panel" aria-label={isEn ? 'BAR venues' : 'BAR'}>
+        <div className="home-list-gate__panel-head home-list-gate__bar-panel-head">
+          <div className="home-list-gate__bar-panel-title-wrap">
+            <h2 className="home-list-gate__section-title">
+              BAR
+              {selectedTab && barCounts[selectedTab] != null ? (
+                <span
+                  className="home-list-gate__section-count home-list-gate__section-count--muted"
+                  aria-label={isEn ? `${barCounts[selectedTab]} venues` : `${barCounts[selectedTab]}곳`}
                 >
-                  <span className="home-list-gate__bar-thumb home-list-gate__bar-thumb--more">
-                    <span className="home-list-gate__bar-more-count">+{hiddenBarCount}</span>
-                  </span>
-                  <span className="home-list-gate__bar-name">{isEn ? 'More' : '더보기'}</span>
-                  <span className="home-list-gate__bar-meta-district">
-                    {isEn ? `All ${bars.length}` : `전체 ${bars.length}곳`}
-                  </span>
-                </button>
+                  {barCounts[selectedTab]}
+                  <span className="home-list-gate__count-unit">{isEn ? '' : '곳'}</span>
+                </span>
               ) : null}
-            </div>
+            </h2>
+            <p className="home-list-gate__bar-panel-caption">
+              {isEn ? 'Venues in selected region' : '선택 지역 BAR 수'}
+            </p>
           </div>
-          {hasMoreBars ? (
-            <div className="home-list-gate__bar-more-row">
+          <div className="home-list-gate__bar-panel-actions">
+            {!sortByNearest && !geoPending && !loading ? (
               <button
                 type="button"
-                className="home-list-gate__bar-more-btn"
-                onClick={() => setExpanded(true)}
+                className="home-list-gate__bar-locate-link"
+                onClick={onRequestLocation}
               >
-                {isEn ? `See all ${bars.length} venues` : `전체 ${bars.length}곳 보기`}
+                {isEn ? 'Sort by distance' : '내 위치로 정렬'}
               </button>
+            ) : null}
+            <button
+              type="button"
+              className="home-list-gate__bar-map-btn"
+              onClick={onViewMap}
+              aria-label={isEn ? 'Open map' : '지도 열기'}
+            >
+              <MapPin size={18} aria-hidden />
+            </button>
+          </div>
+        </div>
+
+        {orderedTabs.length > 0 ? (
+          <div className="home-list-gate__bar-tabs-wrap">
+            <div
+              className="home-list-gate__bar-tabs"
+              role="tablist"
+              aria-label={isEn ? 'BAR region' : 'BAR 지역'}
+            >
+              {orderedTabs.map((tab) => {
+                const isSelected = selectedTab === tab;
+                const isMyRegion = Boolean(geoRegionTab && tab === geoRegionTab);
+                const isAll = tab === BAR_REGION_ALL;
+                const count = barCounts[tab] ?? 0;
+                return (
+                  <button
+                    key={tab}
+                    type="button"
+                    role="tab"
+                    aria-selected={isSelected}
+                    className={`home-list-gate__bar-tab${isSelected ? ' is-active' : ''}${isMyRegion ? ' is-my-region' : ''}${isAll ? ' is-all' : ''}`}
+                    onClick={() => onTabChange(tab)}
+                  >
+                    <span className="home-list-gate__bar-tab-label">
+                      {isMyRegion && !isSelected ? (isEn ? 'Near me · ' : '내 주변 · ') : ''}
+                      {tab}
+                    </span>
+                    <span className="home-list-gate__bar-tab-count">{count}</span>
+                  </button>
+                );
+              })}
             </div>
-          ) : null}
-        </>
-      )}
-    </section>
+          </div>
+        ) : null}
+
+        {statusText ? (
+          <p className="home-list-gate__bar-status">{statusText}</p>
+        ) : (
+          <>
+            <div className="home-list-gate__bar-scroll-wrap home-list-gate__bar-scroll-wrap--peek">
+              <div className="home-list-gate__bar-scroll" role="list">
+                {previewBars.map((bar, index) => renderBarCard(bar, index, 'scroll'))}
+                {hasMoreBars ? (
+                  <button
+                    type="button"
+                    role="listitem"
+                    className="home-list-gate__bar-card home-list-gate__bar-card--more"
+                    onClick={() => setSheetOpen(true)}
+                    aria-label={isEn ? `Show ${hiddenBarCount} more venues` : `BAR ${hiddenBarCount}곳 더보기`}
+                  >
+                    <span className="home-list-gate__bar-thumb home-list-gate__bar-thumb--more">
+                      <span className="home-list-gate__bar-more-count">+{hiddenBarCount}</span>
+                    </span>
+                    <span className="home-list-gate__bar-name">{isEn ? 'More' : '더보기'}</span>
+                    <span className="home-list-gate__bar-meta-district">
+                      {isEn ? `All ${bars.length}` : `전체 ${bars.length}곳`}
+                    </span>
+                  </button>
+                ) : null}
+              </div>
+            </div>
+            {hasMoreBars ? (
+              <div className="home-list-gate__bar-more-row">
+                <button
+                  type="button"
+                  className="home-list-gate__bar-more-btn"
+                  onClick={() => setSheetOpen(true)}
+                >
+                  {isEn ? `See all ${bars.length} venues` : `전체 ${bars.length}곳 보기`}
+                </button>
+              </div>
+            ) : null}
+          </>
+        )}
+      </section>
+      {sheet}
+    </>
   );
 }

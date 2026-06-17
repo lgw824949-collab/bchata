@@ -82,24 +82,25 @@ export default function HomeDarkTodayPick({
 
   return (
     <article className="home-dark-today-pick">
-      <AnimatePresence mode="wait">
-        <motion.div
-          key={slide.id}
-          className="home-dark-today-pick__stage home-dark-today-pick__stage--clickable"
-          role="button"
-          tabIndex={0}
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          exit={{ opacity: 0 }}
-          transition={{ duration: 0.5, ease: 'easeInOut' }}
-          onClick={onOpen}
-          onKeyDown={(e) => {
-            if (e.key === 'Enter' || e.key === ' ') {
-              e.preventDefault();
-              onOpen();
-            }
-          }}
-        >
+      <div className="home-dark-today-pick__stage-stack">
+        <AnimatePresence initial={false}>
+          <motion.div
+            key={slide.id}
+            className="home-dark-today-pick__stage home-dark-today-pick__stage--clickable"
+            role="button"
+            tabIndex={0}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.35, ease: 'easeOut' }}
+            onClick={onOpen}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault();
+                onOpen();
+              }
+            }}
+          >
           {slide.poster_url && !posterBroken ? (
             <img
               key={slide.poster_url}
@@ -146,8 +147,9 @@ export default function HomeDarkTodayPick({
               <ChevronRight size={16} aria-hidden />
             </button>
           </div>
-        </motion.div>
-      </AnimatePresence>
+          </motion.div>
+        </AnimatePresence>
+      </div>
       {slideCount > 1 ? (
         <div className="home-dark-today-pick__dots" aria-label={isEn ? 'Hero posters' : '히어로 포스터'}>
           {Array.from({ length: slideCount }).map((_, i) => (
