@@ -193,6 +193,11 @@ const RegisterForm = ({ onBack, onSuccess, isEdit = false, isAdminMode = false, 
   }, [initialData?.id, initialData?.fee, initialData?.poster_url])
 
   useEffect(() => {
+    // 관리자 수정 진입 시 이전 스텝 상태가 남아 화면이 비는 경우를 차단
+    setStep(1)
+  }, [initialData?.id, isEdit, isAdminMode])
+
+  useEffect(() => {
     if (formData.is_weekly_recurring || !formData.date) return
     const d = new Date(formData.date)
     const dayName = DAYS_KOR[d.getDay()]
@@ -681,7 +686,8 @@ const RegisterForm = ({ onBack, onSuccess, isEdit = false, isAdminMode = false, 
   }
 
   const renderStepContent = () => {
-    switch(safeStep) {
+    try {
+      switch(safeStep) {
       case 1:
         return (
           <motion.div key="step1" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} style={{ padding: '24px' }}>
@@ -1010,18 +1016,22 @@ const RegisterForm = ({ onBack, onSuccess, isEdit = false, isAdminMode = false, 
             </div>
           </motion.div>
         );
-      default:
-        return (
-          <motion.div
-            key="step-fallback"
-            initial={{ opacity: 0, x: 20 }}
-            animate={{ opacity: 1, x: 0 }}
-            exit={{ opacity: 0, x: -20 }}
-            style={{ padding: '24px', color: '#64748B', fontWeight: 700 }}
-          >
-            단계 표시를 복구했습니다. 다시 진행해주세요.
-          </motion.div>
-        );
+        default:
+          return (
+            <div style={{ padding: '24px', color: '#64748B', fontWeight: 700 }}>
+              단계 표시를 복구했습니다. 다시 진행해주세요.
+            </div>
+          );
+      }
+    } catch (err) {
+      console.error('[RegisterForm] renderStepContent failed:', err)
+      return (
+        <div style={{ padding: '24px' }}>
+          <div style={{ padding: '16px', borderRadius: '12px', background: '#FEF2F2', border: '1px solid #FECACA', color: '#B91C1C', fontSize: '13px', fontWeight: 700 }}>
+            화면 표시 오류가 발생해 단계를 복구했습니다. 다시 진행해주세요.
+          </div>
+        </div>
+      )
     }
   }
 
@@ -1046,8 +1056,12 @@ const RegisterForm = ({ onBack, onSuccess, isEdit = false, isAdminMode = false, 
         </div>
 
         <div style={{ flex: 1, minHeight: 0, overflowY: 'auto', WebkitOverflowScrolling: 'touch' }}>
-          <AnimatePresence mode="wait">
-            {renderStepContent()}
+          <AnimatePresence>
+            {renderStepContent() || (
+              <div style={{ padding: '24px', color: '#64748B', fontWeight: 700 }}>
+                화면을 불러오는 중입니다. 다시 시도해주세요.
+              </div>
+            )}
           </AnimatePresence>
         </div>
 
