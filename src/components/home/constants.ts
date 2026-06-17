@@ -10,6 +10,8 @@ export const HOME_DARK_VISIBLE_PARTY = 4;
 export const HOME_DARK_VISIBLE_INSTRUCTOR = 4;
 export const HOME_DARK_VISIBLE_BAR = 5;
 export const HOME_DARK_MIN_BAR_ITEMS = 5;
+/** 리스트 게이트 BAR 가로 미리보기 — 초과 시 더보기 */
+export const HOME_LIST_BAR_PREVIEW_COUNT = 6;
 
 export const HOME_DARK_REGION_PILLS = [
   { id: 'national', labelKo: '전국', labelEn: 'National' },

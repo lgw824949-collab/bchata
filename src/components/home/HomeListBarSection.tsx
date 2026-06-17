@@ -1,7 +1,8 @@
-import React, { useMemo } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { MapPin } from 'lucide-react';
 import { imgFallbackHandler } from '../../constants/imageAssets';
 import { formatBarDistrictLabel } from './homeDarkUtils';
+import { HOME_LIST_BAR_PREVIEW_COUNT } from './constants';
 import type { HomeDarkBar } from './types';
 
 const BAR_REGION_ALL = '전체';
@@ -53,12 +54,60 @@ export default function HomeListBarSection({
   onViewMap,
   onRequestLocation,
 }: HomeListBarSectionProps) {
+  const [expanded, setExpanded] = useState(false);
+
+  useEffect(() => {
+    setExpanded(false);
+  }, [selectedTab]);
+
   if (regionTabs.length === 0 && !loading) return null;
 
   const orderedTabs = useMemo(
     () => orderBarRegionTabs(regionTabs, geoRegionTab),
     [regionTabs, geoRegionTab],
   );
+
+  const hasMoreBars = bars.length > HOME_LIST_BAR_PREVIEW_COUNT;
+  const hiddenBarCount = Math.max(0, bars.length - HOME_LIST_BAR_PREVIEW_COUNT);
+  const previewBars = expanded ? bars : bars.slice(0, HOME_LIST_BAR_PREVIEW_COUNT);
+
+  const renderBarCard = (bar: HomeDarkBar, index: number, layout: 'scroll' | 'grid') => {
+    const coverSrc = getCoverPhoto(bar) || BAR_LOGO_FALLBACK;
+    const distanceLabel = getDistanceLabel(bar);
+    const districtLabel = !distanceLabel ? formatBarDistrictLabel(bar) : null;
+    const isNearest = sortByNearest && index === 0 && Boolean(distanceLabel) && !expanded;
+
+    return (
+      <button
+        key={bar.id}
+        type="button"
+        role="listitem"
+        className={`home-list-gate__bar-card${isNearest ? ' is-nearest' : ''}${layout === 'grid' ? ' home-list-gate__bar-card--grid' : ''}`}
+        onClick={() => onBarClick(bar)}
+      >
+        {isNearest ? (
+          <span className="home-list-gate__bar-nearest-badge">
+            {isEn ? 'Near' : '가까움'}
+          </span>
+        ) : null}
+        <span className="home-list-gate__bar-thumb">
+          <img
+            src={coverSrc}
+            alt=""
+            loading="lazy"
+            decoding="async"
+            onError={imgFallbackHandler(BAR_LOGO_FALLBACK)}
+          />
+        </span>
+        <span className="home-list-gate__bar-name">{bar.name || (isEn ? 'Unnamed' : '이름 없음')}</span>
+        {distanceLabel ? (
+          <span className="home-list-gate__bar-meta-dist">{distanceLabel}</span>
+        ) : districtLabel ? (
+          <span className="home-list-gate__bar-meta-district">{districtLabel}</span>
+        ) : null}
+      </button>
+    );
+  };
 
   const statusText = geoPending
     ? (isEn ? 'Finding your area…' : '현재 위치 기준 지역을 확인하는 중...')
@@ -146,48 +195,57 @@ export default function HomeListBarSection({
 
       {statusText ? (
         <p className="home-list-gate__bar-status">{statusText}</p>
+      ) : expanded ? (
+        <>
+          <div className="home-list-gate__bar-grid" role="list">
+            {bars.map((bar, index) => renderBarCard(bar, index, 'grid'))}
+          </div>
+          <div className="home-list-gate__bar-more-row">
+            <button
+              type="button"
+              className="home-list-gate__bar-more-btn"
+              onClick={() => setExpanded(false)}
+            >
+              {isEn ? 'Show less' : '접기'}
+            </button>
+          </div>
+        </>
       ) : (
-        <div className="home-list-gate__bar-scroll-wrap home-list-gate__bar-scroll-wrap--peek">
-          <div className="home-list-gate__bar-scroll" role="list">
-            {bars.map((bar, index) => {
-              const coverSrc = getCoverPhoto(bar) || BAR_LOGO_FALLBACK;
-              const distanceLabel = getDistanceLabel(bar);
-              const districtLabel = !distanceLabel ? formatBarDistrictLabel(bar) : null;
-              const isNearest = sortByNearest && index === 0 && Boolean(distanceLabel);
-
-              return (
+        <>
+          <div className="home-list-gate__bar-scroll-wrap home-list-gate__bar-scroll-wrap--peek">
+            <div className="home-list-gate__bar-scroll" role="list">
+              {previewBars.map((bar, index) => renderBarCard(bar, index, 'scroll'))}
+              {hasMoreBars ? (
                 <button
-                  key={bar.id}
                   type="button"
                   role="listitem"
-                  className={`home-list-gate__bar-card${isNearest ? ' is-nearest' : ''}`}
-                  onClick={() => onBarClick(bar)}
+                  className="home-list-gate__bar-card home-list-gate__bar-card--more"
+                  onClick={() => setExpanded(true)}
+                  aria-label={isEn ? `Show ${hiddenBarCount} more venues` : `BAR ${hiddenBarCount}곳 더보기`}
                 >
-                  {isNearest ? (
-                    <span className="home-list-gate__bar-nearest-badge">
-                      {isEn ? 'Near' : '가까움'}
-                    </span>
-                  ) : null}
-                  <span className="home-list-gate__bar-thumb">
-                    <img
-                      src={coverSrc}
-                      alt=""
-                      loading="lazy"
-                      decoding="async"
-                      onError={imgFallbackHandler(BAR_LOGO_FALLBACK)}
-                    />
+                  <span className="home-list-gate__bar-thumb home-list-gate__bar-thumb--more">
+                    <span className="home-list-gate__bar-more-count">+{hiddenBarCount}</span>
                   </span>
-                  <span className="home-list-gate__bar-name">{bar.name || (isEn ? 'Unnamed' : '이름 없음')}</span>
-                  {distanceLabel ? (
-                    <span className="home-list-gate__bar-meta-dist">{distanceLabel}</span>
-                  ) : districtLabel ? (
-                    <span className="home-list-gate__bar-meta-district">{districtLabel}</span>
-                  ) : null}
+                  <span className="home-list-gate__bar-name">{isEn ? 'More' : '더보기'}</span>
+                  <span className="home-list-gate__bar-meta-district">
+                    {isEn ? `All ${bars.length}` : `전체 ${bars.length}곳`}
+                  </span>
                 </button>
-              );
-            })}
+              ) : null}
+            </div>
           </div>
-        </div>
+          {hasMoreBars ? (
+            <div className="home-list-gate__bar-more-row">
+              <button
+                type="button"
+                className="home-list-gate__bar-more-btn"
+                onClick={() => setExpanded(true)}
+              >
+                {isEn ? `See all ${bars.length} venues` : `전체 ${bars.length}곳 보기`}
+              </button>
+            </div>
+          ) : null}
+        </>
       )}
     </section>
   );
