@@ -5,6 +5,7 @@ import { adminDbMutate } from './lib/adminApi'
 import { ChevronLeft, Check, Trash2, ShieldCheck, X, RefreshCw, XCircle, Clock, Tent, Flag, Music2, Camera, Zap, Menu, User, Sparkles, Plus } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
 import AdminSocialPartyForm, { buildFormState } from './components/AdminSocialPartyForm'
+import AdminVenueLessonForm from './components/AdminVenueLessonForm'
 import { toDateOrNull } from './lib/dbSanitize'
 import { KOREAN_WEEKDAYS } from './lib/partyRecurrence'
 import ClassRegisterModal from './components/ClassRegisterModal'
@@ -192,6 +193,8 @@ export default function AdminDashboard({ onBack, refreshData }) {
   const [currentItem, setCurrentItem] = useState(null)
   const [showClassEditModal, setShowClassEditModal] = useState(false)
   const [classEditItem, setClassEditItem] = useState(null)
+  const [showVenueLessonModal, setShowVenueLessonModal] = useState(false)
+  const [venueLessonItem, setVenueLessonItem] = useState(null)
 
   const normalizePartyItemForForm = (item, table) => ({
     ...item,
@@ -203,6 +206,11 @@ export default function AdminDashboard({ onBack, refreshData }) {
     latitude: item.latitude ?? item.locations?.latitude ?? null,
     longitude: item.longitude ?? item.locations?.longitude ?? null,
   })
+
+  const openVenueLessonForm = (item = null) => {
+    setVenueLessonItem(item)
+    setShowVenueLessonModal(true)
+  }
 
   const openPartyRegisterForm = (item = null) => {
     const table = activeTab === 'active' ? 'parties' : 'pending_parties'
@@ -379,6 +387,9 @@ export default function AdminDashboard({ onBack, refreshData }) {
       } else if (category === 'instructor-classes') {
         const statusVal = activeTab === 'active' ? 'active' : activeTab;
         query = supabase.from('instructor_classes').select('*, instructors(name)').eq('status', statusVal);
+      } else if (category === 'venue-classes') {
+        const statusVal = activeTab === 'active' ? 'approved' : activeTab;
+        query = supabase.from('classes_info').select('*').eq('category_type', 'venue').eq('status', statusVal);
       } else if (category === 'rental') {
         query = supabase.from('locations').select('*');
       }
@@ -387,7 +398,7 @@ export default function AdminDashboard({ onBack, refreshData }) {
       setItems(data || [])
       clearAdminMessage()
     } catch (err) {
-      if (category === 'instructor' || category === 'festival' || category === 'bootcamp') {
+      if (category === 'instructor' || category === 'festival' || category === 'bootcamp' || category === 'venue-classes') {
         showAdminError(`목록 불러오기 실패: ${err.message || err}`)
       }
     } finally { setLoading(false) }
@@ -458,6 +469,8 @@ export default function AdminDashboard({ onBack, refreshData }) {
     } else if (category === 'instructor-classes') {
       setClassEditItem(item)
       setShowClassEditModal(true)
+    } else if (category === 'venue-classes') {
+      openVenueLessonForm(item)
     } else {
       setEditingItem(item.id)
       setEditFormData({ ...item, name: item.name || item.title || '', class_poster_url: '', class_title: '' })
@@ -509,6 +522,7 @@ export default function AdminDashboard({ onBack, refreshData }) {
       else if (category === 'live') table = 'community_posts';
       else if (category === 'instructor') table = 'instructors';
       else if (category === 'instructor-classes') table = 'instructor_classes';
+      else if (category === 'venue-classes') table = 'classes_info';
       else if (category === 'rental') table = 'locations';
       else table = category === 'bootcamp' ? 'bootcamps' : 'festivals';
 
@@ -807,9 +821,12 @@ export default function AdminDashboard({ onBack, refreshData }) {
         if (category === 'live') table = 'community_posts';
         else if (category === 'instructor') table = 'instructors';
         else if (category === 'instructor-classes') table = 'instructor_classes';
+        else if (category === 'venue-classes') table = 'classes_info';
         else table = category === 'bootcamp' ? 'bootcamps' : 'festivals';
         
-        const statusVal = newStatus === 'approved' ? 'active' : newStatus;
+        const statusVal = category === 'venue-classes'
+          ? (newStatus === 'active' ? 'approved' : newStatus)
+          : (newStatus === 'approved' ? 'active' : newStatus);
         if (category !== 'live') {
           const { error } = await adminDbMutate({
             adminSecret: adminApiSecret,
@@ -822,6 +839,9 @@ export default function AdminDashboard({ onBack, refreshData }) {
         }
       }
       await fetchData();
+      if (category === 'venue-classes') {
+        window.dispatchEvent(new CustomEvent('bchata-lessons-refresh'));
+      }
       if (typeof refreshData === 'function') {
         await refreshData({ silent: true });
       }
@@ -842,6 +862,7 @@ export default function AdminDashboard({ onBack, refreshData }) {
       else if (category === 'live') table = 'community_posts';
       else if (category === 'instructor') table = 'instructors';
       else if (category === 'instructor-classes') table = 'instructor_classes';
+      else if (category === 'venue-classes') table = 'classes_info';
       else if (category === 'rental') table = 'locations';
       else table = category === 'bootcamp' ? 'bootcamps' : 'festivals';
       const { error } = await adminDbMutate({
@@ -851,6 +872,9 @@ export default function AdminDashboard({ onBack, refreshData }) {
         id,
       });
       if (error) throw error;
+      if (category === 'venue-classes') {
+        window.dispatchEvent(new CustomEvent('bchata-lessons-refresh'));
+      }
       if (editingItem === id) cancelEdit();
       showAdminSuccess('삭제되었습니다.');
       await fetchData();
@@ -975,6 +999,7 @@ export default function AdminDashboard({ onBack, refreshData }) {
     { id: 'bootcamp', label: '부트캠프', icon: <Tent size={16} /> },
     { id: 'festival', label: '페스티벌', icon: <Flag size={16} /> },
     { id: 'instructor-classes', label: '강사 클래스 📚', icon: <Sparkles size={16} /> },
+    { id: 'venue-classes', label: '업체 수업 🍷', icon: <Sparkles size={16} color="#E53935" /> },
     { id: 'event', label: '🥃 이벤트', icon: <Sparkles size={16} color="#F59E0B" /> }
   ]
 
@@ -1102,6 +1127,28 @@ export default function AdminDashboard({ onBack, refreshData }) {
               }}
             >
               <Plus size={14} /> 소셜 등록
+            </button>
+          )}
+          {category === 'venue-classes' && (
+            <button
+              type="button"
+              onClick={() => openVenueLessonForm()}
+              disabled={loading}
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '6px',
+                background: '#E53935',
+                border: 'none',
+                padding: '8px 12px',
+                borderRadius: '12px',
+                color: '#FFF',
+                fontSize: '12px',
+                fontWeight: 800,
+                cursor: 'pointer',
+              }}
+            >
+              <Plus size={14} /> 업체 수업 등록
             </button>
           )}
           <button 
@@ -1355,7 +1402,7 @@ export default function AdminDashboard({ onBack, refreshData }) {
               <div style={{ flex: 1 }}>
                 <div style={{ fontSize: '11px', color: '#94A3B8', marginBottom: '4px' }}>ID: {item.id} | {item.created_at?.split('T')[0]} {item.created_at?.split('T')[1]?.slice(0, 5)}</div>
                 
-                {editingItem === item.id && category !== 'instructor-classes' ? (
+                {editingItem === item.id && category !== 'instructor-classes' && category !== 'venue-classes' ? (
                   /* 수정 모드 */
                   <div className={category === 'social' ? 'admin-social-inline-edit' : undefined} style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
                     <input value={editFormData.title || editFormData.name || ''} onChange={e => setEditFormData({ ...editFormData, title: e.target.value, name: e.target.value })} placeholder="제목/이름" style={{ width: '100%', padding: '10px', borderRadius: '10px', border: '1px solid #E2E8F0', fontWeight: 700 }} />
@@ -1620,6 +1667,20 @@ export default function AdminDashboard({ onBack, refreshData }) {
                         <div style={{ fontSize: '13px', color: '#64748B', lineHeight: '1.4', background: '#F8FAFC', padding: '8px', borderRadius: '8px' }}>{item.description}</div>
                         <div style={{ fontSize: '12px', color: '#475569', marginTop: '4px' }}>⏰ {item.schedule} | 📍 {item.location} | 💰 {item.fee}</div>
                       </div>
+                    ) : category === 'venue-classes' ? (
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                        <h3 style={{ fontSize: '16px', fontWeight: 900, color: '#1E293B' }}>🍷 {item.title}</h3>
+                        <div style={{ fontSize: '13px', color: '#E53935', fontWeight: 800 }}>📍 {item.studio_name || '-'} · {item.city || '-'}</div>
+                        <div style={{ fontSize: '13px', color: '#7C3AED', fontWeight: 800 }}>🎵 {item.genre || '-'} · {item.level || '-'}</div>
+                        <div style={{ fontSize: '12px', color: '#475569' }}>
+                          📅 {item.day_of_week || '-'} {item.start_time || ''}~{item.end_time || ''}
+                          {item.start_date ? ` · 개강 ${item.start_date}` : ''}
+                        </div>
+                        <div style={{ fontSize: '12px', color: '#475569' }}>💰 {item.fee || '참가비 문의'}</div>
+                        {item.poster_url ? (
+                          <img src={item.poster_url} alt="" style={{ width: '100%', maxHeight: '140px', objectFit: 'cover', borderRadius: '10px', marginTop: '4px' }} />
+                        ) : null}
+                      </div>
                     ) : category === 'live' ? (
                       <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
                         <h3 style={{ fontSize: '16px', fontWeight: 900, color: '#1E293B' }}>📍 {item.bar_name || '장소미지정'} ({item.region})</h3>
@@ -1760,6 +1821,25 @@ export default function AdminDashboard({ onBack, refreshData }) {
             setClassEditItem(null);
             fetchData();
             showAdminSuccess('클래스가 수정되었습니다.');
+          }}
+        />
+      )}
+      {showVenueLessonModal && (
+        <AdminVenueLessonForm
+          key={venueLessonItem?.id || 'new-venue-lesson'}
+          item={venueLessonItem}
+          isEdit={Boolean(venueLessonItem?.id)}
+          adminApiSecret={adminApiSecret}
+          onClose={() => {
+            setShowVenueLessonModal(false);
+            setVenueLessonItem(null);
+          }}
+          onSaved={() => {
+            const wasEdit = Boolean(venueLessonItem?.id);
+            setShowVenueLessonModal(false);
+            setVenueLessonItem(null);
+            fetchData();
+            showAdminSuccess(wasEdit ? '업체 수업이 수정되었습니다.' : '업체 수업이 등록되었습니다.');
           }}
         />
       )}

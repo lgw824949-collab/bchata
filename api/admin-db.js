@@ -1,6 +1,6 @@
 import { createClient } from '@supabase/supabase-js';
 
-const ALLOWED_TABLES = new Set(['instructor_classes', 'instructors', 'festivals', 'bootcamps']);
+const ALLOWED_TABLES = new Set(['instructor_classes', 'instructors', 'festivals', 'bootcamps', 'classes_info']);
 
 export default async function handler(req, res) {
   if (req.method !== 'POST') {
