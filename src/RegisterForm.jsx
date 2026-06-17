@@ -158,7 +158,8 @@ const RegisterForm = ({ onBack, onSuccess, isEdit = false, isAdminMode = false, 
   const [submitted, setSubmitted] = useState(false)
   const [step, setStep] = useState(1)
   const [suggestions, setSuggestions] = useState([])
-  const TOTAL_STEPS = 5
+  const adminQuickEdit = Boolean(isAdminMode && isEdit)
+  const TOTAL_STEPS = adminQuickEdit ? 1 : 5
   const safeStep = Math.min(Math.max(Number(step) || 1, 1), TOTAL_STEPS)
 
   useEffect(() => {
@@ -1035,6 +1036,74 @@ const RegisterForm = ({ onBack, onSuccess, isEdit = false, isAdminMode = false, 
     }
   }
 
+  const renderAdminQuickEditContent = () => (
+    <div style={{ padding: '24px' }}>
+      <label style={{ display: 'block', fontSize: '20px', fontWeight: 900, color: '#1E293B', marginBottom: '16px' }}>
+        관리자 소셜 즉시 수정
+      </label>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+        <input
+          type="text"
+          value={formData.title}
+          onChange={handleTitleChange}
+          placeholder="제목"
+          style={{ width: '100%', padding: '14px', border: '2px solid #E2E8F0', borderRadius: '12px', fontSize: '15px', fontWeight: 700 }}
+        />
+        <input
+          type="text"
+          value={formData.location_name}
+          onChange={(e) => handleLocationNameChange(e.target.value)}
+          placeholder="장소명"
+          style={{ width: '100%', padding: '14px', border: '2px solid #E2E8F0', borderRadius: '12px', fontSize: '15px' }}
+        />
+        <input
+          type="text"
+          value={formData.address}
+          onChange={(e) => setFormData({ ...formData, address: e.target.value })}
+          placeholder="주소"
+          style={{ width: '100%', padding: '14px', border: '2px solid #E2E8F0', borderRadius: '12px', fontSize: '14px' }}
+        />
+        <div style={{ display: 'flex', gap: '8px' }}>
+          <input
+            type="date"
+            value={formData.date}
+            onChange={(e) => setFormData({ ...formData, date: e.target.value })}
+            style={{ flex: 1, padding: '14px', border: '2px solid #E2E8F0', borderRadius: '12px' }}
+          />
+          <input
+            type="time"
+            value={formData.time}
+            onChange={(e) => setFormData({ ...formData, time: e.target.value })}
+            style={{ flex: 1, padding: '14px', border: '2px solid #E2E8F0', borderRadius: '12px' }}
+          />
+        </div>
+        <input
+          type="url"
+          value={inputUrl}
+          onChange={handleUrlChange}
+          placeholder="포스터 URL"
+          style={{ width: '100%', padding: '14px', border: '2px solid #E2E8F0', borderRadius: '12px', fontSize: '14px' }}
+        />
+        <input type="file" accept="image/*" onChange={handleFileUpload} style={{ width: '100%' }} />
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '8px' }}>
+          {[{ l: 'B', k: 'bRatio' }, { l: 'S', k: 'sRatio' }, { l: 'J', k: 'jRatio' }, { l: 'K', k: 'kRatio' }].map((g) => (
+            <div key={g.k} style={{ padding: '8px', borderRadius: '10px', background: '#F8FAFC', border: '1px solid #E2E8F0', textAlign: 'center' }}>
+              <div style={{ fontSize: '12px', fontWeight: 900 }}>{g.l}</div>
+              <input
+                type="number"
+                min={0}
+                max={10}
+                value={formData[g.k]}
+                onChange={(e) => setFormData((prev) => ({ ...prev, [g.k]: Number(e.target.value) || 0 }))}
+                style={{ width: '100%', marginTop: '6px', padding: '6px', borderRadius: '8px', border: '1px solid #CBD5E1', textAlign: 'center' }}
+              />
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  )
+
   return createPortal(
     <motion.div style={{ position: 'fixed', inset: 0, zIndex: PARTY_REGISTER_Z, display: 'flex', justifyContent: 'center' }}>
       <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={onBack} style={{ position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.6)', backdropFilter: 'blur(5px)' }} />
@@ -1056,13 +1125,17 @@ const RegisterForm = ({ onBack, onSuccess, isEdit = false, isAdminMode = false, 
         </div>
 
         <div style={{ flex: 1, minHeight: 0, overflowY: 'auto', WebkitOverflowScrolling: 'touch' }}>
-          <AnimatePresence>
-            {renderStepContent() || (
-              <div style={{ padding: '24px', color: '#64748B', fontWeight: 700 }}>
-                화면을 불러오는 중입니다. 다시 시도해주세요.
-              </div>
-            )}
-          </AnimatePresence>
+          {adminQuickEdit ? (
+            renderAdminQuickEditContent()
+          ) : (
+            <AnimatePresence>
+              {renderStepContent() || (
+                <div style={{ padding: '24px', color: '#64748B', fontWeight: 700 }}>
+                  화면을 불러오는 중입니다. 다시 시도해주세요.
+                </div>
+              )}
+            </AnimatePresence>
+          )}
         </div>
 
         <div style={{
@@ -1075,13 +1148,13 @@ const RegisterForm = ({ onBack, onSuccess, isEdit = false, isAdminMode = false, 
           background: '#fff',
           boxShadow: '0 -4px 24px rgba(0,0,0,0.08)',
         }}>
-          {safeStep > 1 && <button onClick={() => setStep(safeStep - 1)} style={{ flex: 1, height: '60px', borderRadius: '18px', background: '#F1F5F9', color: '#64748B', fontWeight: 900, border: 'none' }}>이전</button>}
+          {!adminQuickEdit && safeStep > 1 && <button onClick={() => setStep(safeStep - 1)} style={{ flex: 1, height: '60px', borderRadius: '18px', background: '#F1F5F9', color: '#64748B', fontWeight: 900, border: 'none' }}>이전</button>}
           <button 
-            onClick={() => { if(safeStep < TOTAL_STEPS) setStep(safeStep + 1); else handleSubmit(); }} 
+            onClick={() => { if(adminQuickEdit) handleSubmit(); else if(safeStep < TOTAL_STEPS) setStep(safeStep + 1); else handleSubmit(); }} 
             disabled={loading}
             style={{ flex: 2, height: '60px', borderRadius: '18px', background: '#FF1744', color: 'white', fontWeight: 900, fontSize: '18px', border: 'none', boxShadow: '0 8px 20px rgba(255, 23, 68, 0.2)' }}
           >
-            {loading ? '처리 중...' : (safeStep === TOTAL_STEPS ? (isEdit ? '수정 완료' : '등록 완료') : '다음 단계')}
+            {loading ? '처리 중...' : (adminQuickEdit ? '수정 완료' : (safeStep === TOTAL_STEPS ? (isEdit ? '수정 완료' : '등록 완료') : '다음 단계'))}
           </button>
         </div>
       </motion.div>
