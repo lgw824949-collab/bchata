@@ -1,4 +1,4 @@
-﻿import React, { useState } from 'react'
+import React, { useState } from 'react'
 import { ChevronLeft, Camera, Loader2, Check, Clock, Calendar, Plus, DollarSign, X } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { supabase } from '../lib/supabase'
@@ -22,7 +22,7 @@ const PostLesson = ({ onBack, user, initialVenue = null }) => {
   const [formData, setFormData] = useState({
     title: '',
     categories: [] as string[],
-    dance_style: '바차타',
+    dance_styles: ['바차타'] as string[],
     custom_category: '',
     days: [],
     startTime: '19:00',
@@ -54,6 +54,15 @@ const PostLesson = ({ onBack, user, initialVenue = null }) => {
       categories: prev.categories.includes(cat)
         ? prev.categories.filter((c) => c !== cat)
         : [...prev.categories, cat],
+    }))
+  }
+
+  const toggleDanceStyle = (style) => {
+    setFormData((prev) => ({
+      ...prev,
+      dance_styles: prev.dance_styles.includes(style)
+        ? prev.dance_styles.filter((item) => item !== style)
+        : [...prev.dance_styles, style],
     }))
   }
 
@@ -112,7 +121,7 @@ const PostLesson = ({ onBack, user, initialVenue = null }) => {
       const publisherId = formData.location_id || '';
       const { error } = await supabase.from('classes_info').insert([{
         title: formData.title,
-        genre: formData.dance_style,
+        genre: formData.dance_styles.join(', '),
         level: buildCategoryLevelLabel(formData.categories, formData.custom_category),
         day_of_week: formData.days.join(', '),
         start_time: formData.startTime,
@@ -293,27 +302,30 @@ const PostLesson = ({ onBack, user, initialVenue = null }) => {
               <div style={{ background: 'white', padding: '24px', borderRadius: '24px', border: '1px solid #F3F4F6' }}>
                 {/* 댄스 장르 선택 */}
                 <div style={{ marginBottom: '24px' }}>
-                  <label style={{ display: 'block', fontSize: '14px', fontWeight: 700, color: '#4B5563', marginBottom: '12px' }}>댄스 장르</label>
+                  <label style={{ display: 'block', fontSize: '14px', fontWeight: 700, color: '#4B5563', marginBottom: '12px' }}>댄스 장르 (중복 선택)</label>
                   <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '8px' }}>
-                    {DANCE_STYLES.map(style => (
-                      <button 
-                        key={style}
-                        type="button"
-                        onClick={() => setFormData({...formData, dance_style: style})}
-                        style={{ 
-                          height: '40px', 
-                          borderRadius: '10px', 
-                          fontSize: '13px', 
-                          fontWeight: 700,
-                          border: '1px solid',
-                          borderColor: formData.dance_style === style ? '#FF8C00' : '#E5E7EB',
-                          background: formData.dance_style === style ? '#FF8C00' : 'white',
-                          color: formData.dance_style === style ? 'white' : '#6B7280'
-                        }}
-                      >
-                        {style}
-                      </button>
-                    ))}
+                    {DANCE_STYLES.map((style) => {
+                      const selected = formData.dance_styles.includes(style)
+                      return (
+                        <button
+                          key={style}
+                          type="button"
+                          onClick={() => toggleDanceStyle(style)}
+                          style={{
+                            height: '40px',
+                            borderRadius: '10px',
+                            fontSize: '13px',
+                            fontWeight: 700,
+                            border: '1px solid',
+                            borderColor: selected ? '#FF8C00' : '#E5E7EB',
+                            background: selected ? '#FF8C00' : 'white',
+                            color: selected ? 'white' : '#6B7280',
+                          }}
+                        >
+                          {style}
+                        </button>
+                      )
+                    })}
                   </div>
                 </div>
 
@@ -534,6 +546,7 @@ const PostLesson = ({ onBack, user, initialVenue = null }) => {
             <button
               onClick={() => {
                 if (step === 1 && !formData.title) return alert('명칭을 입력해주세요.')
+                if (step === 2 && formData.dance_styles.length === 0) return alert('댄스 장르를 하나 이상 선택해주세요.')
                 if (step === 2 && formData.categories.length === 0) return alert('강습 유형을 하나 이상 선택해주세요.')
                 if (step === 2 && formData.categories.includes('기타') && !String(formData.custom_category || '').trim()) {
                   return alert('기타 유형을 입력해주세요.')
