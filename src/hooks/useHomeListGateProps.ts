@@ -32,6 +32,44 @@ import { buildHomeListMoreActions } from '../components/home/buildHomeListMoreAc
 
 const normDate = (value?: unknown) => String(value ?? '').slice(0, 10);
 
+const SEOUL_PINNED_BAR_ORDER = [
+  (key: string) => key === '라틴' || key.includes('latin'),
+  (key: string) => key.includes('보니타') || key.includes('보니따') || key.includes('bonita'),
+  (key: string) => key.includes('홍턴') || key.includes('hongturn'),
+];
+
+const getSeoulPinnedBarIndex = (bar: HomeDarkBar) => {
+  const key = normalizeVenueNameKey(bar?.name || '');
+  return SEOUL_PINNED_BAR_ORDER.findIndex((match) => match(key));
+};
+
+const sortSeoulBarsPinnedThenDistance = (
+  bars: HomeDarkBar[],
+  userGeoCoords: { lat: number; lng: number },
+) => (
+  [...bars]
+    .map((bar) => {
+      const venue = parseVenueCoordinates(bar.latitude, bar.longitude);
+      const distance = venue
+        ? haversineKm(userGeoCoords.lat, userGeoCoords.lng, venue.lat, venue.lng)
+        : Number.POSITIVE_INFINITY;
+      return {
+        bar,
+        pinnedIdx: getSeoulPinnedBarIndex(bar),
+        distance: Number.isFinite(distance) ? distance : Number.POSITIVE_INFINITY,
+      };
+    })
+    .sort((a, b) => {
+      const aPinned = a.pinnedIdx >= 0;
+      const bPinned = b.pinnedIdx >= 0;
+      if (aPinned !== bPinned) return aPinned ? -1 : 1;
+      if (aPinned && bPinned && a.pinnedIdx !== b.pinnedIdx) return a.pinnedIdx - b.pinnedIdx;
+      if (a.distance !== b.distance) return a.distance - b.distance;
+      return (a.bar.name || '').localeCompare(b.bar.name || '', 'ko');
+    })
+    .map((entry) => entry.bar)
+);
+
 const isUpcomingEvent = (row: Record<string, unknown>, todayStr: string) => {
   const end = normDate(row.end_date || row.start_date);
   return !end || end >= todayStr;
@@ -168,6 +206,9 @@ export function useHomeListGateProps(input: UseHomeDarkGatePropsInput) {
       ? locations
       : locations.filter((bar) => bar.region === selectedRegionTab);
     if (userGeoCoords?.lat != null && userGeoCoords?.lng != null) {
+      if (selectedRegionTab === '서울') {
+        return sortSeoulBarsPinnedThenDistance(filteredBars, userGeoCoords);
+      }
       return sortByDistanceFromUser(filteredBars, userGeoCoords, (bar) => (
         parseVenueCoordinates(bar.latitude, bar.longitude)
       ));
