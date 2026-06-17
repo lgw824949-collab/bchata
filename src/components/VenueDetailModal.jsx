@@ -770,16 +770,21 @@ export default function VenueDetailModal({
         return venueLessonsForDisplay
           .map((l) => ({ date: normDate(l.nextOccurrenceDate || l.date), party: l }))
           .filter(({ date }) => date && date >= todayStr)
-          .sort((a, b) => a.date.localeCompare(b.date));
+          .sort((a, b) => {
+            if (a.date !== b.date) return a.date.localeCompare(b.date);
+            const aTime = String(a.party?.start_time || a.party?.time || '');
+            const bTime = String(b.party?.start_time || b.party?.time || '');
+            return aTime.localeCompare(bTime);
+          });
       }
-      const byDate = new Map();
-      entries
-        .sort((a, b) => a.date.localeCompare(b.date))
-        .forEach(({ date, party }) => {
-          const prev = byDate.get(date);
-          if (!prev || (party.poster_url && !prev.poster_url)) byDate.set(date, party);
-        });
-      return [...byDate.entries()].map(([date, party]) => ({ date, party }));
+      // 수업 일정은 같은 날짜의 다중 클래스도 모두 노출
+      return entries.sort((a, b) => {
+        if (a.date !== b.date) return a.date.localeCompare(b.date);
+        const aTime = String(a.party?.start_time || a.party?.time || '');
+        const bTime = String(b.party?.start_time || b.party?.time || '');
+        if (aTime !== bTime) return aTime.localeCompare(bTime);
+        return String(a.party?.title || '').localeCompare(String(b.party?.title || ''), 'ko');
+      });
     }
     const byDate = new Map();
     activeItems.forEach((p) => {
