@@ -316,9 +316,13 @@ const FeaturedPartyCard = ({
   const tagLabel = isLesson
     ? [party.level, party.genre || getGenreLabel(party)].filter(Boolean).join(' · ') || '수업'
     : getGenreLabel(party);
+  const lessonGenre = String(party.genre || '').trim();
+  const lessonLevel = String(party.level || '').trim();
+  const lessonDay = String(party.day_of_week || '').trim();
+  const lessonTime = [party.start_time?.slice(0, 5), party.end_time?.slice(0, 5)].filter(Boolean).join(' - ');
 
   return (
-    <motion.div layout className="vd-featured-card">
+    <motion.div layout className={`vd-featured-card${isLesson ? ' vd-featured-card--lesson' : ''}`}>
       <button
         type="button"
         className="vd-featured-card__poster"
@@ -337,7 +341,7 @@ const FeaturedPartyCard = ({
         {party.poster_url ? <span className="vd-featured-card__poster-hint">탭 · 크게 보기</span> : null}
       </button>
 
-      <div className="vd-featured-card__body">
+      <div className={`vd-featured-card__body${isLesson ? ' vd-featured-card__body--lesson' : ''}`}>
         <GenreRatioPill tagLabel={tagLabel} item={party} showRatio={!isLesson} />
         <div className="vd-card-title-row">
           <h3 className="vd-card-title">{title}</h3>
@@ -357,6 +361,26 @@ const FeaturedPartyCard = ({
           </div>
         ) : null}
         {subtitle ? <p className="vd-card-subtitle">{subtitle}</p> : null}
+        {isLesson ? (
+          <div className="vd-lesson-info-grid" role="list">
+            <div className="vd-lesson-info-chip" role="listitem">
+              <span className="vd-lesson-info-chip__label">요일</span>
+              <strong className="vd-lesson-info-chip__value">{lessonDay || '미정'}</strong>
+            </div>
+            <div className="vd-lesson-info-chip" role="listitem">
+              <span className="vd-lesson-info-chip__label">시간</span>
+              <strong className="vd-lesson-info-chip__value">{lessonTime || '미정'}</strong>
+            </div>
+            <div className="vd-lesson-info-chip" role="listitem">
+              <span className="vd-lesson-info-chip__label">레벨</span>
+              <strong className="vd-lesson-info-chip__value">{lessonLevel || '전체'}</strong>
+            </div>
+            <div className="vd-lesson-info-chip" role="listitem">
+              <span className="vd-lesson-info-chip__label">장르</span>
+              <strong className="vd-lesson-info-chip__value">{lessonGenre || '소셜'}</strong>
+            </div>
+          </div>
+        ) : null}
         <div className="vd-featured-card__footer">
           <div className="vd-card-footer-meta">
             <span className="vd-card-time">

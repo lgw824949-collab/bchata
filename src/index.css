@@ -3941,6 +3941,11 @@ body.party-register-open [data-bchata-app-root] {
   border: 1px solid rgba(216, 27, 96, 0.12);
 }
 
+.venue-detail-modal .vd-featured-card--lesson {
+  border-color: rgba(212, 67, 110, 0.22);
+  box-shadow: 0 8px 24px rgba(212, 67, 110, 0.12);
+}
+
 .venue-detail-modal .vd-featured-card__poster {
   position: relative;
   display: block;
@@ -3988,6 +3993,10 @@ body.party-register-open [data-bchata-app-root] {
 
 .venue-detail-modal .vd-featured-card__body {
   padding: 16px 16px 14px;
+}
+
+.venue-detail-modal .vd-featured-card__body--lesson {
+  background: linear-gradient(180deg, #ffffff 0%, #fff7fb 100%);
 }
 
 .venue-detail-modal .vd-featured-card__footer {
@@ -4227,6 +4236,38 @@ body.party-register-open [data-bchata-app-root] {
   -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
   overflow: hidden;
+}
+
+.venue-detail-modal .vd-lesson-info-grid {
+  margin-top: 10px;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.venue-detail-modal .vd-lesson-info-chip {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 8px 10px;
+  border-radius: 10px;
+  background: #fff;
+  border: 1px solid rgba(212, 67, 110, 0.2);
+}
+
+.venue-detail-modal .vd-lesson-info-chip__label {
+  font-size: 10px;
+  font-weight: 700;
+  color: #9f1239;
+  letter-spacing: 0.01em;
+}
+
+.venue-detail-modal .vd-lesson-info-chip__value {
+  font-size: 13px;
+  font-weight: 800;
+  color: #111827;
+  letter-spacing: -0.01em;
+  line-height: 1.25;
 }
 
 .venue-detail-modal .vd-card-footer-meta {
