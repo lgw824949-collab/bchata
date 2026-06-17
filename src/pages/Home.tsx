@@ -2231,9 +2231,25 @@ const HomePage = ({
   }, []);
 
   const closeVenueLessonPost = useCallback(() => {
+    const targetVenue = venueLessonPostVenue ? mergeVenueWithLocalExtras(venueLessonPostVenue) : null;
+    if (targetVenue) {
+      setSelectedVenue(targetVenue);
+      historyNavigate('/', {
+        overlay: 'venue',
+        overlayMeta: {
+          venueId: targetVenue?.id ? String(targetVenue.id) : null,
+          venueName: targetVenue?.name || targetVenue?.studio_name || null,
+        },
+        replace: true,
+        force: true,
+      });
+      setVenueLessonPostVenue(null);
+      window.dispatchEvent(new CustomEvent('bchata-lessons-refresh'));
+      return;
+    }
     if (!closeOverlayNav()) setVenueLessonPostVenue(null);
     window.dispatchEvent(new CustomEvent('bchata-lessons-refresh'));
-  }, []);
+  }, [venueLessonPostVenue]);
 
   const closeVenueLessonPick = useCallback(() => {
     if (!closeOverlayNav()) setShowVenueLessonPick(false);
