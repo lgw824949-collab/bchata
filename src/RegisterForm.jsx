@@ -159,6 +159,11 @@ const RegisterForm = ({ onBack, onSuccess, isEdit = false, isAdminMode = false, 
   const [step, setStep] = useState(1)
   const [suggestions, setSuggestions] = useState([])
   const TOTAL_STEPS = 5
+  const safeStep = Math.min(Math.max(Number(step) || 1, 1), TOTAL_STEPS)
+
+  useEffect(() => {
+    if (step !== safeStep) setStep(safeStep)
+  }, [step, safeStep])
 
   const DAYS_KOR = KOREAN_WEEKDAYS
 
@@ -676,7 +681,7 @@ const RegisterForm = ({ onBack, onSuccess, isEdit = false, isAdminMode = false, 
   }
 
   const renderStepContent = () => {
-    switch(step) {
+    switch(safeStep) {
       case 1:
         return (
           <motion.div key="step1" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} style={{ padding: '24px' }}>
@@ -1005,7 +1010,18 @@ const RegisterForm = ({ onBack, onSuccess, isEdit = false, isAdminMode = false, 
             </div>
           </motion.div>
         );
-      default: return null;
+      default:
+        return (
+          <motion.div
+            key="step-fallback"
+            initial={{ opacity: 0, x: 20 }}
+            animate={{ opacity: 1, x: 0 }}
+            exit={{ opacity: 0, x: -20 }}
+            style={{ padding: '24px', color: '#64748B', fontWeight: 700 }}
+          >
+            단계 표시를 복구했습니다. 다시 진행해주세요.
+          </motion.div>
+        );
     }
   }
 
@@ -1026,7 +1042,7 @@ const RegisterForm = ({ onBack, onSuccess, isEdit = false, isAdminMode = false, 
         </div>
 
         <div style={{ height: '4px', background: '#F1F5F9', width: '100%', flexShrink: 0 }}>
-          <motion.div initial={{ width: 0 }} animate={{ width: `${(step / TOTAL_STEPS) * 100}%` }} style={{ height: '100%', background: '#FF1744' }} />
+          <motion.div initial={{ width: 0 }} animate={{ width: `${(safeStep / TOTAL_STEPS) * 100}%` }} style={{ height: '100%', background: '#FF1744' }} />
         </div>
 
         <div style={{ flex: 1, minHeight: 0, overflowY: 'auto', WebkitOverflowScrolling: 'touch' }}>
@@ -1045,13 +1061,13 @@ const RegisterForm = ({ onBack, onSuccess, isEdit = false, isAdminMode = false, 
           background: '#fff',
           boxShadow: '0 -4px 24px rgba(0,0,0,0.08)',
         }}>
-          {step > 1 && <button onClick={() => setStep(step - 1)} style={{ flex: 1, height: '60px', borderRadius: '18px', background: '#F1F5F9', color: '#64748B', fontWeight: 900, border: 'none' }}>이전</button>}
+          {safeStep > 1 && <button onClick={() => setStep(safeStep - 1)} style={{ flex: 1, height: '60px', borderRadius: '18px', background: '#F1F5F9', color: '#64748B', fontWeight: 900, border: 'none' }}>이전</button>}
           <button 
-            onClick={() => { if(step < TOTAL_STEPS) setStep(step + 1); else handleSubmit(); }} 
+            onClick={() => { if(safeStep < TOTAL_STEPS) setStep(safeStep + 1); else handleSubmit(); }} 
             disabled={loading}
             style={{ flex: 2, height: '60px', borderRadius: '18px', background: '#FF1744', color: 'white', fontWeight: 900, fontSize: '18px', border: 'none', boxShadow: '0 8px 20px rgba(255, 23, 68, 0.2)' }}
           >
-            {loading ? '처리 중...' : (step === TOTAL_STEPS ? (isEdit ? '수정 완료' : '등록 완료') : '다음 단계')}
+            {loading ? '처리 중...' : (safeStep === TOTAL_STEPS ? (isEdit ? '수정 완료' : '등록 완료') : '다음 단계')}
           </button>
         </div>
       </motion.div>
