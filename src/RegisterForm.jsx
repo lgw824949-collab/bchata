@@ -526,8 +526,8 @@ const RegisterForm = ({ onBack, onSuccess, isEdit = false, isAdminMode = false, 
       }
 
       const contributorId = isAdminMode
-        ? (isEdit && initialData?.contributor_id
-          ? String(initialData.contributor_id).trim()
+        ? (isEdit
+          ? (initialData?.contributor_id ? String(initialData.contributor_id).trim() : null)
           : 'bchata-admin')
         : resolveContributorId()
       if (!isAdminMode && !contributorId) {
@@ -622,7 +622,7 @@ const RegisterForm = ({ onBack, onSuccess, isEdit = false, isAdminMode = false, 
         b_ratio: formData.bRatio,
         j_ratio: formData.jRatio,
         k_ratio: formData.kRatio,
-        contributor_id: contributorId,
+        contributor_id: contributorId || null,
         status: 'approved'
       };
 
