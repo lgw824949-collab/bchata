@@ -30,7 +30,7 @@ const parseTimeRange = (timeRaw, endTimeFallback) => {
   }
 }
 
-const buildFormState = (item) => {
+export const buildFormState = (item) => {
   const times = parseTimeRange(item?.time, item?.end_time)
   return {
     title: stripPartyTitle(item?.title),
@@ -254,17 +254,17 @@ export default function AdminSocialPartyForm({ item, isEdit = false, onClose, on
     }))
   }
 
-  return createPortal(
+  const panel = (
     <div
+      className="admin-social-party-form"
       style={{
         position: 'fixed',
         inset: 0,
         zIndex: FORM_Z,
         background: 'rgba(15, 23, 42, 0.72)',
-        display: 'flex',
-        alignItems: 'stretch',
-        justifyContent: 'center',
-        padding: '0',
+        overflowY: 'auto',
+        WebkitOverflowScrolling: 'touch',
+        colorScheme: 'light',
       }}
       onClick={onClose}
     >
@@ -278,13 +278,12 @@ export default function AdminSocialPartyForm({ item, isEdit = false, onClose, on
           maxWidth: '520px',
           margin: '0 auto',
           background: '#fff',
-          display: 'flex',
-          flexDirection: 'column',
-          maxHeight: '100dvh',
+          minHeight: '100dvh',
           boxShadow: '0 24px 80px rgba(0,0,0,0.35)',
+          color: '#1E293B',
         }}
       >
-        <div style={{ padding: '16px 20px', borderBottom: '1px solid #E2E8F0', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+        <div style={{ padding: '16px 20px', borderBottom: '1px solid #E2E8F0', display: 'flex', alignItems: 'center', justifyContent: 'space-between', background: '#fff' }}>
           <h2 style={{ margin: 0, fontSize: '18px', fontWeight: 900, color: '#1E293B' }}>
             {isEdit ? '소셜 수정' : '소셜 등록'}
           </h2>
@@ -293,7 +292,7 @@ export default function AdminSocialPartyForm({ item, isEdit = false, onClose, on
           </button>
         </div>
 
-        <div style={{ flex: 1, overflowY: 'auto', padding: '20px', WebkitOverflowScrolling: 'touch' }}>
+        <div className="admin-social-party-form__body" style={{ padding: '20px', background: '#fff' }}>
           {error ? (
             <div style={{ marginBottom: '16px', padding: '12px 14px', borderRadius: '10px', background: '#FEF2F2', border: '1px solid #FECACA', color: '#B91C1C', fontSize: '13px', fontWeight: 700 }}>
               {error}
@@ -443,7 +442,7 @@ export default function AdminSocialPartyForm({ item, isEdit = false, onClose, on
           </div>
         </div>
 
-        <div style={{ padding: '16px 20px', borderTop: '1px solid #E2E8F0', display: 'flex', gap: '10px', background: '#fff' }}>
+        <div style={{ padding: '16px 20px', paddingBottom: 'calc(16px + env(safe-area-inset-bottom, 0px))', borderTop: '1px solid #E2E8F0', display: 'flex', gap: '10px', background: '#fff' }}>
           <button
             type="button"
             onClick={onClose}
@@ -462,7 +461,8 @@ export default function AdminSocialPartyForm({ item, isEdit = false, onClose, on
           </button>
         </div>
       </div>
-    </div>,
-    document.body,
+    </div>
   )
+
+  return createPortal(panel, document.body)
 }

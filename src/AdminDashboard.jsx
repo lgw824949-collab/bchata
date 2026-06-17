@@ -4,7 +4,9 @@ import { supabase } from './lib/supabase'
 import { adminDbMutate } from './lib/adminApi'
 import { ChevronLeft, Check, Trash2, ShieldCheck, X, RefreshCw, XCircle, Clock, Tent, Flag, Music2, Camera, Zap, Menu, User, Sparkles, Plus } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
-import AdminSocialPartyForm from './components/AdminSocialPartyForm'
+import AdminSocialPartyForm, { buildFormState } from './components/AdminSocialPartyForm'
+import { toDateOrNull } from './lib/dbSanitize'
+import { KOREAN_WEEKDAYS } from './lib/partyRecurrence'
 import ClassRegisterModal from './components/ClassRegisterModal'
 import { findBarByName } from './lib/BarLib'
 import gangturnPhoto from './assets/gangturn_photo.png'
@@ -442,7 +444,17 @@ export default function AdminDashboard({ onBack, refreshData }) {
   const startEdit = (item) => {
     clearAdminMessage()
     if (category === 'social') {
-      openPartyRegisterForm(item)
+      const table = activeTab === 'active' ? 'parties' : 'pending_parties'
+      const normalized = normalizePartyItemForForm(item, table)
+      const formState = buildFormState(normalized)
+      setEditingItem(item.id)
+      setEditFormData({
+        ...normalized,
+        ...formState,
+        contributor_id: item.contributor_id ?? null,
+      })
+      setImageFile(null)
+      setPreview(formState.poster_url || null)
     } else if (category === 'instructor-classes') {
       setClassEditItem(item)
       setShowClassEditModal(true)
@@ -622,6 +634,77 @@ export default function AdminDashboard({ onBack, refreshData }) {
           return
         }
         setItems((prev) => prev.map((i) => (i.id === editingItem ? { ...i, ...updated } : i)))
+      } else if (category === 'social') {
+        const table = editFormData._table || (activeTab === 'active' ? 'parties' : 'pending_parties')
+        let posterUrl = String(editFormData.poster_url || preview || '').trim()
+        if (imageFile) {
+          const fileName = `posters/${Date.now()}_${Math.random().toString(36).slice(2)}.jpg`
+          const { error: uploadError } = await supabase.storage.from('posters').upload(fileName, imageFile)
+          if (uploadError) throw uploadError
+          const { data } = supabase.storage.from('posters').getPublicUrl(fileName)
+          posterUrl = data.publicUrl
+        }
+        if (!posterUrl) {
+          showAdminError('포스터 URL을 입력하거나 이미지를 업로드해주세요.')
+          return
+        }
+        if (!editFormData.title?.trim()) {
+          showAdminError('제목을 입력해주세요.')
+          return
+        }
+        if (!editFormData.location_name?.trim()) {
+          showAdminError('장소명을 입력해주세요.')
+          return
+        }
+        if (editFormData.is_weekly_recurring && !editFormData.day_of_week) {
+          showAdminError('매주 고정은 요일을 선택해주세요.')
+          return
+        }
+        if (!editFormData.is_weekly_recurring && !editFormData.date) {
+          showAdminError('날짜를 선택해주세요.')
+          return
+        }
+
+        let finalLocationId = editFormData.location_id ?? null
+        const locationName = (editFormData.location_name || '').trim()
+        if (!finalLocationId && locationName) {
+          const { data: locData } = await supabase.from('locations').select('id').eq('name', locationName).maybeSingle()
+          finalLocationId = locData?.id ?? null
+        }
+        if (!finalLocationId) {
+          showAdminError('장소 연결에 실패했습니다. 장소명을 확인해주세요.')
+          return
+        }
+
+        const region = String(editFormData.region || '서울').trim()
+        let processedTitle = String(editFormData.title || '').trim()
+        if (processedTitle && !processedTitle.includes('오늘밤빠')) {
+          processedTitle = `${processedTitle} ㅣ 오늘밤빠`
+        }
+        const finalTitle = `[${region}] ${processedTitle}`
+        const timeValue = [editFormData.start_time, editFormData.end_time].filter(Boolean).join('-')
+
+        const partyData = {
+          title: finalTitle,
+          location_id: finalLocationId,
+          address: editFormData.address || '',
+          fee: String(editFormData.fee || '').trim() || '문의',
+          date: editFormData.is_weekly_recurring ? null : toDateOrNull(editFormData.date),
+          time: timeValue,
+          day_of_week: editFormData.is_weekly_recurring ? editFormData.day_of_week : editFormData.day_of_week || null,
+          is_weekly_recurring: Boolean(editFormData.is_weekly_recurring),
+          poster_url: posterUrl,
+          s_ratio: Number(editFormData.s_ratio) || 0,
+          b_ratio: Number(editFormData.b_ratio) || 0,
+          j_ratio: Number(editFormData.j_ratio) || 0,
+          k_ratio: Number(editFormData.k_ratio) || 0,
+          contributor_id: editFormData.contributor_id ? String(editFormData.contributor_id).trim() : null,
+          view_count: Number(editFormData.view_count) || 0,
+          status: 'approved',
+        }
+
+        const { error } = await supabase.from(table).update(partyData).eq('id', editingItem)
+        if (error) throw error
       } else {
         const { locations, created_at, id, locationName, location_name, photo_url: _photo, instructors, ...updateData } = editFormData;
         const finalUpdate = normalizeEventDates({
@@ -1274,8 +1357,88 @@ export default function AdminDashboard({ onBack, refreshData }) {
                 
                 {editingItem === item.id && category !== 'instructor-classes' ? (
                   /* 수정 모드 */
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                  <div className={category === 'social' ? 'admin-social-inline-edit' : undefined} style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
                     <input value={editFormData.title || editFormData.name || ''} onChange={e => setEditFormData({ ...editFormData, title: e.target.value, name: e.target.value })} placeholder="제목/이름" style={{ width: '100%', padding: '10px', borderRadius: '10px', border: '1px solid #E2E8F0', fontWeight: 700 }} />
+
+                    {category === 'social' && (
+                      <>
+                        <select value={editFormData.region || '서울'} onChange={e => setEditFormData({ ...editFormData, region: e.target.value })} style={{ width: '100%', padding: '10px', borderRadius: '10px', border: '1px solid #E2E8F0', fontWeight: 700 }}>
+                          {['서울', '경기', '인천', '부산', '대구', '광주', '대전', '울산', '세종', '강원', '충북', '충남', '전북', '전남', '경북', '경남', '제주'].map((r) => (
+                            <option key={r} value={r}>{r}</option>
+                          ))}
+                        </select>
+                        <input value={editFormData.location_name || ''} onChange={e => setEditFormData({ ...editFormData, location_name: e.target.value })} placeholder="장소명" style={{ width: '100%', padding: '10px', borderRadius: '10px', border: '1px solid #E2E8F0' }} />
+                        <input value={editFormData.address || ''} onChange={e => setEditFormData({ ...editFormData, address: e.target.value })} placeholder="주소" style={{ width: '100%', padding: '10px', borderRadius: '10px', border: '1px solid #E2E8F0' }} />
+                        <div style={{ display: 'flex', gap: '8px' }}>
+                          {[
+                            { key: false, label: '이번 날짜만' },
+                            { key: true, label: '매주 고정' },
+                          ].map(({ key, label }) => (
+                            <button
+                              key={String(key)}
+                              type="button"
+                              onClick={() => setEditFormData((prev) => ({
+                                ...prev,
+                                is_weekly_recurring: key,
+                                day_of_week: key && prev.date ? KOREAN_WEEKDAYS[new Date(prev.date).getDay()] : prev.day_of_week,
+                              }))}
+                              style={{
+                                flex: 1,
+                                padding: '10px',
+                                borderRadius: '10px',
+                                border: editFormData.is_weekly_recurring === key ? '2px solid #FF1744' : '1px solid #E2E8F0',
+                                background: editFormData.is_weekly_recurring === key ? '#FFF5F7' : '#fff',
+                                fontWeight: 800,
+                                fontSize: '12px',
+                                cursor: 'pointer',
+                              }}
+                            >
+                              {label}
+                            </button>
+                          ))}
+                        </div>
+                        <div style={{ display: 'grid', gridTemplateColumns: editFormData.is_weekly_recurring ? '1fr 1fr' : '1fr', gap: '8px' }}>
+                          <input
+                            type="date"
+                            value={editFormData.date || ''}
+                            onChange={(e) => {
+                              const nextDate = e.target.value
+                              const dayName = nextDate ? KOREAN_WEEKDAYS[new Date(nextDate).getDay()] : ''
+                              setEditFormData((prev) => ({
+                                ...prev,
+                                date: nextDate,
+                                day_of_week: prev.is_weekly_recurring ? dayName : prev.day_of_week,
+                              }))
+                            }}
+                            style={{ padding: '10px', borderRadius: '10px', border: '1px solid #E2E8F0' }}
+                          />
+                          {editFormData.is_weekly_recurring ? (
+                            <select value={editFormData.day_of_week || ''} onChange={e => setEditFormData({ ...editFormData, day_of_week: e.target.value })} style={{ padding: '10px', borderRadius: '10px', border: '1px solid #E2E8F0' }}>
+                              <option value="">요일 선택</option>
+                              {KOREAN_WEEKDAYS.map((d) => <option key={d} value={d}>{d}요일</option>)}
+                            </select>
+                          ) : null}
+                        </div>
+                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
+                          <input type="time" value={editFormData.start_time || '21:00'} onChange={e => setEditFormData({ ...editFormData, start_time: e.target.value })} style={{ padding: '10px', borderRadius: '10px', border: '1px solid #E2E8F0' }} />
+                          <input type="time" value={editFormData.end_time || '02:00'} onChange={e => setEditFormData({ ...editFormData, end_time: e.target.value })} style={{ padding: '10px', borderRadius: '10px', border: '1px solid #E2E8F0' }} />
+                        </div>
+                        <input value={editFormData.fee || ''} onChange={e => setEditFormData({ ...editFormData, fee: e.target.value })} placeholder="입장료 (예: 현장 1.2만)" style={{ width: '100%', padding: '10px', borderRadius: '10px', border: '1px solid #E2E8F0' }} />
+                        {(preview || editFormData.poster_url) ? (
+                          <img src={preview || editFormData.poster_url} alt="" style={{ width: '100%', maxHeight: '180px', objectFit: 'contain', borderRadius: '10px', background: '#F8FAFC' }} />
+                        ) : null}
+                        <input value={editFormData.poster_url || ''} onChange={e => { setEditFormData({ ...editFormData, poster_url: e.target.value }); setPreview(e.target.value) }} placeholder="포스터 URL" style={{ width: '100%', padding: '10px', borderRadius: '10px', border: '1px solid #E2E8F0', fontSize: '12px' }} />
+                        <input type="file" accept="image/*" onChange={handleAdminImageChange} style={{ width: '100%', fontSize: '12px' }} />
+                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '8px' }}>
+                          {[{ l: 'B', k: 'b_ratio' }, { l: 'S', k: 's_ratio' }, { l: 'J', k: 'j_ratio' }, { l: 'K', k: 'k_ratio' }].map((g) => (
+                            <div key={g.k} style={{ textAlign: 'center' }}>
+                              <div style={{ fontSize: '11px', fontWeight: 900, color: '#FF1744' }}>{g.l}</div>
+                              <input type="number" min={0} max={10} value={editFormData[g.k] ?? 0} onChange={e => setEditFormData({ ...editFormData, [g.k]: Number(e.target.value) || 0 })} style={{ width: '100%', padding: '8px', borderRadius: '8px', border: '1px solid #E2E8F0', textAlign: 'center' }} />
+                            </div>
+                          ))}
+                        </div>
+                      </>
+                    )}
 
                     {/* ── 페스티벌 전용 필드 ── */}
                     {category === 'festival' && (
@@ -1565,7 +1728,7 @@ export default function AdminDashboard({ onBack, refreshData }) {
           </div>
         ))}
       </div>
-      {showEditModal && currentItem && (
+      {showEditModal && currentItem && !currentItem.id && (
         <AdminSocialPartyForm
           key={currentItem.id || 'new-social-party'}
           item={currentItem}

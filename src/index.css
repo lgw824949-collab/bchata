@@ -2398,6 +2398,36 @@ body.party-register-open .bottom-nav {
   background: #0f172a;
 }
 
+.admin-social-party-form,
+.admin-social-party-form__body {
+  color: #1e293b;
+  color-scheme: light;
+}
+
+.admin-social-party-form input,
+.admin-social-party-form select,
+.admin-social-party-form textarea,
+.admin-social-party-form label,
+.admin-social-party-form button {
+  color: #1e293b;
+  -webkit-text-fill-color: #1e293b;
+}
+
+.admin-social-party-form input,
+.admin-social-party-form select,
+.admin-social-party-form textarea {
+  background: #fff;
+}
+
+.admin-social-inline-edit input,
+.admin-social-inline-edit select,
+.admin-social-inline-edit textarea,
+.admin-social-inline-edit label,
+.admin-social-inline-edit button {
+  color: #1e293b;
+  -webkit-text-fill-color: #1e293b;
+}
+
 .bchata-user-shell,
 .bchata-admin-shell,
 #root,
