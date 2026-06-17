@@ -158,8 +158,8 @@ const RegisterForm = ({ onBack, onSuccess, isEdit = false, isAdminMode = false, 
   const [submitted, setSubmitted] = useState(false)
   const [step, setStep] = useState(1)
   const [suggestions, setSuggestions] = useState([])
-  const adminQuickEdit = Boolean(isAdminMode && isEdit)
-  const TOTAL_STEPS = adminQuickEdit ? 1 : 5
+  const adminQuickMode = Boolean(isAdminMode)
+  const TOTAL_STEPS = adminQuickMode ? 1 : 5
   const safeStep = Math.min(Math.max(Number(step) || 1, 1), TOTAL_STEPS)
 
   useEffect(() => {
@@ -1039,7 +1039,7 @@ const RegisterForm = ({ onBack, onSuccess, isEdit = false, isAdminMode = false, 
   const renderAdminQuickEditContent = () => (
     <div style={{ padding: '24px' }}>
       <label style={{ display: 'block', fontSize: '20px', fontWeight: 900, color: '#1E293B', marginBottom: '16px' }}>
-        관리자 소셜 즉시 수정
+        {isEdit ? '관리자 소셜 즉시 수정' : '관리자 소셜 즉시 등록'}
       </label>
       <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
         <input
@@ -1125,7 +1125,7 @@ const RegisterForm = ({ onBack, onSuccess, isEdit = false, isAdminMode = false, 
         </div>
 
         <div style={{ flex: 1, minHeight: 0, overflowY: 'auto', WebkitOverflowScrolling: 'touch' }}>
-          {adminQuickEdit ? (
+          {adminQuickMode ? (
             renderAdminQuickEditContent()
           ) : (
             <AnimatePresence>
@@ -1148,13 +1148,13 @@ const RegisterForm = ({ onBack, onSuccess, isEdit = false, isAdminMode = false, 
           background: '#fff',
           boxShadow: '0 -4px 24px rgba(0,0,0,0.08)',
         }}>
-          {!adminQuickEdit && safeStep > 1 && <button onClick={() => setStep(safeStep - 1)} style={{ flex: 1, height: '60px', borderRadius: '18px', background: '#F1F5F9', color: '#64748B', fontWeight: 900, border: 'none' }}>이전</button>}
+          {!adminQuickMode && safeStep > 1 && <button onClick={() => setStep(safeStep - 1)} style={{ flex: 1, height: '60px', borderRadius: '18px', background: '#F1F5F9', color: '#64748B', fontWeight: 900, border: 'none' }}>이전</button>}
           <button 
-            onClick={() => { if(adminQuickEdit) handleSubmit(); else if(safeStep < TOTAL_STEPS) setStep(safeStep + 1); else handleSubmit(); }} 
+            onClick={() => { if(adminQuickMode) handleSubmit(); else if(safeStep < TOTAL_STEPS) setStep(safeStep + 1); else handleSubmit(); }} 
             disabled={loading}
             style={{ flex: 2, height: '60px', borderRadius: '18px', background: '#FF1744', color: 'white', fontWeight: 900, fontSize: '18px', border: 'none', boxShadow: '0 8px 20px rgba(255, 23, 68, 0.2)' }}
           >
-            {loading ? '처리 중...' : (adminQuickEdit ? '수정 완료' : (safeStep === TOTAL_STEPS ? (isEdit ? '수정 완료' : '등록 완료') : '다음 단계'))}
+            {loading ? '처리 중...' : (adminQuickMode ? (isEdit ? '수정 완료' : '등록 완료') : (safeStep === TOTAL_STEPS ? (isEdit ? '수정 완료' : '등록 완료') : '다음 단계'))}
           </button>
         </div>
       </motion.div>
