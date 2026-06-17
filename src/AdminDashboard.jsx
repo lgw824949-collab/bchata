@@ -1,10 +1,10 @@
-﻿// v0.1.1 - Force redeploy for UI simplification
+// v0.1.1 - Force redeploy for UI simplification
 import React, { useState, useEffect } from 'react'
 import { supabase } from './lib/supabase'
 import { adminDbMutate } from './lib/adminApi'
 import { ChevronLeft, Check, Trash2, ShieldCheck, X, RefreshCw, XCircle, Clock, Tent, Flag, Music2, Camera, Zap, Menu, User, Sparkles, Plus } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
-import RegisterForm from './RegisterForm'
+import AdminSocialPartyForm from './components/AdminSocialPartyForm'
 import ClassRegisterModal from './components/ClassRegisterModal'
 import { findBarByName } from './lib/BarLib'
 import gangturnPhoto from './assets/gangturn_photo.png'
@@ -1565,25 +1565,22 @@ export default function AdminDashboard({ onBack, refreshData }) {
           </div>
         ))}
       </div>
-      {/* 소셜 수정 모달 */}
-      <AnimatePresence>
-        {showEditModal && (
-          <RegisterForm 
-            isEdit={Boolean(currentItem?.id)}
-            isAdminMode={true}
-            initialData={currentItem}
-            onBack={() => {
-              setShowEditModal(false);
-              setCurrentItem(null);
-            }}
-            onSuccess={() => {
-              setShowEditModal(false);
-              setCurrentItem(null);
-              fetchData();
-            }}
-          />
-        )}
-      </AnimatePresence>
+      {showEditModal && currentItem && (
+        <AdminSocialPartyForm
+          key={currentItem.id || 'new-social-party'}
+          item={currentItem}
+          isEdit={Boolean(currentItem.id)}
+          onClose={() => {
+            setShowEditModal(false)
+            setCurrentItem(null)
+          }}
+          onSaved={() => {
+            setShowEditModal(false)
+            setCurrentItem(null)
+            fetchData()
+          }}
+        />
+      )}
       {showClassEditModal && (
         <ClassRegisterModal
           isOpen={showClassEditModal}
