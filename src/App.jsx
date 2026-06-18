@@ -1074,6 +1074,7 @@ function App() {
   const [parties, setParties] = useState([]);
   const [bootcamps, setBootcamps] = useState([]);
   const [festivals, setFestivals] = useState([]);
+  const [venueLessons, setVenueLessons] = useState([]);
   const [instructorsCache, setInstructorsCache] = useState([]);
   const instructorsPrefetchRef = useRef(false);
   const [followedInstructors, setFollowedInstructors] = useState([]);
@@ -1930,10 +1931,11 @@ function App() {
         setParties([]);
         setBootcamps([]);
         setFestivals([]);
+        setVenueLessons([]);
         return;
       }
 
-      const [partiesRes, locationsRes, bootcampsRes, festivalsRes] = await Promise.all([
+      const [partiesRes, locationsRes, bootcampsRes, festivalsRes, venueLessonsRes] = await Promise.all([
         runSupabaseQuery('parties', (db) =>
           db.from('parties').select(PARTIES_SELECT).eq('status', 'approved').order('date', { ascending: true }),
         ),
@@ -1948,6 +1950,12 @@ function App() {
             .select('id, title, genre, start_date, end_date, location, region, price, poster_url, organizer, status, created_at, event_type, description, bank_info')
             .eq('status', 'active'),
         ),
+        runSupabaseQuery('classes_info', (db) =>
+          db.from('classes_info')
+            .select('id, title, instructor, genre, start_date, start_time, end_time, price, poster_url, duration, day_of_week, studio_name, location_id, category_type, status, created_at')
+            .eq('status', 'approved')
+            .eq('category_type', 'venue'),
+        ),
       ]);
 
       if (partiesRes.error) {
@@ -1955,6 +1963,7 @@ function App() {
         setParties([]);
         setBootcamps(bootcampsRes.data || []);
         setFestivals(festivalsRes.data || []);
+        setVenueLessons(venueLessonsRes.data || []);
         return;
       }
       if (locationsRes.error) {
@@ -1962,6 +1971,7 @@ function App() {
       }
       if (bootcampsRes.error) logSupabaseError('App.fetchParties.bootcamps', bootcampsRes.error);
       if (festivalsRes.error) logSupabaseError('App.fetchParties.festivals', festivalsRes.error);
+      if (venueLessonsRes.error) logSupabaseError('App.fetchParties.venueLessons', venueLessonsRes.error);
 
       const rawParties = partiesRes.data || [];
       const rawLocations = locationsRes.error ? [] : (locationsRes.data || []);
@@ -2012,12 +2022,14 @@ function App() {
       setParties(mappedParties);
       setBootcamps(bootcampsRes.data || []);
       setFestivals(festivalsRes.data || []);
+      setVenueLessons(venueLessonsRes.data || []);
     } catch (err) {
       logPartiesFetchError(err);
       console.error('[App.fetchParties] 데이터 로딩 오류:', err);
       setParties([]);
       setBootcamps([]);
       setFestivals([]);
+      setVenueLessons([]);
     } finally {
       if (!silent) setLoading(false);
       prefetchInstructorsList();
@@ -2033,7 +2045,11 @@ function App() {
       fetchParties({ silent: true });
     };
     window.addEventListener('bchata-refresh-parties', refreshParties);
-    return () => window.removeEventListener('bchata-refresh-parties', refreshParties);
+    window.addEventListener('bchata-lessons-refresh', refreshParties);
+    return () => {
+      window.removeEventListener('bchata-refresh-parties', refreshParties);
+      window.removeEventListener('bchata-lessons-refresh', refreshParties);
+    };
   }, [fetchParties]);
 
   useEffect(() => {
@@ -2243,7 +2259,7 @@ function App() {
   };
 
   const sharedProps = {
-    parties: displayParties, bootcamps, festivals, loading, selectedMonth, setSelectedMonth, selectedWeek: 1, setSelectedWeek: () => {}, 
+    parties: displayParties, bootcamps, festivals, lessons: venueLessons, loading, selectedMonth, setSelectedMonth, selectedWeek: 1, setSelectedWeek: () => {}, 
     selectedDate, setSelectedDate, selectedRegion: '서울', setSelectedRegion: () => {}, 
     view, setView, setSelectedPoster, 
     fourteenDays: Array.from({ length: 14 }).map((_, i) => {

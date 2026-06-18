@@ -85,6 +85,7 @@ export function useHomeListGateProps(input: UseHomeDarkGatePropsInput) {
     parties,
     bootcamps,
     festivals,
+    venueLessons = [],
     eventsLoading = false,
     calendarTodayStr,
     regionCounts,
@@ -102,6 +103,7 @@ export function useHomeListGateProps(input: UseHomeDarkGatePropsInput) {
     sortBarsForSocialBarTab,
     openVenueDetail,
     openPartyWithAfterParty,
+    openVenueLessonPoster,
     openBootcampPage,
     openFestivalPage,
     openFestivalPartyPage,
@@ -155,8 +157,9 @@ export function useHomeListGateProps(input: UseHomeDarkGatePropsInput) {
       bootcamps,
       festivals,
       calendarTodayStr,
+      venueLessons,
     ),
-    [homeHeroSocialParties, bootcamps, festivals, calendarTodayStr],
+    [homeHeroSocialParties, bootcamps, festivals, calendarTodayStr, venueLessons],
   );
 
   const homeActiveHeroSlide = homeHeroSlides.length
@@ -285,8 +288,9 @@ export function useHomeListGateProps(input: UseHomeDarkGatePropsInput) {
       parties,
       bootcamps,
       festivals,
+      venueLessons,
     }),
-    [calendarTodayStr, parties, bootcamps, festivals],
+    [calendarTodayStr, parties, bootcamps, festivals, venueLessons],
   );
 
   const homeUpcomingAgendaCounts = useMemo(
@@ -326,11 +330,16 @@ export function useHomeListGateProps(input: UseHomeDarkGatePropsInput) {
       parties,
       bootcamps,
       festivals,
+      venueLessons,
     }),
-    [calendarTodayStr, parties, bootcamps, festivals],
+    [calendarTodayStr, parties, bootcamps, festivals, venueLessons],
   );
 
   const openAgendaItem = useCallback((item: HomeTodayAgendaItem) => {
+    if (item.kind === 'venueLesson') {
+      openVenueLessonPoster?.(item.raw as Record<string, unknown>);
+      return;
+    }
     if (item.kind === 'social') {
       openPartyWithAfterParty(item.raw as HomeDarkParty);
       return;
@@ -344,7 +353,7 @@ export function useHomeListGateProps(input: UseHomeDarkGatePropsInput) {
       return;
     }
     openFestivalPage();
-  }, [openBootcampPage, openFestivalPage, openFestivalPartyPage, openPartyWithAfterParty]);
+  }, [openBootcampPage, openFestivalPage, openFestivalPartyPage, openPartyWithAfterParty, openVenueLessonPoster]);
 
   const openBarMap = useCallback(() => {
     pushOverlay('incheon');
@@ -389,6 +398,10 @@ export function useHomeListGateProps(input: UseHomeDarkGatePropsInput) {
   }, [homeHeroSlides.length]);
 
   const openHeroSlide = useCallback((slide: HomeDarkHeroSlide) => {
+    if (slide.kind === 'venueLesson') {
+      openVenueLessonPoster?.(slide.raw as Record<string, unknown>);
+      return;
+    }
     if (slide.kind === 'bootcamp') {
       openBootcampPage();
       return;
@@ -402,7 +415,7 @@ export function useHomeListGateProps(input: UseHomeDarkGatePropsInput) {
       return;
     }
     openPartyWithAfterParty(slide.raw as HomeDarkParty);
-  }, [openBootcampPage, openFestivalPage, openFestivalPartyPage, openPartyWithAfterParty]);
+  }, [openBootcampPage, openFestivalPage, openFestivalPartyPage, openPartyWithAfterParty, openVenueLessonPoster]);
 
   const socialMenuCount = exploreSocialCount;
 
@@ -499,6 +512,7 @@ export function useHomeListGateProps(input: UseHomeDarkGatePropsInput) {
     agendaParties: parties,
     agendaBootcamps: bootcamps,
     agendaFestivals: festivals,
+    agendaVenueLessons: venueLessons,
     onOpenCalendar,
     calendarTodayStr,
     partySearchItems: homePartySearchItems,

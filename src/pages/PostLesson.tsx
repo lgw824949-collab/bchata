@@ -224,6 +224,7 @@ const PostLesson = ({ onBack, user, initialVenue = null }) => {
       }
 
       if (error) throw error
+      window.dispatchEvent(new CustomEvent('bchata-lessons-refresh'))
       setSubmitted(true)
     } catch (err) {
       alert('등록 실패: ' + err.message)
@@ -241,7 +242,7 @@ const PostLesson = ({ onBack, user, initialVenue = null }) => {
         <h2 style={{ fontSize: '24px', fontWeight: 800, color: '#111827', marginBottom: '12px' }}>등록 완료!</h2>
         <p style={{ fontSize: '15px', color: '#6B7280', lineHeight: '1.6', marginBottom: '40px' }}>
           {venueLocked
-            ? <>BAR 수업으로 등록되었습니다.<br />해당 BAR 상세 · 수업 탭에서 바로 확인할 수 있습니다.</>
+            ? <>BAR 수업으로 등록되었습니다.<br />메인 일정·달력과 BAR 상세 수업 탭에 표시됩니다.</>
             : <>정상적으로 등록되었습니다.<br />강습 목록에 즉시 노출됩니다.</>}
         </p>
         <button onClick={onBack} style={{ width: '100%', height: '56px', borderRadius: '16px', background: '#FF8C00', color: 'white', fontWeight: 800, fontSize: '16px', border: 'none' }}>확인</button>

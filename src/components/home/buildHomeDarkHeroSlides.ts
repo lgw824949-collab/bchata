@@ -1,4 +1,5 @@
 import type { HomeDarkHeroSlide } from './types';
+import { getNextLessonOccurrence, isApprovedVenueLesson } from '../../lib/venueLessonSchedule';
 
 type PosterRow = {
   id?: string | number;
@@ -104,7 +105,7 @@ const toSlide = (
   kind,
   poster_url: String(row.poster_url || ''),
   title: String(row.title || row.name || '').trim(),
-  venue: String(row.venue || row.location_name || row.locationName || '').trim(),
+  venue: String(row.venue || row.studio_name || row.location_name || row.locationName || '').trim(),
   start_time: String(row.start_time || row.time || '').slice(0, 5) || undefined,
   date_label: formatHeroDateLabel(
     resolvePosterEventDate(row, todayStr),
@@ -116,12 +117,13 @@ const toSlide = (
   raw: row,
 });
 
-/** 히어로 로테이션: 소셜·부트캠프·페스티벌·파티 후보를 행사일 가까운 순으로 정렬 */
+/** 히어로 로테이션: 소셜·업체수업·부트캠프·페스티벌·파티 후보를 행사일 가까운 순으로 정렬 */
 export function buildHomeDarkHeroSlides(
   socialParties: PosterRow[],
   bootcampRows: PosterRow[],
   festivalRows: PosterRow[],
   todayStr: string,
+  venueLessonRows: PosterRow[] = [],
 ): HomeDarkHeroSlide[] {
   const slides: HomeDarkHeroSlide[] = [];
 
@@ -132,6 +134,29 @@ export function buildHomeDarkHeroSlides(
     .slice(0, 2)
     .forEach((party) => {
       slides.push(toSlide(party, 'social', `social-${party.id}`, '오늘 소셜', 'Tonight\'s Social', todayStr));
+    });
+
+  const venueLessons = (venueLessonRows || [])
+    .filter((row) => isApprovedVenueLesson(row))
+    .map((row) => ({
+      ...row,
+      start_date: getNextLessonOccurrence(row, todayStr) || row.start_date,
+    }))
+    .filter((row) => {
+      const next = normDate(row.start_date);
+      return next && next >= todayStr;
+    });
+  sortRowsByNearestEventDate(venueLessons, todayStr)
+    .slice(0, 1)
+    .forEach((lesson) => {
+      slides.push(toSlide(
+        lesson,
+        'venueLesson',
+        `venue-lesson-${lesson.id}`,
+        '업체 수업',
+        'Venue class',
+        todayStr,
+      ));
     });
 
   const bootcamp = pickNearestEventRow(bootcampRows, todayStr);

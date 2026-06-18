@@ -739,14 +739,20 @@ export default function VenueDetailModal({
         }
       });
     } else {
+      const { year, month } = calendarMonth;
+      const daysInMonth = new Date(year, month, 0).getDate();
+      const monthStart = `${year}-${String(month).padStart(2, '0')}-01`;
+      const monthEnd = `${year}-${String(month).padStart(2, '0')}-${String(daysInMonth).padStart(2, '0')}`;
+      const collectFrom = monthStart < todayStr ? todayStr : monthStart;
+      const weeks = Math.ceil((daysInMonth + 7) / 7);
       venueLessonsForDisplay.forEach((lesson) => {
-        collectLessonCalendarDates(lesson, todayStr, 8).forEach((d) => {
-          if (d >= todayStr) set.add(d);
+        collectLessonCalendarDates(lesson, collectFrom, weeks).forEach((d) => {
+          if (d >= todayStr && d >= monthStart && d <= monthEnd) set.add(d);
         });
       });
     }
     return set;
-  }, [activeItems, isSocialTab, venueLessonsForDisplay, todayStr]);
+  }, [activeItems, isSocialTab, venueLessonsForDisplay, todayStr, calendarMonth]);
 
   const canGoPrevCalendarMonth = useMemo(() => {
     const { year, month } = calendarMonth;

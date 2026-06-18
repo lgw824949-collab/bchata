@@ -45,6 +45,7 @@ export type HomeListGateProps = {
   agendaParties: HomeDarkParty[] | null | undefined;
   agendaBootcamps: Record<string, unknown>[] | null | undefined;
   agendaFestivals: Record<string, unknown>[] | null | undefined;
+  agendaVenueLessons?: Record<string, unknown>[] | null | undefined;
   onOpenCalendar: () => void;
   calendarTodayStr: string;
   partySearchItems: HomeTodayAgendaItem[];
@@ -98,6 +99,7 @@ export default function HomeListGate({
   agendaParties,
   agendaBootcamps,
   agendaFestivals,
+  agendaVenueLessons,
   onOpenCalendar,
   calendarTodayStr,
   partySearchItems,
@@ -215,6 +217,7 @@ export default function HomeListGate({
         parties={agendaParties}
         bootcamps={agendaBootcamps}
         festivals={agendaFestivals}
+        venueLessons={agendaVenueLessons}
         mapRows={mapAgendaRows}
         onItemClick={onAgendaItemClick}
         onOpenCalendar={onOpenCalendar}

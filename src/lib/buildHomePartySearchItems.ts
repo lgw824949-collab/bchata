@@ -11,6 +11,7 @@ type BuildHomePartySearchItemsInput = {
   parties: HomeDarkParty[] | null | undefined;
   bootcamps: Record<string, unknown>[] | null | undefined;
   festivals: Record<string, unknown>[] | null | undefined;
+  venueLessons?: Record<string, unknown>[] | null | undefined;
 };
 
 export function buildHomePartySearchItems(input: BuildHomePartySearchItemsInput): HomeTodayAgendaItem[] {

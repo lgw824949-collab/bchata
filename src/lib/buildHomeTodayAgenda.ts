@@ -6,8 +6,9 @@ import { formatPartyTitleDisplay } from './partyTitleDisplay';
 import { resolvePartyVenueName } from './partiesQuery';
 import { inferPartyRowSlot, isSocialPartyRow } from './postKind';
 import { getPartyGenreLabel } from './partyShareCard';
+import { filterVenueLessonsForDate } from './venueLessonSchedule';
 
-export type HomeTodayAgendaKind = 'social' | 'bootcamp' | 'festival' | 'party';
+export type HomeTodayAgendaKind = 'social' | 'bootcamp' | 'festival' | 'party' | 'venueLesson';
 
 export type HomeTodayAgendaItem = {
   id: string;
@@ -29,13 +30,15 @@ const KIND_LABELS: Record<HomeTodayAgendaKind, { ko: string; en: string }> = {
   bootcamp: { ko: '부트캠프', en: 'Bootcamp' },
   festival: { ko: '페스티벌', en: 'Festival' },
   party: { ko: '파티', en: 'Party' },
+  venueLesson: { ko: '업체수업', en: 'Venue class' },
 };
 
 const KIND_ORDER: Record<HomeTodayAgendaKind, number> = {
   social: 0,
-  bootcamp: 1,
-  festival: 2,
-  party: 3,
+  venueLesson: 1,
+  bootcamp: 2,
+  festival: 3,
+  party: 4,
 };
 
 /** 메인 다가오는 일정 — 오늘 포함 N일 */
@@ -223,6 +226,7 @@ type BuildHomeTodayAgendaInput = {
   parties: HomeDarkParty[] | null | undefined;
   bootcamps: Record<string, unknown>[] | null | undefined;
   festivals: Record<string, unknown>[] | null | undefined;
+  venueLessons?: Record<string, unknown>[] | null | undefined;
   startDatesOnly?: boolean;
 };
 
@@ -232,6 +236,7 @@ export function buildHomeTodayAgenda({
   parties,
   bootcamps,
   festivals,
+  venueLessons,
   startDatesOnly = false,
 }: BuildHomeTodayAgendaInput): HomeTodayAgendaItem[] {
   const items: HomeTodayAgendaItem[] = [];
@@ -273,6 +278,17 @@ export function buildHomeTodayAgenda({
     items.push(item);
   });
 
+  filterVenueLessonsForDate(venueLessons || [], dateStr).forEach((row) => {
+    const lessonRow = {
+      ...row,
+      venue: row.studio_name || row.location || row.venue,
+    };
+    const item = toAgendaItem(`venue-lesson-${row.id}`, dateStr, 'venueLesson', lessonRow);
+    if (!item) return;
+    if (!rememberPoster(item.posterUrl)) return;
+    items.push(item);
+  });
+
   return items.sort((a, b) => {
     if (a.sortTime !== b.sortTime) return a.sortTime.localeCompare(b.sortTime);
     if (KIND_ORDER[a.kind] !== KIND_ORDER[b.kind]) {
@@ -293,6 +309,7 @@ type BuildHomeUpcomingAgendaInput = {
   parties: HomeDarkParty[] | null | undefined;
   bootcamps: Record<string, unknown>[] | null | undefined;
   festivals: Record<string, unknown>[] | null | undefined;
+  venueLessons?: Record<string, unknown>[] | null | undefined;
   startDatesOnly?: boolean;
 };
 
@@ -302,6 +319,7 @@ type BuildHomeAgendaMonthInput = {
   parties: HomeDarkParty[] | null | undefined;
   bootcamps: Record<string, unknown>[] | null | undefined;
   festivals: Record<string, unknown>[] | null | undefined;
+  venueLessons?: Record<string, unknown>[] | null | undefined;
   startDatesOnly?: boolean;
 };
 
@@ -312,6 +330,7 @@ export function buildHomeAgendaMonthDays({
   parties,
   bootcamps,
   festivals,
+  venueLessons,
   startDatesOnly = false,
 }: BuildHomeAgendaMonthInput): HomeUpcomingAgendaDay[] {
   const daysInMonth = new Date(year, month, 0).getDate();
@@ -326,6 +345,7 @@ export function buildHomeAgendaMonthDays({
       parties,
       bootcamps,
       festivals,
+      venueLessons,
       startDatesOnly,
     }),
   }));
@@ -338,6 +358,7 @@ export function buildHomeAgendaDayRange({
   parties,
   bootcamps,
   festivals,
+  venueLessons,
   startDatesOnly = false,
 }: BuildHomeUpcomingAgendaInput): HomeUpcomingAgendaDay[] {
   return buildUpcomingDateRange(fromDateStr, dayCount).map((dateStr) => ({
@@ -347,6 +368,7 @@ export function buildHomeAgendaDayRange({
       parties,
       bootcamps,
       festivals,
+      venueLessons,
       startDatesOnly,
     }),
   }));
@@ -359,6 +381,7 @@ export function buildHomeUpcomingAgenda({
   parties,
   bootcamps,
   festivals,
+  venueLessons,
 }: BuildHomeUpcomingAgendaInput): HomeUpcomingAgendaDay[] {
   return buildHomeAgendaDayRange({
     fromDateStr,
@@ -366,6 +389,7 @@ export function buildHomeUpcomingAgenda({
     parties,
     bootcamps,
     festivals,
+    venueLessons,
   }).filter((day) => day.items.length > 0);
 }
 
@@ -380,6 +404,6 @@ export function summarizeTodayAgendaCounts(items: HomeTodayAgendaItem[]) {
       acc[item.kind] += 1;
       return acc;
     },
-    { total: 0, social: 0, bootcamp: 0, festival: 0, party: 0 },
+    { total: 0, social: 0, venueLesson: 0, bootcamp: 0, festival: 0, party: 0 },
   );
 }

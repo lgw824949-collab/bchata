@@ -37,6 +37,7 @@ type HomeListTodayAgendaProps = {
   parties: HomeDarkParty[] | null | undefined;
   bootcamps: Record<string, unknown>[] | null | undefined;
   festivals: Record<string, unknown>[] | null | undefined;
+  venueLessons?: Record<string, unknown>[] | null | undefined;
   mapRows: (items: HomeTodayAgendaItem[]) => HomeListTodayAgendaRow[];
   onItemClick: (item: HomeTodayAgendaItem) => void;
   onOpenCalendar: () => void;
@@ -62,6 +63,7 @@ export default function HomeListTodayAgenda({
   parties,
   bootcamps,
   festivals,
+  venueLessons,
   mapRows,
   onItemClick,
   onOpenCalendar,
@@ -94,6 +96,7 @@ export default function HomeListTodayAgenda({
       parties,
       bootcamps,
       festivals,
+      venueLessons,
     });
     return days.map((day) => ({
       dateStr: day.dateStr,
@@ -107,6 +110,7 @@ export default function HomeListTodayAgenda({
     parties,
     bootcamps,
     festivals,
+    venueLessons,
     todayStr,
     isEn,
     mapRows,

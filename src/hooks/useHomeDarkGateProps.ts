@@ -27,6 +27,7 @@ export type UseHomeDarkGatePropsInput = {
   todayPosterPartiesForCount: HomeDarkParty[];
   bootcamps: Array<Record<string, unknown>>;
   festivals: Array<Record<string, unknown>>;
+  venueLessons?: Array<Record<string, unknown>>;
   /** parties·부트캠프·페스티벌 초기 로드 중 — 탐색 썸네일 플레이스홀더 방지 */
   eventsLoading?: boolean;
   calendarTodayStr: string;
@@ -51,6 +52,7 @@ export type UseHomeDarkGatePropsInput = {
   requestUserLocation: () => void;
   sortBarsForSocialBarTab: (bars: HomeDarkBar[], regionTab: string) => HomeDarkBar[];
   openPartyWithAfterParty: (party: HomeDarkParty) => void;
+  openVenueLessonPoster?: (lesson: Record<string, unknown>) => void;
   openBootcampPage: () => void;
   openFestivalPage: () => void;
   openFestivalPartyPage: () => void;

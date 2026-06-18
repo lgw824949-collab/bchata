@@ -583,6 +583,11 @@
   color: #e53935;
 }
 
+.home-list-gate__today-agenda-kind--venueLesson {
+  background: #fdf2f8;
+  color: #d4436e;
+}
+
 .home-list-gate__today-agenda-kind--bootcamp {
   background: #eff6ff;
   color: #2563eb;

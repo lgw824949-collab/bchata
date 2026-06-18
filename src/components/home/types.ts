@@ -2,7 +2,7 @@ import type { LucideIcon } from 'lucide-react';
 
 export type HomeDarkHeroSlide = {
   id: string;
-  kind: 'social' | 'bootcamp' | 'festival' | 'party';
+  kind: 'social' | 'bootcamp' | 'festival' | 'party' | 'venueLesson';
   poster_url: string;
   title: string;
   venue: string;
