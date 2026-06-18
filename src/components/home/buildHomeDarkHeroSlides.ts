@@ -1,5 +1,9 @@
 import type { HomeDarkHeroSlide } from './types';
-import { getNextLessonOccurrence, isApprovedVenueLesson } from '../../lib/venueLessonSchedule';
+import {
+  getNextLessonOccurrence,
+  isApprovedVenueLesson,
+  lessonOccursOnDate,
+} from '../../lib/venueLessonSchedule';
 
 type PosterRow = {
   id?: string | number;
@@ -54,6 +58,36 @@ const sortSlidesByNearestEventDate = (slides: HomeDarkHeroSlide[], todayStr: str
     resolvePosterEventDate(b.raw as PosterRow, todayStr),
     todayStr,
   ));
+
+const HERO_KIND_ORDER: Record<HomeDarkHeroSlide['kind'], number> = {
+  venueLesson: 0,
+  social: 1,
+  bootcamp: 2,
+  festival: 3,
+  party: 4,
+};
+
+/** 오늘 행사 우선 → 업체 수업 우선 → 가까운 날짜 */
+const sortSlidesForHero = (slides: HomeDarkHeroSlide[], todayStr: string) =>
+  [...slides].sort((a, b) => {
+    const da = resolvePosterEventDate(a.raw as PosterRow, todayStr);
+    const db = resolvePosterEventDate(b.raw as PosterRow, todayStr);
+    const aToday = da === todayStr;
+    const bToday = db === todayStr;
+    if (aToday !== bToday) return aToday ? -1 : 1;
+    if (aToday && bToday && HERO_KIND_ORDER[a.kind] !== HERO_KIND_ORDER[b.kind]) {
+      return HERO_KIND_ORDER[a.kind] - HERO_KIND_ORDER[b.kind];
+    }
+    return compareNearestEventDate(da, db, todayStr);
+  });
+
+const withVenueLessonHeroDate = (row: PosterRow, todayStr: string): PosterRow => {
+  if (lessonOccursOnDate(row, todayStr)) {
+    return { ...row, start_date: todayStr };
+  }
+  const next = getNextLessonOccurrence(row, todayStr);
+  return { ...row, start_date: next || row.start_date };
+};
 
 export function formatHeroDateLabel(
   startDate: string | undefined,
@@ -136,28 +170,45 @@ export function buildHomeDarkHeroSlides(
       slides.push(toSlide(party, 'social', `social-${party.id}`, '오늘 소셜', 'Tonight\'s Social', todayStr));
     });
 
-  const venueLessons = (venueLessonRows || [])
-    .filter((row) => isApprovedVenueLesson(row))
-    .map((row) => ({
-      ...row,
-      start_date: getNextLessonOccurrence(row, todayStr) || row.start_date,
-    }))
+  const venueLessonPool = (venueLessonRows || []).filter((row) => isApprovedVenueLesson(row));
+  const todayVenueLessons = venueLessonPool
+    .filter((row) => lessonOccursOnDate(row, todayStr))
+    .map((row) => withVenueLessonHeroDate(row, todayStr));
+  const upcomingVenueLessons = venueLessonPool
+    .filter((row) => !lessonOccursOnDate(row, todayStr))
+    .map((row) => withVenueLessonHeroDate(row, todayStr))
     .filter((row) => {
       const next = normDate(row.start_date);
       return next && next >= todayStr;
     });
-  sortRowsByNearestEventDate(venueLessons, todayStr)
-    .slice(0, 1)
+
+  sortRowsByNearestEventDate(todayVenueLessons, todayStr)
+    .slice(0, 2)
     .forEach((lesson) => {
       slides.push(toSlide(
         lesson,
         'venueLesson',
-        `venue-lesson-${lesson.id}`,
-        '업체 수업',
-        'Venue class',
+        `venue-lesson-today-${lesson.id}`,
+        '오늘 업체 수업',
+        'Today\'s venue class',
         todayStr,
       ));
     });
+
+  if (todayVenueLessons.length === 0) {
+    sortRowsByNearestEventDate(upcomingVenueLessons, todayStr)
+      .slice(0, 1)
+      .forEach((lesson) => {
+        slides.push(toSlide(
+          lesson,
+          'venueLesson',
+          `venue-lesson-${lesson.id}`,
+          '업체 수업',
+          'Venue class',
+          todayStr,
+        ));
+      });
+  }
 
   const bootcamp = pickNearestEventRow(bootcampRows, todayStr);
   if (bootcamp?.id != null) {
@@ -174,7 +225,7 @@ export function buildHomeDarkHeroSlides(
     slides.push(toSlide(partyEvent, 'party', `event-party-${partyEvent.id}`, '파티', 'Party', todayStr));
   }
 
-  return sortSlidesByNearestEventDate(slides, todayStr);
+  return sortSlidesForHero(slides, todayStr);
 }
 
 export const HOME_DARK_HERO_ROTATE_MS = 4500;
