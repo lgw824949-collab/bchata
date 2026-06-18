@@ -50,7 +50,7 @@ export const BAR_DATABASE = [
 
   // [경기 - 일산]
   { name: '칼리', name_en: 'Cali', address: '경기도 고양시 일산동구 백석동 1228-4', region: '경기도' },
-  { name: '살사 우노', name_en: 'Salsa Uno', address: '경기도 고양시 일산동구 1196-2 B1', region: '경기도' },
+  { name: '살사 우노', name_en: 'Salsa Uno', address: '경기도 고양시 일산동구 강송로113번길 53-20 B1', region: '경기도' },
 
   // [경기 - 의정부]
   { name: '이그녹스', name_en: 'Egnox', address: '경기도 의정부시 평화로 567-1 청관정지하', region: '경기도' },
