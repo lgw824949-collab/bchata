@@ -126,6 +126,8 @@ const GENRE_MAP = {
 
 const normDate = (d) => (d ? String(d).slice(0, 10) : '');
 
+const isOnedayLesson = (lesson) => /원데이/i.test(String(lesson?.duration || ''));
+
 const getKSTTodayStr = () => {
   const now = new Date();
   if (now.getHours() < 4) now.setDate(now.getDate() - 1);
@@ -229,6 +231,7 @@ const extractPartyMetaTags = (party, isLesson) => {
   if (partner) push('partner', `파트너 ${partner[1]}`);
 
   if (isLesson && party.level) push('level', party.level);
+  if (isLesson && isOnedayLesson(party)) push('oneday', '원데이');
   else {
     const level = hay.match(/(입문|초급|중급|중상|고급|센슈얼|인터미디엇)/);
     if (level) push('level', level[1]);
@@ -434,6 +437,12 @@ const getNextLessonOccurrence = (lesson, fromDateStr) => {
   const from = normDate(fromDateStr);
   const start = normDate(lesson.start_date);
   const end = parseLessonEndDate(lesson);
+
+  if (isOnedayLesson(lesson)) {
+    if (!start) return null;
+    return start >= from ? start : null;
+  }
+
   const weekdays = parseLessonWeekdays(lesson.day_of_week);
 
   if (weekdays.length === 0) {
@@ -456,6 +465,9 @@ const getNextLessonOccurrence = (lesson, fromDateStr) => {
 const lessonOccursOnDate = (lesson, dateStr) => {
   const d = normDate(dateStr);
   if (!d) return false;
+  if (isOnedayLesson(lesson)) {
+    return normDate(lesson.start_date) === d;
+  }
   const end = parseLessonEndDate(lesson);
   if (end && d > end) return false;
   if (normDate(lesson.start_date) === d) return true;
@@ -470,6 +482,10 @@ const lessonOccursOnDate = (lesson, dateStr) => {
 const collectLessonCalendarDates = (lesson, fromDateStr, weeks = 10) => {
   const dates = new Set();
   const start = normDate(lesson.start_date) || fromDateStr;
+  if (isOnedayLesson(lesson)) {
+    if (start) dates.add(start);
+    return dates;
+  }
   const end = parseLessonEndDate(lesson);
   const weekdays = parseLessonWeekdays(lesson.day_of_week);
   if (!weekdays.length) {
