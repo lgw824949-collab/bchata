@@ -382,7 +382,7 @@ export default function AdminVenueLessonForm({
       <div
         role="dialog"
         aria-modal="true"
-        aria-label={isEdit ? '업체 수업 수정' : '업체 수업 등록'}
+        aria-label={isEdit ? 'BAR 클래스 수정' : 'BAR 클래스 등록'}
         onClick={(e) => e.stopPropagation()}
         style={{
           width: 'min(100%, 520px)',
@@ -404,7 +404,7 @@ export default function AdminVenueLessonForm({
         }}
         >
           <h3 style={{ margin: 0, fontSize: '17px', fontWeight: 900, color: '#1E293B' }}>
-            {isEdit ? '업체 수업 수정' : '업체 수업 등록'}
+            {isEdit ? 'BAR 클래스 수정' : 'BAR 클래스 등록'}
           </h3>
           <button
             type="button"

@@ -999,7 +999,7 @@ export default function AdminDashboard({ onBack, refreshData }) {
     { id: 'bootcamp', label: '부트캠프', icon: <Tent size={16} /> },
     { id: 'festival', label: '페스티벌', icon: <Flag size={16} /> },
     { id: 'instructor-classes', label: '강사 클래스 📚', icon: <Sparkles size={16} /> },
-    { id: 'venue-classes', label: '업체 수업 🍷', icon: <Sparkles size={16} color="#E53935" /> },
+    { id: 'venue-classes', label: 'BAR 클래스 🍷', icon: <Sparkles size={16} color="#E53935" /> },
     { id: 'event', label: '🥃 이벤트', icon: <Sparkles size={16} color="#F59E0B" /> }
   ]
 
@@ -1148,7 +1148,7 @@ export default function AdminDashboard({ onBack, refreshData }) {
                 cursor: 'pointer',
               }}
             >
-              <Plus size={14} /> 업체 수업 등록
+              <Plus size={14} /> BAR 클래스 등록
             </button>
           )}
           <button 
@@ -1842,7 +1842,7 @@ export default function AdminDashboard({ onBack, refreshData }) {
             setShowVenueLessonModal(false);
             setVenueLessonItem(null);
             fetchData();
-            showAdminSuccess(wasEdit ? '업체 수업이 수정되었습니다.' : '업체 수업이 등록되었습니다.');
+            showAdminSuccess(wasEdit ? 'BAR 클래스가 수정되었습니다.' : 'BAR 클래스가 등록되었습니다.');
           }}
         />
       )}

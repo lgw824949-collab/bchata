@@ -3,6 +3,7 @@ import {
   getNextLessonOccurrence,
   isApprovedVenueLesson,
   lessonOccursOnDate,
+  resolveVenueLessonHeroSubtitle,
 } from '../../lib/venueLessonSchedule';
 
 type PosterRow = {
@@ -185,12 +186,13 @@ export function buildHomeDarkHeroSlides(
   sortRowsByNearestEventDate(todayVenueLessons, todayStr)
     .slice(0, 2)
     .forEach((lesson) => {
+      const subtitle = resolveVenueLessonHeroSubtitle(lesson, true);
       slides.push(toSlide(
         lesson,
         'venueLesson',
         `venue-lesson-today-${lesson.id}`,
-        '오늘 업체 수업',
-        'Today\'s venue class',
+        subtitle.ko,
+        subtitle.en,
         todayStr,
       ));
     });
@@ -199,12 +201,13 @@ export function buildHomeDarkHeroSlides(
     sortRowsByNearestEventDate(upcomingVenueLessons, todayStr)
       .slice(0, 1)
       .forEach((lesson) => {
+        const subtitle = resolveVenueLessonHeroSubtitle(lesson, false);
         slides.push(toSlide(
           lesson,
           'venueLesson',
           `venue-lesson-${lesson.id}`,
-          '업체 수업',
-          'Venue class',
+          subtitle.ko,
+          subtitle.en,
           todayStr,
         ));
       });

@@ -7,6 +7,23 @@ export const normLessonDate = (value) => String(value ?? '').slice(0, 10);
 
 export const isOnedayLesson = (lesson) => /원데이/i.test(String(lesson?.duration || ''));
 
+/** 일정·히어로 태그 — 원데이: BAR 워크숍, 정규반: BAR 클래스 */
+export const resolveVenueLessonKindLabel = (lesson) => {
+  if (isOnedayLesson(lesson)) {
+    return { ko: 'BAR 워크숍', en: 'Bar workshop' };
+  }
+  return { ko: 'BAR 클래스', en: 'Bar class' };
+};
+
+export const resolveVenueLessonHeroSubtitle = (lesson, todayPrefix = false) => {
+  const base = resolveVenueLessonKindLabel(lesson);
+  if (!todayPrefix) return base;
+  return {
+    ko: `오늘 ${base.ko}`,
+    en: `Today's ${base.en}`,
+  };
+};
+
 export const parseLessonWeekdays = (dayOfWeek) => {
   if (!dayOfWeek) return [];
   const tokens = String(dayOfWeek).split(/[,/·|\s]+/).map((t) => t.trim()).filter(Boolean);

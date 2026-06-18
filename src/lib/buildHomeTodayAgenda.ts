@@ -6,7 +6,7 @@ import { formatPartyTitleDisplay } from './partyTitleDisplay';
 import { resolvePartyVenueName } from './partiesQuery';
 import { inferPartyRowSlot, isSocialPartyRow } from './postKind';
 import { getPartyGenreLabel } from './partyShareCard';
-import { filterVenueLessonsForDate } from './venueLessonSchedule';
+import { filterVenueLessonsForDate, resolveVenueLessonKindLabel } from './venueLessonSchedule';
 
 export type HomeTodayAgendaKind = 'social' | 'bootcamp' | 'festival' | 'party' | 'venueLesson';
 
@@ -30,7 +30,7 @@ const KIND_LABELS: Record<HomeTodayAgendaKind, { ko: string; en: string }> = {
   bootcamp: { ko: '부트캠프', en: 'Bootcamp' },
   festival: { ko: '페스티벌', en: 'Festival' },
   party: { ko: '파티', en: 'Party' },
-  venueLesson: { ko: '업체수업', en: 'Venue class' },
+  venueLesson: { ko: 'BAR 클래스', en: 'Bar class' },
 };
 
 const KIND_ORDER: Record<HomeTodayAgendaKind, number> = {
@@ -193,7 +193,9 @@ const toAgendaItem = (
       row.venue || row.location || row.location_name || row.locationName || row.address || '',
     ).trim();
   const clock = normalizeClock(row.start_time || row.time);
-  const labels = KIND_LABELS[kind];
+  const labels = kind === 'venueLesson'
+    ? resolveVenueLessonKindLabel(row)
+    : KIND_LABELS[kind];
   const genreLabel = resolveAgendaGenreLabel(row, kind);
 
   return {
