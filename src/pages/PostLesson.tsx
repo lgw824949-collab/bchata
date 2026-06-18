@@ -6,9 +6,28 @@ import Tesseract from 'tesseract.js'
 
 import { CLASS_CATEGORIES, DANCE_STYLES, DAYS } from '../lib/constants'
 import { appendLessonPublisherMeta } from '../lib/lessonPublisher'
+import {
+  WEEK_COUNT_OPTIONS,
+  buildDurationLabel,
+  calcRegularCourseEndDate,
+  weekdayFromDate,
+} from '../lib/venueLessonSchedule'
+
+const chipBtn = (active, accent = '#FF8C00') => ({
+  padding: '8px 14px',
+  borderRadius: '999px',
+  fontSize: '13px',
+  fontWeight: 700,
+  border: '1px solid',
+  borderColor: active ? accent : '#E5E7EB',
+  background: active ? accent : 'white',
+  color: active ? 'white' : '#6B7280',
+  cursor: 'pointer',
+})
 
 const PostLesson = ({ onBack, user, initialVenue = null }) => {
   const venueLocked = Boolean(initialVenue?.name || initialVenue?.studio_name)
+  const todayStr = new Date().toISOString().split('T')[0]
   const [loading, setLoading] = useState(false)
   const [isOcrProcessing, setIsOcrProcessing] = useState(false)
   const [preview, setPreview] = useState(null)
@@ -29,8 +48,10 @@ const PostLesson = ({ onBack, user, initialVenue = null }) => {
     endTime: '21:00',
     fee: '',
     description: '',
-    startDate: new Date().toISOString().split('T')[0],
-    endDate: '',
+    startDate: todayStr,
+    endDate: calcRegularCourseEndDate(todayStr, 4),
+    scheduleType: 'regular',
+    weekCount: 4,
     studio_name: initialVenue?.name || initialVenue?.studio_name || '',
     address: initialVenue?.address || '',
     region: initialVenue?.region || '서울',
@@ -64,6 +85,52 @@ const PostLesson = ({ onBack, user, initialVenue = null }) => {
         ? prev.dance_styles.filter((item) => item !== style)
         : [...prev.dance_styles, style],
     }))
+  }
+
+  const setScheduleType = (scheduleType) => {
+    setFormData((prev) => {
+      if (scheduleType === 'oneday') {
+        const day = weekdayFromDate(prev.startDate)
+        return {
+          ...prev,
+          scheduleType,
+          endDate: prev.startDate,
+          days: day ? [day] : prev.days,
+        }
+      }
+      const endDate = prev.weekCount === 'custom'
+        ? prev.endDate
+        : calcRegularCourseEndDate(prev.startDate, prev.weekCount)
+      return { ...prev, scheduleType, endDate }
+    })
+  }
+
+  const setWeekCount = (weekCount) => {
+    setFormData((prev) => ({
+      ...prev,
+      weekCount,
+      endDate: weekCount === 'custom'
+        ? prev.endDate
+        : calcRegularCourseEndDate(prev.startDate, weekCount),
+    }))
+  }
+
+  const setStartDate = (startDate) => {
+    setFormData((prev) => {
+      if (prev.scheduleType === 'oneday') {
+        const day = weekdayFromDate(startDate)
+        return {
+          ...prev,
+          startDate,
+          endDate: startDate,
+          days: day ? [day] : prev.days,
+        }
+      }
+      const endDate = prev.weekCount === 'custom'
+        ? prev.endDate
+        : calcRegularCourseEndDate(startDate, prev.weekCount)
+      return { ...prev, startDate, endDate }
+    })
   }
 
   const buildCategoryLevelLabel = (categories, customCategory) => {
@@ -105,7 +172,11 @@ const PostLesson = ({ onBack, user, initialVenue = null }) => {
   const handleSubmit = async () => {
     if (!file) return alert('포스터 이미지를 올려주세요.')
     if (!formData.title) return alert('강습 또는 동호회 명칭을 입력해주세요.')
-    if (formData.days.length === 0) return alert('요일을 선택해주세요.')
+    if (!formData.startDate) return alert(formData.scheduleType === 'oneday' ? '수업 날짜를 선택해주세요.' : '개강일을 선택해주세요.')
+    if (formData.scheduleType !== 'oneday' && formData.days.length === 0) return alert('요일을 선택해주세요.')
+    if (formData.scheduleType === 'regular' && formData.weekCount === 'custom' && !formData.endDate) {
+      return alert('종강일을 선택해주세요.')
+    }
     
     setLoading(true)
     try {
@@ -119,15 +190,20 @@ const PostLesson = ({ onBack, user, initialVenue = null }) => {
       }
 
       const publisherId = formData.location_id || '';
+      const isOneday = formData.scheduleType === 'oneday'
+      const endDate = isOneday ? formData.startDate : formData.endDate
+      const dayOfWeek = isOneday
+        ? (formData.days[0] || weekdayFromDate(formData.startDate))
+        : formData.days.join(', ')
       const lessonRow = {
         title: formData.title,
         genre: formData.dance_styles.join(', '),
         level: buildCategoryLevelLabel(formData.categories, formData.custom_category),
-        day_of_week: formData.days.join(', '),
+        day_of_week: dayOfWeek,
         start_time: formData.startTime,
         end_time: formData.endTime,
         start_date: formData.startDate,
-        duration: formData.endDate ? `~ ${formData.endDate}` : '기간 미지정',
+        duration: buildDurationLabel(formData.scheduleType, formData.weekCount, endDate),
         studio_name: formData.studio_name,
         address: formData.address,
         city: formData.region,
@@ -411,50 +487,95 @@ const PostLesson = ({ onBack, user, initialVenue = null }) => {
               exit={{ opacity: 0, x: -20 }}
             >
               <div style={{ background: 'white', padding: '24px', borderRadius: '24px', border: '1px solid #F3F4F6' }}>
-                {/* 요일 선택 */}
                 <div style={{ marginBottom: '24px' }}>
-                  <label style={{ display: 'block', fontSize: '14px', fontWeight: 700, color: '#4B5563', marginBottom: '12px' }}>진행 요일</label>
-                  <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                    {DAYS.map(day => (
-                      <button 
-                        key={day}
-                        onClick={() => toggleDay(day)}
-                        style={{ 
-                          width: '40px', 
-                          height: '40px', 
-                          borderRadius: '20px', 
-                          fontSize: '13px', 
-                          fontWeight: 700,
-                          border: '1px solid',
-                          borderColor: formData.days.includes(day) ? '#FF8C00' : '#E5E7EB',
-                          background: formData.days.includes(day) ? '#FF8C00' : 'white',
-                          color: formData.days.includes(day) ? 'white' : '#6B7280'
-                        }}
-                      >
-                        {day}
-                      </button>
-                    ))}
+                  <label style={{ display: 'block', fontSize: '14px', fontWeight: 700, color: '#4B5563', marginBottom: '12px' }}>수업 유형</label>
+                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
+                    <button type="button" style={chipBtn(formData.scheduleType === 'oneday')} onClick={() => setScheduleType('oneday')}>
+                      원데이
+                    </button>
+                    <button type="button" style={chipBtn(formData.scheduleType === 'regular')} onClick={() => setScheduleType('regular')}>
+                      정규반 (주차)
+                    </button>
                   </div>
                 </div>
-                
+
                 <div style={{ marginBottom: '24px' }}>
-                  <label style={{ display: 'block', fontSize: '14px', fontWeight: 700, color: '#4B5563', marginBottom: '12px' }}>강습 기간</label>
-                  <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
-                    <input 
-                      type="date" 
-                      value={formData.startDate}
-                      onChange={e => setFormData({...formData, startDate: e.target.value})}
-                      style={{ flex: 1, height: '42px', padding: '0 10px', borderRadius: '10px', border: '1px solid #E5E7EB', fontSize: '14px' }} 
-                    />
-                    <span style={{ color: '#9CA3AF' }}>~</span>
-                    <input 
-                      type="date" 
-                      value={formData.endDate}
-                      onChange={e => setFormData({...formData, endDate: e.target.value})}
-                      style={{ flex: 1, height: '42px', padding: '0 10px', borderRadius: '10px', border: '1px solid #E5E7EB', fontSize: '14px' }} 
-                    />
-                  </div>
+                  <label style={{ display: 'block', fontSize: '14px', fontWeight: 700, color: '#4B5563', marginBottom: '12px' }}>
+                    {formData.scheduleType === 'oneday' ? '수업 날짜' : '개강일'}
+                  </label>
+                  <input
+                    type="date"
+                    value={formData.startDate}
+                    onChange={(e) => setStartDate(e.target.value)}
+                    style={{ width: '100%', height: '42px', padding: '0 10px', borderRadius: '10px', border: '1px solid #E5E7EB', fontSize: '14px' }}
+                  />
+                  {formData.scheduleType === 'oneday' && formData.startDate ? (
+                    <p style={{ margin: '8px 0 0', fontSize: '12px', fontWeight: 700, color: '#9CA3AF' }}>
+                      {weekdayFromDate(formData.startDate)}요일 원데이 수업
+                    </p>
+                  ) : null}
                 </div>
+
+                {formData.scheduleType === 'regular' ? (
+                  <>
+                    <div style={{ marginBottom: '24px' }}>
+                      <label style={{ display: 'block', fontSize: '14px', fontWeight: 700, color: '#4B5563', marginBottom: '12px' }}>기간 (주차)</label>
+                      <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
+                        {WEEK_COUNT_OPTIONS.map((weeks) => (
+                          <button key={weeks} type="button" style={chipBtn(formData.weekCount === weeks)} onClick={() => setWeekCount(weeks)}>
+                            {weeks}주
+                          </button>
+                        ))}
+                        <button type="button" style={chipBtn(formData.weekCount === 'custom')} onClick={() => setWeekCount('custom')}>
+                          직접입력
+                        </button>
+                      </div>
+                      {formData.weekCount !== 'custom' && formData.endDate ? (
+                        <p style={{ margin: '8px 0 0', fontSize: '12px', fontWeight: 700, color: '#FF8C00' }}>
+                          종강일 자동: {formData.endDate}
+                        </p>
+                      ) : null}
+                    </div>
+
+                    <div style={{ marginBottom: '24px' }}>
+                      <label style={{ display: 'block', fontSize: '14px', fontWeight: 700, color: '#4B5563', marginBottom: '12px' }}>진행 요일</label>
+                      <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                        {DAYS.map(day => (
+                          <button 
+                            key={day}
+                            type="button"
+                            onClick={() => toggleDay(day)}
+                            style={{ 
+                              width: '40px', 
+                              height: '40px', 
+                              borderRadius: '20px', 
+                              fontSize: '13px', 
+                              fontWeight: 700,
+                              border: '1px solid',
+                              borderColor: formData.days.includes(day) ? '#FF8C00' : '#E5E7EB',
+                              background: formData.days.includes(day) ? '#FF8C00' : 'white',
+                              color: formData.days.includes(day) ? 'white' : '#6B7280'
+                            }}
+                          >
+                            {day}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+
+                    {formData.weekCount === 'custom' ? (
+                      <div style={{ marginBottom: '24px' }}>
+                        <label style={{ display: 'block', fontSize: '14px', fontWeight: 700, color: '#4B5563', marginBottom: '12px' }}>종강일</label>
+                        <input
+                          type="date"
+                          value={formData.endDate}
+                          onChange={(e) => setFormData({ ...formData, endDate: e.target.value })}
+                          style={{ width: '100%', height: '42px', padding: '0 10px', borderRadius: '10px', border: '1px solid #E5E7EB', fontSize: '14px' }}
+                        />
+                      </div>
+                    ) : null}
+                  </>
+                ) : null}
 
                 {/* 시간 설정 */}
                 <div>
@@ -559,6 +680,13 @@ const PostLesson = ({ onBack, user, initialVenue = null }) => {
                 if (step === 2 && formData.categories.length === 0) return alert('강습 유형을 하나 이상 선택해주세요.')
                 if (step === 2 && formData.categories.includes('기타') && !String(formData.custom_category || '').trim()) {
                   return alert('기타 유형을 입력해주세요.')
+                }
+                if (step === 3) {
+                  if (!formData.startDate) return alert(formData.scheduleType === 'oneday' ? '수업 날짜를 선택해주세요.' : '개강일을 선택해주세요.')
+                  if (formData.scheduleType !== 'oneday' && formData.days.length === 0) return alert('요일을 선택해주세요.')
+                  if (formData.scheduleType === 'regular' && formData.weekCount === 'custom' && !formData.endDate) {
+                    return alert('종강일을 선택해주세요.')
+                  }
                 }
                 setStep(step + 1)
               }}
