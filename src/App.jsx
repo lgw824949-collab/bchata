@@ -1952,7 +1952,7 @@ function App() {
         ),
         runSupabaseQuery('classes_info', (db) =>
           db.from('classes_info')
-            .select('id, title, instructor, genre, start_date, start_time, end_time, price, poster_url, duration, day_of_week, studio_name, location_id, category_type, status, created_at')
+            .select('id, title, instructor, genre, start_date, start_time, end_time, fee, poster_url, duration, day_of_week, studio_name, category_type, status, created_at, address, city')
             .eq('status', 'approved')
             .eq('category_type', 'venue'),
         ),
