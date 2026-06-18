@@ -423,15 +423,22 @@ const parseLessonWeekdays = (dayOfWeek) => {
   return Array.from(days);
 };
 
+const parseLessonEndDate = (lesson) => {
+  const duration = String(lesson?.duration || '');
+  const m = duration.match(/~\s*(\d{4}-\d{2}-\d{2})/);
+  return m?.[1] ? normDate(m[1]) : null;
+};
+
 /** 오늘(또는 fromDate) 이후 가장 가까운 수업 날짜 */
 const getNextLessonOccurrence = (lesson, fromDateStr) => {
   const from = normDate(fromDateStr);
   const start = normDate(lesson.start_date);
+  const end = parseLessonEndDate(lesson);
   const weekdays = parseLessonWeekdays(lesson.day_of_week);
 
   if (weekdays.length === 0) {
-    if (start && start >= from) return start;
-    return start || null;
+    if (start && start >= from && (!end || start <= end)) return start;
+    return start && (!end || start <= end) ? start : null;
   }
 
   const base = parseDateParts(from);
@@ -440,28 +447,33 @@ const getNextLessonOccurrence = (lesson, fromDateStr) => {
     d.setDate(base.getDate() + i);
     const full = formatDateParts(d);
     if (start && full < start) continue;
+    if (end && full > end) break;
     if (weekdays.includes(d.getDay())) return full;
   }
-  return start && start >= from ? start : null;
+  return start && start >= from && (!end || start <= end) ? start : null;
 };
 
 const lessonOccursOnDate = (lesson, dateStr) => {
   const d = normDate(dateStr);
   if (!d) return false;
+  const end = parseLessonEndDate(lesson);
+  if (end && d > end) return false;
   if (normDate(lesson.start_date) === d) return true;
   const weekdays = parseLessonWeekdays(lesson.day_of_week);
   if (!weekdays.length) return false;
   const start = normDate(lesson.start_date);
   if (start && d < start) return false;
+  if (end && d > end) return false;
   return weekdays.includes(parseDateParts(d).getDay());
 };
 
 const collectLessonCalendarDates = (lesson, fromDateStr, weeks = 10) => {
   const dates = new Set();
   const start = normDate(lesson.start_date) || fromDateStr;
+  const end = parseLessonEndDate(lesson);
   const weekdays = parseLessonWeekdays(lesson.day_of_week);
   if (!weekdays.length) {
-    if (start) dates.add(start);
+    if (start && (!end || start <= end)) dates.add(start);
     const next = getNextLessonOccurrence(lesson, fromDateStr);
     if (next) dates.add(next);
     return dates;
@@ -473,6 +485,7 @@ const collectLessonCalendarDates = (lesson, fromDateStr, weeks = 10) => {
     d.setDate(base.getDate() + i);
     const full = formatDateParts(d);
     if (start && full < start) continue;
+    if (end && full > end) break;
     if (weekdays.includes(d.getDay())) dates.add(full);
   }
   return dates;

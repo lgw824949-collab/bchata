@@ -1674,7 +1674,10 @@ export default function AdminDashboard({ onBack, refreshData }) {
                         <div style={{ fontSize: '13px', color: '#7C3AED', fontWeight: 800 }}>🎵 {item.genre || '-'} · {item.level || '-'}</div>
                         <div style={{ fontSize: '12px', color: '#475569' }}>
                           📅 {item.day_of_week || '-'} {item.start_time || ''}~{item.end_time || ''}
-                          {item.start_date ? ` · 개강 ${item.start_date}` : ''}
+                          {item.start_date ? ` · ${item.duration?.includes('원데이') ? item.start_date : `개강 ${item.start_date}`}` : ''}
+                        </div>
+                        <div style={{ fontSize: '12px', color: '#475569' }}>
+                          🗓 {item.duration || '기간 미지정'}
                         </div>
                         <div style={{ fontSize: '12px', color: '#475569' }}>💰 {item.fee || '참가비 문의'}</div>
                         {item.poster_url ? (
