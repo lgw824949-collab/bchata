@@ -103,7 +103,7 @@ export function useHomeListGateProps(input: UseHomeDarkGatePropsInput) {
     sortBarsForSocialBarTab,
     openVenueDetail,
     openPartyWithAfterParty,
-    openVenueLessonPoster,
+    openVenueLessonDetail,
     openBootcampPage,
     openFestivalPage,
     openFestivalPartyPage,
@@ -337,7 +337,7 @@ export function useHomeListGateProps(input: UseHomeDarkGatePropsInput) {
 
   const openAgendaItem = useCallback((item: HomeTodayAgendaItem) => {
     if (item.kind === 'venueLesson') {
-      openVenueLessonPoster?.(item.raw as Record<string, unknown>);
+      openVenueLessonDetail?.(item.raw as Record<string, unknown>, item.dateStr);
       return;
     }
     if (item.kind === 'social') {
@@ -353,7 +353,7 @@ export function useHomeListGateProps(input: UseHomeDarkGatePropsInput) {
       return;
     }
     openFestivalPage();
-  }, [openBootcampPage, openFestivalPage, openFestivalPartyPage, openPartyWithAfterParty, openVenueLessonPoster]);
+  }, [openBootcampPage, openFestivalPage, openFestivalPartyPage, openPartyWithAfterParty, openVenueLessonDetail]);
 
   const openBarMap = useCallback(() => {
     pushOverlay('incheon');
@@ -399,7 +399,9 @@ export function useHomeListGateProps(input: UseHomeDarkGatePropsInput) {
 
   const openHeroSlide = useCallback((slide: HomeDarkHeroSlide) => {
     if (slide.kind === 'venueLesson') {
-      openVenueLessonPoster?.(slide.raw as Record<string, unknown>);
+      const raw = slide.raw as Record<string, unknown>;
+      const dateStr = String(raw?.start_date || raw?.date || '').slice(0, 10);
+      openVenueLessonDetail?.(raw, dateStr || undefined);
       return;
     }
     if (slide.kind === 'bootcamp') {
@@ -415,7 +417,7 @@ export function useHomeListGateProps(input: UseHomeDarkGatePropsInput) {
       return;
     }
     openPartyWithAfterParty(slide.raw as HomeDarkParty);
-  }, [openBootcampPage, openFestivalPage, openFestivalPartyPage, openPartyWithAfterParty, openVenueLessonPoster]);
+  }, [openBootcampPage, openFestivalPage, openFestivalPartyPage, openPartyWithAfterParty, openVenueLessonDetail]);
 
   const socialMenuCount = exploreSocialCount;
 

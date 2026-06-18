@@ -1790,6 +1790,7 @@ const HomePage = ({
   const barAutoCheckinAttemptedRef = useRef(false);
   const barViewTimerRef = useRef(null);
   const [selectedVenue, setSelectedVenue] = useState(null);
+  const [venueDetailLaunch, setVenueDetailLaunch] = useState(null);
   const [venueLessonPostVenue, setVenueLessonPostVenue] = useState(null);
   const [showVenueLessonPick, setShowVenueLessonPick] = useState(false);
   const [showBarRegisterForm, setShowBarRegisterForm] = useState(false);
@@ -2041,11 +2042,35 @@ const HomePage = ({
 
   const openVenueDetail = (bar) => {
     const merged = mergeVenueWithLocalExtras(bar);
+    setVenueDetailLaunch(null);
     setSelectedVenue(merged);
     pushOverlay('venue', {
       meta: { venueId: String(merged.id), venueName: merged.name || '' },
     });
   };
+
+  const openVenueLessonDetail = useCallback((lesson, dateStr) => {
+    const studioName = String(lesson?.studio_name || lesson?.location || '').trim();
+    if (!studioName) return;
+
+    const studioKey = normalizeVenueNameKey(studioName);
+    const fromList = locations.find(
+      (bar) => normalizeVenueNameKey(bar?.name || '') === studioKey,
+    );
+    const master = findBarByName(studioName);
+    const base = fromList || (master ? { ...master, name: master.name } : { name: studioName });
+    const merged = mergeVenueWithLocalExtras(base);
+    const pickDate = String(dateStr || lesson?.start_date || '').slice(0, 10);
+
+    setVenueDetailLaunch({
+      tab: 'lesson',
+      date: pickDate || undefined,
+    });
+    setSelectedVenue(merged);
+    pushOverlay('venue', {
+      meta: { venueId: String(merged.id), venueName: merged.name || '' },
+    });
+  }, [locations]);
 
   const filterTodayPartiesByPill = useCallback((parties, pillId) => {
     if (pillId === 'seoul') return parties.filter(isHomePosterBannerSeoul);
@@ -2192,7 +2217,7 @@ const HomePage = ({
     requestUserLocation,
     sortBarsForSocialBarTab,
     openPartyWithAfterParty,
-    openVenueLessonPoster: openVenueDetailPoster,
+    openVenueLessonDetail,
     openBootcampPage,
     openFestivalPage,
     openFestivalPartyPage,
@@ -2218,6 +2243,7 @@ const HomePage = ({
   });
 
   const closeVenueDetail = () => {
+    setVenueDetailLaunch(null);
     if (!closeOverlayNav()) setSelectedVenue(null);
   };
 
@@ -4916,6 +4942,8 @@ const HomePage = ({
           venue={selectedVenue}
           parties={parties}
           lessons={lessons || []}
+          initialDetailTab={venueDetailLaunch?.tab}
+          initialSelectedDate={venueDetailLaunch?.date}
           onClose={closeVenueDetail}
           onVenueUpdated={syncVenueAcrossHome}
           onRegisterVenueLesson={openVenueLessonRegister}

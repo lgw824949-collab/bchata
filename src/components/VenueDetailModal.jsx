@@ -330,18 +330,19 @@ const FeaturedPartyCard = ({
         type="button"
         className="vd-featured-card__poster"
         onClick={(e) => {
+          if (isLesson) return;
           e.stopPropagation();
           onOpenPoster?.(party);
         }}
-        aria-label="포스터 크게 보기"
-        style={{ cursor: party.poster_url ? 'pointer' : 'default' }}
+        aria-label={isLesson ? '수업 포스터' : '포스터 크게 보기'}
+        style={{ cursor: !isLesson && party.poster_url ? 'pointer' : 'default' }}
       >
         {party.poster_url ? (
           <img src={party.poster_url} alt="" className="vd-featured-card__poster-img" />
         ) : (
           <div className="vd-featured-card__poster-empty">포스터</div>
         )}
-        {party.poster_url ? <span className="vd-featured-card__poster-hint">탭 · 크게 보기</span> : null}
+        {party.poster_url && !isLesson ? <span className="vd-featured-card__poster-hint">탭 · 크게 보기</span> : null}
       </button>
 
       <div className={`vd-featured-card__body${isLesson ? ' vd-featured-card__body--lesson' : ''}`}>
@@ -614,6 +615,8 @@ export default function VenueDetailModal({
   venue,
   parties = [],
   lessons = [],
+  initialDetailTab,
+  initialSelectedDate,
   onClose,
   onOpenPoster,
   onVenueUpdated,
@@ -642,8 +645,14 @@ export default function VenueDetailModal({
   useEffect(() => {
     const merged = mergeVenueWithLocalExtras(venue);
     setVenueDescription((merged?.description || '').slice(0, VENUE_DESC_MAX));
-    setDetailTab('social');
-  }, [venue?.id, venue?.name, venue?.description]);
+    setDetailTab(initialDetailTab === 'lesson' ? 'lesson' : 'social');
+
+    const launchDate = initialSelectedDate ? normDate(initialSelectedDate) : '';
+    const nextDate = launchDate && launchDate >= todayStr ? launchDate : todayStr;
+    setSelectedDate(nextDate);
+    const [y, m] = nextDate.split('-').map(Number);
+    setCalendarMonth({ year: y, month: m });
+  }, [venue?.id, venue?.name, venue?.description, initialDetailTab, initialSelectedDate, todayStr]);
 
   const [lessonsRefreshKey, setLessonsRefreshKey] = useState(0);
 
@@ -769,13 +778,6 @@ export default function VenueDetailModal({
   useEffect(() => {
     if (selectedDate < todayStr) setSelectedDate(pickInitialSelectedDate());
   }, [selectedDate, todayStr, pickInitialSelectedDate]);
-
-  useEffect(() => {
-    const d = pickInitialSelectedDate();
-    setSelectedDate(d);
-    const [y, m] = d.split('-').map(Number);
-    setCalendarMonth({ year: y, month: m });
-  }, [venue?.id, venue?.name, detailTab, pickInitialSelectedDate]);
 
   useEffect(() => {
     document.body.classList.add(VENUE_DETAIL_BODY_CLASS);
@@ -1103,7 +1105,10 @@ export default function VenueDetailModal({
                 <button
                   key={p.id}
                   type="button"
-                  onClick={() => onOpenPoster?.(p)}
+                  onClick={() => {
+                    if (!isSocialTab) return;
+                    onOpenPoster?.(p);
+                  }}
                   style={{
                     width: '100%',
                     textAlign: 'left',
