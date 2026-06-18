@@ -7,6 +7,7 @@ import {
   formatAgendaMonthLabel,
   parseDateStrParts,
   shiftMonth,
+  UPCOMING_AGENDA_PREVIEW_LIMIT,
   type HomeTodayAgendaItem,
 } from '../../lib/buildHomeTodayAgenda';
 import type { HomeDarkParty } from './types';
@@ -46,6 +47,8 @@ type HomeListTodayAgendaProps = {
 const WEEKDAYS_KO = ['일', '월', '화', '수', '목', '금', '토'] as const;
 const WEEKDAYS_EN = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'] as const;
 
+const AGENDA_LIST_PREVIEW_LIMIT = UPCOMING_AGENDA_PREVIEW_LIMIT;
+
 function formatSelectedDateHeading(dateStr: string, isEn: boolean) {
   const date = new Date(`${dateStr}T12:00:00`);
   if (Number.isNaN(date.getTime())) return dateStr;
@@ -72,6 +75,7 @@ export default function HomeListTodayAgenda({
   const [viewYear, setViewYear] = useState(todayParts.year);
   const [viewMonth, setViewMonth] = useState(todayParts.month);
   const [selectedDateStr, setSelectedDateStr] = useState(todayStr);
+  const [listExpanded, setListExpanded] = useState(false);
   const stripRef = useRef<HTMLDivElement>(null);
   const selectedChipRef = useRef<HTMLButtonElement>(null);
 
@@ -80,6 +84,10 @@ export default function HomeListTodayAgenda({
     setViewMonth(todayParts.month);
     setSelectedDateStr(todayStr);
   }, [todayParts.month, todayParts.year, todayStr]);
+
+  useEffect(() => {
+    setListExpanded(false);
+  }, [selectedDateStr]);
 
   useEffect(() => {
     selectedChipRef.current?.scrollIntoView({
@@ -142,6 +150,12 @@ export default function HomeListTodayAgenda({
   );
 
   const selectedCount = selectedGroup?.rows.length ?? 0;
+  const visibleRows = useMemo(() => {
+    const rows = selectedGroup?.rows ?? [];
+    if (listExpanded || rows.length <= AGENDA_LIST_PREVIEW_LIMIT) return rows;
+    return rows.slice(0, AGENDA_LIST_PREVIEW_LIMIT);
+  }, [listExpanded, selectedGroup]);
+  const hiddenCount = Math.max(0, selectedCount - visibleRows.length);
   const monthLabel = formatAgendaMonthLabel(viewYear, viewMonth, isEn);
 
   const shiftViewMonth = useCallback((delta: number) => {
@@ -274,7 +288,7 @@ export default function HomeListTodayAgenda({
         </div>
       ) : (
         <ul className="home-list-gate__today-agenda-list">
-          {selectedGroup?.rows.map((row) => (
+          {visibleRows.map((row) => (
             <li key={row.id}>
               <button
                 type="button"
@@ -318,6 +332,33 @@ export default function HomeListTodayAgenda({
               </button>
             </li>
           ))}
+          {hiddenCount > 0 ? (
+            <li>
+              <button
+                type="button"
+                className="home-list-gate__today-agenda-more"
+                onClick={() => setListExpanded(true)}
+                aria-expanded={listExpanded}
+                aria-label={isEn ? `Show ${hiddenCount} more events` : `일정 ${hiddenCount}건 더보기`}
+              >
+                {isEn ? `See ${hiddenCount} more` : `더보기 +${hiddenCount}`}
+                <ChevronRight size={14} aria-hidden />
+              </button>
+            </li>
+          ) : null}
+          {listExpanded && selectedCount > AGENDA_LIST_PREVIEW_LIMIT ? (
+            <li>
+              <button
+                type="button"
+                className="home-list-gate__today-agenda-more"
+                onClick={() => setListExpanded(false)}
+                aria-expanded={listExpanded}
+                aria-label={isEn ? 'Show fewer events' : '일정 접기'}
+              >
+                {isEn ? 'Show less' : '접기'}
+              </button>
+            </li>
+          ) : null}
         </ul>
       )}
     </section>
