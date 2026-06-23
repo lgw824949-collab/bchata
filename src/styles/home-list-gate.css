@@ -2114,13 +2114,41 @@
   word-break: keep-all;
 }
 
+.home-dark-more-sheet__legal {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  margin: 24px 0 0;
+  flex-wrap: wrap;
+}
+
+.home-dark-more-sheet__legal-link {
+  border: none;
+  background: transparent;
+  padding: 0;
+  font-size: 11px;
+  font-weight: 700;
+  color: #64748b;
+  cursor: pointer;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.home-dark-more-sheet__legal-sep {
+  font-size: 11px;
+  font-weight: 700;
+  color: #94a3b8;
+}
+
 .home-dark-more-sheet__footer {
-  margin: 28px 0 0;
+  margin: 12px 0 0;
   padding-top: 8px;
   text-align: center;
   font-size: 11px;
   font-weight: 700;
   color: #64748b;
+  line-height: 1.5;
 }
 
 body.home-more-menu-open nav.bottom-nav,

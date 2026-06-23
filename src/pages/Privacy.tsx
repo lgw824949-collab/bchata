@@ -27,6 +27,8 @@ const ulStyle: React.CSSProperties = {
 };
 
 const CONTACT_EMAIL = 'lgw261225@gmail.com';
+const COMPANY_NAME = '(주)에이치투';
+const BUSINESS_REG_NO = '128-86-81552';
 
 export default function Privacy({ onBack }: PrivacyProps) {
   return (
@@ -80,9 +82,9 @@ export default function Privacy({ onBack }: PrivacyProps) {
         <section style={sectionStyle}>
           <h2 style={h2Style}>1. 개인정보처리자</h2>
           <p style={pStyle}>
-            <strong>오늘밤빠</strong> 서비스 운영자(이하 &quot;회사&quot;)는 「개인정보 보호법」 등 관련
-            법령에 따라 이용자의 개인정보를 보호하며, 본 방침을 통해 수집·이용·보관·파기 절차를
-            안내합니다.
+            <strong>{COMPANY_NAME}</strong> (사업자등록번호 {BUSINESS_REG_NO})는 「오늘밤빠」 서비스
+            운영자(이하 &quot;회사&quot;)로서 「개인정보 보호법」 등 관련 법령에 따라 이용자의
+            개인정보를 보호하며, 본 방침을 통해 수집·이용·보관·파기 절차를 안내합니다.
           </p>
           <p style={pStyle}>
             개인정보 보호 책임자 및 문의:{' '}
@@ -232,6 +234,19 @@ export default function Privacy({ onBack }: PrivacyProps) {
             경찰청 사이버수사국 등 관계 기관을 이용할 수 있습니다.
           </p>
         </section>
+
+        <footer
+          style={{
+            marginTop: 8,
+            paddingTop: 20,
+            borderTop: '1px solid #E2E8F0',
+            textAlign: 'center',
+          }}
+        >
+          <p style={{ ...pStyle, fontSize: 12, color: '#64748B', margin: 0 }}>
+            {COMPANY_NAME} {BUSINESS_REG_NO}
+          </p>
+        </footer>
       </article>
     </div>
   );

@@ -3,7 +3,7 @@ import { createPortal } from 'react-dom';
 import { flushSync } from 'react-dom';
 import { AnimatePresence, motion } from 'framer-motion';
 import { ChevronLeft } from 'lucide-react';
-import { Z } from '../../constants/zLayers';
+import { navigate } from '../../lib/appHistory';
 import type { HomeDarkMoreAction } from './types';
 
 type HomeDarkMoreSheetProps = {
@@ -100,6 +100,14 @@ export default function HomeDarkMoreSheet({
     );
   };
 
+  const openLegalPage = (path: '/privacy' | '/terms') => {
+    flushSync(() => {
+      setQuickClose(true);
+      onClose();
+    });
+    navigate(path);
+  };
+
   return createPortal(
     <AnimatePresence initial={false}>
       {open && onHomePath ? (
@@ -150,7 +158,29 @@ export default function HomeDarkMoreSheet({
               {renderSection(isEn ? 'TOOLS' : '기타', secondary)}
             </nav>
 
-            <p className="home-dark-more-sheet__footer">© 2026 BAMPPA</p>
+            <div className="home-dark-more-sheet__legal">
+              <button
+                type="button"
+                className="home-dark-more-sheet__legal-link"
+                onClick={() => openLegalPage('/terms')}
+              >
+                {isEn ? 'Terms' : '이용약관'}
+              </button>
+              <span className="home-dark-more-sheet__legal-sep" aria-hidden>·</span>
+              <button
+                type="button"
+                className="home-dark-more-sheet__legal-link"
+                onClick={() => openLegalPage('/privacy')}
+              >
+                {isEn ? 'Privacy' : '개인정보처리방침'}
+              </button>
+            </div>
+
+            <p className="home-dark-more-sheet__footer">
+              © 2026 BAMPPA
+              <br />
+              (주)에이치투 128-86-81552
+            </p>
           </motion.aside>
         </div>
       ) : null}
