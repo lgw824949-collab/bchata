@@ -202,14 +202,11 @@ const SEOUL_SOCIAL_BAR_ORDER = [
   { match: (key) => key === '라틴' },
   { match: (key) => key.includes('보니타') || key.includes('보니따') },
   { match: (key) => key.includes('홍턴') },
-  { match: (key) => key.includes('하바나') || key.includes('havana') },
-  { match: (key) => key.includes('마콘도') },
+  { match: (key) => key.includes('강턴') || key.includes('강남턴') },
 ];
 
 /** 서울 탭 — 우선 노출에서 제외(뒤로) */
-const SEOUL_SOCIAL_BAR_DEMOTE = [
-  { match: (key) => key === '강턴' || key.includes('강남턴') },
-];
+const SEOUL_SOCIAL_BAR_DEMOTE = [];
 
 const getSeoulSocialBarSortRank = (bar) => {
   const key = normalizeVenueNameKey(bar?.name || '');

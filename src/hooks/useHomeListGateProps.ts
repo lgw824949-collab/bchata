@@ -36,6 +36,7 @@ const SEOUL_PINNED_BAR_ORDER = [
   (key: string) => key === '라틴' || key.includes('latin'),
   (key: string) => key.includes('보니타') || key.includes('보니따') || key.includes('bonita'),
   (key: string) => key.includes('홍턴') || key.includes('hongturn'),
+  (key: string) => key.includes('강턴') || key.includes('강남턴') || key.includes('gangturn'),
 ];
 
 const getSeoulPinnedBarIndex = (bar: HomeDarkBar) => {
