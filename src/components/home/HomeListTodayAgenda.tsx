@@ -180,7 +180,7 @@ export default function HomeListTodayAgenda({
     <section className="home-list-gate__today-agenda" aria-label={isEn ? 'Schedule by date' : '날짜별 일정'}>
       <div className="home-list-gate__today-agenda-head">
         <h2 className="home-list-gate__today-agenda-title">
-          {isEn ? 'Schedule' : '일정'}
+          {isEn ? 'Upcoming' : '다가오는 일정'}
         </h2>
         <button
           type="button"

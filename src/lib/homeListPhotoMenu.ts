@@ -12,6 +12,19 @@ export const HOME_EXPLORE_MENU_EMOJIS = {
 
 const normDate = (value?: unknown) => String(value ?? '').slice(0, 10);
 
+const normalizeGateEventType = (row: Record<string, unknown>) => {
+  const raw = String(row.event_type ?? 'festival').trim().toLowerCase();
+  return raw || 'festival';
+};
+
+const matchesGateEventTypes = (
+  row: Record<string, unknown>,
+  eventTypes: string[] | null,
+) => {
+  if (!eventTypes) return true;
+  return eventTypes.includes(normalizeGateEventType(row));
+};
+
 const dedupeById = <T extends { id?: unknown }>(list: T[]): T[] => {
   const seen = new Set<unknown>();
   return list.filter((item) => {
@@ -30,7 +43,7 @@ export const filterActiveGateEventPosters = (
   eventTypes: string[] | null = null,
 ) => dedupeById(rows || []).filter((row) => {
   if (row.status && row.status !== 'active') return false;
-  if (eventTypes && !eventTypes.includes(String(row.event_type || 'festival'))) return false;
+  if (!matchesGateEventTypes(row, eventTypes)) return false;
   if (!String(row.poster_url || '').trim()) return false;
   const end = normDate(row.end_date || row.start_date);
   if (end && end < todayStr) return false;

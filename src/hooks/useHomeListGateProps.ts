@@ -16,7 +16,7 @@ import { buildHomeDarkHeroSlides, formatHeroDateLabel } from '../components/home
 import { formatPartyTitleDisplay } from '../lib/partyTitleDisplay';
 import { HOME_DARK_MIN_BAR_ITEMS, HOME_DARK_REGION_PILLS } from '../components/home/constants';
 import type { HomeDarkBar, HomeDarkHeroSlide, HomeDarkParty } from '../components/home/types';
-import { buildHomeListPhotoMenuItems } from '../lib/homeListPhotoMenu';
+import { buildHomeListPhotoMenuItems, filterActiveGateEventPosters } from '../lib/homeListPhotoMenu';
 import { buildHomePartySearchItems } from '../lib/buildHomePartySearchItems';
 import {
   summarizeAgendaCountsFromDays,
@@ -71,10 +71,6 @@ const sortSeoulBarsPinnedThenDistance = (
     .map((entry) => entry.bar)
 );
 
-const isUpcomingEvent = (row: Record<string, unknown>, todayStr: string) => {
-  const end = normDate(row.end_date || row.start_date);
-  return !end || end >= todayStr;
-};
 
 /** Home.tsx — 네이버형 리스트 메인 props (A안: 리스트 중심) */
 export function useHomeListGateProps(input: UseHomeDarkGatePropsInput) {
@@ -259,22 +255,17 @@ export function useHomeListGateProps(input: UseHomeDarkGatePropsInput) {
   }, [geoSortReady, userGeoCoords]);
 
   const bootcampCount = useMemo(
-    () => (bootcamps || []).filter((row) => isUpcomingEvent(row, calendarTodayStr)).length,
+    () => filterActiveGateEventPosters(bootcamps, calendarTodayStr).length,
     [bootcamps, calendarTodayStr],
   );
 
   const festivalCount = useMemo(
-    () => (festivals || []).filter(
-      (row) => ['festival', 'mt'].includes(String(row.event_type || 'festival'))
-        && isUpcomingEvent(row, calendarTodayStr),
-    ).length,
+    () => filterActiveGateEventPosters(festivals, calendarTodayStr, ['festival', 'mt']).length,
     [festivals, calendarTodayStr],
   );
 
   const partyEventCount = useMemo(
-    () => (festivals || []).filter(
-      (row) => row.event_type === 'party' && isUpcomingEvent(row, calendarTodayStr),
-    ).length,
+    () => filterActiveGateEventPosters(festivals, calendarTodayStr, ['party']).length,
     [festivals, calendarTodayStr],
   );
 

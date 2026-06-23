@@ -797,7 +797,7 @@ export default function VenueDetailModal({
     if (!isSocialTab) {
       const entries = [];
       venueLessonsForDisplay.forEach((l) => {
-        const dates = collectLessonCalendarDates(l, todayStr, 8);
+        const dates = collectLessonCalendarDates(l, todayStr, 12);
         dates.forEach((date) => {
           if (date >= todayStr) entries.push({ date, party: l });
         });
@@ -846,6 +846,12 @@ export default function VenueDetailModal({
   const weekSchedulePosters = useMemo(
     () => schedulePosters.filter(({ date }) => date >= todayStr && date <= weekEndStr),
     [schedulePosters, todayStr, weekEndStr],
+  );
+
+  /** 수업 탭 — 오늘 이후 전체 (이번 주만이면 멀리 예정된 수업 포스터 누락) */
+  const upcomingSchedulePosters = useMemo(
+    () => schedulePosters.filter(({ date }) => date >= todayStr),
+    [schedulePosters, todayStr],
   );
 
   const master = findBarByName(venue?.name);
@@ -1148,13 +1154,13 @@ export default function VenueDetailModal({
           {(isSocialTab ? weekSchedulePosters.length > 0 : true) && (
             <div className="vd-week-section">
               <p className="vd-block-title vd-week-section__title">
-                {isSocialTab ? '이번 주' : '수업 일정'}
+                {isSocialTab ? '이번 주' : '다가오는 일정'}
               </p>
-              {!isSocialTab && weekSchedulePosters.length === 0 ? (
+              {!isSocialTab && upcomingSchedulePosters.length === 0 ? (
                 vdHintBox('일정 없음 · 상단 등록')
               ) : (
                 <div className="vd-schedule-row">
-                  {weekSchedulePosters.map(({ date, party: p }) => (
+                  {(isSocialTab ? weekSchedulePosters : upcomingSchedulePosters).map(({ date, party: p }) => (
                     <button
                       key={`${p.id}-${date}`}
                       type="button"
