@@ -13,6 +13,22 @@ export function appendLessonPublisherMeta(description, publisherType, publisherI
   return base ? `${tag}\n${base}` : tag;
 }
 
+export function appendSchedulePosterMeta(description, posterUrl) {
+  if (!posterUrl) return description;
+  const base = String(description || '').trim();
+  const tag = `[schedule_poster:${posterUrl}]`;
+  if (/\[schedule_poster:[^\]]+\]/.test(base)) {
+    return base.replace(/\[schedule_poster:[^\]]+\]/, tag);
+  }
+  return base ? `${base}\n${tag}` : tag;
+}
+
+export function getSchedulePosterMeta(row) {
+  const desc = String(row?.description || '');
+  const m = desc.match(/\[schedule_poster:([^\]]+)\]/);
+  return m ? m[1] : '';
+}
+
 export function getLessonPublisherMeta(row) {
   const desc = String(row?.description || '');
   const m = desc.match(/\[publisher:([^|\]]+)(?:\|id:([^\]]+))?\]/);
@@ -37,6 +53,7 @@ export function lessonPublisherBadge(row, venueName = '') {
 export function stripLessonPublisherMeta(description) {
   return String(description || '')
     .replace(/^\[publisher:[^\]]+\]\n?/, '')
+    .replace(/\[schedule_poster:[^\]]+\]\n?/, '')
     .trim();
 }
 

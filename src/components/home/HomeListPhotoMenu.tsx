@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { homeListPhotoMenuAriaLabel, type HomeListPhotoMenuItem } from '../../lib/homeListPhotoMenu';
+import { homeListPhotoMenuAriaLabel, HOME_EXPLORE_MENU_EMOJIS, type HomeListPhotoMenuItem } from '../../lib/homeListPhotoMenu';
 
 type HomeListPhotoMenuProps = {
   isEn: boolean;
@@ -92,7 +92,13 @@ function PhotoMenuButton({
               className={`home-list-gate__quick-menu-thumb-placeholder${
                 eventsLoading ? ' home-list-gate__quick-menu-thumb-placeholder--loading' : ''
               }`}
-            />
+            >
+              {!eventsLoading && (
+                <span className="home-list-gate__quick-menu-emoji">
+                  {HOME_EXPLORE_MENU_EMOJIS[item.id]}
+                </span>
+              )}
+            </span>
           )}
         </span>
         {item.count > 0 ? (

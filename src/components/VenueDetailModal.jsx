@@ -15,7 +15,7 @@ import { formatPartyMusicRatio } from '../pages/Social';
 import PartyFeeChips from './PartyFeeChips';
 import { formatPartyTitleDisplay, PARTY_TITLE_CARD_FONT_SIZE } from '../lib/partyTitleDisplay';
 import { mergeVenueWithLocalExtras, resetOptionalColumnsCache } from '../lib/venueLocalExtras';
-import { lessonPublisherBadge, stripLessonPublisherMeta } from '../lib/lessonPublisher';
+import { lessonPublisherBadge, stripLessonPublisherMeta, getSchedulePosterMeta } from '../lib/lessonPublisher';
 import {
   expandPartyDatesInRange,
   isWeeklyRecurringParty,
@@ -330,19 +330,18 @@ const FeaturedPartyCard = ({
         type="button"
         className="vd-featured-card__poster"
         onClick={(e) => {
-          if (isLesson) return;
           e.stopPropagation();
           onOpenPoster?.(party);
         }}
-        aria-label={isLesson ? '수업 포스터' : '포스터 크게 보기'}
-        style={{ cursor: !isLesson && party.poster_url ? 'pointer' : 'default' }}
+        aria-label="포스터 크게 보기"
+        style={{ cursor: party.poster_url ? 'pointer' : 'default' }}
       >
         {party.poster_url ? (
           <img src={party.poster_url} alt="" className="vd-featured-card__poster-img" />
         ) : (
           <div className="vd-featured-card__poster-empty">포스터</div>
         )}
-        {party.poster_url && !isLesson ? <span className="vd-featured-card__poster-hint">탭 · 크게 보기</span> : null}
+        {party.poster_url ? <span className="vd-featured-card__poster-hint">탭 · 크게 보기</span> : null}
       </button>
 
       <div className={`vd-featured-card__body${isLesson ? ' vd-featured-card__body--lesson' : ''}`}>
@@ -1163,8 +1162,8 @@ export default function VenueDetailModal({
                       data-selected={selectedDate === date ? 'true' : undefined}
                       onClick={() => setSelectedDate(date)}
                     >
-                      {p.poster_url ? (
-                        <img src={p.poster_url} alt="" className="vd-schedule-thumb__img" />
+                      {getSchedulePosterMeta(p) || p.poster_url ? (
+                        <img src={getSchedulePosterMeta(p) || p.poster_url} alt="" className="vd-schedule-thumb__img" />
                       ) : (
                         <div className="vd-schedule-thumb__placeholder" />
                       )}

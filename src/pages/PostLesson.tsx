@@ -5,7 +5,7 @@ import { supabase } from '../lib/supabase'
 import Tesseract from 'tesseract.js'
 
 import { CLASS_CATEGORIES, DANCE_STYLES, DAYS } from '../lib/constants'
-import { appendLessonPublisherMeta } from '../lib/lessonPublisher'
+import { appendLessonPublisherMeta, appendSchedulePosterMeta } from '../lib/lessonPublisher'
 import {
   WEEK_COUNT_OPTIONS,
   buildDurationLabel,
@@ -32,6 +32,8 @@ const PostLesson = ({ onBack, user, initialVenue = null }) => {
   const [isOcrProcessing, setIsOcrProcessing] = useState(false)
   const [preview, setPreview] = useState(null)
   const [file, setFile] = useState(null)
+  const [schedulePreview, setSchedulePreview] = useState(null)
+  const [scheduleFile, setScheduleFile] = useState(null)
   const [submitted, setSubmitted] = useState(false)
   const [step, setStep] = useState(1)
 
@@ -169,6 +171,14 @@ const PostLesson = ({ onBack, user, initialVenue = null }) => {
     }
   }
 
+  const handleScheduleFileChange = (e) => {
+    const selectedFile = e.target.files[0]
+    if (selectedFile) {
+      setScheduleFile(selectedFile)
+      setSchedulePreview(URL.createObjectURL(selectedFile))
+    }
+  }
+
   const handleSubmit = async () => {
     if (!file) return alert('포스터 이미지를 올려주세요.')
     if (!formData.title) return alert('강습 또는 동호회 명칭을 입력해주세요.')
@@ -187,6 +197,15 @@ const PostLesson = ({ onBack, user, initialVenue = null }) => {
         if (uploadError) throw uploadError
         const { data } = supabase.storage.from('posters').getPublicUrl(`lessons/${fileName}`)
         posterUrl = data.publicUrl
+      }
+
+      let schedulePosterUrl = ''
+      if (scheduleFile) {
+        const fileName = `${Date.now()}_schedule.jpg`
+        const { error: uploadError } = await supabase.storage.from('posters').upload(`lessons/${fileName}`, scheduleFile)
+        if (uploadError) throw uploadError
+        const { data } = supabase.storage.from('posters').getPublicUrl(`lessons/${fileName}`)
+        schedulePosterUrl = data.publicUrl
       }
 
       const publisherId = formData.location_id || '';
@@ -211,7 +230,10 @@ const PostLesson = ({ onBack, user, initialVenue = null }) => {
         poster_url: posterUrl,
         status: 'approved',
         category_type: 'venue',
-        description: appendLessonPublisherMeta(formData.description, 'venue', publisherId),
+        description: appendSchedulePosterMeta(
+          appendLessonPublisherMeta(formData.description, 'venue', publisherId),
+          schedulePosterUrl
+        ),
       };
 
       const withLocationId = publisherId && !String(publisherId).startsWith('bar-')
@@ -356,6 +378,61 @@ const PostLesson = ({ onBack, user, initialVenue = null }) => {
                   )}
                 </div>
                 <input id="lesson-poster" type="file" accept="image/*" style={{ display: 'none' }} onChange={handleFileChange} />
+              </section>
+
+              {/* 일정 포스터 섹션 */}
+              <section style={{ marginBottom: '32px' }}>
+                <label style={{ display: 'block', fontSize: '15px', fontWeight: 700, color: '#374151', marginBottom: '12px' }}>다가오는 일정 수업포스터 (선택)</label>
+                <div 
+                  style={{ 
+                    width: 'calc(100% + 40px)', 
+                    marginLeft: '-20px', 
+                    minHeight: schedulePreview ? 'auto' : '200px', 
+                    background: 'white', 
+                    borderTop: '1px solid #F3F4F6',
+                    borderBottom: '1px solid #F3F4F6',
+                    display: 'flex', 
+                    flexDirection: 'column', 
+                    alignItems: 'center', 
+                    justifyContent: 'center',
+                    overflow: 'hidden',
+                    position: 'relative',
+                    boxShadow: '0 4px 6px -1px rgba(0,0,0,0.05)'
+                  }}
+                >
+                  {schedulePreview ? (
+                    <div style={{ width: '100%', position: 'relative' }}>
+                      <img src={schedulePreview} alt="Schedule Preview" style={{ width: '100%', height: 'auto', display: 'block' }} />
+                      <button 
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setSchedulePreview(null);
+                          setScheduleFile(null);
+                        }}
+                        style={{ 
+                          position: 'absolute', top: '16px', right: '16px', 
+                          background: 'rgba(0,0,0,0.6)', color: 'white', border: 'none', 
+                          borderRadius: '50%', width: '36px', height: '36px', 
+                          display: 'flex', alignItems: 'center', justifyContent: 'center', 
+                          cursor: 'pointer', zIndex: 10, backdropFilter: 'blur(4px)'
+                        }}
+                      >
+                        <X size={20} />
+                      </button>
+                    </div>
+                  ) : (
+                    <div 
+                      onClick={() => document.getElementById('schedule-poster').click()}
+                      style={{ padding: '30px 0', textAlign: 'center', cursor: 'pointer', width: '100%' }}
+                    >
+                      <div style={{ width: '56px', height: '56px', borderRadius: '28px', background: '#F9FAFB', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 12px', boxShadow: '0 2px 8px rgba(0,0,0,0.05)' }}>
+                        <Camera size={28} color="#9CA3AF" />
+                      </div>
+                      <p style={{ fontSize: '14px', fontWeight: 600, color: '#6B7280' }}>일정 포스터 추가</p>
+                    </div>
+                  )}
+                </div>
+                <input id="schedule-poster" type="file" accept="image/*" style={{ display: 'none' }} onChange={handleScheduleFileChange} />
               </section>
 
               <div style={{ background: 'white', padding: '24px', borderRadius: '24px', border: '1px solid #F3F4F6' }}>
